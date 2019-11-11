@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.2.39'
+__version__ = '0.2.2.40'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -421,7 +421,10 @@ def get_environment():
     dbtemplate = os.environ.get('MQT_TEMPLATE_DB', 'openerp_template')
     database = os.environ.get('MQT_TEST_DB', 'openerp_test')
     travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
-    unbuffer = str2bool(os.environ.get('UNBUFFER', True))
+    if odoo_version == '6.1':
+        unbuffer = str2bool(os.environ.get('UNBUFFER', False))
+    else:
+        unbuffer = str2bool(os.environ.get('UNBUFFER', True))
     if travis_debug_mode:
         print('DEBUG: test_server.sys.path=%s' % sys.path)
     set_sys_path()
@@ -657,18 +660,13 @@ def main(argv=None):
             else:
                 command[-1] = to_test
                 # Run test command; unbuffer keeps output colors
-                if (os.environ.get('TRAVIS_PDB') != 'True' and
-                        odoo_version != "6.1"):
+                if os.environ.get('TRAVIS_PDB') != 'True':
                     command_call = (["unbuffer"] if unbuffer else []) + command
                 else:
                     command_call = command
             if travis_debug_mode >= 9:
                 errors = 0
             else:
-                # [antoniov: 2018-02-17] bleah!!!
-                if odoo_version == "6.1":
-                    subprocess.call(command_call[1:])
-                # [/antoniov]
                 print(" ".join(cmd_strip_secret(command_call)))
                 pipe = subprocess.Popen(command_call,
                                         stderr=subprocess.STDOUT,

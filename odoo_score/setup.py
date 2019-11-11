@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='odoo_score',
-      version='0.1.0.7',
+      version='0.1.0.8',
       description='Odoo 10.0 super core',
       long_description="""
 Odoo super core by Zeroincombenze(R) 
@@ -15,7 +15,7 @@ Odoo super core by Zeroincombenze(R)
       ],
       keywords='odoo',
       url='http://wiki.zeroincombenze.org/',
-      author='Antonio M. Vigliotti',
+      author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       packages=['odoo_score'],

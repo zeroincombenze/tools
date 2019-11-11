@@ -17,7 +17,7 @@ Tool to parse, edit and migrate python source code
       ],
       keywords='linux travis development',
       url='http://wiki.zeroincombenze.org/',
-      author='Antonio M. Vigliotti',
+      author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       packages=['travis_emulator'],

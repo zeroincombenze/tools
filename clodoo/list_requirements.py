@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.60'
+__version__ = '0.3.8.61'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -60,6 +60,7 @@ REQVERSION = {
     'pylint': {'7.0': '==1.6.4'},                        # Version by test pkgs
     'pylint-plugin-utils': {'7.0': '==0.2.4',
                             '0': '==0.2.4'},             # Version by test pkgs
+    'pyopenssl': '>=16.2.0',                             # by MQT
     'pysftp': {'7.0': '>=0.2.9'},
     'pyparsing': {'7.0': '==2.0.3', '10.0': '==2.1.10'},
     'pyPdf': {'7.0': '==1.13'},
@@ -148,19 +149,24 @@ PIP_TEST_PACKAGES = ['astroid',
                      'pycodestyle',
                      'pycparser',
                      'pyflakes',
+                     'Pygments',
                      'pylint',
                      'pylint-mccabe',
                      'pylint_odoo',
                      'pylint-plugin-utils',
+                     'pyopenssl',
                      'python_plus',
+                     'pyserial',
                      'PyWebDAV',
                      'PyYAML',
                      'QUnitSuite',
                      'restructuredtext_lint',
                      'rfc3986',
                      'setuptools',
+                     'simplejson',
                      'unittest2',
                      'urllib3[secure]',
+                     'websocket-client',
                      'whichcraft',
                      'wrapt',
                      'zerobug',

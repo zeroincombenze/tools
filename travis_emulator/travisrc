@@ -594,8 +594,8 @@ create_virtual_env() {
         run_traced "venv_mgr merge $TRAVIS_SAVED_HOME/VME/VME${VER} $TRAVIS_HOME -q"
       fi
       source bin/activate
-      if [ $opt_py3 -eq 0 -a -d $HOME/lib/python2.7/site-packages/ ]; then
-        export PYPI_CACHED=$HOME/lib/python2.7/site-packages/
+      if [ -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/ ]; then
+        export PYPI_CACHED=$HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/
       fi
       export PS_RUN_COLOR=$SAVE_COLOR
     fi

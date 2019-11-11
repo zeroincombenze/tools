@@ -1074,13 +1074,11 @@ if [ "$action" == "new_vm" ]; then
   VENV_TMP=${VENV_DIR}~
   [ -d $VENV_TMP ] && run_traced "rm -fR $VENV_TMP"
   if [ $opt_py3 -ne 0 ]; then
-    # TRAVIS_PYTHON_VERSION="3.5"
     PYTHON=python3
     PYTHON_BIN=$(readlink -e $(which python3))
     TRAVIS_PYTHON_VERSION=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
     PIP=pip3
   else
-    # TRAVIS_PYTHON_VERSION="2.7"
     PYTHON=python
     PYTHON_BIN=$(readlink -e $(which python))
     TRAVIS_PYTHON_VERSION=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")

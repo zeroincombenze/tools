@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.60
+__version__=0.3.8.61
 
 
 explore() {
@@ -168,7 +168,7 @@ do_action() {
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ breqs=$breqs${TRAVIS_HDR3_COLOR}"
         for f in $breqs npm; do
           pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-          if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$pyver" != "3"  ]]; then
+          if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" ]]; then
             echo -e "${TRAVIS_TEXT_COLOR}Check for $f${TRAVIS_HDR3_COLOR}"
           elif [ "$f" == "$pkg" ]; then
             eval $LISA status -q $pkg -d0 &>/dev/null

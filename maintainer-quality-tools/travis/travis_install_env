@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.39
+__version__=0.2.2.40
 
 
 conf_default() {
@@ -473,7 +473,7 @@ else
       [ -n "$x" ] && run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
     fi
     lessc --version
-    run_traced "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
+    [ -f $VIRTUAL_ENV/lib/python${TRAVIS_PYTHON_VERSION}/no-global-site-packages.txt ] && run_traced "rm -f $VIRTUAL_ENV/lib/python${TRAVIS_PYTHON_VERSION}/no-global-site-packages.txt"
     [ -z "${WKHTMLTOPDF_VERSION}" ] && export WKHTMLTOPDF_VERSION="0.12.4"
     [ -n "$(which example.com 2>/dev/null)" ] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version|grep -Eo [0-9.]+|head -n1) || CUR_WKHTMLTOPDF_VERSION=
     if [[ "$CUR_WKHTMLTOPDF_VERSION" == "$WKHTMLTOPDF_VERSION" ]]; then

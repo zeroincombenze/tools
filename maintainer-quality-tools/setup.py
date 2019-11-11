@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='maintainer-quality-tools',
-      version='0.2.2.39',
+      version='0.2.2.40',
       description='QA Tools for Odoo maintainers (MQT)',
       long_description="""
 The goal of Maintainer Quality Tools (MQT) is to provide helpers to ensure the quality of Odoo addons.

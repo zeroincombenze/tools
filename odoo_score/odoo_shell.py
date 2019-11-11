@@ -23,7 +23,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.1.0.7"
+__version__ = "0.1.0.8"
 
 
 MAX_DEEP = 20
@@ -1329,6 +1329,7 @@ def configure_fiscal_position(ctx):
         'company_id': company_id,
         'nature_id': env_ref(ctx, 'l10n_it_ade.n6'),
         'payability': 'I',
+        'law_reference': False,
     }
     if vat_a17c2a_id:
         vals['id'] = vat_a17c2a_id
@@ -1348,6 +1349,7 @@ def configure_fiscal_position(ctx):
         'amount_type': 'percent',
         'company_id': company_id,
         'payability': 'I',
+        'law_reference': False,
     }
     if vat_a17c2v_id:
         vals['id'] = vat_a17c2v_id
@@ -1367,6 +1369,7 @@ def configure_fiscal_position(ctx):
         'company_id': company_id,
         'nature_id': env_ref(ctx, 'l10n_it_ade.n6'),
         'payability': 'I',
+        'law_reference': False,
     }
     if ctx['majver'] < 9:
         vals['amount'] = 0.22
@@ -1385,6 +1388,7 @@ def configure_fiscal_position(ctx):
         'company_id': company_id,
         'nature_id': False,
         'payability': 'I',
+        'law_reference': False,
     }
     if vat_a17c6bv_id:
         vals['id'] = vat_a17c6bv_id
@@ -1404,6 +1408,7 @@ def configure_fiscal_position(ctx):
         'company_id': company_id,
         'nature_id': env_ref(ctx, 'l10n_it_ade.n6'),
         'payability': 'I',
+        'law_reference': False,
     }
     if ctx['majver'] < 9:
         vals['amount'] = 0.22
@@ -1422,6 +1427,7 @@ def configure_fiscal_position(ctx):
         'company_id': company_id,
         'nature_id': False,
         'payability': 'I',
+        'law_reference': False,
     }
     if vat_a17c6cv_id:
         vals['id'] = vat_a17c6cv_id
@@ -1431,7 +1437,7 @@ def configure_fiscal_position(ctx):
         vals['amount'] = 22.0
     vat_a17c6cv_id = synchro(ctx, model, vals)
 
-    vat_22spv_id = _get_tax_record(ctx, code='22%')
+    vat_22spv_id = _get_tax_record(ctx, code='22SPv')
     vals = {
         'description': '22SPv',
         'name': 'Art. 17ter - split-payment',
@@ -1442,6 +1448,7 @@ def configure_fiscal_position(ctx):
         'company_id': company_id,
         'nature_id': False,
         'payability': 'S',
+        'law_reference': 'Art. 17ter DPR633- split-payment',
     }
     if vat_22spv_id:
         vals['id'] = vat_22spv_id
@@ -1450,6 +1457,27 @@ def configure_fiscal_position(ctx):
     else:
         vals['amount'] = 22.0
     vat_22spv_id = synchro(ctx, model, vals)
+
+    vat_storno22spv_id = _get_tax_record(ctx, code='-22SPv')
+    vals = {
+        'description': '-22SPv',
+        'name': 'Storno split-payment',
+        'type_type_use': 'sale',
+        'account_id': account_vat_eus_id,
+        'refund_account_id': account_vat_sp_id,
+        'amount_type': 'percent',
+        'company_id': company_id,
+        'nature_id': False,
+        'payability': 'S',
+        'law_reference': False,
+    }
+    if vat_storno22spv_id:
+        vals['id'] = vat_storno22spv_id
+    if ctx['majver'] < 9:
+        vals['amount'] = -0.22
+    else:
+        vals['amount'] = -22.0
+    vat_storno22spv_id = synchro(ctx, model, vals)
 
     vals = {
         'description': 'a8c2v',
@@ -1658,6 +1686,12 @@ def configure_fiscal_position(ctx):
             'tax_dest_id': _get_tax_record(ctx, code='4v'),
         }
         synchro(ctx, model, vals)
+
+    vals = {
+        'sp_account_id': account_vat_sp_id,
+        'sp_tax_id': vat_storno22spv_id,
+    }
+    clodoo.writeL8(ctx, 'res.company', company_id, vals)
 
     print('Set fiscal positions for RC, Split-payment, lett., EU, xEU and 4%')
 
@@ -1908,6 +1942,12 @@ def create_delivery_env(ctx):
     partner = clodoo.browseL8(ctx, model, env_ref(ctx, 'z0bug.res_partner_2'))
     vals = {
         'ddt_show_price': True,
+        'goods_description_id': env_ref(
+                ctx,'l10n_it_ddt.goods_description_SFU'),
+        'carriage_condition_id': env_ref(
+                ctx,'l10n_it_ddt.carriage_condition_PAF'),
+        'transportation_method_id': env_ref(
+                ctx,'l10n_it_ddt.transportation_method_COR'),
     }
     clodoo.writeL8(ctx, model, env_ref(ctx, 'z0bug.res_partner_2'), vals)
     ctr += 1
@@ -2102,6 +2142,8 @@ def simulate_vg7(ctx):
                               'sale.order',
                               'commit',
                               order_id)
+        if id < 0:
+            raise IOError('!!Commit Failed (%d)!' % id)
 
     company_id = env_ref(ctx, 'z0bug.mycompany')
     if not company_id:
@@ -2386,7 +2428,8 @@ def test_synchro_vg7(ctx):
     def check_partner(ctx, TNL, partner_id, vals):
         general_check(ctx, TNL, 'res.partner', partner_id, vals)
 
-    def write_partner(ctx, TNL, company_id, vg7_id=None, name=None):
+    def write_partner(ctx, TNL, company_id, vg7_id=None, name=None,
+                      wrong_data=None):
         model = 'res.partner'
         print('Write %s ..' % model)
         if model not in TNL:
@@ -2395,15 +2438,16 @@ def test_synchro_vg7(ctx):
             TNL[model]['EXT'] = {}
         vg7_id = vg7_id or 7
         if vg7_id == 2:
+            # Test partner: it has all data filled
             vals = {
                 'vg7_id': vg7_id,
                 'id': env_ref(ctx, 'z0bug.res_partner_2'),
                 'goods_description_id': env_ref(
-                    ctx, 'l10n_it_ddt.goods_description_CAR'),
+                    ctx, 'l10n_it_ddt.goods_description_SFU'),
                 'carriage_condition_id': env_ref(
-                    ctx, 'l10n_it_ddt.carriage_condition_PA'),
+                    ctx, 'l10n_it_ddt.carriage_condition_PAF'),
                 'transportation_method_id': env_ref(
-                    ctx, 'l10n_it_ddt.transportation_method_DES'),
+                    ctx, 'l10n_it_ddt.transportation_method_COR'),
                 'electronic_invoice_subjected': True,
             }
         elif vg7_id == 17:
@@ -2423,11 +2467,13 @@ def test_synchro_vg7(ctx):
                 'vg7:postal_code': '10100',
                 'vg7:city': 'Torino',
                 'vg7:country': 'Italia',
-                'vg7:region': '(TO)',
                 'vg7:billing_esonerato_fe': False,
+                'vg7:piva': '00385870480'
             }
-        if vg7_id == 7:
-            vals['vg7:piva'] = '00385870480'
+            if wrong_data:
+                vals['vg7:region'] = '(TO)'
+            else:
+                vals['vg7:region'] = 'TORINO'
         partner_id = clodoo.executeL8(ctx,
                                       model,
                                       'synchro',
@@ -2445,13 +2491,13 @@ def test_synchro_vg7(ctx):
                 raise IOError('!!Invalid state of order %d!' % order_id)
         if order.partner_id.id == env_ref(ctx, 'z0bug.res_partner_2'):
             if order.goods_description_id.id != env_ref(
-                    ctx, 'l10n_it_ddt.goods_description_CAR'):
+                    ctx, 'l10n_it_ddt.goods_description_SFU'):
                 raise IOError('!!Invalid good des. order %d!' % order_id)
             if order.carriage_condition_id.id != env_ref(
-                    ctx, 'l10n_it_ddt.carriage_condition_PA'):
+                    ctx, 'l10n_it_ddt.carriage_condition_PAF'):
                 raise IOError('!!Invalid carriage cond. order %d!' % order_id)
             if order.transportation_method_id.id != env_ref(
-                    ctx, 'l10n_it_ddt.transportation_method_DES'):
+                    ctx, 'l10n_it_ddt.transportation_method_COR'):
                 raise IOError('!!Invalid trans. meth. order %d!' % order_id)
         if note and order.note != note:
             raise IOError('!!Invalid order %d note!' % order_id)
@@ -2565,7 +2611,7 @@ def test_synchro_vg7(ctx):
                               'commit',
                               order_id)
         if id < 0:
-            raise IOError('!!Commit Failed!')
+            raise IOError('!!Commit Failed (%d)!' % id)
         rec = clodoo.browseL8(ctx, 'sale.order', order_id)
         if state:
             if rec['state'] != state:
@@ -2690,7 +2736,7 @@ def test_synchro_vg7(ctx):
                               'commit',
                               invoice_id)
         if id < 0:
-            raise IOError('!!Commit Failed!')
+            raise IOError('!!Commit Failed (%d)!' % id)
         rec = clodoo.browseL8(ctx, 'account.invoice', invoice_id)
         if state:
             if rec['state'] != state:
@@ -2718,6 +2764,7 @@ def test_synchro_vg7(ctx):
     TNL['LOC'] = {}
     TNL['EXT'] = {}
 
+    pdb.set_trace()
     clodoo.executeL8(ctx,
                      'ir.model.synchro.cache',
                      'set_loglevel',
@@ -2761,11 +2808,11 @@ def test_synchro_vg7(ctx):
     ctx['vg7_id_product_b'] = vg7_id_product_b
 
     # Repeat 2 times to check correct synchronization
-    write_partner(ctx, TNL, company_id)
+    write_partner(ctx, TNL, company_id, wrong_data=True)
     write_partner(ctx, TNL, company_id)
 
     write_partner(ctx, TNL, company_id, vg7_id=17)
-    # Partner fo sale order & invoice
+    # Partner for sale order & invoice
     write_partner(ctx, TNL, company_id, vg7_id=2)
 
     # Repeat 2 times with different state
@@ -3383,10 +3430,10 @@ print(' - set_products_2_consumable     - set_tax_code_on_invoice')
 print(' - set_products_delivery_policy  - set_comment_on_invoice')
 print(' RIBA                            DELIVERY/SHIPPING')
 print(' - configure_RiBA                - change_ddt_number')
-print(' - manage_riba                   - show_empty_ddt')
-print(' PARTNER/USER                    COMMISSION')
-print(' - configure_fiscal_position     - create_commission_env')
-print(' - set_ppf_on_partner')
+print(' - manage_riba                   - create_delivery_env')
+print(' PARTNER/USER                    - show_empty_ddt')
+print(' - configure_fiscal_position     COMMISSION')
+print(' - set_ppf_on_partner            - create_commission_env')
 print(' - deduplicate_partner           OTHER TABLES')
 print(' - reset_email_admins            - set_report_config')
 print(' - simulate_user_profile         - rename_coa')

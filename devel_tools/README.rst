@@ -45,7 +45,8 @@ Installation
 ------------
 
 
-To install current version:
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -269,7 +270,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2019-10-30
+Last Update / Ultimo aggiornamento: 2019-11-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
