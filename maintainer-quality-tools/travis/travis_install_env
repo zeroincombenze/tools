@@ -188,7 +188,7 @@ set_pythonpath() {
           echo "if '$pth' not in sys.path:    sys.path.insert(0, '$pth')" >> $PYLIB/sitecustomize.py
           if echo ":$PYTHONPATH":|grep -q ":$pth:"; then
             x=${PYTHONPATH//$pth/}
-            export $PYTHONPATH=${x//::/:}
+            export PYTHONPATH=${x//::/:}
           fi
         done
         [ "${PYTHONPATH:0:1}" == ":" ] && export $PYTHONPATH=${PYTHONPATH:1}
