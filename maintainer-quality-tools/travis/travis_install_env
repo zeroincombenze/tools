@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.40
+__version__=0.2.2.41
 
 
 conf_default() {
@@ -639,6 +639,8 @@ else
     elif [[ -f "${ODOO_PATH}/odoo/tests/common.py" ]]; then
       run_traced "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
     fi
+    # FIX BUG:  pillow require docutils 0.12 but doc packages install docutils >= 0.13
+    run_traced "pip install pillow==3.4.2 -U -I"
     if [ $opt_verbose -gt 0 ]; then
       echo "Content of ${HOME}:"
       ls -l ${HOME}

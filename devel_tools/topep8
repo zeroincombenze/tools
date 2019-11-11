@@ -37,7 +37,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.2.24
+__version__=0.2.2.25
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 NO_APT_GET="(build-essential|curl|git|gradle|gzip|java|lessc|nodejs|npm|openssl|python-setuptools|python-simplejson|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
@@ -258,10 +258,10 @@ format_yaml() {
         fi
         lne=$(echo $line)
         if [[ "$cur_sect" == "odoo_repo" && ! $lne =~ -\ TESTS=...\ ODOO_REPO=.*/OCB ]]; then
-          if [[ ! "${found[repo_zero]}" == "t" ]]; then
+          if [[ ! "${found[repo_zero]}" == "t" || "$PKGNAME" == "OCB" ]]; then
             x=$(echo $opt_copy|grep -Eo [a-z]+|head -n1)
             org=$(build_odoo_param GIT_ORGNM $odoo_vid "" "$x")
-            echo "  - TESTS=\"1\" ODOO_REPO=\"$org/OCB\"">>$fntmp
+            echo "    - TESTS=\"1\" ODOO_REPO=\"$org/OCB\"">>$fntmp
           fi
           cur_sect=
         fi
@@ -291,6 +291,12 @@ format_yaml() {
             cur_sect=
           fi
           echo "$line">>$fntmp
+        elif [[ "$cur_sect" == "cache" && $lne =~ apt:\ true ]]; then
+          :
+        elif [[ "$cur_sect" == "cache" && $lne =~ directories: ]]; then
+          :
+        elif [[ "$cur_sect" == "cache" && $lne =~ -\ .HOME/.cache/pip ]]; then
+          :
         elif [[ $lne =~ -\ TESTS=...\ ODOO_REPO=.zeroincombenze/OCB. ]]; then
           found[repo_zero]="t"
           cur_sect="odoo_repo"
@@ -309,6 +315,12 @@ format_yaml() {
           if [ "$PKGNAME" != "OCB" ]; then
             echo "$line">>$fntmp
           fi
+        elif [[ $lne =~ cache: ]]; then
+          cur_sect="cache"
+          echo "cache:">>$fntmp
+          echo "  apt: true">>$fntmp
+          echo "  directories:">>$fntmp
+          echo "    - \$HOME/.cache/pip">>$fntmp
         elif [[ $lne =~ \#\ Use\ Zeroincombenze(R)\ tools ]]; then
           found[before_install_zero]="t"
           echo "$line">>$fntmp
@@ -318,6 +330,8 @@ format_yaml() {
         elif [[ "$lne" =~ "- pip install urllib3[secure] --upgrade" ]]; then
           :
         elif [[ $lne =~ -\ export\ TRAVIS_DEBUG_MODE=... ]]; then
+          :
+        elif [[ $lne =~ -\ TRAVIS_DEBUG_MODE=... ]]; then
           :
         elif [[ $lne =~ -\ ln\ -s\ .*/build/.*ODOO_REPO.*VERSION ]]; then
           :
@@ -341,14 +355,13 @@ format_yaml() {
               echo "  - WKHTMLTOPDF_VERSION=\"0.12.1\"">>$fntmp
             fi
             cur_sect=
-            echo "$line">>$fntmp
+            # echo "$line">>$fntmp
           else
             :
           fi
         elif [[ $lne =~ -\ travis_install_nightly ]]; then
           echo "# $line">>$fntmp
         elif [[ $lne =~ -\ LINT_CHECK=... ]]; then
-          # [ "$PKGNAME" == "OCB" ] && line=${line/1/0}
           echo "$line">>$fntmp
         elif [[ $lne == -\ pip\ install\ -r\ .*/maintainer-quality-tools/requirements.txt ]]; then
           echo "# $line">>$fntmp
@@ -369,7 +382,11 @@ format_yaml() {
             for a in $($LISTREQ -p"$p" -tbin -q -s' ' -BT); do
               if [ "$a" == "psycopg2" ]; then
                 echo "      - $a-binary">>$fntmp
-              elif [[ ! $a =~ $NO_APT_GET ]]; then
+              elif [ "$a" == "wkhtmltopdf" ]; then
+                :
+              elif [[ $a =~ $NO_APT_GET ]]; then
+                printf "      # - %-32.32s# Already in TravisCI\n" "$a">>$fntmp
+              else
                 echo "      - $a">>$fntmp
               fi
             done
@@ -382,11 +399,9 @@ format_yaml() {
         elif [ "$line" == "before_install:" ]; then
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp
-          echo "  - export TRAVIS_DEBUG_MODE=\"1\"">>$fntmp
-          # echo "  - pip install urllib3[secure] --upgrade; true">>$fntmp
           if [ "$PKGNAME" == "OCB" ]; then
-            echo "  - \"export DISPLAY=:99.0\"">>$fntmp
-            echo "  - \"sh -e /etc/init.d/xvfb start\"">>$fntmp
+            echo "  # - \"export DISPLAY=:99.0\"">>$fntmp
+            echo "  # - \"sh -e /etc/init.d/xvfb start\"">>$fntmp
           fi
         elif [ "$line" == "install:" ]; then
           cur_sect=${line:0: -1}
@@ -397,6 +412,7 @@ format_yaml() {
         elif [[ $line =~ global: ]]; then
           cur_sect=$(echo ${line:0: -1})
           echo "$line">>$fntmp
+          echo "  - export TRAVIS_DEBUG_MODE=\"1\"">>$fntmp
         elif [ "$line" == "addons:" ]; then
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp

@@ -16,7 +16,7 @@ MODULE_ID = 'devel_tools'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.2.2.24"
+__version__ = "0.2.2.25"
 
 
 def version():
