@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.61'
+__version__ = '0.3.8.62'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -60,7 +60,7 @@ REQVERSION = {
     'pylint': {'7.0': '==1.6.4'},                        # Version by test pkgs
     'pylint-plugin-utils': {'7.0': '==0.2.4',
                             '0': '==0.2.4'},             # Version by test pkgs
-    'pyopenssl': '>=16.2.0',                             # by MQT
+    'pyopenssl': {'0': '>=16.2.0', },                    # by MQT
     'pysftp': {'7.0': '>=0.2.9'},
     'pyparsing': {'7.0': '==2.0.3', '10.0': '==2.1.10'},
     'pyPdf': {'7.0': '==1.13'},

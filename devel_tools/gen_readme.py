@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.23"
+__version__ = "0.2.2.24"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -964,9 +964,19 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
             if is_preproc:
                 if line[0:12] == '.. $include ':
                     filename = line[12:].strip()
-                    state, text = parse_local_file(ctx,
-                                                   filename,
-                                                   state=state)
+                    if filename.endswith('.csv'):
+                        full_fn = get_template_fn(ctx, filename)
+                        full_fn_rst = '%s.rst' % full_fn[: -4]
+                        os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
+                            ctx['odoo_fver'], full_fn, full_fn_rst))
+                        state, text = parse_local_file(ctx,
+                                                       full_fn_rst,
+                                                       state=state)
+                        os.unlink(full_fn_rst)
+                    else:
+                        state, text = parse_local_file(ctx,
+                                                       filename,
+                                                       state=state)
                     state, text = append_line(state, text, nl_bef=nl_bef)
                     target += text + '\n'
                 elif line[0:12] == '.. $block ':
