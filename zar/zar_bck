@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.33.1
+__version__=1.3.33.2
 
 
 inherit_options() {
@@ -144,12 +144,12 @@ if [ -n "$dblist" ]; then
   inherit_options
   if [ "$BCK_ENV" != "DEV" -a -z "$opt_name" -a $test_mode -eq 0 -a $opt_repl -eq 0 ]; then
     if [ -f $TDIR/zar_purge ]; then
-      cmd=$TDIR/zar_purge
+      ZAR_PURGE=$TDIR/zar_purge
     else
-      cmd=./zar_purge
+      ZAR_PURGE=./zar_purge
     fi
-    wlog "\$ $cmd $OPTS $DBSEL"
-    eval $cmd $OPTS "'$dbsel'"
+    # wlog "\$ $ZAR_PURGE $OPTS $DBSEL"
+    # eval $ZAR_PURGE $OPTS "'$dbsel'"
   fi
   pushd $DBCKDIR >/dev/null
   dtc=$(date +%Y%m%d)
@@ -161,7 +161,12 @@ if [ -n "$dblist" ]; then
       wlog "- DB $db to receive"
     fi
     if [ -z "$opt_name" ]; then
-      expand_tar "$db"
+      if [ -z "$ZAR_PURGE" ]; then
+        expand_tar "$db"
+      else
+        wlog "\$ $ZAR_PURGE $OPTS -i -e $db"
+        eval $ZAR_PURGE $OPTS -i -e "'$db'"
+      fi
       sqlfname=$DBCKDIR/$db-$dtc.sql
     else
       sqlfname=$opt_name

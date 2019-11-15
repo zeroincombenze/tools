@@ -228,8 +228,18 @@ status	msgid	msgstr
 	Customer country is not set.	Nazione del cliente non impostata.
 	Customer country not set.	Nazione cliente non impostata.
 	Customer Credit Notes	Note credito clienti
+	Customer Fiscal Representative name is not set.	Nome rappresentante fiscale non impostato
 	Customer Invoice Lines	Righe fatture clienti
+	Customer province is not set.	Provincia cliente non impostata
 	Customer province not set.	Provincia cliente non impostata
+	Customer Stabile Organization city is not set.	Città stabile organizzazione cliente non impostata
+	Customer Stabile Organization country is not set.	Nazione stabile organizzazione cliente non impostata
+	Customer Stabile Organization must have name and surname.	La stabile organizzazione cliente deve avere un nome e cognome
+	Customer Stabile Organization province is not set.	Provincia stabile organizzazione cliente non impostata
+	Customer Stabile Organization street is not set.	Indirizzo stabile organizzazione cliente non impostata
+	Customer Stabile Organization vat country is different from from address country.	La nazione della partita IVA della stabile organizzazione è diversa da quella in indirizzo
+	Customer Stabile Organization vat is not set.	Partita IVA stabile organizzazione cliente non impostata
+	Customer Stabile Organization ZIP is not set.	CAP stabile organizzazione cliente non impostata
 	Customer street is not set.	Indirizzo del cliente non impostato.
 	Customer street not set.	Indirizzo cliente non impostato
 	Customer Taxes 	IVA v/clienti
@@ -304,6 +314,7 @@ status	msgid	msgstr
 	Discount Supplement Product	Prodotto per sconto maggiorazione
 	Display Name	Nome visualizzato
 	District	Distretto/provincia
+	Do not insert fiscalcode if it is equal to VAT number	Non inserire CF se eguale alla partita IVA
 	Document {d} has invoice linked	Il documento {d} ha una fattura collegata
 	Document %d has invoice linked	Il documento %d ha una fattura collegata
 	Document ID	ID documento
@@ -423,6 +434,7 @@ status	msgid	msgstr
 	General Data	Dati generali
 	General information	Informazioni generali
 	Generated invoice	Fattura generata
+	Give a unique name for Sender Channel	Assegnamento nome univoco del canale di invio
 	Give a unique name for this report model	Assegnamento nome univoco al rapporto
 	Give a unique name for this report style	Assegnamento nome univoco allo stile rapporto
 	Give a unique name for this report template	Assegnamento nome univoco alla specifica del rapporto
@@ -464,6 +476,7 @@ status	msgid	msgstr
 	Initial balance	Saldo iniziale
 	Initial Balances	Saldi iniziali
 	Intermediary	Intermediario
+	Invalid xml %s.	Xml %s non valido
 	Inventory	Magazzino
 	Inventory Adjustments	Rettifiche di inventario
 	Inventory Locations	Locazioni d'Inventario
@@ -554,6 +567,7 @@ status	msgid	msgstr
 	Model to apply this rule	Modello a cui applicare questa regola
 	Module	Modulo
 	Monthly	Mensile
+	Move TIN to FC if partner is PA	Trasforma P.IVA in codice fiscale se PA
 	Multi Report Document Style	Stile documento multi-documenti
 	Multi Report Template	Specifica multi-rapporto
 	Multi Report Template values	Valori specifica multi-rapporto
@@ -578,6 +592,9 @@ status	msgid	msgstr
 	No code	No codice
 	No code & Only first line	No codice & solo 1° riga
 	No currency found with code %s.	Divisa con codice %s non trovata.
+	No EU customer fc	Codice fiscale per clienti extra-UE
+	No EU customer TIN	Partita IVA per clienti extra-UE
+	No FC if same of TIN	Non inserire CF se identico alla partita IVA
 	No partner allocated	Nessun soggetto allocato
 	No print	No stampa
 	No print Footer	No stampa piede
@@ -693,6 +710,7 @@ status	msgid	msgstr
 	Payments	Pagamenti
 	Payments Details	Dettagli pagamento
 	PDF Report	Rapporti PDF
+	PEC and Electronic Invoice	PEC e e-fattura
 	PEC to which the electronic invoice will be sent. Must be filled ONLY when the information element <CodiceDestinatario> is '0000000'	"Indirizzo PEC al quale inviare la fattura elettronica. Da valorizzare SOLO nei casi in cui l'elemento informativo <CodiceDestinatario> vale ""0000000"""
 	Percent	Percentuale
 	Percentage	Percentuale
@@ -783,6 +801,7 @@ status	msgid	msgstr
 	Register Registration Date	Data iscrizione albo
 	Registered	Registrata
 	Registration Date	Data di registrazione
+	Related DdT	DdT collegati
 	Related DDT	DdT collegati
 	Related DDTs	DdT correlati
 	Related DdTs	DdT correlati
@@ -873,7 +892,9 @@ status	msgid	msgstr
 	Set done	Completato
 	Set invoice communication type	Imposta tipo communicazione
 	Set Invoice Type	Imposta tipo fattura fiscale
+	Set invoice type	Imposta tipo fattura fiscale
 	Set to draft	Bozza
+	Set Type	Imposta tipo
 	Setting	Impostazione
 	Settings	Impostazioni
 	Settle commissions	Liquida le provvigioni
@@ -915,6 +936,7 @@ status	msgid	msgstr
 	Street not set.	Indirizzo non impostato
 	Subjected to electronic invoice	Soggetto a fattura elettronica
 	Subjected to Electronic Invoice	Soggetto a fattura elettronica
+	Subjected to Withholding	Soggetto a ritenuta d'acconto
 	Subtotal	Totale Riga
 	Sum Due	Corrispettivo dovuto
 	Summary Data	Dati riepilogo
@@ -982,6 +1004,7 @@ status	msgid	msgstr
 	This attachment contains the PDF report of the linked invoice	Questo allegato contiene il documento PDF della fattura collegata
 	This is the default commission used in the sales where this agent is assigned. It can be changed on each operation if needed.	Provvigione predefinita usata nelle vendita per questo agente. Può essere cambiata in qualsiasi riga
 	This report will be automatically included in the created XML	Questo documento verrà incluso automaticamente nell'XML generato
+	This wizard set default fiscal invoice type	Procedura per impostare il tipo di fattura fiscale
 	This wizard set default invoice communication type	Procedura per impostare il tipo di comunicazione in fattura
 	This year	Questo anno
 	Thumbnail	Miniatura

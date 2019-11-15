@@ -1,12 +1,22 @@
 from __future__ import print_function, unicode_literals
 from past.builtins import basestring
+from future.utils import PY2, PY3, with_metaclass
 import sys
 
-__version__='0.1.2'
+
+__title__ = 'python_plus'
+__author__ = 'Antonio Maria Vigliotti'
+__license__ = 'MIT'
+__copyright__ = 'Copyright 2018-2020 SHS-AV srl'
+__ver_major__ = 0
+__ver_minor__ = 1
+__ver_patch__ = 2
+__ver_sub__ = ''
+__version__ = '0.1.2.1'
 
 PYCODESET = 'utf-8'
-PY2 = sys.version_info[0] == 2
-PY3 = sys.version_info[0] == 3
+# PY2 = sys.version_info[0] == 2
+# PY3 = sys.version_info[0] == 3
 if PY3:
     text_type = str
     bytestr_type = bytes
@@ -81,9 +91,9 @@ def qsplit(*args, **kwargs):
         maxsplit = args[2]
     else:
         maxsplit = -1
-    q = kwargs.get('q', ["'", '"'])
-    escape = kwargs.get('e', False)
-    quoted = kwargs.get('quoted', False)
+    quotes = kwargs.get('quotes', ["'", '"'])
+    escape = kwargs.get('escape', False)
+    enquote = kwargs.get('enquote', False)
     strip = kwargs.get('strip', False)
     source = _u(src)
     sts = False
@@ -101,13 +111,13 @@ def qsplit(*args, **kwargs):
             esc_sts = True
         elif ch == sts:
             sts = False
-            if quoted:
+            if enquote:
                 item += ch
         elif sts:
             item += ch
-        elif ch in q:
+        elif ch in quotes:
             sts = ch
-            if quoted:
+            if enquote:
                 item += ch
         elif ((isinstance(sep, (tuple, list)) and ch in sep) or
               (isinstance(sep, basestring) and ch == sep)):
@@ -126,3 +136,27 @@ def qsplit(*args, **kwargs):
     if isinstance(src, bytestr_type):
         return bstrings(result)
     return result
+
+# if PY3:
+#     def qsplit(src, sep=None, maxsplit=-1,
+#                 quotes=None, escape=None, enquote=None, strip=None):
+#         return __qsplit__(src, sep=sep, maxsplit=maxsplit, quotes=quotes,
+#                           escape=escape, enquote=enquote, strip=strip)
+# if PY2:
+#     def qsplit(*args, **kwargs):
+#         return __qsplit__(*args, **kwargs)
+
+
+class Base__(type):
+    def __instancecheck__(cls, instance):
+        if cls == __:
+            return isinstance(instance, text_type)
+        else:
+            return issubclass(instance.__class__, cls)
+
+class __(object, with_metaclass(Base__, text_type)):
+
+    def qsplit(self, sep=None, maxsplit=-1,
+               quotes=None, escape=None, enquote=None, strip=None):
+        return qsplit(src, sep=sep, maxsplit=maxsplit, quotes=quotes,
+                      escape=escape, enquote=enquote, strip=strip)

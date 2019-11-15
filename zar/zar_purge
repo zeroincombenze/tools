@@ -36,17 +36,19 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.33.1
+__version__=1.3.33.2
 
 
-OPTOPTS=(h        c        e      K        k          l       m          n            T         U          V           v)
-OPTDEST=(opt_help opt_conf opt_ex opt_cron opt_keep   opt_log opt_km     opt_dry_run  test_mode opt_user   opt_version opt_verbose)
-OPTACTI=(1        "="      1      1        "="        "="     "="        "1"          1         "="        "*>"        1)
-OPTDEFL=(0        ""       0      0        ""         ""      ""         0            0         "postgres" ""          0)
-OPTMETA=("help"   "file"   ""     "cron"   "# copies" "file"  "# copies" "do nothing" "test"    "username" "version"   "verbose")
+OPTOPTS=(h        c        e      i      I       K        k          l       m          n            T         U          V           v)
+OPTDEST=(opt_help opt_conf opt_ex opt_in opt_nce opt_cron opt_keep   opt_log opt_km     opt_dry_run  test_mode opt_user   opt_version opt_verbose)
+OPTACTI=(1        "="      1      1      1       1        "="        "="     "="        "1"          1         "="        "*>"        1)
+OPTDEFL=(0        ""       0      0      0       0        ""         ""      ""         0            0         "postgres" ""          0)
+OPTMETA=("help"   "file"   ""     ""     ""      "cron"   "# copies" "file"  "# copies" "do nothing" "test"    "username" "version"   "verbose")
 OPTHELP=("this help"\
  "configuration file (def zar.conf)"\
  "exact DB name (rather matches DB name)"\
+ "run inside backup (do not compress)"\
+ "do not expand neither compress files"\
  "run in cron environment"\
  "keep # recent copies of db (max 60)"\
  "log filename (def /var/log/bckdb.log)"\
@@ -116,7 +118,7 @@ if [ $dovalid -gt 0 ]; then
     if [ -n "$range" ]; then
       mindate_r=$(date -d "today - $XNC day" +%Y%m%d)
       mindate_a=$(date -d "today - $XNA month" +%Y%m%d)
-      expand_tar $db
+      [ $opt_nce -ne 0 ] || expand_tar $db
       wlog "Delete recent file older than $mindate_r (-$XNC days)"
       wlog "Delete monthly file older than $mindate_a (-$XNA months)"
       for fn in $db-*.sql; do
@@ -136,7 +138,7 @@ if [ $dovalid -gt 0 ]; then
         fi
       done
       dtc=$(date +%Y%m%d)
-      compress_tar $db "$db-$dtc.sql"
+      [ $opt_in -ne 0 -o $opt_nce -ne 0 ] || compress_tar $db "$db-$dtc.sql"
     fi
   done
 fi

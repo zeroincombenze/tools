@@ -97,7 +97,6 @@ __version__ = "0.2.2.25"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
-    'oia': 'Odoo-Italia-Associazione',
     'oca': 'OCA',
 }
 DEFINED_SECTIONS = ['description', 'descrizione', 'features',
@@ -382,19 +381,15 @@ def torst(text, state=None):
     return state, text
 
 
+def totroff(text, state=None):
+    return state, text
+
+
 def tohtml(text, state=None):
     if not text:
         return state, text
     state = state or {}
     state['html_state'] = state.get('html_state', {})
-    ## Convert gt & lt symbols to preserve html tags
-    # i = text.find('<http')
-    # while i >= 0:
-    #     j = text.find('>', i + 1)
-    #     if i >= 0 and j > i:
-    #         text = text[0:i] + '\a' + text[i + 1:]
-    #         text = text[0:j] + '\b' + text[j + 1:]
-    #     i = text.find('<http')
     text = text.replace('<', '&lt;').replace('>', '&gt;')
     text = text.replace('\a', '<').replace('\b', '>')
 
@@ -689,9 +684,6 @@ def expand_macro(ctx, token, default=None):
     elif token == 'try_me-URL':
         if ctx['git_orgid'] == 'oca':
             value = 'http://runbot.odoo.com/runbot'
-        elif ctx['git_orgid'] == 'oia':
-            value = 'https://odoo%s.odoo-italia.org' % (
-                ctx['odoo_majver'])
         else:
             value = 'https://erp%s.zeroincombenze.it' % (
                 ctx['odoo_majver'])
@@ -731,10 +723,11 @@ def expand_macro_in_line(ctx, line, state=None):
                 else:
                     value = line_of_list(ctx, state, value)
             in_fmt = 'rst'
-        if state['in_fmt'] == 'html':
+        if state['in_fmt'] in ('html', 'troff'):
             state, value = parse_source(ctx, value, state=state,
                                         in_fmt=in_fmt, out_fmt=out_fmt)
-            if 'srctype' in state:    del state['srctype']
+            if 'srctype' in state:
+                del state['srctype']
             return state, line[0:i] + value + line[j + 2:]
         if len(value.split('\n')) > 1:
             line = line[0:i] + value + line[j + 2:]
@@ -742,9 +735,6 @@ def expand_macro_in_line(ctx, line, state=None):
                                         in_fmt=in_fmt, out_fmt=out_fmt)
             if 'srctype' in state:    del state['srctype']
             return state, value
-        # elif state['in_fmt'] == 'html':
-        #     state, value = parse_source(ctx, value, state=state,
-        #                                 in_fmt=in_fmt, out_fmt=out_fmt)
         if len(tokens) > 1:
             fmt = tokens[1]
             line = line[0:i] + (fmt % value) + line[j + 2:]
@@ -1018,6 +1008,8 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                 target += text
     if in_fmt == 'rst' and out_fmt == 'html':
         state, target = tohtml(target, state=state)
+    elif in_fmt == 'rst' and out_fmt == 'troff':
+        state, target = totroff(target, state=state)
     else:
         state, target = torst(target, state=state)
     return state, target
@@ -1034,6 +1026,8 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         state['in_fmt'] = in_fmt
     elif filename.endswith('.html'):
         state['in_fmt'] = 'html'
+    elif filename.endswith('.troff'):
+        state['in_fmt'] = 'troff'
     elif not state['in_fmt']:
         state['in_fmt'] = 'raw'
     full_fn = get_template_fn(ctx, filename, ignore_ntf=ignore_ntf)
@@ -1533,7 +1527,7 @@ if __name__ == "__main__":
     else:
         ctx['odoo_fver'] = build_odoo_param('FULLVER',
                                             odoo_vid=ctx['odoo_vid'])
-        if ctx['odoo_fver'] not in ('12.0', '11.0', '10.0',
+        if ctx['odoo_fver'] not in ('13.0', '12.0', '11.0', '10.0',
                                     '9.0', '8.0', '7.0', '6.1'):
             ctx['odoo_fver'] = '12.0'
             print('Invalid odoo version: please use -b switch (%s)' %
@@ -1542,10 +1536,10 @@ if __name__ == "__main__":
         if not ctx['git_orgid']:
             ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
                                                 odoo_vid=ctx['odoo_vid'])
-    if ctx['git_orgid'] not in ('zero', 'oia', 'oca'):
+    if ctx['git_orgid'] not in ('zero', 'oca'):
         ctx['git_orgid'] = 'zero'
         if not ctx['suppress_warning']:
-            print('Invalid git-org: use -G %s or of zero|oia|oca' %
+            print('Invalid git-org: use -G %s or of zero|oca' %
                   ctx['git_orgid'])
     if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
         if ctx['product_doc'] == 'odoo':
@@ -1561,8 +1555,20 @@ if __name__ == "__main__":
                     os.path.isfile(os.path.join(ctx['path_name'],
                                                 '__init__.py'))):
                 ctx['odoo_layer'] = 'module'
-            elif os.path.basename(ctx['path_name']) == ctx['odoo_fver']:
+            elif (ctx['odoo_majver'] >= 10 and
+                    os.path.isdir(os.path.join(ctx['path_name'],
+                                                'odoo')) and
+                    os.path.isfile(os.path.join(ctx['path_name'],
+                                                'odoo-bin'))):
                 ctx['odoo_layer'] = 'ocb'
+            elif (ctx['odoo_majver'] < 10 and
+                    os.path.isdir(os.path.join(ctx['path_name'],
+                                                'openerp')) and
+                    os.path.isfile(os.path.join(ctx['path_name'],
+                                                'openerp-server'))):
+                ctx['odoo_layer'] = 'ocb'
+            # elif os.path.basename(ctx['path_name']) == ctx['odoo_fver']:
+            #     ctx['odoo_layer'] = 'ocb'
             else:
                 ctx['odoo_layer'] = 'repository'
         else:
@@ -1571,8 +1577,8 @@ if __name__ == "__main__":
                 ctx['odoo_layer'] = 'module'
             else:
                 ctx['odoo_layer'] = 'repository'
-        if not ctx['suppress_warning']:
-            print('Invalid layer: use -l %s or one of ocb|module|repository ' %
-                  ctx['odoo_layer'])
+        # if not ctx['suppress_warning']:
+        #     print('Invalid layer: use -l %s or one of ocb|module|repository ' %
+        #           ctx['odoo_layer'])
     sts = generate_readme(ctx)
     sys.exit(sts)

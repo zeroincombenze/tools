@@ -32,10 +32,10 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.21
+__version__=0.2.2.22
 
 
-test_01() {
+__test_01() {
     local TESTOUT TESTRES TESTFN
     TESTFN=README
     TESTSRC=$LCLTEST_TMPDIR/$TESTFN
@@ -95,7 +95,7 @@ EOF
     test_result "please distribution 1" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_02() {
+__test_02() {
     local TESTOUT TESTRES TESTFN
     TESTFN=README
     TESTSRC=$LCLTEST_TMPDIR/$TESTFN
@@ -180,7 +180,7 @@ EOF
     test_result "please distribution 2" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_03() {
+__test_03() {
     local TESTOUT TESTRES TESTFN
     TESTFN=README
     TESTSRC=$LCLTEST_TMPDIR/$TESTFN
@@ -247,7 +247,7 @@ EOF
     test_result "please distribution 3" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_04() {
+__test_04() {
     local TESTOUT TESTRES TESTFN
     TESTFN=README
     TESTSRC=$LCLTEST_TMPDIR/$TESTFN
@@ -338,7 +338,7 @@ EOF
     test_result "please distribution 4" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_05() {
+__test_05() {
     local TESTOUT TESTRES TESTFN
     TESTFN=README
     TESTSRC=$LCLTEST_TMPDIR/$TESTFN
@@ -446,7 +446,7 @@ EOF
     test_result "please distribution 5" "$TESTOUT" "$TESTRES" "diff"
 }
 
-__NO_test_06() {
+__test_06() {
     local TESTOUT TESTRES TESTFN
     TESTFN=README
     TESTSRC=$LCLTEST_PRJPATH/$TESTFN

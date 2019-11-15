@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.21
+__version__=0.2.2.22
 
 
 #
@@ -392,16 +392,11 @@ cvt_doxygenconf() {
 }
 
 cvt_gitmodule() {
-#cvt_gitmodule(oca|zero|oia)
+#cvt_gitmodule(oca|zero)
     if [ -f .gitmodules ]; then
       local fn=.gitmodules
       local fntmp=$fn.tmp
-      local urlty=
-      if [ "${1:0:3}" == "oia" ]; then
-        urlty=oia-http
-      else
-        urlty=zero-http
-      fi
+      local urlty=zero-http
       rm -f $fntmp
       local line lne submod url p v
       while IFS= read -r line r || [ -n "$line" ]; do
@@ -1467,16 +1462,13 @@ do_register_testpypi() {
 
 
 do_annotate() {
-    wlog "do_annotate"
-    run_annotate_test "-T"
-    sts=$?
-    return $sts
+    wlog "Outdated function: annotate"
+    return $STS_FAILED
 }
 
-do_autope8() {
-    local opts=$(inherits_travis_opts "" "8")
-    run_traced "topep8 $opts $PKGPATH"
-    return $?
+do_autopep8() {
+    wlog "Outdated function: autopep8"
+    return $STS_FAILED
 }
 
 create_pkglist() {
@@ -1647,18 +1639,8 @@ do_build() {
 }
 
 do_check() {
-    wlog "do_check \"$1\" \"$2\" \"$3\""
-    local sts=$STS_FAILED
-    if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      local opts=$(inherits_travis_opts "K" "T")
-      run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
-      if [ $? -ne 0 ]; then sts=$?; fi
-    elif [ $opt_r -gt 0 ]; then
-      please_run_tests "-K"
-      sts=$?
-    else
-      sts=127
-    fi
+    wlog "Outdated function: check"
+    return $STS_FAILED
     return $sts
 }
 
@@ -1693,9 +1675,10 @@ do_distribution() {
     fi
     local sts=$STS_SUCCESS
     local currpt=zero
-    local ORIG= ORIGIN= UPSTREAM=
+    local ORIG= GIT_ORG=$2 UPSTREAM= OPTS
     local b f f1 f2 tmod x
-    local ver=$(get_ver)
+    local odoo_ver=$(get_ver)
+    [ -z "$GIT_ORG" ] && GIT_ORG=zero
     [ ${test_mode:-0} -eq 0 ] && tmod="" || tmod="default"
     if [ -n "$3" ]; then
       local travis_passed=1
@@ -1706,14 +1689,14 @@ do_distribution() {
       fi
     else
       local travis_passed=0
-      set_remote_info "$REPOSNAME" "." "$2"
+      set_remote_info "$REPOSNAME" "." "$GIT_ORG"
     fi
     if [ -f .gitrepname ]; then
       currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
     fi
-    local GITPRJ=$(build_odoo_param RUPSTREAM '.' "$tmod" $2)
+    local GITPRJ=$(build_odoo_param RUPSTREAM '.' "$tmod" $GIT_ORG)
     if [ -z "$GITPRJ" ]; then
-      local GITPRJ=$(build_odoo_param RORIGIN '.' "$tmod" $2)
+      local GITPRJ=$(build_odoo_param RORIGIN '.' "$tmod" $GIT_ORG)
     fi
     if [ $travis_passed -eq 0 ]; then
       if [ $opt_orig -gt 0 ]; then
@@ -1733,24 +1716,24 @@ do_distribution() {
       fi
     fi
     if [ $travis_passed -eq 0 ]; then
-      cvt_gitmodule "$2" "$currpt"
+      cvt_gitmodule "$GIT_ORG" "$currpt"
       if [ $sts -eq $STS_SUCCESS ]; then
         f1=oca_dependencies.txt
         if [ -f "$f1" ]; then
-          cvt_file $f1 $2 "" "$currpt" "$ORIG"
+          cvt_file $f1 $GIT_ORG "" "$currpt" "$ORIG"
           sts=$?
         fi
       fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        f1=$(findpkg ".travis.yml" ". ..")
-        if [ -n "$f1" ]; then
-          cvt_file $f1 $2 "travis" "$currpt" "$ORIG"
-          sts=$?
-        fi
-      fi
+      # if [ $sts -eq $STS_SUCCESS ]; then
+      #   f1=$(findpkg ".travis.yml" ". ..")
+      #   if [ -n "$f1" ]; then
+      #     cvt_file $f1 $GIT_ORG "travis" "$currpt" "$ORIG"
+      #     sts=$?
+      #   fi
+      # fi
     fi
     local PKGS= FL= PIGN=
-    for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py -o -name ".travis.yml" -o -name "README*" -a -not -name "*.bak" -a -not -name "*~" -a -not -name "*.z0i" -a -not -name "*.oca" -a -not -name "*.tmp"); do
+    for f in $(find . -type f \( -name __openerp__.py -o -name __manifest__.py -o -name ".travis.yml" -o -name "README*" -a -not -name "*.bak" -a -not -name "*~" -a -not -name "*.z0i" -a -not -name "*.oca" -a -not -name "*.tmp" \) ); do
       x=$(readlink -e $f)
       f1=$(dirname $x)
       f2=$(build_odoo_param REPOS $f1)
@@ -1765,11 +1748,11 @@ do_distribution() {
           [ $opt_verbose -gt 0 ] && echo "Submodule $f2 ignored ..."
           PIGN="$PIGN $f2"
         fi
-      else
-        if [[ $b =~ (__openerp__.py|__manifest__.py|README.md|README.rst|README) ]]; then
-          [ $opt_verbose -gt 0 ] && echo "Found file $x to exam ..."
-          FL="$FL $x"
-        fi
+      # else
+      #   if [[ $b =~ (__openerp__.py|__manifest__.py|README.md|README.rst|README) ]]; then
+      #     [ $opt_verbose -gt 0 ] && echo "Found file $x to exam ..."
+      #     FL="$FL $x"
+      #   fi
       fi
     done
     for f in $PKGS; do
@@ -1778,68 +1761,96 @@ do_distribution() {
       fi
       f2=$(basename $f)
       if [ ${test_mode:-0} -eq 0 -a ! -f $f2/LICENSE ]; then
-        if [ $ver -ge 10 -a "$PRJNAME" == "Odoo" ]; then
+        if [ $odoo_ver -ge 10 -a "$PRJNAME" == "Odoo" ]; then
           diff -q ~/lgpl.txt  $f2/LICENSE &>/dev/null || run_traced "cp ~/lgpl.txt  $f2/LICENSE"
         else
           diff -q ~/agpl.txt  $f2/LICENSE &>/dev/null || run_traced "cp ~/agpl.txt  $f2/LICENSE"
         fi
       fi
     done
-    for f in $FL; do
-      if [ $sts -ne $STS_SUCCESS ]; then
-        break
+    # for f in $FL; do
+    #   if [ $sts -ne $STS_SUCCESS ]; then
+    #     break
+    #   fi
+    #   f1=$(dirname $f)
+    #   f2=$(build_odoo_param PKGNAME $f1)
+    #   [ -z "$f2" ] && f2="."
+    #   if [[ ${f2:0:4} =~ (base|test) ]]; then
+    #     :
+    #   elif [ ${test_mode:-0} -eq 0 -a ! -f $f1/LICENSE ]; then
+    #     if [ $odoo_ver -ge 10 -a "$PRJNAME" == "Odoo" ]; then
+    #       diff -q ~/lgpl.txt  $f1/LICENSE &>/dev/null || run_traced "cp ~/lgpl.txt  $f1/LICENSE"
+    #     else
+    #       diff -q ~/agpl.txt  $f1/LICENSE &>/dev/null || run_traced "cp ~/agpl.txt  $f1/LICENSE"
+    #     fi
+    #   fi
+    #   b=$(basename $f)
+    #   pushd $f1 >/dev/null
+    #   if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$f" ]; then
+    #     run_traced "cp -p ORIG/$f $f"
+    #   fi
+    #   if [[ $b =~ ^(__openerp__.py|__manifest__.py)$ ]]; then
+    #     cvt_file $f $GIT_ORG "manifest" "$currpt" "$ORIG"
+    #     sts=$?
+    #     if [ $sts -ne $STS_SUCCESS ]; then
+    #       break
+    #     fi
+    #     for f2 in $(find . -type f -name "*.png" -o -name "*.xml" -o -name "*.css" -o -name "*.sass"); do
+    #       x="${f2: -4}"
+    #       if [ "$x" == ".xml" -o "$x" == ".css" ]; then
+    #         cvt_file $f2 $GIT_ORG "${f2: -3}" "$currpt" "$ORIG"
+    #       elif [  "${f2: -4}" == ".sass" ]; then
+    #         cvt_file $f2 $GIT_ORG "sass" "$currpt" "$ORIG"
+    #       else
+    #         cvt_file $f2 $GIT_ORG "graph" "$currpt" "$ORIG"
+    #       fi
+    #     done
+    #   elif [[ $b =~ ^(README.md|README.rst|README)$ ]]; then
+    #     if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$b" ]; then
+    #       run_traced "cp -p ORIG/$b $f"
+    #     fi
+    #     cvt_file $f $GIT_ORG "readme" "$currpt" "$ORIG"
+    #     sts=$?
+    #   elif [[ "$b" == ".travis.yml" ]]; then
+    #     if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$b" ]; then
+    #       run_traced "cp -p ORIG/$b $f"
+    #     fi
+    #     cvt_file $f $GIT_ORG "travis" "$currpt" "$ORIG"
+    #     sts=$?
+    #   fi
+    #   travis_passed=1
+    #   popd >/dev/null
+    # done
+    f2=$(readlink -e .)
+    for f in $(find . -type d -name 'egg-info'); do
+      d=$(dirname $f)
+      run_traced "pushd $d >/dev/null"
+      if [[ "$PWD" == "$f2" ]]; then
+        OPTS=-lrepository
+      else
+        OPTS=-lmodule
       fi
-      f1=$(dirname $f)
-      f2=$(build_odoo_param PKGNAME $f1)
-      [ -z "$f2" ] && f2="."
-      if [[ ${f2:0:4} =~ (base|test) ]]; then
-        :
-      elif [ ${test_mode:-0} -eq 0 -a ! -f $f1/LICENSE ]; then
-        if [ $ver -ge 10 -a "$PRJNAME" == "Odoo" ]; then
-          diff -q ~/lgpl.txt  $f1/LICENSE &>/dev/null || run_traced "cp ~/lgpl.txt  $f1/LICENSE"
-        else
-          diff -q ~/agpl.txt  $f1/LICENSE &>/dev/null || run_traced "cp ~/agpl.txt  $f1/LICENSE"
+      [ -f README.md ] && run_traced "rm -fR README.md"
+      run_traced "gen_readme.py -qG$GIT_ORG $OPTS"
+      if [ $odoo_ver -ge 8 ]; then
+        if [ -f __openerp__.py -o -f __manifest__.py ]; then
+          [ ! -d ./static ] && mkdir -p ./static
+          [ ! -d ./static/description ] && mkdir -p ./static/description
+          [ -d ./static/src/img/icon.png -a ! -d ./static/description/icong.png ] && run_traced "mv ./static/src/img/* ./static/description/"
+          run_traced "gen_readme.py -qH -G$GIT_ORG $OPTS"
+        fi
+      else
+        if [ -f __openerp__.py ]; then
+          [ ! -d ./static ] && mkdir -p ./static
+          [ ! -d ./static/src ] && mkdir -p ./static/src
+          [ ! -d ./static/src/img ] && mkdir -p ./static/src/img
+          [ -d ./static/description/icong.png -a ! -d ./static/src/img/icon.png ] && run_traced "mv ./static/description/* ./static/src/img/"
+          run_traced "gen_readme.py -qR -G$GIT_ORG $OPTS"
         fi
       fi
-      b=$(basename $f)
-      pushd $f1 >/dev/null
-      if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$f" ]; then
-        run_traced "cp -p ORIG/$f $f"
-      fi
-      if [[ $b =~ ^(__openerp__.py|__manifest__.py)$ ]]; then
-        cvt_file $f $2 "manifest" "$currpt" "$ORIG"
-        sts=$?
-        if [ $sts -ne $STS_SUCCESS ]; then
-          break
-        fi
-        for f2 in $(find . -type f -name "*.png" -o -name "*.xml" -o -name "*.css" -o -name "*.sass"); do
-          x="${f2: -4}"
-          if [ "$x" == ".xml" -o "$x" == ".css" ]; then
-            cvt_file $f2 $2 "${f2: -3}" "$currpt" "$ORIG"
-          elif [  "${f2: -4}" == ".sass" ]; then
-            cvt_file $f2 $2 "sass" "$currpt" "$ORIG"
-          else
-            cvt_file $f2 $2 "graph" "$currpt" "$ORIG"
-          fi
-        done
-      elif [[ $b =~ ^(README.md|README.rst|README)$ ]]; then
-        if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$b" ]; then
-          run_traced "cp -p ORIG/$b $f"
-        fi
-        cvt_file $f $2 "readme" "$currpt" "$ORIG"
-        sts=$?
-      elif [[ "$b" == ".travis.yml" ]]; then
-        if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$b" ]; then
-          run_traced "cp -p ORIG/$b $f"
-        fi
-        cvt_file $f $2 "travis" "$currpt" "$ORIG"
-        sts=$?
-      fi
-      travis_passed=1
-      popd >/dev/null
+      run_traced "popd >/dev/null"
     done
     if [ $opt_r -gt 0 ]; then
-      # local CCWD=$PWD
       for f in $PKGS; do
         if [ $sts -ne $STS_SUCCESS ]; then
           break
@@ -1852,7 +1863,6 @@ do_distribution() {
         sts=$?
         popd >/dev/null
       done
-      # cd $CCWD
     fi
     revaluate_travis
     if [ $sts -eq $STS_SUCCESS -a -z "$3" ]; then
@@ -2162,6 +2172,117 @@ do_duplicate() {
     return $sts
 }
 
+do_export() {
+    wlog "do_export '$1' '$2' '$3'"
+    local db module odoo_fver sts=$STS_FAILED
+    if [ "$PRJNAME" == "Odoo" ]; then
+        module=$1
+        db=$2
+    else
+        module=$1
+        db=$2
+        [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
+    fi
+    if [ -z "$module" -o -z "$db" ]; then
+        echo "Missing parameters! use:"
+        if [ "$PRJNAME" == "Odoo" ]; then
+            echo "> do_export 'DB'"
+        else
+            echo "> do_export -bBRANCH 'MODULE' 'DB'"
+        fi
+        return $STS_FAILED
+    fi
+    run_traced "run_odoo_debug -Wb$odoo_fver -usm $module -d $db"
+    sts=$?
+    [ $? -eq 0 ] && run_traced "run_odoo_debug -Wb$odoo_fver -em $module -d $db"
+    sts=$?
+    return $sts
+}
+
+do_import() {
+    wlog "do_import '$1' '$2' '$3'"
+    local db module odoo_fver sts=$STS_FAILED
+    if [ "$PRJNAME" == "Odoo" ]; then
+        module=$1
+        db=$2
+    else
+        module=$1
+        db=$2
+        [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
+    fi
+    if [ -z "$module" -o -z "$db" ]; then
+        echo "Missing parameters! use:"
+        if [ "$PRJNAME" == "Odoo" ]; then
+            echo "> do_import 'DB'"
+        else
+            echo "> do_import -bBRANCH 'MODULE' 'DB'"
+        fi
+        return $STS_FAILED
+    fi
+    [ $? -eq 0 ] && run_traced "run_odoo_debug -Wb$odoo_fver -im $module -d $db"
+    sts=$?
+    return $sts
+}
+
+do_translate() {
+    wlog "do_translate '$1' '$2' '$3'"
+    local confn db module odoo_fver sts=$STS_FAILED
+    if [ "$PRJNAME" == "Odoo" ]; then
+        module=$1
+        db=$2
+    else
+        module=$1
+        db=$2
+        [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
+    fi
+    confn=$HOME/clodoo/confs/${odoo_fver/./-}.conf
+    if [ ! -f $confn ]; then
+        echo "Configuration file $confn not founcd!"
+        return $STS_FAILED
+    fi
+    if [ -z "$module" -o -z "$db" ]; then
+        echo "Missing parameters! use:"
+        if [ "$PRJNAME" == "Odoo" ]; then
+            echo "> do_translate 'DB'"
+        else
+            echo "> do_translate -bBRANCH 'MODULE' 'DB'"
+        fi
+        return $STS_FAILED
+    fi
+    run_traced "pushd $HOME/clodoo >/dev/null"
+    run_traced "odoo_translation.py -b$odoo_fver -m $module -d $db -c $confn"
+    sts=$?
+    run_traced "popd >/dev/null"
+    return $sts
+}
+
+do_test() {
+    wlog "do_test '$1' '$2' '$3'"
+    local db module odoo_fver sts=$STS_FAILED
+    if [ "$PRJNAME" == "Odoo" ]; then
+        module=$1
+        db=$2
+    else
+        module=$1
+        db=$2
+        [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
+    fi
+    if [ -z "$module" ]; then
+        echo "Missing parameters! use:"
+        if [ "$PRJNAME" == "Odoo" ]; then
+            echo "> do_test ['DB']"
+        else
+            echo "> do_text -bBRANCH 'MODULE' ['DB']"
+        fi
+        return $STS_FAILED
+    fi
+    # [ -n "$db" ] && db="-d $db"
+    [ $? -eq 0 ] && run_traced "run_odoo_debug -Wb$odoo_fver -Tm $module"
+    sts=$?
+    return $sts
+}
+
+
 do_fetch() {
     opts=$(inherits_travis_opts "F" "D")
     opt_dry_run=0
@@ -2322,6 +2443,11 @@ do_replica() {
 do_synchro() {
     wlog "do_synchro $1 $2 \"$3\""
     local f opts
+    if [ -z "$3" ]; then
+      echo "Missed parameter! use:"
+      echo "\$ please synchro oca|zeroincombenze|zero|zero-merged TEXT"
+      return $STS_FAILED
+    fi
     set_executable
     if [ "$2" == "oca" -o "$2" == "zero-merged" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
@@ -2338,37 +2464,32 @@ do_synchro() {
           echo "Warning: see file $f"
         done
       fi
-    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
+    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
-        clean_dirs "$PKGPATH"
         run_traced "git checkout $BRANCH"
-        [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git checkout $BRANCH'"
+        # [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git checkout $BRANCH'"
         do_distribution "$PKGNAME" "$2"
+        clean_dirs "$PKGPATH"
         local x=($git status -s)
         if [ -n "$x" ]; then
           if [ -n "$3" ]; then
             run_traced "git commit -am \"$3\""
-            [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"$3\"'"
+            # [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"$3\"'"
           elif [ $opt_diff -ne 0 ]; then
             run_traced "git commit -am \"[SYNCHRO] Update documentation\""
-            [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"[SYNCHRO] Update documentation\"'"
+            # [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"[SYNCHRO] Update documentation\"'"
           else
             run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
-            [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"[SYNCHRO] Synchronizing against OCA repository\"'"
+            # [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"[SYNCHRO] Synchronizing against OCA repository\"'"
           fi
         fi
         opts=
-        if [ $opt_force -ne 0 ]; then
-          if [ "$2" == "oia" -a $opt_dprj -gt 0 ]; then
-            opts="-f --all"
-          else
-            opts=-f
-          fi
-        fi
+        [ $opt_force -ne 0 ] && opts=-f
         # local ro=$(build_pkgurl $1 $2 RORIGIN)
-        local ro=$(build_odoo_param RORIGIN '' $1 $2)
-        run_traced "git push $opts $ro"
-        restore_owner
+        # local ro=$(build_odoo_param RORIGIN '' $1 $2)
+        # run_traced "git push $opts $ro"
+        run_traced "git push $opts"
+        # restore_owner
         git remote -v
         git status
       fi
@@ -2377,39 +2498,12 @@ do_synchro() {
       echo "\$ please synchro oca|zeroincombenze|zero|oia|zero-merged"
       sts=$STS_FAILED
     fi
-}
-
-do_test() {
-    wlog "do_test"
-    local sts=$STS_FAILED
-    if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      local opts=$(inherits_travis_opts "T" "T")
-      run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
-      if [ $? -ne 0 ]; then sts=$?; fi
-    elif [ $opt_r -gt 0 ]; then
-      please_run_tests "-T"
-      sts=$?
-    else
-      test_sts=$STS_FAILED
-      sts=$test_sts
-    fi
     return $sts
 }
 
 do_travis() {
-    wlog "do_travis \"$1\" \"$2\" \"$3\""
-    if [ $opt_r -gt 0 ]; then
-      please_run_tests "-KT"
-    else
-      opts=$(inherits_travis_opts "c" "E")
-      if [ -n "$opts" ]; then
-        travis "$opts" "$@"
-      else
-        travis "$@"
-      fi
-    fi
-    sts=$?
-    return $sts
+    wlog "Outdated function: travis"
+    return $STS_FAILED
 }
 
 do_version() {
@@ -2544,7 +2638,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|annotate|autopep8|build|check|chkconfig|[if-]commit|config|coverage|diff|distribution|docs|duplicate|download_rep|[if-]fetch|[if-]push|publish|pythonhosted|synchro|[if-]replace|replica|test|travis|version|wep"
+HLPCMDLIST="help|build|chkconfig|[if-]commit|config|coverage|diff|distribution|docs|duplicate|download_rep|export|[if-]fetch|import|[if-]push|publish|pythonhosted|synchro|[if-]replace|replica|test|translate|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"

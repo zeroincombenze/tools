@@ -1,11 +1,11 @@
-.. travis_emulator documentation master file, created by
-   sphinx-quickstart on 2019-11-01 18:49:32
+.. python_plus documentation master file, created by
+   sphinx-quickstart on 2019-11-14 22:26:02
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-==================================================
-Welcome to travis_emulator 0.2.2.22 documentation!
-==================================================
+===============================================
+Welcome to python_plus 0.1.2.1,1 documentation!
+===============================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|
 

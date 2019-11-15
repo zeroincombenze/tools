@@ -153,27 +153,27 @@ class Test():
         return sts
 
     def test_05(self, z0ctx):
-        res = qsplit(b'abc,def', b',', quoted=True)
+        res = qsplit(b'abc,def', b',', enquote=True)
         sts = self.Z.test_result(z0ctx,
-                                 "qsplit(b'abc,def', b','), quoted=True",
+                                 "qsplit(b'abc,def', b','), enquote=True",
                                  [b'abc', b'def'],
                                  res)
-        res = qsplit(b'"a,b",def', b',', quoted=True)
+        res = qsplit(b'"a,b",def', b',', enquote=True)
         sts += self.Z.test_result(z0ctx,
-                                  "qsplit(b'\"a,b\",def', b','), quoted=True",
+                                  "qsplit(b'\"a,b\",def', b','), enquote=True",
                                   [b'"a,b"', b'def'],
                                   res)
-        res = qsplit(b'"\'a\',b",def', b',', quoted=True)
+        res = qsplit(b'"\'a\',b",def', b',', enquote=True)
         sts += self.Z.test_result(z0ctx,
-                                  "qsplit(b'\"\'a\',b\",def', b','), quoted=True",
+                                  "qsplit(b'\"\'a\',b\",def', b','), enquote=True",
                                   [b'"\'a\',b"', b'def'],
                                   res)
         return sts
 
     def test_06(self, z0ctx):
-        res = qsplit(b'"\\\"abc\\\"",def', b',', e='\\')
+        res = qsplit(b'"\\\"abc\\\"",def', b',', escape='\\')
         sts = self.Z.test_result(z0ctx,
-                                 "qsplit(b'\"\\\"abc\\\"\",def', b','), e='\\'",
+                                 "qsplit(b'\"\\\"abc\\\"\",def', b','), escape='\\'",
                                  [b'"abc"', b'def'],
                                  res)
         res = qsplit(b'abc, def', b',', strip=True)
