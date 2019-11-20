@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.62
+__version__=0.3.8.63
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
@@ -126,7 +126,8 @@ if [ $opt_web -ne 0 ]; then
   rpcport=$(build_odoo_param RPCPORT $odoo_vid)
   odoo_user=$(build_odoo_param USER $odoo_vid)
 else
-  rpcport=$(build_odoo_param RPCPORT $odoo_vid debug)
+  # rpcport=$(build_odoo_param RPCPORT $odoo_vid debug)
+  rpcport=
   odoo_user=$(build_odoo_param USER $odoo_vid debug)
 fi
 if [ $opt_lang -ne 0 ]; then
@@ -242,8 +243,14 @@ if [ -n "$opt_modules" ]; then
       else
         OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
       fi
-    elif [ $opt_upd -ne 0 -o $opt_xtl -ne 0 ]; then
+    elif [ $opt_upd -ne 0 -a $opt_xtl -ne 0 ]; then
       OPTS="$OPTSIU"
+      [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
+    elif [ $opt_upd -ne 0 ]; then
+      OPTS="$OPTU"
+      [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
+    elif [  $opt_xtl -ne 0 ]; then
+      OPTS="$OPTI"
       [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
     else
       OPTS="$OPTSIU"
@@ -302,7 +309,10 @@ if [ $opt_touch -eq 0 ]; then
     else
       sed -i -e "s|^logfile *=.*|logfile = $HOME/$$.log|" $HOME/$lconfn
     fi
-    if [ -n "$opt_xport" ]; then
+    if [[ -z "$opt_xport" || "$opt_xport" == "0" ]]; then
+      sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = False|" $HOME/$lconfn
+      OPT_CONF="$OPT_CONF --no-xmlrpc"
+    else
       sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = $opt_xport|" $HOME/$lconfn
       OPT_CONF="$OPT_CONF --xmlrpc-port=$opt_xport"
     fi

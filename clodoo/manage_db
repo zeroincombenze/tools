@@ -4,7 +4,7 @@
 # Set Odoo Version in clodo files
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.62
+__version__=0.3.8.63
 
 
 up_oemod() {
@@ -142,14 +142,14 @@ set_opt_conf() {
     fi
 }
 
-OPTOPTS=(h        B       b         c        D       d      m         n           o             q           r           t         U          V           v           x)
-OPTDEST=(opt_help opt_dbg odoo_vids opt_conf opt_del opt_DB opt_multi opt_dry_run opt_with_demo opt_verbose opt_xmlport test_mode opt_DBuser opt_version opt_verbose opt_exit)
-OPTACTI=(1        1       "="       "="      1       "="    1         1           "*"           0           "="         1         "="        "*"         "+"         1)
-OPTDEFL=(1        0       "10.0"    ""       0       ""     -1        0           ""            -1          ""          0         ""         ""          -1          0)
-OPTMETA=("help"   ""      "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "")
+OPTOPTS=(h        B       b         c        D       d      m         n           o             q           r           t         U          V           v           w       x)
+OPTDEST=(opt_help opt_dbg odoo_vids opt_conf opt_del opt_DB opt_multi opt_dry_run opt_with_demo opt_verbose opt_xmlport test_mode opt_DBuser opt_version opt_verbose opt_way opt_exit)
+OPTACTI=(1        1       "="       "="      1       "="    1         1           "*"           0           "="         1         "="        "*"         "+"         "="     1)
+OPTDEFL=(1        0       "10.0"    ""       0       ""     -1        0           ""            -1          ""          0         ""         ""          -1          ""      0)
+OPTMETA=("help"   ""      "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "I|E"   "")
 OPTHELP=("this help"\
  "execute clodoo in debug mode"\
- "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or * (def 10.0)"\
+ "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or * (def 10.0)"\
  "configuration file (only update/action)"\
  "delete DB if exists"\
  "set database name or regex when update/action (@ is replaced by odoo major version)"\
@@ -162,6 +162,7 @@ OPTHELP=("this help"\
  "db user (@ is replaced by odoo major version)"\
  "show version end exit"\
  "verbose mode"\
+ "upgrade way: may be I (Internal) or E (External)"\
  "exit on error")
 OPTARGS=(action cmdlist)
 PHASE_LIST="00 01 02 03 10 11 12 13 14 15 16 17 18 19 20 22 30 31 32 50 51 53 54 55 61 62 90 91 92"
@@ -192,7 +193,7 @@ fi
 sts=$STS_SUCCESS
 discover_multi
 if [ "$odoo_vids" == "*" ]; then
-  [ $opt_multi -gt 0 ] && odoo_vids="12.0,11.0,10.0,9.0,8.0,7.0,6.1" || odoo_vids="10.0"
+  [ $opt_multi -gt 0 ] && odoo_vids="13.0,12.0,11.0,10.0,9.0,8.0,7.0,6.1" || odoo_vids="10.0"
 fi
 [ $opt_exit -ne 0 ] && opts_x=-x || opts_x=
 for odoo_vid in ${odoo_vids//,/ }; do
@@ -374,8 +375,8 @@ for odoo_vid in ${odoo_vids//,/ }; do
         [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk
       elif [ "$action" == "upgrade" ]; then
         echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk"
-        [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk
-        if [ "$cmdlist" != "all" ]; then
+        [ $opt_dry_run -ne 0 -a $opt_way != "I" ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk
+        if [ "$cmdlist" != "all" -a $opt_way != "E"  ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
