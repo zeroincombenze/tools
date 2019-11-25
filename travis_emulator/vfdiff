@@ -41,7 +41,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.22
+__version__=0.2.2.23
 
 
 vf_init() {
@@ -193,11 +193,11 @@ exec_iar() {
           if [[ "$left" =~ $opt_sel ]]; then
             local mime=$(file -b --mime-type $left)
             if [ $opt_md -ne 0  -a "$mime" == "text/x-python" -o "${left: -3}" == ".py" ]; then
-              if [ $opt_verbose -eq 0 ]; then
-                if diff -qZBI'^#' $left $right; then
-                  echo "diff -ZBI'^#' $cparv $left $right"
-                fi
-              fi
+              # if [ $opt_verbose -eq 0 ]; then
+              #   if diff -qZBI'^#' $left $right; then
+              #     echo "diff -ZBI'^#' $cparv $left $right"
+              #   fi
+              # fi
               run_traced "diff -ZBI'^#' $cparv $left $right"
             else
               run_traced "diff $cparv $left $right"
@@ -420,11 +420,11 @@ get_path_ver() {
     fi
 }
 
-OPTOPTS=(h        a       b        c        e         i       m      n            O         p         r            R        V           v           w         y        0       1       2)
-OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_rep      opt_reve opt_version opt_verbose opt_ignas opt_para opt_sts opt_sts opt_2nd)
-OPTACTI=(1        1       1        "="      1         1       1      1            "="       "="       "="          1        "*>"        1           1         1        0       1       1)
-OPTDEFL=(0        0       0        ""       0         0       0      0            ""        ""        ""           0        ""          0           0         0        0       0       0)
-OPTMETA=("help"   ""      ""       "file"   ""        ""      ""     "do nothing" "version" "package" "repository" ""       "version"   "verbose"   ""        ""       ""      ""      "")
+OPTOPTS=(h        a       b        c        e         i       m      n            O         p         q           r            R        V           v           w         y        0       1       2)
+OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_verbose opt_rep      opt_reve opt_version opt_verbose opt_ignas opt_para opt_sts opt_sts opt_2nd)
+OPTACTI=(1        1       1        "="      1         1       1      1            "="       "="       0           "="          1        "*>"        1           1         1        0       1       1)
+OPTDEFL=(0        0       0        ""       0         0       0      0            ""        ""        -1          ""           0        ""          -1          0         0        0       0       0)
+OPTMETA=("help"   ""      ""       "file"   ""        ""      ""     "do nothing" "version" "package" ""          "repository" ""       "version"   "verbose"   ""        ""       ""      ""      "")
 OPTHELP=("this help"\
  "diff all files (ignore exclusion list)"\
  "ignore space differences"\
@@ -435,6 +435,7 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "select target Odoo version (may be 7, 8, 9 o 10)"\
  "select package name"\
+ "silent mode"\
  "select repository name"\
  "reverse diff from target to source rather source to target"\
  "show version"\
