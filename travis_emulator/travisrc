@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.23
+#__version__=0.2.2.24
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -310,7 +310,7 @@ init_travis() {
         opt_verbose=1
       fi
     fi
-    if [ ${opt_verbose:-0} -ne 0 ]; then
+    if [ ${opt_verbose:-0} -ge 0 ]; then
       opts_verbose=-v
       export FLOG_ECHO=echo
     else
@@ -872,7 +872,7 @@ conf_default() {
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ html/ latex/ .tar .gz .zip __old_* .gitrepname __pycache__/"
-    set_cfg_def "filediffignore" ".po .pot LICENSE README README.md README.rst README.md.oca README.rst.oca README.md.z0i README.rst.z0i README.md.oia README.rst.oia .travis.yml.oca .travis.yml.z0i .travis.yml.oia"
+    set_cfg_def "filediffignore" ".po .pot LICENSE README README.md README.rst README.md.oca README.rst.oca README.md.z0i README.rst.z0i README.md.oia README.rst.oia .travis.yml.oca .travis.yml.z0i .travis.yml.oia /docs/"
     set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
     set_cfg_def "MQT_DEF_DEVPATH" "$HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/_travis"
     set_cfg_def "MQT_DEF_PATH" "$HOME/tools/maintainer-quality-tools/_travis"

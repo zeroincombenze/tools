@@ -41,7 +41,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.23
+__version__=0.2.2.24
 
 
 vf_init() {
@@ -462,7 +462,7 @@ if [ $opt_help -gt 0 ]; then
 fi
 [ $opt_all -gt 0 ] && opt_iar=0
 [ $opt_diffe -ne 0 ] & opt_para=1
-if [[ " 12 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
+if [[ " 13 12 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_ver="$odoo_ver.0"
 fi
 if [ -n "$opt_conf" -a -f "$opt_conf" ]; then

@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.25"
+__version__ = "0.2.2.26"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -416,6 +416,10 @@ def tohtml(text, state=None):
             t = text[i + 1: j]
             ii = t.find('<')
             jj = t.find('>')
+            if ii < 0 and jj < 0:
+                t = t.replace('&lt;', '<').replace('&gt;', '>')
+                ii = t.find('<')
+                jj = t.find('>')
             if ii >= 0 and jj > ii:
                 url = t[ii + 1: jj]
                 if url.startswith('http') and not url.startswith('https'):
@@ -1006,6 +1010,9 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                     text = text[0:x.end() + 1] + url
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
+    # if target.find('Art. 21') >= 0:
+    #     import pdb
+    #     pdb.set_trace()
     if in_fmt == 'rst' and out_fmt == 'html':
         state, target = tohtml(target, state=state)
     elif in_fmt == 'rst' and out_fmt == 'troff':

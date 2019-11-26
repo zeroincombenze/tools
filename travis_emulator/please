@@ -44,7 +44,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.23
+__version__=0.2.2.24
 
 
 #
@@ -2387,7 +2387,7 @@ do_status() {
     local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
     pushd $HOME/tools >/dev/null
     local PKGS=$(git status|tr "\t" " "|grep -E "^#? +(modified|modificato):"|awk -F: '{print $2}'|tr -d " "|awk -F/ '{print $1}'|sort -u|tr "\n" "|")
-    PKGS="(${PKGS:0: -1})"
+    [ -n "$PKGS" ] && PKGS="(${PKGS:0: -1})" || PKGS="()"
     popd >/dev/null
     for pkg in $PKGS_LIST; do 
         if [[ ! "$PKGS" == "()" && $pkg =~ $PKGS ]]; then
@@ -2395,7 +2395,6 @@ do_status() {
         else
             echo -e "\e[1m#****[ $pkg ]*****\e[0m"
         fi
-        echo "<<<vfdiff -q $HOME/tools/$pkg ~/dev/pypi/$pkg/$pkg>>>"        #debug
         vfdiff -q $HOME/tools/$pkg ~/dev/pypi/$pkg/$pkg
     done
 }

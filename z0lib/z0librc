@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-__version__=0.2.8.4
+__version__=0.2.8.5
 STS_FAILED=1
 STS_SUCCESS=0
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -45,14 +45,13 @@ export -f _install_z0librc
 
 ##############################################################################
 # Detect and print more OS informations than uname command
-# __version__=0.1.6
+# __version__=0.1.7
 # Print Linux OS system information in same way of uname command
 # but returns more information.
 # Based on Novell article http://www.novell.com/coolsolutions/feature/11251.html
 # Credits:
 # - Arun Singh (Novell Senior Software Engineer)
 # - antoniomaria.vigliotti@gmail.com (zeroincombenze® Senior Software Engineer)
-# - giuliano69 (https://github.com/Giuliano69/odoo_install/blob/master/odoo8_install.sh)
 #
 # Check history
 #    Date        Author      Result of xname -a -> xname -f
@@ -64,6 +63,7 @@ export -f _install_z0librc
 #    2017-12-07  antoniov    Linux 3.2.0-4-amd64 #1 SMP Debian 3.2.96-2 x86_64 GNU/Linux -> Debian
 #    2017-12-07  antoniov    Linux 3.10.0-693.5.2.el7.x86_64 #1 x86_64 x86_64 x86_64 GNU/Linux -> Debian
 #    2017-12-07  antoniov    Linux 3.16.0-4-amd64 #1 SMP Debian 3.16.7-ckt9-3~deb8u1 (2015-04-24) x86_64 GNU/Linux -> Debian
+#    2019-11-24  antoniov    Linux Fedora 30(Thirty 5.3.6-200.fc30.x86_64 x86_64) -> Debian
 #
 # Parameter $1:
 #   -a  print all
@@ -112,11 +112,6 @@ xuname() {
       DIST='Gentoo'
       CODENAME=$(cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//)
       VER=$(cat /etc/gentoo-release | sed s/.*release\ // | sed s/\ .*//)
-    elif [ -f /etc/redhat-release ]; then
-      DIST='RedHat'
-      CODENAME=$(cat /etc/redhat-release | sed s/.*\(// | sed s/\)//)
-      VER=$(cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//)
-      FAMILY="RHEL"
     elif [ -f /etc/SUSE-release ]; then
       DIST="SuSE"
       CODENAME=$(cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//)
@@ -144,6 +139,11 @@ xuname() {
     elif [ -f /etc/slackware-version ]; then
       DIST="Slackware"
       VER=""
+    elif [ -f /etc/redhat-release ]; then
+      DIST='RedHat'
+      CODENAME=$(cat /etc/redhat-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//)
+      FAMILY="RHEL"
     elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
       DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
       if [ -z "$DIST" ]; then
@@ -358,6 +358,7 @@ parseoptargs() {
         opt_verbose=1
       fi
     fi
+    [ ${opt_verbose:-0} -ge 0 ] && export FLOG_ECHO=echo || export FLOG_ECHO=
 }
 export -f parseoptargs
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Configuration file for the Sphinx documentation on 2019-11-01 18:49:32
+# Configuration file for the Sphinx documentation on 2019-11-25 23:48:05
 #
 # This file does only contain a selection of the most common options. For a
 # full list see the documentation:
@@ -20,14 +20,14 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'travis_emulator'
+project = 'z0lib'
 copyright = '2019, Antonio Maria Vigliotti'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '0.2.2.24'
+version = '0.2.8.4'
 # The full version, including alpha/beta/rc tags
-release = '0.2.2.24'
+release = '0.2.8.4'
 
 
 # -- General configuration ---------------------------------------------------
@@ -67,19 +67,19 @@ language = 'en'
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
-                    'description*.rst', 'descrizione*.rst', 'features*.rst',
-                    'oca_diff*.rst', 'certifications*.rst', 'prerequisites*.rst',
-                    'installation*.rst', 'configuration*.rst', 'upgrade*.rst',
-                    'support*.rst', 'usage*.rst', 'maintenance*.rst',
-                    'troubleshooting*.rst', 'known_issues*.rst',
-                    'proposals_for_enhancement*.rst', 'history*.rst', 'faq*.rst',
-                    'sponsor*.rst', 'copyright_notes*.rst', 'avaiable_addons*.rst',
-                    'contact_us*.rst',
-                    '__init__.rst', 'name*.txt', 'summary*.txt', 'sommario*.txt',
-                    'maturity*.txt', 'module_name*.txt', 'repos_name*.txt',
-                    'today*.txt',
-                    'authors*.txt', 'contributors*.txt', 'translators*.txt',
-                    'acknowledges*.txt']
+                    'description*', 'descrizione*', 'features*',
+                    'oca_diff*', 'certifications*', 'prerequisites*',
+                    'installation*', 'configuration*', 'upgrade*',
+                    'support*', 'usage*', 'maintenance*',
+                    'troubleshooting*', 'known_issues*',
+                    'proposals_for_enhancement*', 'history*', 'faq*',
+                    'sponsor*', 'copyright_notes*', 'avaiable_addons*',
+                    'contact_us*',
+                    '__init__*', 'name*', 'summary*', 'sommario*',
+                    'maturity*', 'module_name*', 'repos_name*',
+                    'today*',
+                    'authors*', 'contributors*', 'translators*',
+                    'acknowledges*']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None

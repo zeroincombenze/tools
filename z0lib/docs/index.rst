@@ -1,11 +1,11 @@
-.. devel_tools documentation master file, created by
-   sphinx-quickstart on 2019-11-11 07:48:10
+.. z0lib documentation master file, created by
+   sphinx-quickstart on 2019-11-25 23:48:05
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-==============================================
-Welcome to devel_tools 0.2.2.26 documentation!
-==============================================
+===========================================
+Welcome to z0lib 0.2.8.4 documentation!
+===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|
 
