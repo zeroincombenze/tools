@@ -138,7 +138,7 @@ test_06() {
       f=failed
       result=$(findpkg "$f" "$p" "$s")
     fi
-    test_result "find $f in $p" "$TRES" "$result"
+    [ "$f" == "failed" ] || test_result "find $f in $p" "$TRES" "$result"
 }
 
 test_07() {
