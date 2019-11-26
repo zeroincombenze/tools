@@ -7,20 +7,15 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -44,7 +39,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.24
+__version__=0.2.2.25
 
 
 #
@@ -294,7 +289,7 @@ get_ver() {
     else
       ver=master
     fi
-    [ -n "$1" -a "$ver" == "master" ] && ver=0 
+    [ -n "$1" -a "$ver" == "master" ] && ver=0
     echo $ver
 }
 
@@ -2389,7 +2384,7 @@ do_status() {
     local PKGS=$(git status|tr "\t" " "|grep -E "^#? +(modified|modificato):"|awk -F: '{print $2}'|tr -d " "|awk -F/ '{print $1}'|sort -u|tr "\n" "|")
     [ -n "$PKGS" ] && PKGS="(${PKGS:0: -1})" || PKGS="()"
     popd >/dev/null
-    for pkg in $PKGS_LIST; do 
+    for pkg in $PKGS_LIST; do
         if [[ ! "$PKGS" == "()" && $pkg =~ $PKGS ]]; then
             echo -e "\e[1m##### Package $pkg have to be pushed on github.com #####\e[0m"
         else
@@ -2600,7 +2595,7 @@ fi
 HLPCMDLIST="help|build|chkconfig|[commit|config|distribution|docs|download_rep|duplicate|export|import|list|publish|push|pythonhosted|synchro|replace|replica|status|test|translate|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 

@@ -1,6 +1,6 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-# Copy package files 
+# Copy package files
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -12,15 +12,10 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -38,7 +33,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.24
+__version__=0.2.2.25
 
 
 
@@ -82,7 +77,7 @@ if [ $opt_help -gt 0 ]; then
   exit $STS_SUCCESS
 fi
 
-opts_travis ""
+opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF

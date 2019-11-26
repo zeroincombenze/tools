@@ -14,6 +14,20 @@ z0lib 0.2.8.4
 Overview
 ========
 
+Simple bash library
+
++---------------+-----------------------------------------------------------+
+| xuname        | Detect and print more OS informations than uname command  |               |
++---------------+-----------------------------------------------------------+
+| parse_optargs | Parse command line arguments in a professional way        |                               |
++---------------+-----------------------------------------------------------+
+| print_help    | Print help for parse command line arguments               |
++---------------+-----------------------------------------------------------+
+
+You can find more info here:
+http://wiki.zeroincombenze.org/en/Linux/dev
+http://docs.zeroincombenze.org/z0lib/
+
 
 
 |
@@ -67,7 +81,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2019-11-25
+Last Update / Ultimo aggiornamento: 2019-11-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
