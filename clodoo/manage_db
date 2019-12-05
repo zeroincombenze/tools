@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.63
+__version__=0.3.8.64
 
 
 up_oemod() {
@@ -146,7 +146,7 @@ OPTOPTS=(h        B       b         c        D       d      m         n         
 OPTDEST=(opt_help opt_dbg odoo_vids opt_conf opt_del opt_DB opt_multi opt_dry_run opt_with_demo opt_verbose opt_xmlport test_mode opt_DBuser opt_version opt_verbose opt_way opt_exit)
 OPTACTI=(1        1       "="       "="      1       "="    1         1           "*"           0           "="         1         "="        "*"         "+"         "="     1)
 OPTDEFL=(1        0       "10.0"    ""       0       ""     -1        0           ""            -1          ""          0         ""         ""          -1          ""      0)
-OPTMETA=("help"   ""      "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "I|E"   "")
+OPTMETA=("help"   ""      "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "A|E"   "")
 OPTHELP=("this help"\
  "execute clodoo in debug mode"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or * (def 10.0)"\
@@ -162,7 +162,7 @@ OPTHELP=("this help"\
  "db user (@ is replaced by odoo major version)"\
  "show version end exit"\
  "verbose mode"\
- "upgrade way: may be I (Internal) or E (External)"\
+ "upgrade way: may be A (by App) or (External run odoo)"\
  "exit on error")
 OPTARGS=(action cmdlist)
 PHASE_LIST="00 01 02 03 10 11 12 13 14 15 16 17 18 19 20 22 30 31 32 50 51 53 54 55 61 62 90 91 92"
@@ -371,11 +371,9 @@ for odoo_vid in ${odoo_vids//,/ }; do
         eval $WCMD
       fi
       if [ "$action" == "module" ]; then
-        echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk"
-        [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk
+        run_traced "nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk"
       elif [ "$action" == "upgrade" ]; then
-        echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk"
-        [ $opt_dry_run -ne 0 -a $opt_way != "I" ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk
+        [ $opt_way != "A" ] || run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -um $cmdlist -d $db -sk"
         if [ "$cmdlist" != "all" -a $opt_way != "E"  ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
@@ -389,8 +387,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
         elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
-          echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db"
-          [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db
+          run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -l -d $db"
         else
           echo "$TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
@@ -400,8 +397,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           fi
         fi
       elif [ "$action" == "translate" ]; then
-        echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db"
-        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db
+        run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -l -d $db"
       else
         if [ -n "$cmdlist" ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"

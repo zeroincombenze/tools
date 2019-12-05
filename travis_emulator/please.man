@@ -34,6 +34,8 @@ Action is one of:
 .br
 * list
 .br
+* lsearch
+.br
 * publish
 .br
 * push
@@ -135,6 +137,15 @@ To declare target version use \fB-b\fR switch
 \fBlist\fR
 .RS
 List host where to push project.
+.RE
+.P
+\fBlsearch [DATE] DB TOKEN\fR
+.RS
+Search regex token in all odoo logs.
+.br
+If supplied, date may be: YYYY-MM[-DD hh[:mm[:ss]]]
+.br
+To declare odoo version use \fB-b\fR switch
 .RE
 .P
 \fBpublish docs|download|pypi|svg|testpypi\fR

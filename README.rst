@@ -1,6 +1,6 @@
 
 ==============
-tools 0.2.2.21
+tools 0.2.2.23
 ==============
 
 
@@ -11,11 +11,11 @@ tools 0.2.2.21
 .. contents::
 
 
-Overview / Panoramica
-=====================
+Overview
+========
 
-|en| Python & bash tools
-------------------------
+Python & bash tools
+-------------------
 
 Sparse python and bash source code
 
@@ -46,42 +46,56 @@ Sparse python and bash source code
 +--------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 |
+|
 
-|it| Strumenti Python & bash
-----------------------------
+Quick start
+===========
 
-Codice vario python & bash
+
+|
+
+Installation
+------------
+
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -p
+    source /opt/odoo/dev/activate_tools
 
 |
 |
 
-Getting started / Come iniziare
-===============================
-
-|Try Me|
-
+Get involved
+============
 
 |
 |
 
-Credits / Didascalie
-====================
+Credits
+=======
 
 Copyright
 ---------
 
-SHS-AV s.r.l. - <https://www.shs-av.com/>
+SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
 |
 
-Authors / Autori
-----------------
+Authors
+-------
 
 * SHS-AV s.r.l. <https://www.zeroincombenze.it/>
 
-Contributors / Collaboratori
-----------------------------
+Contributors
+------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 
@@ -89,7 +103,7 @@ Contributors / Collaboratori
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2019-08-24
+Last Update / Ultimo aggiornamento: 2019-12-05
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

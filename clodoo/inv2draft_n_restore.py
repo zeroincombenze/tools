@@ -17,7 +17,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.3.8.63"
+__version__ = "0.3.8.64"
 
 
 def get_name_by_ver(ctx, name):

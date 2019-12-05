@@ -31,7 +31,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.63
+__version__=0.3.8.64
 
 
 evaluate_params() {
@@ -128,7 +128,7 @@ OPTHELP=("this help"\
  "max odoo db connection"\
  "# of cron workers (def=1)"\
  "huge database"\
- "log polinng port (def=8072)"\
+ "long polling port (def=8072)"\
  "MB of memory to evaluate"\
  "do nothing (dry-run)"\
  "disable workers"\
@@ -183,8 +183,8 @@ else
 fi
 # Deteced or sumulated values
 [ -z "$NUSER" -a $CUR_NUSER -ne 0 ] && NUSER=$CUR_NUSER
-[ -z "$NUSER" ] && NUSER=32
-[ $NUSER -lt 16 ] && NUSER=16
+[ -z "$NUSER" ] && NUSER=16
+[ $NUSER -lt 2 ] && NUSER=2
 [ -n "$opt_cpu" ] && CUR_NCPU=$opt_cpu || CUR_NCPU="$(lscpu|grep "^CPU.s.:"|awk -F: '{print $2}')"
 CUR_NCPU=${CUR_NCPU// /}
 [ -n "$opt_mem" ] && CUR_MEM=$opt_mem || CUR_MEM=$(free -m|grep "Mem:"|awk '{print $2}')

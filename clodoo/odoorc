@@ -42,39 +42,31 @@
 # VCS          If GIT repository return "git" otherwise return ""
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.8.63
+#__version__=0.3.8.64
 
 
-DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
- account-closing account-consolidation account-financial-reporting\
- account-financial-tools account-fiscal-rule account_invoice_create_payment\
- account-invoice-reporting account-invoicing account-payment\
- account_payment_approve_invoice account-reconcile ansible-odoo apps-store\
- bank-payment bank-statement-import bank-statement-reconcile\
- business-requirement calendar commission community-data-files connector\
- connector-accountedge connector-cmis connector-ecommerce connector-infor\
- connector-interfaces connector-lengow connector-lims connector-magento\
- connector-magento-php-extension connector-odoo2odoo connector-prestashop\
- connector-redmine connector-sage connector-salesforce connector-telephony\
- connector-woocommerce contract crm cscs_addons currency ddmrp delivery-carrier\
- donation dotnet e-commerce edi event geospatial hr hr-timesheet\
- infrastructure-dns interface-github intrastat knowledge l10n-italy\
- l10n-italy-supplemental maintainer-quality-tools maintainer-tools\
- maintenance management-system manufacture manufacture-reporting\
- margin-analysis margin-analysis mis-builder multi-company oca-custom\
- oca-decorators odoorpc odoo-sentinel odoo-sphinx-autodoc OpenUpgrade\
- openupgradelib operating-unit partner-contact pos product-attribute\
- product-kitting product-variant project project-agile project-reporting\
- purchase-reporting purchase-workflow pylint-odoo queue reporting-engine\
- report-print-send rma runbot-addons sale-financial sale-reporting\
- sale-workflow server-auth server-backend server-brand server-env server-tools\
- server-ux social stock-logistics-barcode stock-logistics-reporting\
- stock-logistics-tracking stock-logistics-transport stock-logistics-warehouse\
- stock-logistics-workflow survey user_contributes vertical-abbey\
- vertical-agriculture vertical-association vertical-community\
- vertical-construction vertical-edition vertical-education vertical-hotel\
- vertical-isp vertical-medical vertical-ngo vertical-realestate vertical-travel\
- web webhook webkit-tools website website-cms website-themes zeroincombenze"
+DEFMLIST="OCB account-analytic account-budgeting account-closing account-consolidation\
+ account-financial-reporting account-financial-tools account-fiscal-rule account-invoice-reporting\
+ account-invoicing account-payment account-reconcile account_banking_cscs ansible-odoo\
+ apps-store bank-payment bank-statement-import brand business-requirement calendar commission\
+ community-data-files connector connector-accountedge connector-cmis connector-ecommerce connector-infor\
+ connector-interfaces connector-jira connector-lengow connector-lims connector-magento\
+ connector-magento-php-extension connector-odoo2odoo connector-prestashop connector-redmine connector-sage\
+ connector-salesforce connector-spscommerce connector-telephony connector-woocommerce contract credit-control\
+ crm cscs_addons currency data-protection ddmrp delivery-carrier department didotech_80 donation dotnet\
+ e-commerce edi event field-service geospatial helpdesk hr infrastructure-dns interface-github\
+ intrastat-extrastat iot knowledge l10n-italy l10n-italy-supplemental maintenance management-system\
+ manufacture manufacture-reporting margin-analysis mis-builder mis-builder-contrib multi-company\
+ oca-custom oca-decorators odoo-community.org odoo-sentinel operating-unit partner-contact payroll\
+ pos product-attribute product-kitting product-pack product-variant profiles program project\
+ project-agile project-reporting purchase-reporting purchase-workflow queue report-print-send\
+ reporting-engine rest-framework rma sale-financial sale-reporting sale-workflow search-engine\
+ server-auth server-backend server-brand server-env server-tools server-ux social stock-logistics-barcode\
+ stock-logistics-reporting stock-logistics-tracking stock-logistics-transport stock-logistics-warehouse\
+ stock-logistics-workflow storage survey timesheet tools uncovered vertical-abbey vertical-agriculture\
+ vertical-association vertical-community vertical-construction vertical-edition vertical-education\
+ vertical-hotel vertical-isp vertical-medical vertical-ngo vertical-realestate vertical-travel web\
+ webhook webkit-tools website website-cms website-themes wms zerobug-test zeroincombenze"
 OCB_SUBDIRS="addons build debian dist doc docs egg-info _extensions filestore history howtos images odoo openerp redhat reference scripts server _static website-themes win32"
 OCB_SUBDIRS_RE="^(${OCB_SUBDIRS// /|})$"
 INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html latex node_modules openupgrade setup _static tests themes __to_remove __unported__"
@@ -110,7 +102,8 @@ REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wi
 REPT_EXCL_MATRIX="zeroincombenze/account_invoice_create_payment,zeroincombenze/account_payment_approve_invoice,"\
 "zeroincombenze/website-cms,zeroincombenze/sale-reporting,zeroincombenze/bank-statement-import,"\
 "zeroincombenze/account-invoice-reporting,zeroincombenze/hr,zeroincombenze/hr-timesheet,"\
-"zeroincombenze/margin-analysis,zeroincombenze/pos,"
+"zeroincombenze/margin-analysis,zeroincombenze/pos,7.0/didotech_80,"\
+"9.0/didotech_80,10.0/didotech_80,11.0/didotech_80,12.0/didotech_80,13.0/didotech_80,"
 
 get_odoo_major_ver() {
     local v=$(echo "$1"|grep -Eo "[0-9]+"|head -n1)
@@ -155,7 +148,6 @@ find_odoo_ver() {
 build_odoo_param() {
 # build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VENV
 #                  vid [{search|debug|default|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|librerp|flectra])
-    # set -x  #debug
     if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
       echo "${!1}"
       return
@@ -175,6 +167,11 @@ build_odoo_param() {
     local reo="^($p1)"
     local reg="^($p2)"
     local ref="($p3)"
+    if [[ $HOME/ =~ .*/odoo/ ]]; then
+          ROOT=$HOME
+    elif [ -d /opt/openerp -a ! -d /opt/odoo ]; then
+        ROOT=/opt/openerp
+    fi
     if [[ "$2" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) || $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
       [[ -n "$2" ]] && cdir=$(readlink -f $2) || cdir=$(readlink -f $PWD)
       while [[ -z "$odoo_vid" && -n "$cdir" ]]; do
@@ -284,7 +281,7 @@ build_odoo_param() {
         GIT_PROT=""
         ODOO_UPSTREAM=
       elif [[ "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
-        r=$(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$REPOS,")
+        r=$(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_.-]+/$REPOS,")
         r=${r:0: -1}
         IFS=/ read GIT_ORGNM x <<<$r
       elif [ "$GIT_ORGID" == "oca" ]; then
@@ -343,7 +340,6 @@ build_odoo_param() {
         GIT_OPTS=""
         OPTS_ASM=
       fi
-      set +x #debug
       if [ "$ITEM" == "GIT_ORG" ]; then
         echo "$GIT_ORG"
         return
@@ -703,21 +699,26 @@ module_list() {
       if [ "$v" == "." -o "$v" == "$odoo_fver" ]; then
         nm=$(basename $fn)
         if [[ ! " $excl_list " =~ [[:space:]]$nm[[:space:]] && ! " $excl_list " =~ [[:space:]]$odoo_fver/$nm[[:space:]] ]]; then
-          if [ -n "$org" ]; then
+          if [ -n "$org" -o -n "$odoo_fver" ]; then
+            # Match exclusion matrix
             if [[ "$REPT_EXCL_MATRIX," =~ "/$nm," ]]; then
-              for r in $(echo "$REPT_EXCL_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$nm,"); do
+              for r in $(echo "$REPT_EXCL_MATRIX,"|grep -Eo "[A-Za-z0-9_.-]+/$nm,"); do
                 r=${r:0: -1}
                 IFS=/ read GIT_ORGNM x <<<$r
-                if [ "$GIT_ORGNM" == "$org" ]; then
+                if [ "$GIT_ORGNM" == "$org" -o "$GIT_ORGNM" == "$odoo_fver" ]; then
                   break
                 fi
               done
-              if [ "$GIT_ORGNM" == "$org" ]; then
+              if [ "$GIT_ORGNM" == "$org" -o "$GIT_ORGNM" == "$odoo_fver" ]; then
                 continue
               fi
             fi
-            if [[ "$REPT_ORG_MATRIX," =~ "/$nm," ]]; then
-              for r in $(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$nm,"); do
+            # Match organization matrix
+            if [ -z "$org" ]; then
+              res="$res $nm"
+              continue
+            elif [[ "$REPT_ORG_MATRIX," =~ "/$nm," ]]; then
+              for r in $(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_.-]+/$nm,"); do
                 r=${r:0: -1}
                 IFS=/ read GIT_ORGNM x <<<$r
                 if [ "$GIT_ORGNM" == "$org" ]; then

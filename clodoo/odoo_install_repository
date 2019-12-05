@@ -36,8 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.63
-
+__version__=0.3.8.64
 
 rmdir_if_exists() {
 #rmdir_if_exists (RPTNAME odoo_vid new_vid)
@@ -364,13 +363,22 @@ if [ -z "$new_odoo_vid" ]; then
     if [ -n "$opt_odir" ]; then
       pardir=$(dirname $opt_odir)
     else
-      pardir=$(build_odoo_param PARENTDIR $odoo_vid "$RPTNAME" $def_opt_org)
+      # pardir=$(build_odoo_param PARENTDIR $odoo_vid "$RPTNAME" $def_opt_org)
+      pardir=$(dirname $DSTPATH)
     fi
     if [ "$PWD" != "$pardir" ]; then
       run_traced "cd $pardir"
     fi
     pkgdir=$(basename $DSTPATH)
     run_traced "git clone $pkg_URL $pkgdir/ $git_opts" "$pkg_user"
+    if [ $? -ne 0 ]; then
+      echo "Error cloning $pkgdir"
+      exit 1
+    fi
+  fi
+  if [ ! -d $DSTPATH ]; then
+    echo "Directory $DSTPATH not found!"
+    exit 1
   fi
   if [ "$DSTPATH" != "$PWD" ]; then
     run_traced "cd $DSTPATH"

@@ -39,7 +39,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.25
+__version__=0.2.2.26
 
 
 #
@@ -2227,6 +2227,51 @@ do_fetch() {
     return $STS_FAILED
 }
 
+do_lsearch() {
+# search n log ([date] db token)
+    wlog "do_lsearch '$1' '$2' '$3'"
+    local CM cmd db f LOGDIRS odoo_fver odoo_ver PM sts=$STS_FAILED tok_dt token
+    [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
+    odoo_ver=$(echo $odoo_fver|grep -Eo [0-9]+|head -n1)
+    if [[ $1 =~ [0-9]{4}-[0-9]{2} ]]; then
+        [[ $1 =~ [0-9]{4}-[0-9]{2}-[0-9]{2} ]] && CM=$(date +%Y-%m -d ${1:0:10}) || CM=$(date +%Y-%m -d ${1:0:7}-01) 
+        PM=$CM
+        tok_dt=$1
+        db=$2
+        token=$3
+    else
+        CM=$(date +%Y-%m)
+        PM=$(date -d "1 month ago" +%Y-%m)
+        tok_dt=
+        db=$1
+        token=$2
+    fi
+    if [ "$CM" == "$PM" ]; then
+      LOGDIRS="/var/log/odoo/odoo$odoo_ver.log.$CM-* /var/log/odoo/odoo$odoo_ver.log"
+    else
+      LOGDIRS="/var/log/odoo/odoo$odoo_ver.log.$PM-* /var/log/odoo/odoo$odoo_ver.log.$CM-* /var/log/odoo/odoo$odoo_ver.log"
+    fi
+    for f in $LOGDIRS; do
+        if [ -n "$tok_dt" ]; then
+            if [ -n "$token" ]; then
+                cmd="grep -a --color=never \"^$tok_dt.* $db .*$token\" $f|grep -av --color=never \"/longpolling/poll HTTP/1.1\"|grep -a --color \"$token\""
+            else
+                cmd="grep -av --color=never \"/longpolling/poll HTTP/1.1\" $f|grep -a \"^$tok_dt.* $db .*\""
+            fi
+        else
+            if [ -n "$token" ]; then
+                cmd="grep -a --color=never \" $db .*$token\" $f|grep -av --color=never \"/longpolling/poll HTTP/1.1\"|grep -a --color \"$token\""
+            else
+                cmd="grep -av --color=never \"/longpolling/poll HTTP/1.1\" $f|grep -a \" $db .*\""
+            fi
+        fi
+        if [ $opt_dry_run -eq 0 ]; then
+            eval $cmd
+        else
+            echo $cmd
+        fi
+    done
+}
 do_push() {
     opts=$(inherits_travis_opts "oP" "D")
     opt_dry_run=0
@@ -2382,7 +2427,8 @@ do_status() {
     local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
     pushd $HOME/tools >/dev/null
     local PKGS=$(git status|tr "\t" " "|grep -E "^#? +(modified|modificato):"|awk -F: '{print $2}'|tr -d " "|awk -F/ '{print $1}'|sort -u|tr "\n" "|")
-    [ -n "$PKGS" ] && PKGS="(${PKGS:0: -1})" || PKGS="()"
+    [ -n "$PKGS" ] && PKGS="(${PKGS:0dir
+    : -1})" || PKGS="()"
     popd >/dev/null
     for pkg in $PKGS_LIST; do
         if [[ ! "$PKGS" == "()" && $pkg =~ $PKGS ]]; then
@@ -2579,7 +2625,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "pull original README (and docs) in distribution"\
  "declare local destination path"\
  "silent mode"\
- "run rescricted mode (w/o parsing travis.yml file) | recurse distribution OCB"\
+ "run restricted mode (w/o parsing travis.yml file) | recurse distribution OCB"\
  "files to include in annotate test"\
  "test mode (implies dry-run)"\
  "check for unary operator W503 or no OCA/zero module translation"\
@@ -2592,7 +2638,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|build|chkconfig|[commit|config|distribution|docs|download_rep|duplicate|export|import|list|publish|push|pythonhosted|synchro|replace|replica|status|test|translate|version|wep"
+HLPCMDLIST="help|build|chkconfig|[commit|config|distribution|docs|download_rep|duplicate|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|status|test|translate|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
   "© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
