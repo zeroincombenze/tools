@@ -10,10 +10,11 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -23,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.3.33.2
+__version__=1.3.33.4
 
 
 db_act_list() {
@@ -46,11 +47,11 @@ db_act_list() {
       else
         sqlc="select count(pid) from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid();"
       fi
-      sess_ctr=$(psql -Upostgres -tc "$sqlc"|head -n1)
+      sess_ctr=$($PSQL -tc "$sqlc"|head -n1)
       sess_ctr=$(echo $sess_ctr)
     else
       LOG=~/${THIS}_$$.log
-      psql -Upostgres -tc "$sql" -o $LOG
+      $PSQL -tc "$sql" -o $LOG
       wait4=0
       sess_ctr=0
       valid_sess=0
@@ -132,10 +133,20 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2016-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-PSQL_VER=$(psql --version|grep -Eo "[0-9]\.[0-9]"|tr -d ".")
+psql -l &>/dev/null
+if [ $? -eq 0 ]; then
+    PSQL="psql -dtemplate1"
+else
+    psql -l &>/dev/null
+    if [ $? -ne 0 ]; then
+        echo "Denied inquire with psql [-Upostgres]"
+        exit 2
+    fi
+    PSQL="psql -Upostgres -dtemplate1"
+fi
+PSQL_VER=$(psql --version|grep -Eo "[0-9]+\.[0-9]"|tr -d ".")
 if [ $pool -lt 1 ]; then
-  pool=$(psql -Upostgres -tc "select setting from pg_settings where name='max_connections';"|head -n1)
-  [ $? -ne 0 ] && exit 2
+  pool=$($PSQL -tc "select setting from pg_settings where name='max_connections';"|head -n1)
   pool=$(echo $pool)
 fi
 if [ $opt_show -ne 0 ]; then
@@ -171,7 +182,7 @@ elif [ $act_kill4db -ne 0 ]; then
       fi
       if [ $opt_dry_run -eq 0 ]; then
         sqlc="REVOKE CONNECT ON DATABASE $DB FROM PUBLIC, odoo;"
-        psql -Upostgres -tc "$sqlc" &>/dev/null
+        $PSQL -tc "$sqlc" &>/dev/null
       fi
     fi
   else
@@ -241,7 +252,7 @@ while [ $sts -ne 0 -a $loop_ctr -gt 0 ]; do
             fi
             # kill $pid &>/dev/null
             sqlc="select pg_terminate_backend(pid) from pg_stat_activity where pid=$pid;"
-            psql -Upostgres -tc "$sqlc" &>/dev/null
+            $PSQL -tc "$sqlc" &>/dev/null
           else
             echo "Process pid=$pid should be killed"
             sts=0
@@ -288,7 +299,7 @@ if [ $opt_grant -gt 0 -a -n "$DB" ]; then
   fi
   if [ $opt_dry_run -eq 0 ]; then
     sqlc="GRANT CONNECT ON DATABASE $DB TO PUBLIC, odoo;"
-    psql -Upostgres -tc "$sqlc" &>/dev/null
+    $PSQL -tc "$sqlc" &>/dev/null
   fi
 fi
 exit $sts

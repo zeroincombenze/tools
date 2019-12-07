@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.26
+#__version__=0.2.2.28
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -886,10 +886,20 @@ conf_default() {
 
 
 expand_path() {
-# expand_path (path)
-# return:path
-    local x=$(echo "$1"|sed -e "s|\${pkgpath}|$PKGPATH|g" -e "s|\${pkgname}|$PKGNAME|g" -e "s|\${prjname}|$PRJNAME|g" -e "s|\${reposname}|$REPOSNAME|g" -e "s|\${version}|$BRANCH|g" -e "s|\${TRAVIS_BUILD_DIR}|$TRAVIS_BUILD_DIR|g" -e "s|\${ODOO_REPO}|$ODOO_REPO|g" -e "s|\${odoo_vid}|$opt_branch|g" -e "s|\${HOME}|$HOME|g")
-    echo $x|sed -e s\|\${PATH}\|$PATH\|g
+# expand_path (path tkn repl)
+    local p P x=$1
+    for p in pkgpath pkgname prjname reposname; do
+        P=${p^^}
+        x=$(echo $x|sed -e "s|\\\${$p}|${!P}|g")
+    done
+    for p in version TRAVIS_BUILD_DIR ODOO_REPO odoo_vid HOME PATH; do
+        P=$p
+        [ $p == "version" ] && P="BRANCH"
+        [ $p == "odoo_vid" ] && P="opt_branch"
+        x=$(echo $x|sed -e "s|\\\${$p}|${!P}|g")
+    done
+    [ -n "$2" ] && x=${x/$2/$3}
+    echo $x
 }
 
 

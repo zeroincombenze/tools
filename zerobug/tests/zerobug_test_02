@@ -5,15 +5,10 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -42,13 +37,9 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 
-
-
-
-
 UT1_LIST=""
 UT_LIST="__version_0_${__version__}$Z0TLIBDIR/z0testrc"
-UT_LIST="$UT_LIST __version_1_0.2.8.4$Z0LIBDIR/z0librc"
+UT_LIST="$UT_LIST __version_1_0.2.8.7$Z0LIBDIR/z0librc"
 UT_LIST="$UT_LIST __version_V_0.2.0$TESTDIR/dummy_01.py"
 UT_LIST="$UT_LIST __version_v_0.2.1$TESTDIR/dummy_01.py"
 UT_LIST="$UT_LIST __version_P_0.2.2$TESTDIR/dummy_01.py"

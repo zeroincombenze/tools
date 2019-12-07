@@ -9,9 +9,10 @@ import os
 import sys
 import subprocess
 from zerobug import Z0BUG
+import z0librun
 
 
-__version__ = "0.2.8.6"
+__version__ = "0.2.8.7"
 STS_FAILED = 1
 STS_SUCCESS = 0
 
@@ -37,7 +38,7 @@ if __name__ == "__main__":
         sys.exit(sts)
 
     if action != '-H':
-        print(Z0BUG.version())
+        print(z0librun.__version__)
     if action != '-V':
         for text in __doc__.split('\n'):
             print(text)

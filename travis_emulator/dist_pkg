@@ -33,7 +33,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.26
+__version__=0.2.2.28
 
 
 
@@ -319,7 +319,7 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
     declare tgtpath="$(get_cfg_value 0 $x)"
     declare tgtparm="$(get_cfg_value 0 $y)"
     if [ -n "$tgtpath" ]; then
-      tgtpath=$(expand_path "$tgtpath")
+      tgtpath=$(expand_path $tgtpath)
       declare z=tgt${ii}enable
       declare enabled="$(get_cfg_value 0 $z)"
       if [ ${enabled:-0} -eq 0 ]; then
