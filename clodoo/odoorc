@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 #
 # Odoo Library
@@ -42,7 +43,7 @@
 # VCS          If GIT repository return "git" otherwise return ""
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.8.64
+#__version__=0.3.8.65
 
 
 DEFMLIST="OCB account-analytic account-budgeting account-closing account-consolidation\
@@ -146,7 +147,7 @@ find_odoo_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VENV
+# build_odoo_param(ALL|BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VENV
 #                  vid [{search|debug|default|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|librerp|flectra])
     if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
       echo "${!1}"
@@ -174,6 +175,7 @@ build_odoo_param() {
     fi
     if [[ "$2" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) || $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
       [[ -n "$2" ]] && cdir=$(readlink -f $2) || cdir=$(readlink -f $PWD)
+      [ -f $cdir ] && cdir=$(dirname $cdir)
       while [[ -z "$odoo_vid" && -n "$cdir" ]]; do
         if [[ -z "$PKGPATH" && ( -f $cdir/__manifest__.py || -f $cdir/__openerp__.py ) ]]; then
           PKGPATH=$cdir
@@ -181,13 +183,15 @@ build_odoo_param() {
         fi
         r="$(basename $cdir)"
         if [[ -z "$REPOS" ]]; then
-          if [[ -f ./.travis.yml || ( -n "$PKGNAME" && -d $cdir/$PKGNAME ) ]]; then
+          if [[ -f $cdir/.travis.yml || ( -n "$PKGNAME" && -d $cdir/$PKGNAME ) ]]; then
             [[ $r =~ $rex ]] && REPOS=OCB || REPOS=$r
           elif [[ -z "$PKGNAME" ]]; then
             p=0
-            for d in $(find $PWD -maxdepth 2); do [[ -f $d/__manifest__.py || -f $d/__openerp__.py ]] && p=1; done
-            if [ $p -ne 0 ]; then
-              [[ $r =~ $rex ]] && REPOS=OCB || REPOS=$r
+            if [ -d $cdir ]; then
+                for d in $(find $cdir -maxdepth 2); do [[ -f $d/__manifest__.py || -f $d/__openerp__.py ]] && p=1; done
+                if [ $p -ne 0 ]; then
+                    [[ $r =~ $rex ]] && REPOS=OCB || REPOS=$r
+                fi
             fi
           fi
         fi
@@ -207,7 +211,7 @@ build_odoo_param() {
       odoo_vid="$2"
       [ -z "$3" ] && REPOS="OCB" || REPOS=$3
     fi
-    [[ $REPOS =~ $INVALID_MODNAMES_RE ]] && REPOS=
+    # [[ $REPOS =~ $INVALID_MODNAMES_RE ]] && REPOS=
     if [ -n "$odoo_vid" -a -z "$odoo_fver" ]; then
       if [[ $odoo_vid =~ $rex ]]; then
         odoo_fver=$(get_odoo_full_ver "$odoo_vid")
@@ -420,6 +424,9 @@ build_odoo_param() {
         echo "$r"
         return
       fi
+    elif [ "$ITEM" == "ALL" ]; then
+      echo "|$odoo_fver|$REPOS|$PKGNAME|"
+      return
     elif [ "$ITEM" == "FULLVER" ]; then
       echo "$odoo_fver"
       return

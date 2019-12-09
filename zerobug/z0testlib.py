@@ -1568,7 +1568,7 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
                     os.environ['TRAVIS_SAVED_HOME'],
                     '%s%s' % (remote.lower(), majver))
                 if not os.path.isdir(src_rep_path):
-                    self.git_clone(self, remote, reponame, branch, odoo_path)
+                    self.real_git_clone(remote, reponame, branch, odoo_path)
                     os.rename(odoo_path, src_rep_path)
                 if not os.path.isdir(src_rep_path):
                     src_rep_path = None

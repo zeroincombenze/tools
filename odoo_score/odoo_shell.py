@@ -1904,7 +1904,6 @@ def create_commission_env(ctx):
     print('%d records created, %d records updated' % (ictr, uctr))
 
 
-
 def create_delivery_env(ctx):
     print('Set delivery configuration to test')
     if ctx['param_1'] == 'help':
@@ -2264,8 +2263,14 @@ def test_synchro_vg7(ctx):
                     continue
                 elif (model in ('res.country',) and loc_name == 'description'):
                     continue
-                elif loc_name == 'billing_esonerato_fe':
+                elif loc_name == 'esonerato_fe':
+                    if vals['vg7_id'] > 100000000:
+                        continue
                     loc_name = 'electronic_invoice_subjected'
+                elif loc_name == 'codice_univoco':
+                    if vals['vg7_id'] > 100000000:
+                        continue
+                    loc_name = 'codice_destinatario'
             else:
                 if ext_ref.startswith('vg7_'):
                     loc_name = ext_ref[4:]
@@ -2311,7 +2316,7 @@ def test_synchro_vg7(ctx):
                 elif ext_ref == 'state':
                     value = getattr(rec, loc_name)
                     vals[ext_ref] = 'draft'
-                elif ext_ref == 'vg7:billing_esonerato_fe':
+                elif ext_ref == 'vg7:esonerato_fe':
                     value = not getattr(rec, loc_name)
                 else:
                     try:
@@ -2495,7 +2500,7 @@ def test_synchro_vg7(ctx):
                 'vg7:postal_code': '10100',
                 'vg7:city': 'Torino',
                 'vg7:country_id': 'Italia',
-                'vg7:billing_esonerato_fe': False,
+                'vg7:esonerato_fe': True,
                 'vg7:piva': '00385870480'
             }
             if wrong_data:
@@ -2805,7 +2810,8 @@ def test_synchro_vg7(ctx):
                 'postal_code': '10121',
                 'city': 'Torino',
                 'billing_piva': '00385870480',
-                'billing_codice_univoco': 'ABC12345', 
+                'billing_codice_univoco': 'ABC1234',
+                'billing_esonerato_fe': False,
             }
             vals = {
                 'company_id': company_id,
@@ -2816,11 +2822,11 @@ def test_synchro_vg7(ctx):
                 'vg7:postal_code': '10100',
                 'vg7:city': 'Torino',
                 'vg7:country_id': 39,
-                'vg7:billing_esonerato_fe': False,
                 'vg7:piva': '00385870480',
                 'vg7:shipping': vals_shipping,
                 'vg7:billing': vals_billing,
             }
+        pdb.set_trace()
         partner_id = clodoo.executeL8(ctx,
                                       model,
                                       'synchro',
@@ -2857,6 +2863,73 @@ def test_synchro_vg7(ctx):
             rec_vals['vg7_id'] = rec_vg7_id
             check_partner(ctx, TNL, rec_id, rec_vals)
         return vg7_id
+
+    def write_ddt(ctx, TNL, company_id, partner_id=None,
+                  vg7_id=None, state=None):
+        model = 'stock.picking.package.preparation'
+        print('Write %s ..' % model)
+        if model not in TNL:
+            TNL[model] = {}
+            TNL[model]['LOC'] = {}
+            TNL[model]['EXT'] = {}
+        partner_id = partner_id or ctx[
+            'odoo_session'].env.ref('z0bug.res_partner_2').id
+        vg7_id = vg7_id or 17
+        vals = {
+            # 'company_id': company_id,
+            'vg7_id': vg7_id,
+            'vg7:customer_id':  env_ref(ctx, 'z0bug.res_partner_2'),
+        }
+        if state:
+            vals['state'] = state
+        # Search for account invoice if connector uninstalled
+        ids = clodoo.searchL8(ctx, model,
+                              [('ddt_number', '=', 'DDT/19/2')])
+        if ids:
+            vals['ddt_number'] = 'DDT/19/2'
+            if not state:
+                vals['state'] = 'draft'
+        ddt_id = clodoo.executeL8(ctx,
+                                  model,
+                                  'synchro',
+                                  vals)
+        TNL[model]['LOC'][ddt_id] = vg7_id
+        TNL[model]['EXT'][vg7_id] = ddt_id
+
+        sale_id = False
+        ids = clodoo.searchL8(ctx, 'sale.order',
+                              [('name', '=', 'SO002')])
+        if ids:
+            sale_id = ids[0]
+        model = 'stock.picking.package.preparation.line'
+        print('Write %s ..' % model)
+        if model not in TNL:
+            TNL[model] = {}
+            TNL[model]['LOC'] = {}
+            TNL[model]['EXT'] = {}
+        vg7_ddt_id = vg7_id
+        vg7_id = vg7_ddt_id * 300
+        vals = {
+            'vg7_id': vg7_id,
+            'vg7:ddt_id': vg7_ddt_id,
+            'name': 'Product Alpha',
+            'vg7:product_id': ctx['vg7_id_product_a'],
+            'vg7:prezzo_unitario': 10.50,
+            'vg7:quantita': 2,
+        }
+        # if sale_id:
+        #     vals['vg7:order_id'] = sale_id
+        line_id = clodoo.executeL8(ctx,
+                                   model,
+                                   'synchro',
+                                   vals)
+
+        id = clodoo.executeL8(ctx,
+                              'stock.picking.package.preparation',
+                              'commit',
+                              ddt_id)
+        if id < 0:
+            raise IOError('!!Commit Failed (%d)!' % id)
 
 
     company_id = env_ref(ctx, 'z0bug.mycompany')
@@ -2911,6 +2984,11 @@ def test_synchro_vg7(ctx):
                                      vg7_id=2, code='BB', name='Product Beta')
     ctx['vg7_id_product_a'] = vg7_id_product_a
     ctx['vg7_id_product_b'] = vg7_id_product_b
+
+
+    pdb.set_trace()
+    write_ddt(ctx, TNL, company_id)
+
 
     # Repeat 2 times to check correct synchronization
     write_partner(ctx, TNL, company_id, wrong_data=True)
@@ -3320,12 +3398,61 @@ def set_ppf_on_partner(ctx):
     else:
         value = True
     where.append(('ddt_show_price', '!=', value))
+    where.append('|')
     where.append(('customer', '=', True))
+    where.append(('type', '=', 'invoice'))
     ctr = 0
     for pp in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, where)):
         msg_burst('%s ...' % pp.name)
         clodoo.writeL8(ctx, model, pp.id, {'ddt_show_price': value})
         ctr += 1
+    print('%d record updated' % ctr)
+
+
+def check_4_duplicate_vat(ctx):
+    print('Check for duplicate vat')
+    if ctx['param_1'] == 'help':
+        print('check_4_duplicate_vat')
+        return
+    model = 'res.partner'
+    ctr = 0
+    prior_vat = ''
+    prior_id = False
+    prior_candidate = False
+    prior_name = ''
+    for rec in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [('vat', '!=', False)], order='vat')):
+        msg_burst('%s ...' % rec.name)
+        if rec.vat != prior_vat:
+            prior_id = rec.id
+            prior_vat = rec.vat
+            prior_name = rec.name
+            if rec.type != 'contact' or rec.parent_id:
+                prior_candidate = True
+            else:
+                prior_candidate = False
+            if ((rec.type == 'delivery' and
+                 rec.electronic_invoice_subjected) or
+                    (rec.parent_id and rec.type != 'invoice')):
+                vals = {'electronic_invoice_subjected': False}
+                clodoo.writeL8(ctx, model, rec.id, vals)
+                ctr += 1
+            continue
+        if rec.type != 'contact' or rec.parent_id:
+            vals = {'vat': False}
+            if ((rec.type == 'delivery' and
+                 rec.electronic_invoice_subjected) or
+                    (rec.parent_id and rec.type != 'invoice')):
+                vals['electronic_invoice_subjected'] = False
+            print('** Removing VAT from %s (%d)' % (rec.name, rec.id))
+            clodoo.writeL8(ctx, model, rec.id, vals)
+            ctr += 1
+        if prior_candidate:
+            vals = {'vat': False}
+            print('** Removing VAT from %s (%d)' % (prior_name, prior_id))
+            clodoo.writeL8(ctx, model, prior_id, vals)
+            ctr += 1
     print('%d record updated' % ctr)
 
 

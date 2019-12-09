@@ -222,7 +222,7 @@ add_install() {
         echo "[//]: # (install)">>$1
       fi
       echo "    ODOO_DIR=$root  # here your Odoo dir">>$1
-      echo "    BACKUP_DIR=/opt/odoo/backup  # here your backup dir">>$1
+      echo "    BACKUP_DIR=$HOME/backup  # here your backup dir">>$1
       pkgs=$(list_requirements.py -p $PWD -s' ' -P -t python)
       pkgs="${pkgs:7}"
       if [ -n "$pkgs" ]; then
@@ -2083,7 +2083,7 @@ do_duplicate() {
       fi
       cur_ver=""
       for ver in 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
-        if [[ $PWD =~ /opt/odoo/$ver ]]; then
+        if [[ $PWD =~ $HOME/$ver ]]; then
           cur_ver="$ver"
           break
         fi
@@ -2376,7 +2376,7 @@ do_replica() {
     if [ "$PRJNAME" == "Odoo" ]; then
       cur_ver=""
       for ver in 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
-        if [[ $PWD =~ /opt/odoo/$ver ]]; then
+        if [[ $PWD =~ $HOME/$ver ]]; then
           cur_ver="$ver"
           break
         fi
@@ -2652,7 +2652,7 @@ link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 # Follow code must be executed at main level
 set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
-set_cfg_def "DEV_SVG" "/opt/odoo/dev/svg"
+set_cfg_def "DEV_SVG" "$HOME/dev/svg"
 set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
 set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
 set_cfg_def "PKGS_LIST" "clodoo devel_tools lisa maintainer-quality-tools odoo_score os0 python_plus travis_emulator z0bug_odoo z0lib zar zerobug"

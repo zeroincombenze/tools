@@ -250,7 +250,7 @@ process_yaml_do() {
         lne="# $lne"
       else
         YML_global="$YML_global $lne"
-        [[ "$line" =~ TRAVIS_DEBUG_MODE= ]] && eval $lne
+        [[ "$line" =~ TRAVIS_DEBUG_MODE= ]] && eval $(process_yaml_quote $lne)
       fi
     elif [ "$YML_sect" == "env.matrix" ]; then
       YML_matrix="$YML_matrix $lne"

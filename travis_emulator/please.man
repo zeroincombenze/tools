@@ -42,13 +42,13 @@ Action is one of:
 .br
 * pythonhosted
 .br
-* status
-.br
-* synchro
-.br
 * replace
 .br
 * replica
+.br
+* status
+.br
+* synchro
 .br
 * test
 .br
@@ -181,6 +181,13 @@ Remote hosts are in \fBtgtNpath\fR parameter of \fBplease config\fR action (wher
 Copy all files of current PYPI project into tools directory.
 .br
 Current project must be one of included projects of tools repository. The project names to manage are in \fBPKGS_LIST\fR parameter of \fBplease config\fR action.
+.RE
+.P
+\fBreplica DIRECTORY\fR
+.RS
+Copy selected diretory into the same module of the other versions of Odooo.
+.br
+Use this action mainly for copying documentaton directory.
 .RE
 .P
 \fBstatus\fR

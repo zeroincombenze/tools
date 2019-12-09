@@ -1,0 +1,7 @@
+id,name,code,type
+z0bug.sales_journal,Sales Journal,TSAJ,sale
+z0bug.refund_sales_journal,Sales Credit Note Journal,TSCNJ,sale_refund
+z0bug.expenses_journal,Expenses Journal,TEXJ,purchase
+z0bug.refund_expenses_journal,Expenses Credit Notes Journal,TECNJ,purchase_refund
+
+

@@ -34,16 +34,24 @@ class Z0bugOdoo(object):
                     continue
                 getattr(self, pymodel)[row['id']] = row
 
-    def get_test_values(self, model, xid):
+    def get_test_values(self, model, xref):
         '''Return model values for test'''
-        xrefs = xid.split('.')
-        if len(xrefs) == 1:
-            xrefs[0], xrefs[1] = 'z0bug', xrefs[0]
-        if xrefs[0] == 'z0bug':
+        xids = xref.split('.')
+        if len(xids) == 1:
+            xids[0], xids[1] = 'z0bug', xids[0]
+        if xids[0] == 'z0bug':
             pymodel = model.replace('.', '_')
             if not hasattr(self, pymodel):
                 self.get_data_file(model, '%s.csv' % pymodel)
-            if xid not in getattr(self, pymodel):
-                raise KeyError('Invalid xid %s for model %s!' % (xid, model))
-            return getattr(self, pymodel)[xid]
+            if xref not in getattr(self, pymodel):
+                raise KeyError('Invalid xref %s for model %s!' % (xref, model))
+            return getattr(self, pymodel)[xref]
         return {}
+
+    def initialize_model(self, model):
+        '''Write all record of model with test values'''
+        pymodel = model.replace('.', '_')
+        if not hasattr(self, pymodel):
+            self.get_data_file(model, '%s.csv' % pymodel)
+        for xref in getattr(self, pymodel):
+            pass

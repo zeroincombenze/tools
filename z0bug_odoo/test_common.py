@@ -61,9 +61,9 @@ class Z0bugBaseCase(test_common.BaseCase):
             return self.registry(model).write(self.cr, self.uid, [id], values)
         return self.env[model].search([('id', '=', id)]).write(values)
 
-    def write_ref(self, xid, values):
+    def write_ref(self, xref, values):
         """Browse and write existent record"""
-        return self.browse_ref(xid).write(values)
+        return self.browse_ref(xref).write(values)
 
     def browse_rec(self, model, id):
         if int(release.major_version.split('.')[0]) < 8:
@@ -74,15 +74,16 @@ class Z0bugBaseCase(test_common.BaseCase):
         """Search records - Syntax search(model, *args)
         Warning! Do not use with Odoo 7.0: result may fails!"""
         if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).browse(self.cr, self.uid,
-                self.registry(model).search(self.cr, self.uid, args))
+            ir_model = self.registry(model)
+            return ir_model.browse(self.cr, self.uid,
+                ir_model.search(self.cr, self.uid, args))
         return self.env[model].search(args)
 
-    def ref_id(self, xid):
+    def ref_id(self, xref):
         """Return reference id"""
         if int(release.major_version.split('.')[0]) < 8:
-            return self.ref(xid)
-        return self.env.ref(xid).id
+            return self.ref(xref)
+        return self.env.ref(xref).id
 
     def settle_fields(self, model, vals, how_id=None):
         for name in vals.copy():
@@ -101,25 +102,25 @@ class Z0bugBaseCase(test_common.BaseCase):
                 vals[name] = self.ref_id(vals[name])
         return vals
 
-    def get_ref_value(self, model, xid):
+    def get_ref_value(self, model, xref):
         if not hasattr(self, 'Z0bugOdoo'):
             self.Z0bugOdoo = Z0bugOdoo()
         return self.settle_fields(
-            model, self.Z0bugOdoo.get_test_values(model, xid),
+            model, self.Z0bugOdoo.get_test_values(model, xref),
             how_id='keep')
 
     def build_model_data(self, model, xrefs):
         if not isinstance(xrefs, (list, tuple)):
             xrefs = [xrefs]
-        for xid in xrefs:
-            vals = self.get_ref_value(model, xid)
+        for xref in xrefs:
+            vals = self.get_ref_value(model, xref)
             if not vals:
                 pass
             elif 'id' in vals:
-                xids = xid.split('.')
+                xids = xref.split('.')
                 if len(xids) == 2:
                     try:
-                        id = self.ref_id(xid)
+                        id = self.ref_id(xref)
                     except BaseException:
                         id = None
                 elif vals['id']:
@@ -140,27 +141,27 @@ class Z0bugBaseCase(test_common.BaseCase):
                         }
                         self.create_rec('ir.model.data', vals)
             else:
-                raise KeyError('Invalid xid %s for model %s!' % (xid, model))
+                raise KeyError('Invalid xref %s for model %s!' % (xref, model))
 
-    def set_test_company(self, xid=None):
+    def set_test_company(self, xref=None):
         '''Set company to test'''
-        if not xid:
-            for xref, model in (('z0bug.partner_mycompany', 'res.partner'),
-                                ('z0bug.mycompany', 'res.company')):
-                self.build_model_data(model, xref)
-            xid = 'z0bug.mycompany'
-        xid_id = self.ref_id(xid)
+        if not xref:
+            for xref1, model in (('z0bug.partner_mycompany', 'res.partner'),
+                                 ('z0bug.mycompany', 'res.company')):
+                self.build_model_data(model, xref1)
+            xref = 'z0bug.mycompany'
+        xref_id = self.ref_id(xref)
         # There are two separate write because "company_id" assignment fails if
         # company_id is not in "company_ids" at the time of the write
         if int(release.major_version.split('.')[0]) < 8:
             self.registry('res.user').write(
-                self.cr, self.uid, [self.uid], {'company_ids': [(4, xid_id)]})
+                self.cr, self.uid, [self.uid], {'company_ids': [(4, xref_id)]})
             self.registry('res.user').write(
-                self.cr, self.uid, [self.uid], {'company_id': xid_id})
+                self.cr, self.uid, [self.uid], {'company_id': xref_id})
         else:
-            self.env.user.write({'company_ids': [(4, xid_id)]})
-            self.env.user.write({'company_id': xid_id})
-        return xid_id
+            self.env.user.write({'company_ids': [(4, xref_id)]})
+            self.env.user.write({'company_id': xref_id})
+        return xref_id
 
 
 class TransactionCase(test_common.TransactionCase, Z0bugBaseCase):
@@ -189,20 +190,20 @@ class TransactionCase(test_common.TransactionCase, Z0bugBaseCase):
     def search_rec(self, model, args):
         return Z0bugBaseCase.search_rec(self, model, args)
 
-    def ref_id(self, xid):
-        return Z0bugBaseCase.ref_id(self, xid)
+    def ref_id(self, xref):
+        return Z0bugBaseCase.ref_id(self, xref)
 
     def settle_fields(self, model, vals, how_id=None):
         return Z0bugBaseCase.settle_fields(self, model, vals, how_id)
 
-    def get_ref_value(self, model, xid):
-        return Z0bugBaseCase.get_ref_value(self, model, xid)
+    def get_ref_value(self, model, xref):
+        return Z0bugBaseCase.get_ref_value(self, model, xref)
 
     def build_model_data(self, model, xrefs):
         return Z0bugBaseCase.build_model_data(self, model, xrefs)
 
-    def set_test_company(self, xid=None):
-        return Z0bugBaseCase.set_test_company(self, xid)
+    def set_test_company(self, xref=None):
+        return Z0bugBaseCase.set_test_company(self, xref)
 
 
 class SingleTransactionCase(test_common.SingleTransactionCase, Z0bugBaseCase):
@@ -228,11 +229,11 @@ class SingleTransactionCase(test_common.SingleTransactionCase, Z0bugBaseCase):
     def settle_fields(self, model, vals, how_id=None):
         return Z0bugBaseCase.settle_fields(self, model, vals, how_id)
 
-    def get_ref_value(self, model, xid):
-        return Z0bugBaseCase.get_ref_value(self, model, xid)
+    def get_ref_value(self, model, xref):
+        return Z0bugBaseCase.get_ref_value(self, model, xref)
 
     def build_model_data(self, model, xrefs):
         return Z0bugBaseCase.build_model_data(self, model, xrefs)
 
-    def set_test_company(self, xid=None):
-        return Z0bugBaseCase.set_test_company(self, xid)
+    def set_test_company(self, xref=None):
+        return Z0bugBaseCase.set_test_company(self, xref)
