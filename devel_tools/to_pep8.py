@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2018-19 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2018-20 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -29,7 +29,8 @@ Rules can also allow change text inside comments.
 
 All rules are stored in self.LEX_RULES dictionary by rule id (name).
 Every rule has a python name; if name ends with _78, rule may not applied
-to odoo 8.0 if -u switch is supplied: means convert to odoo 8.0 holding old api
+to odoo 8.0 if -u switch is supplied;
+this means convert to odoo 8.0 but hold old api
 if name ends with to_8, rule is applied to version 8.0+
 if name ands with to_7, rule is applied to version 7.0-
 
@@ -45,13 +46,13 @@ Every entry is composed by:
     'meta_ids':     dictionay of Odoo version with keyids to replace/evaluate
     'state':        rule status, may be
                     ('active', 'wait4parent', 'wait4more', 'wait4expr')
-    'wf_id':        current id in parsing workflow
+    'wf_id':        current id in workflow position
     'min_max':      min and max repetition for current token
-    'level':        level of parens when waiting for expression end
+    'level':        level of parentheses when waiting for expression ending
     'matched_ids':  matched tokens list from source to replace against
-                    parameters, while rule parsing
-    'tokeno_start': # of source token, starts match to rule
-    'tokeno_stop':  # of source token, ends match to rule
+                    parameters, while rule is parsing
+    'tokeno_start': id of source tokens, started matching rule
+    'tokeno_stop':  id of source tokens, ended matching rule
     'token_id':     next param token to match
     'parent':       parent rule while state is waiting for parent
 """
@@ -72,7 +73,7 @@ except ImportError:
 
 __version__ = "0.2.2.28"
 
-METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
+METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0')
 
 
 class topep8():
@@ -163,11 +164,10 @@ class topep8():
         odoo_majver = int(ctx['to_ver'].split('.')[0])
         req_copyrights = ctx['opt_copy'].split(',')
         for org in req_copyrights:
-            if org not in ('oca', 'oia', 'shs', 'zero'):
-                print('Invalid copyright option! Values are zero, oca or oia')
+            if org not in ('oca', 'shs', 'zero'):
+                print('Invalid copyright option! Values are zero or oca')
                 return
         auth_antoniov = 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>'
-        website_oia = 'https://www.odoo-italia.org'
         website_shs = 'https://www.shs-av.com'
         website_zero = 'https://www.zeroincombenze.it'
         website_oca = 'https://odoo-community.org'
@@ -199,20 +199,6 @@ class topep8():
                 if 'zero' in req_copyrights:
                     del self.lines[lineno]
                     continue
-            elif re.search('https*://[w.]*odoo-italia.org',
-                          self.lines[lineno]):
-                copy_found.append('oia')
-                self.lines[lineno] = self.lines[lineno].replace(
-                    'http://odoo-italia.org', website_oia)
-                self.lines[lineno] = self.lines[lineno].replace(
-                    'http://www.odoo-italia.org', website_oia)
-            elif re.search('https*://odoo-community.org',
-                          self.lines[lineno]):
-                copy_found.append('oia')
-                self.lines[lineno] = self.lines[lineno].replace(
-                    'http://odoo-italia.org', website_oia)
-                self.lines[lineno] = self.lines[lineno].replace(
-                    'http://www.odoo-italia.org', website_oia)
             elif re.search('https*://[w.]*shs-av.com',
                           self.lines[lineno]) or \
                     re.search('Odoo Community Association',
@@ -259,7 +245,7 @@ class topep8():
                     new_line += '    '
                 new_line += self.lines[lineno][ipos:]
             else:
-                new_line += ' 2018-19 '
+                new_line += ' 2018-20 '
                 new_line += self.lines[lineno][ipos:]
             if new_line[16:19] == '-20':
                 new_line = new_line[0:17] + new_line[19:]
@@ -268,19 +254,16 @@ class topep8():
         for org in req_copyrights:
             if org not in copy_found:
                 if org == 'oca':
-                    line = '# Copyright 2018-19 - Odoo Community Association' \
+                    line = '# Copyright 2018-20 - Odoo Community Association' \
                            ' <%s>' % website_oca
-                elif org == 'oia':
-                    line = '# Copyright 2018-19 - Odoo Italia Associazione' \
-                           ' <%s>' % website_oia
                 elif org == 'shs':
-                    line = '# Copyright 2018-19 - SHS-AV s.r.l.' \
+                    line = '# Copyright 2018-20 - SHS-AV s.r.l.' \
                            ' <%s>' % website_shs
                 elif org == 'zero':
-                    line = '# Copyright 2018-19 - SHS-AV s.r.l.' \
+                    line = '# Copyright 2018-20 - SHS-AV s.r.l.' \
                            ' <%s>' % website_zero
                 else:
-                    line = '# Copyright 2018-19 - %s' % auth_antoniov
+                    line = '# Copyright 2018-20 - %s' % auth_antoniov
                 self.lines.insert(lineno, line)
                 lineno += 1
         while lineno < len(self.lines) and \
@@ -367,6 +350,8 @@ class topep8():
         tokenize.tok_name[tokenize.DECL_LIST] = 'DECL_LIST'
         tokenize.LIST_SEP = tokenize.N_TOKENS + 26
         tokenize.tok_name[tokenize.LIST_SEP] = 'LIST_SEP'
+        tokenize.NULL = tokenize.N_TOKENS + 27
+        tokenize.tok_name[tokenize.NULL] = 'NULL'
         #
         self.INDENTS = [tokenize.INDENT,  tokenize.DEDENT]
         self.NEWLINES = [tokenize.NEWLINE, tokenize.NL]
@@ -472,6 +457,7 @@ class topep8():
             'more': (tokenize.MORE, False, [0, -1]),
             'expr': (tokenize.EXPR, False, [0, -1]),
             'list': (tokenize.DECL_LIST, False, [1, 1]),
+            'NULL': (tokenize.NULL, False, [1, 1]),
         }
 
     def set_active(self, ir, irx):
@@ -668,7 +654,8 @@ class topep8():
                 ir, ctx['to_ver'], 'to')
             offset = 0
             for i,tokeno in enumerate(self.LEX_RULES[ir]['matched_ids']):
-                if i < len(param_list_to):
+                if (i < len(param_list_to) and
+                        ids_from_list[i] != tokenize.NULL):
                     self.update_source_token(tokeno,
                                              ids_from_list[i],
                                              param_list_to[i],
@@ -683,9 +670,15 @@ class topep8():
             i = len(self.LEX_RULES[ir]['matched_ids'])
             tokeno = self.LEX_RULES[ir]['matched_ids'][-1] + 1
             while i < len(param_list_to):
+                start = [0, 1]
+                if ((tokeno > 0 and
+                        self.tokenized[tokeno - 1][1] == '.') or
+                        param_list_to[i] == '.'):
+                    start = [0, 0]
                 self.insert_source_token(tokeno,
                                          ids_from_list[i],
-                                         param_list_to[i])
+                                         param_list_to[i],
+                                         start=start)
                 i += 1
                 tokeno += 1
 
@@ -795,6 +788,7 @@ class topep8():
         if direction == 'from' and '0' in self.LEX_RULES[ir]['meta']:
             return '0'
         top = 0.0
+        res = 99.0
         meta_val = eval(meta)
         for ver in self.LEX_RULES[ir]['meta']:
             if eval(ver) <= meta_val and eval(ver) >= top:
@@ -807,6 +801,8 @@ class topep8():
         params = []
         param_ids = []
         ver = self.get_from_ver_in_rule(ir, meta, direction)
+        if ver == 99.0:
+            return [], []
         params = self.LEX_RULES[ir]['meta'][ver]
         param_ids = self.LEX_RULES[ir]['meta_ids'][ver]
         return params, param_ids
@@ -992,8 +988,7 @@ class topep8():
                                                        False)
                     else:
                         state, tokid, tokval, min_max = \
-                            self.parse_token_text(rule['meta'][meta],
-                                                  state)
+                            self.parse_token_text(rule['meta'][meta], state)
                     replacements[meta].append(tokval)
                     replacem_ids[meta].append(tokid)
         ir = rule['id']
@@ -1144,7 +1139,6 @@ class topep8():
                 del self.LEX_RULES[ir]['keywords'][ix]
                 del self.LEX_RULES[ir]['keyids'][ix]
                 ver = self.get_from_ver_in_rule(ir, ctx['from_ver'], 'from')
-                # items_to_delete = []
                 offset = 0
                 for i in range(len(self.LEX_RULES[ir]['meta'][ver])):
                     if self.LEX_RULES[ir]['meta_ids'][ver][i] == tokenize.START_CAPTURE:
@@ -1309,7 +1303,8 @@ class topep8():
             if ctx['opt_dbg']:
                 print(">>> %s(%s)" % (tokid, tokval))
             validated_rule_list = []
-            for ir in self.LEX_RULES.keys():
+            for ir in sorted(self.LEX_RULES.keys()):
+            # for ir in self.LEX_RULES.keys():
                 if ctx['parse_state'] not in self.in_states(ir):
                     continue
                 irx = 0
@@ -1452,7 +1447,7 @@ def get_filenames(ctx):
 
 def get_versions(ctx):
     if ctx.get('odoo_ver', None) is None:
-        ctx['odoo_ver'] = '11.0'
+        ctx['odoo_ver'] = '12.0'
     ctx['to_ver'] = ctx['odoo_ver']
     if ctx.get('from_odoo_ver', None) is None:
         ctx['from_odoo_ver'] = '7.0'
@@ -1496,13 +1491,9 @@ def parse_file(ctx=None):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Topep8",
-                          "© 2015-2018 by SHS-AV s.r.l.",
+                          "© 2015-2020 by SHS-AV s.r.l.",
                           version=__version__)
     parser.add_argument('-h')
-    parser.add_argument('-A', '--odoo-italia-associzione',
-                        action='store_true',
-                        dest='opt_oia',
-                        default=False)
     parser.add_argument('-B', '--recall-debug-statements',
                         action='store_true',
                         dest='opt_recall_dbg',
@@ -1513,8 +1504,9 @@ if __name__ == "__main__":
     parser.add_argument('-C', '--copyright',
                         action='store',
                         dest='opt_copy',
-                        default='oia')
+                        default='zero')
     parser.add_argument('-D', '--show-debug',
+                        help="show debug informations",
                         action='store_true',
                         dest='opt_dbg',
                         default=False)

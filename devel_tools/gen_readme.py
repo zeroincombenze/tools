@@ -207,10 +207,10 @@ def iter_tempate_path(debug_mode=None, body=None):
     for src_path in ('.',
                      './docs',
                      './egg-info',
-                     '/opt/odoo/dev/pypi/tools/templates/${p}',
-                     '/opt/odoo/dev/templates/${p}',
-                     '/opt/odoo/dev/pypi/tools/templates',
-                     '/opt/odoo/dev/templates'):
+                     '%s/dev/pypi/tools/templates/${p}' % os.environ['HOME'],
+                     '%s/dev/templates/${p}' % os.environ['HOME'],
+                     '%s/dev/pypi/tools/templates' % os.environ['HOME'],
+                     '%s/dev/templates' % os.environ['HOME']):
         if src_path.find('/dev/pypi/tools/') >= 0 and not debug_mode:
             continue
         elif src_path.find('/dev/templates') >= 0 and debug_mode:
@@ -1011,8 +1011,6 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
     # if target.find('Art. 21') >= 0:
-    #     import pdb
-    #     pdb.set_trace()
     if in_fmt == 'rst' and out_fmt == 'html':
         state, target = tohtml(target, state=state)
     elif in_fmt == 'rst' and out_fmt == 'troff':
@@ -1062,7 +1060,8 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         state, source2 = parse_source(ctx,
                                       source.replace('branch', 'prior2_branch'),
                                       state=state)
-        source = parse_acknoledge_list(ctx, source1 + source2)
+        source = parse_acknoledge_list(
+            ctx, '\n'.join(set(source1.split('\n'))|set(source2.split('\n'))))
     if len(source):
         full_hfn = get_template_fn(ctx, 'header_' + filename)
         header = ''
@@ -1205,10 +1204,11 @@ def read_all_manifests(ctx):
                 except KeyError:
                     pass
     if ctx['odoo_layer'] == 'ocb':
-        oca_root = '/opt/odoo/oca%d' % ctx['odoo_majver']
+        oca_root = '%s/oca%d' %  (os.environ['HOME'], ctx['odoo_majver'])
     else:
-        oca_root = '/opt/odoo/oca%d/%s' % (ctx['odoo_majver'],
-                                           ctx['repos_name'])
+        oca_root = '%s/oca%d/%s' % (os.environ['HOME'],
+                                    ctx['odoo_majver'],
+                                    ctx['repos_name'])
     for root, dirs, files in os.walk(oca_root):
         dirs[:] = [d for d in dirs if valid_dir(d, ctx['odoo_layer'])]
         if ctx['odoo_layer'] != 'ocb' or root.find('addons') >= 0:
@@ -1381,13 +1381,15 @@ def set_default_values(ctx):
     ctx['zero_tools'] = '`Zeroincombenze Tools ' \
                         '<https://github.com/zeroincombenze/tools>`__'
     if ctx['odoo_layer'] == 'ocb':
-        ctx['local_path'] = '/opt/odoo/%s' % ctx['odoo_fver']
+        ctx['local_path'] = '%s/%s' % (os.environ['HOME'], ctx['odoo_fver'])
     elif ctx['odoo_layer'] == 'repository':
-        ctx['local_path'] = '/opt/odoo/%s/%s/' % (ctx['odoo_fver'],
-                                                  ctx['repos_name'])
+        ctx['local_path'] = '%s/%s/%s/' % (os.environ['HOME'],
+                                           ctx['odoo_fver'],
+                                           ctx['repos_name'])
     else:
-        ctx['local_path'] = '/opt/odoo/%s/%s/' % (ctx['odoo_fver'],
-                                                  ctx['repos_name'])
+        ctx['local_path'] = '%s/%s/%s/' % (os.environ['HOME'],
+                                           ctx['odoo_fver'],
+                                           ctx['repos_name'])
 
 
 def generate_readme(ctx):
