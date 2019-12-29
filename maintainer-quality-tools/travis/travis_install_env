@@ -14,7 +14,7 @@ echo "\$>THIS=$THIS"
 echo "\$>TDIR=$TDIR"
 for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   echo "\$  >d=$d"
-  echo "\$  >dir $d/z0librc->$(dir $d/z0librc)"
+  echo "\$  >dir $d/z0librc->$(dir $d/z0librc 2>/dev/null)"
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -25,8 +25,7 @@ done
 if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
-fii
-exit 1
+fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
