@@ -25,9 +25,9 @@ copyright = '2019, '
 author = ''
 
 # The short X.Y version
-version = '0.2.2.23'
+version = '0.2.2.24'
 # The full version, including alpha/beta/rc tags
-release = '0.2.2.23'
+release = '0.2.2.24'
 
 
 # -- General configuration ---------------------------------------------------

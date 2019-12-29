@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=0.2.2.23
+# __version__=0.2.2.24
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -41,7 +41,6 @@ addons:
 before_install:
   # Tools are used to test themselves packages
   - ln -s ${TRAVIS_BUILD_DIR} ${HOME}
-    # - cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
   - export PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}
   - export PATH=${HOME}/tools/maintainer-quality-tools/_travis:${PATH}
   # - export OPTS="-j"
