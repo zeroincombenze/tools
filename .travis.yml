@@ -41,9 +41,9 @@ addons:
 before_install:
   # Tools are used to test themselves packages
   - ln -s ${TRAVIS_BUILD_DIR} ${HOME}
-  - cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
-  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-  - export PATH=${HOME}/maintainer-quality-tools/_travis:${PATH}
+    # - cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
+  - export PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}
+  - export PATH=${HOME}/tools/maintainer-quality-tools/_travis:${PATH}
   # - export OPTS="-j"
 
 install:
