@@ -99,6 +99,7 @@ do_venv_mgr() {
     [ -n "$3" ] && VIRTUAL_ENV=$(readlink -f $3)
     [[ $cmd =~ (reset|test) ]] && VIRTUAL_ENV=$VENV
     [ $opt_alone -ne 0 ] && popt="-I"
+    [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
     [ -n "$opt_oever" ] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever)
     if [[ -z "$VENV" || -z "$VIRTUAL_ENV" ]]; then
       echo "Missed parameters!"
@@ -161,16 +162,16 @@ do_venv_mgr() {
                 rm -f ./lib64
                 ln -s ./lib ./lib64
             fi
-            [ "$cmd" == "reset" -a -n "$opt_rfile" ] && run_traced "$PIP install -r $opt_rfile $popt --no-warn-conflicts --disable-pip-version-check"
+            [ "$cmd" == "reset" -a -n "$opt_rfile" ] && run_traced "$PIP install -r $opt_rfile $popt --disable-pip-version-check"
             if [ $opt_dev -ne 0 ]; then
                 for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
-                    run_traced "$PIP install $pkg $popt --upgrade --no-warn-conflicts --disable-pip-version-check"
+                    run_traced "$PIP install $pkg $popt --upgrade --disable-pip-version-check"
                 done
             fi
             if [ -n "$opt_oever" -a "$cmd" == "reset" ]; then
                 xpkgs="(${SUP_PKGS// /|}|${SECURE_PKGS// /|}|${DEV_PKGS// /|})"
                 for pkg in $OEPKGS; do
-                    [[ $pkg =~ $xpkgs ]] || run_traced "$PIP install $pkg $popt --upgrade --no-warn-conflicts --disable-pip-version-check"
+                    [[ $pkg =~ $xpkgs ]] || run_traced "$PIP install $pkg $popt --upgrade --disable-pip-version-check"
                 done
             fi
         elif [ -d $V ]; then
@@ -180,6 +181,8 @@ do_venv_mgr() {
         run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VIRTUAL_ENV'\":g' $PWD/bin/activate"
         if $(grep -q "^export HOME=" $PWD/bin/activate); then
           run_traced "sed -i -e 's|^export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
+        elif $(grep -q "^# export HOME=" $PWD/bin/activate); then
+          run_traced "sed -i -e 's|^# export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
         else
           run_traced "sed -ri \"/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')\" $PWD/bin/activate"
           [ $opt_dry_run -eq 0 ] && echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
@@ -213,15 +216,19 @@ custom_env() {
     sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
     if $(grep -q "^export HOME=" $PWD/bin/activate); then
       sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
+    elif $(grep -q "^# export HOME=" $PWD/bin/activate); then
+      sed -i -e 's|^# export HOME=.*|# export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
     else
-      sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
+      [ $opt_alone -ne 0 ] && sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
+      [ $opt_alone -eq 0 ] && sed -ri "/deactivate *\(\) *\{/a\    # export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
       [ $pyver -gt 2 -a $opt_keep -eq 0 ] && sed -ri "/deactivate *\(\) *\{/a\    unalias pip &>/dev/null" $PWD/bin/activate
       [ $pyver -gt 2 -a $opt_keep -eq 0 ] && sed -ri "/deactivate *\(\) *\{/a\    unalias python &>/dev/null" $PWD/bin/activate
       [ $opt_spkg -ne 0 -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] && ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
       echo "for f in \$VIRTUAL_ENV/bin/*;do">>$PWD/bin/activate
       echo "    [ -x \$f -a ! -d \$f ] && sed -i -e \"s|^#\!.*/bin/python|#\!\$VIRTUAL_ENV/bin/python|\" \$f">>$PWD/bin/activate
       echo "done">>$PWD/bin/activate
-      echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
+      [ $opt_alone -ne 0 ] && echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
+      [ $opt_alone -eq 0 ] && echo "# export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
       [ $pyver -gt 2 -a $opt_keep -eq 0 ] && echo "alias pip=$PIP">>$PWD/bin/activate
       [ $pyver -gt 2 -a $opt_keep -eq 0 ] && echo "alias python=$PYTHON">>$PWD/bin/activate
     fi
@@ -245,6 +252,7 @@ do_venv_create() {
     export VENV__SAVED_HOME=$HOME
     export VIRTUAL_ENV=$(readlink -f $1)
     [ $opt_alone -ne 0 ] && popt="-I"
+    [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
     if [ -d $VIRTUAL_ENV ]; then
         if [ $opt_force -eq 0 -o "$1" == "." ]; then
             echo "Virtual environment $VIRTUAL_ENV already exists!!"
@@ -263,26 +271,29 @@ do_venv_create() {
     run_traced "pushd $VIRTUAL_ENV >/dev/null"
     [ $opt_verbose -ne 0 -a $opt_dev -ne 0 ] && echo "$FLAG . bin/activate"
     [ $opt_dry_run -eq 0 ] && . bin/activate
-    . bin/activate
-    custom_env $VIRTUAL_ENV $opt_pyver
+    run_traced "pip install pip -U"
+    PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
+    [ $opt_alone -ne 0 ] && popt="-I"
+    [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
+    [ $opt_dry_run -eq 0 ] && custom_env $VIRTUAL_ENV $opt_pyver
     if [ $opt_dev -ne 0 ]; then
         for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
-            run_traced "$PIP install $pkg  $popt --no-warn-conflicts --disable-pip-version-check"
+            run_traced "$PIP install $pkg  $popt --disable-pip-version-check"
         done
     else
         for pkg in $SUP_PKGS $SECURE_PKGS; do
-            run_traced "$PIP install $pkg  $popt --no-warn-conflicts --disable-pip-version-check"
+            run_traced "$PIP install $pkg  $popt --disable-pip-version-check"
         done
         DEV_PKGS=
     fi
-    [ -n "$opt_rfile" ] && run_traced "$PIP install -r $opt_rfile $popt --no-warn-conflicts --disable-pip-version-check"
+    [ -n "$opt_rfile" ] && run_traced "$PIP install -r $opt_rfile $popt --disable-pip-version-check"
     if [ -n "$opt_oever" ]; then
         xpkgs="(${SUP_PKGS// /|}|${SECURE_PKGS// /|})"
         for pkg in $OEPKGS; do
-            [[ "$pkg" =~ $xpkgs ]] || run_traced "$PIP install $pkg $popt --no-warn-conflicts --disable-pip-version-check"
+            [[ "$pkg" =~ $xpkgs ]] || run_traced "$PIP install $pkg $popt --disable-pip-version-check"
             if [[ "$pkg" =~ $FLT_PKGS ]]; then
                 run_traced "$PIP uninstall cryptography -y"
-                run_traced "$PIP install cryptography  $popt --no-warn-conflicts --disable-pip-version-check"
+                run_traced "$PIP install cryptography  $popt --disable-pip-version-check"
             fi
         done
     fi
@@ -324,8 +335,8 @@ do_venv_pip() {
         [ $opt_dry_run -eq 0 ] && . bin/activate
     fi
     [ "$cmd" == "info" ] && run_traced "$PIP show $pkg"
-    [ "$cmd" == "install" ] && run_traced "$PIP $cmd $pkg --no-warn-conflicts --disable-pip-version-check"
-    [ "$cmd" == "update" ] && run_traced "$PIP install $pkg $popt --upgrade --no-warn-conflicts --disable-pip-version-check"
+    [ "$cmd" == "install" ] && run_traced "$PIP $cmd $pkg --disable-pip-version-check"
+    [ "$cmd" == "update" ] && run_traced "$PIP install $pkg $popt --upgrade --disable-pip-version-check"
     if [ "$1" != "." ]; then
         [ $opt_verbose -ne 0 ] && echo "$FLAG deactivate"
         [ $opt_dry_run -eq 0 ] && deactivate
@@ -376,7 +387,7 @@ if [ $opt_help -gt 0 ]; then
   exit $STS_SUCCESS
 fi
 export PYTHONWARNINGS="ignore"
-[ $opt_alone -ne 0 ] && PYTHONPATH=
+[ $opt_alone -ne 0 ] && PYTHONPATH=$HOME/tools/
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
 if [ -z "$opt_pyver" ]; then
@@ -389,6 +400,8 @@ if [ -n "$opt_pyver" ]; then
     [ $pyver -gt 2 ] && PYTHON=python3
     [ $pyver -le 2 ] && PYTHON=python
 fi
+eval $PIP install pip -U
+PIPVER=$($PIP --version|grep -Eo [0-9]+|head -n1)
 if [ "$action" == "exec" ]; then
     do_venv_exec "$p1" "$p2" "$p3"
 elif [[ $action =~ (info|install|update) ]]; then
