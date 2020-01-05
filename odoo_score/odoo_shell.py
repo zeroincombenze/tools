@@ -2428,6 +2428,7 @@ def test_synchro_vg7(ctx):
         'product_uom_id': 'product.uom',
         'partner_shipping_id': 'res.partner',
     }
+    ctx['ctr'] = 0
 
     def general_check(ctx, model, id, vals):
         if not id or id < 1:
@@ -2440,7 +2441,7 @@ def test_synchro_vg7(ctx):
             vals['vg7_id'] = vals['vg7:id']
             del vals['vg7:id']
         rec = clodoo.browseL8(ctx, model, id)
-        if model == 'res.partner' and vals['vg7_id'] == 17:
+        if model == 'res.partner' and vals.get('vg7_id') == 17:
             if rec.name != 'Rossi Mario':
                 raise IOError('!!Invalid field %s.name!' % model)
             if rec.id not in ctx['partner_MR_ids']:
@@ -2545,6 +2546,7 @@ def test_synchro_vg7(ctx):
                             value = 'Unit(s)'
                 if value != vals[ext_ref]:
                     raise IOError('!!Invalid field %s.%s!' % (model, loc_name))
+                ctx['ctr'] += 1
 
     def store_id(ctx, model, id, vg7_id):
         if model not in BORDER_TABLE:
@@ -2574,6 +2576,11 @@ def test_synchro_vg7(ctx):
                 vals['vg7:%s' % nm] = vals[nm]
                 del vals[nm]
         return vals
+
+    def unlink_vg7(model):
+        ids = clodoo.searchL8(ctx, model, [('vg7_id', '>', 0)])
+        for id in ids:
+            clodoo.writeL8(ctx, model, id, {'vg7_id': False})
 
     def delete_record(ctx, model, where, multi=False, action=None,
                       childs=None, company_id=False):
@@ -2727,11 +2734,6 @@ def test_synchro_vg7(ctx):
 
     def check_product_template(ctx, vg7_id, vals):
         model = 'product.template'
-        # tmpl_id = clodoo.searchL8(ctx, model, [('vg7_id', '=', vg7_id)])
-        # if len(tmpl_id) == 1:
-        #     tmpl_id = tmpl_id[0]
-        # else:
-        #     tmpl_id = -1
         tmpl_id = get_id_from_vg7id(ctx, model, vg7_id)
         store_id(ctx, model, tmpl_id, vg7_id)
         general_check(ctx, model, tmpl_id, vals)
@@ -2944,6 +2946,24 @@ def test_synchro_vg7(ctx):
         check_partner(ctx, shipping_id, vals)
         return vg7_id
 
+    def write_partner_supplier(ctx, company_id, vg7_id=None, name=None,
+                      wrong_data=None):
+        model = 'res.partner'
+        print('Write %s (supplier)..' % model)
+        vg7_id = 14
+        vals = {
+            'vg7:id': vg7_id,
+            'vg7:company': 'Delta 4 s.r.l.',
+        }
+        supplier_id = clodoo.executeL8(ctx,
+                                      '%s.supplier' %model,
+                                      'synchro',
+                                      vals)
+        store_id(ctx, model, supplier_id, vg7_id)
+        vals['vg72_id'] = vals['vg7:id']
+        del vals['vg7:id']
+        check_partner(ctx, supplier_id, vals)
+        return supplier_id
 
     def check_uom(ctx, uom_id, vals):
         general_check(ctx, 'product.uom', uom_id, vals)
@@ -3100,6 +3120,9 @@ def test_synchro_vg7(ctx):
                                        'synchro',
                                        vals)
             store_id(ctx, model, line_id, vg7_id)
+            if newprod:
+                id = get_id_from_vg7id(ctx, 'product.product', 3)
+                store_id(ctx, 'product.product', id, 3)
             check_sale_order_line(ctx, line_id, vals)
 
         id = clodoo.executeL8(ctx,
@@ -3109,7 +3132,7 @@ def test_synchro_vg7(ctx):
         if id < 0:
             raise IOError('!!Commit Failed (%d)!' % id)
         rec = clodoo.browseL8(ctx, 'sale.order', order_id)
-        if state:
+        if state and not newprod:
             if rec['state'] != state:
                 raise IOError('!!Invalid state!')
             if len(rec['order_line']) != 2:
@@ -3347,18 +3370,22 @@ def test_synchro_vg7(ctx):
         clodoo.writeL8(ctx, 'res.company', company_id,
                         {'sale_note': ctx['company_note']})
         # Se partner (person) name
-        partner_MR_ids = clodoo.searchL8(ctx, 'res.partner',
+        model = 'res.partner'
+        unlink_vg7(model)
+        partner_MR_ids = clodoo.searchL8(ctx, model,
                                          [('name', 'like', 'Rossi')])
         if partner_MR_ids:
             for id in partner_MR_ids:
-                partner = clodoo.browseL8(ctx, 'res.partner', id)
+                partner = clodoo.browseL8(ctx, model, id)
                 if partner.split_mode != 'LF':
-                    clodoo.writeL8(ctx, 'res.partner', id,
+                    clodoo.writeL8(ctx, model, id,
                                    {'splitmode': 'LF',
                                     'name': 'Rossi Mario'})
         ctx['partner_MR_ids'] = partner_MR_ids
+
         # Productc (MISC)
         model = 'product.product'
+        unlink_vg7(model)
         product_x_ids = clodoo.searchL8(ctx, model,
                                         [('default_code', '=', 'MISC')])
         if not product_x_ids:
@@ -3384,8 +3411,8 @@ def test_synchro_vg7(ctx):
                               [('identity', '=', 'vg7')])
         if ids:
             clodoo.writeL8(
-                ctx, model, ids, {'identity': 'csv',
-                                  'counterpart_url': '/opt/odoo/clodoo/'})
+                ctx, model, ids, {'method': 'CSV',
+                                  'exchange_path': '/opt/odoo/clodoo/'})
         # Delete sale order
         model = 'sale.order'
         delete_record(
@@ -3394,6 +3421,7 @@ def test_synchro_vg7(ctx):
 
         # Delete invoice
         model = 'account.invoice'
+        unlink_vg7(model)
         delete_record(
             ctx, model, [('number', '=', L_NUM_FATT2)],
             action=['move_name=', 'action_invoice_cancel'],
@@ -3407,6 +3435,7 @@ def test_synchro_vg7(ctx):
 
         # Delete DdT
         model = 'stock.picking.package.preparation'
+        unlink_vg7(model)
         delete_record(
             ctx, model, [('ddt_number', '=', X_NUM_DDT)], company_id=company_id)
 
@@ -3418,12 +3447,9 @@ def test_synchro_vg7(ctx):
 
         # Delete other records
         model = 'res.country.state'
+        unlink_vg7(model)
         delete_record(ctx, model, [('name', '=', '(TO)')])
         ids = clodoo.searchL8(ctx, model, [('vg7_id', '>', 0)])
-        for id in ids:
-            clodoo.writeL8(ctx, model, id, {'vg7_id': False})
-        for ext_model in ('customers', 'products'):
-            rm_file_2_pull(ext_model)
         return ctx
 
     def write_file_2_pull(ext_model, vals):
@@ -3443,7 +3469,6 @@ def test_synchro_vg7(ctx):
         raise IOError('!!Internal error: no company to test found!')
     ctx = init_test(ctx, company_id)
 
-    pdb.set_trace()
     # Repeat 2 times to check correct synchronization
     write_country(ctx)
     write_country(ctx, vg7_id='39')
@@ -3468,7 +3493,10 @@ def test_synchro_vg7(ctx):
     # Partner for sale order & invoice
     write_partner(ctx, company_id, vg7_id=2)
     write_partner_pull(ctx, company_id)
+    write_partner_pull(ctx, company_id)
     write_partner_shipping(ctx, company_id)
+    write_partner_supplier(ctx, company_id)
+    write_partner_supplier(ctx, company_id)
     write_uom(ctx)
     write_transport_reason(ctx)
 
@@ -3479,7 +3507,6 @@ def test_synchro_vg7(ctx):
     # Repeat 2 times with different state
     write_invoice(ctx, company_id)
     write_invoice(ctx, company_id, state='open')
-
     # Repeat 2 times with different state
     write_ddt(ctx, company_id)
     write_ddt(ctx, company_id, shipping_id=107)
@@ -3503,7 +3530,26 @@ def test_synchro_vg7(ctx):
         'telephone': '+39 555 999999'
     }
     write_file_2_pull(ext_model, vals)
-    print('Go to web page, menù partner, search for partner with vg7_id=7')
+    print('Go to web page, menù customer, partner "AAA"')
+    print('then click on synchronize button')
+    dummy = raw_input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    if not dummy.startswith('n') and not dummy.startswith('N'):
+        check_partner(
+            ctx, get_id_from_vg7id(ctx, model, vg7_id), jacket_vals(vals))
+
+    model = 'res.partner'
+    ext_model = 'suppliers'
+    ext_model = 'suppliers'
+    vg7_id = 14
+    vals = {
+        'id': vg7_id,
+        'company': 'Delta Quattro s.r.l.',
+        'postal_code': '80010',
+        'city': 'Quarto Flegreo',
+        'region': 'Napoli',
+    }
+    write_file_2_pull(ext_model, vals)
+    print('Go to web page, menù supplier, partner "Delta 4"')
     print('then click on synchronize button')
     dummy = raw_input('Did you synchronize %s record (Yes,No)? ' % ext_model)
     if not dummy.startswith('n') and not dummy.startswith('N'):
@@ -3519,14 +3565,13 @@ def test_synchro_vg7(ctx):
         'description': 'Product AAA',
     }
     write_file_2_pull(ext_model, vals)
-    print('Go to web page, menù product, search for partner with vg7_id=1')
+    print('Go to web page, menù product, product "AA"')
     print('then click on synchronize button')
     dummy = raw_input('Did you synchronize %s record (Yes,No)? ' % ext_model)
     if not dummy.startswith('n') and not dummy.startswith('N'):
         check_product(
             ctx, get_id_from_vg7id(ctx, model, vg7_id), jacket_vals(vals))
 
-    pdb.set_trace()
     vg7_id = 3
     vals = {
         'id': vg7_id,
@@ -3535,6 +3580,8 @@ def test_synchro_vg7(ctx):
     }
     write_file_2_pull(ext_model, vals)
     write_sale_order(ctx, company_id, state='sale', newprod=True)
+
+    print('%d testsconnector_vg7 successfully ended' % ctx['ctr'])
 
  
 def test_synchro_mdb(ctx):

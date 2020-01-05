@@ -80,12 +80,17 @@ class SingletonCache(object):
             channel_id, {}).get(model, {}).get(attrib, {}).get(
                 field, default)
 
-    def init_model(self, dbname):
+    def init_struct(self, dbname):
         self.MANAGED_MODELS[dbname] = {}
 
     def init_channel(self, dbname, channel_id):
         self.MANAGED_MODELS[dbname] = {}
         self.MANAGED_MODELS[dbname][channel_id] = {}
+
+    def init_struct_model(self, dbname, model):
+        self.STRUCT[dbname] = self.STRUCT.get(dbname, {})
+        if model:
+            self.STRUCT[dbname][model] = {}
 
     def set_channel(self, dbname, channel_id):
         self.MANAGED_MODELS[dbname] = self.MANAGED_MODELS.get(dbname, {})
@@ -142,55 +147,6 @@ class SingletonCache(object):
 
     def set_struct_model_attr(self, dbname, model, attrib, value):
         self.STRUCT[dbname][model][attrib] = value
-
-    def setup_model_structure(self, model, ro_fields=None):
-        '''Store model structure in memory'''
-        if not model:
-            return
-        ro_fields = ro_fields or []
-        if self.get_struct_model_attr(model,
-                                      'EXPIRE',
-                                      default=datetime.now()) > datetime.now():
-            return
-        ir_model = self.env['ir.model.fields']
-        self.set_struct_model(model)
-        self.set_struct_model_attr(model, 'EXPIRE',
-                                   datetime.now() + timedelta(
-                                       seconds=(self.EXPIRATION_TIME)))
-        loc_model = model if model != 'res.partner.shipping' else 'res.partner'
-        for field in ir_model.search([('model', '=', loc_model)]):
-            required = field.required
-            readonly = field.readonly
-            readonly = readonly or field.ttype in ('binary', 'reference')
-            if field.name in ro_fields:
-                readonly = True
-            self.set_struct_model_attr(
-                model, field.name, {
-                    'ttype': field.ttype,
-                    'relation': field.relation,
-                    'required': required,
-                    'readonly': readonly,
-                    'protect': field.protect_update,
-                })
-            if field.relation and field.relation.startswith(model):
-                self.set_struct_model_attr(model, 'LINES_OF_REC', field.name)
-                self.set_struct_model_attr(model, 'LINE_MODEL', field.relation)
-            elif field.relation and model.startswith(field.relation):
-                self.set_struct_model_attr(model, 'PARENT_ID', field.name)
-            if field.name == 'original_state':
-                self.set_struct_model_attr(model, 'MODEL_STATE', True)
-            elif field.name == 'to_delete':
-                self.set_struct_model_attr(model, 'MODEL_2DELETE', True)
-            elif field.name == 'name':
-                self.set_struct_model_attr(model, 'MODEL_WITH_NAME', True)
-            elif field.name == 'active':
-                self.set_struct_model_attr(model, 'MODEL_WITH_ACTIVE', True)
-            elif field.name == 'dim_name':
-                self.set_struct_model_attr(model, 'MODEL_WITH_DIMNAME', True)
-            elif field.name == 'company_id':
-                self.set_struct_model_attr(model, 'MODEL_WITH_COMPANY', True)
-            elif field.name == 'country_id':
-                self.set_struct_model_attr(model, 'MODEL_WITH_COUNTRY', True)
 
     def setup_models_in_channels(self, dbname, model):
         if not model:
