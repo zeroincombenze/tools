@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -24,22 +24,22 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.3.33.4
+__version__=1.3.33.5
 
 
 db_act_list() {
-# db_act_list(-C|-c|-k|-l|-w|-z [pos])  # count_all, count, return older pid to kill, list sessions, return active sess to wait
+# db_act_list(-C|-c|-k|-l|-u|-w|-z [pos])  # count_all, count, return older pid to kill, list sessions, return active sess to wait
     local act=$1
     local fw
-    local sql sqlc sess_ctr LOG wait4 valid_sess db pid w st older
+    local sql sqlc sess_ctr LOG wait4 valid_sess db pid w st older usr user
     local pos=0
     [ -n "$2" ] && pos=$2
     [ $PSQL_VER -ge 96 ] && fw="wait_event" || fw="waiting"
     if [ "$act" == "-z" ]; then local ord="desc"; else local ord=; fi
     if [ -z "$DB" ]; then
-      sql="select datname,pid,state_change,$fw,state from pg_stat_activity where pid<>pg_backend_pid() order by state_change $ord;"
+      sql="select datname,pid,state_change,$fw,state,usename from pg_stat_activity where pid<>pg_backend_pid() order by state_change $ord;"
     else
-      sql="select datname,pid,state_change,$fw,state from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid() order by state_change $ord;"
+      sql="select datname,pid,state_change,$fw,state,usename from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid() order by state_change $ord;"
     fi
     if [ "$act" == "-c" -o "$act" == "-C" ]; then
       if [ -z "$DB" -o "$act" == "-C" ]; then
@@ -47,37 +47,36 @@ db_act_list() {
       else
         sqlc="select count(pid) from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid();"
       fi
-      sess_ctr=$($PSQL -tc "$sqlc"|head -n1)
+      sess_ctr=$($PSQL -Atc "$sqlc"|head -n1)
       sess_ctr=$(echo $sess_ctr)
     else
       LOG=~/${THIS}_$$.log
-      $PSQL -tc "$sql" -o $LOG
+      $PSQL -Atc "$sql" -o $LOG
       wait4=0
       sess_ctr=0
       valid_sess=0
       older=0
-      while IFS=\| read db pid dt w st; do
+      user=
+      while IFS=\| read db pid dt w st usr; do
+        [ $PSQL_VER -ge 95 -a -z "$st" ] && st="idle"
         if [ -n "$st" ]; then
           ((sess_ctr++))
-          db=$(echo $db)
-          w=$(echo $w)
-          if [ $PSQL_VER -ge 96 ]; then
+          if [ $PSQL_VER -ge 95 ]; then
             [ -z "$w" ] && w="f" || w="t"
           fi
-          st=$(echo $st)
-          pid=$(echo $pid)
           if [ "$act" == "-l" ]; then
-            # echo -e "($pid)\t$db\t$w\t$st"
-            printf "(%6.6s) %-16.16s %2.2s %-8.8s %20.20s\n" "$pid" "$db" "$w" "$st" "$dt"
+            printf "(%6.6s) %-16.16s %2.2s %-8.8s %20.20s %8.8s\n" "$pid" "$db" "$w" "$st" "$dt" "$usr"
           fi
           if [ $older -eq 0 -a "$w" == "f" -a "$st" == "idle" -a "$db" != "postgres" ]; then
             ((valid_sess++))
             if [ $pos -gt 0 ]; then
               if [ $valid_sess -eq $pos ]; then
                 older=$pid;
+                user=$usr
               fi
             else
               older=$pid
+              user=$usr
             fi
           fi
           if [ "$db" == "$DB" ]; then
@@ -89,6 +88,7 @@ db_act_list() {
             fi
           fi
         fi
+        [ $pos -gt 0 -a $valid_sess -eq $pos ] && break
       done < $LOG
       rm -f $LOG
     fi
@@ -98,6 +98,8 @@ db_act_list() {
       echo $sess_ctr
     elif [ "$act" == "-k" -o "$act" == "-z" ]; then
       echo $older
+    elif [[ "$act" == "-u" ]]; then
+      echo $user
     fi
     return 0
 }
@@ -130,23 +132,23 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Check/kill for postgres DB sessions"\
-  "(C) 2016-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2016-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 psql -l &>/dev/null
 if [ $? -eq 0 ]; then
     PSQL="psql -dtemplate1"
 else
-    psql -l &>/dev/null
+    psql -l -Upostgres &>/dev/null
     if [ $? -ne 0 ]; then
         echo "Denied inquire with psql [-Upostgres]"
         exit 2
     fi
     PSQL="psql -Upostgres -dtemplate1"
 fi
-PSQL_VER=$(psql --version|grep -Eo "[0-9]+\.[0-9]"|tr -d ".")
+PSQL_VER=$(psql --version|grep -Eo "[0-9]+\.[0-9]"|tr -d "."|head -n1)
 if [ $pool -lt 1 ]; then
-  pool=$($PSQL -tc "select setting from pg_settings where name='max_connections';"|head -n1)
+  pool=$($PSQL -Atc "select setting from pg_settings where name='max_connections';"|head -n1)
   pool=$(echo $pool)
 fi
 if [ $opt_show -ne 0 ]; then
@@ -235,26 +237,34 @@ while [ $sts -ne 0 -a $loop_ctr -gt 0 ]; do
         if [ $opt_last -ne 0 ]; then
           if [ $opt_dry_run -ne 0 ]; then
             pid=$(db_act_list "-z" "$bias")
+            user=$(db_act_list "-u" "$bias")
           else
             pid=$(db_act_list "-z")
+            user=$(db_act_list "-u")
           fi
         else
           if [ $opt_dry_run -ne 0 ]; then
             pid=$(db_act_list "-k" "$bias")
+            user=$(db_act_list "-u" "$bias")
           else
             pid=$(db_act_list "-k")
+            user=$(db_act_list "-u")
           fi
         fi
         if [ ${pid:-0} -ne 0 ]; then
           if [ $opt_dry_run -eq 0 ]; then
             if [ $opt_verbose -gt 0 ]; then
-              echo "Killing process pid=$pid"
+              echo "Killing process pid=$pid of $user"
             fi
             # kill $pid &>/dev/null
             sqlc="select pg_terminate_backend(pid) from pg_stat_activity where pid=$pid;"
-            $PSQL -tc "$sqlc" &>/dev/null
+            if [ $opt_verbose -gt 0 ]; then
+                run_traced "$PSQL -tc \"$sqlc\" -U$user"
+             else
+                $PSQL -tc "$sqlc" -U $user &>/dev/null
+             fi
           else
-            echo "Process pid=$pid should be killed"
+            echo "Process pid=$pid of $user should be killed"
             sts=0
           fi
         elif [ $opt_dry_run -eq 0 ]; then
