@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.2.1
+__version__=0.1.2.2
 DEV_PKGS="coveralls codecov flake8==3.4.1 pycodestyle==2.3.1 pylint==1.6.4"
 SUP_PKGS="future"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi"
@@ -329,6 +329,7 @@ do_venv_pip() {
     [ -n "$1" ] && VENV=$(readlink -f $1)
     pkg="$3"
     [ $opt_alone -ne 0 ] && popt="-I"
+    [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
     if [ "$1" != "." ]; then
         run_traced "pushd $VENV >/dev/null"
         [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
