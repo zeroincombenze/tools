@@ -246,6 +246,8 @@ do_venv_mgr() {
             [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
             [ $opt_dry_run -eq 0 ] && . bin/activate
         fi
+        run_traced "pip install pip -U"
+        PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
         [ $opt_dry_run -eq 0 ] && pip_install_1 "$popt --upgrade"
         [ $opt_dev -eq 0 ] && DEV_PKGS=
         [ -n "$opt_oever" -a "$cmd" == "reset" ] && pip_install_2 "$popt --upgrade"
@@ -423,7 +425,6 @@ if [ -n "$opt_pyver" ]; then
     [ $pyver -gt 2 ] && PYTHON=python3
     [ $pyver -le 2 ] && PYTHON=python
 fi
-eval $PIP install pip -U
 PIPVER=$($PIP --version|grep -Eo [0-9]+|head -n1)
 if [ "$action" == "exec" ]; then
     do_venv_exec "$p1" "$p2" "$p3"
