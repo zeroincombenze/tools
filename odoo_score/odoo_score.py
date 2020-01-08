@@ -108,6 +108,7 @@ class SingletonCache(object):
         self.set_model_attr(dbname, channel_id, model, 'APPLY', {})
         self.set_model_attr(dbname, channel_id, model, 'PROTECT', {})
         self.set_model_attr(dbname, channel_id, model, 'SPEC', {})
+        self.set_model_attr(dbname, channel_id, model, 'REQUIRED', {})
 
     def set_attr(self, dbname, channel_id, attrib, value):
         self.MANAGED_MODELS[dbname][channel_id][attrib] = value

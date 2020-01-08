@@ -536,19 +536,26 @@ def unlink_einvoice_out_attachment(ctx):
     print('Unlink e-attachment of invoice')
     model = 'account.invoice'
     if ctx['param_1'] == 'help':
-        print('unlink_einvoice_out_attachment invoice_id')
+        print('unlink_einvoice_out_attachment invoice_id IN|OUT')
         return
     if ctx['param_1']:
         inv_id = int(ctx['param_1'])
     else:
         inv_id = raw_input('Invoice id: ')
         inv_id = int(inv_id) if inv_id else 0
+    if ctx['param_2'] in ('IN', 'in', 'OUT', 'out'):
+        in_out = ctx['param_2'].lower()
+    else:
+        in_out = raw_input('IN/OUT: ')
+        if in_out.lower() == 'in':
+            field = 'fatturapa_attachment_in_id'
+        else:
+            field = 'fatturapa_attachment_out_id'
     if inv_id:
         inv = clodoo.browseL8(ctx, model, inv_id)
-        print('Processing invoice %s, attachment %d' % (
-            inv.number, inv.fatturapa_attachment_out_id))
+        print('Processing invoice %s' % inv.number)
         clodoo.writeL8(ctx, model, inv.id,
-                       {'fatturapa_attachment_out_id': False})
+                       {field: False})
 
 
 def revaluate_due_date_in_invoces(ctx, inv_id=False):
@@ -2323,8 +2330,12 @@ def test_synchro_vg7(ctx):
             'code': 'description',
             'description': False,
         },
+        'italy.conai.product.category': {
+            'description': 'name',
+            'prezzo_unitario': 'conai_price_unit',
+        },
         'product.product': {
-            'conai_id': False,
+            'conai_id': 'conai_category_id',
             'code': 'default_code',
             'description': 'name',
         },
@@ -2392,6 +2403,7 @@ def test_synchro_vg7(ctx):
             'um': False,
             'um_id': 'product_uom_id',
             # 'um_id': False,
+            'conai_id': 'conai_category_id',
         },
         'sale.order': {
             'name': 'client_order_ref',
@@ -2427,6 +2439,7 @@ def test_synchro_vg7(ctx):
         'transportation_reason_id': 'stock.picking.transportation_reason',
         'product_uom_id': 'product.uom',
         'partner_shipping_id': 'res.partner',
+        'conai_category_id': 'italy.conai.product.category',
     }
     ctx['ctr'] = 0
 
@@ -2752,7 +2765,7 @@ def test_synchro_vg7(ctx):
             'vg7:description': name,
         }
         if test_conai:
-            vals['vg7:conai_id'] = False
+            vals['vg7:conai_id'] = 1
         product_id = clodoo.executeL8(ctx,
                                       model,
                                       'synchro',
@@ -2793,7 +2806,6 @@ def test_synchro_vg7(ctx):
         else:
             name = name or 'Partner A'
             vals = {
-                # 'company_id': company_id,
                 'vg7_id': vg7_id,
                 'vg7:company': name,
                 'vg7:street': 'Via Porta Nuova',
@@ -3030,16 +3042,24 @@ def test_synchro_vg7(ctx):
         general_check(ctx, 'sale.order.line', line_id, vals)
 
     def write_sale_order(ctx, company_id, partner_id=None, vg7_order_id=None,
-                         state=None, note=None, newprod=None):
+                         state=None, note=None, newprod=None, new_prot=None):
         model = 'sale.order'
         print('Write %s ..' % model)
 
         partner_id = partner_id or env_ref(ctx, 'z0bug.res_partner_2')
         vg7_id = vg7_order_id or 1
-        vals = {
-            'vg7_id': vg7_id,
-            'vg7_partner_id': get_vg7id_from_id(ctx, 'res.partner', partner_id)
-        }
+        if new_prot:
+            vals = {
+                'vg7:id': vg7_id,
+                'vg7:customer_id': get_vg7id_from_id(
+                    ctx, 'res.partner', partner_id)
+            }
+        else:
+            vals = {
+                'vg7_id': vg7_id,
+                'vg7_partner_id': get_vg7id_from_id(
+                    ctx, 'res.partner', partner_id)
+            }
         if state:
             vals['state'] = state
         # Search for sale order if connector uninstalled
@@ -3247,15 +3267,20 @@ def test_synchro_vg7(ctx):
             raise IOError('!!Commit Failed (%d)!' % id)
         rec = clodoo.browseL8(ctx, 'account.invoice', invoice_id)
         if state:
+            detail_ctr = 2
+            if rec.payment_term_id.riba:
+                detail_ctr += 1
+            if test_conai:
+                detail_ctr += 1
+        else:
+            detail_ctr = 3
+        if state:
             if rec['state'] != state:
                 raise IOError('!!Invalid state!')
-            if ((rec.payment_term_id.riba and
-                    len(rec['invoice_line_ids']) != 3) or
-                    (not rec.payment_term_id.riba and
-                     len(rec['invoice_line_ids']) != 2)):
+            if len(rec['invoice_line_ids']) != detail_ctr:
                 raise IOError('!!Invalid # of details!')
         else:
-            if len(rec['invoice_line_ids']) != 3:
+            if len(rec['invoice_line_ids']) != detail_ctr:
                 raise IOError('!!Invalid # of details!')
         if rec.payment_term_id != rec.partner_id.property_payment_term_id:
             raise IOError('!!Invalid payment term!')
@@ -3338,6 +3363,8 @@ def test_synchro_vg7(ctx):
         if sale_line_id:
             vals['vg7:order_id'] = sale_id
             vals['vg7:order_row_id'] = sale_line_id
+        if test_conai:
+            vals['vg7:conai_id'] = 1
         line_id = clodoo.executeL8(ctx,
                                    model,
                                    'synchro',
@@ -3477,6 +3504,10 @@ def test_synchro_vg7(ctx):
     write_tax(ctx)
     write_tax(ctx)
 
+    if test_conai:
+        write_conai(ctx)
+        write_conai(ctx)
+
     # Repeat 2 times to check correct synchronization
     vg7_id_product_a = write_product(ctx, company_id)
     vg7_id_product_a = write_product(ctx, company_id, vg7_id='1')
@@ -3508,6 +3539,7 @@ def test_synchro_vg7(ctx):
     write_invoice(ctx, company_id)
     write_invoice(ctx, company_id, state='open')
     # Repeat 2 times with different state
+    pdb.set_trace()
     write_ddt(ctx, company_id)
     write_ddt(ctx, company_id, shipping_id=107)
 
@@ -3581,7 +3613,7 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals)
     write_sale_order(ctx, company_id, state='sale', newprod=True)
 
-    print('%d testsconnector_vg7 successfully ended' % ctx['ctr'])
+    print('%d tests connector_vg7 successfully ended' % ctx['ctr'])
 
  
 def test_synchro_mdb(ctx):
