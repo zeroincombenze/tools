@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # git report to origin
 # git fetch origin , poi, git reset --hard origin/8.0-ddt-based-on-packaging-preparation_fa
@@ -33,7 +33,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.28
+__version__=0.2.2.29
 
 
 
@@ -402,7 +402,7 @@ if [ "$opt_cpush" == "-w" ]; then
   fi
   exit $STS_SUCCESS
 fi
-update_dev "$PRJNAME"
+# update_dev "$PRJNAME"
 if [ "$PRJNAME" == "travis_emulator" ]; then
   if [ ! -d "$LGITPATH" ]; then
     exit $STS_SUCCESS

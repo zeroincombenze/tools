@@ -29,6 +29,7 @@ fi
 . $ODOOLIBDIR
 TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $HOME/tools/travis_emulator $HOME/dev ${PYPATH//:/ } . .." "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
+if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
 fi

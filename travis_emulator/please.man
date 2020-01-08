@@ -139,7 +139,7 @@ To declare target version use \fB-b\fR switch
 List host where to push project.
 .RE
 .P
-\fBlsearch [DATE] DB TOKEN\fR
+\fBlsearch DB TOKEN [-d date][-b odoo_ver]\fR
 .RS
 Search regex token in all odoo logs.
 .br

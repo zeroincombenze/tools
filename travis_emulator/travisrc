@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.28
+#__version__=0.2.2.29
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -1176,8 +1176,13 @@ robocopy() {
           else
             local optrsync="-abzhe"
           fi
-          local optssh="$3"
-          run_traced "rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
+          if [ "${3:0:3}" == "ssh" ]; then
+            local optssh="${3:4}"
+            run_traced "rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
+          else
+            local optssh="$3"
+            run_traced "rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
+          fi
         else
           if [ ${opt_verbose:-0} -gt 0 ]; then
             local optrsync="-abv"
