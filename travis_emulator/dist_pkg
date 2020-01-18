@@ -33,7 +33,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.29
+__version__=0.2.2.30
 
 
 
@@ -332,7 +332,7 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
       fi
       if [ ${enabled:-0} -gt 0 ]; then
         if [ "$tgtparm" ]; then
-          declare $y=$(echo "$tgtparm"|sed 's:\\::g')
+          declare $y="$(echo \"$tgtparm\"|sed 's:\\::g')"
           [ $opt_verbose -gt 0 ] && echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh $tgtparm\""
           robocopy "$PKGPATH" "$tgtpath" "ssh $tgtparm"
         else
