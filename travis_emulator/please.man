@@ -185,9 +185,9 @@ Current project must be one of included projects of tools repository. The projec
 .P
 \fBreplica DIRECTORY\fR
 .RS
-Copy selected diretory into the same module of the other versions of Odooo.
+Copy the selected directory into all other versions of current Odoo module.
 .br
-Use this action mainly for copying documentaton directory.
+Use this action mainly for replicate documentation directory.
 .RE
 .P
 \fBstatus\fR

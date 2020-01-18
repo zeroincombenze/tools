@@ -3880,7 +3880,6 @@ def test_synchro_vg7(ctx):
         general_check(ctx, 'res.partner', partner_id, vals)
 
     def write_2_partner(ctx, oe8_id=None, name=None, wrong_data=None):
-        pdb.set_trace()
         model = 'res.partner'
         print('Write %s ..' % model)
         oe8_id = oe8_id or 807

@@ -2246,13 +2246,13 @@ do_lsearch() {
     for f in $LOGDIRS; do
         if [ -n "$tok_dt" ]; then
             if [ -n "$token" ]; then
-                cmd="grep -a --color=never \"^$tok_dt.* $db .*$token\" $f|grep -av --color=never \"/longpolling/poll HTTP/1.1\"|grep -av --color=never \"POST /jsonrpc HTTP/1.1. 200\"|grep -a --color \"$token\""
+                cmd="grep -a -A 10 --color=never \"^$tok_dt.* $db .*$token\" $f|grep -av --color=never \"/longpolling/poll HTTP/1.1\"|grep -av --color=never \"POST /jsonrpc HTTP/1.1. 200\"|grep -a --color \"$token\""
             else
                 cmd="grep -av --color=never \"/longpolling/poll HTTP/1.1\" $f|grep -av --color=never \"POST /jsonrpc HTTP/1.1. 200\"|grep -a \"^$tok_dt.* $db .*\""
             fi
         else
             if [ -n "$token" ]; then
-                cmd="grep -a --color=never \" $db .*$token\" $f|grep -av --color=never \"/longpolling/poll HTTP/1.1\"|grep -av --color=never \"POST /jsonrpc HTTP/1.1. 200\"|grep -a --color \"$token\""
+                cmd="grep -a -A 10 --color=never \" $db .*$token\" $f|grep -av --color=never \"/longpolling/poll HTTP/1.1\"|grep -av --color=never \"POST /jsonrpc HTTP/1.1. 200\"|grep -a --color \"$token\""
             else
                 cmd="grep -av --color=never \"/longpolling/poll HTTP/1.1\" $f|grep -av --color=never \"POST /jsonrpc HTTP/1.1. 200\"|grep -a \" $db .*\""
             fi

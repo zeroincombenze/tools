@@ -10,11 +10,7 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-echo "\$>THIS=$THIS"
-echo "\$>TDIR=$TDIR"
 for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  echo "\$  >d=$d"
-  echo "\$  >dir $d/z0librc->$(dir $d/z0librc 2>/dev/null)"
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
