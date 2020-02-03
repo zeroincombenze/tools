@@ -26,22 +26,27 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.2.3
+__version__=0.1.2.4
 DEV_PKGS="coveralls codecov flake8==3.4.1 pycodestyle==2.3.1 pylint==1.6.4"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
 FLT_PKGS="(jwt|FOO)"
+ERROR_PKGS=""
 
 pip_install_1() {
 # pip_install_1(popt)
     local pkg popt=$1
     if [ $opt_dev -ne 0 ]; then
+        [ $opt_verbose -gt 0 ] && echo -e "\e[1m.1 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m"
         for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
             run_traced "$PIP install $pkg  $popt --disable-pip-version-check"
+            [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS $pkg"
         done
     else
+        [ $opt_verbose -gt 0 ] && echo -e "\e[1m.1 - Analyzing $SUP_PKGS $SECURE_PKGS\e[0m"
         for pkg in $SUP_PKGS $SECURE_PKGS; do
             run_traced "$PIP install $pkg  $popt --disable-pip-version-check"
+            [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS $pkg"
         done
     fi
 }
@@ -50,8 +55,15 @@ pip_install_2() {
 # pip_install_2(popt)
     local pkg popt=$1
     local xpkgs="(${SUP_PKGS// /|}|${SECURE_PKGS// /|}|${DEV_PKGS// /|})"
+    [[ -n "xpkgs" ]] && xpkgs="${xpkgs/|)/)}"
+    [ $opt_verbose -gt 0 ] && echo -e "\e[1m.2 - Analyzing $OEPKGS\e[0m"
     for pkg in $OEPKGS; do
-        [[ ! "$pkg" =~ $xpkgs ]] || run_traced "$PIP install $pkg $popt --disable-pip-version-check"
+        [[ "$pkg" =~ psycopg2 ]] && pkg="psycopg2-binary>=2.0.0"
+        # [[ "$pkg" =~ $xpkgs ]] && echo "-- Package $pkg already installed"
+        if [[ ! "$pkg" =~ $xpkgs ]]; then
+            run_traced "$PIP install $pkg $popt --disable-pip-version-check"
+            [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS $pkg"
+        fi
         if [[ "$pkg" =~ $FLT_PKGS ]]; then
             run_traced "$PIP uninstall cryptography -y"
             run_traced "$PIP install cryptography  $popt --disable-pip-version-check"
@@ -61,15 +73,23 @@ pip_install_2() {
 
 pip_install_req() {
 # pip_install_req(popt)
-    local f fn pkg popt=$1
+    local f fn pkg popt=$1 flist
     local xpkgs="(${SUP_PKGS// /|}|${SECURE_PKGS// /|}|${DEV_PKGS// /|}|${OEPKGS// /|})"
+    [[ -n "xpkgs" ]] && xpkgs="${xpkgs/|)/)}"
     for f in ${opt_rfile//,/ }; do
         fn=$(readlink -f $f)
         [ -z "$fn" ] && echo "File $f not found!"
         [ -z "$fn" ] && continue
-        for pkg in $(cat $fn|tr "\n" " "); do
-            [[ ! "$pkg" =~ $xpkgs ]] || run_traced "$PIP install $pkg $popt --disable-pip-version-check"
-            xpkgs="${xpkgs: -1}|$pkg)"
+        [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
+        flist=$(cat $fn|tr "\n" " ")
+        [ $opt_verbose -gt 0 ] && echo "--> $flist"
+        for pkg in $flist; do
+            [[ "$pkg" =~ psycopg2 ]] && pkg="psycopg2-binary>=2.0.0"
+            if [[ ! "$pkg" =~ $xpkgs ]]; then
+                run_traced "$PIP install $pkg $popt --disable-pip-version-check"
+                [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS $pkg"
+            fi
+            xpkgs="${xpkgs:0: -1}|$pkg)"
             if [[ "$pkg" =~ $FLT_PKGS ]]; then
                 run_traced "$PIP uninstall cryptography -y"
                 run_traced "$PIP install cryptography  $popt --disable-pip-version-check"
@@ -150,7 +170,7 @@ venv_mgr_test() {
         [ $opt_verbose -gt 0 ] && echo "Validation test ..."
         [ $opt_dry_run -ne 0 ] && return
         [ $opt_verbose -gt 0 ] && echo "-------------------"
-        run_traced "pushd $VENV >/dev/null"
+        run_traced "pushd $1 >/dev/null"
         [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
         [ $opt_dry_run -eq 0 ] && . bin/activate
     fi
@@ -248,11 +268,10 @@ do_venv_mgr() {
         fi
         run_traced "pip install pip -U"
         PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
-        [ $opt_dry_run -eq 0 ] && pip_install_1 "$popt --upgrade"
+        pip_install_1 "$popt --upgrade"
         [ $opt_dev -eq 0 ] && DEV_PKGS=
         [ -n "$opt_oever" -a "$cmd" == "reset" ] && pip_install_2 "$popt --upgrade"
         [ "$cmd" == "reset" -a -n "$opt_rfile" ] && pip_install_req "$popt --upgrade"
-        [ ! -L ./odoo ] && run_traced "ln -s $HOME/$opt_oever $(readlink -f ./odoo)"
         run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VIRTUAL_ENV'\":g' $PWD/bin/activate"
         if $(grep -q "^export HOME=" $PWD/bin/activate); then
           run_traced "sed -i -e 's|^export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
@@ -277,13 +296,14 @@ do_venv_mgr() {
         fi
         [ $opt_verbose -ne 0 ] && echo "$FLAG deactivate"
         [ $opt_dry_run -eq 0 ] && deactivate
+        [[ -n "$opt_oever" && "$cmd" == "reset" && ! -L ./odoo ]] && run_traced "ln -s $HOME/$opt_oever $(readlink -f ./odoo)"
         [ $opt_verbose -ne 0 -a $do_pop -ne 0  ] && echo "$FLAG popd >/dev/null"
         [ $do_pop -ne 0 ] && popd >/dev/null
         if [[ "$cmd" == "mv" ]]; then
             run_traced "mv $VENV $VIRTUAL_ENV"
         fi
     fi
-    [ "$2" != "." ] && venv_mgr_test $VIRTUAL_ENV
+    [ "$2" != "." ] && venv_mgr_test $V
     [ "$2" == "." ] && venv_mgr_test "."
 }
 
@@ -323,6 +343,7 @@ do_venv_create() {
     [ -n "$opt_rfile" ] && pip_install_req "$popt"
     [ $opt_verbose -ne 0 ] && echo "$FLAG deactivate"
     [ $opt_dry_run -eq 0 ] && deactivate
+    [[ -n "$opt_oever" ]] && run_traced "ln -s $HOME/$opt_oever $(readlink -f ./odoo)"
     venv_mgr_test $VENV
     run_traced "popd >/dev/null"
 }
@@ -405,17 +426,18 @@ fi
 if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
-CMDS="cp create exec info install merge mv update test reset"
+CMDS="help cp create exec info install merge mv update test reset"
 if [ $opt_help -gt 0 ]; then
   print_help "Manage virtual environment\naction may be: $CMDS"\
   "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
+# set -x
 export PYTHONWARNINGS="ignore"
 [ $opt_alone -ne 0 ] && PYTHONPATH=$HOME/tools/
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
-if [ -z "$opt_pyver" ]; then
+if [ -z "$opt_pyver" -a "$action" != "help" ]; then
     venv_mgr_check_src_path "$p1"
 fi
 if [ -n "$opt_pyver" ]; then
@@ -426,7 +448,9 @@ if [ -n "$opt_pyver" ]; then
     [ $pyver -le 2 ] && PYTHON=python
 fi
 PIPVER=$($PIP --version|grep -Eo [0-9]+|head -n1)
-if [ "$action" == "exec" ]; then
+if [ "$action" == "help" ]; then
+  man $TDIR/$THIS.man
+elif [ "$action" == "exec" ]; then
     do_venv_exec "$p1" "$p2" "$p3"
 elif [[ $action =~ (info|install|update) ]]; then
     do_venv_pip "$p1" "$action" "$p2" "$p3"
@@ -434,4 +458,24 @@ elif [ "$action" == "create" ]; then
     do_venv_create "$p1" "$p2" "$p3"
 else
     do_venv_mgr "$action" "$p1" "$p2"
+fi
+if [[ -n "$ERROR_PKGS" ]]; then
+    echo "************************************************************"
+    echo -e "\e[1mWarning! following packages were not installed!\e[0m"
+    echo "$ERROR_PKGS"
+    echo "************************************************************"
+    echo "Perhaps you should install ..."
+    echo "dnf install python-devel                             # If Fedora"
+    echo "yum install python-devel                             # If RHEL"
+    echo "apt-get install python-dev                           # If Debian"
+    if [[ $ERROR_PKGS =~ lxml ]]; then
+        echo "dnf install redhat-rpm-config                        # If Fedora"
+        echo "dnf install libxml2-devel libxslt-devel              # If Fedora"
+        echo "yum install libxml2-devel libxslt-devel              # If RHEL"
+        echo "apt-get install libxml2-dev libxslt-dev              # If Debian"
+    fi
+    if [[ $ERROR_PKGS =~ ldap ]]; then
+        echo "yum install openldap-devel                           # If RHEL"
+        echo "apt-get install libsasl2-dev libldap2-dev libssl-dev # If Debian"
+    fi
 fi

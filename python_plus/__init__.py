@@ -12,7 +12,7 @@ __ver_major__ = 0
 __ver_minor__ = 1
 __ver_patch__ = 2
 __ver_sub__ = ''
-__version__ = '0.1.2.3'
+__version__ = '0.1.2.4'
 
 PYCODESET = 'utf-8'
 # PY2 = sys.version_info[0] == 2

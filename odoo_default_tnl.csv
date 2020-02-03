@@ -74,9 +74,10 @@ status	msgid	msgstr
 	Alert	Avviso
 	Amortization of Goods	Ammortamento dei beni
 	Amount	Importo
-	Amount due	Importo dovuto
+	Amount Due	Importo dovuto
 	Amount in Words:	Importo in parole:
 	Amount of Penalty	Importo della sanzione
+    Amount Overdue  Importo scaduto
 	Amount settled	Importo provvigione
 	Amount Tax	Importo imposta
 	Amount Untaxed	Importo imponibile
