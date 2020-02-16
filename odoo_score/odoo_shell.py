@@ -1024,7 +1024,7 @@ def set_report_config(ctx):
 
 def create_document_test_env(ctx):
     print('create_document_test_env')
-    print('Require module "base_multireport"')
+    print('Requirement to test module "base_multireport"')
     if ctx['param_1'] == 'help':
         print('create_document_test_env')
         return
@@ -1087,11 +1087,13 @@ def create_document_test_env(ctx):
                 'default_code': code,
                 'name': name,
             }
+            vals['lst_price'] = (100.0 - len(name)) / (nr * 7 + 19)
             if name.startswith('Special'):
                 vals['type'] = 'service'
+                vals['standard_price'] = 0.0
             else:
                 vals['type'] = 'consu'
-            vals['lst_price'] = (100.0 - len(name)) / (nr * 7 + 19)
+                vals['standard_price'] = vals['lst_price'] / 2
             if code in ('JJ', 'YY'):
                 vals['taxes_id'] = [(6, 0, [taxa15v])]
                 vals['supplier_taxes_id'] = [(6, 0, [taxa15a])]
@@ -1186,8 +1188,65 @@ def create_document_test_env(ctx):
         #     line_id = clodoo.createL8(ctx, model, vals)
         return order_id
 
+    def write_purchase_order(ctx, company_id):
+        model = 'purchase.order'
+        print('Write %s ..' % model)
+        vals = {
+            'company_id': company_id,
+            'partner_id': env_ref(ctx, 'z0bug.res_partner_2'),
+            'partner_ref': '2020-1234-PO'
+        }
+        ids = clodoo.searchL8(
+            ctx, model, [('partner_ref', '=', '2020-1234-PO')])
+        if ids:
+            order_id = ids[0]
+            clodoo.writeL8(ctx, model, order_id, vals)
+        else:
+            order_id = clodoo.createL8(ctx, model, vals)
+        model_prod = 'product.product'
+        prod_ids = clodoo.searchL8(
+            ctx, model_prod, [('default_code', '!=', ''),
+                              ('default_code', '!=', False)],
+            order='default_code')
+        prod_ids = prod_ids + clodoo.searchL8(
+            ctx, model_prod, ['|', ('default_code', '=', ''),
+                              ('default_code', '=', False)])
+        model = 'purchase.order.line'
+        tax_id = False
+        for nr, product in enumerate(
+                clodoo.browseL8(ctx, model_prod, prod_ids)):
+            print('Write %s ..' % model)
+            if product.supplier_taxes_id:
+                tax_id = product.supplier_taxes_id.id
+            seq = (nr + 1) * 10
+            vals = {
+                'order_id': order_id,
+                'sequence': seq,
+                'company_id': company_id,
+                'name': product.name,
+                'product_id': product.id,
+                'price_unit': product.lst_price,
+                'product_uom': product.uom_po_id.id,
+                'product_qty': nr + 1,
+                'date_planned': str(date.today() + timedelta(7)),
+                'taxes_id': [(6, 0, [tax_id])],
+            }
+            if not product.default_code:
+                vals['product_qty'] = 1.0
+            # if not product.taxes_id:
+            #     del vals['tax_id']
+            ids = clodoo.searchL8(
+                ctx, model, [('order_id', '=', order_id),
+                             ('sequence', '=', seq)])
+            if ids:
+                line_id = ids[0]
+                clodoo.writeL8(ctx, model, line_id, vals)
+            else:
+                line_id = clodoo.createL8(ctx, model, vals)
+
     write_products(ctx, company_id)
     write_sale_order(ctx, company_id)
+    write_purchase_order(ctx, company_id)
 
 
 def create_RA_config(ctx):
@@ -2993,7 +3052,12 @@ def test_synchro_vg7(ctx):
                 value = False
                 if not ext_ref.startswith('oe8:'):
                     if model == 'res.partner':
-                        if (loc_name == 'name' and rec.type != 'contact'):
+                        if loc_name == 'name' and rec.type != 'contact':
+                            if (rec.type == 'delivery' and
+                                    vals['vg7_id'] == 100001001 and
+                                    rec.name == 'Another Address'):
+                                ctx['ctr'] += 1
+                                continue
                             if rec.name and rec.name != 'Partner AA':
                                 raise IOError(
                                     '!!Invalid field %s.%d.name!' % (model, id))
@@ -3029,6 +3093,7 @@ def test_synchro_vg7(ctx):
                     vals[ext_ref] = 'draft'
                 elif ext_ref == 'vg7:esonerato_fe':
                     value = not getattr(rec, loc_name)
+                    vals[ext_ref] = os0.str2bool(vals[ext_ref], None)
                 else:
                     try:
                         value = getattr(rec, loc_name).id
@@ -3203,10 +3268,10 @@ def test_synchro_vg7(ctx):
         code = 'TO'
         name = 'Torino'
         vals = {
-            'country_id': country_id,
-            'code': code,
-            'name': name,
-            'vg7_id': vg7_id,
+            # 'country_id': country_id,
+            'vg7:code': code,
+            'vg7:description': name,
+            'vg7:id': vg7_id,
         }
         country_state_id = clodoo.executeL8(ctx,
                                             model,
@@ -3383,14 +3448,14 @@ def test_synchro_vg7(ctx):
         else:
             name = name or 'Partner A'
             vals = {
-                'vg7_id': vg7_id,
+                'vg7:id': vg7_id,
                 'vg7:company': name,
                 'vg7:street': 'Via Porta Nuova',
                 'vg7:street_number': '13',
                 'vg7:postal_code': '10100',
                 'vg7:city': 'Torino',
                 'vg7:country_id': 'Italia',
-                'vg7:esonerato_fe': True,
+                'vg7:esonerato_fe': '1',
                 'vg7:piva': '00385870480',
                 'vg7:payment_id': 30,
             }
@@ -3408,7 +3473,7 @@ def test_synchro_vg7(ctx):
         return vg7_id
 
     def prepare_vals(ctx, model, partner_id, rectype, name, vg7_id, vg7_id2,
-                     vals_shipping, vals_billing):
+                     vals_shipping, vals_billing, wrong_data):
         if rectype == 'delivery':
             rec_vg7_id = vg7_id2 + 100000000
             rec_vals = vals_shipping
@@ -3424,11 +3489,15 @@ def test_synchro_vg7(ctx):
         ids = clodoo.searchL8(ctx, model,
                               [('parent_id', '=', partner_id),
                                ('vg7_id', '=', rec_vg7_id)])
-        if len(ids) != 1:
+        if ((not wrong_data and rectype == 'invoice' and len(ids)) or
+                ((wrong_data or rectype != 'invoice') and len(ids) != 1)):
             raise IOError(
-                '!!Syncro %s (%s record) Failed!' % (model, rectype))
+                '!!Syncro %s: wrong # of childs!' % model)
         ctx['ctr'] += 1
-        rec_id = ids[0]
+        if ids:
+            rec_id = ids[0]
+        else:
+            rec_id = False
         for nm in rec_vals.copy():
             new_name = nm.replace(
                 'shipping_', 'vg7:').replace('billing_', 'vg7:')
@@ -3461,26 +3530,24 @@ def test_synchro_vg7(ctx):
             }
             vals_billing = {
                 'billing_country_id': 39,
+                'billing_company': name,
                 'billing_name': ' ',
-                'postal_code': '10121',
-                'city': 'Torino',
+                'billing_street': 'Via Porta Nuova',
+                'billing_street_number': '13',
+                'billing_postal_code': '10121',
+                'billing_city': 'Torino',
                 'billing_piva': '00385870480',
                 'billing_codice_univoco': 'ABC1234',
                 'billing_esonerato_fe': False,
                 'billing_payment_id': 3060,
             }
             vals = {
-                'vg7_id': vg7_id,
-                'vg7:company': name,
-                'vg7:street': 'Via Porta Nuova',
-                'vg7:street_number': '13',
-                'vg7:postal_code': '10100',
-                'vg7:city': 'Torino',
-                'vg7:country_id': 39,
-                'vg7:piva': '00385870480',
+                'vg7:id': vg7_id,
                 'vg7:shipping': vals_shipping,
                 'vg7:billing': vals_billing,
             }
+            if wrong_data:
+                vals['vg7:street'] = 'Via Porta Vecchia'
         if vg7_id == 2:
             name = clodoo.browseL8(
                 ctx, model, env_ref(ctx, 'z0bug.res_partner_2')).name
@@ -3508,13 +3575,19 @@ def test_synchro_vg7(ctx):
                                       'synchro',
                                       vals)
         store_id(ctx, model, partner_id, vg7_id)
+        # All field but not street!
+        for nm in ('country_id', 'company', 'name',
+                   'street_number', 'postal_code', 'city', 'piva',
+                   'codice_univoco', 'esonerato_fe'):
+            vals['vg7:%s' % nm] = vals_billing['billing_%s' % nm]
         check_partner(ctx, partner_id, vals)
 
         for rectype in ('delivery', 'invoice'):
             rec_id, rec_vals = prepare_vals(
                 ctx, model, partner_id, rectype, name, vg7_id, 107,
-                vals_shipping, vals_billing)
-            check_partner(ctx, rec_id, rec_vals)
+                vals_shipping, vals_billing, wrong_data)
+            if rec_id:
+                check_partner(ctx, rec_id, rec_vals)
         return vg7_id
 
     def write_partner_shipping(ctx, company_id, vg7_id=None, name=None,
@@ -3754,6 +3827,13 @@ def test_synchro_vg7(ctx):
                 store_id(ctx, 'product.product', id, 3)
             check_sale_order_line(ctx, line_id, vals)
 
+        if newprod:
+            # Test for cache: reset cache before commit
+            clodoo.executeL8(ctx,
+                             'ir.model.synchro.cache',
+                             'clean_cache',
+                             0,
+                             None, None, 5)
         id = clodoo.executeL8(ctx,
                               'sale.order',
                               'commit',
@@ -4117,7 +4197,7 @@ def test_synchro_vg7(ctx):
     # Partner for sale order & invoice
     write_partner(ctx, company_id, vg7_id=2)
     write_partner_pull(ctx, company_id)
-    write_partner_pull(ctx, company_id)
+    write_partner_pull(ctx, company_id, wrong_data=True)
     write_partner_shipping(ctx, company_id)
     write_partner_supplier(ctx, company_id)
     write_partner_supplier(ctx, company_id)
@@ -4231,7 +4311,7 @@ def test_synchro_vg7(ctx):
     }
     write_file_2_pull(ext_model, vals)
     write_ddt(ctx, company_id, shipping_id=vg7_id)
-    vals['vg7_id'] = vals['customer_shipping_id'] + 100000000
+    vals['id'] = vals['customer_shipping_id'] + 100000000
     del vals['customer_shipping_id']
     check_partner(
         ctx, get_id_from_vg7id(
@@ -4341,8 +4421,9 @@ def test_synchro_vg7(ctx):
     for rectype in ('delivery', 'invoice'):
         rec_id, rec_vals = prepare_vals(
             ctx, model, partner_id, rectype, name, vg7_id, vg7_id2,
-            vals_shipping, vals_billing)
-        check_partner(ctx, rec_id, rec_vals)
+            vals_shipping, vals_billing, False)
+        if rec_id:
+            check_partner(ctx, rec_id, rec_vals)
     general_check(ctx, 'res.country.state', BO_id, jacket_vals(state_vals))
 
     model = 'sale.order'
