@@ -1,29 +1,48 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2018-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function,unicode_literals
 from past.builtins import basestring
+from python_plus import unicodes
 
 import os
 import sys
+import base64
 import csv
-from zerobug import Z0BUG
+# from zerobug import Z0BUG
+from os0 import os0
 
-
-__version__ = "0.1.0.1.2"
+__version__ = "0.1.0.3"
 
 
 class Z0bugOdoo(object):
 
+    def get_image_filename(self, xref):
+        file_image = os.path.join(
+            os.path.dirname(__file__),
+            'data',
+            '%s.png' % xref)
+        if os.path.isfile(file_image):
+            return file_image
+        return False
+
+    def get_image(self, xref):
+        file_image = self.get_image_filename(xref)
+        if file_image:
+            with open(file_image, 'rb') as fd:
+                image = fd.read()
+            return base64.b64encode(image)
+        return False
+
     def get_data_file(self, model, csv_fn):
         full_fn = os.path.join(os.path.dirname(__file__), 'data', csv_fn)
         pymodel = model.replace('.', '_')
-        with open(full_fn, 'rb') as fd:
+        with open(full_fn, 'r') as fd:
             hdr = False
             csv_obj = csv.DictReader(fd,
                                      fieldnames=[],
-                                     restkey='undef_name',)
+                                     restkey='undef_name')
             for row in csv_obj:
                 if not hdr:
                     hdr = True
@@ -32,7 +51,14 @@ class Z0bugOdoo(object):
                     continue
                 if 'id' not in row:
                     continue
-                getattr(self, pymodel)[row['id']] = row
+                getattr(self, pymodel)[row['id']] = unicodes(row)
+
+    def get_test_xrefs(self, model):
+        '''Return model xref list'''
+        pymodel = model.replace('.', '_')
+        if not hasattr(self, pymodel):
+            self.get_data_file(model, '%s.csv' % pymodel)
+        return list(getattr(self, pymodel))
 
     def get_test_values(self, model, xref):
         '''Return model values for test'''

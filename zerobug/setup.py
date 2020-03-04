@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='zerobug',
-      version='0.2.14.12',
+      version='0.2.14.13',
       description='Zeroincombenze continuous testing framework'
                   ' and tools for python and bash programs',
       long_description="""

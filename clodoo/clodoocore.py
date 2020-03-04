@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.64"
+__version__ = "0.3.8.66"
 
 
 #############################################################################
@@ -213,7 +213,7 @@ def executeL8(ctx, model, action, *args):
 
 
 def execute_action_L8(ctx, model, action, ids):
-    sts = STS_SUCCESS
+    sts = 0
     if (model == 'account.invoice'):
         ids = [ids] if isinstance(ids, int) else ids
         try:

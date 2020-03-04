@@ -1,0 +1,30 @@
+id,default_code,name,lst_price,standard_price,categ_id,type,taxes_id,supplier_taxes_id
+z0bug.product_template_0,MISC,Varie,18.0,9.5,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_1,AA,Product Alpha,0.84,0.42,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_2,BB,Product Beta,3.38,1.69,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_3,CC,Product Chi/Xi,0.74,0.37,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_4,DD,Product Delta,2.64,1.32,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_5,EE,Product Epsilon,0.96,0.48,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_6,FF,Product Phi,4.68,2.34,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_7,GG,Product Gamma,0.57,0.29,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_8,HH,Product Hospice/Eta,1.72,0.86,All,consu,z0bug.tax_4v,z0bug.tax_4a
+z0bug.product_template_9,II,Product Iota,0.71,0.35,All,consu,z0bug.tax_10v,z0bug.tax_10a
+z0bug.product_template_10,JJ,Product Juvenilia/Psi,1.46,0.73,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_11,KK,Product Kappa,0.48,0.24,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_12,LL,Product Lambda,0.44,0.22,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_13,MM,Product Micro/Mu,0.45,0.22,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_14,NN,Product New/Nu,0.54,0.27,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_15,OO,Product Omicron,0.77,0.39,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_16,PP,Product Greek Pi,1.24,0.62,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_17,QQ,Product Quality/Omega,0.54,0.27,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_18,RR,Product Rho,1.19,0.59,All,product,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_19,SS,Product Sigma,0.66,0.33,All,product,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_20,TT,Product Tau,1.09,0.54,All,product,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_21,UU,Product Upsilon,0.51,0.26,All,product,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_22,VV,Product Theta,0.63,0.32,All,product,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_23,WW,Special Worldwide service,1.88,0,All,service,z0bug.tax_a15v,z0bug.tax_a15a
+z0bug.product_template_24,XX,Product Xi extra,0.52,0.26,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_25,YY,Special service for Young people,0.71,0,All,service,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_26,ZZ,Product Zeta,1.44,0.72,All,consu,z0bug.tax_22v,z0bug.tax_22a
+z0bug.product_template_27,__,Consegna gratuita,0,0,All,service,z0bug.tax_22v,z0bug.tax_22a
+

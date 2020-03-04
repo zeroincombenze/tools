@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.64
+__version__=0.3.8.66
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
@@ -71,7 +71,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run odoo for debug mode"\
-  "(C) 2015-2019 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2020 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -n "$opt_branch" -a -z "$odoo_vid" ]; then
@@ -287,7 +287,7 @@ if [ -n "$opt_db" ]; then
    OPTDB="$OPTDB -d $opt_db"
 fi
 if [ $opt_touch -eq 0 ]; then
-  [ $drop_db -gt 0 ] && run_traced "pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
+  [ $drop_db -gt 0 ] && run_traced "pg_db_active -wa $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
   if [ $VENV -ne 0 ]; then
     ve_root=$(dirname $odoo_root)
     [ $opt_verbose -gt 0 ] && echo "\$ cd $ve_root; source ./bin/activate"

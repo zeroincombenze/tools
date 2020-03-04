@@ -1,0 +1,8 @@
+id,name,company_id
+z0bug.fiscalpos_it,Italia,
+z0bug.fiscalpos_eu,Regime Intra comunitario,
+z0bug.fiscalpos_xx,Regime Extra comunitario,
+z0bug.fiscalpos_rc,Reverse charge,
+z0bug.fiscalpos_sp,Split Payment,
+z0bug.fiscalpos_li,Lettera d'intento,
+z0bug.fiscalpos_4%,IVA al 4%,

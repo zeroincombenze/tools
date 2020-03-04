@@ -34,7 +34,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.64"
+__version__ = "0.3.8.66"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -366,7 +366,7 @@ def set_tmp_keys(ctx, model, id, vals):
 
 def run_traced(*args):
     os0.wlog('>>> %s' % ' '.join(args))
-    Popen(args).wait()
+    return Popen(args).wait()
 
 
 def sed(*args):
@@ -481,7 +481,7 @@ def new_dbname(db, odoo_ver, oca_migrated):
         return '%s_migrated' % db
     prior = odoo_ver - 1
     if db.endswith(str(prior)):
-        return '%s_%d' % (db[0: -len(str(prior)) - 1], odoo_ver)
+        return '%s_%d' % (db[0: -len(str(prior))], odoo_ver)
     return '%s_%d' % (db, odoo_ver)
 
 
@@ -1912,15 +1912,15 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
             script = os.path.join(ou_ver_path, 'migrate.sh')
             fd = open(script, 'w')
             fd.write('cd %s\n' % tgt_ctx['venv_oupath'])
-            fd.write('source ./bin/activate\n')
-            fd.write('%s -c %s -d %s -u all --stop-after-init --no-xmlrpc'
-                     ' --logfile=%s\n' % (
+            fd.write(b'source ./bin/activate\n')
+            fd.write(b'%s -c %s -d %s -u all --stop-after-init --no-xmlrpc'
+                     b' --logfile=%s\n' % (
                          oupath_script, tgt_full_lconf,
                          tgt_ctx['db_name'],
                          tgt_ctx['logfile']))
-            fd.write('sts=$?\n')
-            fd.write('deactivate\n')
-            fd.write('exit $sts\n')
+            fd.write(b'sts=$?\n')
+            fd.write(b'deactivate\n')
+            fd.write(b'exit $sts\n')
             fd.close()
             os.chmod(script, 0744)
             sts = 0
@@ -1958,6 +1958,9 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
         # FIX oerp_set_env change dry_run
         src_ctx['dry_run'] = tgt_ctx['dry_run']
         if phase > 1:
+            if (src_ctx['opt_safe'] and
+                    src_ctx['src_vid'] == src_ctx['from_branch']):
+                clodoo.act_check_config(src_ctx)
             if (src_ctx['uninstall_modules'] and
                     src_ctx['src_vid'] == src_ctx['from_branch']):
                 for module in src_ctx['uninstall_modules'].split(','):
@@ -2168,9 +2171,6 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
                 os0.wlog('Directory %s not found!' % tgt_ctx['venv_oupath'])
                 disable_venv = True
         elif not src_ctx['dry_run']:
-            if (src_ctx['opt_safe'] and
-                    src_ctx['src_vid'] == src_ctx['from_branch']):
-                clodoo.act_check_config(src_ctx)
             drop_db(src_ctx, tgt_ctx, tgt_ctx['db_name'],
                     new_dbname(src_ctx['db_name'],
                                tgt_ctx['tgt_odoo_ver'],
@@ -2258,9 +2258,9 @@ def parse_ctx(src_ctx):
  
     if src_ctx['final_dbname'] and not src_ctx['from_dbname']:
         src_ctx['from_dbname'], src_ctx['final_dbname'] = \
-            src_ctx['final_dbname'], '%s_2019' % src_ctx['final_dbname']
+            src_ctx['final_dbname'], '%s_2020' % src_ctx['final_dbname']
     elif not src_ctx['final_dbname'] and src_ctx['from_dbname']:
-        src_ctx['final_dbname'] = '%s_2019' % src_ctx['from_dbname']
+        src_ctx['final_dbname'] = '%s_2020' % src_ctx['from_dbname']
     elif not src_ctx['final_dbname'] and not src_ctx['from_dbname']:
         raise KeyError('Missed database to upgrade! Please use -d switch')
 
@@ -2337,7 +2337,7 @@ _DEPRECATED_MODULES = [
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Migrate Odoo DB",
-                                "© 2019 by SHS-AV s.r.l.",
+                                "© 2019-20 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument("-B", "--openupgrade-branch-path",

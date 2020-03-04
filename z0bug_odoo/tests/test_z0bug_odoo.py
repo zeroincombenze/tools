@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2018-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -13,7 +13,7 @@ import sys
 from zerobug import Z0test
 
 
-__version__ = "0.1.0.1.2"
+__version__ = "0.1.0.3"
 
 MODULE_ID = 'z0bug_odoo'
 

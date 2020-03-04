@@ -8,15 +8,10 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -32,7 +27,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.64
+__version__=0.3.8.66
 
 
 explore() {
@@ -174,7 +169,7 @@ do_action() {
             eval $LISA status -q $pkg -d0 &>/dev/null
             if [ $? -ne 0 ]; then
               if [ $opt_nobin -ne 0 ]; then
-                echo "***Warning: packge $f may be installed by $LISA install -q $f -d0"
+                echo "***Warning: package $f may be installed by $LISA install -q $f -d0"
               else
                 run_traced "$LISA install -q $f -d0"
               fi
@@ -188,52 +183,54 @@ do_action() {
         [ -n "$opt_deps" -a -f $opt_deps/requirements.txt ] && run_traced "$PIP install -r $opt_deps/requirements.txt --upgrade --no-warn-conflicts --disable-pip-version-check"
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ preqs=$preqs${TRAVIS_HDR3_COLOR}"
         retsts=0
-        for pass in 1 2 3; do
-          [ $pass -eq 1 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package status${TRAVIS_TEXT_COLOR}"
-          [ $pass -eq 2 ] && echo -e "${TRAVIS_HDR3_COLOR}### Upgrade versioned package${TRAVIS_TEXT_COLOR}"
-          [ $pass -eq 3 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package version${TRAVIS_TEXT_COLOR}"
-          for f in $preqs; do
-            # if $(grep -q ^$f $pkgdir/requirements.txt); then
-            #   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a $pass -eq 1 ] && echo "Package $f included in $pkgdir/requirements.txt"
-            #   continue
-            # fi
-            op=$(echo "$f"|grep -Eo '[!<=>]*'|head -n1)
-            pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr -d "'"|head -n1)
-            reqver=$(echo "$f"|grep -Eo '[^!<=>]*'|tr -d "'"|sed -n '2 p')
-            [ -n "$reqver" ] && xreqver=$(echo $reqver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
-            sts=0
-            if [ $pass -eq 1 -a "$pkg" == "coverage" ]; then
-              sts=1
-            elif [ $pass -eq 1 ]; then
-              eval $LISA status -q $pkg -d0 &>/dev/null
-              sts=$?
-            fi
-            if [ $sts -eq 1 ] || [ $pass -gt 1 -a -n "$reqver" ]; then
-              [ $sts -eq 0 ] && curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
-              [ -n "$curver" ] && xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
-              # echo "DUMPLOG($pkg <$xreqver>$op<$xcurver> <<$reqver>>$op<<$curver>> sts=$sts)"       #debug
-              if [ $sts -ne 0 -a $pass -lt 3 -a -z "$op" ] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
-                if [ $pass -eq 3 ]; then
-                  x=$(eval $LISA version -q $f -d0)
-                  echo -e "${TRAVIS_TEXT_COLOR}$x but expected $op$reqver${TRAVIS_HDR3_COLOR}"
-                else
-                  cmd="$PIP install -q $f --upgrade --no-warn-conflicts --disable-pip-version-check"
-                  [ $pass -eq 2 ] && cmd="$cmd --no-deps --ignore-requires-python"
-                  [ $opt_noloc -eq 0 -a $EUID -ne 0 -a $pass -eq 1 -a -d $HOME/.local ] && cmd="$cmd --user"
-                  echo -e "${TRAVIS_TEXT_COLOR}Update '$pkg' version '$curver' with version '$reqver'${TRAVIS_HDR3_COLOR}"
-                  if [ ${TRAVIS_DEBUG_MODE:-0} -ge 9 ]; then
-                    echo "> $cmd"
-                  else
-                    run_traced "$cmd"
-                    s=$?; [ ${s-0} -ne 0 ] && retsts=$s
-                  fi
+        if [ $opt_nopy -eq 0 ]; then
+            for pass in 1 2 3; do
+              [ $pass -eq 1 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package status${TRAVIS_TEXT_COLOR}"
+              [ $pass -eq 2 ] && echo -e "${TRAVIS_HDR3_COLOR}### Upgrade versioned package${TRAVIS_TEXT_COLOR}"
+              [ $pass -eq 3 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package version${TRAVIS_TEXT_COLOR}"
+              for f in $preqs; do
+                # if $(grep -q ^$f $pkgdir/requirements.txt); then
+                #   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a $pass -eq 1 ] && echo "Package $f included in $pkgdir/requirements.txt"
+                #   continue
+                # fi
+                op=$(echo "$f"|grep -Eo '[!<=>]*'|head -n1)
+                pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr -d "'"|head -n1)
+                reqver=$(echo "$f"|grep -Eo '[^!<=>]*'|tr -d "'"|sed -n '2 p')
+                [ -n "$reqver" ] && xreqver=$(echo $reqver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
+                sts=0
+                if [ $pass -eq 1 -a "$pkg" == "coverage" ]; then
+                  sts=1
+                elif [ $pass -eq 1 ]; then
+                  eval $LISA status -q $pkg -d0 &>/dev/null
+                  sts=$?
                 fi
-              fi
-            elif [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a $pass -eq 1 ]; then
-              echo "Package $f installed ..."
-            fi
-          done
-        done
+                if [ $sts -eq 1 ] || [ $pass -gt 1 -a -n "$reqver" ]; then
+                  [ $sts -eq 0 ] && curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
+                  [ -n "$curver" ] && xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
+                  # echo "DUMPLOG($pkg <$xreqver>$op<$xcurver> <<$reqver>>$op<<$curver>> sts=$sts)"       #debug
+                  if [ $sts -ne 0 -a $pass -lt 3 -a -z "$op" ] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
+                    if [ $pass -eq 3 ]; then
+                      x=$(eval $LISA version -q $f -d0)
+                      echo -e "${TRAVIS_TEXT_COLOR}$x but expected $op$reqver${TRAVIS_HDR3_COLOR}"
+                    else
+                      cmd="$PIP install -q $f --upgrade --no-warn-conflicts --disable-pip-version-check"
+                      [ $pass -eq 2 ] && cmd="$cmd --no-deps --ignore-requires-python"
+                      [ $opt_noloc -eq 0 -a $EUID -ne 0 -a $pass -eq 1 -a -d $HOME/.local ] && cmd="$cmd --user"
+                      echo -e "${TRAVIS_TEXT_COLOR}Update '$pkg' version '$curver' with version '$reqver'${TRAVIS_HDR3_COLOR}"
+                      if [ ${TRAVIS_DEBUG_MODE:-0} -ge 9 ]; then
+                        echo "> $cmd"
+                      else
+                        run_traced "$cmd"
+                        s=$?; [ ${s-0} -ne 0 ] && retsts=$s
+                      fi
+                    fi
+                  fi
+                elif [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a $pass -eq 1 ]; then
+                  echo "Package $f installed ..."
+                fi
+              done
+            done
+        fi
         if [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ]; then
           echo -e "${TRAVIS_HDR3_COLOR}### Test import python packages${TRAVIS_TEXT_COLOR}"
           rm -fR $HOME/tmp_test.py
@@ -356,11 +353,11 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        B         b          c        D       d        H           L         m         n            O         o        p         q           s          u          V           v           x         y)
-OPTDEST=(opt_help opt_nobin opt_branch opt_conf opt_def opt_deps opt_humdrum opt_noloc opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        1         "="        "="      1       "="      1           1         1         1            "="       "="      "="       1           1          "="        "*>"        "+"         "="       1)
-OPTDEFL=(0        0         ""         ""       0       ""       0           0         0         0            "zero"    ""       ""        -1          0          ""         ""          -1          ""        0)
-OPTMETA=("help"   ""        "branch"   "file"   ""      "dir"    ""          ""        ""        "do nothing" "git-org" "path"   ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
+OPTOPTS=(h        B         b          c        D       d        H           L         m         n            O         o        P        p         q           s          u          V           v           x         y)
+OPTDEST=(opt_help opt_nobin opt_branch opt_conf opt_def opt_deps opt_humdrum opt_noloc opt_multi opt_dry_run  opt_org   opt_odir opt_nopy opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        1         "="        "="      1       "="      1           1         1         1            "="       "="      1        "="       1           1          "="        "*>"        "+"         "="       1)
+OPTDEFL=(0        0         ""         ""       0       ""       0           0         0         0            "zero"    ""       0        ""        -1          0          ""         ""          -1          ""        0)
+OPTMETA=("help"   ""        "branch"   "file"   ""      "dir"    ""          ""        ""        "do nothing" "git-org" "path"   ""       ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "do not install binary packages in requirements action"\
  "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 [v]12.0 (comma separated)"\
@@ -373,6 +370,7 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "if add_module|[re]build, git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"\
  "odoo directory"\
+ "do not install python packages in requirements action"\
  "when installer is pip choice python version: may be 2 or 3 (def auto)"
  "silent mode"\
  "no stop after every module/version"\

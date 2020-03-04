@@ -27,10 +27,11 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.28
+__version__=0.2.2.29
 
 
 test_01() {
+    # Test REST
     local TESTOUT TESTRES TESTFN
     TESTFN=test_gen_readme_01
     TESTSRC=$TESTDIR/res/$TESTFN.rst
@@ -131,6 +132,12 @@ EOF
 .. |it| image:: {{grymb_image_it}}
    :target: {{grymb_url_it}}
 EOF
+      cat <<EOF >$TESTDIR/res/header_authors.txt
+
+Authors
+-------
+
+EOF
       cat <<EOF >$TESTDIR/res/header_contributors.txt
 
 Contributors
@@ -178,6 +185,9 @@ consectetur *adipiscing* elit
 
 
 
+Authors
+-------
+
 * \`SHS-AV s.r.l. <https://www.shs-av.com>\`__
 
 
@@ -190,8 +200,8 @@ Contributors
 Acknoledges to
 --------------
 
-* lorenzo <lorenzo@libero.it>
 * Davide <davide@libero.it>
+* lorenzo <lorenzo@libero.it>
 
 ----------------------
 
@@ -210,6 +220,7 @@ EOF
 }
 
 test_02() {
+    # Test HTML
     local TESTOUT TESTRES TESTFN
     TESTFN=test_gen_readme_02
     TESTSRC=$TESTDIR/res/$TESTFN.html
@@ -218,6 +229,7 @@ test_02() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $TESTOUT
       # Files in template directory
+      rm -f $TESTDIR/res/header_authors.txt
       cat <<EOF >$TESTSRC
 <section class="oe_container">
 
@@ -230,7 +242,7 @@ Test file
 {{authors}}
 </section>
 EOF
-      # Files for test match  (tested branch is 11.0)
+      # Files for test match (tested branch is 11.0)
       cat <<EOF >$TESTRES
 
 <section class="oe_container">
@@ -277,6 +289,7 @@ EOF
 
 
 test_03() {
+    # Test manifest
     local TESTOUT TESTRES TESTFN
     TESTFN=test_gen_readme_03
     TESTSRC=$TESTDIR/res/readme_manifest.rst

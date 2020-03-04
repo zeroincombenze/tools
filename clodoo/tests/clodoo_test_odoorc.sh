@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.64
+__version__=0.3.8.66
 VERSIONS_TO_TEST="12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="12 11 10 9 8 7 6"
 
@@ -328,14 +328,14 @@ test_04() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 
-    TRES[v7]=/opt/odoo/v7/server/openerp-server
-    TRES[6]=/opt/odoo/6.1/server/openerp-server
-    TRES[7]=/opt/odoo/7.0/openerp-server
-    TRES[8]=/opt/odoo/8.0/openerp-server
-    TRES[9]=/opt/odoo/9.0/openerp-server
-    TRES[10]=/opt/odoo/10.0/odoo-bin
-    TRES[11]=/opt/odoo/11.0/odoo-bin
-    TRES[12]=/opt/odoo/12.0/odoo-bin
+    TRES[v7]=$LCL_ROOT/v7/server/openerp-server
+    TRES[6]=$LCL_ROOT/6.1/server/openerp-server
+    TRES[7]=$LCL_ROOT/7.0/openerp-server
+    TRES[8]=$LCL_ROOT/8.0/openerp-server
+    TRES[9]=$LCL_ROOT/9.0/openerp-server
+    TRES[10]=$LCL_ROOT/10.0/odoo-bin
+    TRES[11]=$LCL_ROOT/11.0/odoo-bin
+    TRES[12]=$LCL_ROOT/12.0/odoo-bin
     for v in $MAJVERS_TO_TEST v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" ]; then
@@ -351,13 +351,13 @@ test_04() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 
-    TRES[6.1]=/opt/odoo/VENV-6.1/odoo/server/openerp-server
-    TRES[7.0]=/opt/odoo/VENV-7.0/odoo/openerp-server
-    TRES[8.0]=/opt/odoo/VENV-8.0/odoo/openerp-server
-    TRES[9.0]=/opt/odoo/VENV-9.0/odoo/openerp-server
-    TRES[10.0]=/opt/odoo/VENV-10.0/odoo/odoo-bin
-    TRES[11.0]=/opt/odoo/VENV-11.0/odoo/odoo-bin
-    TRES[12.0]=/opt/odoo/VENV-12.0/odoo/odoo-bin
+    TRES[6.1]=$LCL_ROOT/VENV-6.1/odoo/server/openerp-server
+    TRES[7.0]=$LCL_ROOT/VENV-7.0/odoo/openerp-server
+    TRES[8.0]=$LCL_ROOT/VENV-8.0/odoo/openerp-server
+    TRES[9.0]=$LCL_ROOT/VENV-9.0/odoo/openerp-server
+    TRES[10.0]=$LCL_ROOT/VENV-10.0/odoo/odoo-bin
+    TRES[11.0]=$LCL_ROOT/VENV-11.0/odoo/odoo-bin
+    TRES[12.0]=$LCL_ROOT/VENV-12.0/odoo/odoo-bin
     for v in $VERSIONS_TO_TEST; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param BIN VENV-$v)
@@ -491,15 +491,15 @@ test_05() {
     export opt_mult=1
     export opt_multi=1
     declare -A TRES
-    TRES[6.1]="/opt/odoo/6.1"
-    TRES[v7]="/opt/odoo/v7"
-    TRES[7.0]="/opt/odoo/7.0"
-    TRES[v8.0]="/opt/odoo/v8.0"
-    TRES[8.0]="/opt/odoo/8.0"
-    TRES[9.0]="/opt/odoo/9.0"
-    TRES[10.0]="/opt/odoo/10.0"
-    TRES[11.0]="/opt/odoo/11.0"
-    TRES[12.0]="/opt/odoo/12.0"
+    TRES[6.1]="$LCL_ROOT/6.1"
+    TRES[v7]="$LCL_ROOT/v7"
+    TRES[7.0]="$LCL_ROOT/7.0"
+    TRES[v8.0]="$LCL_ROOT/v8.0"
+    TRES[8.0]="$LCL_ROOT/8.0"
+    TRES[9.0]="$LCL_ROOT/9.0"
+    TRES[10.0]="$LCL_ROOT/10.0"
+    TRES[11.0]="$LCL_ROOT/11.0"
+    TRES[12.0]="$LCL_ROOT/12.0"
     for v in $VERSIONS_TO_TEST v7 v8.0; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param ROOT $v)
@@ -522,17 +522,17 @@ test_05() {
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param PARENTDIR $v "OCB")
       fi
-      test_result "Parent dir $v/OCB" "/opt/odoo" "$RES"
+      test_result "Parent dir $v/OCB" "$LCL_ROOT" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 
-    TRES[6.1]="/opt/odoo/VENV-6.1/odoo"
-    TRES[7.0]="/opt/odoo/VENV-7.0/odoo"
-    TRES[8.0]="/opt/odoo/VENV-8.0/odoo"
-    TRES[9.0]="/opt/odoo/VENV-9.0/odoo"
-    TRES[10.0]="/opt/odoo/VENV-10.0/odoo"
-    TRES[11.0]="/opt/odoo/VENV-11.0/odoo"
-    TRES[12.0]="/opt/odoo/VENV-12.0/odoo"
+    TRES[6.1]="$LCL_ROOT/VENV-6.1/odoo"
+    TRES[7.0]="$LCL_ROOT/VENV-7.0/odoo"
+    TRES[8.0]="$LCL_ROOT/VENV-8.0/odoo"
+    TRES[9.0]="$LCL_ROOT/VENV-9.0/odoo"
+    TRES[10.0]="$LCL_ROOT/VENV-10.0/odoo"
+    TRES[11.0]="$LCL_ROOT/VENV-11.0/odoo"
+    TRES[12.0]="$LCL_ROOT/VENV-12.0/odoo"
     for v in $VERSIONS_TO_TEST; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param ROOT VENV-$v "crm")
@@ -541,16 +541,16 @@ test_05() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 
-    TRES[6.1]="/opt/odoo/6.1/openerp/filestore"
-    TRES[v7]="/opt/odoo/v7/openerp/filestore"
-    TRES[7.0]="/opt/odoo/7.0/openerp/filestore"
-    TRES[v8.0]="/opt/odoo/.local/share/Odoo"
-    TRES[8.0]="/opt/odoo/.local/share/Odoo8"
-    TRES[9.0]="/opt/odoo/.local/share/Odoo9"
-    TRES[10.0]="/opt/odoo/.local/share/Odoo10"
-    TRES[VENV-10]="/opt/odoo/VENV-10/.local/share/Odoo"
-    TRES[11.0]="/opt/odoo/.local/share/Odoo11"
-    TRES[12.0]="/opt/odoo/.local/share/Odoo12"
+    TRES[6.1]="$LCL_ROOT/6.1/openerp/filestore"
+    TRES[v7]="$LCL_ROOT/v7/openerp/filestore"
+    TRES[7.0]="$LCL_ROOT/7.0/openerp/filestore"
+    TRES[v8.0]="$LCL_ROOT/.local/share/Odoo"
+    TRES[8.0]="$LCL_ROOT/.local/share/Odoo8"
+    TRES[9.0]="$LCL_ROOT/.local/share/Odoo9"
+    TRES[10.0]="$LCL_ROOT/.local/share/Odoo10"
+    TRES[VENV-10]="$LCL_ROOT/VENV-10/.local/share/Odoo"
+    TRES[11.0]="$LCL_ROOT/.local/share/Odoo11"
+    TRES[12.0]="$LCL_ROOT/.local/share/Odoo12"
     for v in $VERSIONS_TO_TEST VENV-10 v8.0 v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param DDIR $v)
@@ -559,15 +559,15 @@ test_05() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 
-    TRES[6.1]="/opt/odoo/6.1/crm"
-    TRES[v7]="/opt/odoo/v7/crm"
-    TRES[7.0]="/opt/odoo/7.0/crm"
-    TRES[v8.0]="/opt/odoo/v8.0/crm"
-    TRES[8.0]="/opt/odoo/8.0/crm"
-    TRES[9.0]="/opt/odoo/9.0/crm"
-    TRES[10.0]="/opt/odoo/10.0/crm"
-    TRES[11.0]="/opt/odoo/11.0/crm"
-    TRES[12.0]="/opt/odoo/12.0/crm"
+    TRES[6.1]="$LCL_ROOT/6.1/crm"
+    TRES[v7]="$LCL_ROOT/v7/crm"
+    TRES[7.0]="$LCL_ROOT/7.0/crm"
+    TRES[v8.0]="$LCL_ROOT/v8.0/crm"
+    TRES[8.0]="$LCL_ROOT/8.0/crm"
+    TRES[9.0]="$LCL_ROOT/9.0/crm"
+    TRES[10.0]="$LCL_ROOT/10.0/crm"
+    TRES[11.0]="$LCL_ROOT/11.0/crm"
+    TRES[12.0]="$LCL_ROOT/12.0/crm"
     for v in $VERSIONS_TO_TEST v8.0 v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param HOME $v "crm")
@@ -578,17 +578,17 @@ test_05() {
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param PARENTDIR $v "crm")
       fi
-      test_result "Parent dir $v/crm" "/opt/odoo/$v" "$RES"
+      test_result "Parent dir $v/crm" "$LCL_ROOT/$v" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 
-    TRES[6.1]="/opt/odoo/VENV-6.1/odoo/crm"
-    TRES[7.0]="/opt/odoo/VENV-7.0/odoo/crm"
-    TRES[8.0]="/opt/odoo/VENV-8.0/odoo/crm"
-    TRES[9.0]="/opt/odoo/VENV-9.0/odoo/crm"
-    TRES[10.0]="/opt/odoo/VENV-10.0/odoo/crm"
-    TRES[11.0]="/opt/odoo/VENV-11.0/odoo/crm"
-    TRES[12.0]="/opt/odoo/VENV-12.0/odoo/crm"
+    TRES[6.1]="$LCL_ROOT/VENV-6.1/odoo/crm"
+    TRES[7.0]="$LCL_ROOT/VENV-7.0/odoo/crm"
+    TRES[8.0]="$LCL_ROOT/VENV-8.0/odoo/crm"
+    TRES[9.0]="$LCL_ROOT/VENV-9.0/odoo/crm"
+    TRES[10.0]="$LCL_ROOT/VENV-10.0/odoo/crm"
+    TRES[11.0]="$LCL_ROOT/VENV-11.0/odoo/crm"
+    TRES[12.0]="$LCL_ROOT/VENV-12.0/odoo/crm"
     for v in $VERSIONS_TO_TEST; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param HOME VENV-$v "crm")
@@ -694,13 +694,13 @@ test_06() {
       # TRES[oia]="$HOME/oia$w"
       # TRES[oia-git]="$HOME/oia$w"
       # TRES[oia-http]="$HOME/oia$w"
-      TRES[zero]="/opt/odoo/zero$w"
-      TRES[zero-git]="/opt/odoo/zero$w"
-      TRES[zero-http]="/opt/odoo/zero$w"
-      TRES[oca]="/opt/odoo/oca$w"
-      TRES[oia]="/opt/odoo/oia$w"
-      TRES[oia-git]="/opt/odoo/oia$w"
-      TRES[oia-http]="/opt/odoo/oia$w"
+      TRES[zero]="$LCL_ROOT/zero$w"
+      TRES[zero-git]="$LCL_ROOT/zero$w"
+      TRES[zero-http]="$LCL_ROOT/zero$w"
+      TRES[oca]="$LCL_ROOT/oca$w"
+      TRES[oia]="$LCL_ROOT/oia$w"
+      TRES[oia-git]="$LCL_ROOT/oia$w"
+      TRES[oia-http]="$LCL_ROOT/oia$w"
       for w in zero zero-git zero-http oca oia oia-git oia-http; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param HOME $v '' $w)
@@ -915,6 +915,7 @@ Z0BUG_setup() {
 
     local f v x
     local ODOO_REPO=local/odoo
+    LCL_ROOT=$HOME
     LCL_VERSION=9.0
     LCL_OO_PRJNAME="Odoo"
     LCL_OO_REPOS=l10n_italy

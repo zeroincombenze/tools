@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to tools 0.2.2.24 documentation!
+Welcome to tools 0.2.2.25 documentation!
 ===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|

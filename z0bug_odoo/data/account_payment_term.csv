@@ -1,0 +1,5 @@
+id,name,riba,riba_payment_cost,company_id,fatturapa_pt_id,fatturapa_pm_id
+z0bug.payment_1,RiBA 30GG/FM,True,2.5,,l10n_it_fiscal_payment_term.fatturapa_tp02,l10n_it_fiscal_payment_term.fatturapa_mp12
+z0bug.payment_2,RiBA 30/60 GG/FM,True,4.0,,l10n_it_fiscal_payment_term.fatturapa_TP01,l10n_it_fiscal_payment_term.fatturapa_mp12
+z0bug.payment_3,BB 30GG/FM+10,False,0.0,,l10n_it_fiscal_payment_term.fatturapa_tp02,l10n_it_fiscal_payment_term.fatturapa_mp05
+z0bug.payment_4,SEPA DD 30GG,False,0.0,,l10n_it_fiscal_payment_term.fatturapa_tp02,l10n_it_fiscal_payment_term.fatturapa_mp20

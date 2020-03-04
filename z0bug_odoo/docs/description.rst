@@ -10,3 +10,15 @@ This package aim to easily create odoo tests.
 
 * Odoo version indipendent
 * Prepared data base, ready to use for tests
+
+
+icq
+---
+
+.. $include description_icq.csv
+
+
+test partner
+------------
+
+.. $include description_icq_partner.csv

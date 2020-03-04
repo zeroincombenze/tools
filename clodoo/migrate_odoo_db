@@ -4,20 +4,15 @@
 # Upgrae Odoo DB - Recall OCA openupgrade with right parameters
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2019-20 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -35,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.64
+__version__=0.3.8.66
 
 
 venv_mgr_install_pkg() {
@@ -135,7 +130,7 @@ venv_mgr() {
       if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
         # echo "sed -i -e \"s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|\" $f"
         sed -i -e "s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|" $f
-        [[ "$cmd" == "chk" ]] && chmod +x $f 
+        [[ "$cmd" == "chk" ]] && chmod +x $f
       fi
     done
     pushd $V >/dev/null
@@ -181,8 +176,8 @@ OPTHELP=("this help"\
  "select only records of main company"\
  "target DB configuration file"
  "delete DB if exists"\
- "disable virtualenv"\
  "target database name"\
+ "disable virtualenv"\
  "from odoo branch, value like -b switch"\
  "image mode"\
  "ids to migrate"\
@@ -216,7 +211,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Upgrade Odoo DB from a version to another"\
-  "(C) 2019 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2019-20 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ $no_venv -eq 0 ]; then
@@ -254,21 +249,21 @@ cmd="$0.py"
 [ -n "$from_dbname" ] && cmd="$cmd -z $from_dbname"
 [ $phase_1 -ne 0 ] && cmd="$cmd -1"
 [ $opt_verbose -ne 0 ] && echo "\$ cd $opt_oupath"
-if [ $no_venv -eq 0 ]; then
-    odoo_ver=$(build_odoo_param MAJVER $opt_from)
-    ((odoo_ver++))
-    [ $odoo_ver -gt 10 ] && TRAVIS_PYTHON_VERSION=3.5 || TRAVIS_PYTHON_VERSION=2.7
-    odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
-    if [ -d ~/VME/VME$odoo_fver ]; then
-        [ -d $opt_oupath ] && run_traced "rm -fR $opt_oupath"
-        [ $opt_verbose -ne 0 ] && echo "Creating virtual env $opt_oupath (python $TRAVIS_PYTHON_VERSION)"
-        venv_mgr cp ~/VME/VME$odoo_fver $opt_oupath
-    fi
-fi
+# if [ $no_venv -eq 0 ]; then
+#     odoo_ver=$(build_odoo_param MAJVER $opt_from)
+#     ((odoo_ver++))
+#     [ $odoo_ver -gt 10 ] && TRAVIS_PYTHON_VERSION=3.5 || TRAVIS_PYTHON_VERSION=2.7
+#     odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
+#     if [ -d ~/VME/VME$odoo_fver ]; then
+#         [ -d $opt_oupath ] && run_traced "rm -fR $opt_oupath"
+#         [ $opt_verbose -ne 0 ] && echo "Creating virtual env $opt_oupath (python $TRAVIS_PYTHON_VERSION)"
+#         venv_mgr cp ~/VME/VME$odoo_fver $opt_oupath
+#     fi
+# fi
 cd $opt_oupath
-[ $opt_verbose -ne 0 ] && echo "\$ source ./bin/activate"
-source ./bin/activate
+# [ $opt_verbose -ne 0 ] && echo "\$ source ./bin/activate"
+# source ./bin/activate
 echo $cmd
 eval $cmd
-[ $opt_verbose -ne 0 ] && echo "\$ deactivate"
-deactivate
+# [ $opt_verbose -ne 0 ] && echo "\$ deactivate"
+# deactivate

@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.30
+__version__=0.2.2.31
 
 
 save_testenv() {
@@ -70,6 +70,11 @@ result_testenv() {
 }
 
 Z0BUG_setup() {
+    if [[ -d /home/odoo ]]; then
+        LCL_ROOT=/home/odoo
+    else
+        LCL_ROOT=/opt/odoo
+    fi
     local VERSION=9.0
     local ODOO_REPO=local/odoo
     LCL_OE_PRJNAME="Odoo"
@@ -101,20 +106,20 @@ Z0BUG_setup() {
     FOUT=$TESTDIR/test_lib.out
     FTEST=$TESTDIR/test_lib.test
     cat<<'EOF' >$FTEST
-> if [ -d /opt/odoo/dependencies ]; then rm -fR /opt/odoo/dependencies; fi
-> if [ -L /opt/odoo/dependencies ]; then rm -f /opt/odoo/dependencies; fi
-> if [ -L /opt/odoo/l10n_it_base-9.0 ]; then rm -f /opt/odoo/l10n_it_base-9.0; fi
-> if [ -L /opt/odoo/odoo-9.0 ]; then rm -f /opt/odoo/odoo-9.0; fi
-> if [ -L /opt/odoo/odoo-9.0 ]; then rm -f /opt/odoo/odoo-9.0; fi
-> rm -fR /opt/odoo/maintainer-quality-tools
-$ cp /etc/odoo/odoo9-server.conf /opt/odoo/.openerp_serverrc
-> mkdir /opt/odoo/dependencies
+> if [ -d $LCL_ROOT/dependencies ]; then rm -fR $LCL_ROOT/dependencies; fi
+> if [ -L $LCL_ROOT/dependencies ]; then rm -f $LCL_ROOT/dependencies; fi
+> if [ -L $LCL_ROOT/l10n_it_base-9.0 ]; then rm -f $LCL_ROOT/l10n_it_base-9.0; fi
+> if [ -L $LCL_ROOT/odoo-9.0 ]; then rm -f $LCL_ROOT/odoo-9.0; fi
+> if [ -L $LCL_ROOT/odoo-9.0 ]; then rm -f $LCL_ROOT/odoo-9.0; fi
+> rm -fR $LCL_ROOT/maintainer-quality-tools
+$ cp /etc/odoo/odoo9-server.conf $LCL_ROOT/.openerp_serverrc
+> mkdir $LCL_ROOT/dependencies
 > export INCLUDE=l10n_it_base
-> ln -s /opt/odoo/dev/odoo/9.0/l10n_italy /opt/odoo/dependencies/
-> ln -s /opt/odoo/dev/odoo/9.0/openerp /opt/odoo/dependencies/
-> ln -s /opt/odoo/dev/odoo/9.0/openerp /opt/odoo/dependencies/
-> ln -s /opt/odoo/dev/odoo/9.0 /opt/odoo/odoo-9.0
-> ln -s /opt/odoo/dev/odoo/9.0/l10n_italy/l10n_it_base /opt/odoo/l10n_it_base-9.0
+> ln -s $LCL_ROOT/dev/odoo/9.0/l10n_italy $LCL_ROOT/dependencies/
+> ln -s $LCL_ROOT/dev/odoo/9.0/openerp $LCL_ROOT/dependencies/
+> ln -s $LCL_ROOT/dev/odoo/9.0/openerp $LCL_ROOT/dependencies/
+> ln -s $LCL_ROOT/dev/odoo/9.0 $LCL_ROOT/odoo-9.0
+> ln -s $LCL_ROOT/dev/odoo/9.0/l10n_italy/l10n_it_base $LCL_ROOT/l10n_it_base-9.0
 
 EOF
     if [ -L ~/maintainer-quality-tools ]; then
@@ -410,7 +415,7 @@ test_05() {
     # elif [ -d $HOME/build/local/travis_emulator/_travis ]; then
     #   test_result "init_travis \$TOOLS_PATH" "$HOME/build/local/travis_emulator/_travis" "$TOOLS_PATH"
     # else
-    #   test_result "init_travis \$TOOLS_PATH" "/opt/odoo/dev/_travis" "$TOOLS_PATH"
+    #   test_result "init_travis \$TOOLS_PATH" "$LCL_ROOT/dev/_travis" "$TOOLS_PATH"
     # fi
     # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     # FIX: temporarly disabled

@@ -35,7 +35,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.28"
+__version__ = "0.2.2.29"
 
 
 def run_traced(*args):
@@ -83,7 +83,7 @@ def parse_ctx(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Pull repository from OCA",
-                                "© 2019 by SHS-AV s.r.l.",
+                                "© 2020 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',

@@ -9,15 +9,10 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -35,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.64
+__version__=0.3.8.66
 
 
 up_oemod() {
@@ -298,7 +293,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
               fi
               run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
               if $(psql -l|grep -q $db); then
-                run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
+                run_traced "pg_db_active -L -wa $db; dropdb --if-exists -U$opt_dbuser $db"
               fi
               if $(psql -l|grep -q $db); then
                 echo "DB $db not dropped!"
@@ -373,8 +368,8 @@ for odoo_vid in ${odoo_vids//,/ }; do
       if [ "$action" == "module" ]; then
         run_traced "nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk"
       elif [ "$action" == "upgrade" ]; then
-        [ $opt_way != "A" ] || run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -um $cmdlist -d $db -sk"
-        if [ "$cmdlist" != "all" -a $opt_way != "E"  ]; then
+        [ "$opt_way" != "A" ] || run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -um $cmdlist -d $db -sk"
+        if [ "$cmdlist" != "all" -a "$opt_way" != "E"  ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi

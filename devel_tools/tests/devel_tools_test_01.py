@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2018-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 """
     Devel tools Regression Test Suite
@@ -16,7 +16,7 @@ MODULE_ID = 'devel_tools'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.2.2.28"
+__version__ = "0.2.2.29"
 
 
 def version():

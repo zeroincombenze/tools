@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -13,7 +13,7 @@ from zerobug import Z0BUG
 # from z0bug_odoo import test_common
 from zerobug import Z0testOdoo
 
-__version__ = "0.1.0.1.2"
+__version__ = "0.1.0.3"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
@@ -43,7 +43,7 @@ class RegressionTest():
             sys.path.append(odoo_path)
             from z0bug_odoo import z0bug_odoo_lib
             res = z0bug_odoo_lib.Z0bugOdoo().get_test_values(
-                'res.partner','z0bug.res_partner_1')
+                'res.partner', 'z0bug.res_partner_1')
         sts = self.Z.test_result(z0ctx,
                                  'get_test_values()',
                                  bool(res),

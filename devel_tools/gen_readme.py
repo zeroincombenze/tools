@@ -6,8 +6,8 @@ Documentation generator
 This software generates the README.rst of OCB, repository and modules.
 It also generates the index.html of the module.
 
-Document may contains macro in format {{macro_name}}.
-Currently follow macro are supported:
+Document may contains macro which format is {{macro_name}}.
+Currently, the follow macros are recognized:
 
 acknowledges
 authors         Authors list
@@ -54,7 +54,7 @@ upgrade         How to upgrade
 usage           How to usage
 
 Documentation may contains some graphical symbols in format |symbol|.
-Currently follows symbols are supported:
+Currently, follows symbols are recognized:
 
 check
 DesktopTelematico
@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.28"
+__version__ = "0.2.2.29"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -708,13 +708,14 @@ def expand_macro(ctx, token, default=None):
 
 
 def expand_macro_in_line(ctx, line, state=None):
+    """Exapand content of macro like {{macro}}"""
     state = state or _init_state()
     out_fmt = state.get('out_fmt', 'rst')
     in_fmt = state.get('in_fmt', 'rst')
     srctype = state.get('srctype', '')
     i = line.find('{{')
     j = line.find('}}')
-    while i >= 0 and j > i:
+    while 0 <= i < j:
         tokens = line[i + 2: j].split(':')
         value = expand_macro(ctx, tokens[0])
         if value is False or value is None:
@@ -737,7 +738,8 @@ def expand_macro_in_line(ctx, line, state=None):
             line = line[0:i] + value + line[j + 2:]
             state, value = parse_source(ctx, line, state=state,
                                         in_fmt=in_fmt, out_fmt=out_fmt)
-            if 'srctype' in state:    del state['srctype']
+            if 'srctype' in state:
+                del state['srctype']
             return state, value
         if len(tokens) > 1:
             fmt = tokens[1]
@@ -894,6 +896,7 @@ def parse_acknoledge_list(ctx, source):
 
 
 def line_of_list(ctx, state, line):
+    """Manage list of people like authors or contributors"""
     text = line
     stop = True
     if line:
@@ -913,7 +916,7 @@ def line_of_list(ctx, state, line):
                         text = ''
     if not stop:
         if state.get('srctype') == 'authors':
-            line = line.replace('<','\a').replace('>','\b')
+            line = line.replace('<', '\a').replace('>', '\b')
             fmt = '* `%s`__'
         else:
             fmt = '* %s'
@@ -991,10 +994,15 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                     line and ((line == '=' * len(line)) or
                               (line == '-' * len(line)))):
                 if not state['prior_line']:
+                    # =============
+                    # Title level 1
+                    # =============
                     state['cache'] = True
                     state['prior_line'] = line
                     state['prior_nl'] = '\n' if nl_bef else ''
                 else:
+                    # Title
+                    # =====
                     if len(state['prior_line']) > 2:
                         line = line[0] * len(state['prior_line'])
                     state['prior_line'] = line
@@ -1010,7 +1018,6 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                     text = text[0:x.end() + 1] + url
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
-    # if target.find('Art. 21') >= 0:
     if in_fmt == 'rst' and out_fmt == 'html':
         state, target = tohtml(target, state=state)
     elif in_fmt == 'rst' and out_fmt == 'troff':
@@ -1061,7 +1068,8 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
                                       source.replace('branch', 'prior2_branch'),
                                       state=state)
         source = parse_acknoledge_list(
-            ctx, '\n'.join(set(source1.split('\n'))|set(source2.split('\n'))))
+            ctx, '\n'.join(set(source1.split('\n')) |
+                           set(source2.split('\n'))))
     if len(source):
         full_hfn = get_template_fn(ctx, 'header_' + filename)
         header = ''
@@ -1195,10 +1203,6 @@ def read_all_manifests(ctx):
                     addons_info[module_name]['version'] = adj_version(
                         ctx, addons_info[module_name].get('version', ''))
                     addons_info[module_name]['oca_version'] = 'N/A'
-                    # if 'maintainer' not in addons_info[module_name]:
-                    #    addons_info[module_name]['maintainer'] = \
-                    #        'Antonio Maria Vigliotti '
-                    #        '<antoniomaria.vigliotti@gmail.com>'
                     if root.find('__unported__') >= 0:
                         addons_info[module_name]['installable'] = False
                 except KeyError:
@@ -1406,8 +1410,6 @@ def generate_readme(ctx):
         read_all_manifests(ctx)
     elif ctx['odoo_layer'] == 'repository':
         ctx['module_name'] = ''
-        # ctx['repos_name'] = build_odoo_param('REPOS',
-        #                                      odoo_vid=ctx['odoo_fver'])
         ctx['repos_name'] = os.path.basename(ctx['path_name'])
         read_all_manifests(ctx)
     else:
@@ -1467,7 +1469,7 @@ def generate_readme(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Generate README",
-                                "© 2018-2019 by SHS-AV s.r.l.",
+                                "© 2018-2020 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
@@ -1586,8 +1588,5 @@ if __name__ == "__main__":
                 ctx['odoo_layer'] = 'module'
             else:
                 ctx['odoo_layer'] = 'repository'
-        # if not ctx['suppress_warning']:
-        #     print('Invalid layer: use -l %s or one of ocb|module|repository ' %
-        #           ctx['odoo_layer'])
     sts = generate_readme(ctx)
     sys.exit(sts)

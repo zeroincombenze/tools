@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.30
+__version__=0.2.2.31
 
 
 save_testenv() {
@@ -61,6 +61,11 @@ result_testenv() {
 }
 
 Z0BUG_setup() {
+    if [[ -d /home/odoo ]]; then
+        LCL_ROOT=/home/odoo
+    else
+        LCL_ROOT=/opt/odoo
+    fi
     LCLTEST_PRJNAME="travis_emulator"
     LCLTEST_REPOSNAME=travis_emulator
     LCLTEST_PRJPATH=$RUNDIR
@@ -73,7 +78,7 @@ Z0BUG_setup() {
       LCLTEST_SETUP=$LCLTEST_TMPDIR/setup.py
       rm -f $LCLTEST_TMPDIR/__openerp__.py
     fi
-    LCLTEST_MQT_PATH=/opt/odoo/tools/maintainer-quality-tools/travis
+    LCLTEST_MQT_PATH=$LCL_ROOT/tools/maintainer-quality-tools/travis
     FOUT=$TESTDIR/test_lib.out
     FTEST=$TESTDIR/test_lib.test
     cat<<'EOF' >$FTEST
@@ -258,12 +263,6 @@ if [ ${opt_tjLib:-0} -ne 0 ]; then
   fi
   . $TRAVISLIBDIR
 fi
-
-
-
-
-
-
 
 UT1_LIST=""
 UT_LIST=""

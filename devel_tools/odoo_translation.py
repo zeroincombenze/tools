@@ -28,7 +28,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.28"
+__version__ = "0.2.2.29"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -252,10 +252,14 @@ def load_dictionary(ctx):
         if odoo_path:
             module_path = False
             for root, dirs, files in os.walk(odoo_path):
-                if root.find('__to_remove') < 0:
-                    if os.path.basename(root) == ctx['module_name']:
-                        module_path = root
-                        break
+                if (root.find('__to_remove') < 0 and
+                    os.path.basename(root) == ctx['module_name'] and
+                        (os.path.isfile(os.path.join(
+                            root, '__manifest__.py')) or
+                         os.path.isfile(os.path.join(
+                             root, '__openerp__.py')))):
+                    module_path = root
+                    break
             if not module_path:
                 print('*** Module %s not found in Odoo %s !!!' % (
                     ctx['module_name'], version))
@@ -394,7 +398,7 @@ def upgrade_db(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Translate Odoo Package",
-                                "© 2018-2019 by SHS-AV s.r.l.",
+                                "© 2018-2020 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-B', '--debug-template',
                         action='store_true',

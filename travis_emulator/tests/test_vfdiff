@@ -32,10 +32,15 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.30
+__version__=0.2.2.31
 
 
 Z0BUG_setup() {
+    if [[ -d /home/odoo ]]; then
+        LCL_ROOT=/home/odoo
+    else
+        LCL_ROOT=/opt/odoo
+    fi
     LCLTEST_RMDIR=
     for VERSION in v7 7.0 8.0 9.0 10.0 11.0; do
       if [ ! -d ~/$VERSION ]; then
@@ -104,40 +109,40 @@ test_01() {
     echo "fileignore=.conf">>$opt_conf
     echo "filediffignore=.po .pot">>$opt_conf
     for s in v7 8.0 10.0; do
-      if [ -d /opt/odoo/$s ]; then
+      if [ -d $LCL_ROOT/$s ]; then
         for t in v7 7.0 9.0; do
-          if [ -d /opt/odoo/$t ]; then
-            test_diff "$s" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/$s /opt/odoo/$t"
+          if [ -d $LCL_ROOT/$t ]; then
+            test_diff "$s" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/$s $LCL_ROOT/$t"
             # TODO: Test does not work in travis env
-            if [ "${PWD:0:18}" == "/opt/odoo/dev/pypi" ]; then
-              test_diff "~/$s" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/$s /opt/odoo/$t"
+            if [ "${PWD:0:18}" == "$LCL_ROOT/dev/pypi" ]; then
+              test_diff "~/$s" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/$s $LCL_ROOT/$t"
             fi
-            test_diff "/opt/odoo/$s" "$t" "l10n-italy" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/$s/l10n-italy /opt/odoo/$t/l10n-italy"
-            test_diff "/opt/odoo/$s" "$t" "l10n-italy" "l10n_it_vat_registries" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy/l10n_it_vat_registries"
-            test_diff "/opt/odoo/$s/l10n-italy" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/$s/l10n-italy /opt/odoo/$t/l10n-italy"
-            test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy/l10n_it_vat_registries"
-            test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" "" "> diff -ZBy /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
-            test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t" "> diff -ZBy /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
-            test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-O$t" "> diff -ZBy /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+            test_diff "$LCL_ROOT/$s" "$t" "l10n-italy" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/$s/l10n-italy $LCL_ROOT/$t/l10n-italy"
+            test_diff "$LCL_ROOT/$s" "$t" "l10n-italy" "l10n_it_vat_registries" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries"
+            test_diff "$LCL_ROOT/$s/l10n-italy" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/$s/l10n-italy $LCL_ROOT/$t/l10n-italy"
+            test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries"
+            test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" "" "> diff -ZBy $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+            test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t" "> diff -ZBy $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+            test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-O$t" "> diff -ZBy $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
           fi
         done
       fi
     done
     for s in v7 10.0; do
-      if [ -d /opt/odoo/$s ]; then
-        test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "8.0" "l10n-italy-supplemental" "" "" "> diff -ZBy /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py"
+      if [ -d $LCL_ROOT/$s ]; then
+        test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "8.0" "l10n-italy-supplemental" "" "" "> diff -ZBy $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py"
       fi
     done
     for s in 7 8; do
-      if [ -d /opt/odoo/$s.0 ]; then
+      if [ -d $LCL_ROOT/$s.0 ]; then
         test_diff "/etc/odoo/odoo$s-server.conf" "9.0" "" "" "" "> diff -ZBy /etc/odoo/odoo$s-server.conf /etc/odoo/odoo9-server.conf"
       fi
     done
-    test_diff "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n/" "8.0" "" "" "-m" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\" /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/i18n"
-    test_diff "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n" "8.0" "" "" "-e" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/i18n"
+    test_diff "$LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/i18n/" "8.0" "" "" "-m" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\" $LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/i18n $LCL_ROOT/8.0/l10n-italy/l10n_it_vat_registries/i18n"
+    test_diff "$LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/i18n" "8.0" "" "" "-e" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/i18n $LCL_ROOT/8.0/l10n-italy/l10n_it_vat_registries/i18n"
     local CWD=$PWD
-    cd /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries
-    test_diff "__openerp__.py" "" "" "" "8" "> diff -ZBy /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+    cd $LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries
+    test_diff "__openerp__.py" "" "" "" "8" "> diff -ZBy $LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"
     cd $CWD
 }
 

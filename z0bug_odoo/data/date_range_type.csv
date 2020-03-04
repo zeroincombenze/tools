@@ -1,0 +1,4 @@
+id,name,allow_overlap,fiscal_year,company_id,active
+z0bug.fiscal,anno fiscale,0,1,,1
+z0bug.monthly,mensile,0,0,,1
+z0bug.quarter,trimestre,0,0,,1

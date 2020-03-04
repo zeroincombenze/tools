@@ -74,10 +74,10 @@ status	msgid	msgstr
 	Alert	Avviso
 	Amortization of Goods	Ammortamento dei beni
 	Amount	Importo
-	Amount Due	Importo dovuto
+	Amount due	Importo dovuto
 	Amount in Words:	Importo in parole:
 	Amount of Penalty	Importo della sanzione
-    Amount Overdue  Importo scaduto
+	Amount Overdue	Importo scaduto
 	Amount settled	Importo provvigione
 	Amount Tax	Importo imposta
 	Amount Untaxed	Importo imponibile
@@ -144,6 +144,7 @@ status	msgid	msgstr
 	Carrier's Signature	Firma del vettore
 	Cash Journal	Registro cassa
 	Charged in Invoice	Addebito in fattura (DDU) 
+	Chart of Account	Piano dei conti
 	Check	Controllo
 	Check if picking done	Controlla se il prelievo è completato
 	Check if reverse charge EU invoices journal	Seleziona se registro fatture con inversione contabile
@@ -157,6 +158,10 @@ status	msgid	msgstr
 	City is not set for %s.	Città non impostata per %s.
 	City not set.	Città non impostata
 	City's ZIP code. (Country dependent).	CAP della città (dipende dalla nazione)
+	Clean	Pulizia
+	Clean Chart of Account	Pulizia P.d.C.
+	Clean Fiscal Position	Pulizia posizioni fiscali
+	Clean-up Test Environment	Pulizia ambiente di test
 	Client Ref:	Rif. Cliente
 	Code	Codice
 	Code group	Codice Raggruppamento
@@ -201,6 +206,8 @@ status	msgid	msgstr
 	Create commission invoices	Creazione fatture provvigioni
 	Create entries	Crea registrazioni
 	Create invoices	Creazione fatture
+	Create new company	Crea nuova azienda
+	Create Test Environment	Crea ambiente di test
 	Create User	Crea utente
 	Created by	Creato da
 	Created Invoices	Fatture create
@@ -229,18 +236,8 @@ status	msgid	msgstr
 	Customer country is not set.	Nazione del cliente non impostata.
 	Customer country not set.	Nazione cliente non impostata.
 	Customer Credit Notes	Note credito clienti
-	Customer Fiscal Representative name is not set.	Nome rappresentante fiscale non impostato
 	Customer Invoice Lines	Righe fatture clienti
-	Customer province is not set.	Provincia cliente non impostata
 	Customer province not set.	Provincia cliente non impostata
-	Customer Stabile Organization city is not set.	Città stabile organizzazione cliente non impostata
-	Customer Stabile Organization country is not set.	Nazione stabile organizzazione cliente non impostata
-	Customer Stabile Organization must have name and surname.	La stabile organizzazione cliente deve avere un nome e cognome
-	Customer Stabile Organization province is not set.	Provincia stabile organizzazione cliente non impostata
-	Customer Stabile Organization street is not set.	Indirizzo stabile organizzazione cliente non impostata
-	Customer Stabile Organization vat country is different from from address country.	La nazione della partita IVA della stabile organizzazione è diversa da quella in indirizzo
-	Customer Stabile Organization vat is not set.	Partita IVA stabile organizzazione cliente non impostata
-	Customer Stabile Organization ZIP is not set.	CAP stabile organizzazione cliente non impostata
 	Customer street is not set.	Indirizzo del cliente non impostato.
 	Customer street not set.	Indirizzo cliente non impostato
 	Customer Taxes 	IVA v/clienti
@@ -250,6 +247,7 @@ status	msgid	msgstr
 	Customized Footer	Piede personalizzato
 	Dashboard	Cruscotto
 	Data of Third-Party Issuer Intermediary who emits the invoice on behalf of the seller/provider	Dati relativi al terzo intermediario soggetto emittente che emette la fattura per conto del cedente/prestatore
+	Data selection	Selezione dati
 	Data Type	Tipo dati
 	Date	Data
 	Date from month	Data del mese
@@ -284,11 +282,14 @@ status	msgid	msgstr
 	Default Carriage Condition	Condizioni di Trasporto predefinite
 	Default Description of Goods	Aspetto dei beni predefinito
 	Default Method of Transportation	Trasporto a mezzo (predefinito)
+	Default Odoo CoA	PdC predefinito Odoo
 	Default Reason for Transportation	Causale di trasporto (predefinita)
 	Default registration date	Data registrazione predefinita
 	Default Setting	Impostazioni predefinite
 	Deferred payability	Esigibilità differita
 	Define a purchase journal for this company: '%s' (id: %d).	"Definire un sezionale di acquisto per questa azienda: ""%s"" (id: %d)."
+	Delivered	Consegnata
+	Delivered Date	Data di consegna
 	Delivery	Consegna
 	Delivery Address	Indirizzo di consegna
 	Delivery Date Time	Data e ora di consegna
@@ -315,9 +316,7 @@ status	msgid	msgstr
 	Discount Supplement Product	Prodotto per sconto maggiorazione
 	Display Name	Nome visualizzato
 	District	Distretto/provincia
-	Do not insert fiscalcode if it is equal to VAT number	Non inserire CF se eguale alla partita IVA
 	Document {d} has invoice linked	Il documento {d} ha una fattura collegata
-	Document %d has invoice linked	Il documento %d ha una fattura collegata
 	Document ID	ID documento
 	Document report selection rules	Regole selezione impaginazione stampa
 	Document Type	Tipo documento
@@ -364,10 +363,13 @@ status	msgid	msgstr
 	Electronic Bill Import	Importazione fattura elettronica
 	Electronic Invoice	Fattura elettronica
 	Electronic Invoice Attachments	Allegati fattura elettronica
+	Electronic Invoice Error	Errore e-fattura
 	Electronic Invoice Export Files	File fattura elettronica esportati
 	Electronic Invoice Fiscal Position	Posizione fiscale fattura elettronica
 	Electronic Invoice Payment Data	Dati pagamento fattura elettronica
 	Electronic Invoice Payment Method	Metodo pagamento fattura elettronica
+	Electronic Invoice Ready to Send	E-fattura pronta
+	Electronic Invoice State	Stato e-fattura
 	Electronic Invoice Summary Data	Dati riepilogo fattura elettronica
 	Embedded	Integrato
 	Employee	Dipendente
@@ -384,6 +386,7 @@ status	msgid	msgstr
 	Excise Duty	Accise
 	EXJ	ACQ
 	Expense Account 	Conto di costo
+	Experimental Axilor CoA	PdC sperimentale Axilor
 	Export E-invoice	Esporta e-fattura
 	Export EInvoice	Esporta fattura elettronica
 	Export Electronic Invoice	Esporta fattura elettronica
@@ -393,7 +396,6 @@ status	msgid	msgstr
 	extend access to documents which have agent code equal to its id.	estende l'acceso ai documenti in cui è agente
 	External agent	Agente plurimandatario
 	Failed	Non riuscito
-	FatturaPA	E-Fattura
 	FatturaPA attachment changed	Allegato e-fattura modificato
 	FatturaPA attachments	Allegati fatturaPA
 	FatturaPA Export File	File fatturaPA esportato
@@ -421,6 +423,7 @@ status	msgid	msgstr
 	Footer Print Mode	Modo stampa piede
 	for all Outgoing Mail Servers and Fetchmail Servers.	per tutti i server di posta
 	Force Net Weight	Forza peso netto
+	Force reload test values	Forza caricamento valori di test
 	Format	Formato
 	Found another partner with same vat: %s	Trovato un altro soggetto con la stessa partita IVA: %s
 	Free of commission	Libero da provvigioni
@@ -435,7 +438,6 @@ status	msgid	msgstr
 	General Data	Dati generali
 	General information	Informazioni generali
 	Generated invoice	Fattura generata
-	Give a unique name for Sender Channel	Assegnamento nome univoco del canale di invio
 	Give a unique name for this report model	Assegnamento nome univoco al rapporto
 	Give a unique name for this report style	Assegnamento nome univoco allo stile rapporto
 	Give a unique name for this report template	Assegnamento nome univoco alla specifica del rapporto
@@ -476,11 +478,11 @@ status	msgid	msgstr
 	Initial Balance	Saldo iniziale
 	Initial balance	Saldo iniziale
 	Initial Balances	Saldi iniziali
+	Installation status	Stato installazione
 	Intermediary	Intermediario
-	Invalid xml %s.	Xml %s non valido
 	Inventory	Magazzino
 	Inventory Adjustments	Rettifiche di inventario
-	Inventory Locations	Locazioni d'Inventario
+	Inventory Locations	Locationi d'Inventario
 	Invoice	Fattura
 	Invoice %s (%d), discarded tax line %s	Fattura %s (%d), scartata riga %s
 	Invoice %s has e-invoice export file yet.	File e-fattura già presente per la fattura %s.
@@ -515,6 +517,7 @@ status	msgid	msgstr
 	Language	Lingua
 	Last Modified on	Data ultima modifica
 	Last printed page	Ultima pagina su bollato
+	Last Response from Exchange System	Ultimo responso da SdI
 	Last Updated by	Ultima modifica di
 	Last Updated on	Data ultima modifica
 	Latest Follow-up	Ultimo sollecito
@@ -543,6 +546,7 @@ status	msgid	msgstr
 	Link to existing supplier bill	Collega a fattura fornitore esistente
 	Liquidation State	Attiva/In liquidazione
 	Load Journals	Carica registri
+	Load record images	Carica immagini
 	Local Modules	Moduli disponibili
 	Login	Accesso
 	Make invoice	Fatturazione
@@ -563,12 +567,9 @@ status	msgid	msgstr
 	Missed company VAT number	Manca partita IVA aziendale
 	Missed company zip code	Manca CAP aziendale
 	Missed supplier invoice number %s, id=%d	Manca numero fattura fornitore %s, id=%d
-	Model template	Specifica di modello
 	Model template with fallback values.	Specifica con valori a cascata
-	Model to apply this rule	Modello a cui applicare questa regola
 	Module	Modulo
 	Monthly	Mensile
-	Move TIN to FC if partner is PA	Trasforma P.IVA in codice fiscale se PA
 	Multi Report Document Style	Stile documento multi-documenti
 	Multi Report Template	Specifica multi-rapporto
 	Multi Report Template values	Valori specifica multi-rapporto
@@ -576,6 +577,7 @@ status	msgid	msgstr
 	Multi-Report Style	Stile multi-documenti
 	Multi-report style	Stile multi-documenti
 	Multi-Report Template	Specifica multi-rapporto
+	Multiple invoice to one xml	Fatture multiple di un unico xml
 	Multireport Styles	Stili multi-documento
 	Multireport Template	Specifica multi-rapporto
 	Municipality or city to which the Stable Organization refers	Comune a cui si riferisce la stabile organizzazione
@@ -586,16 +588,14 @@ status	msgid	msgstr
 	Natural Person	Persona fisica
 	Net Amount	Provvigioni al netto
 	Net Weight	Peso netto
+	New record inserted	Nuovi record inseriti
 	No 'law reference' field for tax %s	"Campo ""riferimento legislativo"" non valorizzato per l'imposta %s."
 	No 'law reference' field for tax %s.	"Campo ""riferimento legislativo"" non valorizzato per l'imposta %s."
 	No 'nature' field for tax %s	"Campo ""natura"" non valorizzato per l'imposta %s"
 	No 'nature' field for tax %s.	"Campo ""natura"" non valorizzato per l'imposta %s."
-	No code	No codice
+	No chart of account	No piano dei conti
 	No code & Only first line	No codice & solo 1° riga
 	No currency found with code %s.	Divisa con codice %s non trovata.
-	No EU customer fc	Codice fiscale per clienti extra-UE
-	No EU customer TIN	Partita IVA per clienti extra-UE
-	No FC if same of TIN	Non inserire CF se identico alla partita IVA
 	No partner allocated	Nessun soggetto allocato
 	No print	No stampa
 	No print Footer	No stampa piede
@@ -711,7 +711,6 @@ status	msgid	msgstr
 	Payments	Pagamenti
 	Payments Details	Dettagli pagamento
 	PDF Report	Rapporti PDF
-	PEC and Electronic Invoice	PEC e e-fattura
 	PEC to which the electronic invoice will be sent. Must be filled ONLY when the information element <CodiceDestinatario> is '0000000'	"Indirizzo PEC al quale inviare la fattura elettronica. Da valorizzare SOLO nei casi in cui l'elemento informativo <CodiceDestinatario> vale ""0000000"""
 	Percent	Percentuale
 	Percentage	Percentuale
@@ -774,6 +773,7 @@ status	msgid	msgstr
 	REA Office	Ufficio REA
 	Rea Office	Ufficio REA
 	REA Office Province Code ( %s ) not present in your system	Codice provincia dell'ufficio REA ( %s ) non presente nel sistema
+	Ready to Send	Pronta per invio
 	Real Estate	Immobili
 	Reason For Transportation	Causale trasporto
 	Reason for Transportation	Causale trasporto
@@ -785,11 +785,14 @@ status	msgid	msgstr
 	Receptions 	Entrate merci
 	Recipient	Destinatario
 	Recipient Code	Codice destinatario
+	Recipient Error	Errore destinatario
 	Recipient's Signature	Firma destinatario
 	Recipients	Destinatari
 	Reconcile	Riconciliazione
 	Reconcile Entries	Riconcilia registrazioni
+	Record deleted	Record eliminati
 	Record to delete	Riga da eliminare
+	Record updated	Record modificati
 	Reference	Riferimento
 	Refresh	Riaggiorna
 	Refresh attachment info	Riaggiorna informazioni allegato
@@ -802,7 +805,7 @@ status	msgid	msgstr
 	Register Registration Date	Data iscrizione albo
 	Registered	Registrata
 	Registration Date	Data di registrazione
-	Related DdT	DdT collegati
+	Rejected	Rifiutata
 	Related DDT	DdT collegati
 	Related DDTs	DdT correlati
 	Related DdTs	DdT correlati
@@ -828,12 +831,14 @@ status	msgid	msgstr
 	Reporting	Rapporti
 	Repository	Raccolta
 	Reset to Draft	Riporta in bozza
+	Reset to ready	Reimposta da inviare
 	Residual	Residuo
 	Resource Field	Campo risorsa
 	Resource ID	ID risorsa
 	Resource Model	Modello risorsa
 	Resource Name	Nome risorsa
 	Restore	Ripristinare
+	Result Test Environment	Risultati ambiente test
 	Results	Risultati
 	Returned	Reso
 	Reverse Charge Journal	Sezionale inversione contabile
@@ -887,15 +892,18 @@ status	msgid	msgstr
 	Send follow-ups	Invia solleciti di pagamento
 	Send Overdue Email	Invia sollecito di ritardato pagamento
 	Sender	Mittente
+	Sender Error	Errore di invio
+	Sent	Inviata
+	Sent by	Inviata da
+	Sent Date	Data di invio
 	Set	Imposta
 	Set Comm. Type	Imposta tipo comm.
 	Set default agent authorization user profile	Imposta profilo autorizzativo predefinito
 	Set done	Completato
 	Set invoice communication type	Imposta tipo communicazione
 	Set Invoice Type	Imposta tipo fattura fiscale
-	Set invoice type	Imposta tipo fattura fiscale
+	Set to delivered	Marca come consegnata
 	Set to draft	Bozza
-	Set Type	Imposta tipo
 	Setting	Impostazione
 	Settings	Impostazioni
 	Settle commissions	Liquida le provvigioni
@@ -937,8 +945,6 @@ status	msgid	msgstr
 	Street not set.	Indirizzo non impostato
 	Subjected to electronic invoice	Soggetto a fattura elettronica
 	Subjected to Electronic Invoice	Soggetto a fattura elettronica
-	Subjected to Withholding	Soggetto a ritenuta d'acconto
-	Subtotal	Totale Riga
 	Sum Due	Corrispettivo dovuto
 	Summary Data	Dati riepilogo
 	Supplement	Maggiorazione
@@ -985,6 +991,7 @@ status	msgid	msgstr
 	Technical values	Valori tecnici
 	Telephone Prefix	Prefisso telefonico
 	Template	Specifica
+	Test Chart od Account	Test piano dei conti
 	Test Connection	Prova connessione
 	Text Reference	Riferimento testo
 	Text with delivery ref	Testo con riferimento consegna
@@ -998,14 +1005,12 @@ status	msgid	msgstr
 	The parent company	L'azienda controllante
 	The record id this is attached to.	L'ID del record a cui questo è collegato.
 	The univocal progressive of the file is represented by an alphanumeric sequence of maximum length 5, its values are included in 'A'-'Z' and '0'-'9'	"Il progressivo univoco del file è rappresentato da una sequenza alfanumerica di lunghezza massima 5, i cui valori sono inclusi in ""A""-""Z"" e ""0""-""9"""
-	There are not picking to create a DdT	Non ci sono prelievi per creare un DdT
 	There is no invoicable line.	Non ci sono righe fatturabili
 	Third Party/Sender	Terzo/Trasmittente
 	Third Person	Soggetto terzo
 	This attachment contains the PDF report of the linked invoice	Questo allegato contiene il documento PDF della fattura collegata
 	This is the default commission used in the sales where this agent is assigned. It can be changed on each operation if needed.	Provvigione predefinita usata nelle vendita per questo agente. Può essere cambiata in qualsiasi riga
 	This report will be automatically included in the created XML	Questo documento verrà incluso automaticamente nell'XML generato
-	This wizard set default fiscal invoice type	Procedura per impostare il tipo di fattura fiscale
 	This wizard set default invoice communication type	Procedura per impostare il tipo di comunicazione in fattura
 	This year	Questo anno
 	Thumbnail	Miniatura
@@ -1100,6 +1105,7 @@ status	msgid	msgstr
 	Your company Street is not set.	Indirizzo azienda non impostato.
 	Your company ZIP is not set.	CAP azienda non impostato
 	Your download is ready	Il file scaricato è disponibile
+	Zeroincombenze CoA	PdC Zeroincombenze
 	ZIP Code	CAP
 	ZIP is not set for %s.	CAP non impostato per %s.
 	ZIP not set.	CAP non impostato

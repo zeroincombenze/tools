@@ -17,7 +17,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.3.8.64"
+__version__ = "0.3.8.66"
 
 
 def get_name_by_ver(ctx, name):
@@ -233,6 +233,14 @@ def get_ids_from_name(model, company_id, target):
         where.append(('name', 'like', target))
     return clodoo.searchL8(ctx, model, where)
 
+def set_date_range(model, target):
+    datas = target.split(':')
+    P1 = P2 = None
+    if datas[0]:
+        P1 = ('date_invoice', '>=', datas[0])
+    if len(datas) > 1 and datas[1]:
+        P2 = ('date_invoice', '<=', datas[1])
+    return get_ids_from_params(model, False, P1=P1, P2=P2)
 
 def ask4company(company_id):
     msg = "Company ID (0=all, RET=%d)? " % company_id
@@ -264,13 +272,15 @@ def ask4period(year):
 def ask4target(search_mode, target):
     print("Use prefix :A: to search for account")
     print("           :C: to search for account code")
+    print("           :D: to search for date")
     print("           :I: to search for invoice id (default if number)")
     print("           :N: to search for invoice number (default if text)")
     print("           :P: to search for partner ID")
     print("Use number for id or [num,num,...] for ID(s)")
     print(" i.e. ':A:33' means search for invoices which have account id 33")
     print("  ':C:319%' search for invoices with account code like '319%'")
-    print("  ':A:[4,6]' search for invoices whic have account id in 4 or 6")
+    print("  ':A:[4,6]' search for invoices which have account id in 4 or 6")
+    print("  ':D:yyyy-mm-dd:yyy-mm-dd' date range")
     print("  '123' manage invoice which has ID 123")
     print("Press RET to send %s%s" % (search_mode, target))
     dummy = raw_input('Please, type [prefix]ID(s)/Number/Account? ')
@@ -328,7 +338,7 @@ print("Invoice set Draft and Restore - %s" % __version__)
 
 
 HDRDTL = {}
-for search_mode in (':A:', ':C:'):
+for search_mode in (':A:', ':C:', ':D:'):
     HDRDTL[search_mode] = 'D'
 for search_mode in (':I:', ':N:', ':P:'):
     HDRDTL[search_mode] = 'H'
@@ -407,7 +417,7 @@ while True:
     if action != 'RB':
         target = ask4target(search_mode, target)
         company_id = ask4company(company_id)
-        if target[0:3] in (':A:', ':C:', ':I:', ':N:', ':P:'):
+        if target[0:3] in (':A:', ':C:', ':D:', ':I:', ':N:', ':P:'):
             search_mode = target[0:3]
             target = target[3:]
         elif target.isdigit():
@@ -421,6 +431,8 @@ while True:
             account_id = set_type_of_id(target, list=True)
         elif search_mode == ':P:':
             partner_id = set_type_of_id(target)
+        elif search_mode == ':D:':
+            rec_ids = set_date_range('account.invoice', target)
         if search_mode in (':A:', ':C:', ':N:', ':P:'):
             year, period_ids = ask4period(year)
         invmov = INVMOV[action[0]]
@@ -431,7 +443,9 @@ while True:
         print("Dbg:(invmov=%s;hdrdtl=%s;actsrc=%s;models=%s/%s)" %
               (invmov, hdrdtl, actsrc, model_hdr, model_dtl))
 
-        if search_mode == ':I:':
+        if search_mode == ':D:':
+            pass
+        elif search_mode == ':I:':
             rec_ids = set_type_of_id(target, list=True)
         else:
             if search_mode in (':A:', ':C:'):

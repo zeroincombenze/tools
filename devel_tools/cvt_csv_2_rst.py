@@ -34,7 +34,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.2.28"
+__version__ = "0.2.2.29"
 
 msg_time = time.time()
 
@@ -153,7 +153,7 @@ def convert_file(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Convert csv file into xml file",
-                                "© 2018-2019 by SHS-AV s.r.l.",
+                                "© 2018-2020 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',

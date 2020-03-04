@@ -2,7 +2,7 @@
 # topep8 configuration file (last update 2018-12-26)
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # Rules to convert OCA to Odoo Italia Associazione source
 l10n_it_fatturapa:

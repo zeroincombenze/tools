@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """@mainpage
 zerobug
@@ -147,7 +147,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.14.12"
+__version__ = "0.2.14.13"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -745,7 +745,7 @@ class Z0test(object):
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
-            epilog="© 2015-2019 by SHS-AV s.r.l."
+            epilog="© 2015-2020 by SHS-AV s.r.l."
                    " - http://wiki.zeroincombenze.org/en/Zerobug")
         parser.add_argument("-b", "--debug",
                             help="trace msgs in zerobug.tracehis",

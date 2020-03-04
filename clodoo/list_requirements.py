@@ -12,13 +12,14 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.64'
+__version__ = '0.3.8.66'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
 # known incompantibilities:
 # - requests: oca-maintainers-tools -> '==2.3.0',
 #             codecov -> '>=2.7.9'
+# Here we assume: Odoo 11.0 use python 3.5, Odoo 12.0 uses python 3.7
 REQVERSION = {
     'acme_tiny': {'7.0': '>=4.0.3'},
     'argparse': {'0': '==1.2.1'},
@@ -35,19 +36,23 @@ REQVERSION = {
     'feedparser': {'7.0': '==5.1.3', '10.0': '==5.2.1'},
     'flake8': {'7.0': '==3.4.1'},           # Tested 3.5.0; 3.6.0 does not work
     'gdata': {'7.0': '==2.0.18'},
-    'gevent': {'7.0': '==1.0.2', '10.0': '==1.1.2'},
-    'greenlet': {'7.0': '==0.4.10'},
+    'gevent': {'7.0': '==1.0.2', '10.0': '==1.1.2',
+               '12.0': '==1.3.4'},                       # With py3.7 -> 1.3.4
+    'greenlet': {'7.0': '==0.4.10',
+                 '12.0': '>=0.4.13'},                    # With py3.7 -> 0.4.13
     'ipy': {'7.0': '>=0.83'},
     'isort': {'0': '==4.3.4'},                           # Version by test pkgs
     'jcconv': {'7.0': '==0.2.3'},
     'Jinja2': {'7.0': '==2.7.3', '9.0': '==2.8.1', '12.0': '==2.10.1'},
-    'lxml': {'7.0': '>=3.4.1', '10.0': '==3.5.0', '0': '==4.2.1'},
+    'lxml': {'7.0': '>=3.4.1', '10.0': '==3.5.0',
+             '11.0': '==3.7.1', '12.0': '==4.2.3', '0': '==4.2.1'},
     'Mako':  {'7.0': '==1.0.1', '8.0': '==1.0.4'},
     'MarkupSafe': {'7.0': '>=0.23'},                    # Tested 1.0
     'mock': {'7.0': '==1.0.1', '8.0': '==2.0.0'},
     'ofxparse': {'7.0': '==0.16'},
     'passlib': {'7.0': '==1.6.2', '10.0': '==1.6.5'},
-    'Pillow': {'7.0': '==3.4.2', '8.0': '==3.4.1', '0': '==3.4.2'},
+    'Pillow': {'7.0': '==3.4.2', '8.0': '==3.4.1', '11.0': '==4.0.0',
+                '12.0': '==6.1.0', '0': '==4.0.0'},       # With py3.7 -> 6.1.0
     'psutil': {'7.0': '==2.2.0', '8.0': '==4.3.1'},
     'psycogreen': {'7.0': '==1.0'},
     'psycopg2-binary': {'7.0': '>=2.0.0',
@@ -97,7 +102,7 @@ REQVERSION = {
     'wsgiref': {'7.0': '==0.1.2'},
     'XlsxWriter': {'7.0': '==0.9.3'},                   # Tested 1.0.2
     'xlrd': {'7.0': '==1.0.0'},
-    'xlwt': {'7.0': '==0.7.5', '10.0': '==1.1.2'},
+    'xlwt': {'7.0': '==0.7.5', '10.0': '==1.1.2', '12.0': '==1.3'},
 }
 ALIAS = {
     'babel': 'Babel',
@@ -169,8 +174,8 @@ PIP_TEST_PACKAGES = ['astroid',
                      'websocket-client',
                      'whichcraft',
                      'wrapt',
+                     'z0bug_odoo',
                      'zerobug',
-                     'zerobug_odoo',
                      ]
 BIN_TEST_PACKAGES = ['build-essential',
                      'expect-dev',
@@ -247,15 +252,33 @@ except BaseException:
 PY3_DEV = 'python%s-dev' % PY3ID
 
 
-def parse_requirements(reqfile):
+def eval_requirement_cond(line, odoo_ver=None):
+    odoo_ver = odoo_ver or '10.0'
+    items = line.split(';')
+    if len(items) == 1:
+        return line.strip()
+    # TODO: python version
+    pyver = {
+        '11.0': '3.5',
+        '12.0': '3.7,',
+        '13.0': '3.7',
+    }
+    testenv = {
+        'sys_platform': sys.platform,
+        'python_version': pyver.get(odoo_ver, '2.7')
+    }
+    if eval(items[1], testenv):
+        return items[0].strip()
+    return False
+
+
+def parse_requirements(reqfile, odoo_ver=None):
     lines = open(reqfile, 'rU').read().split('\n')
     reqlist = []
     for line in lines:
         if line and line[0] != '#':
-            items = line.split(';')
-            if len(items) == 1 or eval(items[1].strip().replace(
-                    '_', '.').replace('python.version', 'python_version')):
-                item = items[0].strip()
+            item = eval_requirement_cond(line, odoo_ver=odoo_ver)
+            if item:
                 reqlist.append(item)
     return reqlist
 
@@ -395,23 +418,27 @@ def package_from_manifest(deps_list, manifest_file,
 
 
 def add_manifest(root, manifests, reqfiles, files):
-    for f in files:
-        if f == '__openerp__.py':
-            ffn = os.path.join(root, f)
-            manifests.append(ffn)
-        elif f == '__manifest__.py':
-            ffn = os.path.join(root, f)
-            manifests.append(ffn)
-        elif f == 'requirements.txt':
-            ffn = os.path.join(root, f)
-            reqfiles.append(ffn)
+    import_manifest = False
+    manifest_imported = False
+    for fn in files:
+        if fn == '__init__.py':
+            import_manifest = True
+        if fn == '__openerp__.py':
+            if not manifest_imported:
+                manifest_imported = os.path.join(root, fn)
+        elif fn == '__manifest__.py':
+            manifest_imported = os.path.join(root, fn)
+        elif fn == 'requirements.txt':
+            reqfiles.append(ffn = os.path.join(root, fn))
+    if import_manifest and manifest_imported:
+        manifests.append(manifest_imported)
     return manifests, reqfiles
 
 
 def main():
     # global __version__
     parser = z0lib.parseoptargs("List Odoo requirements",
-                                "© 2017-2019 by SHS-AV s.r.l.",
+                                "© 2017-2020 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
@@ -485,7 +512,15 @@ def main():
                                        ctx['odoo_ver']))):
         ctx['odoo_dir'] = os.path.join(os.path.expanduser('~'),
                                        ctx['odoo_ver'])
-    if ctx['odoo_dir']:
+    if ctx['manifests']:
+        manifests = []
+        reqfiles = []
+        for item in ctx['manifests'].split(','):
+            if item.endswith('.py'):
+                manifests.append(os.path.expanduser(item))
+            else:
+                reqfiles.append(os.path.expanduser(item))
+    elif ctx['odoo_dir']:
         manifests = []
         reqfiles = []
         if ctx['oca_dependencies']:
@@ -501,14 +536,11 @@ def main():
                                                manifests,
                                                reqfiles,
                                                files)
-    else:
-        manifests = ctx['manifests'].split(',')
-        reqfiles = []
     deps_list = {}
     for kw in ('python', 'python1', 'python2', 'bin', 'modules'):
         deps_list[kw] = []
     for reqfile in reqfiles:
-        requirements = parse_requirements(reqfile)
+        requirements = parse_requirements(reqfile, odoo_ver=ctx['odoo_ver'])
         deps_list = package_from_list(deps_list, 'python', requirements,
                                       with_version=ctx['with_version'],
                                       odoo_ver=ctx['odoo_ver'])

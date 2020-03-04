@@ -1,0 +1,6 @@
+id,payment_id,sequence,days,months,payment_days,value,value_amount,option
+z0bug.payment_1_1,,10,,1,,balance,,fix_day_following_month
+z0bug.payment_2_1,,10,,1,,percent,50,fix_day_following_month
+z0bug.payment_2_2,,20,,2,,balance,,fix_day_following_month
+z0bug.payment_3_1,,10,,1,10,balance,,fix_day_following_month
+z0bug.payment_4_1,,10,30,,,balance,,day_after_invoice_date
