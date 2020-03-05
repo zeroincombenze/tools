@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Manage virtual envinroment
+# Manage virtual environment
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
@@ -26,8 +26,8 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.2.4
-DEV_PKGS="coveralls codecov flake8==3.4.1 pycodestyle==2.3.1 pylint==1.6.4"
+__version__=0.1.2.7
+DEV_PKGS="coveralls codecov flake8==3.4.1 pycodestyle==2.3.1 pylint==1.9.3"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
 FLT_PKGS="(jwt|FOO)"
@@ -40,13 +40,13 @@ pip_install_1() {
         [ $opt_verbose -gt 0 ] && echo -e "\e[1m.1 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m"
         for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
             run_traced "$PIP install $pkg  $popt --disable-pip-version-check"
-            [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS $pkg"
+            [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         done
     else
         [ $opt_verbose -gt 0 ] && echo -e "\e[1m.1 - Analyzing $SUP_PKGS $SECURE_PKGS\e[0m"
         for pkg in $SUP_PKGS $SECURE_PKGS; do
             run_traced "$PIP install $pkg  $popt --disable-pip-version-check"
-            [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS $pkg"
+            [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         done
     fi
 }
@@ -59,10 +59,9 @@ pip_install_2() {
     [ $opt_verbose -gt 0 ] && echo -e "\e[1m.2 - Analyzing $OEPKGS\e[0m"
     for pkg in $OEPKGS; do
         [[ "$pkg" =~ psycopg2 ]] && pkg="psycopg2-binary>=2.0.0"
-        # [[ "$pkg" =~ $xpkgs ]] && echo "-- Package $pkg already installed"
         if [[ ! "$pkg" =~ $xpkgs ]]; then
             run_traced "$PIP install $pkg $popt --disable-pip-version-check"
-            [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS $pkg"
+            [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         fi
         if [[ "$pkg" =~ $FLT_PKGS ]]; then
             run_traced "$PIP uninstall cryptography -y"
@@ -81,13 +80,15 @@ pip_install_req() {
         [ -z "$fn" ] && echo "File $f not found!"
         [ -z "$fn" ] && continue
         [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
-        flist=$(cat $fn|tr "\n" " ")
+        # flist=$(cat $fn|tr "\n" " ")
+        [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver)
+        [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -m $fn -y $opt_pyver)
         [ $opt_verbose -gt 0 ] && echo "--> $flist"
         for pkg in $flist; do
             [[ "$pkg" =~ psycopg2 ]] && pkg="psycopg2-binary>=2.0.0"
             if [[ ! "$pkg" =~ $xpkgs ]]; then
                 run_traced "$PIP install $pkg $popt --disable-pip-version-check"
-                [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS $pkg"
+                [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
             fi
             xpkgs="${xpkgs:0: -1}|$pkg)"
             if [[ "$pkg" =~ $FLT_PKGS ]]; then
@@ -98,8 +99,91 @@ pip_install_req() {
     done
 }
 
+check_package() {
+# check_package(pkg cmd)
+    local op reqver xreqver sts curver vpkg
+    local vpkg=$1
+
+    op=$(echo "$vpkg"|grep -Eo '[!<=>]*'|head -n1)
+    pkg=$(echo "$vpkg"|grep -Eo '[^!<=>\\[]*'|tr -d "'"|head -n1)
+    reqver=$(echo "$vpkg"|grep -Eo '[^!<=>]*'|tr -d "'"|sed -n '2 p')
+    [ -n "$reqver" ] && xreqver=$(echo $reqver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
+    sts=0
+    if [[ -n "$reqver" ]]; then
+        curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
+        [ -n "$curver" ] && xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
+        if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
+            echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
+            ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+            [[ "$cmd" == "amend" ]] && run_traced "$PIP install $vpkg -U"
+        else
+            printf "Package %-30.30s OK\n" "${pkg}.............................."
+        fi
+    else
+        eval $PIP show $pkg &>/dev/null
+        if [ $? -eq 0 ]; then
+            printf "Package %-30.30s OK\n" "${pkg}.............................."
+        else
+            echo "Package $pkg not installed!!!"
+            ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+            [[ "$cmd" == "amend" ]] && run_traced "$PIP install $vpkg"
+        fi
+    fi
+}
+
+pip_check_1() {
+# pip_check_1(cmd)
+    local pkg cmd=$1
+    local op reqver xreqver sts curver vpkg
+
+    [ $opt_verbose -gt 0 ] && echo -e "\e[1m.1 - Analyzing\e[0m"
+    for vpkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
+        check_package $vpkg $cmd
+    done
+}
+
+
+pip_check_2() {
+# pip_check_2(cmd)
+    local pkg cmd=$1
+    local xpkgs="(${SUP_PKGS// /|}|${SECURE_PKGS// /|}|${DEV_PKGS// /|})"
+    [[ -n "xpkgs" ]] && xpkgs="${xpkgs/|)/)}"
+    [ $opt_verbose -gt 0 ] && echo -e "\e[1m.2 - Analyzing\e[0m"
+    for vpkg in $OEPKGS; do
+        [[ "$vpkg" =~ psycopg2 ]] && vpkg="psycopg2-binary>=2.0.0"
+        if [[ ! "$vpkg" =~ $xpkgs ]]; then
+            check_package $vpkg $cmd
+            xpkgs="${xpkgs:0: -1}|$vpkg)"
+        fi
+    done
+}
+
+pip_check_req() {
+# pip_check_req(cmd)
+    local f fn pkg cmd=$1 flist
+    local xpkgs="(${SUP_PKGS// /|}|${SECURE_PKGS// /|}|${DEV_PKGS// /|}|${OEPKGS// /|})"
+    [[ -n "xpkgs" ]] && xpkgs="${xpkgs/|)/)}"
+    for f in ${opt_rfile//,/ }; do
+        fn=$(readlink -f $f)
+        [ -z "$fn" ] && echo "File $f not found!"
+        [ -z "$fn" ] && continue
+        [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
+        [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver)
+        [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -m $fn -y $opt_pyver)
+        for pkg in $flist; do
+            [[ "$pkg" =~ psycopg2 ]] && pkg="psycopg2-binary>=2.0.0"
+            if [[ ! "$pkg" =~ $xpkgs ]]; then
+                check_package $pkg $cmd
+                xpkgs="${xpkgs:0: -1}|$pkg)"
+            fi
+            xpkgs="${xpkgs:0: -1}|$pkg)"
+        done
+    done
+}
+
 custom_env() {
 # custom_env(VENV pyver)
+    local VIRTUAL_ENV=$1
     pushd $1 >/dev/null
     sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
     if $(grep -q "^export HOME=" $PWD/bin/activate); then
@@ -133,210 +217,245 @@ custom_env() {
     popd >/dev/null
 }
 
+set_pyver_files() {
+    if [ -n "$opt_pyver" ]; then
+        pyver=$(echo $opt_pyver|grep -o [0-9]|head -n1)
+        [ $pyver -gt 2 ] && PIP=pip3
+        [ $pyver -le 2 ] && PIP=pip
+        [ $pyver -gt 2 ] && PYTHON=python3
+        [ $pyver -le 2 ] && PYTHON=python
+    fi
+    PIPVER=$($PIP --version|grep -Eo [0-9]+|head -n1)
+}
+
 venv_mgr_check_src_path() {
-# venv_mgr_check_src_path(VENV)
-    local f VENV
-    [ -n "$1" ] && VENV=$(readlink -e $1)
+# venv_mgr_check_src_path(VENV create)
+    local do_deact=0 do_pop=0 f VENV
+    [[ -z "$1" ]] && VENV=$(readlink -e ./)
+    [[ -n "$1" ]] && VENV=$(readlink -e $1)
     if [[ -z "$VENV" ]]; then
-      echo "Missed virtual environment path!!"
-      exit 1
+        [[ -z "$2" ]] && echo "Missed virtual environment path!!"
+        [[ -n "$2" ]] && echo "Missed python version!!"
+        exit 1
     fi
     if [[ ! -d $VENV || ! -d $VENV/lib || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-      echo "Invalid virtual env $VENV!!"
-      exit 1
+        echo "Invalid virtual env $VENV!!"
+        exit 1
     fi
-    if [ "$1" != "." ]; then
+    if [[ ! "$VENV" == "$PWD" ]]; then
         pushd $VENV >/dev/null
+        do_pop=1
+    fi
+    if [[ -z "$VIRTUAL_ENV" ]]; then
         . bin/activate
+        do_deact=1
     fi
     for f in ./bin/python[23].*; do PYTHON=$(echo $f|grep -Eo "python[2-3]\.[0-9]"); break; done
     if [ -z "$PYTHON" ]; then
-      echo "Virtual env $VENV without python!!"
-      exit 1
+        echo "Virtual env $VENV without python!!"
+        exit 1
     fi
-    if [ "$1" != "." ]; then
-        deactivate
-        opt_pyver=$(echo $PYTHON|grep -Eo "[2-3]\.[0-9]")
-        popd >/dev/null
-    fi
+    opt_pyver=$(echo $PYTHON|grep -Eo "[2-3]\.[0-9]")
+    [ $do_deact -ne 0 ] && deactivate
+    [ $do_pop -ne 0 ] && popd >/dev/null
     [ $opt_verbose -gt 0 ] && echo "### Python version $opt_pyver ... ###"
+    set_pyver_files
 }
 
 venv_mgr_test() {
 #venv_mgr_test(VENV)
     local f x VENV
-    if [ "$1" != "." ]; then
-        [ -n "$1" ] && VENV=$(readlink -e $1)
-        [ $opt_verbose -gt 0 ] && echo "Validation test ..."
-        [ $opt_dry_run -ne 0 ] && return
+    local do_deact=0 do_pop=0
+    [ -z "$1" ] && VENV=$(readlink -e ./)
+    [ -n "$1" ] && VENV=$(readlink -e $1)
+    [ $opt_verbose -gt 0 ] && echo "Validation test ..."
+    [ $opt_dry_run -ne 0 ] && return
+    if [[ ! "$VENV" == "$PWD" ]]; then
         [ $opt_verbose -gt 0 ] && echo "-------------------"
-        run_traced "pushd $1 >/dev/null"
-        [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
-        [ $opt_dry_run -eq 0 ] && . bin/activate
+        # [ $opt_verbose -ne 0 ] && echo "$FLAG pushd $VENV >/dev/null"
+        pushd $VENV >/dev/null
+        do_pop=1
     fi
-    [ $opt_verbose -gt 0 ] && echo "VPATH=$PATH"
-    [ $opt_verbose -gt 0 ] && echo "VPYTHONPATH=$PYTHONPATH"
+    if [[ -z "$VIRTUAL_ENV" ]]; then
+        # [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
+        . bin/activate
+        do_deact=1
+    fi
+    [ $opt_verbose -gt 1 ] && echo "VPATH=$PATH"
+    [ $opt_verbose -gt 1 ] && echo "VPYTHONPATH=$PYTHONPATH"
+    [ $opt_dev -eq 0 ] && DEV_PKGS=
     for f in $PYTHON $PIP $DEV_PKGS; do
         f=$(echo $f|awk -F= '{print $1}')
-        x=$(readlink -e $(which $f))
-        [[ -z "$x" ]] && echo "Corrupted VME ($f) !!"
-        [[ -n "$x" && ! $x =~ ^$1 ]] && echo "Incomplete VME ($x)"
+        x=$(readlink -e $(which $f 2>/dev/null) 2>/dev/null)
+        [[ -z "$x" ]] && echo "Corrupted VME: file $f not found!!"
+        [[ -z "$x" ]] && continue
+        [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "Incomplete VME: file $x outside virtual env"
+        [[ -n "$x" && ! $x =~ ^$VENV ]] && continue
         [ "$f" != "pylint" -a $opt_verbose -gt 0 ] && eval $f --version
         [ "$f" == "pylint" -a $opt_verbose -gt 0 ] && eval $f --version 2>/dev/null
     done
-    if [ "$1" != "." ]; then
-        [ $opt_verbose -ne 0 ] && echo "$FLAG deactivate"
-        [ $opt_dry_run -eq 0 ] && deactivate
-        run_traced "popd >/dev/null"
-    fi
+    [ $do_deact -ne 0 ] && deactivate
+    [ $do_pop -ne 0 ] && popd >/dev/null
 }
 
 do_venv_mgr() {
 # do_venv_mgr {cp|mv|merge|reset|test} VENV NEW_VENV
-    local d f mime VENV VIRTUAL_ENV V sitecustom do_pop xpkgs popt
+    local d f mime VENV V sitecustom do_pop xpkgs popt
+    local do_deact=0 do_pop=0 f
     local cmd=$1
+    [ -z "$2" ] && VENV=$(readlink -e ./)
     [ -n "$2" ] && VENV=$(readlink -e $2)
-    [ "$2" == "." ] && VENV=.
-    [ -n "$3" ] && VIRTUAL_ENV=$(readlink -f $3)
-    [[ $cmd =~ (reset|test) ]] && VIRTUAL_ENV=$VENV
+    [ -n "$3" ] && VENV_TGT=$(readlink -f $3)
+    [[ $cmd =~ (amend|check|reset|test) ]] && VENV_TGT=$VENV
     [ $opt_alone -ne 0 ] && popt="-I"
     [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
-    [ -n "$opt_oever" ] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever)
-    if [[ -z "$VENV" || -z "$VIRTUAL_ENV" ]]; then
+    [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -y $opt_pyver)
+    if [[ -z "$VENV" || -z "$VENV_TGT" ]]; then
       echo "Missed parameters!"
       echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
       exit 1
     fi
-    if [[ "$VENV" == "$VIRTUAL_ENV" && ! $cmd =~ (reset|test) ]]; then
+    if [[ "$VENV" == "$VENV_TGT" && ! $cmd =~ (amend|check|reset|test) ]]; then
       echo "Source and destination directories are the same!"
       echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
       exit 1
     fi
-    if [[ $cmd =~ (reset|test) ]]; then
+    if [[ $cmd =~ (amend|check|reset|test) ]]; then
       V=$VENV
     elif [[ "$cmd" == "cp" ]]; then
-      if [[ -d $VIRTUAL_ENV ]]; then
+      if [[ -d $VENV_TGT ]]; then
         if [ $opt_force -eq 0 ]; then
-            echo "Destintation v.environment $VIRTUAL_ENV already exists!!"
+            echo "Destination v.environment $VENV_TGT already exists!!"
             echo "use: venv_mgr cp -f VENV NEW_VENV"
             exit 1
         fi
-        run_traced "rm -fR $VIRTUAL_ENV"
+        run_traced "rm -fR $VENV_TGT"
       fi
-      run_traced "cp -r $VENV $VIRTUAL_ENV"
-      V=$VIRTUAL_ENV
+      run_traced "cp -r $VENV $VENV_TGT"
+      V=$VENV_TGT
     elif [[ "$cmd" == "merge" ]]; then
-      if [[ ! -d $VIRTUAL_ENV  || ! -d $VIRTUAL_ENV/bin || ! -f $VIRTUAL_ENV/bin/activate ]]; then
-        echo "Invalid destination virtual env $VIRTUAL_ENV!"
+      if [[ ! -d $VENV_TGT  || ! -d $VENV_TGT/bin || ! -f $VENV_TGT/bin/activate ]]; then
+        echo "Invalid destination virtual env $VENV_TGT!"
         exit 1
       fi
       for d in bin include lib lib64 .local; do
         if [ -d "$VENV/$d" ]; then
-          run_traced "rsync -a $VENV/$d/ $VIRTUAL_ENV/$d/"
+          run_traced "rsync -a $VENV/$d/ $VENV_TGT/$d/"
         fi
       done
-      V=$VIRTUAL_ENV
+      V=$VENV_TGT
     else
-      if [[ -d $VIRTUAL_ENV ]]; then
-        echo "Destination virtual env $VIRTUAL_ENV already exists!"
+      if [[ -d $VENV_TGT ]]; then
+        echo "Destination virtual env $VENV_TGT already exists!"
         exit 1
       fi
       V=$VENV
     fi
-    if [[ ! "$cmd" == "test" ]]; then
+    if [[ ! $cmd =~ (amend|check|test) ]]; then
         for f in $V/bin/*; do
           mime=$(file --mime-type -b $f)
           if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
-            [ $opt_verbose -gt 1 ] && echo "$FLAG sed -i -e \"s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|\" $f"
-            [ $opt_dry_run -eq 0 ] && sed -i -e "s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|" $f
+            [ $opt_verbose -gt 1 ] && echo "$FLAG sed -i -e \"s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|\" $f"
+            [ $opt_dry_run -eq 0 ] && sed -i -e "s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|" $f
             [ $opt_dry_run -eq 0 -a "$cmd" == "reset" ] && chmod +x $f 
           fi
         done
     fi
     do_pop=0
     if [ "$cmd" != "test" ]; then
-        if [ "$VENV" != "." ]; then
-            do_pop=1
+        if [[ ! "$VENV" == "$PWD" ]]; then
             [ $opt_verbose -ne 0 ] && echo "$FLAG pushd $V >/dev/null"
-            pushd $V >/dev/null
-            if [ $opt_dry_run -eq 0  -a -L ./lib64 ]; then
-                rm -f ./lib64
-                ln -s ./lib ./lib64
-            fi
-            [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
-            [ $opt_dry_run -eq 0 ] && . bin/activate
+            pushd $VENV >/dev/null
+            do_pop=1
+        fi
+        if [[ -z "$VIRTUAL_ENV" ]]; then
+            . bin/activate
+            do_deact=1
+        fi
+        if [ $opt_dry_run -eq 0  -a -L ./lib64 ]; then
+            rm -f ./lib64
+            ln -s ./lib ./lib64
         fi
         run_traced "pip install pip -U"
         PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
-        pip_install_1 "$popt --upgrade"
-        [ $opt_dev -eq 0 ] && DEV_PKGS=
-        [ -n "$opt_oever" -a "$cmd" == "reset" ] && pip_install_2 "$popt --upgrade"
-        [ "$cmd" == "reset" -a -n "$opt_rfile" ] && pip_install_req "$popt --upgrade"
-        run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VIRTUAL_ENV'\":g' $PWD/bin/activate"
+        [[ ! $cmd =~ (amend|check) ]] && pip_install_1 "$popt --upgrade"
+        [[ $cmd =~ (amend|check) ]] && pip_check_1 $cmd
+        [[ -n "$opt_oever" && "$cmd" == "reset" ]] && pip_install_2 "$popt --upgrade"
+        [[ -n "$opt_oever" && $cmd =~ (amend|check) ]] && pip_check_2 $cmd
+        [[ "$cmd" == "reset" && -n "$opt_rfile" ]] && pip_install_req "$popt --upgrade"
+        [[ $cmd =~ (amend|check) && -n "$opt_rfile" ]] && pip_check_req $cmd
+        run_traced "sed -i -e 's:VENV_TGT=.*:VENV_TGT=\"'$VENV_TGT'\":g' $PWD/bin/activate"
         if $(grep -q "^export HOME=" $PWD/bin/activate); then
-          run_traced "sed -i -e 's|^export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
+          run_traced "sed -i -e 's|^export HOME=.*|export HOME=\"\$VENV_TGT\"|g' $PWD/bin/activate"
         elif $(grep -q "^# export HOME=" $PWD/bin/activate); then
-          run_traced "sed -i -e 's|^# export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
+          run_traced "sed -i -e 's|^# export HOME=.*|# export HOME=\"\$VENV_TGT\"|g' $PWD/bin/activate"
         else
           run_traced "sed -ri \"/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')\" $PWD/bin/activate"
-          [ $opt_dry_run -eq 0 ] && echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
+          [ $opt_dry_run -eq 0 ] && echo "export HOME=\"\$VENV_TGT\"">>$PWD/bin/activate
         fi
         if [ $opt_dry_run -eq 0 ]; then
             sitecustom=$PWD/lib/python$opt_pyver/site-packages/sitecustomize.py
             echo "import sys">$sitecustom
             if [ $opt_spkg -ne 0 ]; then
               if [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
-                echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$opt_pyver/site-packages')\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n">>$sitecustom
+                echo -e "import site\nif '$VENV_TGT/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VENV_TGT/.local/lib/python$opt_pyver/site-packages')\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n">>$sitecustom
               else
                 echo -e "import site\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n">>$sitecustom
               fi
             elif [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
-              echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$opt_pyver/site-packages')\n">>$sitecustom
+              echo -e "import site\nif '$VENV_TGT/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VENV_TGT/.local/lib/python$opt_pyver/site-packages')\n">>$sitecustom
             fi
         fi
-        [ $opt_verbose -ne 0 ] && echo "$FLAG deactivate"
-        [ $opt_dry_run -eq 0 ] && deactivate
-        [[ -n "$opt_oever" && "$cmd" == "reset" && ! -L ./odoo ]] && run_traced "ln -s $HOME/$opt_oever $(readlink -f ./odoo)"
-        [ $opt_verbose -ne 0 -a $do_pop -ne 0  ] && echo "$FLAG popd >/dev/null"
-        [ $do_pop -ne 0 ] && popd >/dev/null
+        if [ $do_deact -ne 0 ]; then
+            echo "$FLAG deactivate"
+            deactivate
+            do_deact=0
+        fi
+        [[ -n "$opt_oever" && ( "$cmd" == "reset" && ! -L ./odoo ) ]] && run_traced "ln -s $HOME/$opt_oever $(readlink -f ./odoo)"
+        if [ $do_pop -ne 0 ]; then
+            echo "$FLAG popd >/dev/null"
+            popd >/dev/null
+            do_pop=0
+        fi
         if [[ "$cmd" == "mv" ]]; then
-            run_traced "mv $VENV $VIRTUAL_ENV"
+            run_traced "mv $VENV $VENV_TGT"
         fi
     fi
-    [ "$2" != "." ] && venv_mgr_test $V
-    [ "$2" == "." ] && venv_mgr_test "."
+    venv_mgr_test $V
 }
 
 do_venv_create() {
 # do_venv_create VENV
-    local f p pkg VIRTUAL_ENV VENV xpkgs popt
+    local f p pkg VENV xpkgs popt
     export VENV__SAVED_HOME=$HOME
-    export VIRTUAL_ENV=$(readlink -f $1)
+    [ -z "$1" ] && export VENV=$(readlink -f ./)
+    [ -n "$1" ] && export VENV=$(readlink -f $1)
+    [[ -z "$opt_pyver" ]] && venv_mgr_check_src_path "$VENV" "create"
+    set_pyver_files
     [ $opt_alone -ne 0 ] && popt="-I"
     [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
-    if [ -d $VIRTUAL_ENV ]; then
-        if [ $opt_force -eq 0 -o "$1" == "." ]; then
-            echo "Virtual environment $VIRTUAL_ENV already exists!!"
-            echo "use: venv_mgr create -f $VIRTUAL_ENV"
-            exit 1
+    if [ -d $VENV ]; then
+        if [ $opt_force -eq 0 ]; then
+            echo "Warning: virtual environment $VENV already exists!!"
+        else
+            run_traced "rm -fR $VENV"
         fi
-        run_traced "rm -fR $VIRTUAL_ENV"
     fi
-    VENV=$VIRTUAL_ENV
     hash -r
-    [ -n "$opt_oever" ] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever)
+    [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -y $opt_pyver)
     [ $opt_spkg -ne 0 ] && p="--system-site-packages" || p="--no-site-packages"
-    run_traced "virtualenv -q $p -p /usr/bin/python$opt_pyver $VIRTUAL_ENV"
+    [ -d $VENV ] && p="$p --clear"
+    run_traced "virtualenv -q $p -p /usr/bin/python$opt_pyver $VENV"
     sts=$?
     [ $sts -ne 0 ] && return
-    run_traced "pushd $VIRTUAL_ENV >/dev/null"
+    run_traced "pushd $VENV >/dev/null"
     [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
     [ $opt_dry_run -eq 0 ] && . bin/activate
     run_traced "pip install pip -U"
     PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
     [ $opt_alone -ne 0 ] && popt="-I"
-    [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
-    [ $opt_dry_run -eq 0 ] && custom_env $VIRTUAL_ENV $opt_pyver
+    [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
+    [ $opt_dry_run -eq 0 ] && custom_env $VENV $opt_pyver
     pip_install_1 "$popt"
     [ $opt_dev -eq 0 ] && DEV_PKGS=
     [ -n "$opt_oever" ] && pip_install_2 "$popt"
@@ -350,26 +469,35 @@ do_venv_create() {
 
 do_venv_exec() {
 # do_venv_exec VENV cmd
-    local d f mime VENV VIRTUAL_ENV V sitecustom
-    local cmd=$2
-    [ -n "$1" ] && VENV=$(readlink -f $1)
-    if [ "$1" != "." ]; then
-        run_traced "pushd $VENV >/dev/null"
-        [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
-        [ $opt_dry_run -eq 0 ] && . bin/activate
-        . bin/activate
+    local d f mime VENV V sitecustom
+    local do_pop do_deact
+    [[ -z "$1" ]] && VENV=$(readlink -e ./)
+    [[ -n "$1" ]] && VENV=$(readlink -e $1)
+    if [[ ! "$VENV" == "$PWD" ]]; then
+        [ $opt_verbose -ne 0 ] && echo "$FLAG pushd $VENV >/dev/null"
+        pushd $VENV >/dev/null
+        do_pop=1
     fi
-    run_traced "$cmd"
-    if [ "$1" != "." ]; then
-        [ $opt_verbose -ne 0 ] && echo "$FLAG deactivate"
-        [ $opt_dry_run -eq 0 ] && deactivate
-        run_traced "popd >/dev/null"
+    if [[ -z "$VIRTUAL_ENV" ]]; then
+        . bin/activate
+        do_deact=1
+    fi
+    run_traced "$2 $3 $4 $5 $6 $7 $8 $9"
+    if [ $do_deact -ne 0 ]; then
+        echo "$FLAG deactivate"
+        deactivate
+        do_deact=0
+    fi
+    if [ $do_pop -ne 0 ]; then
+        echo "$FLAG popd >/dev/null"
+        popd >/dev/null
+        do_pop=0
     fi
 }
 
 do_venv_pip() {
-# do_venv_exec VENV action pkg
-    local d f VENV VIRTUAL_ENV V popt
+# do_venv_pip VENV action pkg
+    local d f VENV V popt
     local cmd=$2
     [ -n "$1" ] && VENV=$(readlink -f $1)
     pkg="$3"
@@ -409,59 +537,67 @@ OPTHELP=("this help"\
  "create v.environment with access to the global site-packages"\
  "show version"\
  "verbose mode")
-OPTARGS=(action p1 p2 p3)
+OPTARGS=(p1 p2 p3 p4 p5 p6 p7 p8 p9)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
+ACTIONS="help amend cp check create exec info install merge mv update test reset"
+REXACT="(${ACTIONS// /|})"
+if [[ $p1 =~ $REXACT ]]; then
+    action=$p1
+elif [[ $p2 =~ $REXACT ]]; then
+    action=$p2
+    p2=$p1
+fi
 if [ -z "$action" ]; then
   opt_help=1
 fi
-[ -z "$opt_pyver" -a -n "$TRAVIS_PYTHON_VERSION" ] && opt_pyver=$TRAVIS_PYTHON_VERSION 
-if [ -z "$opt_pyver" -a "$action" == "create" ]; then
-  opt_help=1
-fi
-if [ $opt_verbose -eq -1 ]; then
-  opt_verbose=1
-fi
+# It runs inside travis test environment too
+[ -z "$opt_pyver" -a -n "$TRAVIS_PYTHON_VERSION" ] && opt_pyver=$TRAVIS_PYTHON_VERSION
+# if [ -z "$opt_pyver" -a "$action" == "create" ]; then
+#   opt_help=1
+# fi
+[ $opt_verbose -eq -1 ] && opt_verbose=1
 CMDS="help cp create exec info install merge mv update test reset"
 if [ $opt_help -gt 0 ]; then
-  print_help "Manage virtual environment\naction may be: $CMDS"\
+  print_help "Manage virtual environment\naction may be: $ACTIONS"\
   "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
-# set -x
 export PYTHONWARNINGS="ignore"
-[ $opt_alone -ne 0 ] && PYTHONPATH=$HOME/tools/
+[ $opt_dev -eq 0 ] && DEV_PKGS=
+[[ $opt_alone -ne 0 && -d $HOME/tools/ ]] && PYTHONPATH=$HOME/tools/
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
-if [ -z "$opt_pyver" -a "$action" != "help" ]; then
-    venv_mgr_check_src_path "$p1"
+[[ -z "$opt_pyver" && ! $action  =~ (help|create) ]] && venv_mgr_check_src_path $p2
+if [[ -z "$opt_oever" && ! $action  =~ (help|create) ]]; then
+    x=$(find -L $p2 -name release.py)
+    if [[ -n "$x" ]]; then
+        p=$(dirname $x)
+        pushd $p &>/dev/null
+        x=$(echo -e "from __future__ import print_function\nimport release\nprint(release.version)\n"|python)
+        opt_oever="$x"
+        popd &>/dev/null
+    fi
 fi
-if [ -n "$opt_pyver" ]; then
-    pyver=$(echo $opt_pyver|grep -o [0-9]|head -n1)
-    [ $pyver -gt 2 ] && PIP=pip3
-    [ $pyver -le 2 ] && PIP=pip
-    [ $pyver -gt 2 ] && PYTHON=python3
-    [ $pyver -le 2 ] && PYTHON=python
-fi
-PIPVER=$($PIP --version|grep -Eo [0-9]+|head -n1)
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "exec" ]; then
-    do_venv_exec "$p1" "$p2" "$p3"
-elif [[ $action =~ (info|install|update) ]]; then
-    do_venv_pip "$p1" "$action" "$p2" "$p3"
+    do_venv_exec "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
+elif [[ $action =~ (info|install|show|update) ]]; then
+    do_venv_pip "$action" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
 elif [ "$action" == "create" ]; then
-    do_venv_create "$p1" "$p2" "$p3"
+    do_venv_create "$p2" "$p3" "$p4" "$p5" "$p6"
 else
-    do_venv_mgr "$action" "$p1" "$p2"
+    do_venv_mgr "$action" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
 fi
 if [[ -n "$ERROR_PKGS" ]]; then
     echo "************************************************************"
-    echo -e "\e[1mWarning! following packages were not installed!\e[0m"
+    [[ "$action" == "check" ]] && echo -e "\e[1mWarning! Following packages with wrong version or uninstalled\e[0m"
+    [[ "$action" != "check" ]] && echo -e "\e[1mWarning! Following packages were not installed!\e[0m"
     echo "$ERROR_PKGS"
     echo "************************************************************"
     echo "Perhaps you should install ..."
@@ -477,5 +613,9 @@ if [[ -n "$ERROR_PKGS" ]]; then
     if [[ $ERROR_PKGS =~ ldap ]]; then
         echo "yum install openldap-devel                           # If RHEL"
         echo "apt-get install libsasl2-dev libldap2-dev libssl-dev # If Debian"
+    fi
+    if [[ $ERROR_PKGS =~ gevent ]]; then
+        echo "yum install libevent-devel                           # If RHEL"
+        echo "apt-get install libevent-dev                         # If Debian"
     fi
 fi

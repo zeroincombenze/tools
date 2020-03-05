@@ -877,9 +877,9 @@ conf_default() {
     set_cfg_def "MQT_DEF_DEVPATH" "$HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/_travis"
     set_cfg_def "MQT_DEF_PATH" "$HOME/tools/maintainer-quality-tools/_travis"
     set_cfg_def "PS_TXT_COLOR" "0;97;40"
-    set_cfg_def "PS_RUN_COLOR" "1;34;46"
-    set_cfg_def "PS_NOP_COLOR" "35;40"
-    set_cfg_def "PS_HDR1_COLOR" "30;42"
+    set_cfg_def "PS_RUN_COLOR" "1;36;48;5"
+    set_cfg_def "PS_NOP_COLOR" "31;105"
+    set_cfg_def "PS_HDR1_COLOR" "97;48;5;22"
     set_cfg_def "PS_HDR2_COLOR" "30;43"
     set_cfg_def "PS_HDR3_COLOR" "30;47"
 }

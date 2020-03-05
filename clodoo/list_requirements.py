@@ -11,9 +11,7 @@ try:
 except ImportError:
     import z0lib
 
-
-__version__ = '0.3.8.66'
-python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
+__version__ = '0.3.8.67'
 
 #
 # known incompantibilities:
@@ -23,7 +21,7 @@ python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 REQVERSION = {
     'acme_tiny': {'7.0': '>=4.0.3'},
     'argparse': {'0': '==1.2.1'},
-    'astroid': {'7.0': '==1.4.8', '0': '==1.6.3'},       # Version by test pkgs
+    'astroid': {'2.7': '==1.6.5', '3.5': '==2.2.0'},     # Version by test pkgs
     'autopep8': {'0': '==1.2'},
     'Babel': {'7.0': '==1.3', '8.0': '==2.3.4'},
     'beautifulsoup': {'7.0': '==3.2.1'},
@@ -43,16 +41,15 @@ REQVERSION = {
     'ipy': {'7.0': '>=0.83'},
     'isort': {'0': '==4.3.4'},                           # Version by test pkgs
     'jcconv': {'7.0': '==0.2.3'},
-    'Jinja2': {'7.0': '==2.7.3', '9.0': '==2.8.1', '12.0': '==2.10.1'},
-    'lxml': {'7.0': '>=3.4.1', '10.0': '==3.5.0',
-             '11.0': '==3.7.1', '12.0': '==4.2.3', '0': '==4.2.1'},
+    'Jinja2': {'7.0': '==2.7.3', '9.0': '==2.8.1', '10.0': '==2.10.1'},
+    'lxml': {'7.0': '>=3.4.1', '0': '==4.2.3'},
     'Mako':  {'7.0': '==1.0.1', '8.0': '==1.0.4'},
     'MarkupSafe': {'7.0': '>=0.23'},                    # Tested 1.0
     'mock': {'7.0': '==1.0.1', '8.0': '==2.0.0'},
     'ofxparse': {'7.0': '==0.16'},
     'passlib': {'7.0': '==1.6.2', '10.0': '==1.6.5'},
     'Pillow': {'7.0': '==3.4.2', '8.0': '==3.4.1', '11.0': '==4.0.0',
-                '12.0': '==6.1.0', '0': '==4.0.0'},       # With py3.7 -> 6.1.0
+               '12.0': '==6.1.0', '0': '==4.0.0'},        # With py3.7 -> 6.1.0
     'psutil': {'7.0': '==2.2.0', '8.0': '==4.3.1'},
     'psycogreen': {'7.0': '==1.0'},
     'psycopg2-binary': {'7.0': '>=2.0.0',
@@ -62,9 +59,9 @@ REQVERSION = {
     'pycodestyle': {'0': '==2.3.1'},
     'pydot': {'7.0': '==1.0.2', '8.0': '==1.2.3'},
     'Pygments': {'7.0': '==2.0.2', '0': '==2.2'},        # Version by test pkgs
-    'pylint': {'7.0': '==1.6.4'},                        # Version by test pkgs
-    'pylint-plugin-utils': {'7.0': '==0.2.4',
-                            '0': '==0.2.4'},             # Version by test pkgs
+    'pylint': {'2.7': '==1.9.3', '3.5': '==2.3.0'},
+    'pylint-plugin-utils': {'2.7': '==0.4',
+                            '3.5': '==0.5'},
     'pyopenssl': {'0': '>=16.2.0', },                    # by MQT
     'pysftp': {'7.0': '>=0.2.9'},
     'pyparsing': {'7.0': '==2.0.3', '10.0': '==2.1.10'},
@@ -84,7 +81,7 @@ REQVERSION = {
     'PyYAML': {'7.0': '==3.11', '8.0': '==3.12'},
     'qrcode': {'7.0': '==5.1', '10.0': '==5.3'},
     'restructuredtext_lint': {'7.0': '==0.12.2',
-                              '0': '==1.1'},             # Version by test pkgs
+                              '0': '==1.1.3'},
     'reportlab': {'7.0': '==3.1.44', '10.0': '==3.3.0'},
     'requests': {'7.0': '==2.6.0', '10.0': '==2.11.1'},
     'simplejson': {'7.0': '==3.5.3'},
@@ -114,6 +111,7 @@ ALIAS = {
     'mako': 'Mako',
     'markupsafe': 'MarkupSafe',
     'openid': 'python-openid',
+    'past': 'future',
     'pillow': 'Pillow',
     'psycopg2': 'psycopg2-binary',
     'pychart': 'PyChart',
@@ -122,6 +120,7 @@ ALIAS = {
     'pygments': 'Pygments',
     'python-chart': 'Python-Chart',
     'python-docutils': 'docutils',
+    'python-levenshtein': 'python-Levenshtein',
     'python-simplejson': 'simplejson',
     'pywebdav': 'PyWebDAV',
     'pyyaml': 'PyYAML',
@@ -238,6 +237,7 @@ BIN_PACKAGES = ['git',
 PIP_WITH_DOT = ['py3o.',
                 'anybox.',
                 ]
+# Retrieve python3 version
 cmd = ['python3', '--version']
 try:
     p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -250,40 +250,48 @@ try:
 except BaseException:
     PY3ID = "3"
 PY3_DEV = 'python%s-dev' % PY3ID
+DEPS = {
+    'barcode': {'python': 'python-Levenshtein'},
+}
+DEPS2 = {
+    'lxml': {'bin': ('python-dev', 'libxml2-dev',
+             'libxslt1-dev', 'zlib1g-dev')},
+    'python-psycopg2': {'bin': ('python-dev', 'libpq-dev')},
+}
+DEPS3 = {
+    'lxml': {'bin': (PY3_DEV, 'libxml2-dev',
+            'libxslt1-dev', 'zlib1g-dev')},
+    'python-psycopg2': {'bin': (PY3_DEV, 'libpq-dev')},
+}
 
 
-def eval_requirement_cond(line, odoo_ver=None):
+def eval_requirement_cond(line, odoo_ver=None, pyver=None):
     odoo_ver = odoo_ver or '10.0'
+    pyver = pyver or 3.7
     items = line.split(';')
     if len(items) == 1:
         return line.strip()
-    # TODO: python version
-    pyver = {
-        '11.0': '3.5',
-        '12.0': '3.7,',
-        '13.0': '3.7',
-    }
     testenv = {
         'sys_platform': sys.platform,
-        'python_version': pyver.get(odoo_ver, '2.7')
+        'python_version': pyver,
     }
     if eval(items[1], testenv):
         return items[0].strip()
     return False
 
 
-def parse_requirements(reqfile, odoo_ver=None):
+def parse_requirements(reqfile, odoo_ver=None, pyver=None):
     lines = open(reqfile, 'rU').read().split('\n')
     reqlist = []
     for line in lines:
         if line and line[0] != '#':
-            item = eval_requirement_cond(line, odoo_ver=odoo_ver)
+            item = eval_requirement_cond(line, odoo_ver=odoo_ver, pyver=pyver)
             if item:
                 reqlist.append(item)
     return reqlist
 
 
-def name_n_version(full_item, with_version=None, odoo_ver=None):
+def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
     item = re.split('[!=<>]', full_item)
     if len(item) == 1:
         full_item = ''
@@ -301,26 +309,41 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
         if item in REQVERSION:
             min_v = False
             valid_ver = False
-            for v in ('0', '13.0', '12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
-                if v in REQVERSION[item]:
-                    min_v = v
-                    if v == odoo_ver or valid_ver or (not odoo_ver and
-                                                      v == '0'):
+            if pyver in REQVERSION[item]:
+                min_v = pyver
+            else:
+                for v in ('3.7', '3.6', '3.5'):
+                    if v in REQVERSION[item]:
+                        min_v = v
                         break
-                elif v == odoo_ver:
-                    valid_ver = True
+            if not min_v:
+                for v in ('0', '13.0', '12.0', '11.0',
+                          '10.0', '9.0', '8.0', '7.0', '6.1'):
+                    if v in REQVERSION[item]:
+                        min_v = v
+                        if v == odoo_ver or valid_ver or (not odoo_ver and
+                                                          v == '0'):
+                            break
+                    elif v == odoo_ver:
+                        valid_ver = True
+                        if min_v:
+                            break
             if min_v:
                 full_item = '%s%s' % (item, REQVERSION[item][min_v])
-                if full_item.find('>') >= 0 or full_item.find('<') >= 0:
-                    full_item = "'%s'" % full_item
                 defver = True
+    if item.startswith("'"):
+        item = item[1: -1]
+    if full_item.startswith("'"):
+        full_item = full_item[1: -1]
     return item, full_item, defver
 
 
-def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
+def add_package(deps_list, kw, item,
+                with_version=None, odoo_ver=None, pyver=None):
     item, full_item, defver = name_n_version(item,
                                              with_version=with_version,
-                                             odoo_ver=odoo_ver)
+                                             odoo_ver=odoo_ver,
+                                             pyver=pyver)
     if item in BIN_PACKAGES or \
             item in BIN_BASE_PACKAGES or \
             item in BIN_TEST_PACKAGES:
@@ -334,40 +357,57 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
             else:
                 kw = 'python1'
                 deps_list[kw].append(item)
-            if item == 'barcode':
-                deps_list = add_package(deps_list, kw,
-                                        '\'python-Levenshtein\'',
-                                        with_version=with_version,
-                                        odoo_ver=odoo_ver)
-            # elif item == 'simplejson':
-            #     deps_list = add_package(deps_list, kw,
-            #                             'python-simplejson',
-            #                             with_version=with_version,
-            #                             odoo_ver=odoo_ver)
-            elif item == 'lxml':
-                if odoo_ver in ('11.0', '12.0', '13.0'):
-                    for itm in (PY3_DEV, 'libxml2-dev',
-                                'libxslt1-dev', 'zlib1g-dev'):
-                        deps_list = add_package(deps_list, 'bin', itm,
+            if item in DEPS:
+                for kw1 in ('python', 'bin'):
+                    if kw1 not in DEPS[item]:
+                        continue
+                    if isinstance(DEPS[item][kw1], (tuple, list)):
+                        for itm in DEPS[item][kw1]:
+                            deps_list = add_package(deps_list, kw1,
+                                                    itm,
+                                                    with_version=with_version,
+                                                    odoo_ver=odoo_ver,
+                                                    pyver=pyver)
+                    else:
+                        deps_list = add_package(deps_list, kw1,
+                                                DEPS[item][kw1],
                                                 with_version=with_version,
-                                                odoo_ver=odoo_ver)
-                else:
-                    for itm in ('python-dev', 'libxml2-dev',
-                                'libxslt1-dev', 'zlib1g-dev'):
-                        deps_list = add_package(deps_list, 'bin', itm,
+                                                odoo_ver=odoo_ver,
+                                                pyver=pyver)
+            if pyver and pyver.split('.')[0] == '2' and item in DEPS2:
+                for kw1 in ('python', 'bin'):
+                    if kw1 not in DEPS2[item]:
+                        continue
+                    if isinstance(DEPS2[item][kw1], (tuple, list)):
+                        for itm in DEPS2[item][kw1]:
+                            deps_list = add_package(deps_list, kw1,
+                                                    itm,
+                                                    with_version=with_version,
+                                                    odoo_ver=odoo_ver,
+                                                    pyver=pyver)
+                    else:
+                        deps_list = add_package(deps_list, kw1,
+                                                DEPS2[item][kw1],
                                                 with_version=with_version,
-                                                odoo_ver=odoo_ver)
-            elif item in ('lxml', 'python-psycopg2'):
-                if odoo_ver in ('11.0', '12.0', '13.0'):
-                    for itm in (PY3_DEV, 'libpq-dev'):
-                        deps_list = add_package(deps_list, 'bin', itm,
+                                                odoo_ver=odoo_ver,
+                                                pyver=pyver)
+            if pyver and pyver.split('.')[0] == '3' and item in DEPS3:
+                for kw1 in ('python', 'bin'):
+                    if kw1 not in DEPS3[item]:
+                        continue
+                    if isinstance(DEPS3[item][kw1], (tuple, list)):
+                        for itm in DEPS3[item][kw1]:
+                            deps_list = add_package(deps_list, kw,
+                                                    itm,
+                                                    with_version=with_version,
+                                                    odoo_ver=odoo_ver,
+                                                    pyver=pyver)
+                    else:
+                        deps_list = add_package(deps_list, kw,
+                                                DEPS3[item][kw1],
                                                 with_version=with_version,
-                                                odoo_ver=odoo_ver)
-                else:
-                    for itm in ('python-dev', 'libpq-dev'):
-                        deps_list = add_package(deps_list, 'bin', itm,
-                                                with_version=with_version,
-                                                odoo_ver=odoo_ver)
+                                                odoo_ver=odoo_ver,
+                                                pyver=pyver)
     elif kw == 'python' and full_item:
         if item in deps_list['python1']:
             i = deps_list['python1'].index(item)
@@ -379,16 +419,17 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
 
 
 def package_from_list(deps_list, kw, PKG_LIST,
-                      with_version=None, odoo_ver=None):
+                      with_version=None, odoo_ver=None, pyver=None):
     for item in PKG_LIST:
         deps_list = add_package(deps_list, kw, item,
                                 with_version=with_version,
-                                odoo_ver=odoo_ver)
+                                odoo_ver=odoo_ver,
+                                pyver=pyver)
     return deps_list
 
 
 def package_from_manifest(deps_list, manifest_file,
-                          with_version=None, odoo_ver=None):
+                          with_version=None, odoo_ver=None, pyver=None):
     if manifest_file:
         try:
             manifest = ast.literal_eval(open(manifest_file, 'rU').read())
@@ -404,7 +445,8 @@ def package_from_manifest(deps_list, manifest_file,
                                                 kw,
                                                 item,
                                                 with_version=with_version,
-                                                odoo_ver=odoo_ver)
+                                                odoo_ver=odoo_ver,
+                                                pyver=pyver)
         if manifest.get('depends'):
             deps = manifest['depends']
             kw = 'modules'
@@ -413,7 +455,8 @@ def package_from_manifest(deps_list, manifest_file,
                                         kw,
                                         item,
                                         with_version=with_version,
-                                        odoo_ver=odoo_ver)
+                                        odoo_ver=odoo_ver,
+                                        pyver=pyver)
     return deps_list
 
 
@@ -429,14 +472,22 @@ def add_manifest(root, manifests, reqfiles, files):
         elif fn == '__manifest__.py':
             manifest_imported = os.path.join(root, fn)
         elif fn == 'requirements.txt':
-            reqfiles.append(ffn = os.path.join(root, fn))
+            reqfiles.append(os.path.join(root, fn))
     if import_manifest and manifest_imported:
         manifests.append(manifest_imported)
     return manifests, reqfiles
 
 
+def swap(deps, item, itm):
+    if item in deps and itm in deps:
+        item_id = deps.index(item)
+        itm_id =  deps.index(itm)
+        if item_id < itm_id:
+            del deps[itm_id]
+            deps.insert(item_id, itm)
+
+
 def main():
-    # global __version__
     parser = z0lib.parseoptargs("List Odoo requirements",
                                 "© 2017-2020 by SHS-AV s.r.l.",
                                 version=__version__)
@@ -492,7 +543,24 @@ def main():
                         dest="test_pkgs")
     parser.add_argument('-V')
     parser.add_argument('-v')
+    parser.add_argument('-y', '--python-version',
+                        action='store',
+                        dest='pyver')
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+    if ctx['odoo_ver'] and not ctx['pyver']:
+        odoo_majver = int(ctx['odoo_ver'].split('.')[0])
+        if odoo_majver <= 10:
+            ctx['pyver'] = '2.7'
+        elif odoo_majver == 11:
+            ctx['pyver'] = '3.5'
+        elif odoo_majver >= 12:
+            ctx['pyver'] = '3.7'
+    elif not ctx['odoo_ver'] and ctx['pyver']:
+        py_majver = int(ctx['pyver'].split('.')[0])
+        if py_majver == 3:
+            ctx['odoo_ver'] = '12.0'
+        else:
+            ctx['odoo_ver'] = '10.0'
     if ctx['out_file']:
         if not ctx['odoo_dir']:
             sys.stderr.write(
@@ -512,17 +580,15 @@ def main():
                                        ctx['odoo_ver']))):
         ctx['odoo_dir'] = os.path.join(os.path.expanduser('~'),
                                        ctx['odoo_ver'])
+    manifests = []
+    reqfiles = []
     if ctx['manifests']:
-        manifests = []
-        reqfiles = []
         for item in ctx['manifests'].split(','):
             if item.endswith('.py'):
                 manifests.append(os.path.expanduser(item))
             else:
                 reqfiles.append(os.path.expanduser(item))
     elif ctx['odoo_dir']:
-        manifests = []
-        reqfiles = []
         if ctx['oca_dependencies']:
             for cdir in ctx['oca_dependencies'].split(','):
                 for root, dirs, files in os.walk(cdir,
@@ -540,64 +606,106 @@ def main():
     for kw in ('python', 'python1', 'python2', 'bin', 'modules'):
         deps_list[kw] = []
     for reqfile in reqfiles:
-        requirements = parse_requirements(reqfile, odoo_ver=ctx['odoo_ver'])
+        requirements = parse_requirements(
+            reqfile, odoo_ver=ctx['odoo_ver'], pyver=ctx['pyver'])
         deps_list = package_from_list(deps_list, 'python', requirements,
                                       with_version=ctx['with_version'],
-                                      odoo_ver=ctx['odoo_ver'])
+                                      odoo_ver=ctx['odoo_ver'],
+                                      pyver=ctx['pyver'])
     for manifest_file in manifests:
         deps_list = package_from_manifest(deps_list,
                                           manifest_file,
                                           with_version=ctx['with_version'],
-                                          odoo_ver=ctx['odoo_ver'])
+                                          odoo_ver=ctx['odoo_ver'],
+                                          pyver=ctx['pyver'])
     if ctx['base_pkgs']:
         deps_list = package_from_list(deps_list, 'python', PIP_BASE_PACKAGES,
                                       with_version=ctx['with_version'],
-                                      odoo_ver=ctx['odoo_ver'])
+                                      odoo_ver=ctx['odoo_ver'],
+                                      pyver=ctx['pyver'])
         if ctx['odoo_ver'] in ('11.0', '12.0', '13.0'):
             deps_list = package_from_list(deps_list, 'python',
                                           PIP3_BASE_PACKAGES,
                                           with_version=ctx['with_version'],
-                                          odoo_ver=ctx['odoo_ver'])
+                                          odoo_ver=ctx['odoo_ver'],
+                                          pyver=ctx['pyver'])
         deps_list = package_from_list(deps_list, 'bin', BIN_BASE_PACKAGES,
                                       with_version=False,
-                                      odoo_ver=ctx['odoo_ver'])
+                                      odoo_ver=ctx['odoo_ver'],
+                                      pyver=ctx['pyver'])
     if ctx['test_pkgs']:
         deps_list = package_from_list(deps_list, 'python', PIP_TEST_PACKAGES,
                                       with_version=ctx['with_version'],
-                                      odoo_ver=ctx['odoo_ver'])
+                                      odoo_ver=ctx['odoo_ver'],
+                                      pyver=ctx['pyver'])
         deps_list = package_from_list(deps_list, 'bin', BIN_TEST_PACKAGES,
                                       with_version=False,
-                                      odoo_ver=ctx['odoo_ver'])
+                                      odoo_ver=ctx['odoo_ver'],
+                                      pyver=ctx['pyver'])
     if ctx['rpc_pkgs']:
         deps_list = package_from_list(deps_list, 'python', RPC_PACKAGES,
                                       with_version=ctx['with_version'],
-                                      odoo_ver=ctx['odoo_ver'])
+                                      odoo_ver=ctx['odoo_ver'],
+                                      pyver=ctx['pyver'])
+
+    deps_list['python'] = sorted(
+        deps_list['python2'], key=lambda s: s.lower()) + sorted(
+        deps_list['python1'], key=lambda s: s.lower())
+    for ii, pkg in enumerate(deps_list['python']):
+        if pkg.find('>') >= 0 or pkg.find('<') >= 0:
+            deps_list['python'][ii] = "'%s'" % pkg
+    for item in DEPS:
+        if 'python' in DEPS[item]:
+            if isinstance(DEPS[item]['python'], (tuple, list)):
+                for itm in DEPS[item]['python']:
+                    swap(deps_list['python'], item, itm)
+            else:
+                swap(deps_list['python'], item, DEPS[item]['python'])
+    if ctx['pyver'] and ctx['pyver'].split('.')[0] == '2':
+        for item in DEPS2:
+            if 'python' in DEPS2[item]:
+                if isinstance(DEPS2[item]['python'], (tuple, list)):
+                    for itm in DEPS2[item]['python']:
+                        swap(deps_list['python'], item, itm)
+                else:
+                    swap(deps_list['python'], item, DEPS2[item]['python'])
+    if ctx['pyver'] and ctx['pyver'].split('.')[0] == '3':
+        for item in DEPS3:
+            if 'python' in DEPS3[item]:
+                if isinstance(DEPS3[item]['python'], (tuple, list)):
+                    for itm in DEPS3[item]['python']:
+                        swap(deps_list['python'], item, itm)
+                else:
+                    swap(deps_list['python'], item, DEPS3[item]['python'])
     if ctx['out_file']:
         try:
             pkgs = open(ctx['opt_fn'], 'rU').read().split('\n')
         except BaseException:
             pkgs = []
-        for kw in ('python1', 'python2'):
-            for p in sorted(deps_list[kw]):
-                if p not in pkgs:
-                    pkgs.append(p)
+        for pkg in deps_list['python']:
+            if pkg not in pkgs:
+                if pkg.startswith("'"):
+                    naked_pkg = pkg[1: -1]
+                    if naked_pkg not in pkgs:
+                        pkgs.append(pkg)
+                else:
+                    pkgs.append(pkg)
         if len(pkgs):
             fd = open(ctx['opt_fn'], 'w')
-            fd.write(ctx['sep'].join(pkgs))
+            fd.write(ctx['sep'].join(sorted(pkgs)))
             fd.close()
         print("Updated %s file" % ctx['opt_fn'])
         print(ctx['sep'].join(pkgs))
     else:
-        deps_list['python'] = deps_list['python1'] + deps_list['python2']
         for kw in ('python', 'bin', 'modules'):
             if kw in deps_list:
                 if kw == ctx['itypes'] or (ctx['itypes'] == 'both' and
                                            kw in ('python', 'bin')):
                     if ctx['opt_verbose']:
                         print('%s=%s' % (
-                            kw, ctx['sep'].join(sorted(deps_list[kw]))))
+                            kw, ctx['sep'].join(deps_list[kw])))
                     else:
-                        print(ctx['sep'].join(sorted(deps_list[kw])))
+                        print(ctx['sep'].join(deps_list[kw]))
 
 
 if __name__ == "__main__":

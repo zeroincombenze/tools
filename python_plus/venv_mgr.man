@@ -12,9 +12,13 @@ Action is one of:
 .br
 * help
 .br
-* cp
+* amend [OPTIONS] SRC_VENV
 .br
-* create
+* check [OPTIONS] SRC_VENV
+.br
+* cp [OPTIONS] SRC_VENV TGT_ENV
+.br
+* create -p PYVER [OPTIONS] [VENV]
 .br
 * exec
 .br
@@ -22,29 +26,36 @@ Action is one of:
 .br
 * install
 .br
-* merge
+* merge [OPTIONS] SRC_VENV TGT_ENV
 .br
-* mv
+* mv [OPTIONS] SRC_VENV TGT_ENV
 .br
 * update
 .br
-* test
+* test [OPTIONS] [VENV]
 .br
-* reset
+* reset [OPTIONS] [VENV]
 .P
-\fBcp\fR
+\fBcheck\fR [OPTIONS] SRC_VENV
 .RS
-Copy SOURCE environment directory to DEST, like cp bash command but set relative path inside virtual environment
-to correct the new directory name.
+Compare package versions against requirements.
+May used after 'create' or 'reset' to check virtual environment consistency.
 .RE
 .P
-\fBcreate\fR
+\fBcp\fR [OPTIONS] SRC_VENV TGT_ENV
 .RS
-Create a new virtual environment directory like virtualenv bach command but with some nice features.
+Copy SOURCE environment directory to TGT_ENV, like the bash command 'cp' setting relative path inside virtual
+environment to correct the new directory name.
+.RE
+.P
+\fBcreate\fR -p PYVER [OPTIONS] VENV
+.RS
+Create a new virtual environment directory VENV like virtualenv command but with some nice features.
+Switch -p declare which python version will be used to create new environment.
 .br
 This action can install various python packages to create ready to use environment directory.
 .br
-See -I -D -O -r switches to furthermore informations.
+See -I -D -O -r switches to furthermore information.
 .RE
 .SH OPTIONS
 .TP

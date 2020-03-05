@@ -24,7 +24,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = '0.3.8.66'
+__version__ = '0.3.8.67'
 
 def wep_text(text):
     if text:
