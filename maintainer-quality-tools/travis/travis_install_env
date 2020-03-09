@@ -443,6 +443,7 @@ else
     fi
     echo -e "\e[${PS_HDR3_COLOR}m### Build Test Environment\e[${PS_TXT_COLOR}m"
     run_traced "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS" "nolocal"   # To use last version ever
+    # run_traced "ln -s /home/odoo/OCA/pylint-odoo $HOME/lib/python2.7/site-packages/"
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       run_traced "npm install -g eslint"
     else

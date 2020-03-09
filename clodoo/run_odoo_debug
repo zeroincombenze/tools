@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.67
+__version__=0.3.8.68
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
@@ -126,7 +126,6 @@ if [ $opt_web -ne 0 ]; then
   rpcport=$(build_odoo_param RPCPORT $odoo_vid)
   odoo_user=$(build_odoo_param USER $odoo_vid)
 else
-  # rpcport=$(build_odoo_param RPCPORT $odoo_vid debug)
   rpcport=
   odoo_user=$(build_odoo_param USER $odoo_vid debug)
 fi

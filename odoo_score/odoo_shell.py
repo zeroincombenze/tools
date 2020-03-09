@@ -624,10 +624,12 @@ def update_einvoice_out_attachment(ctx):
         att = clodoo.browseL8(ctx, model_att, att.id)
         print('Attachment ID = %d, state=%s' % (att.id, att.state))
         state = ctx['param_2']
-        while state not in ('ready', 'sent', 'sender_error',
-                            'recipient_error', 'reject', 'validated'):
+        while state not in ('ready', 'sent',
+                            'sender_error', 'recipient_error', 'rejected',
+                            'validated', 'accepted', 'discarted'):
             state = raw_input(
-                'State (ready,sent,sender|recipient_error,reject,validated): ')
+                'State (ready,sent,sender|recipient_error,reject,'
+                'validated,accepted,discarted): ')
         clodoo.writeL8(ctx, model_att, att.id, {'state': state})
 
 

@@ -26,12 +26,21 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.2.7
-DEV_PKGS="coveralls codecov flake8==3.4.1 pycodestyle==2.3.1 pylint==1.9.3"
+__version__=0.1.2.8
+DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
 FLT_PKGS="(jwt|FOO)"
 ERROR_PKGS=""
+LOCAL_PKGS="(clodoo|odoo|score|os0|python_plus|z0bug_odoo|z0lib|zerobug)"
+
+pip_install() {
+    if [[ $1 =~ $LOCAL_PKGS ]]; then
+        :
+    else
+        run_traced "$PIP install "$@" --disable-pip-version-check"
+    fi
+}
 
 pip_install_1() {
 # pip_install_1(popt)
@@ -81,6 +90,8 @@ pip_install_req() {
         [ -z "$fn" ] && continue
         [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
         # flist=$(cat $fn|tr "\n" " ")
+        [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver"
+        [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -m $fn -y $opt_pyver"
         [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver)
         [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -m $fn -y $opt_pyver)
         [ $opt_verbose -gt 0 ] && echo "--> $flist"
@@ -168,6 +179,8 @@ pip_check_req() {
         [ -z "$fn" ] && echo "File $f not found!"
         [ -z "$fn" ] && continue
         [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
+        [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver"
+        [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -m $fn -y $opt_pyver"
         [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver)
         [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -m $fn -y $opt_pyver)
         for pkg in $flist; do
@@ -179,6 +192,28 @@ pip_check_req() {
             xpkgs="${xpkgs:0: -1}|$pkg)"
         done
     done
+}
+
+package_debug() {
+# package_debug(VENV)
+    local VENV=$1
+    local p pkgdir
+    pkgdir=$VENV/lib/python$opt_pyver/site-packages
+    if [ $opt_debug -ne 0 -a -d $HOME/tools/ ]; then
+        for p in clodoo odoo_score os0 python_plus z0bug_odoo z0lib zerobug; do
+            if [[ -d $pkgdir/$p && ! -L $pkgdir/$p ]]; then
+                run_traced "rm -fR $pkgdir/$p"
+                run_traced "ln -s $HOME/tools/$p $pkgdir"
+            fi
+        done
+    else
+        for p in clodoo odoo_score os0 python_plus z0bug_odoo z0lib zerobug; do
+            if [[ -L $pkgdir/$p ]]; then
+                run_traced "rm -f $pkgdir/$p"
+                # run_traced "pip install $p"
+            fi
+        done
+    fi
 }
 
 custom_env() {
@@ -265,6 +300,7 @@ venv_mgr_check_src_path() {
 venv_mgr_test() {
 #venv_mgr_test(VENV)
     local f x VENV
+    local SAVED_HOME=$HOME
     local do_deact=0 do_pop=0
     [ -z "$1" ] && VENV=$(readlink -e ./)
     [ -n "$1" ] && VENV=$(readlink -e $1)
@@ -277,9 +313,13 @@ venv_mgr_test() {
         do_pop=1
     fi
     if [[ -z "$VIRTUAL_ENV" ]]; then
-        # [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
         . bin/activate
         do_deact=1
+        if [ $opt_verbose -gt 0 ]; then
+            [[  -n "$HOME" && ! "$HOME" == "$SAVED_HOME" ]] && echo "Isolated environment (created with -I switch)."
+            [[ "$HOME" == "$SAVED_HOME" ]] && echo "Environment not isolated (created w/o -I switch)."
+        fi
+        [[ -z "$HOME" ]] && echo "Wrong environment (No HOME directory declared)."
     fi
     [ $opt_verbose -gt 1 ] && echo "VPATH=$PATH"
     [ $opt_verbose -gt 1 ] && echo "VPYTHONPATH=$PYTHONPATH"
@@ -309,7 +349,10 @@ do_venv_mgr() {
     [[ $cmd =~ (amend|check|reset|test) ]] && VENV_TGT=$VENV
     [ $opt_alone -ne 0 ] && popt="-I"
     [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -b $opt_oever -y $opt_pyver"
+    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -PT -t python -q -y $opt_pyver"
     [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -y $opt_pyver)
+    [[ -z "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -PT -t python -q -y $opt_pyver)
     if [[ -z "$VENV" || -z "$VENV_TGT" ]]; then
       echo "Missed parameters!"
       echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
@@ -362,13 +405,14 @@ do_venv_mgr() {
         done
     fi
     do_pop=0
-    if [ "$cmd" != "test" ]; then
+    if [[ ! "$cmd" == "test" ]]; then
         if [[ ! "$VENV" == "$PWD" ]]; then
             [ $opt_verbose -ne 0 ] && echo "$FLAG pushd $V >/dev/null"
             pushd $VENV >/dev/null
             do_pop=1
         fi
         if [[ -z "$VIRTUAL_ENV" ]]; then
+            [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
             . bin/activate
             do_deact=1
         fi
@@ -384,26 +428,32 @@ do_venv_mgr() {
         [[ -n "$opt_oever" && $cmd =~ (amend|check) ]] && pip_check_2 $cmd
         [[ "$cmd" == "reset" && -n "$opt_rfile" ]] && pip_install_req "$popt --upgrade"
         [[ $cmd =~ (amend|check) && -n "$opt_rfile" ]] && pip_check_req $cmd
-        run_traced "sed -i -e 's:VENV_TGT=.*:VENV_TGT=\"'$VENV_TGT'\":g' $PWD/bin/activate"
-        if $(grep -q "^export HOME=" $PWD/bin/activate); then
-          run_traced "sed -i -e 's|^export HOME=.*|export HOME=\"\$VENV_TGT\"|g' $PWD/bin/activate"
-        elif $(grep -q "^# export HOME=" $PWD/bin/activate); then
-          run_traced "sed -i -e 's|^# export HOME=.*|# export HOME=\"\$VENV_TGT\"|g' $PWD/bin/activate"
-        else
-          run_traced "sed -ri \"/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')\" $PWD/bin/activate"
-          [ $opt_dry_run -eq 0 ] && echo "export HOME=\"\$VENV_TGT\"">>$PWD/bin/activate
-        fi
-        if [ $opt_dry_run -eq 0 ]; then
-            sitecustom=$PWD/lib/python$opt_pyver/site-packages/sitecustomize.py
-            echo "import sys">$sitecustom
-            if [ $opt_spkg -ne 0 ]; then
-              if [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
-                echo -e "import site\nif '$VENV_TGT/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VENV_TGT/.local/lib/python$opt_pyver/site-packages')\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n">>$sitecustom
-              else
-                echo -e "import site\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n">>$sitecustom
-              fi
-            elif [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
-              echo -e "import site\nif '$VENV_TGT/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VENV_TGT/.local/lib/python$opt_pyver/site-packages')\n">>$sitecustom
+        if [[ ! $cmd == "check" ]]; then
+            run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VENV_TGT'\":g' $PWD/bin/activate"
+            if $(grep -q "^# export HOME=" $PWD/bin/activate); then
+                [ $opt_alone -eq 0 ] && run_traced "sed -i -e 's|^# export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
+                [ $opt_alone -ne 0 ] && run_traced "sed -i -e 's|^# export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
+            elif $(grep -q "^export HOME=" $PWD/bin/activate); then
+                [ $opt_alone -ne 0 ] && run_traced "sed -i -e 's|^export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
+                [ $opt_alone -eq 0 ] && run_traced "sed -i -e 's|^export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
+            fi
+            if $(grep -q "^ *# export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate); then
+                [ $opt_alone -ne 0 ] && run_traced "sed -i -e 's|# export HOME=\$(grep|export HOME=\$(grep|' $PWD/bin/activate"
+            elif $(grep -q "^ *export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate); then
+                [ $opt_alone -eq 0 ] && run_traced "sed -i -e 's|export HOME=\$(grep|# export HOME=\$(grep|' $PWD/bin/activate"
+            fi
+            if [ $opt_dry_run -eq 0 ]; then
+                sitecustom=$PWD/lib/python$opt_pyver/site-packages/sitecustomize.py
+                echo "import sys">$sitecustom
+                if [ $opt_spkg -ne 0 ]; then
+                  if [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
+                    echo -e "import site\nif '$VENV_TGT/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VENV_TGT/.local/lib/python$opt_pyver/site-packages')\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n">>$sitecustom
+                  else
+                    echo -e "import site\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n">>$sitecustom
+                  fi
+                elif [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
+                  echo -e "import site\nif '$VENV_TGT/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VENV_TGT/.local/lib/python$opt_pyver/site-packages')\n">>$sitecustom
+                fi
             fi
         fi
         if [ $do_deact -ne 0 ]; then
@@ -442,6 +492,7 @@ do_venv_create() {
         fi
     fi
     hash -r
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -b $opt_oever -y $opt_pyver"
     [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -y $opt_pyver)
     [ $opt_spkg -ne 0 ] && p="--system-site-packages" || p="--no-site-packages"
     [ -d $VENV ] && p="$p --clear"
@@ -479,6 +530,7 @@ do_venv_exec() {
         do_pop=1
     fi
     if [[ -z "$VIRTUAL_ENV" ]]; then
+        [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
         . bin/activate
         do_deact=1
     fi
@@ -499,32 +551,45 @@ do_venv_pip() {
 # do_venv_pip VENV action pkg
     local d f VENV V popt
     local cmd=$2
-    [ -n "$1" ] && VENV=$(readlink -f $1)
+    [[ -z "$1" ]] && VENV=$(readlink -e ./)
+    [[ -n "$1" ]] && VENV=$(readlink -e $1)
+    if [[ ! "$VENV" == "$PWD" ]]; then
+        [ $opt_verbose -ne 0 ] && echo "$FLAG pushd $VENV >/dev/null"
+        pushd $VENV >/dev/null
+        do_pop=1
+    fi
+    if [[ -z "$VIRTUAL_ENV" ]]; then
+        [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
+        . bin/activate
+        do_deact=1
+    fi
     pkg="$3"
     [ $opt_alone -ne 0 ] && popt="-I"
     [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
-    if [ "$1" != "." ]; then
-        run_traced "pushd $VENV >/dev/null"
-        [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
-        [ $opt_dry_run -eq 0 ] && . bin/activate
-    fi
     [ "$cmd" == "info" ] && run_traced "$PIP show $pkg"
+    [ "$cmd" == "show" ] && run_traced "$PIP show $pkg"
     [ "$cmd" == "install" ] && run_traced "$PIP $cmd $pkg --disable-pip-version-check"
     [ "$cmd" == "update" ] && run_traced "$PIP install $pkg $popt --upgrade --disable-pip-version-check"
-    if [ "$1" != "." ]; then
-        [ $opt_verbose -ne 0 ] && echo "$FLAG deactivate"
-        [ $opt_dry_run -eq 0 ] && deactivate
-        run_traced "popd >/dev/null"
+    if [ $do_deact -ne 0 ]; then
+        echo "$FLAG deactivate"
+        deactivate
+        do_deact=0
+    fi
+    if [ $do_pop -ne 0 ]; then
+        echo "$FLAG popd >/dev/null"
+        popd >/dev/null
+        do_pop=0
     fi
 }
 
 
-OPTOPTS=(h        D       f         k        I         n           O         p         q           r         s        V           v)
-OPTDEST=(opt_help opt_dev opt_force opt_keep opt_alone opt_dry_run opt_oever opt_pyver opt_verbose opt_rfile opt_spkg opt_version opt_verbose)
-OPTACTI=(1        1       1         1        1         1           "="       "="       0           "="       1        "*>"        "+")
-OPTDEFL=(0        0       0         0        0         0           ""        ""        -1          ""        0        ""          -1)
-OPTMETA=("help"   ""      ""        ""       ""        ""          "ver"     "pyver"   ""          "file"    ""       "version"   "verbose")
+OPTOPTS=(h        B         D       f         k        I         n           O         p         q           r         s        V           v)
+OPTDEST=(opt_help opt_debug opt_dev opt_force opt_keep opt_alone opt_dry_run opt_oever opt_pyver opt_verbose opt_rfile opt_spkg opt_version opt_verbose)
+OPTACTI=(1        1         1       1         1        1         1           "="       "="       0           "="       1        "*>"        "+")
+OPTDEFL=(0        0         0       0         0        0         0           ""        ""        -1          ""        0        ""          -1)
+OPTMETA=("help"   ""        ""      ""        ""       ""        ""          "ver"     "pyver"   ""          "file"    ""       "version"   "verbose")
 OPTHELP=("this help"\
+ "debug mode: use local packages"\
  "create v.environment with development packages"\
  "force v.environment create, even if exists"\
  "keep python2 executable"\
@@ -544,7 +609,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
-ACTIONS="help amend cp check create exec info install merge mv update test reset"
+ACTIONS="help amend cp check create exec info install merge mv show update test reset"
 REXACT="(${ACTIONS// /|})"
 if [[ $p1 =~ $REXACT ]]; then
     action=$p1
@@ -557,21 +622,17 @@ if [ -z "$action" ]; then
 fi
 # It runs inside travis test environment too
 [ -z "$opt_pyver" -a -n "$TRAVIS_PYTHON_VERSION" ] && opt_pyver=$TRAVIS_PYTHON_VERSION
-# if [ -z "$opt_pyver" -a "$action" == "create" ]; then
-#   opt_help=1
-# fi
 [ $opt_verbose -eq -1 ] && opt_verbose=1
-CMDS="help cp create exec info install merge mv update test reset"
 if [ $opt_help -gt 0 ]; then
   print_help "Manage virtual environment\naction may be: $ACTIONS"\
   "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 export PYTHONWARNINGS="ignore"
-[ $opt_dev -eq 0 ] && DEV_PKGS=
-[[ $opt_alone -ne 0 && -d $HOME/tools/ ]] && PYTHONPATH=$HOME/tools/
+[ $opt_debug -ne 0 -a -d $HOME/tools/ ] && PYTHONPATH=$HOME/tools/
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
+[[ -n "$opt_pyver" ]] && set_pyver_files
 [[ -z "$opt_pyver" && ! $action  =~ (help|create) ]] && venv_mgr_check_src_path $p2
 if [[ -z "$opt_oever" && ! $action  =~ (help|create) ]]; then
     x=$(find -L $p2 -name release.py)
@@ -583,12 +644,22 @@ if [[ -z "$opt_oever" && ! $action  =~ (help|create) ]]; then
         popd &>/dev/null
     fi
 fi
+if [ $opt_dev -eq 0 ]; then
+    DEV_PKGS=
+elif [[ -n "$opt_oever" ]]; then
+    p=
+    for f in $DEV_PKGS; do
+        x=$(list_requirements.py -s" " -TP -t python -b$opt_oever|grep -Eo "$f[<=>]*[0-9.]*[^-_a-zA-Z]")
+        p="$p$x"
+    done
+    DEV_PKGS="$p"
+fi
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "exec" ]; then
     do_venv_exec "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
 elif [[ $action =~ (info|install|show|update) ]]; then
-    do_venv_pip "$action" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
+    do_venv_pip "$p2" "$action" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
 elif [ "$action" == "create" ]; then
     do_venv_create "$p2" "$p3" "$p4" "$p5" "$p6"
 else

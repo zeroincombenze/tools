@@ -11,7 +11,7 @@ try:
 except ImportError:
     import z0lib
 
-__version__ = '0.3.8.67'
+__version__ = '0.3.8.68'
 
 #
 # known incompantibilities:
@@ -252,6 +252,7 @@ except BaseException:
 PY3_DEV = 'python%s-dev' % PY3ID
 DEPS = {
     'barcode': {'python': 'python-Levenshtein'},
+    'astroid': {'python': 'six'},
 }
 DEPS2 = {
     'lxml': {'bin': ('python-dev', 'libxml2-dev',
@@ -397,13 +398,13 @@ def add_package(deps_list, kw, item,
                         continue
                     if isinstance(DEPS3[item][kw1], (tuple, list)):
                         for itm in DEPS3[item][kw1]:
-                            deps_list = add_package(deps_list, kw,
+                            deps_list = add_package(deps_list, kw1,
                                                     itm,
                                                     with_version=with_version,
                                                     odoo_ver=odoo_ver,
                                                     pyver=pyver)
                     else:
-                        deps_list = add_package(deps_list, kw,
+                        deps_list = add_package(deps_list, kw1,
                                                 DEPS3[item][kw1],
                                                 with_version=with_version,
                                                 odoo_ver=odoo_ver,
