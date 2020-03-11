@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from threading import Lock
 
 
-__version__ = "0.1.0.9"
+__version__ = "0.1.0.10"
 
 MODULE_ID = 'odoo_score'
 TEST_FAILED = 1

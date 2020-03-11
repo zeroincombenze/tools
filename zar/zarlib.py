@@ -88,7 +88,7 @@ LX_SB = ()
 LX_OPT_ARGS = {}
 DEFDCT = {}
 
-__version__ = "1.3.33.5"
+__version__ = "1.3.33.6"
 
 
 def default_conf(ctx):

@@ -23,7 +23,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.1.0.9"
+__version__ = "0.1.0.10"
 
 
 MAX_DEEP = 20
@@ -2931,6 +2931,9 @@ def test_synchro_vg7(ctx):
                          'clean_cache',
                          0,
                          None, None, 5)
+        # Default company for current user
+        clodoo.writeL8(
+            ctx, 'res.users', ctx['user_id'], {'company_id': company_id})
         # Set message note
         ctx['company_note'] = 'Si prega di controllate i dati entro le 24h.'
         clodoo.writeL8(ctx, 'res.company', company_id,

@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.3.33.5
+__version__=1.3.33.6
 
 
 db_act_list() {
@@ -115,7 +115,7 @@ OPTHELP=("this help"\
  "count active connections on DB"\
  "grant connection to DB"\
  "kill all sessions out of pool"\
- "lock DB to avoid new connections"\
+ "lock DB to avoid new connections (may be used with -a)"\
  "do nothing (dry-run)"\
  "declare # of session pool"\
  "show pool size"\
@@ -309,6 +309,14 @@ if [ $opt_grant -gt 0 -a -n "$DB" ]; then
   fi
   if [ $opt_dry_run -eq 0 ]; then
     sqlc="GRANT CONNECT ON DATABASE $DB TO PUBLIC, odoo;"
+    $PSQL -tc "$sqlc" &>/dev/null
+  fi
+elif [ $opt_lock -gt 0 -a -n "$DB" ]; then
+  if [ $opt_verbose -gt 0 ]; then
+    echo "Revoce access from $DB"
+  fi
+  if [ $opt_dry_run -eq 0 ]; then
+    sqlc="REVOKE CONNECT ON DATABASE $DB FROM PUBLIC, odoo;"
     $PSQL -tc "$sqlc" &>/dev/null
   fi
 fi
