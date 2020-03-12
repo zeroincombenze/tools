@@ -6,7 +6,7 @@ z0bug.invoice_Z0_1_04,z0bug.invoice_Z0_1,,z0bug.product_product_4,Prodotto Delta
 z0bug.invoice_Z0_1_05,z0bug.invoice_Z0_1,,z0bug.product_product_5,Prodotto Epsilon,5,z0bug.coa_510000,0.96,z0bug.tax_22v
 z0bug.invoice_Z0_1_06,z0bug.invoice_Z0_1,,z0bug.product_product_6,Prodotto Phi,6,z0bug.coa_510000,4.68,z0bug.tax_22v
 z0bug.invoice_Z0_1_07,z0bug.invoice_Z0_1,,z0bug.product_product_7,Prodotto Gamma,7,z0bug.coa_510000,0.57,z0bug.tax_22v
-z0bug.invoice_Z0_1_08,z0bug.invoice_Z0_1,,z0bug.product_product_7,Prodotto Hospice/Eta,8,z0bug.coa_510000,1.72,z0bug.tax_4v
+z0bug.invoice_Z0_1_08,z0bug.invoice_Z0_1,,z0bug.product_product_8,Prodotto Hospice/Eta,8,z0bug.coa_510000,1.72,z0bug.tax_4v
 z0bug.invoice_Z0_1_09,z0bug.invoice_Z0_1,,z0bug.product_product_9,Prodotto Iota,9,z0bug.coa_510000,0.71,z0bug.tax_10v
 z0bug.invoice_Z0_1_10,z0bug.invoice_Z0_1,,z0bug.product_product_10,Prodotto Juvenilia,10,z0bug.coa_510000,1.46,z0bug.tax_22v
 z0bug.invoice_Z0_1_11,z0bug.invoice_Z0_1,,z0bug.product_product_11,Prodotto Kappa,11,z0bug.coa_510000,0.48,z0bug.tax_22v
@@ -26,7 +26,7 @@ z0bug.invoice_Z0_1_24,z0bug.invoice_Z0_1,,z0bug.product_product_24,Prodotto Xi,2
 z0bug.invoice_Z0_1_25,z0bug.invoice_Z0_1,,z0bug.product_product_25,Special service for Young people,1,z0bug.coa_510200,0.71,z0bug.tax_22v
 z0bug.invoice_Z0_1_26,z0bug.invoice_Z0_1,,z0bug.product_product_26,Prodotto Zeta,26,z0bug.coa_510000,1.44,z0bug.tax_22v
 z0bug.invoice_Z0_1_27,z0bug.invoice_Z0_1,,z0bug.product_product_27,Consegna gratuita,1,z0bug.coa_510100,,z0bug.tax_22v
-z0bug.invoice_Z0_1_28,z0bug.invoice_Z0_1,,z0bug.product_product_9,Sconto assoluto,1,z0bug.coa_510100,-50,z0bug.tax_22v
+z0bug.invoice_Z0_1_28,z0bug.invoice_Z0_1,,z0bug.product_product_0,Sconto assoluto,1,z0bug.coa_510100,-50,z0bug.tax_22v
 z0bug.invoice_Z0_2_1,z0bug.invoice_Z0_2,,z0bug.product_product_1,Prodotto Alpha,100,z0bug.coa_510100,0.42,z0bug.tax_22v
 z0bug.invoice_Z0_2_2,z0bug.invoice_Z0_2,,z0bug.product_product_2,Prodotto Beta,10,z0bug.coa_510100,1.69,z0bug.tax_22v
 z0bug.invoice_Z0_3_1,z0bug.invoice_Z0_3,,z0bug.product_product_0,Cancelleria varia,10,z0bug.coa_510100,10,z0bug.tax_22SPv

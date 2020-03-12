@@ -2,7 +2,7 @@ model	name	type	6.1	7.0	8.0	9.0	10.0	11.0	12.0
 account_invoice_line	INVOICE_LINE_TAX_ID|INVOICE_LINE_TAX_IDS	field	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids
 account_invoice_line	UOS_ID|UOM_ID	field	uos_id	uos_id	uos_id	uom_id	uom_id	uom_id	uom_id
 account_move_line	RECONCILED|RECONCILE_ID	field	reconciled	reconciled	reconciled	reconciled	reconcile_id	reconcile_id	reconcile_id
-account.account	TYPE	field	type	type	type				
+account.account	TYPE|INTERNAL_TYPE	field	type	type	type	internal_type	internal_type	internal_type	internal_type
 account.account	USER_TYPE|USER_TYPE_ID	field	user_type	user_type	user_type	user_type_id	user_type_id	user_type_id	user_type_id
 account.account.type	REPORT_TYPE|TYPE	field	report_type	report_type	report_type	type	type	type	type
 account.account.type	report_type	value	Asset	Asset	Asset	Current Assets	Current Assets	Current Assets	Current Assets

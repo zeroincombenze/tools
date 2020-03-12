@@ -8,17 +8,17 @@ This package aim to easily create odoo tests.
 
 *z0bug_odoo* is built on follow concepts:
 
-* Odoo version indipendent
-* Prepared data base, ready to use for tests
+* Odoo version independent
+* Read-made database
+* Quality Check Id
 
-
-icq
+qci
 ---
 
-.. $include description_icq.csv
+.. $include description_qci.csv
 
 
-test partner
-------------
+partner qci
+-----------
 
-.. $include description_icq_partner.csv
+.. $include description_qci_partner.csv

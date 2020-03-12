@@ -1,6 +1,6 @@
 
 ==================
-z0bug_odoo 0.1.0.5
+z0bug_odoo 0.1.0.6
 ==================
 
 
@@ -24,11 +24,11 @@ This package aim to easily create odoo tests.
 
 *z0bug_odoo* is built on follow concepts:
 
-* Odoo version indipendent
-* Prepared data base, ready to use for tests
+* Odoo version independent
+* Read-made database
+* Quality Check Id
 
-
-icq
+qci
 ---
 
 +----------+-----------------------------------------------------------------------------------+
@@ -53,6 +53,8 @@ icq
 | icq_pa14 | Reverse Charge                                                                    |
 +----------+-----------------------------------------------------------------------------------+
 | icq_pa15 | Split Payment                                                                     |
++----------+-----------------------------------------------------------------------------------+
+| icq_pa16 | Partne is PA                                                                      |
 +----------+-----------------------------------------------------------------------------------+
 | icq_ac01 | Full Undeductible VAT / IVA totalmente indetraibile                               |
 +----------+-----------------------------------------------------------------------------------+
@@ -102,8 +104,8 @@ icq
 
 
 
-test partner
-------------
+partner qci
+-----------
 
 +----------------------+-------------------------------------+-------------------+----------------------------+
 | id                   | name                                | side              | icq                        |
@@ -120,7 +122,7 @@ test partner
 +----------------------+-------------------------------------+-------------------+----------------------------+
 | z0bug.res_partner_14 | SS Carrefur                         | supplier          |                            |
 +----------------------+-------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_15 | Epic Five Technologies              | supplier          | icq_pa14                   |
+| z0bug.res_partner_15 | Ente Porto                          | customer          | icq_0002 icq_pa14 icq_pa16 |
 +----------------------+-------------------------------------+-------------------+----------------------------+
 | z0bug.res_partner_16 | Viking Office Depot Italia s.r.l.   | customer/supplier |                            |
 +----------------------+-------------------------------------+-------------------+----------------------------+
@@ -142,6 +144,29 @@ test partner
 +----------------------+-------------------------------------+-------------------+----------------------------+
 | z0bug.res_partner_9  | Mario Rossi                         | customer          |                            |
 +----------------------+-------------------------------------+-------------------+----------------------------+
+
+
+
+
+
+|
+
+Features
+--------
+
+Data to use in tests are store in csv files in data directory.
+File names are tha name of the models (table) with characters '.' (dot) replaced by '_' (underscore)
+
+Header of file must be the names of table fields.
+
+Rows can contains value to store or Odoo external reference or macro.
+
+For type char, text, html, int, float, monetary: value are constants inserted as is.
+
+For type many2one: value may be an integer (record id) or Odoo external reference (format "module.name").
+
+For type data, datetime: value may be a constant or relative date
+
 
 
 
@@ -307,7 +332,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-03-11
+Last Update / Ultimo aggiornamento: 2020-03-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

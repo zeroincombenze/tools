@@ -3213,14 +3213,12 @@ def test_synchro_vg7(ctx):
                 ctx['ctr'] += 1
                 continue
             if ((loc_name == 'tax_id' and model == 'sale.order.line') or
-                  (loc_name == 'invoice_line_tax_ids' and
-                   model == 'account.invoice.line')):
-                id = clodoo.searchL8(ctx, 'account.tax',
+                    (loc_name == 'invoice_line_tax_ids' and
+                     model == 'account.invoice.line')):
+                vals[ext_ref] = clodoo.searchL8(ctx, 'account.tax',
                                      [('description', '=', vals[ext_ref]),
                                       ('company_id', '=', company_id)])
-                if not rec[loc_name] or id != [x.id for x in rec[loc_name]]:
-                    raise IOError('!!Invalid VAT code!')
-                continue
+                rec_value = [x.id for x in rec[loc_name]]
             elif ext_ref == 'state':
                 rec_value = getattr(rec, loc_name)
                 vals[ext_ref] = 'draft'

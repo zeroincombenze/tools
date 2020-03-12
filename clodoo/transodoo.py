@@ -41,7 +41,7 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.3.8.68"
+__version__ = "0.3.8.69"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
@@ -117,6 +117,38 @@ def link_versioned_name(mindroot, model, uname, type, src_name, ver,
     return mindroot
 
 
+CVT_ACC_TYPE_OLD_NEW = {
+    'Bank': 'Bank and Cash',
+    'Cash': 'Bank and Cash',
+    'Check': 'Credit Card',
+    'Asset': 'Current Assets',
+    'Liability': 'Current Liabilities',
+    'Tax': 'Current Liabilities',
+}
+CVT_ACC_TYPE_NEW_OLD = {
+    'Bank and Cash': 'Bank',
+    'Credit Card': 'Check',
+    'Current Assets': 'Asset',
+    'Non-current Assets': 'Asset',
+    'Fixed Asset': 'Asset',
+    'Current Liabilities': 'Liability',
+    'Non-current Liabilities': 'Liability',
+    'Other Income': 'Income',
+    'Depreciation': 'Expense',
+    'Cost of Revenue': 'Expense',
+    'Prepayments': 'Expense',
+    'Current Year Earnings': 'Expense',
+}
+def tnl_acc_type(ctx, model, src_name, src_ver, tgt_ver, name):
+    src_majver = int(src_ver.split('.')[0])
+    tgt_majver = int(tgt_ver.split('.')[0])
+    if src_majver < 9 and tgt_majver >= 9:
+        name = CVT_ACC_TYPE_OLD_NEW.get(name, name)
+    elif src_majver >= 9 and tgt_majver < 9:
+        name = CVT_ACC_TYPE_NEW_OLD.get(name, name)
+    return name
+
+
 def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
     src_majver = int(src_ver.split('.')[0])
     tgt_majver = int(tgt_ver.split('.')[0])
@@ -124,10 +156,10 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
         if isinstance(src_name, basestring):
             src_name = float(src_name)
         if (src_majver < 9 and tgt_majver >= 9):
-            if src_name in (0.04, 0,05, 0.1, .22):
+            if src_name in (0.04, 0.05, 0.1, 0.21, .22):
                 name = src_name * 100
         elif (src_majver >= 9 and tgt_majver < 9):
-            if src_name in (4, 5, 10, 22):
+            if src_name in (4, 5, 10, 21, 22):
                 name = src_name / 100
         else:
             name = src_name
@@ -138,7 +170,7 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                       type=False, fld_name=False):
     """Translate the symbol <src_name> from <src_ver> of odoo into
     <tgt_ver> of odoo.
-    If type not supplied, transaltion is applied for <name> and <fld_name> types
+    If type not supplied, translation is applied for <name> and <fld_name> types
     The param <fld_name> must by supplied just if type is <value>; if field name
     is dependent by version, last version of name must be used
     """
@@ -174,9 +206,15 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                                    basestring):
                         item = mindroot[pymodel][typ][fld_name]
                         if item.startswith('${') and item.endswith('}'):
-                            name = tnl_by_code(ctx, model, src_name, src_ver,
-                                               tgt_ver,
-                                               item)
+                            fct = item[2: -1]
+                            if fct == 'amount':
+                                name = tnl_by_code(ctx, model, src_name,
+                                                   src_ver, tgt_ver,
+                                                   item)
+                            elif fct == 'acc_type':
+                                name = tnl_acc_type(ctx, model, src_name,
+                                                    src_ver, tgt_ver,
+                                                    item)
                             break
                     elif ver_name in mindroot[pymodel][typ][fld_name]:
                         uname = mindroot[pymodel][typ][fld_name][ver_name]

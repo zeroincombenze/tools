@@ -1,6 +1,6 @@
 
 ===============
-clodoo 0.3.8.68
+clodoo 0.3.8.63
 ===============
 
 
@@ -191,6 +191,18 @@ For current version:
 Get involved
 ============
 
+ChangeLog History
+-----------------
+
+0.3.8.65 (2019-12-29)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Tax config with statement data / Configurazione codici IVA con dati liquidazione IVA
+
+
+
+
+
 |
 |
 
@@ -213,7 +225,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2019-11-11
+Last Update / Ultimo aggiornamento: 2020-03-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
