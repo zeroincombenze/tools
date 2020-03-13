@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.69"
+__version__ = "0.3.8.70"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -2069,7 +2069,7 @@ def act_check_config(ctx):
                                     ('model', '=', 'res.county.state'),
                                     ('name', 'like', r'it\_%')]):
         if xid.name.startswith('it_') and len(xid.name) == 5:
-            unlinkL8(ctx, model, [id])
+            unlinkL8(ctx, model, [xid])
             msg_log(
                 ctx, ctx['level'] + 1,
                 'External id %d (l10n_it_bbone) removed' % xid.id)

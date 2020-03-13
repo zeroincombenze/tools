@@ -11,7 +11,7 @@ try:
 except ImportError:
     import z0lib
 
-__version__ = '0.3.8.69'
+__version__ = '0.3.8.70'
 
 #
 # known incompantibilities:

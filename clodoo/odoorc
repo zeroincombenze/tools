@@ -43,7 +43,7 @@
 # VCS          If GIT repository return "git" otherwise return ""
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.8.69
+#__version__=0.3.8.70
 
 
 DEFMLIST="OCB account-analytic account-budgeting account-closing account-consolidation\
@@ -99,12 +99,13 @@ REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wi
 "OCA/vertical-construction,OCA/vertical-community,OCA/vertical-agriculture,"\
 "OCA/infrastructure-dns,OCA/dotnet,OCA/connector-salesforce,OCA/connector-sage,"\
 "OCA/connector-lims,OCA/connector-accountedge,OCA/vertical-realestate,"\
-"OCA/connector-magento-php-extension"
+"OCA/connector-magento-php-extension,zeroincombenze/zerobug-test"
 REPT_EXCL_MATRIX="zeroincombenze/account_invoice_create_payment,zeroincombenze/account_payment_approve_invoice,"\
 "zeroincombenze/website-cms,zeroincombenze/sale-reporting,zeroincombenze/bank-statement-import,"\
 "zeroincombenze/account-invoice-reporting,zeroincombenze/hr,zeroincombenze/hr-timesheet,"\
 "zeroincombenze/margin-analysis,zeroincombenze/pos,7.0/didotech_80,"\
 "9.0/didotech_80,10.0/didotech_80,11.0/didotech_80,12.0/didotech_80,13.0/didotech_80,"
+REPT_NO_OCA_RE="(didotech_80|l10n-italy-supplemental|profiles|uncovered|zerobug-test)"
 
 get_odoo_major_ver() {
     local v=$(echo "$1"|grep -Eo "[0-9]+"|head -n1)
@@ -256,7 +257,7 @@ build_odoo_param() {
       GIT_ORGID="zero"
     fi
     if [ "$GIT_ORGID" == "zero" -o "$GIT_ORGID" == "zeroincombenze" ]; then
-      if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      if [[ $HOSTNAME =~ (shs[a-z0-9]+|zeroincombenze) ]]; then
         GIT_ORGID=zero-git
       else
         GIT_ORGID=zero-http
@@ -386,9 +387,11 @@ build_odoo_param() {
       elif [ "$ITEM" == "UPSTREAM" ]; then
         if [ "$odoo_fver" == "6.1" ]; then
           echo ""
+        elif [[ $REPOS =~ $REPT_NO_OCA_RE ]]; then
+          echo ""
         elif [ -n "$ODOO_UPSTREAM" ]; then
           echo "$ODOO_UPSTREAM/$REPOS.git"
-        else
+        elsegen_re  
           echo ""
         fi
         return

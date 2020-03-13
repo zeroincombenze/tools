@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.31
+#__version__=0.2.2.32
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -589,9 +589,14 @@ create_virtual_env() {
       local SAVE_COLOR=$PS_RUN_COLOR
       export PS_RUN_COLOR=$PS_HDR3_COLOR
       echo -en "\e[${PS_RUN_COLOR}m"
-      if [ ${opt_cache:-0} -ne 0 -a -n "$TRAVIS_PYTHON_VERSION" -a -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]; then
-        echo "# .. loading stored packages from VME$TRAVIS_PYTHON_VERSION ..."
-        run_traced "venv_mgr merge $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION $TRAVIS_HOME -q"
+      if [ ${opt_cache:-0} -ne 0 -a -n "$TRAVIS_PYTHON_VERSION" ]; then
+          if [[ -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
+              echo "# .. loading stored packages from VME$BRANCH ..."
+              run_traced "venv_mgr merge $TRAVIS_SAVED_HOME/VME/VME$BRANCH $TRAVIS_HOME -q"
+          elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
+              echo "# .. loading stored packages from VME$TRAVIS_PYTHON_VERSION ..."
+              run_traced "venv_mgr merge $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION $TRAVIS_HOME -q"
+          fi
       fi
       source bin/activate
       if [ -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/ ]; then
