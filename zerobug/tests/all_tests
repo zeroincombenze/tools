@@ -48,16 +48,15 @@ __version__=0.2.14
 # }
 
 Z0BUG_teardown() {
-    if [ -f "$coveragerc_file" ]; then
-      rm -f $coveragerc_file
-    fi
-    if [ -f "$coveragerc_bak" ]; then
-      mv -f $coveragerc_bak $coveragerc_file
-    fi
+    # if [ -f "$coveragerc_file" ]; then
+    #   rm -f $coveragerc_file
+    # fi
+    # if [ -f "$coveragerc_bak" ]; then
+    #   mv -f $coveragerc_bak $coveragerc_file
+    # fi
     if [ -f "$TESTDIR/z0testlib.py" -o -L "$TESTDIR/z0testlib.py" ]; then
       rm -f $TESTDIR/z0testlib.py
     fi
-
 }
 
 

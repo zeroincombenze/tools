@@ -316,6 +316,7 @@ You can highly customize you test: look at below table.
  PHANTOMJS_VERSION      |               | Version of PhantomJS
  SERVER_EXPECTED_ERRORS |               | # of expected errors after tests
  TRAVIS_DEBUG_MODE      | 0             | Read above
+ TRAVIS_PDB             |               | Activate pdb to local test (experimental)
  UNBUFFER               | True          | Use unbuffer (colors) to log results
  UNIT_TEST              |               | Read above
  TEST                   |               | Read above
@@ -332,8 +333,8 @@ If you declare the following directive in <env global> section:
 
 where "n" means:
 
- Parameter              |  "0"  |         "1"        |        "2"         |                    |  "9"
-------------------------|-------|--------------------+--------------------+--------------------+--------------------
+  Parameter             |   0   |          1         |         2          |                    |        9
+------------------------|-------|--------------------|--------------------|--------------------|--------------------
  Informative messages   | :x:   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
  Inspect internal data  | :x:   | :x:                | :white_check_mark: | :white_check_mark: | :white_check_mark:
  MQT tests              | :x:   | :x:                | :x:                | :white_check_mark: | :white_check_mark:

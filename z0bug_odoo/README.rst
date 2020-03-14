@@ -1,6 +1,6 @@
 
 ==================
-z0bug_odoo 0.1.0.6
+z0bug_odoo 0.1.0.7
 ==================
 
 
@@ -332,7 +332,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-03-12
+Last Update / Ultimo aggiornamento: 2020-03-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

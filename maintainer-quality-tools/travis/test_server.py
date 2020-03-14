@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.2.42'
+__version__ = '0.2.2.43'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -597,7 +597,7 @@ def main(argv=None):
     # Running tests [antoniov: 2018-02-28]
     script_path = get_script_path(server_path, script_name)
     if os.environ.get('TRAVIS_PDB') == 'True':
-        cmd_odoo_test = ["python",
+        cmd_odoo_test = ["python",  "-m", "pdb",
                          script_path,
                          "-d", database,
                          "--db-filter=^%s$" % database,

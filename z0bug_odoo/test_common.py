@@ -2,6 +2,7 @@
 # Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 from __future__ import print_function
+from builtins import str
 
 import sys
 from z0bug_odoo_lib import Z0bugOdoo
@@ -25,7 +26,7 @@ else:
     sys.exit(0)
 
 
-__version__='0.1.0.6'
+__version__='0.1.0.7'
 
 
 class Z0bugBaseCase(test_common.BaseCase):
@@ -82,6 +83,12 @@ class Z0bugBaseCase(test_common.BaseCase):
     def ref_id(self, xref):
         """Return reference id"""
         if int(release.major_version.split('.')[0]) < 8:
+            if xref.startswith('base.state_it_'):
+                # 7.0 compatibility
+                try:
+                    return ('l10n_it_base.it_%s' % xref[14:].lower())
+                except BaseException:
+                    pass
             return self.ref(xref)
         return self.env.ref(xref).id
 
@@ -96,9 +103,13 @@ class Z0bugBaseCase(test_common.BaseCase):
             field = self.search_rec('ir.model.fields',
                                     [('model', '=', model),
                                      ('name', '=', name)])
+            if isinstance(field, (list, tuple)) and len(field):
+                field = field[0]
             if not field:
                 del vals[name]
-            elif field.ttype == 'many2one' and len(vals[name].split('.')) == 2:
+            elif (field.ttype == 'many2one' and
+                  isinstance(vals[name], str) and
+                  len(vals[name].split('.')) == 2):
                 vals[name] = self.ref_id(vals[name])
         return vals
 

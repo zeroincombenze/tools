@@ -44,6 +44,7 @@ Every unit test file may be called with follows switches:
 
   -h, --help            show this help message and exit
   -b, --debug           run tests in debug mode
+  -C  --no-coverage     run test without coverage
   -e, --echo            enable echoing even if not interactive tty
   -J                    load travisrc
   -k, --keep            keep current logfile
@@ -64,7 +65,7 @@ Every unit test file may be called with follows switches:
   -z number, --end number
                         display total # tests when execute them
   -0, --no-count        no count # unit tests
-  -1, --coverage        run tests for coverage
+  -1, --coverage        run tests for coverage (obsolete)
   -3, --python3         use python3
 
   (w/o switches) do run test and return test result
@@ -147,7 +148,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.14.13"
+__version__ = "0.2.14.14"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1269,8 +1270,14 @@ class Z0test(object):
                     testname = os.path.join(self.testdir, testname)
                 if basetn[-3:] == '.py' or basetn[-4:] == '.pyc':
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
-                    # set_mime_python_ver(testname, ctx.get('python3', False))
-                    if (ctx.get('run4cover', False) and
+                    if os.environ.get('TRAVIS_PDB') == 'True':
+                        if ctx.get('python3', False):
+                            test_w_args = ['python3', '-m', 'pdb',
+                                           testname, opt4childs]
+                        else:
+                            test_w_args = ['python', '-m', 'pdb',
+                                           testname, opt4childs]
+                    elif (ctx.get('run4cover', False) and
                             not ctx.get('dry_run', False)):
                         test_w_args = [
                             'coverage',

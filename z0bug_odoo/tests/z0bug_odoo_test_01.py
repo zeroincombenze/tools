@@ -13,7 +13,7 @@ from zerobug import Z0BUG
 # from z0bug_odoo import test_common
 from zerobug import Z0testOdoo
 
-__version__ = "0.1.0.6"
+__version__ = "0.1.0.7"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
@@ -30,7 +30,7 @@ class RegressionTest():
         self.Z = z0bug
 
     def test_01(self, z0ctx):
-        sts = TEST_SUCCESS
+        # sts = TEST_SUCCESS
         res = {}
         if not z0ctx['dry_run']:
             # Build Odoo enviroment
@@ -58,15 +58,14 @@ class RegressionTest():
                 'phone': '+39 0255582285',
                 'vat': 'IT00115719999'}
         for nm in TEST:
-            sts = self.Z.test_result(z0ctx,
-                                     'partner.%s' % nm,
-                                     res.get(nm),
-                                     TEST[nm])
+            sts += self.Z.test_result(z0ctx,
+                                      'partner.%s' % nm,
+                                      res.get(nm),
+                                      TEST[nm])
         return sts
 
 
 if __name__ == "__main__":
-    ctx = Z0BUG.parseoptest(sys.argv[1:],
-                             version=version())
-    sts = Z0BUG.main_local(ctx, RegressionTest)
-    exit(sts)
+    exit(Z0BUG.main_local(
+        Z0BUG.parseoptest(sys.argv[1:],
+                          version=version()), RegressionTest))

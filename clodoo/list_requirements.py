@@ -11,7 +11,7 @@ try:
 except ImportError:
     import z0lib
 
-__version__ = '0.3.8.70'
+__version__ = '0.3.8.71'
 
 #
 # known incompantibilities:
@@ -26,6 +26,7 @@ REQVERSION = {
     'Babel': {'7.0': '==1.3', '8.0': '==2.3.4'},
     'beautifulsoup': {'7.0': '==3.2.1'},
     'codicefiscale': {'7.0': '==0.9'},
+    'coverage': {'0': '<5.0.0'},
     'cryptography': {'7.0': '>=2.2.2'},
     'decorator': {'7.0': '==3.4.0', '10.0': '==4.0.10'},
     'docutils': {'7.0': '==0.12', '0': '==0.14'},        # Version by test pkgs
@@ -76,7 +77,7 @@ REQVERSION = {
     'python-stdnum': {'7.0': '>=1.8.1'},
     'pytz': {'7.0': '==2014.10', '10.0': '==2016.7'},
     'pyusb': {'7.0': '>=1.0.0b1', '10.0': '==1.0.0'},
-    'pyxb': {'7.0':  '==1.2.4'},
+    'pyxb': {'7.0':  '==1.2.5'},
     'PyWebDAV': {'7.0':  '<0.9.8'},
     'PyYAML': {'7.0': '==3.11', '8.0': '==3.12'},
     'qrcode': {'7.0': '==5.1', '10.0': '==5.3'},
@@ -141,6 +142,7 @@ PIP_TEST_PACKAGES = ['astroid',
                      'Click',
                      'configparser',
                      'codecov',
+                     'coverage',
                      'coveralls',
                      'docutils',
                      'flake8',
