@@ -28,7 +28,7 @@ Action is one of:
 .br
 * duplicate
 .br
-* export
+* export MODULE DB
 .br
 * import
 .br
@@ -52,7 +52,7 @@ Action is one of:
 .br
 * test
 .br
-* translate
+* translate MODULE DB
 .br
 * version
 .br
@@ -120,11 +120,14 @@ Duplicate current Odoo module into another version.
 To declare target version use \fB-b\fR switch
 .RE
 .P
-\fBexport MODULE DB\fR
+\fBexport MODULE DB [-bBRANCH]\fR
 .RS
 Export po file of Odoo project.
+If current directory is a module directory you can use '.' (dot) for module name.
 .br
-To declare target version use \fB-b\fR switch
+To declare specific version use \fB-b\fR switch
+.br
+Example: please export . demo
 .RE
 .P
 \fBimport MODULE DB\fR
@@ -236,7 +239,8 @@ This action is appliable just to PYPI projects. After this action, current proje
 .P
 \fBtranslate MODULE DB\fR
 .RS
-Translate po file of Odoo project
+Translate po file of Odoo project.
+In order to access to database a configuratione file must be supplied with \fB-c\fR switch.
 .br
 To declare target version use \fB-b\fR switch
 .SH OPTIONS

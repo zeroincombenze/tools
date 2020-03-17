@@ -25,7 +25,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.43
+__version__=0.2.2.47
 
 
 conf_default() {
@@ -502,7 +502,11 @@ else
       elif [[ "$FH" == "Debian" ]]; then
         pkgext=".deb"
         if [[ ${WKHTMLTOPDF_VERSION} == "0.12.5" ]]; then
-          wkhtmltopdf_wget="wkhtmltox_${WKHTMLTOPDF_VERSION}-1.$(lsb_release -sc)_amd64.deb"
+          if [[ "$MACHARCH" == "x86_64" ]]; then
+            wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}-1.${dist}.${MACHARCH}.rpm"
+          else
+            wkhtmltopdf_wget="wkhtmltox_${WKHTMLTOPDF_VERSION}-1.$(lsb_release -sc)_amd64.deb"
+          fi
         elif [[ ${WKHTMLTOPDF_VERSION} == "0.12.4" ]]; then
           wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-generic-amd64.tar.xz"
           pkgext=".xz"
@@ -516,7 +520,10 @@ else
         run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox.deb"
       fi
       run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox${pkgext}"
-      if [ "$pkgext" == ".rpm" ]; then
+      size=$(stat -c %s wkhtmltox${pkgext})
+      if [ $size -eq 0 ]; then
+         echo "File wkhtmltox${pkgext} not found!"
+      elif [ "$pkgext" == ".rpm" ]; then
         run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
         run_traced "cp ./usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
       elif [ "$pkgext" == ".deb" ]; then

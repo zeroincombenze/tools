@@ -148,7 +148,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.14.14"
+__version__ = "0.2.14.15"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -724,25 +724,26 @@ class Z0test(object):
     def create_parser(self, version, ctx):
         """Standard test option parser; same funcionality of bash version
         -b --debug      run test in debug mode
-        -e --echo       set echo
-        -h --help       show help
-        -f --failfast   RESERVED TO --failfast (stop on first failure)
-        -k --keep       keep current logfile
-        -J              load travisrc library (only in bash scripts)
-        -l --logname    set log filename
-        -N --new        create new logfile
-        -n --dry-run    count and display # unit tests
-        -O              load odoorc library (only in bash scripts)
-        -q --quiet      run tests without output (quiet mode)
-        -r --restart    restart count next to number
-        -s --start      count 1st test next to number (deprecated, use -r)
-        -V --version    show version
-        -v --verbose    verbose mode
-        -x --qsanity    execute silently test library sanity check and exit
-        -X --esanity    execute test library sanity check and exit
-        -z --end        display total # tests when execute them
-        -0 --no-count   no count # unit tests
-        -1 --coverage   run test for coverage
+        -C --no-coverage run test w/o coverage
+        -e --echo        set echo
+        -h --help        show help
+        -f --failfast    RESERVED TO --failfast (stop on first failure)
+        -k --keep        keep current logfile
+        -J               load travisrc library (only in bash scripts)
+        -l --logname     set log filename
+        -N --new         create new logfile
+        -n --dry-run     count and display # unit tests
+        -O               load odoorc library (only in bash scripts)
+        -q --quiet       run tests without output (quiet mode)
+        -r --restart     restart count next to number
+        -s --start       count 1st test next to number (deprecated, use -r)
+        -V --version     show version
+        -v --verbose     verbose mode
+        -x --qsanity     execute silently test library sanity check and exit
+        -X --esanity     execute test library sanity check and exit
+        -z --end         display total # tests when execute them
+        -0 --no-count    no count # unit tests
+        -1 --coverage    run test for coverage (obsoslete)
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
@@ -880,15 +881,20 @@ class Z0test(object):
             os0.set_tlog_file(ctx['logfn'],
                               new=ctx['opt_new'],
                               echo=ctx['opt_echo'])
-        if os.environ.get("COVERAGE_PROCESS_START", ""):
-            ctx['COVERAGE_PROCESS_START'] = \
-                os.environ["COVERAGE_PROCESS_START"]
-            ctx['run4cover'] = True
-        if ctx['run4cover']:
-            if not ctx.get('COVERAGE_PROCESS_START', ''):   # pragma: no cover
-                ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
-                    os.path.join(self.rundir,
-                                 '.coveragerc'))
+        try:
+            subprocess.call(['coverage', '--version'])
+            if os.environ.get("COVERAGE_PROCESS_START", ""):
+                ctx['COVERAGE_PROCESS_START'] = \
+                    os.environ["COVERAGE_PROCESS_START"]
+                ctx['run4cover'] = True
+            if ctx['run4cover']:
+                if not ctx.get('COVERAGE_PROCESS_START',
+                               ''):                       # pragma: no cover
+                    ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
+                        os.path.join(self.rundir,
+                                     '.coveragerc'))
+        except OSError:
+            ctx['run4cover'] = False
         return ctx
 
     def create_def_params_dict(self, ctx):
@@ -1239,7 +1245,10 @@ class Z0test(object):
             T = TestCls(self)
         if (ctx.get('run4cover', False) and
                 not ctx.get('dry_run', False)):
-            subprocess.call(['coverage', 'erase'])
+            try:
+                subprocess.call(['coverage', 'erase'])
+            except OSError:
+                print('Coverage not found!')
         if TestCls and hasattr(TestCls, 'setup'):
             getattr(T, 'setup')(ctx)
         for testname in test_list:
@@ -1292,11 +1301,17 @@ class Z0test(object):
                         else:
                             test_w_args = ['python'] + [testname] + opt4childs
                     self.dbgmsg(ctx, " %s" % test_w_args)
-                    sts = subprocess.call(test_w_args)
+                    try:
+                        sts = subprocess.call(test_w_args)
+                    except OSError:
+                        sts = 127
                 else:
                     self.dbgmsg(ctx, " %s %s" % (testname, opt4childs))
                     test_w_args = [testname] + opt4childs
-                    sts = subprocess.call(test_w_args)
+                    try:
+                        sts = subprocess.call(test_w_args)
+                    except OSError:
+                        sts = 127
                 ctx['ctr'] += self.ctr_list[ix]
                 ix += 1
             if sts or \

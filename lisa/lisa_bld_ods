@@ -4,21 +4,16 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -145,7 +140,7 @@ OPTHELP=("this help"\
  "update default values in /etc configuration file before creating script"\
  "select linux distribution: RHEL or Debian (default is current platform)"\
  "set id name (odoo or openerp, default is odoo)"\
- "set id of Git repository in multi-version: may be oca,zero,oia"
+ "set id of Git repository in multi-version: may be oca,zero or librerp"
  "set odoo log filename (default /var/log/{id_name}/{id_name}-server).log"\
  "multiple version environment (append version to filenames)"\
  "set odoo service name (default {id_name}-server)"\
@@ -153,7 +148,7 @@ OPTHELP=("this help"\
  "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"\
  "use sudo to execute command instead of start-stop-daemon (only Debian)"
  "created test script does nothing (used for debug)"\
- "use template (def /etc/product/odoo-server_{linux_dist})"\
+ "use template (def /etc/lisa/odoo-server_{linux_dist})"\
  "odoo service username"\
  "show version"\
  "verbose mode")
@@ -166,7 +161,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Build Odoo daemon script (default name is odoo-server)"\
-  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 discover_multi
@@ -176,13 +171,11 @@ odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 if [ -z "$opt_org" ]; then
   GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_vid)
   [ "$GIT_ORGNM" == "zeroincombenze" ] && opt_org=""
-  [ "$GIT_ORGNM" == "Odoo-Italia-Associazione" ] && opt_org="oia"
   [ "$GIT_ORGNM" == "OCA" ] && opt_org="oca"
 else
   [ "$opt_org" == "oca" -a "${odoo_vid:0:3}" != "oca" ] && odoo_vid="oca$odoo_ver"
-  [ "$opt_org" == "oia" -a "${odoo_vid:0:3}" != "oia" ] && odoo_vid="oia$odoo_ver"
   [ "$opt_org" == "zero" -a "${odoo_vid:0:4}" != "zero" ] && odoo_vid="zero$odoo_ver"
-  [ "$opt_org" == "liberp" -a "${odoo_vid:0:6}" != "liberp" ] && odoo_vid="liberp$odoo_ver"
+  [ "$opt_org" == "librerp" -a "${odoo_vid:0:6}" != "librerp" ] && odoo_vid="librerp$odoo_ver"
 fi
 xtl_org=$opt_org
 if [ -z "$opt_name" ]; then
@@ -197,11 +190,11 @@ if [ -z "$opt_id" ]; then
 fi
 if [ -z "$opt_pid" ]; then
   opt_pid=$(build_odoo_param FPID $odoo_vid)
-  [[ $opt_org =~ (oca|oia|zero|liberp) && ! $opt_org =~ $opt_pid ]] && opt_pid="${opt_pid:0: -4}-$opt_org.pid" 
+  [[ $opt_org =~ (oca|zero|librerp) && ! $opt_org =~ $opt_pid ]] && opt_pid="${opt_pid:0: -4}-$opt_org.pid"
 fi
 if [ -z "$opt_flog" ]; then
   opt_flog=$(build_odoo_param FLOG $odoo_vid)
-  [[ $opt_org =~ (oca|oia|zero|liberp) && ! $opt_org =~ $opt_flog ]] && opt_flog="${opt_flog:0: -4}-$opt_org.log"
+  [[ $opt_org =~ (oca|zero|librerp) && ! $opt_org =~ $opt_flog ]] && opt_flog="${opt_flog:0: -4}-$opt_org.log"
 fi
 if [ -z "$opt_cfg" ]; then
   opt_cfg=$(build_odoo_param CONFN $odoo_vid)
@@ -247,7 +240,7 @@ echo "- pidfile is $opt_pid"
 echo "- def.conf.file is $opt_cfg"
 echo "- alt.conf.file is $opt_cfg2"
 src_template=""
-for d in $TDIR . /etc/lisa /etc/product; do
+for d in $TDIR . /etc/lisa; do
   for p in $FH .;do
     if [ "$p" == "." ]; then
       n=$d/odoo-server

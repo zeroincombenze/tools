@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.29"
+__version__ = "0.2.2.30"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -630,6 +630,8 @@ def expand_macro(ctx, token, default=None):
             value = 'https://img.shields.io/badge/maturity-Alfa-red.png'
         elif ctx['maturity'].lower() == 'beta':
             value = 'https://img.shields.io/badge/maturity-Beta-yellow.png'
+        elif ctx['maturity'].lower() == 'mature':
+            value = 'https://img.shields.io/badge/maturity-Mature-green.png'
         else:
             value = 'https://img.shields.io/badge/maturity-Alfa-black.png'
     elif token == 'badge-gpl':

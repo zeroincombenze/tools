@@ -31,11 +31,11 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.8-RHEL
+# version: 0.4.9-RHEL
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2019 by zeroincombenze(R) <http://wiki.zeroincombenze.org/en/Odoo>
+# (C) 2015-2020 by zeroincombenze(R) <http://wiki.zeroincombenze.org/en/Odoo>
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}
@@ -70,20 +70,21 @@ if [ "$FH" == "Debian" ]; then
 fi
 # Specify the user name (Default: odoo).
 USER=${xtl_user}
+USERHOME=$(eval echo ~$USER)
 # search for execution command script
-xtl_org=$(echo $(basename $0)|grep -Eo "(oca|oia|librerp|flectra|zero)")
-mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12)")
+xtl_org=$(echo $(basename $0)|grep -Eo "(oca|librerp|flectra|zero)")
+mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12|13)")
 if [ -z "$mult" ]; then
   if [ -z "${xtl_org}" ]; then 
-    LL="/usr/local/bin /usr/bin /opt/${USER}/v${xtl_version} /opt/${USER}/V${xtl_version} /opt/${USER}/v${xtl_fversion} /opt/${USER}/V${xtl_fversion} /opt/${USER}/${xtl_fversion} /opt/${USER}/OCB"
+    LL="/usr/local/bin /usr/bin ${USERHOME}/v${xtl_version} ${USERHOME}/V${xtl_version} ${USERHOME}/v${xtl_fversion} ${USERHOME}/V${xtl_fversion} ${USERHOME}/${xtl_fversion} ${USERHOME}/OCB"
   else
-    LL="/opt/${USER}/${xtl_org}${xtl_version} /opt/${USER}/VENV-${xtl_org}${xtl_version}/odoo"
+    LL="${USERHOME}/${xtl_org}${xtl_version} ${USERHOME}/VENV-${xtl_org}${xtl_version}/odoo"
   fi
 else
   if [ -z "${xtl_org}" ]; then 
-    LL="/opt/${USER}/VENV-${xtl_fversion}/odoo /opt/${USER}/${xtl_fversion} /opt/${USER}/ODOO-${xtl_fversion} /opt/${USER}/odoo-${xtl_fversion}"
+    LL="${USERHOME}/VENV-${xtl_fversion}/odoo ${USERHOME}/${xtl_fversion} ${USERHOME}/ODOO-${xtl_fversion} ${USERHOME}/odoo-${xtl_fversion}"
   else
-    LL="/opt/${USER}/VENV-${xtl_org}${xtl_version}/odoo /opt/${USER}/${xtl_org}${xtl_version} /opt/${USER}/VENV-${xtl_fversion}/odoo /opt/${USER}/${xtl_fversion}"
+    LL="${USERHOME}/VENV-${xtl_org}${xtl_version}/odoo ${USERHOME}/${xtl_org}${xtl_version} ${USERHOME}/VENV-${xtl_fversion}/odoo ${USERHOME}/${xtl_fversion}"
   fi
 fi
 DAEMON=

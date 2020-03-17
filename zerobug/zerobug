@@ -16,11 +16,12 @@ except ImportError:
     from zerobug import Z0BUG
 
 
-__version__ = "0.2.14.14"
+__version__ = "0.2.14.15"
 
 
 def version():
     return __version__
+
 
 if __name__ == "__main__":
     exit(Z0BUG.main(

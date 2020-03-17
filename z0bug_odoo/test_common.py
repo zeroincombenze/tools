@@ -26,7 +26,7 @@ else:
     sys.exit(0)
 
 
-__version__='0.1.0.7'
+__version__='0.1.0.9'
 
 
 class Z0bugBaseCase(test_common.BaseCase):
@@ -92,6 +92,23 @@ class Z0bugBaseCase(test_common.BaseCase):
             return self.ref(xref)
         return self.env.ref(xref).id
 
+    def ref(self, xref):
+        """Return reference record"""
+        if int(release.major_version.split('.')[0]) < 8:
+            xrefs = xref.split('.')
+            if len(xrefs) == 2:
+                model = 'ir.model.data'
+                rec = self.search_rec(model,
+                                      [('module', '=', xrefs[0]),
+                                       ('name', '=', xrefs[1])])
+                if not rec and xref.startswith('base.state_it_'):
+                    rec = self.search_rec(
+                        [model,
+                         ('module', '=', 'base'),
+                         ('name', '=', 'it_%s' % xref[1][14:].lower())])
+                return rec
+        return self.env.ref(xref)
+
     def settle_fields(self, model, vals, how_id=None):
         for name in vals.copy():
             if name == 'id':
@@ -123,7 +140,7 @@ class Z0bugBaseCase(test_common.BaseCase):
     def build_model_data(self, model, xrefs):
         if not isinstance(xrefs, (list, tuple)):
             xrefs = [xrefs]
-        for xref in xrefs:
+        for xref in sorted(xrefs):
             vals = self.get_ref_value(model, xref)
             if not vals:
                 pass
@@ -173,6 +190,64 @@ class Z0bugBaseCase(test_common.BaseCase):
             self.env.user.write({'company_ids': [(4, xref_id)]})
             self.env.user.write({'company_id': xref_id})
         return xref_id
+
+    def bind_fields(self, model, vals, company_id,
+                parent_id=None, parent_model=None):
+        """TODO: write implementation"""
+        return vals
+
+    def write_diff(self, model, id, vals):
+        """TODO: write implementation"""
+        return self.write_rec(model, id, vals)
+
+    def get_domain_field(self, model, vals, company_id,
+                         parent_id=None, parent_name=None):
+        """TODO: write implementation"""
+        return False
+
+    def add_xref(self, xref, model, xid):
+        """TODO: write implementation"""
+        return False
+
+    def store_xref(self, xref, model, company_id,
+                   parent_id=None, parent_model=None, force=None):
+        if parent_id and parent_model:
+            xid = False
+        else:
+            xid = self.ref_id(xref)
+        if not xid or force:
+            vals = self.Z0bugOdoo.get_test_values(model, xref)
+            vals, parent_name = self.bind_fields(
+                model, vals, company_id,
+                parent_id=parent_id, parent_model=parent_model)
+            if xid:
+                self.write_diff(model, xid, vals)
+            else:
+                if vals.get('id') and isinstance(vals['id'], int):
+                    xid = vals['id']
+                else:
+                    xid = self.get_domain_field(model, vals, company_id,
+                                                parent_id=parent_id,
+                                                parent_name=parent_name)
+                if xid:
+                    self.write_diff(model, xid, vals)
+                else:
+                    if 'id' in vals:
+                        del vals['id']
+                    xid = self.create_id(vals)
+                    self.ctr_rec_new += 1
+                if not parent_id or not parent_model:
+                    self.add_xref(xref, model, xid)
+        return xid
+
+    def make_model_data(
+            self, model, model2=None, company_id=None, xref=None, force=None):
+        """Create a full table with demo data"""
+        if model == 'res.country.state':
+            xrefs = self.Z0bugOdoo.get_test_xrefs(model)
+            for xref in sorted(xrefs):
+                self.store_xref(xref, model, company_id, force=force)
+        raise KeyError('Unsupported model%s to create!' % model)
 
 
 class TransactionCase(test_common.TransactionCase, Z0bugBaseCase):

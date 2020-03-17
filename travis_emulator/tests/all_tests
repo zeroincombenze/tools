@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.32
+__version__=0.2.2.33
 
 
 Z0BUG_init
@@ -40,7 +40,7 @@ fi
 
 UT_LIST="__version_V_${__version__}$RUNDIR/travis"
 UT_LIST="$UT_LIST __version_1_${__version__}$RUNDIR/travisrc"
-UT_LIST="$UT_LIST __version_0_0.2.14.13$Z0TLIBDIR/z0testrc"
+UT_LIST="$UT_LIST __version_0_0.2.14.14$Z0TLIBDIR/z0testrc"
 UT_LIST="$UT_LIST __version_1_0.2.8.7$Z0LIBDIR/z0librc"
 # UT_LIST="$UT_LIST test_travisrc1 test_travisrc2 test_autopep8 test_cvt4dist test_yaml test_regex test_dist_pkg test_cronow test_vfdiff test_vfcp"
 UT_LIST="$UT_LIST test_travisrc2 test_regex test_dist_pkg test_vfdiff test_vfcp"

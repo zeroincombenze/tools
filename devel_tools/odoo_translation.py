@@ -28,7 +28,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.29"
+__version__ = "0.2.2.30"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -48,7 +48,7 @@ def msg_burst(text):
 
 
 def set_odoo_path(ctx, version):
-    odoo_path = '/opt/odoo/%s' % version
+    odoo_path = os.path.expanduser('~/%s' % version)
     if not os.path.exists(odoo_path):
         print('Paths of Odoo %s not found' % version)
         return False
@@ -237,9 +237,9 @@ def rewrite_pofile(ctx, pofn, target, version):
 
 def load_dictionary(ctx):
     if ctx['dbg_template']:
-        dict_name = '/opt/odoo/dev/pypi/tools/odoo_default_tnl.csv'
+        dict_name = os.path.expanduser('~/dev/pypi/tools/odoo_default_tnl.csv')
     else:
-        dict_name = '/opt/odoo/dev/odoo_default_tnl.csv'
+        dict_name = os.path.expanduser('~/dev/odoo_default_tnl.csv')
     ctr = load_default_dictionary(dict_name)
     ctx['pofiles'] = {}
     ctx['ctrs'] = {'0': ctr}

@@ -1155,37 +1155,38 @@ def create_document_test_env(ctx):
         model2 = 'product.product'
         print('Write %s ..' % model)
         PROD_LIST = {
-            'AA': 'Product Alpha',
-            'BB': 'Product Beta',
-            'CC': 'Product Chi/Xi',
-            'DD': 'Product Delta',
-            'EE': 'Product Epsilon',
-            'FF': 'Product Phi',
-            'GG': 'Product Gamma',
-            'HH': 'Product Hospice/Eta',
-            'II': 'Product Iota',
-            'JJ': 'Product Juvenilia/Psi',
-            'KK': 'Product Kappa',
-            'LL': 'Product Lambda',
-            'MM': 'Product Micro/Mu',
-            'NN': 'Product New/Nu',
-            'OO': 'Product Omicron',
-            'PP': 'Product Greek Pi',
-            'QQ': 'Product Quality/Omega',
-            'RR': 'Product Rho',
-            'SS': 'Product Sigma',
-            'TT': 'Product Tau',
-            'UU': 'Product Upsilon',
-            'VV': 'Product Theta',
-            'WW': 'Special Worldwide service',
-            'XX': 'Product Xi',
-            'YY': 'Special service for Young people',
-            'ZZ': 'Product Zeta',
+            'AAA': 'Product Alpha',
+            'BBB': 'Product Beta',
+            'CCC': 'Product Chi/Xi',
+            'DDD': 'Product Delta',
+            'EEE': 'Product Epsilon',
+            'FFF': 'Product Phi',
+            'GGG': 'Product Gamma',
+            'HHH': 'Product Hospice/Eta',
+            'III': 'Product Iota',
+            'JJJ': 'Product Juvenilia/Psi',
+            'KKK': 'Product Kappa',
+            'LLL': 'Product Lambda',
+            'MMM': 'Product Micro/Mu',
+            'NNN': 'Product New/Nu',
+            'OOO': 'Product Omicron',
+            'PPP': 'Product Greek Pi',
+            'QQQ': 'Product Quality/Omega',
+            'RRR': 'Product Rho',
+            'SSS': 'Product Sigma',
+            'TTT': 'Product Tau',
+            'UUU': 'Product Upsilon',
+            'VVV': 'Product Theta',
+            'WWW': 'Special Worldwide service',
+            'XXX': 'Product Xi',
+            'YYY': 'Special service for Young people',
+            'ZZZ': 'Product Zeta',
         }
         for nr, code in enumerate(PROD_LIST):
             name = PROD_LIST[code]
+            # noinspection PyDictCreation
             vals = {
-                'default_code': code,
+                'default_code': code[0:2],
                 'name': name,
             }
             vals['lst_price'] = (100.0 - len(name)) / (nr * 7 + 19)
@@ -1201,13 +1202,15 @@ def create_document_test_env(ctx):
             else:
                 vals['taxes_id'] = [(6, 0, [tax22v])]
                 vals['supplier_taxes_id'] = [(6, 0, [tax22a])]
-            ids = clodoo.searchL8(ctx, model, [('default_code', '=', code)])
+            ids = clodoo.searchL8(
+                ctx, model, [('default_code', '=', vals['code'])])
             if ids:
                 tmpl_id = ids[0]
                 clodoo.writeL8(ctx, model, tmpl_id, vals)
             else:
                 tmpl_id = clodoo.createL8(ctx, model, vals)
             vals['product_tmpl_id'] = tmpl_id
+            vals['code'] = code
             ids = clodoo.searchL8(ctx, model2, [('default_code', '=', code)])
             if ids:
                 prod_id = ids[0]
@@ -2609,7 +2612,7 @@ def print_model_synchro_data(ctx):
         model = 'product.product'
         print('Write %s ..' % model)
         vg7_id = 1
-        code = 'AA'
+        code = 'AAA'
         name = 'Product Alpha'
         vals = {
             'company_id': company_id,
@@ -2780,7 +2783,7 @@ def test_synchro_vg7(ctx):
         TNL_TABLE['italy.conai.product.category'] = ''
         TNL_TABLE['italy.conai.partner.category'] = ''
 
-    BORDER_TABLE = {
+    BORDERLINE_TABLE = {
         'account.invoice': {
             'number': 'move_name',
         },
@@ -3027,7 +3030,7 @@ def test_synchro_vg7(ctx):
         if test_conai:
             conai_category_id = clodoo.searchL8(
                 ctx, 'italy.conai.product.category',[('code', '=', 'L')])[0]
-            for code in ('AA', 'BB'):
+            for code in ('AAA', 'BBB'):
                 vals = {'conai_category_id': conai_category_id,
                         'weight': 1.0}
                 id = clodoo.searchL8(
@@ -3141,7 +3144,8 @@ def test_synchro_vg7(ctx):
             if vals[ext_ref] == '':
                 continue
             ref_model = False
-            if ext_ref in ('vg7:shipping', 'vg7:billing', 'vg7:name', 'id'):
+            if ext_ref in ('vg7:shipping', 'vg7:billing',
+                           'vg7:surename', 'vg7:name', 'id'):
                 continue
             elif ext_ref in ('vg7_id', 'vg7:id', 'oe8:id'):
                 if (isinstance(vals[ext_ref], basestring) and
@@ -3155,14 +3159,14 @@ def test_synchro_vg7(ctx):
                   ext_ref.startswith('vg7_') or
                   ext_ref.startswith('oe8:')):
                 loc_name = ext_ref[4:]
-                if not ext_ref.startswith('oe8:') and model in BORDER_TABLE:
+                if not ext_ref.startswith('oe8:') and model in BORDERLINE_TABLE:
                     if (ext_ref.startswith('vg7:') or
                             ext_ref.startswith('oe8:')):
-                        if loc_name in BORDER_TABLE[model]:
-                            loc_name = BORDER_TABLE[model][loc_name]
+                        if loc_name in BORDERLINE_TABLE[model]:
+                            loc_name = BORDERLINE_TABLE[model][loc_name]
                     else:
-                        if ext_ref in BORDER_TABLE[model]:
-                            loc_name = BORDER_TABLE[model][ext_ref]
+                        if ext_ref in BORDERLINE_TABLE[model]:
+                            loc_name = BORDERLINE_TABLE[model][ext_ref]
                 if not loc_name:
                     continue
                 if (loc_name in ('electronic_invoice_subjected',
@@ -3185,6 +3189,9 @@ def test_synchro_vg7(ctx):
             if not ext_ref.startswith('oe8:'):
                 if model == 'res.partner':
                     if loc_name == 'name' and rec.type != 'contact':
+                        if rec.type not in ( 'delivery', 'invoice'):
+                            raise IOError(
+                                '!!Invalid field %s.%d.type!' % (model, id))
                         if (rec.type == 'delivery' and
                                 vals['vg7_id'] == 100001001 and
                                 rec.name == 'Another Address'):
@@ -3234,13 +3241,13 @@ def test_synchro_vg7(ctx):
                         ckstr = False
                         if loc_name in TABLE_OF_FIELD:
                             ref_model = TABLE_OF_FIELD[loc_name]
-                            if TABLE_OF_FIELD[loc_name] in BORDER_TABLE:
-                                rec_value = BORDER_TABLE[
+                            if TABLE_OF_FIELD[loc_name] in BORDERLINE_TABLE:
+                                rec_value = BORDERLINE_TABLE[
                                     ref_model]['LOC'].get(rec_value,rec_value)
                             ckstr = True
                         elif loc_name == 'parent_id':
-                            if model in BORDER_TABLE:
-                                rec_value = BORDER_TABLE[
+                            if model in BORDERLINE_TABLE:
+                                rec_value = BORDERLINE_TABLE[
                                     model]['LOC'].get(rec_value,rec_value)
                             ckstr = True
                         if ckstr and isinstance(vals[ext_ref], basestring):
@@ -3253,8 +3260,8 @@ def test_synchro_vg7(ctx):
                                     ctx, ref_model,
                                     [('name', 'ilike', vals[ext_ref])])
                             if len(ids) == 1:
-                                if ref_model in BORDER_TABLE:
-                                    vals[ext_ref] = BORDER_TABLE[
+                                if ref_model in BORDERLINE_TABLE:
+                                    vals[ext_ref] = BORDERLINE_TABLE[
                                         ref_model]['LOC'].get(ids[0],
                                                               ids[0])
                                 else:
@@ -3283,17 +3290,17 @@ def test_synchro_vg7(ctx):
                 ctx['ctr'] += 1
 
     def store_id(ctx, model, id, vg7_id):
-        if model not in BORDER_TABLE:
-            BORDER_TABLE[model] = {}
-        if 'EXT' not in BORDER_TABLE[model]:
-            BORDER_TABLE[model]['LOC'] = {}
-            BORDER_TABLE[model]['EXT'] = {}
+        if model not in BORDERLINE_TABLE:
+            BORDERLINE_TABLE[model] = {}
+        if 'EXT' not in BORDERLINE_TABLE[model]:
+            BORDERLINE_TABLE[model]['LOC'] = {}
+            BORDERLINE_TABLE[model]['EXT'] = {}
         if isinstance(vg7_id, basestring):
-            BORDER_TABLE[model]['LOC'][id] = int(vg7_id)
-            BORDER_TABLE[model]['EXT'][int(vg7_id)] = id
+            BORDERLINE_TABLE[model]['LOC'][id] = int(vg7_id)
+            BORDERLINE_TABLE[model]['EXT'][int(vg7_id)] = id
         else:
-            BORDER_TABLE[model]['LOC'][id] = vg7_id
-            BORDER_TABLE[model]['EXT'][vg7_id] = id
+            BORDERLINE_TABLE[model]['LOC'][id] = vg7_id
+            BORDERLINE_TABLE[model]['EXT'][vg7_id] = id
 
     def get_vg7id_from_id(ctx, model, id):
         return clodoo.browseL8(ctx, model, id).vg7_id
@@ -3526,7 +3533,7 @@ def test_synchro_vg7(ctx):
         model = 'product.product'
         print('Write %s ..' % model)
         vg7_id = vg7_id or 1
-        code = code or 'AA'
+        code = code or 'AAA'
         name = name or 'Product Alpha'
         vals = {
             # 'company_id': company_id,
@@ -4331,7 +4338,7 @@ def test_synchro_vg7(ctx):
     vg7_id_product_a = write_product(ctx, company_id, vg7_id='1')
 
     vg7_id_product_b = write_product(ctx, company_id,
-                                     vg7_id=2, code='BB', name='Product Beta')
+                                     vg7_id=2, code='BBB', name='Product Beta')
     ctx['vg7_id_product_a'] = vg7_id_product_a
     ctx['vg7_id_product_b'] = vg7_id_product_b
 
@@ -4423,8 +4430,8 @@ def test_synchro_vg7(ctx):
     vg7_id = 1
     vals = {
         'id': vg7_id,
-        'code': 'AAA',
-        'description': 'Product AAA',
+        'code': 'A4',
+        'description': 'Product AAAA',
     }
     write_file_2_pull(ext_model, vals)
     print('Go to web page, menù product, product "AA"')
