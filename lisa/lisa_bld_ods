@@ -29,7 +29,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.0.14
+__version__=0.3.0.15
 
 
 get_arch () {
@@ -135,7 +135,7 @@ OPTACTI=(1        "=>"      "=>"    1        "=>"     "=>"      "="     "=>"    
 OPTDEFL=(1        "10"      ""      0        ""        ""        ""      ""       0         ""       0            ""      0        ""       ""       "odoo"   ""          0)
 OPTMETA=("help"   "vid"     "file"  ""       "linux"   "id-name" "id"    "file"   "mult"    "name"   "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
- "select odoo version id: may be 6, 7, 8, 9, 10, 11 or 12"\
+ "select odoo version id: may be 6, 7, 8, 9, 10, 11, 12 or 13"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
  "update default values in /etc configuration file before creating script"\
  "select linux distribution: RHEL or Debian (default is current platform)"\

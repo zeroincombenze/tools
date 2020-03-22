@@ -1,0 +1,8 @@
+id,name,partner_id,company_id,date_order,origin
+z0bug.purchase_order_Z0_1,PO101,z0bug.res_partner_4,,-16,Test1
+z0bug.purchase_order_Z0_2,PO102,z0bug.res_partner_3,,-15,Test2
+z0bug.purchase_order_Z0_3,PO103,z0bug.res_partner_3,,-15,Test3
+z0bug.purchase_order_Z0_4,PO104,z0bug.res_partner_16,,-15,Test4
+z0bug.purchase_order_Z0_5,PO105,z0bug.res_partner_12,,-10,Test5
+z0bug.purchase_order_Z0_6,PO106,z0bug.res_partner_16,,-10,Test6
+z0bug.purchase_order_Z0_7,PO107,z0bug.res_partner_4,,-10,Test7

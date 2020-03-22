@@ -1,7 +1,7 @@
 id,invoice_id,company_id,product_id,name,quantity,account_id,price_unit,invoice_line_tax_ids
 z0bug.invoice_Z0_1_01,z0bug.invoice_Z0_1,,z0bug.product_product_1,Prodotto Alpha,1,z0bug.coa_510000,0.84,z0bug.tax_22v
 z0bug.invoice_Z0_1_02,z0bug.invoice_Z0_1,,z0bug.product_product_2,Prodotto Beta,2,z0bug.coa_510000,3.38,z0bug.tax_22v
-z0bug.invoice_Z0_1_03,z0bug.invoice_Z0_1,,z0bug.product_product_3,Prodotto Chi/Xi,3,z0bug.coa_510000,0.74,z0bug.tax_22v
+z0bug.invoice_Z0_1_03,z0bug.invoice_Z0_1,,z0bug.product_product_3,Prodotto Chi,3,z0bug.coa_510000,0.74,z0bug.tax_22v
 z0bug.invoice_Z0_1_04,z0bug.invoice_Z0_1,,z0bug.product_product_4,Prodotto Delta,4,z0bug.coa_510000,2.64,z0bug.tax_22v
 z0bug.invoice_Z0_1_05,z0bug.invoice_Z0_1,,z0bug.product_product_5,Prodotto Epsilon,5,z0bug.coa_510000,0.96,z0bug.tax_22v
 z0bug.invoice_Z0_1_06,z0bug.invoice_Z0_1,,z0bug.product_product_6,Prodotto Phi,6,z0bug.coa_510000,4.68,z0bug.tax_22v

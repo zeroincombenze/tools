@@ -481,13 +481,20 @@ def add_manifest(root, manifests, reqfiles, files):
     return manifests, reqfiles
 
 
-def swap(deps, item, itm):
-    if item in deps and itm in deps:
-        item_id = deps.index(item)
-        itm_id =  deps.index(itm)
-        if item_id < itm_id:
-            del deps[itm_id]
-            deps.insert(item_id, itm)
+def swap(deps, itm1, itm2):
+    itm1_id = -1
+    itm2_id = -1
+    for item in deps:
+        if item.startswith(itm1):
+            itm1_id = deps.index(item)
+        elif item.startswith(itm2):
+            itm2_id =  deps.index(item)
+        if itm1_id >= 0 and itm2_id >= 0:
+            break
+    if itm1_id < itm2_id:
+        item = deps[itm2_id]
+        del deps[itm2_id]
+        deps.insert(itm1_id, item)
 
 
 def main():

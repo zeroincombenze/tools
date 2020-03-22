@@ -1,4 +1,4 @@
-# lisa setup 0.3.0.14 (2018-08-21 09:19)
+# lisa setup 0.3.0.15 (2018-08-21 09:19)
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 pkgname=lisa

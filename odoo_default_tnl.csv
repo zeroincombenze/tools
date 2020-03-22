@@ -1,16 +1,4 @@
 status	msgid	msgstr
-	 email(s) sent	 email spedita/e
-	 email(s) should have been sent, but 	 email dovrebbe/ro essere stata/e spedita/e, ma 
-	 had unknown email address(es)	 ha indirizzo/i email sconosciuto/i
-	 letter(s) in report	 lettera(e) nel rapporto
-	 manual action(s) assigned:	 azione/i manuale/i assegnata/e:
-	 will be sent	 saranno spediti
-	(keep empty for invoicing all the settlements)	Lasciare vuoto per fatturare tutte le provvigioni
-	(keep empty for making the settlement of all agents)	Lasciare vuoto per creare le provvigioni per tutti gli agenti
-	* Be sure that an Outgoing Email Server is correctly configured;	* Verifica che il server di posta per invio sia correttamente configurato;
-	# of Digits	# di cifre
-	# of Items	# di voci
-	%s partners have no credits and as such the action is cleared	Per i soggetti %s non risultano crediti e l'azione non è stata eseguita
 	00302 - Invalid fiscalcode of %s	00302 – Codice fiscale non valido %s
 	003XA - Partner %s without street on address	003XA - Soggetto %s senza indirizzo
 	003XC - Partner %s %d vat country differs from country	003XC – Soggetto %s %d nazione PIVA diversa da anagrafica
@@ -21,42 +9,45 @@ status	msgid	msgstr
 	00400 - Missed/wrong tax nature in %s	00400 –Natura assente o errata in %s
 	00401 - Invalid tax %s nature for invoice %s	00401 – Natura %s non valida su fattura %s
 	00401 - Invalid/wrong tax nature in %s	00401 – Natura non valida in %s
-	00420 - Wrong tax %s nature/payment for invoice %s	00420 – Erarata natura/pagamento %s su fattura %s
 	00420 - Wrong tax payability in %s	00420 – Errata esigibilità in %s
+	00420 - Wrong tax %s nature/payment for invoice %s	00420 – Erarata natura/pagamento %s su fattura %s
 	00424 - Invalid tax rate in %s	00424 – Aliquota IVA errata in %s
 	00464 - Partner %s without fiscal data	00464 - Soggetto %s senza dati fiscali
-	Account	Conto
 	Account balance at 0 filter	Filtro conti saldo a 0
 	Account Books	Libri contabili
+	Account	Conto
 	Account Follow-up	Solleciti di pagamento
+	Accounting	Contabilità
+	Accounting Entries	Registrazioni contabili
 	Account Invoice	Fattura
 	Account Move line	Riga contabile
 	Account period	Periodo contabile
 	Account Receivable	Conto di credito
 	Account Tax	Conto erario IVA
-	Accounting	Contabilità
-	Accounting Entries	Registrazioni contabili
 	Accrual	Competenza
 	Acquiescence	Acquiescenza
 	Acronym of the Province to which the municipality indicated in the information element 1.2.3.4 <Comune> belongs. Must be filled if the information element 1.2.3.6 <Nazione> is equal to IT	Sigla della provincia a cui appartiene il comune indicato nell'elemento informativo 1.2.3.4 <Comune>. Da valorizzare se l'elemento informativo 1.2.3.6 <Nazione> è uguale a IT
 	Action	Azione
-	Action To Do	Azione da eseguire
 	Actions	Azioni
+	Action To Do	Azione da eseguire
 	Activities	Impieghi
 	Activity Progress	Stato avanzamento lavori
+	Add an internal note..	Aggiungi nota interna..
 	Add an internal note...	Aggiungi nota interna...
-	Add Pickings to DDT	Aggiungi prelievo al DdT
-	Add to DDT	Aggiungi al DdT
-	Add to my Dashboard	Aggiungi al mio cruscotto
 	Additional Expenses	Oneri accessori
-	Address	Indirizzo
-	Address Print Mode	Modo stampa indirizzo
+	Add Pickings to DDT	Aggiungi prelievo al DdT
 	Addressee Code	Codice destinatario
 	Addressee PEC	PEC destinatario
-	Admin. ref.	Rif. ammin.
-	Administration ref.	Rif.  Amministrativo
+	Address	Indirizzo
+	Address Print Mode	Modo stampa indirizzo
+	Add to DDT	Aggiungi al DdT
+	Add to my Dashboard	Aggiungi al mio cruscotto
 	Administration Reference	Riferimento amministrativo
+	Administration ref	Rif.  Amministrativo
+	Administration ref.	Rif.  Amministrativo
 	Administrator	Amministratore
+	Admin. ref	Rif. ammin
+	Admin. ref.	Rif. ammin.
 	Adviser	Contabile
 	After	Dopo
 	Aged Partner Balance	Poste ripartite per periodo
@@ -69,12 +60,15 @@ status	msgid	msgstr
 	Agent Partners	Agenti
 	Agents	Agenti
 	Agents & commissions	Agenti & provvigioni
+	Agents/Commissions related to the invoice line	Agenti/Provvigioni collegate alla riga fattura
 	Agents/Commissions related to the invoice line.	Agenti/Provvigioni collegate alla riga fattura.
 	Agreement	Convenzione
 	Alert	Avviso
+	aliquota iva	Aliquota IVA
 	Amortization of Goods	Ammortamento dei beni
-	Amount	Importo
 	Amount due	Importo dovuto
+	Amount	Importo
+	Amount in Words	Importo in parole
 	Amount in Words:	Importo in parole:
 	Amount of Penalty	Importo della sanzione
 	Amount Overdue	Importo scaduto
@@ -87,7 +81,9 @@ status	msgid	msgstr
 	Anybody	Chiunque
 	Approve	Approva
 	Articles Code	Codici articolo
+	As a natural person, partner %s must have Name and Surname	Il soggetto %s, persona fisica, deve avere nome e cognome
 	As a natural person, partner %s must have Name and Surname.	Il soggetto %s, persona fisica, deve avere nome e cognome.
+	As a Public Administration, partner %s IPA Code must be 6 characters long	Il soggetto %s, pubblica amministrazione, deve avere un codice IPA lungo 6 caratteri
 	As a Public Administration, partner %s IPA Code must be 6 characters long.	Il soggetto %s, pubblica amministrazione, deve avere un codice IPA lungo 6 caratteri.
 	As is	Come è
 	Assessment	Accertamento
@@ -97,27 +93,32 @@ status	msgid	msgstr
 	Attachment	Allegato
 	Attachment without name	Allegato senza nome
 	Attendees	Partecipanti
-	Automatic Footer	Piede automatico
 	Automatically create the DDT	Crea automaticamente il DdT
+	Automatic Footer	Piede automatico
 	Background	Sfondo
 	Balance Sheet	Stato patrimoniale
 	Bank Accounts	C/c bancari
 	Bank Name	Nome banca
 	Bank Statement	Estratto conto bancario
 	Bare Ownership	Nuda proprietà
-	Bill	Fattura
+	* Be sure that an Outgoing Email Server is correctly configured;	* Verifica che il server di posta per invio sia correttamente configurato;
+	bilancio storico cumul. soggetto	Bilancio storico cumul. Soggetto
+	Bill &amp; Ship To	Indirizzo di fatturazione e consegna
 	Bill &amp; Ship To:	Indirizzo di fatturazione e consegna:
-	Bill To:	Indirizzo di fatturazione:
-	Bill total %s is different from document total amount %s	Il totale della fattura %s è diverso dall'importo totale del documento %s
+	Bill	Fattura
 	Billing Partner	Soggetto di fatturazione
 	Bills Number	Numero fatture
 	Bills Total	Totale fatture
+	Bill To	Indirizzo di fatturazione
+	Bill To:	Indirizzo di fatturazione:
+	Bill total %s is different from document total amount %s	Il totale della fattura %s è diverso dall'importo totale del documento %s
+	Body Font(px)	Font corpo (px)
 	Body Font(px):	Font corpo (px):
 	Bookmark	Segnalibro
 	Both	Ambedue
 	Bottom text	Testo in basso
-	Box	Scatole
 	Box-Pallet	Scatole/Pallet
+	Box	Scatole
 	Brief name of document to print	Nome breve del documento da stampare
 	Bulk	Sfuso
 	Button	Pulsante
@@ -125,13 +126,14 @@ status	msgid	msgstr
 	Cadaster Code	Codice catastale
 	Calendar	Calendario
 	Cancel	Annulla
+	Canceled	Annullato
 	Cancel Invoice	Annulla fattura
 	Cancel Invoices	Annulla fatture
-	Canceled	Annullato
 	Cancelled	Annullato
-	CANCELLED INVOICE	FATTURA ANNULLATA
 	Cancelled Invoice	Fattura annullata
+	CANCELLED INVOICE	FATTURA ANNULLATA
 	Cancelled Invoice #	Fattura annullata N.
+	Cannot cancel an invoiced settlement	Non è possibile cancellare una provvigione fatturata
 	Cannot cancel an invoiced settlement.	Non è possibile cancellare una provvigione fatturata.
 	Capital	Capitale
 	Capital Goods	Beni strumentali
@@ -140,82 +142,99 @@ status	msgid	msgstr
 	Carriage Conditions	Condizioni di Trasporto/Reso
 	Carriage Forward	Porto Franco (DDP) 
 	Carriage Paid	Porto Assegnato (EXW) 
-	Carrier	Vettore
 	Carrier's Signature	Firma del vettore
+	Carrier	Vettore
 	Cash Journal	Registro cassa
 	Charged in Invoice	Addebito in fattura (DDU) 
 	Chart of Account	Piano dei conti
+	Checkbox	Casella
 	Check	Controllo
 	Check if picking done	Controlla se il prelievo è completato
 	Check if reverse charge EU invoices journal	Seleziona se registro fatture con inversione contabile
 	Check if this is a E-Invoice Journal	Seleziona se registro e-fatture
 	Check if this is a Proforma Journal	Selezione se registro avvisi di parcella
 	Check if this is the Anonimous Sale Receipts Journal	Seleziona se registro corrispettivi
+	Check this field if the partner is a creditor or an agent	Spuntare il campo se il soggetto è un creditore o un agente
 	Check this field if the partner is a creditor or an agent.	Spuntare il campo se il soggetto è un creditore o un agente.
-	Checkbox	Casella
 	CIG Code	Codice CIG
 	Cities	Città
+	City is not set for %s	Città non impostata per %s
 	City is not set for %s.	Città non impostata per %s.
+	City not set	Città non impostata
 	City not set.	Città non impostata
+	City's ZIP code. (Country dependent)	CAP della città (dipende dalla nazione)
 	City's ZIP code. (Country dependent).	CAP della città (dipende dalla nazione)
-	Clean	Pulizia
 	Clean Chart of Account	Pulizia P.d.C.
 	Clean Fiscal Position	Pulizia posizioni fiscali
+	Clean	Pulizia
 	Clean-up Test Environment	Pulizia ambiente di test
+	Client Ref	Rif. Cliente
 	Client Ref:	Rif. Cliente
 	Code	Codice
 	Code group	Codice Raggruppamento
 	Code Type	Tipo codice
 	Code Value	Valore codice
+	codice raggruppamento	Codice Raggruppamento
 	Comm. free	Senza provvigioni
-	Commission	Provvigione
 	Commission in sales	Provvigione da vendite
 	Commission lines	Righe di provvigione
+	Commission	Provvigione
 	Commission section	Fascia di provvigione
-	Commission types	Tipi di provvigione
-	Commissions	Provvigioni
 	Commissions Management	Gestione provvigioni
+	Commissions	Provvigioni
+	Commission types	Tipi di provvigione
+	Commitment Date	Data di conferma
 	Commitment Date:	Data di conferma:
 	Companies	Aziende
 	company	azienda
-	Company %s TIN not set.	P.IVA azienda %s non impostata.
+	Company	Azienda
+	Company Country not set	Nazione dell'azienda non impostata
 	Company Country not set.	Nazione dell'azienda non impostata.
 	Company Currency	Divisa aziendale
 	Company does not have fiscal code or VAT	L'azienda non ha ne P.IVA ne codice fiscale
+	Company does not have fiscal code or VAT number	Codice fiscale o partita IVA dell'azienda non impostati
 	Company does not have fiscal code or VAT number.	Codice fiscale o partita IVA dell'azienda non impostati.
+	Company Email not set	Email dell'azienda non impostata
 	Company Email not set.	Email dell'azienda non impostata
 	Company Name Color	Nome colore aziendale
 	Company Name field contains '%s'. Your System contains '%s'	"Il campo nome azienda contiene ""%s"", il sistema contiene ""%s"""
+	Company Name field contains '%s'. Your System contains '%s'	"Il campo nome azienda contiene ""%s"", il sistema contiene ""%s"""
+	Company %s TIN not set	P.IVA azienda %s non impostata
+	Company %s TIN not set.	P.IVA azienda %s non impostata.
+	Company Telephone number not set	Numero di telefono dell'azienda non impostato
 	Company Telephone number not set.	Numero di telefono dell'azienda non impostato.
+	Company TIN not set	Partita IVA aziendale non impostata
 	Company TIN not set.	Partita IVA aziendale non impostata
 	Computed amount untaxed %s is different from summary data %s	L'imponibile calcolato %s è diverso da quello dei dati di riepilogo %s
 	Configuration	Configurazione
-	Confirm statement	Conferma registrazione
 	Confirm?	Conferma?
+	Confirm statement	Conferma registrazione
 	Contact	Contatto
 	Contacts	Contatti
+	contiene stampa fattura in pdf	Contiene stampa fattura in PDF
 	Contract	Contratto
 	Contributor	Collaboratore
 	Control Policy 	Procedimento di controllo
-	Country Code %s not found in system.	Codice nazione %s non trovato nel sistema.
-	Country Code %s not found in the system.	Codice nazione %s non trovato nel sistema.
 	Country code according to the ISO 3166-1 alpha-2 code standard	Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code
-	Country encoded by ISO-3166.	Codifica nazione ISO-3166
-	Country is not set for %s.	Nazione non impostata per %s.
+	Country Code %s not found in system	Codice nazione %s non trovato nel sistema
+	Country Code %s not found in the system	Codice nazione %s non trovato nel sistema
+	Country encoded by ISO-3166	Codifica nazione ISO-3166
+	Country is not set for %s	Nazione non impostata per %s
+	Country not set	Nazione non impostata
 	Country not set.	Nazione non impostata.
 	Create commission invoices	Creazione fatture provvigioni
+	Created by	Creato da
+	Created Invoices	Fatture create
+	Created on	Data di creazione
+	Created Settlements	Provvigioni create
 	Create entries	Crea registrazioni
 	Create invoices	Creazione fatture
 	Create new company	Crea nuova azienda
 	Create Test Environment	Crea ambiente di test
 	Create User	Crea utente
-	Created by	Creato da
-	Created Invoices	Fatture create
-	Created on	Data di creazione
-	Created Settlements	Provvigioni create
 	Creation date	Data di creazione
-	Credit	Avere
 	Credit amount	Importo Avere
+	Credit	Avere
 	Creditor/Agent	Creditore/Agente
 	CUP Code	Codice CUP
 	Currency	Divisa
@@ -223,27 +242,32 @@ status	msgid	msgstr
 	Currency Name	Nome divisa
 	Current	Attuale
 	Current commitment not found	Dichiarativo corrente non trovato
-	Custom Header	Intestazione personalizzata
-	Customer	Cliente
-	Customer %s: city is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessaria la città.
-	Customer %s: country is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessaria la nazione.
-	Customer %s: street is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessario l'indirizzo.
-	Customer %s: ZIP is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessario il CAP.
 	Customer account statement	Estratto conto contabile
 	Customer Address	Indirizzo cliente
+	Customer city is not set	Città del cliente non impostata
 	Customer city is not set.	Città del cliente non impostata.
+	Customer city not set	Città cliente non impostata
 	Customer city not set.	Città cliente non impostata
-	Customer country is not set.	Nazione del cliente non impostata.
+	Customer	Cliente
+	Customer country is not set	Nazione del cliente non impostata
+	Customer country not set	Nazione cliente non impostata
 	Customer country not set.	Nazione cliente non impostata.
 	Customer Credit Notes	Note credito clienti
 	Customer Invoice Lines	Righe fatture clienti
+	Customer province not set	Provincia cliente non impostata
 	Customer province not set.	Provincia cliente non impostata
-	Customer street is not set.	Indirizzo del cliente non impostato.
-	Customer street not set.	Indirizzo cliente non impostato
-	Customer Taxes 	IVA v/clienti
-	Customer ZIP is not set.	CAP del cliente non impostato.
-	Customer ZIP not set.	CAP cliente non impostato
+	Customer %s: city is needed for XML generation	Cliente %s: per la generazione dell'XML è necessaria la città
+	Customer %s: country is needed for XML generation	Cliente %s: per la generazione dell'XML è necessaria la nazione
+	Customer %s: street is needed for XML generation	Cliente %s: per la generazione dell'XML è necessario l'indirizzo
 	Customers/Suppliers	Clienti/Fornitori
+	Customer street is not set	Indirizzo del cliente non impostato
+	Customer street not set	Indirizzo cliente non impostato
+	Customer street not set.	Indirizzo cliente non impostato
+	Customer %s: ZIP is needed for XML generation	Cliente %s: per la generazione dell'XML è necessario il CAP
+	Customer Taxes 	IVA v/clienti
+	Customer ZIP is not set	CAP del cliente non impostato
+	Customer ZIP not set	CAP cliente non impostato
+	Custom Header	Intestazione personalizzata
 	Customized Footer	Piede personalizzato
 	Dashboard	Cruscotto
 	Data of Third-Party Issuer Intermediary who emits the invoice on behalf of the seller/provider	Dati relativi al terzo intermediario soggetto emittente che emette la fattura per conto del cedente/prestatore
@@ -253,45 +277,49 @@ status	msgid	msgstr
 	Date from month	Data del mese
 	Date Invoice	Data fattura
 	Date month	Mese
+	Date Ordered	Data ordinato
 	Date Ordered:	Data ordinato:
-	Date range	Intervallo date
 	Date range filter	Filtro intervallo date
+	Date range	Intervallo date
 	Date Reference	Riferimento data
-	DDT	DdT
-	DdT	DdT
-	Ddt	DdT
 	DDT Create Invoice	Crea fattura da DdT
 	DdT Data	Dati DdT
 	DDT Date	Data DdT
+	ddt	DdT
+	Ddt	DdT
+	DdT	DdT
+	DDT	DdT
 	Ddt id	Id DdT
 	Ddt ids	Id DdT
 	DDT Invoicing	Fatturazione DdT
 	DDT invoicing group	Raggr. Fatture da DdT
 	Ddt line	Riga DdT
-	DdT Number	Numero DdT
 	DdT number already exists!	Numero DdT esiste già!
+	DdT Number	Numero DdT
+	DDT number	Numero DdT
 	DDT number:	Numero DdT:
 	Ddt sequence	Sequenza DdT
 	ddt type	Tipo DdT
-	DDT Type	Tipo DdT
 	DdT Type	Tipo DDT
-	Debit	Dare
+	DDT Type	Tipo DdT
 	Debit amount	Importo Dare
+	Debit	Dare
 	Deductions	Deduzioni
-	Default	Predefinito
 	Default Carriage Condition	Condizioni di Trasporto predefinite
 	Default Description of Goods	Aspetto dei beni predefinito
 	Default Method of Transportation	Trasporto a mezzo (predefinito)
 	Default Odoo CoA	PdC predefinito Odoo
+	Default	Predefinito
 	Default Reason for Transportation	Causale di trasporto (predefinita)
 	Default registration date	Data registrazione predefinita
 	Default Setting	Impostazioni predefinite
 	Deferred payability	Esigibilità differita
+	Define a purchase journal for this company: '%s' (id: %d)	"Definire un sezionale di acquisto per questa azienda: ""%s"" (id: %d)"
 	Define a purchase journal for this company: '%s' (id: %d).	"Definire un sezionale di acquisto per questa azienda: ""%s"" (id: %d)."
 	Delivered	Consegnata
 	Delivered Date	Data di consegna
-	Delivery	Consegna
 	Delivery Address	Indirizzo di consegna
+	Delivery	Consegna
 	Delivery Date Time	Data e ora di consegna
 	Delivery document	Documento di consegna
 	Delivery document model	Modello documento di consegna
@@ -308,23 +336,26 @@ status	msgid	msgstr
 	Destination Address	Indirizzo di destinazione
 	Detractions	Detrazioni
 	Discard	Rifiuta
-	Discount	Sconto
-	Discount (%)	Sconto (%)
 	Discount and Supplement Details	Dettagli  sconto e maggiorazione
 	Discount or Supplement Details	Dettagli sconto o maggiorazione
-	Discount Supplement	Sconto maggiorazione
+	Discount	Sconto
+	Discount (%)	Sconto (%)
 	Discount Supplement Product	Prodotto per sconto maggiorazione
+	Discount Supplement	Sconto maggiorazione
 	Display Name	Nome visualizzato
 	District	Distretto/provincia
 	Document {d} has invoice linked	Il documento {d} ha una fattura collegata
 	Document ID	ID documento
+	documento di trasporto	Documento di Trasporto
 	Document report selection rules	Regole selezione impaginazione stampa
-	Document Type	Tipo documento
-	Document type	Tipo documento
-	Document Type 	Tipo documento
-	Document type %s not handled.	Tipo documento %s non gestito.
 	Documents	Documenti
+	Documents to be appended to DdT (PDF only)	Documento da appendere al DdT (solo PDF)
 	Documents to be appended to DdT (PDF only):	Documento da appendere al DdT (solo PDF):
+	Document type %s not handled	Tipo documento %s non gestito
+	Document type %s not handled.	Tipo documento %s non gestito.
+	Document type	Tipo documento
+	Document Type	Tipo documento
+	Document Type 	Tipo documento
 	Down Payment of IRPEF	Acconto IRPEF
 	Down Payment of the Council supplement IRPEF	Acconto addizionale comunale IRPEF
 	Draft Invoice	Bozza fattura
@@ -337,52 +368,59 @@ status	msgid	msgstr
 	E-bill Default Account	Conto predefinito per e-fattura
 	E-bill Default Product	Prodotto predefinito per e-fattura
 	E-bill Details	Dettagli e-fattura
-	E-bill Import File	File importato e-fattura
 	E-bill import file	File importato e-fattura
+	E-bill Import File	File importato e-fattura
 	E-bill Inconsistencies	Incongruenze e-fattura
 	E-bills Detail Level	Livello di dettaglio e-fatture
+	Effective Date of Penalty	Data effettiva della sanzione
 	E-invoice attachment changed	Allegato e-fattura modificato
 	E-invoice attachments	Allegati e-fattura
 	E-invoice Discount Supplement Data	Dati sconto maggiorazione e-fattura
 	E-invoice Document Type	Tipo documento e-fattura
 	E-invoice Export File	File e-fattura esportato
 	E-invoice Export Files	File e-fattura esportati
+	E-invoice fiscal position not set	Posizione fiscale non impostata
 	E-invoice fiscal position not set.	Posizione fiscale non impostata.
 	E-invoice Format	Formato e-fattura
 	E-Invoice journal	Sezionale e-fatture
 	E-invoice Payment Data	Dati pagamento e-fattura
-	E-invoice Related DDT	DdT relativo alla e-fattura
 	E-invoice Related DdT	DdT relativo alla e-fattura
+	E-invoice Related DDT	DdT relativo alla e-fattura
 	E-invoice Related Document Type	Tipo documento relativo alla e-fattura
+	E-invoice sequence not configured	Sequenza e-fattura non configurata
 	E-invoice sequence not configured.	Sequenza e-fattura non configurata.
 	E-invoice State	Stato e-fattura
 	E-invoice Welfare Fund Data	Dati cassa previdenziale e-fattura
 	E-Invoice without VAT number	E-Fattura senza partita IVA 
-	Effective Date of Penalty	Data effettiva della sanzione
 	Electronic Bill	Fattura elettronica
 	Electronic Bill Import	Importazione fattura elettronica
-	Electronic Invoice	Fattura elettronica
 	Electronic Invoice Attachments	Allegati fattura elettronica
 	Electronic Invoice Error	Errore e-fattura
 	Electronic Invoice Export Files	File fattura elettronica esportati
+	Electronic Invoice	Fattura elettronica
 	Electronic Invoice Fiscal Position	Posizione fiscale fattura elettronica
 	Electronic Invoice Payment Data	Dati pagamento fattura elettronica
 	Electronic Invoice Payment Method	Metodo pagamento fattura elettronica
 	Electronic Invoice Ready to Send	E-fattura pronta
 	Electronic Invoice State	Stato e-fattura
 	Electronic Invoice Summary Data	Dati riepilogo fattura elettronica
+	 email(s) sent	 email spedita/e
+	 email(s) should have been sent, but 	 email dovrebbe/ro essere stata/e spedita/e, ma 
 	Embedded	Integrato
 	Employee	Dipendente
 	Enable	Abilita
 	End Date	Data finale
 	Ending balance	Saldo finale
-	Ending Page PDF	Pagina finale PDF
 	Ending Page PDF expression	Espressione pagina finale PDF
-	Entry	Registrazione
+	Ending Page PDF	Pagina finale PDF
 	Entry number	Numero di registrazione
+	Entry	Registrazione
 	EORI Code	Codice EORI
-	Error	Errore
+	è possibile caricare un file dal computer oppure fare copia/incolla di un collegamento internet nel file	È possibile caricare un file dal computer oppure fare copia/incolla di un collegamento Internet nel file
+	è possibile caricare un file dal computer oppure fare copia/incolla di un collegamento internet nel file.	È possibile caricare un file dal computer oppure fare copia/incolla di un collegamento Internet nel file.
 	Error 00464: Partner id %d without fiscal data	Errore 00464: Soggetto id %d senza dati fiscali
+	Error	Errore
+	è una stampa fattura in pdf	È una stampa fattura in PDF
 	Excise Duty	Accise
 	EXJ	ACQ
 	Expense Account 	Conto di costo
@@ -393,6 +431,7 @@ status	msgid	msgstr
 	Export PDF	Esporta PDF
 	Export VAT Communication	Esporta comunicazione IVA
 	Export XLSX	Esporta XLSX
+	extend access to documents which have agent code equal to its id	estende l'acceso ai documenti in cui è agente
 	extend access to documents which have agent code equal to its id.	estende l'acceso ai documenti in cui è agente
 	External agent	Agente plurimandatario
 	Failed	Non riuscito
@@ -400,27 +439,33 @@ status	msgid	msgstr
 	FatturaPA attachments	Allegati fatturaPA
 	FatturaPA Export File	File fatturaPA esportato
 	FatturaPA Export Files	File fatturaPA esportati
+	FatturaPA fiscal position not set	Posizione fiscale e-fattura non impostata
 	FatturaPA fiscal position not set.	Posizione fiscale e-fattura non impostata
+	FatturaPA sequence not configured	Sequenza e-fattura non configurata
 	FatturaPA sequence not configured.	Sequenza e-fattura non configurata.
 	Favorited By	Preferito
+	Features	Funzionalità
 	FE da emettere	E-fatture da emettere
 	FE emessa	E-fatture emesse
-	Features	Funzionalità
 	Fee Registration	Imposta di registro
-	File %s already loaded!	File %s già caricato.
-	File %s already present.	File %s già presente.
-	File %s is linked to bills yet.	Il file %s è già collegato alle fatture.
+	File is linked to bills yet	Il file è già collegato alle fatture
 	File is linked to bills yet.	Il file è già collegato alle fatture.
+	File %s already loaded!	File %s già caricato.
+	File %s already present	File %s già presente
+	File %s already present.	File %s già presente.
+	File %s is linked to bills yet	Il file %s è già collegato alle fatture
+	File %s is linked to bills yet.	Il file %s è già collegato alle fatture.
 	Filter partners	Filtra soggetti
 	Financial Reports	Rapporti finanziari
+	Fiscalcode	Codice fiscale
 	Fiscal Document Type	Tipo documento fiscale
+	Fiscal Positions	Posizioni fiscali
 	Fiscal position used by electronic invoice	Posizione fiscale usata dalla fattura elettronica
 	Fiscal position used by FatturaPA	Posizione fiscale in e-Fattura
-	Fiscal Positions	Posizioni fiscali
 	Fiscal Statements	Comunicazioni fiscali
-	Fiscalcode	Codice fiscale
 	Fixed percentage	Percentuale fissa
 	Footer Print Mode	Modo stampa piede
+	for all Outgoing Mail Servers and Fetchmail Servers	per tutti i server di posta
 	for all Outgoing Mail Servers and Fetchmail Servers.	per tutti i server di posta
 	Force Net Weight	Forza peso netto
 	Force reload test values	Forza caricamento valori di test
@@ -429,10 +474,10 @@ status	msgid	msgstr
 	Free of commission	Libero da provvigioni
 	Fringe Benefits	Benefici accessori
 	From	Da
+	From:	Da:
 	From settlement	Da provvigione
 	From style	Dallo stile
 	From template/style	Da specifica/stile
-	From:	Da:
 	Fulfilment	Adempimento
 	Full Odoo Standard	Standard Odoo integrale
 	General Data	Dati generali
@@ -447,24 +492,29 @@ status	msgid	msgstr
 	Goods on approval	Conto visione
 	Graph	Quadri
 	Gross Amount	Provvigione su prezzo
-	Gross Weight	Peso Lordo
 	Gross Weight	Peso lordo
+	Gross Weight	Peso Lordo
 	Group By	Raggruppa per
 	Groups	Gruppi
 	Guarantee	Fideiussione
+	 had unknown email address(es)	 ha indirizzo/i email sconosciuto/i
 	Has pdf invoice print	Contiene stampa fattura in PDF
 	Header and Footer	Intestazione e piede
 	Header Print Mode	Modo stampa intestazione
 	Help	Aiuto
 	History	Cronologia
 	Html logo style	Stile logo Html
+	id ddt	Id DdT
 	ID	ID
+	id prelievo	ID prelievo
 	If you want to add a PDF version of the invoice into the XML, select which one	Per aggiungere un PDF della fattura dentro l'XML selezionarne la versione
 	Immediate payability	Esigibilità immediata
-	Import	Importazione
 	Import E-bill	Importa e-fattura
 	Import Electronic Bill	Importazione fattura elettronica
+	Import	Importazione
 	Import Inconsistencies	Incongruenze nell'importazione
+	importo avere	Importo Avere
+	importo dare	Importo Dare
 	Impossible to put in pack a package without details	Impossibile inserire nel collo una confezione senza dettagli
 	In Bills	Fatture
 	Incidental Charges	Spese accessorie
@@ -475,44 +525,54 @@ status	msgid	msgstr
 	Incoming Mail Server	Server posta in arrivo
 	Incoming Mail Servers	Server posta in arrivo
 	Indexed Content	Contenuto Indicizzato
-	Initial Balance	Saldo iniziale
+	informazioni agente	Informazioni Agente
 	Initial balance	Saldo iniziale
+	Initial Balance	Saldo iniziale
 	Initial Balances	Saldi iniziali
 	Installation status	Stato installazione
 	Intermediary	Intermediario
-	Inventory	Magazzino
 	Inventory Adjustments	Rettifiche di inventario
 	Inventory Locations	Locationi d'Inventario
-	Invoice	Fattura
-	Invoice %s (%d), discarded tax line %s	Fattura %s (%d), scartata riga %s
-	Invoice %s has e-invoice export file yet.	File e-fattura già presente per la fattura %s.
-	Invoice %s has FatturaPA Export File yet	Il file della e-fattura %s è già stato esportato
-	Invoice %s has XML and can't be canceled. Delete the XML before.	File XML già presente per la fattura %s. Per annullarla eliminare prima il file.
+	Inventory	Magazzino
 	Invoice Date	Data Fattura
+	Invoiced	Fatturato
+	Invoice does not have a number	La fattura non ha un numero ufficiale
 	Invoice does not have a number.	La fattura non ha un numero ufficiale.
 	Invoice exception	Eccezione in fattura
-	Invoice line %s does not have tax	Riga fattura %s senza IVA
+	Invoice	Fattura
 	Invoice line agents and commissions	Righe agenti e provvigioni in fattura
+	Invoice line %s does not have tax	Riga fattura %s senza IVA
 	Invoice paid	Fattura pagata
 	Invoice Refund	Nota di Credito
-	Invoice Type	Tipo Fattura
-	Invoiced	Fatturato
+	Invoice %s (%d), discarded tax line %s	Fattura %s (%d), scartata riga %s
 	Invoices from DDT	Fatture da DdT
+	Invoice %s has e-invoice export file yet	File e-fattura già presente per la fattura %s
+	Invoice %s has e-invoice export file yet.	File e-fattura già presente per la fattura %s.
+	Invoice %s has FatturaPA Export File yet	Il file della e-fattura %s è già stato esportato
+	Invoice %s has XML and can't be canceled. Delete the XML before	File XML già presente per la fattura %s. Per annullarla eliminare prima il file
+	Invoice %s has XML and can't be canceled. Delete the XML before.	File XML già presente per la fattura %s. Per annullarla eliminare prima il file.
 	Invoices must belong to the same company	Le fatture devono appartenere alla stessa azienda
+	Invoices must belong to the same partner	Le fatture devono appartenere allo stesso soggetto
 	Invoices must belong to the same partner.	Le fatture devono appartenere allo stesso soggetto.
+	Invoice Type	Tipo Fattura
 	Invoicing	Contabilità
 	Invoicing Policy 	Procedimento di fatturazione
 	IPA Code	Codice ufficio
+	i picking selezionati hanno destinazioni differenti	I Picking selezionati hanno destinazioni differenti
 	IRS	Agenzia delle Entrate
 	Is pdf invoice print	È una stampa fattura in PDF
 	ISTAT code	Codice ISTAT
+	Item Num	Numero riga
 	Item Num.	Numero riga
-	Journal	Registro sezionale
+	iva	IVA
 	Journal Entries	Registrazioni contabili
 	Journal Entry	Registrazione contabile
 	Journal Item	Movimento contabile
 	Journal Items	Movimenti contabili
+	Journal	Registro sezionale
 	Journals	Registri sezionali
+	(keep empty for invoicing all the settlements)	lasciare vuoto per fatturare tutte le provvigioni
+	(keep empty for making the settlement of all agents)	lasciare vuoto per creare le provvigioni per tutti gli agenti
 	Keep empty to use the current date	Lasciare vuoto per usare la data corrente
 	Language	Lingua
 	Last Modified on	Data ultima modifica
@@ -520,27 +580,31 @@ status	msgid	msgstr
 	Last Response from Exchange System	Ultimo responso da SdI
 	Last Updated by	Ultima modifica di
 	Last Updated on	Data ultima modifica
-	Latest Follow-up	Ultimo sollecito
 	Latest Follow-up Date	Data ultimo sollecito
 	Latest Follow-up Level	Livello ultimo sollecito
+	Latest Follow-up	Ultimo sollecito
 	Law reference	Riferimento legislativo
 	Layout	Impaginazione
-	Leads	Relazioni
 	Leads & Opportunities	Relazioni e opportunità
+	Leads	Relazioni
 	Legal Notice	Dati fiscali e legali
 	Legal Person	Persona giuridica
 	Legal Tax Representative	Rappresentante legale (fiscale)
+	 letter(s) in report	 lettera(e) nel rapporto
 	License Code	Codice licenza
-	Line	Riga
+	l'id del record a cui questo è collegato	L'ID del record a cui questo è collegato
+	l'id del record a cui questo è collegato.	L'ID del record a cui questo è collegato.
 	Line Detail	Dettaglio riga
 	Line Number	Numero riga
+	Line Ref	Rif. riga
 	Line Ref.	Rif. riga
-	Line-up logo / slogan	Logo in linea / slogan
-	Line-up logo / slogan / no sep. line	Logo in linea / slogan / no riga sep.
+	Line	Riga
+	Lines Detail	Dettaglio righe
+	Lines	Righe
 	Line-up: logo / company data	Logo in linea / dati azienda
 	Line-up: logo / company data / no sep. line	Logo in linea / dati azienda / no riga sep.
-	Lines	Righe
-	Lines Detail	Dettaglio righe
+	Line-up logo / slogan	Logo in linea / slogan
+	Line-up logo / slogan / no sep. line	Logo in linea / slogan / no riga sep.
 	Link	Collegamento
 	Link to Bill	Collega a fattura
 	Link to existing supplier bill	Collega a fattura fornitore esistente
@@ -553,7 +617,9 @@ status	msgid	msgstr
 	Make invoices	Fatturazione
 	Make settlements	Calcola provvigioni
 	Management	Gestione
+	manca cap aziendale	Manca CAP aziendale
 	Manual Action	Azione manuale
+	 manual action(s) assigned:	 azione/i manuale/i assegnata/e:
 	Manual Follow-Ups	Solleciti manuali
 	Manual Reconciliation	Riconciliazione manuale
 	Master Data	Dati principali
@@ -567,21 +633,25 @@ status	msgid	msgstr
 	Missed company VAT number	Manca partita IVA aziendale
 	Missed company zip code	Manca CAP aziendale
 	Missed supplier invoice number %s, id=%d	Manca numero fattura fornitore %s, id=%d
+	Model template with fallback values	Specifica con valori a cascata
 	Model template with fallback values.	Specifica con valori a cascata
 	Module	Modulo
 	Monthly	Mensile
-	Multi Report Document Style	Stile documento multi-documenti
-	Multi Report Template	Specifica multi-rapporto
-	Multi Report Template values	Valori specifica multi-rapporto
-	Multi-Report Selection Rules	Regole selezione multi-documento
-	Multi-Report Style	Stile multi-documenti
-	Multi-report style	Stile multi-documenti
-	Multi-Report Template	Specifica multi-rapporto
+	mostra prezzi e sconti nella stampa del ddt	Mostra prezzi e sconti nella stampa del DdT
 	Multiple invoice to one xml	Fatture multiple di un unico xml
+	Multi Report Document Style	Stile documento multi-documenti
+	Multi-Report Selection Rules	Regole selezione multi-documento
 	Multireport Styles	Stili multi-documento
+	Multi-report style	Stile multi-documenti
+	Multi-Report Style	Stile multi-documenti
 	Multireport Template	Specifica multi-rapporto
+	Multi Report Template	Specifica multi-rapporto
+	Multi-Report Template	Specifica multi-rapporto
+	Multi Report Template values	Valori specifica multi-rapporto
 	Municipality or city to which the Stable Organization refers	Comune a cui si riferisce la stabile organizzazione
 	Name field contains '%s'. Your System contains '%s'	"Il campo nome contiene ""%s"", il sistema contiene ""%s"""
+	Name field contains '%s'. Your System contains '%s'	"Il campo nome contiene ""%s"", il sistema contiene ""%s"""
+	Name of Bank with BIC '%s' is not set. Can't create bank	"Impossibile creare la banca con BIC ""%s"", il nome non è impostato."
 	Name of Bank with BIC '%s' is not set. Can't create bank	"Impossibile creare la banca con BIC ""%s"", il nome non è impostato."
 	Name of report template	Nome specifica multi-rapporto
 	Name of Style	Nome dello stile
@@ -589,103 +659,122 @@ status	msgid	msgstr
 	Net Amount	Provvigioni al netto
 	Net Weight	Peso netto
 	New record inserted	Nuovi record inseriti
+	No chart of account	No piano dei conti
+	No code & Only first line	No codice & solo 1° riga
+	No currency found with code %s	Divisa con codice %s non trovata
+	No currency found with code %s.	Divisa con codice %s non trovata.
+	No 'law reference' field for tax %s	"Campo ""riferimento legislativo"" non valorizzato per l'imposta %s."
 	No 'law reference' field for tax %s	"Campo ""riferimento legislativo"" non valorizzato per l'imposta %s."
 	No 'law reference' field for tax %s.	"Campo ""riferimento legislativo"" non valorizzato per l'imposta %s."
 	No 'nature' field for tax %s	"Campo ""natura"" non valorizzato per l'imposta %s"
+	No 'nature' field for tax %s	"Campo ""natura"" non valorizzato per l'imposta %s"
 	No 'nature' field for tax %s.	"Campo ""natura"" non valorizzato per l'imposta %s."
-	No chart of account	No piano dei conti
-	No code & Only first line	No codice & solo 1° riga
-	No currency found with code %s.	Divisa con codice %s non trovata.
+	non ci sono ddt da fatturare	Non ci sono DdT da fatturare
+	None	Nulla
+	 non è possibile cancellare provvigioni fatturate	 Non è possibile cancellare provvigioni fatturate
+	Non taxable nature	Natura esenzione
 	No partner allocated	Nessun soggetto allocato
-	No print	No stampa
 	No print Footer	No stampa piede
 	No print Header	No stampa intestazione
-	No tax with percentage %s and nature %s found. Please configure this tax.	IVA con aliquota %s e natura %s non trovata, configurare questa imposta.
+	No print	No stampa
 	No taxable nature	Natura base non imponibile
-	No withholding tax found with document payment reason %s and rate %s.	Ritenuta con causale documento %s e aliquota %s non trovata.
-	Non taxable nature	Natura esenzione
-	None	Nulla
+	No tax with percentage %s and nature %s found. Please configure this tax	IVA con aliquota %s e natura %s non trovata, configurare questa imposta
+	No tax with percentage %s and nature %s found. Please configure this tax.	IVA con aliquota %s e natura %s non trovata, configurare questa imposta.
 	Not due	Non dovuto
-	Not every picking is in done status	Non tutti i prelievi sono completati
-	Not Posted	Non validate
 	Note	Nota
 	Notes	Note
+	Not every picking is in done status	Non tutti i prelievi sono completati
 	Nothing to invoice	Non ci sono DdT da fatturare
+	Not Posted	Non validate
+	No withholding tax found with document payment reason %s and rate %s	Ritenuta con causale documento %s e aliquota %s non trovata
+	No withholding tax found with document payment reason %s and rate %s.	Ritenuta con causale documento %s e aliquota %s non trovata.
 	Number of Items	Numero di righe
 	Number Reference	Riferimento numero
 	OCA accounting reports	Rapporti finanziari vari
 	Odoo based Model	Modello basato su Odoo
+	# of Digits	# di cifre
+	# of Items	# di voci
+	One DDT - One Invoice	Un DdT - Una fattura
 	On Footer	Nel piede
 	On Footer, no IBAN	Nel piede senza IBAN
 	On Footer, only notes	Solo note nel piede
 	On Header	In intestazione
 	On Header, no IBAN	In intestazione senza IBAN
-	One DDT - One Invoice	Un DdT - Una fattura
 	Only first line	Solo 1° riga
 	Only overdue	Solo scaduto
 	Only specific address	Solo indirizzo specifico
-	Only wide logo	Solo logo largo
 	Only wide logo / no sep. line	Solo logo largo senza riga sep.
+	Only wide logo	Solo logo largo
 	Open Items	Partite aperte
 	Open Items -	Partite aperte -
 	Open Items Partner	Partite aperte
 	Opportunities	Opportunità
-	or	o
-	Order	Ordine
 	Order Agreement Code	Codice commessa
+	Order	Ordine
+	Orders	Ordini
 	Orders:	Ordini:
 	Ordinary	Ordinario
+	ordine di prelievo %s già nel ddt	Ordine di prelievo %s già nel DdT
 	Organization Address	Indirizzo organizzazione
 	Organization Country	Nazione organizzazione
 	Organization Municipality	Comune organizzazione
 	Organization Province	Provincia organizzazione
 	Organization Street Number	Numero civico organizzazione
 	Organization ZIP	CAP organizzazione
-	Original	Originale
 	Original Odoo Model	Modello originale Odoo
+	Original	Originale
 	Original report	Rapporto originale
+	or	o
 	Other Administrative Data	Altri dati gestionali
-	Out Invoices	Fatture emesse
 	Outgoing Email Servers	Server posta invio
 	Outgoing Mail Server	Server posta invio
 	Outgoing Mails	Posta inviata
+	Out Invoices	Fatture emesse
 	Overdue only	Solo scaduto
 	Overdue Payments	Ritardo pagamenti
+	Package	Confezionamento
+	Package Preparation Line	Riga preparazione confezionamento
+	Package Preparation	Preparazione confezionamento
+	Packaging 	Imballaggio
+	Packing	Imballo
 	PA Code for Partner	Codice PA del soggetto
 	PA Code for this Record	Codice PA per questa registrazione
 	PA partner reference	Riferimento amministrazione PA
-	Package	Confezionamento
-	Package Preparation	Preparazione confezionamento
-	Package Preparation Line	Riga preparazione confezionamento
-	Packaging 	Imballaggio
-	Packing	Imballo
 	Parcels	Colli
-	Partner	Soggetto
+	Partner Company	Soggetto azienda
+	Partner cumul aged balance	Bilancio storico cumul. Soggetto
+	Partner cumul aged balance	Cumulo poste ripartite per data
+	Partner/Customer	Soggetto/Cliente
+	Partner ending balance	Saldo finale soggetto
+	Partner Initial balance	Saldo iniziale soggetto
+	Partner name	Nome soggetto
+	Partner %s Addressee Code must be 7 characters long	Il codice destinatario del soggetto %s deve essere lungo 7 caratteri
+	Partner %s Addressee Code must be 7 characters long.	Il codice destinatario del soggetto %s deve essere lungo 7 caratteri.
 	Partner %s %d vat country differs from country	Soggetto %s %d nazione partita IVA diversa da anagrafico
 	Partner %s %d without fiscal data	Soggetto %s %d senza dati fiscali
-	Partner %s Addressee Code must be 7 characters long.	Il codice destinatario del soggetto %s deve essere lungo 7 caratteri.
 	Partner %s has wrong zip code	Soggetto %s con CAP sbagliato
+	Partner %s is not PA but does not have Addressee Code	Il soggetto %s, che non è una PA, non possiede un codice destinatario
 	Partner %s is not PA but does not have Addressee Code.	Il soggetto %s, che non è una PA, non possiede un codice destinatario.
+	Partner %s is PA but does not have IPA code	Il soggetto %s, che è una PA, non possiede un codice IPA
 	Partner %s is PA but does not have IPA code.	Il soggetto %s, che è una PA, non possiede un codice IPA.
 	Partner %s is PA but has not IPA code	Soggetto %s è PA ma non ha un codice ufficio assegnato
+	Partner %s must have name and surname	Il soggetto %s deve avere nome e cognome
 	Partner %s must have name and surname.	Il soggetto %s deve avere nome e cognome.
+	Partner %s must have VAT Number or Fiscal Code	Il soggetto %s deve avere una partita IVA o un codice fiscale
 	Partner %s must have VAT Number or Fiscal Code.	Il soggetto %s deve avere una partita IVA o un codice fiscale.
+	Partner	Soggetto
+	Partners 	Soggetti
+	Partner %s TIN not set	Partita IVA del soggetto %s non impostata
 	Partner %s TIN not set.	Partita IVA del soggetto %s non impostata.
 	Partner %s without city on address	Soggetto %s senza città
 	Partner %s without PEC	Soggetto %s senza PEC
 	Partner %s without province on address	Soggetto %s senza provincia
 	Partner %s without Recipient Code	Soggetto %s senza codice destinatario
 	Partner %s without street on address	Soggetto %s, indirizzo senza via
-	Partner Company	Soggetto azienda
-	Partner cumul aged balance	Bilancio storico cumul. Soggetto
-	Partner cumul aged balance	Cumulo poste ripartite per data
-	Partner ending balance	Saldo finale soggetto
-	Partner Initial balance	Saldo iniziale soggetto
-	Partner name	Nome soggetto
+	Partner VAT and Fiscalcode not set	Soggetto senza P.IVA e senza codice fiscale
 	Partner VAT and Fiscalcode not set.	Soggetto senza P.IVA e senza codice fiscale
+	Partner VAT number and fiscal code are not set	Partita IVA e codice fiscale del soggetto non impostati
 	Partner VAT number and fiscal code are not set.	Partita IVA e codice fiscale del soggetto non impostati.
-	Partner/Customer	Soggetto/Cliente
-	Partners 	Soggetti
 	Payable Account	Conto di debito
 	Payable accounts only	Solo conti di debito
 	Payables 	Debiti
@@ -695,41 +784,47 @@ status	msgid	msgstr
 	Payment Code	Codice pagamento
 	Payment Due Date	Scadenza pagamento
 	Payment Line	Riga di pagamento
-	Payment Method	Metodo di pagamento
-	Payment method %s is not defined in your system.	Modalità di pagamento %s non definita nel sistema.
-	Payment method code %s is incorrect.	Codice modalità di pagamento %s non corretto.
+	Payment method code not found in document	Codice modalità di pagamento non trovato nel documento
 	Payment method code not found in document.	Codice modalità di pagamento non trovato nel documento.
-	Payment Term	Termine di pagamento
+	Payment method code %s is incorrect	Codice modalità di pagamento %s non corretto
+	Payment method code %s is incorrect.	Codice modalità di pagamento %s non corretto.
+	Payment Method	Metodo di pagamento
+	Payment method %s is not defined in your system	Modalità di pagamento %s non definita nel sistema
+	Payment method %s is not defined in your system.	Modalità di pagamento %s non definita nel sistema.
+	Payments Details	Dettagli pagamento
+	Payments	Pagamenti
+	Payment Term Days	Giorni termine di pagamento
+	Payment term layout position	Posizione termine di pagamento
+	Payment term %s does not have a linked e-invoice payment method	Il termine di pagamento %s non ha una modalità di pagamento e-fattura collegata
 	Payment term %s does not have a linked e-invoice payment method.	Il termine di pagamento %s non ha una modalità di pagamento e-fattura collegata.
+	Payment term %s does not have a linked e-invoice payment term	Il termine di pagamento %s non ha un relativo termine e-fattura collegato
 	Payment term %s does not have a linked e-invoice payment term.	Il termine di pagamento %s non ha un relativo termine e-fattura collegato.
 	Payment term %s does not have a linked fatturaPA payment method	Termine di pagamento %s non ha legami con metodo pagamento fiscale della e-fattura.
 	Payment term %s does not have a linked fatturaPA payment term	Termine di pagamento %s non ha legami con termine pagamento fiscale della e-fattura.
-	Payment Term Days	Giorni termine di pagamento
-	Payment term layout position	Posizione termine di pagamento
 	Payment Term Start	Inizio termine di pagamento
 	Payment Terms	Termini di pagamento
-	Payments	Pagamenti
-	Payments Details	Dettagli pagamento
+	Payment Term	Termine di pagamento
 	PDF Report	Rapporti PDF
 	PEC to which the electronic invoice will be sent. Must be filled ONLY when the information element <CodiceDestinatario> is '0000000'	"Indirizzo PEC al quale inviare la fattura elettronica. Da valorizzare SOLO nei casi in cui l'elemento informativo <CodiceDestinatario> vale ""0000000"""
-	Percent	Percentuale
+	PEC to which the electronic invoice will be sent. Must be filled ONLY when the information element <CodiceDestinatario> is '0000000'	"Indirizzo PEC al quale inviare la fattura elettronica. Da valorizzare SOLO nei casi in cui l'elemento informativo <CodiceDestinatario> vale ""0000000"""
 	Percentage	Percentuale
+	Percent	Percentuale
 	Period End Date	Data inizio periodo
+	Period: from %s to %s	Periodo: da %s a %s
 	Period selection	Selezione periodo
 	Period Start Date	Data fine periodo
-	Period: from %s to %s	Periodo: da %s a %s
 	Permanent Establishment	Stabile organizzazione
 	Phase of Activity Progress	Fase dello stato avanzamento lavori
-	Pick up	Prelievo
-	Pick up time	Ora ritiro
+	Picking ids	ID prelievo
 	Picking	Prelievo
 	Picking %s already in ddt	Ordine di prelievo %s già nel DdT
-	Picking ids	ID prelievo
 	Pickings	Prelievi
+	Pick up	Prelievo
+	Pick up time	Ora ritiro
 	Possible total amount rounding on the document (negative sign allowed)	Eventuale arrotondamento sull'importo totale del documento (è ammesso il segno negativo)
-	Post	Registra
 	Post Entry	Registrazione contabile
 	Post Office Code	Codice ufficio postale
+	Post	Registra
 	Premium	Aggio
 	Prepayment Discount	Sconto pagamento anticipato
 	Preview link	Collegamento anteprima
@@ -738,6 +833,7 @@ status	msgid	msgstr
 	Print Invoice	Stampa fattura
 	Product for invoicing	Prodotto da fatturare
 	Product Template	Specifica di prodotto
+	Product used to model ScontoMaggiorazione XML element on bills	Prodotto usato come modello per l'elemento XML ScontoMaggiorazione delle fatture
 	Product used to model ScontoMaggiorazione XML element on bills.	Prodotto usato come modello per l'elemento XML ScontoMaggiorazione delle fatture.
 	Professional Register	Albo professionale
 	Profit Account	Conto profitti
@@ -748,8 +844,9 @@ status	msgid	msgstr
 	Progressive line	Progressivo riga
 	Protocol Number	Numero protocollo
 	Provider	Trasportatore
-	Province ( %s ) not present in your system	Provincia ( %s ) non presente nel sistema
+	Province not set	Provincia non impostata
 	Province not set.	Provincia non impostata
+	Province ( %s ) not present in your system	Provincia ( %s ) non presente nel sistema
 	Provisions	Accantonamenti
 	Public administration	Pubblica amministrazione
 	Public Administration Reference Code	Codice di riferimento pubblica amministrazione
@@ -757,78 +854,78 @@ status	msgid	msgstr
 	Purchase order model	Modello ordine di acquisto
 	Purchase order template	Specifica ordine di acquisto
 	Purchases	Acquisti
-	Quarter	Trimestre
 	Quarterly	Trimestrale
+	Quarter	Trimestre
 	Rate	Aliquota
 	Rates definition	Definizione aliquote
 	RC	Rev.Charge
-	REA Capital	Capitale sociale
 	Rea Capital	Capitale sociale
-	REA Copartner	Unipersonale?
+	REA Capital	Capitale sociale
 	Rea Copartner	Unipersonale?
-	REA Liquidation	Attiva/In liquidazione
-	Rea Liquidation	Attiva/In liquidazione
-	REA Number	Numero REA
-	Rea Number	Numero REA
-	REA Office	Ufficio REA
-	Rea Office	Ufficio REA
-	REA Office Province Code ( %s ) not present in your system	Codice provincia dell'ufficio REA ( %s ) non presente nel sistema
+	REA Copartner	Unipersonale?
 	Ready to Send	Pronta per invio
 	Real Estate	Immobili
-	Reason For Transportation	Causale trasporto
+	Rea Liquidation	Attiva/In liquidazione
+	REA Liquidation	Attiva/In liquidazione
+	Rea Number	Numero REA
+	REA Number	Numero REA
+	REA Office Province Code ( %s ) not present in your system	Codice provincia dell'ufficio REA ( %s ) non presente nel sistema
+	Rea Office	Ufficio REA
+	REA Office	Ufficio REA
 	Reason for Transportation	Causale trasporto
+	Reason For Transportation	Causale trasporto
 	Reasons for Transportation	Causali trasporto
 	Receipt	Scontrino fiscale
 	Receivable accounts only	Solo conti di credito
 	Receivables 	Crediti
 	Reception	Entrata merce
 	Receptions 	Entrate merci
-	Recipient	Destinatario
 	Recipient Code	Codice destinatario
+	Recipient	Destinatario
 	Recipient Error	Errore destinatario
-	Recipient's Signature	Firma destinatario
 	Recipients	Destinatari
-	Reconcile	Riconciliazione
+	Recipient's Signature	Firma destinatario
 	Reconcile Entries	Riconcilia registrazioni
+	Reconcile	Riconciliazione
 	Record deleted	Record eliminati
 	Record to delete	Riga da eliminare
 	Record updated	Record modificati
 	Reference	Riferimento
-	Refresh	Riaggiorna
 	Refresh attachment info	Riaggiorna informazioni allegato
 	Refresh due date from attachment	Riaggiorna data scadenza da allegato
 	Refresh registration date	Riaggiorna data registrazione
+	Refresh	Riaggiorna
 	Refund	Nota credito
 	Register Code	Numero di iscrizione
+	Registered	Registrata
 	Register Province	Provincia iscrizione
 	Register Province ( %s ) not present in your system	Provincia albo ( %s ) non presente nel sistema
 	Register Registration Date	Data iscrizione albo
-	Registered	Registrata
 	Registration Date	Data di registrazione
 	Rejected	Rifiutata
 	Related DDT	DdT collegati
-	Related DDTs	DdT correlati
 	Related DdTs	DdT correlati
+	Related DDTs	DdT correlati
 	Related Documents	Documenti collegati
 	Related Documents Type	Tipo documenti collegati
 	Related E-bill Line	Riga e-fattura collegata
 	Related footer	Relativo piede
 	Related header	Relativa intestazione
-	Related Invoice	Fattura collegata
 	Related Invoice Code	Codice fattura collegata
 	Related Invoice Date	Data fattura collegata
+	Related Invoice	Fattura collegata
 	Related Invoice Line	Riga fattura collegata
 	Related Partner	Soggetto collegato
 	Related Payments Data	Dati pagamenti collegati
-	Replace	Sostituisci
 	Replacement Tax	Imposta sostitutiva
-	Report	Rapporto
+	Replace	Sostituisci
 	Report Configuration	Configurazione rapporto
+	Reporting	Rapporti
 	Report origin/indentity	Identità/origine rapporto
 	Report print menu	Menù di stampa rapporti
+	Report	Rapporto
 	Report Style	Stile rapporto
 	Report to print	Rapporto da stampare
-	Reporting	Rapporti
 	Repository	Raccolta
 	Reset to Draft	Riporta in bozza
 	Reset to ready	Reimposta da inviare
@@ -838,86 +935,94 @@ status	msgid	msgstr
 	Resource Model	Modello risorsa
 	Resource Name	Nome risorsa
 	Restore	Ripristinare
-	Result Test Environment	Risultati ambiente test
 	Results	Risultati
+	Result Test Environment	Risultati ambiente test
 	Returned	Reso
 	Reverse Charge Journal	Sezionale inversione contabile
+	rif.  amministrativo	Rif.  Amministrativo
+	riga ddt	Riga DdT
+	riga fattura %s senza iva	Riga fattura %s senza IVA
+	righe agente	Righe Agente
 	Rounding	Arrotondamento
 	SAJ	FAT
-	Sale	Vendita
+sale	Delivered	Cons.
 	Sale invoice Line	Riga fattura di vendita
 	Sale invoice Lines	Righe fatture di vendita
 	Sale Journal	Registro vendite
 	Sale line	Righe di vendita
-	Sale order	Ordine di vendita
-	Sale Order	Ordine di vendita
 	Sale order line	Riga ordine di vendita
 	Sale order model	Modello ordine di vendita
+	Sale order	Ordine di vendita
+	Sale Order	Ordine di vendita
 	Sale order template	Specifica ordine di vendita
 	Sale Provision Type	Tipo cessione prestazione
-	Sales	Vendite
 	Sales Journal	Registro vendite
 	Sales Order	Ordine di vendita
 	Salesperson	Commerciale
+	Sales	Vendite
+	Sale	Vendita
 	Save	Salva
 	Search DDT	Cerca DdT
 	Search Incoming Mail Servers	Cerca server posta in arrivo
 	Search Key	Chiave di ricerca
-	Sections	Fasce
 	sections	Fasce
-	Select multi-report style	Selezione stile multi-documento
-	Select the date up to which you want to make the settlements:	Selezionare la data finale per il calcolo delle provvigioni
-	Selected Picking %s has different %s	I prelievi selezionati %s hanno %s differenti
-	Selected Picking %s have different carriage condition	I prelievi selezionati %s hanno condizioni di trasporto differenti
-	Selected Picking %s have different goods description	I prelievi selezionati %s hanno differenti aspetto esteriore dei beni
-	Selected Picking %s have different Partner	I prelievi selezionati %s sono a soggetti diversi
-	Selected Picking %s have different transportation method	I prelievi selezionati %s hanno metodo di trasporto differenti
-	Selected Picking %s have different transportation reason	I prelievi selezionati %s hanno Causali di trasporto differenti
+	Sections	Fasce
 	Selected Picking is already linked to DDT: %s	I prelievi selezionati sono già collegati al DdT: %s
+	Selected Picking %s has different %s	I prelievi selezionati %s hanno %s differenti
 	Selected Pickings have different carriage condition	I Picking selezionati hanno il Reso Merce differente
+	Selected Picking %s have different carriage condition	I prelievi selezionati %s hanno condizioni di trasporto differenti
 	Selected pickings have different destinations	I Picking selezionati hanno destinazioni differenti
 	Selected Pickings have different goods description	I Picking selezionati hanno una differente Descrizione dell'aspetto esteriore dei beni
+	Selected Picking %s have different goods description	I prelievi selezionati %s hanno differenti aspetto esteriore dei beni
 	Selected Pickings have different parcels	I Picking selezionati hanno colli differenti
 	Selected Pickings have different Partner	I prelievi selezionati sono a soggetti diversi
+	Selected Picking %s have different Partner	I prelievi selezionati %s sono a soggetti diversi
 	Selected Pickings have different transportation method	I Picking selezionati hanno un metodo di trasporto differente
+	Selected Picking %s have different transportation method	I prelievi selezionati %s hanno metodo di trasporto differenti
 	Selected Pickings have different transportation reason	I Picking selezionati hanno una Causale di trasporto differente
-	Self Invoice Partner	Soggetto auto-fattura
+	Selected Picking %s have different transportation reason	I prelievi selezionati %s hanno Causali di trasporto differenti
+	Select multi-report style	Selezione stile multi-documento
+	Select the date up to which you want to make the settlements	Selezionare la data finale per il calcolo delle provvigioni
+	Select the date up to which you want to make the settlements:	Selezionare la data finale per il calcolo delle provvigioni
 	Self-Defence	Autotutela
+	Self Invoice Partner	Soggetto auto-fattura
 	Self-Invoicing	Auto-fattura
 	Semi-annual	Semestrale
 	Send a Letter	Invia una lettera
 	Send an Email	Invia una email
 	Send by Mail	Invia tramite mail
-	Send Follow-Ups	Invia solleciti di pagamento
-	Send follow-ups	Invia solleciti di pagamento
-	Send Overdue Email	Invia sollecito di ritardato pagamento
-	Sender	Mittente
 	Sender Error	Errore di invio
-	Sent	Inviata
+	Sender	Mittente
+	Send follow-ups	Invia solleciti di pagamento
+	Send Follow-Ups	Invia solleciti di pagamento
+	Send Overdue Email	Invia sollecito di ritardato pagamento
 	Sent by	Inviata da
 	Sent Date	Data di invio
-	Set	Imposta
+	Sent	Inviata
+	sequenza ddt	Sequenza DdT
 	Set Comm. Type	Imposta tipo comm.
 	Set default agent authorization user profile	Imposta profilo autorizzativo predefinito
 	Set done	Completato
+	Set	Imposta
 	Set invoice communication type	Imposta tipo communicazione
 	Set Invoice Type	Imposta tipo fattura fiscale
-	Set to delivered	Marca come consegnata
-	Set to draft	Bozza
 	Setting	Impostazione
 	Settings	Impostazioni
 	Settle commissions	Liquida le provvigioni
 	Settled	Liquidato
 	Settled total	Totale liquidato
-	Settlement	Liquidazione
 	Settlement analysis	Analisi liquidazione
 	Settlement lines	Righe liquidazione
 	Settlement lines search	Ricerca righe liquidazione
-	Settlement period	Periodo liquidazione
+	Settlement	Liquidazione
+	Settlement period not valid	Periodo liquidazione non valido
 	Settlement period not valid.	Periodo liquidazione non valido
+	Settlement period	Periodo liquidazione
 	Settlement search	Ricerca liquidazione
 	Settlements	Liquidazioni
 	Settlments	Liquidazioni
+	Set to delivered	Marca come consegnata
+	Set to draft	Bozza
 	Shipping Address	Indirizzo di spedizione
 	Shipping Informations	Informazioni spedizione
 	Shipping Partner	Consegna a soggetto
@@ -927,7 +1032,10 @@ status	msgid	msgstr
 	Show prices and         discounts in ddt report	Mostra prezzi e sconti nella stampa del DdT
 	Show prices on report	Mostra prezzi su stampa
 	Size	Dimensioni
+	soggetto %s con cap sbagliato	Soggetto %s con CAP sbagliato
+	soggetto %s %d nazione partita iva diversa da anagrafico	Soggetto %s %d nazione partita IVA diversa da anagrafico
 	Source	Sorgente
+	%s partners have no credits and as such the action is cleared	Per i soggetti %s non risultano crediti e l'azione non è stata eseguita
 	Specifica rapporto	Modello rapporto
 	Split payment	Scissione pagamenti
 	Src	Sorgente2
@@ -940,8 +1048,11 @@ status	msgid	msgstr
 	Start Export Supplier Invoices	Inizia esportazione fatture fornitori
 	State	Stato
 	Status	Stato
+	stile logo html	Stile logo Html
 	Stored Filename	Nome file memorizzato
+	Street is not set for %s	Indirizzo non impostato per %s
 	Street is not set for %s.	Indirizzo non impostato per %s.
+	Street not set	Indirizzo non impostato
 	Street not set.	Indirizzo non impostato
 	Subjected to electronic invoice	Soggetto a fattura elettronica
 	Subjected to Electronic Invoice	Soggetto a fattura elettronica
@@ -949,14 +1060,18 @@ status	msgid	msgstr
 	Summary Data	Dati riepilogo
 	Supplement	Maggiorazione
 	Supplement to IRPEF	Addizionale IRPEF
-	Supplier	Fornitore
 	Supplier data	Dati fornitore
+	Supplier	Fornitore
 	Supplier Invoice Line	Righe fatture fornitori
 	Surname field contains '%s'. Your System contains '%s'	"Il campo cognome contiene ""%s"", il sistema contiene ""%s"""
+	Surname field contains '%s'. Your System contains '%s'	"Il campo cognome contiene ""%s"", il sistema contiene ""%s"""
 	Synchronization	Sincronizzazione
-	Tab	Scheda
 	Table	Tabella
+	Tab	Scheda
 	Take this action, if you want import data from e-invoice xml file	Eseguire questa azione per importare una e-fattura da file xml
+	Taxable amount	Importo imponibile
+	Taxable Base	Base imponibile
+	Taxable	Imponibile
 	Tax Account	Conto Imposta
 	Tax Adjustments	Rettifiche di bilancio
 	Tax Agency	Agenzia fiscale
@@ -968,14 +1083,17 @@ status	msgid	msgstr
 	Tax Code	Codice IVA
 	Tax Concession	Agevolazione fiscale
 	Tax deductible	Imposta deducibile
+	Taxes	IVA
 	Tax Exemption	Esenzione fiscale
 	Tax kind %s not found	Tipo imposta %s non trovato
 	Tax Nature	Natura dell'IVA
+	Taxpayer	Contribuente
 	Tax Period	Periodo d'imposta
 	Tax Rate	Aliquota
 	Tax rate	Aliquota IVA
 	Tax receipt	Ricevuta fiscale
 	Tax Regime	Regime fiscale
+	Tax Regime %s not present in your system	Regime fiscale %s non presente nel sistema
 	Tax Regime %s not present in your system.	Regime fiscale %s non presente nel sistema.
 	Tax Registre Information System	Anagrafe tributaria
 	Tax Representative	Rappresentante fiscale
@@ -983,11 +1101,6 @@ status	msgid	msgstr
 	Tax Stamp	Bollo su fattura
 	Tax type	Tipo IVA
 	Tax Withholding	Ritenuta d'acconto
-	Taxable	Imponibile
-	Taxable amount	Importo imponibile
-	Taxable Base	Base imponibile
-	Taxes	IVA
-	Taxpayer	Contribuente
 	Technical values	Valori tecnici
 	Telephone Prefix	Prefisso telefonico
 	Template	Specifica
@@ -996,19 +1109,26 @@ status	msgid	msgstr
 	Text Reference	Riferimento testo
 	Text with delivery ref	Testo con riferimento consegna
 	Text with order ref	Testo con riferimento ordine
+	The bill contains withholding tax with payment reason %s, but such a tax is not found in your system. Please set it	La fattura contiene una ritenuta fiscale con causale pagamento %s. Tale ritenuta non è presente nel sistema, è necessario impostarla
 	The bill contains withholding tax with payment reason %s, but such a tax is not found in your system. Please set it.	La fattura contiene una ritenuta fiscale con causale pagamento %s. Tale ritenuta non è presente nel sistema, è necessario impostarla.
+	The database object this attachment will be attached to	L'oggetto del database a cui verrà assegnato questo allegato
 	The database object this attachment will be attached to.	L'oggetto del database a cui verrà assegnato questo allegato.
-	The database object this attachment will be attached to.	L'oggetto del database a cui verrà assegnato questo allegato.
+	The Europe country group cannot be found. Please update the base module	Nazioni europee non identificate. Aggiornare il modulo 'base'
 	The Europe country group cannot be found. Please update the base module.	Nazioni europee non identificate. Aggiornare il modulo 'base'
 	The invoice date cannot be later than the date of registration!	Data fattura successiva a data registrazione
+	The lower limit cannot be greater than upper one	Limite minimo maggiore del massimo
 	The lower limit cannot be greater than upper one.	Limite minimo maggiore del massimo
 	The parent company	L'azienda controllante
+	The record id this is attached to	L'ID del record a cui questo è collegato
 	The record id this is attached to.	L'ID del record a cui questo è collegato.
-	The univocal progressive of the file is represented by an alphanumeric sequence of maximum length 5, its values are included in 'A'-'Z' and '0'-'9'	"Il progressivo univoco del file è rappresentato da una sequenza alfanumerica di lunghezza massima 5, i cui valori sono inclusi in ""A""-""Z"" e ""0""-""9"""
+	There is no invoicable line	Non ci sono righe fatturabili
 	There is no invoicable line.	Non ci sono righe fatturabili
+	The univocal progressive of the file is represented by an alphanumeric sequence of maximum length 5, its values are included in 'A'-'Z' and '0'-'9'	"Il progressivo univoco del file è rappresentato da una sequenza alfanumerica di lunghezza massima 5, i cui valori sono inclusi in ""A""-""Z"" e ""0""-""9"""
+	The univocal progressive of the file is represented by an alphanumeric sequence of maximum length 5, its values are included in 'A'-'Z' and '0'-'9'	"Il progressivo univoco del file è rappresentato da una sequenza alfanumerica di lunghezza massima 5, i cui valori sono inclusi in ""A""-""Z"" e ""0""-""9"""
 	Third Party/Sender	Terzo/Trasmittente
 	Third Person	Soggetto terzo
 	This attachment contains the PDF report of the linked invoice	Questo allegato contiene il documento PDF della fattura collegata
+	This is the default commission used in the sales where this agent is assigned. It can be changed on each operation if needed	Provvigione predefinita usata nelle vendita per questo agente. Può essere cambiata in qualsiasi riga
 	This is the default commission used in the sales where this agent is assigned. It can be changed on each operation if needed.	Provvigione predefinita usata nelle vendita per questo agente. Può essere cambiata in qualsiasi riga
 	This report will be automatically included in the created XML	Questo documento verrà incluso automaticamente nell'XML generato
 	This wizard set default invoice communication type	Procedura per impostare il tipo di comunicazione in fattura
@@ -1016,33 +1136,39 @@ status	msgid	msgstr
 	Thumbnail	Miniatura
 	Timesheet	Foglio ore
 	TIN	P.IVA
-	To Be Invoiced	Da Fatturare
+	tipo iva	Tipo IVA
 	To be Invoiced	Da fatturare
-	To Register	Da registrare
+	To Be Invoiced	Da Fatturare
 	Too many taxes for invoice line %s	Troppe aliquote IVA per la riga fattura %s.
 	Too many taxes for invoice line %s.	Troppe imposte per la riga fattura %s.
+	Too many taxes with percentage %s and nature %s found	Rilevate troppe imposte con aliquota %s e natura %s
 	Too many taxes with percentage %s and nature %s found.	Rilevate troppe imposte con aliquota %s e natura %s.
+	To Register	Da registrare
 	Total Amount	Importo totale
 	Total Credit	Totale Avere
 	Total Debit	Totale Dare
 	Total in Company Currency	Totale in valuta aziendale
 	Total in Invoice Currency	Totale in valuta
+	Total Price	Tot. Riga
 	Transfer	Trasferimento
 	Transfer within the EU	Cessioni intracomunitarie
 	Translated field	Campo tradotto
 	Translation comments	Traduzione commenti
 	Translation Value	Traduzione
-	Transport document	Documento di Trasporto
 	transportation method	Trasporto a mezzo
 	Transportation Method	Trasporto a mezzo
 	transportation reason	Causale del trasporto
 	Transportation Reason	Causale del trasporto
+	Transport document	Documento di Trasporto
+	troppe aliquote iva per la riga fattura %s	Troppe aliquote IVA per la riga fattura %s
+	troppe aliquote iva per la riga fattura %s.	Troppe aliquote IVA per la riga fattura %s.
+	trovato un altro soggetto con la stessa partita iva: %s	Trovato un altro soggetto con la stessa partita IVA: %s
+	True if all the invoices have a printed report attached in the XML, False otherwise	Vero se tutte le fatture hanno un documento di stampa allegato all'XML, falso altrimenti
 	True if all the invoices have a printed report attached in the XML, False otherwise.	Vero se tutte le fatture hanno un documento di stampa allegato all'XML, falso altrimenti.
+	Two distinct partners with VAT number %s and Fiscal Code %s already present in db	Nel database sono già presenti due diversi partner con partita IVA %s e codice fiscale %s
 	Two distinct partners with VAT number %s and Fiscal Code %s already present in db.	Nel database sono già presenti due diversi partner con partita IVA %s e codice fiscale %s.
-	Type	Tipo
-	Type	Tipo
-	Type	Tipo
 	Type DDT	Tipo DdT
+	Type	Tipo
 	udm	um
 	Unit of measure	Unità di misura
 	Unit Price	Prezzo unitario
@@ -1051,61 +1177,69 @@ status	msgid	msgstr
 	Unknow country of %s %s %S	Nazione di %s %s %s sconosciuta 
 	Untaxed Amount	Importo imponibile
 	Untaxed Amount in Company Currency	Imponibile in valuta aziendale
-	Up to	Fino a
 	Update	Aggiornamento
 	Upper administration (Province	Unità amministrativa di livello superiore (provincia District or Federal State).
-	"Use ""."" (dot) to search with abbreviation"	Utilizza “.” (il punto) per le abbreviazioni
+	Up to	Fino a
+	Used by electronic invoice XML import. If filled in, generated bill lines will use this account when no other possible product is found	Usato nell'importazione XML della fattura elettronica. Se valorizzato, le righe fattura generate utilizzeranno questo prodotto in mancanza di altri disponibili
 	Used by electronic invoice XML import. If filled in, generated bill lines will use this account when no other possible product is found.	Usato nell'importazione XML della fattura elettronica. Se valorizzato, le righe fattura generate utilizzeranno questo prodotto in mancanza di altri disponibili.
-	User %s uploaded a new e-invoice file	L'utente %s ha caricato un nuovo file e-fattura
+	"Use ""."" (dot) to search with abbreviation"	Utilizza “.” (il punto) per le abbreviazioni
+	"Use ""."" (dot) to search with abbreviation"	Utilizza “.” (il punto) per le abbreviazioni
 	Username	Nome utente
+	User %s uploaded a new e-invoice file	L'utente %s ha caricato un nuovo file e-fattura
 	Users	Utenti
 	Validated	Confermato
 	VAT code	Codice IVA
 	VAT commitment	Dichiarazione IVA
-	VAT number %s of customer invoice is not the same of the current company	La partita IVA %s del cliente fattura non corrisponde a quella dell'azienda
+	VAT number and fiscal code are not set for %s	P:IVA e codice fiscale non impostati per %s
 	VAT number and fiscal code are not set for %s.	P:IVA e codice fiscale non impostati per %s.
+	VAT number	Partita IVA
 	VAT number:	Partita IVA:
+	VAT number %s of customer invoice is not the same of the current company	La partita IVA %s del cliente fattura non corrisponde a quella dell'azienda
 	VAT payability	Esigibilità IVA
-	VAT Rate	Aliquota IVA
 	VAT rate	Aliquota IVA
+	VAT Rate	Aliquota IVA
 	VAT Settlement	Liquidazione IVA
 	VAT Tax Rate	Aliquota IVA
-	Vendor	Fornitore
 	Vendor Credit Notes	Note credito fornitori
+	Vendor	Fornitore
 	Vendor Taxes	IVA da fornitori
-	View	Visualizza
 	View DdT	Vedi DdT
+	View	Visualizza
 	Virtual Stamp	Bollo virtuale
 	Volume	Volume
 	Warehouse	Magazzino
 	Warning	Attenzione
 	Warning!	Attenzione!
-	Watermark	Filigrana
 	Watermark expression	Espressione filigrana
+	Watermark	Filigrana
 	Watermark PDF	PDF filigrana
 	Waybill	DdT
 	Web Site	Sito web
 	Weight	Peso
 	Welfare Fund	Cassa previdenziale
-	Welfare Fund %s not present in your system.	Cassa previdenziale %s non presente nel sistema.
 	Welfare Fund Details	Dettagli cassa previdenziale
+	Welfare Fund is not defined	Cassa previdenziale non definita
 	Welfare Fund is not defined.	Cassa previdenziale non definita.
+	Welfare Fund %s not present in your system	Cassa previdenziale %s non presente nel sistema
+	Welfare Fund %s not present in your system.	Cassa previdenziale %s non presente nel sistema.
+	 will be sent	 saranno spediti
 	Withholding Agent	Sostituto d'imposta
 	Withholding Agent's Tax Return	Dichiarazione sostituto d'imposta
 	Wizard	Procedura guidata
 	Workflow	Flusso di lavoro
 	Xml Attachment	Allegato XML
 	XML contains tax %s. Product %s has tax %s. Using the XML one	Il file XML contiene l'imposta %s, il prodotto %s l'imposta %s. Verrà usata quella dell'XML.
-	You can either upload a file from your computer or copy/paste an internet link to your file.	È possibile caricare un file dal computer oppure fare copia/incolla di un collegamento Internet nel file.
-	You can only add one time each agent.	Si può aggiungere un solo agente per volta
-	You can select only one XML file to link.	È possibile selezionare solo un file XML da collegare.
-	You can't delete invoiced settlements.	 Non è possibile cancellare provvigioni fatturate.
-	Your company City is not set.	Città azienda non impostata.
-	Your company Country is not set.	Nazione azienda non impostata.
-	Your company Street is not set.	Indirizzo azienda non impostato.
-	Your company ZIP is not set.	CAP azienda non impostato
+	You can either upload a file from your computer or copy/paste an internet link to your file	È possibile caricare un file dal computer oppure fare copia/incolla di un collegamento Internet nel file
+	You can only add one time each agent	Si può aggiungere un solo agente per volta
+	You can select only one XML file to link	È possibile selezionare solo un file XML da collegare
+	You can't delete invoiced settlements	 Non è possibile cancellare provvigioni fatturate
+	Your company City is not set	Città azienda non impostata
+	Your company Country is not set	Nazione azienda non impostata
+	Your company Street is not set	Indirizzo azienda non impostato
+	Your company ZIP is not set	CAP azienda non impostato
 	Your download is ready	Il file scaricato è disponibile
 	Zeroincombenze CoA	PdC Zeroincombenze
 	ZIP Code	CAP
-	ZIP is not set for %s.	CAP non impostato per %s.
+	ZIP is not set for %s	CAP non impostato per %s
+	ZIP not set	CAP non impostato
 	ZIP not set.	CAP non impostato

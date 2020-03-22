@@ -1,3 +1,4 @@
+
 +---------------------------------+------------------------------------------+
 | |en|                            | |it|                                     |
 +---------------------------------+------------------------------------------+
@@ -9,6 +10,7 @@
 ::
 
     odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}} -U
+    venv_mgr amend /opt/odoo/VENV-{{branch}} -O {{branch}} -DI
     # Adjust following statements as per your system
     sudo systemctl restart odoo
 

@@ -31,10 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.9-Debian
-# version: 0.4.9-Debian
-# version: 0.4.9-Debian
-# version: 0.4.9-Debian
+# version: 0.4.10-Debian
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -189,6 +186,9 @@ check_lessc() {
     [ -z "$lv" ] && lv=0
     if [ $lv -lt 20000 -a -n "$alt_less" ]; then
       set_lessc $alt_less 20000
+    else
+      local x=$(date +"%Y-%m-%d %H:%M:%S,000")
+      echo "$x $$ DAEMON ? $0: $(which lessc) --version: $(lessc --version 2>/dev/null)">>$LOGFILE
     fi
 }
 
@@ -378,9 +378,9 @@ stop() {
         exit 1
     fi
     RETVAL=$?
-    local p=$(dirname ${DAEMON})
-    [ "$(basename $p)" == "odoo" ] && p=$(dirname $p)
-    [ -f $p/bin/activate ] && deactivate
+    # local p=$(dirname ${DAEMON})
+    # [ "$(basename $p)" == "odoo" ] && p=$(dirname $p)
+    # [ -f $p/bin/activate ] && deactivate
     return $RETVAL
 }
 

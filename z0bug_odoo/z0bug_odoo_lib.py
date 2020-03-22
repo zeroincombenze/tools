@@ -2,13 +2,13 @@
 # Copyright (C) 2018-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
-Base library for continous test of Odoo apps
-This module is Odoo version indipendent and may be used outside Odoo app (i.e.
+Base library for continuous test of Odoo apps
+This module is Odoo version independent and may be used outside Odoo app (i.e.
 with odoorc package).
 For this reason, this software does not contain functions with sql call, like
 search or browse.
 
-Funcionc with sql call are in test_common.py file.
+Functions with sql call are in test_common.py file.
 """
 
 from __future__ import print_function,unicode_literals
@@ -22,10 +22,13 @@ import csv
 # from zerobug import Z0BUG
 from os0 import os0
 
-__version__ = "0.1.0.9"
+__version__ = "0.1.0.10"
 
 
 class Z0bugOdoo(object):
+
+    def __init__(self, cls=None):
+        self.cls = cls
 
     def get_image_filename(self, xref):
         file_image = os.path.join(

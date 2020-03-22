@@ -1,3 +1,4 @@
+
 +---------------------------------+------------------------------------------+
 | |en|                            | |it|                                     |
 +---------------------------------+------------------------------------------+
@@ -22,7 +23,7 @@
     ./install_tools.sh -p
     source /opt/odoo/dev/activate_tools
     odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}}
-    sudo manage_odoo requirements -b {{branch}} -vsy -o /opt/odoo/{{branch}}
+    venv_mgr create /opt/odoo/VENV-{{branch}} -O {{branch}} -DI
 
 .. $if odoo_layer == 'module'
 From UI: go to:

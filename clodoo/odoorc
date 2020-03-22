@@ -76,7 +76,7 @@ REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wi
 "OCA/project-service,OCA/multi-company,"\
 "local/didotech_80,local/profiles,local/uncovered,local/mymodules,local/themes,local/woven_fabric,"\
 "local/zeroincombenze,local/cscs_addons,local/account_banking_cscs,"\
-"zeroincombenze/l10n-italy-supplemental,zeroincombenze/connector,OCA/social,OCA/event,"\
+"zeroincombenze/l10n-italy-supplemental,OCA/connector,OCA/social,OCA/event,"\
 "OCA/pylint-odoo,OCA/operating-unit,OCA/manufacture,OCA/survey,OCA/rma,OCA/queue,"\
 "OCA/e-commerce,OCA/delivery-carrier,OCA/vertical-education,"\
 "OCA/bank-statement-reconcile,OCA/vertical-isp,OCA/geospatial,"\

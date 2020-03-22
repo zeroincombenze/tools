@@ -26,7 +26,7 @@ else:
     sys.exit(0)
 
 
-__version__='0.1.0.9'
+__version__='0.1.0.10'
 
 
 class Z0bugBaseCase(test_common.BaseCase):
@@ -123,6 +123,9 @@ class Z0bugBaseCase(test_common.BaseCase):
             if isinstance(field, (list, tuple)) and len(field):
                 field = field[0]
             if not field:
+                del vals[name]
+            elif model == 'res.partner' and name == 'lang':
+                # Tests w/o italian language
                 del vals[name]
             elif (field.ttype == 'many2one' and
                   isinstance(vals[name], str) and

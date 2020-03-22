@@ -58,7 +58,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.0.14
+__version__=0.3.0.15
 
 
 STS_FAILED=1

@@ -23,7 +23,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.1.0.10"
+__version__ = "0.1.0.11"
 
 
 MAX_DEEP = 20

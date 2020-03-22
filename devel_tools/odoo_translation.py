@@ -8,8 +8,6 @@ Action may be:
 - Ignore
 """
 from __future__ import print_function, unicode_literals
-
-
 import os
 import time
 import re
@@ -28,7 +26,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.30"
+__version__ = "0.2.2.31"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -69,13 +67,13 @@ def load_default_dictionary(source):
 
     def term_with_punct(row, msgid, punct):
         if msgid[-1] == punct:
-            msg2 = msgid[:-1]
+            msg2 = os0.u(msgid[:-1])
             if row['msgstr'][-1] == punct:
                 des2 = os0.u(row['msgstr'][:-1])
             else:
                 des2 = os0.u(row['msgstr'])
         else:
-            msg2 = msgid + punct
+            msg2 = os0.u(msgid + punct)
             if row['msgstr'][-1] == punct:
                 des2 = os0.u(row['msgstr'])
             else:
@@ -84,8 +82,8 @@ def load_default_dictionary(source):
         TNL_ACTION[msg2] = 'D'
 
     def set_terms_n_punct(row, msgid):
-        if msgid == msgid[0].upper() + msgid[1:].lower():
-            msg2 = msgid.lower()
+        if msgid == '%s%s' % (msgid[0].upper(), msgid[1:].lower()):
+            msg2 = os0.u(msgid.lower())
             TNL_DICT[msg2] = os0.u(row['msgstr']).lower()
             TNL_ACTION[msg2] = 'D'
             for punct in (':', '.'):
@@ -112,14 +110,62 @@ def load_default_dictionary(source):
                 hdr_read = True
                 csv_obj.fieldnames = row['undef_name']
                 continue
-            msgid = os0.u(row['msgid'].strip())
-            TNL_DICT[msgid] = os0.u(row['msgstr'])
-            TNL_ACTION[msgid] = 'D'
-            set_terms_n_punct(row, msgid)
-            ctr += 1
+            if not row['status'] or row['status'] == ctx['module_name']:
+                msgid = os0.u(row['msgid'])
+                TNL_DICT[msgid] = os0.u(row['msgstr'])
+                if msgid == TNL_DICT[msgid]:
+                    continue
+                if (msgid[0] != ' ' and
+                        msgid[0] == TNL_DICT[msgid][0].lower() and
+                        msgid[1:] == TNL_DICT[msgid][1:]):
+                    continue
+                TNL_ACTION[msgid] = 'D'
+                if ctx['action'] and ctx['action'][0].upper() in (
+                        'D', 'P', '*'):
+                    TNL_ACTION[msgid] = ctx['action'][0].upper()
+                set_terms_n_punct(row, msgid)
+                ctr += 1
         if ctx['opt_verbose']:
             print(" ... Read %d records" % ctr)
     return ctr
+
+
+def save_new_dictionary(ctx):
+
+    def term_with_punct(TNL_DICT, msgid):
+        punct = msgid[-1]
+        msg2 = os0.b(msgid[:-1])
+        if TNL_DICT[msgid][-1] == punct:
+            des2 = os0.b(TNL_DICT[msgid][:-1])
+        else:
+            des2 = os0.b(TNL_DICT[msgid])
+        return os0.b(''), msg2, des2
+
+    dict_name = os.path.expanduser('~/odoo_default_tnl.csv')
+    fd = open(dict_name, 'w')
+    fd.write('status\tmsgid\tmsgstr\n')
+    prior_msgid = ''
+    for msgid in sorted(TNL_DICT.keys()):
+        msg_burst(msgid)
+        if msgid == TNL_DICT[msgid]:
+            continue
+        msg2 = '%s%s' % (msgid[0].upper(), msgid[1:].lower())
+        if msgid == msgid.lower() and msg2 in TNL_DICT:
+            continue
+        if (msgid.endswith('.') or
+                msgid.endswith(':')):
+            if msgid[0: -1] == prior_msgid:
+                continue
+            fd.write(b'%s\t%s\t%s\n' % (
+                term_with_punct(TNL_DICT, msgid)))
+            prior_msgid = msgid[0: -1]
+            continue
+        fd.write(b'%s\t%s\t%s\n' % (
+            b'', os0.b(msgid), os0.b(TNL_DICT[msgid])))
+        prior_msgid = msgid
+    fd.close()
+    if ctx['opt_verbose']:
+        print("New dictionary saved at %s" % dict_name)
 
 
 def load_dictionary_from_file(pofn):
@@ -360,20 +406,36 @@ def upgrade_db(ctx):
             except BaseException:
                 print("No DB %s found" % ctx['db_prefix'])
                 return
+        # ir.translation contains Odoo translation terms
+        # @src: original (english) term
+        # @source: evaluated field that seems a copy of src
+        # @value: translated term
+        # @name: is environment name; content may be:
+        #   - type model: model name,field name
+        #   - type code: source file name, format 'addons/MODULE_PATH'
+        #   - type selection: MODULE_PATH,field name
+        # @type: may be [code,constraint,model,selection,sql_constraint]
+        # @module: module which added term
+        # @state: may be [translated, to_translate]
+        # @res_id: id of termm means:
+        #   - type model: record id of model in name
+        #   - type code: linenumber in source code (in name)
+        # Report translations are in ir.ui.view model
+        #
         model = 'ir.translation'
-        clodoo.unlinkL8(
-            ctx, model, clodoo.searchL8(
-                ctx, model, [('lang', '=', 'it_IT'),
-                             ('name', 'in', ('ir.module.module,description'
-                                             'ir.module.module,shortdesc',
-                                             'ir.module.module,summary'))]))
+        # clodoo.unlinkL8(
+        #     ctx, model, clodoo.searchL8(
+        #         ctx, model, [('lang', '=', 'it_IT'),
+        #                      ('name', 'in', ('ir.module.module,description'
+        #                                      'ir.module.module,shortdesc',
+        #                                      'ir.module.module,summary'))]))
         for msgid in TNL_DICT:
             msg_burst(msgid)
             ids = clodoo.searchL8(ctx, model,
                                   [('lang', '=', 'it_IT'),
-                                   ('type', 'in', ('field', 'model',
-                                                   'report', 'help')),
+                                   ('type', '=', 'model'),
                                    ('src', '=', msgid),
+                                   ('module', '=', ctx['module_name']),
                                    ('value', '!=', TNL_DICT[msgid])])
             ctr = write_tnl(ctx, model, ids, msgid, ctr)
             ids = clodoo.searchL8(
@@ -386,6 +448,7 @@ def upgrade_db(ctx):
                                  'ir.module.module,shortdesc',
                                  'ir.module.module,summary',
                                  'ir.ui.menu,name',
+                                 'ir.ui.view,arch_db',
                                  )),
                  ('src', '=', msgid),
                  ('value', '!=', TNL_DICT[msgid])])
@@ -396,10 +459,48 @@ def upgrade_db(ctx):
             clodoo.act_install_language(ctx)
 
 
+def delete_translation(ctx):
+    dbname = ctx['db_prefix']
+    if ctx['opt_verbose']:
+        print("Delete translation from DB %s" % dbname)
+    version = ctx['branch']
+    xmlrpc_port = 8160 + int(version.split('.')[0])
+    ctx['svc_protocol'] = ''
+    db_found = False
+    try:
+        uid, ctx = clodoo.oerp_set_env(ctx=ctx,
+                                       db=dbname,
+                                       xmlrpc_port=xmlrpc_port,
+                                       oe_version=version)
+        db_found = True
+    except BaseException:
+        dbname = '%s%s' % (ctx['db_prefix'], version.split('.')[0])
+    if not db_found:
+        try:
+            uid, ctx = clodoo.oerp_set_env(ctx=ctx,
+                                           db=dbname,
+                                           xmlrpc_port=xmlrpc_port,
+                                           oe_version=version)
+            db_found = True
+        except BaseException:
+            print("No DB %s found" % ctx['db_prefix'])
+            return 1
+    model = 'ir.translation'
+    clodoo.unlinkL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [('lang', '=', 'it_IT'),
+                         ('module', '=', ctx['module_name'])]))
+    return 0
+
+
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Translate Odoo Package",
                                 "© 2018-2020 by SHS-AV s.r.l.",
                                 version=__version__)
+    parser.add_argument("-A", "--action",
+                        help="Action: Dict,Po,*",
+                        dest="action",
+                        metavar="name")
     parser.add_argument('-B', '--debug-template',
                         action='store_true',
                         dest='dbg_template')
@@ -412,6 +513,9 @@ if __name__ == "__main__":
                         dest="conf_fn",
                         metavar="file",
                         default='./clodoo.conf')
+    parser.add_argument('-D', '--delete-translation',
+                        action='store_true',
+                        dest='del_tnl')
     parser.add_argument("-d", "--dbname",
                         help="DB name",
                         dest="db_prefix",
@@ -433,9 +537,13 @@ if __name__ == "__main__":
     if not ctx['module_name']:
         print('*** Missing module name! Please, use -m switch !!!')
         sys.exit(1)
+    if ctx['del_tnl']:
+        sys.exit(delete_translation(ctx))
     sts = load_dictionary(ctx)
     if sts == 0:
         sts = parse_file(ctx)
     if sts == 0 and ctx['db_prefix']:
         sts = upgrade_db(ctx)
+    if sts == 0:
+        sts = save_new_dictionary(ctx)
     sys.exit(sts)
