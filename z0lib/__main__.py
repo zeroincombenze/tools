@@ -12,7 +12,7 @@ from zerobug import Z0BUG
 import z0librun
 
 
-__version__ = "0.2.8.7"
+__version__ = "0.2.8.8"
 STS_FAILED = 1
 STS_SUCCESS = 0
 

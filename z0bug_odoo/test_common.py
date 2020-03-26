@@ -60,7 +60,7 @@ class Z0bugBaseCase(test_common.BaseCase):
         """Write existent record"""
         if int(release.major_version.split('.')[0]) < 8:
             return self.registry(model).write(self.cr, self.uid, [id], values)
-        return self.env[model].search([('id', '=', id)]).write(values)
+        return self.env[model].browse(id).write(values)
 
     def write_ref(self, xref, values):
         """Browse and write existent record"""
@@ -81,33 +81,41 @@ class Z0bugBaseCase(test_common.BaseCase):
         return self.env[model].search(args)
 
     def ref_id(self, xref):
-        """Return reference id"""
+        """Return reference id. Do not crash if xref does not exist"""
         if int(release.major_version.split('.')[0]) < 8:
             if xref.startswith('base.state_it_'):
                 # 7.0 compatibility
                 try:
-                    return ('l10n_it_base.it_%s' % xref[14:].lower())
+                    return self.ref('l10n_it_base.it_%s' % xref[14:].upper())
                 except BaseException:
                     pass
-            return self.ref(xref)
-        return self.env.ref(xref).id
+            try:
+                return self.ref(xref)
+            except BaseException:
+                return False
+        try:
+            return self.env.ref(xref).id
+        except BaseException:
+            return False
 
-    def ref(self, xref):
-        """Return reference record"""
+    def ref_rec(self, xref):
+        """Return reference record. Do not crash if xref does not exist"""
         if int(release.major_version.split('.')[0]) < 8:
-            xrefs = xref.split('.')
-            if len(xrefs) == 2:
-                model = 'ir.model.data'
-                rec = self.search_rec(model,
-                                      [('module', '=', xrefs[0]),
-                                       ('name', '=', xrefs[1])])
-                if not rec and xref.startswith('base.state_it_'):
-                    rec = self.search_rec(
-                        [model,
-                         ('module', '=', 'base'),
-                         ('name', '=', 'it_%s' % xref[1][14:].lower())])
-                return rec
-        return self.env.ref(xref)
+            if xref.startswith('base.state_it_'):
+                # 7.0 compatibility
+                try:
+                    return self.browse_ref(
+                        'l10n_it_base.it_%s' % xref[14:].upper())
+                except BaseException:
+                    pass
+            try:
+                return self.browse_ref(xref)
+            except BaseException:
+                return False
+        try:
+            return self.env.ref(xref)
+        except BaseException:
+            return False
 
     def settle_fields(self, model, vals, how_id=None):
         for name in vals.copy():
@@ -124,7 +132,7 @@ class Z0bugBaseCase(test_common.BaseCase):
                 field = field[0]
             if not field:
                 del vals[name]
-            elif model == 'res.partner' and name == 'lang':
+            elif model == 'res.partner' and name in ('lang', 'state_id'):
                 # Tests w/o italian language
                 del vals[name]
             elif (field.ttype == 'many2one' and
@@ -143,6 +151,8 @@ class Z0bugBaseCase(test_common.BaseCase):
     def build_model_data(self, model, xrefs):
         if not isinstance(xrefs, (list, tuple)):
             xrefs = [xrefs]
+        # import pdb
+        # pdb.set_trace()
         for xref in sorted(xrefs):
             vals = self.get_ref_value(model, xref)
             if not vals:
@@ -175,7 +185,7 @@ class Z0bugBaseCase(test_common.BaseCase):
                 raise KeyError('Invalid xref %s for model %s!' % (xref, model))
 
     def set_test_company(self, xref=None):
-        '''Set company to test'''
+        """Set company to test"""
         if not xref:
             for xref1, model in (('z0bug.partner_mycompany', 'res.partner'),
                                  ('z0bug.mycompany', 'res.company')):
@@ -281,6 +291,9 @@ class TransactionCase(test_common.TransactionCase, Z0bugBaseCase):
 
     def ref_id(self, xref):
         return Z0bugBaseCase.ref_id(self, xref)
+
+    def ref_rec(self, xref):
+        return Z0bugBaseCase.ref_rec(self, xref)
 
     def settle_fields(self, model, vals, how_id=None):
         return Z0bugBaseCase.settle_fields(self, model, vals, how_id)
