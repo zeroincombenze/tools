@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=0.2.2.26
+# __version__=0.2.2.27
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -14,6 +14,7 @@ cache:
 
 python:
   - "2.7"
+  - "3.7"
 
 virtualenv:
   system_site_packages: true
@@ -70,4 +71,4 @@ after_success:
   - cd ${MODULE_PATH}; travis_after_tests_success ${OPTS}
 
 after_failure:
-  - cat ${HOME}/odoo_10-0.log
+    - cat $:{HOME}/odoo_10-0.log

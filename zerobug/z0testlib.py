@@ -148,7 +148,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.14.15"
+__version__ = "0.2.14.16"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1581,13 +1581,13 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
                 odoo_path, odoo_path, remote))
 
     def git_clone(self, remote, reponame, branch, odoo_path, force=None):
-        if force or os.environ['TRAVIS'] == 'true':
+        if force or os.environ.get('TRAVIS') == 'true':
             self.real_git_clone(remote, reponame, branch, odoo_path)
         elif not os.path.isdir(odoo_path):
             majver = branch.split('.')[0]
             if remote == 'OCA':
                 src_rep_path = os.path.join(
-                    os.environ['TRAVIS_SAVED_HOME'],
+                    os.environ.get('TRAVIS_SAVED_HOME', os.environ['HOME']),
                     '%s%s' % (remote.lower(), majver))
                 if not os.path.isdir(src_rep_path):
                     self.real_git_clone(remote, reponame, branch, odoo_path)
@@ -1596,7 +1596,7 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
                     src_rep_path = None
             else:
                 src_rep_path = os.path.join(
-                    os.environ['TRAVIS_SAVED_HOME'],
+                    os.environ.get('TRAVIS_SAVED_HOME', os.environ['HOME']),
                     branch)
             if reponame == 'OCB':
                 for nm in ('addons', 'odoo', 'openerp'):

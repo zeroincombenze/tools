@@ -5,6 +5,11 @@ testing & debug library
 """
 
 from __future__ import print_function,unicode_literals
+from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+# from builtins import *str
+# from builtins import **
 import os
 import sys
 import subprocess
@@ -14,9 +19,10 @@ try:
     Z0BUG = z0testlib.Z0test()
 except ImportError:
     from zerobug import Z0BUG
+standard_library.install_aliases()
 
 
-__version__ = '0.2.14.15'
+__version__ = '0.2.14.16'
 STS_FAILED = 1
 STS_SUCCESS = 0
 
@@ -48,7 +54,7 @@ if __name__ == "__main__":
             setup_file = '../setup.py'
         with open(setup_file, 'r') as fd:
             do_copy = False
-            content = unicode(fd.read(), 'utf-8')
+            content = str(fd.read(), 'utf-8')
             for line in content.split('\n'):
                 if line.find('version=') >= 0:
                     version = line.split('=')[1].strip()

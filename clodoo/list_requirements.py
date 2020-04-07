@@ -11,7 +11,7 @@ try:
 except ImportError:
     import z0lib
 
-__version__ = '0.3.8.71'
+__version__ = '0.3.8.73'
 
 #
 # known incompantibilities:
@@ -43,6 +43,7 @@ REQVERSION = {
     'isort': {'0': '==4.3.4'},                           # Version by test pkgs
     'jcconv': {'7.0': '==0.2.3'},
     'Jinja2': {'7.0': '==2.7.3', '9.0': '==2.8.1', '10.0': '==2.10.1'},
+    'lessc': {'0': '==3.0.4'},
     'lxml': {'7.0': '>=3.4.1', '0': '==4.2.3'},
     'Mako':  {'7.0': '==1.0.1', '8.0': '==1.0.4'},
     'MarkupSafe': {'7.0': '>=0.23'},                    # Tested 1.0
@@ -53,10 +54,10 @@ REQVERSION = {
                '12.0': '==6.1.0', '0': '==4.0.0'},        # With py3.7 -> 6.1.0
     'psutil': {'7.0': '==2.2.0', '8.0': '==4.3.1'},
     'psycogreen': {'7.0': '==1.0'},
-    'psycopg2-binary': {'7.0': '>=2.0.0',
+    'psycopg2-binary': {# '7.0': '>=2.0.0',
                         # '8.0': '==2.5.4',
-                        # '10.0': '==2.6.2',
-                        '0': '==2.7.4'},
+                        '12.0': '>=2.8.3',
+                        '0': '>=2.7.4'},
     'pycodestyle': {'0': '==2.3.1'},
     'pydot': {'7.0': '==1.0.2', '8.0': '==1.2.3'},
     'Pygments': {'7.0': '==2.0.2', '0': '==2.2'},        # Version by test pkgs
@@ -96,7 +97,7 @@ REQVERSION = {
     'vatnumber': {'7.0': '==1.2'},
     'vobject': {'7.0': '==0.9.3'},                      # Tested 0.9.5
     'Werkzeug': {'0': '==0.11.11', '7.0': '==0.9.6', '10.0': '==0.11.11'},
-    'wkhtmltopdf': {'7.0': '==0.12.1', '10.0': '==0.12.4'},
+    'wkhtmltopdf': {'7.0': '==0.12.1', '10.0': '==0.12.4', '12.0': '==0.12.5'},
     'wsgiref': {'7.0': '==0.1.2'},
     'XlsxWriter': {'7.0': '==0.9.3'},                   # Tested 1.0.2
     'xlrd': {'7.0': '==1.0.0'},
@@ -225,6 +226,8 @@ PIP_BASE_PACKAGES = ['Babel',
                      ]
 PIP3_BASE_PACKAGES = []
 BIN_BASE_PACKAGES = ['curl',
+                     'lessc',
+                     'less-plugin-clean-css',
                      'nodejs',
                      'npm',
                      'wkhtmltopdf',
@@ -411,12 +414,26 @@ def add_package(deps_list, kw, item,
                                                 with_version=with_version,
                                                 odoo_ver=odoo_ver,
                                                 pyver=pyver)
+        elif kw == 'bin':
+            if with_version and full_item:
+                kw = 'bin2'
+                deps_list[kw].append(full_item)
+            else:
+                kw = 'bin1'
+                deps_list[kw].append(item)
     elif kw == 'python' and full_item:
         if item in deps_list['python1']:
-            i = deps_list['python1'].index(item)
-            del deps_list['python1'][i]
+            ii = deps_list['python1'].index(item)
+            del deps_list['python1'][ii]
             deps_list['python2'].append(full_item)
         elif not defver and full_item not in deps_list['python2']:
+            sys.stderr.write('Version mismatch: package %s\n' % full_item)
+    elif kw == 'bin' and full_item:
+        if item in deps_list['bin1']:
+            ii = deps_list['bin1'].index(item)
+            del deps_list['bin1'][ii]
+            deps_list['bin2'].append(full_item)
+        elif not defver and full_item not in deps_list['bin2']:
             sys.stderr.write('Version mismatch: package %s\n' % full_item)
     return deps_list
 
@@ -613,7 +630,8 @@ def main():
                                                reqfiles,
                                                files)
     deps_list = {}
-    for kw in ('python', 'python1', 'python2', 'bin', 'modules'):
+    for kw in ('python', 'python1', 'python2', 'bin', 'bin1', 'bin2',
+               'modules'):
         deps_list[kw] = []
     for reqfile in reqfiles:
         requirements = parse_requirements(
@@ -640,7 +658,7 @@ def main():
                                           odoo_ver=ctx['odoo_ver'],
                                           pyver=ctx['pyver'])
         deps_list = package_from_list(deps_list, 'bin', BIN_BASE_PACKAGES,
-                                      with_version=False,
+                                      with_version=ctx['with_version'],
                                       odoo_ver=ctx['odoo_ver'],
                                       pyver=ctx['pyver'])
     if ctx['test_pkgs']:
@@ -649,7 +667,7 @@ def main():
                                       odoo_ver=ctx['odoo_ver'],
                                       pyver=ctx['pyver'])
         deps_list = package_from_list(deps_list, 'bin', BIN_TEST_PACKAGES,
-                                      with_version=False,
+                                      with_version=ctx['with_version'],
                                       odoo_ver=ctx['odoo_ver'],
                                       pyver=ctx['pyver'])
     if ctx['rpc_pkgs']:
@@ -664,6 +682,12 @@ def main():
     for ii, pkg in enumerate(deps_list['python']):
         if pkg.find('>') >= 0 or pkg.find('<') >= 0:
             deps_list['python'][ii] = "'%s'" % pkg
+    deps_list['bin'] = sorted(
+        deps_list['bin2'], key=lambda s: s.lower()) + sorted(
+        deps_list['bin1'], key=lambda s: s.lower())
+    for ii, pkg in enumerate(deps_list['bin']):
+        if pkg.find('>') >= 0 or pkg.find('<') >= 0:
+            deps_list['bin'][ii] = "'%s'" % pkg
     for item in DEPS:
         if 'python' in DEPS[item]:
             if isinstance(DEPS[item]['python'], (tuple, list)):

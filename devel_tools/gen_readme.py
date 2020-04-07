@@ -74,6 +74,13 @@ xml_schema
 """
 
 from __future__ import print_function, unicode_literals
+from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+# from builtins import str
+# from builtins import range
+from past.builtins import basestring
+# from builtins import *
 import ast
 import os
 import re
@@ -91,9 +98,10 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 # import pdb
+standard_library.install_aliases()
 
 
-__version__ = "0.2.2.31"
+__version__ = "0.2.2.33"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -317,7 +325,7 @@ def get_default_avaiable_addons(ctx):
     text += '------------------------------------\n'
     text += '\n'
     lol = 0
-    for pkg in ctx['addons_info'].keys():
+    for pkg in list(ctx['addons_info'].keys()):
         if len(pkg) > lol:
             lol = len(pkg)
     if lol > 36:
@@ -392,6 +400,7 @@ def tohtml(text, state=None):
     state['html_state'] = state.get('html_state', {})
     text = text.replace('<', '&lt;').replace('>', '&gt;')
     text = text.replace('\a', '<').replace('\b', '>')
+    text = text.replace(' & ', ' &amp; ')
 
     for token in DEFINED_GRYMB_SYMBOLS:
         tok = '|' + token + '|'
@@ -1097,7 +1106,7 @@ def setup(**kwargs):
 def read_manifest_file(manifest_path):
     try:
         manifest = ast.literal_eval(open(manifest_path).read())
-    except IOError, ImportError:
+    except (ImportError, IOError):
         raise Exception('Wrong manifest file %s' % manifest_path)
     return unicodes(manifest)
 
@@ -1323,7 +1332,7 @@ def manifest_contents(ctx):
     for item in MANIFEST_ITEMS:
         if item in ctx['manifest']:
             target += manifest_item(ctx, item)
-    for item in ctx['manifest'].keys():
+    for item in list(ctx['manifest'].keys()):
         if item != 'description' and item not in MANIFEST_ITEMS:
             target += manifest_item(ctx, item)
     if ctx['odoo_majver'] < 8:
@@ -1358,7 +1367,7 @@ def index_html_content(ctx, source):
         except SyntaxError as e:
             print('***** Error %s *****' % e)
             target += section
-    for t in RST2HTML.keys():
+    for t in list(RST2HTML.keys()):
         target = target.replace(t, RST2HTML[t])
     return target
 

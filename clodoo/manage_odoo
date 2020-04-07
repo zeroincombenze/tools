@@ -27,7 +27,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.71
+__version__=0.3.8.73
 
 
 explore() {

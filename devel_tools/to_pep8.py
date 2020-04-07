@@ -71,7 +71,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.2.31"
+__version__ = "0.2.2.33"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0')
 

@@ -2922,6 +2922,11 @@ def test_synchro_vg7(ctx):
     ctx['ctr'] = 0
 
     def init_test(ctx, company_id):
+        print('This test requires:')
+        print('1. Module connector_vg7 installed')
+        print('2. Partners & product of test environment (mk_test_env)')
+        print('3. Product of bank costs configured')
+        raw_input('Requirements are satisfied?')
         # Log level debug
         clodoo.executeL8(ctx,
                          'ir.model.synchro.cache',
@@ -4133,7 +4138,7 @@ def test_synchro_vg7(ctx):
                 raise IOError('!!Invalid # of details!')
             ctx['ctr'] += 1
         if rec.payment_term_id != rec.partner_id.property_payment_term_id:
-            raise IOError('!!Invalid payment term!')
+            raise IOError('!!Invalid payment term (default value)!')
         ctx['ctr'] += 1
         return vg7_id
 
@@ -4378,6 +4383,14 @@ def test_synchro_vg7(ctx):
 
     # Interactive test
 
+    # model = 'res.partner.bank'
+    ext_model = 'bank'
+    vals = {
+        'id': 123,
+        'description': 'IT01A3456712345001234567890'
+    }
+    write_file_2_pull(ext_model, vals)
+
     model = 'res.partner'
     ext_model = 'customers'
     vg7_id = 7
@@ -4393,13 +4406,16 @@ def test_synchro_vg7(ctx):
         'email': '',
         'piva': '',
         'cf': '',
-        'telephone': '+39 555 999999'
+        'telephone': '+39 555 999999',
+        'bank_id': 123,
     }
     write_file_2_pull(ext_model, vals)
     print('Go to web page, menù customer, partner "AAA"')
     print('then click on synchronize button')
     dummy = raw_input('Did you synchronize %s record (Yes,No)? ' % ext_model)
     if not dummy.startswith('n') and not dummy.startswith('N'):
+        id = get_id_from_vg7id(ctx, 'res.partner.bank', 123, name='vg7_id')
+        store_id(ctx, 'res.partner.bank', id, 123)
         check_partner(
             ctx, get_id_from_vg7id(ctx, model, vg7_id), jacket_vals(vals))
 

@@ -21,7 +21,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'z0bug_odoo'
-copyright = '2019, Antonio Maria Vigliotti'
+copyright = '2019-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
@@ -40,7 +40,9 @@ release = '0.1.0.10'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
+    'sphinx_rtd_theme',
+    'sphinx.ext.todo',
+    'sphinx.ext.githubpages',
 ]
 
 
@@ -82,7 +84,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'acknowledges*']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+# pygments_style = None
+pygments_style = 'sphinx'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -92,27 +95,29 @@ pygments_style = None
 #
 # on_rtd is whether we are on readthedocs.org,
 # this line of code grabbed from docs.readthedocs.org
-#     html_theme = 'master'
+# html_theme = 'sphinx_rtd_theme'
+# html_theme = 'python_docs_theme'
+html_theme = 'nature'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
-    'canonical_url': '',
+    # 'canonical_url': '',
     # 'analytics_id': 'UA-XXXXXXX-1',
-    # 'logo_only': False,
+    ## 'logo_only': True,
     # 'display_version': True,
-    # 'prev_next_buttons_location': 'bottom',
+    ## 'prev_next_buttons_location': 'top',
     # 'style_external_links': False,
     # 'vcs_pageview_mode': '',
-    # 'style_nav_header_background': 'white',
+    ## 'style_nav_header_background': '#d0d0d0',
     # Toc options
     # 'collapse_navigation': True,
     # 'sticky_navigation': True,
     # 'navigation_depth': 4,
     # 'includehidden': True,
-    # 'titles_only': False
+    # 'titles_only': False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -129,3 +134,4 @@ html_static_path = ['_static']
 # 'searchbox.html'].
 #
 # html_sidebars = {}
+html_logo = 'logozero_180x46.png'

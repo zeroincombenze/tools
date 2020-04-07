@@ -21,13 +21,13 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'zerobug'
-copyright = '2019, Antonio Maria Vigliotti'
+copyright = '2019-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '0.2.14.15'
+version = '0.2.14.16'
 # The full version, including alpha/beta/rc tags
-release = '0.2.14.15'
+release = '0.2.14.16'
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,7 +40,9 @@ release = '0.2.14.15'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
+    'sphinx_rtd_theme',
+    'sphinx.ext.todo',
+    'sphinx.ext.githubpages',
 ]
 
 
@@ -66,10 +68,24 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
+                    'description*', 'descrizione*', 'features*',
+                    'oca_diff*', 'certifications*', 'prerequisites*',
+                    'installation*', 'configuration*', 'upgrade*',
+                    'support*', 'usage*', 'maintenance*',
+                    'troubleshooting*', 'known_issues*',
+                    'proposals_for_enhancement*', 'history*', 'faq*',
+                    'sponsor*', 'copyright_notes*', 'avaiable_addons*',
+                    'contact_us*',
+                    '__init__*', 'name*', 'summary*', 'sommario*',
+                    'maturity*', 'module_name*', 'repos_name*',
+                    'today*',
+                    'authors*', 'contributors*', 'translators*',
+                    'acknowledges*']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+# pygments_style = None
+pygments_style = 'sphinx'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -79,27 +95,29 @@ pygments_style = None
 #
 # on_rtd is whether we are on readthedocs.org,
 # this line of code grabbed from docs.readthedocs.org
-#     html_theme = 'master'
+# html_theme = 'sphinx_rtd_theme'
+# html_theme = 'python_docs_theme'
+html_theme = 'nature'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
-    'canonical_url': '',
+    # 'canonical_url': '',
     # 'analytics_id': 'UA-XXXXXXX-1',
-    # 'logo_only': False,
+    ## 'logo_only': True,
     # 'display_version': True,
-    # 'prev_next_buttons_location': 'bottom',
+    ## 'prev_next_buttons_location': 'top',
     # 'style_external_links': False,
     # 'vcs_pageview_mode': '',
-    # 'style_nav_header_background': 'white',
+    ## 'style_nav_header_background': '#d0d0d0',
     # Toc options
     # 'collapse_navigation': True,
     # 'sticky_navigation': True,
     # 'navigation_depth': 4,
     # 'includehidden': True,
-    # 'titles_only': False
+    # 'titles_only': False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -116,16 +134,4 @@ html_static_path = ['_static']
 # 'searchbox.html'].
 #
 # html_sidebars = {}
-exclude_patterns = ['description*', 'descrizione*', 'features*',
-                    'oca_diff*', 'certifications*', 'prerequisites*',
-                    'installation*', 'configuration*', 'upgrade*',
-                    'support*', 'usage*', 'maintenance*',
-                    'troubleshooting*', 'known_issues*',
-                    'proposals_for_enhancement*', 'history*', 'faq*',
-                    'sponsor*', 'copyright_notes*', 'avaiable_addons*',
-                    'contact_us*',
-                    '__init__*', 'name*', 'summary*', 'sommario*',
-                    'maturity*', 'module_name*', 'repos_name*',
-                    'today*',
-                    'authors*', 'contributors*', 'translators*',
-                    'acknowledges*']
+html_logo = 'logozero_180x46.png'
