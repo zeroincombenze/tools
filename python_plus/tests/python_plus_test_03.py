@@ -18,7 +18,7 @@ MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.1.3.3"
+__version__ = "0.1.3.4"
 
 
 def version():
@@ -40,6 +40,12 @@ class Test():
                                  "%s" % cmd,
                                  True,
                                  os.path.isdir(venv_dir))
+        for nm in ('bin', 'lib', 'include'):
+            tgtdir = os.path.join(venv_dir, nm)
+            sts += self.Z.test_result(z0ctx,
+                                      "Check for %s" % tgtdir,
+                                      True,
+                                      os.path.isdir(tgtdir))
         #
         if os.path.isdir(venv_dir):
             shutil.rmtree(venv_dir)

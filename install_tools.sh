@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
-# __version__=0.2.2.26
+# __version__=0.2.2.28
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
-    echo "$THIS [-h][-p][-q]"
+    echo "$THIS [-h][-o][-p][-P][-q][-S][-v]"
     echo "  -h  this help"
-    echo "  -p  mkdir $HOME/dev if not exists"
+    echo "  -o  compatibility old mode (exec dir in $HOME/dev)"
+    echo "  -p  mkdir $HOME/devel if does not exist"
+    echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
     echo "  -S  store sitecustomize.py in python path"
     echo "  -v  more verbose"
     exit 0
 fi
 
-RFLIST__travis_emulator="dist_pkg gen_addons_table.py please please.man please.py prjdiff replica.sh travis travisrc vfcp vfdiff wok_doc wok_doc.py"
-RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script generate_all_tnl gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py topep8 topep8.py to_oca.2p8 to_oia.2p8 to_pep8.2p8 to_pep8.py"
+RFLIST__travis_emulator="gen_addons_table.py prjdiff replica.sh travis travisrc vfcp vfdiff wok_doc wok_doc.py"
+RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8 topep8.py to_oca.2p8 to_oia.2p8 to_pep8.2p8 to_pep8.py"
 RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
@@ -25,16 +27,21 @@ RFLIST__tools="odoo_default_tnl.csv templates"
 RFLIST__python_plus="venv_mgr venv_mgr.man"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score=odoo_shell.py
-MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|gen_readme.py|makepo_it.py|odoo_translation.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py)"
+MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py)"
 FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh set_odoover_confn z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
-[ -d $HOME/tools ] && SRCPATH=$HOME/tools
-[ -z "$SRCPATH" -a -d $TDIR/../tools ] && SRCPATH=$(readlink -f $TDIR/../tools)
-[[ ! -d $HOME/dev && -n "$SRCPATH" && $1 =~ -.*p ]] && mkdir -p $HOME/dev
-[ -d $HOME/dev ] && DSTPATH=$HOME/dev
+[[ -d $HOME/tools ]] && SRCPATH=$HOME/tools
+[[ -z "$SRCPATH" && -d $TDIR/../tools ]] && SRCPATH=$(readlink -f $TDIR/../tools)
+[[ ! $1 =~ -.*o  && ! -d $HOME/devel && -n "$SRCPATH" && $1 =~ -.*p ]] && mkdir -p $HOME/devel
+[[ $1 =~ -.*o  && ! -d $HOME/dev && -n "$SRCPATH" && $1 =~ -.*p ]] && mkdir -p $HOME/dev
+[[ ! $1 =~ -.*o  && -d $HOME/devel ]] && DSTPATH=$HOME/devel
+[[ $1 =~ -.*o  && -d $HOME/dev ]] && DSTPATH=$HOME/dev
 if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
     echo "Invalid environment"
+    [[ -d $HOME/dev ]] && echo "perhaps you can use -o switch"
+    echo ""
+    $0 -h
     exit 1
 fi
 find $SRCPATH -name "*.pyc" -delete
@@ -112,26 +119,31 @@ echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PA
 [ -n "$PLEASE_CMDS" ] && echo "complete -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
 . $DSTPATH/activate_tools
 if [[ $1 =~ -.*S ]]; then
-    if [ -f $HOME/dev/sitecustomize.py ]; then
+    [[ ! $1 =~ -.*o  ]] && SITECUSTOM=$HOME/devel/sitecustomize.py
+    [[ $1 =~ -.*o  ]] && SITECUSTOM=$HOME/dev/sitecustomize.py
+    if [ -f SITECUSTOM ]; then
         PYLIB=$(dirname $(pip --version|grep -Eo "from [^ ]+"|awk '{print $2}'))
         if [ -n "$PYLIB" ]; then
             if [ -f $PYLIB/sitecustomize.py ]; then
                 if grep -q "import sys" $PYLIB/sitecustomize.py; then
-                    [[ ! $1 =~ -.*q ]] && echo "\$ tail $HOME/dev/sitecustomize.py -n -1 >> $PYLIB/sitecustomize.py"
-                    tail $HOME/dev/sitecustomize.py -n -1 >> $PYLIB/sitecustomize.py
+                    [[ ! $1 =~ -.*q ]] && echo "\$ tail $SITECUSTOM -n -1 >> $PYLIB/sitecustomize.py"
+                    tail $SITECUSTOM -n -1 >> $SITECUSTOM
                 else
-                    [[ ! $1 =~ -.*q ]] && echo "\$ cat $HOME/dev/sitecustomize.py >> $PYLIB/sitecustomize.py"
-                    cat $HOME/dev/sitecustomize.py >> $PYLIB/sitecustomize.py
+                    [[ ! $1 =~ -.*q ]] && echo "\$ cat $SITECUSTOM >> $PYLIB/sitecustomize.py"
+                    cat $SITECUSTOM >> $PYLIB/sitecustomize.py
                 fi
             else
-                [[ ! $1 =~ -.*q ]] && echo "\$ cp $HOME/dev/sitecustomize.py $PYLIB"
-                cp $HOME/dev/sitecustomize.py $PYLIB
+                [[ ! $1 =~ -.*q ]] && echo "\$ cp $SITECUSTOM $PYLIB"
+                cp $SITECUSTOM $PYLIB
             fi
         fi
     fi
-elif [[ ! $1 =~ -.*q ]]; then
+elif [[ ! $1 =~ -.*q && ! $1 =~ -.*P ]]; then
     echo "-----------------------------------------------------------"
     echo "Please type and add following statements in your login file"
     echo ". $DSTPATH/activate_tools"
     echo "-----------------------------------------------------------"
+fi
+if [[ ! $1 =~ -.*P ]]; then
+    $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "S|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
 fi

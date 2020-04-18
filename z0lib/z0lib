@@ -5,10 +5,15 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -18,7 +23,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.2.8.8
+__version__=0.2.8
 
 
 ##############################################################################
@@ -63,7 +68,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "z0lib"\
-  "© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 

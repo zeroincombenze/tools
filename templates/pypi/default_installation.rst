@@ -17,4 +17,4 @@ Current version via Git
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
-    source /opt/odoo/dev/activate_tools
+    source /opt/odoo/devel/activate_tools

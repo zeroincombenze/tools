@@ -36,7 +36,6 @@ Area managed:
 @author: Antonio M. Vigliotti antoniomaria.vigliotti@gmail.com
 """
 
-from __future__ import print_function, unicode_literals
 # import pdb
 import os
 import argparse
@@ -62,7 +61,7 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "0.2.8.8"
+__version__ = "0.2.8"
 
 
 class CountAction(argparse.Action):
@@ -82,7 +81,7 @@ class CountAction(argparse.Action):
             help=help)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        new_count = self.dest if isinstance(self.dest, int) else 0
+        new_count = argparse._ensure_value(namespace, self.dest, 0)
         if option_string != '-q':
             new_count += 1
         setattr(namespace, self.dest, new_count)

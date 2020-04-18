@@ -24,11 +24,31 @@ Certifications
 
 {{certifications}}
 .. $fi
+.. $if defined configuration
+
+|
+
+Configuration
+-------------
+
+{{configuration}}
+.. $fi
+.. $if defined usage
+
+|
+
+Usage
+=====
+
+{{usage}}
+
+.. $fi
+
 |
 |
 
-Quick start
-===========
+Getting started
+===============
 
 .. $if defined prerequisites
 
@@ -46,18 +66,7 @@ Installation
 
 {{installation}}
 .. $fi
-.. $if defined configuration
-
-|
-
-Configuration
--------------
-
-{{configuration}}
-.. $fi
 .. $if defined upgrade
-
-|
 
 Upgrade
 -------
@@ -66,35 +75,21 @@ Upgrade
 .. $fi
 .. $if defined support
 
-|
-
 Support
 -------
 
 {{support}}
 .. $fi
-.. $if defined usage
-
-|
-
-Usage
-=====
-
-{{usage}}
-
-.. $fi
+.. $if defined maintenance
 |
 |
 
 Get involved
 ============
-.. $if defined maintenance
 
 {{maintenance}}
 .. $fi
 .. $if defined troubleshooting
-
-|
 
 Troubleshooting
 ---------------
@@ -102,8 +97,6 @@ Troubleshooting
 {{troubleshooting}}
 .. $fi
 .. $if defined known_issues
-
-|
 
 Known issues
 ------------
@@ -119,8 +112,8 @@ Proposals for enhancement
 .. $fi
 .. $if defined history
 
-ChangeLog History
------------------
+History
+-------
 
 {{history}}
 .. $fi

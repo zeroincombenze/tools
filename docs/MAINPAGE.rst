@@ -48,9 +48,6 @@ Sparse python and bash source code
 Getting started
 ===============
 
-|Try Me|
-
-
 |
 
 Installation

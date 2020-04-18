@@ -12,19 +12,19 @@ Action is one of:
 .br
 * help
 .br
-* amend [OPTIONS] SRC_VENV
+* amend [OPTIONS] [SRC_VENV]
 .br
-* check [OPTIONS] SRC_VENV
+* check [OPTIONS] [SRC_VENV]
 .br
 * cp [OPTIONS] SRC_VENV TGT_ENV
 .br
 * create -p PYVER [OPTIONS] [VENV]
 .br
-* exec
+* exec [OPTIONS] [VENV] CMD
 .br
-* info
+* info [OPTIONS] [VENV] PKG
 .br
-* install
+* install [OPTIONS] [VENV] PKG
 .br
 * merge [OPTIONS] SRC_VENV TGT_ENV
 .br
@@ -36,7 +36,13 @@ Action is one of:
 .br
 * reset [OPTIONS] [VENV]
 .P
-\fBcheck\fR [OPTIONS] SRC_VENV
+\fBamend\fR [OPTIONS] [SRC_VENV]
+.RS
+Amend package versions against requirements.
+May used after 'create' or 'reset' when requirements are changed.
+.RE
+.P
+\fBcheck\fR [OPTIONS] [SRC_VENV]
 .RS
 Compare package versions against requirements.
 May used after 'create' or 'reset' to check virtual environment consistency.
@@ -44,8 +50,8 @@ May used after 'create' or 'reset' to check virtual environment consistency.
 .P
 \fBcp\fR [OPTIONS] SRC_VENV TGT_ENV
 .RS
-Copy SOURCE environment directory to TGT_ENV, like the bash command 'cp' setting relative path inside virtual
-environment to correct the new directory name.
+Copy SOURCE environment directory to TGT_ENV, like the bash command 'cp' and set relative path inside virtual
+environment to aim the new directory name.
 .RE
 .P
 \fBcreate\fR -p PYVER [OPTIONS] VENV
@@ -53,17 +59,46 @@ environment to correct the new directory name.
 Create a new virtual environment directory VENV like virtualenv command but with some nice features.
 Switch -p declare which python version will be used to create new environment.
 .br
-This action can install various python packages to create ready to use environment directory.
+This action can install various python packages to create a ready to use environment directory.
 .br
 See -I -D -O -r switches to furthermore information.
 .RE
+.P
+\fBexec\fR [OPTIONS] [SRC_VENV] CMD ...
+.RS
+Execute a command in virtual environment. Enclose command by quotes.
+.RE
+.P
+\fBinfo\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Show information about pypi package if installed in virtual environment
+.RE
+.P
+\fBinstall\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Install pypi package or bin package into virtual environment.
+.br
+Warning! currently just 2 packages can be installed: wkhtmltopdf and lessc
+.RE
 .SH OPTIONS
+.TP
+.BR \-a
+Declare binary packages to install into virtual environment. Currently just 2 packages can be installed:
+.br
+wkhtmltopdf
+.br
+lessc
+.br
+Any other binary package must be installed by os installer (apt-get, dnf, yum, etc.)
 .TP
 .BR \-D
 With create or reset action, install or upgrade development packages.
 .TP
 .BR \-I
 Run isolated mode, without accessing system packages.
+.TP
+.BR \-O
+install pypi required by odoo ver (create or reset)
 .TP
 .TP
 .SH EXAMPLES

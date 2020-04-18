@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.3.3
+__version__=0.1.3.4
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -41,17 +41,17 @@ cd_venv() {
         [[ "$2" == "-q" ]] || echo "$FLAG pushd $1 >/dev/null"
         if [[ -d $1 ]]; then
             pushd $1 >/dev/null
-            ((do_pop++))
+            ((DO_POP++))
         fi
     fi
 }
 
 pop_cd() {
-    if [ $do_pop -ne 0 ]; then
+    if [ $DO_POP -ne 0 ]; then
         [[ "$1" == "-q" ]] || echo "$FLAG popd >/dev/null"
-        if [ $do_pop -gt 0 ]; then
+        if [ $DO_POP -gt 0 ]; then
             popd >/dev/null
-            ((do_pop--))
+            ((DO_POP--))
         fi
     fi
 }
@@ -65,10 +65,77 @@ do_activate() {
 }
 
 do_deactivate() {
-    if [ $do_deact -ne 0 ]; then
+    if [ $DO_DEACT -ne 0 ]; then
         [[ "$1" == "-q" ]] || echo "$FLAG deactivate"
         deactivate
-        do_deact=0
+        DO_DEACT=0
+    fi
+}
+
+bin_install() {
+#pip_install pkg
+    local reqver size
+    local FH=$(xuname -f)
+    local MACHARCH=$(xuname -m)
+    local dist=$(xuname -d)
+    dist=${dist,,}$(xuname -v|grep -Eo [0-9]|head -n1)
+    if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
+        if [[ $pkg =~ lessc ]]; then
+            pkg=${pkg/==/@}
+            pkg=$(echo $pkg|tr -d "'")
+            run_traced "npm install $pkg"
+        elif [[ $pkg =~ wkhtmltopdf ]]; then
+            mkdir wkhtmltox.rpm_files
+            pushd wkhtmltox.rpm_files > /dev/null
+            [[ "$dist" == "fedora3" ]] && dist="centos7"
+            pkgext=".rpm"
+            reqver=$(echo "$pkg"|grep -Eo '[^!<=>]*'|tr -d "'"|sed -n '2 p')
+            if [[ ${reqver} == "0.12.5" ]]; then
+                wkhtmltopdf_wget="wkhtmltox-${reqver}-1.${dist}.${MACHARCH}.rpm"
+            elif [[ ${reqver} == "0.12.4" ]]; then
+                wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-generic-amd64.tar.xz"
+                pkgext=".xz"
+            else
+                if [[ "$MACHARCH" == "x86_64" ]]; then
+                    wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-${dist}-amd64.rpm"
+                else
+                    wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-${dist}-i386.rpm"
+                fi
+            fi
+            [ $opt_verbose -gt 0 ] && echo "Download https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${reqver}/${wkhtmltopdf_wget}"
+            wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${reqver}/${wkhtmltopdf_wget} -O wkhtmltox${pkgext}
+            size=$(stat -c %s wkhtmltox${pkgext})
+            if [ $size -eq 0 ]; then
+                echo "File wkhtmltox${pkgext} not found!"
+            elif [ "$pkgext" == ".rpm" ]; then
+                run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
+                run_traced "cp ./usr/local/bin/wkhtmltopdf ${HOME}/bin/wkhtmltopdf"
+            elif [ "$pkgext" == ".deb" ]; then
+                run_traced "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
+                run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${HOME}/bin/wkhtmltopdf"
+                run_traced "rm -r wkhtmltox.deb*"
+            else
+                run_traced "tar -xf wkhtmltox${pkgext}"
+                run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/bin/wkhtmltopdf"
+                run_traced "rm -fr ./wkhtmltox"
+            fi
+            popd > /dev/null
+            rm -fR wkhtmltox.rpm_files
+        fi
+        [[ -z $XPKGS_RE ]] && XPKGS_RE="$pkg" || XPKGS_RE="$XPKGS_RE|$pkg"
+    fi
+}
+
+bin_install_1() {
+# bin_install_1(popt)
+    local pkg popt=$1
+    local binreq bin_re
+    [[ -n "$opt_bins" ]] && binreq="${opt_bins//,/ }"
+    if [[ -n "$opt_bins" ]]; then
+        [ $opt_verbose -gt 0 ] && echo -e "\e[1m.1 - Analyzing $opt_bins\e[0m"
+        for pkg in $binreq; do
+            [[ "[[:space:]]$BINPKGS[[:space:]] =~ [[:space:]]$pkg[0-9.<=>]*[[:space:]]" ]] && bin_install $pkg $popt
+        done
     fi
 }
 
@@ -79,7 +146,9 @@ pip_install() {
     local srcdir
     [[ $pkg =~ (psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
     if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
-        if [[ $pkg =~ $LOCAL_PKGS ]]  && [ $opt_debug -ne 0 ]; then
+        if [[ "[[:space:]]$BINPKGS[[:space:]] =~ [[:space:]]$pkg[0-9.<=>]*[[:space:]]" ]]; then
+            bin_install $pkg
+        elif [[ $pkg =~ $LOCAL_PKGS ]] && [ $opt_debug -ne 0 ]; then
             [[ -d $pypath/$pkg && ! -L $pypath/$pkg ]] && rm -fR $pypath/$pkg
             srcdir=$(readlink $pypath/pkg)
             if [[ ! -L $pypath/$pkg || ! "$srcdir" == "$SAVED_HOME/tools/$pkg"  ]] && [ $opt_debug -ne 1 ]; then
@@ -87,7 +156,7 @@ pip_install() {
                 run_traced "ln -s $SAVED_HOME/tools/$pkg $pypath"
             elif [[ ! -L $pypath/$pkg || ! "$srcdir" == "$SAVED_HOME/pypi/$pkg/$pkg" ]] && [ $opt_debug -ne 2 ]; then
                 [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
-                run_traved "ln -s $HOME/pypi/$pkg/$pkg $pypath"
+                run_traced "ln -s $HOME/pypi/$pkg/$pkg $pypath"
             fi
             [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         else
@@ -105,7 +174,7 @@ pip_install() {
 pip_install_1() {
 # pip_install_1(popt)
     local pkg popt=$1
-    [ $opt_verbose -gt 0 ] && echo -e "\e[1m.1 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m"
+    [ $opt_verbose -gt 0 ] && echo -e "\e[1m.2 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m"
     for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
         pip_install $pkg $popt
     done
@@ -114,7 +183,7 @@ pip_install_1() {
 pip_install_2() {
 # pip_install_2(popt)
     local pkg popt=$1
-    [ $opt_verbose -gt 0 ] && echo -e "\e[1m.2 - Analyzing $OEPKGS\e[0m"
+    [ $opt_verbose -gt 0 ] && echo -e "\e[1m.3 - Analyzing $OEPKGS\e[0m"
     for pkg in $OEPKGS; do
         pip_install $pkg $popt
     done
@@ -286,6 +355,7 @@ venv_mgr_check_src_path() {
     local f VENV
     [[ -z "$1" ]] && VENV=$(readlink -e ./)
     [[ -n "$1" ]] && VENV=$(readlink -e $1)
+    [[ -z "$VENV" && -f $HOME/bin/activate ]] && VENV=$(readlink -e $HOME)
     if [[ -z "$VENV" ]]; then
         [[ -z "$2" ]] && echo "Missed virtual environment path!!"
         [[ -n "$2" ]] && echo "Missed python version!!"
@@ -298,11 +368,12 @@ venv_mgr_check_src_path() {
     cd_venv "$VENV" "-q"
     do_activate "-q"
     for f in ./bin/python[23].*; do PYTHON=$(echo $f|grep -Eo "python[2-3]\.[0-9]"); break; done
+    [[ -z "$PYTHON"  && -x ./bin/python ]] && PYTHON=$(readlink -e ./bin/python)
     if [[ -z "$PYTHON" ]]; then
         echo "Virtual env $VENV without python!!"
         exit 1
     fi
-    opt_pyver=$(echo $PYTHON|grep -Eo "[2-3]\.[0-9]")
+    opt_pyver=$($PYTHON --version 2>&1|grep -Eo "[0-9]\.[0-9]")
     do_deactivate "-q"
     pop_cd "-q"
     [ $opt_verbose -gt 0 ] && echo "### Python version $opt_pyver ... ###"
@@ -317,7 +388,7 @@ venv_mgr_check_oever() {
         if [[ -n "$x" ]]; then
             p=$(dirname $x)
             cd_venv $p -q
-            x=$(echo -e "from __future__ import print_function\nimport release\nprint(release.version)\n"|python)
+            x=$(echo -e "import release\nprint(release.version)\n"|python)
             opt_oever="$x"
             pop_cd -q
         fi
@@ -330,9 +401,9 @@ venv_mgr_check_oever() {
 venv_mgr_test() {
 #venv_mgr_test(VENV)
     local f x VENV
-    # local SAVED_HOME=$HOME
     [ -z "$1" ] && VENV=$(readlink -e ./)
     [ -n "$1" ] && VENV=$(readlink -e $1)
+    [[ -z "$VENV" && -f $HOME/bin/activate ]] && VENV=$(readlink -e $HOME)
     [ $opt_verbose -gt 0 ] && echo "Validation test ..."
     [ $opt_dry_run -ne 0 ] && return
     cd_venv $VENV "-q"
@@ -366,12 +437,17 @@ do_venv_mgr() {
     local cmd=$1
     [ -z "$2" ] && VENV=$(readlink -e ./)
     [ -n "$2" ] && VENV=$(readlink -e $2)
+    [[ -z "$VENV" && -f $HOME/bin/activate ]] && VENV=$(readlink -e $HOME)
     [ -n "$3" ] && VENV_TGT=$(readlink -f $3)
     [[ $cmd =~ (amend|check|reset|test) ]] && VENV_TGT=$VENV
     [ $opt_alone -ne 0 ] && popt="--isolated"
     [ $PIPVER -gt 18 ] && popt="$popt --no-warn-conflicts"
-    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -b $opt_oever -y $opt_pyver"
-    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -PT -t python -q -y $opt_pyver"
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
+    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -PT -t bin -y $opt_pyver"
+    [[ -n "$opt_oever" ]] && BINPKGS=$(list_requirements.py -s" " -BPRT -t bin -q -b $opt_oever -y $opt_pyver)
+    [[ -z "$opt_oever" ]] && BINPKGS=$(list_requirements.py -s" " -PT -t bin -q -y $opt_pyver)
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -b $opt_oever -y $opt_pyver"
+    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -PT -t python -y $opt_pyver"
     [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -y $opt_pyver)
     [[ -z "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -PT -t python -q -y $opt_pyver)
     if [[ -z "$VENV" || -z "$VENV_TGT" ]]; then
@@ -432,6 +508,7 @@ do_venv_mgr() {
             rm -f ./lib64
             ln -s ./lib ./lib64
         fi
+        [[ ! $cmd =~ (amend|check) ]] && bin_install_1
         run_traced "pip install pip -U"
         PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
         [[ ! $cmd =~ (amend|check) ]] && pip_install_1 "$popt --upgrade"
@@ -484,6 +561,7 @@ do_venv_create() {
     export VENV__SAVED_HOME=$HOME
     [ -z "$1" ] && export VENV=$(readlink -f ./)
     [ -n "$1" ] && export VENV=$(readlink -f $1)
+    [[ -z "$VENV" && -f $HOME/bin/activate ]] && VENV=$(readlink -e $HOME)
     [[ -z "$opt_pyver" ]] && venv_mgr_check_src_path "$VENV" "create"
     set_pyver_files
     [ $opt_alone -ne 0 ] && popt="--isolated"
@@ -496,6 +574,8 @@ do_venv_create() {
         fi
     fi
     hash -r
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
+    [[ -n "$opt_oever" ]] && BINKGS=$(list_requirements.py -s" " -BPRT -t bin -q -b $opt_oever -y $opt_pyver)
     [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -b $opt_oever -y $opt_pyver"
     [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -y $opt_pyver)
     [ $opt_spkg -ne 0 ] && p="--system-site-packages" || p="--no-site-packages"
@@ -505,6 +585,7 @@ do_venv_create() {
     [ $sts -ne 0 ] && return
     cd_venv $VENV
     do_activate
+    [[ ! $cmd =~ (amend|check) ]] && bin_install_1
     run_traced "pip install pip -U"
     PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
     [ $opt_alone -ne 0 ] && popt="--isolated"
@@ -525,6 +606,7 @@ do_venv_exec() {
     local d f mime VENV V sitecustom
     [[ -z "$1" ]] && VENV=$(readlink -e ./)
     [[ -n "$1" ]] && VENV=$(readlink -e $1)
+    [[ -z "$VENV" && -f $HOME/bin/activate ]] && VENV=$(readlink -e $HOME)
     cd_venv $VENV
     do_activate
     run_traced "$2 $3 $4 $5 $6 $7 $8 $9"
@@ -538,6 +620,7 @@ do_venv_pip() {
     local cmd=$2
     [[ -z "$1" ]] && VENV=$(readlink -e ./)
     [[ -n "$1" ]] && VENV=$(readlink -e $1)
+    [[ -z "$VENV" && -f $HOME/bin/activate ]] && VENV=$(readlink -e $HOME)
     cd_venv $VENV
     do_activate
     pkg="$3"
@@ -552,25 +635,27 @@ do_venv_pip() {
 }
 
 
-OPTOPTS=(h        B         D       f         k        I         n           O         p         q           r         s        V           v)
-OPTDEST=(opt_help opt_debug opt_dev opt_force opt_keep opt_alone opt_dry_run opt_oever opt_pyver opt_verbose opt_rfile opt_spkg opt_version opt_verbose)
-OPTACTI=(1        "+"       1       1         1        1         1           "="       "="       0           "="       1        "*>"        "+")
-OPTDEFL=(0        0         0       0         0        0         0           ""        ""        -1          ""        0        ""          -1)
-OPTMETA=("help"   ""        ""      ""        ""       ""        ""          "ver"     "pyver"   ""          "file"    ""       "version"   "verbose")
+OPTOPTS=(h        a        B         D       f         k        I         n           O         p         q           r         s        V           v)
+OPTDEST=(opt_help opt_bins opt_debug opt_dev opt_force opt_keep opt_alone opt_dry_run opt_oever opt_pyver opt_verbose opt_rfile opt_spkg opt_version opt_verbose)
+OPTACTI=(1        "="      "+"       1       1         1        1         1           "="       "="       0           "="       1        "*>"        "+")
+OPTDEFL=(0        ""        0         0       0         0        0         0           ""        ""        -1          ""        0        ""          -1)
+OPTMETA=("help"   "list"   ""        ""      ""        ""       ""        ""          "ver"     "pyver"   ""          "file"    ""       "version"   "verbose")
 OPTHELP=("this help"\
+ "bin packages to install (def=wkhtmltopdf,lessc)"\
  "debug mode: use local packages"\
  "create v.environment with development packages"\
  "force v.environment create, even if exists"\
  "keep python2 executable"\
  "run pip in an isolated mode, ignoring environment variables and user configuration"\
  "do nothing (dry-run)"\
- "install pypi for odoo ver (create or reset)"\
+ "install pypi required by odoo ver (amend, create or reset)"\
  "python version"\
  "silent mode"\
  "after created v.environment install from the given requirements file"\
  "create v.environment with access to the global site-packages"\
  "show version"\
- "verbose mode")
+ "verbose mode"\
+ "install wkhtmltopdf required by odoo ver")
 OPTARGS=(p1 p2 p3 p4 p5 p6 p7 p8 p9)
 
 parseoptargs "$@"
@@ -589,8 +674,8 @@ fi
 if [ -z "$action" ]; then
   opt_help=1
 fi
-do_pop=0
-do_deact=0
+DO_POP=0
+DO_DEACT=0
 # It runs inside travis test environment too
 [ -z "$opt_pyver" -a -n "$TRAVIS_PYTHON_VERSION" ] && opt_pyver=$TRAVIS_PYTHON_VERSION
 [ $opt_verbose -eq -1 ] && opt_verbose=1
@@ -607,8 +692,8 @@ FLAG=">"
 [[ -n "$opt_pyver" ]] && set_pyver_files
 [[ -z "$opt_pyver" && ! $action  =~ (help|create) ]] && venv_mgr_check_src_path $p2
 venv_mgr_check_oever $action
-[ $opt_dev -eq 0 ] && x=$(find ./lib -name pylint -o -name unittest2 -o -name coveralls|wc -l)
-[ $opt_dev -eq 0 -a $x -gt 1 ] && opt_dev=1
+[ $opt_dev -eq 0 ] && x=$(find ${p2}lib -name pylint -o -name unittest2 -o -name coveralls|wc -l)
+[ $opt_dev -eq 0 -a ${x:-0} -gt 1 ] && opt_dev=1
 if [ $opt_dev -eq 0 ]; then
     DEV_PKGS=$(list_requirements.py -qs" " -B -t python)
 elif [[ -n "$opt_oever" ]]; then
