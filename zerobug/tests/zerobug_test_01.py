@@ -12,7 +12,7 @@ import os.path
 import sys
 from zerobug import Z0BUG
 
-__version__ = "0.2.14.16"
+__version__ = "0.2.14.17"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -26,14 +26,14 @@ def version():
 # Run main if executed as a script
 if __name__ == "__main__":
     ctx = Z0BUG.parseoptest(sys.argv[1:],
-                        version=version())
+                            version=version())
     if os.name == 'posix':
         if os.environ.get('HOSTENV', '') == 'travis':
             UT_LIST = ["__version_0_" + __version__]
         else:
             UT_LIST = [
                 "__version_0_" + __version__,
-                "__version_1_0.2.8.8%s/tools/z0lib/z0librc" % os.environ.get(
+                "__version_1_0.2.8%s/tools/z0lib/z0librc" % os.environ.get(
                     'HOME', '')]
         UT_LIST.append("__version_V_0.2.0${testdir}/dummy_01.py")
         UT_LIST.append("__version_v_0.2.1${testdir}/dummy_01.py")

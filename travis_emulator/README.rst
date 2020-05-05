@@ -8,7 +8,6 @@ travis_emulator 0.2.2.27
 |Maturity| |Build Status| |Coverage Status| |license gpl|
 
 
-.. contents::
 
 
 Overview
@@ -47,25 +46,6 @@ Features
 +--------------------------------+---------+-------------------------------+
 | MQT                            | |check| | Test using Odoo MQT           |
 +--------------------------------+---------+-------------------------------+
-
-|
-|
-
-Quick start
-===========
-
-
-|
-
-Installation
-------------
-
-For current version:
-
-`cd $HOME`
-`git@github.com:zeroincombenze/tools.git`
-`cd $HOME/tools`
-`./install_tools.sh`
 
 
 |
@@ -106,11 +86,26 @@ Usage
      -3              use python3
 
 
+
 |
 |
 
-Get involved
-============
+Getting started
+===============
+
+
+|
+
+Installation
+------------
+
+For current version:
+
+`cd $HOME`
+`git@github.com:zeroincombenze/tools.git`
+`cd $HOME/tools`
+`./install_tools.sh`
+
 
 |
 |
@@ -134,7 +129,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-03-17
+Last Update / Ultimo aggiornamento: 2020-04-19
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

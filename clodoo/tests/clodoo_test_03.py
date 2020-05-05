@@ -22,12 +22,13 @@ except BaseException:
     from clodoolib import build_odoo_param
 
 
-__version__ = "0.3.8.73"
+__version__ = "0.3.8.74"
 
 
 MODULE_ID = 'clodoo'
-VERSIONS_TO_TEST = ['12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1']
-MAJVERS_TO_TEST = ['12', '11', '10', '9', '8', '7', '6']
+VERSIONS_TO_TEST = ['14.0', '13.0', '12.0', '11.0',
+                    '10.0', '9.0', '8.0', '7.0', '6.1']
+MAJVERS_TO_TEST = ['14', '13', '12', '11', '10', '9', '8', '7', '6']
 # VERSIONS_TO_TEST = ('7.0',)
 TEST_FAILED = 1
 TEST_SUCCESS = 0
@@ -39,8 +40,8 @@ def version():
 
 class Test():
 
-    def __init__(self, zarlib):
-        self.Z = zarlib
+    def __init__(self, testlib):
+        self.Z = testlib
 
     def test_01(self, z0ctx):
         TRES = {
@@ -51,6 +52,8 @@ class Test():
             '10': '10.0',
             '11': '11.0',
             '12': '12.0',
+            '13': '13.0',
+            '14': '14.0',
         }
         for ver in MAJVERS_TO_TEST:
             res = build_odoo_param('FULLVER', odoo_vid=ver)
@@ -116,7 +119,7 @@ class Test():
                 break
         return sts
 
-    def test_02(self, z0ctx):
+    def __test_02(self, z0ctx):
         TRES = {
             '6.1': 6,
             '7.0': 7,
@@ -154,7 +157,7 @@ class Test():
                 break
         return sts
 
-    def test_03(self, z0ctx):
+    def __test_03(self, z0ctx):
         TRES = {
             '6': '/etc/odoo/openerp-server.conf',
             '7': '/etc/odoo/odoo-server.conf',
@@ -200,7 +203,7 @@ class Test():
 
         return sts
 
-    def test_04(self, z0ctx):
+    def __test_04(self, z0ctx):
         TRES = {
             '6': '/etc/odoo/odoo6-server.conf',
             '7': '/etc/odoo/odoo7-server.conf',
@@ -505,7 +508,7 @@ class Test():
 
         return sts
 
-    def test_05(self, z0ctx):
+    def __test_05(self, z0ctx):
         TRES = {
             '6.1': '/opt/odoo/6.1',
             '7.0': '/opt/odoo/7.0',
@@ -627,7 +630,7 @@ class Test():
 
         return sts
 
-    def test_06(self, z0ctx):
+    def __test_06(self, z0ctx):
         repos = 'OCB'
         TRES = {
             'zero-git': 'git@github.com:zeroincombenze/%s' % repos,
@@ -718,7 +721,6 @@ class Test():
 
 
 if __name__ == "__main__":
-    ctx = Z0test.parseoptest(sys.argv[1:],
-                             version=version())
-    sts = Z0test.main_local(ctx, Test)
-    exit(sts)
+    exit(Z0test.main_local(
+        Z0test.parseoptest(
+            sys.argv[1:], version=version()), Test))

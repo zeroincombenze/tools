@@ -1,6 +1,6 @@
 
 =================================
-maintainer-quality-tools 0.2.2.47
+maintainer-quality-tools 0.2.2.48
 =================================
 
 
@@ -8,7 +8,6 @@ maintainer-quality-tools 0.2.2.47
 |Maturity| |Build Status| |Coverage Status| |license gpl|
 
 
-.. contents::
 
 
 Overview
@@ -575,11 +574,12 @@ While travis is running this is the tree directory:
 
 
 
+
 |
 |
 
-Quick start
-===========
+Getting started
+===============
 
 
 |
@@ -597,13 +597,8 @@ Current version via Git
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
-    source /opt/odoo/dev/activate_tools
+    source /opt/odoo/devel/activate_tools
 
-|
-|
-
-Get involved
-============
 
 |
 |
@@ -626,7 +621,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-04-04
+Last Update / Ultimo aggiornamento: 2020-05-05
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
@@ -685,5 +680,6 @@ Last Update / Ultimo aggiornamento: 2020-04-04
 .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-   :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b
+   :target: https://t.me/axitec_helpdesk
+
 

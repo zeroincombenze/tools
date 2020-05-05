@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.73
+__version__=0.3.8.74
 
 
 Z0BUG_setup() {
@@ -65,14 +65,13 @@ if [ ${opt_oeLib:-0} -ne 0 ]; then
 fi
 
 
-PYPKGDIR=$(readlink -e $RUNDIR/..)
-export PYTHONPATH=$PYPKGDIR:$PYTHONPATH
+# PYPKGDIR=$(readlink -e $RUNDIR/..)
+# export PYTHONPATH=$PYPKGDIR:$PYTHONPATH
 UT1_LIST=
-UT_LIST="__version_V_0.3.8.73$RUNDIR/odoo_skin.sh"
-UT_LIST="$UT_LIST __version_V_0.3.8.73$RUNDIR/transodoo.py"
+UT_LIST="__version_V_0.3.8.74$RUNDIR/odoo_skin.sh"
+UT_LIST="$UT_LIST __version_V_0.3.8.74$RUNDIR/transodoo.py"
 # UT_LIST="$UT_LIST clodoo_test_01.py clodoo_test_02.py clodoo_test_03.py  clodoo_test_04.py clodoo_test_list_requirements.sh clodoo_test_odoo_skin.sh clodoo_test_odoorc.sh clodoo_test_transodoo.sh"
-UT_LIST="$UT_LIST clodoo_test_odoorc.sh clodoo_test_transodoo.sh"
-# UT_LIST="clodoo_test_02.p"
+UT_LIST="$UT_LIST clodoo_test_odoorc.sh clodoo_test_03.py"
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?

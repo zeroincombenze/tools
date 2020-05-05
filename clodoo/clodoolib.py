@@ -164,7 +164,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.8.73"
+__version__ = "0.3.8.74"
 
 
 #############################################################################
@@ -728,8 +728,8 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
                      git_org=None, multi=None):
     p1 = 'v|V|odoo|ODOO|ocb|OCB|VENV'
     p2 = 'oca|oia|librerp|flectra|zero'
-    p3 = r'12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1'
-    p4 = '12|11|10|9|8|7|6'
+    p3 = r'14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1'
+    p4 = '14|13|12|11|10|9|8|7|6'
     rex = '^(%s|%s)?-?(%s|%s)' % (p1, p2, p3, p4)
     reo = '^(%s)' % p1
     reg = '^(%s)' % p2
@@ -835,14 +835,14 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
         if odoo_vid == '.':
             odoo_fver = get_odoo_full_ver(os.getcwd())
             if not odoo_fver:
-                odoo_fver = '11.0'
+                odoo_fver = '12.0'
             odoo_vid = os.path.basename(os.path.dirname(os.getcwd()))
         elif re.match(rex, odoo_vid):
             odoo_fver = get_odoo_full_ver(odoo_vid)
         else:
-            odoo_fver = '11.0'
+            odoo_fver = '12.0'
     else:
-        odoo_vid = '11.0'
+        odoo_vid = '12.0'
         odoo_fver = odoo_vid
     VENV = odoo_vid.startswith('VENV')
     odoo_ver = int(odoo_fver.split('.')[0])
@@ -852,7 +852,7 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
         VID = os.path.join(ROOT, odoo_vid)
     if git_org:
         GIT_ORGID = git_org
-        if re.match('(oca|oia|liberp|flectra)', git_org) and odoo_vid in (
+        if re.match('(oca|liberp|flectra)', git_org) and odoo_vid in (
                 '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0'):
             if git_org[-4:] == '-git':
                 odoo_vid = '%s%d' % (git_org[0:-4], odoo_ver)

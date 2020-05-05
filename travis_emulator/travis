@@ -9,7 +9,7 @@
 #       ./travis_emulator               stable travis emulator
 #       ./maintainer-quality-tools      copied to $HOME when running test
 #           ./_travis                   TOOLS_PATH (script like travis_runs_tests, travis_after_tests_success)
-#           travis.yml                  YML_FILE: defalut travis.yml file (-r or missed in tested dir)
+#           travis.yml                  YML_FILE: default travis.yml file (-r or missed in tested dir)
 #               ./cfg                   pylint & flake8 conf files (-r switch) -> FLAKE8_CONFIG_DIR
 #           ./travis                    MQT_PATH
 #               ./cfg                   pylint & flake8 conf files -> FLAKE8_CONFIG_DIR
@@ -24,7 +24,7 @@
 #       ./maintainer-quality-tools
 #           ./maintainer-quality-tools  copied to $HOME when running test
 #               ./_travis               TOOLS_PATH  (-M switch)
-#               travis.yml              YML_FILE: defalut travis.yml file (-M and -r or missed in tested dir)
+#               travis.yml              YML_FILE: default travis.yml file (-M and -r or missed in tested dir)
 #                   ./cfg               pylint & flake8 conf files (-r switch) -> FLAKE8_CONFIG_DIR
 #               ./travis                MQT_PATH (-M switch)
 #                   ./cfg               pylint & flake8 conf files -> FLAKE8_CONFIG_DIR
@@ -470,52 +470,54 @@ process_yaml_before_install() {
     local sts=$STS_SUCCESS
     local i s line lne X
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "\e[${PS_HDR3_COLOR}m------ [[addons.packages] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
+        wlog "\e[${PS_HDR3_COLOR}m------ [[addons.packages] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
-      for lne in $YML_packages; do
-        if [ "$FH" == "RHEL" ]; then
-          if [[ "$lne" == "build-essential" ]]; then
-            lne="redhat-rpm-config"
-          elif [[ "$lne" == "python-dev" ]]; then
-            lne="python-devel"
-          elif [[ "$lne" == "libxml2-dev" ]]; then
-            lne="libxml2-devel"
-          elif [[ "$lne" == "libxslt1-dev" ]]; then
-            lne="libxslt-devel"
-          elif [[ "$lne" == "zlib1g-dev" ]]; then
-            lne="zlib-devel"
-          elif [[ "$lne" == "libffi-dev" ]]; then
-            lne="libffi-devel"
-          elif [[ "$lne" == "libssl-dev" ]]; then
-            lne="openssl-devel"
-          fi
-          line="yum install $lne"
-        else
-          line="apt-get install $lne"
-        fi
-        process_yaml_run_cmd "$line"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      done
+        for lne in $YML_packages; do
+            if [ "$FH" == "RHEL" ]; then
+                if [[ "$lne" == "build-essential" ]]; then
+                    lne="redhat-rpm-config"
+                elif [[ "$lne" == "python-dev" ]]; then
+                    lne="python-devel"
+                elif [[ "$lne" == "libxml2-dev" ]]; then
+                    lne="libxml2-devel"
+                elif [[ "$lne" == "libxslt1-dev" ]]; then
+                    lne="libxslt-devel"
+                elif [[ "$lne" == "zlib1g-dev" ]]; then
+                    lne="zlib-devel"
+                elif [[ "$lne" == "libffi-dev" ]]; then
+                    lne="libffi-devel"
+                elif [[ "$lne" == "libssl-dev" ]]; then
+                    lne="openssl-devel"
+                fi
+                line="yum install $lne"
+            else
+                line="apt-get install $lne"
+            fi
+            process_yaml_run_cmd "$line"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
+        done
     fi
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "\e[${PS_HDR3_COLOR}m------ [[before_install] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
+        wlog "\e[${PS_HDR3_COLOR}m------ [[before_install] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
-      for lne in $YML_before_install; do
-        process_yaml_run_cmd "$lne"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      done
+        for lne in $YML_before_install; do
+            process_yaml_run_cmd "$lne"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
+        done
     fi
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "\e[${PS_HDR3_COLOR}m------ [[env] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
+        wlog "\e[${PS_HDR3_COLOR}m------ [[env] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
-      for lne in $YML_env; do
-        line="export $(process_yaml_quote_xtl $lne)"
-        run_traced "$line"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      done
+        for lne in $YML_env; do
+            line="export $(process_yaml_quote_xtl $lne)"
+            run_traced "$line"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        done
     fi
     return $sts
 }
@@ -648,25 +650,24 @@ process_yaml_run_cmd() {
       tk=${x[$ix]}
       while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
       if [ "$TRAVIS" != "true" -a "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
-        # xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
-        xcmd="$(echo $xcmd|sed -e 's/git clone/git_clone/g')"
-      elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
-        if [ ${opt_virt:-0} -eq 0 ]; then
-          if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
-            :
-          elif [ -f $HOME/maintainer-quality-tools/ ]; then
-            run_traced "rm -f $HOME/maintainer-quality-tools"
-          fi
-          if [ ! -L $HOME/maintainer-quality-tools/ ]; then
-            if [ -d $HOME/tools/maintainer-quality-tools/ ]; then
-              xcmd="ln -s $HOME/tools/maintainer-quality-tools/ $HOME"
-            elif [ -d $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
-              xcmd="ln -s $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ $HOME"
-            else
-              xcmd="false"
-            fi
-          fi
-        fi
+          xcmd="$(echo $xcmd|sed -e 's/git clone/git_clone/g')"
+      # elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
+      #   if [ ${opt_virt:-0} -eq 0 ]; then
+      #     if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
+      #       :
+      #     elif [ -f $HOME/maintainer-quality-tools/ ]; then
+      #       run_traced "rm -f $HOME/maintainer-quality-tools"
+      #     fi
+      #     if [ ! -L $HOME/maintainer-quality-tools/ ]; then
+      #       if [ -d $HOME/tools/maintainer-quality-tools/ ]; then
+      #         xcmd="ln -s $HOME/tools/maintainer-quality-tools/ $HOME"
+      #       elif [ -d $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
+      #         xcmd="ln -s $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ $HOME"
+      #       else
+      #         xcmd="false"
+      #       fi
+      #     fi
+      #   fi
       fi
     elif [ "${x[$ix]}" == "pip" -a "${x[$ix1]}" == "install" ]; then
       if [ ${opt_virt:-0} -eq 0 ]; then
@@ -721,7 +722,6 @@ process_yaml_run_cmd() {
         fi
       fi
     elif [ "${x[$ix]}" == "mv" -a "${x[$ix1]}" == "${HOME}/tools/maintainer-quality-tools" ]; then
-# tny
       xcmd=${xcmd/cp/mv}
     elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
       xcmd="# $xcmd"
@@ -817,159 +817,162 @@ process_yaml() {
     export PS_HDR2_COLOR=$(get_cfg_value "" "PS_HDR2_COLOR")
     export PS_HDR3_COLOR=$(get_cfg_value "" "PS_HDR3_COLOR")
     if [ "$action" == "chkconfig" ]; then
-      YML_FILE=$TOOLS_PATH/chkconfig.yml
-      if [ ! -f $YML_FILE ]; then
-        do_chkconfig
-        return $STS_SUCCESS
-      fi
+        YML_FILE=$TOOLS_PATH/chkconfig.yml
+        if [ ! -f $YML_FILE ]; then
+            do_chkconfig
+            return $STS_SUCCESS
+        fi
     else
-      YML_FILE=$opt_fyaml
-      if [ ! -f $YML_FILE ]; then
-        YML_FILE=$PRJPATH/$opt_fyaml
-      fi
-      if [ ! -f $YML_FILE -a $opt_py3 -eq 0 ]; then
-        YML_FILE=$TOOLS_PATH/travis.yml
-      fi
-      if [ ! -f $YML_FILE -a $opt_py3 -ne 0 ]; then
-        YML_FILE=$TOOLS_PATH/travis3.yml
-      fi
+        YML_FILE=$opt_fyaml
+        if [ ! -f $YML_FILE ]; then
+            YML_FILE=$PRJPATH/$opt_fyaml
+        fi
+        if [ ! -f $YML_FILE -a $opt_py3 -eq 0 ]; then
+            YML_FILE=$TOOLS_PATH/travis.yml
+        fi
+        if [ ! -f $YML_FILE -a $opt_py3 -ne 0 ]; then
+            YML_FILE=$TOOLS_PATH/travis3.yml
+        fi
     fi
     if [ ! -d "$MQT_PATH" ]; then
-      echo "Zeroincombenze(R) tools not found!"
-      return 1
+        echo "Zeroincombenze(R) tools not found!"
+        return 1
     fi
     if [ $opt_py3 -ne 0 ]; then
-      PYTHON=python3
-      PYTHON_BIN=$(readlink -e $(which python3))
-      PYTHON_VERSION=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-      PIP=pip3
+        PYTHON=python3
+        PYTHON_BIN=$(readlink -e $(which python3))
+        PYTHON_VERSION=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+        PIP=pip3
     else
-      PYTHON=python
-      PYTHON_BIN=$(readlink -e $(which python))
-      PYTHON_VERSION=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-      PIP=pip
+        PYTHON=python
+        PYTHON_BIN=$(readlink -e $(which python))
+        PYTHON_VERSION=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+        PIP=pip
     fi
     if [ -f $YML_FILE ]; then
-      echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
-      wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"
-      TRAVIS_CWD=$PWD
-      process_yaml_file "$YML_FILE"
-      unset PYTHONPATH
-      sts=$STS_SUCCESS
-      wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
-      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS_REPO_SLUG TRAVIS_CWD TRAVIS_PDB; do
-         lne1=${!lne}
-         if [[ -n "$lne1" || $lne =~ PATH ]]; then
-           wlog "\$ $lne=$lne1"
-         fi
-      done
-      if [ $sts -eq $STS_SUCCESS ]; then
-        process_yaml_initialize
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        if [ -z "$python_matrix" ]; then
-          export python_matrix="$PYTHON_VERSION"
-        fi
-        for TRAVIS_PYTHON_VERSION in $python_matrix; do
-          wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[${PS_TXT_COLOR}m"
-          CURPYVER=$(echo $TRAVIS_PYTHON_VERSION|grep -Eo [0-9]|head -n1)
-          if [ "$CURPYVER" == "2" ]; then
-            PYTHON_VERSION=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-          else
-            PYTHON_VERSION=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-          fi
-          if [ "$PYTHON_VERSION" != "$TRAVIS_PYTHON_VERSION" ]; then
-            wlog "\e[${PS_HDR1_COLOR}mWarning: Required version $TRAVIS_PYTHON_VERSION of python is replaced by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
-            TRAVIS_PYTHON_VERSION="$PYTHON_VERSION"
-          fi
-          export TRAVIS_PYTHON_VERSION
-          for lne in PYTHONPATH TRAVIS_PYTHON_VERSION; do
+        echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
+        wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"
+        TRAVIS_CWD=$PWD
+        process_yaml_file "$YML_FILE"
+        unset PYTHONPATH
+        sts=$STS_SUCCESS
+        wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
+        TODAY=$(date "+%Y-%m-%d %H:%M:%S")
+        for lne in TODAY TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS_REPO_SLUG TRAVIS_CWD TRAVIS_PDB; do
             lne1=${!lne}
             if [[ -n "$lne1" || $lne =~ PATH ]]; then
-              wlog "\$ $lne=$lne1"
+                wlog "\$ $lne=$lne1"
             fi
-          done
-          CURPYVER=$(echo $TRAVIS_PYTHON_VERSION|grep -Eo [0-9]|head -n1)
-          [ "$CURPYVER" != "3" ] && PYTHON=python || PYTHON=python3
-          # eval $PYTHON --version
-          if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
-            if [ $opt_py3 -ne 0 ]; then
-              echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
-            else
-              echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|python
-            fi
-          fi
-          if [ -z "$YML_matrix" ]; then
-            YML_matrix=":"
-          fi
-          for lne in $YML_matrix; do
-            if [ "$lne" == ":" ]; then
-              line1=
-              lne1=
-            else
-              line1="$lne"
-              lne1=$(process_yaml_quote "$lne")
-            fi
-            if [[ "$lne1" =~ ODOO_REPO=.[A-Za-z]+ ]]; then
-              if [[ ! "$lne1" =~ ODOO_REPO=.$YML_repo. ]]; then
-                wlog "\e[${PS_HDR3_COLOR}mMatrix skipped due invalid repo\e[${PS_TXT_COLOR}m"
-                continue
-              fi
-            elif [[ "$action" == "lint" && ! "$lne1" =~ LINT=.1. ]]; then
-              wlog "\e[${PS_HDR3_COLOR}mMatrix skipped because does not match the lint action\e[${PS_TXT_COLOR}m"
-              continue
-            elif [[ "$action" == "test" && ! "$lne1" =~ TESTS=.1. ]]; then
-              wlog "\e[${PS_HDR3_COLOR}mMatrix skipped because does not match the test action\e[${PS_TXT_COLOR}m"
-              continue
-            fi
-            wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[${PS_TXT_COLOR}m"
-            create_virtual_env
-            for p in PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_BRANCH HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
-              X=${!p}
-              if [[ -n "$X" || $p =~ PATH ]]; then
-                wlog "\$ $p=$X"
-              fi
-            done
-            # wash_virtual_env
-            process_yaml_global
-            if [ $sts -eq $STS_SUCCESS ]; then
-              process_yaml_before_install
-              s=$?; [ ${s-0} -ne 0 ] && sts=$s
-            fi
-            if [ $sts -eq $STS_SUCCESS ]; then
-              process_yaml_install "$line1"
-              s=$?; [ ${s-0} -ne 0 ] && sts=$s
-            fi
-            if [ $sts -eq $STS_SUCCESS ]; then
-              process_yaml_before_script "$line1"
-              s=$?; [ ${s-0} -ne 0 ] && sts=$s
-            fi
-            if [ $sts -eq $STS_SUCCESS ]; then
-              wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[${PS_TXT_COLOR}m"
-              for lne in $YML_script; do
-                process_yaml_run_cmd "$lne"
-                s=$?; [ ${s-0} -ne 0 ] && sts=$s
-                if [ $sts -ne $STS_SUCCESS ]; then
-                  elog "!Script aborted by error!!"
-                  break
-                fi
-              done
-            fi
-            if [ $sts -eq $STS_SUCCESS ]; then
-              wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[${PS_TXT_COLOR}m"
-              process_yaml_after_success
-            fi
-            if [ "$TRAVIS_DEBUG_MODE" == "9" ]; then
-              read -p "Press RET to continue ..."
-            fi
-            if [ $sts -eq $STS_SUCCESS ]; then
-              process_yaml_exit
-            fi
-            drop_virtual_env
-          done
         done
-      fi
+        if [ $sts -eq $STS_SUCCESS ]; then
+            process_yaml_initialize
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        fi
+        if [ $sts -eq $STS_SUCCESS ]; then
+            if [ -z "$python_matrix" ]; then
+                export python_matrix="$PYTHON_VERSION"
+            fi
+            for TRAVIS_PYTHON_VERSION in $python_matrix; do
+                wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[${PS_TXT_COLOR}m"
+                CURPYVER=$(echo $TRAVIS_PYTHON_VERSION|grep -Eo [0-9]|head -n1)
+                if [ "$CURPYVER" == "2" ]; then
+                    PYTHON=python
+                    PYTHON_VERSION=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+                else
+                    PYTHON=python3
+                    PYTHON_VERSION=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+                fi
+                if [ "$PYTHON_VERSION" != "$TRAVIS_PYTHON_VERSION" ]; then
+                    wlog "\e[${PS_HDR1_COLOR}mWarning: Required version $TRAVIS_PYTHON_VERSION of python is replaced by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
+                    TRAVIS_PYTHON_VERSION="$PYTHON_VERSION"
+                fi
+                export TRAVIS_PYTHON_VERSION
+                for lne in PYTHONPATH TRAVIS_PYTHON_VERSION; do
+                    lne1=${!lne}
+                    if [[ -n "$lne1" || $lne =~ PATH ]]; then
+                        wlog "\$ $lne=$lne1"
+                    fi
+                done
+                # CURPYVER=$(echo $TRAVIS_PYTHON_VERSION|grep -Eo [0-9]|head -n1)
+                # [ "$CURPYVER" != "3" ] && PYTHON=python || PYTHON=python3
+                # eval $PYTHON --version
+                if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
+                    if [ $opt_py3 -ne 0 ]; then
+                        echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
+                    else
+                        echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|python
+                    fi
+                fi
+                if [ -z "$YML_matrix" ]; then
+                    YML_matrix=":"
+                fi
+                for lne in $YML_matrix; do
+                    if [ "$lne" == ":" ]; then
+                        line1=
+                        lne1=
+                    else
+                        line1="$lne"
+                        lne1=$(process_yaml_quote "$lne")
+                    fi
+                    if [[ "$lne1" =~ ODOO_REPO=.[A-Za-z]+ ]]; then
+                        if [[ ! "$lne1" =~ ODOO_REPO=.$YML_repo. ]]; then
+                            wlog "\e[${PS_HDR3_COLOR}mMatrix skipped due invalid repo\e[${PS_TXT_COLOR}m"
+                            continue
+                        fi
+                    elif [[ "$action" == "lint" && ! "$lne1" =~ LINT=.1. ]]; then
+                        wlog "\e[${PS_HDR3_COLOR}mMatrix skipped because does not match the lint action\e[${PS_TXT_COLOR}m"
+                        continue
+                    elif [[ "$action" == "test" && ! "$lne1" =~ TESTS=.1. ]]; then
+                        wlog "\e[${PS_HDR3_COLOR}mMatrix skipped because does not match the test action\e[${PS_TXT_COLOR}m"
+                        continue
+                    fi
+                    wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[${PS_TXT_COLOR}m"
+                    create_virtual_env
+                    for p in PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_BRANCH HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
+                        X=${!p}
+                        if [[ -n "$X" || $p =~ PATH ]]; then
+                            wlog "\$ $p=$X"
+                        fi
+                    done
+                    # wash_virtual_env
+                    process_yaml_global
+                    if [ $sts -eq $STS_SUCCESS ]; then
+                        process_yaml_before_install
+                        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                    fi
+                    if [ $sts -eq $STS_SUCCESS ]; then
+                        process_yaml_install "$line1"
+                        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                    fi
+                    if [ $sts -eq $STS_SUCCESS ]; then
+                        process_yaml_before_script "$line1"
+                        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                    fi
+                    if [ $sts -eq $STS_SUCCESS ]; then
+                        wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[${PS_TXT_COLOR}m"
+                        for lne in $YML_script; do
+                            process_yaml_run_cmd "$lne"
+                            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                            if [ $sts -ne $STS_SUCCESS ]; then
+                                elog "!Script aborted by error!!"
+                                break
+                            fi
+                        done
+                    fi
+                    if [ $sts -eq $STS_SUCCESS ]; then
+                        wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[${PS_TXT_COLOR}m"
+                        process_yaml_after_success
+                    fi
+                    if [ "$TRAVIS_DEBUG_MODE" == "9" ]; then
+                        read -p "Press RET to continue ..."
+                    fi
+                    if [ $sts -eq $STS_SUCCESS ]; then
+                        process_yaml_exit
+                    fi
+                    drop_virtual_env
+                done
+            done
+        fi
     else
       process_local
       sts=$?
@@ -1002,11 +1005,11 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           W        X       Y             3)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg   opt_version opt_verbose opt_virt opt_tnl opt_fyaml    opt_py3)
-OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         0        "="     "="           1)
-OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          1        ""      ".travis.yml" 0)
-OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   ""       "0|1"   "file"        "")
+OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             3)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml    opt_py3)
+OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           1)
+OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" 0)
+OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
@@ -1029,7 +1032,6 @@ OPTHELP=("this help"\
  "use python system packages (def yaml dependents)"\
  "show version"\
  "verbose mode"\
- "do not use virtualenv to run tests"\
  "enable translation test (def yaml dependents)"\
  "file yaml to process (def .travis.yml)"\
  "use python3")
@@ -1047,19 +1049,16 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 export PYTHONWARNINGS="ignore"
-[ -z "$action" ] && action=emulate
-ACTIONS="chk_vm cp_vm force-lint lint force-test merge_vm mv_vm test emulate new_vm chkconfig parseyaml"
-VIRTACTS="force-lint lint force-test test emulate"
-if [[ " $ACTIONS " =~ [[:space:]]$action[[:space:]] ]]; then
-  if [[ " $VIRTACTS " =~ [[:space:]]$action[[:space:]] ]]; then
-    :
-  else
-    opt_virt=0
-  fi
+[[ -z "$action" ]] && action=emulate
+ACTIONS="(force-lint|lint|force-test|test|emulate|chkconfig|parseyaml)"
+VIRTACTS="(force-lint|lint|force-test|test|emulate)"
+opt_virt=1
+if [[ $action =~ $ACTIONS ]]; then
+    [[ ! $action =~ $VIRTACTS ]] && opt_virt=0
 else
-  echo "Invalid action!"
-  echo "action should be one of $ACTIONS"
-  exit $STS_FAILED
+    echo "Invalid action!"
+    echo "action should be one of $ACTIONS"
+    exit $STS_FAILED
 fi
 opts_travis
 CFG_init
@@ -1068,116 +1067,62 @@ link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 
-if [ "$action" == "new_vm" ]; then
-  if [ -z "$sub" ]; then
-    echo "Missed vm name!"
-    echo "use: $0 new_vm VMNAME"
-    exit 1
-  fi
-  TRAVIS_CWD=$PWD
-  TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
-  if [[ "${opt_syspkg:-true}" == "true" ]]; then
-    export SYSTEM_SITE_PACKAGES=true
-    TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
-    VENV_DIR=$(readlink -f ~/VME/${sub}-with-syspkg)
-  else
-    VENV_DIR=$(readlink -f ~/VME/${sub}-wo-syspkg)
-  fi
-  VENV_TMP=${VENV_DIR}~
-  [ -d $VENV_TMP ] && run_traced "rm -fR $VENV_TMP"
-  if [ $opt_py3 -ne 0 ]; then
-    PYTHON=python3
-    PYTHON_BIN=$(readlink -e $(which python3))
-    TRAVIS_PYTHON_VERSION=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-    PIP=pip3
-  else
-    PYTHON=python
-    PYTHON_BIN=$(readlink -e $(which python))
-    TRAVIS_PYTHON_VERSION=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-    PIP=pip
-  fi
-  TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p $PYTHON_BIN"
-  echo "\$ virtualenv -q $TRAVIS_ENVOPTS $VENV_TMP"
-  [ ${opt_dry_run:-0} -ne 0 ] || virtualenv -q $TRAVIS_ENVOPTS $VENV_TMP
-  sts=$?
-  [ $sts -eq 0 ] || exit $sts
-  LISTREQ=$(which list_requirements.py 2>/dev/null)
-  run_traced "cd $VENV_TMP"
-  echo "\$ source bin/activate"
-  [ ${opt_dry_run:-0} -eq 0 ] && source bin/activate
-  run_traced "$PIP install future"
-  req=$($LISTREQ -PBRT -t python -s" ")
-  req="${req/python=/}"
-  echo $req|tr -d "'"|tr " " "\n" > $HOME/requirements.txt
-  run_traced "$PIP install -r $HOME/requirements.txt --force-reinstall"
-  # run_traced "$PIP install -r $HOME/requirements.txt"
-  echo "\$ deactivate"
-  [ ${opt_dry_run:-0} -eq 0 ] && eactivate
-  cd $TRAVIS_CWD
-  find $VENV_TMP -name "*.pyc" -delete
-  [ -d $VENV_DIR ] && run_traced "rm -fR $VENV_DIR"
-  run_traced "venv_mgr mv $VENV_TMP $VENV_DIR"
-  exit $sts
-elif [[ $action =~ (reset_vm|cp_vm|mv_vm|merge_vm) ]]; then
-  run_traced "venv_mgr ${action:0: -3} $sub $sub2"
-  sts=$?
-  exit $sts
-elif [ "$action" == "parseyaml" ]; then
-  # init_travis
-  prepare_env_travis "$action"
-  check_4_travis
-  if [ -z "$sub" ]; then
-    sub=$PRJPATH/.travis.yml
-    if [ ! -f $sub ]; then
-      sub=$TOOLS_PATH/travis.yml
+if [ "$action" == "parseyaml" ]; then
+    # init_travis
+    prepare_env_travis "$action"
+    check_4_travis
+    if [ -z "$sub" ]; then
+        sub=$PRJPATH/.travis.yml
+        if [ ! -f $sub ]; then
+            sub=$TOOLS_PATH/travis.yml
+        fi
     fi
-  fi
-  process_yaml_file "$sub"
-  echo "addons:"
-  echo "  apt:"
-  echo "    packages:"
-  for lne in $YML_packages; do
-    process_yaml_echo 3 "$lne"
-  done
-  echo "env:"
-  for lne in $YML_env; do
-    process_yaml_echo 1 "$lne"
-  done
-  echo "  global:"
-  for lne in $YML_global; do
-    process_yaml_echo 1 "$lne"
-  done
-  echo "before_install:"
-  for lne in $YML_before_install; do
-    process_yaml_echo 1 "$lne"
-  done
-  echo "  matrix:"
-  for lne in $YML_matrix; do
-    process_yaml_echo 1 "$lne"
-  done
-  echo "install:"
-  for lne in $YML_install; do
-    process_yaml_echo 1 "$lne"
-  done
-  echo "before_script:"
-  for lne in $YML_before_script; do
-    process_yaml_echo 1 "$lne"
-  done
-  echo "script:"
-  for lne in $YML_script; do
-    process_yaml_echo 1 "$lne"
-  done
-  echo "after_success:"
-  for lne in $YML_after; do
-    process_yaml_echo 1 "$lne"
-  done
-  sts=$STS_SUCCESS
-  exit $sts
+    process_yaml_file "$sub"
+    echo "addons:"
+    echo "  apt:"
+    echo "    packages:"
+    for lne in $YML_packages; do
+        process_yaml_echo 3 "$lne"
+    done
+    echo "env:"
+    for lne in $YML_env; do
+        process_yaml_echo 1 "$lne"
+    done
+    echo "  global:"
+    for lne in $YML_global; do
+        process_yaml_echo 1 "$lne"
+    done
+    echo "before_install:"
+    for lne in $YML_before_install; do
+        process_yaml_echo 1 "$lne"
+    done
+    echo "  matrix:"
+    for lne in $YML_matrix; do
+        process_yaml_echo 1 "$lne"
+    done
+    echo "install:"
+    for lne in $YML_install; do
+        process_yaml_echo 1 "$lne"
+    done
+    echo "before_script:"
+    for lne in $YML_before_script; do
+        process_yaml_echo 1 "$lne"
+    done
+    echo "script:"
+    for lne in $YML_script; do
+        process_yaml_echo 1 "$lne"
+    done
+    echo "after_success:"
+    for lne in $YML_after; do
+        process_yaml_echo 1 "$lne"
+    done
+    sts=$STS_SUCCESS
+    exit $sts
 fi
 
 if [[ $PWD == $HOME ]]; then
-  echo "Cannot execute travis-ci from home directory!"
-  exit 1
+    echo "Cannot execute travis-ci from home directory!"
+    exit 1
 fi
 
 sts=$STS_SUCCESS

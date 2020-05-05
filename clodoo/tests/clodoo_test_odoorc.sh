@@ -32,37 +32,27 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.73
-VERSIONS_TO_TEST="12.0 11.0 10.0 9.0 8.0 7.0 6.1"
-MAJVERS_TO_TEST="12 11 10 9 8 7 6"
+__version__=0.3.8.74
+VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
+MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 
 
 test_01() {
-    local s sts v w
-    sts=0
+    local RES s sts v w
+    local sts=0
     export opt_mult=0
     export opt_multi=0
     declare -A TRES
-    TRES[6]="6.1"
-    TRES[7]="7.0"
-    TRES[8]="8.0"
-    TRES[9]="9.0"
-    TRES[10]="10.0"
-    TRES[11]="11.0"
-    TRES[12]="12.0"
     for v in $MAJVERS_TO_TEST; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param FULLVER $v)
-      fi
-      test_result "full version $v [bash]" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      #
-      w="v$v"
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param FULLVER $w)
-      fi
-      test_result "full version $w" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        [[ "$v" == "6" ]] && TRES[$v]="$v.1" || TRES[$v]="$v.0"
+        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
+        test_result "full version $v [bash]" "${TRES[$v]}" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        #
+        w="v$v"
+        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $w)
+        test_result "full version $w" "${TRES[$v]}" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
       #
       [ "$v" == "6" ] && w="$v.1" || w="$v.0"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -109,7 +99,7 @@ test_01() {
     return $sts
 }
 
-test_02() {
+__test_02() {
     local s sts v w
     sts=0
     export opt_mult=0
@@ -146,7 +136,7 @@ test_02() {
     return $sts
     }
 
-test_03() {
+__test_03() {
     local s sts v w
     sts=0
     export opt_mult=0
@@ -191,7 +181,7 @@ test_03() {
     return $sts
 }
 
-test_04() {
+__test_04() {
     local s sts v w
     sts=0
     export opt_mult=1
@@ -485,7 +475,7 @@ test_04() {
     return $sts
 }
 
-test_05() {
+__test_05() {
     local s sts v w
     sts=0
     export opt_mult=1
@@ -599,7 +589,7 @@ test_05() {
     return $sts
     }
 
-test_06() {
+__test_06() {
     local s sts v w
     sts=0
     export opt_mult=0
@@ -713,7 +703,7 @@ test_06() {
     return $sts
     }
 
-test_07() {
+__test_07() {
     local s sts v w x
     sts=0
     export opt_mult=1
@@ -770,7 +760,7 @@ test_07() {
     return $sts
 }
 
-test_08() {
+__test_08() {
     local s sts v w x
     sts=0
     export opt_mult=1
@@ -848,7 +838,7 @@ test_08() {
     return $sts
 }
 
-test_09() {
+__test_09() {
     local s sts v w
     sts=0
     export opt_mult=1

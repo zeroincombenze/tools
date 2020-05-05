@@ -31,7 +31,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.2.47
+__version__=0.2.2.48
 
 
 travis_test_bash() {
@@ -126,15 +126,15 @@ run_regression_test() {
     local x
     echo "======== Running regression_test ========"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-        local OPTS=$(inherits_travis_opts "n" "T")
-      else
-        local OPTS=$(inherits_travis_opts "" "T")
-      fi
-      run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"
-      COVERAGE_PROCESS_START=$(readlink -f .coveragerc)
-      if [ ! -f $COVERAGE_PROCESS_START ]; then
-        cat <<EOF >$COVERAGE_PROCESS_START
+        if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
+            local OPTS=$(inherits_travis_opts "n" "T")
+        else
+            local OPTS=$(inherits_travis_opts "" "T")
+        fi
+        run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"
+        COVERAGE_PROCESS_START=$(readlink -f .coveragerc)
+        if [ ! -f $COVERAGE_PROCESS_START ]; then
+            cat << EOF > $COVERAGE_PROCESS_START
 # Config file .coveragerc 2019-08-22
 [report]
 include =
@@ -179,44 +179,49 @@ exclude_lines =
     # Ignore unit test failure
     return TEST_FAILED
 EOF
-      fi
-      if [ -f ./tests/all_tests.py ]; then
-        if [ ${opt_dprj:-0} -gt 0 ]; then
-          run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py"
-        else
-          run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py"
         fi
-        sts=$?
-      elif [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 ]]; then
-        if [ ${opt_dprj:-0} -gt 0 ]; then
-          run_traced "./tests/all_tests $OPTS -1"
+        if [ -f ./tests/all_tests.py ]; then
+            if [ ${opt_dprj:-0} -gt 0 ]; then
+                run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py"
+            else
+                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py"
+            fi
+            sts=$?
+        elif [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 ]]; then
+            if [ ${opt_dprj:-0} -gt 0 ]; then
+                run_traced "./tests/all_tests $OPTS -1"
+            else
+                run_traced "cd ./tests; ./all_tests $OPTS -1"
+            fi
+            sts=$?
+        elif [ -f ./tests/test_$PRJNAME.py ]; then
+            if [ ${opt_dprj:-0} -gt 0 ]; then
+                run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py"
+            else
+                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py"
+            fi
+            sts=$?
         else
-          run_traced "cd ./tests; ./all_tests $OPTS -1"
+            if [ ${opt_dprj:-0} -gt 0 ]; then
+                run_traced "DEV_ENVIRONMENT=$PRJNAME $(which zerobug) -b"
+            else
+                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) -b"
+            fi
+            sts=$?
         fi
-        sts=$?
-      elif [ -f ./tests/test_$PRJNAME.py ]; then
-        if [ ${opt_dprj:-0} -gt 0 ]; then
-          run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py"
-        else
-          run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py"
+        $(ls ./pytest* &> /dev/null) && cd ..
+        if $(ls ./tests/pytest* &> /dev/null); then
+            run_traced "coverage run -m pytest -v ./tests/pytest*"
+            sts=$?
         fi
-        sts=$?
-      else
-        if [ ${opt_dprj:-0} -gt 0 ]; then
-          run_traced "DEV_ENVIRONMENT=$PRJNAME $(which zerobug) -b"
-        else
-          run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) -b"
+        if [ ! -f .coverage ]; then
+            echo "Result coverage file not found!"
+        elif [ ${opt_dprj:-0} -eq 0 ]; then
+            run_traced "mv .coverage .."
+            run_traced "cd .."
         fi
-        sts=$?
-      fi
-      if [ ! -f .coverage ]; then
-        echo "Result coverage file not found!"
-      elif [ ${opt_dprj:-0} -eq 0 ]; then
-        run_traced "mv .coverage .."
-        run_traced "cd .."
-      fi
     else
-      sts=$STS_SUCCESS
+        sts=$STS_SUCCESS
     fi
     return $sts
 }
@@ -245,43 +250,41 @@ set_pythonpath() {
     local PIP=${3:-pip}
     local pth PYLIB x
     if [[ -n "$PYPATH" || -n "$FSITE" ]]; then
-      PYLIB=$(dirname $($PIP --version|grep -Eo "from [^ ]+"|awk '{print $2}'))
-      if [ -z "$PYLIB" ]; then
-        PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
-      fi
+        PYLIB=$(dirname $($PIP --version | grep -Eo "from [^ ]+" | awk '{print $2}'))
+        if [ -z "$PYLIB" ]; then
+            PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
+        fi
     fi
     if [ -n "$PYLIB" ]; then
-      if [[ -n "$PYPATH" ]]; then
         if [ -f $PYLIB/sitecustomize.py ]; then
-          if grep -q "import sys" $PYLIB/sitecustomize.py; then
-            :
-          else
-            echo 'import sys' >> $PYLIB/sitecustomize.py
-          fi
+            if grep -q "import sys" $PYLIB/sitecustomize.py; then
+                :
+            else
+                echo 'import sys' >> $PYLIB/sitecustomize.py
+            fi
         else
-          echo 'import sys' > $PYLIB/sitecustomize.py
+            echo 'import sys' > $PYLIB/sitecustomize.py
         fi
         for pth in $PYPATH; do
-          echo "if '$pth' not in sys.path:    sys.path.insert(0, '$pth')" >> $PYLIB/sitecustomize.py
-          if echo ":$PYTHONPATH":|grep -q ":$pth:"; then
-            x=${PYTHONPATH//$pth/}
-            export $PYTHONPATH=${x//::/:}
-          fi
+            echo "if '$pth' not in sys.path:    sys.path.insert(0, '$pth')" >> $PYLIB/sitecustomize.py
+            if echo ":$PYTHONPATH": | grep -q ":$pth:"; then
+                x=${PYTHONPATH//$pth/}
+                export $PYTHONPATH = ${x//::/:}
+            fi
         done
-        [ "${PYTHONPATH:0:1}" == ":" ] && export $PYTHONPATH=${PYTHONPATH:1}
-      fi
-      if [[ -n "$FSITE" && -f $FSITE ]]; then
-        if [ -f $PYLIB/sitecustomize.py ]; then
-          if grep -q "import sys" $PYLIB/sitecustomize.py; then
-            run_traced "tail $FSITE -n -1 >> $PYLIB/sitecustomize.py"
-          else
-            run_traced "cat $FSITE >> $PYLIB/sitecustomize.py"
-          fi
-        else
-          run_traced "cp $FSITE $PYLIB"
+        [ "${PYTHONPATH:0:1}" == ":" ] && export $PYTHONPATH = ${PYTHONPATH:1}
+        if [[ -n "$FSITE" && -f $FSITE ]]; then
+            if [ -f $PYLIB/sitecustomize.py ]; then
+                if grep -q "import sys" $PYLIB/sitecustomize.py; then
+                    run_traced "tail $FSITE -n -1 >> $PYLIB/sitecustomize.py"
+                else
+                    run_traced "cat $FSITE >> $PYLIB/sitecustomize.py"
+                fi
+            else
+                run_traced "cp $FSITE $PYLIB"
+            fi
+            export PYTHONPATH=
         fi
-        export PYTHONPATH=
-      fi
     fi
 }
 
@@ -310,8 +313,8 @@ install_n_activate_tools() {
     if [ -d $HOME/tools ]; then
       [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
       pushd $HOME/tools > /dev/null
-      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-p
-      [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qp
+      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-op
+      [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qop
       run_traced "./install_tools.sh $x"
       [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
       . $HOME/dev/activate_tools

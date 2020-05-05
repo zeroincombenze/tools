@@ -211,25 +211,45 @@ def get_full_fn(ctx, src_path, filename):
     return full_fn
 
 
-def iter_tempate_path(debug_mode=None, body=None):
+def iter_template_path(debug_mode=None, body=None):
     for src_path in ('.',
                      './docs',
                      './egg-info',
+                     '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
                      '%s/dev/pypi/tools/templates/${p}' % os.environ['HOME'],
+                     '%s/devel/templates/${p}' % os.environ['HOME'],
                      '%s/dev/templates/${p}' % os.environ['HOME'],
+                     '%s/devel/pypi/tools/templates' % os.environ['HOME'],
                      '%s/dev/pypi/tools/templates' % os.environ['HOME'],
+                     '%s/devel/templates' % os.environ['HOME'],
                      '%s/dev/templates' % os.environ['HOME']):
-        if src_path.find('/dev/pypi/tools/') >= 0 and not debug_mode:
+        if src_path.find('/devel/pypi/tools/') >= 0 and not debug_mode:
+            continue
+        elif src_path.find('/dev/pypi/tools/') >= 0 and not debug_mode:
+                continue
+        elif src_path.find('/devel/templates') >= 0 and debug_mode:
             continue
         elif src_path.find('/dev/templates') >= 0 and debug_mode:
             continue
         if not body and (src_path.find('./docs') >= 0 or
-                         src_path.find('./egg-info') >= 0):
+                         src_path.find('./egg-info') >= 0 or
+                         src_path.find('./readme') >= 0):
             continue
         yield src_path
 
 
 def get_template_fn(ctx, template, ignore_ntf=None):
+
+    def alternate_name(full_fn):
+        if not full_fn.endswith('.rst'):
+            full_fn = '%s.rst' % full_fn
+            if os.path.isfile(full_fn):
+                return True, full_fn
+        if full_fn.endswith('.rst'):
+            full_fn = full_fn[0: -4].upper() + '.rst'
+            if os.path.isfile(full_fn):
+                return True, full_fn
+        return False, full_fn
 
     def search_tmpl(ctx, template, body):
         found = False
@@ -238,20 +258,29 @@ def get_template_fn(ctx, template, ignore_ntf=None):
             product_template = '%s_%s' % (ctx['product_doc'], template)
         else:
             layered_template = product_template = False
-        for src_path in iter_tempate_path(debug_mode=ctx['dbg_template'],
-                                          body=body):
+        for src_path in iter_template_path(debug_mode=ctx['dbg_template'],
+                                           body=body):
             if body:
                 full_fn = get_full_fn(ctx, src_path, product_template)
                 if os.path.isfile(full_fn):
                     found = True
                     break
+                found, full_fn = alternate_name(full_fn)
+                if found:
+                    break
                 full_fn = get_full_fn(ctx, src_path, layered_template)
                 if os.path.isfile(full_fn):
                     found = True
                     break
+                found, full_fn = alternate_name(full_fn)
+                if found:
+                    break
             full_fn = get_full_fn(ctx, src_path, template)
             if os.path.isfile(full_fn):
                 found = True
+                break
+            found, full_fn = alternate_name(full_fn)
+            if found:
                 break
             if template == 'acknowledges.txt':
                 full_fn = get_full_fn(ctx, src_path, 'contributors.txt')
@@ -296,7 +325,7 @@ def get_default_prerequisites(ctx):
     if 'addons_info' not in ctx:
         return ''
     text = '''.. $if branch in '12.0'
-* python 3.5+
+* python 3.7+
 * postgresql 9.5+ (experimental 10.0+)
 .. $fi
 .. $if branch in '11.0'
@@ -1124,25 +1153,28 @@ def read_setup(ctx):
         manifest_file = ''
     if manifest_file:
         fd = open(manifest_file, 'rU')
-        lines = os0.u(fd.read()).split('\n')[1:]
+        # lines = os0.u(fd.read()).split('\n')[1:]
+        ctx['manifest'] = eval('\n'.join(
+            os0.u(fd.read()).split('\n')[1:]).replace('setup', 'dict'))
         fd.close()
-        source = ''
-        for line in lines:
-            if line.startswith('setup('):
-                line  = line[6:]
-                source += '{\n'
-            if line.endswith(')'):
-                line = line[:: -1].replace(')', '}', 1)[:: -1]
-            param = qsplit(line, '=', 1, strip=True, quoted=True)
-            if len(param) <= 1:
-                source += '%s\n' % line
-            else:
-                source += '\'%s\': %s\n' % (param[0], param[1])
-        try:
-            ctx['manifest'] = unicodes(
-                ast.literal_eval(source))
-        except ImportError:
-            raise Exception('Wrong file %s' % manifest_file)
+        # source = ''
+        # for line in lines:
+        #     if line.startswith('setup('):
+        #         line = line[6:]
+        #         source += '{\n'
+        #     if line.endswith(')'):
+        #         line = line[:: -1].replace(')', '}', 1)[:: -1]
+        #     param = qsplit(line, '=', 1, strip=True, quoted=True)
+        #     if len(param) <= 1:
+        #         source += '%s\n' % line
+        #     else:
+        #         source += '\'%s\': %s\n' % (param[0], param[1])
+        # try:
+        #     ctx['manifest'] = unicodes(
+        #         ast.literal_eval(source))
+        #     ctx['branch'] = ctx['manifest'].get('version', '')
+        # except ImportError:
+        #     raise Exception('Wrong file %s' % manifest_file)
         ctx['manifest_file'] = manifest_file
     else:
         if not ctx['suppress_warning']:
@@ -1260,7 +1292,10 @@ def manifest_item(ctx, item):
         if ctx['set_website']:
             text = 'https://www.zeroincombenze.it/servizi-le-imprese/'
         else:
-            authors = ctx['authors'].split('\n')
+            authors = []
+            for x in ctx['authors'].split('\n'):
+                if x:
+                    authors.append(x)
             if len(authors) < 3:
                 for aut in authors:
                     if aut:
@@ -1273,21 +1308,29 @@ def manifest_item(ctx, item):
                 text = 'https://odoo-community.org/'
         target = "    '%s': '%s',\n" % (item, text)
     elif item == 'maintainer':
-        if ctx['set_website'] and item == 'maintainer':
+        if ctx['set_website']:
             text = 'Antonio Maria Vigliotti'
         else:
             text = 'Odoo Community Association (OCA)'
         target = "    '%s': '%s',\n" % (item, text)
     elif item == 'author':
-        authors = ctx['authors'].split('\n')
-        text = 'Odoo Community Association (OCA)'
-        if len(authors) <= 3:
+        authors = []
+        for x in ctx['authors'].split('\n'):
+            if x:
+                authors.append(x)
+        text = ''
+        if not ctx['set_website']:
+            text = 'Odoo Community Association (OCA)'
+        if len(authors) < 3:
             for aut in authors:
                 if aut:
                     i = aut.find('<')
                     if i < 1:
                         i = len(aut)
-                    text += (', %s' % aut[1: i].strip())
+                    if len(text):
+                        text += (', %s' % aut[1: i].strip())
+                    else:
+                        text = aut[1: i].strip()
         else:
             text += ' and other subjects'
         target = "    '%s': '%s',\n" % (item, text)
@@ -1374,7 +1417,9 @@ def index_html_content(ctx, source):
 
 def set_default_values(ctx):
     ctx['today'] = datetime.strftime(datetime.today(), '%Y-%m-%d')
-    if ctx['write_html']:
+    if ctx['output_file']:
+        ctx['dst_file'] = ctx['output_file']
+    elif ctx['write_html']:
         if os.path.isdir('./static/description'):
             ctx['dst_file'] = './static/description/index.html'
         else:
@@ -1505,6 +1550,10 @@ if __name__ == "__main__":
                         help='filename',
                         dest='module_name')
     parser.add_argument('-n')
+    parser.add_argument('-o', '--output-file',
+                        action='store',
+                        help='filename',
+                        dest='output_file')
     parser.add_argument('-P', '--product-doc',
                         action='store',
                         help='may be odoo or pypi',

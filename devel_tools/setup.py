@@ -1,13 +1,13 @@
 from setuptools import setup
 
 setup(name='devel_tools',
-      version='0.2.2.25',
+      version='0.2.2.33',
       description='Python developers tools',
       long_description="""
 Tool to parse, edit and migrate python source code
 """,
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Programming Language :: Python :: 2.7',
           'Intended Audience :: Developers',
@@ -20,5 +20,5 @@ Tool to parse, edit and migrate python source code
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
-      packages=['travis_emulator'],
+      packages=['devel_tools'],
       zip_safe=False)

@@ -54,12 +54,12 @@ Following statements may be used in documentation:
 Macro
 -----
 
-Macro currently suppported:
+Macro currently supported:
 
 .. $include macro.rst
 
 
-Documentation may contains some graphical symbols in format |symbol|.
+Documentation may contains some graphical symbols in format \|symbol\|.
 Currently follows symbols are supported:
 
 * check

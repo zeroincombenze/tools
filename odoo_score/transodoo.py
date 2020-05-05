@@ -33,7 +33,6 @@ from past.builtins import basestring
 
 import re
 import csv
-# import pdb
 import os
 import sys
 try:
@@ -41,8 +40,30 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.1.0.11"
-VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
+__version__ = "0.1.0.12"
+VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
+CVT_ACC_TYPE_OLD_NEW = {
+    'Bank': 'Bank and Cash',
+    'Cash': 'Bank and Cash',
+    'Check': 'Credit Card',
+    'Asset': 'Current Assets',
+    'Liability': 'Current Liabilities',
+    'Tax': 'Current Liabilities',
+}
+CVT_ACC_TYPE_NEW_OLD = {
+    'Bank and Cash': 'Bank',
+    'Credit Card': 'Check',
+    'Current Assets': 'Asset',
+    'Non-current Assets': 'Asset',
+    'Fixed Asset': 'Asset',
+    'Current Liabilities': 'Liability',
+    'Non-current Liabilities': 'Liability',
+    'Other Income': 'Income',
+    'Depreciation': 'Expense',
+    'Cost of Revenue': 'Expense',
+    'Prepayments': 'Expense',
+    'Current Year Earnings': 'Expense',
+}
 
 
 def get_pymodel(model):
@@ -117,6 +138,16 @@ def link_versioned_name(mindroot, model, uname, type, src_name, ver,
     return mindroot
 
 
+def tnl_acc_type(ctx, model, src_name, src_ver, tgt_ver, name):
+    src_majver = int(src_ver.split('.')[0])
+    tgt_majver = int(tgt_ver.split('.')[0])
+    if src_majver < 9 and tgt_majver >= 9:
+        name = CVT_ACC_TYPE_OLD_NEW.get(name, name)
+    elif src_majver >= 9 and tgt_majver < 9:
+        name = CVT_ACC_TYPE_NEW_OLD.get(name, name)
+    return name
+
+
 def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
     src_majver = int(src_ver.split('.')[0])
     tgt_majver = int(tgt_ver.split('.')[0])
@@ -124,10 +155,10 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
         if isinstance(src_name, basestring):
             src_name = float(src_name)
         if (src_majver < 9 and tgt_majver >= 9):
-            if src_name in (0.04, 0,05, 0.1, .22):
+            if src_name in (0.04, 0.05, 0.1, 0.21, .22):
                 name = src_name * 100
         elif (src_majver >= 9 and tgt_majver < 9):
-            if src_name in (4, 5, 10, 22):
+            if src_name in (4, 5, 10, 21, 22):
                 name = src_name / 100
         else:
             name = src_name
@@ -138,7 +169,7 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                       type=False, fld_name=False):
     """Translate the symbol <src_name> from <src_ver> of odoo into
     <tgt_ver> of odoo.
-    If type not supplied, transaltion is applied for <name> and <fld_name> types
+    If type not supplied, translation is applied for <name> and <fld_name> types
     The param <fld_name> must by supplied just if type is <value>; if field name
     is dependent by version, last version of name must be used
     """
@@ -170,7 +201,21 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                 if (pymodel in mindroot and
                         typ in mindroot[pymodel] and
                         fld_name in mindroot[pymodel][typ]):
-                    if ver_name in mindroot[pymodel][typ][fld_name]:
+                    if isinstance(mindroot[pymodel][typ][fld_name],
+                                   basestring):
+                        item = mindroot[pymodel][typ][fld_name]
+                        if item.startswith('${') and item.endswith('}'):
+                            fct = item[2: -1]
+                            if fct == 'amount':
+                                name = tnl_by_code(ctx, model, src_name,
+                                                   src_ver, tgt_ver,
+                                                   item)
+                            elif fct == 'acc_type':
+                                name = tnl_acc_type(ctx, model, src_name,
+                                                    src_ver, tgt_ver,
+                                                    item)
+                            break
+                    elif ver_name in mindroot[pymodel][typ][fld_name]:
                         uname = mindroot[pymodel][typ][fld_name][ver_name]
                         if (uname in mindroot[pymodel][typ][fld_name] and
                                 tgt_ver in mindroot[
@@ -178,12 +223,6 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                             name = mindroot[
                                 pymodel][typ][fld_name][uname][tgt_ver]
                             break
-                    elif (mindroot[pymodel][typ][fld_name].startswith('${') and
-                            mindroot[pymodel][typ][fld_name].endswith('}')):
-                        name = tnl_by_code(ctx, model, src_name, src_ver,
-                                           tgt_ver,
-                                           mindroot[pymodel][typ][fld_name])
-                        break
     return name
 
 
@@ -234,8 +273,10 @@ def read_stored_dict(ctx):
         p = os.path.dirname(__file__) or '.'
         if os.path.isfile('%s/transodoo.csv' % p):
             ctx['dict_fn'] = '%s/transodoo.csv' % p
-        elif os.path.isfile('~/dev/transodoo.csv'):
-            ctx['dict_fn'] = '~/dev/transodoo.csv'
+        elif os.path.isfile(os.path.join(os.path.expanduser('~'),
+                                         'transodoo.csv')):
+            ctx['dict_fn'] = os.path.join(os.path.expanduser('~'),
+                                         'transodoo.csv')
         else:
             ctx['dict_fn'] = 'transodoo.csv'
     # ctx['dict_fn'] = './__transodoo.csv'        #debug
@@ -253,8 +294,12 @@ def read_stored_dict(ctx):
                 NAME = row.index('name')
                 TYPE = row.index('type')
                 VER_IX = {}
+                last_ver_ix = 0
                 for ver in VERSIONS:
-                    VER_IX[ver] = row.index(ver)
+                    if ver in row:
+                        last_ver_ix = VER_IX[ver] = row.index(ver)
+                    else:
+                        VER_IX[ver] = last_ver_ix
                 hdr = True
                 continue
             mindroot = build_alias_struct(mindroot,
@@ -299,26 +344,8 @@ def write_stored_dict(ctx):
         for pymodel in sorted(mindroot.keys()):
             if pymodel == 'ir_model':
                 model = 'ir.model'
-            elif pymodel == 'ir_module_module':
-                model = 'ir.module.module'
-            elif pymodel == 'account_account':
-                model = 'account.account'
-            elif pymodel == 'account_account_type':
-                model = 'account.account.type'
-            elif pymodel == 'account_invoice':
-                model = 'account.invoice'
-            elif pymodel == 'account_tax':
-                model = 'account.tax'
-            elif pymodel == 'res_city':
-                model = 'res.city'
-            elif pymodel == 'res_partner':
-                model = 'res.partner'
-            elif pymodel == 'res_users':
-                model = 'res.users'
-            elif pymodel == 'sale_order':
-                model = 'sale.order'
             else:
-                model = pymodel
+                model = pymodel.replace('_', '.')
             for typ in sorted(mindroot[pymodel].keys()):
                 for uname in sorted(mindroot[pymodel][typ].keys()):
                     if not is_uname(uname):

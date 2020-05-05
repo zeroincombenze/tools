@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -28,7 +28,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 
 #//Only human upgradable code/
@@ -417,7 +417,7 @@ EOF
 
 blk_3() {
     cat <<EOF >>$1
-TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$HOME/tools/travis_emulator \$HOME/dev \${PYPATH//:/ } . .." "travis_emulator")
+TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$TDIR/../../travis_emulator \$TDIR/../../travis_emulator/travis_emulator \$HOME/tools/travis_emulator \$HOME/dev \${PYPATH//:/ } . .." "travis_emulator")
 if [ -z "\$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -430,7 +430,7 @@ blk_3z() {
     if [ $opt_tjLib -ne 0 ]; then
       cat <<EOF >>$1
 if [ \${opt_tjLib:-0} -ne 0 ]; then
-  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$HOME/tools/travis_emulator \$HOME/dev \${PYPATH//:/ } . .." "travis_emulator")
+  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$TDIR/../../travis_emulator \$TDIR/../../travis_emulator/travis_emulator \$HOME/tools/travis_emulator \$HOME/dev \${PYPATH//:/ } . .." "travis_emulator")
   if [ -z "\$TRAVISLIBDIR" ]; then
     echo "Library file travisrc not found!"
     exit 2
@@ -568,7 +568,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Update bash script"\
-  "(C) 2016-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2016-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 

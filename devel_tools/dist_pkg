@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $HOME/tools/travis_emulator $HOME/dev ${PYPATH//:/ } . .." "travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../../travis_emulator $TDIR/../../travis_emulator/travis_emulator $HOME/tools/travis_emulator $HOME/dev ${PYPATH//:/ } . .." "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -34,8 +34,6 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
 __version__=0.2.2.33
-
-
 
 # main
 OPTOPTS=(h        C         c        D        d        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -360,14 +358,6 @@ if [ "$PRJNAME" != "Odoo" ]; then
   else
     if [ $opt_dry_run -eq 0 -a $opt_diff -eq 0 ]; then
       run_traced "cp $SETUP $PKGPATH/$PKGNAME/setup.py"
-      # echo "from setuptools import setup">$PKGPATH/$PKGNAME/setup.py
-      # echo "">>$PKGPATH/$PKGNAME/setup.py
-      # echo "setup(name='$PRJNAME',">>$PKGPATH/$PKGNAME/setup.py
-      # echo "      version='$prjversion',">>$PKGPATH/$PKGNAME/setup.py
-      # echo "      description='$prjdesc',">>$PKGPATH/$PKGNAME/setup.py
-      # echo "      classifiers=[">>$PKGPATH/$PKGNAME/setup.py
-      # echo "          'Development Status ::$devstatus',">>$PKGPATH/$PKGNAME/setup.py
-      # echo "      ])">>$PKGPATH/$PKGNAME/setup.py
     fi
   fi
 fi

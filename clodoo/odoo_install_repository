@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.73
+__version__=0.3.8.74
 
 rmdir_if_exists() {
 #rmdir_if_exists (RPTNAME odoo_vid new_vid)

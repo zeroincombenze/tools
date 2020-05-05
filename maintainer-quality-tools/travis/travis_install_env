@@ -25,7 +25,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.47
+__version__=0.2.2.48
 
 
 conf_default() {
@@ -228,8 +228,8 @@ install_n_activate_tools() {
     if [ -d $HOME/tools ]; then
       [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
       pushd $HOME/tools > /dev/null
-      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-p
-      [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qp
+      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-op
+      [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qop
       run_traced "./install_tools.sh $x"
       [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
       . $HOME/dev/activate_tools
@@ -355,26 +355,25 @@ if [[ -z "$LISA" ]]; then
   fi
 fi
 if [ $opt_verbose -gt 0 ]; then
-  echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$(which $PIP).$($PIP --version)\e[${PS_HDR3_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)\e[${PS_HDR3_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)\e[${PS_HDR3_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE\e[${PS_HDR3_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m\$ MQT_TEST_MODE=$MQT_TEST_MODE\e[${PS_HDR3_COLOR}m"
-  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "\e[${PS_TXT_COLOR}m# PATH=$PATH\e[${PS_HDR3_COLOR}m"
-  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "\e[${PS_TXT_COLOR}m# OPTS=$OPTS\e[${PS_HDR3_COLOR}m"
-  [ -n "$PYPI_CACHED" ] && echo -e "\e[${PS_TXT_COLOR}m# PYPI_CACHED=$PYPI_CACHED\e[${PS_HDR3_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m# PYTHONPATH=$PYTHONPATH\e[${PS_HDR3_COLOR}m"
-  if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-    echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
-  else
-    echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|python
-  fi
+    echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"
+    echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$(which $PIP).$($PIP --version)\e[${PS_HDR3_COLOR}m"
+    echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
+    echo -e "\e[${PS_TXT_COLOR}m\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)\e[${PS_HDR3_COLOR}m"
+    echo -e "\e[${PS_TXT_COLOR}m\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)\e[${PS_HDR3_COLOR}m"
+    echo -e "\e[${PS_TXT_COLOR}m\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE\e[${PS_HDR3_COLOR}m"
+    echo -e "\e[${PS_TXT_COLOR}m\$ MQT_TEST_MODE=$MQT_TEST_MODE\e[${PS_HDR3_COLOR}m"
+    [ "$MQT_TEST_MODE" == "tools" ] && echo -e "\e[${PS_TXT_COLOR}m# PATH=$PATH\e[${PS_HDR3_COLOR}m"
+    [ "$MQT_TEST_MODE" == "tools" ] && echo -e "\e[${PS_TXT_COLOR}m# OPTS=$OPTS\e[${PS_HDR3_COLOR}m"
+    [ -n "$PYPI_CACHED" ] && echo -e "\e[${PS_TXT_COLOR}m# PYPI_CACHED=$PYPI_CACHED\e[${PS_HDR3_COLOR}m"
+    echo -e "\e[${PS_TXT_COLOR}m# PYTHONPATH=$PYTHONPATH\e[${PS_HDR3_COLOR}m"
+    if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
+        echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | python3
+    else
+        echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | python
+    fi
 fi
 # Build secure environment (python2)
 echo -e "\e[${PS_HDR3_COLOR}m### Build Secure Environment\e[${PS_TXT_COLOR}m"
-# for p in build-essential libssl-dev libffi-dev python-dev; do
 for p in build-essential libssl-dev libffi-dev; do
   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
   [ $? -ne 0 ] && run_traced "$LISA install $p" "nolocal"
@@ -403,33 +402,34 @@ export BRANCH="${ODOO_BRANCH}"
 export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
 
 if [ "$MQT_TEST_MODE" == "tools" ]; then
-  echo -e "\e[${PS_HDR3_COLOR}m### Build Tools Environment\e[${PS_TXT_COLOR}m"
-  if [ -z "$PYPI_CACHED" ]; then
-    if [[ ! "$TRAVIS" == "false" ]]; then
-      echo "- reqs=\$($LISTREQ -t python -s ' ' -qBTR)"
-      reqs="$($LISTREQ -t python -s ' ' -qBTR)"
-      for p in $reqs; do
-        eval $LISA status -q $f &>/dev/null
-        if [ $? -ne 0 ]; then
-          run_traced "$PIP install $p $PIP_OPTS" "nolocal"
-        else
-          run_traced "$PIP install $p --upgrade" "nolocal"
-        fi
-      done
+    echo -e "\e[${PS_HDR3_COLOR}m### Build Tools Environment\e[${PS_TXT_COLOR}m"
+    # if [ -z "$PYPI_CACHED" ]; then
+    #   if [[ ! "$TRAVIS" == "false" ]]; then
+    #     echo "- reqs=\$($LISTREQ -t python -s ' ' -qBTR)"
+    #     reqs="$($LISTREQ -t python -s ' ' -qBTR)"
+    #     for p in $reqs; do
+    #       eval $LISA status -q $f &>/dev/null
+    #       if [ $? -ne 0 ]; then
+    #         run_traced "$PIP install $p $PIP_OPTS" "nolocal"
+    #       else
+    #         run_traced "$PIP install $p --upgrade" "nolocal"
+    #       fi
+    #     done
+    #   fi
+    # fi
+    venv_mgr amend -D
+    if [ "${ODOO_REPO}" != "odoo/odoo" ]; then
+        git_clone_ocb
     fi
-  fi
-  if [ "${ODOO_REPO}" != "odoo/odoo" ]; then
-    git_clone_ocb
-  fi
-  if [ $opt_verbose -gt 0 ]; then
-    echo "Content of ${HOME}:"
-    ls -l ${HOME}
-    echo "Content of ${TRAVIS_BUILD_DIR}:"
-    ls -l ${TRAVIS_BUILD_DIR}
-    echo "Content of ${HOME}/dev:"
-    ls -l ${HOME}/dev
-  fi
-  exit $sts
+    if [ $opt_verbose -gt 0 ]; then
+        echo "Content of ${HOME}:"
+        ls -l ${HOME}
+        echo "Content of ${TRAVIS_BUILD_DIR}:"
+        ls -l ${TRAVIS_BUILD_DIR}
+        echo "Content of ${HOME}/dev:"
+        ls -l ${HOME}/dev
+    fi
+    exit $sts
 else
   if [ "${LINT_CHECK:-1}" != "0" ]; then
     NODE_VER=$(node --version|grep -Eo "[0-9]+"|head -n1)
@@ -456,17 +456,17 @@ else
     if [ $NODE_VER -lt 6 ]; then
       x=$(which nodejs 2>/dev/null)
       [[ -z "$x" ]] && x=$(which node 2>/dev/null)
-      run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/node"
+      run_traced "ln -s $x $HOME/tools/maintainer-quality-tools/travis/node"
       [ $opt_verbose -gt 0 ] && echo "3> node version: $(node --version)"
     fi
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
-      [ -n "$x" ] && run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
+      [ -n "$x" ] && run_traced "ln -s $x $HOME/tools/maintainer-quality-tools/travis/lessc"
     else
       run_traced "npm install less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin) -name lessc 2>/dev/null)
-      [ -n "$x" ] && run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
+      [ -n "$x" ] && run_traced "ln -s $x $HOME/tools/maintainer-quality-tools/travis/lessc"
     fi
     lessc --version
     x=$(find $PYLIB -name no-global-site-packages.txt)
@@ -525,14 +525,14 @@ else
          echo "File wkhtmltox${pkgext} not found!"
       elif [ "$pkgext" == ".rpm" ]; then
         run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
-        run_traced "cp ./usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
+        run_traced "cp ./usr/local/bin/wkhtmltopdf ${HOME}/tools/maintainer-quality-tools/travis/wkhtmltopdf"
       elif [ "$pkgext" == ".deb" ]; then
         run_traced "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
-        run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
+        run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${HOME}/tools/maintainer-quality-tools/travis/wkhtmltopdf"
         rm -r wkhtmltox.deb*
       else
         run_traced "tar -xf wkhtmltox${pkgext}"
-        run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
+        run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/tools/maintainer-quality-tools/travis/wkhtmltopdf"
         rm -fr ./wkhtmltox
       fi
       popd > /dev/null
@@ -558,7 +558,7 @@ else
     # Update PhantomJS (v10 compat)
     if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
       run_traced "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
-      run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/maintainer-quality-tools/travis/phantomjs\""
+      run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/tools/maintainer-quality-tools/travis/phantomjs\""
     fi
     if [ "${CHROME_TEST}" == "1" ]; then
       run_traced "google-chrome --version"
@@ -583,7 +583,7 @@ else
         run_traced "$MGRODOO requirements -LBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       fi
     fi
-    run_traced "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
+    run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       if [ $opt_verbose -gt 0 ]; then
         echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
@@ -620,7 +620,7 @@ else
         run_traced "$MGRODOO requirements -LBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       fi
     fi
-    run_traced "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
+    run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
         run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"

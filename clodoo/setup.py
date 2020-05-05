@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='clodoo',
-      version='0.3.8.73',
+      version='0.3.8.74',
       description='Do massive operations on Odoo Cloud',
       long_description="""
 Crete consistent DB for test and/or
@@ -21,4 +21,5 @@ do massive operation on multiple Odoo databases.
       license='Affero GPL',
       packages=['clodoo'],
       package_data={'odoorc': ['./odoorc', './odoorc']},
+      install_requires=['future', 'psycopg2', 'odoorpc', 'oerplib', 'unidecode', 'z0lib'],
       zip_safe=False)

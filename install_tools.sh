@@ -144,6 +144,6 @@ elif [[ ! $1 =~ -.*q && ! $1 =~ -.*P ]]; then
     echo ". $DSTPATH/activate_tools"
     echo "-----------------------------------------------------------"
 fi
-if [[ ! $1 =~ -.*P ]]; then
-    $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "S|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
+if [[ $1 =~ -.*P ]]; then
+    $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
 fi

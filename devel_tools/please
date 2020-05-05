@@ -1835,6 +1835,8 @@ do_docs() {
     wlog "do_docs"
     local docs_dir=./docs
     local author version theme SETUP
+    local opts
+    [[ $PWD =~ /dev[el]*/pypi/ ]] && opts=-B
     if [ ! -d $docs_dir ]; then
         if [ $opt_force -eq 0 ]; then
             echo "Missing docs directory!"
@@ -1842,11 +1844,14 @@ do_docs() {
         fi
         run_traced "mkdir $docs_dir"
     fi
+    run_traced "gen_readme.py $opts"
+    run_traced "gen_readme.py $opts -t mainpage -o $docs_dir/MAINPAGE.rst"
     run_traced "pushd $docs_dir >/dev/null"
     if [ ! -f index.rst -o ! -f conf.py ]; then
         SETUP=$(build_pypi_param SETUP)
         version=$(get_value_from_file "$SETUP" "version")
         author=$(get_value_from_file "$SETUP" "author")
+        # status=$(get_value_from_file "$SETUP" "Development Status" "::")
         run_traced "sphinx-quickstart -p '$PRJNAME' -a '$author' -v '$version' -r '$version' -l en --no-batchfile --makefile --master index --suffix .rst ./"
         cat <<EOF >conf.py
 # -*- coding: utf-8 -*-
@@ -1891,7 +1896,9 @@ release = '$version'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
+    'sphinx_rtd_theme',
+    'sphinx.ext.todo',
+    'sphinx.ext.githubpages',
 ]
 
 
@@ -1933,7 +1940,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'acknowledges*']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+# pygments_style = None
+pygments_style = 'sphinx'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -1950,7 +1958,7 @@ pygments_style = None
 # documentation.
 #
 html_theme_options = {
-    'canonical_url': '',
+    # 'canonical_url': '',
     # 'analytics_id': 'UA-XXXXXXX-1',
     # 'logo_only': False,
     # 'display_version': True,
@@ -1980,6 +1988,7 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+html_logo = 'logozero_180x46.png'
 EOF
         cat <<EOF >index.rst
 .. $PRJNAME documentation master file, created by
@@ -1997,7 +2006,7 @@ Welcome to $PRJNAME $version documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. include:: ../README.rst
+.. include:: MAINPAGE.rst
 
 
 Indices and tables
@@ -2406,20 +2415,36 @@ do_replica() {
     return $sts
 }
 
+do_showdoc() {
+    if [[ ! "$PRJNAME" == "Odoo" ]]; then
+        if [[ -f ./docs/_build/html/index.html ]]; then
+            firefox $(readlink -e ./docs/_build/html/index.html) &
+        else
+            echo "No documentation found in ./docs!"
+        fi
+    fi
+    return 0
+}
+
 do_status() {
     local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
     pushd $HOME/tools >/dev/null
     local PKGS=$(git status|tr "\t" " "|grep -E "^#? +(modified|modificato):"|awk -F: '{print $2}'|tr -d " "|awk -F/ '{print $1}'|sort -u|tr "\n" "|")
-    [ -n "$PKGS" ] && PKGS="(${PKGS:0dir
-    : -1})" || PKGS="()"
+    [[ -n "$PKGS" ]] && PKGS="(${PKGS:0: -1})" || PKGS="()"
     popd >/dev/null
     for pkg in $PKGS_LIST; do
-        if [[ ! "$PKGS" == "()" && $pkg =~ $PKGS ]]; then
-            echo -e "\e[1m##### Package $pkg have to be pushed on github.com #####\e[0m"
-        else
-            echo -e "\e[1m#****[ $pkg ]*****\e[0m"
+        [ $opt_force -ne 0 ] && echo -e "\e[1m[ $pkg ]\e[0m"
+        [ $opt_force -eq 0 ] && echo -e "[ $pkg ]"
+        [ $opt_force -ne 0 ] && vfdiff -q $HOME/tools/$pkg $HOME/dev/pypi/$pkg/$pkg -q|grep -v "diff -x"
+        if [ $opt_force -eq 0 ]; then
+            vfdiff -q $HOME/tools/$pkg $HOME/dev/pypi/$pkg/$pkg -q>/dev/null
+            [ $? -ne 0 ] && echo -e "\e[1m    Execute: cd $HOME/dev/pypi/$pkg/$pkg; please replace\e[0m"
         fi
-        vfdiff -q $HOME/tools/$pkg ~/dev/pypi/$pkg/$pkg
+        if [[ ! "$PKGS" == "()" && $pkg =~ $PKGS ]]; then
+            echo -e "\e[1m    Package $pkg have to be pushed on github.com\e[0m"
+        # else
+        #     echo -e "\e[1m*****[ $pkg ]*****\e[0m"
+        fi
     done
 }
 
@@ -2599,7 +2624,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0"\
  "configuration file (def .travis.conf)"\
  "date to search in log"\
- "force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro)"\
+ "force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro) | full (status)"\
  "execute tests in project dir rather in test dir/old style synchro"\
  "keep coverage statistics in annotate test/keep original repository | tests/ in publish"\
  "log file name"\
@@ -2622,7 +2647,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|build|chkconfig|[commit|config|distribution|docs|download_rep|duplicate|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|status|test|translate|version|wep"
+HLPCMDLIST="help|build|chkconfig|[commit|config|distribution|docs|download_rep|duplicate|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|showdoc|status|test|translate|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
   "© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
@@ -2634,13 +2659,6 @@ CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
-# Follow code must be executed at main level
-set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
-set_cfg_def "DEV_SVG" "$HOME/dev/svg"
-set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
-set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
-set_cfg_def "PKGS_LIST" "clodoo devel_tools lisa maintainer-quality-tools odoo_score os0 python_plus travis_emulator z0bug_odoo z0lib zar zerobug"
-# /End Included Block/
 link_cfg $TCONF
 init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi

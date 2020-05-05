@@ -241,19 +241,24 @@ echo "- def.conf.file is $opt_cfg"
 echo "- alt.conf.file is $opt_cfg2"
 src_template=""
 for d in $TDIR . /etc/lisa; do
-  for p in $FH .;do
-    if [ "$p" == "." ]; then
-      n=$d/odoo-server
-    else
-      n=$d/odoo-server_$FH
-    fi
-    if [ -f $n ]; then
-      src_template=$n
+  if [ -f $d/$opt_tmpl ]; then
+      src_template=$d/$opt_tmpl
       break
-    fi
-  done
-  if [ -n "$src_template" ]; then
-    break
+  else
+      for p in $FH .;do
+        if [ "$p" == "." ]; then
+          n=$d/odoo-server
+        else
+          n=$d/odoo-server_$FH
+        fi
+        if [ -f $n ]; then
+          src_template=$n
+          break
+        fi
+      done
+      if [ -n "$src_template" ]; then
+        break
+      fi
   fi
 done
 if [ -z "$src_template" ]; then

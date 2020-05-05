@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 
 #//Only human upgradable code/
@@ -68,7 +68,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -118,7 +118,7 @@ if [ -z "\$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -180,7 +180,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -236,7 +236,7 @@ if [ -z "\$ODOOLIBDIR" ]; then
 fi
 . \$ODOOLIBDIR
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -298,7 +298,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -354,7 +354,7 @@ if [ -z "\$TRAVISLIBDIR" ]; then
 fi
 . \$TRAVISLIBDIR
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -416,7 +416,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -472,7 +472,7 @@ if [ -z "\$ZARLIB" ]; then
 fi
 . \$ZARLIB
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -534,7 +534,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -607,7 +607,7 @@ fi
 . \$Z0TLIBDIR
 Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -684,7 +684,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -756,7 +756,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -820,7 +820,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -893,7 +893,7 @@ fi
 . \$Z0TLIBDIR
 Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
 
-__version__=0.1.17
+__version__=0.1.17.2
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)

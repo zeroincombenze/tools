@@ -16,9 +16,9 @@
 |Zeroincombenze| {{repos_name}} {{branch}}
 ==========================================
 
-|Coverage Status| |license gpl| |Try Me|
+|Coverage Status| |license gpl|
 
 .. $fi
-.. $if mainpage.find('mainpage') < 0:
+.. $if template.find('mainpage') < 0:
 .. contents::
 .. $fi

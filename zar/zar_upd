@@ -195,12 +195,12 @@ else
   publog=$opt_log
 fi
 CFG_init
-set_tlog_file "$publog"
+set_tlog_file "$publog"c
 if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
 fi
 
-FLIST="zarrc zar_bck zar_cptbl zar_rest zar_purge zar_upd pg_db_active pg_db_reassign_owner"
+FLIST="zarrc zar_bck zar_cptbl zar_rest zar_purge zar_upd pg_db_active pg_db_reassign_owner bck_filestore.sh check_4_seq"
 GZFN=zar.tar.gz
 if [ "$action" == "build" -o "$action" == "build_last" ]; then
   wlog "Build ZAR suite $__version__ by $USER"

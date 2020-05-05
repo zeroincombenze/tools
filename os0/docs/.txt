@@ -131,9 +131,9 @@ CLASSES
      |  version
 
 DATA
-    __version__ = '0.2.14.3'
+    __version__ = '0.2.14.4'
 
 VERSION
-    0.2.14.3
+    0.2.14.4
 
 

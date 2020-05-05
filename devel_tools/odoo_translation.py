@@ -111,14 +111,19 @@ def load_default_dictionary(source):
                 csv_obj.fieldnames = row['undef_name']
                 continue
             if not row['status'] or row['status'] == ctx['module_name']:
+                if not row['msgid'] or not row['msgstr']:
+                    continue
                 msgid = os0.u(row['msgid'])
                 TNL_DICT[msgid] = os0.u(row['msgstr'])
                 if msgid == TNL_DICT[msgid]:
                     continue
-                if (msgid[0] != ' ' and
-                        msgid[0] == TNL_DICT[msgid][0].lower() and
-                        msgid[1:] == TNL_DICT[msgid][1:]):
-                    continue
+                try:
+                    if (msgid[0] != ' ' and
+                            msgid[0] == TNL_DICT[msgid][0].lower() and
+                            msgid[1:] == TNL_DICT[msgid][1:]):
+                        continue
+                except:
+                    pass
                 TNL_ACTION[msgid] = 'D'
                 if ctx['action'] and ctx['action'][0].upper() in (
                         'D', 'P', '*'):

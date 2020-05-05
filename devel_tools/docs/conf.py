@@ -21,7 +21,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'devel_tools'
-copyright = '2019, Antonio Maria Vigliotti'
+copyright = '2019-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
@@ -79,7 +79,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'maturity*', 'module_name*', 'repos_name*',
                     'today*',
                     'authors*', 'contributors*', 'translators*',
-                    'acknowledges*']
+                    'acknowledges*', 'macro*']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None

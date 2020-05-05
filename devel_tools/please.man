@@ -46,6 +46,8 @@ Action is one of:
 .br
 * replica
 .br
+* showdoc
+.br
 * status
 .br
 * synchro
@@ -193,13 +195,25 @@ Copy the selected directory into all other versions of current Odoo module.
 Use this action mainly for replicate documentation directory.
 .RE
 .P
+\fBshowdoc\fR
+.RS
+Open local documentation web page (readthdocs) with firefox.
+Documentation must be created by \fBplease docs\fR action and published on the "readthdocs" website using \fBplease publish\fR action.
+.br
+This action has effect just for PYPI projects.
+.RE
+.P
 \fBstatus\fR
 .RS
 Show replace status
 .br
 For each project in ~/dev/pypi show differences between replaced copy and show replacing status in ~/tools (see replace action)
 .br
+
+.br
     Projects tree
+.br
+
 .br
 .RS
 root

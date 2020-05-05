@@ -62,7 +62,7 @@
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.14.16
+__version__=0.2.14.17
 
 export opt_dry_run
 export ctr
@@ -355,6 +355,7 @@ export -f test_result
 
 
 ci-test () {
+    # deprecated
     local s
     if [ $teststs -eq $STS_SUCCESS ]; then
       test_result "$1" "$2" "$3" "$4"
@@ -476,8 +477,8 @@ exec_tests_4_count() {
         fi
         Z0BUG_ctr_list="$Z0BUG_ctr_list $ctr"
       fi
-      dbgmsg " let testctr=$testctr+${ctr:-0}"
-      let testctr="$testctr+${ctr:-0}"
+      dbgmsg " ((testctr+=ctr))"
+      ((testctr+=ctr))
     done
     restore_options
     ctr=$testctr
@@ -541,8 +542,8 @@ exec_all_tests () {
           fi
           ((ix++))
           c=$(echo $Z0BUG_ctr_list|awk '{print $'$ix'}')
-          dbgmsg " let ctr=$ctr+${c:-0}"
-          let ctr="$ctr+${c:-0}"
+          dbgmsg " ((ctr+=c))"
+          ((ctr+=c))
         fi
         [ ${s:-0} -ne 0 ] && sts=$s
       fi
