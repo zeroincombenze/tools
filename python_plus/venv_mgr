@@ -405,7 +405,7 @@ venv_mgr_check_oever() {
 #venv_mgr_check_oever action
     local p x
     if [[ -z "$opt_oever" && ! $1 =~ (help|create) ]]; then
-        x=$(find -L $p2 -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -name release.py)
+        x=$(find -L $p2 -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*"  -not -path "*/tests/res/*" -name release.py)
         if [[ -n "$x" ]]; then
             p=$(dirname $x)
             cd_venv $p -q
@@ -415,7 +415,7 @@ venv_mgr_check_oever() {
         fi
     fi
     if [[ ! $1 =~ (help|create) ]]; then
-        [ $opt_verbose -gt 0 ] && echo "### Odoo version $opt_oever ...  ###"
+        [ -n "$opt_oever" -a $opt_verbose -gt 0 ] && echo "### Odoo version $opt_oever ...  ###"
         [[ -z "$FUTURE" ]] && pip_install future -q
         FUTURE=$(pip show future 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
         [[ -z "$Z0LIB" ]] && pip_install z0lib -q
@@ -732,19 +732,28 @@ if [ $opt_help -gt 0 ]; then
     print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit $STS_SUCCESS
 fi
-p1=
-if [[ -d "$p2" ]]; then
-    p1=$(readlink -e $p2)
-    unset p2
+if [[ ! $action =~ (help|create) ]]; then
+    p1=
+    if [[ -d "$p2" ]]; then
+        p1=$(readlink -e $p2)
+        unset p2
+    fi
+    [[ -z "$p1" ]] && p1=$(readlink -e ./)
+    [[ ! -f $p1/bin/activate && -f $HOME/bin/activate ]] && p1=$(readlink -e $HOME)
+    if [[ -z "$p2" ]]; then
+        p2=$p1
+    else
+        p9="$p8";
+        p8="$p7";
+        p7="$p6";
+        p6="$p5";
+        p5="$p4";
+        p4="$p3";
+        p3="$p2";
+        p2="$p1"
+    fi
+    unset p1
 fi
-[[ -z "$p1" ]] && p1=$(readlink -e ./)
-[[ ! -f $p1/bin/activate && -f $HOME/bin/activate ]] && p1=$(readlink -e $HOME)
-if [[ -z "$p2" ]]; then
-    p2=$p1
-else
-    p9="$p8"; p8="$p7"; p7="$p6"; p6="$p5"; p5="$p4"; p4="$p3"; p3="$p2"; p2="$p1"
-fi
-unset p1
 DO_POP=0
 DO_DEACT=0
 export PYTHONWARNINGS="ignore"
@@ -752,9 +761,11 @@ SAVED_HOME=$HOME
 [ $opt_debug -ne 0 -a -d $HOME/tools/ ] && PYTHONPATH=$HOME/tools/
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
-check_local_pkgs $p2
-[[ -n "$opt_pyver" ]] && set_pyver_files
-[[ -z "$opt_pyver" && ! $action  =~ (help|create) ]] && venv_mgr_check_src_path $p2
+if [[ ! $action =~ (help|create) ]]; then
+    check_local_pkgs $p2
+    [[ -n "$opt_pyver" ]] && set_pyver_files
+fi
+[[ -z "$opt_pyver" && ! $action =~ (help|create) ]] && venv_mgr_check_src_path $p2
 venv_mgr_check_oever $action
 [ $opt_dev -eq 0 -a -d "$p2" ] && x=$(find ${p2}/lib -name pylint -o -name unittest2 -o -name coverage -o -name flake8|wc -l)
 [ $opt_dev -eq 0 -a ${x:-0} -gt 1 ] && opt_dev=1

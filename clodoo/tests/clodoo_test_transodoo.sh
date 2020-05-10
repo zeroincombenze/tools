@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.74
+__version__=0.3.8.75
 
 
 test_01() {
@@ -45,14 +45,16 @@ test_01() {
     TRES[10.0]="Sales"
     TRES[11.0]="Sales"
     TRES[12.0]="Sales"
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    TRES[13.0]="Sales"
+    TRES[14.0]="Sales"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m res.groups -s SALES -b$v)
       test_result "translate SALES $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
     k="name"
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m res.groups -k "$k" -s "Sales" -f 7.0 -b$v)
       test_result "translate $k/Sales from 7.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -69,16 +71,18 @@ test_02() {
     TRES[10.0]="type"
     TRES[11.0]="type"
     TRES[12.0]="type"
+    TRES[13.0]="type"
+    TRES[14.0]="type"
     #
     k="report_type"
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m account.account.type -s "$k" -f 7.0 -b$v)
       test_result "translate $k/account.account.type from 7.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
     k="type"
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m account.account.type -s "$k" -f 10.0 -b$v)
       test_result "translate $k/account.account.type from 10.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -95,14 +99,16 @@ test_03() {
     TRES[10.0]="action_invoice_cancel"
     TRES[11.0]="action_invoice_cancel"
     TRES[12.0]="action_invoice_cancel"
+    TRES[13.0]="action_invoice_cancel"
+    TRES[14.0]="action_invoice_cancel"
     #
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m account.invoice -k action -s action_cancel -f 7.0 -b$v)
       test_result "translate action/action_cancel from 7.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m account.invoice -k action -s action_invoice_cancel -f 10.0 -b$v)
       test_result "translate action/action_invoice_cancel from 10.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -119,14 +125,16 @@ test_04() {
     TRES[10.0]="action_invoice_draft"
     TRES[11.0]="action_invoice_draft"
     TRES[12.0]="action_invoice_draft"
+    TRES[13.0]="action_invoice_draft"
+    TRES[14.0]="action_invoice_draft"
     #
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m account.invoice -k action -s invoice_cancel_draft -f 7.0 -b$v)
       test_result "translate action/invoice_cancel_draft from 7.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m account.invoice -k action -s action_invoice_draft -f 10.0 -b$v)
       test_result "translate action/action_invoice_draft from 10.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -136,25 +144,54 @@ test_04() {
 test_05() {
     local k v RES
     declare -A TRES
+    TRES[6.1]="asset"
+    TRES[7.0]="asset"
+    TRES[8.0]="asset"
+    TRES[9.0]="['liquidity', 'other', 'receivable']"
+    TRES[10.0]="['liquidity', 'other', 'receivable']"
+    TRES[11.0]="['liquidity', 'other', 'receivable']"
+    TRES[12.0]="['liquidity', 'other', 'receivable']"
+    TRES[13.0]="['liquidity', 'other', 'receivable']"
+    TRES[14.0]="['liquidity', 'other', 'receivable']"
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -m account.account.type -k value -N report_type -s asset -f 7.0 -b$v)
+      test_result "translate value/report_type/asset from 7.0 to $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    TRES[6.1]="asset"
+    TRES[7.0]="asset"
+    TRES[8.0]="asset"
+    TRES[9.0]="receivable"
+    TRES[10.0]="receivable"
+    TRES[11.0]="receivable"
+    TRES[12.0]="receivable"
+    TRES[13.0]="receivable"
+    TRES[14.0]="receivable"
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -m account.account.type -k value -N type -s receivable -f 10.0 -b$v)
+      test_result "translate value/type/receivable from 10.0 to $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
     TRES[6.1]="Asset"
     TRES[7.0]="Asset"
     TRES[8.0]="Asset"
-    TRES[9.0]="Current Assets"
-    TRES[10.0]="Current Assets"
-    TRES[11.0]="Current Assets"
-    TRES[12.0]="Current Assets"
+    TRES[9.0]="['Current Assets', 'Fixed Assets', 'Prepayments']"
+    TRES[10.0]="['Current Assets', 'Fixed Assets', 'Prepayments']"
+    TRES[11.0]="['Current Assets', 'Fixed Assets', 'Prepayments']"
+    TRES[12.0]="['Current Assets', 'Fixed Assets', 'Prepayments']"
+    TRES[13.0]="['Current Assets', 'Fixed Assets', 'Prepayments']"
+    TRES[14.0]="['Current Assets', 'Fixed Assets', 'Prepayments']"
     #
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
-      RES=$($RUNDIR/transodoo.py translate -m account.account.type -k value -N report_type -s Asset -f 7.0 -b$v)
-      test_result "translate value/report_type/Asset from 7.0 to $v" "${TRES[$v]}" "$RES"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -m account.account.type -k value -N name -s Asset -f 7.0 -b$v)
+      test_result "translate value/name/Asset from 7.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    #
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
-      RES=$($RUNDIR/transodoo.py translate -m account.account.type -k value -N report_type -s "Current Assets" -f 10.0 -b$v)
-      test_result "translate translate value/report_type/Current Assets from 10.0 to $v" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
+
 }
 
 test_06() {
@@ -167,14 +204,16 @@ test_06() {
     TRES[10.0]="22.0"
     TRES[11.0]="22.0"
     TRES[12.0]="22.0"
+    TRES[13.0]="22.0"
+    TRES[14.0]="22.0"
     #
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m account.tax -k value -N amount -s 0.22 -f 7.0 -b$v)
       test_result "translate value/amount/0.22 from 7.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m account.tax -k value -N amount -s 22 -f 10.0 -b$v)
       test_result "translate value/amount/22 from from 10.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -187,9 +226,26 @@ test_06() {
     TRES[10.0]="sale"
     TRES[11.0]="sale"
     TRES[12.0]="sale"
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
-      RES=$($RUNDIR/transodoo.py translate -m sale.order -k value -N state -s sale -f 10.0 -b$v)
-      test_result "translate value/state/done from from 10.0 to $v" "${TRES[$v]}" "$RES"
+    TRES[13.0]="sale"
+    TRES[14.0]="sale"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -m sale.order -k value -N state -s progress -f 7.0 -b$v)
+      test_result "translate value/state/progress from from 7.0 to $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    TRES[6.1]="manual"
+    TRES[7.0]="manual"
+    TRES[8.0]="manual"
+    TRES[9.0]="sale"
+    TRES[10.0]="sale"
+    TRES[11.0]="sale"
+    TRES[12.0]="sale"
+    TRES[13.0]="sale"
+    TRES[14.0]="sale"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -m sale.order -k value -N state -s manual -f 7.0 -b$v)
+      test_result "translate value/state/manual from from 7.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 }

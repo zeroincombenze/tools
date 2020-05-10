@@ -1,17 +1,17 @@
 from __future__ import print_function, unicode_literals
 from past.builtins import basestring
 from future.utils import PY2, PY3, with_metaclass
-import sys
+# import sys
 
 
 __title__ = 'python_plus'
 __author__ = 'Antonio Maria Vigliotti'
-__license__ = 'MIT'
+__license__ = 'L-GPL'
 __copyright__ = 'Copyright 2018-2020 SHS-AV srl'
 __ver_major__ = 0
 __ver_minor__ = 1
-__ver_patch__ = 2
-__ver_sub__ = ''
+__ver_patch__ = 3
+__ver_sub__ = '6'
 __version__ = '0.1.3.6'
 
 PYCODESET = 'utf-8'
@@ -51,6 +51,12 @@ def _u(s):
     return s
 
 
+def _c(s):
+    if PY2:
+        return _b(s)
+    return _u(s)
+
+
 def bstrings(src):
     if isinstance(src, dict):
         src2 = src.copy()
@@ -59,7 +65,7 @@ def bstrings(src):
                 del src[x]
             src[_b(x)] = _b(src2[x])
     elif isinstance(src, list):
-        for i,x in enumerate(src):
+        for i, x in enumerate(src):
             src[i] = _b(x)
     return src
 
