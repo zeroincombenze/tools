@@ -6,7 +6,7 @@ venv_mgr \- virtual environment management
 .SH SYNOPSIS
 venv_mgr [options] action [directory]
 .SH DESCRIPTION
-\fBvenv_mgr\fR is an interactive tool which adds new features to standard virtual environment command.
+\fBvenv_mgr\fR is an interactive tool with some nice features to manage standard virtual environment.
 .P
 Action is one of:
 .br
@@ -45,7 +45,7 @@ May used after 'create' or 'reset' when requirements are changed.
 \fBcheck\fR [OPTIONS] [SRC_VENV]
 .RS
 Compare package versions against requirements.
-May used after 'create' or 'reset' to check virtual environment consistency.
+May be used after 'create' or 'reset' to check virtual environment consistency.
 .RE
 .P
 \fBcp\fR [OPTIONS] SRC_VENV TGT_ENV
