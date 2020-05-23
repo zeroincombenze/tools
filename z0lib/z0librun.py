@@ -35,15 +35,20 @@ Area managed:
 
 @author: Antonio M. Vigliotti antoniomaria.vigliotti@gmail.com
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 # import pdb
+from future import standard_library
+standard_library.install_aliases()                                 # noqa: E402
+from builtins import *                                             # noqa: F403
+from builtins import object
 import os
 import argparse
 import inspect
-try:
-    import ConfigParser
-except ImportError:
-    import configparser as ConfigParser
+import configparser
 from os0 import os0
 
 
@@ -61,7 +66,7 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "0.2.8"
+__version__ = "0.2.8.8"
 
 
 class CountAction(argparse.Action):
@@ -81,13 +86,14 @@ class CountAction(argparse.Action):
             help=help)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        new_count = argparse._ensure_value(namespace, self.dest, 0)
+        # new_count = argparse._ensure_value(namespace, self.dest, 0)
+        new_count = self.dest if isinstance(self.dest, int) else 0
         if option_string != '-q':
             new_count += 1
         setattr(namespace, self.dest, new_count)
 
 
-class parseoptargs():
+class parseoptargs(object):
 
     def __init__(self, *args, **kwargs):
         self.parser = argparse.ArgumentParser(description=args[0],
@@ -204,7 +210,7 @@ class parseoptargs():
                 ctx['conf_fn'] = CONF_FN
             else:
                 ctx['conf_fn'] = "./" + ctx['caller'] + ".conf"
-        conf_obj = ConfigParser.SafeConfigParser(self.default_conf(ctx))
+        conf_obj = configparser.ConfigParser(self.default_conf(ctx))
         if ODOO_CONF:
             if isinstance(ODOO_CONF, list):
                 found = False
@@ -272,3 +278,4 @@ class parseoptargs():
         # elif p in ctx and ctx[p] == -1:
         #     ctx[0] = 0
         return ctx
+
