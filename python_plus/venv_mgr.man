@@ -30,11 +30,15 @@ Action is one of:
 .br
 * mv [OPTIONS] SRC_VENV TGT_ENV
 .br
-* update
+* upgrade [OPTIONS] [VENV] PKG
+.br
+* uninstall [OPTIONS] [VENV] PKG
 .br
 * test [OPTIONS] [VENV]
 .br
 * reset [OPTIONS] [VENV]
+.br
+* show [OPTIONS] [VENV] PKG
 .P
 \fBamend\fR [OPTIONS] [SRC_VENV]
 .RS
@@ -61,7 +65,7 @@ Switch -p declare which python version will be used to create new environment.
 .br
 This action can install various python packages to create a ready to use environment directory.
 .br
-See -I -D -O -r switches to furthermore information.
+See -I -D -O -o -r switches to furthermore information.
 .RE
 .P
 \fBexec\fR [OPTIONS] [SRC_VENV] CMD ...
@@ -71,14 +75,29 @@ Execute a command in virtual environment. Enclose command by quotes.
 .P
 \fBinfo\fR [OPTIONS] [SRC_VENV] PKG
 .RS
-Show information about pypi package if installed in virtual environment
+Show information about pypi package if installed in virtual environment (alias of show)
 .RE
 .P
 \fBinstall\fR [OPTIONS] [SRC_VENV] PKG
 .RS
 Install pypi package or bin package into virtual environment.
 .br
-Warning! currently just 2 packages can be installed: wkhtmltopdf and lessc
+Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc
+.RE
+.P
+\fBshow\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Show information about pypi package if installed in virtual environment (alias of info)
+.RE
+.P
+\fBuninstall\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Uninstall pypi package from virtual environment.
+.RE
+.P
+\fBupgrade\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Upgrade pypi package in virtual environment.
 .RE
 .SH OPTIONS
 .TP
@@ -89,7 +108,7 @@ wkhtmltopdf
 .br
 lessc
 .br
-Any other binary package must be installed by os installer (apt-get, dnf, yum, etc.)
+Any other binary package must be globally installed by os installer (apt-get, dnf, yum, etc.)
 .TP
 .BR \-D
 With create or reset action, install or upgrade development packages.
@@ -100,9 +119,12 @@ Run isolated mode, without accessing system packages.
 .BR \-O
 install pypi required by odoo ver (create or reset)
 .TP
+.BR \-o
+declare odoo path used to find odoo requirements and linked inside virtual environment
+.TP
 .TP
 .SH EXAMPLES
-venv_mgr create -DI -O 3.5 my_venv
+venv_mgr create -DI -p 3.6 my_venv -O 12.0 -o ~/odoo-12.0
 .SH BUGS
 No known bugs.
 .SH AUTHOR
