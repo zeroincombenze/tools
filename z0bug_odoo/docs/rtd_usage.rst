@@ -1,9 +1,6 @@
 .. toctree::
    :maxdepth: 2
 
-Usage
-=====
-
 Code example:
 ::
 
@@ -107,3 +104,4 @@ Warning: returned values may contain some field of uninstalled module.
 `get_data_file(self, model, csv_fn)`
 
 Load data of model from csv_fn. Internal use only.
+

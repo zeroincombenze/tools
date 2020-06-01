@@ -9,8 +9,8 @@ status	msgid	msgstr
 	(keep empty for invoicing all the settlements)	lasciare vuoto per fatturare tutte le provvigioni
 	(keep empty for making the settlement of all agents)	lasciare vuoto per creare le provvigioni per tutti gli agenti
 	* Be sure that an Outgoing Email Server is correctly configured;	* Verifica che il server di posta per invio sia correttamente configurato;
-	# of Digits	# di cifre
-	# of Items	# di voci
+	# of Digits	N. di cifre
+	# of Items	N. di voci
 	%s partners have no credits and as such the action is cleared	Per i soggetti %s non risultano crediti e l'azione non è stata eseguita
 	00302 - Invalid fiscalcode of %s	00302 – Codice fiscale non valido %s
 	003XA - Partner %s without street on address	003XA - Soggetto %s senza indirizzo
@@ -47,8 +47,8 @@ status	msgid	msgstr
 	Actions	Azioni
 	Activities	Attività
 	Activity Progress	Stato avanzamento lavori
-	Add an internal note..	Aggiungi nota interna..
-	Add an internal note...	Aggiungi nota interna...
+	Add an internal note..	Aggiungi una nota interna..
+	Add an internal note...	Aggiungi una nota interna...
 	Add Pickings to DDT	Aggiungi prelievo al DdT
 	Add tax stamp line	Aggiungi riga bollo
 	Add to DDT	Aggiungi al DdT
@@ -64,7 +64,7 @@ status	msgid	msgstr
 	Administration ref.	Rif.  Amministrativo
 	Administration Reference	Riferimento amministrativo
 	Administrator	Amministratore
-	Adviser	Contabile
+	Adviser	Consulente
 	After	Dopo
 	Aged Partner Balance	Poste ripartite per periodo
 	Aged Partner Balance -	Poste ripartite per periodo -
@@ -117,10 +117,12 @@ status	msgid	msgstr
 	Back to Accredited	Ripristina accrediata
 	Background	Sfondo
 	Balance Sheet	Stato patrimoniale
-	Bank Accounts	C/c bancari
+	Bank Accounts	Conti bancari
+	Bank and Cash	Banca o cassa
 	Bank Name	Nome banca
 	Bank Statement	Estratto conto bancario
 	Bare Ownership	Nuda proprietà
+	Base Amount	Base imponibile
 	bilancio storico cumul. soggetto	Bilancio storico cumul. Soggetto
 	Bill	Fattura
 	Bill &amp; Ship To	Indirizzo di fatturazione e consegna
@@ -238,6 +240,7 @@ status	msgid	msgstr
 	Contract	Contratto
 	Contributor	Collaboratore
 	Control Policy 	Procedimento di controllo
+	Cost of Revenue	Costi operativi
 	Country Code %s not found in system	Codice nazione %s non trovato nel sistema
 	Country Code %s not found in the system	Codice nazione %s non trovato nel sistema
 	Country code according to the ISO 3166-1 alpha-2 code standard	Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code
@@ -260,6 +263,7 @@ status	msgid	msgstr
 	Creation date	Data di creazione
 	Credit	Avere
 	Credit amount	Importo Avere
+	Credit Card	Carta di credito
 	Credit move line	Riga contabile avere
 	Credit move lines	Righe contabili avere
 	Creditor/Agent	Creditore/Agente
@@ -268,7 +272,10 @@ status	msgid	msgstr
 	Currency id	Divisa
 	Currency Name	Nome divisa
 	Current	Attuale
+	Current Assets	Attività correnti
 	Current commitment not found	Dichiarativo corrente non trovato
+	Current Liabilities	Passività correnti
+	Current Year Earnings	Risultato operativo
 	Custom Header	Intestazione personalizzata
 	Customer	Cliente
 	Customer %s: city is needed for XML generation	Cliente %s: per la generazione dell'XML è necessaria la città
@@ -356,6 +363,7 @@ sale	Delivered	Cons.
 	Delivery document model	Modello documento di consegna
 	Delivery document template	Specifica documento di consegna
 	delivery method	Metodo di consegna
+	Depreciation	Ammortamento
 	Description	Descrizione
 	Description for Customers 	Descrizione per i clienti
 	Description for Delivery Orders 	Descrizione per ordini di consegna
@@ -392,9 +400,11 @@ sale	Delivered	Cons.
 	Documents to be appended to DdT (PDF only):	Documento da appendere al DdT (solo PDF):
 	Down Payment of IRPEF	Acconto IRPEF
 	Down Payment of the Council supplement IRPEF	Acconto addizionale comunale IRPEF
+	Draft	Bozza
 	Draft Invoice	Bozza fattura
 	Draft Invoice #	Conti Bancari
 	Driver's Signature	Firma Conducente
+	Due Date	Data scadenza
 	Due date filter	Filtro data scadenza
 	Due Dates	Date scadenza
 	Duty Code	Codice tributo
@@ -452,12 +462,14 @@ sale	Delivered	Cons.
 	Entry	Registrazione
 	Entry number	Numero di registrazione
 	EORI Code	Codice EORI
+	Equity	Capitale
 	Error	Errore
 	Error 00464: Partner id %d without fiscal data	Errore 00464: Soggetto id %d senza dati fiscali
 	Excise Duty	Accise
 	Exclude from DDT invoicing	Escuso da fatturazione DdT
 	EXJ	ACQ
 	Expense Account 	Conto di costo
+	Expenses	Costi
 	Experimental Axilor CoA	PdC sperimentale Axilor
 	Export E-invoice	Esporta e-fattura
 	Export EInvoice	Esporta fattura elettronica
@@ -499,6 +511,7 @@ sale	Delivered	Cons.
 	Fiscal Statements	Comunicazioni fiscali
 	Fiscal year	Anno fiscale
 	Fiscalcode	Codice fiscale
+	Fixed Assets	Immobilizzazioni
 	Fixed percentage	Percentuale fissa
 	Footer Print Mode	Modo stampa piede
 	for all Outgoing Mail Servers and Fetchmail Servers	per tutti i server di posta
@@ -530,7 +543,6 @@ sale	Delivered	Cons.
 	Graph	Quadri
 	Gross Amount	Provvigione su prezzo
 	Gross Weight	Peso lordo
-	Gross Weight	Peso Lordo
 	Group By	Raggruppa per
 	Group by...	Raggruppa per ...
 	Groups	Gruppi
@@ -560,6 +572,7 @@ sale	Delivered	Cons.
 	Impossible to put in pack a package without details	Impossibile inserire nel collo una confezione senza dettagli
 	In Bills	Fatture
 	Incidental Charges	Spese accessorie
+	Income	Ricavo
 	Income Account 	Conto di ricavo
 	Income Statement	Conto Economico
 	Incoming E-bill Files	File e-fatture in ingresso
@@ -591,7 +604,9 @@ sale	Delivered	Cons.
 	Invoice exception	Eccezione in fattura
 	Invoice line %s does not have tax	Riga fattura %s senza IVA
 	Invoice line agents and commissions	Righe agenti e provvigioni in fattura
+	Invoice Lines	Righe fatture
 	Invoice paid	Fattura pagata
+	Invoice Ref	Riferimento fattura
 	Invoice Refund	Nota di Credito
 	Invoice Type	Tipo Fattura
 	Invoiced	Fatturato
@@ -634,6 +649,7 @@ sale	Delivered	Cons.
 	Legal Notice	Dati fiscali e legali
 	Legal Person	Persona giuridica
 	Legal Tax Representative	Rappresentante legale (fiscale)
+	Liabilities	Passività
 	License Code	Codice licenza
 	Line	Riga
 	Line Detail	Dettaglio riga
@@ -723,6 +739,8 @@ sale	Delivered	Cons.
 	No withholding tax found with document payment reason %s and rate %s.	Ritenuta con causale documento %s e aliquota %s non trovata.
 	non ci sono ddt da fatturare	Non ci sono DdT da fatturare
 	Non taxable nature	Natura esenzione
+	Non-current Assets	Attività non correnti
+	Non-current Liabilities	Passività non correnti
 	None	Nulla
 	Not due	Non dovuto
 	Not every picking is in done status	Non tutti i prelievi sono completati
@@ -730,6 +748,7 @@ sale	Delivered	Cons.
 	Note	Nota
 	Notes	Note
 	Nothing to invoice	Non ci sono DdT da fatturare
+	Number	Numero
 	Number of Items	Numero di righe
 	Number Reference	Riferimento numero
 	OCA accounting reports	Rapporti finanziari vari
@@ -745,6 +764,7 @@ sale	Delivered	Cons.
 	Only specific address	Solo indirizzo specifico
 	Only wide logo	Solo logo largo
 	Only wide logo / no sep. line	Solo logo largo senza riga sep.
+	Open	Aperto
 	Open Items	Partite aperte
 	Open Items -	Partite aperte -
 	Open Items Partner	Partite aperte
@@ -766,6 +786,7 @@ sale	Delivered	Cons.
 	Original Odoo Model	Modello originale Odoo
 	Original report	Rapporto originale
 	Other Administrative Data	Altri dati gestionali
+	Other Income	Altri ricavi operativi
 	Out Invoices	Fatture emesse
 	Outgoing Email Servers	Server posta invio
 	Outgoing Mail Server	Server posta invio
@@ -780,6 +801,7 @@ sale	Delivered	Cons.
 	Package Preparation Line	Riga preparazione confezionamento
 	Packaging 	Imballaggio
 	Packing	Imballo
+	Paid	Pagato
 	Parcels	Colli
 	Partner	Soggetto
 	Partner %s %d vat country differs from country	Soggetto %s %d nazione partita IVA diversa da anagrafico
@@ -815,9 +837,10 @@ sale	Delivered	Cons.
 	Partner VAT number and fiscal code are not set.	Partita IVA e codice fiscale del soggetto non impostati.
 	Partner/Customer	Soggetto/Cliente
 	Partners 	Soggetti
-	Payable Account	Conto di debito
-	Payable accounts only	Solo conti di debito
-	Payables 	Debiti
+	Payable	Debito fornitore
+	Payable Account	Conto di debito fornitore
+	Payable accounts only	Solo conti di debito fornitori
+	Payables 	Debiti fornitori
 	Payment Amount	Importo pagamento
 	Payment Bank	Banca di pagamento
 	Payment Based	Pagamento basato
@@ -849,6 +872,7 @@ sale	Delivered	Cons.
 	PEC to which the electronic invoice will be sent. Must be filled ONLY when the information element <CodiceDestinatario> is '0000000'	"Indirizzo PEC al quale inviare la fattura elettronica. Da valorizzare SOLO nei casi in cui l'elemento informativo <CodiceDestinatario> vale ""0000000"""
 	Percent	Percentuale
 	Percentage	Percentuale
+	Period	Periodo
 	Period End Date	Data inizio periodo
 	Period selection	Selezione periodo
 	Period Start Date	Data fine periodo
@@ -868,10 +892,12 @@ sale	Delivered	Cons.
 	Post Office Code	Codice ufficio postale
 	Premium	Aggio
 	Prepayment Discount	Sconto pagamento anticipato
+	Prepayments	Risconti
 	Preview link	Collegamento anteprima
 	Print code in document line	Stampa codice in riga documento
 	Print description in document line	Stampa descrizione in riga documento
 	Print Invoice	Stampa fattura
+	Product	Prodotto
 	Product %s must have income and expense accounts	Il prodotto %s deve avere I conti di costo e ricavo
 	Product for invoicing	Prodotto da fatturare
 	Product Template	Specifica di prodotto
@@ -919,8 +945,9 @@ sale	Delivered	Cons.
 	Reason For Transportation	Causale trasporto
 	Reasons for Transportation	Causali trasporto
 	Receipt	Scontrino fiscale
-	Receivable accounts only	Solo conti di credito
-	Receivables 	Crediti
+	Receivable	Credito cliente
+	Receivable accounts only	Solo conti di credito clienti
+	Receivables 	Crediti clienti
 	Reception	Entrata merce
 	Receptions 	Entrate merci
 	Recipient	Destinatario
@@ -1010,6 +1037,7 @@ sale	Delivered	Cons.
 	Save & New	Salva e nuovo
 	Search DDT	Cerca DdT
 	Search Incoming Mail Servers	Cerca server posta in arrivo
+	Search Invoice	Cerca fattura
 	Search Key	Chiave di ricerca
 	sections	Fasce
 	Sections	Fasce
@@ -1115,6 +1143,7 @@ l10n_it_ddt	Subtotal	Totale riga
 	Supplier	Fornitore
 	Supplier data	Dati fornitore
 	Supplier Invoice Line	Righe fatture fornitori
+	Supplier Invoice Lines	Righe fatture fornitori
 	Surname field contains '%s'. Your System contains '%s'	"Il campo cognome contiene ""%s"", il sistema contiene ""%s"""
 	Surname field contains '%s'. Your System contains '%s'	"Il campo cognome contiene ""%s"", il sistema contiene ""%s"""
 	Synchronization	Sincronizzazione
@@ -1195,6 +1224,7 @@ l10n_it_ddt	Subtotal	Totale riga
 	To be Invoiced	Da fatturare
 	To Be Invoiced	Da Fatturare
 	To Register	Da registrare
+	Today	Oggi
 	Too many taxes for invoice line %s	Troppe aliquote IVA per la riga fattura %s.
 	Too many taxes for invoice line %s.	Troppe imposte per la riga fattura %s.
 	Too many taxes with percentage %s and nature %s found	Rilevate troppe imposte con aliquota %s e natura %s

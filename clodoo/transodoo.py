@@ -39,7 +39,10 @@ import sys
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
-    from z0lib import z0lib
+    try:
+        from z0lib import z0lib
+    except ImportError:
+        import z0lib
 
 __version__ = "0.3.8.75"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')

@@ -2762,6 +2762,7 @@ def test_synchro_vg7(ctx):
 
     TNL_TABLE = {
         'account.account': '',
+        'account.account.type': '',
         'account.invoice': '',
         'account.invoice.line': '',
         'account.payment.term': 'payments',
@@ -2786,6 +2787,8 @@ def test_synchro_vg7(ctx):
 
     BORDERLINE_TABLE = {
         'account.account': {
+        },
+        'account.account.type': {
         },
         'account.invoice': {
             'number': 'move_name',
@@ -2916,6 +2919,7 @@ def test_synchro_vg7(ctx):
         },
     }
     TABLE_OF_FIELD = {
+        'company_id': 'res.company',
         'country_id': 'res.country',
         'conai_category_id': 'italy.conai.product.category',
         'goods_description_id': 'stock.picking.goods_description',
@@ -2932,6 +2936,7 @@ def test_synchro_vg7(ctx):
         'sale_line_id': 'sale.order.line',
         'state_id': 'res.country.state',
         'transportation_reason_id': 'stock.picking.transportation_reason',
+        'user_type_id': 'account.account.type',
     }
     ctx['ctr'] = 0
 
@@ -2959,7 +2964,7 @@ def test_synchro_vg7(ctx):
         # Set message note
         ctx['company_note'] = 'Si prega di controllate i dati entro le 24h.'
         clodoo.writeL8(ctx, 'res.company', company_id,
-                        {'sale_note': ctx['company_note']})
+            {'sale_note': ctx['company_note']})
         # Configure VG7 channel
         # Wrong method. Will be set forward, in order to test cache
         model = 'synchro.channel'
@@ -2986,9 +2991,7 @@ def test_synchro_vg7(ctx):
         for model in TNL_TABLE:
             ext_model = TNL_TABLE[model]
             if ext_model:
-                file_csv = '/opt/odoo/clodoo/%s.csv' % ext_model
-                if os.path.isfile(file_csv):
-                    os.unlink(file_csv)
+                rm_file_2_pull(ext_model)
             unlink_vg7(model)
 
         # Delete invoice
@@ -3124,7 +3127,7 @@ def test_synchro_vg7(ctx):
                 store_id(ctx, model, ids[0], vals['vg7_id'])
             vals['default_code'] = code2
             vals['product_tmpl_id'] = ids[0]
-            # Default code changed from XX to XXX so search for both codes
+            # Default code was changed from XX to XXX so search for both codes
             xid = 'z0bug.product_product_%d' % ii
             ids = write_record(ctx, model2, xid, vals)
             if not ids:
@@ -3192,6 +3195,8 @@ def test_synchro_vg7(ctx):
             model = item[0]
             domain = [('id', 'in', item[1])]
             delete_record(ctx, model, domain)
+        model = 'account.account'
+        delete_record(ctx, model, [('code', '=', '180111')])
         return ctx
 
     def write_file_2_pull(ext_model, vals, mode=None):
@@ -3356,7 +3361,8 @@ def test_synchro_vg7(ctx):
                     rec_value = getattr(rec, loc_name).id
                     if (ext_ref != 'vg7_id' and
                             (ext_ref.startswith('vg7_') or
-                             ext_ref.startswith('vg7:'))):
+                             ext_ref.startswith('vg7:') or
+                             ext_ref == 'oe8:company_id')):
                         ckstr = False
                         if loc_name in TABLE_OF_FIELD:
                             ref_model = TABLE_OF_FIELD[loc_name]
@@ -4434,7 +4440,6 @@ def test_synchro_vg7(ctx):
         name = clodoo.browseL8(ctx, 'res.partner', partner_id).name
         vals = {
             'oe8:id': oe8_id,
-            # 'oe8:partner_id': 1001,
             'oe8:name': name,
             'oe8:vat': 'IT10978280013',
         }
@@ -4456,13 +4461,12 @@ def test_synchro_vg7(ctx):
         print('Write %s ..' % model)
 
         oe8_id = oe8_id or 1
-        code = code or '152100'
+        code = code or 'bank'
         name = name or 'Bank and Cash'
-        utype = utype or 'asset'
+        utype = utype or 'liquidity'
         utype_new = utype_new or 'liquidity'
         vals = {
             'oe8:id': oe8_id,
-            'oe8:company_id': company_id,
             'oe8:code': code,
             'oe8:name': name,
             'oe8:report_type': utype,
@@ -4474,36 +4478,43 @@ def test_synchro_vg7(ctx):
         store_id(ctx, model, acc_id, oe8_id)
         vals['type'] = utype_new
         del vals['oe8:report_type']
-        check_2_account(ctx, acc_id, vals)
+        del vals['oe8:code']
+        check_2_account_type(ctx, acc_id, vals)
         return oe8_id
-
 
     def check_2_account(ctx, company_id, vals):
         general_check(ctx, 'account.account', company_id, vals)
 
-    def write_2_account(ctx, company_id, oe8_id=None, code=None, name=None,
-                        utype=None, utype_new=None):
+    def write_2_account(ctx, company_id, oe8_id=None, code=None,
+                        name=None, utype=None, type_xref=None):
         model = 'account.account'
         print('Write %s ..' % model)
 
         oe8_id = oe8_id or 567
-        code = code or '152100'
-        name = name or 'Crediti v/clienti Italia'
-        utype = utype or 'Receivable'
-        utype_new = utype_new or utype
+        code = code or '180111'
+        name = name or 'Bank'
+        utype = utype or 'liquidity'
+        type_xref = type_xref or 'account.data_account_type_liquidity'
         vals = {
             'oe8:id': oe8_id,
-            'oe8:company_id': company_id,
+            'oe8:company_id': 1,
             'oe8:code': code,
             'oe8:name': name,
             'oe8:type': utype,
+            'oe8:user_type': {
+                'account.data_account_type_liquidity': 1,
+                'account.data_account_type_receivable': 2,
+            }[type_xref],
         }
         acc_id = clodoo.executeL8(ctx,
                                   model,
                                   'synchro',
                                   vals)
         store_id(ctx, model, acc_id, oe8_id)
-        vals['internal_type'] = utype_new
+        store_id(ctx, 'res.company', company_id, 1)
+        vals['internal_type'] = utype
+        vals['user_type_id'] = env_ref(ctx, type_xref)
+        del vals['oe8:type']
         del vals['oe8:user_type']
         check_2_account(ctx, acc_id, vals)
         return oe8_id
@@ -4942,11 +4953,15 @@ def test_synchro_vg7(ctx):
     write_2_user(ctx)
     write_2_company(ctx)
     write_2_partner(ctx)
-    pdb.set_trace()
     write_2_account_type(ctx)
+    write_2_account_type(ctx, oe8_id=2, code='receivable', name='Receivable',
+                         utype='receivable', utype_new='receivable')
     write_2_account(ctx, company_id)
-    write_2_account(ctx, company_id, oe8_id=555, code='180002', name='Bank',
-                        utype='Bank', utype_new='Bank and Cash')
+    write_2_account(ctx, company_id)
+    write_2_account(ctx, company_id, oe8_id=555, code='152100',
+        name='Crediti v/clienti Italia', utype='receivable',
+        type_xref='account.data_account_type_receivable')
+
 
     print('*** Starting pull record test ***')
 
@@ -5266,71 +5281,142 @@ def check_integrity_by_vg7(ctx):
 
     def check_partner_child(ctx, model, partner):
         parent = clodoo.browseL8(ctx, model, partner.parent_id.id)
-        if partner.name and partner.name != parent.name:
-            print('Current partner %d name %s differs from its parent %s' % (
-                partner.id, partner.name, parent.name
+        vals = {}
+        action = ''
+        if parent.parent_id:
+            print('Recursive chain: %s (%d) is child of %s (%d) and child' % (
+                partner.name, partner.id, parent.name, parent.id
             ))
-            dummy = raw_input('Action: Confirm,Standard,Unlink? ')
-            if dummy.upper() == 'S':
-                clodoo.writeL8(ctx, model, partner.id, {'name': False})
+            if not partner.vg7_id and not partner.vat:
+                action = 'R'
+            else:
+                action = raw_input('Action: Unlink,Nop? ')
+        elif partner.child_ids:
+            print('Recursive chain: %s (%d) is child of %s (%d) but parent' % (
+                partner.name, partner.id, parent.name, parent.id
+            ))
+            action = raw_input('Action: unBreed,Unlink? ')
+        else:
+            if (partner.type == 'invoice' and
+                    partner.vg7 and partner.vg7 < 200000000):
+                vals['vg7_id'] = partner.vg7 + 200000000
+            elif (partner.type == 'delivery' and
+                    partner.vg7 and partner.vg7 < 100000000):
+                vals['vg7_id'] = partner.vg7 + 100000000
+            if partner.customer:
+                vals['customer'] = False
+            if partner.supplier:
+                vals['supplier'] = False
+            if (partner.name and partner.name == parent.name and
+                    partner.type != 'contact'):
+                vals['name'] = False
+                if (partner.type in ('invoice', 'delivery') and
+                        not partner.vg7_id):
+                    action = 'R'
+            if partner.vat and partner.vat == parent.vat:
+                vals['vat'] = False
+            elif partner.vat and partner.type != 'invoice':
+                vals['type'] = 'invoice'
+            if partner.name and parent.name.find(partner.name) < 0:
+                print('Partner %s (%d) differs from its parent %s (%d)' % (
+                    partner.name, partner.id, parent.name, parent.id
+                ))
+                if ((not partner.customer or 'customer' in vals) and
+                        (not partner.supplier or 'supplier' in vals) and
+                        (not partner.vat or 'vat' in vals)):
+                    action = 'C'
+                else:
+                    action = raw_input('Action: Confirm,Standard,Unlink? ')
+        if action.upper() == 'S':
+            if partner.type == 'contact':
+                vals['name'] = parent.name
+            else:
+                vals['name'] = False
+        elif action.upper() == 'U':
+            # Ignore prior dictionary
+            vals = {'parent_id': False}
+        elif action.upper() == 'B':
+            vals['child_ids'] = [(5, 0)]
+        elif action.upper() == 'R':
+            try:
+                clodoo.unlinkL8(ctx, model, partner.id)
                 ctx['ctr'] += 1
-            elif dummy.upper() == 'U':
-                clodoo.writeL8(ctx, model, partner.id, {'parent_id': False})
-                ctx['ctr'] += 1
-        elif partner.name and partner.name == parent.name:
-            clodoo.writeL8(ctx, model, partner.id, {'name': False})
-            ctx['ctr'] += 1
-        if partner.customer:
-            clodoo.writeL8(ctx, model, partner.id, {'customer': False})
-            ctx['ctr'] += 1
-        if partner.supplier:
-            clodoo.writeL8(ctx, model, partner.id, {'supplier': False})
+                vals = {}
+            except BaseException:
+                print('Partner non deletable!')
+        if vals:
+            clodoo.writeL8(ctx, model, partner.id, vals)
             ctx['ctr'] += 1
 
     def check_partner_root(ctx, model, partner):
-        if partner.type != 'contact':
-            print('Current partner %d name %s has wrong type %s' % (
-                partner.id, partner.name, partner.type
-            ))
-            msg = 'Action: '
-            if partner.vg7_id:
-                if partner.vg7 > 200000000:
-                    if partner.type != 'invoice':
-                        msg = '%s,Invoice' % msg
-                elif partner.vg7 > 100000000:
-                    if partner.type != 'delivery':
-                        msg = '%s,Delivery' % msg
-                else:
-                    msg = '%s,Contact' % msg
-            else:
-                msg = '%s,Contact,Remove' % msg
-            msg = '%s,Link2,Nop? ' % msg
-            dummy = raw_input(msg)
-            if dummy.upper() == 'C':
-                clodoo.writeL8(ctx, model, partner.id, {'type': 'contact'})
+        parent_name = partner.display_name.split(',')[0].strip()
+        parent_id = False
+        vals = {}
+        action = ''
+        if partner.name != parent_name:
+            parent = clodoo.searchL8(
+                ctx, model, [('name', 'ilike', parent_name),
+                             ('type', '=', 'contact')])
+            if parent and partner.id != parent[0]:
+                parent_id = parent[0]
+                print('Current partner %s was linked to %s (%d)' %
+                      (partner.name, parent_name, parent_id))
+        if parent_id:
+            vals['parent_id'] = parent_id
+            if partner.vg7_id > 200000000:
+                vals['type'] = 'invoice'
+            elif partner.vg7_id > 100000000:
+                vals['type'] = 'delivery'
+            if partner.type != 'contact':
+                print('Current partner %d name %s has wrong type %s' % (
+                    partner.id, partner.name, partner.type
+                ))
+        else:
+            if (partner.vg7_id and partner.vg7_id > 200000000 and
+                    partner.type != 'invoice'):
+                print('Current partner %d name %s has wrong type %s' % (
+                    partner.id, partner.name, partner.type
+                ))
+                vals['type'] = 'invoice'
+                action = 'L'
+            elif (partner.vg7_id and partner.vg7_id > 100000000 and
+                    partner.type != 'delivery'):
+                print('Current partner %d name %s has wrong type %s' % (
+                    partner.id, partner.name, partner.type
+                ))
+                vals['type'] = 'delivery'
+                action = 'L'
+            elif partner.type != 'contact':
+                vals['type'] = 'contact'
+                if not partner.child_ids:
+                    print('Current partner %d name %s has wrong type %s' % (
+                        partner.id, partner.name, partner.type
+                    ))
+                    action = raw_input('Action: Contact,Remove,Nop? ')
+        if action.upper() == 'C':
+            vals['type'] = 'contact'
+        elif action.upper() == 'D':
+            vals['type'] = 'delivery'
+        elif action.upper() == 'I':
+            vals['type'] = 'invoice'
+        elif action.upper() in ('L', '2'):
+            action = raw_input('Id of parent? ')
+            if action.isdigit():
+                vals['parent_id'] = int(action)
+        elif action.upper() == 'R':
+            try:
+                clodoo.unlinkL8(ctx, model, partner.id)
                 ctx['ctr'] += 1
-            elif dummy.upper() == 'D':
-                clodoo.writeL8(ctx, model, partner.id, {'type': 'delivery'})
-                ctx['ctr'] += 1
-            elif dummy.upper() == 'I':
-                clodoo.writeL8(ctx, model, partner.id, {'type': 'invoice'})
-                ctx['ctr'] += 1
-            elif dummy.upper() == 'L':
-                dummy = raw_input('Id of parent? ')
-                if dummy.isdigit():
-                    clodoo.writeL8(
-                        ctx, model, partner.id, {'parent_id': int(dummy)})
-                    ctx['ctr'] += 1
-            elif dummy.upper() == 'R':
-                try:
-                    clodoo.unlinkL8(ctx, model, partner.id)
-                    ctx['ctr'] += 1
-                except BaseException:
-                    print('Partner non deletable!')
-                    check_partner_root(ctx, model, partner)
+                vals = {}
+            except BaseException:
+                print('Partner non deletable!')
+        if vals:
+            clodoo.writeL8(ctx, model, partner.id, vals)
+            ctx['ctr'] += 1
 
     model = 'res.partner'
     ctx['ctr'] = 0
+    print('Retrieving data ...')
     for partner in clodoo.browseL8(
             ctx, model, clodoo.searchL8(
                 ctx, model, [])):
@@ -5984,6 +6070,25 @@ print(' - clean_translations             - display_module')
 print(' - configure_email_template       - print_tax_codes')
 print(' - test_synchro_vg7               - check_rec_links')
 print(' - set_db_4_test')
+
+pdb.set_trace()
+
+model = 'sale.order'
+for order in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [('state', '=', 'draft')])):
+    print('sale order %s' % order.name)
+    vg7_id = order.vg7_id
+    order_id = clodoo.executeL8(ctx,
+        'ir.model.synchro',
+        'trigger_one_record',
+        'orders',
+        'vg7',
+        vg7_id)
+    if order_id != order.id:
+        print('Errore %s triggering sale order %s (%d)' % (
+            order_id, order.name, order.id))
+        exit(1)
 
 pdb.set_trace()
 

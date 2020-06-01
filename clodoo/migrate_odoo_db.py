@@ -1326,7 +1326,9 @@ def get_model_copy_mode(ctx, model):
 
 def migrate_sel_tables(src_ctx, tgt_ctx):
     src_ctx = init_ctx(src_ctx)
-    src_ctx, tgt_ctx, src_config = adjust_ctx(src_ctx, tgt_ctx)
+    import pdb
+    pdb.set_trace()
+    src_ctx, tgt_ctx, src_config, tgt_config = adjust_ctx(src_ctx, tgt_ctx)
     uid, src_ctx = clodoo.oerp_set_env(ctx=src_ctx)
     # FIX oerp_set_env change dry_run
     src_ctx['dry_run'] = tgt_ctx['dry_run']

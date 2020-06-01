@@ -3061,24 +3061,17 @@ def read_last_fiscalyear(company_id, ctx):
         else:
             date_stop = fiscalyear.date_end
             ids = []
-        if date.today() >= date_start and date.today() <= date_stop:
-            valid_fiscalyear_id = fiscalyear_id
-            if majver >= 10:
-                if date_start > last_start:
-                    last_start = date_start
-                    process_it = True
-                    last_name = name
-                if date_stop > last_stop:
-                    last_stop = date_stop
-        elif len(ids) == 0:
-            valid_fiscalyear_id = fiscalyear_id
-        else:
-            if date_start > last_start:
-                last_start = date_start
+        if date_stop > last_stop:
+            last_stop = date_stop
+            if date_stop < date.today():
                 process_it = True
                 last_name = name
-            if date_stop > last_stop:
-                last_stop = date_stop
+            else:
+                valid_fiscalyear_id = fiscalyear_id
+                process_it = False
+                last_name = ''
+            if date_start > last_start:
+                last_start = date_start
     return valid_fiscalyear_id, process_it, last_name, last_start, last_stop
 
 

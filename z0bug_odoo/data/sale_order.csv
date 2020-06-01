@@ -1,8 +1,8 @@
 id,name,partner_id,company_id,client_order_ref,date_order,origin
-z0bug.sale_order_Z0_1,SO101,z0bug.res_partner_1,,P1/2020/0001,-31,Test1
-z0bug.sale_order_Z0_2,SO102,z0bug.res_partner_2,,SO123,-30,Test2
-z0bug.sale_order_Z0_3,SO103,z0bug.res_partner_8,,20011214,-30,Test3
-z0bug.sale_order_Z0_4,SO104,z0bug.res_partner_13,,IT/20/002,-29,Test4
-z0bug.sale_order_Z0_5,SO105,z0bug.res_partner_9,,Telefonico,-28,Test5
-z0bug.sale_order_Z0_6,SO106,z0bug.res_partner_6,,mail,-28,Test6
-z0bug.sale_order_Z0_7,SO107,z0bug.res_partner_1,,P1/2020/0013,-27,Test7
+z0bug.sale_order_Z0_1,200101,z0bug.res_partner_1,,P1/2020/0001,-31,Test1
+z0bug.sale_order_Z0_2,200102,z0bug.res_partner_2,,200123,-30,Test2
+z0bug.sale_order_Z0_3,200103,z0bug.res_partner_8,,20011214,-30,Test3
+z0bug.sale_order_Z0_4,200104,z0bug.res_partner_13,,IT/20/002,-29,Test4
+z0bug.sale_order_Z0_5,200105,z0bug.res_partner_9,,Telefonico,-28,Test5
+z0bug.sale_order_Z0_6,200106,z0bug.res_partner_6,,mail,-28,Test6
+z0bug.sale_order_Z0_7,200107,z0bug.res_partner_1,,P1/2020/0013,-27,Test7
