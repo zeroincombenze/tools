@@ -11,13 +11,14 @@ try:
 except ImportError:
     import z0lib
 
-__version__ = '0.3.8.75'
+__version__ = '0.3.8.76'
 
 #
 # known incompantibilities:
 # - requests: oca-maintainers-tools -> '==2.3.0',
 #             codecov -> '>=2.7.9'
 # Here we assume: Odoo 11.0 use python 3.5, Odoo 12.0 uses python 3.7
+# If version is 2.7 or 3.5 otr 3.6 or 3.7 the it refers to python version
 REQVERSION = {
     'acme_tiny': {'7.0': '>=4.0.3'},
     'argparse': {'0': '==1.2.1'},
@@ -80,7 +81,7 @@ REQVERSION = {
     'pyusb': {'7.0': '>=1.0.0b1', '10.0': '==1.0.0'},
     'pyxb': {'7.0':  '==1.2.5'},
     'PyWebDAV': {'7.0':  '<0.9.8'},
-    'PyYAML': {'7.0': '==3.11', '8.0': '==3.12'},
+    'PyYAML': {'7.0': '==3.11', '8.0': '==3.12', '3.6': '>=5.1'},
     'qrcode': {'7.0': '==5.1', '10.0': '==5.3'},
     'restructuredtext_lint': {'7.0': '==0.12.2',
                               '0': '==1.1.3'},
