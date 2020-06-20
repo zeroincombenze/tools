@@ -43,6 +43,14 @@ Installation
 ------------
 
 
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+    pip install z0lib
+
+|
+
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -76,7 +84,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-06-01
+Last Update / Ultimo aggiornamento: 2020-06-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

@@ -15,10 +15,10 @@
 #               ./cfg                   pylint & flake8 conf files -> FLAKE8_CONFIG_DIR
 #       ./clodoo                        tool to build environment
 #       ./lisa                          tool to build environment
-#   ~/dev                               alternate stable environment -> TOOLS_PATH
+#   ~/dev[el]                           alternate stable environment -> TOOLS_PATH (old dev)
 #       ./clodoo                        alternate tool to build environment
 #       ./lisa                          alternate tool to build environment
-#   ~/dev/pypi/                         development environment (-M switch)
+#   ~/dev[el]/pypi/                     development environment (-M switch)
 #       ./travis_emulator
 #           ./travis_emulator           development travis emulator
 #       ./maintainer-quality-tools
@@ -85,7 +85,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.33
+__version__=0.2.2.34
 
 
 store_cfg_param_value() {
@@ -934,7 +934,6 @@ process_yaml() {
                             wlog "\$ $p=$X"
                         fi
                     done
-                    # wash_virtual_env
                     process_yaml_global
                     if [ $sts -eq $STS_SUCCESS ]; then
                         process_yaml_before_install

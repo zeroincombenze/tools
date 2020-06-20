@@ -10,83 +10,66 @@
 """Translate Odoo name to migrate from version to another
 Structure:
 [pymodel]:       Odoo model name
-[pymodel][type]: may be:
-    name:    symbolic name of a field
+[pymodel][ttype]: may be:
+    name:    symbolic name of a field (deprecated)
     field:   field name to translate
     action:  action/function to translate
     module:  module name to translate
     merge:   module name merged with
-    value:value of field to translate (name is the field name)
+    value:   value of field to translate (name is the field name)
 
-[pymodel][type]['name']    entry for name
-[pymodel][type]['name'][name]  specific name entry
-[pymodel][type]['name'][name][ver] = versioned name
+[pymodel][ttype][hash]           hash entry with name.ver list
+[pymodel][ttype][hash][ver.name] value for specific version
+[pymodel][ttype][ver.name]       specific name entry for name.ver -> hash
 
-[pymodel][type]['field']    entry for field
-[pymodel][type]['name'][name.ver] = SYM of field
-[pymodel][type]['field'][SYM]    entry for SYM field
-[pymodel][type]['name'][SYM][ver] = versioned name
-
+the ttype 'value' has a more level for every field name:
+[pymodel]['value'][fldname][hash]
+[pymodel]['value'][fldname][hash][ver.name]
+[pymodel]['value'][fldname][ver.name]
 """
 from __future__ import print_function, unicode_literals
 from past.builtins import basestring
+from python_plus import _c
 
 import re
 import csv
+# import pdb
 import os
 import sys
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
-    from z0lib import z0lib
+    try:
+        from z0lib import z0lib
+    except ImportError:
+        import z0lib
 
-__version__ = "0.1.0.12"
+__version__ = "0.3.8.76"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
-CVT_ACC_TYPE_OLD_NEW = {
-    'Bank': 'Bank and Cash',
-    'Cash': 'Bank and Cash',
-    'Check': 'Credit Card',
-    'Asset': 'Current Assets',
-    'Liability': 'Current Liabilities',
-    'Tax': 'Current Liabilities',
-}
-CVT_ACC_TYPE_NEW_OLD = {
-    'Bank and Cash': 'Bank',
-    'Credit Card': 'Check',
-    'Current Assets': 'Asset',
-    'Non-current Assets': 'Asset',
-    'Fixed Asset': 'Asset',
-    'Current Liabilities': 'Liability',
-    'Non-current Liabilities': 'Liability',
-    'Other Income': 'Income',
-    'Depreciation': 'Expense',
-    'Cost of Revenue': 'Expense',
-    'Prepayments': 'Expense',
-    'Current Year Earnings': 'Expense',
-}
 
 
 def get_pymodel(model):
-    return model.replace('.', '_').lower()
+    # return model.replace('.', '_').lower()
+    return model
 
 
 def get_ver_name(name, ver):
     if name:
-        return  '%s__%s' % (ver, name)
+        return '%s__%s' % (ver, name)
     return name
 
 
-def is_uname(name):
+def is_hash(name):
     if re.match(r'^[0-9]+\.[0-9]+__', name):
         return False
     return True
 
 
-def set_uname(type, name, ver_names):
-    if type == 'name':
+def set_hash(ttype, name, ver_names):
+    if ttype == 'name':
         return name.upper()
     prior_name = ''
-    key = ''
+    key = name if ttype == 'value' else ''
     for i, ver in enumerate(VERSIONS):
         if ver_names[i] and ver_names[i] != prior_name:
             if key:
@@ -94,58 +77,45 @@ def set_uname(type, name, ver_names):
             else:
                 key = ver_names[i]
             prior_name = ver_names[i]
-    if type == 'value':
+    if ttype == 'value':
         return key
     return key.upper()
 
 
-def build_alias_struct(mindroot, model, uname, type, fld_name=False):
+def build_alias_struct(mindroot, model, ttype, fld_name=False):
     pymodel = get_pymodel(model)
-    if pymodel not in mindroot:
-        mindroot[pymodel] = {}
-    if type not in mindroot[pymodel]:
-        mindroot[pymodel][type] = {}
-    if type != 'value' and uname not in mindroot[pymodel][type]:
-        mindroot[pymodel][type][uname] = {}
-    if (type == 'value' and
-            fld_name and
-            (uname.find('^${') < 0 or
-             not uname.endswith('}'))):
-        if fld_name not in mindroot[pymodel][type]:
-            mindroot[pymodel][type][fld_name] = {}
-        if uname not in mindroot[pymodel][type][fld_name]:
-            mindroot[pymodel][type][fld_name][uname] = {}
+    mindroot[pymodel] = mindroot.get(pymodel, {})
+    mindroot[pymodel][ttype] = mindroot[pymodel].get(ttype, {})
+    if ttype == 'value' and fld_name:
+        mindroot[pymodel][ttype][fld_name] = mindroot[
+            pymodel][ttype].get(fld_name, {})
     return mindroot
 
 
-def link_versioned_name(mindroot, model, uname, type, src_name, ver,
+def link_versioned_name(mindroot, model, hash, ttype, src_name, ver,
                         fld_name=False):
-    mindroot = build_alias_struct(mindroot, model, uname, type,
-                                  fld_name=fld_name)
     pymodel = get_pymodel(model)
     ver_name = get_ver_name(src_name, ver)
-    if type == 'value':
+    if ttype == 'value':
         if src_name.startswith('${') and src_name.endswith('}'):
-            mindroot[pymodel][type][fld_name] = src_name
+            mindroot[pymodel][ttype][fld_name] = src_name
+            item = None
         else:
-            if ver_name:
-                mindroot[pymodel][type][fld_name][ver_name] = uname
-            mindroot[pymodel][type][fld_name][uname][ver] = src_name
+            item = mindroot[pymodel][ttype][fld_name]
     else:
+        item = mindroot[pymodel][ttype]
+    if item is not None:
+        item[hash] = item.get(hash, {})
         if ver_name:
-            mindroot[pymodel][type][ver_name] = uname
-        mindroot[pymodel][type][uname][ver] = src_name
+            if ver_name in item:
+                if not isinstance(item[ver_name], list):
+                    item[ver_name] = [item[ver_name]]
+                if hash not in item[ver_name]:
+                    item[ver_name].append(hash)
+            else:
+                item[ver_name] = hash
+        item[hash][ver] = src_name
     return mindroot
-
-
-def tnl_acc_type(ctx, model, src_name, src_ver, tgt_ver, name):
-    src_majver = int(src_ver.split('.')[0])
-    tgt_majver = int(tgt_ver.split('.')[0])
-    if src_majver < 9 and tgt_majver >= 9:
-        name = CVT_ACC_TYPE_OLD_NEW.get(name, name)
-    elif src_majver >= 9 and tgt_majver < 9:
-        name = CVT_ACC_TYPE_NEW_OLD.get(name, name)
-    return name
 
 
 def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
@@ -166,13 +136,15 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
 
 
 def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
-                      type=False, fld_name=False):
-    """Translate the symbol <src_name> from <src_ver> of odoo into
-    <tgt_ver> of odoo.
-    If type not supplied, translation is applied for <name> and <fld_name> types
-    The param <fld_name> must by supplied just if type is <value>; if field name
-    is dependent by version, last version of name must be used
+                      ttype=False, fld_name=False, type=None):
+    """Translate symbol <src_name> from <src_ver> to <tgt_ver> of Odoo.
+    If ttype not supplied, translation is applied for 'name' and 'field' ttypes
+    If ttype is 'value', the param <fld_name> must by supplied.
+    Param type is deprecated. It used just for compatibility with old version
     """
+    if not ttype and type:
+        ttype = type
+    del type
     mindroot = ctx.get('mindroot', {})
     if src_ver not in VERSIONS:
         print('Invalid source version!')
@@ -180,49 +152,40 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
     if tgt_ver not in VERSIONS:
         print('Invalid target version!')
         return ''
-    if type == 'value' and not fld_name:
+    if ttype == 'value' and not fld_name:
         print('Translation of value require field name!')
         return ''
     pymodel = get_pymodel(model)
     ver_name = get_ver_name(src_name, src_ver)
     name = src_name
-    if ver_name:
-        for typ in map(lambda x:x, ('name', 'field')) if not type else [type]:
-            if typ != 'value':
-                if (pymodel in mindroot and
-                        typ in mindroot[pymodel] and
-                        ver_name in mindroot[pymodel][typ]):
-                    uname = mindroot[pymodel][typ][ver_name]
-                    if (uname in mindroot[pymodel][typ] and
-                            tgt_ver in mindroot[pymodel][typ][uname]):
-                        name = mindroot[pymodel][typ][uname][tgt_ver]
-                        break
+    if ver_name and pymodel in mindroot:
+        names = []
+        for typ in map(lambda x: x, ('name',
+                                     'field')) if not ttype else [ttype]:
+            if ttype == 'value':
+                item = mindroot[pymodel].get(typ, {}).get(fld_name, {})
             else:
-                if (pymodel in mindroot and
-                        typ in mindroot[pymodel] and
-                        fld_name in mindroot[pymodel][typ]):
-                    if isinstance(mindroot[pymodel][typ][fld_name],
-                                   basestring):
-                        item = mindroot[pymodel][typ][fld_name]
-                        if item.startswith('${') and item.endswith('}'):
-                            fct = item[2: -1]
-                            if fct == 'amount':
-                                name = tnl_by_code(ctx, model, src_name,
-                                                   src_ver, tgt_ver,
-                                                   item)
-                            elif fct == 'acc_type':
-                                name = tnl_acc_type(ctx, model, src_name,
-                                                    src_ver, tgt_ver,
-                                                    item)
-                            break
-                    elif ver_name in mindroot[pymodel][typ][fld_name]:
-                        uname = mindroot[pymodel][typ][fld_name][ver_name]
-                        if (uname in mindroot[pymodel][typ][fld_name] and
-                                tgt_ver in mindroot[
-                                    pymodel][typ][fld_name][uname]):
-                            name = mindroot[
-                                pymodel][typ][fld_name][uname][tgt_ver]
-                            break
+                item = mindroot[pymodel].get(typ, {})
+            if isinstance(item, basestring):
+                if item.startswith('${') and item.endswith('}'):
+                    fct = item[2: -1]
+                    if fct == 'amount':
+                        names.append(tnl_by_code(ctx, model, src_name,
+                                                 src_ver, tgt_ver,
+                                                 item))
+            elif ver_name in item:
+                hash = item[ver_name]
+                if not isinstance(hash, list):
+                    hash = [hash]
+                for xx in hash:
+                    if xx in item and tgt_ver in item[xx]:
+                        if item[xx][tgt_ver] not in names:
+                            names.append(item[xx][tgt_ver])
+        if names:
+            if len(names) == 1:
+                name = names[0]
+            else:
+                name = names
     return name
 
 
@@ -243,31 +206,12 @@ def translate_from_sym(ctx, model, sym, tgt_ver):
     return name
 
 
-def debug_show(mindroot, model=None):
-    for ln1 in mindroot:
-        if model and model != ln1:
-            continue
-        print('%s' % ln1)
-        if iter(mindroot[ln1]):
-            for ln2 in mindroot[ln1]:
-                print('    %s' % ln2)
-                if iter(mindroot[ln1][ln2]):
-                    for ln3 in mindroot[ln1][ln2]:
-                        print('        %s' % ln3)
-                        if not isinstance(mindroot[ln1][ln2][ln3], basestring) and iter(mindroot[ln1][ln2][ln3]):
-                            for ln4 in mindroot[ln1][ln2][ln3]:
-                                print('            %s' % ln4)
-                                if not isinstance(mindroot[ln1][ln2][ln3][ln4], basestring) and iter(mindroot[ln1][ln2][ln3][ln4]):
-                                    for ln5 in mindroot[ln1][ln2][ln3][ln4]:
-                                        print('                %s' % ln5)
-
-
 def read_stored_dict(ctx):
     if 'mindroot' in ctx:
         return
     csv.register_dialect('transodoo',
-                         delimiter=b'\t',
-                         quotechar=b'\"',
+                         delimiter=_c('\t'),
+                         quotechar=_c('\"'),
                          quoting=csv.QUOTE_MINIMAL)
     if 'dict_fn' not in ctx or not ctx['dict_fn']:
         p = os.path.dirname(__file__) or '.'
@@ -281,9 +225,9 @@ def read_stored_dict(ctx):
             ctx['dict_fn'] = 'transodoo.csv'
     # ctx['dict_fn'] = './__transodoo.csv'        #debug
     mindroot = {}
-    with open(ctx['dict_fn'], 'rb') as f:
+    with open(ctx['dict_fn'], 'rb') as fd:
         hdr = False
-        reader = csv.DictReader(f,
+        reader = csv.DictReader(fd,
                                 fieldnames=[],
                                 restkey='undef_name',
                                 dialect='transodoo')
@@ -293,28 +237,33 @@ def read_stored_dict(ctx):
                 MODEL = row.index('model')
                 NAME = row.index('name')
                 TYPE = row.index('type')
+                if 'hash' in row:
+                    HASH = row.index('hash')
+                else:
+                    HASH = NAME
                 VER_IX = {}
-                last_ver_ix = 0
+                last_ver = False
                 for ver in VERSIONS:
                     if ver in row:
-                        last_ver_ix = VER_IX[ver] = row.index(ver)
+                        VER_IX[ver] = row.index(ver)
+                        last_ver = ver
                     else:
-                        VER_IX[ver] = last_ver_ix
+                        VER_IX[ver] = row.index(last_ver)
                 hdr = True
                 continue
             mindroot = build_alias_struct(mindroot,
                                           row[MODEL],
-                                          row[NAME],
-                                          row[TYPE])
+                                          row[TYPE],
+                                          fld_name=row[NAME])
             ver_names = []
             for ver in VERSIONS:
                 ver_names.append(row[VER_IX[ver]])
 
-            uname = set_uname(row[TYPE], row[NAME], ver_names)
+            hash = set_hash(row[TYPE], row[NAME], ver_names)
             for ver in VERSIONS:
                 mindroot = link_versioned_name(mindroot,
                                                row[MODEL],
-                                               uname,
+                                               hash,
                                                row[TYPE],
                                                row[VER_IX[ver]],
                                                ver,
@@ -324,8 +273,8 @@ def read_stored_dict(ctx):
 
 def write_stored_dict(ctx):
     csv.register_dialect('transodoo',
-                         delimiter=b'\t',
-                         quotechar=b'\"',
+                         delimiter=_c('\t'),
+                         quotechar=_c('\"'),
                          quoting=csv.QUOTE_MINIMAL)
     if 'dict_fn' not in ctx or not ctx['dict_fn']:
         p = os.path.dirname(__file__) or '.'
@@ -335,65 +284,55 @@ def write_stored_dict(ctx):
             ctx['dict_fn'] = '~/dev/transodoo.csv'
         else:
             ctx['dict_fn'] = 'transodoo.csv'
-    with open(ctx['dict_fn'], 'wb') as f:
-        writer = csv.DictWriter(f,
-                                fieldnames=('model', 'name', 'type') + VERSIONS,
-                                dialect='transodoo')
+    with open(ctx['dict_fn'], 'wb') as fd:
+        writer = csv.DictWriter(
+            fd,
+            fieldnames=('model', 'name', 'type', 'hash') + VERSIONS,
+            dialect='transodoo')
         writer.writeheader()
         mindroot = ctx['mindroot']
-        for pymodel in sorted(mindroot.keys()):
-            if pymodel == 'ir_model':
-                model = 'ir.model'
-            else:
-                model = pymodel.replace('_', '.')
-            for typ in sorted(mindroot[pymodel].keys()):
-                for uname in sorted(mindroot[pymodel][typ].keys()):
-                    if not is_uname(uname):
-                        continue
-                    if typ != 'value':
-                        line = {
-                            'model': model,
-                            'type': typ,
-                            'name':  uname,
-                        }
-                        for ver_name in sorted(
-                                mindroot[pymodel][typ][uname].keys()):
-                            line[ver_name] = mindroot[
-                                pymodel][typ][uname][ver_name]
-                        if len(line) > 3:
-                            writer.writerow(line)
-                        continue
-                    if isinstance(mindroot[pymodel][typ][uname], basestring):
-                        line = {
-                            'model': model,
-                            'type': typ,
-                            'name':  uname,
-                        }
-                        for ver_name in VERSIONS:
-                            line[ver_name] = mindroot[pymodel][typ][uname]
-                        if len(line) > 3:
-                            writer.writerow(line)
-                        continue
-                    for fld in mindroot[pymodel][typ][uname]:
-                        if not is_uname(fld):
+        for model in sorted(mindroot.keys()):
+            for ttype in sorted(mindroot[model].keys()):
+                if ttype == 'value':
+                    iterate = sorted(mindroot[model][ttype].keys())
+                else:
+                    iterate = [None]
+                for name in iterate:
+                    if ttype == 'value':
+                        items = mindroot[model][ttype][name]
+                    else:
+                        items = mindroot[model][ttype]
+                    if isinstance(items, basestring):
+                        iterate2 = [items]
+                    else:
+                        iterate2 = sorted(items.keys())
+                    for hash in iterate2:
+                        if not is_hash(hash):
                             continue
                         line = {
                             'model': model,
-                            'type': typ,
-                            'name':  uname,
+                            'type': ttype,
                         }
-                        for ver_name in sorted(
-                                mindroot[pymodel][typ][uname][fld].keys()):
-                            line[ver_name] = mindroot[
-                                pymodel][typ][uname][fld][ver_name]
-                        if len(line) > 3:
+                        if ttype == 'name':
+                            line['name'] = hash
+                        else:
+                            line['hash'] = hash
+                            if ttype == 'value':
+                                line['name'] = name
+                        if isinstance(items, basestring):
+                            for ver_name in VERSIONS:
+                                line[ver_name] = hash
+                        else:
+                            for ver_name in sorted(items[hash].keys()):
+                                if items[hash][ver_name]:
+                                    line[ver_name] = items[hash][ver_name]
+                        if len(line) > 4:
                             writer.writerow(line)
-
 
 def transodoo_list(ctx):
 
     def do_line_ver(mindroot, nm, typ, fld_name):
-        if not is_uname(nm):
+        if not is_hash(nm):
             return ''
         line = '\n'
         if typ == 'value':
@@ -498,26 +437,17 @@ def transodoo(ctx=None):
                                     ctx['sym'],
                                     ctx['oe_from_ver'],
                                     ctx['odoo_ver'],
-                                    type=ctx['opt_kind'],
+                                    ttype=ctx['opt_kind'],
                                     fld_name=ctx['field_name']))
         else:
             print(translate_from_sym(ctx,
                                      ctx['pymodel'],
                                      ctx['sym'],
                                      ctx['odoo_ver']))
-    elif ctx['action'] == 'test':
+    elif ctx['action'] == 'write':
         read_stored_dict(ctx)
-        for ver in VERSIONS:
-            name = translate_from_sym(ctx, 'res.groups', 'SALES', ver)
-            print('SALES = %s[%s]' % (name,
-                                      ver))
-        source = 'Sales'
-        for ver in VERSIONS:
-            name = translate_from_to(ctx, 'res.groups', source, '7.0', ver)
-            print('Source=%s[%s] => Target=%s[%s]' % (source,
-                                                      '7.0',
-                                                      name,
-                                                      ver))
+        write_stored_dict(ctx)
+        return 0
     else:
         print("Invalid action!")
         return 1
@@ -563,7 +493,8 @@ if __name__ == "__main__":
     parser.add_argument('action',
                         help='edit,list,translate,test')
     ctx = parser.parseoptargs(sys.argv[1:])
-    ctx['pymodel'] = ctx['model'].replace('.', '_').lower()
+    # ctx['pymodel'] = ctx['model'].replace('.', '_').lower()
+    ctx['pymodel'] = ctx['model'].lower()
     if ctx['odoo_ver']:
         if ctx['odoo_ver'] not in VERSIONS:
             print('Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],

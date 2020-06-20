@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 r"""@mainpage
 OS routines for Linux, OpenVMS and Windows
 
@@ -81,10 +81,13 @@ Notes:
 #  print('byte(b)?', isbytestr(b))
 
 
-
-from __future__ import print_function,unicode_literals
-# from __future__ import print_function
-from past.builtins import basestring
+# WARNING! DO NOT PROCESS PYTHON 2 TO 3
+from __future__ import print_function, unicode_literals
+from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()                                 # noqa: E402
+from past.builtins import basestring, long
 from builtins import chr
 
 import os
@@ -97,7 +100,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.14.4"
+__version__ = "0.2.14.5"
 
 
 class Os0():
@@ -150,12 +153,12 @@ class Os0():
 
     def b(self, s):
         if self.isunicode(s):
-            return s.encode(self.PYCODESET)
+            return s.encode(self.PYCODESET, 'ignore')
         return s
 
     def u(self, s):
         if self.isbytestr(s):
-            return unicode(s, self.PYCODESET)
+            return s.decode(self.PYCODESET, 'ignore')
         return s
 
     def str2bool(self, t, dflt):

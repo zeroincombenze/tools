@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=0.2.2.28
+# __version__=0.2.2.31
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -17,7 +17,7 @@ fi
 
 RFLIST__travis_emulator="gen_addons_table.py prjdiff replica.sh travis travisrc vfcp vfdiff wok_doc wok_doc.py"
 RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8 topep8.py to_oca.2p8 to_oia.2p8 to_pep8.2p8 to_pep8.py"
-RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
+RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
@@ -26,7 +26,7 @@ RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-serv
 RFLIST__tools="odoo_default_tnl.csv templates"
 RFLIST__python_plus="venv_mgr venv_mgr.man"
 RFLIST__zerobug_odoo=""
-RFLIST__odoo_score=odoo_shell.py
+RFLIST__odoo_score="odoo_shell.py transodoo.py transodoo.csv"
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py)"
 FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh set_odoover_confn z0lib.py z0librun.py"
 SRCPATH=

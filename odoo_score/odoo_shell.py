@@ -23,7 +23,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.1.0.12"
+__version__ = "0.1.0.13"
 
 
 MAX_DEEP = 20
@@ -1783,35 +1783,48 @@ def configure_fiscal_position(ctx):
         'code': '490050',
         'name': 'Transitorio Reverse Charge',
         'company_id': company_id,
-        'user_type_id': env_ref(ctx, 'account.data_account_type_expenses'),
     }
+    if ctx['majver'] < 9:
+        vals['user_type'] = env_ref(ctx, 'account.data_account_type_expense')
+    else:
+        vals['user_type_id'] = env_ref(
+            ctx, 'account.data_account_type_expenses')
     account_rc_id = synchro(ctx, model, vals)
 
     vals = {
         'code': '153050',
         'name': 'Integr. IVA da c/acquisti UE (L.427/93)',
         'company_id': company_id,
-        'user_type_id': env_ref(ctx,
-                                'account.data_account_type_current_assets'),
     }
+    if ctx['majver'] < 9:
+        vals['user_type'] = env_ref(ctx, 'account.data_account_type_asset')
+    else:
+        vals['user_type_id'] = env_ref(
+            ctx, 'account.data_account_type_current_assets')
     account_vat_eup_id = synchro(ctx, model, vals)
 
     vals = {
         'code': '260050',
         'name': 'IVA autofatture da c/acquisti UE',
         'company_id': company_id,
-        'user_type_id': env_ref(
-            ctx, 'account.data_account_type_current_liabilities'),
     }
+    if ctx['majver'] < 9:
+        vals['user_type'] = env_ref(ctx, 'account.data_account_type_liability')
+    else:
+        vals['user_type_id'] = env_ref(
+            ctx, 'account.data_account_type_current_liabilities')
     account_vat_eus_id = synchro(ctx, model, vals)
 
     vals = {
         'code': '260030',
         'name': 'IVA n/deb. split-payment',
         'company_id': company_id,
-        'user_type_id': env_ref(
-            ctx, 'account.data_account_type_current_liabilities'),
     }
+    if ctx['majver'] < 9:
+        vals['user_type'] = env_ref(ctx, 'account.data_account_type_liability')
+    else:
+        vals['user_type_id'] = env_ref(
+            ctx, 'account.data_account_type_current_liabilities')
     account_vat_sp_id = synchro(ctx, model, vals)
 
     model = 'account.journal'
@@ -1843,7 +1856,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'a17c2a',
         'name': 'N.I. art.17 c.2 DPR633',
-        'type_type_use': 'purchase',
+        'type_tax_use': 'purchase',
         'account_id': account_vat_eup_id,
         'refund_account_id': account_vat_eup_id,
         'amount_type': 'percent',
@@ -1864,7 +1877,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'aa17c2v',
         'name': 'Rev. charge art.17 c.2 DPR633',
-        'type_type_use': 'sale',
+        'type_tax_use': 'sale',
         'account_id': account_vat_eus_id,
         'refund_account_id': account_vat_eus_id,
         'amount_type': 'percent',
@@ -1883,7 +1896,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'a17c6ba',
         'name': 'N.I. art.17 c.6 lett. B DPR633 (Cellulari)',
-        'type_type_use': 'purchase',
+        'type_tax_use': 'purchase',
         'account_id': account_vat_eup_id,
         'refund_account_id': account_vat_eup_id,
         'amount_type': 'percent',
@@ -1902,7 +1915,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'aa17c6bv',
         'name': 'Rev. Charge art.17 c.6 lett. B DPR633 (Cellulari)',
-        'type_type_use': 'sale',
+        'type_tax_use': 'sale',
         'account_id': account_vat_eus_id,
         'refund_account_id': account_vat_eus_id,
         'amount_type': 'percent',
@@ -1922,7 +1935,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'a17c6ca',
         'name': 'N.I. Art.17 c.6 lett. C DPR633 (Elettronici)',
-        'type_type_use': 'purchase',
+        'type_tax_use': 'purchase',
         'account_id': account_vat_eup_id,
         'refund_account_id': account_vat_eup_id,
         'amount_type': 'percent',
@@ -1941,7 +1954,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'aa17c6cv',
         'name': 'Rev. Charge Art.17 c.6 lett. C DPR633 (Elettronici)',
-        'type_type_use': 'sale',
+        'type_tax_use': 'sale',
         'account_id': account_vat_eus_id,
         'refund_account_id': account_vat_eus_id,
         'amount_type': 'percent',
@@ -1962,7 +1975,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': '22SPv',
         'name': 'Art. 17ter - split-payment',
-        'type_type_use': 'sale',
+        'type_tax_use': 'sale',
         'account_id': account_vat_eus_id,
         'refund_account_id': account_vat_sp_id,
         'amount_type': 'percent',
@@ -1983,7 +1996,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': '-22SPv',
         'name': 'Storno split-payment',
-        'type_type_use': 'sale',
+        'type_tax_use': 'sale',
         'account_id': account_vat_eus_id,
         'refund_account_id': account_vat_sp_id,
         'amount_type': 'percent',
@@ -2003,7 +2016,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'a8c2v',
         'name': 'Vend.N.I. art.8c2 DPR633 (lett.Intento)',
-        'type_type_use': 'sale',
+        'type_tax_use': 'sale',
         'amount_type': 'percent',
         'company_id': company_id,
         'nature_id': env_ref(ctx, 'l10n_it_ade.n3'),
@@ -2014,7 +2027,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'a41v',
         'name': 'Vend.N.I. art.41 L.427/93',
-        'type_type_use': 'sale',
+        'type_tax_use': 'sale',
         'amount_type': 'percent',
         'company_id': company_id,
         'nature_id': env_ref(ctx, 'l10n_it_ade.n3'),
@@ -2025,7 +2038,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'a8av',
         'name': 'Vend.N.I. art.8a DPR633 (Dogana)',
-        'type_type_use': 'sale',
+        'type_tax_use': 'sale',
         'amount_type': 'percent',
         'company_id': company_id,
         'nature_id': env_ref(ctx, 'l10n_it_ade.n3'),
@@ -2036,7 +2049,7 @@ def configure_fiscal_position(ctx):
     vals = {
         'description': 'a7tv',
         'name': 'Vend.NI art.7ter DPR633 (servizi xUE)',
-        'type_type_use': 'sale',
+        'type_tax_use': 'sale',
         'amount_type': 'percent',
         'company_id': company_id,
         'nature_id': env_ref(ctx, 'l10n_it_ade.n2'),
@@ -2044,56 +2057,58 @@ def configure_fiscal_position(ctx):
     }
     vat_a7tv_id = synchro(ctx, model, vals)
 
-    model = 'account.rc.type'
-    rc_type_id = env_ref(ctx, 'l10n_it_reverse_charge.account_rc_type_1')
-    if rc_type_id:
-        rc_type = clodoo.browseL8(ctx, model, rc_type_id)
-        vals = {
-            'name': 'Acquisti in reverse charge',
-            'description': 'Acquisti Intra-UE con autofattura',
-            'method': 'selfinvoice',
-            'partner_type': 'other',
-            'partner_id': company_partner_id,
-        }
-        if journal_id:
-            vals['journal_id'] = journal_id
-        if journal_gcrc_id:
-            vals['payment_journal_id'] = journal_gcrc_id
-        rc_type_id = synchro(ctx, model, vals)
+    if ctx['majver'] > 7:
+        model = 'account.rc.type'
+        rc_type_id = env_ref(ctx, 'l10n_it_reverse_charge.account_rc_type_1')
+        if rc_type_id:
+            rc_type = clodoo.browseL8(ctx, model, rc_type_id)
+            vals = {
+                'name': 'Acquisti in reverse charge',
+                'description': 'Acquisti Intra-UE con autofattura',
+                'method': 'selfinvoice',
+                'partner_type': 'other',
+                'partner_id': company_partner_id,
+            }
+            if journal_id:
+                vals['journal_id'] = journal_id
+            if journal_gcrc_id:
+                vals['payment_journal_id'] = journal_gcrc_id
+            rc_type_id = synchro(ctx, model, vals)
 
-        model = 'account.rc.type.tax'
-        purchase_tax_id = _get_tax_record(ctx, code='a17c2a')
-        sale_tax_id = _get_tax_record(ctx, code='a17c2v')
-        vals = {
-            'rc_type_id': rc_type_id,
-            'purchase_tax_id': purchase_tax_id,
-            'sale_tax_id': sale_tax_id,
-        }
-        synchro(ctx, model, vals)
-        model = 'account.rc.type.tax'
-        purchase_tax_id = _get_tax_record(ctx, code='a17c6ba')
-        sale_tax_id = _get_tax_record(ctx, code='a17c6bv')
-        vals = {
-            'rc_type_id': rc_type_id,
-            'purchase_tax_id': purchase_tax_id,
-            'sale_tax_id': sale_tax_id,
-        }
-        synchro(ctx, model, vals)
-        purchase_tax_id = _get_tax_record(ctx, code='a17c6ca')
-        sale_tax_id = _get_tax_record(ctx, code='a17c6cv')
-        vals = {
-            'rc_type_id': rc_type_id,
-            'purchase_tax_id': purchase_tax_id,
-            'sale_tax_id': sale_tax_id,
-        }
-        synchro(ctx, model, vals)
+            model = 'account.rc.type.tax'
+            purchase_tax_id = _get_tax_record(ctx, code='a17c2a')
+            sale_tax_id = _get_tax_record(ctx, code='a17c2v')
+            vals = {
+                'rc_type_id': rc_type_id,
+                'purchase_tax_id': purchase_tax_id,
+                'sale_tax_id': sale_tax_id,
+            }
+            synchro(ctx, model, vals)
+            model = 'account.rc.type.tax'
+            purchase_tax_id = _get_tax_record(ctx, code='a17c6ba')
+            sale_tax_id = _get_tax_record(ctx, code='a17c6bv')
+            vals = {
+                'rc_type_id': rc_type_id,
+                'purchase_tax_id': purchase_tax_id,
+                'sale_tax_id': sale_tax_id,
+            }
+            synchro(ctx, model, vals)
+            purchase_tax_id = _get_tax_record(ctx, code='a17c6ca')
+            sale_tax_id = _get_tax_record(ctx, code='a17c6cv')
+            vals = {
+                'rc_type_id': rc_type_id,
+                'purchase_tax_id': purchase_tax_id,
+                'sale_tax_id': sale_tax_id,
+            }
+            synchro(ctx, model, vals)
 
     model = 'account.fiscal.position'
     vals = {
         'name': 'Reverse charge',
         'company_id': company_id,
-        'rc_type_id': rc_type_id,
     }
+    if ctx['majver'] > 7:
+        vals['rc_type_id'] = rc_type_id
     fiscal_pos_id = synchro(ctx, model, vals)
     if fiscal_pos_id:
         model = 'account.fiscal.position.tax'
@@ -4217,7 +4232,6 @@ def test_synchro_vg7(ctx):
         vg7_invoice_id = vg7_id
         vg7_id = vg7_invoice_id * 200
         vals = {
-            # 'company_id': company_id,
             'vg7_id': vg7_id,
             'vg7_invoice_id': vg7_invoice_id,
             'partner_id': partner_id,
@@ -4225,6 +4239,8 @@ def test_synchro_vg7(ctx):
             'vg7_product_id': ctx['vg7_id_product_a'],
             'price_unit': 10.50,
         }
+        # if test_conai:
+        #     vals['vg7:conai_id'] = 1
         line_id = clodoo.executeL8(ctx,
                                    model,
                                    'synchro',
@@ -4236,7 +4252,6 @@ def test_synchro_vg7(ctx):
         vg7_id = vg7_invoice_id * 200 + 1
         # Field partner_id does not exit: test to avoid crash
         vals = {
-            'company_id': company_id,
             'vg7_id': vg7_id,
             'vg7_invoice_id': vg7_invoice_id,
             'partner_id': partner_id,
@@ -4245,6 +4260,8 @@ def test_synchro_vg7(ctx):
             'price_unit': 25.50,
             'invoice_line_tax_ids': '22v',
         }
+        # if test_conai:
+        #    vals['vg7:conai_id'] = 1
         line_id = clodoo.executeL8(ctx,
                                    model,
                                    'synchro',
@@ -4292,13 +4309,9 @@ def test_synchro_vg7(ctx):
             if rec['state'] != state:
                 raise IOError('!!Invalid state!')
             ctx['ctr'] += 1
-            if len(rec['invoice_line_ids']) != detail_ctr:
-                raise IOError('!!Invalid # of details!')
-            ctx['ctr'] += 1
-        else:
-            if len(rec['invoice_line_ids']) != detail_ctr:
-                raise IOError('!!Invalid # of details!')
-            ctx['ctr'] += 1
+        if len(rec['invoice_line_ids']) != detail_ctr:
+            raise IOError('!!Invalid # of details (expected %d)!' % detail_ctr)
+        ctx['ctr'] += 1
         if rec.payment_term_id != rec.partner_id.property_payment_term_id:
             raise IOError('!!Invalid payment term (default value)!')
         ctx['ctr'] += 1
@@ -6070,6 +6083,7 @@ print(' - clean_translations             - display_module')
 print(' - configure_email_template       - print_tax_codes')
 print(' - test_synchro_vg7               - check_rec_links')
 print(' - set_db_4_test')
+
 
 pdb.set_trace()
 

@@ -11,7 +11,7 @@ try:
 except ImportError:
     import z0lib
 
-__version__ = '0.3.8.76'
+__version__ = '0.3.8.77'
 
 #
 # known incompantibilities:
@@ -97,7 +97,7 @@ REQVERSION = {
     'validate_email': {'7.0': '>=1.3'},
     'vatnumber': {'7.0': '==1.2'},
     'vobject': {'7.0': '==0.9.3'},                      # Tested 0.9.5
-    'Werkzeug': {'0': '==0.11.11', '7.0': '==0.9.6', '10.0': '==0.11.11'},
+    'Werkzeug': {'7.0': '==0.9.6', '10.0': '==0.11.11', '11.0': '==0.11.15'},
     'wkhtmltopdf': {'7.0': '==0.12.1', '10.0': '==0.12.4', '12.0': '==0.12.5'},
     'wsgiref': {'7.0': '==0.1.2'},
     'XlsxWriter': {'7.0': '==0.9.3'},                   # Tested 1.0.2

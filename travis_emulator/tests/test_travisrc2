@@ -6,7 +6,7 @@ THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
 for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -27,33 +27,33 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.33
+__version__=0.2.2.34
 
 
 save_testenv() {
 #save_testenv(cwd)
     local p
     for p in opt_dry_run pkg opt_verbose opt_r opt_conf opt_virt; do
-      eval SAVE_$p=${!p}
+        eval SAVE_$p=${!p}
     done
     LCLTEST_CWD=$PWD
     if [ -z "$1" ]; then
-      cd $LCL_OE_PKGPATH
+        cd $LCL_OE_PKGPATH
     elif [ "$1" == "0" ]; then
-      cd $LCL_OE_ROOT
+        cd $LCL_OE_ROOT
     elif [ "$1" == "2" ]; then
-      cd $LCL_OE_PKGPATH2
+        cd $LCL_OE_PKGPATH2
     elif [ "$1" == "P" ]; then
-      cd $LCL_PY_PRJPATH
+        cd $LCL_PY_PRJPATH
     fi
 }
 
 restore_testenv() {
     local p x
     for p in opt_dry_run pkg opt_verbose opt_r opt_conf opt_virt; do
-      x=saved_$p
-      eval $p=${!x}
-      eval SAVE_$p=
+        x=saved_$p
+        eval $p=${!x}
+        eval SAVE_$p=
     done
     cd $LCLTEST_CWD
 }

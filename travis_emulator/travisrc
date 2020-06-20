@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.33
+#__version__=0.2.2.34
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -64,7 +64,7 @@ opts_travis() {
     fi
     DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
     if [ -z "$DIST_CONF" ]; then
-        DIST_CONF=$(readlink -f $PKGPATH/../conf/.local_dist_pkg.conf)
+        DIST_CONF=$(readlink -f $PKGPATH/../conf/system-site-packages_dist_pkg.conf)
     fi
     if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
         test_mode=1
@@ -193,12 +193,13 @@ build_pypi_param() {
     local r w x="$PWD"
     [ -n "$2" -a "$2" != "local" ] && x=$2
     if [[ ! "$x" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
-      x=$(readlink -e $HOME/pypi/$2/$2)
+        x=$(readlink -e $HOME/pypi/$2/$2)
     fi
     r=
     for ODOO_SETUP in $ODOO_SETUPS; do
-      r="$r -o -name $ODOO_SETUP"
+        r="$r -o -name $ODOO_SETUP"
     done
+    [ ${opt_dry_run:-0} -eq 0 ] && echo "find $x -maxdepth 2 -not -path '*tests*' ${r:3}|head -n1"      #debug
     w=$(find $x -maxdepth 2 -not -path '*tests*' ${r:3}|head -n1)
     if [ -n "$w" ]; then
       _PRJNAME="Odoo"
@@ -256,7 +257,7 @@ build_pypi_param() {
       _PRJNAME=Odoo
     fi
     if [[ "$_PRJNAME" == "Odoo" ]]; then
-      if [[ $_PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|13|12|11|10|9|8|7|6) ]]; then
+      if [[ $_PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca)?-?(13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|13|12|11|10|9|8|7|6) ]]; then
         _PKGNAME="OCB"
         _REPOS="OCB"
       fi
@@ -369,8 +370,6 @@ init_travis() {
       fi
     fi
     if [ -z "$TOOLS_PATH" ]; then
-      # if [ -d $TDIR/_travis ]; then
-      #   TOOLS_PATH=$TDIR/_travis
       if [ ${opt_dbgmnt:-0} -ne 0 -a -d "$MQT_DEF_PATH" ]; then
         TOOLS_PATH=$MQT_DEF_PATH
       elif [ -d $HOME/dev/_travis ]; then
@@ -565,11 +564,6 @@ create_virtual_env() {
     local f p x VENVOPTS=-D
     local HOME_BRANCH=$HOME/$BRANCH
     export TRAVIS_BRANCH=$BRANCH
-    # if [ $opt_py3 -ne 0 ]; then
-    #   local CURPYVER=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-    # else
-    #   local CURPYVER=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-    # fi
     local sts=0
     local VER=${VERSION}
     [ -z "$VER" ] && VER="${TRAVIS_PYTHON_VERSION:0:1}"
@@ -589,28 +583,32 @@ create_virtual_env() {
         echo "Zeroincombenze(R) tools not found!"
         exit 1
     fi
-    # SET_GLOBAL_PYVER=$(get_cfg_value "" "SET_GLOBAL_PYVER")
     TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p /usr/bin/python$TRAVIS_PYTHON_VERSION"
     [[ "$SYSTEM_SITE_PACKAGES" == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
     [[ ! "$SYSTEM_SITE_PACKAGES" == "true" ]] && VENVOPTS="-DI"
     HOME=$TRAVIS_HOME
     hash -r
-    echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
-    [ ${opt_dry_run:-0} -ne 0 ] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
-    sts=$?
+    if [ ${opt_cache:-0} -ne 0 -a -n "$TRAVIS_PYTHON_VERSION" ]; then
+        if [[ -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
+            run_traced "venv_mgr cp $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$BRANCH $TRAVIS_HOME -fq"
+            sts=$?
+        elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
+            run_traced "venv_mgr cp $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION $TRAVIS_HOME -fq"
+            sts=$?
+        else
+            echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
+            [ ${opt_dry_run:-0} -ne 0 ] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
+            sts=$?
+        fi
+    else
+        echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
+        [ ${opt_dry_run:-0} -ne 0 ] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
+        sts=$?
+    fi
     [ $sts -ne 0 ] && return
     local SAVE_COLOR=$PS_RUN_COLOR
     export PS_RUN_COLOR=$PS_HDR3_COLOR
     echo -en "\e[${PS_RUN_COLOR}m"
-    if [ ${opt_cache:-0} -ne 0 -a -n "$TRAVIS_PYTHON_VERSION" ]; then
-        if [[ -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
-            # echo "# .. loading stored packages from VME$BRANCH ..."
-            run_traced "venv_mgr merge $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$BRANCH $TRAVIS_HOME -q"
-        elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
-            # echo "# .. loading stored packages from VME$TRAVIS_PYTHON_VERSION ..."
-            run_traced "venv_mgr merge $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION $TRAVIS_HOME -q"
-        fi
-    fi
     cd $TRAVIS_HOME
     source bin/activate
     if [ -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/ ]; then
@@ -627,7 +625,6 @@ create_virtual_env() {
         x=$(readlink -f $TRAVIS_BUILD_DIR/..)
         run_traced "cp -R $TRAVIS_CWD/ $x/"
         if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
-            # for p in clodoo lisa maintainer-quality-tools python_plus travis_emulator z0bug_odoo z0lib zerobug; do
             for p in $(get_cfg_value 0 "PKGS_LIST"); do
                 run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $TRAVIS_BUILD_DIR/$p/  # Use no stable version"
             done
@@ -638,46 +635,35 @@ create_virtual_env() {
 }
 
 drop_virtual_env() {
-    if [ ${opt_virt:-0} -gt 0 ]; then
-      deactivate
-    fi
-    local VER=${VERSION}
-    [ -z "$VER" ] && VER="${TRAVIS_PYTHON_VERSION:0:1}"
-    if [ ${opt_virt:-0} -gt 0 -a ${opt_keepE:-0} -ne 0 -a "$SYSTEM_SITE_PACKAGES" != "true" ]; then
-      [ -d "$TRAVIS_SAVED_HOME/VME/VME$$TRAVIS_PYTHON_VERSION" ] && rm -fR $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
-      mkdir -p $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
-      for d in bin include lib lib64 .local; do
-        if [ -d "$TRAVIS_HOME/$d" ]; then
-          [ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION/$d" ] && run_traced "rm -fR $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION/$d"
-          run_traced "cp -R $TRAVIS_HOME/$d $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION/"
-        fi
-      done
-      custom_env "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" "$TRAVIS_PYTHON_VERSION"
-    fi
-    cd
+    [ ${opt_virt:-0} -gt 0 ] && deactivate
+    export HOME=$TRAVIS_SAVED_HOME
+    hash -r
+    unset TRAVIS_SAVED_HOME
+    cd $HOME
     if [ ${opt_keep:-0} -eq 0 ]; then
-      drop_test_db
-      rm -fR $TRAVIS_HOME
+        drop_test_db
+        rm -fR $TRAVIS_HOME
+        unset TRAVIS_HOME
     fi
     TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
 }
 
-wash_virtual_env() {
-    local d f
-    for d in $TRAVIS_HOME/*; do
-      f=$(basename $d)
-      if [[ ! " build bin include lib lib64 .local " =~ " $f " ]]; then
-        if [ -L $d ]; then
-          run_traced "rm $d"
-        elif [ -d $d ]; then
-          run_traced "rm -fR $d"
-        elif [ -f $d ]; then
-          run_traced "rm $d"
-        fi
-      fi
-    done
-    hash -r
-}
+# wash_virtual_env() {
+#     local d f
+#     for d in $TRAVIS_HOME/*; do
+#       f=$(basename $d)
+#       if [[ ! " build bin include lib lib64 .local " =~ " $f " ]]; then
+#         if [ -L $d ]; then
+#           run_traced "rm $d"
+#         elif [ -d $d ]; then
+#           run_traced "rm -fR $d"
+#         elif [ -f $d ]; then
+#           run_traced "rm $d"
+#         fi
+#       fi
+#     done
+#     hash -r
+# }
 
 emulate_git_clone_OCB() {
 # emulate_git_clone_OCB(src tgt)
@@ -724,7 +710,7 @@ git_clone() {
             x=${TRAVIS_REPO_SLUG#*/}
             # for p in clodoo lisa maintainer-quality-tools python_plus travis_emulator z0bug_odoo z0lib zerobug; do
             for p in $(get_cfg_value 0 "PKGS_LIST"); do
-                [ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ -a "$p" != "$x" ] && run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/  # Use unstable version"
+                [ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ -a "$p" != "$x" ] && run_traced "rsync -aW $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/  # Use unstable version"
                 [ $? -ne 0 ] && echo "Internal error! Statement failed! <<<"
             done
             # run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ $HOME/tools/maintainer-quality-tools/travis/"
@@ -894,7 +880,7 @@ conf_default() {
     set_cfg_def "PS_HDR1_COLOR" "97;48;5;22"
     set_cfg_def "PS_HDR2_COLOR" "30;43"
     set_cfg_def "PS_HDR3_COLOR" "30;47"
-    set_cfg_def "PKGS_LIST" "clodoo devel_tools lisa maintainer-quality-tools odoo_score os0 python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
+    set_cfg_def "PKGS_LIST" "clodoo devel_tools lisa maintainer-quality-tools odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
     set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
     set_cfg_def "DEV_SVG" "$HOME/dev/svg"
     set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
@@ -940,18 +926,6 @@ install_dev() {
       if [ ! -d ~/dev ]; then
         mkdir -p ~/dev
       fi
-      # if [ ! -d ~/dev/pypi ]; then
-      #   mkdir -p ~/dev/pypi
-      # fi
-      # if [ ! -d ~/dev/_travis ]; then
-      #   mkdir -p ~/dev/_travis
-      # fi
-      # if [ ! -d ~/tools ]; then
-      #   mkdir -p ~/tools
-      # fi
-      # if [ ! -d ~/tools/travis_emulator ]; then
-      #   mkdir -p ~/tools/travis_emulator
-      # fi
     fi
 }
 

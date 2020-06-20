@@ -651,10 +651,12 @@ class Z0test(object):
         this_fqn = None
         if argv is None:
             argv = sys.argv[1:]
-            if (len(sys.argv) > 0 and
-                    sys.argv[0] and
-                    sys.argv[0][0] != '-'):
-                this_fqn = sys.argv[0]
+            this_fqn = sys.argv[0] if (len(sys.argv) and
+                not sys.argv[0].startswith('-')) else None
+            # if (len(sys.argv) > 0 and
+            #         sys.argv[0] and
+            #         sys.argv[0][0] != '-'):
+            #     this_fqn = sys.argv[0]
         else:
             self.autorun = True
         this_fqn = os.path.abspath(this_fqn or self.get_this_fqn())

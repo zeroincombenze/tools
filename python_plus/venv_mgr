@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.3.8
+__version__=0.1.3.9
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -236,10 +236,10 @@ pip_install_req() {
         [ -z "$fn" ] && echo "File $f not found!"
         [ -z "$fn" ] && continue
         [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
-        [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver"
-        [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -m $fn -y $opt_pyver"
-        [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver)
-        [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -m $fn -y $opt_pyver)
+        [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -m $fn -y $opt_pyver"
+        [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -m $fn -y $opt_pyver"
+        [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -m $fn -y $opt_pyver)
+        [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -qs" " -BPRT -t python -m $fn -y $opt_pyver)
         [ $opt_verbose -gt 0 ] && echo "--> $flist"
         for pkg in $flist; do
             pip_install $pkg $popt
@@ -310,7 +310,7 @@ check_package() {
     op=$(echo "$vpkg"|grep -Eo '[!<=>]*'|head -n1)
     pkg=$(echo "$vpkg"|grep -Eo '[^!<=>\\[]*'|tr -d "'"|head -n1)
     reqver=$(echo "$vpkg"|grep -Eo '[^!<=>]*'|tr -d "'"|sed -n '2 p')
-    [ -n "$reqver" ] && xreqver=$(echo $reqver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
+    [[ -n "$reqver" ]] && xreqver=$(echo $reqver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
     sts=0
     if [[ -n "$reqver" ]]; then
         curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
@@ -319,7 +319,7 @@ check_package() {
             ERROR_PKGS="$ERROR_PKGS   '$pkg'"
             [[ "$cmd" == "amend" ]] && run_traced "$PIP install $vpkg"
         else
-            [ -n "$curver" ] && xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
+            [[ -n "$curver" ]] && xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
             if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
                 echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
                 ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -372,10 +372,10 @@ pip_check_req() {
         [ -z "$fn" ] && echo "File $f not found!"
         [ -z "$fn" ] && continue
         [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
-        [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver"
-        [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -m $fn -y $opt_pyver"
-        [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -m $fn -y $opt_pyver)
-        [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -s" " -BPRT -t python -q -m $fn -y $opt_pyver)
+        [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -m $fn -y $opt_pyver"
+        [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -m $fn -y $opt_pyver"
+        [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -m $fn -y $opt_pyver)
+        [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -qs" " -BPRT -t python -m $fn -y $opt_pyver)
         for pkg in $flist; do
             check_package $pkg $cmd
         done
@@ -573,14 +573,14 @@ do_venv_mgr() {
     [ $opt_verbose -eq 0 ] && popt="$popt -q"
     cd_venv $VENV "-q"
     do_activate "-q"
-    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
-    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -PT -t bin -y $opt_pyver"
-    [[ -n "$opt_oever" ]] && BINPKGS=$(list_requirements.py -s" " -BPRT -t bin -q -b $opt_oever -y $opt_pyver)
-    [[ -z "$opt_oever" ]] && BINPKGS=$(list_requirements.py -s" " -PT -t bin -q -y $opt_pyver)
-    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -b $opt_oever -y $opt_pyver"
-    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -s\" \" -PT -t python -y $opt_pyver"
-    [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -y $opt_pyver)
-    [[ -z "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -PT -t python -q -y $opt_pyver)
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
+    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -PT -t bin -y $opt_pyver"
+    [[ -n "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -BPRT -t bin -b $opt_oever -y $opt_pyver)
+    [[ -z "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -PT -t bin -y $opt_pyver)
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -y $opt_pyver"
+    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -PT -t python -y $opt_pyver"
+    [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -y $opt_pyver)
+    [[ -z "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -PT -t python -y $opt_pyver)
     do_deactivate "-q"
     pop_cd "-q"
     if [[ -z "$VENV" || -z "$VENV_TGT" ]]; then
@@ -642,11 +642,11 @@ do_venv_mgr() {
             rm -f ./lib64
             ln -s ./lib ./lib64
         fi
-        [[ ! $cmd =~ (amend|check) ]] && bin_install_1 $VENV
+        [[ ! $cmd =~ (amend|check|cp) ]] && bin_install_1 $VENV
         [[ $cmd =~ (amend|check) ]] && bin_check_1 $VENV
         run_traced "pip install pip -U"
         PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
-        [[ ! $cmd =~ (amend|check) ]] && pip_install_1 "$popt --upgrade"
+        [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "$popt --upgrade"
         [[ $cmd =~ (amend|check) ]] && pip_check_1 $cmd
         [[ -n "$opt_oever" && "$cmd" == "reset" ]] && pip_install_2 "$popt --upgrade"
         [[ -n "$opt_oever" && $cmd =~ (amend|check) ]] && pip_check_2 $cmd
@@ -742,10 +742,10 @@ do_venv_create() {
     for pkg in $NEEDED_PKGS; do
         pip_install $pkg $popt
     done
-    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
-    [[ -n "$opt_oever" ]] && BINPKGS=$(list_requirements.py -s" " -BPRT -t bin -q -b $opt_oever -y $opt_pyver)
-    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -s\" \" -BPRT -t python -q -b $opt_oever -y $opt_pyver"
-    [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever -y $opt_pyver)
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
+    [[ -n "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -BPRT -t bin -b $opt_oever -y $opt_pyver)
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -y $opt_pyver"
+    [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -y $opt_pyver)
     bin_install_1 $VENV
     [ $opt_dry_run -eq 0 ] && custom_env $VENV $opt_pyver
     pip_install_1 "$popt"
