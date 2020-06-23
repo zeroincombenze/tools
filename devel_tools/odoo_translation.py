@@ -13,9 +13,11 @@ import time
 import re
 import sys
 import csv
+import xlrd
 from subprocess import PIPE, Popen
 from babel.messages import pofile
 from os0 import os0
+from python_plus import _c
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
@@ -26,7 +28,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.33"
+__version__ = "0.2.3"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -63,7 +65,7 @@ def change_name(ctx, filename, version):
     return filename
 
 
-def load_default_dictionary(source):
+def load_default_dictionary(ctx, source):
 
     def term_with_punct(row, msgid, punct):
         if msgid[-1] == punct:
@@ -91,13 +93,36 @@ def load_default_dictionary(source):
         for punct in (':', '.'):
             term_with_punct(row, os0.u(row['msgstr']), punct)
 
-    ctr = 0
-    if os.path.isfile(source):
+    def process_row(ctx, row):
+        if not row['status'] or row['status'] == ctx['module_name']:
+            if not row['msgid'] or not row['msgstr']:
+                return 0
+            msgid = os0.u(row['msgid'])
+            TNL_DICT[msgid] = os0.u(row['msgstr'])
+            if msgid == TNL_DICT[msgid]:
+                return 0
+            try:
+                if (msgid[0] != ' ' and
+                        msgid[0] == TNL_DICT[msgid][0].lower() and
+                        msgid[1:] == TNL_DICT[msgid][1:]):
+                    return 0
+            except BaseException:
+                pass
+            TNL_ACTION[msgid] = 'D'
+            if ctx['action'] and ctx['action'][0].upper() in (
+                    'D', 'P', '*'):
+                TNL_ACTION[msgid] = ctx['action'][0].upper()
+            set_terms_n_punct(row, msgid)
+            return 1
+        return 0
+
+    def read_csv(ctx, source):
+        ctr = 0
         if ctx['opt_verbose']:
             print("Reading %s into dictionary" % source)
         csv.register_dialect('dict',
-                             delimiter=os0.b('\t'),
-                             quotechar=os0.b('"'),
+                             delimiter=_c('\t'),
+                             quotechar=_c('"'),
                              quoting=csv.QUOTE_MINIMAL)
         csv_fd = open(source, 'rU')
         hdr_read = False
@@ -110,28 +135,36 @@ def load_default_dictionary(source):
                 hdr_read = True
                 csv_obj.fieldnames = row['undef_name']
                 continue
-            if not row['status'] or row['status'] == ctx['module_name']:
-                if not row['msgid'] or not row['msgstr']:
-                    continue
-                msgid = os0.u(row['msgid'])
-                TNL_DICT[msgid] = os0.u(row['msgstr'])
-                if msgid == TNL_DICT[msgid]:
-                    continue
-                try:
-                    if (msgid[0] != ' ' and
-                            msgid[0] == TNL_DICT[msgid][0].lower() and
-                            msgid[1:] == TNL_DICT[msgid][1:]):
-                        continue
-                except:
-                    pass
-                TNL_ACTION[msgid] = 'D'
-                if ctx['action'] and ctx['action'][0].upper() in (
-                        'D', 'P', '*'):
-                    TNL_ACTION[msgid] = ctx['action'][0].upper()
-                set_terms_n_punct(row, msgid)
-                ctr += 1
+            ctr += process_row(ctx, row)
         if ctx['opt_verbose']:
             print(" ... Read %d records" % ctr)
+        return ctr
+
+    def read_xlsx(ctx, source):
+        ctr = 0
+        if ctx['opt_verbose']:
+            print("Reading %s into dictionary" % source)
+        wb = xlrd.open_workbook(source)
+        sheet = wb.sheet_by_index(0)
+        colnames = []
+        for ncol in range(sheet.ncols):
+            colnames.append(sheet.cell_value(0, ncol))
+        for nrow in range(1, sheet.nrows):
+            row = {}
+            for ncol in range(sheet.ncols):
+                row[colnames[ncol]] = sheet.cell_value(nrow, ncol)
+            ctr += process_row(ctx, row)
+        if ctx['opt_verbose']:
+            print(" ... Read %d records" % ctr)
+        return ctr
+
+    ctr = 0
+    if os.path.isfile(source + '.xlsx'):
+        source = source + '.xlsx'
+        ctr = read_xlsx(ctx, source)
+    elif os.path.isfile(source + '.csv'):
+        source = source + '.csv'
+        ctr = read_csv(ctx, source)
     return ctr
 
 
@@ -173,7 +206,7 @@ def save_new_dictionary(ctx):
         print("New dictionary saved at %s" % dict_name)
 
 
-def load_dictionary_from_file(pofn):
+def load_dictionary_from_file(ctx, pofn):
     ctr = 0
     if os.path.isfile(pofn):
         if ctx['opt_verbose']:
@@ -219,7 +252,7 @@ def load_dictionary_from_file(pofn):
     return ctr
 
 
-def parse_pofile(source):
+def parse_pofile(ctx, source):
     if os.path.isfile(source):
         ctr = 0
         if ctx['opt_verbose']:
@@ -288,16 +321,16 @@ def rewrite_pofile(ctx, pofn, target, version):
 
 def load_dictionary(ctx):
     if ctx['dbg_template']:
-        dict_name = os.path.expanduser('~/dev/pypi/tools/odoo_default_tnl.csv')
+        dict_name = os.path.expanduser('~/dev/pypi/tools/odoo_default_tnl')
     else:
-        dict_name = os.path.expanduser('~/dev/odoo_default_tnl.csv')
-    ctr = load_default_dictionary(dict_name)
+        dict_name = os.path.expanduser('~/dev/odoo_default_tnl')
+    ctr = load_default_dictionary(ctx, dict_name)
     ctx['pofiles'] = {}
     ctx['ctrs'] = {'0': ctr}
     if ctx['branch']:
         versions = [ctx['branch']]
     else:
-        versions = ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
+        versions = ('13.0', '12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
     for version in versions:
         odoo_path = set_odoo_path(ctx, version)
         if odoo_path:
@@ -321,7 +354,7 @@ def load_dictionary(ctx):
                 print('*** File %s not found !!!' % pofn)
                 return 0
             ctx['pofiles'][version] = pofn
-            ctr = load_dictionary_from_file(pofn)
+            ctr = load_dictionary_from_file(ctx, pofn)
             ctx['ctrs'][version] = ctr
     return 0
 
@@ -360,7 +393,7 @@ def set_header_pofile(ctx, pofile):
 def parse_file(ctx):
     for version in ctx['pofiles'].keys():
         pofn = ctx['pofiles'][version]
-        fdiff, target = parse_pofile(pofn)
+        fdiff, target = parse_pofile(ctx, pofn)
         if not fdiff:
             if ctx['opt_verbose']:
                 print("No change done")

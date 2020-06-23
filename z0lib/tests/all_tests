@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.8.8
+__version__=0.2.9
 
 
 test_00() {
@@ -49,7 +49,7 @@ fi
 PYPKGDIR=$(readlink -e $RUNDIR/..)
 export PYTHONPATH=$PYPKGDIR:$PYTHONPATH
 UT1_LIST="test_wlog"
-UT_LIST="__version_1_${__version__}$RUNDIR/z0librc"
+# UT_LIST="__version_1_${__version__}$RUNDIR/z0librc"
 UT_LIST="$UT_LIST test_00"
 UT_LIST="$UT_LIST test_findpkg test_run test_z0lib.py test_parse_url test_parseoptargs test_dict1 test_dict2 test_cfg1 test_cfg2 test_cfg3 test_cfg4"
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi

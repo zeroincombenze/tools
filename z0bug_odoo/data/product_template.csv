@@ -1,5 +1,5 @@
 id,default_code,name,lst_price,standard_price,categ_id,type,taxes_id,supplier_taxes_id,property_account_income_id,property_account_expense_id,uom_id,uom_po_id
-z0bug.product_template_0,MISC,Varie,18.0,9.5,All,consu,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510000,z0bug.coa_610100,product.product_uom_unit,product.product_uom_unit
+z0bug.product_template_0,MISC,Varie,18,9.5,All,consu,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510000,z0bug.coa_610100,product.product_uom_unit,product.product_uom_unit
 z0bug.product_template_1,AA,Prodotto Alpha,0.84,0.42,All,consu,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510000,z0bug.coa_610100,product.product_uom_unit,product.product_uom_unit
 z0bug.product_template_2,BB,Prodotto Beta,3.38,1.69,All,consu,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510000,z0bug.coa_610100,product.product_uom_unit,product.product_uom_unit
 z0bug.product_template_3,CC,Prodotto Chi,0.74,0.37,All,consu,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510000,z0bug.coa_610100,product.product_uom_unit,product.product_uom_unit
@@ -27,3 +27,4 @@ z0bug.product_template_24,XX,Prodotto Xi extra,0.52,0.26,All,consu,z0bug.tax_22v
 z0bug.product_template_25,YY,Special service for Young people,0.71,0,All,service,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510200,z0bug.coa_621200,product.product_uom_unit,product.product_uom_unit
 z0bug.product_template_26,ZZ,Prodotto Zeta,1.44,0.72,All,consu,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510000,z0bug.coa_610110,product.product_uom_unit,product.product_uom_unit
 z0bug.product_template_27,__,Consegna gratuita,0,0,All,service,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510200,z0bug.coa_621200,product.product_uom_unit,product.product_uom_unit
+z0bug.product_template_SB,SP-BANC,Spese bancarie,2.5,0.95,All,service,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_512000,z0bug.coa_731140,product.product_uom_unit,product.product_uom_unit

@@ -27,3 +27,4 @@ z0bug.product_product_24,z0bug.product_template_24,XXX,Prodotto Xi extra,0.52,0.
 z0bug.product_product_25,z0bug.product_template_25,YYY,Special service for Young people,0.71,0,All,service,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510200,z0bug.coa_621200,product.product_uom_unit,product.product_uom_unit
 z0bug.product_product_26,z0bug.product_template_26,ZZZ,Prodotto Zeta,1.44,0.72,All,consu,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510000,z0bug.coa_610110,product.product_uom_unit,product.product_uom_unit
 z0bug.product_product_27,z0bug.product_template_27,___,Consegna gratuita,0,0,All,service,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_510200,z0bug.coa_621200,product.product_uom_unit,product.product_uom_unit
+z0bug.product_product_SB,z0bug.product_template_SB,SP-BANC,Spese bancarie,2.5,0.95,All,service,z0bug.tax_22v,z0bug.tax_22a,z0bug.coa_512000,z0bug.coa_731140,product.product_uom_unit,product.product_uom_unit

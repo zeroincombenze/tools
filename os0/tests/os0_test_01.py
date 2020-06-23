@@ -30,7 +30,7 @@ MODULE_ID = 'os0'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.2.14.5"
+__version__ = "0.2.15"
 
 TITLE = "os0 regression test. Version: " + __version__
 FLOGTMP = "os0_test.log"

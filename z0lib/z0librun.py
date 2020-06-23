@@ -43,7 +43,7 @@ from __future__ import unicode_literals
 # import pdb
 from future import standard_library
 standard_library.install_aliases()                                 # noqa: E402
-from builtins import *                                             # noqa: F403
+# from builtins import *                                             # noqa: F403
 from builtins import object
 import os
 import argparse
@@ -66,7 +66,7 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "0.2.8.8"
+__version__ = "0.2.9"
 
 
 class CountAction(argparse.Action):
@@ -278,4 +278,3 @@ class parseoptargs(object):
         # elif p in ctx and ctx[p] == -1:
         #     ctx[0] = 0
         return ctx
-

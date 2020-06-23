@@ -111,7 +111,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '0.2.2.33'
+__version__ = '0.2.3'
 
 
 MANIFEST_FILES = [
@@ -779,7 +779,7 @@ if __name__ == "__main__":
         exit(1)
     if not ctx['path_list']:
         print('No odoo path list!')
-        exit (1)
+        exit(1)
     path_list = []
     for path in ctx['path_list']:
         path_list += path.split(',')
@@ -802,7 +802,7 @@ if __name__ == "__main__":
         ctx['depth'] = False
     if ctx['db_name'] and not ctx['conf_fn']:
         print('No configuration file for DB access!')
-        exit (1)
+        exit(1)
     if ctx['only-missed'] and (ctx['external_dependencies'] or
                                   ctx['external_bin_dependencies']):
         print('Switches -E and -e or -b are mutually exclusive!')

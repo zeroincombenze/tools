@@ -31,73 +31,73 @@ qci
 ---
 
 +----------+-----------------------------------------------------------------------------------+
-| icq      | description                                                                       |
+| qci      | description                                                                       |
 +----------+-----------------------------------------------------------------------------------+
-| icq_0001 | Credit Transfer payment / Pagamento bonifico                                      |
+| qci_0001 | Credit Transfer payment / Pagamento bonifico                                      |
 +----------+-----------------------------------------------------------------------------------+
-| icq_0002 | RiBA payment / Pagamento RiBA (IT)                                                |
+| qci_0002 | RiBA payment / Pagamento RiBA (IT)                                                |
 +----------+-----------------------------------------------------------------------------------+
-| icq_0003 | Sepa Direct Debit / Pagamento Sepa DD                                             |
+| qci_0003 | Sepa Direct Debit / Pagamento Sepa DD                                             |
 +----------+-----------------------------------------------------------------------------------+
-| icq_0006 | Partner with one date payment / Cliente con pagamento in unica soluzione          |
+| qci_0006 | Partner with one date payment / Cliente con pagamento in unica soluzione          |
 +----------+-----------------------------------------------------------------------------------+
-| icq_0007 | Partner with multiple date payment / Cliente con pagamento di più scadenze        |
+| qci_0007 | Partner with multiple date payment / Cliente con pagamento di più scadenze        |
 +----------+-----------------------------------------------------------------------------------+
-| icq_pa11 | Local partner (Italy) / Cliente italiano                                          |
+| qci_pa11 | Local partner (Italy) / Cliente italiano                                          |
 +----------+-----------------------------------------------------------------------------------+
-| icq_pa12 | EU partner / Cliente intraUE                                                      |
+| qci_pa12 | EU partner / Cliente intraUE                                                      |
 +----------+-----------------------------------------------------------------------------------+
-| icq_pa13 | Extra-EU partner / Cliente extraUE                                                |
+| qci_pa13 | Extra-EU partner / Cliente extraUE                                                |
 +----------+-----------------------------------------------------------------------------------+
-| icq_pa14 | Reverse Charge                                                                    |
+| qci_pa14 | Reverse Charge                                                                    |
 +----------+-----------------------------------------------------------------------------------+
-| icq_pa15 | Split Payment                                                                     |
+| qci_pa15 | Split Payment                                                                     |
 +----------+-----------------------------------------------------------------------------------+
-| icq_pa16 | Partne is PA                                                                      |
+| qci_pa16 | Partne is PA                                                                      |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac01 | Full Undeductible VAT / IVA totalmente indetraibile                               |
+| qci_ac01 | Full Undeductible VAT / IVA totalmente indetraibile                               |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac02 | Undeductible VAT / IVA parzialmente indetraibile                                  |
+| qci_ac02 | Undeductible VAT / IVA parzialmente indetraibile                                  |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac03 | Invoice with asset/Fattura di beni strumentali                                    |
+| qci_ac03 | Invoice with asset/Fattura di beni strumentali                                    |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac04 | Corrispettivi misti                                                               |
+| qci_ac04 | Corrispettivi misti                                                               |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac05 | Corrispettivi ripartiti (ventilazione)                                            |
+| qci_ac05 | Corrispettivi ripartiti (ventilazione)                                            |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac06 | Insoluto RiBA                                                                     |
+| qci_ac06 | Insoluto RiBA                                                                     |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac11 | Sale invoice with split payment / Fattura di vendita con split-payment            |
+| qci_ac11 | Sale invoice with split payment / Fattura di vendita con split-payment            |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac12 | Sale invoice with reverse charge / Fattura di vendita con reverse charge          |
+| qci_ac12 | Sale invoice with reverse charge / Fattura di vendita con reverse charge          |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac13 | Sale invoice to EU partner / Fattura di vendita intraUE                           |
+| qci_ac13 | Sale invoice to EU partner / Fattura di vendita intraUE                           |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac14 | Sale invoice to xEU partner / Fattura di vendita extraUE                          |
+| qci_ac14 | Sale invoice to xEU partner / Fattura di vendita extraUE                          |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac15 | Sale invoice with lettera di intento / Fattura di vendita lettera di intento      |
+| qci_ac15 | Sale invoice with lettera di intento / Fattura di vendita lettera di intento      |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac16 | Sale invoice with withholding / Fattura di vendita ritenuta d'acconto             |
+| qci_ac16 | Sale invoice with withholding / Fattura di vendita ritenuta d'acconto             |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac17 | Sale invoice with enasarco / Fattura di vendita con ensarco                       |
+| qci_ac17 | Sale invoice with enasarco / Fattura di vendita con ensarco                       |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac21 | Purchase invoice with split payment / Fattura di acquisto con split-payment       |
+| qci_ac21 | Purchase invoice with split payment / Fattura di acquisto con split-payment       |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac22 | Purchase invoice with reverse charge / Fattura di acquisto con reverse charge     |
+| qci_ac22 | Purchase invoice with reverse charge / Fattura di acquisto con reverse charge     |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac23 | Purchase invoice from EU partner / Fattura di acquisto intraUE                    |
+| qci_ac23 | Purchase invoice from EU partner / Fattura di acquisto intraUE                    |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac24 | Purchase invoice fromxEU partner / Fattura di acquisto extraUE                    |
+| qci_ac24 | Purchase invoice fromxEU partner / Fattura di acquisto extraUE                    |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac25 | Purchase invoice with lettera di intento / Fattura di acquisto lettera di intento |
+| qci_ac25 | Purchase invoice with lettera di intento / Fattura di acquisto lettera di intento |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac26 | Purchase invoice with withholding / Fattura da fornitore con ritenuta d'acconto   |
+| qci_ac26 | Purchase invoice with withholding / Fattura da fornitore con ritenuta d'acconto   |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac27 | Purchase invoice with enasarco / Fattura da fornitore con ensarco                 |
+| qci_ac27 | Purchase invoice with enasarco / Fattura da fornitore con ensarco                 |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac30 | E-invoice to individual / Fattura elettronica a privato                           |
+| qci_ac30 | E-invoice to individual / Fattura elettronica a privato                           |
 +----------+-----------------------------------------------------------------------------------+
-| icq_ac31 | E-invoice with virtual stamp / Fattura elettronica con bollo virtuale             |
+| qci_ac31 | E-invoice with virtual stamp / Fattura elettronica con bollo virtuale             |
 +----------+-----------------------------------------------------------------------------------+
 
 
@@ -327,7 +327,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-05-28
+Last Update / Ultimo aggiornamento: 2020-06-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

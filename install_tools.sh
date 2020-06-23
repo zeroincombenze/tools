@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=0.2.2.31
+# __version__=0.2.3
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -23,7 +23,7 @@ RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
 RFLIST__wok_code=""
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
-RFLIST__tools="odoo_default_tnl.csv templates"
+RFLIST__tools="odoo_default_tnl.csv odoo_default_tnl.xlsx templates"
 RFLIST__python_plus="venv_mgr venv_mgr.man"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py transodoo.py transodoo.csv"

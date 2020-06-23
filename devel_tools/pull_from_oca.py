@@ -35,7 +35,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.33"
+__version__ = "0.2.3"
 
 
 def run_traced(*args):
@@ -97,8 +97,6 @@ if __name__ == "__main__":
     parser.add_argument('tgtpath')
     ctx = parser.parseoptargs(sys.argv[1:])
     # Avoid empty basename when path ends with slash
-    import pdb
-    pdb.set_trace()
     ctx['tgtpath'] = os.path.expanduser(ctx['tgtpath'])
     if not os.path.basename(ctx['tgtpath']):
         ctx['tgtpath'] = os.path.dirname(ctx['tgtpath'])

@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.77
+__version__=0.3.9
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
@@ -109,7 +109,7 @@ if [ -z "$script" ]; then
     exit 1
 fi
 VENV=$(build_odoo_param VENV $odoo_vid)
-[ -f $odoo_root/bin/activate ] && VENV=1
+[[ -f $odoo_root/bin/activate ]] && VENV=1
 manifest=$(build_odoo_param MANIFEST $odoo_vid search)
 create_db=0
 drop_db=0

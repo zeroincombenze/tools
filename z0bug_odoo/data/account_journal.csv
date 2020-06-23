@@ -1,7 +1,3 @@
-id,name,code,type
-z0bug.sales_journal,Sales Journal,TSAJ,sale
-z0bug.refund_sales_journal,Sales Credit Note Journal,TSCNJ,sale_refund
-z0bug.expenses_journal,Expenses Journal,TEXJ,purchase
-z0bug.refund_expenses_journal,Expenses Credit Notes Journal,TECNJ,purchase_refund
-
-
+id,name,code,type,default_debit_account_id,default_debit_account_id,display_on_footer,bank_account_id
+z0bug.bank1_journal,Bank IT15A0123412345100000123456,BNK1,bank,z0bug.coa_180002,z0bug.coa_180002,1,z0bug.bank_company_1
+z0bug.bank2_journal,Bank IT74B0246801011000000024680,BNK2,bank,z0bug.coa_180003,z0bug.coa_180003,1,z0bug.bank_company_2

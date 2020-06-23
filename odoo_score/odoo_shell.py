@@ -23,7 +23,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.1.0.13"
+__version__ = "0.1.1"
 
 
 MAX_DEEP = 20
@@ -530,6 +530,28 @@ def inv_commission_by_partner(ctx):
             clodoo.writeL8(ctx, inv_model, invoice.id,
                 {'name': invoice.name})
     print('%d account invoice lines updated' % ctr)
+
+
+def correct_invoice_entry_date(ctx):
+    pdb.set_trace()
+    print('Move old registration_date into date')
+    if ctx['param_1'] == 'help':
+        print('correct_invoice_entry_date from_date|ids')
+        return
+    inv_model = 'account.invoice'
+    ctr = 0
+    date_ids = param_date(ctx['param_1'])
+    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
+        ids = clodoo.searchL8(ctx, inv_model,
+                              [('date_invoice', '>=', date_ids)])
+    else:
+        ids = eval(date_ids)
+    query = "update account_invoice set date=registration_date"
+    query += " where type in ('in_invoice', 'in_refund')"
+    if ids:
+        query += " and id in %s" % ids
+    clodoo.exec_sql(ctx, query)
+    print('%d invoice lines updated' % ctr)
 
 
 def inv_commission_from_order(ctx):

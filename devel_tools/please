@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.33
+__version__=0.2.3
 
 
 #
@@ -1835,7 +1835,7 @@ do_docs() {
     wlog "do_docs"
     local docs_dir=./docs
     local author version theme SETUP
-    local opts
+    local opts src_png
     [[ $PWD =~ /dev[el]*/pypi/ ]] && opts=-B
     if [ ! -d $docs_dir ]; then
         if [ $opt_force -eq 0 ]; then
@@ -1844,8 +1844,26 @@ do_docs() {
         fi
         run_traced "mkdir $docs_dir"
     fi
+    if [[ ! -f $docs_dir/logozero_180x46.png ]]; then
+        src_png=
+        [[ -z "$src_png" && -f ../tools/docs/logozero_180x46.png ]] && src_png=$(readlink -e ../tools/docs/logozero_180x46.png)
+        [[ -z "$src_png" && -f ../../tools/docs/logozero_180x46.png ]] && src_png=$(readlink -e ../../tools/docs/logozero_180x46.png)
+        [[ -n "$src_png" ]] && run_traced "cp $src_png $docs_dir/logozero_180x46.png"
+    fi
+    for f in $(grep "^ *rtd_" docs/index.rst|tr "\n" " "); do
+        echo ".. toctree::">./rtd_template.rst
+        echo "   :maxdepth: 2">>./rtd_template.rst
+        echo "">>./rtd_template.rst
+        if [[ "$f" == "rtd_automodule" ]]; then
+            echo ".. automodule:: $PKGNAME">>./rtd_template.rst
+            run_traced "mv ./rtd_template.rst $docs_dir/rtd_automodule.rst"
+        else
+            echo "{{${f:4}}}">>./rtd_template.rst
+            run_traced "gen_readme.py $opts -t ./rtd_template.rst -o $docs_dir/$f.rst"
+        fi
+    done
     run_traced "gen_readme.py $opts"
-    run_traced "gen_readme.py $opts -t mainpage -o $docs_dir/MAINPAGE.rst"
+    [[ $(grep "\.\. include:: MAINPAGE.rst" docs/index.rst) ]] && run_traced "gen_readme.py $opts -t mainpage -o $docs_dir/MAINPAGE.rst"
     run_traced "pushd $docs_dir >/dev/null"
     if [ ! -f index.rst -o ! -f conf.py ]; then
         SETUP=$(build_pypi_param SETUP)
@@ -2168,7 +2186,7 @@ do_list() {
 }
 do_translate() {
     wlog "do_translate '$1' '$2' '$3'"
-    local confn db module odoo_fver sts=$STS_FAILED
+    local confn db module odoo_fver sts=$STS_FAILED dbg
     if [ "$PRJNAME" == "Odoo" ]; then
         module=$2
         db=$3
@@ -2190,7 +2208,8 @@ do_translate() {
         return $STS_FAILED
     fi
     run_traced "pushd $HOME/clodoo >/dev/null"
-    run_traced "odoo_translation.py -b$odoo_fver -m $module -d $db -c $confn"
+    [ $opt_dbg -ne 0 ] && dbg="-B" || dbg=
+    run_traced "odoo_translation.py $dbg -b$odoo_fver -m $module -d $db -c $confn"
     sts=$?
     run_traced "popd >/dev/null"
     return $sts
@@ -2435,6 +2454,7 @@ do_status() {
     for pkg in $PKGS_LIST; do
         [ $opt_force -ne 0 ] && echo -e "\e[1m[ $pkg ]\e[0m"
         [ $opt_force -eq 0 ] && echo -e "[ $pkg ]"
+        [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg="${pkg//-/_}"
         [ $opt_force -ne 0 ] && vfdiff -q $HOME/tools/$pkg $HOME/dev/pypi/$pkg/$pkg -q|grep -v "diff -x"
         if [ $opt_force -eq 0 ]; then
             vfdiff -q $HOME/tools/$pkg $HOME/dev/pypi/$pkg/$pkg -q>/dev/null
@@ -2442,8 +2462,6 @@ do_status() {
         fi
         if [[ ! "$PKGS" == "()" && $pkg =~ $PKGS ]]; then
             echo -e "\e[1m    Package $pkg have to be pushed on github.com\e[0m"
-        # else
-        #     echo -e "\e[1m*****[ $pkg ]*****\e[0m"
         fi
     done
 }
@@ -2615,12 +2633,13 @@ do_wep() {
 }
 
 
-OPTOPTS=(h        b          c        d        f         j        k        L         m       n           o        O        p         q           r     s        t         u       V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
-OPTACTI=(1        "="        "="      "="      1         1        1        "="       1       1           "=>"     1        "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        ""         ""       ""       0         0        0        ""        0       0           ""       0        ""        -1          0     ""       0         0       ""          -1)
-OPTMETA=("help"   "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
+OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O        p         q           r     s        t         u       V           v)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
+OPTACTI=(1        1       "="        "="      "="      1         1        1        "="       1       1           "=>"     1        "="       0           1     "="      1         1       "*"         "+")
+OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0        ""        -1          0     ""       0         0       ""          -1)
+OPTMETA=("help"   ""      "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
+ "debug mode"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0"\
  "configuration file (def .travis.conf)"\
  "date to search in log"\

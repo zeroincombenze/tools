@@ -11,7 +11,7 @@ try:
 except ImportError:
     import z0lib
 
-__version__ = '0.3.8.77'
+__version__ = '0.3.9'
 
 #
 # known incompantibilities:
@@ -248,7 +248,8 @@ cmd = ['python3', '--version']
 try:
     p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     res, err = p.communicate()
-    i = res.find(b'3.')
+    res = res.decode()
+    i = res.find('3.')
     if i >= 0:
         PY3ID = res[i] + res[i+2]
     else:
@@ -744,5 +745,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sts = main()
-    sys.exit(sts)
+    sys.exit(main())

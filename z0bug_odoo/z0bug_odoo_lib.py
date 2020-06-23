@@ -27,8 +27,8 @@ __version__ = "0.1.0.10"
 
 class Z0bugOdoo(object):
 
-    def __init__(self, cls=None):
-        self.cls = cls
+    def __init__(self, release=None):
+        self.release = None
 
     def get_image_filename(self, xref):
         file_image = os.path.join(
@@ -66,14 +66,14 @@ class Z0bugOdoo(object):
                 getattr(self, pymodel)[row['id']] = unicodes(row)
 
     def get_test_xrefs(self, model):
-        '''Return model xref list'''
+        """Return model xref list"""
         pymodel = model.replace('.', '_')
         if not hasattr(self, pymodel):
             self.get_data_file(model, '%s.csv' % pymodel)
         return list(getattr(self, pymodel))
 
     def get_test_values(self, model, xref):
-        '''Return model values for test'''
+        """Return model values for test"""
         xids = xref.split('.')
         if len(xids) == 1:
             xids[0], xids[1] = 'z0bug', xids[0]
@@ -87,7 +87,7 @@ class Z0bugOdoo(object):
         return {}
 
     def initialize_model(self, model):
-        '''Write all record of model with test values'''
+        """Write all record of model with test values"""
         pymodel = model.replace('.', '_')
         if not hasattr(self, pymodel):
             self.get_data_file(model, '%s.csv' % pymodel)

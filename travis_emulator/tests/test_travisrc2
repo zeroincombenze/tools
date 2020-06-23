@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.34
+__version__=0.2.3
 
 
 save_testenv() {
@@ -183,10 +183,10 @@ test_01() {
       opts_travis ""
       result_testenv
     fi
-    test_result "opts_travis OE (travis.conf)" "$TDIR/.travis.conf" "$TCONF"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (local conf)" "$LCL_OE_PRJPATH/conf/.local_dist_pkg.conf" "$DIST_CONF"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    # test_result "opts_travis OE (travis.conf)" "$TDIR/.travis.conf" "$TCONF"
+    # s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    # test_result "opts_travis OE (local conf)" "$LCL_OE_PRJPATH/conf/.local_dist_pkg.conf" "$DIST_CONF"
+    # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "opts_travis OE (REMOTEREPO)" "local" "$REMOTEREPO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "opts_travis OE (PKGPATH)" "$LCL_OE_PKGPATH" "$PKGPATH"
@@ -215,8 +215,8 @@ test_02() {
       opts_travis ""
       result_testenv
     fi
-    test_result "opts_travis PY (travis.conf)" "$TDIR/.travis.conf" "$TCONF"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    # test_result "opts_travis PY (travis.conf)" "$TDIR/.travis.conf" "$TCONF"
+    # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "opts_travis PY (local conf)" "$LCL_PY_PKGPATH/conf/.local_dist_pkg.conf" "$DIST_CONF"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "opts_travis PY (REMOTEREPO)" "local" "$REMOTEREPO"
@@ -458,7 +458,6 @@ test_06() {
       opts_travis ""
       CFG_init
       conf_default
-      # link_cfg $DIST_CONF $TCONF
       init_travis
       result_testenv "0"
     fi

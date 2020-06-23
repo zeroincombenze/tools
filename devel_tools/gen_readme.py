@@ -101,7 +101,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.2.33"
+__version__ = "0.2.3"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -830,7 +830,7 @@ def validate_condition(ctx, *args):
                     in_cond = True
                     val += '('
             else:
-                val += '\'%s\'%s' % (expand_macro(ctx, args[i], default='0'),
+                val += '\'%s\'%s' % (expand_macro(ctx, args[i], default=''),
                                      pad)
         else:
             val += '%s%s' % (args[i], pad)
@@ -1098,7 +1098,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
     if ctx['opt_verbose']:
         print("Reading %s" % full_fn)
     fd = open(full_fn, 'rU')
-    source = os0.u(fd.read())
+    source = fd.read().decode('utf-8')
     fd.close()
     if len(source) and filename == 'acknowledges.txt':
         state, source1 = parse_source(ctx,
