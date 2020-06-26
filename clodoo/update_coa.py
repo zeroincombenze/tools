@@ -1,21 +1,14 @@
-# flake8: noqa
 # -*- coding: utf-8 -*-
 # Import file library
 import sys
 # import os
 import time
-try:
-    from clodoo import clodoo
-except ImportError:
-    import clodoo
-try:
-    from z0lib import z0lib
-except ImportError:
-    import z0lib
+import clodoo
+from z0lib import z0librun as z0lib
 # import pdb
 
 
-__version__ = "0.3.9"
+__version__ = "0.3.8"
 
 
 msg_time = time.time()

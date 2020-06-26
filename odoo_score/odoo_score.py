@@ -1,66 +1,27 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
-# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function,unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-# from past.builtins import basestring
+from past.builtins import basestring
 
-# import os
-# import sys
-from future import standard_library
-standard_library.install_aliases()                                 # noqa: E402
-from builtins import *                                             # noqa: F403
-from builtins import object
+import os
+import sys
 from datetime import datetime, timedelta
 from threading import Lock
 
-try:
-    import odoo.release as release
-    __db_protocol__ = 'psycopg2'
-except ImportError:
-    try:
-        import openerp.release as release
-        __db_protocol__ = 'psycopg2'
-    except ImportError:
-        release = ''
-if release:
-    majver = int(release.major_version.split('.')[0])
-    if majver == 13:
-        from . import odoo_score_13
-    elif majver == 12:
-        from . import odoo_score_12
-    elif majver == 11:
-        from . import odoo_score_11
-    elif majver == 10:
-        from . import odoo_score_10
-    elif majver == 9:
-        from . import odoo_score_9
-    elif majver == 8:
-        from . import odoo_score_8
-    elif majver == 7:
-        from . import odoo_score_7
-    elif majver == 6:
-        from . import odoo_score_6
-else:
-    try:
-        import odoorpc
-        __db_protocol__ = 'json'
-    except ImportError:
-        __db_protocol__ = ''
-    try:
-        import oerplib
-        __db_protocol__ = 'xml' if not __db_protocol__ else 'json+xml'
-    except ImportError:
-        pass
 
-
-__version__ = "0.1.1"
+__version__ = "0.1.0.9"
 
 MODULE_ID = 'odoo_score'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
+
+
+class Orm10(object):
+
+    def __init__(self):
+        pass
 
 
 class SingletonCache(object):

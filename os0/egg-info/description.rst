@@ -4,15 +4,24 @@ Module os0
 Operating System indipendent interface
 --------------------------------------
 
+
+Operating System indipendent interface
+--------------------------------------
+
 This module provides a portable way of using operating system dependent functionality.
-It expands standard os module naming using both URI and local filename.
-URI (Uniform Resource Identifier) is standard posix filename.
+It expands standard os module naming using both URI standard name both local name, as UNC and ODS5.
+
+* URI (Uniform Resource Identifier) is standard posix filename.
+* UNC (Uniform Naming Convention) is windows standard
+* ODS5 is used for define OpenVMS standard filenames
+
 An example of URI filename is '/home/myfile'.
-URI may be used in windows and OpenVMS but these OS have an own filesystem.
-Windows filename of previous URI example is '\\home\\myfile' (with single backslash)
-OpenVMS filename of previous URI example is '[home]myfile'
-This module provides function to manage local filename, URI filename
-and conversions between both of them. 
+
+UNC example for the same of previous URI name is '\\home\\myfile' (with single backslash)
+
+ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
+
+See https://en.wikipedia.org/wiki/Path_(computing)
 
 To use module os0 import it
     >>> from os0 import os0

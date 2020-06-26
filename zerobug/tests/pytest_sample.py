@@ -3,7 +3,7 @@
 import pytest
 from zerobug import Z0BUG
 
-__version__ = '0.2.14.17'
+__version__ = '0.2.15'
 
 def test_version_zerobug(version_to_test):
     version_to_test(Z0BUG, __version__)

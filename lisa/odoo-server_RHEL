@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.11
+# version: 0.4.12-RHEL
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -344,44 +344,46 @@ start() {
 }
 
 
-stop_RHEL () {
-  if [ $DRY_RUN -gt 0 ]; then
-      echo "kill -TERM \$(cat $PIDFILE) > /dev/null 2>&1"
-  else
-      kill -TERM $(cat $PIDFILE) > /dev/null 2>&1
-  fi
-  RETVAL=$?
-  if [ $RETVAL -ne 0 ]; then
-      echo "Error during stopping .. try to stop process ..."
-      [ ${xtl_version} -lt 11 ] && py=python || py=python3
-      local pid=$(ps -ef|grep "$py .*$DAEMON.*\.conf"|grep -v grep|awk '{print $2}')
-      [ -z "$pid" ] || kill $pid
-      RETVAL=$?
-  fi
-  if [ $RETVAL -eq 0 ] ; then
-      if [ $DRY_RUN -eq 0 ]; then
-          rm -f $LOCKFILE
-      fi
-      echo_success
-      echo
-  else
-      echo_failure
-      echo
-  fi
-  if [ -d /etc/${xtl_id}/stop.d ] ; then
-      echo -n "Clearing $DESC: "
-      run-parts /etc/${xtl_id}/stop.d
-      echo
-  fi
-  return $RETVAL
+stop_RHEL() {
+    if [ -f $PIDFILE ]; then
+        if [ $DRY_RUN -gt 0 ]; then
+            echo "kill -TERM \$(cat $PIDFILE) > /dev/null 2>&1"
+        else
+            kill -TERM $(cat $PIDFILE) > /dev/null 2>&1
+        fi
+    fi
+    RETVAL=$?
+    if [ $RETVAL -ne 0 ]; then
+        echo "Error during stopping .. try to stop process ..."
+        [ ${xtl_version} -lt 11 ] && py=python || py=python3
+        local pid=$(ps -ef | grep "$py .*$DAEMON.*\.conf" | grep -v grep | awk '{print $2}')
+        [ -z "$pid" ] || kill $pid
+        RETVAL=$?
+    fi
+    if [ $RETVAL -eq 0 ]; then
+        if [ $DRY_RUN -eq 0 ]; then
+            rm -f $LOCKFILE
+        fi
+        echo_success
+        echo
+    else
+        echo_failure
+        echo
+    fi
+    if [ -d /etc/${xtl_id}/stop.d ]; then
+        echo -n "Clearing $DESC: "
+        run-parts /etc/${xtl_id}/stop.d
+        echo
+    fi
+    return $RETVAL
 }
 
 
 stop_Debian () {
     if [ $DRY_RUN -gt 0 ]; then
-      echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo"
+        echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo"
     else
-      start-stop-daemon --stop --quiet --pidfile ${PIDFILE}  --oknodo
+        start-stop-daemon --stop --quiet --pidfile ${PIDFILE}  --oknodo
     fi
     RETVAL=$?
     # echo "${NAME}."
@@ -402,11 +404,8 @@ stop() {
         exit 1
     fi
     RETVAL=$?
-    # local p=$(dirname ${DAEMON})
-    # [ "$(basename $p)" == "odoo" ] && p=$(dirname $p)
-    # [ -f $p/bin/activate ] && deactivate
     local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    echo "$x $$ DAEMON ? $0: stop process $(cat $PIDFILE)">>$LOGFILE
+    echo "$x $$ DAEMON ? $0: stop process $PIDFILE">>$LOGFILE
     return $RETVAL
 }
 

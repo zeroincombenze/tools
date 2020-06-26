@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.10-Debian
+# version: 0.4.12-Debian
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -41,69 +41,82 @@ xtl_sudo=0
 DRY_RUN=${xtl_test}
 # Use sudo to execute command instead of start-stop-daemon (only Debian)
 USE_SUDO=${xtl_sudo}
-# Recognize Linux distribution (Debian/Ubuntu or RHEL/CentOS)
+# Recognize Linux distribution (Debian/Ubuntu or RHEL/CentOS/Fedora)
 OS=$(uname -s)
 FH=""
-if [ "${OS}" = "Linux" ]; then
-  if [ -f /etc/centos-release -o -f /etc/redhat-release -o -f /etc/fedora-release -o -f /etc/SUSE-release -o -f /etc/mandriva-release ]; then
+if [[ "${OS}" == "Linux" ]]; then
+  if [[ -f /etc/centos-release || -f /etc/redhat-release || -f /etc/fedora-release || -f /etc/SUSE-release || -f /etc/mandriva-release ]]; then
     FH="RHEL"
-  elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d -o -f /etc/debian_version -o -f /etc/os-release ]; then
+  elif [[ -f /etc/lsb-release || -d /etc/lsb-release.d || -f /etc/debian_version || -f /etc/os-release ]]; then
     FH="Debian"
   fi
 fi
 # Source function library (Only RHEL)
-if [ "$FH" == "RHEL" ]; then
-    if [ -f /etc/init.d/functions ] ; then
+if [[ "$FH" == "RHEL" ]]; then
+    if [[ -f /etc/init.d/functions ]]; then
         . /etc/init.d/functions
-    elif [ -f /etc/rc.d/init.d/functions ] ; then
+    elif [[ -f /etc/rc.d/init.d/functions ]]; then
         . /etc/rc.d/init.d/functions
     else
-        exit 0
+        exit 1
     fi
 fi
 # Set path (Only Debian)
-if [ "$FH" == "Debian" ]; then
+if [[ "$FH" == "Debian" ]]; then
   PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
-  if [ -f /lib/lsb/init-functions ]; then
+    if [[ -f /lib/lsb/init-functions ]]; then
     . /lib/lsb/init-functions
+    else
+        exit 1
   fi
 fi
 # Specify the user name (Default: odoo).
 USER=${xtl_user}
 USERHOME=$(eval echo ~$USER)
 # search for execution command script
-xtl_org=$(echo $(basename $0)|grep -Eo "(oca|librerp|flectra|zero)")
-mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12|13)")
-if [ -z "$mult" ]; then
-  if [ -z "${xtl_org}" ]; then 
-    LL="/usr/local/bin /usr/bin ${USERHOME}/v${xtl_version} ${USERHOME}/V${xtl_version} ${USERHOME}/v${xtl_fversion} ${USERHOME}/V${xtl_fversion} ${USERHOME}/${xtl_fversion} ${USERHOME}/OCB"
-  else
-    LL="${USERHOME}/${xtl_org}${xtl_version} ${USERHOME}/VENV-${xtl_org}${xtl_version}/odoo"
-  fi
-else
-  if [ -z "${xtl_org}" ]; then 
-    LL="${USERHOME}/VENV-${xtl_fversion}/odoo ${USERHOME}/${xtl_fversion} ${USERHOME}/ODOO-${xtl_fversion} ${USERHOME}/odoo-${xtl_fversion}"
-  else
-    LL="${USERHOME}/VENV-${xtl_org}${xtl_version}/odoo ${USERHOME}/${xtl_org}${xtl_version} ${USERHOME}/VENV-${xtl_fversion}/odoo ${USERHOME}/${xtl_fversion}"
-  fi
-fi
-DAEMON=
+xtl_org=$(echo $(basename $1)|grep -Eo "(oca|librerp|flectra|zero)")
+[[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
+mult=$(echo $(basename $1)|grep -Eo "(6|7|8|9|10|11|12|13|14)")
+LL=""
+DAEMON=""
+VENV_DIR=""
+for dr in /usr/local/bin /usr/bin ${USERHOME}; do
+    for dp in "VENV" "${xtl_org}" $ORG ${ORG^^} OCB "v" "V"; do
+        for dv in ${xtl_fversion} ${xtl_version} ""; do
+            [[ -z "$dp" && -z "$dv" ]] && continue
+            [[ $dr =~ ^/usr && ( -z "$dp" || $dp =~ ^(v|V|VENV|OCB) ) ]] && continue
+            [[ $dp =~ ^(v|V|OCB)$ && ( -z "$dv" || ! "$ORG" == "odoo" ) ]] && continue
+            [[ "$dp" == "VENV" && -z "$dv" ]] && continue
+            [[ "$dp" == "VENV" ]] && FD=$dr/$dp$dv/$ORG || FD=$dr/$dp$dv
+            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
+            [[ -d "$FD" ]] && LL="$LL $FD"
+            [[ -z "$dp" || -z "$dv" ]] && continue
+            [[ "$dp" == "VENV" ]] && FD=$dr/$dp-$dv/$ORG || FD=$dr/$dp-$dv
+            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
+            [[ -d "$FD" ]] && LL="$LL $FD"
+            [[ "$dp" == "VENV" ]] && FD=$dr/${dp}_$dv/$ORG || FD=$dr/${dp}_$dv
+            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
+            [[ -d "$FD" ]] && LL="$LL $FD"
+        done
+        [[ -n "$DAEMON" ]] && break
+    done
+    [[ -n "$DAEMON" ]] && break
+done
+if [[ -z "$DAEMON" ]]; then
 for dn in odoo-bin openerp-server odoo-server odoo openerp; do
   for dp in $LL; do
+            if [[ ! -d "$dp/$dn" && -x "$dp/$dn" ]]; then
     DAEMON=$dp/$dn
-    if [ -x "$DAEMON" ]; then
       break
-    elif [ -d "$dp/server" ]; then
+            elif [[ -d "$dp/server" && -x "$dp/server/$dn" ]]; then
       DAEMON=$dp/server/$dn
-      if [ -x "$DAEMON" ]; then
         break
       fi
-    fi
   done
-  if [ -x "$DAEMON" ]; then
-    break
-  fi
+        [[ -n "$DAEMON" ]] && break
 done
+fi
+[[ -z "$DAEMON" ]] && exit 2
 
 NAME=${xtl_name}
 DESC="${xtl_Id} Server Daemon ($NAME)"
@@ -202,9 +215,14 @@ checkpid() {
 
 
 check_4_venv() {
-    local p=$(dirname ${DAEMON})
-    [ "$(basename $p)" == "server" ] && p=$(dirname $p)
-    [ "$(basename $p)" == "odoo" ] && p=$(dirname $p)
+    local p=$(dirname ${DAEMON}) dn
+    [[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
+    [[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
+    if [ ! -f $p/bin/activate ]; then
+        for dn in venv_odoo venv; do
+            [[ -f $p/$dn/bin/activate ]] && p=$p/$dn
+        done
+    fi
     if [ -f $p/bin/activate ]; then
       local x=$(date +"%Y-%m-%d %H:%M:%S,000")
       echo "$x $$ DAEMON ? $0: cd $p; source ./bin/activate">>$LOGFILE
@@ -327,12 +345,21 @@ start() {
 
 
 stop_RHEL () {
+    if [ -f $PIDFILE ]; then
   if [ $DRY_RUN -gt 0 ]; then
     echo "kill -TERM \$(cat $PIDFILE) > /dev/null 2>&1"
   else
       kill -TERM $(cat $PIDFILE) > /dev/null 2>&1
     fi
+    fi
+    RETVAL=$?
+    if [ $RETVAL -ne 0 ]; then
+        echo "Error during stopping .. try to stop process ..."
+        [ ${xtl_version} -lt 11 ] && py=python || py=python3
+        local pid=$(ps -ef | grep "$py .*$DAEMON.*\.conf" | grep -v grep | awk '{print $2}')
+        [ -z "$pid" ] || kill $pid
   RETVAL=$?
+    fi
     if [ $RETVAL -eq 0 ] ; then
       if [ $DRY_RUN -eq 0 ]; then
           rm -f $LOCKFILE
@@ -356,8 +383,7 @@ stop_Debian () {
   if [ $DRY_RUN -gt 0 ]; then
     echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo"
   else
-      start-stop-daemon --stop --quiet --pidfile ${PIDFILE} \
-            --oknodo
+        start-stop-daemon --stop --quiet --pidfile ${PIDFILE}  --oknodo
     fi
     RETVAL=$?
     # echo "${NAME}."
@@ -378,9 +404,8 @@ stop() {
         exit 1
     fi
     RETVAL=$?
-    # local p=$(dirname ${DAEMON})
-    # [ "$(basename $p)" == "odoo" ] && p=$(dirname $p)
-    # [ -f $p/bin/activate ] && deactivate
+    local x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    echo "$x $$ DAEMON ? $0: stop process $PIDFILE">>$LOGFILE
     return $RETVAL
 }
 

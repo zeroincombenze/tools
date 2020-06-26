@@ -6,13 +6,10 @@
 import sys
 import time
 import oerplib
-try:
-    from z0lib.z0lib import z0lib
-except ImportError:
-    import z0lib
+from z0lib import parseoptargs
 
 
-__version__ = "0.3.9"
+__version__ = "0.3.8"
 
 
 def initialize_params(ctx):
@@ -73,9 +70,9 @@ def initialize_params(ctx):
 
 
 if __name__ == "__main__":
-    parser = z0lib.parseoptargs("upd_oemod",
-                                "© 2017 by SHS-AV s.r.l.",
-                                version=__version__)
+    parser = parseoptargs("upd_oemod",
+                          "© 2017 by SHS-AV s.r.l.",
+                          version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--branch',
                         action='store',

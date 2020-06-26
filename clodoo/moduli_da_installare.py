@@ -3,27 +3,16 @@
 import os
 import sys
 import csv
-
+from z0lib import parseoptargs
+import clodoo
 from os0 import os0
-try:
-    from clodoo import clodoo
-except ImportError:
-    import clodoo
-try:
-    from z0lib.z0lib import z0lib
-except ImportError:
-    try:
-        from z0lib import z0lib
-    except ImportError:
-        import z0lib
-import transodoo
 # import pdb
 
 __version__ = "0.2.0"
 
 
-VERSIONS = ['vg7', '61', '70', '80', '90', '100', '110', '120']
-VERSIONS_PLUS = ['vg7', '61', '70', '80', '90', '100', '110', '120', '0']
+VERSIONS = ['vg7', '61', '70', '80', '90', '100', '110']
+VERSIONS_PLUS = ['vg7', '61', '70', '80', '90', '100', '110', '0']
 ALIAS = {}
 
 
@@ -92,9 +81,9 @@ def get_realname(item):
     return item.strip()
 
 
-parser = z0lib.parseoptargs("Modules to install",
-                            "© 2017-2020 by SHS-AV s.r.l.",
-                            version=__version__)
+parser = parseoptargs("Modules to install",
+                      "© 2017-2018 by SHS-AV s.r.l.",
+                      version=__version__)
 parser.add_argument('-h')
 parser.add_argument("-c", "--config",
                     help="configuration command file",
@@ -195,9 +184,9 @@ for id in VERSIONS_PLUS:
 # import pdb
 # pdb.set_trace()
 fd = open('moduli_da_installare.csv', 'w')
-fmto = '%-40.40s %-3.3s %-3.3s %-3.3s %-3.3s %-3.3s' \
-       ' %-4.4s %-4.4s %-4.4s %-40.40s %-20.20s %-10.10s'
-fmtx = '"%s",%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s"\n'
+fmto = '%-35.35s %-3.3s %-3.3s %-3.3s %-3.3s %-3.3s' \
+       ' %-4.4s %-4.4s %-40.40s %-20.20s %-10.10s'
+fmtx = '"%s",%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s"\n'
 print fmto % ('Technical Name',
               VERSIONS[0],
               '%s.%s' % (VERSIONS[1][0:-1], VERSIONS[1][-1]),
@@ -206,7 +195,6 @@ print fmto % ('Technical Name',
               '%s.%s' % (VERSIONS[4][0:-1], VERSIONS[4][-1]),
               '%s.%s' % (VERSIONS[5][0:-1], VERSIONS[5][-1]),
               '%s.%s' % (VERSIONS[6][0:-1], VERSIONS[6][-1]),
-              '%s.%s' % (VERSIONS[7][0:-1], VERSIONS[7][-1]),
               'Description',
               'Author',
               'Notes')
@@ -218,7 +206,6 @@ line = fmtx % ('Technical Name',
                '%s.%s' % (VERSIONS[4][0:-1], VERSIONS[4][-1]),
                '%s.%s' % (VERSIONS[5][0:-1], VERSIONS[5][-1]),
                '%s.%s' % (VERSIONS[6][0:-1], VERSIONS[6][-1]),
-               '%s.%s' % (VERSIONS[7][0:-1], VERSIONS[7][-1]),
                'Description',
                'Author',
                'Notes')
@@ -252,7 +239,6 @@ while item != '~':
                           datas[4],
                           datas[5],
                           datas[6],
-                          datas[7],
                           des,
                           author,
                           note)
@@ -265,7 +251,6 @@ while item != '~':
                           datas[4],
                           datas[5],
                           datas[6],
-                          datas[7],
                           des,
                           '',
                           note)
@@ -278,7 +263,6 @@ while item != '~':
                            datas[4],
                            datas[5],
                            datas[6],
-                           datas[7],
                            des,
                            author,
                            note)
@@ -291,12 +275,11 @@ while item != '~':
                            datas[4],
                            datas[5],
                            datas[6],
-                           datas[7],
                            des,
                            '',
                            note)
         fd.write(line)
-line = '%-65.65s' % 'TOTALE'
+line = '%-60.60s' % 'TOTALE'
 for id in VERSIONS:
     line = '%s %3s' % (line, ctrs[id])
 print line
