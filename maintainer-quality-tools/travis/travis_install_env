@@ -417,7 +417,7 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
     #     done
     #   fi
     # fi
-    venv_mgr amend -D
+    vem amend -D
     if [ "${ODOO_REPO}" != "odoo/odoo" ]; then
         git_clone_ocb
     fi

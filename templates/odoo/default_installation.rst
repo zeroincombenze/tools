@@ -18,12 +18,14 @@
 ::
 
     cd $HOME
+    # Tools installation & activation: skip if you have installed this tool
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
     source /opt/odoo/dev/activate_tools
+    # Odoo installation
     odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}}
-    venv_mgr create /opt/odoo/VENV-{{branch}} -O {{branch}} -DI
+    vem create /opt/odoo/VENV-{{branch}} -O {{branch}} -DI
 
 .. $if odoo_layer == 'module'
 From UI: go to:

@@ -9,8 +9,15 @@
 
 ::
 
+    cd $HOME
+    # Tools installation & activation: skip if you have installed this tool
+    git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -p
+    source /opt/odoo/dev/activate_tools
+    # Odoo upgrade
     odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}} -U
-    venv_mgr amend /opt/odoo/VENV-{{branch}} -O {{branch}} -DI
+    vem amend /opt/odoo/VENV-{{branch}} -O {{branch}} -DI
     # Adjust following statements as per your system
     sudo systemctl restart odoo
 

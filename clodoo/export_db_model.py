@@ -1,13 +1,23 @@
+# flake8: noqa
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
 import os
 from datetime import datetime, date
 import re
-import clodoo
 import csv
 from os0 import os0
-from z0lib import z0librun as z0lib
+try:
+    from clodoo import clodoo
+except ImportError:
+    import clodoo
+try:
+    from z0lib.z0lib import z0lib
+except ImportError:
+    try:
+        from z0lib import z0lib
+    except ImportError:
+        import z0lib
 # import pdb
 
 

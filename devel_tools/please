@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3
+__version__=0.2.3.1
 
 
 #
@@ -1834,7 +1834,7 @@ do_distribution() {
 do_docs() {
     wlog "do_docs"
     local docs_dir=./docs
-    local author version theme SETUP
+    local author version theme SETUP b x
     local opts src_png
     [[ $PWD =~ /dev[el]*/pypi/ ]] && opts=-B
     if [ ! -d $docs_dir ]; then
@@ -1850,16 +1850,21 @@ do_docs() {
         [[ -z "$src_png" && -f ../../tools/docs/logozero_180x46.png ]] && src_png=$(readlink -e ../../tools/docs/logozero_180x46.png)
         [[ -n "$src_png" ]] && run_traced "cp $src_png $docs_dir/logozero_180x46.png"
     fi
-    for f in $(grep "^ *rtd_" docs/index.rst|tr "\n" " "); do
+    for f in $(grep -E "^ *(rtd_|pypi_)" docs/index.rst|tr "\n" " "); do
         echo ".. toctree::">./rtd_template.rst
         echo "   :maxdepth: 2">>./rtd_template.rst
         echo "">>./rtd_template.rst
         if [[ "$f" == "rtd_automodule" ]]; then
             echo ".. automodule:: $PKGNAME">>./rtd_template.rst
             run_traced "mv ./rtd_template.rst $docs_dir/rtd_automodule.rst"
-        else
+        elif [[ $f =~ ^rtd_ ]]; then
             echo "{{${f:4}}}">>./rtd_template.rst
             run_traced "gen_readme.py $opts -t ./rtd_template.rst -o $docs_dir/$f.rst"
+        elif [[ $f =~ ^pypi_ ]]; then
+            x=$(echo $f|grep -Eo "^pypi.*rtd")
+            x=${x:5: -4}
+            b=$(echo $f|grep -Eo "rtd.*")
+            run_traced "cp ~/dev/pypi/$x/$x/docs/$b.rst $docs_dir/$f.rst"
         fi
     done
     run_traced "gen_readme.py $opts"

@@ -81,7 +81,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'maturity*', 'module_name*', 'repos_name*',
                     'today*',
                     'authors*', 'contributors*', 'translators*',
-                    'acknowledges*']
+                    'acknowledges*',
+                    'MAINPAGE.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 # pygments_style = None
@@ -106,12 +107,12 @@ html_theme = 'nature'
 html_theme_options = {
     # 'canonical_url': '',
     # 'analytics_id': 'UA-XXXXXXX-1',
-    ## 'logo_only': True,
+    # 'logo_only': False,
     # 'display_version': True,
-    ## 'prev_next_buttons_location': 'top',
+    # 'prev_next_buttons_location': 'bottom',
     # 'style_external_links': False,
     # 'vcs_pageview_mode': '',
-    ## 'style_nav_header_background': '#d0d0d0',
+    # 'style_nav_header_background': 'white',
     # Toc options
     # 'collapse_navigation': True,
     # 'sticky_navigation': True,

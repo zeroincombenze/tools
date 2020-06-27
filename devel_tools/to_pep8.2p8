@@ -62,6 +62,11 @@ a1_import_exceptions_user_2:
     [6.1]: from openerp.exceptions import Warning as UserError
     [10.0]: from odoo.exceptions import UserError
 #
+a1_import_exceptions_user_3:
+    from openerp.exceptions import Warning as UserError
+    [6.1]: from openerp.exceptions import Warning as UserError
+    [10.0]: from odoo.exceptions import UserError
+#
 a3_tools_translate:
     from $tokens.tools.translate import _
     [6.1]: openerp

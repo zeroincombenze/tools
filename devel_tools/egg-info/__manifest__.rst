@@ -1,0 +1,1 @@
+.. $set submodules gen_readme odoo_dependencies topep8

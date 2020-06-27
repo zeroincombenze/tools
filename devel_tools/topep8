@@ -32,7 +32,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.3
+__version__=0.2.3.1
 
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
@@ -1203,7 +1203,7 @@ FCONF=$TDIR/.$THIS.conf
 OPTOPTS=(h        a        A         B         b         c         C        D       d        e        F        f       G       i       L         n            N        o       O        R        q           u       V           v           X       0     1)
 OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_dbg opt_diff opt_nenh opt_from opt_fut opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z opt_1)
 OPTACTI=(1        "+"      '+'       1         "="       1         "="      1       1        1        "="      1       1       1       1         1            1        "="     1        "="      0           1       "*>"        "+"         1       1     1)
-OPTDEFL=(1        0        0         0         ""        0         "zero"   0       0        0        "7.0"    0       0       0       0         0            0        ""      0        ""       -1          0       ""          -1          0       0     0)
+OPTDEFL=(1        0        0         0         ""        0         "zero"   0       0        0        ""       0       0       0       0         0            0        ""      0        ""       -1          0       ""          -1          0       0     0)
 OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    ""      "diff"   ""       "ver"    ""      ""      ""      ""        "do nothing" ""       "file"  ""       "file"   "silent"   "ut7"   "version"    "verbose"   ""      ""    "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
@@ -1273,7 +1273,7 @@ OPTS=
 [ -n "$opt_copy" ] && OPTS="${OPTS} -C$opt_copy"
 [ -n "$opt_rule" ] && OPTS="${OPTS} -R$opt_rule"
 if [ -d $fullname ]; then
-    LIST="$(find $fullname $optfnd -name '*.py' -or -name '*.xml')"
+    LIST="$(find $fullname $optfnd -name '*.py' -or -name '*.xml' -not -path '*/\.idea/*' -not -path '*/docs/*')"
 else
     LIST=$(readlink -e $fullname)
 fi
@@ -1312,12 +1312,14 @@ for fl in $LIST; do
             isort $f -d > $f.tmp
             ! $(grep -q "Skipped [0-9]* files" $f.tmp) && srcfile="$f.tmp"
           fi
-          if [ $opt_fut -ne 0 ]; then
+          if [ $opt_fut -ne 0 ] && [[ ! $f =~ (__manifest__.py|__openerp__.py|__init__.py) ]] ; then
             futurize --no-diffs -pauwn2 $srcfile -o ~/py3
-            mv ~/py3/$(basename $f) $f.tmp
-            sed -Ee "s|^from builtins import \*$|from builtins import *                                             # noqa: F403|" -i $f.tmp
-            sed -Ee "s|^standard_library.install_aliases\(\)$|standard_library.install_aliases()                                 # noqa: E402|" -i $f.tmp
-            srcfile="$f.tmp"
+            if [[ -f ~/py3/$(basename $f) ]]; then
+              mv ~/py3/$(basename $f) $f.tmp
+              sed -Ee "s|^from builtins import \*$|from builtins import *                                             # noqa: F403|" -i $f.tmp
+              sed -Ee "s|^standard_library.install_aliases\(\)$|standard_library.install_aliases()                                 # noqa: E402|" -i $f.tmp
+              srcfile="$f.tmp"
+            fi
           fi
           if [ $opt_z -ne 0 ]; then
             python $TDIR/topep8.py $OPTS $srcfile $f.new
@@ -1339,7 +1341,7 @@ for fl in $LIST; do
             autoflake --imports=openerp,openerp.http.request,openerp.SUPERUSER_ID,openerp.addons.base.ir.ir_qweb,openerp.exceptions.ValidationError,openerp.fields,openerp.api.openerp.models,openerp.osv.fields,openerp.osv.api,telebot,lxml,werkzeug,MySQLdb.cursors,cStringIO.StringIO,werkzeug.utils,pandas.merge,pandas.DataFrame,werkzeug.wsgi.wrap_file,werkzeug.wsgi,werkzeug.wsgi.wrap_file,openerp.exceptions,openerp.tools.DEFAULT_SERVER_DATETIME_FORMAT -i $f.new
           fi
           # TOFIX
-          if [ "$b" == "__manifest__.py" -o "$b" == "__openerp__.py" ]; then
+          if [[ -n "$opt_from" && $f =~ (__manifest__.py|__openerp__.py) ]] ; then
             vf=$(grep -Eo "['\"]version['\"]: ['\"][0-9.]+['\"]" $f.new)
             vt="${vf/$opt_from/$odoo_fver}"
             sed -e "s|$vf|$vt|" -i $f.new
@@ -1347,9 +1349,9 @@ for fl in $LIST; do
           [ $odoo_ver -le 8 ] && license=AGPL || license=LGPL
           [ $odoo_ver -le 8 ] && nolic=LGPL || nolic=AGPL
           sed -e "s|${nolic}-3|${license}-3|" -i $f.new
-          [ $odoo_ver -le 8 ] && license="http:s//www.gnu.org/licenses/agpl" || license="https://www.gnu.org/licenses/lgpl"
-          [ $odoo_ver -le 8 ] && nolic="https?://www.gnu.org/licenses/lgpl" || nolic="http:s//www.gnu.org/licenses/agpl"
-          sed -e "s|${nolic}-3|${license}-3|" -i $f.new
+          [ $odoo_ver -le 8 ] && license="https://www.gnu.org/licenses/agpl" || license="https://www.gnu.org/licenses/lgpl"
+          [ $odoo_ver -le 8 ] && nolic="http?://www.gnu.org/licenses/lgpl" || nolic="http?://www.gnu.org/licenses/agpl"
+          sed -Ee "s|${nolic}|${license}|" -i $f.new
           [ $odoo_ver -le 10 ] && src="index=" || tgt="select="
           [ $odoo_ver -le 10 ] && tgt="select=" || src="index="
           sed -e "s|${src}|${tgt}-3|" -i $f.new
@@ -1358,6 +1360,16 @@ for fl in $LIST; do
     done
     if [ -f "$f.new" ]; then
       if [ "$(diff -q $f $f.new)" ]; then
+        if [ $odoo_ver -le 10 -a "$f" == "__manifest__.py" -a ! -f "__openerp__.py" ]; then
+          f="__openerp__.py"
+          run_traced "mv __manifest__.py.new __openerp__.py.new"
+          run_traced "mv __manifest__.py __openerp__.py"
+        fi
+        if [ $odoo_ver -ge 10 -a "$f" == "__openerp__.py"  -a ! -f "__manifest__.py" ]; then
+          f="__manifest__.py"
+          run_traced "mv __manifest__.py.new __openerp__.py.new"
+          run_traced "mv __manifest__.py __openerp__.py"
+        fi
         if [ $opt_dry_run -eq 0 ]; then
           if [ -n "$opt_out" ]; then
             [[ "$(readlink -f $f.new)" == "$(readlink -f $opt_out)" ]] || mv $f.new $opt_out

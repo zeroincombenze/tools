@@ -25,9 +25,9 @@ copyright = '2020, Antonio Maria Vigliotti'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '0.2.3'
+version = '0.2.3.1'
 # The full version, including alpha/beta/rc tags
-release = '0.2.3'
+release = '0.2.3.1'
 
 
 # -- General configuration ---------------------------------------------------

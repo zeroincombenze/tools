@@ -32,18 +32,25 @@ history         Changelog history
 known_issues    Known issues
 installation    How to install
 name            Module name (must be a python name)
+now
 maintenance     Maintenance information
 maturity
 module_name
 OCA-URL         URL to the same repository/module of OCA in github.com
 oca_diff        OCA comparation
+odoo_fver       Odoo full version (deprecated)
+odoo_majver     Odoo major version; internal use to set some values
 odoo_layer      Document layer, may be: ocb, module or repository
 prerequisites   Installation prerequisites
-prior_branch    Previous Odoo versio of this repository/module
+prior_branch    Previous Odoo version of this repository/module
+prior2_branch   Previous Odoo version of previous repository/module
 proposals_for_enhancement
+pypi_modules    pypi module list (may be set in __manifest__.rst)
+pypi_sects      pypi section names to import (may be set in __manifest__.rst)
 repos_name      Repository/project name
 sponsor         Sponsors list
 sommario        Traduzione italiana di summary
+submodules      Sub module list (only in pypi projects)
 summary         Repository/module summary (CR are translated into spaces)
 support         Support informations
 today
@@ -86,6 +93,7 @@ import os
 import re
 import sys
 from datetime import datetime
+from shutil import copyfile
 from lxml import etree
 from python_plus import qsplit, unicodes
 from os0 import os0
@@ -101,11 +109,12 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.3"
+__version__ = "0.2.3.1"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
     'oca': 'OCA',
+    'axitec': 'axitec',
 }
 DEFINED_SECTIONS = ['description', 'descrizione', 'features',
                     'oca_diff', 'certifications', 'prerequisites',
@@ -115,11 +124,14 @@ DEFINED_SECTIONS = ['description', 'descrizione', 'features',
                     'proposals_for_enhancement', 'history', 'faq',
                     'sponsor', 'copyright_notes', 'avaiable_addons',
                     'contact_us']
-DEFINED_TAG = ['__init__', 'name', 'summary', 'sommario',
+DEFINED_TAG = ['__init__', '__manifest__',
+               'name', 'summary', 'sommario',
                'maturity', 'module_name', 'repos_name',
                'today',
                'authors', 'contributors', 'translators', 'acknowledges']
 DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
+ZERO_PYPI_PKGS = 'devel_tools'
+ZERO_PYPI_SECTS = 'description usage'
 LIST_TAG = ('authors',
             'contributors',
             'translators',
@@ -215,6 +227,7 @@ def iter_template_path(debug_mode=None, body=None):
     for src_path in ('.',
                      './docs',
                      './egg-info',
+                     './readme',
                      '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
                      '%s/dev/pypi/tools/templates/${p}' % os.environ['HOME'],
                      '%s/devel/templates/${p}' % os.environ['HOME'],
@@ -242,7 +255,10 @@ def get_template_fn(ctx, template, ignore_ntf=None):
 
     def alternate_name(full_fn):
         if not full_fn.endswith('.rst'):
-            full_fn = '%s.rst' % full_fn
+            if full_fn.endswith('.txt'):
+                full_fn = '%s.rst' % full_fn[0: -4]
+            else:
+                full_fn = '%s.rst' % full_fn
             if os.path.isfile(full_fn):
                 return True, full_fn
         if full_fn.endswith('.rst'):
@@ -308,17 +324,17 @@ def get_template_fn(ctx, template, ignore_ntf=None):
 
 def clean_summary(summary):
     return ' '.join(x.strip() for x in summary.split('\n'))
-
-
-def generate_description_file(ctx):
-    full_fn = get_full_fn(ctx, 'docs', 'description.rst')
-    if ctx['opt_verbose']:
-        print("Writing %s" % full_fn)
-    if not os.path.isdir(os.path.dirname(full_fn)):
-        os.makedirs(os.path.dirname(full_fn))
-    fd = open(full_fn, 'w')
-    fd.write(os0.b(ctx['description']))
-    fd.close()
+#
+#
+# def generate_description_file(ctx):
+#     full_fn = get_full_fn(ctx, 'docs', 'description.rst')
+#     if ctx['opt_verbose']:
+#         print("Writing %s" % full_fn)
+#     if not os.path.isdir(os.path.dirname(full_fn)):
+#         os.makedirs(os.path.dirname(full_fn))
+#     fd = open(full_fn, 'w')
+#     fd.write(os0.b(ctx['description']))
+#     fd.close()
 
 
 def get_default_prerequisites(ctx):
@@ -406,7 +422,7 @@ def url_by_doc(ctx, url):
                 fmt += 'description/%s'
             url = fmt % (GIT_USER[ctx['git_orgid']],
                          ctx['repos_name'],
-                         ctx['odoo_fver'],
+                         ctx['branch'],
                          ctx['module_name'],
                          url)
     return url
@@ -633,24 +649,24 @@ def expand_macro(ctx, token, default=None):
     elif token[0:10] == 'grymb_url_' and \
             token[10:] in DEFINED_GRYMB_SYMBOLS:
         value = DEFINED_GRYMB_SYMBOLS[token[10:]][1]
-    elif token == 'branch':
-        value = ctx['odoo_fver']
-    elif token == 'prior_branch':
-        pmv = ctx['odoo_majver'] - 1
-        if pmv > 6:
-            value = '%d.0' % pmv
-        elif pmv == 6:
-            value = '%d.1' % pmv
-        else:
-            value = 'N/V'
-    elif token == 'prior2_branch':
-        pmv = ctx['odoo_majver'] - 2
-        if pmv > 6:
-            value = '%d.0' % pmv
-        elif pmv == 6:
-            value = '%d.1' % pmv
-        else:
-            value = 'N/V'
+    # elif token == 'branch':
+    #     value = ctx['odoo_fver']
+    # elif token == 'prior_branch':
+    #     pmv = ctx['odoo_majver'] - 1
+    #     if pmv > 6:
+    #         value = '%d.0' % pmv
+    #     elif pmv == 6:
+    #         value = '%d.1' % pmv
+    #     else:
+    #         value = 'N/V'
+    # elif token == 'prior2_branch':
+    #     pmv = ctx['odoo_majver'] - 2
+    #     if pmv > 6:
+    #         value = '%d.0' % pmv
+    #     elif pmv == 6:
+    #         value = '%d.1' % pmv
+    #     else:
+    #         value = 'N/V'
     elif token == 'module_version':
         value = ctx['manifest']['version']
     elif token == 'icon':
@@ -676,7 +692,7 @@ def expand_macro(ctx, token, default=None):
         if ctx['product_doc'] == 'pypi':
             value = 'AGPL'
         else:
-            value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
+            value = build_odoo_param('LICENSE', odoo_vid=ctx['branch'])
         if value == 'AGPL':
             value = 'licence-%s--3-blue.svg' % value
         else:
@@ -689,10 +705,10 @@ def expand_macro(ctx, token, default=None):
             GIT_USER[ctx['git_orgid']], ctx['repos_name'])
     elif token == 'badge-codecov':
         value = 'https://codecov.io/gh/%s/%s/branch/%s/graph/badge.svg' % (
-            GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['odoo_fver'])
+            GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['branch'])
     elif token == 'badge-oca-codecov':
         value = 'https://codecov.io/gh/%s/%s/branch/%s/graph/badge.svg' % (
-            'OCA', ctx['repos_name'], ctx['odoo_fver'])
+            'OCA', ctx['repos_name'], ctx['branch'])
     elif token == 'badge-doc':
         value = 'https://www.zeroincombenze.it/wp-content/' \
                 'uploads/ci-ct/prd/button-docs-%d.svg' % (ctx['odoo_majver'])
@@ -712,19 +728,19 @@ def expand_macro(ctx, token, default=None):
             GIT_USER[ctx['git_orgid']], ctx['repos_name'])
     elif token == 'codecov-URL':
         value = 'https://codecov.io/gh/%s/%s/branch/%s' % (
-            GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['odoo_fver'])
+            GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['branch'])
     elif token == 'codecov-oca-URL':
         value = 'https://codecov.io/gh/%s/%s/branch/%s' % (
-            'OCA', ctx['repos_name'], ctx['odoo_fver'])
+            'OCA', ctx['repos_name'], ctx['branch'])
     elif token == 'OCA-URL':
         value = 'https://github.com/OCA/%s/tree/%s' % (
-            ctx['repos_name'], ctx['odoo_fver'])
+            ctx['repos_name'], ctx['branch'])
     elif token == 'doc-URL':
         value = 'https://wiki.zeroincombenze.org/en/Odoo/%s/dev' % (
-            ctx['odoo_fver'])
+            ctx['branch'])
     elif token == 'help-URL':
         value = 'https://wiki.zeroincombenze.org/it/Odoo/%s/man' % (
-            ctx['odoo_fver'])
+            ctx['branch'])
     elif token == 'try_me-URL':
         if ctx['git_orgid'] == 'oca':
             value = 'http://runbot.odoo.com/runbot'
@@ -735,7 +751,7 @@ def expand_macro(ctx, token, default=None):
         if ctx['product_doc'] == 'pypi':
             value = 'AGPL'
         else:
-            value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
+            value = build_odoo_param('LICENSE', odoo_vid=ctx['branch'])
         if token == 'gpl':
             value = value.lower()
     elif token in ctx:
@@ -819,11 +835,8 @@ def validate_condition(ctx, *args):
                     val += '%s%s' % ('False', pad)
             elif args[i] == 'isfile':
                 i += 1
-                val = expand_macro(ctx, args[i])
-                if os.path.isfile(val):
-                    val += '%s%s' % ('True', pad)
-                else:
-                    val += '%s%s' % ('False', pad)
+                val += '%s%s' % (os.path.isfile(expand_macro(
+                    ctx, args[i], default=args[i])), pad)
             elif args[i] in ctx or args[i] in ('not', 'in'):
                 val += '%s%s' % (args[i], pad)
                 if args[i] == 'in':
@@ -903,11 +916,13 @@ def is_preproc_line(ctx, line, state):
             else:
                 state['action'] = 'write'
     elif state['action'] != 'susp':
-        if line[0:12] == '.. $include ':
+        if line.startswith('.. $include '):
             is_preproc = True
-        elif line[0:12] == '.. $block ':
+        elif line.startswith('.. $block '):
             is_preproc = True
-        elif line[0:8] == '.. $set ':
+        elif line.startswith('.. $set '):
+            is_preproc = True
+        elif line.startswith('.. $merge_docs'):
             is_preproc = True
     return state, is_preproc
 
@@ -999,13 +1014,13 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
         state, is_preproc = is_preproc_line(ctx, line, state)
         if state['action'] != 'susp':
             if is_preproc:
-                if line[0:12] == '.. $include ':
+                if line.startswith('.. $include '):
                     filename = line[12:].strip()
                     if filename.endswith('.csv'):
                         full_fn = get_template_fn(ctx, filename)
                         full_fn_rst = '%s.rst' % full_fn[: -4]
                         os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
-                            ctx['odoo_fver'], full_fn, full_fn_rst))
+                            ctx['branch'], full_fn, full_fn_rst))
                         state, text = parse_local_file(ctx,
                                                        full_fn_rst,
                                                        state=state)
@@ -1016,20 +1031,40 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                                                        state=state)
                     state, text = append_line(state, text, nl_bef=nl_bef)
                     target += text + '\n'
-                elif line[0:12] == '.. $block ':
+                elif line.startswith('.. $block '):
                     filename = line[12:].strip()
                     state, text = parse_local_file(ctx,
                                                    filename,
                                                    state=state)
                     state, text = append_line(state, text, nl_bef=nl_bef)
                     target += text
-                elif line[0:8] == '.. $set ':
+                elif line.startswith('.. $set '):
                     x = re.match(r'[a-zA-Z_]\w*', line[8:])
                     if x:
                         name = line[8:8 + x.end()]
                         i = 9 + x.end()
                         value = line[i:]
                         ctx[name] = value
+                elif line.startswith('.. $merge_docs'):
+                    for module in ctx['pypi_modules'].split(' '):
+                        # Up to global pypi root
+                        module_dir = os.path.abspath(
+                            os.path.join(os.getcwd(), '..', '..'))
+                        while os.path.isdir(os.path.join(module_dir, module)):
+                            # down to module root
+                            module_dir = os.path.join(module_dir, module)
+                        if os.path.isdir(os.path.join(module_dir, 'docs')):
+                            for name in ctx['pypi_sects'].split(' '):
+                                name = 'rtd_%s' % name
+                                src = os.path.join(
+                                    module_dir, 'docs', '%s.rst' % name)
+                                if os.path.isfile(src):
+                                    tgt = os.path.join(
+                                        '.', 'pypi_%s_%s.rst' % (module, name))
+                                    copyfile(src, tgt)
+                                    target += '\n   pypi_%s_%s' % (module,
+                                                                   name)
+                            target += '\n'
             elif in_fmt == 'rst' and (
                     line and ((line == '=' * len(line)) or
                               (line == '-' * len(line)))):
@@ -1157,24 +1192,6 @@ def read_setup(ctx):
         ctx['manifest'] = eval('\n'.join(
             os0.u(fd.read()).split('\n')[1:]).replace('setup', 'dict'))
         fd.close()
-        # source = ''
-        # for line in lines:
-        #     if line.startswith('setup('):
-        #         line = line[6:]
-        #         source += '{\n'
-        #     if line.endswith(')'):
-        #         line = line[:: -1].replace(')', '}', 1)[:: -1]
-        #     param = qsplit(line, '=', 1, strip=True, quoted=True)
-        #     if len(param) <= 1:
-        #         source += '%s\n' % line
-        #     else:
-        #         source += '\'%s\': %s\n' % (param[0], param[1])
-        # try:
-        #     ctx['manifest'] = unicodes(
-        #         ast.literal_eval(source))
-        #     ctx['branch'] = ctx['manifest'].get('version', '')
-        # except ImportError:
-        #     raise Exception('Wrong file %s' % manifest_file)
         ctx['manifest_file'] = manifest_file
     else:
         if not ctx['suppress_warning']:
@@ -1208,8 +1225,8 @@ def adj_version(ctx, version):
     if not version:
         version = '0.0'
     if version[0].isdigit():
-        if version.find(ctx['odoo_fver']) != 0:
-            version = '%s.%s' % (ctx['odoo_fver'], version)
+        if version.find(ctx['branch']) != 0:
+            version = '%s.%s' % (ctx['branch'], version)
     return version
 
 
@@ -1417,6 +1434,46 @@ def index_html_content(ctx, source):
 
 def set_default_values(ctx):
     ctx['today'] = datetime.strftime(datetime.today(), '%Y-%m-%d')
+    ctx['now'] = datetime.strftime(datetime.today(), '%Y-%m-%d %H:%M:%S')
+    if ctx['manifest'].get('version', ''):
+        if not ctx.get('branch'):
+            ctx['branch'] = ctx['manifest']['version']
+        if not ctx.get('odoo_fver'):
+            ctx['odoo_fver'] = ctx['manifest']['version']
+    if not ctx.get('branch', ''):
+        ctx['branch'] = '0.1.0'
+    # TODO: remove
+    if not ctx.get('odoo_fver') and ctx.get('branch'):
+        ctx['odoo_fver'] = ctx['branch']
+    if ctx['product_doc'] == 'odoo':
+        ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
+        if not ctx.get('prior_branch'):
+            pmv = ctx['odoo_majver'] - 1
+            if pmv == 6:
+                ctx['prior_branch'] = '%d.1' % pmv
+            elif pmv > 6:
+                ctx['prior_branch'] = '%d.0' % pmv
+            if not ctx.get('prior2_branch'):
+                pmv = ctx['odoo_majver'] - 2
+                if pmv == 6:
+                    ctx['prior2_branch'] = '%d.1' % pmv
+                elif pmv > 6:
+                    ctx['prior2_branch'] = '%d.0' % pmv
+    else:
+        releases = ctx['branch'].split('.')
+        ctx['odoo_majver'] = int(releases[1])
+        if not ctx.get('prior_branch'):
+            pmv = ctx['odoo_majver'] - 1
+            ctx['prior_branch'] = '%s.%s.%s' % (releases[0], pmv, releases[2])
+            if not ctx.get('prior2_branch'):
+                if int(releases[0]) > 0:
+                    ctx['prior2_branch'] = '%s.%s.%s' % (releases[0] - 1,
+                                                         releases[1],
+                                                         releases[2])
+            else:
+                ctx['prior2_branch'] = '%s.%s.%s' % (releases[0],
+                                                     releases[1] - 2,
+                                                     releases[2])
     if ctx['output_file']:
         ctx['dst_file'] = ctx['output_file']
     elif ctx['write_html']:
@@ -1441,18 +1498,37 @@ def set_default_values(ctx):
     ctx['zero_tools'] = '`Zeroincombenze Tools ' \
                         '<https://github.com/zeroincombenze/tools>`__'
     if ctx['odoo_layer'] == 'ocb':
-        ctx['local_path'] = '%s/%s' % (os.environ['HOME'], ctx['odoo_fver'])
+        ctx['local_path'] = '%s/%s' % (os.environ['HOME'], ctx['branch'])
     elif ctx['odoo_layer'] == 'repository':
         ctx['local_path'] = '%s/%s/%s/' % (os.environ['HOME'],
-                                           ctx['odoo_fver'],
+                                           ctx['branch'],
                                            ctx['repos_name'])
     else:
         ctx['local_path'] = '%s/%s/%s/' % (os.environ['HOME'],
-                                           ctx['odoo_fver'],
+                                           ctx['branch'],
                                            ctx['repos_name'])
 
 
 def generate_readme(ctx):
+
+    def set_sommario(ctx):
+        if not ctx['sommario']:
+            lines = ctx['descrizione'].split('\n')
+            if lines[0]:
+                ctx['sommario'] = lines[0]
+            elif len(lines) > 1 and lines[1]:
+                ctx['sommario'] = lines[1]
+            else:
+                ctx['sommario'] = ctx['name']
+        return ctx
+
+    def set_values_of_manifest(ctx):
+        if not ctx.get('pypi_modules'):
+            ctx['pypi_modules'] = '%s' % ZERO_PYPI_PKGS
+        if not ctx.get('pypi_sects'):
+            ctx['pypi_sects'] = '%s' % ZERO_PYPI_SECTS
+        return ctx
+
     if ctx['product_doc'] == 'pypi':
         if ctx['odoo_layer'] == 'repository':
             ctx['module_name'] = ''
@@ -1471,10 +1547,10 @@ def generate_readme(ctx):
     else:
         if not ctx['module_name']:
             ctx['module_name'] = build_odoo_param('PKGNAME',
-                                                  odoo_vid=ctx['odoo_fver'])
+                                                  odoo_vid=ctx['branch'])
         if not ctx['repos_name']:
             ctx['repos_name'] = build_odoo_param('REPOS',
-                                                 odoo_vid=ctx['odoo_fver'])
+                                                 odoo_vid=ctx['branch'])
         read_manifest(ctx)
     set_default_values(ctx)
     for section in DEFINED_TAG:
@@ -1487,14 +1563,16 @@ def generate_readme(ctx):
         ctx[section] = parse_local_file(ctx, '%s.rst' % section,
                                         ignore_ntf=True,
                                         out_fmt=out_fmt)[1]
-    if not ctx['sommario']:
-        lines = ctx['descrizione'].split('\n')
-        if lines[0]:
-            ctx['sommario'] = lines[0]
-        elif len(lines) > 1 and lines[1]:
-            ctx['sommario'] = lines[1]
-        else:
-            ctx['sommario'] = ctx['name']
+        if section in ZERO_PYPI_SECTS and ctx.get('submodules'):
+            for sub in ctx.get('submodules').split(' '):
+                ctx[section] += '\n\n'
+                ctx[section] += parse_local_file(
+                    ctx, '%s_%s.rst' % (section, sub),
+                    ignore_ntf=True,
+                    out_fmt=out_fmt)[1]
+
+    ctx = set_sommario(ctx)
+    ctx = set_values_of_manifest(ctx)
     if ctx['write_html']:
         if not ctx['template_name']:
             ctx['template_name'] = 'readme_index.html'
@@ -1513,6 +1591,8 @@ def generate_readme(ctx):
     tmpfile = '%s.tmp' % ctx['dst_file']
     bakfile = '%s.bak' % ctx['dst_file']
     dst_file = ctx['dst_file']
+    if ctx['opt_verbose']:
+        print("Writing %s" % dst_file)
     fd = open(tmpfile, 'w')
     fd.write(os0.b(target))
     fd.close()
@@ -1593,21 +1673,22 @@ if __name__ == "__main__":
             ctx['product_doc'] = 'odoo'
     if ctx['product_doc'] == 'pypi':
         ctx['git_orgid'] = 'zero'
-        ctx['odoo_fver'] = ctx['odoo_vid']
+        ctx['branch'] = ctx['odoo_vid'] if ctx['odoo_vid'] != '.' else ''
         ctx['odoo_majver'] = 0
     else:
-        ctx['odoo_fver'] = build_odoo_param('FULLVER',
+        ctx['branch'] = build_odoo_param('FULLVER',
                                             odoo_vid=ctx['odoo_vid'])
-        if ctx['odoo_fver'] not in ('13.0', '12.0', '11.0', '10.0',
-                                    '9.0', '8.0', '7.0', '6.1'):
-            ctx['odoo_fver'] = '12.0'
-            print('Invalid odoo version: please use -b switch (%s)' %
-                  ctx['odoo_fver'])
-        ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
+        if ctx['branch'] not in ('14.0', '13.0', '12.0', '11.0', '10.0',
+                                 '9.0', '8.0', '7.0', '6.1'):
+            ctx['branch'] = '12.0'
+            if not ctx['suppress_warning']:
+                print('Invalid odoo version: please use -b switch (%s)' %
+                      ctx['branch'])
+        ctx['odoo_majver'] = int(ctx['branch'].split('.')[0])
         if not ctx['git_orgid']:
             ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
                                                 odoo_vid=ctx['odoo_vid'])
-    if ctx['git_orgid'] not in ('zero', 'oca'):
+    if ctx['git_orgid'] not in ('zero', 'oca', 'axitec'):
         ctx['git_orgid'] = 'zero'
         if not ctx['suppress_warning']:
             print('Invalid git-org: use -G %s or of zero|oca' %
@@ -1635,8 +1716,10 @@ if __name__ == "__main__":
             elif (ctx['odoo_majver'] < 10 and
                     os.path.isdir(os.path.join(ctx['path_name'],
                                                 'openerp')) and
-                    os.path.isfile(os.path.join(ctx['path_name'],
-                                                'openerp-server'))):
+                  (os.path.isfile(os.path.join(ctx['path_name'],
+                                                'openerp-server'))) or
+                    os.path.isdir(os.path.join(ctx['path_name'],
+                                                'openerp', 'server'))):
                 ctx['odoo_layer'] = 'ocb'
             # elif os.path.basename(ctx['path_name']) == ctx['odoo_fver']:
             #     ctx['odoo_layer'] = 'ocb'

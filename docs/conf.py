@@ -43,6 +43,7 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
+    'sphinx.ext.autodoc',
 ]
 
 
@@ -81,7 +82,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'maturity*', 'module_name*', 'repos_name*',
                     'today*',
                     'authors*', 'contributors*', 'translators*',
-                    'acknowledges*']
+                    'acknowledges*',
+                    'MAINPAGE.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 # pygments_style = None
@@ -117,7 +119,7 @@ html_theme_options = {
     # 'sticky_navigation': True,
     # 'navigation_depth': 4,
     # 'includehidden': True,
-    # 'titles_only': False
+    # 'titles_only': False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

@@ -445,92 +445,6 @@ venv_mgr_test() {
     deactivate
 }
 
-_venv_mgr() {
-# _venv_mgr {chk|cp|mv|merge} VENV NEW_VENV
-    local d f mime VENV VIRTUAL_ENV V sitecustom
-    local cmd=$1
-    [ -n "$2" ] && VENV=$(readlink -f $2)
-    [ -n "$3" ] && VIRTUAL_ENV=$(readlink -f $3)
-    [[ "$cmd" == "chk" ]] && VIRTUAL_ENV=$VENV
-    if [[ -z "$VENV" || -z "$VIRTUAL_ENV" ]]; then
-      echo "Missed parameters!"
-      echo "use: _venv_mgr cp|mv|merge VENV NEW_VENV"
-      exit 1
-    fi
-    if [[ "$VENV" == "$VIRTUAL_ENV" && ! "$cmd" == "chk" ]]; then
-      echo "Source and destination directories are the same!"
-      echo "use: _venv_mgr cp|mv|merge VENV NEW_VENV"
-      exit 1
-    fi
-    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-      echo "Invalid virtual env $VENV!"
-      exit 1
-    fi
-    if [[ "$cmd" == "chk" ]]; then
-      V=$VENV
-    elif [[ "$cmd" == "cp" ]]; then
-      if [[ -d $VIRTUAL_ENV ]]; then
-        echo "Destination virtual env $VIRTUAL_ENV already exists!"
-        exit 1
-      fi
-      cp -r $VENV $VIRTUAL_ENV
-      V=$VIRTUAL_ENV
-    elif [[ "$cmd" == "merge" ]]; then
-      if [[ ! -d $VIRTUAL_ENV  || ! -d $VIRTUAL_ENV/bin || ! -f $VIRTUAL_ENV/bin/activate ]]; then
-        echo "Invalid destination virtual env $VIRTUAL_ENV!"
-        exit 1
-      fi
-      for d in bin include lib lib64 .local; do
-        if [ -d "$VENV/$d" ]; then
-          rsync -a $VENV/$d/ $VIRTUAL_ENV/$d/
-        fi
-      done
-      V=$VIRTUAL_ENV
-    else
-      if [[ -d $VIRTUAL_ENV ]]; then
-        echo "Destination virtual env $VIRTUAL_ENV already exists!"
-        exit 1
-      fi
-      V=$VENV
-    fi
-    for f in $V/bin/*; do
-      mime=$(file --mime-type -b $f)
-      if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
-        # echo "sed -i -e \"s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|\" $f"
-        sed -i -e "s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|" $f
-        [[ "$cmd" == "chk" ]] && chmod +x $f 
-      fi
-    done
-    pushd $V >/dev/null
-    if [ -L ./lib64 ]; then
-      rm -f ./lib64
-      ln -s ./lib ./lib64
-    fi
-    sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="'$VIRTUAL_ENV'":g' $PWD/bin/activate
-    if $(grep -q "^export HOME=" $PWD/bin/activate); then
-      sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
-    else
-      sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
-      echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
-    fi
-    sitecustom=$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
-    echo "import sys">$sitecustom
-    if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
-      if [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
-        echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
-      else
-        echo -e "import site\nif '/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
-      fi
-    elif [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
-      echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
-    fi
-    popd >/dev/null
-    if [[ "$cmd" == "mv" ]]; then
-      mv $VENV $VIRTUAL_ENV
-    fi
-    venv_mgr_test $VIRTUAL_ENV
-}
-
 custom_env() {
 # custom_env(VENV pyver)
     cd $1
@@ -590,10 +504,10 @@ create_virtual_env() {
     hash -r
     if [ ${opt_cache:-0} -ne 0 -a -n "$TRAVIS_PYTHON_VERSION" ]; then
         if [[ -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
-            run_traced "venv_mgr cp $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$BRANCH $TRAVIS_HOME -fq"
+            run_traced "vem cp $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$BRANCH $TRAVIS_HOME -fq"
             sts=$?
         elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
-            run_traced "venv_mgr cp $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION $TRAVIS_HOME -fq"
+            run_traced "vem cp $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION $TRAVIS_HOME -fq"
             sts=$?
         else
             echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"

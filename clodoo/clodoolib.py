@@ -17,10 +17,10 @@ try:
 except ImportError:
     import configparser as ConfigParser
 import inspect
-# import pdb
 import os
 import re
 import time
+import subprocess
 from datetime import date
 
 from os0 import os0
@@ -53,6 +53,7 @@ LX_CFG_S = ('db_name',
             'login2_password',
             'admin_passwd',
             'db_host',
+            'data_dir',
             'xmlrpc_port',
             'oe_version',
             'zeroadm_mail',
@@ -84,7 +85,10 @@ LX_CFG_S = ('db_name',
             'heavy_trx',
             'install_modules',
             'uninstall_modules',
+            'purge_modules',
             'upgrade_modules',
+            'data_selection',
+            'modules_2_manage',
             'chart_of_account',
             'catalog_db',
             'custom_act',
@@ -120,6 +124,7 @@ LX_CFG_S = ('db_name',
 # Must be declared in LX_CFG_S
 LX_CFG_SB = ('install_modules',
              'uninstall_modules',
+             'purge_modules',
              'actions',
              'actions_db',
              'actions_mc',
@@ -142,7 +147,7 @@ LX_CFG_B = ('set_passepartout',
 # or else are just in line command
 LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo',
             'no_fvalidation',  'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode',
-            'xmlrpc_port', 'odoo_vid', 'exit_onerror')
+            'xmlrpc_port', 'odoo_vid', 'exit_onerror', 'data_selection')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_B = ('dry_run', 'with_demo', 'no_fvalidation', 'exit_onerror')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -159,7 +164,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.8"
+__version__ = "0.3.9"
 
 
 #############################################################################
@@ -291,66 +296,78 @@ def default_conf(ctx):
     dfmt = "%Y-%m-%d"
     dts_start = date(y, 1, 1).strftime(dfmt)
     dts_stop = date(y, 12, 31).strftime(dfmt)
-    DEFDCT = {'login_user': 'admin',
-              'crypt_password': 'Ec{fu',
-              'login_password': '',
-              'login2_user': 'admin',
-              'crypt2_password': '',
-              'login2_password': '',
-              'admin_passwd': 'admin',
-              'db_user': 'postgres',
-              'db_host': 'localhost',
-              'svc_protocol': '',
-              'xmlrpc_port': '8069',
-              'odoo_vid': '11.0',
-              'dbfilter': '.*',
-              'dbfilterd': 'demo',
-              'dbfiltert': '(openerp|odoo|test)',
-              'dbfilterz': 'zi[0-9]{8}',
-              'dbtypefilter': '',
-              'companyfilter': '(?![Zz]eroincombenze.*)',
-              'userfilter': '.*',
-              'lang': 'en_US',
-              'with_demo': '0',
-              'date_start': dts_start,
-              'date_stop': dts_stop,
-              'draft_recs': '0',
-              'account_code': '000000',
-              'adm_uids': '1',
-              'set_passepartout': '0',
-              'check_balance': '0',
-              'setup_banks': '0',
-              'setup_account_journal': '0',
-              'setup_partners': '0',
-              'setup_partner_banks': '0',
-              'check_config': '0',
-              'exit_onerror': '0',
-              'custom_act': '',
-              'install_modules': False,
-              'uninstall_modules': False,
-              'upgrade_modules': False,
-              'zeroadm_mail': 'cc@shs-av.com',
-              'zeroadm_login': 'zeroadm',
-              'oneadm_mail': 'admin@example.com',
-              'oneadm_login': 'admin',
-              'oneadm_pwd': 'admin',
-              'botadm_mail': 'zerobot@example.com',
-              'botadm_login': 'zerobot',
-              'botadm_pwd': '',
-              'data_path': './data',
-              'actions': '',
-              'actions_db': '',
-              'actions_mc': '',
-              'actions_uu': '',
-              'heavy_trx': False,
-              'chart_of_account': 'configurable_chart_template',
-              'catalog_db': 'zeroincombenze',
-              'psycopg2': 'False',
-              # 'model_name': 'name',
-              'TRANSDICT': {}
-              }
-    return DEFDCT
-
+    return {'login_user': 'admin',
+            'crypt_password': 'Ec{fu',
+            'login_password': '',
+            'login2_user': 'admin',
+            'crypt2_password': '',
+            'login2_password': '',
+            'admin_passwd': 'admin',
+            'db_user': 'postgres',
+            'db_host': 'localhost',
+            'data_dir': '',
+            'db_port': 5432,
+            'oe_version': '*',
+            'svc_protocol': '',
+            'xmlrpc_port': 8069,
+            'odoo_vid': '12.0',
+            'db_name': 'demo',
+            'logfile': False,
+            'dbfilter': '.*',
+            'dbfilterd': 'demo',
+            'dbfiltert': '(openerp|odoo|test)',
+            'dbfilterz': 'zi[0-9]{8}',
+            'dbtypefilter': '',
+            'companyfilter': r'(?![Zz]eroincombenze.*)',
+            'userfilter': '.*',
+            'lang': 'en_US',
+            'with_demo': '0',
+            'date_start': dts_start,
+            'date_stop': dts_stop,
+            'draft_recs': '0',
+            'account_code': '000000',
+            'adm_uids': '1',
+            'set_passepartout': '0',
+            'check_balance': '0',
+            'setup_banks': '0',
+            'setup_account_journal': '0',
+            'setup_partners': '0',
+            'setup_partner_banks': '0',
+            'check_config': '0',
+            'exit_onerror': '0',
+            'custom_act': '',
+            'install_modules': False,
+            'uninstall_modules': False,
+            'purge_modules': False,
+            'upgrade_modules': False,
+            'data_selection': 'account_move,sale,purchase,project,mail,crm,'
+                              'inventory,marketing,hr,analytic',
+            'modules_2_manage': '',
+            'zeroadm_mail': 'cc@shs-av.com',
+            'zeroadm_login': 'zeroadm',
+            'oneadm_mail': 'admin@example.com',
+            'oneadm_login': 'admin',
+            'oneadm_pwd': 'admin',
+            'botadm_mail': 'zerobot@example.com',
+            'botadm_login': 'zerobot',
+            'botadm_pwd': '',
+            'data_path': './data',
+            'actions': '',
+            'actions_db': '',
+            'actions_mc': '',
+            'actions_uu': '',
+            'heavy_trx': False,
+            'chart_of_account': 'configurable_chart_template',
+            'catalog_db': 'zeroincombenze',
+            'psycopg2': 'False',
+            'caller': '',
+            'level': 4,
+            'dry_run': False,
+            'multi_user': False,
+            'ena_inquire': False,
+            'no_login': False,
+            'TRANSDICT': {}
+    }
 
 def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
     is_bool = is_bool or False
@@ -446,8 +463,13 @@ def create_params_dict(ctx):
         if hasattr(opt_obj, 'dbfilter') and opt_obj.dbfilter != "":
             ctx['dbfilter'] = opt_obj.dbfilter
             ctx['multi_db'] = True
-        if hasattr(opt_obj, 'upgrade_modules') and opt_obj.upgrade_modules:
-            ctx['upgrade_modules'] = opt_obj.upgrade_modules
+        if (hasattr(opt_obj, 'modules_2_manage') and
+                hasattr(opt_obj, 'do_sel_action')):
+            if opt_obj.do_sel_action in ('install_modules',
+                                         'uninstall_modules',
+                                         'upgrade_modules',
+                                         'purge_modules'):
+                ctx[opt_obj.do_sel_action] = opt_obj.modules_2_manage
         if hasattr(opt_obj, 'data_path') and opt_obj.data_path != "":
             ctx['data_path'] = opt_obj.data_path
     if ctx['db_host'] == 'False':
@@ -457,7 +479,7 @@ def create_params_dict(ctx):
     else:
         ctx['oe_version'] = build_odoo_param('FULLVER', ctx['odoo_vid'])
     if not ctx['svc_protocol']:
-        if ctx['oe_version'] in ('9.0', '10.0', '11.0', '12.0'):
+        if ctx['oe_version'] in ('10.0', '11.0', '12.0'):
             ctx['svc_protocol'] = 'jsonrpc'
         else:
             ctx['svc_protocol'] = 'xmlrpc'
@@ -542,7 +564,7 @@ def create_parser(version, doc, ctx):
     """
     parser = argparse.ArgumentParser(
         description=docstring_summary(doc),
-        epilog="© 2015-2018 by SHS-AV s.r.l."
+        epilog="© 2015-2019 by SHS-AV s.r.l."
                " - http://www.zeroincombenze.org")
     parser.add_argument("-A", "--action-to-do",
                         help="action to do (use list_actions to dir)",
@@ -564,11 +586,6 @@ def create_parser(version, doc, ctx):
                         dest="dbfilter",
                         metavar="regex",
                         default="")
-    parser.add_argument("-D", "--with-demo",
-                        help="create db with demo data",
-                        action="store_true",
-                        dest="with_demo",
-                        default=False)
     parser.add_argument("-i", "--ignore-name-validation",
                         help="ignore name validation fo csv columns",
                         action="store_true",
@@ -579,10 +596,20 @@ def create_parser(version, doc, ctx):
                         dest="lang",
                         metavar="iso_lang",
                         default=False)
+    parser.add_argument("-m", "--modules-2-manage",
+                        help="Module list to upgrade",
+                        dest="modules_2_manage",
+                        metavar="list",
+                        default="")
     parser.add_argument("-n", "--dry-run",
                         help="test execution mode",
                         action="store_true",
                         dest="dry_run",
+                        default=False)
+    parser.add_argument("-o", "--with-demo",
+                        help="create db with demo data",
+                        action="store_true",
+                        dest="with_demo",
                         default=False)
     parser.add_argument("-p", "--data-path",
                         help="Import file path",
@@ -604,16 +631,16 @@ def create_parser(version, doc, ctx):
                         dest="xmlrpc_port",
                         metavar="port",
                         default="")
+    parser.add_argument("-S", "--data-selection",
+                        help="Select data to remove",
+                        dest="data_selection",
+                        metavar="list",
+                        default="")
     parser.add_argument("-U", "--user",
                         help="login username",
                         dest="lgi_user",
                         metavar="username",
                         default=None)
-    parser.add_argument("-u", "--upgrade-modules",
-                        help="Module list to upgrade",
-                        dest="upgrade_modules",
-                        metavar="list",
-                        default="")
     parser.add_argument("-v", "--verbose",
                         help="run with debugging output",
                         action="store_true",
@@ -697,20 +724,86 @@ def get_odoo_full_ver(odoo_vid):
     return odoo_fver
 
 
-def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
-    p1 = 'v|V|odoo|ODOO|ocb|OCB'
-    p2 = 'oca|oia|liberp|flectra|zero'
-    p3 = r'12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1'
-    p4 = '12|11|10|9|8|7|6'
+def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
+                     git_org=None, multi=None):
+    p1 = 'v|V|odoo|ODOO|ocb|OCB|VENV'
+    p2 = 'oca|oia|librerp|flectra|zero'
+    p3 = r'14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1'
+    p4 = '14|13|12|11|10|9|8|7|6'
     rex = '^(%s|%s)?-?(%s|%s)' % (p1, p2, p3, p4)
-    # reo = '^(%s)' % p1
-    # reg = "^(%s)" % p2
+    reo = '^(%s)' % p1
+    reg = '^(%s)' % p2
     # ref = "(%s)" % p3
     # PKGPATH = ''
     # PKGNAME = ''
     # ROOT = ''
     # REPOS = ''
     # ldir = ''
+    suppl = suppl or ''
+
+    def build_name(item, odoo_vid, odoo_ver, multi, VENV, VID):
+        if item == 'CONFN':
+            p1 = '/etc/odoo/'
+            p11 = '/etc/'
+            p4 = '.conf'
+        elif item == 'FLOG':
+            p1 = '/var/log/odoo/'
+            p11 = '/var/log/'
+            p4 = '.log'
+        elif item == 'FPID':
+            p1 = '/var/run/odoo/'
+            p11 = '/var/run/'
+            p4 = '.pid'
+        elif item in ('FULL_SVCNAME', 'SVCNAME'):
+            p1 = '/etc/init.d/'
+            p11 = ''
+            p4 = ''
+        elif item == 'BIN':
+            if odoo_ver < 7:
+                p1 = '%s/server/' % VID
+                p11 = '%s/' % VID
+            elif odoo_ver == 7 and odoo_vid[0] == 'v':
+                p1 = '%s/server/' % VID
+                p11 = '%s/' % VID
+            else:
+                p1 = '%s/' % VID
+                p11 = ''
+            p4 = ''
+        else:
+            raise KeyError('Invalid item %s' % item)
+        if multi and item != 'BIN':
+            if odoo_vid in ('v7', 'v6'):
+                p2 = 'openerp'
+            elif item == 'DDIR' and not VENV:
+                p2 = 'odoo'
+            else:
+                p2 = 'odoo%d' % odoo_ver
+        elif multi and item == "BIN":
+            if odoo_ver >= 10:
+                p2 = 'odoo'
+            else:
+                p2 = 'openerp'
+        elif odoo_ver < 7 or odoo_vid == 'v7':
+            p2 = 'openerp'
+        else:
+            p2 = 'odoo'
+        if item in ('CONFN', 'FULL_SVCNAME', 'SVCNAME', 'FLOG', 'FPID', 'DDIR'):
+            if multi and re.match(reg, odoo_vid):
+                p3 = ''.join([x for x in odoo_vid if x.isalpha()])
+            elif odoo_ver >= 10:
+                p3 = ''
+            else:
+                p3 = '-server'
+        elif odoo_ver >= 10:
+            if item == 'BIN':
+                p3 = '-bin'
+            else:
+                p3 = ''
+        else:
+            p3 = '-server'
+        p = ''.join((p1, p2, p3, p4))
+        return p
+
     if re.match(r'(^\.$|^\.\.$|(\./|\.\./|~/|/))', odoo_vid) or \
             item in ('RUPSTREAM', 'RORIGIN', 'VCS'):
         if odoo_vid:
@@ -720,8 +813,8 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
         vid = ''
         while not vid and cwd:
             # if not PKGPATH and (
-            #         os.path.isfile(os.join(cwd, '__manifest__.py')) or
-            #         os.path.isfile(os.join(cwd, '__openerp__.py'))):
+            #         os.path.isfile(os.path.join(cwd, '__manifest__.py')) or
+            #         os.path.isfile(os.path.join(cwd, '__openerp__.py'))):
             #     PKGPATH = cwd
             #     PKGNAME = os.path.basename(PKGPATH)
             rep = os.path.basename(cwd)
@@ -734,26 +827,32 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
                 #     REPOS = 'OCB'
             # ldir = cwd
             if cwd != '/':
-                os.path.abspath(os.join(cwd, '..'))
+                cwd = os.path.abspath(os.path.join(cwd, '..'))
             else:
                 cwd = ''
+    ROOT = os.path.expanduser('~')
     if odoo_vid:
         if odoo_vid == '.':
             odoo_fver = get_odoo_full_ver(os.getcwd())
             if not odoo_fver:
-                odoo_fver = '11.0'
+                odoo_fver = '12.0'
             odoo_vid = os.path.basename(os.path.dirname(os.getcwd()))
         elif re.match(rex, odoo_vid):
             odoo_fver = get_odoo_full_ver(odoo_vid)
         else:
-            odoo_fver = '11.0'
+            odoo_fver = '12.0'
     else:
-        odoo_vid = '11.0'
+        odoo_vid = '12.0'
         odoo_fver = odoo_vid
+    VENV = odoo_vid.startswith('VENV')
     odoo_ver = int(odoo_fver.split('.')[0])
+    if VENV:
+        VID = os.path.join(ROOT, odoo_vid, 'odoo')
+    else:
+        VID = os.path.join(ROOT, odoo_vid)
     if git_org:
         GIT_ORGID = git_org
-        if re.match('(oca|oia|liberp|flectra)', git_org) and odoo_vid in (
+        if re.match('(oca|liberp|flectra)', git_org) and odoo_vid in (
                 '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0'):
             if git_org[-4:] == '-git':
                 odoo_vid = '%s%d' % (git_org[0:-4], odoo_ver)
@@ -775,21 +874,57 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
         return odoo_fver
     elif item == 'MAJVER':
         return odoo_ver
+    elif item == 'ROOT':
+        return VID
     elif item == 'GIT_ORGID':
         return GIT_ORGID
-    elif item == 'CONFN':
-        if odoo_ver >= 10:
-            sfx = ''
-        else:
-            sfx = '-server'
-        if odoo_vid[0].lower() == 'v':
-            v = ''
-        else:
-            v = str(odoo_ver)
-        confn = 'odoo%s%s.conf' % (v, sfx)
-        return confn
+    elif item in ('CONFN', 'FLOG', 'FPID', 'FULL_SVCNAME', 'BIN'):
+        return build_name(item, odoo_vid, odoo_ver, multi, VENV, VID)
+    elif item == 'SVCNAME':
+        return os.path.basename(build_name(item, odoo_vid, odoo_ver, multi, VENV, VID))
     elif item == 'PKGNAME':
         return os.path.basename(os.getcwd())
     elif item == 'REPOS':
         return os.path.basename(os.path.dirname(os.getcwd()))
-    return False
+    elif item == 'MANIFEST':
+        if odoo_ver >= 10:
+            return '__manifest__.py'
+        else:
+            return '__openerp__.py'
+    elif item == 'RPCPORT':
+        if debug:
+            p = 18060 + odoo_ver
+        elif not VENV and re.match(reo, odoo_vid):
+            p = 8069
+        elif multi:
+            p = 8160 + odoo_ver
+        else:
+            p = 8069
+        return p
+    elif item == 'USER':
+        if not VENV and re.match(reo, odoo_vid):
+            p = 'odoo'
+        elif multi:
+            p = 'odoo%d' % odoo_ver
+        elif odoo_ver < 8:
+            p = 'odoo'
+        else:
+            p = 'odoo'
+        return p
+    else:
+        odoorc = os.path.join(os.path.dirname(__file__), 'odoorc')
+        if multi:
+            cmd = 'source %s; opt_multi=1; build_odoo_param %s %s %s' % (
+                odoorc,
+                item,
+                odoo_vid,
+                suppl)
+        else:
+            cmd = 'source %s; build_odoo_param %s %s %s' % (
+                odoorc,
+                item,
+                odoo_vid,
+                suppl)
+        res = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        out, err = res.communicate()
+    return out.split('\n')[0]
