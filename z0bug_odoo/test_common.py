@@ -5,7 +5,7 @@ from __future__ import print_function
 from builtins import str
 
 import sys
-from z0bug_odoo_lib import Z0bugOdoo
+from .z0bug_odoo_lib import Z0bugOdoo
 try:
     import odoo.release as release
 except ImportError:
@@ -26,7 +26,7 @@ else:
     sys.exit(0)
 
 
-__version__='0.1.1'
+__version__='0.1.1.1'
 
 
 class Z0bugBaseCase(test_common.BaseCase):

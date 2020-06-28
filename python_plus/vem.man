@@ -1,12 +1,12 @@
 .\" Manpage for please.
 .\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
-.TH venv_mgr 8
+.TH vem 8
 .SH NAME
-venv_mgr \- virtual environment management
+vem \- virtual environment management
 .SH SYNOPSIS
-venv_mgr [options] action [directory]
+vem [options] action [directory]
 .SH DESCRIPTION
-\fBvenv_mgr\fR is an interactive tool with some nice features to manage standard virtual environment.
+\fBvem\fR is an interactive tool with some nice features to manage standard virtual environment.
 .P
 Action is one of:
 .br
@@ -124,7 +124,7 @@ declare odoo path used to find odoo requirements and linked inside virtual envir
 .TP
 .TP
 .SH EXAMPLES
-venv_mgr create -DI -p 3.6 my_venv -O 12.0 -o ~/odoo-12.0
+vem create -DI -p 3.6 my_venv -O 12.0 -o ~/odoo-12.0
 .SH BUGS
 No known bugs.
 .SH AUTHOR

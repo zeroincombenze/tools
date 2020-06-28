@@ -1,6 +1,6 @@
 
 =================
-python_plus 0.1.3
+python_plus 0.1.4
 =================
 
 
@@ -8,7 +8,6 @@ python_plus 0.1.3
 |Maturity| |Build Status| |Coverage Status| |license gpl|
 
 
-.. contents::
 
 
 Overview
@@ -19,25 +18,6 @@ Documentation generator
 
 Python support library.
 
-
-|
-|
-
-Quick start
-===========
-
-
-|
-
-Installation
-------------
-
-For current version:
-
-`cd $HOME`
-`git@github.com:zeroincombenze/tools.git`
-`cd $HOME/tools`
-`./install_tools.sh`
 
 
 |
@@ -101,11 +81,26 @@ For example:
 
 
 
+
 |
 |
 
-Get involved
-============
+Getting started
+===============
+
+
+|
+
+Installation
+------------
+
+For current version:
+
+`cd $HOME`
+`git@github.com:zeroincombenze/tools.git`
+`cd $HOME/tools`
+`./install_tools.sh`
+
 
 |
 |
@@ -129,7 +124,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-03-11
+Last Update / Ultimo aggiornamento: 2020-06-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
@@ -188,5 +183,6 @@ Last Update / Ultimo aggiornamento: 2020-03-11
 .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-   :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b
+   :target: https://t.me/axitec_helpdesk
+
 
