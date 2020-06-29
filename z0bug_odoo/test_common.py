@@ -26,7 +26,7 @@ else:
     sys.exit(0)
 
 
-__version__='0.1.1.2'
+__version__='0.1.1.3'
 
 
 class Z0bugBaseCase(test_common.BaseCase):
@@ -192,12 +192,15 @@ class Z0bugBaseCase(test_common.BaseCase):
                 self.build_model_data(model, xref1)
             xref = 'z0bug.mycompany'
         xref_id = self.ref_id(xref)
+        if not xref_id:
+            # In case of trouble, test company is the main company
+            xref_id = self.ref_id('base.main_company')
         # There are two separate write because "company_id" assignment fails if
         # company_id is not in "company_ids" at the time of the write
         if int(release.major_version.split('.')[0]) < 8:
-            self.registry('res.user').write(
+            self.registry('res.users').write(
                 self.cr, self.uid, [self.uid], {'company_ids': [(4, xref_id)]})
-            self.registry('res.user').write(
+            self.registry('res.users').write(
                 self.cr, self.uid, [self.uid], {'company_id': xref_id})
         else:
             self.env.user.write({'company_ids': [(4, xref_id)]})

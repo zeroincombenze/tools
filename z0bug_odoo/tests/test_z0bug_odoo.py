@@ -13,7 +13,7 @@ import sys
 from zerobug import Z0test
 
 
-__version__ = "0.1.1.2"
+__version__ = "0.1.1.3"
 
 MODULE_ID = 'z0bug_odoo'
 
