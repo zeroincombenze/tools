@@ -164,7 +164,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.9.3"
+__version__ = "0.3.9.4"
 
 
 #############################################################################
@@ -373,7 +373,8 @@ def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
     is_bool = is_bool or False
     found = False
     if conf_obj:
-        for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0'):
+        for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0',
+                    '11.0', '12.0', '13.0', '14.0'):
             vparam = '%s_%s' % (param, sfx)
             if conf_obj.has_option(sect, vparam):
                 found = True
@@ -479,7 +480,7 @@ def create_params_dict(ctx):
     else:
         ctx['oe_version'] = build_odoo_param('FULLVER', ctx['odoo_vid'])
     if not ctx['svc_protocol']:
-        if ctx['oe_version'] in ('10.0', '11.0', '12.0'):
+        if ctx['oe_version'] in ('10.0', '11.0', '12.0', '13.0', '14.0'):
             ctx['svc_protocol'] = 'jsonrpc'
         else:
             ctx['svc_protocol'] = 'xmlrpc'
@@ -523,15 +524,23 @@ def read_config(ctx):
     ctx['conf_fns'] = []
     if ODOO_CONF:
         if 'odoo_vid' in ctx:
-            fnver = build_odoo_param('CONFN', ctx['odoo_vid'])
+            fnver = build_odoo_param('CONFN', ctx['odoo_vid'], multi=True)
+            if os.path.isfile(fnver):
+                ctx['conf_fns'].append(fnver)
+            else:
+                fnver = build_odoo_param('CONFN', ctx['odoo_vid'])
+                if os.path.isfile(fnver):
+                    ctx['conf_fns'].append(fnver)
         if isinstance(ODOO_CONF, list):
+            if 'odoo_vid' in ctx:
+                base = os.path.basename(fnver)
             for f in ODOO_CONF:
                 if 'odoo_vid' in ctx:
-                    fn = f.replace('odoo-server.conf', fnver)
-                    if os.path.isfile(fn):
+                    fn = os.path.join(os.path.dirname(f), base)
+                    if os.path.isfile(fn) and fn not in ctx['conf_fns']:
                         ctx['conf_fns'].append(fn)
                         break
-                if os.path.isfile(f):
+                elif os.path.isfile(f) and fn not in ctx['conf_fns']:
                     ctx['conf_fns'].append(f)
                     break
         elif os.path.isfile(ODOO_CONF):
@@ -685,6 +694,8 @@ def parse_args(arguments,
         if hasattr(opt_obj, 'conf_fn'):
             ctx['conf_fn'] = opt_obj.conf_fn
             ctx = fullname_conf(ctx)
+        if hasattr(opt_obj, 'odoo_vid'):
+            ctx['odoo_vid'] = opt_obj.odoo_vid
         ctx = read_config(ctx)
         opt_obj = parser.parse_args(arguments)
     ctx['level'] = 0
@@ -853,7 +864,7 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
     if git_org:
         GIT_ORGID = git_org
         if re.match('(oca|liberp|flectra)', git_org) and odoo_vid in (
-                '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0'):
+                '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0'):
             if git_org[-4:] == '-git':
                 odoo_vid = '%s%d' % (git_org[0:-4], odoo_ver)
             elif git_org[-5:] == '-http':

@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.9.3"
+__version__ = "0.3.9.4"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -6297,5 +6297,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sts = main()
-    sys.exit(sts)
+    sys.exit(main())
