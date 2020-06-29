@@ -583,7 +583,8 @@ else
       # else
       #   run_traced "$MGRODOO requirements -LBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       # fi
-      run_traced "$VEM amend -DO $ODOO_BRANCH -o${ODOO_PATH}"
+      reqs=$(find ~/12.0/ -name requirements.txt|tr "\n" ",")
+      run_traced "$VEM amend -DO $ODOO_BRANCH -o${ODOO_PATH} -r $reqs"
     fi
     run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $TRAVIS =~ (true|emulate) ]]; then
@@ -616,12 +617,13 @@ else
     fi
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
-      # if [[ "$TRAVIS" == "false" ]]; then
-      #   run_traced "$MGRODOO requirements -nLBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-      # else
-      #   run_traced "$MGRODOO requirements -LBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-      # fi
-      run_traced "$VEM amend -DO $ODOO_BRANCH -o${ODOO_PATH}"
+        # if [[ "$TRAVIS" == "false" ]]; then
+        #   run_traced "$MGRODOO requirements -nLBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        # else
+        #   run_traced "$MGRODOO requirements -LBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        # fi
+        reqs=$(find ~/12.0/ -name requirements.txt|tr "\n" ",")
+        run_traced "$VEM amend -DO $ODOO_BRANCH -o${ODOO_PATH} -r $reqs"
     fi
     run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
