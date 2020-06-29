@@ -25,7 +25,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.2
+__version__=0.2.3.3
 
 
 conf_default() {
@@ -583,8 +583,8 @@ else
       # else
       #   run_traced "$MGRODOO requirements -LBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       # fi
-      reqs=$(find ~/12.0/ -name requirements.txt|tr "\n" ",")
-      run_traced "$VEM amend -DO $ODOO_BRANCH -o${ODOO_PATH} -r $reqs"
+      reqs=$(find ${ODOO_PATH} -name requirements.txt|tr "\n" ",")
+      run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
     run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $TRAVIS =~ (true|emulate) ]]; then
@@ -622,8 +622,8 @@ else
         # else
         #   run_traced "$MGRODOO requirements -LBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
         # fi
-        reqs=$(find ~/12.0/ -name requirements.txt|tr "\n" ",")
-        run_traced "$VEM amend -DO $ODOO_BRANCH -o${ODOO_PATH} -r $reqs"
+        reqs=$(find $ocb_dir $dependencies_dir -name requirements.txt|tr "\n" ",")
+        run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
     run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
