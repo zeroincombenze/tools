@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.3
+#__version__=0.2.3.1
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -486,7 +486,7 @@ create_virtual_env() {
     export TRAVIS_HOME=$(readlink -f $HOME/VENV_$$)
     if [ "$TRAVIS_SAVED_HOME" == "/home/travis" ]; then
         export TRAVIS=true
-    elif [ $opt_full -ne 0 ]; then
+    elif [ $opt_full -ne 0 -o $opt_cache -eq 0 ]; then
         export TRAVIS=emulate
     else
         export TRAVIS=false
@@ -502,7 +502,7 @@ create_virtual_env() {
     [[ ! "$SYSTEM_SITE_PACKAGES" == "true" ]] && VENVOPTS="-DI"
     HOME=$TRAVIS_HOME
     hash -r
-    if [ ${opt_cache:-0} -ne 0 -a -n "$TRAVIS_PYTHON_VERSION" ]; then
+    if [ $opt_full -eq 0 -a ${opt_cache:-0} -ne 0 -a -n "$TRAVIS_PYTHON_VERSION" ]; then
         if [[ -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
             run_traced "vem cp $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$BRANCH $TRAVIS_HOME -fq"
             sts=$?
@@ -525,7 +525,7 @@ create_virtual_env() {
     echo -en "\e[${PS_RUN_COLOR}m"
     cd $TRAVIS_HOME
     source bin/activate
-    if [ -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/ ]; then
+    if [ $opt_full -eq 0 -a $opt_cache -ne 0 -a -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/ ]; then
         export PYPI_CACHED=$HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/
     fi
     export PS_RUN_COLOR=$SAVE_COLOR
@@ -561,23 +561,6 @@ drop_virtual_env() {
     fi
     TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
 }
-
-# wash_virtual_env() {
-#     local d f
-#     for d in $TRAVIS_HOME/*; do
-#       f=$(basename $d)
-#       if [[ ! " build bin include lib lib64 .local " =~ " $f " ]]; then
-#         if [ -L $d ]; then
-#           run_traced "rm $d"
-#         elif [ -d $d ]; then
-#           run_traced "rm -fR $d"
-#         elif [ -f $d ]; then
-#           run_traced "rm $d"
-#         fi
-#       fi
-#     done
-#     hash -r
-# }
 
 emulate_git_clone_OCB() {
 # emulate_git_clone_OCB(src tgt)

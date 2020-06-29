@@ -1,0 +1,113 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * account_tax_cash_basis
+# 
+# Translators:
+# Maria Boyadjieva <marabo2000@gmail.com>, 2016
+# Kaloyan Naumov <kaloyan@lumnus.net>, 2016
+# Anton Vassilev, 2016
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0c\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-07 08:55+0000\n"
+"PO-Revision-Date: 2016-09-07 08:55+0000\n"
+"Last-Translator: Anton Vassilev, 2016\n"
+"Language-Team: Bulgarian (https://www.transifex.com/odoo/teams/41243/bg/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: bg\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: account_tax_cash_basis
+#: model:ir.model,name:account_tax_cash_basis.model_account_move
+msgid "Account Entry"
+msgstr "Запис на сметка"
+
+#. module: account_tax_cash_basis
+#: model:ir.model.fields,help:account_tax_cash_basis.field_account_tax_cash_basis_account
+msgid "Account use when creating entry for tax cash basis"
+msgstr "Използване на сметка при създаване на запис за данък на касова основа"
+
+#. module: account_tax_cash_basis
+#: model:ir.model,name:account_tax_cash_basis.model_res_company
+msgid "Companies"
+msgstr "Компании"
+
+#. module: account_tax_cash_basis
+#: model:ir.model,name:account_tax_cash_basis.model_account_move_line
+msgid "Journal Item"
+msgstr "Статия в журнал"
+
+#. module: account_tax_cash_basis
+#: model:ir.model,name:account_tax_cash_basis.model_account_partial_reconcile
+msgid "Partial Reconcile"
+msgstr "Частично обединете"
+
+#. module: account_tax_cash_basis
+#: code:addons/account_tax_cash_basis/models/account_partial_reconcile.py:39
+#, python-format
+msgid "Please configure a Tax Received Account for tax %s"
+msgstr "Моля, конфигурирайте сметка данък за възстановяване %s"
+
+#. module: account_tax_cash_basis
+#: model:ir.model.fields,help:account_tax_cash_basis.field_account_tax_use_cash_basis
+msgid ""
+"Select this if the tax should use cash basis,which will create an entry for "
+"this tax on a given account during reconciliation"
+msgstr ""
+"Изберете това, ако данъкът трябва да използва касова основа, което ще "
+"създаде запис на този данък в дадена сметка в хода на обединяването"
+
+#. module: account_tax_cash_basis
+#: model:ir.model,name:account_tax_cash_basis.model_account_tax
+msgid "Tax"
+msgstr "Данък"
+
+#. module: account_tax_cash_basis
+#: model:ir.model.fields,field_description:account_tax_cash_basis.field_account_move_tax_cash_basis_rec_id
+msgid "Tax Cash Basis Entry of"
+msgstr "Запис на данък на касова основа"
+
+#. module: account_tax_cash_basis
+#: model:ir.model.fields,field_description:account_tax_cash_basis.field_account_config_settings_tax_cash_basis_journal_id
+#: model:ir.model.fields,field_description:account_tax_cash_basis.field_res_company_tax_cash_basis_journal_id
+msgid "Tax Cash Basis Journal"
+msgstr "Журнал за данък на касова основа"
+
+#. module: account_tax_cash_basis
+#: model:ir.model.fields,field_description:account_tax_cash_basis.field_account_tax_cash_basis_account
+msgid "Tax Received Account"
+msgstr "Сметка данък за възстановяване"
+
+#. module: account_tax_cash_basis
+#: model:ir.model.fields,help:account_tax_cash_basis.field_account_move_tax_cash_basis_rec_id
+msgid ""
+"Technical field used to keep track of the tax cash basis reconciliation.This"
+" is needed when cancelling the source: it will post the inverse journal "
+"entry to cancel that part too."
+msgstr ""
+"Техническо поле, използвано да проследява обединяването на данък на касова "
+"основа. Това е нужно, когато отменяте източника: то ще публикува "
+"противоположния запис в журнал, за да отмени и тази част."
+
+#. module: account_tax_cash_basis
+#: code:addons/account_tax_cash_basis/models/account_partial_reconcile.py:80
+#, python-format
+msgid ""
+"There is no tax cash basis journal defined for this company: \"%s\" \n"
+"Configure it in Accounting/Configuration/Settings"
+msgstr ""
+"Липсва журнал за данък на касова основа, определен за тази компания: \"%s\" \n"
+"Конфигурирайте го в Счетоводство/Конфигурация/Настройки"
+
+#. module: account_tax_cash_basis
+#: model:ir.model.fields,field_description:account_tax_cash_basis.field_account_tax_use_cash_basis
+msgid "Use Cash Basis"
+msgstr "Използвайте касова основа"
+
+#. module: account_tax_cash_basis
+#: model:ir.model,name:account_tax_cash_basis.model_account_config_settings
+msgid "account.config.settings"
+msgstr "account.config.settings"

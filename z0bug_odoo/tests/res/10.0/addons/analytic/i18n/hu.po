@@ -1,0 +1,342 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * analytic
+# 
+# Translators:
+# gezza <geza.nagy@oregional.hu>, 2016
+# krnkris, 2016
+# Martin Trigaux, 2016
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0c\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-07 08:56+0000\n"
+"PO-Revision-Date: 2016-09-07 08:56+0000\n"
+"Last-Translator: Martin Trigaux, 2016\n"
+"Language-Team: Hungarian (https://www.transifex.com/odoo/teams/41243/hu/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: hu\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_currency_id
+msgid "Account Currency"
+msgstr "Főkönyvi számla pénzneme"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_active
+msgid "Active"
+msgstr "Aktív"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_amount
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_form
+msgid "Amount"
+msgstr "Összeg"
+
+#. module: analytic
+#: model:ir.model,name:analytic.model_account_analytic_account
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_name
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_account_id
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_account_form
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_account_search
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_filter
+msgid "Analytic Account"
+msgstr "Analitikus számla"
+
+#. module: analytic
+#: model:res.groups,name:analytic.group_analytic_accounting
+msgid "Analytic Accounting"
+msgstr "Analitikus könyvelés"
+
+#. module: analytic
+#: model:ir.actions.act_window,name:analytic.action_account_analytic_account_form
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_account_list
+msgid "Analytic Accounts"
+msgstr "Analitikus számlák"
+
+#. module: analytic
+#: model:ir.actions.act_window,name:analytic.account_analytic_tag_action
+#: model:ir.ui.view,arch_db:analytic.account_analytic_tag_form_view
+#: model:ir.ui.view,arch_db:analytic.account_analytic_tag_tree_view
+msgid "Analytic Accounts Tags"
+msgstr "Analitikus számla címkék"
+
+#. module: analytic
+#: model:ir.actions.act_window,name:analytic.account_analytic_line_action_entries
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_graph
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_pivot
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_tree
+msgid "Analytic Entries"
+msgstr "Analitikus tételek"
+
+#. module: analytic
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_form
+msgid "Analytic Entry"
+msgstr "Analitikus tétel"
+
+#. module: analytic
+#: model:ir.model,name:analytic.model_account_analytic_line
+msgid "Analytic Line"
+msgstr "Analitikus sor"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_line_ids
+msgid "Analytic Lines"
+msgstr "Analitikus sorok"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_tag_name
+msgid "Analytic Tag"
+msgstr "Analitikus címke"
+
+#. module: analytic
+#: model:ir.model,name:analytic.model_account_analytic_tag
+msgid "Analytic Tags"
+msgstr "Analitikus címkék"
+
+#. module: analytic
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_account_search
+msgid "Archived"
+msgstr "Archivált"
+
+#. module: analytic
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_account_search
+msgid "Associated Partner"
+msgstr "Kapcsolódó partner"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_balance
+msgid "Balance"
+msgstr "Egyenleg"
+
+#. module: analytic
+#: model:ir.actions.act_window,name:analytic.action_analytic_account_form
+msgid "Chart of Analytic Accounts"
+msgstr "Analitikus számlák számlatükre"
+
+#. module: analytic
+#: model:ir.actions.act_window,help:analytic.account_analytic_tag_action
+msgid "Click to add a new tag."
+msgstr "Kattintson egy új címke hozzáadásához."
+
+#. module: analytic
+#: model:ir.actions.act_window,help:analytic.action_analytic_account_form
+msgid "Click to add an analytic account."
+msgstr "Kattintson analitikus számla hozzáadásához."
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_tag_color
+msgid "Color Index"
+msgstr "Szín jegyzék"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_company_id
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_company_id
+msgid "Company"
+msgstr "Vállalat"
+
+#. module: analytic
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_account_form
+msgid "Cost/Revenue"
+msgstr "Költség/Bevétel"
+
+#. module: analytic
+#: model:ir.actions.act_window,name:analytic.account_analytic_line_action
+msgid "Costs & Revenues"
+msgstr "Költségek & Bevételek"
+
+#. module: analytic
+#: model:ir.actions.act_window,help:analytic.account_analytic_line_action
+#: model:ir.actions.act_window,help:analytic.account_analytic_line_action_entries
+msgid ""
+"Costs will be created automatically when you register supplier\n"
+"                invoices, expenses or timesheets."
+msgstr ""
+"Költségek automatikusan létrehozásre kerülnek bejövő (szállítói) számlákból,"
+" kiadásokból vagy időkimutatásokból."
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_create_uid
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_create_uid
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_tag_create_uid
+msgid "Created by"
+msgstr "Létrehozta"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_create_date
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_create_date
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_tag_create_date
+msgid "Created on"
+msgstr "Létrehozva"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_credit
+msgid "Credit"
+msgstr "Követel"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_currency_id
+msgid "Currency"
+msgstr "Pénznem"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_partner_id
+msgid "Customer"
+msgstr "Vevő"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_date
+msgid "Date"
+msgstr "Dátum"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_debit
+msgid "Debit"
+msgstr "Tartozik"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_name
+msgid "Description"
+msgstr "Leírás"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_display_name
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_display_name
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_tag_display_name
+msgid "Display Name"
+msgstr "Megjelenített név"
+
+#. module: analytic
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_account_search
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_filter
+msgid "Group By..."
+msgstr "Csoportosítás..."
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_id
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_id
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_tag_id
+msgid "ID"
+msgstr "Azonosító"
+
+#. module: analytic
+#: model:ir.model.fields,help:analytic.field_account_analytic_account_active
+msgid ""
+"If the active field is set to False, it will allow you to hide the account "
+"without removing it."
+msgstr ""
+"Ha az aktív mező hamisra állított, akkor eltüntetheti a számlát annak "
+"törlése nélkül."
+
+#. module: analytic
+#: model:ir.actions.act_window,help:analytic.account_analytic_line_action
+#: model:ir.actions.act_window,help:analytic.account_analytic_line_action_entries
+msgid ""
+"In Odoo, sale orders and projects are implemented using\n"
+"                analytic accounts. You can track costs and revenues to analyse\n"
+"                your margins easily."
+msgstr ""
+"A rendszerben a vevői rendelések és projektek alapértelmezésben használják az\n"
+"                analitkus számlákat. Könnyedén nyomonkövetheti a költségeit és bevételeit a haszon \n"
+"                elemzéséhez."
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account___last_update
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line___last_update
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_tag___last_update
+msgid "Last Modified on"
+msgstr "Frissítve"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_write_uid
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_write_uid
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_tag_write_uid
+msgid "Last Updated by"
+msgstr "Frissítette"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_write_date
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_write_date
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_tag_write_date
+msgid "Last Updated on"
+msgstr "Frissítve "
+
+#. module: analytic
+#: model:ir.actions.act_window,help:analytic.account_analytic_line_action
+msgid "No activity yet on this account."
+msgstr "Ezen a számlán nincs aktivitás."
+
+#. module: analytic
+#: model:ir.actions.act_window,help:analytic.account_analytic_line_action_entries
+msgid "No activity yet."
+msgstr "Nincs még aktivitás."
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_partner_id
+msgid "Partner"
+msgstr "Partner"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_unit_amount
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_tree
+msgid "Quantity"
+msgstr "Mennyiség"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_code
+msgid "Reference"
+msgstr "Hivatkozás"
+
+#. module: analytic
+#: model:ir.actions.act_window,help:analytic.account_analytic_line_action
+#: model:ir.actions.act_window,help:analytic.account_analytic_line_action_entries
+msgid ""
+"Revenues will be created automatically when you create customer\n"
+"                invoices. Customer invoices can be created based on sale orders\n"
+"                (fixed price invoices), on timesheets (based on the work done) or\n"
+"                on expenses (e.g. reinvoicing of travel costs)."
+msgstr ""
+"Bevételek  automatikusan létrehozásra kerülnek kimenő (vevői) számla \n"
+"                elkészítésekor. Kimenő (vevői) számlák elkészíthetőek a vevői rendelések alapján \n"
+"                (fix árú számlák), az időimutatásokból (elvégzett munka alapján) vagy \n"
+"                kiadásokból (pl. utazási költség elszámolás)."
+
+#. module: analytic
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_filter
+msgid "Search Analytic Lines"
+msgstr "Analitikus sorok keresése"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_account_tag_ids
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_tag_ids
+msgid "Tags"
+msgstr "Címkék"
+
+#. module: analytic
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_filter
+msgid "Tasks Month"
+msgstr "Feladat hónap"
+
+#. module: analytic
+#: model:ir.model.fields,help:analytic.field_account_analytic_line_currency_id
+msgid "The related account currency if not equal to the company one."
+msgstr ""
+"A kapcsolódó számla pénzneme, ha az nem egyezik a vállalat pénznemével."
+
+#. module: analytic
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_line_tree
+msgid "Total"
+msgstr "Összesen"
+
+#. module: analytic
+#: model:ir.model.fields,field_description:analytic.field_account_analytic_line_user_id
+msgid "User"
+msgstr "Felhasználó"
+
+#. module: analytic
+#: model:ir.ui.view,arch_db:analytic.view_account_analytic_account_form
+msgid "e.g. Project XYZ"
+msgstr "Pl. Projekt XYZ"

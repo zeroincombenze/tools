@@ -1,0 +1,247 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * sale_timesheet
+# 
+# Translators:
+# Giacomo Grasso <giacomo.grasso.82@gmail.com>, 2016
+# Paolo Valier, 2016
+# Francesco Garganese <francesco.garganese@aeromnia.aero>, 2016
+# Martin Trigaux, 2016
+# Sergio Zanchetta <primes2h@gmail.com>, 2018
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0c\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-19 12:36+0000\n"
+"PO-Revision-Date: 2016-09-07 09:29+0000\n"
+"Last-Translator: Sergio Zanchetta <primes2h@gmail.com>, 2018\n"
+"Language-Team: Italian (https://www.transifex.com/odoo/teams/41243/it/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: it\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_hr_employee_account_id
+msgid "Account"
+msgstr "Conto"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_account_analytic_line
+msgid "Analytic Line"
+msgstr "Riga analitica"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_res_company
+msgid "Companies"
+msgstr "Aziende"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,help:sale_timesheet.field_product_product_project_id
+#: model:ir.model.fields,help:sale_timesheet.field_product_template_project_id
+msgid ""
+"Create a task under this project on sale order validation. This setting must"
+" be set for each company."
+msgstr ""
+"Crea un'attività per il progetto nella conferma dell'ordine di vendita. "
+"Impostare questa configurazione per ciascuna azienda."
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_hr_employee
+msgid "Employee"
+msgstr "Dipendente"
+
+#. module: sale_timesheet
+#: model:ir.ui.view,arch_db:sale_timesheet.view_sale_service_inherit_form2
+msgid "Order Line"
+msgstr "Riga ordine"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_procurement_order
+#: model:ir.model.fields,field_description:sale_timesheet.field_project_task_procurement_id
+msgid "Procurement"
+msgstr "Approvvigionamento"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_product_product
+msgid "Product"
+msgstr "Prodotto"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_product_product_alert_time
+msgid "Product Alert Time"
+msgstr "Tempo di avviso del prodotto"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_product_product_life_time
+msgid "Product Life Time"
+msgstr "Ciclo di vita del prodotto"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_product_product_removal_time
+msgid "Product Removal Time"
+msgstr "Tempo di rimozione del prodotto"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_product_template
+msgid "Product Template"
+msgstr "Modello prodotto"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_product_product_use_time
+msgid "Product Use Time"
+msgstr "Periodo di utilizzabilità prodotto"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_product_product_project_id
+#: model:ir.model.fields,field_description:sale_timesheet.field_product_template_project_id
+#: model:ir.ui.view,arch_db:sale_timesheet.view_order_form_inherit_sale_timesheet
+msgid "Project"
+msgstr "Progetto"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_project_project_id
+msgid "Project associated to this sale"
+msgstr "Progetto associato a questa vendita"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_sale_order
+#: model:ir.ui.view,arch_db:sale_timesheet.view_sale_service_inherit_form2
+msgid "Sales Order"
+msgstr "Ordine di vendita"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_sale_order_line
+#: model:ir.model.fields,field_description:sale_timesheet.field_project_task_sale_line_id
+msgid "Sales Order Line"
+msgstr "Riga ordine di vendita"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_project_task
+#: model:ir.model.fields,field_description:sale_timesheet.field_procurement_order_task_id
+msgid "Task"
+msgstr "Attività"
+
+#. module: sale_timesheet
+#: code:addons/sale_timesheet/models/procurement.py:80
+#, python-format
+msgid ""
+"Task Created (%s): <a href=# data-oe-model=project.task data-oe-id=%d>%s</a>"
+msgstr ""
+"Attività creata (%s): <a href=# data-oe-model=project.task data-oe-"
+"id=%d>%s</a>"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_tasks_count
+#: model:ir.ui.view,arch_db:sale_timesheet.view_order_form_inherit_sale_timesheet
+msgid "Tasks"
+msgstr "Attività"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_tasks_ids
+msgid "Tasks associated to this sale"
+msgstr "Le attività associate a questa vendita"
+
+#. module: sale_timesheet
+#: code:addons/sale_timesheet/models/procurement.py:84
+#, python-format
+msgid ""
+"This task has been created from: <a href=# data-oe-model=sale.order data-oe-"
+"id=%d>%s</a> (%s)"
+msgstr ""
+"Questa attività è stata creata da: <a href=# data-oe-model=sale.order data-"
+"oe-id=%d>%s</a> (%s)"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,help:sale_timesheet.project_time_mode_id_duplicate_xmlid
+msgid ""
+"This will set the unit of measure used in projects and tasks.\n"
+"If you use the timesheet linked to projects, don't forget to setup the right unit of measure in your employees."
+msgstr ""
+"Verrà impostata l'unità di misura usata nei progetti e nelle attività.\n"
+"Se viene usato il foglio ore collegato ai progetti, è necessario impostare i dipendenti con l'unità di misura corretta."
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_hr_employee_timesheet_cost
+msgid "Timesheet Cost"
+msgstr "Costo foglio ore"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.project_time_mode_id_duplicate_xmlid
+msgid "Timesheet UoM"
+msgstr "UM foglio ore"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_timesheet_count
+msgid "Timesheet activities"
+msgstr "Attività del foglio ore"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_timesheet_ids
+msgid "Timesheet activities associated to this sale"
+msgstr "Attività del foglio ore associate a questa vendita"
+
+#. module: sale_timesheet
+#: model:ir.ui.view,arch_db:sale_timesheet.hr_timesheet_employee_extd_form
+#: model:ir.ui.view,arch_db:sale_timesheet.view_order_form_inherit_sale_timesheet
+msgid "Timesheets"
+msgstr "Fogli ore"
+
+#. module: sale_timesheet
+#: model:ir.model.fields,help:sale_timesheet.field_product_product_alert_time
+msgid ""
+"When a new a Serial Number is issued, this is the number of days before an "
+"alert should be notified."
+msgstr ""
+"Quando viene fornito un nuovo numero di serie, questo corrisponde a quanti "
+"giorni in anticipo notificare un avviso."
+
+#. module: sale_timesheet
+#: model:ir.model.fields,help:sale_timesheet.field_product_product_life_time
+msgid ""
+"When a new a Serial Number is issued, this is the number of days before the "
+"goods may become dangerous and must not be consumed."
+msgstr ""
+"Quando viene fornito un nuovo numero di serie, questo corrisponde ai giorni "
+"superati i quali la merce potrebbe diventare pericolosa e non dovrebbe "
+"essere consumata."
+
+#. module: sale_timesheet
+#: model:ir.model.fields,help:sale_timesheet.field_product_product_removal_time
+msgid ""
+"When a new a Serial Number is issued, this is the number of days before the "
+"goods should be removed from the stock."
+msgstr ""
+"Quando viene fornito un nuovo numero di serie, questo corrisponde ai giorni "
+"superati i quali la merce dovrebbe essere rimossa dal magazzino."
+
+#. module: sale_timesheet
+#: model:ir.model.fields,help:sale_timesheet.field_product_product_use_time
+msgid ""
+"When a new a Serial Number is issued, this is the number of days before the "
+"goods starts deteriorating, without being dangerous yet."
+msgstr ""
+"Quando viene fornito un nuovo numero di serie, questo corrisponde ai giorni "
+"superati i quali le merce comincia a deteriorare, senza ancora essere "
+"pericolosa."
+
+#. module: sale_timesheet
+#: code:addons/sale_timesheet/models/sale_order.py:55
+#, python-format
+msgid ""
+"You can use only one product on timesheet within the same sale order. You "
+"should split your order to include only one contract based on time and "
+"material."
+msgstr ""
+
+#. module: sale_timesheet
+#: code:addons/sale_timesheet/models/project.py:17
+#, python-format
+msgid ""
+"You cannot delete a task related to a Sale Order. You can only archive this "
+"task."
+msgstr ""
+"Impossibile eliminare un'attività relativa a un ordine di vendita, può solo "
+"essere archiviata."

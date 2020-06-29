@@ -1,6 +1,6 @@
 
 ==================
-z0bug_odoo 0.1.1.1
+z0bug_odoo 0.1.1.2
 ==================
 
 
@@ -30,75 +30,83 @@ This package aim to easily create odoo tests.
 qci
 ---
 
-+----------+-----------------------------------------------------------------------------------+
-| qci      | description                                                                       |
-+----------+-----------------------------------------------------------------------------------+
-| qci_0001 | Credit Transfer payment / Pagamento bonifico                                      |
-+----------+-----------------------------------------------------------------------------------+
-| qci_0002 | RiBA payment / Pagamento RiBA (IT)                                                |
-+----------+-----------------------------------------------------------------------------------+
-| qci_0003 | Sepa Direct Debit / Pagamento Sepa DD                                             |
-+----------+-----------------------------------------------------------------------------------+
-| qci_0006 | Partner with one date payment / Cliente con pagamento in unica soluzione          |
-+----------+-----------------------------------------------------------------------------------+
-| qci_0007 | Partner with multiple date payment / Cliente con pagamento di più scadenze        |
-+----------+-----------------------------------------------------------------------------------+
-| qci_pa11 | Local partner (Italy) / Cliente italiano                                          |
-+----------+-----------------------------------------------------------------------------------+
-| qci_pa12 | EU partner / Cliente intraUE                                                      |
-+----------+-----------------------------------------------------------------------------------+
-| qci_pa13 | Extra-EU partner / Cliente extraUE                                                |
-+----------+-----------------------------------------------------------------------------------+
-| qci_pa14 | Reverse Charge                                                                    |
-+----------+-----------------------------------------------------------------------------------+
-| qci_pa15 | Split Payment                                                                     |
-+----------+-----------------------------------------------------------------------------------+
-| qci_pa16 | Partne is PA                                                                      |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac01 | Full Undeductible VAT / IVA totalmente indetraibile                               |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac02 | Undeductible VAT / IVA parzialmente indetraibile                                  |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac03 | Invoice with asset/Fattura di beni strumentali                                    |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac04 | Corrispettivi misti                                                               |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac05 | Corrispettivi ripartiti (ventilazione)                                            |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac06 | Insoluto RiBA                                                                     |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac11 | Sale invoice with split payment / Fattura di vendita con split-payment            |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac12 | Sale invoice with reverse charge / Fattura di vendita con reverse charge          |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac13 | Sale invoice to EU partner / Fattura di vendita intraUE                           |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac14 | Sale invoice to xEU partner / Fattura di vendita extraUE                          |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac15 | Sale invoice with lettera di intento / Fattura di vendita lettera di intento      |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac16 | Sale invoice with withholding / Fattura di vendita ritenuta d'acconto             |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac17 | Sale invoice with enasarco / Fattura di vendita con ensarco                       |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac21 | Purchase invoice with split payment / Fattura di acquisto con split-payment       |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac22 | Purchase invoice with reverse charge / Fattura di acquisto con reverse charge     |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac23 | Purchase invoice from EU partner / Fattura di acquisto intraUE                    |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac24 | Purchase invoice fromxEU partner / Fattura di acquisto extraUE                    |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac25 | Purchase invoice with lettera di intento / Fattura di acquisto lettera di intento |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac26 | Purchase invoice with withholding / Fattura da fornitore con ritenuta d'acconto   |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac27 | Purchase invoice with enasarco / Fattura da fornitore con ensarco                 |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac30 | E-invoice to individual / Fattura elettronica a privato                           |
-+----------+-----------------------------------------------------------------------------------+
-| qci_ac31 | E-invoice with virtual stamp / Fattura elettronica con bollo virtuale             |
-+----------+-----------------------------------------------------------------------------------+
++-------------+-----------------------------------------------------------------------------------+
+| qci         | description                                                                       |
++-------------+-----------------------------------------------------------------------------------+
+| pay.SCT     | Credit Transfer payment / Pagamento bonifico                                      |
++-------------+-----------------------------------------------------------------------------------+
+| pay.RB      | RiBA payment / Pagamento RiBA (IT)                                                |
++-------------+-----------------------------------------------------------------------------------+
+| pay.SDD     | Sepa Direct Debit / Pagamento Sepa DD                                             |
++-------------+-----------------------------------------------------------------------------------+
+| part.pt1    | Partner with one date payment / Cliente con pagamento in unica soluzione          |
++-------------+-----------------------------------------------------------------------------------+
+| part.pt2    | Partner with multiple date payment / Cliente con pagamento di più scadenze        |
++-------------+-----------------------------------------------------------------------------------+
+| part.it     | Local partner (Italy) / Cliente italiano                                          |
++-------------+-----------------------------------------------------------------------------------+
+| part.eu     | EU partner / Cliente intraUE                                                      |
++-------------+-----------------------------------------------------------------------------------+
+| part.xeu    | Extra-EU partner / Cliente extraUE                                                |
++-------------+-----------------------------------------------------------------------------------+
+| acc.rc      | Reverse Charge                                                                    |
++-------------+-----------------------------------------------------------------------------------+
+| acc.sp      | Split Payment                                                                     |
++-------------+-----------------------------------------------------------------------------------+
+| part.PA     | Partne is PA                                                                      |
++-------------+-----------------------------------------------------------------------------------+
+| acc.uVAT    | Full Undeductible VAT / IVA totalmente indetraibile                               |
++-------------+-----------------------------------------------------------------------------------+
+| acc.puVAT   | Undeductible VAT / IVA parzialmente indetraibile                                  |
++-------------+-----------------------------------------------------------------------------------+
+| inv.asset   | Invoice with asset/Fattura di beni strumentali                                    |
++-------------+-----------------------------------------------------------------------------------+
+| inv.asalem  | Corrispettivi misti                                                               |
++-------------+-----------------------------------------------------------------------------------+
+| inv.asalex  | Corrispettivi ripartiti (ventilazione)                                            |
++-------------+-----------------------------------------------------------------------------------+
+| acc.uRB     | Insoluto RiBA                                                                     |
++-------------+-----------------------------------------------------------------------------------+
+| invo.sp     | Sale invoice with split payment / Fattura di vendita con split-payment            |
++-------------+-----------------------------------------------------------------------------------+
+| invo.rc     | Sale invoice with reverse charge / Fattura di vendita con reverse charge          |
++-------------+-----------------------------------------------------------------------------------+
+| invo.eu     | Sale invoice to EU partner / Fattura di vendita intraUE                           |
++-------------+-----------------------------------------------------------------------------------+
+| invo.xeu    | Sale invoice to xEU partner / Fattura di vendita extraUE                          |
++-------------+-----------------------------------------------------------------------------------+
+| invo.li     | Sale invoice with lettera di intento / Fattura di vendita lettera di intento      |
++-------------+-----------------------------------------------------------------------------------+
+| invo.wht    | Sale invoice with withholding / Fattura di vendita ritenuta d'acconto             |
++-------------+-----------------------------------------------------------------------------------+
+| invo.enas   | Sale invoice with enasarco / Fattura di vendita con ensarco                       |
++-------------+-----------------------------------------------------------------------------------+
+| invi.sp     | Purchase invoice with split payment / Fattura di acquisto con split-payment       |
++-------------+-----------------------------------------------------------------------------------+
+| invi.rc     | Purchase invoice with reverse charge / Fattura di acquisto con reverse charge     |
++-------------+-----------------------------------------------------------------------------------+
+| invi.eu     | Purchase invoice from EU partner / Fattura di acquisto intraUE                    |
++-------------+-----------------------------------------------------------------------------------+
+| invi.xeu    | Purchase invoice fromxEU partner / Fattura di acquisto extraUE                    |
++-------------+-----------------------------------------------------------------------------------+
+| invi.li     | Purchase invoice with lettera di intento / Fattura di acquisto lettera di intento |
++-------------+-----------------------------------------------------------------------------------+
+| invi.wht    | Purchase invoice with withholding / Fattura da fornitore con ritenuta d'acconto   |
++-------------+-----------------------------------------------------------------------------------+
+| invi.enas   | Purchase invoice with enasarco / Fattura da fornitore con ensarco                 |
++-------------+-----------------------------------------------------------------------------------+
+| einvo.ind   | E-invoice to individual / Fattura elettronica a privato                           |
++-------------+-----------------------------------------------------------------------------------+
+| einvo.stamp | E-invoice with virtual stamp / Fattura elettronica con bollo virtuale             |
++-------------+-----------------------------------------------------------------------------------+
+| invo.vat3   | Sale invoice with vat 22% / Fattura di vendita con IVA 22%                        |
++-------------+-----------------------------------------------------------------------------------+
+| invo.vat2   | Sale invoice with vat 10% / Fattura di vendita con IVA 10%                        |
++-------------+-----------------------------------------------------------------------------------+
+| invo.vat1   | Sale invoice with vat 4% / Fattura di vendita con IVA 4%                          |
++-------------+-----------------------------------------------------------------------------------+
+| invo.N1     | Sale invoice with out of vat / Fattura di vendita con FC art. 15                  |
++-------------+-----------------------------------------------------------------------------------+
 
 
 
@@ -326,12 +334,12 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-06-28
+Last Update / Ultimo aggiornamento: 2020-06-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
     :alt: Alfa
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.1.1.1
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.1.1.2
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
@@ -340,23 +348,23 @@ Last Update / Ultimo aggiornamento: 2020-06-28
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.1.1.1
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.1.1.1
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.1.1.2
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.1.1.2
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.1.1.1/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.1.1.1
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.1.1.2/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.1.1.2
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.1.1.1/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.1.1.2/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.1.1.1/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.1.1.2/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.1.1.1/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.1.1.1
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.1.1.2/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.1.1.2
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

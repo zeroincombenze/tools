@@ -85,7 +85,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3
+__version__=0.2.3.1
 
 
 store_cfg_param_value() {
@@ -651,23 +651,6 @@ process_yaml_run_cmd() {
       while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
       if [ "$TRAVIS" != "true" -a "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
           xcmd="$(echo $xcmd|sed -e 's/git clone/git_clone/g')"
-      # elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
-      #   if [ ${opt_virt:-0} -eq 0 ]; then
-      #     if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
-      #       :
-      #     elif [ -f $HOME/maintainer-quality-tools/ ]; then
-      #       run_traced "rm -f $HOME/maintainer-quality-tools"
-      #     fi
-      #     if [ ! -L $HOME/maintainer-quality-tools/ ]; then
-      #       if [ -d $HOME/tools/maintainer-quality-tools/ ]; then
-      #         xcmd="ln -s $HOME/tools/maintainer-quality-tools/ $HOME"
-      #       elif [ -d $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
-      #         xcmd="ln -s $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ $HOME"
-      #       else
-      #         xcmd="false"
-      #       fi
-      #     fi
-      #   fi
       fi
     elif [ "${x[$ix]}" == "pip" -a "${x[$ix1]}" == "install" ]; then
       if [ ${opt_virt:-0} -eq 0 ]; then
@@ -893,9 +876,6 @@ process_yaml() {
                         wlog "\$ $lne=$lne1"
                     fi
                 done
-                # CURPYVER=$(echo $TRAVIS_PYTHON_VERSION|grep -Eo [0-9]|head -n1)
-                # [ "$CURPYVER" != "3" ] && PYTHON=python || PYTHON=python3
-                # eval $PYTHON --version
                 if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
                     if [ $opt_py3 -ne 0 ]; then
                         echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3

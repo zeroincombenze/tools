@@ -109,7 +109,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.3.1"
+__version__ = "0.2.3.2"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -649,24 +649,6 @@ def expand_macro(ctx, token, default=None):
     elif token[0:10] == 'grymb_url_' and \
             token[10:] in DEFINED_GRYMB_SYMBOLS:
         value = DEFINED_GRYMB_SYMBOLS[token[10:]][1]
-    # elif token == 'branch':
-    #     value = ctx['odoo_fver']
-    # elif token == 'prior_branch':
-    #     pmv = ctx['odoo_majver'] - 1
-    #     if pmv > 6:
-    #         value = '%d.0' % pmv
-    #     elif pmv == 6:
-    #         value = '%d.1' % pmv
-    #     else:
-    #         value = 'N/V'
-    # elif token == 'prior2_branch':
-    #     pmv = ctx['odoo_majver'] - 2
-    #     if pmv > 6:
-    #         value = '%d.0' % pmv
-    #     elif pmv == 6:
-    #         value = '%d.1' % pmv
-    #     else:
-    #         value = 'N/V'
     elif token == 'module_version':
         value = ctx['manifest']['version']
     elif token == 'icon':
@@ -1231,11 +1213,13 @@ def adj_version(ctx, version):
 
 
 def read_all_manifests(ctx):
+
     def valid_dir(dirname, level):
         if dirname[0:2] == '__':
             return False
         return True
 
+    ctx['manifest'] = {}
     addons_info = {}
     if ctx['odoo_majver'] >= 10:
         manifest_file = '__manifest__.py'
@@ -1677,7 +1661,7 @@ if __name__ == "__main__":
         ctx['odoo_majver'] = 0
     else:
         ctx['branch'] = build_odoo_param('FULLVER',
-                                            odoo_vid=ctx['odoo_vid'])
+            odoo_vid=ctx['odoo_vid'])
         if ctx['branch'] not in ('14.0', '13.0', '12.0', '11.0', '10.0',
                                  '9.0', '8.0', '7.0', '6.1'):
             ctx['branch'] = '12.0'

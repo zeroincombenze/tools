@@ -25,7 +25,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3
+__version__=0.2.3.2
 
 
 conf_default() {
@@ -46,7 +46,7 @@ run_traced() {
     local pfx=
     if [ "${1:0:1}" == "#" ]; then
       pfx=
-    elif [ ${opt_dry_run:-0} -eq 0 ]; then
+    elif [ ${opt_dry_run:-0} -eq 0 ] && [[ ! "$2" == "nolocal" || $TRAVIS =~ (true|emulate) ]]; then
       pfx="\$ "
     else
       pfx="> "
@@ -54,7 +54,7 @@ run_traced() {
     [ $opt_verbose -gt 0 -a ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" ] && echo -en "\e[${PS_RUN_COLOR}m$pfx$xcmd"
     [ $opt_verbose -gt 0 -a ${opt_humdrum:-0} -ne 0 -o -z "$PS_RUN_COLOR" ] && echo -en "$pfx$xcmd"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [[ "${1:0:1}" != "#" && ( "$2" != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
+      if [[ ! "${1:0:1}" == "#" && ( ! "$2" == "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
         eval "$xcmd"
         sts=$?
       fi
@@ -302,27 +302,30 @@ fi
 
 export MQT_TEST_MODE=$mode
 [ -z "$PKGNAME" ] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
-[[ ! "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]] && PIP=pip || PIP=pip3
-[[ ! "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]] && PYTHON=python || PYTHON=python3
-
+[[ ! "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]] && export PIP=pip || export PIP=pip3
+[[ ! "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]] && export PYTHON=python || export PYTHON=python3
 if [[ ! $TRAVIS =~ (true|emulate) && -d $HOME/.local && ! "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
   PIP_OPTS="--user"
 else
   PIP_OPTS=
 fi
 install_n_activate_tools
-if [ -d $HOME/dev ]; then
+if [ -d $HOME/devel ]; then
+  set_pythonpath "$HOME/tools" "$HOME/devel/sitecustomize.py" $PIP
+  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
+  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+elif [ -d $HOME/dev ]; then
   set_pythonpath "$HOME/tools" "$HOME/dev/sitecustomize.py" $PIP
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
 else
-  echo "!! Error! Directory $HOME/dev not found!"
+  echo "!! Error! Directory $HOME/dev[el] not found!"
 fi
 check_pythonpath "$HOME/tools" $PYTHON
-if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-  echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
-else
+if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
   echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|python
+else
+  echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
 fi
 run_traced "$PIP install -q pip --upgrade" "nolocal"
 run_traced "$PIP install -q future --upgrade" "nolocal"
@@ -354,10 +357,17 @@ if [[ -z "$LISA" ]]; then
     [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
   fi
 fi
+VEM=$(which vem 2>/dev/null)
+if [[ -z "$VEM" ]]; then
+    VEM=$HOME/tools/python_plus/vem
+    [ -f $TDIR/../../python_plus/python_plus ] && VEM=$(readlink -e $TDIR/../../python_plus/python_plus)
+    [ -f $TDIR/../python_plus/python_plus ] && VEM=$(readlink -e $TDIR/../python_plus/python_plus)
+fi
 if [ $opt_verbose -gt 0 ]; then
     echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$(which $PIP).$($PIP --version)\e[${PS_HDR3_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
+    echo -e "\e[${PS_TXT_COLOR}m\$ alias vem=$VEM.$($VEM -V)\e[${PS_HDR3_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)\e[${PS_HDR3_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)\e[${PS_HDR3_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE\e[${PS_HDR3_COLOR}m"
@@ -403,21 +413,7 @@ export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
 
 if [ "$MQT_TEST_MODE" == "tools" ]; then
     echo -e "\e[${PS_HDR3_COLOR}m### Build Tools Environment\e[${PS_TXT_COLOR}m"
-    # if [ -z "$PYPI_CACHED" ]; then
-    #   if [[ ! "$TRAVIS" == "false" ]]; then
-    #     echo "- reqs=\$($LISTREQ -t python -s ' ' -qBTR)"
-    #     reqs="$($LISTREQ -t python -s ' ' -qBTR)"
-    #     for p in $reqs; do
-    #       eval $LISA status -q $f &>/dev/null
-    #       if [ $? -ne 0 ]; then
-    #         run_traced "$PIP install $p $PIP_OPTS" "nolocal"
-    #       else
-    #         run_traced "$PIP install $p --upgrade" "nolocal"
-    #       fi
-    #     done
-    #   fi
-    # fi
-    vem amend -D
+    run_traced "$VEM amend -D"
     if [ "${ODOO_REPO}" != "odoo/odoo" ]; then
         git_clone_ocb
     fi
@@ -426,8 +422,13 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
         ls -l ${HOME}
         echo "Content of ${TRAVIS_BUILD_DIR}:"
         ls -l ${TRAVIS_BUILD_DIR}
-        echo "Content of ${HOME}/dev:"
-        ls -l ${HOME}/dev
+        if -d $HOME/devel; then
+            echo "Content of ${HOME}/devel:"
+            ls -l ${HOME}/devel
+        else
+            echo "Content of ${HOME}/dev:"
+            ls -l ${HOME}/dev
+        fi
     fi
     exit $sts
 else
@@ -577,11 +578,12 @@ else
   if [ "${TESTS}" != "1" ]; then
     dopts=
     if [ -z "$PYPI_CACHED" ]; then
-      if [[ "$TRAVIS" == "false" ]]; then
-        run_traced "$MGRODOO requirements -nLBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-      else
-        run_traced "$MGRODOO requirements -LBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-      fi
+      # if [[ "$TRAVIS" == "false" ]]; then
+      #   run_traced "$MGRODOO requirements -nLBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      # else
+      #   run_traced "$MGRODOO requirements -LBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      # fi
+      run_traced "$VEM amend -DO $ODOO_BRANCH -o${ODOO_PATH}"
     fi
     run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $TRAVIS =~ (true|emulate) ]]; then
@@ -614,11 +616,12 @@ else
     fi
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
-      if [[ "$TRAVIS" == "false" ]]; then
-        run_traced "$MGRODOO requirements -nLBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-      else
-        run_traced "$MGRODOO requirements -LBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-      fi
+      # if [[ "$TRAVIS" == "false" ]]; then
+      #   run_traced "$MGRODOO requirements -nLBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      # else
+      #   run_traced "$MGRODOO requirements -LBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      # fi
+      run_traced "$VEM amend -DO $ODOO_BRANCH -o${ODOO_PATH}"
     fi
     run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
