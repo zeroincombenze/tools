@@ -7,14 +7,39 @@
 Welcome to tools 0.2.3 documentation!
 =====================================
 
+Overview
+--------
+
+   rtd_description
+
+Devel tools
+-----------
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   rtd_description
-   pypi_devel_tools_rtd_description
-   pypi_devel_tools_rtd_usage
+   pypi_devel_tools/index
 
+
+MQT
+---
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_maintainer-quality-tools/index
+
+
+Python plus
+-----------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_python_plus/index
 
 .. include: readme_footer
 

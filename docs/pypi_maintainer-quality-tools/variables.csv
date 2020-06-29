@@ -1,0 +1,21 @@
+variable,default value,meaning
+DATA_DIR,~/data_dir,Odoo data directory (data_dir in config file)
+EXCLUDE,,Modules to exclude from test
+INCLUDE,,Modules to test (all, if empty)
+INSTALL_OPTIONS,,Options passed to odoo-bin/openerp-server to install modules
+MQT_TEMPLATE_DB,,Read above
+MQT_TEST_DB,,Read above
+ODOO_REPO,odoo/odoo,OCB repository against test repository
+ODOO_TEST_SELECT,ALL,Read above
+ODOO_TNLBOT,0,No yet documented
+OPTIONS,,Options passed to odoo-bin/openerp-server to execute tests
+PHANTOMJS_VERSION,,Version of PhantomJS
+SERVER_EXPECTED_ERRORS,,# of expected errors after tests
+TRAVIS_DEBUG_MODE,0,Read above
+TRAVIS_PDB,,Activate pdb to local test (experimental)
+UNBUFFER,True,Use unbuffer (colors) to log results
+UNIT_TEST,,Read above
+TEST,,Read above
+VERSION,,Odoo version to test (see above)
+WEBSITE_REPO,,Load package for website tests
+WKHTMLTOPDF_VERSION,0.12.4,Version of wkhtmltopdf (value are 0.12.1 and 0.12.5)
