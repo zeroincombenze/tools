@@ -15,6 +15,7 @@ W7940,|no_check|,,,,|check|,dangerous-view-replace-wo-priority
 W7950,|no_check|,,,,|check|,odoo-addons-relative-import
 E8102,|no_check|,,,,|check|,invalid-commit
 C8103,|no_check|,,,,|check|,`manifest-deprecated-key <https://pypi.org/project/pylint-odoo/1.4.0>`_
+W8103,|no_check|,,,,|check|,translation-field
 C8104,|no_check|,,,,|check|,`class-camelcase <https://pypi.org/project/pylint-odoo/1.4.0>`_
 W8104,|no_check|,,,,|check|,api-one-deprecated
 C8105,|no_check|,,,,|check|,`license-allowed <https://pypi.org/project/pylint-odoo/1.4.0>`_

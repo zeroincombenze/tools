@@ -25,9 +25,9 @@ copyright = '2016-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '0.2.3.3'
+version = '0.2.3.4'
 # The full version, including alpha/beta/rc tags
-release = '0.2.3.3'
+release = '0.2.3.4'
 
 
 # -- General configuration ---------------------------------------------------
@@ -106,18 +106,18 @@ html_theme = 'nature'
 html_theme_options = {
     # 'canonical_url': '',
     # 'analytics_id': 'UA-XXXXXXX-1',
-    ## 'logo_only': True,
+    # 'logo_only': False,
     # 'display_version': True,
-    ## 'prev_next_buttons_location': 'top',
+    # 'prev_next_buttons_location': 'bottom',
     # 'style_external_links': False,
     # 'vcs_pageview_mode': '',
-    ## 'style_nav_header_background': '#d0d0d0',
+    # 'style_nav_header_background': 'white',
     # Toc options
     # 'collapse_navigation': True,
     # 'sticky_navigation': True,
     # 'navigation_depth': 4,
     # 'includehidden': True,
-    # 'titles_only': False,
+    # 'titles_only': False
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

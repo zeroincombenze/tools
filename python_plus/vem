@@ -287,7 +287,7 @@ check_bin_package() {
     if [[ -n "$curver" ]]; then
         x=$(readlink -e $(which $pkg 2>/dev/null) 2>/dev/null)
         [[ -z "$x" ]] && echo "Corrupted VME: file $pkg not found!!"
-        [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "VME system-package: file $pkg is outside of virtual env"
+        [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "Warning: file $x is outside of virtual env"
     fi
 }
 
@@ -342,7 +342,7 @@ check_package() {
         fi
     fi
     x=$($PIP show $pkg|grep ^[Ll]ocation|awk -F: '{print $2}'|tr -d ', \r\n\(\)')
-    [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "VME system-package: file $pkg is outside of virtual env"
+    [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "Warning: file $x is outside of virtual env"
 }
 
 
@@ -550,7 +550,7 @@ do_venv_mgr_test() {
         x=$(readlink -e $(which $f 2>/dev/null) 2>/dev/null)
         [[ -z "$x" ]] && echo "Corrupted VME: file $f not found!!"
         [[ -z "$x" ]] && continue
-        [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "VME system-package: file $x is outside of virtual env"
+        [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "Warning: file $x is outside of virtual env"
     done
     do_deactivate "-q"
     pop_cd "-q"

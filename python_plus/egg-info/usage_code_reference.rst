@@ -1,3 +1,5 @@
+Code reference
+~~~~~~~~~~~~~~
 
 `` str.qslit(sep=None, maxsplit=-1, quotes=['"', '"'], escape=None, enquote=None, strip=None)``
 

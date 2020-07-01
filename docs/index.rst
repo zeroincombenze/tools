@@ -10,7 +10,12 @@ Welcome to tools 0.2.3 documentation!
 Overview
 --------
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
    rtd_description
+
 
 Devel tools
 -----------

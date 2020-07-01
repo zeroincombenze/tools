@@ -13,10 +13,11 @@ python_plus 0.1.4.1
 Overview
 ========
 
-Documentation generator
------------------------
+Python supplemental features
+----------------------------
 
-Python support library.
+python_plus adds various features to python 2 and python 3 programs.
+It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
 
 
 
@@ -25,15 +26,39 @@ Python support library.
 Usage
 =====
 
-
-Quoted string functions.
-
 Code example
 ------------
 
-Using class __:
+class / type test
+~~~~~~~~~~~~~~~~~
 
-::
+Test if a string is unicode.
+
+On Py2, this gives us:
+
+    >>> s = 'Hello World'
+    >>> isinstance(object, str)
+    True
+
+On Py3, this gives us:
+
+    >>> s = b'Hello World'
+    >>> isinstance(object, bytes)
+    True
+
+
+Then, for example, the following code has the same effect on Py2 as on Py3:
+
+    >>> from python_plus import isbytestr
+    >>> s = b'Hello World'
+    >>> isbytestr(s)
+    True
+
+
+quoted string
+~~~~~~~~~~~~~
+
+Using class __:
 
     >>> from python_plus import __
 
@@ -46,8 +71,6 @@ Using class __:
 
 General function:
 
-::
-
     >>> from python_plus import qsplit
 
     >>> my_str_list = 'abc,"d,e",fgh'
@@ -56,6 +79,9 @@ General function:
     ['abc', 'd,e', 'fgh']
 
 
+
+Code reference
+~~~~~~~~~~~~~~
 
 `` str.qslit(sep=None, maxsplit=-1, quotes=['"', '"'], escape=None, enquote=None, strip=None)``
 
@@ -94,12 +120,26 @@ Getting started
 Installation
 ------------
 
-For current version:
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`cd $HOME`
-`git@github.com:zeroincombenze/tools.git`
-`cd $HOME/tools`
-`./install_tools.sh`
+::
+
+    pip install python_plus
+
+
+|
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -op
+    source /opt/odoo/devel/activate_tools
 
 
 |
@@ -124,12 +164,12 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-05-05
+Last Update / Ultimo aggiornamento: 2020-07-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
     :alt: Alfa
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=.
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.1.4.1
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
@@ -138,23 +178,23 @@ Last Update / Ultimo aggiornamento: 2020-05-05
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=.
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=.
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.1.4.1
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.1.4.1
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/./graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/.
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.1.4.1/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.1.4.1
     :alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-0.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/./dev
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.1.4.1/dev
     :alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-0.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/./man
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.1.4.1/man
     :alt: Technical Documentation
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-0.svg
-    :target: https://erp0.zeroincombenze.it
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
+    :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/./graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/.
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.1.4.1/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.1.4.1
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org
