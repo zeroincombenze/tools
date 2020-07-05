@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.2
+__version__=0.2.3.4
 
 
 #
@@ -1860,11 +1860,13 @@ do_docs() {
         elif [[ $f =~ ^rtd_ ]]; then
             echo "{{${f:4}}}">>./rtd_template.rst
             run_traced "gen_readme.py $opts -t ./rtd_template.rst -o $docs_dir/$f.rst"
+            run_traced "rm ./rtd_template.rst"
         elif [[ $f =~ ^pypi_ ]]; then
-            x=$(echo $f|grep -Eo "^pypi.*rtd")
-            x=${x:5: -4}
-            b=$(echo $f|grep -Eo "rtd.*")
-            run_traced "cp ~/dev/pypi/$x/$x/docs/$b.rst $docs_dir/$f.rst"
+            x=$(echo $f|grep -Eo "^pypi.*/index")
+            b=${x:0: -6}
+            x=${x:5: -6}
+            [[ -d $docs_dir/$b ]] || run_traced "mkdir -p $docs_dir/$b"
+            run_traced "rsync -avz --delete ~/dev/pypi/$x/$x/docs/ $docs_dir/$b/"
         fi
     done
     run_traced "gen_readme.py $opts"

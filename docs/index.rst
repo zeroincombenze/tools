@@ -46,6 +46,27 @@ Python plus
 
    pypi_python_plus/index
 
+
+Odoo supercore
+--------------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_odoo_score/index
+
+
+Clodoo
+------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_clodoo/index
+
+
 .. include: readme_footer
 
 Indices and tables

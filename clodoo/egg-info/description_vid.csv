@@ -1,0 +1,6 @@
+Parameter,name,standard value,versioned value,reserved to oca,Note
+xmlrpc port,RPCPORT,8069,8160 + major version,8260 + major version,
+db_user,USER,odoo,odoo{major_version},odoo{major_version},i.e odoo11
+config file,CONFN,odoo[-server].conf,odoo{major_version}-server.conf,odoo{major_version}-oca.conf,Directory /etc/odoo
+log file,FLOG,odoo[-server].log,odoo{major_version}-server.log,odoo{major_version}-oca.log,Directory /var/log/odoo
+pid file,FPID,odoo[-server].pid,odoo{major_version}-server.pid,odoo{major_version}-oca.pid,Directory /var/run/odoo

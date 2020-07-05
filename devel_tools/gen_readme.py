@@ -109,7 +109,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.3.2"
+__version__ = "0.2.3.4"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -1480,7 +1480,7 @@ def set_default_values(ctx):
     ctx['summary'] = ctx['manifest'].get(
         'summary', ctx['name']).strip().replace('\n', ' ')
     ctx['zero_tools'] = '`Zeroincombenze Tools ' \
-                        '<https://github.com/zeroincombenze/tools>`__'
+                        '<https://zeroincombenze-tools.readthedocs.io/>`__'
     if ctx['odoo_layer'] == 'ocb':
         ctx['local_path'] = '%s/%s' % (os.environ['HOME'], ctx['branch'])
     elif ctx['odoo_layer'] == 'repository':

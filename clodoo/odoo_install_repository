@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
-# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com <info@shs-av.com>
+# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com <info@shs-av.com>
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -231,6 +231,18 @@ update_odoo_conf() {
     fi
 }
 
+update_confn() {
+  # update_confn(confn dstpath)
+  if [ -z "$1" ]; then
+    local confn=$(build_odoo_param CONFN $odoo_vid)
+  else
+    local confn=$1
+  fi
+  local DSTPATH=$2
+  if [ $opt_noconf -eq 0 ]; then
+    [[ ! $(grep "^addons_path *= .*$DSTPATH" $confn) ]] && run_traced "sed -i -e \"s|^addons_path *=.*|&,$DSTPATH|\" $confn"
+  fi
+}
 
 OPTOPTS=(h        b          c        C          D        j        L        m          n            O         o         q           r          U       u          V           v           y       1)
 OPTDEST=(opt_help opt_branch opt_conf opt_noconf opt_ucfg opt_only opt_link opt_multi  opt_dry_run  opt_org   opt_odir  opt_verbose opt_updrmt opt_upd opt_user   opt_version opt_verbose opt_yes opt_one)
@@ -273,7 +285,7 @@ if [ $opt_noconf -ne 0 -a $opt_ucfg -ne 0 ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Add or duplicate odoo repository into local filesystem"\
-  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [ $opt_verbose -eq -1 ]; then
@@ -348,6 +360,7 @@ if [ -z "$new_odoo_vid" ]; then
     else
       run_traced "git pull origin $odoo_rver" "$pkg_user"
     fi
+    update_confn "" $DSTPATH
     exit 0
   elif [ $opt_updrmt -eq 0 ]; then
     rmdir_if_exists $RPTNAME $odoo_vid ""
@@ -363,7 +376,6 @@ if [ -z "$new_odoo_vid" ]; then
     if [ -n "$opt_odir" ]; then
       pardir=$(dirname $opt_odir)
     else
-      # pardir=$(build_odoo_param PARENTDIR $odoo_vid "$RPTNAME" $def_opt_org)
       pardir=$(dirname $DSTPATH)
     fi
     if [ "$PWD" != "$pardir" ]; then
@@ -489,12 +501,10 @@ fi
 if [ -z "$(grep "$RPTNAME/" .gitignore 2>/dev/null)" ]; then
    run_traced "echo "$RPTNAME/">>.gitignore"
 fi
-cfgfn=$(build_odoo_param CONFN "$new_odoo_vid")
+confn=$(build_odoo_param CONFN "$new_odoo_vid")
 if [ "$RPTNAME" == "OCB" ]; then
   DSTPATH="$DSTPATH/addons"
 fi
-if [ $opt_noconf -eq 0 ]; then
-  [[ ! $(grep "^addons_path *= .*$DSTPATH" $cfgfn) ]] && run_traced "sed -i -e \"s|^addons_path *=.*|&,$DSTPATH|\" $cfgfn"
-fi
+update_confn $confn $DSTPATH
 rm -f $TMPFILE
 exit 0

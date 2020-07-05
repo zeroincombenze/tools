@@ -32,7 +32,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.3.2
+__version__=0.2.3.4
 
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
@@ -1272,8 +1272,10 @@ OPTS=
 [ -n "$opt_from" ] && OPTS="$OPTS -F$opt_from"
 [ -n "$opt_copy" ] && OPTS="${OPTS} -C$opt_copy"
 [ -n "$opt_rule" ] && OPTS="${OPTS} -R$opt_rule"
+[[ "${fullname: -1}" == "/" ]] && fullname="${fullname:0: -1}"
 if [ -d $fullname ]; then
-    LIST="$(find $fullname $optfnd -name '*.py' -or -name '*.xml' -not -path '*/\.idea/*' -not -path '*/docs/*')"
+    LIST="$(find $fullname $optfnd -name '*.py' -or -name '*.xml' -not -path '*/\.idea/*' -not -path '*/docs/*'|tr '\n' ' ')"
+    [ -d $fullname/static ] && LIST="$fullname/static $LIST"
 else
     LIST=$(readlink -e $fullname)
 fi
@@ -1285,13 +1287,28 @@ fi
 for fl in $LIST; do
     sts=0
     if [ -d $fl ]; then
+      [ $opt_verbose -gt 0 ] && echo "Scanning $fl ..."
+      b=$(basename $fl)
+      if [[ "$b" == "static" ]]; then
+          if [ $odoo_ver -le 8 ]; then
+              if [[ ! -d $fl/src && -d $fl/description ]]; then
+                  run_traced "mkdir $fl/src"
+                  run_traced "mv $fl/description $fl/src/img"
+                  [[ -f $fl/src/img/index.html ]] && run_traced "rm -f $fl/src/img/index.html"
+              fi
+          else
+              if [[ -d $fl/src && -d $fl/src/img && ! -d $fl/description ]]; then
+                  run_traced "mv$fl/src/img $fl/description"
+                  run_traced "rmdir $fl/src"
+              fi
+          fi
+      fi
       p=$fl
       b="*"
-      [ $opt_verbose -gt 0 ] && echo "Reading $p ..."
     else
       p=$(dirname $fl)
       b=$(basename $fl)
-      [ $opt_verbose -gt 0 ] && echo "Reading $b in $p ..."
+      [ $opt_verbose -gt 0 ] && echo "Scanning $b in $p ..."
     fi
     pushd $p >/dev/null
     for f in $b; do

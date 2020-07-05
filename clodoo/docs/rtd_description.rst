@@ -1,0 +1,252 @@
+.. toctree::
+   :maxdepth: 2
+
+Introduction
+____________
+
+Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.
+
+With clodoo you can do massive operations on 1 or more Odoo databases based on
+different Odoo versions. Main operation are:
+
+* create consistent database to run tests
+* repeat consistent action on many db with same or different Odoo version
+* repeat above actions on every new database
+
+clodoo is also a PYPI package to simplify RPC connection to Odoo.
+The PYPI package is a hub to oerplib and odoorpc packages, so generic python client
+can execute any command to any Odoo version server (from 6.1 to 13.0)
+
+Available commands & features are:
+
++----------------------------------+------------------------------+
+| Function                         | Note                         |
++----------------------------------+------------------------------+
+| Add new repository               | odoo_install_repository      |
++----------------------------------+------------------------------+
+| Update paid invoice              | inv2draft_n_restore.py       |
++----------------------------------+------------------------------+
+| List requirement of Odoo         | list_requirements.py         |
++----------------------------------+------------------------------+
+| Create full configurated Odoo DB | manage_db                    |
++----------------------------------+------------------------------+
+| Manage Odoo installation         | manage_odoo                  |
++----------------------------------+------------------------------+
+| Set Odoo Skin (backoffice)       | odoo_skin.sh                 |
++----------------------------------+------------------------------+
+| Run Odoo instance to debug       | run_odoo_debug               |
++----------------------------------+------------------------------+
+| Manage version depending names   | transodoo.py                 |
++----------------------------------+------------------------------+
+| General Purpose RPC              | clodoo.py                    |
++----------------------------------+------------------------------+
+| Migrate Odoo                     | migrate_odoo.py (deprecated) |
++----------------------------------+------------------------------+
+| Examples                         | example*.py                  |
++----------------------------------+------------------------------+
+
+
+
+
+
+clodoo.py: general Purpose RPC
+------------------------------
+
+clodoo.py ia general purpose xmlrpc / json interface.
+It is called by bash console, there is no funcional web/GUI interface.
+
+
+    $ usage: clodoo.py [-h] [-A actions] [-b version] [-c file] [-d regex] [-D]
+                 [-l iso_lang] [-n] [-p dir] [-P password] [-q] [-r port]
+                 [-U username] [-u list] [-v] [-V] [-x]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -A actions, --action-to-do actions
+                            action to do (use help to dir)
+      -b version, --odoo-branch version
+                            talk server Odoo version
+      -c file, --config file
+                            configuration command file
+      -d regex, --dbfilter regex
+                            DB filter
+      -D, --with-demo       create db with demo data
+      -l iso_lang, --lang iso_lang
+                            user language
+      -n, --dry-run         test execution mode
+      -p dir, --data-path dir
+                            Import file path
+      -P password, --pwd password
+                            login password
+      -q, --quiet           run silently
+      -r port, --xmlrpc-port port
+                            xmlrpc port
+      -U username, --user username
+                            login username
+      -u list, --upgrade-modules list
+                            Module list to upgrade
+      -v, --verbose         run with debugging output
+      -V, --version         show program's version number and exit
+      -x, --exit-on-error   exit on error
+
+
+Multiple Odoo installations/versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All the tools manage multiple Odoo installations and versions.
+
+When you type any tools commmand, you can issue Odoo Version Identificator
+called vid; by Odoo vid tools can assume Odoo version, directory tree
+and other configuration values. You can override any value.
+
+Odoo vid may be:
+
+* Full Odoo version, i.e. *12.0*
+* Major Odoo version, i.e. *12*
+* One of above version prefixed by one upper/lowercase of: 'v', 'odoo', 'oca' followed by an optional hyphen; i.e. *odoo-12*, *oca12*, *v12*
+
++-------------+---------+--------------------+---------------------------------+------------------------------+-------------------------+
+| Parameter   | name    | standard value     | versioned value                 | reserved to oca              | Note                    |
++-------------+---------+--------------------+---------------------------------+------------------------------+-------------------------+
+| xmlrpc port | RPCPORT | 8069               | 8160 + major version            | 8260 + major version         |                         |
++-------------+---------+--------------------+---------------------------------+------------------------------+-------------------------+
+| db_user     | USER    | odoo               | odoo{major_version}             | odoo{major_version}          | i.e odoo11              |
++-------------+---------+--------------------+---------------------------------+------------------------------+-------------------------+
+| config file | CONFN   | odoo[-server].conf | odoo{major_version}-server.conf | odoo{major_version}-oca.conf | Directory /etc/odoo     |
++-------------+---------+--------------------+---------------------------------+------------------------------+-------------------------+
+| log file    | FLOG    | odoo[-server].log  | odoo{major_version}-server.log  | odoo{major_version}-oca.log  | Directory /var/log/odoo |
++-------------+---------+--------------------+---------------------------------+------------------------------+-------------------------+
+| pid file    | FPID    | odoo[-server].pid  | odoo{major_version}-server.pid  | odoo{major_version}-oca.pid  | Directory /var/run/odoo |
++-------------+---------+--------------------+---------------------------------+------------------------------+-------------------------+
+
+
+
+Examples:
+* Official odoo 12.0: vid=v12 -> Directory=/opt/odoo/v12, xmlport=8069, config=/etc/odoo/odoo.conf
+* Backup odoo 12.0: vid=12.0 -> Directory=/opt/odoo/12.0, xmlport=8172, config=/etc/odoo/odoo12.conf
+* Odoo OCA 10.0 to test: vid=oca-10.0 -> Directory=/opt/odoo/oca-10.0, xmlport=8270, config=/etc/odoo/odoo10-oca.conf
+* Odoo 8.0 with old data: vid=8.0 -> Directory=/opt/odoo/8.0, xmlport=8168, config=/etc/odoo/odoo8-server.conf
+
+
+Directory Tree
+
+::
+
+    /opt/odoo/{vid}
+                  \- server     (only in old 6.1/7.0 installations)
+                          \- openerp
+                  \- openerp    (7.0, 8.0 and 9.0)
+                  \- odoo        (10.0, 11.0, 12.0, 13.0)
+                  \- {repository}
+
+Import_file
+~~~~~~~~~~~
+
+Import file loads data from a csv file into DB. This action works as standard
+Odoo but has some enhanced features.
+Field value may be:
+
+* external identifier, format module.name (as Odoo standard)
+  i.e. 'base.main_company'
+* text with macros, format ${macro} (no Odoo standard), dictionary passed
+  i.e. '${company_id}'
+  text may contains one or more macros
+* text with DB extraction, format ${model:values} (w/o company, no Odoo std)
+  i.e. '${res.company:your company}'
+  data is searched by name
+* text with DB extraction, format ${model::values} (with company, no Odoo std)
+  i.e. '${res.partner::Odoo SA}'
+  data is searched by name, company from ctx['company_id']
+* text with DB extraction, format ${model(params):values} (w/o company)
+  i.e. '${res.company(zip):1010}'
+  data is searched by param(s)
+* text with function, format ${function(params)::values} (add company)
+  i.e. '${res.partner(zip)::1010}'
+  data is searched by param(s), company from ctx['company_id']
+* full text function, format ${function[field](params):values} (w/o company)
+  full text function, format ${function[field](params)::values} (add company)
+  i.e. '${res.partner[name](zip)::1010}'
+  data is searched as in above function;
+  returned value is not id but `field`
+* crypted data, begins with $1$!
+  i.e '$1$!abc'
+* expression, begin with = (deprecated)
+* odoo multiversion text, format model.constant.0 (in model replace '.' by '_')
+  i.e. 'res_groups.SALES.0'
+* odoo versioned value, format model.value.majversion
+  i.e. 'res_groups.Sales.8'
+
+Predefines macros (in ctx):
+
+        company_id     default company_id
+        company_name   name of default company (if company_id not valid)
+        country_code   ISO-3166 default country (see def_country_id)
+        customer-supplier if field contains 'customer' or 'client' set customer=True if it contains 'supplier' or 'vendor' or 'fornitore' set supplier=True
+        def_country_id default country id (from company or from user)
+        def_email      default mail; format: {username}{majversion}@example.com
+        full_model     load all field values, even if not in csv
+        header_id      id of header when import header/details files
+        lang           language, format lang_COUNTRY, i.e. it_IT (default en_US)
+        name2          if present, is merged with name
+        name_first     if present with name last, are merged to compose name
+        name_last      if present with name first, are merged to compose name
+        street2        if present and just numeric, is merged with street
+        zeroadm_mail   default user mail from conf file or <def_mail> if -D switch
+        zeroadm_login  default admin username from conf file
+        oneadm_mail    default user2 mail from conf file or <def_mail> if -D switch
+        oneadm_login   default admin2 username from conf file
+        botadm_mail    default bot user mail from conf file or <def_mail> if -D switch
+        botadm_login   default bot username from conf file
+        _today         date.today()
+        _current_year  date.today().year
+        _last_year'    date.today().year - 1
+        TNL_DICT       dictionary with field translation, format csv_name: field_name; i.e {'partner_name': 'name'} or csv_position: field_name, i.e. {'0': 'name'}
+        TNL_VALUE      dictionary with value translation for field; format is field_name: {csv_value: field_value, ...} i.e. {'country': {'Inghilterra': 'Regno Unito'}} special value '$BOOLEAN' return True or False
+        DEFAULT        dictionary with default value, format field_name: value
+        EXPR           evaluate value from expression, format csv_name: expression; expression can refer to other fields of csv record in format csv[field_name] or other fields of record in format row[field_name] i.e. {'is_company': 'row["ref"] != ""'} {'is_company': 'csv["CustomerRef"] != ""'}
+        MANDATORY      dictionary with mandatory field names
+
+
+Import searches for existing data (this behavior differs from Odoo standard)
+Search is based on <o_model> dictionary;
+default field to search is 'name' or 'id', if passed.
+
+::
+
+    File csv can contain some special fields:
+    db_type: select record if DB name matches db type; values are
+        'D' for demo,
+        'T' for test,
+        'Z' for zeroincombenze production,
+        'V' for VG7 customers
+        'C' other customers
+    oe_versions: select record if matches Odoo version
+        i.e  +11.0+10.0 => select record if Odoo 11.0 or 10.0
+        i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
+
+
+odoo_install_repository: manage repositories
+--------------------------------------------
+
+    Usage: odoo_install_repository [-h][-b branch][-c file][-CDjLmn][-O git-org][-o path][-qrU][-u username][-Vvy1] git_repo odoo_vid new_odoo_vid
+    Add or duplicate odoo repository into local filesystem
+     -h              this help
+     -b branch       default odoo branch
+     -c file         configuration file (def .travis.conf)
+     -C              do not touch configuration file (conflict with -D)
+     -D              update default values in /etc configuration file before creating script (conflict with -C)
+     -j              install only repository owned by git organization
+     -L              create symbolic link rather copy files (if new_odoo_ver supplied)
+     -m              multi-version odoo environment
+     -n              do nothing (dry-run)
+     -O git-org      git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)
+     -o path         odoo directory
+     -q              silent mode
+     -r              do just update remote info (if no new_odoo_ver supplied)
+     -U              do not install, do upgrade
+     -u username     execute as username (def=odoo)
+     -V              show version
+     -v              verbose mode
+     -y              assume yes
+     -1              if clone depth=1
+
