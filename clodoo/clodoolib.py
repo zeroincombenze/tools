@@ -164,7 +164,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.9.4"
+__version__ = "0.3.9.5"
 
 
 #############################################################################
@@ -522,21 +522,24 @@ def read_config(ctx):
         ctx['conf_fn'] = ctx.get('caller', 'clodoo') + ".conf"
     conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
     ctx['conf_fns'] = []
+    base = False
     if ODOO_CONF:
         if 'odoo_vid' in ctx:
             fnver = build_odoo_param('CONFN', ctx['odoo_vid'], multi=True)
             if os.path.isfile(fnver):
                 ctx['conf_fns'].append(fnver)
+                base = os.path.basename(fnver)
             else:
                 fnver = build_odoo_param('CONFN', ctx['odoo_vid'])
                 if os.path.isfile(fnver):
                     ctx['conf_fns'].append(fnver)
+                    base = os.path.basename(fnver)
         if isinstance(ODOO_CONF, list):
-            if 'odoo_vid' in ctx:
-                base = os.path.basename(fnver)
             for f in ODOO_CONF:
+                fn = f
                 if 'odoo_vid' in ctx:
-                    fn = os.path.join(os.path.dirname(f), base)
+                    if base:
+                        fn = os.path.join(os.path.dirname(f), base)
                     if os.path.isfile(fn) and fn not in ctx['conf_fns']:
                         ctx['conf_fns'].append(fn)
                         break

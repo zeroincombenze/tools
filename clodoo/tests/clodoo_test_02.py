@@ -30,7 +30,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.3.9.4"
+__version__ = "0.3.9.5"
 
 
 MODULE_ID = 'clodoo'
