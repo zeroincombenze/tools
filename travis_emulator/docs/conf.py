@@ -21,13 +21,13 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'travis_emulator'
-copyright = '2019, Antonio Maria Vigliotti'
+copyright = '2019-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '0.2.3.1'
+version = '0.2.3.2'
 # The full version, including alpha/beta/rc tags
-release = '0.2.3.1'
+release = '0.2.3.2'
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,7 +40,9 @@ release = '0.2.3.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
+    'sphinx_rtd_theme',
+    'sphinx.ext.todo',
+    'sphinx.ext.githubpages',
 ]
 
 
@@ -67,22 +69,23 @@ language = 'en'
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
-                    'description*.rst', 'descrizione*.rst', 'features*.rst',
-                    'oca_diff*.rst', 'certifications*.rst', 'prerequisites*.rst',
-                    'installation*.rst', 'configuration*.rst', 'upgrade*.rst',
-                    'support*.rst', 'usage*.rst', 'maintenance*.rst',
-                    'troubleshooting*.rst', 'known_issues*.rst',
-                    'proposals_for_enhancement*.rst', 'history*.rst', 'faq*.rst',
-                    'sponsor*.rst', 'copyright_notes*.rst', 'avaiable_addons*.rst',
-                    'contact_us*.rst',
-                    '__init__.rst', 'name*.txt', 'summary*.txt', 'sommario*.txt',
-                    'maturity*.txt', 'module_name*.txt', 'repos_name*.txt',
-                    'today*.txt',
-                    'authors*.txt', 'contributors*.txt', 'translators*.txt',
-                    'acknowledges*.txt']
+                    'description*', 'descrizione*', 'features*',
+                    'oca_diff*', 'certifications*', 'prerequisites*',
+                    'installation*', 'configuration*', 'upgrade*',
+                    'support*', 'usage*', 'maintenance*',
+                    'troubleshooting*', 'known_issues*',
+                    'proposals_for_enhancement*', 'history*', 'faq*',
+                    'sponsor*', 'copyright_notes*', 'avaiable_addons*',
+                    'contact_us*',
+                    '__init__*', 'name*', 'summary*', 'sommario*',
+                    'maturity*', 'module_name*', 'repos_name*',
+                    'today*',
+                    'authors*', 'contributors*', 'translators*',
+                    'acknowledges*']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+# pygments_style = None
+pygments_style = 'sphinx'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -92,14 +95,16 @@ pygments_style = None
 #
 # on_rtd is whether we are on readthedocs.org,
 # this line of code grabbed from docs.readthedocs.org
-#     html_theme = 'master'
+# html_theme = 'sphinx_rtd_theme'
+# html_theme = 'python_docs_theme'
+html_theme = 'nature'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
-    'canonical_url': '',
+    # 'canonical_url': '',
     # 'analytics_id': 'UA-XXXXXXX-1',
     # 'logo_only': False,
     # 'display_version': True,
@@ -129,3 +134,4 @@ html_static_path = ['_static']
 # 'searchbox.html'].
 #
 # html_sidebars = {}
+html_logo = 'logozero_180x46.png'

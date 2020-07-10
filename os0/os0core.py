@@ -56,9 +56,8 @@ Notes:
    No any other OS has this feature, so in version of module there is no
    support for filename version
 """
-from __future__ import print_function,unicode_literals
-# from __future__ import print_function
-from past.builtins import basestring
+from __future__ import print_function, unicode_literals
+from past.builtins import basestring, long
 from builtins import chr
 
 import os
@@ -71,7 +70,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.15.1"
+__version__ = "0.2.15.2"
 
 
 class Os0():

@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=====================================
-Welcome to tools 0.2.3.1 documentation!
-=====================================
+=======================================
+Welcome to tools 0.2.3.2 documentation!
+=======================================
 
 Overview
 --------
@@ -25,16 +25,6 @@ Devel tools
    :caption: Contents:
 
    pypi_devel_tools/index
-
-
-MQT
----
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   pypi_maintainer-quality-tools/index
 
 
 Python plus
@@ -65,6 +55,26 @@ Clodoo
    :caption: Contents:
 
    pypi_clodoo/index
+
+
+MQT
+---
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_maintainer-quality-tools/index
+
+
+travis_emulator
+---------------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_travis_emulator/index
 
 
 .. include: readme_footer

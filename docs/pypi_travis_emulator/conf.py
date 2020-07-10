@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Configuration file for the Sphinx documentation on 2019-12-05 08:37:34
+# Configuration file for the Sphinx documentation on 2019-11-01 18:49:32
 #
 # This file does only contain a selection of the most common options. For a
 # full list see the documentation:
@@ -20,8 +20,8 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'tools'
-copyright = '2019-20, SHS-AV s.r.l.'
+project = 'travis_emulator'
+copyright = '2016-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
@@ -43,7 +43,6 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
-    'sphinx.ext.autodoc',
 ]
 
 
@@ -82,8 +81,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'maturity*', 'module_name*', 'repos_name*',
                     'today*',
                     'authors*', 'contributors*', 'translators*',
-                    'acknowledges*',
-                    'MAINPAGE.rst']
+                    'acknowledges*']
 
 # The name of the Pygments (syntax highlighting) style to use.
 # pygments_style = None
@@ -119,7 +117,7 @@ html_theme_options = {
     # 'sticky_navigation': True,
     # 'navigation_depth': 4,
     # 'includehidden': True,
-    # 'titles_only': False,
+    # 'titles_only': False
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

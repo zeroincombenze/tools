@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='os0',
-      version='0.2.15.1',
+      version='0.2.15.2',
       description='OS indipendent interface',
       long_description="""
 OS interface for Linux, OpenVMS and Windows
