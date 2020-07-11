@@ -27,7 +27,7 @@ account_tax_kind:
     [6.1]:  'account.tax.kind'
 tax_kind_id:
     $tokens
-    [0]:    tax_nature_id
+    [0]:    nature_id
     [6.1]:  kind_id
 fatturapa_binding:
     odoo.addons.$tokens.bindings

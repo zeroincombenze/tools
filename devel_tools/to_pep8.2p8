@@ -120,29 +120,14 @@ a8_remark_openerp: # http://openerp.com
     [6.1]: https://odoo.com
 #
 # Remark openerp
+a8_remark_openerp1: # http://openerp-italia.com
+    [0]: http://openerp-italia.com
+    [6.1]: https://odoo-italia.com
+#
+# Remark openerp
 a8_remark_openerp2: # OpenERP
     [0]: OpenERP
     [6.1]: Odoo
-#
-# Remark license
-a8_remark_license1: # License
-    [6.1]: AGPL-3.0
-    [8.0]: LGPL-3.0
-#
-# Remark license
-a8_remark_license2: # License
-    [0]: (http://www.gnu.org/licenses)
-    [6.1]: (https://www.gnu.org/licenses)
-#
-# Remark license
-a8_remark_license3: # License
-    [6.1]: (http://www.gnu.org/licenses/agpl)
-    [8.0]: (http://www.gnu.org/licenses/lgpl)
-#
-# Remark license
-a8_remark_license4: # License
-    [6.1]: (https://www.gnu.org/licenses/agpl)
-    [8.0]: (https://www.gnu.org/licenses/lgpl)
 #
 # Rule instance basestring
 # a8_instance_basestring:

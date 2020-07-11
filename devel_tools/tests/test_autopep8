@@ -4,30 +4,30 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])" | python)
 for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
-    . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  fi
+    if [ -e $d/z0librc ]; then
+        . $d/z0librc
+        Z0LIBDIR=$d
+        Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+        break
+    fi
 done
 if [ -z "$Z0LIBDIR" ]; then
-  echo "Library file z0librc not found!"
-  exit 2
+    echo "Library file z0librc not found!"
+    exit 2
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
 if [ -z "$Z0TLIBDIR" ]; then
-  echo "Library file z0testrc not found!"
-  exit 2
+    echo "Library file z0testrc not found!"
+    exit 2
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.3.4
+__version__=0.2.3.6
 
 
 test_01() {
@@ -38,8 +38,8 @@ test_01() {
     TESTOUT=$TESTDIR/res/$TESTFN.out
     TEST2P8=$TESTDIR/res/$TESTFN.2p8
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TEST2P8
+        rm -f $TESTOUT
+        cat << EOF > $TEST2P8
 #
 a:
     \$name =
@@ -51,114 +51,123 @@ c:
     [8.0]:  MyClass
     [10.0]: MyClass
 EOF
-      cat <<EOF >$TESTSRC
+        cat <<EOF >$TESTSRC
 from openerp.osv import orm, fields
 A = 1
 B = A
 class my_class(osv.osv):
     pass
+
 EOF
     fi
     # Validate against Odoo 6.1
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp.osv import orm, fields
 a = 1
 B = A
 class my_class(osv.osv):
     pass
+
 EOF
-      $RUNDIR/topep8 -qAAN -F6.1 -b6.1 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F6.1 -b6.1 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AAN -F6.1 -b6.1" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 7.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp.osv import orm, fields
 a = 1
 B = A
 class my_class(orm.Model):
     pass
+
 EOF
-      $RUNDIR/topep8 -qAAN -F6.1 -b7.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F6.1 -b7.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AAN -F6.1 -b7.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 8.0 -u
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp.osv import orm, fields
 a = 1
 B = A
 class MyClass(orm.Model):
     pass
+
 EOF
-      $RUNDIR/topep8 -qAANu -F6.1 -b8.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAANu -F6.1 -b8.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AANu -F6.1 -b8.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 8.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp import models, fields
 a = 1
 B = A
 class MyClass(models.Model):
     pass
+
 EOF
-      $RUNDIR/topep8 -qAAN -F6.1 -b8.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F6.1 -b8.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AAN -F6.1 -b8.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 9.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp import models, fields
 a = 1
 B = A
 class MyClass(models.Model):
     pass
+
 EOF
-      $RUNDIR/topep8 -qAAN -F6.1 -b9.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F6.1 -b9.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AAN -F6.1 -b9.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 10.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from odoo import models, fields
 a = 1
 B = A
 class MyClass(models.Model):
     pass
+
 EOF
-      $RUNDIR/topep8 -qAAN -F6.1 -b10.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F6.1 -b10.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AAN -F6.1 -b10.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 11.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 from odoo import models, fields
 a = 1
 B = A
 class MyClass(models.Model):
     pass
+
 EOF
-      $RUNDIR/topep8 -qAAN -F6.1 -b11.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F6.1 -b11.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AAN -F6.1 -b11.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 12.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 from odoo import models, fields
 a = 1
 B = A
 class MyClass(models.Model):
     pass
+
 EOF
-      $RUNDIR/topep8 -qAAN -F6.1 -b12.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F6.1 -b12.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AAN -F6.1 -b12.0" "$TESTOUT" "$TESTRES" "diff"
 }
@@ -172,8 +181,8 @@ test_02() {
     TESTOUT=$TESTDIR/res/$TESTFN.out
     TEST2P8=$TESTDIR/res/$TESTFN.2p8
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TEST2P8
+        rm -f $TESTOUT
+        cat <<EOF >$TEST2P8
 #
 a:
     \$name =
@@ -184,7 +193,7 @@ c:
     [6.1]:    my_class
     [8.0]: MyClass
 EOF
-      cat <<EOF >$TESTSRC
+        cat <<EOF >$TESTSRC
 # -*- coding: utf-8 -*-
 from odoo import models, fields
 
@@ -196,7 +205,7 @@ EOF
     fi
     # Validate against Odoo 6.1
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp.osv import orm, fields
 
@@ -206,12 +215,12 @@ B = A
 class my_class(osv.osv):
 
 EOF
-      $RUNDIR/topep8 -qAA -F10.0 -b6.1 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F10.0 -b6.1 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -F10.0 -b6.1" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F10.0 -b6.1" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 7.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp.osv import orm, fields
 
@@ -221,12 +230,12 @@ B = A
 class my_class(orm.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -F10.0 -b7.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F10.0 -b7.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -F10.0 -b7.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F10.0 -b7.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 8.0 -u
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp.osv import orm, fields
 
@@ -236,12 +245,12 @@ B = A
 class MyClass(orm.Model):
 
 EOF
-      $RUNDIR/topep8 -qAAu -F10.0 -b8.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAANu -F10.0 -b8.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAu -F10.0 -b8.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AANu -F10.0 -b8.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 8.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp import models, fields
 
@@ -251,12 +260,12 @@ B = A
 class MyClass(models.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -F10.0 -b8.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F10.0 -b8.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -F10.0 -b8.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F10.0 -b8.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 9.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from openerp import models, fields
 
@@ -266,12 +275,12 @@ B = A
 class MyClass(models.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -F10.0 -b9.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F10.0 -b9.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -F10.0 -b9.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F10.0 -b9.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 10.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from odoo import models, fields
 
@@ -281,12 +290,12 @@ B = A
 class MyClass(models.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -F10.0 -b10.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F10.0 -b10.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -F10.0 -b10.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F10.0 -b10.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 11.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 from odoo import models, fields
 
 a = 1
@@ -295,12 +304,12 @@ B = A
 class MyClass(models.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -F10.0 -b11.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -F10.0 -b11.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -F10.0 -b11.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F10.0 -b11.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 12.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 from odoo import models, fields
 
 a = 1
@@ -309,9 +318,9 @@ B = A
 class MyClass(models.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -b12.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -b12.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -b12.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -b12.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 
@@ -322,20 +331,34 @@ test_03() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
+        rm -f $TESTOUT
+        cat <<EOF >$TESTSRC
 # (C) OpenERP (http://openerp.com)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 EOF
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 # (C) Odoo (https://odoo.com)
-# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
-
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 EOF
-      $RUNDIR/topep8 -qAA -b10.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAA -b10.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AA -b10.0 'odoo.com'" "$TESTOUT" "$TESTRES" "diff"
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+        rm -f $TESTOUT
+        cat <<EOF >$TESTSRC
+# (C) OpenERP (http://openerp.com)
+EOF
+        cat <<EOF >$TESTRES
+# -*- coding: utf-8 -*-
+# (C) Odoo (https://odoo.com)
+#
+# License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
+EOF
+        $RUNDIR/topep8 -qAA -G1 -b10.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -AA -G1 -b10.0 'odoo.com'" "$TESTOUT" "$TESTRES" "diff"
 }
 
 
@@ -346,43 +369,42 @@ test_04() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
+        rm -f $TESTOUT
+        cat <<EOF >$TESTSRC
     einv_type_model = self.env['italy.ade.invoice.type']
 EOF
-      # OCA Italy changed e-invoice document type
-      # from fatturapa.document_type (in fatturapa) to fiscal.document.type
-      cat <<EOF >$TESTRES
+        # OCA Italy changed e-invoice document type
+        # from fatturapa.document_type (in fatturapa) to fiscal.document.type
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
     einv_type_model = self.env['fiscal.document.type']
 
 EOF
-      $RUNDIR/topep8 -qAA -b10.0 -Rto_oca $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -b10.0 -Rto_oca $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -b10.0 -Rto_oca 'italy.ade.invoice.type'" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -b10.0 -Rto_oca 'italy.ade.invoice.type'" "$TESTOUT" "$TESTRES" "diff"
     # Reverse test
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      $RUNDIR/topep8 -qAA -b10.0 -Rto_oia $TESTOUT -o $TESTOUT
+        $RUNDIR/topep8 -qAAN -b10.0 -Rto_zero $TESTOUT -o $TESTOUT
     fi
-    test_result "topep8 -AA -b10.0 -Rto_oia 'italy.ade.invoice.type'" "$TESTRES" "$TESTOUT" "diff"
+    test_result "topep8 -AAN -b10.0 -Rto_zero 'italy.ade.invoice.type'" "$TESTRES" "$TESTOUT" "diff"
     #
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
+        rm -f $TESTOUT
+        cat <<EOF >$TESTSRC
 from odoo.addons.l10n_it_fatturapa.models.account import RELATED_DOCUMENT_TYPES
     einv_type_model = self.\\
         env['fiscal.document.type']
 EOF
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 from odoo.addons.l10n_it_einvoice_base.models.account import RELATED_DOCUMENT_TYPES
     einv_type_model = self.\\
         env['italy.ade.invoice.type']
-
 EOF
-      $RUNDIR/topep8 -qAA -b10.0 -Rto_oia $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAA -b10.0 -Rto_zero $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -b10.0 -Rto_oia '\\'" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AA -b10.0 -Rto_zero '\\'" "$TESTOUT" "$TESTRES" "diff"
 }
 
 
@@ -393,558 +415,39 @@ test_05() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
+        rm -f $TESTOUT
+        cat <<EOF >$TESTSRC
     name = fields.Char()
     date = fields.Date('Date')
 EOF
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
     _columns = {
         'name': fields.char(),
         'date': fields.date('Date'),
     }
-
 EOF
-      $RUNDIR/topep8 -qAA -F10.0 -b7.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAA -F10.0 -b7.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AA -F10.0 -b7.0 'fields'" "$TESTOUT" "$TESTRES" "diff"
     #
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
+        rm -f $TESTOUT
+        cat <<EOF >$TESTSRC
     _columns = {
         'name': fields.char(),
         'date': fields.date('Date'),
     }
 EOF
-      cat <<EOF >$TESTRES
+        cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
     
     name = fields.char()
     date = fields.date('Date')
-
 EOF
-      $RUNDIR/topep8 -qAA -F7.0 -b10.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAA -F7.0 -b10.0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -AA -F7.0 -b10.0 'fields'" "$TESTOUT" "$TESTRES" "diff"
-}
-
-
-
-__test_02() {
-    local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_02
-    TESTSRC=$TESTDIR/res/$TESTFN.py
-    TESTRES=$TESTDIR/res/$TESTFN.test
-    TESTOUT=$TESTDIR/res/$TESTFN.out
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
-# (C) OpenERP (http://openerp.com)
-import pdb
-from osv import osv
-import decimal_precision
-from tools.translate import _
-import netsvc
-import pooler
-from tndb import tndb
-
-class res_user(osv.osv):
-# This remark is longer than 80 characters in order to split a long line in two smaller lines
-    def __init__(self):
-        """ This help doc is longer than 80 characters in order to split a long line in two smaller lines """
-        tndb.wstamp()
-        pdb.set_trace()
-        partner = pooler.get_pool(cr.dbname).get('res.partner')
-        try:
-            order = partner.order
-        except:
-            pass
-        tndb.wlog('return',
-                  partner)
-        return (
-            partner.name
-            and partner.city
-            or ''
-        )
-
-res_user()
-
-report_sxw.report_sxw(
-    'report.test_autopep8',
-    'res.partner',
-    './autopep8.mako',
-    parser=autopep8)
-EOF
-      cat <<EOF >$TESTRES
-# (C) Odoo (http://odoo.com)
-# import pdb
-from openerp.osv import orm
-import decimal_precision
-from openerp import pooler
-# from tndb import tndb
-
-
-class res_user(orm.Model):
-    # This remark is longer than 80 characters in order to split a long line in
-    # two smaller lines
-    def __init__(self):
-        """ This help doc is longer than 80 characters in order to split a long
-        line in two smaller lines """
-        # tndb.wstamp()
-        # pdb.set_trace()
-        partner = pooler.get_pool(cr.dbname).get('res.partner')
-        try:
-            order = partner.order
-        except:                                              # pragma: no cover
-            pass
-        # tndb.wlog('return',
-        #           partner)
-        return (
-            partner.name and
-            partner.city or
-            ''
-        )
-
-
-res_user()
-
-
-report_sxw.report_sxw(
-    'report.test_autopep8',
-    'res.partner',
-    './autopep8.mako',
-    parser=autopep8)
-EOF
-      $RUNDIR/topep8 -q0 $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8" "$TESTOUT" "$TESTRES" "diff"
-
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
-# (C) Odoo (http://odoo.com)
-# import pdb
-from odoo import models
-import odoo.addons.decimal_precision
-from odoo.tools.translate import _
-from odoo import netsvc
-from odoo import pooler
-# from tndb import tndb
-
-
-class res_user(models.Model):
-    # This remark is longer than 80 characters in order to split a long line in
-    # two smaller lines
-    def __init__(self):
-        """ This help doc is longer than 80 characters in order to split a long
-        line in two smaller lines """
-        # tndb.wstamp()
-        # pdb.set_trace()
-        partner = pooler.get_pool(cr.dbname).get('res.partner')
-        try:
-            order = partner.order
-        except:                                              # pragma: no cover
-            pass
-        # tndb.wlog('return',
-        #           partner)
-        return (
-            partner.name and
-            partner.city or
-            ''
-        )
-
-
-res_user()
-
-
-report_sxw.report_sxw(
-    'report.test_autopep8',
-    'res.partner',
-    './autopep8.mako',
-    parser=autopep8)
-EOF
-      $RUNDIR/topep8 -q -b10.0 $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
-
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTSRC
-class res_user(models.Model):
-    def __init__(self):
-        return (
-            partner.name and
-            partner.city or
-            ''
-        )
-EOF
-      cat <<EOF >$TESTRES
-
-
-class res_user(osv.osv):
-    def __init__(self):
-        return (
-            partner.name and
-            partner.city or
-            ''
-        )
-EOF
-      $RUNDIR/topep8 -q -b6.0 $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8 -b6.0" "$TESTOUT" "$TESTRES" "diff"
-}
-
-__test_03() {
-    local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_03
-    TESTSRC=$TESTDIR/res/$TESTFN.py
-    TESTRES=$TESTDIR/res/$TESTFN.test
-    TESTOUT=$TESTDIR/res/$TESTFN.out
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
-# import pdb
-from openerp.osv import osv
-import openerp.addons.decimal_precision
-from openerp.tools.translate import _
-from openerp import netsvc
-from openerp import pooler
-# from tndb import tndb
-
-const1 = 10
-const2 = 20
-
-class res_user(osv.osv_memory):
-    def __init__(self, ctx=None):
-        if ctx is None:
-            ctx = {}
-        # tndb.wstamp()
-        # pdb.set_trace()
-        partner = pooler.get_pool(cr.dbname).get('res.partner')
-        # tndb.wlog('return',
-        #           partner)
-        return (
-            partner.name
-            and partner.city
-            or ''
-        )
-
-
-res_user()
-
-
-report_sxw.report_sxw(
-    'report.test_autopep8',
-    'res.partner',
-    './autopep8.mako',
-    parser=autopep8)
-EOF
-      cat <<EOF >$TESTRES
-import pdb
-from openerp.osv import orm
-import decimal_precision
-from openerp import pooler
-from tndb import tndb
-
-
-const1 = 10
-const2 = 20
-
-
-class ResUser(orm.TransientModel):
-    def __init__(self, ctx=None):
-        ctx = {} if ctx is None else ctx
-        tndb.wstamp()
-        pdb.set_trace()
-        partner = pooler.get_pool(cr.dbname).get('res.partner')
-        tndb.wlog('return',
-                  partner)
-        return (
-            partner.name and
-            partner.city or
-            ''
-        )
-
-
-ResUser()
-
-
-report_sxw.report_sxw(
-    'report.test_autopep8',
-    'res.partner',
-    './autopep8.mako',
-    parser=autopep8)
-EOF
-      $RUNDIR/topep8 -qB -c $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8 -Bc" "$TESTOUT" "$TESTRES" "diff"
-
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
-import pdb
-from odoo import models
-import odoo.addons.decimal_precision
-from odoo.tools.translate import _
-from odoo import netsvc
-from odoo import pooler
-from tndb import tndb
-
-
-const1 = 10
-const2 = 20
-
-
-class ResUser(models.TransientModel):
-    def __init__(self, ctx=None):
-        ctx = {} if ctx is None else ctx
-        tndb.wstamp()
-        pdb.set_trace()
-        partner = pooler.get_pool(cr.dbname).get('res.partner')
-        tndb.wlog('return',
-                  partner)
-        return (
-            partner.name and
-            partner.city or
-            ''
-        )
-
-
-ResUser()
-
-
-report_sxw.report_sxw(
-    'report.test_autopep8',
-    'res.partner',
-    './autopep8.mako',
-    parser=autopep8)
-EOF
-      $RUNDIR/topep8 -qBc -b10.0 $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8 -Bc -b20.0" "$TESTOUT" "$TESTRES" "diff"
-}
-
-__test_04() {
-    local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_04
-    TESTSRC=$TESTDIR/res/$TESTFN.py
-    TESTRES=$TESTDIR/res/$TESTFN.test
-    TESTOUT=$TESTDIR/res/$TESTFN.out
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
-from openerp.osv import fields, orm
-
-class res_user(osv.osv):
-    _columns = {
-        'id': fields.integer(),
-        'is_base': fields.boolean(),
-        'classification': fields.char(),
-        'description': fields.text(),
-        'architecture': fields.html(),
-        'amount': fields.float(),
-        'date_rec': fields.date(),
-        'expire': fields.datetime(),
-        'image': fields.binary(),
-        'state': fields.selection(),
-        'ref': fields.reference(),
-        'inv_ids': fields.many2one(),
-        'partner_id': fields.one2many(),
-        'relation': fields.many2many(),
-    }
-EOF
-      cat <<EOF >$TESTRES
-from openerp.osv import fields, models
-
-
-class res_user(models.Model):
-    _columns = {
-        'id': fields.integer(),
-        'is_base': fields.boolean(),
-        'classification': fields.char(),
-        'description': fields.text(),
-        'architecture': fields.html(),
-        'amount': fields.float(),
-        'date_rec': fields.date(),
-        'expire': fields.datetime(),
-        'image': fields.binary(),
-        'state': fields.selection(),
-        'ref': fields.reference(),
-        'inv_ids': fields.many2one(),
-        'partner_id': fields.one2many(),
-        'relation': fields.many2many(),
-    }
-EOF
-      $RUNDIR/topep8 -q -b8.0 $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8 -b8.0" "$TESTOUT" "$TESTRES" "diff"
-
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      cat <<EOF >$TESTRES
-from odoo import fields, models
-
-
-class res_user(models.Model):
-    _columns = {
-        'id': fields.Integer(),
-        'is_base': fields.Boolean(),
-        'classification': fields.Char(),
-        'description': fields.Text(),
-        'architecture': fields.Html(),
-        'amount': fields.Float(),
-        'date_rec': fields.Date(),
-        'expire': fields.Datetime(),
-        'image': fields.Binary(),
-        'state': fields.Selection(),
-        'ref': fields.Reference(),
-        'inv_ids': fields.Many2one(),
-        'partner_id': fields.One2many(),
-        'relation': fields.Many2many(),
-    }
-EOF
-      $RUNDIR/topep8 -q -b10.0 $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
-}
-
-__test_05() {
-    local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_05
-    TESTSRC=$TESTDIR/res/$TESTFN.py
-    TESTRES=$TESTDIR/res/$TESTFN.test
-    TESTOUT=$TESTDIR/res/$TESTFN.out
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
-""" Copyright (C) openerp-italia.org
-"""
-
-Namespace = pyxb.namespace.NamespaceForURI('urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ivp', create_if_missing=True)
-
-class example():
-    _columns = {
-        'debit_credit_vat_account_line_ids': fields.one2many('debit.credit.vat.account.line', 'statement_id', 'Debit/Credit VAT', help='The accounts containing the debit/credit VAT amount', states={'confirmed': [('readonly', True)], 'paid': [('readonly', True)], 'draft': [('readonly', False)]}),
-    }
-    def test(self):
-        p = 1 * (2
-            + 3)
-EOF
-      cat <<EOF >$TESTRES
-# -*- coding: utf-8 -*-
-#
-# Copyright 2017-2018, Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
-# Copyright 2017-2018, Associazione Odoo Italia <https://odoo-italia.org>
-#
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-#
-""" Copyright (C) odoo-italia.org
-"""
-
-
-Namespace = pyxb.namespace.NamespaceForURI(
-    'urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ivp',
-    create_if_missing=True)
-
-
-class example():
-    _columns = {
-        'debit_credit_vat_account_line_ids': fields.one2many(
-            'debit.credit.vat.account.line', 'statement_id',
-            'Debit/Credit VAT',
-            help='The accounts containing the debit/credit VAT amount',
-            states={'confirmed': [('readonly', True)], 'paid': [(
-                'readonly', True)], 'draft': [('readonly', False)]}),
-    }
-
-    def test(self):
-        p = 1 * (2 +
-                 3)
-EOF
-      $RUNDIR/topep8 -q -G $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8 -G" "$TESTOUT" "$TESTRES" "diff"
-}
-
-__test_06() {
-    local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_06
-    TESTSRC=$TESTDIR/res/$TESTFN.py
-    TESTRES=$TESTDIR/res/$TESTFN.test
-    TESTOUT=$TESTDIR/res/$TESTFN.out
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
-from openerp.tests.common import TransactionCase
-
-
-class TestUser(TransactionCase):
-
-    def setUp(self):
-        super(TestUser, self).setUp()
-        self.res_user = self.env['res.user']
-        self.myname = self.res_user.search(
-            [('name', '=', 'Me')]).name
-        self.m1 = self.res_user.create({'name': self.env.ref('base.it').id})
-EOF
-      cat <<EOF >$TESTRES
-from openerp.tests.common import TransactionCase
-
-
-class TestUser(TransactionCase):
-    def env7(self, model):
-        return self.registry(model)
-
-    def setUp(self):
-        super(TestUser, self).setUp()
-        self.res_user = self.env7('res.user')
-        ids = self.res_user.search(self.cr, self.uid, [('name', '=', 'Me')])
-        self.myname = self.res_user.browse(self.cr, self.uid, ids[0]).name
-        self.m1 = self.res_user.create(self.cr, self.uid, {'name': self.ref(
-            'base.it')})
-EOF
-      $RUNDIR/topep8 -q -b7.0 -u $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8 -b7.0 -u" "$TESTOUT" "$TESTRES" "diff"
-}
-
-
-__test_07() {
-    local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_07
-    TESTSRC=$TESTDIR/res/$TESTFN.py
-    TESTRES=$TESTDIR/res/$TESTFN.test
-    TESTOUT=$TESTDIR/res/$TESTFN.out
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTOUT
-      cat <<EOF >$TESTSRC
-# Copyright antoniov <antoniov@libero.it>
-#     (C) antoniov <antoniov@libero.it>
-# Copyright (C) antoniov <antoniomaria.vigliotti@gmail.com>
-# Copyright 2013-2018 antoniov <antoniomaria.vigliotti@gmail.com>
-#
-# [2013: antoniov] First version
-#
-
-__version__='0.1.2'
-EOF
-      cat <<EOF >$TESTRES
-# -*- coding: utf-8 -*-
-#
-# Copyright antoniov <antoniov@libero.it>
-# Copyright antoniov <antoniov@libero.it>
-# Copyright antoniov <antoniomaria.vigliotti@gmail.com>
-# Copyright 2013-2018, antoniov <antoniomaria.vigliotti@gmail.com>
-#
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-#
-# [2013: antoniov] First version
-#
-
-
-__version__ = '0.1.2'
-EOF
-      $RUNDIR/topep8 -q -b7.0 -G $TESTSRC -o $TESTOUT
-    fi
-    test_result "topep8 -b7.0 -G" "$TESTOUT" "$TESTRES" "diff"
 }
 
 
@@ -959,8 +462,6 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
-
 
 
 UT1_LIST=""

@@ -28,7 +28,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.3.4"
+__version__ = "0.2.3.6"
 
 MAX_RECS = 100
 TNL_DICT = {}

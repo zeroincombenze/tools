@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #  -*- coding: utf-8 -*-
 """
 Documentation generator
@@ -109,7 +109,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.3.4"
+__version__ = "0.2.3.6"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -165,8 +165,8 @@ DEFINED_GRYMB_SYMBOLS = {
                   'blob/master/certificates/ade/scope/fatturapa.md'],
 }
 EXCLUDED_MODULES = ['lxml', ]
-MANIFEST_ITEMS = ('name', 'summary', 'version',
-                  'category', 'author', 'website',
+MANIFEST_ITEMS = ('name', 'version', 'category',
+                  'summary', 'author', 'website',
                   'maturity', 'license', 'depends',
                   'external_dependencies',
                   'data', 'demo', 'test',
@@ -1333,7 +1333,7 @@ def manifest_item(ctx, item):
                     else:
                         text = aut[1: i].strip()
         else:
-            text += ' and other subjects'
+            text += ' and other partners'
         target = "    '%s': '%s',\n" % (item, text)
     elif isinstance(ctx['manifest'][item], basestring):
         text = ctx['manifest'][item].replace("'", '"')

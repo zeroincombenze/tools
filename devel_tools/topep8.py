@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.3.4"
+__version__ = "0.2.3.6"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -412,7 +412,7 @@ def compile_rules(ctx):
             tokens[i] = value
             metas[i] = meta
         else:
-            print "Invalid rule %d -> %s " % (ix, rule)
+            print("Invalid rule %d -> %s " % (ix, rule))
     compile_1_rule(ix, rid, tokens, metas)
     if ix > 0:
         if ix not in TGT_TOKENS or ix not in SRC_TOKENS or ix not in RID:

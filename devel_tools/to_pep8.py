@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
 # Copyright 2018-20 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
@@ -58,10 +58,10 @@ Every entry is composed by:
 """
 
 from __future__ import print_function
-# import pdb
 import os
 import re
 import sys
+from datetime import datetime
 import tokenize
 
 from os0 import os0
@@ -71,9 +71,33 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.3.4"
+__version__ = "0.2.3.6"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0')
+COPY = {
+    'zero': {
+        'author': 'SHS-AV s.r.l.',
+        'website': 'https://www.zeroincombenze.it',
+        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
+    },
+    'shs': {
+        'author': 'SHS-AV s.r.l.',
+        'website': 'https://www.shs-av.com',
+        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
+    },
+    'oca': {
+        'author': 'Odoo Community Association (OCA)',
+        'website': 'https://odoo-community.org',
+    },
+    'axitec': {
+        'author': 'Axitec s.r.l.',
+        'website': 'https://www.axitec.it',
+    },
+    'didotec': {
+        'author': 'Didotech s.r.l.',
+        'website': 'https://www.didotech.com',
+    },
+}
 
 
 class topep8():
@@ -136,7 +160,6 @@ class topep8():
     def setup_py_header(self, ctx):
         odoo_majver = int(ctx['to_ver'].split('.')[0])
         py_executable = ctx['set_exec']
-        py_no_lint = ctx['no_lint']
         lineno = 0
         text = '#!/usr/bin/env python'
         if py_executable:
@@ -146,7 +169,14 @@ class topep8():
         elif self.lines[lineno] == text:
             del self.lines[lineno]
         text = '# flake8: noqa'
-        if py_no_lint:
+        if ctx['no_lint']:
+            if self.lines[lineno] != text:
+                self.lines.insert(lineno, text)
+                lineno += 1
+        elif self.lines[lineno] == text:
+            del self.lines[lineno]
+        text = '# pylint: skip-file'
+        if ctx['no_lint']:
             if self.lines[lineno] != text:
                 self.lines.insert(lineno, text)
                 lineno += 1
@@ -162,154 +192,121 @@ class topep8():
 
     def write_license_info(self, ctx):
         odoo_majver = int(ctx['to_ver'].split('.')[0])
-        req_copyrights = ctx['opt_copy'].split(',')
+        if ctx['opt_copy']:
+            req_copyrights = ctx['opt_copy'].split(',')
+        else:
+            req_copyrights = []
         for org in req_copyrights:
-            if org not in ('oca', 'shs', 'zero'):
-                print('Invalid copyright option! Values are zero or oca')
+            if org not in COPY:
+                print(
+                    'Invalid copyright option! Values are %s' % COPY.keys())
                 return
-        auth_antoniov = 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>'
-        website_shs = 'https://www.shs-av.com'
-        website_zero = 'https://www.zeroincombenze.it'
-        website_oca = 'https://odoo-community.org'
         copy_found = []
         lineno = 0
-        while lineno < len(self.lines) and \
-                self.lines[lineno] in ('#!/usr/bin/env python',
-                                       '# flake8: noqa',
-                                       '# -*- coding: utf-8 -*-',
-                                       ):
-            lineno +=1
-        while lineno < len(self.lines) and \
-                self.lines[lineno] and \
-                not re.match(r'^# *([Cc]opyright|\(C\)|©)',
-                             self.lines[lineno]):
-            if self.lines[lineno] == '' or self.lines[lineno][0] == '#':
-                del self.lines[lineno]
-            else:
-                break
-        self.lines.insert(lineno, '#')
-        lineno += 1
         rex = r'^# *([Cc]opyright|\([Cc]\)|©|http:|https:|\w+\@[a-zA-z0-9-.]+)'
-        while lineno < len(self.lines) and \
-                self.lines[lineno] and \
-                re.match(rex, self.lines[lineno]):
-            if re.search('antoniomaria.vigliotti@gmail.com',
+        while (lineno < len(self.lines) and
+               self.lines[lineno] and
+               self.lines[lineno].startswith('#')):
+            if self.lines[lineno] in ('#!/usr/bin/env python',
+                                      '# flake8: ',
+                                      '# pylint: ',
+                                      '# -*- coding: utf-8 -*-',
+                                      ):
+                lineno += 1
+                continue
+            if (re.match('^# *License .GPL', self.lines[lineno]) or
+                    re.match('^# .*This program is free software',
+                        self.lines[lineno]) or
+                    re.match('^# .*http://www.gnu.org/licenses',
+                        self.lines[lineno])):
+                if re.match('# License .GPL-3.0 or later ',
                         self.lines[lineno]):
-                copy_found.append('antoniov')
-                if 'zero' in req_copyrights:
-                    del self.lines[lineno]
-                    continue
-            elif re.search('https*://[w.]*shs-av.com',
-                          self.lines[lineno]) or \
-                    re.search('Odoo Community Association',
-                             self.lines[lineno]):
-                copy_found.append('oca')
-            elif re.search('https*://[w.]*zeroincombenze.it',
-                          self.lines[lineno]):
-                copy_found.append('zero')
-                self.lines[lineno] = self.lines[lineno].replace(
-                    'https://www.zeroincombenze.it', website_zero)
-            ipos = 1
-            x = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
-                         self.lines[lineno][ipos:])
-            if x:
-                ipos += x.end() + 1
-            x = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
-                         self.lines[lineno][ipos:])
-            if x:
-                ipos += x.end() + 1
-            new_line = '# Copyright'
-            x = re.match('^ *[0-9]+',
-                         self.lines[lineno][ipos:])
-            if x:
-                i = ipos + x.end()
-                new_line += ' '
-                new_line += self.lines[lineno][ipos:i]
-                ipos = i
-                if self.lines[lineno][ipos] == '-':
-                    new_line += self.lines[lineno][ipos]
-                    ipos += 1
-                    x = re.match('[0-9]+', self.lines[lineno][ipos:])
+                    ctx['opt_gpl'] = self.lines[lineno][10:14].lower()
+                del self.lines[lineno]
+                continue
+            if re.match(rex, self.lines[lineno]):
+                found = False
+                for key in COPY.keys():
+                    if found:
+                        break
+                    for item in ('author', 'website', 'devman'):
+                        if found:
+                            break
+                        re_item = COPY[key].get(item, '').replace(
+                            'https:', 'https?:').replace('.', '.?')
+                        if re_item and re.search(re_item, self.lines[lineno]):
+                            found = True
+                            if key not in copy_found:
+                                copy_found.append(key)
+                            years = ''
+                            ipos = 1
+                            x = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
+                                         self.lines[lineno][ipos:])
+                            if x:
+                                ipos += x.end() + 1
+                                x = re.match('^ *[0-9]+',
+                                    self.lines[lineno][ipos:])
+                                if x:
+                                    i = ipos + x.end()
+                                    years = self.lines[lineno][ipos:i]
+                                    if self.lines[lineno][i] == '-':
+                                        ipos = i + 1
+                                        x = re.match('[0-9]+',
+                                            self.lines[lineno][ipos:])
+                                        if x:
+                                            i = x.end()
+                                            if i == 4:
+                                                ipos += 2
+                                                i = ipos + i - 2
+                                            else:
+                                                i += ipos
+                                            years = '%s-%s' % (
+                                                years,
+                                                self.lines[lineno][ipos:i])
+                            if years:
+                                line = '# Copyright %s %s <%s>' % (
+                                    years,
+                                    COPY[key]['author'], COPY[key]['website']
+                                )
+                            else:
+                                line = '# Copyright %s <%s>' % (
+                                    COPY[key]['author'], COPY[key]['website']
+                                )
+                            self.lines[lineno] = line
+                            break
+                if not found:
+                    line = self.lines[lineno].replace('#  ', '# ').replace(
+                        '-201', '-1').replace('(<', '<').replace('>)', '>')
+                    x = re.search(r'\([\w.-]+@[\w-]+\.[\w]+\)', line)
                     if x:
-                        i = x.end()
-                        if i == 4:
-                            ipos += 2
-                            i = ipos + i -2
-                        else:
-                            i += ipos
-                        new_line += self.lines[lineno][ipos:i]
-                        ipos = i
-                else:
-                    while self.lines[lineno][ipos] == ' ':
-                        ipos += 1
-                    new_line += '    '
-                new_line += self.lines[lineno][ipos:]
-            else:
-                new_line += ' 2018-20 '
-                new_line += self.lines[lineno][ipos:]
-            if new_line[16:19] == '-20':
-                new_line = new_line[0:17] + new_line[19:]
-            self.lines[lineno] = new_line
+                        line = '%s<%s>' % (
+                            line[0:x.start()], line[x.start() + 1:x.end() - 1])
+                    self.lines[lineno] = line
             lineno += 1
+            continue
         for org in req_copyrights:
             if org not in copy_found:
-                if org == 'oca':
-                    line = '# Copyright 2018-20 - Odoo Community Association' \
-                           ' <%s>' % website_oca
-                elif org == 'shs':
-                    line = '# Copyright 2018-20 - SHS-AV s.r.l.' \
-                           ' <%s>' % website_shs
-                elif org == 'zero':
-                    line = '# Copyright 2018-20 - SHS-AV s.r.l.' \
-                           ' <%s>' % website_zero
-                else:
-                    line = '# Copyright 2018-20 - %s' % auth_antoniov
+                line = '# Copyright %s %s <%s>' % (
+                    datetime.today().year,
+                    COPY[org]['author'],
+                    COPY[org]['website']
+                )
                 self.lines.insert(lineno, line)
                 lineno += 1
-        while lineno < len(self.lines) and \
-                (not self.lines[lineno] or
-                 self.lines[lineno] == '#' or
-                 re.match('^# License .GPL', self.lines[lineno])):
-            del self.lines[lineno]
-        self.lines.insert(lineno, '#')
-        lineno += 1
-        if odoo_majver > 8:
-            self.lines.insert(
-                lineno,
-                '# License LGPL-3.0 or later ' \
-                '(http://www.gnu.org/licenses/lgpl).')
-        else:
-            self.lines.insert(
-                lineno,
-                '# License AGPL-3.0 or later ' \
-                '(http://www.gnu.org/licenses/agpl).')
-        lineno += 1
-        self.lines.insert(lineno, '#')
-        while lineno < len(self.lines) and \
-                (self.lines[lineno] and
-                 self.lines[lineno][0] == '#' and
-                 not re.match('^# .*This program is free software',
-                              self.lines[lineno])):
+        if lineno > 0 and self.lines[lineno - 1] != '#':
+            self.lines.insert(lineno, '#')
             lineno += 1
-        if lineno < len(self.lines) and \
-                (self.lines[lineno] and
-                 re.match('^# .*This program is free software',
-                          self.lines[lineno])):
-            while lineno < len(self.lines) and \
-                    self.lines[lineno] and \
-                    not re.match('^# .*http://www.gnu.org/licenses',
-                                 self.lines[lineno]):
-                del self.lines[lineno]
-            if lineno < len(self.lines) and \
-                    self.lines[lineno] and \
-                    re.match('^# .*http://www.gnu.org/licenses',
-                                 self.lines[lineno]):
-                del self.lines[lineno]
-            while lineno < len(self.lines) and \
-                    self.lines[lineno] and \
-                    (self.lines[lineno] == '#' or
-                     self.lines[lineno][0:4] == '####'):
-                del self.lines[lineno]
+
+        if odoo_majver <= 8:
+            ctx['opt_gpl'] = 'agpl'
+        elif ctx['opt_gpl'].lower() not in ('agpl', 'lgpl'):
+            ctx['opt_gpl'] = 'lgpl'
+        line = '# License %s-3.0 or later (%s/%s).' % (
+            ctx['opt_gpl'].upper(),
+            'https://www.gnu.org/licenses',
+            ctx['opt_gpl'].lower(),
+        )
+        self.lines.insert(lineno, line)
 
     def init_parse(self):
         self.lineno = 0
@@ -1414,7 +1411,6 @@ class topep8():
             self.tokeno -= 1
 
     def untokenize_2_text(self, ctx=None):
-        # pdb.set_trace()
         ctx = ctx or {}
         self.init_parse()
         tokid = 1
@@ -1427,10 +1423,10 @@ class topep8():
                                          (srow, scol),
                                          (erow, ecol))
         if ctx['no_nl_eof']:
-            while (text_tgt[-2:]) == '\n\n':
+            while (text_tgt[-3:]) == '\n\n\n':
                 text_tgt = text_tgt[0: -1]
         else:
-            while (text_tgt[-3:]) == '\n\n\n':
+            while (text_tgt[-2:]) == '\n\n':
                 text_tgt = text_tgt[0: -1]
         return text_tgt
 
@@ -1456,8 +1452,6 @@ def get_versions(ctx):
 
 
 def parse_file(ctx=None):
-    # import pdb
-    # pdb.set_trace()
     ctx = ctx or {}
     src_filepy, dst_filepy, ctx = get_filenames(ctx)
     ctx = get_versions(ctx)
@@ -1504,7 +1498,7 @@ if __name__ == "__main__":
     parser.add_argument('-C', '--copyright',
                         action='store',
                         dest='opt_copy',
-                        default='zero')
+                        default='')
     parser.add_argument('-D', '--show-debug',
                         help="show debug informations",
                         action='store_true',
@@ -1514,9 +1508,9 @@ if __name__ == "__main__":
                         action='store',
                         dest='from_odoo_ver')
     parser.add_argument('-G', '--gpl-info',
-                        action='store_true',
+                        action='store',
                         dest='opt_gpl',
-                        default=False)
+                        default='')
     parser.add_argument('-L', '--no-lint',
                         action='store_true',
                         dest='no_lint',
