@@ -1,6 +1,6 @@
 
 ================================
-maintainer-quality-tools 0.2.3.4
+maintainer-quality-tools 0.2.3.5
 ================================
 
 
@@ -406,49 +406,51 @@ Other configurations
 
 You can highly customize you test: look at below table.
 
-+------------------------+---------------+--------------------------------------------------------------+
-| variable               | default value | meaning                                                      |
-+------------------------+---------------+--------------------------------------------------------------+
-| DATA_DIR               | ~/data_dir    | Odoo data directory (data_dir in config file)                |
-+------------------------+---------------+--------------------------------------------------------------+
-| EXCLUDE                |               | Modules to exclude from test                                 |
-+------------------------+---------------+--------------------------------------------------------------+
-| INCLUDE                |               | Modules to test (all                                         |
-+------------------------+---------------+--------------------------------------------------------------+
-| INSTALL_OPTIONS        |               | Options passed to odoo-bin/openerp-server to install modules |
-+------------------------+---------------+--------------------------------------------------------------+
-| MQT_TEMPLATE_DB        |               | Read above                                                   |
-+------------------------+---------------+--------------------------------------------------------------+
-| MQT_TEST_DB            |               | Read above                                                   |
-+------------------------+---------------+--------------------------------------------------------------+
-| ODOO_REPO              | odoo/odoo     | OCB repository against test repository                       |
-+------------------------+---------------+--------------------------------------------------------------+
-| ODOO_TEST_SELECT       | ALL           | Read above                                                   |
-+------------------------+---------------+--------------------------------------------------------------+
-| ODOO_TNLBOT            | 0             | No yet documented                                            |
-+------------------------+---------------+--------------------------------------------------------------+
-| OPTIONS                |               | Options passed to odoo-bin/openerp-server to execute tests   |
-+------------------------+---------------+--------------------------------------------------------------+
-| PHANTOMJS_VERSION      |               | Version of PhantomJS                                         |
-+------------------------+---------------+--------------------------------------------------------------+
-| SERVER_EXPECTED_ERRORS |               | # of expected errors after tests                             |
-+------------------------+---------------+--------------------------------------------------------------+
-| TRAVIS_DEBUG_MODE      | 0             | Read above                                                   |
-+------------------------+---------------+--------------------------------------------------------------+
-| TRAVIS_PDB             |               | Activate pdb to local test (experimental)                    |
-+------------------------+---------------+--------------------------------------------------------------+
-| UNBUFFER               | True          | Use unbuffer (colors) to log results                         |
-+------------------------+---------------+--------------------------------------------------------------+
-| UNIT_TEST              |               | Read above                                                   |
-+------------------------+---------------+--------------------------------------------------------------+
-| TEST                   |               | Read above                                                   |
-+------------------------+---------------+--------------------------------------------------------------+
-| VERSION                |               | Odoo version to test (see above)                             |
-+------------------------+---------------+--------------------------------------------------------------+
-| WEBSITE_REPO           |               | Load package for website tests                               |
-+------------------------+---------------+--------------------------------------------------------------+
-| WKHTMLTOPDF_VERSION    | 0.12.4        | Version of wkhtmltopdf (value are 0.12.1 and 0.12.5)         |
-+------------------------+---------------+--------------------------------------------------------------+
++------------------------+-----------------------+--------------------------------------------------------------+
+| variable               | default value         | meaning                                                      |
++------------------------+-----------------------+--------------------------------------------------------------+
+| DATA_DIR               | ~/data_dir            | Odoo data directory (data_dir in config file)                |
++------------------------+-----------------------+--------------------------------------------------------------+
+| EXCLUDE                |                       | Modules to exclude from test                                 |
++------------------------+-----------------------+--------------------------------------------------------------+
+| INCLUDE                |                       | Modules to test (all                                         |
++------------------------+-----------------------+--------------------------------------------------------------+
+| INSTALL_OPTIONS        |                       | Options passed to odoo-bin/openerp-server to install modules |
++------------------------+-----------------------+--------------------------------------------------------------+
+| MQT_TEMPLATE_DB        |                       | Read above                                                   |
++------------------------+-----------------------+--------------------------------------------------------------+
+| MQT_TEST_DB            |                       | Read above                                                   |
++------------------------+-----------------------+--------------------------------------------------------------+
+| ODOO_REPO              | odoo/odoo             | OCB repository against test repository                       |
++------------------------+-----------------------+--------------------------------------------------------------+
+| ODOO_TEST_SELECT       | ALL                   | Read above                                                   |
++------------------------+-----------------------+--------------------------------------------------------------+
+| ODOO_TNLBOT            | 0                     | No yet documented                                            |
++------------------------+-----------------------+--------------------------------------------------------------+
+| OPTIONS                |                       | Options passed to odoo-bin/openerp-server to execute tests   |
++------------------------+-----------------------+--------------------------------------------------------------+
+| PHANTOMJS_VERSION      |                       | Version of PhantomJS                                         |
++------------------------+-----------------------+--------------------------------------------------------------+
+| PYPI_RUN_PYVER         | (2.7|3.5|3.6|3.7|3.8) | python versions to run (only PYPI projects)                  |
++------------------------+-----------------------+--------------------------------------------------------------+
+| SERVER_EXPECTED_ERRORS |                       | # of expected errors after tests                             |
++------------------------+-----------------------+--------------------------------------------------------------+
+| TRAVIS_DEBUG_MODE      | 0                     | Read above                                                   |
++------------------------+-----------------------+--------------------------------------------------------------+
+| TRAVIS_PDB             |                       | Activate pdb to local test (experimental)                    |
++------------------------+-----------------------+--------------------------------------------------------------+
+| UNBUFFER               | True                  | Use unbuffer (colors) to log results                         |
++------------------------+-----------------------+--------------------------------------------------------------+
+| UNIT_TEST              |                       | Read above                                                   |
++------------------------+-----------------------+--------------------------------------------------------------+
+| TEST                   |                       | Read above                                                   |
++------------------------+-----------------------+--------------------------------------------------------------+
+| VERSION                |                       | Odoo version to test (see above)                             |
++------------------------+-----------------------+--------------------------------------------------------------+
+| WEBSITE_REPO           |                       | Load package for website tests                               |
++------------------------+-----------------------+--------------------------------------------------------------+
+| WKHTMLTOPDF_VERSION    | 0.12.4                | Version of wkhtmltopdf (value are 0.12.1 and 0.12.5)         |
++------------------------+-----------------------+--------------------------------------------------------------+
 
 
 
@@ -523,34 +525,30 @@ While travis is running this is the tree directory:
 
     ${HOME}
     |
-    \___ build (by TravisCI)
+    |___ build (by TravisCI)
     |    |
-    |    \___ ${TRAVIS_BUILD_DIR}  (by TravisCI}
-    |    |    # github tested project
+    |    |___ ${TRAVIS_BUILD_DIR}  (by TravisCI)
+    |    |    # testing project repository
     |    |
     |    \___ ${ODOO_REPO} (by travis_install_env / travis_install_nightly of .travis.yml)
+    |         # Odoo or OCA/OCB repository to check compatibility of testing project
     |         # same behavior of OCA MQT (2)
-    |         # travis_install_env ignore this value, if OCB tested
-    |         # Odoo or OCA/OCB to check compatibility of tested project
+    |         # if testing OCB, travis_install_env ignore this directory
     |
-    \___ maintainer-quality-tools (by .travis.yml) (1)
-    |    # same behavior of OCA MQT
-    |    # moved from ${HOME}/tools/maintainer-quality-tools
-    |    |
-    |    \___ travis (child of maintainer-quality-tools), in PATH
-    |
-    \___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
+    |___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
     |    # same behavior of OCA MQT
     |    # symlnk of ${HOME}/build/{ODOO_REPO}
     |    # Odoo or OCA repository to check with
     |
-    \___ dependencies (by travis_install_env / travis_install_nightly of .travis.yml)
+    |___ dependencies (by travis_install_env / travis_install_nightly of .travis.yml)
     |    # Odoo dependencies (2)
     |
     \___ tools (by .travis.yml)   # clone of this project
          |
-         \___ maintainer-quality-tools (child of tools)
-              # moved to ${HOME}/maintainer-quality-tools 
+         \___ maintainer-quality-tools (by .travis.yml) (1)
+              # same behavior of OCA MQT
+              |
+              \___ travis (child of maintainer-quality-tools), in PATH
 
 ::
 
@@ -568,7 +566,7 @@ While travis is running this is the tree directory:
         - travis_install_env
         Above statements replace OCA statements:
         - travis_install_nightly
-        You can create OCA environment using travis_install_nightly with follow stattements:
+        You can also create OCA environment using travis_install_nightly with follow statements:
         - export MQT_TEST_MODE=oca
         - travis_install_env
         Or else
@@ -630,12 +628,12 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-07-01
+Last Update / Ultimo aggiornamento: 2020-07-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
     :alt: Alfa
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.3.4
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.3.5
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
@@ -644,23 +642,23 @@ Last Update / Ultimo aggiornamento: 2020-07-01
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.4
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.4
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.5
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.5
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.4/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.4
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.5/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.5
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.4/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.5/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.4/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.5/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.4/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.4
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.5/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.5
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

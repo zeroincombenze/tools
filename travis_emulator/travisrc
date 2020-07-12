@@ -374,7 +374,7 @@ init_travis() {
         TOOLS_PATH=$MQT_DEF_PATH
       elif [ -d $HOME/dev/_travis ]; then
         TOOLS_PATH=$HOME/dev/_travis
-      elif [ -d $HOME/tools/maintainer-quality-tools/_travis ]; then
+      elif [ -d $HOME/tools/zerobug/_travis ]; then
         TOOLS_PATH=$HOME/tools/maintainer-quality-tools/_travis
       else
         TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
@@ -769,8 +769,8 @@ conf_default() {
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ html/ .idea/ latex/ .tar .gz .zip __old_* .gitrepname __pycache__/"
     set_cfg_def "filediffignore" ".po .pot LICENSE README README.md README.rst README.md.oca README.rst.oca README.md.z0i README.rst.z0i README.md.oia README.rst.oia .travis.yml.oca .travis.yml.z0i .travis.yml.oia /docs/"
     set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
-    set_cfg_def "MQT_DEF_DEVPATH" "$HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/_travis"
-    set_cfg_def "MQT_DEF_PATH" "$HOME/tools/maintainer-quality-tools/_travis"
+    set_cfg_def "MQT_DEF_DEVPATH" "$HOME/dev/pypi/zerobug/zerobug/_travis"
+    set_cfg_def "MQT_DEF_PATH" "$HOME/tools/zerobug/_travis"
     set_cfg_def "PS_TXT_COLOR" "0;97;40"
     set_cfg_def "PS_RUN_COLOR" "1;36;48;5"
     set_cfg_def "PS_NOP_COLOR" "31;105"

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 import os.path
 import os
@@ -92,7 +94,7 @@ try:
 except BaseException:
     pass
 os.rename(fl_noted_tmp, fl_noted)
-print "%s: %d/%d = %d%%" % (fl_tgt,
+print("%s: %d/%d = %d%%" % (fl_tgt,
                             line_chks,
                             lineno,
-                            (line_chks * 100) / lineno)
+                            (line_chks * 100) / lineno))

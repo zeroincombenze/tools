@@ -49,6 +49,7 @@ class Test():
         #
         if os.path.isdir(venv_dir):
             shutil.rmtree(venv_dir)
+        return sts
 
 
 if __name__ == "__main__":

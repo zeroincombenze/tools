@@ -132,8 +132,8 @@ DEV_ENVIRONMENT Name of package; if set test is under travis emulator control
 COVERAGE_PROCESS_START
                 Name of coverage conf file; if set test is running for coverage
 """
-from __future__ import print_function,unicode_literals
-from past.builtins import basestring
+from __future__ import print_function, unicode_literals
+# from past.builtins import basestring
 
 import os
 import os.path
@@ -148,7 +148,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.15"
+__version__ = "0.2.15.2"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -257,6 +257,7 @@ exclude_lines =
     # Ignore unit test failure
     return TEST_FAILED
 """
+
 
 class Macro(Template):
     delimiter = '${'
@@ -884,7 +885,8 @@ class Z0test(object):
                               new=ctx['opt_new'],
                               echo=ctx['opt_echo'])
         try:
-            subprocess.call(['coverage', '--version'])
+            subprocess.call(['coverage', '--version'],
+                stdout=open('/dev/null', 'w'), stderr=open('/dev/null', 'w'))
             if os.environ.get("COVERAGE_PROCESS_START", ""):
                 ctx['COVERAGE_PROCESS_START'] = \
                     os.environ["COVERAGE_PROCESS_START"]
@@ -1248,7 +1250,9 @@ class Z0test(object):
         if (ctx.get('run4cover', False) and
                 not ctx.get('dry_run', False)):
             try:
-                subprocess.call(['coverage', 'erase'])
+                subprocess.call(['coverage', 'erase'],
+                    stdout=open('/dev/null', 'w'),
+                    stderr=open('/dev/null', 'w'))
             except OSError:
                 print('Coverage not found!')
         if TestCls and hasattr(TestCls, 'setup'):
@@ -1304,7 +1308,9 @@ class Z0test(object):
                             test_w_args = ['python'] + [testname] + opt4childs
                     self.dbgmsg(ctx, " %s" % test_w_args)
                     try:
-                        sts = subprocess.call(test_w_args)
+                        sts = subprocess.call(test_w_args,
+                            stdout=open('/dev/null', 'w'),
+                            stderr=open('/dev/null', 'w'))
                     except OSError:
                         sts = 127
                 else:

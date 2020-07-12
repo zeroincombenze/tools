@@ -10,6 +10,7 @@ ODOO_TEST_SELECT,ALL,Read above
 ODOO_TNLBOT,0,No yet documented
 OPTIONS,,Options passed to odoo-bin/openerp-server to execute tests
 PHANTOMJS_VERSION,,Version of PhantomJS
+PYPI_RUN_PYVER,(2.7|3.5|3.6|3.7|3.8),python versions to run (only PYPI projects)
 SERVER_EXPECTED_ERRORS,,# of expected errors after tests
 TRAVIS_DEBUG_MODE,0,Read above
 TRAVIS_PDB,,Activate pdb to local test (experimental)

@@ -5,8 +5,8 @@ import sys
 
 if __name__ == "__main__":
     if sys.argv[1] == "-V":
-        print "0.2.0"
+        print("0.2.0")
     elif sys.argv[1] == "-v":
-        print "0.2.1"
+        print("0.2.1")
     elif sys.argv[1] == "--version":
-        print "0.2.2"
+        print("0.2.2")

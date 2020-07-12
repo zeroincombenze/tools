@@ -32,7 +32,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.3.6
+__version__=0.2.3.7
 
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
@@ -266,7 +266,7 @@ format_yaml() {
             if [[ ! ${found[before_install_zero]} == "t" ]]; then
               echo "  # Use Zeroincombenze(R) tools">>$fntmp
               echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1">>$fntmp
-              echo "  - mv \${HOME}/tools/maintainer-quality-tools \${HOME}">>$fntmp
+              echo "  # - mv \${HOME}/tools/maintainer-quality-tools \${HOME}">>$fntmp
               echo "  - export PATH=\${HOME}/maintainer-quality-tools/travis:\${PATH}">>$fntmp
             fi
             cur_sect=
@@ -1274,7 +1274,7 @@ OPTS=
 [ -n "$opt_gpl" ] && OPTS="${OPTS} -G$opt_gpl"
 [[ "${fullname: -1}" == "/" ]] && fullname="${fullname:0: -1}"
 if [ -d $fullname ]; then
-    LIST="$(find $fullname $optfnd -name '*.py' -or -name '*.xml' -not -path '*/\.idea/*' -not -path '*/docs/*'|tr '\n' ' ')"
+    LIST="$(find $fullname $optfnd -name '*.py' -or -name '*.xml' -or -name '*.html' -or -name '*.xsd' -or -name '.travis.yml' -not -path '*/\.idea/*' -not -path '*/docs/*'|tr '\n' ' ')"
     [ -d $fullname/static ] && LIST="$fullname/static $LIST"
 else
     LIST=$(readlink -e $fullname)
@@ -1313,9 +1313,9 @@ for fl in $LIST; do
     pushd $p >/dev/null
     for f in $b; do
       if [ "${f: -4}" == ".xml" -o "${f: -4}" == ".xsd" -o "${f: -5}" == ".html" ]; then
-        format_xml $f
+          format_xml $f
       elif [ "${f: -4}" == ".yml" ]; then
-        format_yaml $f
+          format_yaml $f
       else
         mime=$(file -b --mime-type $f)
         if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then

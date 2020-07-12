@@ -270,34 +270,30 @@ While travis is running this is the tree directory:
 
     ${HOME}
     |
-    \___ build (by TravisCI)
+    |___ build (by TravisCI)
     |    |
-    |    \___ ${TRAVIS_BUILD_DIR}  (by TravisCI}
-    |    |    # github tested project
+    |    |___ ${TRAVIS_BUILD_DIR}  (by TravisCI)
+    |    |    # testing project repository
     |    |
     |    \___ ${ODOO_REPO} (by travis_install_env / travis_install_nightly of .travis.yml)
+    |         # Odoo or OCA/OCB repository to check compatibility of testing project
     |         # same behavior of OCA MQT (2)
-    |         # travis_install_env ignore this value, if OCB tested
-    |         # Odoo or OCA/OCB to check compatibility of tested project
+    |         # if testing OCB, travis_install_env ignore this directory
     |
-    \___ maintainer-quality-tools (by .travis.yml) (1)
-    |    # same behavior of OCA MQT
-    |    # moved from ${HOME}/tools/maintainer-quality-tools
-    |    |
-    |    \___ travis (child of maintainer-quality-tools), in PATH
-    |
-    \___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
+    |___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
     |    # same behavior of OCA MQT
     |    # symlnk of ${HOME}/build/{ODOO_REPO}
     |    # Odoo or OCA repository to check with
     |
-    \___ dependencies (by travis_install_env / travis_install_nightly of .travis.yml)
+    |___ dependencies (by travis_install_env / travis_install_nightly of .travis.yml)
     |    # Odoo dependencies (2)
     |
     \___ tools (by .travis.yml)   # clone of this project
          |
-         \___ maintainer-quality-tools (child of tools)
-              # moved to ${HOME}/maintainer-quality-tools 
+         \___ maintainer-quality-tools (by .travis.yml) (1)
+              # same behavior of OCA MQT
+              |
+              \___ travis (child of maintainer-quality-tools), in PATH
 
 ::
 
@@ -315,7 +311,7 @@ While travis is running this is the tree directory:
         - travis_install_env
         Above statements replace OCA statements:
         - travis_install_nightly
-        You can create OCA environment using travis_install_nightly with follow stattements:
+        You can also create OCA environment using travis_install_nightly with follow statements:
         - export MQT_TEST_MODE=oca
         - travis_install_env
         Or else

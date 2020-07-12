@@ -30,7 +30,7 @@ MODULE_ID = 'os0'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.2.15.2"
+__version__ = "0.2.15.3"
 
 TITLE = "os0 regression test. Version: " + __version__
 FLOGTMP = "os0_test.log"
@@ -171,7 +171,7 @@ class RegressionTest:
                                  True,
                                  True)
         if not ctx.get('dry_run', False):
-            x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
+            x = chr(0x3b1) + chr(0x3b2) + chr(0x3b3)
             os0.wlog("- Greek letters", x)
         sts = self.Z.test_result(ctx,
                                  "- Greek letters",

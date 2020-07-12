@@ -45,7 +45,7 @@ import sys
 import shutil
 from zerobug import Z0test
 
-__version__ = "0.2.3.4"
+__version__ = "0.2.3.5"
 
 MODULE_ID = 'maintainer-quality-tools'
 
@@ -66,7 +66,7 @@ class RegressionTest():
 
     def test_01(self, z0ctx):
         import test_server
-        sts = TEST_SUCCESS
+        # sts = TEST_SUCCESS
         tres = True
         res = True
         for repo in ('odoo/odoo', 'OCA/OCB', 'zeroincombenze/OCB'):

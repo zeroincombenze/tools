@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# flake8: noqa
+# pylint: skip-file
 from __future__ import print_function, unicode_literals
 
 from python_plus import _b
@@ -34,7 +36,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.9.5"
+__version__ = "0.3.9.6"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',

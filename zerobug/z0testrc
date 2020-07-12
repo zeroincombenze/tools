@@ -62,7 +62,7 @@
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.15
+__version__=0.2.15.2
 
 export opt_dry_run
 export ctr

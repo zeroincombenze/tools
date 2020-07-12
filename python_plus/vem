@@ -700,7 +700,7 @@ do_venv_mgr() {
 do_venv_create() {
 # do_venv_create VENV
     [ $opt_verbose -gt 2 ] && echo ">>> do_venv_create($@)"
-    local f p pkg VENV xpkgs popt
+    local f p pkg VENV xpkgs popt v
     local venvexe pyexe
     export VENV__SAVED_HOME=$HOME
     VENV="$1"
@@ -717,7 +717,12 @@ do_venv_create() {
     pyexe=$(which $PYTHON)
     venvexe=$(which virtualenv)
     if [[ -n "$venvexe" ]]; then
-        [ $opt_spkg -ne 0 ] && p="--system-site-packages" || p="--no-site-packages"
+        v=$(virtualenv --version|grep -Eo [0-9]+|head -n1)
+        if [ $v -gt 17 ]; then
+            [ $opt_spkg -ne 0 ] && p="--system-site-packages"
+        else
+            [ $opt_spkg -ne 0 ] && p="--system-site-packages" || p="--no-site-packages"
+        fi
         [ -d $VENV ] && p="$p --clear"
         p="$p -q"
         p="$p -p $pyexe"

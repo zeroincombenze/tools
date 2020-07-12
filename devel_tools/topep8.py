@@ -20,6 +20,7 @@
 ##############################################################################
 """Convert src python to PEP8 with OCA rules
 """
+from __future__ import print_function
 
 # import pdb
 # import os
@@ -29,7 +30,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.3.6"
+__version__ = "0.2.3.7"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -421,12 +422,12 @@ def compile_rules(ctx):
             ix -= 1
     if ctx['opt_verbose'] > 1:
         for ii in IS_BADGE_TXT.keys():
-            print "%d.%d [%s] if re.match('%s'): replace('%s'|%s)" % (
+            print("%d.%d [%s] if re.match('%s'): replace('%s'|%s)" % (
                 ii, RID.get(ii, 0),
                 META[ii],
                 IS_BADGE_TXT[ii],
                 SRC_TOKENS.get(ii, ''),
-                TGT_TOKENS.get(ii, ''))
+                TGT_TOKENS.get(ii, '')))
 
 
 def write_license_info(lines, ctx):
@@ -521,7 +522,7 @@ def update_4_api(lines, lineno, ctx, ignore=None, select=None):
     line = lines[lineno]
     rid = -1
     if ctx['opt_verbose'] > 2:
-        print "%s" % line
+        print("%s" % line)
     meta = ''
     for ix in IS_BADGE.keys():
         if META[ix] in ('+B', '+b') and ctx['opt_recall_dbg']:
@@ -546,10 +547,10 @@ def update_4_api(lines, lineno, ctx, ignore=None, select=None):
         if x:
             rid = RID[ix]
             if ctx['opt_verbose'] > 2:
-                print "> if IS_BADGE[%d]=(%s).match(%s):" % (
-                    ix, IS_BADGE_TXT[ix], line)
-                print ">     src, tgt = extr_tokens(%d, ver['%d'])" % (
-                    ix, ctx['to_ver'])
+                print("> if IS_BADGE[%d]=(%s).match(%s):" % (
+                    ix, IS_BADGE_TXT[ix], line))
+                print(">     src, tgt = extr_tokens(%d, ver['%d'])" % (
+                    ix, ctx['to_ver']))
             src, tgt = extr_tokens(ix, ctx)
             if tgt != '&' and src != tgt:
                 i = 0
@@ -560,7 +561,7 @@ def update_4_api(lines, lineno, ctx, ignore=None, select=None):
                 line = line[0:i] + \
                     line[i:].replace(src, tgt, REPL_CTRS[ix])
                 if ctx['opt_verbose'] > 2:
-                    print ">     '%s'=replace(%s,%s)" % (line, src, tgt)
+                    print(">     '%s'=replace(%s,%s)" % (line, src, tgt))
             meta = META[ix]
             if META[ix] in ('+B', '-B'):
                 # pdb.set_trace()
@@ -709,7 +710,7 @@ def parse_tokens_line(line, ctrs=None):
                     ipos += x.end()
                 break
         if unknown:
-            print "Unknown token %s" % line[ipos:]
+            print("Unknown token %s" % line[ipos:])
             ipos += 1
     tabstop[len(line)] = 'eol'
     # i = len(line) - 1
@@ -773,7 +774,7 @@ def split_line(line):
 
 def init_parse(ctx):
     if ctx['opt_verbose']:
-        print "Compiling rules"
+        print("Compiling rules")
     compile_rules(ctx)
     ctx['empty_line'] = 0
     ctx['open_stmt'] = 0
@@ -797,7 +798,7 @@ def set_empty_lines(lines, lineno, nebef, force, ctx):
 def parse_file(src_filepy, dst_filepy, ctx):
     # pdb.set_trace()
     if ctx['opt_verbose']:
-        print "Reading %s" % src_filepy
+        print("Reading %s" % src_filepy)
     fd = open(src_filepy, 'rb')
     tokenize.generate_tokens(
         fd.readline,
@@ -1097,7 +1098,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
     lineno = 0
     if not ctx['dry_run'] and len(lines):
         if ctx['opt_verbose']:
-            print "Writing %s" % dst_filepy
+            print("Writing %s" % dst_filepy)
         fd = open(dst_filepy, 'w')
         fd.write(''.join('%s\n' % l for l in lines))
         fd.close()

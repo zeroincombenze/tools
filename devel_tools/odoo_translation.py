@@ -8,6 +8,8 @@ Action may be:
 - Ignore
 """
 from __future__ import print_function, unicode_literals
+from builtins import input
+
 import os
 import time
 import re
@@ -28,7 +30,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.3.6"
+__version__ = "0.2.3.7"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -227,7 +229,7 @@ def load_dictionary_from_file(ctx, pofn):
                         dummy = TNL_ACTION[msgid]
                     while dummy not in ('D', 'P', 'E', 'I') and \
                             len(dummy) <= 3:
-                        dummy = raw_input(
+                        dummy = input(
                             '>>> (Dictionary,Po,End,Ignore,<Text>)? ')
                     if dummy == 'E':
                         TNL_ACTION['*'] = dummy
@@ -495,6 +497,7 @@ def upgrade_db(ctx):
             print(" ... %d record upgraded" % ctr)
         if ctx['load_language']:
             clodoo.act_install_language(ctx)
+    return 0
 
 
 def delete_translation(ctx):

@@ -111,7 +111,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '0.2.3.6'
+__version__ = '0.2.3.7'
 
 
 MANIFEST_FILES = [
@@ -244,7 +244,7 @@ def is_module(path):
 def read_manifest(manifest_path):
     try:
         manifest = ast.literal_eval(open(manifest_path).read())
-    except IOError, ImportError:
+    except (IOError, ImportError):
         raise Exception('Wrong manifest file %s' % manifest_path)
     return manifest
 

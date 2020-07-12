@@ -821,17 +821,6 @@ process_yaml() {
         echo "Zeroincombenze(R) tools not found!"
         return 1
     fi
-    # if [ $opt_py3 -ne 0 ]; then
-    #     PYTHON=python3
-    #     PYTHON_BIN=$(readlink -e $(which python3))
-    #     PYTHON_VERSION=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-    #     PIP=pip3
-    # else
-    #     PYTHON=python2
-    #     PYTHON_BIN=$(readlink -e $(which python2))
-    #     PYTHON_VERSION=$(python2 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-    #     PIP=pip2
-    # fi
     if [ -f $YML_FILE ]; then
         echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
         wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"

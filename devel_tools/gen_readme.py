@@ -109,7 +109,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.3.6"
+__version__ = "0.2.3.7"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
