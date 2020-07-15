@@ -313,6 +313,8 @@ class topep8():
             ctx['opt_gpl'].lower(),
         )
         self.lines.insert(lineno, line)
+        lineno += 1
+        self.lines.insert(lineno, '#')
 
     def init_parse(self):
         self.lineno = 0
@@ -471,12 +473,12 @@ class topep8():
             elif irx <= len(self.LEX_RULES[ir]['state']):
                 self.LEX_RULES[ir]['state'][irx] = 'active'
             else:
-                raise IndexError, 'Invalid index %d for rule %s' % (irx, ir)
+                raise(IndexError, 'Invalid index %d for rule %s' % (irx, ir))
         else:
             if irx == 0:
                 self.LEX_RULES[ir]['state'] = 'active'
             else:
-                raise IndexError, 'Invalid index %d for rule %s' % (irx, ir)
+                raise(IndexError, 'Invalid index %d for rule %s' % (irx, ir))
 
     def restart_state(self, ir, irx):
         """Restart rule state"""
@@ -501,7 +503,7 @@ class topep8():
                 self.LEX_RULES[ir]['tokeno_stop'][irx] = -1
                 self.LEX_RULES[ir]['tokeno_indent'][irx] = -1
             else:
-                raise IndexError, 'Invalid index %d for rule %s' % (irx, ir)
+                raise IndexError('Invalid index %d for rule %s' % (irx, ir))
         else:
             if irx == 0:
                 self.LEX_RULES[ir]['wf_id'] = 0
@@ -513,7 +515,7 @@ class topep8():
                 self.LEX_RULES[ir]['tokeno_stop'] = -1
                 self.LEX_RULES[ir]['tokeno_indent'] = -1
             else:
-                raise IndexError, 'Invalid index %d for rule %s' % (irx, ir)
+                raise IndexError('Invalid index %d for rule %s' % (irx, ir))
 
     def init_rule_state(self, ir, irx):
         """Initialize rule state"""
@@ -929,7 +931,7 @@ class topep8():
             unknown = False
             tokid = False
             tokval = ''
-            min_max = [1,1]
+            min_max_list = [1,1]
             i = state['ipos']
             if istkn in ('space', ):
                 state['ipos'] += x.end()
@@ -956,7 +958,7 @@ class topep8():
         if unknown:
             print("Unknown token %s" % text[state['ipos']:])
             state['ipos'] += 1
-        return state, tokid, tokval, min_max
+        return state, tokid, tokval, min_max_list
 
     def compile_1_rule(self, rule):
         """Compile current rule for version <meta> parsing <value>
@@ -1170,9 +1172,9 @@ class topep8():
             if ir1 == ir:
                 continue
             for irx1 in [0, ]:
-                if self.cur_tokid(ir1, irx1) == tokenize.PARENT_RULE and \
-                        self.cur_tokval(ir1, irx1) == ir:
-                    set_active(ir1, irx1)
+                if (self.cur_tokid(ir1, irx1) == tokenize.PARENT_RULE and
+                        self.cur_tokval(ir1, irx1) == ir):
+                    self.set_active(ir1, irx1)
 
     def wash_tokid(self, tokid, tokval):
         if tokid == tokenize.INDENT:

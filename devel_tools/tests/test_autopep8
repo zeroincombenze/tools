@@ -335,11 +335,13 @@ test_03() {
         cat <<EOF >$TESTSRC
 # (C) OpenERP (http://openerp.com)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
 EOF
         cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
 # (C) Odoo (https://odoo.com)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
 EOF
         $RUNDIR/topep8 -qAA -b10.0 $TESTSRC -o $TESTOUT
     fi
@@ -355,6 +357,7 @@ EOF
 # (C) Odoo (https://odoo.com)
 #
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
+#
 EOF
         $RUNDIR/topep8 -qAA -G1 -b10.0 $TESTSRC -o $TESTOUT
     fi

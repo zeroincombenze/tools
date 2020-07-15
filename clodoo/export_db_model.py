@@ -1,6 +1,7 @@
 # flake8: noqa
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import sys
 import os
 from datetime import datetime, date
@@ -21,7 +22,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.1.0"
+__version__ = "0.3.9.7"
 
 
 CACHE = {}
@@ -86,12 +87,10 @@ def get_symbolic_value(ctx, model, name, value):
 def export_table(ctx):
     current_year = date.today().year
     model = ctx['model']
-    # name_model = 'ir.model.data'
-    # field_model = 'ir.model.fields'
     out_file = ctx['out_file']
     if not out_file:
         out_file = model.replace('.', '_') + '.csv'
-    print "Output file %s" % out_file
+    print("Output file %s" % out_file)
     csv_out = open(out_file, 'wb')
     hdr_file = model.replace('.', '_') + '.hdr' + out_file[-4:]
     hdr_file = os.path.join('./hdrs', hdr_file)
@@ -101,17 +100,17 @@ def export_table(ctx):
         hdr_fd.close()
         out_flds = line.split('\n')[0].split(',')
     except BaseException:
-        print 'Header file %s not found!' % hdr_file
+        print('Header file %s not found!' % hdr_file)
         return
     header = dict((n, n) for n in out_flds)
     csv_obj = csv.DictWriter(csv_out, fieldnames=out_flds)
     csv_obj.writerow(header)
     ctr = 0
-    where = eval(ctx.get('search_where', []))
+    domain = eval(ctx.get('search_domain', []))
     for rec in clodoo.browseL8(ctx,
                                model,
-                               clodoo.searchL8(ctx, model, where)):
-        print 'Reading id %d' % rec.id
+                               clodoo.searchL8(ctx, model, domain)):
+        print('Reading id %d' % rec.id)
         out_dict = {}
         data_valid = True
         discard = False
@@ -122,16 +121,19 @@ def export_table(ctx):
                 value = get_symbolic_value(ctx, model, False, value)
                 if isinstance(value, (int, long)):
                     data_valid = False
-                    if not re.match(ctx['id_filter'], str(value)):
+                    if (not re.match(ctx['id_filter'], str(value)) or
+                            ctx['exclext']):
                         discard = True
                         break
                 else:
                     if not re.match(ctx['id_filter'], value):
                         discard = True
                         break
-                    elif ctx['onlybase'] and value[0:5] != 'base.':
+                    elif ctx['onlybase'] and value.startswith('base.'):
                         data_valid = False
-                    elif ctx['exclmulti'] and value[0:5] == 'multi':
+                    elif ctx['exclmulti'] and value.startswith('multi'):
+                        data_valid = False
+                    elif ctx['onlyz0bug'] and not value.startswith('z0bug.'):
                         data_valid = False
             elif len(f) == 1:
                 value = rec[f[0]]
@@ -170,15 +172,15 @@ def export_table(ctx):
                 out_dict[nm] = os0.b(value.replace('\n', ' '))
             else:
                 out_dict[nm] = value
-        if not discard and (not ctx['exclext'] or data_valid):
+        if not discard and data_valid:
             csv_obj.writerow(out_dict)
             ctr += 1
     csv_out.close()
-    print '%d record exported' % ctr
+    print('%d record exported' % ctr)
 
 
-parser = z0lib.parseoptargs("Export table account.tax",
-                            "© 2017-2018 by SHS-AV s.r.l.",
+parser = z0lib.parseoptargs("Export table from Odoo",
+                            "(C) 2017-2020 by SHS-AV s.r.l.",
                             version=__version__)
 parser.add_argument('-h')
 parser.add_argument("-b", "--odoo-branch",
@@ -187,7 +189,7 @@ parser.add_argument("-b", "--odoo-branch",
                     metavar="version",
                     default="")
 parser.add_argument("-B", "--only-base",
-                    help="select only base records",
+                    help="select only <base.*> records",
                     action="store_true",
                     dest="onlybase",
                     default=False)
@@ -207,7 +209,7 @@ parser.add_argument("-e", "--enhanced",
                     dest="enhanced",
                     default=False)
 parser.add_argument("-E", "--exclude-no-externalid",
-                    help="exclude record w/o external identificator",
+                    help="exclude record w/o external identification",
                     action="store_true",
                     dest="exclext",
                     default=False)
@@ -226,7 +228,7 @@ parser.add_argument("-m", "--model",
                     metavar="name",
                     default='')
 parser.add_argument("-M", "--exclude-multicompany",
-                    help="exclude record of multicompany",
+                    help="exclude multicompany recorda",
                     action="store_true",
                     dest="exclmulti",
                     default=False)
@@ -237,15 +239,20 @@ parser.add_argument("-o", "--out-file",
                     default='')
 parser.add_argument("-S", "--search",
                     help="expression search, i.e. [('code','=','A')]",
-                    dest="search_where",
+                    dest="search_domain",
                     default='[]')
+parser.add_argument("-z", "--only-z0bug",
+                    help="select only <z0bug.*> records",
+                    action="store_true",
+                    dest="onlyz0bug",
+                    default=False)
 parser.add_argument('-n')
 parser.add_argument('-q')
 parser.add_argument('-V')
 parser.add_argument('-v')
 
 # Connect to DB
-print "Connect to DB"
+print("Connect to DB")
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
 uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
                                db=ctx['db_name'],
@@ -253,4 +260,4 @@ uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
 if ctx['model']:
     export_table(ctx)
 else:
-    print 'Missed model name!'
+    print('Missed model name!')

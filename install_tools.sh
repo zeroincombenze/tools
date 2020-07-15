@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=0.2.3.3
+# __version__=0.2.3.4
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -17,7 +17,7 @@ fi
 
 RFLIST__travis_emulator="gen_addons_table.py prjdiff replica.sh travis travisrc wok_doc wok_doc.py"
 RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8 topep8.py to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
-RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh"
+RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py export_db_model.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"

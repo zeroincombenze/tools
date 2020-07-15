@@ -151,6 +151,8 @@ default field to search is 'name' or 'id', if passed.
 odoo_install_repository: manage repositories
 --------------------------------------------
 
+::
+
     Usage: odoo_install_repository [-h][-b branch][-c file][-CDjLmn][-O git-org][-o path][-qrU][-u username][-Vvy1] git_repo odoo_vid new_odoo_vid
     Add or duplicate odoo repository into local filesystem
      -h              this help

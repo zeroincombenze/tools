@@ -86,20 +86,11 @@ simple_diff() {
     local d n s
     run_traced "diff$opts $src $tgt"
     s=$?
-    # if [ "$VF_OFVER" != "$VFT_VER" ]; then
-    #   n=$(basename $src)
-    #   if [ "$n" == "__openerp__.py" ]; then
-    #     if [ $opt_rest -gt 0 ]; then
-    #       run_traced "sed -i -e \"s/'version': *'$VFT_VER/'version': '$VF_OFVER/g\" -e \"s/\\\"version\\\": *\\\"$VFT_VER/\\\"version': \\\"$VF_OFVER/g\" $tgt"
-    #     else
-    #       run_traced "sed -i -e \"s/'version': *'$VF_OFVER/'version': '$VFT_VER/g\" -e \"s/\\\"version\\\": *\\\"$VF_OFVER/\\\"version': \\\"$VFT_VER/g\" $tgt"
-    #     fi
-    #  fi
-    # fi
     return $s
 }
 
 exec_os() {
+    local l r
     if [ $opt_reve -gt 0 ]; then
         local left=$2
         local right=$1
@@ -107,28 +98,33 @@ exec_os() {
         local left=$1
         local right=$2
     fi
-    if [[ $opt_dcmd == "diff" ]]; then
-        if [ -d "$left" ]; then
-            if [ $opt_all -gt 0 ]; then
-                opts=" -Zqr"
-            else
-                opts="$XLDF -ZBqr"
-            fi
-            [ $opt_igns -gt 0 ] && opts="${opts}Eb"
-            [ $opt_ignas -gt 0 ] && opts="${opts}w"
-            [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    if [ -d "$left" ]; then
+        if [ $opt_all -gt 0 ]; then
+            opts=" -Zqr"
         else
-            opts=" -ZB"
-            [ $opt_para -ne 0 ] && opts="${opts}y"
-            [ $opt_igns -gt 0 ] && opts="${opts}Eb"
-            [ $opt_ignas -gt 0 ] && opts="${opts}w"
-            [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
-            [ $opt_diffe -ne 0 ] && opts="$opts  --suppress-common-line"
+            opts="$XLDF -ZBqr"
         fi
+        [ $opt_igns -gt 0 ] && opts="${opts}Eb"
+        [ $opt_ignas -gt 0 ] && opts="${opts}w"
+        [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
     else
-        opts=
+        opts=" -ZB"
+        [ $opt_para -ne 0 ] && opts="${opts}y"
+        [ $opt_igns -gt 0 ] && opts="${opts}Eb"
+        [ $opt_ignas -gt 0 ] && opts="${opts}w"
+        [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+        [ $opt_diffe -ne 0 ] && opts="$opts  --suppress-common-line"
     fi
-    run_traced "$opt_dcmd$opts $left $right"
+    if [[ $opt_dcmd == "meld" ]]; then
+        for ln in $(eval "diff $opts $left $right"|grep ^Files|awk '{print $2 "|" $4}'); do
+            l=$(echo $ln|awk -F"|" '{print $1}')
+            r=$(echo $ln|awk -F"|" '{print $2}')
+            meld $l $r
+        done
+        eval "diff $opts $left $right"|grep -v ^Files
+    else
+        run_traced "$opt_dcmd$opts $left $right"
+    fi
     return $?
 }
 
