@@ -1,0 +1,8 @@
+Function,Status,Note
+Execute in virtual environment,|check|,As TravisCI
+Python 2 test,|check|,If installed in local machine
+Python 3 test,|check|,If installed in local machine
+Bash test,|check|,
+Matrix,|check|,Test sequentialized
+Coveralls,|check|,If installed in local machine
+MQT,|check|,Test using Odoo MQT
