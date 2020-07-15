@@ -129,7 +129,8 @@ LX_CFG_SB = ('install_modules',
              'actions_db',
              'actions_mc',
              'actions_uu',
-             'heavy_trx')
+             'heavy_trx',
+             'psycopg2',)
 # list of pure boolean parameters in [options] of config file
 LX_CFG_B = ('set_passepartout',
             'check_balance',
@@ -164,7 +165,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.9.6"
+__version__ = "0.3.9.7"
 
 
 #############################################################################

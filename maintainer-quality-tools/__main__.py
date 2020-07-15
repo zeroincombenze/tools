@@ -21,7 +21,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = '0.2.3.5'
+__version__ = '0.2.3.6'
 STS_FAILED = 1
 STS_SUCCESS = 0
 

@@ -101,30 +101,34 @@ simple_diff() {
 
 exec_os() {
     if [ $opt_reve -gt 0 ]; then
-      local left=$2
-      local right=$1
+        local left=$2
+        local right=$1
     else
-      local left=$1
-      local right=$2
+        local left=$1
+        local right=$2
     fi
-    if [ -d "$left" ]; then
-      if [ $opt_all -gt 0 ]; then
-        opts=" -Zqr"
-      else
-        opts="$XLDF -ZBqr"
-      fi
-      [ $opt_igns -gt 0 ] && opts="${opts}Eb"
-      [ $opt_ignas -gt 0 ] && opts="${opts}w"
-      [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    if [[ $opt_dcmd == "diff" ]]; then
+        if [ -d "$left" ]; then
+            if [ $opt_all -gt 0 ]; then
+                opts=" -Zqr"
+            else
+                opts="$XLDF -ZBqr"
+            fi
+            [ $opt_igns -gt 0 ] && opts="${opts}Eb"
+            [ $opt_ignas -gt 0 ] && opts="${opts}w"
+            [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+        else
+            opts=" -ZB"
+            [ $opt_para -ne 0 ] && opts="${opts}y"
+            [ $opt_igns -gt 0 ] && opts="${opts}Eb"
+            [ $opt_ignas -gt 0 ] && opts="${opts}w"
+            [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+            [ $opt_diffe -ne 0 ] && opts="$opts  --suppress-common-line"
+        fi
     else
-      opts=" -ZB"
-      [ $opt_para -ne 0 ] && opts="${opts}y"
-      [ $opt_igns -gt 0 ] && opts="${opts}Eb"
-      [ $opt_ignas -gt 0 ] && opts="${opts}w"
-      [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
-      [ $opt_diffe -ne 0 ] && opts="$opts  --suppress-common-line"
+        opts=
     fi
-    run_traced "diff$opts $left $right"
+    run_traced "$opt_dcmd$opts $left $right"
     return $?
 }
 
@@ -264,11 +268,11 @@ get_path_ver() {
 }
 
 
-OPTOPTS=(h        a       b        c        e         i       m      n            O         p         q           r            R        V           v           w         y        0       1       2)
-OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_verbose opt_rep      opt_reve opt_version opt_verbose opt_ignas opt_para opt_sts opt_sts opt_2nd)
-OPTACTI=(1        1       1        "="      1         1       1      1            "="       "="       0           "="          1        "*>"        1           1         1        0       1       1)
-OPTDEFL=(0        0       0        ""       0         0       0      0            ""        ""        -1          ""           0        ""          -1          0         0        0       0       0)
-OPTMETA=("help"   ""      ""       "file"   ""        ""      ""     "do nothing" "version" "package" ""          "repository" ""       "version"   "verbose"   ""        ""       ""      ""      "")
+OPTOPTS=(h        a       b        c        e         i       m      n            O         p         q           r            R        V           v           w         X        y        0       1       2)
+OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_verbose opt_rep      opt_reve opt_version opt_verbose opt_ignas opt_dcmd opt_para opt_sts opt_sts opt_2nd)
+OPTACTI=(1        1       1        "="      1         1       1      1            "="       "="       0           "="          1        "*>"        1           1         "="      1        0       1       1)
+OPTDEFL=(0        0       0        ""       0         0       0      0            ""        ""        -1          ""           0        ""          -1          0         ""       0        0       0       0)
+OPTMETA=("help"   ""      ""       "file"   ""        ""      ""     "do nothing" "version" "package" ""          "repository" ""       "version"   "verbose"   ""        "cmd"    ""       ""      ""      "")
 OPTHELP=("this help"\
  "diff all files (ignore exclusion list)"\
  "ignore space differences"\
@@ -285,6 +289,7 @@ OPTHELP=("this help"\
  "show version"\
  "verbose mode"\
  "ignore all space differences"\
+ "diff command (def meld or diff)"\
  "side by side (all lines)"\
  "initial status is true"\
  "initial status is false"\
@@ -296,9 +301,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-if [ -z "$odoo_ver" -a -z "$source" ]; then
-  opt_help=1
-fi
+[[ -z "$odoo_ver" && -z "$source" ]] && opt_help=1
 if [ $opt_help -gt 0 ]; then
   print_help "Diff file between Odoo versions"\
   "© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
@@ -306,13 +309,15 @@ if [ $opt_help -gt 0 ]; then
 fi
 [ $opt_all -gt 0 ] && opt_iar=0
 [ $opt_diffe -ne 0 ] & opt_para=1
-if [[ " 13 12 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
-  odoo_ver="$odoo_ver.0"
-fi
+[[ " 14 13 12 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]] && odoo_ver="$odoo_ver.0"
 if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
   TCONF=$opt_conf
 else
   TCONF=$TDIR/.travis.conf
+fi
+if [[ -z "$opt_dcmd" ]]; then
+    meld --version >/dev/null
+    [ $? -eq 0 ] && opt_dcmd="meld" || opt_dcmd="diff"
 fi
 CFG_init
 conf_default

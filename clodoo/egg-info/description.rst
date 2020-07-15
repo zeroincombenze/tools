@@ -61,40 +61,6 @@ It is called by bash console, there is no funcional web/GUI interface.
       -x, --exit-on-error   exit on error
 
 
-Multiple Odoo installations/versions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-All the tools manage multiple Odoo installations and versions.
-
-When you type any tools commmand, you can issue Odoo Version Identificator
-called vid; by Odoo vid tools can assume Odoo version, directory tree
-and other configuration values. You can override any value.
-
-Odoo vid may be:
-
-* Full Odoo version, i.e. *12.0*
-* Major Odoo version, i.e. *12*
-* One of above version prefixed by one upper/lowercase of: 'v', 'odoo', 'oca' followed by an optional hyphen; i.e. *odoo-12*, *oca12*, *v12*
-
-.. $include description_vid.csv
-
-Examples:
-* Official odoo 12.0: vid=v12 -> Directory=/opt/odoo/v12, xmlport=8069, config=/etc/odoo/odoo.conf
-* Backup odoo 12.0: vid=12.0 -> Directory=/opt/odoo/12.0, xmlport=8172, config=/etc/odoo/odoo12.conf
-* Odoo OCA 10.0 to test: vid=oca-10.0 -> Directory=/opt/odoo/oca-10.0, xmlport=8270, config=/etc/odoo/odoo10-oca.conf
-* Odoo 8.0 with old data: vid=8.0 -> Directory=/opt/odoo/8.0, xmlport=8168, config=/etc/odoo/odoo8-server.conf
-
-
-Directory Tree
-
-::
-
-    /opt/odoo/{vid}
-                  \- server     (only in old 6.1/7.0 installations)
-                          \- openerp
-                  \- openerp    (7.0, 8.0 and 9.0)
-                  \- odoo        (10.0, 11.0, 12.0, 13.0)
-                  \- {repository}
 
 Import_file
 ~~~~~~~~~~~

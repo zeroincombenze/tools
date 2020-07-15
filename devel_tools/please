@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.7
+__version__=0.2.3.8
 
 
 #
@@ -2487,9 +2487,9 @@ do_status() {
         [ $opt_force -ne 0 ] && echo -e "\e[1m[ $pkg ]\e[0m"
         [ $opt_force -eq 0 ] && echo -e "[ $pkg ]"
         [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg="${pkg//-/_}"
-        [ $opt_force -ne 0 ] && vfdiff -q $HOME/tools/$pkg $HOME/dev/pypi/$pkg/$pkg -q|grep -v "diff -x"
+        [ $opt_force -ne 0 ] && vfdiff -X diff $HOME/tools/$pkg $HOME/dev/pypi/$pkg/$pkg -q|grep -v "diff -x"
         if [ $opt_force -eq 0 ]; then
-            vfdiff -q $HOME/tools/$pkg $HOME/dev/pypi/$pkg/$pkg -q>/dev/null
+            vfdiff -X diff $HOME/tools/$pkg $HOME/dev/pypi/$pkg/$pkg -q>/dev/null
             [ $? -ne 0 ] && echo -e "\e[1m    Execute: cd $HOME/dev/pypi/$pkg/$pkg; please replace\e[0m"
         fi
         if [[ ! "$PKGS" == "()" && $pkg =~ $PKGS ]]; then

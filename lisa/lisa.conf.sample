@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2019-06-08
+# Last update: 2020-07-13
 #
 # ---------------------------------------------------------------------
 #
@@ -294,6 +294,7 @@ REAL_php-xml=php5-xml
 REAL_php-cli=php5-cli
 # python
 REAL_python-devel=python-dev
+REAL_python3-devel=python-dev
 # Other packages
 REAL_openssh-clients=openssh-client
 REAL_libxml2-python=python-libxml2
@@ -311,7 +312,7 @@ REAL_cups-devel=libcups2-dev
 redis-server_svcname=redis-server
 # Standard packages
 APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
-         python-libxslt1,python-dev,libreadline6,zlib,readline-devel,\
+         python-libxslt1,python-dev,libreadline6,zlib1g,readline-devel,\
          php5-mysql,php5-common,php5-xml,php5-cli,openssh-client,libssl-dev,\
          libxml2-dev,libxslt-dev,zlib1g-dev,redis-server,libfreetype6,\
          libfreetype6-dev,libcups2,libcups2-dev,libpq-dev,expect-dev,\
@@ -349,7 +350,7 @@ REAL_php5-common=php-common
 REAL_php5-xml=php-xml
 REAL_php5-cli=php-cli
 # python
-REAL_python-dev=python-devel
+REAL_python-dev=python3-devel
 # Other packages
 REAL_pyopenssl=pyOpenSSL
 REAL_openssh-client=openssh-clients
@@ -388,7 +389,7 @@ REAL_python3-dev=python${PY3ID}-devel
 redis_svcname=redis
 # Standard packages
 YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-essential,\
-         php-cli,libxslt,libxslt-python,python-devel,readline,zlib,libreadline6-dev,\
+         php-cli,libxslt,libxslt-python,python3-devel,readline,zlib,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
          freetype,freetype-devel,cups,cups-devel,postgresql-devel,postgresql95-devel,expect-devel,\
@@ -403,9 +404,9 @@ PYTHON_LIB_XML_BOP=libxslt-python,libxml2,libxml2-python,lxml
 openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils
 openssh-clients_cmdname=ssh
 openssh-server_svcname=sshd
-python_ldap_ReqPkgList=python-devel,openldap-devel
-pyldap_ReqPkgList=python-devel,openldap-devel
-psutil_ReqPkgList=python-devel
+python_ldap_ReqPkgList=python3-devel,openldap-devel
+pyldap_ReqPkgList=python3-devel,openldap-devel
+psutil_ReqPkgList=python3-devel
 
 
 [_RHEL_DEV_]

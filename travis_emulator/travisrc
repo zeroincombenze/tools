@@ -285,100 +285,100 @@ init_travis() {
     TRAVIS_ENV=$(get_cfg_value "" "Environment")
     TRAVIS_ENVOPTS=
     if [ ${opt_virt:-0} -eq -1 ]; then
-      if [ "$TRAVIS_ENV" == "virtualenv" ]; then
-        opt_virt=1
-      else
-        opt_virt=0
-      fi
+        if [ "$TRAVIS_ENV" == "virtualenv" ]; then
+            opt_virt=1
+        else
+            opt_virt=0
+        fi
     elif [ ${opt_virt:-0} -eq 1 -a "$TRAVIS_ENV" == "bash" ]; then
-      TRAVIS_ENV=virtualenv
+        TRAVIS_ENV=virtualenv
     fi
     if [ ${opt_virt:-0} -gt 0 ]; then
-      if [ "$TRAVIS_ENV" == "virtualenv" ]; then
-        TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
-      fi
+        if [ "$TRAVIS_ENV" == "virtualenv" ]; then
+            TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
+        fi
     fi
     ## DEPRECATED, TODO: inherits_travis_opts()
     if [ ${opt_dry_run:-0} -gt 0 ]; then
-      opts_dry_run=-n
+        opts_dry_run=-n
     else
-      opts_dry_run=
+        opts_dry_run=
     fi
     ## DEPRECATED, TODO: inherits_travis_opts()
     if [ ${opt_upd:-0} -gt 0 ]; then
-      opts_upd=-u
+        opts_upd=-u
     else
-      opts_upd=
+        opts_upd=
     fi
     local x=$(get_cfg_value "" "loglevel")
     if [ ${x:-1} -ne -1 ]; then
-      opt_verbose=$x
+        opt_verbose=$x
     fi
     if [ ${opt_verbose:-0} -eq -1 ]; then
-      if [[ -t 0 || -p /dev/stdin ]]; then
-        opt_verbose=0
-      else
-        opt_verbose=1
-      fi
+        if [[ -t 0 || -p /dev/stdin ]]; then
+            opt_verbose=0
+        else
+            opt_verbose=1
+        fi
     fi
     if [ ${opt_verbose:-0} -ge 0 ]; then
-      opts_verbose=-v
-      export FLOG_ECHO=echo
+        opts_verbose=-v
+        export FLOG_ECHO=echo
     else
-      opts_verbose=
-      export FLOG_ECHO=
+        opts_verbose=
+        export FLOG_ECHO=
     fi
     if [[ -z "$PKGPATH" || -z "$PRJPATH" ]]; then
-      build_pypi_param ALL
+        build_pypi_param ALL
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
-      local npm_curpfx=$(npm config get prefix)
-      NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
-      if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
-        mkdir -p $NPM_CONFIG_PREFIX
-        npm config set prefix $NPM_CONFIG_PREFIX
-      fi
-      # PKGNAME=$(build_odoo_param PKGNAME ".")
-      [ -z "$REPOSNAME" ] && REPOSNAME=$(build_odoo_param REPOS ".")
-      BRANCH=$(build_odoo_param FULLVER ".")
-      # PRJPATH=$(build_odoo_param HOME '.')
-      SETUP=$MANIFEST
+        local npm_curpfx=$(npm config get prefix)
+        NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
+        if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
+            mkdir -p $NPM_CONFIG_PREFIX
+            npm config set prefix $NPM_CONFIG_PREFIX
+        fi
+        # PKGNAME=$(build_odoo_param PKGNAME ".")
+        [ -z "$REPOSNAME" ] && REPOSNAME=$(build_odoo_param REPOS ".")
+        BRANCH=$(build_odoo_param FULLVER ".")
+        # PRJPATH=$(build_odoo_param HOME '.')
+        SETUP=$MANIFEST
     fi
     if [ ${opt_dbgmnt:-0} -ne 0 ]; then
-      local MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
+        local MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
     else
-      local MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
+        local MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
     fi
     if [ ! -d "$MQT_DEF_PATH" ]; then
-      if [ -d $TDIR/../travis ]; then
-        MQT_DEF_PATH=$(readlink -e $TDIR/../travis)
-      elif [ -d $TDIR/../../travis ]; then
-        MQT_DEF_PATH=$(readlink -e $TDIR/../../travis)
-      fi
+        if [ -d $TDIR/../travis ]; then
+            MQT_DEF_PATH=$(readlink -e $TDIR/../travis)
+        elif [ -d $TDIR/../../travis ]; then
+            MQT_DEF_PATH=$(readlink -e $TDIR/../../travis)
+        fi
     fi
     if [ -z "$MQT_PATH" ]; then
-      if [ ${opt_dbgmnt:-0} -ne 0 -a -d "$MQT_DEF_PATH" ]; then
-        MQT_PATH=$MQT_DEF_PATH
-      elif [ -d $HOME/maintainer-quality-tools/travis ]; then
-        MQT_PATH=$HOME/maintainer-quality-tools/travis
-      elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
-        MQT_PATH=/opt/odoo/maintainer-quality-tools/travis
-      elif [ -d $HOME/tools/maintainer-quality-tools/travis ]; then
-        MQT_PATH=$HOME/tools/maintainer-quality-tools/travis
-      else
-        MQT_PATH=$MQT_DEF_PATH
-      fi
+        if [ ${opt_dbgmnt:-0} -ne 0 -a -d "$MQT_DEF_PATH" ]; then
+            MQT_PATH=$MQT_DEF_PATH
+        elif [ -d $HOME/maintainer-quality-tools/travis ]; then
+            MQT_PATH=$HOME/maintainer-quality-tools/travis
+        elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
+            MQT_PATH=/opt/odoo/maintainer-quality-tools/travis
+        elif [ -d $HOME/tools/maintainer-quality-tools/travis ]; then
+            MQT_PATH=$HOME/tools/maintainer-quality-tools/travis
+        else
+            MQT_PATH=$MQT_DEF_PATH
+        fi
     fi
     if [ -z "$TOOLS_PATH" ]; then
-      if [ ${opt_dbgmnt:-0} -ne 0 -a -d "$MQT_DEF_PATH" ]; then
-        TOOLS_PATH=$MQT_DEF_PATH
-      elif [ -d $HOME/dev/_travis ]; then
-        TOOLS_PATH=$HOME/dev/_travis
-      elif [ -d $HOME/tools/zerobug/_travis ]; then
-        TOOLS_PATH=$HOME/tools/maintainer-quality-tools/_travis
-      else
-        TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
-      fi
+        if [ ${opt_dbgmnt:-0} -ne 0 -a -d "$MQT_DEF_PATH" ]; then
+            TOOLS_PATH=$MQT_DEF_PATH
+        elif [ -d $HOME/dev/_travis ]; then
+            TOOLS_PATH=$HOME/dev/_travis
+        elif [ -d $HOME/tools/zerobug/_travis ]; then
+            TOOLS_PATH=$HOME/tools/zerobug/_travis
+        else
+            TOOLS_PATH=$(find $HOME -type d -name _travis | head -n1)
+        fi
     fi
 }
 
@@ -407,18 +407,20 @@ venv_mgr_install_pkg() {
     [ -n "$1" ] && VENV=$(readlink -f $1)
     PKG=$2
     if [[ -z "$VENV" || -z "$PKG" ]]; then
-      echo "Missed parameters!"
-      echo "use: venv_mgr_install_pkg VENV PKG"
-      exit 1
+        echo "Missed parameters!"
+        echo "use: venv_mgr_install_pkg VENV PKG"
+        exit 1
     fi
     if [[ ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-      echo "Invalid virtual env $VENV!"
-      exit 1
+        echo "Invalid virtual env $VENV!"
+        exit 1
     fi
-    cd $VENV/bin/activate
-    . ./bin/activate
-    pip install $PKG --upgrade --no-warn-conflicts --disable-pip-version-check
-    deactivate
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+        cd $VENV/bin/activate
+        . ./bin/activate
+        pip install $PKG --upgrade --no-warn-conflicts --disable-pip-version-check
+        deactivate
+    fi
 }
 
 venv_mgr_test() {
@@ -426,23 +428,25 @@ venv_mgr_test() {
     local f x VENV
     [ -n "$1" ] && VENV=$(readlink -f $1)
     if [[ -z "$VENV" ]]; then
-      echo "Missed parameters!"
-      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
-      exit 1
+        echo "Missed parameters!"
+        echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
+        exit 1
     fi
-    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-      echo "Invalid virtual env $VENV!"
-      exit 1
+    if [[ ! -d $VENV || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+        echo "Invalid virtual env $VENV!"
+        exit 1
     fi
-    cd $VENV
-    . bin/activate
-    for f in python pip coveralls codecov flake8 pylint; do
-      x=$(readlink -e $(which $f))
-      [[ ! $x =~ ^$1 ]] && echo "Corrupted VME ($f)"
-      [ "$f" != "pylint" ] && eval $f --version
-      [ "$f" == "pylint" ] && eval $f --version 2>/dev/null
-    done
-    deactivate
+    if ((${opt_dry_run:-0}==0)); then
+        cd $VENV
+        . bin/activate
+        for f in python pip coveralls codecov flake8 pylint; do
+            x=$(readlink -e $(which $f))
+            [[ ! ${x} =~ ^$1 ]] && echo "Corrupted VME ($f)"
+            [[ ! "$f" == "pylint" ]] && eval $f --version
+            [[ "$f" == "pylint" ]] && eval $f --version 2> /dev/null
+        done
+        deactivate
+    fi
 }
 
 custom_env() {
@@ -475,7 +479,7 @@ custom_env() {
 }
 
 create_virtual_env() {
-    local f p x VENVOPTS=-D
+    local f p t x VENVOPTS=-D
     local HOME_BRANCH=$HOME/$BRANCH
     export TRAVIS_BRANCH=$BRANCH
     local sts=0
@@ -539,9 +543,17 @@ create_virtual_env() {
         x=$(readlink -f $TRAVIS_BUILD_DIR/..)
         run_traced "cp -R $TRAVIS_CWD/ $x/"
         if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
-            for p in $(get_cfg_value 0 "PKGS_LIST"); do
-                run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $TRAVIS_BUILD_DIR/$p/  # Use no stable version"
-            done
+            git_clone "https://github.com/zeroincombenze/tools.git"
+            # t=0
+            # for p in $(get_cfg_value 0 "PKGS_LIST"); do
+            #     if [ $t -le 0 ]; then
+            #         run_traced "sleep 1"
+            #         t=1000
+            #     else
+            #         ((t=t-300))
+            #     fi
+            #     run_traced "rsync -a --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $TRAVIS_BUILD_DIR/$p/  # Use no stable version"
+            # done
             run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
         fi
     fi
@@ -549,7 +561,7 @@ create_virtual_env() {
 }
 
 drop_virtual_env() {
-    [ ${opt_virt:-0} -gt 0 ] && deactivate
+    [ ${opt_dry_run:-0} -eq 0 -a ${opt_virt:-0} -gt 0 ] && deactivate
     export HOME=$TRAVIS_SAVED_HOME
     hash -r
     unset TRAVIS_SAVED_HOME
@@ -584,7 +596,7 @@ emulate_git_clone_OCB() {
 
 git_clone() {
 # emulate git clone
-    local d x
+    local d x s t
     while [[ -n "$1" && "${1:0:1}" == "-" ]]; do
         shift
     done
@@ -595,23 +607,16 @@ git_clone() {
             d="./"
         fi
         run_traced "cp -R $TRAVIS_SAVED_HOME/tools $d"
-        # if [[ -n "$YML_lisa" ]]; then
-        #     x=$(dirname $YML_lisa)
-        #     run_traced "rsync -a $x/ $HOME/tools/lisa/"
-        # fi
-        # if [[ -n "$YML_mgrodoo" ]]; then
-        #     x=$(dirname $YML_mgrodoo)
-        #     run_traced "rsync -a $x/ $HOME/tools/clodoo/"
-        # fi
         if [ $opt_dbgmnt -ne 0 ]; then
             x=${TRAVIS_REPO_SLUG#*/}
-            # for p in clodoo lisa maintainer-quality-tools python_plus travis_emulator z0bug_odoo z0lib zerobug; do
             for p in $(get_cfg_value 0 "PKGS_LIST"); do
-                [ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ -a "$p" != "$x" ] && run_traced "rsync -aW $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/  # Use unstable version"
-                [ $? -ne 0 ] && echo "Internal error! Statement failed! <<<"
+                # Use unstable version
+                [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ && "$p" != "$x" ]] && run_traced "rsync -aW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
+                s=$?
+                if [ $s -ne 0 ]; then
+                    echo "Internal error ($s)! Statement failed! <<<"
+                fi
             done
-            # run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ $HOME/tools/maintainer-quality-tools/travis/"
-            # run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/_travis/ $HOME/tools/maintainer-quality-tools/_travis/"
             true    # FIX: return no error
         fi
     fi
@@ -717,32 +722,28 @@ do_chkconfig() {
 }
 
 conf_default() {
-# Parameter "EM" prefixed foer EMulation, "RUN" for virtual env
     set_cfg_def "loglevel" "-1"
-    if [ -n "$HOSTNAME_DEV" ]; then
-      set_cfg_def "DEV_HOST" "$HOSTNAME_DEV"
+    if [[ -n "$HOSTNAME_DEV" ]]; then
+        set_cfg_def "DEV_HOST" "$HOSTNAME_DEV"
     else
-      set_cfg_def "DEV_HOST" "shsde[a-z][0-9]*"
+        set_cfg_def "DEV_HOST" "shsde[a-z][0-9]*"
     fi
     if [ -n "$HOSTNAME_PRD" ]; then
-      set_cfg_def "DEV_HOST" "$HOSTNAME_PRD"
+        set_cfg_def "DEV_HOST" "$HOSTNAME_PRD"
     else
-      set_cfg_def "PRD_HOST" "shsprd[0-9]*"
+        set_cfg_def "PRD_HOST" "shsprd[0-9]*"
+    fi
+    if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+        set_cfg_def "upgrade_dow" "3"
+    else
+        set_cfg_def "upgrade_dow" "4"
     fi
     set_cfg_def "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
-    # set_cfg_def "SET_GLOBAL_PYVER" "0"
-    # set_cfg_def "PIDFILE" "/var/run/travis_emulator/travis_emulator.pid"
-    # set_cfg_def "ODOO_SETUP" "__openerp__.py" #TODO: remove early
     set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py __odoo__.py __terp__.py"
-    set_cfg_def "ODOO_DEFCONF" ".odoorc"
     set_cfg_def "ODOO_LOGFILE" "False"
     set_cfg_def "RUN_travis_install_nightly" "travis_install_nightly"
     set_cfg_def "RUN_travis_run_tests" "travis_run_tests"
     set_cfg_def "RUN_travis_after_tests_success" "travis_after_tests_success"
-    # set_cfg_def "EM_travis_install_nightly" "clone_oca_dependencies \${1}/oca_dependencies.txt"
-    set_cfg_def "EM_travis_install_nightly" "emulate_install_nightly \${1}/oca_dependencies.txt"
-    # set_cfg_def "EM_travis_run_tests" "true"
-    set_cfg_def "EM_travis_after_tests_success" "init_travis; run_coverage_test"
     set_cfg_def "dbtemplate" "openerp_template"
     set_cfg_def "dbname" "openerp_test"
     set_cfg_def "dbuser" "postgres"
@@ -755,13 +756,6 @@ conf_default() {
     set_cfg_def "RFLIST__zerobug" "z0testrc"
     set_cfg_def "RFLIST__clodoo" "clodoo.py clodoocore.py clodoolib.py"
     set_cfg_def "RFLIST__z0tester" "z0testercode.py"
-    if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-      set_cfg_def "pip_pkgver__reportlab" "3.2.0"
-      set_cfg_def "upgrade_dow" "3"
-    else
-      set_cfg_def "pip_pkgver__reportlab" "3.1.44"
-      set_cfg_def "upgrade_dow" "4"
-    fi
     set_cfg_def "Environment" "bash"
     set_cfg_def "virtualenv_opts" ""
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
@@ -1326,83 +1320,6 @@ run_annotate_test() {
       sts=$STS_SUCCESS
     fi
     return $sts
-}
-
-cp_n_upd_conf() {
-    local confn=$1
-    if [ "$VERSION" == "v7" ]; then
-      local odoo_ver=7
-      local pfx="openerp"
-      local pfx2=
-      local sfx="/server"
-    else
-      local odoo_ver=$(echo $VERSION|grep -Eo '[0-9]*'|head -n1)
-      local pfx="odoo$odoo_ver"
-      local pfx2=odoo
-      local sfx=
-    fi
-    if [ "$odoo_ver" == "10" ]; then
-      local tgt=$(get_cfg_value "" "ODOO_DEFCONF")
-      tgt=$(basename $tgt)
-      if [ "$tgt" == ".openerp_serverrc" ]; then
-        local atgt=~/.odoorc
-      else
-        local atgt=~/.openerp_serverrc
-      fi
-      tgt=~/$tgt
-    else
-      local tgt=~/.openerp_serverrc
-      local atgt=~/.odoorc
-    fi
-    if [ -z "$confn" ] || [ ! -f $confn ]; then
-      local confn=/etc/odoo/${pfx}-server.conf
-      if [ ! -f $confn ]; then
-        confn=/etc/odoo/${pfx}.conf
-      fi
-      if [ ! -f $confn ]; then
-        confn=/etc/odoo/${pfx2}-server.conf
-      fi
-      if [ ! -f $confn ]; then
-        confn=/etc/odoo/${pfx2}.conf
-      fi
-    fi
-    if [ ! -f $confn ]; then
-      echo "File $confn not found!"
-      exit 1
-    fi
-    if [ -f $atgt ]; then
-      rm -f $atgt
-    fi
-    if [ -f $tgt ]; then
-      rm -f $tgt
-    fi
-    wlog "$ cp $confn $tgt"
-    touch $tgt
-    local ODOO_LOGFILE=$(get_cfg_value "" "ODOO_LOGFILE")
-    while IFS=\| read -r line || [ -n "$line" ]; do
-      if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo$odoo_ver ]]; then
-        line=$(echo "$line"|sed -e "s:Odoo$odoo_ver:Odoo-test:")
-      elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.* ]]; then
-        line=$(echo "logfile = $ODOO_LOGFILE")
-      elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
-        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
-      elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]][0-9A-Za-z]+ ]]; then
-        line="xmlrpc_port = $((18060+$odoo_ver))"
-      elif [[ $line =~ ^NAME=.*odoo$odoo_ver.* ]]; then
-        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
-      elif [[ $line =~ .*odoo$odoo_ver-server.conf.* ]]; then
-        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
-      elif [[ $line =~ .*$confn.* ]]; then
-        line=$(echo "$line"|sed -e "s:$confn:odoo-test:")
-      elif [[ $line =~ .*odoo$odoo_ver-server.pid.* ]]; then
-        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
-      elif [[ $line =~ .*odoo$odoo_ver-server.log.* ]]; then
-        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
-      elif [[ $line =~ ^server_wide_modules[[:space:]]*=[[:space:]] ]]; then
-        line="server_wide_modules = web"
-      fi
-      echo "$line">>$tgt
-    done < "$confn"
 }
 
 emulate_install_nightly() {

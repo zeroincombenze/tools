@@ -13,14 +13,11 @@ travis_emulator 0.2.2.27
 Overview
 ========
 
-travis_emulator
-===============
+Emulate travis to test application before pushing to git
+--------------------------------------------------------
 
-Travis emulator to test application before pushing to git
----------------------------------------------------------
-
-Travis emulator can execute a .travis.yml file in local Linux machine.
-You can test your application before push code into TravisCI web site.
+Travis emulator can emulate TravisCi parsing .travis.yml file in local Linux machine.
+You can test your application before pushing code to github.com web site.
 
 
 
@@ -129,7 +126,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-07-10
+Last Update / Ultimo aggiornamento: 2020-07-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

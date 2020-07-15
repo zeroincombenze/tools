@@ -43,8 +43,7 @@ before_install:
   # Tools are used to test themselves packages
   - ln -s ${TRAVIS_BUILD_DIR} ${HOME}
   - export PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}
-  - export PATH=${HOME}/tools/maintainer-quality-tools/_travis:${PATH}
-  # - export OPTS="-j"
+  - export PATH=${HOME}/tools/zerobug/_travis:${PATH}
 
 install:
   - travis_install_env tools

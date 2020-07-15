@@ -148,49 +148,52 @@ process_yaml_init() {
     YML_after=
     YML_pid=$$
     if [[ "$REMOTEREPO" == "oca" ]]; then
-      YML_repo=OCA/OCB
+        YML_repo=OCA/OCB
     elif [[ "$REMOTEREPO" == "odoo" ]]; then
-      YML_repo=odoo/odoo
+        YML_repo=odoo/odoo
     else
-      YML_repo=
+        YML_repo=
     fi
     export TRAVIS_PULL_REQUEST="false"
     export MQT_TEMPLATE_DB="openerp_template$YML_pid"
     export MQT_TEST_DB="openerp_test$YML_pid"
     python_matrix=
     if [ $opt_dbgmnt -ne 0 ]; then
-      export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
-      export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
-      export TRAVIS_PDB="True"
+        export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
+        export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
+        export TRAVIS_PDB="True"
+    else
+        export YML_lisa=lisa
+        export YML_mgrodoo=manage_odoo
     fi
     export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
     ODOO_TNLBOT="${opt_tnl:-0}"
     if [ $opt_full -ne 0 ]; then
-      export SYSTEM_SITE_PACKAGES="${opt_syspkg:-false}"
+        export SYSTEM_SITE_PACKAGES="${opt_syspkg:-false}"
     else
-      export SYSTEM_SITE_PACKAGES="${opt_syspkg:-true}"
+        export SYSTEM_SITE_PACKAGES="${opt_syspkg:-true}"
     fi
     LINT_CHECK_LEVEL="${opt_llvl^^}"
     for i in {1..9}; do
-      declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
+        declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
     done
     FH=$(xuname -f)
 }
 
 process_yaml_unquote() {
-  lne="$(echo $1|sed -e s/\"/%%22/g -e s/\'/%%26/g -e s/\ /%%20/g)"
-  echo $lne
+    lne="$(echo $1|sed -e s/\"/%%22/g -e s/\'/%%26/g -e s/\ /%%20/g)"
+    echo $lne
 }
 
 process_yaml_quote() {
-  lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g -e s/%%24/\$/g)"
-  echo $lne
+    lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g -e s/%%24/\$/g)"
+    echo $lne
 }
 
 process_yaml_quote_xtl() {
-  lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g -e s/%%24/\$/g)"
-  lne=$(expand_path "$lne")
-  echo $lne
+    lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g -e s/%%24/\$/g)"
+    lne=$(expand_path "$lne")
+    echo $lne
 }
 
 process_yaml_do() {
@@ -478,11 +481,13 @@ process_yaml_before_install() {
                 if [[ "$lne" == "build-essential" ]]; then
                     lne="redhat-rpm-config"
                 elif [[ "$lne" == "python-dev" ]]; then
-                    lne="python-devel"
+                    lne="python3-devel"
                 elif [[ "$lne" == "libxml2-dev" ]]; then
                     lne="libxml2-devel"
                 elif [[ "$lne" == "libxslt1-dev" ]]; then
                     lne="libxslt-devel"
+                elif [[ "$lne" == "zlib1g" ]]; then
+                    lne="zlib"
                 elif [[ "$lne" == "zlib1g-dev" ]]; then
                     lne="zlib-devel"
                 elif [[ "$lne" == "libffi-dev" ]]; then
@@ -591,7 +596,6 @@ process_yaml_run_cmd() {
     ix=0
     if [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sudo" ]; then
       xcmd="$(echo $xcmd|sed -e 's/sudo //g')"
-      # read -r -a x<<<"$xcmd"
       ((ix++))
     fi
     if [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "if" ]; then
@@ -615,13 +619,13 @@ process_yaml_run_cmd() {
       xcmd="$(echo $xcmd|sed -e 's/apt-get /yum /g')"
       x[$ix]="yum"
     fi
-    if [ "${x[$ix]}" == "yum" -o "${x[$ix]}" == "apt-get" ]; then
+    if [[ ${x[$ix]} =~ ^(yum|apt-get)$ ]]; then
       pp="python-serial libcups2-dev cups-devel unixodbc unixODBC unixodbc-dev unixODBC-dev unixODBC-devel"
       pp="$pp python-mysqldb MYSQL-python python-yaml pyyaml pyYAML PyYAML python-pypdf pypdf pyPdf"
       pp="$pp ruby-sass rubygem-sass python-simplejson python2-simplejson expect-dev antiword"
       if [[ $pp =~ ${x[$ix2]} ]]; then
-        xcmd="$(echo $xcmd|sed -e 's/yum/$YML_lisa/g')"
-        xcmd="$(echo $xcmd|sed -e 's/apt-get/$YML_lisa/g')"
+        xcmd=$(echo $xcmd|sed -e 's/yum/$YML_lisa/g')
+        xcmd=$(echo $xcmd|sed -e 's/apt-get/$YML_lisa/g')
         x[$ix]=$YML_lisa
       fi
     fi
@@ -807,15 +811,8 @@ process_yaml() {
         fi
     else
         YML_FILE=$opt_fyaml
-        if [ ! -f $YML_FILE ]; then
-            YML_FILE=$PRJPATH/$opt_fyaml
-        fi
-        if [ ! -f $YML_FILE -a $opt_py3 -eq 0 ]; then
-            YML_FILE=$TOOLS_PATH/travis.yml
-        fi
-        if [ ! -f $YML_FILE -a $opt_py3 -ne 0 ]; then
-            YML_FILE=$TOOLS_PATH/travis3.yml
-        fi
+        [[ ! -f $YML_FILE ]] && YML_FILE=$PRJPATH/$opt_fyaml
+        [[ ! -f $YML_FILE ]] && YML_FILE=$TOOLS_PATH/travis.yml
     fi
     if [ ! -d "$MQT_PATH" ]; then
         echo "Zeroincombenze(R) tools not found!"
@@ -841,26 +838,15 @@ process_yaml() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
         fi
         if [ $sts -eq $STS_SUCCESS ]; then
-            if [ -z "$python_matrix" ]; then
-                # export python_matrix="$PYTHON_VERSION"
+            if [[ -n "$opt_pyv" ]]; then
+                export python_matrix="${opt_pyv//,/ }"
+            elif [ -z "$python_matrix" ]; then
                 export python_matrix==$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-                if [ $opt_py3 -ne 0 ]; then
-                    CURPYVER=$(python --version 2>&1|grep -Eo [0-9]|head -n1)
-                    if [ $CURPYVER -ne 3 ]; then
-                        export python_matrix==$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-                    fi
-                fi
             fi
             for TRAVIS_PYTHON_VERSION in $python_matrix; do
+                [ $sts -eq $STS_SUCCESS ] || break
                 wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[${PS_TXT_COLOR}m"
                 CURPYVER=$(echo $TRAVIS_PYTHON_VERSION|grep -Eo [0-9]|head -n1)
-                # if [ "$CURPYVER" == "2" ]; then
-                #     PYTHON=python2
-                #     PYTHON_VERSION=$(python2 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-                # else
-                #     PYTHON=python3
-                #     PYTHON_VERSION=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
-                # fi
                 PYTHON=$(which python$TRAVIS_PYTHON_VERSION)
                 [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER)
                 PYTHON_VERSION=$($PYTHON --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
@@ -875,21 +861,16 @@ process_yaml() {
                 alias pip=$PIP
                 for lne in PIP PYTHON PYTHONPATH TRAVIS_PYTHON_VERSION; do
                     lne1=${!lne}
-                    if [[ -n "$lne1" || $lne =~ PATH ]]; then
-                        wlog "\$ $lne=$lne1"
-                    fi
+                    [[ -n "$lne1" || $lne =~ PATH ]] && wlog "\$ $lne=$lne1"
                 done
                 if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
-                    # if [ $opt_py3 -ne 0 ]; then
                     if [ $CURPYVER -eq 3 ]; then
                         echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|$PYTHON
                     else
                         echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|$PYTHON
                     fi
                 fi
-                if [ -z "$YML_matrix" ]; then
-                    YML_matrix=":"
-                fi
+                [[ -n "$YML_matrix" ]] || YML_matrix=":"
                 for lne in $YML_matrix; do
                     if [ "$lne" == ":" ]; then
                         line1=
@@ -946,19 +927,19 @@ process_yaml() {
                         wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[${PS_TXT_COLOR}m"
                         process_yaml_after_success
                     fi
-                    if [ "$TRAVIS_DEBUG_MODE" == "9" ]; then
-                        read -p "Press RET to continue ..."
-                    fi
+                    [[ "$TRAVIS_DEBUG_MODE" == "9" ]] && read -p "Press RET to continue ..."
                     if [ $sts -eq $STS_SUCCESS ]; then
                         process_yaml_exit
+                        drop_virtual_env
+                    else
+                        break
                     fi
-                    drop_virtual_env
                 done
             done
         fi
     else
-      process_local
-      sts=$?
+        process_local
+        sts=$?
     fi
     echo -e "\e[0m"
     return $sts
@@ -972,11 +953,11 @@ process_yaml_echo() {
     lm=${lm:0:$lev}
     local lne="$2"
     if [ $opt_dprj -ne 0 ]; then
-      echo -n "$lm- "
-      process_yaml_run_cmd "$lne"
+        echo -n "$lm- "
+        process_yaml_run_cmd "$lne"
     else
-      local line="- $(process_yaml_quote_xtl $lne)"
-      echo "$lm$line"
+        local line="- $(process_yaml_quote_xtl $lne)"
+        echo "$lm$line"
     fi
 }
 
@@ -988,11 +969,11 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             3)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml    opt_py3)
-OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           1)
-OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" 0)
-OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "")
+OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             y       3)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_py3)
+OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
+OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
+OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
@@ -1017,7 +998,8 @@ OPTHELP=("this help"\
  "verbose mode"\
  "enable translation test (def yaml dependents)"\
  "file yaml to process (def .travis.yml)"\
- "use python3")
+ "test with specific python versions (comma separated)"\
+ "use python3 (deprecated)")
 OPTARGS=(action sub sub2)
 
 parseoptargs "$@"
@@ -1026,9 +1008,9 @@ if [ "$opt_version" ]; then
   exit $STS_SUCCESS
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Travis-ci emulator for local developer environment\nAction may be: [force-]lint, [force-]test, emulate (default), (new|chk|cp|mv|merge)_vm, chkconfig or parseyaml"\
-  "© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
-  exit $STS_SUCCESS
+    print_help "Travis-ci emulator for local developer environment\nAction may be: [force-]lint, [force-]test, emulate (default), (new|chk|cp|mv|merge)_vm, chkconfig or parseyaml" \
+               "© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    exit $STS_SUCCESS
 fi
 
 export PYTHONWARNINGS="ignore"
@@ -1051,7 +1033,6 @@ if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 
 if [ "$action" == "parseyaml" ]; then
-    # init_travis
     prepare_env_travis "$action"
     check_4_travis
     if [ -z "$sub" ]; then
@@ -1112,22 +1093,22 @@ sts=$STS_SUCCESS
 prepare_env_travis "$action"
 echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
 if [ $sts -eq $STS_SUCCESS ]; then
-  if [ $opt_r -gt 0 ]; then
-    process_local
-    sts=$?
-  else
-    [ "${opt_logdir:0:1}" == "~" ] && opt_logdir=$HOME/${opt_logdir:1}
-    mkdir -p $opt_logdir
-    [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
-    [ $opt_full -ne 0 -a "$PKGNAME" != "OCB" ] && set_executable
-    if [ $opt_debug -ne 0 ]; then
-      process_yaml
-      sts=2
+    if [ $opt_r -gt 0 ]; then
+        process_local
+        sts=$?
     else
-      [ -f $opt_logdir/${PKGNAME}_${BRANCH}.log ] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}.log
-      process_yaml 2>&1 | tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
-      sts=$?
+        [[ "${opt_logdir:0:1}" == "~" ]] && opt_logdir=$HOME/${opt_logdir:1}
+        mkdir -p $opt_logdir
+        [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
+        # [ $opt_full -ne 0 -a "$PKGNAME" != "OCB" ] && set_executable
+        if [ $opt_debug -ne 0 ]; then
+            process_yaml
+            sts=2
+        else
+            [[ -f $opt_logdir/${PKGNAME}_${BRANCH}.log ]] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}.log
+            process_yaml 2>&1 | tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
+            sts=$?
+        fi
     fi
-  fi
 fi
 exit $sts

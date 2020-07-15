@@ -13,7 +13,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.9.6'
+__version__ = '0.3.9.7'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -198,6 +198,7 @@ RPC_PACKAGES = ['clodoo',
                 'os0',
                 ]
 PIP_BASE_PACKAGES = ['Babel',
+                     'chardet',
                      'configparser',
                      'decorator',
                      'docutils',

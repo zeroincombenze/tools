@@ -63,6 +63,9 @@ import re
 import sys
 from datetime import datetime
 import tokenize
+# from ruamel.yaml import YAML
+import yaml
+from subprocess import PIPE, Popen
 
 from os0 import os0
 try:
@@ -71,7 +74,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.3.7"
+__version__ = "0.2.3.8"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0')
 COPY = {
@@ -98,7 +101,11 @@ COPY = {
         'website': 'https://www.didotech.com',
     },
 }
-
+NO_APT_GET = [
+    'build-essential', 'curl', 'git', 'gradle', 'gzip', 'java',
+    'lessc', 'nodejs', 'npm', 'openssl', 'python-setuptools',
+    'python-simplejson', 'PhantomJS', 'rvm', 'ruby', 'sass', 'scss',
+    'tesseract', 'wget', 'wkhtmltopdf', 'zip']
 
 class topep8():
     # Source file is parsed in tokens.
@@ -107,9 +114,8 @@ class topep8():
     #
     def __init__(self, src_filepy, ctx):
         self.src_filepy = src_filepy
-        fd = open(src_filepy, 'rb')
-        source = fd.read()
-        fd.close()
+        with open(src_filepy, 'rb') as fd:
+            source = fd.read()
         self.lines = source.split('\n')
         self.setup_py_header(ctx)
         if ctx['opt_gpl']:
@@ -1451,6 +1457,118 @@ def get_versions(ctx):
     return ctx
 
 
+def parse_yaml(ctx, src_file, dst_file):
+    import pdb
+    pdb.set_trace()
+    text_tgt = ''
+    # yaml = YAML()
+    # yaml.indent(mapping=2, sequence=2, offset=2)
+    with open(src_file, 'rb') as fd:
+        cmd = ['list_requirements.py', '-b', ctx['to_ver'],
+               '-t', 'bin', '-PRT', '-s', ',', '-q']
+        out, err = Popen(cmd,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE).communicate()
+        pkgs = []
+        for pkg in out.split(','):
+            pkg = pkg.replace('\n', '')
+            if pkg == 'psycopg2':
+                pkgs.append('psycopg2-binary')
+            elif pkg not in NO_APT_GET:
+                pkgs.append(pkg)
+        yaml_data = yaml.load(fd)
+        yaml_data['language'] = 'python'
+        if ctx['to_ver'] in ('6.1', '7.0', '8.0', '9.0'):
+            yaml_data['python'] = ['2.7']
+        else:
+            yaml_data['python'] = ['3.5', '3.6', '3.7']
+        yaml_data['sudo'] = False
+        yaml_data['cache'] = {'directories': ['$HOME/.cache/pip'], 'apt': True}
+        yaml_data['virtualenv'] = {'system_site_packages': False}
+        yaml_data['git'] = {'depth': False, 'submodules': False}
+        yaml_data['services'] = ['postgresql']
+        yaml_data['addons'] = {
+            'apt': {
+                'chrome': 'stable',
+                'sources': ['pov-wkhtmltopdf'],
+                'packages': pkgs,
+            }
+        }
+        yaml_data['before_install'] = [
+            'git clone https://github.com/zeroincombenze/tools.git '
+                '${HOME}/tools --single-branch --depth=1',
+            'export '
+                'PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}',
+            'export PYTHONPATH=${HOME}/tools'
+        ]
+        yaml_data['install'] = [
+            'travis_install_env',
+            'export EXCLUDE=hw_scanner,hw_escpos,document_ftp,delivery,'
+                'stock_invoice_directly,claim_from_delivery'
+        ]
+        yaml_data['env'] = {
+            'global': [
+                'TRAVIS_DEBUG_MODE="2"',
+                'WKHTMLTOPDF_VERSION="0.12.4"',
+                'VERSION="10.0" TESTS="0" LINT_CHECK="0" ODOO_TNLBOT="0"'
+            ],
+            'matrix': [
+                'LINT_CHECK="1" LINT_CHECK_LEVEL="MINIMAL"',
+                'TESTS="1" ODOO_TEST_SELECT="NO-CORE" ODOO_REPO="odoo/odoo"',
+                'TESTS="1" ODOO_TEST_SELECT="NO-CORE" ODOO_REPO="OCA/OCB"',
+                'TESTS="1" ODOO_REPO="zeroincombenze/OCB"'
+            ]
+        }
+        yaml_data['script'] = ['travis_run_tests']
+        yaml_data['after_success'] = ['travis_after_tests_success']
+    with open(src_file, 'rb') as fd:
+        lines = fd.read().split('\n')
+        cont = 0
+        for line in lines:
+            if not line or line.startswith('#'):
+                text_tgt += '%s\n' % line
+                continue
+            if not line.startswith(' '):
+                items = line.split(':')
+                if items[0] in yaml_data:
+                    text_tgt += yaml.dump({items[0]: yaml_data[items[0]]})
+                    cont = 1
+                    continue
+            else:
+                if cont:
+                    continue
+            text_tgt += '%s\n' % line
+    if text_tgt:
+        # TODO: tried ruaml yaml to format - must be analyzed again
+        source = text_tgt.split('\n')
+        text_tgt = ''
+        for line in source:
+            if line.lstrip().startswith('- '):
+                line = '  %s' % line
+            text_tgt += '%s\n' % line
+        save_file(ctx, src_file, dst_file, text_tgt)
+    return 1
+
+
+def save_file(ctx, src_file, dst_file, text_tgt):
+    if not ctx['dry_run']:
+        if ctx['opt_verbose']:
+            print("Writing %s" % dst_file)
+        if dst_file != src_file:
+            with open(dst_file, 'w') as fd:
+                fd.write(os0.b(text_tgt))
+        else:
+            tmpfile = '%s.tmp' % dst_file
+            bakfile = '%s.bak' % dst_file
+            with open(tmpfile, 'w') as fd:
+                fd.write(os0.b(text_tgt))
+            if os.path.isfile(bakfile):
+                os.remove(bakfile)
+            os.rename(src_file, bakfile)
+            os.rename(tmpfile, dst_file)
+
+
 def parse_file(ctx=None):
     ctx = ctx or {}
     src_filepy, dst_filepy, ctx = get_filenames(ctx)
@@ -1459,27 +1577,13 @@ def parse_file(ctx=None):
         print("Reading %s -o%s -b%s" % (src_filepy,
                                         ctx['from_ver'],
                                         ctx['to_ver']))
+    if src_filepy.endswith('.yml'):
+        return parse_yaml(ctx, src_filepy, dst_filepy)
     source = topep8(src_filepy, ctx)
     source.compile_rules(ctx)
     source.tokenize_source(ctx)
     text_tgt = source.untokenize_2_text(ctx)
-    if not ctx['dry_run']:
-        if ctx['opt_verbose']:
-            print("Writing %s" % dst_filepy)
-        if dst_filepy != src_filepy:
-            fd = open(ctx['dst_filepy'], 'w')
-            fd.write(os0.b(text_tgt))
-            fd.close()
-        else:
-            tmpfile = '%s.tmp' % dst_filepy
-            bakfile = '%s.bak' % dst_filepy
-            fd = open(tmpfile, 'w')
-            fd.write(os0.b(text_tgt))
-            fd.close()
-            if os.path.isfile(bakfile):
-                os.remove(bakfile)
-            os.rename(src_filepy, bakfile)
-            os.rename(tmpfile, dst_filepy)
+    save_file(ctx, src_filepy, dst_filepy, text_tgt)
     return 0
 
 
