@@ -4,7 +4,7 @@
 
 
 gen_readme.py usage
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -298,7 +298,7 @@ Following macroes may be declared in package documentation, mainly in __init__.t
 
 
 odoo_dependecies.py usage
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -344,7 +344,7 @@ odoo_dependecies.py usage
 
 
 topep8 usage
-------------
+~~~~~~~~~~~~
 
 ::
 

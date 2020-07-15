@@ -17,7 +17,7 @@ MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.1.4.1"
+__version__ = "0.1.4.2"
 
 
 def version():
@@ -28,5 +28,5 @@ def version():
 if __name__ == "__main__":
     ctx = Z0BUG.parseoptest(sys.argv[1:],
                         version=version())
-    UT_LIST = ["__doctest_${rundir}/docs/python_plus.rst"]
+    UT_LIST = ["__doctest_${rundir}/egg-info/python_plus.rst"]
     exit(Z0BUG.main(ctx, UT=UT_LIST))

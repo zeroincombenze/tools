@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.4.1
+__version__=0.1.4.2
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -122,6 +122,7 @@ get_wkhtmltopdf_dwname() {
 bin_install() {
 #bin_install(pkg VENV)
     [ $opt_verbose -gt 2 ] && echo ">>> bin_install($@)"
+    local x
     local reqver size
     local FH=$(xuname -f)
     local MACHARCH=$(xuname -m)
@@ -131,9 +132,13 @@ bin_install() {
     [[ -z "$VENV" ]] && VENV="$HOME"
     if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
         if [[ $pkg =~ lessc ]]; then
+            [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
             pkg=${pkg/==/@}
             pkg=$(echo $pkg|tr -d "'")
             run_traced "npm install $pkg"
+            run_traced "npm install less-plugin-clean-css"
+            x=$(find $(npm bin) -name lessc 2>/dev/null)
+            [ -n "$x" ] && run_traced "ln -s $x $VENV/bin"
         elif [[ $pkg =~ wkhtmltopdf ]]; then
             mkdir wkhtmltox.rpm_files
             pushd wkhtmltox.rpm_files > /dev/null
@@ -781,16 +786,20 @@ do_venv_pip() {
     VENV="$1"
     cd_venv "$VENV" "-f"
     do_activate
-    pkg="$3"
-    popt=""
-    [ $opt_alone -ne 0 ] && popt="--isolated"
-    [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
-    [ $opt_verbose -eq 0 ] && popt="$popt -q"
-    [ "$cmd" == "info" ] && run_traced "$PIP show $pkg"
-    [ "$cmd" == "show" ] && run_traced "$PIP show $pkg"
-    [ "$cmd" == "install" ] && run_traced "$PIP $cmd $pkg --disable-pip-version-check"
-    [ "$cmd" == "uninstall" ] && run_traced "$PIP $cmd $pkg --disable-pip-version-check"
-    [ "$cmd" == "upgrade" ] && run_traced "$PIP install $pkg $popt --upgrade --disable-pip-version-check"
+    if [[ $3 =~ (wkhtmltopdf|lessc) ]]; then
+        [[ "$cmd" == "install" ]] && bin_install "$3" "$1"
+    else
+        pkg="$3"
+        popt=""
+        [ $opt_alone -ne 0 ] && popt="--isolated"
+        [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
+        [ $opt_verbose -eq 0 ] && popt="$popt -q"
+        [ "$cmd" == "info" ] && run_traced "$PIP show $pkg"
+        [ "$cmd" == "show" ] && run_traced "$PIP show $pkg"
+        [ "$cmd" == "install" ] && run_traced "$PIP $cmd $pkg --disable-pip-version-check"
+        [ "$cmd" == "uninstall" ] && run_traced "$PIP $cmd $pkg --disable-pip-version-check"
+        [ "$cmd" == "upgrade" ] && run_traced "$PIP install $pkg $popt --upgrade --disable-pip-version-check"
+    fi
     do_deactivate
     pop_cd
 }
@@ -882,7 +891,7 @@ fi
 venv_mgr_check_oever $action
 [ $opt_dev -eq 0 -a -d "$p2" ] && x=$(find ${p2}/lib -name pylint -o -name unittest2 -o -name coverage -o -name flake8|wc -l)
 [ $opt_dev -eq 0 -a ${x:-0} -gt 1 ] && opt_dev=1
-if [ $opt_dev -eq 0 ] || [[ -z "$FUTURE" || -z "$Z0LIB" || -z "$OS0" ]]; then
+if [ $opt_dev -eq 0 ] || [[ -z "$FUTURE" || -z "$Z0LIB" || -z "$OS0" || ! $(which list_requirements.py >/dev/null) ]]; then
     DEV_PKGS=""
 else
     cmd="list_requirements.py -qt python -BP"
