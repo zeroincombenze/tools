@@ -201,9 +201,9 @@ This is the hierarchical layout):
     (3) Odoo standard files / directory
     (4) Virtual directory
     {vid} Odoo root (see about Odoo vid)
-    {repository} Odoo/OCA repository
-    {customized-addons} Customized modules
-    {axitec-modules} Italian localization modules
+    {repository} Odoo/OCA and other repositories
+    {customized-addons} Client specific custom modules
+    {axitec-modules} Italian Accounting modules
 
 
 Odoo Version Identification (vid)

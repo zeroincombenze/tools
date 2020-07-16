@@ -211,9 +211,9 @@ This is the hierarchical layout):
     (3) Odoo standard files / directory
     (4) Virtual directory
     {vid} Odoo root (see about Odoo vid)
-    {repository} Odoo/OCA repository
-    {customized-addons} Customized modules
-    {axitec-modules} Italian localization modules
+    {repository} Odoo/OCA and other repositories
+    {customized-addons} Client specific custom modules
+    {axitec-modules} Italian Accounting modules
 
 
 Odoo Version Identification (vid)
@@ -326,7 +326,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2020-07-15
+Last Update / Ultimo aggiornamento: 2020-07-16
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
