@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 # *** security options ***
@@ -579,36 +579,29 @@ disable_port() {
 }
 
 get_arch() {
-    if [ "$1" == "CentOS7" -o "$1" == "CentOS" -o "$1" == "RHEL" ]; then
-      export DISTO="CentOS7"
-      export FH="RHEL"
-      LXCORE=
-      MACHARCH="x86_64"
-    elif [ "$1" == "CentOS6" ]; then
-      export DISTO="CentOS6"
-      export FH="RHEL"
-      LXCORE=
-      MACHARCH="i686"
-    elif [ "$1" == "Ubuntu14" -o "$1" == "Ubuntu"  -o "$1" == "Debian" ]; then
-      export DISTO="Ubuntu14"
-      export FH="Debian"
-      LXCORE="trusty"
-      MACHARCH="x86_64"
-    elif [ "$1" == "Ubuntu12" ]; then
-      export DISTO="Ubuntu12"
-      export FH="Debian"
-      LXCORE="precise"
-      MACHARCH="i686"
+    local v x
+    if [[ -n "$1" ]]; then
+        export x=$(echo $1|grep -Eo [a-zA-Z]+)
+        v=$(echo $1 | grep -Eo [0-9]+)
+        [[ $x =~ (CentOS|Fedora|RHEL) ]] && export FH="RHEL" || export FH="Debian"
+        [[ "$1" == "CentOS6" || "$1" == "Ubuntu12" ]] && MACHARCH="i686" || MACHARCH="x86_64"
+        export DISTO=$1
+        LXCORE=
+        [[ "$1" == "Ubuntu12" ]] && LXCORE="precise"
+        [[ "$1" == "Ubuntu14" ]] && LXCORE="trusty"
+        [[ "$1" == "Ubuntu16" ]] && LXCORE="xenial"
+        [[ "$1" == "Ubuntu18" ]] && LXCORE="bionic"
+        [[ "$1" == "Ubuntu20" ]] && LXCORE="groovy"
     else
-      export FH=$(xuname "-f")
-      local x=$(xuname "-v")
-      local v=$(echo $x|awk -F. '{print $1}')
-      export DISTO=$(xuname "-d")$v
-      LXCORE=$(xuname "-c")
-      MACHARCH=$(xuname "-m")
-      if [ -n "$1" ]; then
-        echo "!!Invalid $1 architecture: used $DISTO instead!!"
-      fi
+        export FH=$(xuname "-f")
+        local x=$(xuname "-v")
+        local v=$(echo $x | awk -F. '{print $1}')
+        export DISTO=$(xuname "-d")$v
+        LXCORE=$(xuname "-c")
+        MACHARCH=$(xuname "-m")
+        if [ -n "$1" ]; then
+            echo "!!Invalid $1 architecture: used $DISTO instead!!"
+        fi
     fi
     XU_FH="$FH"
     XU_DISTO="$DISTO"
@@ -831,7 +824,7 @@ get_pkg_ver_pip() {
     [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_pip($1 $2)">>~/$THIS.his
     local pkgname pkgversion x
     local stscmd=pip
-    IFS=[ read pkgname x <<< $1
+    IFS="[" read pkgname x <<< $1
     x=
     local X="VER__${1//-/_}"
     if [ -n "${!X}" ]; then
@@ -3463,7 +3456,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Build an Odoo or LAMP server"\
-  "(C) 2015-2019 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2020 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then

@@ -39,10 +39,12 @@
 # [_Ubuntu12_] -> Parameters for Ubuntu 12.xx
 # [_Ubuntu14_] -> Parameters for Ubuntu 14.xx
 # [_Ubuntu16_] -> Parameters for Ubuntu 16.xx
-# [_Ubuntu17_] -> Parameters for Ubuntu 17.xx
+# [_Ubuntu18_] -> Parameters for Ubuntu 18.xx
+# [_Ubuntu20_] -> Parameters for Ubuntu 20.xx
 # [_Debian7_] -> Parameters for Debian 7.xx
 # [_Debian8_] -> Parameters for Debian 8.xx
 # [_Debian9_] -> Parameters for Debian 9.xx
+# [_Debian10_] -> Parameters for Debian 10.xx
 # [_CentOS6_] -> Parameters for CentOS 6.xx
 # [_CentOS7_] -> Parameters for CentOS 7.xx
 # Other distribution are not yet tested, but lisa is designed to run with all
@@ -315,7 +317,7 @@ APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
          python-libxslt1,python-dev,libreadline6,zlib1g,readline-devel,\
          php5-mysql,php5-common,php5-xml,php5-cli,openssh-client,libssl-dev,\
          libxml2-dev,libxslt-dev,zlib1g-dev,redis-server,libfreetype6,\
-         libfreetype6-dev,libcups2,libcups2-dev,libpq-dev,expect-dev,\
+         libfreetype6-dev,libcups2,libcups2-dev,libpq-dev,expect,expect-dev,\
          libxslt1-dev,vim
 pip_BOP=wheel
 PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
@@ -392,7 +394,7 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-cli,libxslt,libxslt-python,python3-devel,readline,zlib,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
-         freetype,freetype-devel,cups,cups-devel,postgresql-devel,postgresql95-devel,expect-devel,\
+         freetype,freetype-devel,cups,cups-devel,postgresql-devel,postgresql95-devel,expect,expect-devel,\
          python3,python3-devel,\
          redhat-rpm-config
 NA_PKGS=antiword
@@ -439,6 +441,10 @@ REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
 # Ubuntu16 use systemctl instead of service command
 REAL_OSSERVICE=systemctl
+
+
+[_Debian10_]
+REAL_expect_dev=expect
 
 
 [_CentOS6_]

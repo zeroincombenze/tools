@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.2.9.1
+#__version__=0.2.9.2
 STS_FAILED=1
 STS_SUCCESS=0
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -365,8 +365,6 @@ export -f parseoptargs
 # Print help for parse command line arguments
 # __version__="0.1.9"
 print_help() {
-# You can find more help about this function on
-# http://wiki.zeroincombenze.org/en/Linux/dev
     local txt="Usage: "
     local hlp=""
     txt+="$(basename $0) "
@@ -381,14 +379,22 @@ print_help() {
         fi
         txt+="$xx${OPTOPTS[jy]}"
         xx=""
-        hlp+=$(printf ' %-16.16s%s%s' "-${OPTOPTS[jy]}" "${OPTHELP[jy]}" '\n')
+        if [[ -n ${OPTLONG[jy]} ]]; then
+            hlp+=$(printf ' %-3.3s%-21.21s%s%s' "-${OPTOPTS[jy]}" "-${OPTLONG[jy]}" "${OPTHELP[jy]}" '\n')
+        else
+            hlp+=$(printf ' %-24.24s%s%s' "-${OPTOPTS[jy]}" "${OPTHELP[jy]}" '\n')
+        fi
       elif [ "$a" == "=" ]; then
         if [ -z "$xx" -o "$xx" == "]" ]; then
           xx="][-"
         fi
         txt+="$xx${OPTOPTS[jy]} ${OPTMETA[jy]}"
         xx="]"
-        hlp+=$(printf '%3.3s %-13.13s%s%s' "-${OPTOPTS[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
+        if [[ -n ${OPTLONG[jy]} ]]; then
+            hlp+=$(printf '%3.3s%-10.10s %-11.11s%s%s' "-${OPTOPTS[jy]}" "-${OPTLONG[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
+        else
+            hlp+=$(printf '%3.3s %-21.21s%s%s' "-${OPTOPTS[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
+        fi
       fi
       ((++jy))
     done
