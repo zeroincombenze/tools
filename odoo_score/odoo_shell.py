@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()                                 # noqa: E402
+from builtins import str
+from past.builtins import basestring
+from builtins import *                                             # noqa: F403
+from past.utils import old_div
+from builtins import input
 
 from python_plus import unicodes
 import os
@@ -234,7 +243,7 @@ def param_date(param, model=None, date_field=None, ctx=ctx):
             from_date = '%04d-%02d-%02d' % (year, month, day)
             date_ids = param or from_date
     if not date_ids:
-        date_ids = raw_input(
+        date_ids = input(
             'IDS to manage or date yyyy-mm-dd (empty means all)? ')
     if model and date_field:
         if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
@@ -248,7 +257,7 @@ def param_date(param, model=None, date_field=None, ctx=ctx):
 def param_mode_commission(param):
     mode = ctx['param_1'] or 'A'
     while mode not in ('A', 'R', 'C'):
-        mode = raw_input('Mode (Add_missed,Recalculate,Check)? ')
+        mode = input('Mode (Add_missed,Recalculate,Check)? ')
         mode = mode[0].upper() if mode else ''
     return mode
 
@@ -611,7 +620,7 @@ def update_einvoice_out_attachment(ctx):
     if ctx['param_1']:
         inv_id = int(ctx['param_1'])
     else:
-        inv_id = raw_input('Invoice id: ')
+        inv_id = input('Invoice id: ')
         inv_id = int(inv_id) if inv_id else 0
     if inv_id:
         inv = clodoo.browseL8(ctx, model, inv_id)
@@ -626,7 +635,7 @@ def update_einvoice_out_attachment(ctx):
         state = ctx['param_2']
         while state not in ('ready', 'sent', 'sender_error',
                             'recipient_error', 'reject', 'validated'):
-            state = raw_input(
+            state = input(
                 'State (ready,sent,sender|recipient_error,reject,validated): ')
         clodoo.writeL8(ctx, model_att, att.id, {'state': state})
 
@@ -640,12 +649,12 @@ def unlink_einvoice_out_attachment(ctx):
     if ctx['param_1']:
         inv_id = int(ctx['param_1'])
     else:
-        inv_id = raw_input('Invoice id: ')
+        inv_id = input('Invoice id: ')
         inv_id = int(inv_id) if inv_id else 0
     if ctx['param_2'] in ('IN', 'in', 'OUT', 'out'):
         in_out = ctx['param_2'].lower()
     else:
-        in_out = raw_input('IN/OUT: ')
+        in_out = input('IN/OUT: ')
         if in_out.lower() == 'in':
             field = 'fatturapa_attachment_in_id'
         else:
@@ -661,7 +670,7 @@ def revaluate_due_date_in_invoces(ctx, inv_id=False):
     print('Revaluate all due dates of invoices from xml')
     model = 'account.invoice'
     if not inv_id:
-        inv_id = raw_input('Invoice id: ')
+        inv_id = input('Invoice id: ')
         if inv_id:
             inv_id = eval(inv_id)
     if inv_id:
@@ -702,7 +711,7 @@ def set_tax_code_on_invoice(ctx):
     print('Set tax code on invoice lines, if missed and if no line amount')
     inv_model = 'account.invoice'
     inv_line_model = 'account.invoice.line'
-    inv_id = raw_input('Invoice id: ')
+    inv_id = input('Invoice id: ')
     if inv_id:
         inv_id = int(inv_id)
         invoice = clodoo.browseL8(ctx, inv_model, inv_id)
@@ -736,7 +745,7 @@ def show_module_group(ctx):
     model_ir_md = 'ir.model.data'
     gid = True
     while gid:
-        gid = raw_input('Res.groups id: ')
+        gid = input('Res.groups id: ')
         if gid:
             gid = int(gid)
         if gid:
@@ -982,7 +991,7 @@ def print_tax_codes(ctx):
             print('%-10.10s %-60.60s %.3f %s' % (
                 rec.description, rec.name, rec.amount, rec.parent_tax_ids))
     if ctx['majver'] < 9:
-        dummy = raw_input('Press RET do print account.tax.code')
+        dummy = input('Press RET do print account.tax.code')
         model = 'account.tax.code'
         for rec in clodoo.browseL8(ctx, model,
                                    clodoo.searchL8(ctx, model, [])):
@@ -1186,13 +1195,13 @@ def create_document_test_env(ctx):
                 'default_code': code,
                 'name': name,
             }
-            vals['lst_price'] = (100.0 - len(name)) / (nr * 7 + 19)
+            vals['lst_price'] = old_div((100.0 - len(name)), (nr * 7 + 19))
             if name.startswith('Special'):
                 vals['type'] = 'service'
                 vals['standard_price'] = 0.0
             else:
                 vals['type'] = 'consu'
-                vals['standard_price'] = vals['lst_price'] / 2
+                vals['standard_price'] = old_div(vals['lst_price'], 2)
             if code in ('JJ', 'YY'):
                 vals['taxes_id'] = [(6, 0, [taxa15v])]
                 vals['supplier_taxes_id'] = [(6, 0, [taxa15a])]
@@ -1625,7 +1634,7 @@ def manage_riba(ctx):
     print('Do various actions on RiBA list')
     riba_id = False
     while not riba_id:
-        riba_id = raw_input('RiBA list id: ')
+        riba_id = input('RiBA list id: ')
         if not riba_id:
             return
         riba_id = int(riba_id)
@@ -1635,7 +1644,7 @@ def manage_riba(ctx):
         for move in riba_list.unsolved_move_ids:
             print('- Unsolved %d' % move.id)
         if riba_list.state == 'paid':
-            action = raw_input('Action: Accredited,Quit: ')
+            action = input('Action: Accredited,Quit: ')
             action = action[0].upper() if action else 'Q'
             if action == 'A':
                 print('Restore RiBA list to Accredited ..')
@@ -1643,7 +1652,7 @@ def manage_riba(ctx):
                                   riba_list.payment_ids, by_line=True)
                 set_riba_state(ctx, riba_list, 'accredited')
         elif riba_list.state == 'accredited':
-            action = raw_input('Action: do_Paid,Accepted,State_paid,Quit,Unsolved: ')
+            action = input('Action: do_Paid,Accepted,State_paid,Quit,Unsolved: ')
             action = action[0].upper() if action else 'Q'
             if action == 'P':
                 try:
@@ -1663,7 +1672,7 @@ def manage_riba(ctx):
             elif action == 'U':
                 for move in riba_list.unsolved_move_ids:
                     print('- Unsolved %d' % move.id)
-                    sub = raw_input('Move: Delete,Skip')
+                    sub = input('Move: Delete,Skip')
                     sub = sub[0].upper() if sub else 'S'
                     if sub == 'D':
                         unreconcile_move(ctx, move)
@@ -1678,7 +1687,7 @@ def manage_riba(ctx):
                         except BaseException:
                             print('!!Move %d not deleted!' % move.id)
         elif riba_list.state == 'accepted':
-            action = raw_input('Action: do_Accredited,Cancel,State_accredited,Quit: ')
+            action = input('Action: do_Accredited,Cancel,State_accredited,Quit: ')
             action = action[0].upper() if action else 'Q'
             if action == 'A':
                 try:
@@ -1706,7 +1715,7 @@ def manage_riba(ctx):
             elif action == 'S':
                 set_riba_state(ctx, riba_list, 'accredited')
         elif riba_list.state == 'draft':
-            action = raw_input('Action: do_Accepted,State_accepted,Quit: ')
+            action = input('Action: do_Accepted,State_accepted,Quit: ')
             action = action[0].upper() if action else 'Q'
             if action == 'A':
                 try:
@@ -1719,7 +1728,7 @@ def manage_riba(ctx):
             elif action == 'S':
                 set_riba_state(ctx, riba_list, 'accepted')
         elif riba_list.state == 'cancel':
-            action = raw_input('Action: do_Draft,State_cancel,Quit: ')
+            action = input('Action: do_Draft,State_cancel,Quit: ')
             action = action[0].upper() if action else 'Q'
             if action == 'A':
                 # riba_new(ctx, riba_list)
@@ -2233,7 +2242,7 @@ def simulate_user_profile(ctx):
             agent_names.append('N/A')
         return agent_names
 
-    user = raw_input('Username to simulate: ')
+    user = input('Username to simulate: ')
     pwd = getpass.getpass()
     pwd = pwd if pwd else 'prova2019'
     uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
@@ -2482,12 +2491,12 @@ def show_empty_ddt(ctx):
 def change_ddt_number(ctx):
     print('Change DdT number of validated record')
     model = 'stock.picking.package.preparation'
-    ddt_id = raw_input('DdT id: ')
+    ddt_id = input('DdT id: ')
     if ddt_id:
         ddt_id = int(ddt_id)
         ddt = clodoo.browseL8(ctx, model, ddt_id)
         print('Current DdT number is: %s' % ddt.ddt_number)
-        ddt_number = raw_input('New number: ')
+        ddt_number = input('New number: ')
         if ddt_number:
             clodoo.writeL8(ctx, model, ddt_id, {'ddt_number': ddt_number})
             ddt = clodoo.browseL8(ctx, model, ddt_id)
@@ -2562,7 +2571,7 @@ def print_model_synchro_data(ctx):
     print('Show XML data to build model for synchro module')
     model = ''
     while not model:
-        model = raw_input('Model to buld: ')
+        model = input('Model to buld: ')
         if not model:
             return
         rec = clodoo.searchL8(ctx, 'ir.model', [('model', '=', model)])
@@ -2855,7 +2864,7 @@ def test_synchro_vg7(ctx):
             'quantity': 'product_uom_qty',
             'partner_id': False,
             'vg7_partner_id': False,
-    },
+        },
         'stock.picking.package.preparation': {
             'numero_colli': 'parcels',
             'customer_id': 'partner_id',
@@ -3079,12 +3088,12 @@ def test_synchro_vg7(ctx):
         mode = mode or 'w'
         if mode == 'a':
             data = '%s\n' % (
-                ','.join(map(lambda x: str(vals[x]), vals.keys()))
+                ','.join([str(vals[x]) for x in list(vals.keys())])
             )
         else:
             data = '%s\n%s\n' % (
-                ','.join(vals.keys()),
-                ','.join(map(lambda x: str(vals[x]), vals.keys()))
+                ','.join(list(vals.keys())),
+                ','.join([str(vals[x]) for x in list(vals.keys())])
             )
         with open('/opt/odoo/clodoo/%s.csv' % ext_model, mode) as fd:
             fd.write(data)
@@ -3202,7 +3211,7 @@ def test_synchro_vg7(ctx):
             if rec_value:
                 # if rec_value != vals[ext_ref]:
                 if not compare(rec_value, ext_ref, vals, model, check_fct):
-                        raise IOError(
+                    raise IOError(
                         '!!Invalid field %s.%d.%s!' % (
                             model, id, loc_name))
                 ctx['ctr'] += 1
@@ -4388,7 +4397,7 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals)
     print('Go to web page, menù customer, partner "AAA"')
     print('then click on synchronize button')
-    dummy = raw_input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    dummy = input('Did you synchronize %s record (Yes,No)? ' % ext_model)
     if not dummy.startswith('n') and not dummy.startswith('N'):
         check_partner(
             ctx, get_id_from_vg7id(ctx, model, vg7_id), jacket_vals(vals))
@@ -4407,7 +4416,7 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals)
     print('Go to web page, menù supplier, partner "Delta 4"')
     print('then click on synchronize button')
-    dummy = raw_input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    dummy = input('Did you synchronize %s record (Yes,No)? ' % ext_model)
     if not dummy.startswith('n') and not dummy.startswith('N'):
         id = get_id_from_vg7id(ctx, model, vg7_id, name='vg72_id')
         vals = jacket_vals(vals)
@@ -4426,7 +4435,7 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals)
     print('Go to web page, menù product, product "AA"')
     print('then click on synchronize button')
-    dummy = raw_input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    dummy = input('Did you synchronize %s record (Yes,No)? ' % ext_model)
     if not dummy.startswith('n') and not dummy.startswith('N'):
         check_product(
             ctx, get_id_from_vg7id(ctx, model, vg7_id), jacket_vals(vals))
@@ -4636,7 +4645,7 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals3, mode='a')
     print('Go to web page, menù Setting > Technical > DB > sync channel')
     print('then import account.payment.term')
-    dummy = raw_input('Did you import %s records (Yes,No)? ' % ext_model)
+    dummy = input('Did you import %s records (Yes,No)? ' % ext_model)
     if not dummy.startswith('n') and not dummy.startswith('N'):
         payment_id = get_id_from_vg7id(ctx, model, 10)
         store_id(ctx, model, payment_id, 10)
@@ -4656,12 +4665,12 @@ def simulate_vg7(ctx):
         mode = mode or 'w'
         if mode == 'a':
             data = '%s\n' % (
-                ','.join(map(lambda x: str(vals[x]), vals.keys()))
+                ','.join([str(vals[x]) for x in list(vals.keys())])
             )
         else:
             data = '%s\n%s\n' % (
-                ','.join(vals.keys()),
-                ','.join(map(lambda x: str(vals[x]), vals.keys()))
+                ','.join(list(vals.keys())),
+                ','.join([str(vals[x]) for x in list(vals.keys())])
             )
         with open('/opt/odoo/clodoo/%s.csv' % ext_model, mode) as fd:
             fd.write(data)
@@ -4954,11 +4963,12 @@ def check_rec_links(ctx):
     print('Check link for invoice records to DdTs and orders')
     model_inv = 'account.invoice'
     model_invline = 'account.invoice.line'
+    model_soline = 'sale.order.line'
     err_ctr = 0
     ctr = 0
     for invoice in clodoo.browseL8(
         ctx, model_inv, clodoo.searchL8(
-            ctx, model_inv, [('type', '=', 'out_invoice')],
+            ctx, model_inv, [('type', '=', 'out_invoice'), ('id', '=', 1875)],
             order='number desc')):
         msg_burst('%s ...' % invoice.number)
         orders = []
@@ -4981,8 +4991,16 @@ def check_rec_links(ctx):
                     err_ctr += 1
                     clodoo.writeL8(ctx, model_invline, invoice_line.id,
                                    {'sale_line_ids': [(3, sale_line.id)]})
-        # for invoice_line in invoice.invoice_line_ids:
-            if (invoice_line.ddt_line_id):
+            if not invoice_line.sale_line_ids and invoice_line.product_id:
+                order_line_ids = clodoo.searchL8(ctx, model_soline, [
+                    ('company_id', '=', invoice_line.company_id.id),
+                    ('invoice_lines', '=', False),
+                    ('order_partner_id', '=', invoice_line.partner_id.id),
+                    ('product_id', '=', invoice_line.product_id.id)])
+                print('Found %d line of sale.order.line to match' % len(
+                    order_line_ids))
+                pdb.set_trace()
+            if invoice_line.ddt_line_id:
                 if (invoice_line.ddt_line_id.sale_line_id and
                         invoice_line.ddt_line_id.sale_line_id.order_id.id
                         not in orders):
@@ -5025,7 +5043,7 @@ def relink_records(ctx):
     if ctx['param_1']:
         src_db = ctx['param_1']
     else:
-        src_db = raw_input('Source DB name? ')
+        src_db = input('Source DB name? ')
     src_ctx = ctx.copy()
     uid, src_ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
                                        db=src_db,
@@ -5108,7 +5126,7 @@ def check_integrity_by_vg7(ctx):
             print('Current partner %d name %s differs from its parent %s' % (
                 partner.id, partner.name, parent.name
             ))
-            dummy = raw_input('Action: Confirm,Standard,Unlink? ')
+            dummy = input('Action: Confirm,Standard,Unlink? ')
             if dummy.upper() == 'S':
                 clodoo.writeL8(ctx, model, partner.id, {'name': False})
                 ctx['ctr'] += 1
@@ -5143,7 +5161,7 @@ def check_integrity_by_vg7(ctx):
             else:
                 msg = '%s,Contact,Remove' % msg
             msg = '%s,Link2,Nop? ' % msg
-            dummy = raw_input(msg)
+            dummy = input(msg)
             if dummy.upper() == 'C':
                 clodoo.writeL8(ctx, model, partner.id, {'type': 'contact'})
                 ctx['ctr'] += 1
@@ -5154,7 +5172,7 @@ def check_integrity_by_vg7(ctx):
                 clodoo.writeL8(ctx, model, partner.id, {'type': 'invoice'})
                 ctx['ctr'] += 1
             elif dummy.upper() == 'L':
-                dummy = raw_input('Id of parent? ')
+                dummy = input('Id of parent? ')
                 if dummy.isdigit():
                     clodoo.writeL8(
                         ctx, model, partner.id, {'parent_id': int(dummy)})
@@ -5197,7 +5215,7 @@ def set_comment_on_invoice(ctx):
     date_ids = param_date(
         ctx['param_1'], model=model, date_field=date_field, ctx=ctx)
     if ctx['param_2'] and ctx['param_2'].startswith('A'):
-        comment = raw_input('Text to insert on invoice comment: ')
+        comment = input('Text to insert on invoice comment: ')
     else:
         company_id = env_ref(ctx, 'z0bug.mycompany')
         if not company_id:
@@ -5559,7 +5577,7 @@ def rename_coa(ctx):
     if not ctx.get('_cr'):
         print('No sql support found!')
         print('No operatione will be done')
-        dummy = raw_input('Press RET to continue')
+        dummy = input('Press RET to continue')
     oca_path = '/opt/odoo/10.0/addons/l10n_it/data'
     z0_path = '/opt/odoo/10.0/l10n-italy/l10n_it_fiscal/data'
     csv_fn_oca = os.path.join(oca_path, 'account.account.template.csv')
@@ -5738,8 +5756,8 @@ CVT = {
     '180003': '01233',
 }
 # read_csv_file('/opt/odoo/clodoo/pentagraf/account.account.csv')
-company_id = int(raw_input('company_id)? '))
-db = raw_input('database)? ')
+company_id = int(input('company_id)? '))
+db = input('database)? ')
 CVT = {}
 for id in clodoo.searchL8(ctx, model, []):
     try:

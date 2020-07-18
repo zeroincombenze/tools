@@ -14,14 +14,14 @@ from zerobug import Z0BUG
 from python_plus import (text_type, bytestr_type,
                          unicodes, bstrings,
                          _u, _b,
-                         isbytestr, qsplit)
+                         qsplit)
 
 
 MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.1.4.2"
+__version__ = "0.1.4.3"
 
 
 def version():

@@ -28,7 +28,7 @@ else:
     sys.exit(0)
 
 
-__version__='0.1.1.3'
+__version__='0.2.3.7'
 
 
 class Z0bugBaseCase(test_common.BaseCase):

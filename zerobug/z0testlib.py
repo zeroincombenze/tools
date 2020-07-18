@@ -1287,11 +1287,11 @@ class Z0test(object):
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
                     if os.environ.get('TRAVIS_PDB') == 'True':
                         if ctx.get('python3', False):
-                            test_w_args = ['python3', '-m', 'pdb',
-                                           testname, opt4childs]
+                            test_w_args = ['python3', '-m', 'pdb', testname
+                                           ] + opt4childs
                         else:
-                            test_w_args = ['python', '-m', 'pdb',
-                                           testname, opt4childs]
+                            test_w_args = ['python', '-m', 'pdb', testname
+                                           ] + opt4childs
                     elif (ctx.get('run4cover', False) and
                             not ctx.get('dry_run', False)):
                         test_w_args = [
@@ -1307,10 +1307,9 @@ class Z0test(object):
                         else:
                             test_w_args = ['python'] + [testname] + opt4childs
                     self.dbgmsg(ctx, " %s" % test_w_args)
+                    print('#DEBUG>>> subprocess.call(%s)' % test_w_args)
                     try:
-                        sts = subprocess.call(test_w_args,
-                            stdout=open('/dev/null', 'w'),
-                            stderr=open('/dev/null', 'w'))
+                        sts = subprocess.call(test_w_args)
                     except OSError:
                         sts = 127
                 else:

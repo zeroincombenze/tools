@@ -58,7 +58,7 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/devel $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -70,13 +70,13 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/devel $HOME/dev ${PYPATH//:/ } . .." "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
 fi
 . $ODOOLIBDIR
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $HOME/tools/travis_emulator $HOME/dev ${PYPATH//:/ } . .." "travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $HOME/tools/travis_emulator $HOME/devel $HOME/dev ${PYPATH//:/ } . .." "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -85,7 +85,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.2
+__version__=0.2.3.3
 
 
 store_cfg_param_value() {
@@ -159,9 +159,9 @@ process_yaml_init() {
     export MQT_TEST_DB="openerp_test$YML_pid"
     python_matrix=
     if [ $opt_dbgmnt -ne 0 ]; then
-        export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
-        export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
-        export TRAVIS_PDB="True"
+        [[ -d $HOME/devel ]] && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
+        [[ -d $HOME/devel ]] && export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo || export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
+        (($opt_debug)) && export TRAVIS_PDB="True"
     else
         export YML_lisa=lisa
         export YML_mgrodoo=manage_odoo
@@ -785,7 +785,7 @@ process_yaml_run_cmd() {
        echo "$xcmd"
     else
       if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
-         wlog "\e[${PS_NOP_COLOR}m## $c\e[${PS_TXT_COLOR}m"
+         wlog "\e[${PS_NOP_COLOR}m## $c\e[${PS_TXT_COLOR}m\n"
       fi
       run_traced "$line1$xcmd"
     fi

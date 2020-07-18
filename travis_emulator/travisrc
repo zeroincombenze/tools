@@ -1,10 +1,10 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.3.2
+#__version__=0.2.3.3
 
 
-MAKEF=/opt/odoo/dev/Makefile
+MAKEF=$HOME/dev/Makefile
 # DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
 
@@ -544,16 +544,6 @@ create_virtual_env() {
         run_traced "cp -R $TRAVIS_CWD/ $x/"
         if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
             git_clone "https://github.com/zeroincombenze/tools.git"
-            # t=0
-            # for p in $(get_cfg_value 0 "PKGS_LIST"); do
-            #     if [ $t -le 0 ]; then
-            #         run_traced "sleep 1"
-            #         t=1000
-            #     else
-            #         ((t=t-300))
-            #     fi
-            #     run_traced "rsync -a --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $TRAVIS_BUILD_DIR/$p/  # Use no stable version"
-            # done
             run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
         fi
     fi
@@ -611,11 +601,12 @@ git_clone() {
             x=${TRAVIS_REPO_SLUG#*/}
             for p in $(get_cfg_value 0 "PKGS_LIST"); do
                 # Use unstable version
-                [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ && "$p" != "$x" ]] && run_traced "rsync -aW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
+                [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ && "$p" != "$x" ]] && run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
                 s=$?
-                if [ $s -ne 0 ]; then
-                    echo "Internal error ($s)! Statement failed! <<<"
-                fi
+                [ $s -eq 0 ] || echo "Internal error ($s)! Statement failed! <<<"
+            done
+            for p in install_tools.sh odoo_default_tnl.xlsx; do
+                run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/$p $HOME/tools/$p"
             done
             true    # FIX: return no error
         fi
@@ -740,7 +731,6 @@ conf_default() {
     fi
     set_cfg_def "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
     set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py __odoo__.py __terp__.py"
-    set_cfg_def "ODOO_LOGFILE" "False"
     set_cfg_def "RUN_travis_install_nightly" "travis_install_nightly"
     set_cfg_def "RUN_travis_run_tests" "travis_run_tests"
     set_cfg_def "RUN_travis_after_tests_success" "travis_after_tests_success"
@@ -821,7 +811,8 @@ install_dev() {
 }
 
 update_dev() {
-    XDPATH=$(dirname $MAKEF)
+    # XDPATH=$(dirname $MAKEF)
+    [[ -d $HOME/devel ]] && XDPATH=$HOME/devel || $HOME/dev
     ME_BOS=$(get_cfg_value "" "ME_BOS")
     RFLIST=$(get_cfg_value "" "RFLIST__$1")
     RDLIST=$(get_cfg_value "" "RDLIST__$1")

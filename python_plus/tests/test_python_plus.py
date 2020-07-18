@@ -7,19 +7,18 @@
 """
 from __future__ import print_function, unicode_literals
 
-# import pdb
-import os
-import os.path
+# import os
+# import os.path
 import sys
 from zerobug import Z0BUG
-from python_plus import isbytestr, qsplit
+# from python_plus import isbytestr, qsplit
 
 
 MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.1.4.2"
+__version__ = "0.1.4.3"
 
 
 

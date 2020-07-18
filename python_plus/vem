@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.4.2
+__version__=0.1.4.3
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -488,10 +488,6 @@ venv_mgr_check_src_path() {
     fi
     opt_pyver=$($PYTHON --version 2>&1|grep -Eo "[0-9]\.[0-9]")
     check_local_pkgs $VENV
-    # FUTURE=$(pip show future 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-    # Z0LIB=$(pip show z0lib 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-    # OS0=$(pip show os0 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-    # do_deactivate "-q"
     pop_cd "-q"
     [ $opt_verbose -gt 0 ] && echo "### Python version $opt_pyver ... ###"
     # set_pyver_files
@@ -502,6 +498,7 @@ check_local_pkgs() {
     local f VENV
     VENV="$1"
     FUTURE=$(pip show future 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+    CONFIGPARSER=$(pip show configparser 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
     Z0LIB=$(pip show z0lib 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
     OS0=$(pip show os0 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
 }
@@ -524,6 +521,8 @@ venv_mgr_check_oever() {
         [ -n "$opt_oever" -a $opt_verbose -gt 0 ] && echo "### Odoo version $opt_oever ...  ###"
         [[ -z "$FUTURE" ]] && pip_install future -q
         FUTURE=$(pip show future 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+        [[ -z "$CONFIGPARSER" ]] && pip_install configparser -q
+        CONFIGPARSER=$(pip show configparser 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
         [[ -z "$Z0LIB" ]] && pip_install z0lib -q
         Z0LIB=$(pip show z0lib 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
         [[ -z "$OS0" ]] && pip_install os0 -q
@@ -833,7 +832,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
-ACTIONS="help amend cp check create exec info install merge mv show update test reset"
+ACTIONS="help amend cp check create exec info install merge mv python shell show update test reset"
 REXACT="(${ACTIONS// /|})"
 if [[ $p1 =~ $REXACT ]]; then
     action=$p1
@@ -891,7 +890,7 @@ fi
 venv_mgr_check_oever $action
 [ $opt_dev -eq 0 -a -d "$p2" ] && x=$(find ${p2}/lib -name pylint -o -name unittest2 -o -name coverage -o -name flake8|wc -l)
 [ $opt_dev -eq 0 -a ${x:-0} -gt 1 ] && opt_dev=1
-if [ $opt_dev -eq 0 ] || [[ -z "$FUTURE" || -z "$Z0LIB" || -z "$OS0" || ! $(which list_requirements.py >/dev/null) ]]; then
+if [[ (($opt_dev==0)) || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || ! $(which list_requirements.py >/dev/null) ]]; then
     DEV_PKGS=""
 else
     cmd="list_requirements.py -qt python -BP"
@@ -906,6 +905,10 @@ if [ "$action" == "help" ]; then
     man $TDIR/$THIS.man
 elif [ "$action" == "exec" ]; then
     do_venv_exec "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
+elif [ "$action" == "python" ]; then
+    do_venv_exec "$p2" "python" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
+elif [ "$action" == "shell" ]; then
+    do_venv_exec "$p2" "$SHELL" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
 elif [[ $action =~ (info|install|show|update) ]]; then
     do_venv_pip "$p2" "$action" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
 elif [ "$action" == "create" ]; then

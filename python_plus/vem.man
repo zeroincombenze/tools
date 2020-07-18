@@ -30,15 +30,17 @@ Action is one of:
 .br
 * mv [OPTIONS] SRC_VENV TGT_ENV
 .br
+* python [OPTIONS] SRC_VENV
+.br
+* reset [OPTIONS] [VENV]
+.br
+* show [OPTIONS] [VENV] PKG
+.br
 * upgrade [OPTIONS] [VENV] PKG
 .br
 * uninstall [OPTIONS] [VENV] PKG
 .br
 * test [OPTIONS] [VENV]
-.br
-* reset [OPTIONS] [VENV]
-.br
-* show [OPTIONS] [VENV] PKG
 .P
 \fBamend\fR [OPTIONS] [SRC_VENV]
 .RS
@@ -83,6 +85,16 @@ Show information about pypi package if installed in virtual environment (alias o
 Install pypi package or bin package into virtual environment.
 .br
 Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc
+.RE
+.P
+\fBpython\fR [OPTIONS] [SRC_VENV] CMD ...
+.RS
+Run python in virtual environment
+.RE
+.P
+\fBshell\fR [OPTIONS] [SRC_VENV] CMD ...
+.RS
+Run current shell in virtual environment. Logout returns to current environment
 .RE
 .P
 \fBshow\fR [OPTIONS] [SRC_VENV] PKG

@@ -13,11 +13,13 @@ cache:
     - $HOME/.cache/pip
 
 python:
-  - "2.7"
+  - "3.5"
+  - "3.6"
   - "3.7"
+  - "3.8"
 
 virtualenv:
-  system_site_packages: true
+  system_site_packages: false
 
 git:
   submodules: false
@@ -26,19 +28,31 @@ git:
 addons:
   apt:
     sources:
-#      - pov-wkhtmltopdf
-#    Search your sources alias here:
-#      https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+      - pov-wkhtmltopdf
+    # Search your sources alias here:
+    # https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
     packages:
-      - shellcheck
-#     Search your packages here:
-#       https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
-#     For wkhtmltopdf, see the env section below
+      # - build-essential                 # Pre-installed
+      # - curl                            # Pre-installed
+      - expect-dev
+      # - less-plugin-clean-css           # Pre-installed
+      # - lessc                           # Pre-installed
+      # - libffi-dev
+      # - libssl-dev
+      # - nodejs                          # Pre-installed
+      # - npm                             # Pre-installed
+      - python-dev
+      # - python-setuptools               # Pre-installed
+      # - wkhtmltopdf                     # Pre-installed
+      # - zlib1g
 
 before_install:
+  # Use Zeroincombenze(R) tools
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --single-branch --depth=1
-  - export PATH=${HOME}/tools/zerobug/_travis:${HOME}/tools/maintainer-quality-tools/travis:${PATH}
-  # - [[ -f ./travis.ini ]] && eval $(cat ./travis.ini) || true
+  # - export PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}
+  - ${HOME}/tools/install_tools.sh -qopT
+  - source ${HOME}/dev/activate_tools
+  - echo $PATH
 
 install:
   - travis_install_env tools
