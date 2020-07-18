@@ -840,9 +840,10 @@ process_yaml() {
         if [ $sts -eq $STS_SUCCESS ]; then
             if [[ -n "$opt_pyv" ]]; then
                 export python_matrix="${opt_pyv//,/ }"
-            elif [ -z "$python_matrix" ]; then
-                export python_matrix==$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+            else
+                export python_matrix=$(get_cfg_value "" "PYTHON_MATRIX")
             fi
+            [[ -z "$python_matrix" ]] && export python_matrix=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
             for TRAVIS_PYTHON_VERSION in $python_matrix; do
                 [ $sts -eq $STS_SUCCESS ] || break
                 wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[${PS_TXT_COLOR}m"

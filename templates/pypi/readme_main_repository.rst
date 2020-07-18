@@ -1,10 +1,11 @@
 .. $include readme_header.rst
 
-Overview
-========
+Overview / Panoramica
+=====================
 
-{{description}}
+|en| {{description}}
 
+|it| {{descrizione}}
 .. $if defined features
 
 Features / Caratteristiche

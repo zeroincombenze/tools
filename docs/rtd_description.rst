@@ -1,12 +1,12 @@
 .. toctree::
    :maxdepth: 2
 
-Python & bash tools
--------------------
+Multi-purpose python & bash tools
+---------------------------------
 
-Sparse python and bash source code.
+Multi-purpose python and bash source code.
 
-These tools help to cover following areas of software:
+These tools help to cover the following areas of software:
 
 * Odoo deployment
 * Odoo database maintenance (creation and upgrade, massive)
@@ -21,7 +21,7 @@ Components
 ~~~~~~~~~~
 
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| Package                  | Name                    | brief                                                                                                                                                      | Area                      |
+| Package                  | Name                    | Brief                                                                                                                                                      | Area                      |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | clodoo                   | check_4_seq.sh          | Check for postgres database index                                                                                                                          | maintenance               |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
@@ -91,178 +91,4 @@ Components
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 
 
-
-
-Odoo structure
-~~~~~~~~~~~~~~
-
-All the tools serving Odoo are based on follow file system structure (flat layout):
-
-::
-
-    etc
-     ┗━ odoo
-          ┣━ odoo.conf                   (1)(3)
-          ┣━ odoo-server.conf            (2)(3)
-          ┣━ odoo{majver}.conf           (1)(4)
-          ┣━ odoo{majver}-server.conf    (2)(4)
-          ┗━ odoo{majver}-{org}.conf     (4)
-
-    {vid}
-      ┣━ addons                          (3)
-      ┣━ ...                             (3)
-      ┣━ odoo                            (1)(3)
-      ┃    ┣━ ...                        (3)
-      ┃    ┗━ addons                     (3)
-      ┣━ openerp                         (2)(3)
-      ┃    ┣━ ...                        (3)
-      ┃    ┗━ addons                     (3)
-      ┣━ server                          (5)
-      ┃    ┗━ openerp
-      ┃        ┣━ ...
-      ┃        ┗━ addons
-      ┣━ {repository}
-      ┃    ┣━ {module}
-      ┃    ┃    ┣━ __init__.py
-      ┃    ┃    ┣━ __manifest__.py
-      ┃    ┃    ┗━ ...
-      ┃    ┗━ {module} ...
-      ┃         ┗━ ...
-      ┗━ {repository} ...
-           ┗━ ...
-
-    {venv}
-      ┣━ ....
-      ┗━ odoo                             (link)
-
-    Notes:
-    (1) Odoo version >= 10.0
-    (2) Odoo version < 10.0
-    (3) Odoo standard files / directory
-    (4) Multi-version environment
-    (5) Some old 6.1 and 7.0 installations
-    {majver} Odoo major version, i.e. 12 for 12.0
-    {org} Organization, i.e. oca axitec zero
-    {vid} Odoo root (see about Odoo vid)
-    {repository} Odoo/OCA or any repository
-    {venv} Virtual directory
-
-
-This is the hierarchical layout):
-
-::
-
-    {vid}
-      ┣━ odoo
-      ┃   ┣━ addons                      (3)
-      ┃   ┣━ ...                         (3)
-      ┃   ┣━ odoo                        (1)(3)
-      ┃   ┃    ┣━ ...                    (3)
-      ┃   ┃    ┗━ addons                 (3)
-      ┃   ┗━ openerp                     (2)(3)
-      ┃        ┣━ ...                    (3)
-      ┃        ┗━  addons                (3)
-      ┣━ extra
-      ┃    ┣━ {repository}
-      ┃    ┃    ┣━ {module}
-      ┃    ┃    ┃    ┣━ __init__.py
-      ┃    ┃    ┃    ┣━ __manifest__.py
-      ┃    ┃    ┃    ┗━ ...
-      ┃    ┃    ┗━ {module} ...
-      ┃    ┃         ┗━ ...
-      ┃    ┗━ {repository} ...
-      ┃              ┗━ ...
-      ┣━ private-addons
-      ┃    ┣━ {customized-addons}
-      ┃    ┃    ┣━ __init__.py
-      ┃    ┃    ┣━ __manifest__.py
-      ┃    ┃    ┗━ ...
-      ┃    ┗━ {customized-addons} ...
-      ┃         ┗━ ...
-      ┣━ etc
-      ┃    ┗━ *.conf                     (link)
-      ┣━ axidoo
-      ┃    ┣━ deploy
-      ┃    ┣━ generic
-      ┃    ┃    ┣━ {profile-modules}
-      ┃    ┃    ┃     ┗━ ...
-      ┃    ┃    ┗━ {profile-modules} ...
-      ┃    ┃          ┗━ ...
-      ┃    ┗━ accounting
-      ┃         ┣━ {axitec-modules}
-      ┃         ┃     ┗━ ...
-      ┃         ┗━ {axitec-modules} ...
-      ┃               ┗━ ...
-      ┗━ venv_odoo                       (4)
-
-    Notes:
-    (1) Odoo version >= 10.0
-    (2) Odoo version < 10.0
-    (3) Odoo standard files / directory
-    (4) Virtual directory
-    {vid} Odoo root (see about Odoo vid)
-    {repository} Odoo/OCA and other repositories
-    {customized-addons} Client specific custom modules
-    {axitec-modules} Italian Accounting modules
-
-
-Odoo Version Identification (vid)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-All the tools manage multiple Odoo installations and versions.
-
-When you type any tools command, you can issue Odoo Version Identificator
-called **vid**; with Odoo vid, tools can assume Odoo version, directory tree
-and other configuration values. You can override any value.
-
-Odoo vid may be:
-
-* Full Odoo version, i.e. **12.0**
-* Major Odoo version, i.e. **12**
-* One of above version prefixed by one upper/lowercase of: 'v', 'odoo', 'oca' followed by an optional hyphen or underscore; i.e. **odoo-12**, **odoo_12**, **oca12**, **v12**
-
-+-------------+---------+--------------------+---------------------------------+------------------------------+------------------------------------------+
-| Parameter   | name    | standard value     | versioned value                 | reserved to oca              | Note                                     |
-+-------------+---------+--------------------+---------------------------------+------------------------------+------------------------------------------+
-| xmlrpc port | RPCPORT | 8069               | 8160 + major version            | 8260 + major version         |                                          |
-+-------------+---------+--------------------+---------------------------------+------------------------------+------------------------------------------+
-| db_user     | USER    | odoo               | odoo{major_version}             | odoo{major_version}          | i.e odoo12                               |
-+-------------+---------+--------------------+---------------------------------+------------------------------+------------------------------------------+
-| config file | CONFN   | odoo[-server].conf | odoo{major_version}-server.conf | odoo{major_version}-oca.conf | Directory /etc/odoo (see Odoo structure) |
-+-------------+---------+--------------------+---------------------------------+------------------------------+------------------------------------------+
-| log file    | FLOG    | odoo[-server].log  | odoo{major_version}-server.log  | odoo{major_version}-oca.log  | Directory /var/log/odoo                  |
-+-------------+---------+--------------------+---------------------------------+------------------------------+------------------------------------------+
-| pid file    | FPID    | odoo[-server].pid  | odoo{major_version}-server.pid  | odoo{major_version}-oca.pid  | Directory /var/run/odoo                  |
-+-------------+---------+--------------------+---------------------------------+------------------------------+------------------------------------------+
-
-
-
-
-Example of multi-version environment
-
-::
-
-    odoo-root
-      ┣━ 12.0               (Backup odoo 12.0)
-      ┃   ┗━ ...
-      ┣━ v12                (Official odoo)
-      ┃   ┗━ ...
-      ┣━ oca10              (Odoo OCA 10.0)
-      ┃   ┗━ ...
-     ...
-
-Generic command:  **tool -b12.0**
-
-* It uses directory /odoo-root/12.0
-* Instance uses port 8172, config file */etc/odoo/odoo12.conf*
-
-Generic command:  **tool -bv12**
-
-* It uses directory /odoo-root/v12
-* Instance uses port 8069, config file */etc/odoo/odoo.conf*
-
-Generic command:  **tool -boca10**
-
-* It uses directory /odoo-root/oca10
-* Instance uses port 8270, config file */etc/odoo/odoo10-oca.conf*
 

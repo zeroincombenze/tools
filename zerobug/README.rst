@@ -324,9 +324,9 @@ This module is part of tools project.
 
 Last Update / Ultimo aggiornamento: 2020-07-18
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
-    :alt: Alfa
+    :alt: Beta
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.15.2
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com

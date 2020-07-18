@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=0.2.3.5
+# __version__=0.2.3.7
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -12,7 +12,8 @@ if [[ $1 =~ -.*h ]]; then
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
     echo "  -S  store sitecustomize.py in python path"
-    echo "  -T  test environment (PATH with CI/CT commands)"
+    echo "  -t  activate test environment (PATH with CI/CT commands)"
+    echo "  -T  activate OCA test environment (PATH with CI/CT commands) deprecated"
     echo "  -v  more verbose"
     exit 0
 fi
@@ -33,6 +34,7 @@ MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_readm
 FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh set_odoover_confn z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
+[[ $1 =~ -.*[tT] ]] && HOME=$(readlink -e $(dirname $0)/..)
 [[ $1 =~ -.*n ]] && PMPT="> " || PMPT="\$ "
 [[ $1 =~ -.*o ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
 [[ -d $HOME/tools ]] && SRCPATH=$HOME/tools
@@ -44,12 +46,13 @@ DSTPATH=
 [[ ! $1 =~ -.*o && -d $HOME/devel ]] && DSTPATH=$HOME_DEV
 [[ $1 =~ -.*o && -d $HOME/dev ]] && DSTPATH=$HOME_DEV
 if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
-    echo "Invalid environment"
-    [[ -d $HOME/dev ]] && echo "perhaps you can use -o switch"
+    echo "Invalid environment!"
+    [[ -d $HOME/dev ]] && echo ".. perhaps you can use -o switch"
     echo ""
     $0 -h
     exit 1
 fi
+[[ $1 =~ -.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
 [[ $1 =~ -.*n ]] || find $SRCPATH -name "*.pyc" -delete
 [[ $1 =~ -.*n ]] || find $DSTPATH -name "*.pyc" -delete
 PLEASE_CMDS=
@@ -123,9 +126,12 @@ if [[ ! $1 =~ -.*n ]]; then
     echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:$PYTHONPATH">>$DSTPATH/activate_tools
     echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
-    [[ $1 =~ -.*T ]] && echo "[[ ! -d $SRCPATH/maintainers-tools/travis || :\$PATH: =~ :$SRCPATH/maintainers-tools/travis: ]] || export PATH=$SRCPATH/maintainers-tools/travis:\$PATH">>$DSTPATH/activate_tools
+    [[ $1 =~ -.*[tT] ]] && echo "[[ ! -d $SRCPATH/zerobug/_travis || :\$PATH: =~ :$SRCPATH/zerobug/_travis: ]] || export PATH=$SRCPATH/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
+    [[ $1 =~ -.*T ]] && echo "[[ ! -d $SRCPATH/maintainer-quality-tools/travis || :\$PATH: =~ :$SRCPATH/maintainer-quality-tools/travis: ]] || export PATH=$SRCPATH/maintainer-quality-tools/travis:\$PATH">>$DSTPATH/activate_tools
+    [[ $1 =~ -.*t ]] && echo "[[ -d $SRCPATH/z0bug_odoo/travis || ! -d $SRCPATH/maintainer-quality-tools/travis || :\$PATH: =~ :$SRCPATH/maintainer-quality-tools/travis: ]] || export PATH=$SRCPATH/maintainer-quality-tools/travis:\$PATH">>$DSTPATH/activate_tools
+    [[ $1 =~ -.*t ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
     [ -n "$PLEASE_CMDS" ] && echo "complete -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
-    . $DSTPATH/activate_tools
+    [[ $1 =~ -.*[Tt] ]] || source $DSTPATH/activate_tools
 fi
 if [[ $1 =~ -.*S ]]; then
     [[ ! $1 =~ -.*o ]] && SITECUSTOM=$HOME/devel/sitecustomize.py
@@ -148,10 +154,12 @@ if [[ $1 =~ -.*S ]]; then
         fi
     fi
 elif [[ ! $1 =~ -.*q && ! $1 =~ -.*P ]]; then
-    echo "-----------------------------------------------------------"
-    echo "Please type and add following statements in your login file"
+    echo "------------------------------------------------------------"
+    echo "If you wish to use these tools at the next time,  please add"
+    echo "the following statement in your login file (.bash_profile)"
     echo ". $DSTPATH/activate_tools"
-    echo "-----------------------------------------------------------"
+    echo "If you prefer, you can re-execute this script with -P switch"
+    echo "------------------------------------------------------------"
 fi
 if [[ ! $1 =~ -.*n && $1 =~ -.*P ]]; then
     $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile

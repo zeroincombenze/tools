@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.10
+__version__=0.2.3.11
 
 
 #
@@ -1861,7 +1861,7 @@ do_docs() {
     local docs_dir=./docs
     local author version theme SETUP b x
     local opts src_png
-    [[ $PWD =~ /dev[el]*/pypi/ ]] && opts=-B
+    [[ $PWD =~ /dev[el]*/pypi/ ]] && opts=-BN || opts=-N
     if [ ! -d $docs_dir ]; then
         if [ $opt_force -eq 0 ]; then
             echo "Missing docs directory!"

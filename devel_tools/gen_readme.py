@@ -109,7 +109,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.3.10"
+__version__ = "0.2.3.11"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -1128,18 +1128,27 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
             ctx, '\n'.join(set(source1.split('\n')) |
                            set(source2.split('\n'))))
     if len(source):
+        if not ctx['no_trace_file']:
+            mark = '.. !! from "%s"\n\n' % filename
+            source = mark + source
         full_hfn = get_template_fn(ctx, 'header_' + filename)
         header = ''
         if full_hfn:
             fd = open(full_hfn, 'rU')
             header = os0.u(fd.read())
             fd.close()
+            if len(header) and not ctx['no_trace_file']:
+                mark = '.. !! from "%s"\n\n' % full_hfn
+                header = mark + header
         full_ffn = get_template_fn(ctx, 'footer_' + filename)
         footer = ''
         if full_ffn:
             fd = open(full_ffn, 'rU')
             footer = os0.u(fd.read())
             fd.close()
+            if len(footer) and not ctx['no_trace_file']:
+                mark = '.. !! from "%s"\n\n' % full_ffn
+                footer = mark + footer
         source = header + source + footer
     return parse_source(ctx, source, state=state)
 
@@ -1426,7 +1435,7 @@ def set_default_values(ctx):
             ctx['odoo_fver'] = ctx['manifest']['version']
     if not ctx.get('branch', ''):
         ctx['branch'] = '0.1.0'
-    # TODO: remove
+    # TODO: to remove early
     if not ctx.get('odoo_fver') and ctx.get('branch'):
         ctx['odoo_fver'] = ctx['branch']
     if ctx['product_doc'] == 'odoo':
@@ -1474,7 +1483,14 @@ def set_default_values(ctx):
             'name': 'repos_name',
             'development_status': 'Alfa',
         }
-    ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
+    if ctx['product_doc'] == 'odoo':
+        ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
+    else:
+        ctx['maturity'] = 'Alfa'
+        for item in ctx['manifest'].get('classifiers', []):
+            if item.startswith('Development Status'):
+                ctx['maturity'] = item.split('-')[1].strip()
+                break
     ctx['name'] = ctx['manifest'].get('name',
                                       ctx['module_name'].replace('_', ' '))
     ctx['summary'] = ctx['manifest'].get(
@@ -1513,30 +1529,35 @@ def generate_readme(ctx):
             ctx['pypi_sects'] = '%s' % ZERO_PYPI_SECTS
         return ctx
 
-    if ctx['product_doc'] == 'pypi':
-        if ctx['odoo_layer'] == 'repository':
+    def read_manifest_setup(ctx):
+        if ctx['product_doc'] == 'pypi':
+            if ctx['odoo_layer'] == 'repository':
+                ctx['module_name'] = ''
+            else:
+                ctx['module_name'] = os.path.basename(ctx['path_name'])
+            ctx['repos_name'] = 'tools'
+            read_setup(ctx)
+        elif ctx['odoo_layer'] == 'ocb':
             ctx['module_name'] = ''
+            ctx['repos_name'] = 'OCB'
+            read_all_manifests(ctx)
+        elif ctx['odoo_layer'] == 'repository':
+            ctx['module_name'] = ''
+            ctx['repos_name'] = os.path.basename(ctx['path_name'])
+            read_all_manifests(ctx)
         else:
-            ctx['module_name'] = os.path.basename(ctx['path_name'])
-        ctx['repos_name'] = 'tools'
-        read_setup(ctx)
-    elif ctx['odoo_layer'] == 'ocb':
-        ctx['module_name'] = ''
-        ctx['repos_name'] = 'OCB'
-        read_all_manifests(ctx)
-    elif ctx['odoo_layer'] == 'repository':
-        ctx['module_name'] = ''
-        ctx['repos_name'] = os.path.basename(ctx['path_name'])
-        read_all_manifests(ctx)
-    else:
-        if not ctx['module_name']:
-            ctx['module_name'] = build_odoo_param('PKGNAME',
-                                                  odoo_vid=ctx['branch'])
-        if not ctx['repos_name']:
-            ctx['repos_name'] = build_odoo_param('REPOS',
-                                                 odoo_vid=ctx['branch'])
-        read_manifest(ctx)
+            if not ctx['module_name']:
+                ctx['module_name'] = build_odoo_param('PKGNAME',
+                    odoo_vid=ctx['branch'])
+            if not ctx['repos_name']:
+                ctx['repos_name'] = build_odoo_param('REPOS',
+                    odoo_vid=ctx['branch'])
+            read_manifest(ctx)
+        return ctx
+
+    ctx = read_manifest_setup(ctx)
     set_default_values(ctx)
+    # Read predefined section / tags
     for section in DEFINED_TAG:
         out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.txt' % section,
@@ -1614,6 +1635,9 @@ if __name__ == "__main__":
                         help='filename',
                         dest='module_name')
     parser.add_argument('-n')
+    parser.add_argument('-N', '--no-trace-file',
+                        action='store_true',
+                        dest='no_trace_file')
     parser.add_argument('-o', '--output-file',
                         action='store',
                         help='filename',

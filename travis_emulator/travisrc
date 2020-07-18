@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Common file for travis emulator scripts
 # 
@@ -766,6 +767,7 @@ conf_default() {
     set_cfg_def "DEV_SVG" "$HOME/dev/svg"
     set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
     set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
+    set_cfg_def "PYTHON_MATRIX" ""
 }
 
 

@@ -29,3 +29,11 @@
      -X 0|1          enable translation test (def yaml dependents)
      -Y file         file yaml to process (def .travis.yml)
      -3              use python3
+
+
+Configuration file
+------------------
+
+Values in configuration file are:
+
+.. $include usage_config.csv

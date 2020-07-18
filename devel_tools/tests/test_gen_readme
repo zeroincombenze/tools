@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.3.10
+__version__=0.2.3.11
 
 
 test_01() {
@@ -213,10 +213,10 @@ Acknoledges to
 
 EOF
       pushd $TESTDIR/res &>/dev/null
-      $RUNDIR/gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
+      $RUNDIR/gen_readme.py -qN -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -q  -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -qN -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_02() {
@@ -281,10 +281,10 @@ consectetur <i>adipiscing</i> elit
 </section>
 EOF
       pushd $TESTDIR/res &>/dev/null
-      $RUNDIR/gen_readme.py -qH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo
+      $RUNDIR/gen_readme.py -qNH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -qH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -qNH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo" "$TESTOUT" "$TESTRES" "diff"
 }
 
 
@@ -376,10 +376,10 @@ Contributors
 }
 EOF
       pushd $TESTDIR/res &>/dev/null
-      $RUNDIR/gen_readme.py -qR -b7.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo
+      $RUNDIR/gen_readme.py -qNR -b7.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -qR -b7.0  -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -qNR -b7.0  -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo" "$TESTOUT" "$TESTRES" "diff"
 }
 
 
