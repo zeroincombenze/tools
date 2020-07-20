@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.9.7
+__version__=0.3.9.8
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
@@ -74,9 +74,7 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2020 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-if [ -n "$opt_branch" -a -z "$odoo_vid" ]; then
-  odoo_vid=$opt_branch
-fi
+[[ -n "$opt_branch" && -z "$odoo_vid" ]] && odoo_vid=$opt_branch
 [ $opt_venv -ne 0 ] && odoo_vid="VENV-$odoo_vid"
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)

@@ -85,7 +85,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.3
+__version__=0.2.3.4
 
 
 store_cfg_param_value() {
@@ -157,7 +157,7 @@ process_yaml_init() {
     export TRAVIS_PULL_REQUEST="false"
     export MQT_TEMPLATE_DB="openerp_template$YML_pid"
     export MQT_TEST_DB="openerp_test$YML_pid"
-    python_matrix=
+    python_ver_req=
     if [ $opt_dbgmnt -ne 0 ]; then
         [[ -d $HOME/devel ]] && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
         [[ -d $HOME/devel ]] && export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo || export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
@@ -242,7 +242,7 @@ process_yaml_do() {
       lne=$(process_yaml_unquote "$line")
     fi
     if [ "$YML_sect" == "python" ]; then
-      python_matrix="$python_matrix $lne"
+      python_ver_req="$python_ver_req $lne"
       lne="#"
     elif [ "$YML_sect" == "addons.apt.packages" ]; then
       YML_packages="$YML_packages $lne"
@@ -814,7 +814,7 @@ process_yaml() {
         [[ ! -f $YML_FILE ]] && YML_FILE=$PRJPATH/$opt_fyaml
         [[ ! -f $YML_FILE ]] && YML_FILE=$TOOLS_PATH/travis.yml
     fi
-    if [ ! -d "$MQT_PATH" ]; then
+    if [[ ! -d "$MQT_PATH" ]]; then
         echo "Zeroincombenze(R) tools not found!"
         return 1
     fi
@@ -838,12 +838,16 @@ process_yaml() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
         fi
         if [ $sts -eq $STS_SUCCESS ]; then
-            if [[ -n "$opt_pyv" ]]; then
-                export python_matrix="${opt_pyv//,/ }"
-            else
-                export python_matrix=$(get_cfg_value "" "PYTHON_MATRIX")
-            fi
-            [[ -z "$python_matrix" ]] && export python_matrix=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+            [[ -z "$python_ver_req" ]] && python_ver_req=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+            [[ -z "$opt_pyv" ]] && opt_pyv=$(get_cfg_value "" "PYTHON_MATRIX")
+            [[ -z "$opt_pyv" ]] && opt_pyv="(2.7|3.5|3.6|3.7|3.8)"
+            opt_pyv="${opt_pyv//,/|}"
+            opt_pyv="${opt_pyv// /|}"
+            [[ $opt_pyv =~ ^\( ]] || opt_pyv="($opt_pyv)"
+            python_matrix=""
+            for v in $python_ver_req; do
+                [[ $v =~ $opt_pyv ]] && python_matrix="$python_matrix $v"
+            done
             for TRAVIS_PYTHON_VERSION in $python_matrix; do
                 [ $sts -eq $STS_SUCCESS ] || break
                 wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[${PS_TXT_COLOR}m"
@@ -970,11 +974,11 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             y       3)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_py3)
-OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
-OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
-OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
+OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             y       Z          3)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt opt_py3)
+OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1          1)
+OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0          0)
+OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" ""         "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
@@ -987,7 +991,7 @@ OPTHELP=("this help"\
  "keep DB and virtual environment after tests"\
  "lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml"\
  "log directory (def=~/travis_log)"\
- "use local MQT"\
+ "use local MQT (deprecated)"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
  "git organization, i.e. oca or zeroincombenze"\
@@ -1000,6 +1004,7 @@ OPTHELP=("this help"\
  "enable translation test (def yaml dependents)"\
  "file yaml to process (def .travis.yml)"\
  "test with specific python versions (comma separated)"\
+ "use local zero-tools"\
  "use python3 (deprecated)")
 OPTARGS=(action sub sub2)
 

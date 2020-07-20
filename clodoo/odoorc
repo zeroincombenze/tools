@@ -43,7 +43,7 @@
 # VCS          If GIT repository return "git" otherwise return ""
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.9.7
+#__version__=0.3.9.8
 
 
 DEFMLIST="OCB account-analytic account-budgeting account-closing account-consolidation\
@@ -165,7 +165,7 @@ build_odoo_param() {
     p2="oca|oia|librerp|flectra|zero"
     p3="14\.0 13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
     p4="14|13|12|11|10|9|8|7|6"
-    local rex="^($p1|$p2|VENV$p2)?[_-]?($p3|$p4)"
+    local rex="^($p1|$p2|VENV[_-]?$p2)?[_-]?($p3|$p4)"
     local reo="^($p1)"
     local reg="^($p2)"
     local ref="($p3)"

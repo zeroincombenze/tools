@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.3.3
+#__version__=0.2.3.4
 
 
 MAKEF=$HOME/dev/Makefile
@@ -602,6 +602,7 @@ git_clone() {
             x=${TRAVIS_REPO_SLUG#*/}
             for p in $(get_cfg_value 0 "PKGS_LIST"); do
                 # Use unstable version
+                [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
                 [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ && "$p" != "$x" ]] && run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
                 s=$?
                 [ $s -eq 0 ] || echo "Internal error ($s)! Statement failed! <<<"
@@ -767,7 +768,7 @@ conf_default() {
     set_cfg_def "DEV_SVG" "$HOME/dev/svg"
     set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
     set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
-    set_cfg_def "PYTHON_MATRIX" ""
+    set_cfg_def "PYTHON_MATRIX" "(2.7|3.5|3.6|3.7|3.8)"
 }
 
 

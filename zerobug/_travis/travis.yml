@@ -13,6 +13,7 @@ cache:
     - $HOME/.cache/pip
 
 python:
+  - "2.7"
   - "3.5"
   - "3.6"
   - "3.7"
@@ -50,7 +51,7 @@ before_install:
   # Use Zeroincombenze(R) tools
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --single-branch --depth=1
   # - export PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}
-  - ${HOME}/tools/install_tools.sh -qopT
+  - ${HOME}/tools/install_tools.sh -qopt
   - source ${HOME}/dev/activate_tools
   - echo $PATH
 

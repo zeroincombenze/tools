@@ -21,6 +21,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
+
 CLICK_DIR = click.Path(exists=True, dir_okay=True, resolve_path=True)
 
 
@@ -63,7 +64,9 @@ def get_extra_params(odoo_version):
     """
     is_version_number = re.match(r'\d+\.\d+', odoo_version)
     beta_msgs = get_beta_msgs()
-    level_msgs = get_level_msgs()
+    leverage_msgs = get_leverage_msgs()
+    versioned_msgs = get_versioned_msgs(odoo_version)
+
     extra_params_cmd = [
         '--sys-paths', os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
@@ -74,32 +77,39 @@ def get_extra_params(odoo_version):
     if is_version_number:
         extra_params.extend([
             '--extra-params', '--valid_odoo_versions=%s' % odoo_version])
-
-    odoo_version = odoo_version.replace('.', '')
-    version_cfg = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'cfg/travis_run_pylint_exclude_%s.cfg' % (odoo_version))
-    params = []
-    if os.path.isfile(version_cfg):
-        config = ConfigParser.ConfigParser()
-        config.readfp(open(version_cfg))
-        for section in config.sections():
-            for option, value in config.items(section):
-                params.extend(['--' + option, value])
-    for param in params:
-        extra_params.extend(['--extra-params', param])
-
     for beta_msg in beta_msgs:
         extra_params.extend(['--msgs-no-count', beta_msg,
                              '--extra-params', '--enable=%s' % beta_msg])
-    # [antoniov: 2018-09-12] Based on LINT_CHECK_LEVEL, disable some check
-    for level_msg in level_msgs:
-        extra_params.extend(['--msgs-no-count', level_msg,
-                             '--extra-params', '--disable=%s' % level_msg])
+    # [antoniov: 2018-09-12]
+    for leverage_msg in leverage_msgs:
+        extra_params.extend(['--msgs-no-count', leverage_msg,
+                             '--extra-params', '--disable=%s' % leverage_msg])
+    # [antoniov: 2020-07-20]
+    for versioned_msg in versioned_msgs:
+        extra_params.extend(['--extra-params', '--disable=%s' % versioned_msg])
     return extra_params
 
 
-def get_level_msgs():
+def get_versioned_msgs(odoo_version):
+    """[antoniov: 2020-07-20] enable or disable some check
+     depending on Odoo version
+    :return: List of strings with beta message names"""
+    odoo_version = odoo_version.replace('.', '')
+    specific_cfg = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'cfg/travis_run_pylint_exclude_%s.cfg' % (odoo_version))
+    if not os.path.isfile(specific_cfg):
+        return []
+    config = ConfigParser.ConfigParser()
+    config.readfp(open(specific_cfg))
+    params = []
+    for section in config.sections():
+        for option, value in config.items(section):
+            params.extend(['--' + option, value.strip().replace('\n', '')])
+    return params
+
+
+def get_leverage_msgs():
     """[antoniov: 2018-09-12] Based on LINT_CHECK_LEVEL, disable some check
     :return: List of strings with beta message names"""
     exclude_level = os.environ.get('LINT_CHECK_LEVEL', '')
@@ -113,7 +123,7 @@ def get_level_msgs():
     params = []
     for section in config.sections():
         for option, value in config.items(section):
-            params.extend(['--' + option, value])
+            params.extend(['--' + option, value.strip().replace('\n', '')])
     return params
 
 
@@ -128,7 +138,7 @@ def get_beta_msgs():
     config = ConfigParser.ConfigParser()
     config.readfp(open(beta_cfg))
     return [
-        msg.strip()
+        msg.strip().replace('\n', '')
         for msg in config.get('MESSAGES CONTROL', 'enable').split(',')
         if msg.strip()]
 

@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.9.7"
+__version__ = "0.3.9.8"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -395,12 +395,12 @@ def do_login(ctx):
 def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                  user=None, pwd=None, lang=None, ctx=None):
     D_LIST = ('ena_inquire', 'caller', 'level', 'dry_run', 'multi_user',
-              'set_passepartout', 'psycopg2', 'no_login')
+              'set_passepartout', 'no_login')
     P_LIST = ('db_host', 'db_name', 'db_user', 'db_password', 'admin_passwd',
               'login_user', 'login_password', 'crypt_password',
               'login2_user', 'login2_password', 'crypt2_password',
               'svc_protocol', 'oe_version', 'xmlrpc_port',
-              'lang')
+              'lang', 'psycopg2')
     S_LIST = ('db_host', 'db_name', 'db_user', 'db_password', 'admin_passwd',
               'login_user', 'login_password',
               'svc_protocol', 'oe_version', 'xmlrpc_port',
@@ -425,6 +425,8 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                     ctx[p] = xmlrpc_port
             elif p == 'oe_version' and oe_version and oe_version != '*':
                 ctx[p] = oe_version
+                if not ctx.get('odoo_vid'):
+                    ctx['odoo_vid'] = ctx['oe_version']
             elif p == 'svc_protocol' and (p not in ctx or not ctx[p]):
                 if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
                     ctx[p] = 'xmlrpc'
@@ -453,7 +455,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
             tkn = map(lambda x: x.strip(), tkn)
             for p in P_LIST:
                 if tkn[0] == p and tkn[1] != 'False':
-                    if p == 'xmlrpc_port':
+                    if p in ('xmlrpc_port', 'psycopg2'):
                         ctx[p] = int(tkn[1])
                     else:
                         ctx[p] = tkn[1]
@@ -463,7 +465,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
     ctx = oerp_env_fill(db=db,
                         xmlrpc_port=xmlrpc_port,
                         user=user, pwd=pwd,
-                        oe_version=oe_version,
+                        oe_version=oe_version or ctx.get('oe_version'),
                         lang=lang,
                         ctx=ctx,
                         inquire=write_confn and ctx.get('ena_inquire'))

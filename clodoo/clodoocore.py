@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.9.7"
+__version__ = "0.3.9.8"
 
 
 #############################################################################
@@ -40,8 +40,7 @@ __version__ = "0.3.9.7"
 def psql_connect(ctx):
     cr = False
     if (postgres_drive and
-            ctx.get('psycopg2', False) and
-            ctx.get('db_password', '')):
+            ctx.get('psycopg2', False)):
         dbname = ctx['db_name']
         dbuser = ctx['db_user']
         pwd = ctx.get('db_password')
