@@ -247,7 +247,7 @@ check_4_needing_pkgs() {
     for p in $NEEDING_PKGS; do
         x=${p^^}
         eval $x=$(pip show $p 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "Inner package $p=$x"
+        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "Inner package $p=${!x}"
     done
 }
 
@@ -418,11 +418,11 @@ if [[ ! "$TRAVIS" == "false" ]]; then
   done
 fi
 # Secure environment OK
-echo -e "\e[${PS_HDR3_COLOR}m### Build Base Environment\e[${PS_TXT_COLOR}m"
-for p in os0 configparser z0lib; do
-  [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
-  [ $? -ne 0 ] && run_traced "$PIP install $p $PIP_OPTS" "nolocal"
-done
+# echo -e "\e[${PS_HDR3_COLOR}m### Build Base Environment\e[${PS_TXT_COLOR}m"
+# for p in os0 configparser z0lib; do
+#   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
+#   [ $? -ne 0 ] && run_traced "$PIP install $p $PIP_OPTS" "nolocal"
+# done
 [ -z "${VERSION}" ] && VERSION="$opt_branch"
 [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
 : ${MQT_TEMPLATE_DB:="openerp_template"}
@@ -446,7 +446,7 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
         ls -l ${HOME}
         echo "Content of ${TRAVIS_BUILD_DIR}:"
         ls -l ${TRAVIS_BUILD_DIR}
-        if -d $HOME/devel; then
+        if [[ -d $HOME/devel ]]; then
             echo "Content of ${HOME}/devel:"
             ls -l ${HOME}/devel
         else
