@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.4.6
+__version__=0.1.4.7
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -911,7 +911,8 @@ fi
 venv_mgr_check_oever $action
 [ $opt_dev -eq 0 -a -d "$p2" ] && x=$(find ${p2}/lib -name pylint -o -name unittest2 -o -name coverage -o -name flake8|wc -l)
 [ $opt_dev -eq 0 -a ${x:-0} -gt 1 ] && opt_dev=1
-if [ $opt_dev -eq 0 ] || [[ -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || ! $(which list_requirements.py >/dev/null) ]]; then
+set -x  #debug
+if [ $opt_dev -eq 0 ] || [[ -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
     DEV_PKGS=""
 else
     cmd="list_requirements.py -qt python -BP"
@@ -919,8 +920,8 @@ else
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
     [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
     DEV_PKGS=$($cmd -s" ")
-    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "$DEV_PKGS=$cmd"
 fi
+set +x  #debug
 do_deactivate "-q"
 pop_cd "-q"
 if [ "$action" == "help" ]; then
