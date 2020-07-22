@@ -25,7 +25,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.8
+__version__=0.2.3.9
 
 
 conf_default() {
@@ -224,20 +224,6 @@ check_pythonpath() {
     done
 }
 
-check_local_pkgs() {
-    FUTURE=$(pip show future 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-    CONFIGPARSER=$(pip show configparser 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-    Z0LIB=$(pip show z0lib 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-    OS0=$(pip show os0 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-}
-
-check_installed_pkgs() {
-    [[ -z "$FUTURE" ]] && run_traced "$PIP install -q future" "nolocal"
-    [[ -z "$CONFIGPARSER" ]] && run_traced "$PIP install -q configparser" "nolocal"
-    [[ -z "$Z0LIB" ]] && run_traced "$PIP install -q z0lib" "nolocal"
-    [[ -z "$OS0" ]] && run_traced "$PIP install -q os0" "nolocal"
-    check_local_pkgs
-}
 
 install_n_activate_tools() {
     if [[ -d $HOME/tools && $(which travis_run_tests 2>&1>/dev/null) ]]; then
@@ -252,6 +238,26 @@ install_n_activate_tools() {
         [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
         [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
     fi
+}
+
+
+check_4_needing_pkgs() {
+    local p
+    NEEDING_PKGS="future configparser os0 z0lib"
+    for p in $NEEDING_PKGS; do
+        eval ${p^^}=$(pip show $p 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+    done
+}
+
+
+check_installed_pkgs() {
+    local p x
+    check_4_needing_pkgs
+    for p in $NEEDING_PKGS; do
+        x=${p^^}
+        [[ -z "$x" ]] && run_traced "$PIP install -q $p" "nolocal"
+    done
+    check_4_needing_pkgs
 }
 
 
@@ -343,7 +349,6 @@ else
   echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
 fi
 run_traced "$PIP install -q pip --upgrade" "nolocal"
-check_local_pkgs
 check_installed_pkgs
 # run_traced "$PIP install -q future --upgrade" "nolocal"
 MGRODOO=$(which manage_odoo 2>/dev/null)
@@ -668,12 +673,16 @@ else
     # FIX BUG:  pillow require docutils 0.12 but doc packages install docutils >= 0.13
     run_traced "pip install pillow==3.4.2 -U -I"
     if [ $opt_verbose -gt 0 ]; then
-      echo "Content of ${HOME}:"
-      ls -l ${HOME}
-      echo "Content of ${TRAVIS_BUILD_DIR}:"
-      ls -l ${TRAVIS_BUILD_DIR}
-      echo "Content of ${HOME}/dependencies:"
-      ls -l ${HOME}/dependencies
+        echo "Content of ${HOME}:"
+        ls -l ${HOME}
+        echo "Content of ${TRAVIS_BUILD_DIR}:"
+        ls -l ${TRAVIS_BUILD_DIR}
+        if [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a -n "${ODOO_PATH}" ]; then
+            echo "Content of ${ODOO_PATH}:"
+            ls -l ${ODOO_PATH}/
+        fi
+        echo "Content of ${HOME}/dependencies:"
+        ls -l ${HOME}/dependencies
     fi
   fi
 fi

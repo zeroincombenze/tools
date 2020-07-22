@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.4.3
+__version__=0.1.4.4
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -474,33 +474,44 @@ venv_mgr_check_src_path() {
         [[ -n "$2" ]] && echo "Missed python version!!"
         exit 1
     fi
-    if [[ ! -d $VENV || ! -d $VENV/lib || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+    if [[ -z "$2" ]] && [[ ! -d $VENV || ! -d $VENV/lib || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
         echo "Invalid virtual env $VENV!!"
         exit 1
     fi
     cd_venv "$VENV" "-fq"
     # do_activate "-q"
     for f in ./bin/python[23].*; do PYTHON=$(echo $f|grep -Eo "python[2-3]\.[0-9]"); break; done
-    [[ -z "$PYTHON"  && -x ./bin/python ]] && PYTHON=$(readlink -e ./bin/python)
+    [[ -z "$PYTHON" && -x ./bin/python ]] && PYTHON=$(readlink -e ./bin/python)
+    [[ -z "$PYTHON" && -n "$2" ]] && PYTHON=$(which python)
     if [[ -z "$PYTHON" ]]; then
-        echo "Virtual env $VENV without python!!"
-        exit 1
+         echo "Virtual env $VENV without python!!"
+         exit 1
     fi
     opt_pyver=$($PYTHON --version 2>&1|grep -Eo "[0-9]\.[0-9]")
-    check_local_pkgs $VENV
+    check_4_needing_pkgs $VENV
     pop_cd "-q"
     [ $opt_verbose -gt 0 ] && echo "### Python version $opt_pyver ... ###"
     # set_pyver_files
 }
 
 
-check_local_pkgs() {
-    local f VENV
-    VENV="$1"
-    FUTURE=$(pip show future 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-    CONFIGPARSER=$(pip show configparser 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-    Z0LIB=$(pip show z0lib 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-    OS0=$(pip show os0 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+check_4_needing_pkgs() {
+    local p
+    NEEDING_PKGS="future configparser os0 z0lib"
+    for p in $NEEDING_PKGS; do
+        eval ${p^^}=$(pip show $p 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+    done
+}
+
+
+check_installed_pkgs() {
+    local p x
+    check_4_needing_pkgs
+    for p in $NEEDING_PKGS; do
+        x=${p^^}
+        [[ -z "$x" ]] && pip install -q $p
+    done
+    check_4_needing_pkgs
 }
 
 
@@ -519,14 +530,9 @@ venv_mgr_check_oever() {
     fi
     if [[ ! $1 =~ (help|create) ]]; then
         [ -n "$opt_oever" -a $opt_verbose -gt 0 ] && echo "### Odoo version $opt_oever ...  ###"
-        [[ -z "$FUTURE" ]] && pip_install future -q
-        FUTURE=$(pip show future 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-        [[ -z "$CONFIGPARSER" ]] && pip_install configparser -q
-        CONFIGPARSER=$(pip show configparser 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-        [[ -z "$Z0LIB" ]] && pip_install z0lib -q
-        Z0LIB=$(pip show z0lib 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
-        [[ -z "$OS0" ]] && pip_install os0 -q
-        OS0=$(pip show os0 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+        check_installed_pkgs
+    else
+        check_4_needing_pkgs
     fi
 }
 
@@ -654,7 +660,7 @@ do_venv_mgr() {
         [[ -n "$opt_oever" && $cmd =~ (amend|check) ]] && pip_check_2 $cmd
         [[ "$cmd" == "reset" && -n "$opt_rfile" ]] && pip_install_req "$popt --upgrade"
         [[ $cmd =~ (amend|check) && -n "$opt_rfile" ]] && pip_check_req $cmd
-        if [[ ! $cmd == "check" ]]; then
+        if [[ ! $cmd == "check" && -z "$VENV_STS" ]]; then
             run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VENV_TGT'\":g' $PWD/bin/activate"
             if $(grep -q "^# export HOME=" $PWD/bin/activate); then
                 [ $opt_alone -eq 0 ] && run_traced "sed -i -e 's|^# export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
@@ -746,7 +752,7 @@ do_venv_create() {
     [ $opt_alone -ne 0 ] && popt="--isolated"
     [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
     [ $opt_verbose -eq 0 ] && popt="$popt -q"
-    for pkg in $NEEDED_PKGS; do
+    for pkg in $NEEDING_PKGS; do
         pip_install $pkg $popt
     done
     [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
@@ -813,7 +819,7 @@ OPTHELP=("this help"\
  "bin packages to install (* means wkhtmltopdf,lessc)"\
  "debug mode: use local packages"\
  "create v.environment with development packages"\
- "force v.environment create, even if exists"\
+ "force v.environment create, even if exists or inside anothr virtyale env"\
  "keep python2 executable"\
  "run pip in an isolated mode, ignoring environment variables and user configuration"\
  "do nothing (dry-run)"\
@@ -849,11 +855,25 @@ if [ $opt_help -gt 0 ]; then
     exit $STS_SUCCESS
 fi
 [ $opt_verbose -gt 3 ] && set -x
+if [[ $action == "create" && -n "$VIRTUAL_ENV" ]] && [ ${opt_force:-0} -eq 0 ]; then
+    echo "You cannot create a new virtual environment inside the current virtual environment"
+    exit 1
+fi
 if [[ ! $action =~ (help|create) ]]; then
     p1=
-    if [[ -d "$p2" ]]; then
-        p1=$(readlink -e $p2)
-        unset p2
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        if [[ -f $VIRTUAL_ENV/bin/activate ]]; then
+            echo "Invalid virtual environment"
+            exit 1
+        fi
+        p1=$VIRTUAL_ENV
+        VENV_STS="pre"
+    else
+        if [[ -d "$p2" ]]; then
+            p1=$(readlink -e $p2)
+            unset p2
+        fi
+        VENV_STS=""
     fi
     [[ -z "$p1" ]] && p1=$(readlink -e ./)
     [[ ! -f $p1/bin/activate && -f $HOME/bin/activate ]] && p1=$(readlink -e $HOME)
@@ -875,7 +895,7 @@ DO_POP=0
 DO_DEACT=0
 export PYTHONWARNINGS="ignore"
 SAVED_HOME=$HOME
-NEEDED_PKGS="future os0 z0lib"
+NEEDING_PKGS="future os0 z0lib"
 [ $opt_debug -ne 0 -a -d $HOME/tools/ ] && PYTHONPATH=$HOME/tools/
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
@@ -890,7 +910,7 @@ fi
 venv_mgr_check_oever $action
 [ $opt_dev -eq 0 -a -d "$p2" ] && x=$(find ${p2}/lib -name pylint -o -name unittest2 -o -name coverage -o -name flake8|wc -l)
 [ $opt_dev -eq 0 -a ${x:-0} -gt 1 ] && opt_dev=1
-if [[ (($opt_dev==0)) || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || ! $(which list_requirements.py >/dev/null) ]]; then
+if (($opt_dev==0)) || [[ -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || ! $(which list_requirements.py >/dev/null) ]]; then
     DEV_PKGS=""
 else
     cmd="list_requirements.py -qt python -BP"

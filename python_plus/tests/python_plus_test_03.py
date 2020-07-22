@@ -17,7 +17,7 @@ MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.1.4.3"
+__version__ = "0.1.4.4"
 
 
 def version():
@@ -32,7 +32,7 @@ class Test():
     def test_01(self, z0ctx):
         venv_dir = '%s/SAMPLE' % self.Z.testdir
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
-        cmd = 'vem -q -p%s create %s' % (pyver, venv_dir)
+        cmd = 'vem -qf -p%s create %s' % (pyver, venv_dir)
         if not z0ctx['dry_run']:
             os.system(cmd)
         sts = self.Z.test_result(z0ctx,

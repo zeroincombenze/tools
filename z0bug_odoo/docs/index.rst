@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ==========================================
-Welcome to z0bug_odoo 0.2.3.8 documentation!
+Welcome to z0bug_odoo 0.2.3.9 documentation!
 ==========================================
 
 .. toctree::
