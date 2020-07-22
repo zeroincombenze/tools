@@ -25,7 +25,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.7
+__version__=0.2.3.8
 
 
 conf_default() {
@@ -224,18 +224,33 @@ check_pythonpath() {
     done
 }
 
+check_local_pkgs() {
+    FUTURE=$(pip show future 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+    CONFIGPARSER=$(pip show configparser 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+    Z0LIB=$(pip show z0lib 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+    OS0=$(pip show os0 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+}
+
+check_installed_pkgs() {
+    [[ -z "$FUTURE" ]] && run_traced "$PIP install -q future" "nolocal"
+    [[ -z "$CONFIGPARSER" ]] && run_traced "$PIP install -q configparser" "nolocal"
+    [[ -z "$Z0LIB" ]] && run_traced "$PIP install -q z0lib" "nolocal"
+    [[ -z "$OS0" ]] && run_traced "$PIP install -q os0" "nolocal"
+    check_local_pkgs
+}
+
 install_n_activate_tools() {
-    if [ -d $HOME/tools ]; then
-      [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
-      pushd $HOME/tools > /dev/null
-      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-op
-      [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qop
-      run_traced "./install_tools.sh $x"
-      [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
-      . $HOME/dev/activate_tools
-      popd > /dev/null
-      [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-      [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+    if [[ -d $HOME/tools && $(which travis_run_tests 2>&1>/dev/null) ]]; then
+        [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
+        pushd $HOME/tools > /dev/null
+        [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-opt
+        [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qopt
+        run_traced "./install_tools.sh $x"
+        [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
+        . $HOME/dev/activate_tools
+        popd > /dev/null
+        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
+        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
     fi
 }
 
@@ -328,7 +343,9 @@ else
   echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
 fi
 run_traced "$PIP install -q pip --upgrade" "nolocal"
-run_traced "$PIP install -q future --upgrade" "nolocal"
+check_local_pkgs
+check_installed_pkgs
+# run_traced "$PIP install -q future --upgrade" "nolocal"
 MGRODOO=$(which manage_odoo 2>/dev/null)
 if [[ -z "$MGRODOO" ]]; then
   if [ "$MQT_TEST_MODE" == "tools" ]; then
