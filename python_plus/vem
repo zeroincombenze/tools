@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.4.5
+__version__=0.1.4.6
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -863,7 +863,7 @@ fi
 if [[ ! $action =~ (help|create) ]]; then
     p1=
     if [[ -n "$VIRTUAL_ENV" ]]; then
-        if [[ -f $VIRTUAL_ENV/bin/activate ]]; then
+        if [[ ! -f $VIRTUAL_ENV/bin/activate ]]; then
             echo "Invalid virtual environment"
             exit 1
         fi
