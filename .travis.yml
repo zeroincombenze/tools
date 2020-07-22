@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=0.2.3.7
+# __version__=0.2.3.8
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -14,10 +14,13 @@ cache:
 
 python:
   - "2.7"
-    # - "3.7"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
 
 virtualenv:
-  system_site_packages: true
+  system_site_packages: false
 
 git:
   submodules: false
@@ -27,23 +30,35 @@ services:
   - postgresql
 
 addons:
-  postgresql: "9.5"
   apt:
     sources:
-#      - pov-wkhtmltopdf
-#    Search your sources alias here:
-#      https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+      - pov-wkhtmltopdf
+    # Search your sources alias here:
+    # https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
     packages:
-      - shellcheck
-#     Search your packages here:
-#       https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
-#     For wkhtmltopdf, see the env section below
+      # - build-essential                 # Pre-installed
+      # - curl                            # Pre-installed
+      - expect-dev
+      # - less-plugin-clean-css           # Pre-installed
+      # - lessc                           # Pre-installed
+      - libffi-dev
+      - libssl-dev
+      # - nodejs                          # Pre-installed
+      # - npm                             # Pre-installed
+      - python-dev
+      # - python-setuptools               # Pre-installed
+      # - wkhtmltopdf                     # Pre-installed
+      - zlib1g
 
 before_install:
+  # Use Zeroincombenze(R) tools
+  - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --single-branch --depth=1
+  # - export PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}
+  - ${HOME}/tools/install_tools.sh -qopt
+  - source ${HOME}/dev/activate_tools
   # Tools are used to test themselves packages
-  - ln -s ${TRAVIS_BUILD_DIR} ${HOME}
-  - export PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}
-  - export PATH=${HOME}/tools/zerobug/_travis:${PATH}
+  # - ln -s ${TRAVIS_BUILD_DIR} ${HOME}
+  # - export PATH=${HOME}/tools/zerobug/_travis:${PATH}
 
 install:
   - travis_install_env tools
