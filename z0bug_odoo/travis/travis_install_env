@@ -242,10 +242,12 @@ install_n_activate_tools() {
 
 
 check_4_needing_pkgs() {
-    local p
+    local p x
     NEEDING_PKGS="future configparser os0 z0lib"
     for p in $NEEDING_PKGS; do
-        eval ${p^^}=$(pip show $p 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+        x=${p^^}
+        eval $x=$(pip show $p 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "Inner package $p=$x"
     done
 }
 
@@ -255,7 +257,7 @@ check_installed_pkgs() {
     check_4_needing_pkgs
     for p in $NEEDING_PKGS; do
         x=${p^^}
-        [[ -z "$x" ]] && run_traced "$PIP install -q $p" "nolocal"
+        [[ -z "${!x}" ]] && run_traced "$PIP install -q $p" "nolocal"
     done
     check_4_needing_pkgs
 }

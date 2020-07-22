@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.4.4
+__version__=0.1.4.5
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -496,10 +496,11 @@ venv_mgr_check_src_path() {
 
 
 check_4_needing_pkgs() {
-    local p
+    local p x
     NEEDING_PKGS="future configparser os0 z0lib"
     for p in $NEEDING_PKGS; do
-        eval ${p^^}=$(pip show $p 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+        x=${p^^}
+        eval $x=$(pip show $p 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
     done
 }
 
@@ -509,7 +510,7 @@ check_installed_pkgs() {
     check_4_needing_pkgs
     for p in $NEEDING_PKGS; do
         x=${p^^}
-        [[ -z "$x" ]] && pip install -q $p
+        [[ -z "${!x}" ]] && pip install -q $p
     done
     check_4_needing_pkgs
 }
