@@ -1,0 +1,6 @@
+Parameter,0,1,2,3,9
+Informative messages,|no_check|,|check|,|check|,|check|,|check|
+Inspect internal data,|no_check|,|no_check|,|check|,|check|,|check|
+MQT tests,|no_check|,|no_check|,|no_check|,|check|,|check|
+Installation log level,ERROR,WARN,INFO,INFO,|no_check| 
+Execution log level,INFO,TEST,TEST,TEST,|no_check|

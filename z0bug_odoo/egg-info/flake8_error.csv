@@ -1,0 +1,47 @@
+Test,MINIMAL,REDUCED,AVERAGE,NEARBY,OCA,Note
+E117,|no_check|,|no_check|,,,|no_check|,over-indented
+E121,|no_check|,|no_check|,,,|no_check|,`continuation line under-indented for hanging indent <https://lintlyci.github.io/Flake8Rules/rules/E121.html>`_
+E123,|no_check|,|no_check|,,,|no_check|,`Closing bracket does not match indentation of opening bracket's line <https://lintlyci.github.io/Flake8Rules/rules/E123.html>`_
+E124,|no_check|,|no_check|,,,|check|,`Closing bracket does not match visual indentation <https://lintlyci.github.io/Flake8Rules/rules/E124.html>`_
+E126,|no_check|,|no_check|,,,|check|,`Continuation line over-indented for hanging indent <https://lintlyci.github.io/Flake8Rules/rules/E126.html>`_
+E127,|no_check|,|no_check|,,,|check|,`continuation line over-indented for visual indent <https://lintlyci.github.io/Flake8Rules/rules/E127.html>`_
+E128,|no_check|,|no_check|,,,|check|,`Continuation line under-indented for visual indent <https://lintlyci.github.io/Flake8Rules/rules/E128.html>`_
+E131,|no_check|,|no_check|,,,|no_check|,`continuation line unaligned for hanging indent <https://lintlyci.github.io/Flake8Rules/rules/E131.html>`_
+E133,|no_check|,|no_check|,,,|no_check|,`Closing bracket is missing indentation <https://lintlyci.github.io/Flake8Rules/rules/E133.html>`_
+E201,|no_check|,|check|,,,|check|,`Whitespace after '(' <https://lintlyci.github.io/Flake8Rules/rules/E201.html>`_
+E202,|no_check|,|check|,,,|check|,`Whitespace before ')' <https://lintlyci.github.io/Flake8Rules/rules/E202.html>`_
+E203,|no_check|,|check|,,,|check|,`Whitespace before ':' <https://lintlyci.github.io/Flake8Rules/rules/E203.html>`_
+E211,|no_check|,|check|,,,|check|,`whitespace before '(' <https://lintlyci.github.io/Flake8Rules/rules/E211.html>`_
+E221,|no_check|,|check|,,,|check|,`Multiple spaces before operator <https://lintlyci.github.io/Flake8Rules/rules/E221.html>`_
+E222,|no_check|,|no_check|,,,|check|,
+E225,|no_check|,|no_check|,,,|check|,
+E226,|no_check|,|no_check|,,,|no_check|,
+E231,|no_check|,|no_check|,,,|check|,
+E241,|no_check|,|no_check|,,,|no_check|,
+E242,|no_check|,|no_check|,,,|no_check|,
+E251,|no_check|,|no_check|,,,|check|,
+E261,|no_check|,|no_check|,,,|check|,
+E262,|no_check|,|no_check|,,,|check|,
+E265,|no_check|,|no_check|,,,|check|,
+E266,|no_check|,|no_check|,,,|check|,`too many leading '#' for block comment <https://lintlyci.github.io/Flake8Rules/rules/E266.html>`_
+E271,|no_check|,|no_check|,,,|check|,`multiple spaces after keyword <https://lintlyci.github.io/Flake8Rules/rules/E271.html>`_
+E272,|no_check|,|no_check|,,,|check|,`multiple spaces before keyword <https://lintlyci.github.io/Flake8Rules/rules/E272.html>`_
+W291,|no_check|,|no_check|,,,|check|,
+W292,|no_check|,|no_check|,,,|check|,`no newline at end of file <https://lintlyci.github.io/Flake8Rules/rules/W292.html>`_
+W293,|no_check|,|no_check|,,,|check|,
+E301,|no_check|,|no_check|,,,|check|,`Expected 1 blank line <https://lintlyci.github.io/Flake8Rules/rules/E301.html>`_
+E302,|no_check|,|no_check|,,,|check|,No __init__.py
+E303,|no_check|,|no_check|,,,|check|,
+E305,|no_check|,|no_check|,,,|check|,
+W391,|no_check|,|check|,,,|check|,blank line at end of file
+F401,|no_check|,|check|,,,|no_check|,module imported but unused
+E501,|no_check|,|no_check|,,,|check|,
+E502,|no_check|,|no_check|,,,|check|,`the backslash is redundant between brackets <https://lintlyci.github.io/Flake8Rules/rules/E502.html>`_
+W503,|no_check|,|no_check|,,,|no_check|,No __init__.py
+W504,|no_check|,|no_check|,,,|no_check|,No __init__.py
+F601,|no_check|,|no_check|,,,|no_check|,dictionary key name repeated with different values
+E701,|no_check|,|no_check|,,,|check|,multiple statements on one line (colon)
+E722,|no_check|,|no_check|,,,|check|,do not use bare except
+F811,|no_check|,|no_check|,,,|no_check|,redefinition of unused name from line N (No __init__.py)
+F841,|no_check|,|no_check|,,,|no_check|,`local variable 'context' is assigned to but never used <https://lintlyci.github.io/Flake8Rules/rules/F841.html>`_
+

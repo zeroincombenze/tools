@@ -25,7 +25,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.9
+__version__=0.2.3.10
 
 
 conf_default() {
@@ -316,7 +316,7 @@ LINT_OR_TEST_CHECK="0"
 conf_default
 [ -z "MQT_TEST_MODE" ] && IFS="/" read MQT_TEST_MODE PKGNAME <<< "${TRAVIS_REPO_SLUG}"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
-[[ ! $MQT_TEST_MODE =~ (oca|zero) ]] && MQT_TEST_MODE=zero
+[[ $MQT_TEST_MODE =~ (oca|zero) ]] || MQT_TEST_MODE=zero
 [ -z "$mode" ] && mode=$MQT_TEST_MODE
 if [[ "$TRAVIS" == "true" && "$MQT_TEST_MODE" == "oca" ]]; then
   run_traced "$TDIR/travis_install_nightly"
@@ -481,87 +481,88 @@ else
     if [ $NODE_VER -lt 6 ]; then
       x=$(which nodejs 2>/dev/null)
       [[ -z "$x" ]] && x=$(which node 2>/dev/null)
-      run_traced "ln -s $x $HOME/tools/maintainer-quality-tools/travis/node"
+      run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/node"
       [ $opt_verbose -gt 0 ] && echo "3> node version: $(node --version)"
     fi
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
-      [ -n "$x" ] && run_traced "ln -s $x $HOME/tools/maintainer-quality-tools/travis/lessc"
+      [ -n "$x" ] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
     else
       run_traced "npm install less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin) -name lessc 2>/dev/null)
-      [ -n "$x" ] && run_traced "ln -s $x $HOME/tools/maintainer-quality-tools/travis/lessc"
+      [ -n "$x" ] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
     fi
     lessc --version
-    x=$(find $PYLIB -name no-global-site-packages.txt)
-    [ -n $x ] && run_traced "rm -f $x"
-    [ -z "${WKHTMLTOPDF_VERSION}" ] && export WKHTMLTOPDF_VERSION="0.12.4"
+    # x=$(find $PYLIB -name no-global-site-packages.txt)
+    # [ -n $x ] && run_traced "rm -f $x"
+    [ -z "${WKHTMLTOPDF_VERSION}" ] && export WKHTMLTOPDF_VERSION="0.12.5"
     [ -n "$(which example.com 2>/dev/null)" ] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version|grep -Eo [0-9.]+|head -n1) || CUR_WKHTMLTOPDF_VERSION=
     if [[ "$CUR_WKHTMLTOPDF_VERSION" == "$WKHTMLTOPDF_VERSION" ]]; then
       [ $opt_verbose -gt 0 ] && echo "Installed version of wkhtmltopdf is $WKHTMLTOPDF_VERSION"
     else
       [ $opt_verbose -gt 0 ] && echo "Installing wkhtmltopdf version $WKHTMLTOPDF_VERSION (current is $CUR_WKHTMLTOPDF_VERSION)"
-      FH="Debian"
-      MACHARCH="x86_64"
-      [ -x $HOME/tools/z0lib/xuname ] && FH=$($HOME/tools/z0lib/xuname -f)
-      [ -x $HOME/tools/z0lib/xuname ] && MACHARCH=$($HOME/tools/z0lib/xuname -m)
-      mkdir wkhtmltox.rpm_files
-      pushd wkhtmltox.rpm_files > /dev/null
-      if [[ "$FH" == "RHEL" ]]; then
-        dist=$($HOME/tools/z0lib/xuname -d)
-        dist=${dist,,}$($HOME/tools/z0lib/xuname -v|grep -Eo [0-9]|head -n1)
-        pkgext=".rpm"
-        if [[ ${WKHTMLTOPDF_VERSION} == "0.12.5" ]]; then
-          wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_1-${dist}-amd64.rpm"
-        elif [[ ${WKHTMLTOPDF_VERSION} == "0.12.4" ]]; then
-          wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-generic-amd64.tar.xz"
-          pkgext=".xz"
-        else
-          if [[ "$MACHARCH" == "x86_64" ]]; then
-            wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-${dist}-amd64.rpm"
-          else
-            wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-${dist}-i386.rpm"
-          fi
-        fi
-      elif [[ "$FH" == "Debian" ]]; then
-        pkgext=".deb"
-        if [[ ${WKHTMLTOPDF_VERSION} == "0.12.5" ]]; then
-          if [[ "$MACHARCH" == "x86_64" ]]; then
-            wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}-1.${dist}.${MACHARCH}.rpm"
-          else
-            wkhtmltopdf_wget="wkhtmltox_${WKHTMLTOPDF_VERSION}-1.$(lsb_release -sc)_amd64.deb"
-          fi
-        elif [[ ${WKHTMLTOPDF_VERSION} == "0.12.4" ]]; then
-          wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-generic-amd64.tar.xz"
-          pkgext=".xz"
-        else
-          if [[ "$MACHARCH" == "x86_64" ]]; then
-            wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-$(lsb_release -sc)-amd64.deb"
-          else
-            wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-$(lsb_release -sc)-i386.deb"
-          fi
-        fi
-        run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox.deb"
-      fi
-      run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox${pkgext}"
-      size=$(stat -c %s wkhtmltox${pkgext})
-      if [ $size -eq 0 ]; then
-         echo "File wkhtmltox${pkgext} not found!"
-      elif [ "$pkgext" == ".rpm" ]; then
-        run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
-        run_traced "cp ./usr/local/bin/wkhtmltopdf ${HOME}/tools/maintainer-quality-tools/travis/wkhtmltopdf"
-      elif [ "$pkgext" == ".deb" ]; then
-        run_traced "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
-        run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${HOME}/tools/maintainer-quality-tools/travis/wkhtmltopdf"
-        rm -r wkhtmltox.deb*
-      else
-        run_traced "tar -xf wkhtmltox${pkgext}"
-        run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/tools/maintainer-quality-tools/travis/wkhtmltopdf"
-        rm -fr ./wkhtmltox
-      fi
-      popd > /dev/null
-      rm -fR wkhtmltox.rpm_files
+      # FH="Debian"
+      # MACHARCH="x86_64"
+      # [ -x $HOME/tools/z0lib/xuname ] && FH=$($HOME/tools/z0lib/xuname -f)
+      # [ -x $HOME/tools/z0lib/xuname ] && MACHARCH=$($HOME/tools/z0lib/xuname -m)
+      # mkdir wkhtmltox.rpm_files
+      # pushd wkhtmltox.rpm_files > /dev/null
+      # if [[ "$FH" == "RHEL" ]]; then
+      #   dist=$($HOME/tools/z0lib/xuname -d)
+      #   dist=${dist,,}$($HOME/tools/z0lib/xuname -v|grep -Eo [0-9]|head -n1)
+      #   pkgext=".rpm"
+      #   if [[ ${WKHTMLTOPDF_VERSION} == "0.12.5" ]]; then
+      #     wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_1-${dist}-amd64.rpm"
+      #   elif [[ ${WKHTMLTOPDF_VERSION} == "0.12.4" ]]; then
+      #     wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-generic-amd64.tar.xz"
+      #     pkgext=".xz"
+      #   else
+      #     if [[ "$MACHARCH" == "x86_64" ]]; then
+      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-${dist}-amd64.rpm"
+      #     else
+      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-${dist}-i386.rpm"
+      #     fi
+      #   fi
+      # elif [[ "$FH" == "Debian" ]]; then
+      #   pkgext=".deb"
+      #   if [[ ${WKHTMLTOPDF_VERSION} == "0.12.5" ]]; then
+      #     if [[ "$MACHARCH" == "x86_64" ]]; then
+      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}-1.${dist}.${MACHARCH}.rpm"
+      #     else
+      #       wkhtmltopdf_wget="wkhtmltox_${WKHTMLTOPDF_VERSION}-1.$(lsb_release -sc)_amd64.deb"
+      #     fi
+      #   elif [[ ${WKHTMLTOPDF_VERSION} == "0.12.4" ]]; then
+      #     wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-generic-amd64.tar.xz"
+      #     pkgext=".xz"
+      #   else
+      #     if [[ "$MACHARCH" == "x86_64" ]]; then
+      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-$(lsb_release -sc)-amd64.deb"
+      #     else
+      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-$(lsb_release -sc)-i386.deb"
+      #     fi
+      #   fi
+      #   run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox.deb"
+      # fi
+      # run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox${pkgext}"
+      # size=$(stat -c %s wkhtmltox${pkgext})
+      # if [ $size -eq 0 ]; then
+      #    echo "File wkhtmltox${pkgext} not found!"
+      # elif [ "$pkgext" == ".rpm" ]; then
+      #   run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
+      #   run_traced "cp ./usr/local/bin/wkhtmltopdf ${HOME}/tools/z0bug_odoo/travis/wkhtmltopdf"
+      # elif [ "$pkgext" == ".deb" ]; then
+      #   run_traced "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
+      #   run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${HOME}/tools/z0bug_odoo/travis/wkhtmltopdf"
+      #   rm -r wkhtmltox.deb*
+      # else
+      #   run_traced "tar -xf wkhtmltox${pkgext}"
+      #   run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/tools/z0bug_odoo/travis/wkhtmltopdf"
+      #   rm -fr ./wkhtmltox
+      # fi
+      # popd > /dev/null
+      # rm -fR wkhtmltox.rpm_files
+      vem install "wkhtmltopdf==$WKHTMLTOPDF_VERSION"
       CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version|grep -Eo [0-9.]+|head -n1)
       [ $opt_verbose -gt 0 ] && echo "Current version of wkhtmltopdf is $CUR_WKHTMLTOPDF_VERSION"
     fi
@@ -583,7 +584,7 @@ else
     # Update PhantomJS (v10 compat)
     if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
       run_traced "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
-      run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/tools/maintainer-quality-tools/travis/phantomjs\""
+      run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/tools/z0bug_odoo/travis/phantomjs\""
     fi
     if [ "${CHROME_TEST}" == "1" ]; then
       run_traced "google-chrome --version"
@@ -605,7 +606,7 @@ else
       reqs=$(find ${ODOO_PATH} -name requirements.txt|tr "\n" ",")
       run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
-    run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
+    run_traced "cp ${HOME}/tools/z0bug_odoo/cfg/.coveragerc ."
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       if [ $opt_verbose -gt 0 ]; then
         echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
@@ -639,7 +640,7 @@ else
         reqs=$(find $ocb_dir $dependencies_dir -name requirements.txt|tr "\n" ",")
         run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
-    run_traced "cp ${HOME}/tools/maintainer-quality-tools/cfg/.coveragerc ."
+    run_traced "cp ${HOME}/tools/z0bug_odoo/cfg/.coveragerc ."
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
         run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"
@@ -662,8 +663,8 @@ else
     elif [[ -f "${ODOO_PATH}/odoo/tests/common.py" ]]; then
       run_traced "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
     fi
-    # FIX BUG:  pillow require docutils 0.12 but doc packages install docutils >= 0.13
-    run_traced "pip install pillow==3.4.2 -U -I"
+    # # FIX BUG:  pillow require docutils 0.12 but doc packages install docutils >= 0.13
+    # run_traced "pip install pillow==3.4.2 -U -I"
     if [ $opt_verbose -gt 0 ]; then
         echo "Content of ${HOME}:"
         ls -l ${HOME}

@@ -26,7 +26,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.4.8
+__version__=0.1.4.9
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -89,11 +89,12 @@ do_deactivate() {
 
 get_wkhtmltopdf_dwname() {
 #get_wkhtmltopdf_dwname(pkg FH dist MACHARCH)
-    local pkg=$1 FH=$2 dist=$3 MACHARCH=$4 pkgext wkhtmltopdf_wget x y
+    local pkg=$1 FH=$2 dist=$3 MACHARCH=$4 pkgext wkhtmltopdf_wget x y z
     dist=${dist,,}
     [[ $dist =~ debian ]] && y="_" || y="-"
     [[ "$FH" == "RHEL" ]] && x="." || x="_"
     [[ $dist =~ (redhat|fedora) ]] && dist="centos7"
+    [[ "$dist" == "ubuntu20" ]] && dist="focal"
     [[ "$dist" == "ubuntu18" ]] && dist="bionic"
     [[ "$dist" == "ubuntu16" ]] && dist="xenial"
     [[ "$dist" == "ubuntu14" ]] && dist="trusty"
@@ -104,18 +105,20 @@ get_wkhtmltopdf_dwname() {
     [[ "$FH" == "Debian" && "$MACHARCH" == "x86_64" ]] && MACHARCH="amd64"
     reqver=$(echo "$pkg"|grep -Eo '[^!<=>]*'|tr -d "'"|sed -n '2 p')
     [[ -z "$reqver" ]] && reqver="0.12.5"
-    if [[ ${reqver} == "0.12.5" ]]; then
+    [[ "$FH" == "RHEL" && "$MACHARCH" == "x86_64" && $reqver =~ 0.12.[14] ]] && MACHARCH="amd64"
+    z="wkhtmltopdf"
+    if [[ ${reqver} =~ 0.12.6 ]]; then
+        reqver="0.12.6-1"
+        z="packaging"
+        wkhtmltopdf_wget="wkhtmltox${y}${reqver}.${dist}${x}${MACHARCH}${pkgext}"
+    elif [[ ${reqver} == "0.12.5" ]]; then
         wkhtmltopdf_wget="wkhtmltox${y}${reqver}-1.${dist}${x}${MACHARCH}${pkgext}"
     elif [[ ${reqver} == "0.12.4" ]]; then
-        if [[ "$FH" == "RHEL" ]]; then
-            wkhtmltopdf_wget="wkhtmltox-${reqver}.tar.bz2"
-        else
-            wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-generic-${MACHARCH}.tar.xz"
-        fi
+        wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-generic-${MACHARCH}.tar.xz"
     else
         wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-${dist}-${MACHARCH}${pkgext}"
     fi
-    echo "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${reqver}/${wkhtmltopdf_wget}"
+    echo "https://github.com/wkhtmltopdf/${z}/releases/download/${reqver}/${wkhtmltopdf_wget}"
 }
 
 
@@ -833,7 +836,7 @@ OPTHELP=("this help"\
  "show version"\
  "verbose mode")
 OPTARGS=(p1 p2 p3 p4 p5 p6 p7 p8 p9)
-
+# no-global-site-packages.txt
 parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
