@@ -353,16 +353,16 @@ fi
 run_traced "$PIP install -q pip --upgrade" "nolocal"
 check_installed_pkgs
 # run_traced "$PIP install -q future --upgrade" "nolocal"
-MGRODOO=$(which manage_odoo 2>/dev/null)
-if [[ -z "$MGRODOO" ]]; then
-  if [ "$MQT_TEST_MODE" == "tools" ]; then
-    [ -f $TRAVIS_BUILD_DIR/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TRAVIS_BUILD_DIR/clodoo/manage_odoo) || MGRODOO=manage_odoo
-  elif [ -n "$YML_mgrodoo" ]; then
-    MGRODOO=$YML_mgrodoo
-  else
-    [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
-  fi
-fi
+# MGRODOO=$(which manage_odoo 2>/dev/null)
+# if [[ -z "$MGRODOO" ]]; then
+#   if [ "$MQT_TEST_MODE" == "tools" ]; then
+#     [ -f $TRAVIS_BUILD_DIR/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TRAVIS_BUILD_DIR/clodoo/manage_odoo) || MGRODOO=manage_odoo
+#   elif [ -n "$YML_mgrodoo" ]; then
+#     MGRODOO=$YML_mgrodoo
+#   else
+#     [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
+#   fi
+# fi
 LISTREQ=$(which list_requirements.py 2>/dev/null)
 if [[ -z "$LISTREQ" ]]; then
   if [ -n "$YML_mgrodoo" ]; then
@@ -392,7 +392,7 @@ if [ $opt_verbose -gt 0 ]; then
     echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$(which $PIP).$($PIP --version)\e[${PS_HDR3_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ alias vem=$VEM.$($VEM -V)\e[${PS_HDR3_COLOR}m"
-    echo -e "\e[${PS_TXT_COLOR}m\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)\e[${PS_HDR3_COLOR}m"
+    # echo -e "\e[${PS_TXT_COLOR}m\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)\e[${PS_HDR3_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)\e[${PS_HDR3_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE\e[${PS_HDR3_COLOR}m"
     echo -e "\e[${PS_TXT_COLOR}m\$ MQT_TEST_MODE=$MQT_TEST_MODE\e[${PS_HDR3_COLOR}m"
@@ -602,11 +602,6 @@ else
   if [ "${TESTS}" != "1" ]; then
     dopts=
     if [ -z "$PYPI_CACHED" ]; then
-      # if [[ "$TRAVIS" == "false" ]]; then
-      #   run_traced "$MGRODOO requirements -nLBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-      # else
-      #   run_traced "$MGRODOO requirements -LBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-      # fi
       reqs=$(find ${ODOO_PATH} -name requirements.txt|tr "\n" ",")
       run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
@@ -641,11 +636,6 @@ else
     fi
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
-        # if [[ "$TRAVIS" == "false" ]]; then
-        #   run_traced "$MGRODOO requirements -nLBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-        # else
-        #   run_traced "$MGRODOO requirements -LBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
-        # fi
         reqs=$(find $ocb_dir $dependencies_dir -name requirements.txt|tr "\n" ",")
         run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
