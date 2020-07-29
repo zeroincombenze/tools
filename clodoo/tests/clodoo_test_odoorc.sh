@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.9.8
+__version__=0.3.9.10
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 
@@ -99,7 +99,7 @@ test_01() {
     return $sts
 }
 
-__test_02() {
+test_02() {
     local s sts v w
     sts=0
     export opt_mult=0
@@ -112,6 +112,8 @@ __test_02() {
     TRES[10.0]="10"
     TRES[11.0]="11"
     TRES[12.0]="12"
+    TRES[13.0]="13"
+    TRES[14.0]="14"
     for v in $VERSIONS_TO_TEST; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param MAJVER $v)
@@ -136,7 +138,7 @@ __test_02() {
     return $sts
     }
 
-__test_03() {
+test_03() {
     local s sts v w
     sts=0
     export opt_mult=0
@@ -150,6 +152,8 @@ __test_03() {
     TRES[10]=/etc/odoo/odoo.conf
     TRES[11]=/etc/odoo/odoo.conf
     TRES[12]=/etc/odoo/odoo.conf
+    TRES[13]=/etc/odoo/odoo.conf
+    TRES[14]=/etc/odoo/odoo.conf
     for v in $MAJVERS_TO_TEST; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param CONFN $v)
@@ -195,6 +199,8 @@ __test_04() {
     TRES[10]=/etc/odoo/odoo10.conf
     TRES[11]=/etc/odoo/odoo11.conf
     TRES[12]=/etc/odoo/odoo12.conf
+    TRES[13]=/etc/odoo/odoo13.conf
+    TRES[14]=/etc/odoo/odoo13.conf
 
     for v in $MAJVERS_TO_TEST; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -234,6 +240,8 @@ __test_04() {
     TRES[10]=/var/log/odoo/odoo10.log
     TRES[11]=/var/log/odoo/odoo11.log
     TRES[12]=/var/log/odoo/odoo12.log
+    TRES[13]=/var/log/odoo/odoo13.log
+    TRES[14]=/var/log/odoo/odoo14.log
     for v in $MAJVERS_TO_TEST v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" ]; then
@@ -257,6 +265,8 @@ __test_04() {
     TRES[10]=/var/run/odoo/odoo10.pid
     TRES[11]=/var/run/odoo/odoo11.pid
     TRES[12]=/var/run/odoo/odoo12.pid
+    TRES[13]=/var/run/odoo/odoo13.pid
+    TRES[14]=/var/run/odoo/odoo14.pid
     for v in $MAJVERS_TO_TEST v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" ]; then
@@ -280,6 +290,8 @@ __test_04() {
     TRES[10]=/etc/init.d/odoo10
     TRES[11]=/etc/init.d/odoo11
     TRES[12]=/etc/init.d/odoo12
+    TRES[13]=/etc/init.d/odoo13
+    TRES[14]=/etc/init.d/odoo14
     for v in $MAJVERS_TO_TEST v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" ]; then
@@ -303,6 +315,8 @@ __test_04() {
     TRES[10]=odoo10
     TRES[11]=odoo11
     TRES[12]=odoo12
+    TRES[13]=odoo13
+    TRES[14]=odoo14
     for v in $MAJVERS_TO_TEST v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" ]; then
@@ -326,9 +340,11 @@ __test_04() {
     TRES[10]=$LCL_ROOT/10.0/odoo-bin
     TRES[11]=$LCL_ROOT/11.0/odoo-bin
     TRES[12]=$LCL_ROOT/12.0/odoo-bin
+    TRES[13]=$LCL_ROOT/13.0/odoo-bin
+    TRES[14]=$LCL_ROOT/14.0/odoo-bin
     for v in $MAJVERS_TO_TEST v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ "$v" == "v7" ]; then
+        if [[ "$v" == "v7" ]]; then
           w="$v"
         elif [ $v -eq 6 ]; then
           w="$v.1"
@@ -348,6 +364,8 @@ __test_04() {
     TRES[10.0]=$LCL_ROOT/VENV-10.0/odoo/odoo-bin
     TRES[11.0]=$LCL_ROOT/VENV-11.0/odoo/odoo-bin
     TRES[12.0]=$LCL_ROOT/VENV-12.0/odoo/odoo-bin
+    TRES[13.0]=$LCL_ROOT/VENV-13.0/odoo/odoo-bin
+    TRES[14.0]=$LCL_ROOT/VENV-14.0/odoo/odoo-bin
     for v in $VERSIONS_TO_TEST; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param BIN VENV-$v)
@@ -364,6 +382,8 @@ __test_04() {
     TRES[10]=__manifest__.py
     TRES[11]=__manifest__.py
     TRES[12]=__manifest__.py
+    TRES[13]=__manifest__.py
+    TRES[14]=__manifest__.py
     for v in $MAJVERS_TO_TEST v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" ]; then
@@ -388,6 +408,8 @@ __test_04() {
     TRES[10]=8170
     TRES[11]=8171
     TRES[12]=8172
+    TRES[13]=8173
+    TRES[14]=8174
     for v in $MAJVERS_TO_TEST v7 v8.0; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" -o "$v" == "v8.0" ]; then
@@ -428,6 +450,8 @@ __test_04() {
     TRES[10]=odoo10
     TRES[11]=odoo11
     TRES[12]=odoo12
+    TRES[13]=odoo13
+    TRES[14]=odoo14
     for v in $MAJVERS_TO_TEST v7; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "${v:0:1}" == "v" ]; then
@@ -449,6 +473,8 @@ __test_04() {
     TRES[10]=odoo10
     TRES[11]=odoo11
     TRES[12]=odoo12
+    TRES[13]=odoo13
+    TRES[14]=odoo14
     for v in $MAJVERS_TO_TEST; do
       [ "$v" == "6" ] && w="$v.1" || w="$v.0"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -465,6 +491,8 @@ __test_04() {
     TRES[10.0]="10.0"
     TRES[11.0]="11.0"
     TRES[12.0]="12.0"
+    TRES[13.0]="13.0"
+    TRES[14.0]="13.0"
     for v in $VERSIONS_TO_TEST; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param "FULLVER" "ODOO-$v" "debug")
@@ -913,23 +941,9 @@ Z0BUG_setup() {
     Z0BUG_build_os_tree "$LCL_VERSION/openerp $LCL_VERSION/addons/base $LCL_VERSION/addons/account $LCL_VERSION/addons/sale $LCL_VERSION/addons/web $LCL_VERSION/$LCL_OO_REPOS/$LCL_OO_PKGNAME $LCL_VERSION/__unported__/$LCL_OO_PKGNAME"
     LCL_OE_ROOT=$Z0BUG_root/$LCL_VERSION
 
-    # RHOME="/opt/odoo"
-    # LCL_OE_ROOT=$RHOME/dev/odoo/$LCL_VERSION
-    # LCL_OE_ROOT=$TESTDIR/res/$LCL_VERSION
     LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OO_REPOS
     LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OO_PKGNAME
     LCL_OE_PKGPATH2=$LCL_OE_ROOT/__unported__/$LCL_OO_PKGNAME
-    # [ -f $LCL_OE_ROOT ] && rm -fR $LCL_OE_ROOT
-    # mkdir -p $LCL_OE_ROOT
-    # mkdir -p $LCL_OE_ROOT/openerp
-    # mkdir -p $LCL_OE_ROOT/addons
-    # mkdir -p $LCL_OE_ROOT/addons/base
-    # mkdir -p $LCL_OE_ROOT/addons/account
-    # mkdir -p $LCL_OE_ROOT/addons/sale
-    # mkdir -p $LCL_OE_ROOT/addons/web
-    # mkdir -p $LCL_OE_PRJPATH
-    # mkdir -p $LCL_OE_PKGPATH
-    # mkdir -p $LCL_OE_PKGPATH2
     touch $LCL_OE_ROOT/openerp-server
     touch $LCL_OE_PKGPATH/__openerp__.py
     touch $LCL_OE_PKGPATH2/__openerp__.py
@@ -949,17 +963,6 @@ Z0BUG_setup() {
     LCL_VE_PRJPATH=$LCL_VE_ROOT/$LCL_OO_REPOS
     LCL_VE_PKGPATH=$LCL_VE_PRJPATH/$LCL_OO_PKGNAME
     LCL_VE_PKGPATH2=$LCL_VE_ROOT/__unported__/$LCL_OO_PKGNAME
-    # mkdir -p $RHOME/dev/odoo/VENV-$LCL_VERSION
-    # mkdir -p $LCL_VE_ROOT
-    # mkdir -p $LCL_VE_ROOT/openerp
-    # mkdir -p $LCL_VE_ROOT/addons
-    # mkdir -p $LCL_VE_ROOT/addons/base
-    # mkdir -p $LCL_VE_ROOT/addons/account
-    # mkdir -p $LCL_VE_ROOT/addons/sale
-    # mkdir -p $LCL_VE_ROOT/addons/web
-    # mkdir -p $LCL_VE_PRJPATH
-    # mkdir -p $LCL_VE_PKGPATH
-    # mkdir -p $LCL_VE_PKGPATH2
 
     Z0BUG_build_os_tree "VENV-$LCL_VERSION/odoo/openerp VENV-$LCL_VERSION/odoo/addons/base VENV-$LCL_VERSION/odoo/addons/account VENV-$LCL_VERSION/odoo/addons/sale VENV-$LCL_VERSION/odoo/addons/web VENV-$LCL_VERSION/odoo/$LCL_OO_REPOS/$LCL_OO_PKGNAME VENV-$LCL_VERSION/odoo/__unported__/$LCL_OO_PKGNAME"
 
@@ -978,16 +981,6 @@ Z0BUG_setup() {
 }
 
 Z0BUG_teardown() {
-    # local LCL_VERSION=9.0
-    # mkdir -p $LCL_VE_PKGPATH2
-    # mkdir -p $LCL_VE_PKGPATH
-    # mkdir -p $LCL_VE_PRJPATH
-    # mkdir -p $LCL_VE_ROOT
-    # mkdir -p $RHOME/dev/odoo/VENV-$LCL_VERSION
-    # rm -fR $LCL_OE_PKGPATH2
-    # rm -fR $LCL_OE_PKGPATH
-    # rm -fR $LCL_OE_PRJPATH
-    # rm -fR $LCL_OE_ROOT
     Z0BUG_remove_os_tree "$LCL_VERSION VENV-$LCL_VERSION"
     Z0BUG_remove_os_tree "6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10"
 

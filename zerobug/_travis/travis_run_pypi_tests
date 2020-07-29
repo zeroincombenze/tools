@@ -31,7 +31,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.15.2
+__version__=0.2.15.3
 
 
 travis_test_bash() {
@@ -127,9 +127,9 @@ run_regression_test() {
     echo "======== Running regression_test ========"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-            local OPTS=$(inherits_travis_opts "n" "T")
+            local OPTS=$(inherits_travis_opts "nB" "T")
         else
-            local OPTS=$(inherits_travis_opts "" "T")
+            local OPTS=$(inherits_travis_opts "B" "T")
         fi
         run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"
         COVERAGE_PROCESS_START=$(readlink -f .coveragerc)

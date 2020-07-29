@@ -553,6 +553,7 @@ create_virtual_env() {
 
 drop_virtual_env() {
     [ ${opt_dry_run:-0} -eq 0 -a ${opt_virt:-0} -gt 0 ] && deactivate
+    set -x  #debug
     export HOME=$TRAVIS_SAVED_HOME
     hash -r
     unset TRAVIS_SAVED_HOME
@@ -562,6 +563,7 @@ drop_virtual_env() {
         rm -fR $TRAVIS_HOME
         unset TRAVIS_HOME
     fi
+    set +x  #debug
     TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
 }
 

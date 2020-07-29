@@ -11,7 +11,7 @@ Currently, the follow macros are recognized:
 
 acknowledges
 authors         Authors list
-avaiable_addons
+available_addons
 branch          Odoo version for this repository/module
 certifications  Certificates list
 contact_us
@@ -122,7 +122,7 @@ DEFINED_SECTIONS = ['description', 'descrizione', 'features',
                     'support', 'usage', 'maintenance',
                     'troubleshooting', 'known_issues',
                     'proposals_for_enhancement', 'history', 'faq',
-                    'sponsor', 'copyright_notes', 'avaiable_addons',
+                    'sponsor', 'copyright_notes', 'available_addons',
                     'contact_us']
 DEFINED_TAG = ['__init__', '__manifest__',
                'name', 'summary', 'sommario',
@@ -362,7 +362,7 @@ def get_default_prerequisites(ctx):
     return text
 
 
-def get_default_avaiable_addons(ctx):
+def get_default_available_addons(ctx):
     if 'addons_info' not in ctx:
         return ''
     text = ''
@@ -516,7 +516,7 @@ def tohtml(text, state=None):
         del lines[-1]
     while len(lines) and not lines[0]:
         del lines[0]
-    is_list = False
+    # is_list = False
     in_list = False
     in_table = False
     open_para = 0
@@ -593,6 +593,12 @@ def tohtml(text, state=None):
                     lineno > 0 and
                     len(lines[lineno]) == len(lines[lineno - 1])):
                 lines[lineno - 1] = '<h2>%s</h2>' % lines[lineno - 1]
+                del lines[lineno]
+                continue
+            elif (re.match(r'^~+$', lines[lineno]) and
+                      lineno > 0 and
+                      len(lines[lineno]) == len(lines[lineno - 1])):
+                lines[lineno - 1] = '<h3>%s</h3>' % lines[lineno - 1]
                 del lines[lineno]
                 continue
             elif re.match(r'^:: *$', lines[lineno]):
@@ -1049,7 +1055,8 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                             target += '\n'
             elif in_fmt == 'rst' and (
                     line and ((line == '=' * len(line)) or
-                              (line == '-' * len(line)))):
+                              (line == '-' * len(line)) or
+                              (line == '~' * len(line)))):
                 if not state['prior_line']:
                     # =============
                     # Title level 1
@@ -1128,7 +1135,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
             ctx, '\n'.join(set(source1.split('\n')) |
                            set(source2.split('\n'))))
     if len(source):
-        if not ctx['no_trace_file']:
+        if ctx['trace_file']:
             mark = '.. !! from "%s"\n\n' % filename
             source = mark + source
         full_hfn = get_template_fn(ctx, 'header_' + filename)
@@ -1137,7 +1144,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
             fd = open(full_hfn, 'rU')
             header = os0.u(fd.read())
             fd.close()
-            if len(header) and not ctx['no_trace_file']:
+            if len(header) and ctx['trace_file']:
                 mark = '.. !! from "%s"\n\n' % full_hfn
                 header = mark + header
         full_ffn = get_template_fn(ctx, 'footer_' + filename)
@@ -1146,7 +1153,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
             fd = open(full_ffn, 'rU')
             footer = os0.u(fd.read())
             fd.close()
-            if len(footer) and not ctx['no_trace_file']:
+            if len(footer) and ctx['trace_file']:
                 mark = '.. !! from "%s"\n\n' % full_ffn
                 footer = mark + footer
         source = header + source + footer
@@ -1474,6 +1481,7 @@ def set_default_values(ctx):
             ctx['dst_file'] = './static/description/index.html'
         else:
             ctx['dst_file'] = './index.html'
+        ctx['trace_file'] = False
     elif ctx['odoo_layer'] == 'module' and ctx['rewrite_manifest']:
         ctx['dst_file'] = ctx['manifest_file']
     else:
@@ -1635,9 +1643,6 @@ if __name__ == "__main__":
                         help='filename',
                         dest='module_name')
     parser.add_argument('-n')
-    parser.add_argument('-N', '--no-trace-file',
-                        action='store_true',
-                        dest='no_trace_file')
     parser.add_argument('-o', '--output-file',
                         action='store',
                         help='filename',
@@ -1664,6 +1669,9 @@ if __name__ == "__main__":
                         action='store',
                         help='filename',
                         dest='template_name')
+    parser.add_argument('-T', '--trace-file',
+                        action='store_true',
+                        dest='trace_file')
     parser.add_argument('-V')
     parser.add_argument('-v')
     parser.add_argument('-W', '--set_website',

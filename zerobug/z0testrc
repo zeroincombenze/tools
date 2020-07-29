@@ -63,7 +63,7 @@
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.15.2
+__version__=0.2.15.3
 
 export opt_dry_run
 export ctr
@@ -90,7 +90,7 @@ parseoptest() {
       export LECHO=
       local Z0=1
     fi
-    OPTOPTS=(h        b         C         e        f        k       J         l      N       n           O         q        r        s        V           v           z        Z        0         1)
+    OPTOPTS=(h        B         C         e        f        k       J         l      N       n           O         q        r        s        V           v           z        Z        0         1)
     OPTDEST=(opt_help opt_debug run4cover opt_echo opt_fail opt_new opt_tjLib logfn  opt_new opt_dry_run opt_oeLib opt_echo min_test min_test opt_version opt_verbose max_test opt_zLib opt_noctr run4cover)
     OPTACTI=(1        1         0         1        1        0       1         "="    1       1           1         0        "=>"     "=>"     "*>"        1           "=>"     1        1         1)
     OPTDEFL=(0        0         -1        -1       0        -1      0         ""     -1      0           0         -1       ""       ""       ""          0           ""       0        $Z0       -1)
@@ -255,7 +255,7 @@ inherit_opts() {
 
 dbgmsg() {
 # dbgmsg (msg)
-    if [ ${opt_debug:-0} -ne 0 ]; then
+    if [ ${opt_dry_run:-0} -eq 0 -a ${opt_debug:-0} -ne 0 ]; then
       if [ "${1:0:1}" == "!" ]; then
         echo "$THIS> $1">$TESTDIR/z0bug.tracehis
       else
@@ -297,20 +297,23 @@ msg_test() {
 test_result () {
 # test_result (msg, testval, resval, cmd, [ttype])::ctr,max_test
 # if supplied, ttype means cmd test type; may be (str-z, str-n)
-  dbgmsg ".test_result - min=$min_test, max=$max_test, ctr=$ctr"
+  dbgmsg "\$ test_result($@)  # min=$min_test, max=$max_test, ctr=$ctr"
   ready_opts
   ((ctr++))
-  dbgmsg ".test_result + min=$min_test, max=$max_test, ctr=$ctr"
   if [ $teststs -ne $STS_SUCCESS ]; then
+    dbgmsg "\$ return $STS_FAILED"
     return $STS_FAILED
   fi
   msg_test "$1"
+  dbgmsg "\$ msg_test($1)"
   if [ ${opt_dry_run:-0} -eq 0 ]; then
-    if [ -n "$4" ]; then
+    if [[ -n "$4" ]]; then
+      dbgmsg "\$ if [[ -n "\$4" ]]; then"
       if $($4 $2 $3 &>/dev/null); then
         if [ "$5" == "str-z" ]; then
           if [ -n "$($4 $2 $3)" ]; then
             echo "$THIS> Test failed: $4 '$2' '$3'"
+            dbgmsg "\$ echo(Test failed: $4 '$2' '$3')"
             teststs=$STS_FAILED
             if [ "$Z0BUG_on_error" == "continue" ]; then
               return $STS_FAILED
@@ -321,6 +324,7 @@ test_result () {
         elif [ "$5" == "str-n" ]; then
           if [ -z "$($4 $2 $3)" ]; then
             echo "$THIS> Test failed: $4 '$2' '$3'"
+            dbgmsg "\$ echo(Test failed: $4 '$2' '$3')"
             teststs=$STS_FAILED
             if [ "$Z0BUG_on_error" == "continue" ]; then
               return $STS_FAILED
@@ -331,6 +335,7 @@ test_result () {
         fi
       else
         echo "$THIS> Test failed: $4 '$2' '$3'"
+        dbgmsg "\$ echo(Test failed: $4 '$2' '$3')"
         teststs=$STS_FAILED
         if [ "$Z0BUG_on_error" == "continue" ]; then
           return $STS_FAILED
@@ -341,6 +346,7 @@ test_result () {
     else
       if [ "$2" != "$3" ]; then
         echo "$THIS> Test '$1' failed: expected '$2', found '$3'"
+        dbgmsg "\$ echo(Test '$1' failed: expected '$2', found '$3')"
         teststs=$STS_FAILED
         if [ "$Z0BUG_on_error" == "continue" ]; then
           return $STS_FAILED
@@ -350,6 +356,7 @@ test_result () {
       fi
     fi
   fi
+  dbgmsg "\$ return 0"
   return $STS_SUCCESS
 }
 export -f test_result
@@ -497,35 +504,40 @@ export -f exec_tests_4_count
 exec_all_tests () {
 # exec_all_tests
     local s c testname dirtn basetn opt4childs
-    dbgmsg ".exec_all_tests"
+    dbgmsg "\$ exec_all_tests($@)"
     ready_opts
     [ "$(type -t Z0BUG_setup)" == "function" ] && Z0BUG_setup
     ctr=${min_test:-0}
-    dbgmsg "- c=$ctr; ctr_list=$Z0BUG_ctr_list"
+    dbgmsg "\$ ctr=$ctr; ctr_list=$Z0BUG_ctr_list"
     ix=0
     sts=0
     for testname in $1; do
-      dbgmsg "- min=$min_test, max=$max_test, c=$ctr, -0=$opt_noctr"
+      dbgmsg "\$ for $testname in \$1; do # min=$min_test, max=$max_test, ctr=$ctr, sts=$sts, -0=$opt_noctr"
       c=0
       opt4childs=$(inherit_opts)
       dirtn=$(dirname $testname)
       basetn=$(basename $testname)
       if [ $sts -eq 0 ]; then
         if [ ${2:-0} -gt 0 ]; then
-          :
+          dbgmsg "\$ if [ \${2:-0} -gt 0 ]; then"
+          s=0
         elif [ "${testname:0:6}" == "__test" ]; then
-          :
+          dbgmsg "\$ elif [ \"\${testname:0:6}\" == \"__test\" ]; then"
+          s=0
         elif [ "${testname:0:9}" == "__version" ]; then
+          dbgmsg "\$ elif [ \"\${testname:0:9}\" == \"__version\" ]; then"
           local t=${testname:10:1}
           local v=$( echo "$testname"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9abcfr]+)?(\.[0-9abcfr]+)?'|head -n1)
           local x="/${testname#*/}"
           test_version "$v" "$t" "$x"
+          s=$?
         elif [ "$(type -t $testname)" == "function" ]; then
+          dbgmsg "\$ elif [ \"\$(type -t \$testname)\" == \"function\" ]; then"
           eval $testname
+          s=$?
         elif [ "$basetn" != "$THIS" ]; then
-          if [ "$dirtn" == "." ]; then
-            testname=$TESTDIR/$basetn
-          fi
+          dbgmsg "\$ elif [ \"\$basetn\" != \"\$THIS\" ]; then"
+          [[ "$dirtn" == "." ]] && testname=$TESTDIR/$basetn
           if [ "${basetn: -3}" == ".py" ]; then
             if [ ${run4cover:-0} -ne 0 ]; then
               dbgmsg "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START $testname $opt4childs"
@@ -543,7 +555,7 @@ exec_all_tests () {
           fi
           ((ix++))
           c=$(echo $Z0BUG_ctr_list|awk '{print $'$ix'}')
-          dbgmsg " ((ctr+=c))"
+          dbgmsg "\$ ((ctr+=c))"
           ((ctr+=c))
         fi
         [ ${s:-0} -ne 0 ] && sts=$s
@@ -627,12 +639,13 @@ Z0BUG_main_file() {
       if [ -n "$ut1_list" ]; then
         # test w/o tracelog
         exec_all_tests "$ut1_list"
+        sts=$?
         # Test log file successfully ended; set log file to next tests
         WLOGCMD=
         set_tlog_file "$logfn" "" "$LECHO"
       fi
       exec_all_tests "$ut_list"
-      sts=$?
+      sts+=$?
       if [ ${run_on_top:-0} -ne 0 ]; then
         if [ $sts -eq 0 ]; then
           echo "Test successfully terminated"
@@ -654,10 +667,11 @@ Z0BUG_build_os_tree() {
     Z0BUG_root=$TESTDIR/res
     [ ! -d "$Z0BUG_root" ] && mkdir -p $Z0BUG_root
     for p in $os_tree; do
-      [[ $p =~ ^[./] ]] && path=$p || path=$Z0BUG_root/$p
+      [[ $p =~ ^[.~/] ]] && path=$p || path=$Z0BUG_root/$p
       [ ! -d $path ] && mkdir -p $path
     done
 }
+
 
 Z0BUG_remove_os_tree() {
     local p path os_tree
@@ -665,8 +679,42 @@ Z0BUG_remove_os_tree() {
     Z0BUG_root=$TESTDIR/res
     [ ! -d "$Z0BUG_root" ] && return
     for p in $os_tree; do
-      [[ $p =~ ^[./] ]] && path=$p || path=$Z0BUG_root/$p
+      [[ $p =~ ^[.~/] ]] && path=$p || path=$Z0BUG_root/$p
       [ ! -d $path ] && continue
       rm -fR $path
     done
+}
+
+
+Z0BUG_build_odoo_env() {
+    local ver odoo_home os_tree script x y
+    ver=$1
+    if [[ $ver =~ (10.0|11.0|12.0|13.0|14.0) ]]; then
+        odoo_home="$ver/odoo"
+        script="odoo-bin"
+    elif [[ $vers =~ (6.1|7.0|8.0|9.0) ]]; then
+        odoo_home="$ver/openerp"
+        script="openerp-server"
+    else
+        echo "Invalid Odoo version $ver!"
+        exit 1
+    fi
+    os_tree="$ver $ver/addons $odoo_home $odoo_home/addons"
+    Z0BUG_build_os_tree "$os_tree"
+    x=$(echo $ver|awk -F"." '{print $1}')
+    y=$(echo $ver|awk -F"." '{print $2}')
+    cat << EOF > $Z0BUG_root/$odoo_home/release.py
+RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
+RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
+                          BETA: BETA,
+                          RELEASE_CANDIDATE: 'rc',
+                          FINAL: ''}
+version_info = ($x, $y, 0, ''final, 0, '')
+version = '.'.join(map(str, version_info[:2])) + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
+series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
+EOF
+    cat << EOF > $Z0BUG_root/$odoo_home/__init__.py
+import release
+EOF
+    touch $Z0BUG_root/$script
 }

@@ -13,7 +13,7 @@ Features / Caratteristiche
 
 {{features}}
 .. $fi
-{{avaiable_addons}}
+{{available_addons}}
 
 .. $if not no_section_oca_diff
 .. $if defined oca_diff

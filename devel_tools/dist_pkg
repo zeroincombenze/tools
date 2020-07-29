@@ -36,16 +36,15 @@ RUNDIR=$(readlink -e $TESTDIR/..)
 __version__=0.2.3.11
 
 # main
-OPTOPTS=(h        C         c        D        d        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
-OPTDEST=(opt_help opt_cpush opt_conf opt_push opt_diff opt_fetch opt_force opt_dry_run  opt_cpush opt_ids  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
-OPTACTI=(1        "*>"      "="      "*>"     "1>"     "1>"      1         1            "*>"      "=>"     "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
-OPTDEFL=(1        ""        ""       ""       0        0         0         0            ""        ""       ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
-OPTMETA=("help"   "commit"  "file"   ""       "diff"   "fetch"   ""        "do nothing" ""        "prj_id" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
+OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
+OPTDEST=(opt_help opt_cpush opt_conf opt_push opt_fetch opt_force opt_dry_run  opt_cpush opt_ids  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
+OPTACTI=(1        "*>"      "="      "*>"     "1>"      1         1            "*>"      "=>"     "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
+OPTDEFL=(1        ""        ""       ""       0         0         0            ""        ""       ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
+OPTMETA=("help"   "commit"  "file"   ""       "fetch"   ""        "do nothing" ""        "prj_id" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
 OPTHELP=("this help"\
  "commit and push to production paths"\
  "configuration file"\
  "duplicate odoo to another version"
- "diff with local git path"\
  "fetch from local git path"\
  "force copy (with -C -P)"\
  "do nothing (dry-run)"\
@@ -98,8 +97,6 @@ if [ "$opt_sts" ]; then
   elif [ "$opt_sts" == "5" ]; then
     opt_sts=" 5 - Production/Stable"
   elif [ "$opt_sts" == "6" ]; then
-    opt_sts=" 5 - Production/Stable"
-  elif [ "$opt_sts" == "6" ]; then
     opt_sts=" 6 - Mature"
   elif [ "$opt_sts" == "7" ]; then
     opt_sts=" 7 - Inactive"
@@ -128,8 +125,6 @@ fi
 if [ $opt_dry_run -gt 0 ]; then
   if [ $opt_sync -gt 0 ]; then
     echo "$(basename $0) -n -- $PKGNAME $PRJNAME"
-  elif [ $opt_diff -gt 0 ]; then
-    echo "$(basename $0) -n -d -p \"$LGITPATH\" $PKGNAME $PRJNAME"
   elif [ "$opt_cpush" ]; then
     echo "$(basename $0) -n $opt_cpush -p \"$LGITPATH\" $PKGNAME $PRJNAME"
   elif [ $opt_fetch -gt 0 ]; then
@@ -355,10 +350,6 @@ install_dev
 if [ "$PRJNAME" != "Odoo" ]; then
   if [ "$PKGNAME" != "$PRJNAME" ]; then
     echo "Warning: package name $PKGNAME and project name $PRJNAME are different!"
-  else
-    if [ $opt_dry_run -eq 0 -a $opt_diff -eq 0 ]; then
-      run_traced "cp $SETUP $PKGPATH/$PKGNAME/setup.py"
-    fi
   fi
 fi
 if [ "$opt_sts" ]; then
@@ -412,16 +403,6 @@ else
   LGITLEV=1
 fi
 robocopy_init "$PRJNAME" "$PKGNAME"
-if [ $opt_diff -gt 0 ]; then
-  if [ $LGITLEV -gt 0 ]; then
-    if [ $opt_verbose -gt 0 ]; then echo "$ diff $XLDF -rq $dpath_prj/ $LGITPATH/"; fi
-    $TDIR/prjdiff $dpath_prj $LGITPATH
-  else
-    if [ $opt_verbose -gt 0 ]; then echo "$ diff $XLDF -rq $dpath_prj/ $LGITPATH/"; fi
-    $TDIR/prjdiff $dpath_prj $LGITPATH
-  fi
-  exit $STS_SUCCESS
-fi
 if [ $opt_fetch -eq 0 ]; then
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $PKGPATH); do
@@ -442,14 +423,12 @@ else
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $LGITPATH); do
       if [[ ! $f =~ .*~ ]]; then
-        # if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$LGITPATH/$f\" \"$PKGPATH/$PKGNAME/$f\""; fi
         robocopy "$LGITPATH/$f" "$PKGPATH/$PKGNAME/$f"
       fi
     done
   else
     for f in $(dir $LGITPATH); do
       if [[ ! $f =~ .*~ ]]; then
-        # if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$LGITPATH/$f\" \"$PKGPATH/$f\""; fi
         robocopy "$LGITPATH/$f" "$PKGPATH/$f"
       fi
     done

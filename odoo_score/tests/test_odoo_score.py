@@ -13,7 +13,7 @@ import sys
 from zerobug import Z0BUG
 
 
-__version__ = "0.1.1"
+__version__ = "0.3.9.9"
 
 MODULE_ID = 'odoo_score'
 

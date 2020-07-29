@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.1
+__version__=0.2.3.2
 
 
 vf_init() {
@@ -90,7 +90,7 @@ simple_diff() {
 }
 
 exec_os() {
-    local l r
+    local l r x
     if [ $opt_reve -gt 0 ]; then
         local left=$2
         local right=$1
@@ -116,12 +116,24 @@ exec_os() {
         [ $opt_diffe -ne 0 ] && opts="$opts  --suppress-common-line"
     fi
     if [[ $opt_dcmd == "meld" ]]; then
-        for ln in $(eval "diff $opts $left $right"|grep ^Files|awk '{print $2 "|" $4}'); do
-            l=$(echo $ln|awk -F"|" '{print $1}')
-            r=$(echo $ln|awk -F"|" '{print $2}')
-            meld $l $r
-        done
-        eval "diff $opts $left $right"|grep -v ^Files
+        if [ -d "$left" ]; then
+            for ln in $(eval "diff $opts $left $right"|grep ^Files|awk '{print $2 "|" $4}'); do
+                l=$(echo $ln|awk -F"|" '{print $1}')
+                r=$(echo $ln|awk -F"|" '{print $2}')
+                run_traced "$opt_dcmd $l $r"
+            done
+            x=$(eval "diff $opts $left $right"|grep -E "^Only.*__(manifest|openerp)__.py"|awk '{print $3 $4}')
+            l=$(echo $x|awk '{print $1}')
+            r=$(echo $x|awk '{print $2}')
+            if [[ -n "$l" && -n "$r" ]]; then
+                l=${l//:/}
+                r=${r//:/}
+                run_traced "$opt_dcmd $l $r"
+            fi
+            eval "diff $opts $left $right"|grep -v ^Files
+        else
+            run_traced "$opt_dcmd $left $right"
+        fi
     else
         run_traced "$opt_dcmd$opts $left $right"
     fi

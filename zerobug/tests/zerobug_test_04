@@ -27,14 +27,12 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.15.2
+__version__=0.2.15.3
 
 
 test_01() {
     local sts res res1 res2 res3 res4 res5 res6 res7 res8 res9 res10 res11 x
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      dbgmsg ".test_01 - min=$min_test, max=$max_test, ctr=$ctr"
-    fi
+    [ ${opt_dry_run:-0} -eq 0 ] && dbgmsg ".test_01 - min=$min_test, max=$max_test, ctr=$ctr"
     Z0BUG_run_autotest=1
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       save_env
@@ -87,11 +85,6 @@ test_01() {
       test_result "Opt -n (-k)" "$res5" "$res"
       sts=$?
     fi
-    # if [ $sts -eq $STS_SUCCESS ]; then
-    #  res=0
-    #  test_result "Counter" "$res" "$res6"
-    #  sts=$?
-    # fi
     if [ $sts -eq $STS_SUCCESS ]; then
       res=0
       test_result "Opt -n (-s)" "$res7" "$res"
@@ -230,11 +223,6 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
-
-
-
-
 
 UT1_LIST=""
 UT_LIST=""

@@ -30,30 +30,8 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 __version__=0.2.14
 
 
-# Z0BUG_setup() {
-    # Just for regression tests
-    # coveragerc_file="$RUNDIR/.coveragerc"
-    # coveragerc_bak="$RUNDIR/coveragerc.bak"
-    # if [ ! -f "$coveragerc_bak" ]; then
-    #   if [ -f "$coveragerc_file" ]; then
-    #      mv -f $coveragerc_file $coveragerc_bak
-    #   fi
-    # fi
-    # if [ -f "$coveragerc_file" ]; then
-    #   rm -f $coveragerc_file
-    # fi
-    # if [ ! -f "$TESTDIR/z0testlib.py" -a ! -L "$TESTDIR/z0testlib.py" ]; then
-    #   cp $RUNDIR/z0testlib.py $TESTDIR/
-    # fi
-# }
 
 Z0BUG_teardown() {
-    # if [ -f "$coveragerc_file" ]; then
-    #   rm -f $coveragerc_file
-    # fi
-    # if [ -f "$coveragerc_bak" ]; then
-    #   mv -f $coveragerc_bak $coveragerc_file
-    # fi
     if [ -f "$TESTDIR/z0testlib.py" -o -L "$TESTDIR/z0testlib.py" ]; then
       rm -f $TESTDIR/z0testlib.py
     fi

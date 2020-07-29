@@ -12,7 +12,7 @@ Features / Caratteristiche
 
 {{features}}
 .. $fi
-{{avaiable_addons}}
+{{available_addons}}
 
 |
 |

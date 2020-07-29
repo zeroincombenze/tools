@@ -974,11 +974,11 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             y       Z          3)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt opt_py3)
-OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1          1)
-OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0          0)
-OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" ""         "")
+OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
+OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
+OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
+OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
@@ -1004,8 +1004,7 @@ OPTHELP=("this help"\
  "enable translation test (def yaml dependents)"\
  "file yaml to process (def .travis.yml)"\
  "test with specific python versions (comma separated)"\
- "use local zero-tools"\
- "use python3 (deprecated)")
+ "use local zero-tools")
 OPTARGS=(action sub sub2)
 
 parseoptargs "$@"

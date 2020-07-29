@@ -61,7 +61,7 @@ Currently, the follow macros are recognized:
 +---------------------------+-----------------------------------------------------------------------+
 | authors                   | Authors list                                                          |
 +---------------------------+-----------------------------------------------------------------------+
-| avaiable_addons           | N/D                                                                   |
+| available_addons          | N/D                                                                   |
 +---------------------------+-----------------------------------------------------------------------+
 | branch                    | Odoo version for this repository/module                               |
 +---------------------------+-----------------------------------------------------------------------+
@@ -297,7 +297,7 @@ Document structure is:
     ┣━ faq.rst
     ┣━ sponsor.rst
     ┣━ copyright_notes.rst
-    ┣━ avaiable_addons.rst
+    ┣━ available_addons.rst
     ┣━ contact_us.rst
     ┣━ authors.txt
     ┣━ contributors.txt
@@ -421,7 +421,7 @@ Macro currently supported:
 +---------------------------+-----------------------------------------------------------------------+
 | authors                   | Authors list                                                          |
 +---------------------------+-----------------------------------------------------------------------+
-| avaiable_addons           | N/D                                                                   |
+| available_addons          | N/D                                                                   |
 +---------------------------+-----------------------------------------------------------------------+
 | branch                    | Odoo version for this repository/module                               |
 +---------------------------+-----------------------------------------------------------------------+
@@ -698,7 +698,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-07-18
+Last Update / Ultimo aggiornamento: 2020-07-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

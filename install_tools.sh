@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=0.2.3.9
+# __version__=0.2.3.10
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -11,14 +11,15 @@ if [[ $1 =~ -.*h ]]; then
     echo "  -p  mkdir $HOME/dev[el] if does not exist"
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
-    echo "  -S  store sitecustomize.py in python path"
+    echo "  -s  store sitecustomize.py in python path (you must have privileges)"
+    echo "  -S  store sitecustomize.py in python path (you must have privileges)"
     echo "  -t  activate test environment (PATH with CI/CT commands)"
     echo "  -T  activate OCA test environment (PATH with CI/CT commands) deprecated"
     echo "  -v  more verbose"
     exit 0
 fi
 
-RFLIST__travis_emulator="gen_addons_table.py prjdiff replica.sh travis travisrc wok_doc wok_doc.py"
+RFLIST__travis_emulator="gen_addons_table.py replica.sh travis travisrc wok_doc wok_doc.py"
 RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
 RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py export_db_model.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
@@ -31,7 +32,7 @@ RFLIST__python_plus="vem vem.man"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py transodoo.py transodoo.csv"
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py|vfcp|vfdiff)"
-FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh set_odoover_confn z0lib.py z0librun.py"
+FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py prjdiff run_odoo_debug.sh set_odoover_confn z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
 [[ $1 =~ -.*[tT] ]] && HOME=$(readlink -e $(dirname $0)/..)
@@ -133,24 +134,22 @@ if [[ ! $1 =~ -.*n ]]; then
     [ -n "$PLEASE_CMDS" ] && echo "complete -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ $1 =~ -.*[Tt] ]] || source $DSTPATH/activate_tools
 fi
-if [[ $1 =~ -.*S ]]; then
+if [[ $1 =~ -.*[Ss] ]]; then
     [[ ! $1 =~ -.*o ]] && SITECUSTOM=$HOME/devel/sitecustomize.py
     [[ $1 =~ -.*o ]] && SITECUSTOM=$HOME/dev/sitecustomize.py
-    if [ -f SITECUSTOM ]; then
-        PYLIB=$(dirname $(pip --version|grep -Eo "from [^ ]+"|awk '{print $2}'))
-        if [ -n "$PYLIB" ]; then
-            if [ -f $PYLIB/sitecustomize.py ]; then
-                if grep -q "import sys" $PYLIB/sitecustomize.py; then
-                    [[ ! $1 =~ -.*q ]] && echo "$PMPT tail $SITECUSTOM -n -1 >> $PYLIB/sitecustomize.py"
-                    [[ $1 =~ -.*n ]] || tail $SITECUSTOM -n -1 >> $SITECUSTOM
-                else
-                    [[ ! $1 =~ -.*q ]] && echo "$PMPT cat $SITECUSTOM >> $PYLIB/sitecustomize.py"
-                    [[ $1 =~ -.*n ]] || cat $SITECUSTOM >> $PYLIB/sitecustomize.py
-                fi
+    PYLIB=$(dirname $(pip --version|grep -Eo "from [^ ]+"|awk '{print $2}'))
+    if [[ -n "$PYLIB" && -f SITECUSTOM ]]; then
+        if [[ -f $PYLIB/sitecustomize.py ]]; then
+            if grep -q "import sys" $PYLIB/sitecustomize.py; then
+                [[ ! $1 =~ -.*q ]] && echo "$PMPT tail $SITECUSTOM -n -1 >> $PYLIB/sitecustomize.py"
+                [[ $1 =~ -.*n ]] || tail $SITECUSTOM -n -1 >> $SITECUSTOM
             else
-                [[ ! $1 =~ -.*q ]] && echo "$PMPT cp $SITECUSTOM $PYLIB"
-                [[ $1 =~ -.*n ]] || cp $SITECUSTOM $PYLIB
+                [[ ! $1 =~ -.*q ]] && echo "$PMPT cat $SITECUSTOM >> $PYLIB/sitecustomize.py"
+                [[ $1 =~ -.*n ]] || cat $SITECUSTOM >> $PYLIB/sitecustomize.py
             fi
+        else
+            [[ ! $1 =~ -.*q ]] && echo "$PMPT cp $SITECUSTOM $PYLIB"
+            [[ $1 =~ -.*n ]] || cp $SITECUSTOM $PYLIB
         fi
     fi
 elif [[ ! $1 =~ -.*q && ! $1 =~ -.*P ]]; then

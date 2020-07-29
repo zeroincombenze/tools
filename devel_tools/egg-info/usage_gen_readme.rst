@@ -91,7 +91,7 @@ Document structure is:
     ┣━ faq.rst
     ┣━ sponsor.rst
     ┣━ copyright_notes.rst
-    ┣━ avaiable_addons.rst
+    ┣━ available_addons.rst
     ┣━ contact_us.rst
     ┣━ authors.txt
     ┣━ contributors.txt

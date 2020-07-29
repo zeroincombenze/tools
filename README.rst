@@ -1,7 +1,7 @@
 
-==============================
-|Zeroincombenze| tools 0.2.3.9
-==============================
+===============================
+|Zeroincombenze| tools 0.2.3.10
+===============================
 
 |Coverage Status| |license gpl|
 
@@ -71,7 +71,7 @@ Components
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | lisa                     | lisa                    | Linux Installer Simple App. LAMP and odoo server installer from scratch.                                                                                   | deployment                |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| maintainer-quality-tools |                         | Forked OCA maintainer quality tools. It works with 6.1 and 7.0 Odoo version too                                                                            | testing                   |
+| maintainer-quality-tools |                         | Deprecated, replaced by z0bug_odoo                                                                                                                         | testing                   |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | odoo_score               | odoo_score.py           | Odoo super core ORM                                                                                                                                        | development               |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
@@ -91,7 +91,7 @@ Components
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | wok_news                 |                         | Undocumented (deprecated)                                                                                                                                  |                           |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| z0bug_odoo               | z0bug_odoo              | Integration of zerobug and Odoo                                                                                                                            | testing                   |
+| z0bug_odoo               | z0bug_odoo              | Integration of zerobug and Odoo. Initially forked form OCA maintainer quality tools. It works with all Odoo version, from 6.1 to 13.0                      | testing                   |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | z0lib                    |                         | General purpose bash & python library                                                                                                                      | development               |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
@@ -149,7 +149,7 @@ Codice vario python & bash
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | lisa                     | lisa                    | Linux Installer Simple App. LAMP and odoo server installer from scratch.                                                                                   | deployment                |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| maintainer-quality-tools |                         | Forked OCA maintainer quality tools. It works with 6.1 and 7.0 Odoo version too                                                                            | testing                   |
+| maintainer-quality-tools |                         | Deprecated, replaced by z0bug_odoo                                                                                                                         | testing                   |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | odoo_score               | odoo_score.py           | Odoo super core ORM                                                                                                                                        | development               |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
@@ -169,7 +169,7 @@ Codice vario python & bash
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | wok_news                 |                         | Undocumented (deprecated)                                                                                                                                  |                           |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| z0bug_odoo               | z0bug_odoo              | Integration of zerobug and Odoo                                                                                                                            | testing                   |
+| z0bug_odoo               | z0bug_odoo              | Integration of zerobug and Odoo. Initially forked form OCA maintainer quality tools. It works with all Odoo version, from 6.1 to 13.0                      | testing                   |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | z0lib                    |                         | General purpose bash & python library                                                                                                                      | development               |
 +--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
@@ -229,12 +229,12 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2020-07-23
+Last Update / Ultimo aggiornamento: 2020-07-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
     :alt: Alfa
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.3.9
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.3.10
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
@@ -243,23 +243,23 @@ Last Update / Ultimo aggiornamento: 2020-07-23
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.9
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.9
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.10
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.10
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.9/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.9
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.10/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.10
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.9/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.10/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.9/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.10/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.9/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.9
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.10/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.10
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

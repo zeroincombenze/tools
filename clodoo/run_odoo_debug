@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.9.8
+__version__=0.3.9.10
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
@@ -86,10 +86,11 @@ else
 fi
 lconfn=$(build_odoo_param LCONFN $odoo_vid search)
 script=$(build_odoo_param BIN $odoo_vid search)
+[[ -n "$script" ]] || script=$(build_odoo_param BIN $odoo_vid)
 if [ -n "$opt_odir" ]; then
-  odoo_root=$opt_odir
+  odoo_root=$(readlink -f $opt_odir)
   x=$(basename $script)
-  script="$opt_odir/$x"
+  script="$odoo_root/$x"
 elif [ $opt_ou -ne 0 ]; then
   x=$(basename $script)
   script=
@@ -164,9 +165,7 @@ elif [ $opt_xtl -ne 0 ]; then
     exit 1
   fi
 fi
-if [ -z "$opt_dbuser" ]; then
-  opt_dbuser=$odoo_user
-fi
+[[ -z "$opt_dbuser" ]] && opt_dbuser=$odoo_user
 if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
     PL="$(grep ^addons_path /etc/odoo/odoo10.conf|awk -F= '{print $2}')"
@@ -261,9 +260,7 @@ else
     OPTDB=""
   fi
 fi
-if [ -z "$opt_xport" ]; then
-  opt_xport=$rpcport
-fi
+[[ -z "$opt_xport" ]] && opt_xport=$rpcport
 if [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_xtl -ne 0 -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
   if [ -z "$opt_db" ]; then
     opt_db="test_openerp"
@@ -285,6 +282,7 @@ if [ -n "$opt_db" ]; then
 fi
 if [ $opt_touch -eq 0 ]; then
   [ $drop_db -gt 0 ] && run_traced "pg_db_active -wa $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
+  ve_root=$HOME
   if [ $VENV -ne 0 ]; then
     ve_root=$(dirname $odoo_root)
     [ $opt_verbose -gt 0 ] && echo "\$ cd $ve_root; source ./bin/activate"
@@ -295,33 +293,37 @@ if [ $opt_touch -eq 0 ]; then
     run_traced "createdb -U$opt_dbuser $opt_db"
   fi
   OPT_LLEV=
-  OPT_CONF="--config=$HOME/$lconfn"
+  LCONF="$ve_root/$lconfn"
+  OPT_CONF="--config=$LCONF"
   if [ $opt_dry_run -eq 0 ]; then
-    [ -f $HOME/.openerp_serverrc ] && rm -f $HOME/.openerp_serverrc
-    [ -f $HOME/.odoorc ] && rm -f $HOME/.odoorc
-    run_traced "cp $confn $HOME/$lconfn"
+    for f in .openerp_serverrc .odoorc; do
+      for d in $HOME $ve_root; do
+        [[ -f $d/$f ]] && rm -f $d/$f
+      done
+    done
+    run_traced "cp $confn $LCONF"
     tty -s
     if [ $? == 0 ]; then
-      sed -i -e "s|^logfile *=.*|logfile = False|" $HOME/$lconfn
+      sed -i -e "s|^logfile *=.*|logfile = False|" $LCONF
     else
-      sed -i -e "s|^logfile *=.*|logfile = $HOME/$$.log|" $HOME/$lconfn
+      sed -i -e "s|^logfile *=.*|logfile = $ve_root/$$.log|" $LCONF
     fi
     if [[ -z "$opt_xport" || "$opt_xport" == "0" ]]; then
-      sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = False|" $HOME/$lconfn
+      sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = False|" $LCONF
       OPT_CONF="$OPT_CONF --no-xmlrpc"
     else
-      sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = $opt_xport|" $HOME/$lconfn
+      sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = $opt_xport|" $LCONF
       OPT_CONF="$OPT_CONF --xmlrpc-port=$opt_xport"
     fi
     if [ -n "$opt_dbuser" ]; then
-      sed -i -e "s|^db_user *=.*|db_user = $opt_dbuser|" $HOME/$lconfn
+      sed -i -e "s|^db_user *=.*|db_user = $opt_dbuser|" $LCONF
       OPT_CONF="$OPT_CONF --db_user=$opt_dbuser"
     fi
     if [ -n "$opt_llvl" ]; then
-      sed -i -e "s|^log_level *=.*|log_level = $opt_llvl|" $HOME/$lconfn
+      sed -i -e "s|^log_level *=.*|log_level = $opt_llvl|" $LCONF
       OPT_LLEV="--log-level=$opt_llvl"
     fi
-    sed -i -e "s|^workers *=.*|workers = 0|" $HOME/$lconfn
+    sed -i -e "s|^workers *=.*|workers = 0|" $LCONF
   fi
   if [ $create_db -gt 0 ]; then
     if [ -n "$depmods" -a $opt_test -ne 0 ]; then

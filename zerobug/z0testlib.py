@@ -148,7 +148,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.15.2"
+__version__ = "0.2.15.3"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1529,11 +1529,12 @@ class Z0test(object):
     def build_os_tree(self, ctx, os_tree):
         """Create a filesytem tree to test
         """
-        root = os.path.join(os.path.dirname(ctx['this_fqn']), 'res')
+        root = os.path.join(
+            os.path.dirname(ctx.get('this_fqn', './Z0BUG/tests')), 'res')
         if not os.path.isdir(root):
             os.mkdir(root)
         for path in os_tree:
-            if path[0] not in ('.', '/'):
+            if path[0] not in ('~', '/') and not path.startswith('./'):
                 path = os.path.join(root, path)
             if not os.path.isdir(path):
                 os.mkdir(path)
@@ -1554,15 +1555,18 @@ class Z0test(object):
 class Z0testOdoo(object):
 
     def build_odoo_env(self, ctx, version):
-        if version in ('10.0', '11.0', '12.0', '13.0'):
+        if version in ('10.0', '11.0', '12.0', '13.0', '14.0'):
             odoo_home = os.path.join(version, 'odoo')
+            script = 'odoo-bin'
         elif version in ('6.1', '7.0', '8.0', '9.0'):
             odoo_home = os.path.join(version, 'openerp')
+            script = 'openerp-server'
         else:
             raise KeyError('Invalid Odoo version')
         os_tree = [version,
                    os.path.join(version, 'addons'),
-                   odoo_home]
+                   odoo_home,
+                   os.path.join(odoo_home, 'addons'),]
         root = Z0test().build_os_tree(ctx, os_tree)
         RELEASE_PY = '''
 RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
@@ -1573,10 +1577,13 @@ RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
 version_info = (%s, %s, 0, ''final, 0, '')
 version = '.'.join(map(str, version_info[:2])) + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
 series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
-        fd = open(os.path.join(root, odoo_home, 'release.py'), 'w')
-        versions = version.split('.')
-        fd.write(RELEASE_PY % (versions[0], versions[1]))
-        fd.close()
+        with open(os.path.join(root, odoo_home, 'release.py'), 'w') as fd:
+            versions = version.split('.')
+            fd.write(RELEASE_PY % (versions[0], versions[1]))
+        with open(os.path.join(root, odoo_home, '__init__.py'), 'w') as fd:
+            fd.write('import release\n')
+        with open(os.path.join(root, script), 'w') as fd:
+            fd.write('\n')
         return root
 
     def real_git_clone(self, remote, reponame, branch, odoo_path):

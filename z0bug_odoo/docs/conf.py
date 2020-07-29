@@ -43,6 +43,7 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
+    'sphinx.ext.autodoc',
 ]
 
 

@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.9.8"
+__version__ = "0.3.9.10"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -469,13 +469,13 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                         lang=lang,
                         ctx=ctx,
                         inquire=write_confn and ctx.get('ena_inquire'))
-    open_connection(ctx)
-    saved = {}
-    for p in S_LIST:
-        saved[p] = ctx.get(p)
+    # saved = {}
+    # for p in S_LIST:
+    #     saved[p] = ctx.get(p)
     ctx = read_config(ctx)
-    for p in S_LIST:
-        ctx[p] = saved[p]
+    # for p in S_LIST:
+    #     ctx[p] = saved[p]
+    open_connection(ctx)
     if ctx['no_login']:
         return False, ctx
     lgiuser = do_login(ctx)

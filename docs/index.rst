@@ -20,7 +20,7 @@ Overview
 
 
 Devel tools
------------
+===========
 
 .. toctree::
    :maxdepth: 2
@@ -30,7 +30,7 @@ Devel tools
 
 
 Python plus
------------
+===========
 
 .. toctree::
    :maxdepth: 2
@@ -40,7 +40,7 @@ Python plus
 
 
 Odoo supercore
---------------
+==============
 
 .. toctree::
    :maxdepth: 2
@@ -50,7 +50,7 @@ Odoo supercore
 
 
 Clodoo
-------
+======
 
 .. toctree::
    :maxdepth: 2
@@ -59,8 +59,8 @@ Clodoo
    pypi_clodoo/index
 
 
-MQT
----
+MQT (deprecated)
+================
 
 .. toctree::
    :maxdepth: 2
@@ -70,7 +70,7 @@ MQT
 
 
 travis_emulator
----------------
+===============
 
 .. toctree::
    :maxdepth: 2
@@ -78,6 +78,25 @@ travis_emulator
 
    pypi_travis_emulator/index
 
+
+Z0bug_odoo
+==========
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_z0bug_odoo/index
+
+
+Zerobug
+=======
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_zerobug/index
 
 .. include: readme_footer
 

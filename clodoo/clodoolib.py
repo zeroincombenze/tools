@@ -146,9 +146,10 @@ LX_CFG_B = ('set_passepartout',
             )
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
-LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo',
-            'no_fvalidation',  'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode',
-            'xmlrpc_port', 'odoo_vid', 'exit_onerror', 'data_selection')
+LX_OPT_S = ('db_name', 'dbfilter', 'dbg_mode', 'do_sel_action', 'dry_run',
+            'lang',  'with_demo', 'no_fvalidation',  'lgi_user', 'lgi_pwd',
+            'logfn', 'quiet_mode', 'xmlrpc_port', 'odoo_vid', 'exit_onerror',
+            'data_selection')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_B = ('dry_run', 'with_demo', 'no_fvalidation', 'exit_onerror')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -165,7 +166,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.9.8"
+__version__ = "0.3.9.10"
 
 
 #############################################################################
@@ -382,15 +383,18 @@ def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
                 break
     if not found:
         vparam = param
-        if not conf_obj or not conf_obj.has_option(sect, vparam):
-            if defval and vparam in defval:
-                return defval[vparam]
-            else:
-                return None
-    if is_bool:
-        return conf_obj.getboolean(sect, vparam)
+        if conf_obj and conf_obj.has_option(sect, vparam):
+            found = True
+    if found:
+        if is_bool:
+            return conf_obj.getboolean(sect, vparam)
+        value = conf_obj.get(sect, vparam)
+        if value != 'False':
+            return value
+    if defval and param in defval:
+        return defval[param]
     else:
-        return conf_obj.get(sect, vparam)
+        return None
 
 
 def create_def_params_dict(ctx):
@@ -474,8 +478,8 @@ def create_params_dict(ctx):
                 ctx[opt_obj.do_sel_action] = opt_obj.modules_2_manage
         if hasattr(opt_obj, 'data_path') and opt_obj.data_path != "":
             ctx['data_path'] = opt_obj.data_path
-    if ctx['db_host'] == 'False':
-        ctx['db_host'] = 'localhost'
+    # if ctx['db_host'] == 'False':
+    #     ctx['db_host'] = 'localhost'
     if 'oe_version' in ctx and not ctx.get('odoo_vid'):
         ctx['odoo_vid'] = ctx['oe_version']
     else:
@@ -555,7 +559,7 @@ def read_config(ctx):
             ctx['conf_fns'].append(CONF_FN)
     ctx = fullname_conf(ctx)
     if ctx['conf_fn'] not in ctx['conf_fns']:
-        ctx['conf_fns'].append(ctx['conf_fn'])
+        ctx['conf_fns'].insert(0, ctx['conf_fn'])
     ctx['conf_fns'] = conf_obj.read(ctx['conf_fns'])
     ctx['_conf_obj'] = conf_obj
     if 'oe_version' in ctx:

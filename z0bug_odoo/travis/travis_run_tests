@@ -99,7 +99,7 @@ if __name__ == '__main__':
     travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
     if travis_debug_mode > 2:
         print('DEBUG: travis_run_tests.sys.path=%s' % sys.path)
-    set_sys_path()
+    # set_sys_path()
     if travis_debug_mode:
         print('DEBUG: travis_run_tests.sys.path=%s' % sys.path)
 

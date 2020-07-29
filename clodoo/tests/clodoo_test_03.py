@@ -22,7 +22,7 @@ except BaseException:
     from clodoolib import build_odoo_param
 
 
-__version__ = "0.3.9.8"
+__version__ = "0.3.9.10"
 
 
 MODULE_ID = 'clodoo'
@@ -119,7 +119,7 @@ class Test():
                 break
         return sts
 
-    def __test_02(self, z0ctx):
+    def test_02(self, z0ctx):
         TRES = {
             '6.1': 6,
             '7.0': 7,
@@ -128,6 +128,8 @@ class Test():
             '10.0': 10,
             '11.0': 11,
             '12.0': 12,
+            '13.0': 13,
+            '14.0': 14,
         }
         for ver in VERSIONS_TO_TEST:
             res = build_odoo_param('MAJVER', odoo_vid=ver)
@@ -157,7 +159,7 @@ class Test():
                 break
         return sts
 
-    def __test_03(self, z0ctx):
+    def test_03(self, z0ctx):
         TRES = {
             '6': '/etc/odoo/openerp-server.conf',
             '7': '/etc/odoo/odoo-server.conf',
@@ -166,6 +168,8 @@ class Test():
             '10': '/etc/odoo/odoo.conf',
             '11': '/etc/odoo/odoo.conf',
             '12': '/etc/odoo/odoo.conf',
+            '13': '/etc/odoo/odoo.conf',
+            '14': '/etc/odoo/odoo.conf',
             'v7': '/etc/odoo/openerp-server.conf',
         }
         for ver in MAJVERS_TO_TEST:
@@ -212,6 +216,8 @@ class Test():
             '10': '/etc/odoo/odoo10.conf',
             '11': '/etc/odoo/odoo11.conf',
             '12': '/etc/odoo/odoo12.conf',
+            '13': '/etc/odoo/odoo13.conf',
+            '14': '/etc/odoo/odoo14.conf',
             'v7': '/etc/odoo/openerp-server.conf',
         }
         for ver in MAJVERS_TO_TEST:
@@ -255,6 +261,8 @@ class Test():
             '10': '/var/log/odoo/odoo10.log',
             '11': '/var/log/odoo/odoo11.log',
             '12': '/var/log/odoo/odoo12.log',
+            '13': '/var/log/odoo/odoo13.log',
+            '14': '/var/log/odoo/odoo14.log',
             'v7': '/var/log/odoo/openerp-server.log',
         }
         for ver in MAJVERS_TO_TEST + ['v7']:
@@ -280,6 +288,8 @@ class Test():
             '10': '/var/run/odoo/odoo10.pid',
             '11': '/var/run/odoo/odoo11.pid',
             '12': '/var/run/odoo/odoo12.pid',
+            '13': '/var/run/odoo/odoo13.pid',
+            '14': '/var/run/odoo/odoo14.pid',
             'v7': '/var/run/odoo/openerp-server.pid',
         }
 
@@ -306,6 +316,8 @@ class Test():
             '10': '/etc/init.d/odoo10',
             '11': '/etc/init.d/odoo11',
             '12': '/etc/init.d/odoo12',
+            '13': '/etc/init.d/odoo13',
+            '14': '/etc/init.d/odoo14',
             'v7': '/etc/init.d/openerp-server',
         }
         for ver in MAJVERS_TO_TEST + ['v7']:
@@ -331,6 +343,8 @@ class Test():
             '10': 'odoo10',
             '11': 'odoo11',
             '12': 'odoo12',
+            '13': 'odoo13',
+            '14': 'odoo14',
             'v7': 'openerp-server',
         }
         for ver in MAJVERS_TO_TEST + ['v7']:
@@ -356,6 +370,8 @@ class Test():
             '10': '/opt/odoo/10.0/odoo-bin',
             '11': '/opt/odoo/11.0/odoo-bin',
             '12': '/opt/odoo/12.0/odoo-bin',
+            '13': '/opt/odoo/13.0/odoo-bin',
+            '14': '/opt/odoo/14.0/odoo-bin',
             'v7': '/opt/odoo/v7/server/openerp-server',
         }
         for ver in MAJVERS_TO_TEST + ['v7']:
@@ -381,6 +397,8 @@ class Test():
             '10.0': '/opt/odoo/VENV-10.0/odoo/odoo-bin',
             '11.0': '/opt/odoo/VENV-11.0/odoo/odoo-bin',
             '12.0': '/opt/odoo/VENV-12.0/odoo/odoo-bin',
+            '13.0': '/opt/odoo/VENV-13.0/odoo/odoo-bin',
+            '14.0': '/opt/odoo/VENV-14.0/odoo/odoo-bin',
         }
         for ver in VERSIONS_TO_TEST:
             w = 'VENV-%s' % ver
@@ -400,6 +418,8 @@ class Test():
             '10.0': '__manifest__.py',
             '11.0': '__manifest__.py',
             '12.0': '__manifest__.py',
+            '13.0': '__manifest__.py',
+            '14.0': '__manifest__.py',
             'v7': '__openerp__.py',
         }
         for ver in VERSIONS_TO_TEST + ['v7']:
@@ -419,6 +439,8 @@ class Test():
             '10.0': 8170,
             '11.0': 8171,
             '12.0': 8172,
+            '13.0': 8173,
+            '14.0': 8174,
             'v7': 8069,
             'v8.0': 8069,
         }
@@ -439,6 +461,8 @@ class Test():
             '10.0': 8170,
             '11.0': 8171,
             '12.0': 8172,
+            '13.0': 8173,
+            '14.0': 8174,
         }
         for ver in VERSIONS_TO_TEST:
             res = build_odoo_param('RPCPORT', odoo_vid=ver, multi=True)
@@ -457,6 +481,8 @@ class Test():
             '10.0': 'odoo10',
             '11.0': 'odoo11',
             '12.0': 'odoo12',
+            '13.0': 'odoo13',
+            '14.0': 'odoo14',
             'v7': 'odoo',
         }
         for ver in VERSIONS_TO_TEST + ['v7']:
@@ -476,6 +502,8 @@ class Test():
             '10': 'odoo10',
             '11': 'odoo11',
             '12': 'odoo12',
+            '13': 'odoo13',
+            '14': 'odoo14',
         }
         for ver in MAJVERS_TO_TEST:
             w = 'VENV-%s' % ver
@@ -495,6 +523,8 @@ class Test():
             '10.0': '10.0',
             '11.0': '11.0',
             '12.0': '12.0',
+            '13.0': '13.0',
+            '14.0': '14.0',
         }
         for ver in VERSIONS_TO_TEST:
             w = 'ODOO-%s' % ver

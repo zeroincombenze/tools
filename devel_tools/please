@@ -1859,9 +1859,9 @@ do_distribution() {
 do_docs() {
     wlog "do_docs"
     local docs_dir=./docs
-    local author version theme SETUP b x
+    local author version theme SETUP b f t x
     local opts src_png
-    [[ $PWD =~ /dev[el]*/pypi/ ]] && opts=-BN || opts=-N
+    [[ $PWD =~ /dev[el]*/pypi/ ]] && opts=-B || opts=
     if [ ! -d $docs_dir ]; then
         if [ $opt_force -eq 0 ]; then
             echo "Missing docs directory!"
@@ -1883,7 +1883,11 @@ do_docs() {
             echo ".. automodule:: $PKGNAME">>./rtd_template.rst
             run_traced "mv ./rtd_template.rst $docs_dir/rtd_automodule.rst"
         elif [[ $f =~ ^rtd_ ]]; then
-            echo "{{${f:4}}}">>./rtd_template.rst
+            t=${f:4}
+            [[ $t == "features" ]] && echo -e "Features\n--------" >>./rtd_template.rst
+            [[ $t == "usage" ]] && echo -e "Usage\n-----" >>./rtd_template.rst
+            echo "{{$t}}">>./rtd_template.rst
+            echo ".. \$include readme_footer.rst">>./rtd_template.rst
             run_traced "gen_readme.py $opts -t ./rtd_template.rst -o $docs_dir/$f.rst"
             run_traced "rm ./rtd_template.rst"
         elif [[ $f =~ ^pypi_ ]]; then
@@ -1981,7 +1985,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'support*', 'usage*', 'maintenance*',
                     'troubleshooting*', 'known_issues*',
                     'proposals_for_enhancement*', 'history*', 'faq*',
-                    'sponsor*', 'copyright_notes*', 'avaiable_addons*',
+                    'sponsor*', 'copyright_notes*', 'available_addons*',
                     'contact_us*',
                     '__init__*', 'name*', 'summary*', 'sommario*',
                     'maturity*', 'module_name*', 'repos_name*',

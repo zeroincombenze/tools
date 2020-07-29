@@ -10,6 +10,8 @@
    rtd_description
    rtd_features
    rtd_usage
+   rtd_usage_code_example
+   rtd_usage_code_reference
    rtd_automodule
 
 Indices and tables

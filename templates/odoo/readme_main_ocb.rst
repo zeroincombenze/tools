@@ -13,7 +13,7 @@ Features / Caratteristiche
 
 {{features}}
 .. $fi
-{{avaiable_addons}}
+{{available_addons}}
 .. $if defined oca_diff
 
 OCA comparation / Confronto con OCA

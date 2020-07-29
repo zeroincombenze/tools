@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.15.2
+__version__=0.2.15.3
 
 OS_TREE="10.0 10.0/l10n-italy 10.0/l10n-italy/l10n_it_base /tmp/zerobug"
 
@@ -43,9 +43,10 @@ test_01() {
         [ "${path:0:1}" != "/" ] && path=$Z0BUG_root/$path
         [ -d $path ] && RES=1 || RES=0
         test_result "mkdir $path" "1" "$RES"
-        sts=$?
+        sts+=$?
       fi
     done
+    return $sts
 }
 
 test_09() {
@@ -59,9 +60,10 @@ test_09() {
         [ "${path:0:1}" != "/" ] && path=$Z0BUG_root/$path
         [ -d $path ] && RES=0 || RES=1
         test_result "rmdir $path" "1" "$RES"
-        sts=$?
+        sts+=$?
       fi
     done
+    return $sts
 }
 
 

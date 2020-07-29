@@ -13,11 +13,11 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.9.8'
+__version__ = '0.3.9.10'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
-# known incompantibilities:
+# known incompatibilities:
 # - requests: oca-maintainers-tools -> '==2.3.0',
 #             codecov -> '>=2.7.9'
 # Here we assume: Odoo 11.0 use python 3.5, Odoo 12.0 uses python 3.7
@@ -268,6 +268,7 @@ PY3_DEV = 'python%s-dev' % PY3ID
 DEPS = {
     'barcode': {'python': 'python-Levenshtein'},
     'astroid': {'python': 'six'},
+    'Pillow': {'python': 'docutils'},
 }
 DEPS2 = {
     'lxml': {'bin': ('python-dev', 'libxml2-dev',

@@ -34,7 +34,6 @@ from python_plus import _c
 
 import re
 import csv
-# import pdb
 import os
 import sys
 try:
@@ -45,8 +44,30 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.9.7"
+__version__ = "0.3.9.9"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
+CVT_ACC_TYPE_OLD_NEW = {
+    'Bank': 'Bank and Cash',
+    'Cash': 'Bank and Cash',
+    'Check': 'Credit Card',
+    'Asset': 'Current Assets',
+    'Liability': 'Current Liabilities',
+    'Tax': 'Current Liabilities',
+}
+CVT_ACC_TYPE_NEW_OLD = {
+    'Bank and Cash': 'Bank',
+    'Credit Card': 'Check',
+    'Current Assets': 'Asset',
+    'Non-current Assets': 'Asset',
+    'Fixed Asset': 'Asset',
+    'Current Liabilities': 'Liability',
+    'Non-current Liabilities': 'Liability',
+    'Other Income': 'Income',
+    'Depreciation': 'Expense',
+    'Cost of Revenue': 'Expense',
+    'Prepayments': 'Expense',
+    'Current Year Earnings': 'Expense',
+}
 
 
 def get_pymodel(model):
@@ -117,6 +138,16 @@ def link_versioned_name(mindroot, model, hash, ttype, src_name, ver,
                 item[ver_name] = hash
         item[hash][ver] = src_name
     return mindroot
+
+
+def tnl_acc_type(ctx, model, src_name, src_ver, tgt_ver, name):
+    src_majver = int(src_ver.split('.')[0])
+    tgt_majver = int(tgt_ver.split('.')[0])
+    if src_majver < 9 and tgt_majver >= 9:
+        name = CVT_ACC_TYPE_OLD_NEW.get(name, name)
+    elif src_majver >= 9 and tgt_majver < 9:
+        name = CVT_ACC_TYPE_NEW_OLD.get(name, name)
+    return name
 
 
 def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
@@ -329,6 +360,7 @@ def write_stored_dict(ctx):
                                     line[ver_name] = items[hash][ver_name]
                         if len(line) > 4:
                             writer.writerow(line)
+
 
 def transodoo_list(ctx):
 
