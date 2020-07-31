@@ -93,15 +93,132 @@ Components
 
 
 
+
+
+Odoo structure
+~~~~~~~~~~~~~~
+
+All the tools serving Odoo are based on follow file system structure (flat layout):
+
+::
+
+    etc
+     ┗━ odoo
+          ┣━ odoo.conf                   (1)(3)
+          ┣━ odoo-server.conf            (2)(3)
+          ┣━ odoo{majver}.conf           (1)(4)
+          ┣━ odoo{majver}-server.conf    (2)(4)
+          ┗━ odoo{majver}-{org}.conf     (4)
+
+    {vid}
+      ┣━ addons                          (3)
+      ┣━ ...                             (3)
+      ┣━ odoo                            (1)(3)
+      ┃    ┣━ ...                        (3)
+      ┃    ┗━ addons                     (3)
+      ┣━ openerp                         (2)(3)
+      ┃    ┣━ ...                        (3)
+      ┃    ┗━ addons                     (3)
+      ┣━ server                          (5)
+      ┃    ┗━ openerp
+      ┃        ┣━ ...
+      ┃        ┗━ addons
+      ┣━ {repository}
+      ┃    ┣━ {module}
+      ┃    ┃    ┣━ __init__.py
+      ┃    ┃    ┣━ __manifest__.py
+      ┃    ┃    ┗━ ...
+      ┃    ┗━ {module} ...
+      ┃         ┗━ ...
+      ┗━ {repository} ...
+           ┗━ ...
+
+    {venv}
+      ┣━ ....
+      ┗━ odoo                             (link)
+
+    Notes:
+    (1) Odoo version >= 10.0
+    (2) Odoo version < 10.0
+    (3) Odoo standard files / directory
+    (4) Multi-version environment
+    (5) Some old 6.1 and 7.0 installations
+    {majver} Odoo major version, i.e. 12 for 12.0
+    {org} Organization, i.e. oca axitec zero
+    {vid} Odoo root (see about Odoo vid)
+    {repository} Odoo/OCA or any repository
+    {venv} Virtual directory
+
+
+This is the hierarchical layout):
+
+::
+
+    {vid}
+      ┣━ odoo
+      ┃   ┣━ addons                      (3)
+      ┃   ┣━ ...                         (3)
+      ┃   ┣━ odoo                        (1)(3)
+      ┃   ┃    ┣━ ...                    (3)
+      ┃   ┃    ┗━ addons                 (3)
+      ┃   ┗━ openerp                     (2)(3)
+      ┃        ┣━ ...                    (3)
+      ┃        ┗━  addons                (3)
+      ┣━ extra
+      ┃    ┣━ {repository}
+      ┃    ┃    ┣━ {module}
+      ┃    ┃    ┃    ┣━ __init__.py
+      ┃    ┃    ┃    ┣━ __manifest__.py
+      ┃    ┃    ┃    ┗━ ...
+      ┃    ┃    ┗━ {module} ...
+      ┃    ┃         ┗━ ...
+      ┃    ┗━ {repository} ...
+      ┃              ┗━ ...
+      ┣━ private-addons
+      ┃    ┣━ {customized-addons}
+      ┃    ┃    ┣━ __init__.py
+      ┃    ┃    ┣━ __manifest__.py
+      ┃    ┃    ┗━ ...
+      ┃    ┗━ {customized-addons} ...
+      ┃         ┗━ ...
+      ┣━ etc
+      ┃    ┗━ *.conf                     (link)
+      ┣━ axidoo
+      ┃    ┣━ deploy
+      ┃    ┣━ generic
+      ┃    ┃    ┣━ {profile-modules}
+      ┃    ┃    ┃     ┗━ ...
+      ┃    ┃    ┗━ {profile-modules} ...
+      ┃    ┃          ┗━ ...
+      ┃    ┗━ accounting
+      ┃         ┣━ {axitec-modules}
+      ┃         ┃     ┗━ ...
+      ┃         ┗━ {axitec-modules} ...
+      ┃               ┗━ ...
+      ┗━ venv_odoo                       (4)
+
+    Notes:
+    (1) Odoo version >= 10.0
+    (2) Odoo version < 10.0
+    (3) Odoo standard files / directory
+    (4) Virtual directory
+    {vid} Odoo root (see about Odoo vid)
+    {repository} Odoo/OCA and other repositories
+    {customized-addons} Client specific custom modules
+    {axitec-modules} Italian Accounting modules
+
+
+
+
 |
 
 
-Last Update / Ultimo aggiornamento: 2020-07-29
+Last Update / Ultimo aggiornamento: 2020-07-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
     :alt: Alfa
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.3.10
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.3.11
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
@@ -110,23 +227,23 @@ Last Update / Ultimo aggiornamento: 2020-07-29
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.10
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.10
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.11
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.11
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.10/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.10
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.11/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.11
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.10/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.11/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.10/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.11/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.10/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.10
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.11/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.11
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

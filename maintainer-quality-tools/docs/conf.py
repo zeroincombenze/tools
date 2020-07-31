@@ -25,9 +25,9 @@ copyright = '2016-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '0.2.3.6'
+version = '0.2.3.7'
 # The full version, including alpha/beta/rc tags
-release = '0.2.3.6'
+release = '0.2.3.7'
 
 
 # -- General configuration ---------------------------------------------------
@@ -75,7 +75,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'support*', 'usage*', 'maintenance*',
                     'troubleshooting*', 'known_issues*',
                     'proposals_for_enhancement*', 'history*', 'faq*',
-                    'sponsor*', 'copyright_notes*', 'avaiable_addons*',
+                    'sponsor*', 'copyright_notes*', 'available_addons*',
                     'contact_us*',
                     '__init__*', 'name*', 'summary*', 'sommario*',
                     'maturity*', 'module_name*', 'repos_name*',
