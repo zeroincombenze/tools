@@ -31,7 +31,7 @@ __version__=0.2.3.11
 
 
 test_01() {
-    # Test REST
+    # Test RST files
     local TESTOUT TESTRES TESTFN
     TESTFN=test_gen_readme_01
     TESTSRC=$TESTDIR/res/$TESTFN.rst
@@ -63,6 +63,7 @@ consectetur *adipiscing* elit
 
 * Feature A
 * Feature B
+
 ::
 
     >>> doc
@@ -169,6 +170,7 @@ consectetur *adipiscing* elit
 
 * Feature A
 * Feature B
+
 ::
 
     >>> doc
@@ -220,7 +222,7 @@ EOF
 }
 
 test_02() {
-    # Test HTML
+    # Test HTML files
     local TESTOUT TESTRES TESTFN
     TESTFN=test_gen_readme_02
     TESTSRC=$TESTDIR/res/$TESTFN.html
@@ -260,6 +262,7 @@ consectetur <i>adipiscing</i> elit
 <li>Feature A</li>
 <li>Feature B</li>
 </ul>
+</p><p align="justify">
 
 <code>
     &gt;&gt;&gt; doc
@@ -339,6 +342,7 @@ consectetur *adipiscing* elit
 
 * Feature A
 * Feature B
+
 ::
 
     >>> doc
@@ -383,8 +387,197 @@ EOF
 }
 
 
-Z0BUG_setup() {
-    :
+test_04() {
+    # Test CSV files
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_04
+    TESTSRC=$TESTDIR/res/$TESTFN.rst
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/README.rst
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      # Files in module directory (tested branch is 11.0)
+      cat <<EOF >$TESTDIR/res/__manifest__.py
+{
+    'name': 'mtest',
+}
+EOF
+      # Files in egg-info of module directory (tested branch is 11.0)
+      cat <<EOF >$TESTDIR/res/descrizione.rst
+Lorem ipsum
+-----------
+
+Lorem ipsum **dolor** sit amet
+.. \$if branch in '12.0'
+odoo 12.0
+.. \$elif branch in '10.0'
+odoo 10.0
+.. \$elif branch in '8.0'
+odoo 8.0
+.. \$else
+consectetur *adipiscing* elit
+.. \$fi
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
+.. \$include features.csv
+EOF
+      cat <<EOF >$TESTDIR/res/features.csv
+Feature A,|check|
+Feature B,
+EOF
+      cat <<EOF >$TESTDIR/res/authors.txt
+.. \$if branch in '12.0'
+* wrong author
+.. \$elif branch in '11.0'
+* SHS-AV s.r.l. <https://www.shs-av.com>
+.. \$elif branch in '10.0'
+* wrong author
+.. \$elif branch in '7.0'
+* SHS-AV s.r.l. <https://www.zeroincombenze.it>
+.. \$else
+* unknown authors
+.. \$fi
+EOF
+      cat <<EOF >$TESTDIR/res/contributors.txt
+.. \$if branch in '12.0'
+* wrong contributor <wrong@example.com>
+.. \$elif branch in '11.0'
+* antonio <antoniov@libero.it>
+.. \$elif branch in '10.0'
+* lorenzo <lorenzo@libero.it>
+.. \$elif branch in '9.0'
+* Davide <davide@libero.it>
+.. \$elif branch in '7.0'
+* antonio <antoniov@shs-av.com>
+.. \$else
+* unknown contributor <unknow@example.com>
+.. \$fi
+EOF
+      # Files in template directory
+      cat <<EOF >$TESTSRC
+===============
+|icon| {{name}}
+===============
+
+Test file
+
+Overview
+========
+
+{{descrizione}}
+
+{{authors}}
+{{contributors}}
+{{acknowledges}}
+.. \$include footer.rst
+EOF
+      cat <<EOF >$TESTDIR/res/footer.rst
+
+----------------------
+
+.. |en| image:: {{grymb_image_en}}
+   :target: {{grymb_url_en}}
+.. |it| image:: {{grymb_image_it}}
+   :target: {{grymb_url_it}}
+EOF
+      cat <<EOF >$TESTDIR/res/header_authors.txt
+
+Authors
+-------
+
+EOF
+      cat <<EOF >$TESTDIR/res/header_contributors.txt
+
+Contributors
+------------
+
+EOF
+      cat <<EOF >$TESTDIR/res/header_acknowledges.txt
+
+Acknoledges to
+--------------
+
+EOF
+      # Files for test match
+      cat <<EOF >$TESTRES
+============
+|icon| mtest
+============
+
+Test file
+
+Overview
+========
+
+Lorem ipsum
+-----------
+
+Lorem ipsum **dolor** sit amet
+consectetur *adipiscing* elit
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: https://raw.githubusercontent.com/zeroincombenze/rtest/11.0/mtest/static/description/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
+
+
+
+
+
+Authors
+-------
+
+* \`SHS-AV s.r.l. <https://www.shs-av.com>\`__
+
+
+Contributors
+------------
+
+* antonio <antoniov@libero.it>
+
+
+Acknoledges to
+--------------
+
+* Davide <davide@libero.it>
+* lorenzo <lorenzo@libero.it>
+
+----------------------
+
+.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+
+
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
 }
 
 
@@ -394,8 +587,6 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
-
 
 
 UT1_LIST=""

@@ -13,7 +13,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.9.10'
+__version__ = '0.3.9.11'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -244,9 +244,9 @@ BIN_BASE_PACKAGES = ['curl',
                      ]
 BIN_PACKAGES = ['git',
                 'cups',
-                'pychart',
-                'PyChart',
-                'pyvies',
+                # 'pychart',
+                # 'PyChart',
+                # 'pyvies',
                 ]
 PIP_WITH_DOT = ['py3o.',
                 'anybox.',

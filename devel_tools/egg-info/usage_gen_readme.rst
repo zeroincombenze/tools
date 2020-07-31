@@ -216,22 +216,7 @@ Macro currently supported:
 Documentation may contains some graphical symbols in format \|symbol\|.
 Currently follows symbols are supported:
 
-* check
-* DesktopTelematico
-* en
-* exclamation
-* FatturaPA
-* halt
-* info
-* it
-* late
-* menu
-* no_check
-* right_do
-* same
-* warning
-* xml_schema
-
+.. $include usage_gen_readme_sym.csv
 
 Macro used in documentation templates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

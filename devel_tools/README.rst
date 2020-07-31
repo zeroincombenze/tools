@@ -52,7 +52,7 @@ templates
 ~~~~~~~~~
 
 This tool read a template and write the document (usually named README.rst).
-The template can contains macro which format is Unknown macro_name.
+The template can contains macro which format is \{\{macro_name\}\}.
 
 Currently, the follow macros are recognized:
 
@@ -165,21 +165,21 @@ Currently, the follow macros are recognized:
 Documentation may contains some graphical symbols in format \|symbol\|.
 Currently, follows symbols are recognized:
 
-check
-DesktopTelematico
-en
-exclamation
-FatturaPA
-halt
-info
-it
-late
-menu
-no_check
-right_do
-same
-warning
-xml_schema
+* check
+* DesktopTelematico
+* en
+* exclamation
+* FatturaPA
+* halt
+* info
+* it
+* late
+* menu
+* no_check
+* right_do
+* same
+* warning
+* xml_schema
 
 
 odoo_dependecies.py: show odoo dependencies
@@ -526,21 +526,38 @@ Macro currently supported:
 Documentation may contains some graphical symbols in format \|symbol\|.
 Currently follows symbols are supported:
 
-* check
-* DesktopTelematico
-* en
-* exclamation
-* FatturaPA
-* halt
-* info
-* it
-* late
-* menu
-* no_check
-* right_do
-* same
-* warning
-* xml_schema
++-------------------+---------------------+
+| check             | |check|             |
++-------------------+---------------------+
+| DesktopTelematico | |DesktopTelematico| |
++-------------------+---------------------+
+| en                | |en|                |
++-------------------+---------------------+
+| exclamation       | |exclamation|       |
++-------------------+---------------------+
+| FatturaPA         | |FatturaPA|         |
++-------------------+---------------------+
+| halt              | |halt|              |
++-------------------+---------------------+
+| info              | |info|              |
++-------------------+---------------------+
+| it                | |it|                |
++-------------------+---------------------+
+| late              | |late|              |
++-------------------+---------------------+
+| menu              | |menu|              |
++-------------------+---------------------+
+| no_check          | |no_check|          |
++-------------------+---------------------+
+| right_do          | |right_do|          |
++-------------------+---------------------+
+| same              | |same|              |
++-------------------+---------------------+
+| warning           | |warning|           |
++-------------------+---------------------+
+| xml_schema        | |xml_schema|        |
++-------------------+---------------------+
+
 
 
 Macro used in documentation templates
@@ -698,7 +715,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-07-29
+Last Update / Ultimo aggiornamento: 2020-07-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

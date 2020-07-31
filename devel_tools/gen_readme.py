@@ -747,7 +747,11 @@ def expand_macro(ctx, token, default=None):
     elif default is not None:
         value = default
     else:
-        value = 'Unknown %s' % token
+        value = parse_local_file(
+            ctx, '%s.csv' % token,
+            ignore_ntf=True,)[1] or parse_local_file(
+            ctx, '%s.rst' % token,
+            ignore_ntf=True,)[1] or 'Unknown %s' % token
     return value
 
 
@@ -1004,19 +1008,19 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
             if is_preproc:
                 if line.startswith('.. $include '):
                     filename = line[12:].strip()
-                    if filename.endswith('.csv'):
-                        full_fn = get_template_fn(ctx, filename)
-                        full_fn_rst = '%s.rst' % full_fn[: -4]
-                        os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
-                            ctx['branch'], full_fn, full_fn_rst))
-                        state, text = parse_local_file(ctx,
-                                                       full_fn_rst,
-                                                       state=state)
-                        os.unlink(full_fn_rst)
-                    else:
-                        state, text = parse_local_file(ctx,
-                                                       filename,
-                                                       state=state)
+                    # if filename.endswith('.csv'):
+                    #     full_fn = get_template_fn(ctx, filename)
+                    #     full_fn_rst = '%s.rst' % full_fn[: -4]
+                    #     os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
+                    #         ctx['branch'], full_fn, full_fn_rst))
+                    #     state, text = parse_local_file(ctx,
+                    #                                    full_fn_rst,
+                    #                                    state=state)
+                    #     os.unlink(full_fn_rst)
+                    # else:
+                    state, text = parse_local_file(ctx,
+                                                   filename,
+                                                   state=state)
                     state, text = append_line(state, text, nl_bef=nl_bef)
                     target += text + '\n'
                 elif line.startswith('.. $block '):
@@ -1121,9 +1125,16 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         return state, ''
     if ctx['opt_verbose']:
         print("Reading %s" % full_fn)
-    fd = open(full_fn, 'rU')
-    source = fd.read().decode('utf-8')
-    fd.close()
+    full_fn_csv = False
+    if full_fn.endswith('.csv'):
+        full_fn_csv = full_fn
+        full_fn = '%s.rst' % full_fn_csv[: -4]
+        os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
+            ctx['branch'], full_fn_csv, full_fn))
+    with open(full_fn, 'rU') as fd:
+        source = fd.read().decode('utf-8')
+    if full_fn_csv:
+        os.unlink(full_fn)
     if len(source) and filename == 'acknowledges.txt':
         state, source1 = parse_source(ctx,
                                       source.replace('branch', 'prior_branch'),

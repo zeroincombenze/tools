@@ -20,7 +20,7 @@ templates
 ~~~~~~~~~
 
 This tool read a template and write the document (usually named README.rst).
-The template can contains macro which format is {{macro_name}}.
+The template can contains macro which format is \{\{macro_name\}\}.
 
 Currently, the follow macros are recognized:
 
@@ -29,18 +29,18 @@ Currently, the follow macros are recognized:
 Documentation may contains some graphical symbols in format \|symbol\|.
 Currently, follows symbols are recognized:
 
-check
-DesktopTelematico
-en
-exclamation
-FatturaPA
-halt
-info
-it
-late
-menu
-no_check
-right_do
-same
-warning
-xml_schema
+* check
+* DesktopTelematico
+* en
+* exclamation
+* FatturaPA
+* halt
+* info
+* it
+* late
+* menu
+* no_check
+* right_do
+* same
+* warning
+* xml_schema
