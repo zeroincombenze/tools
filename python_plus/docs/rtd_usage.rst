@@ -1,37 +1,8 @@
-
-===================
-python_plus 0.1.4.8
-===================
-
-
-
-|Maturity| |Build Status| |Coverage Status| |license gpl|
-
-
-
-
-Overview
-========
-
-Python supplemental features
-----------------------------
-
-python_plus adds various features to python 2 and python 3 programs.
-It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
-
-
-vem: virtual environment manager
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This packge is released with an nice command: **vem** that is an interactive tool with some nice features to manage standard virtual environment.
-
-
-
-|
+.. toctree::
+   :maxdepth: 2
 
 Usage
-=====
-
+-----
 Code example
 ------------
 
@@ -195,64 +166,11 @@ upgrade [OPTIONS] [SRC_VENV] PKG
 
 
 
-
-|
-|
-
-Getting started
-===============
-
-
-|
-
-Installation
-------------
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install python_plus
-
-
-|
-
-Current version via Git
-~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
-    cd ./tools
-    ./install_tools.sh -op
-    source /opt/odoo/devel/activate_tools
-
-
-|
-|
-
-Credits
-=======
-
-Copyright
----------
-
-SHS-AV s.r.l. <https://www.shs-av.com/>
-
-
-Contributors
-------------
-
-* Antonio Maria Vigliotti <info@shs-av.com>
-
-
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-07-22
+Last Update / Ultimo aggiornamento: 2020-07-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

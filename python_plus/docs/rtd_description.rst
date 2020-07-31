@@ -1,70 +1,18 @@
+.. toctree::
+   :maxdepth: 2
 
-============
-os0 0.2.15.3
-============
+Python supplemental features
+----------------------------
 
-
-
-|Maturity| |Build Status| |Coverage Status| |license gpl|
-
-
+python_plus adds various features to python 2 and python 3 programs.
+It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
 
 
-Overview
-========
+vem: virtual environment manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This packge is released with an nice command: **vem** that is an interactive tool with some nice features to manage standard virtual environment.
 
-
-
-|
-|
-
-Getting started
-===============
-
-
-|
-
-Installation
-------------
-
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-    pip install os0
-
-|
-
-Current version via Git
-~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
-    cd ./tools
-    ./install_tools.sh -p
-    source /opt/odoo/devel/activate_tools
-
-
-|
-|
-
-Credits
-=======
-
-Copyright
----------
-
-SHS-AV s.r.l. <https://www.shs-av.com/>
-
-
-Contributors
-------------
-
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 
 |
 
@@ -75,7 +23,7 @@ Last Update / Ultimo aggiornamento: 2020-07-31
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.15.3
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.1.4.8
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
@@ -84,23 +32,23 @@ Last Update / Ultimo aggiornamento: 2020-07-31
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.15.3
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.15.3
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.1.4.8
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.1.4.8
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.3/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.3
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.1.4.8/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.1.4.8
     :alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.15.3/dev
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.1.4.8/dev
     :alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.15.3/man
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.1.4.8/man
     :alt: Technical Documentation
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
-    :target: https://erp2.zeroincombenze.it
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
+    :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.15.3/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.15.3
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.1.4.8/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.1.4.8
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

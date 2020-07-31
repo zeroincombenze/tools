@@ -7,8 +7,9 @@
    :maxdepth: 2
    :caption: Contents:
 
-.. include:: MAINPAGE.rst
-
+   rtd_description
+   rtd_usage
+   rtd_automodule
 
 Indices and tables
 ==================

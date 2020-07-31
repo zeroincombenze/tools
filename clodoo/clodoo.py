@@ -931,7 +931,7 @@ def act_show_params(ctx):
         pwd = False
     print("- hostname      = %s " % ctx['db_host'])
     print("- protocol      = %s " % ctx['svc_protocol'])
-    print("- port          = %d " % ctx['xmlrpc_port'])
+    print("- port          = %s " % ctx['xmlrpc_port'])
     print("- odoo version  = %s " % ctx['oe_version'])
     if pwd:
         print("- password      = %s " % crypt(pwd))

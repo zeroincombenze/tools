@@ -5144,13 +5144,102 @@ def relinks_order_ddt(ctx):
 
 def check_rec_links(ctx):
     print('Check link for invoice records to DdTs and orders')
-    model_inv = 'account.invoice'
-    model_invline = 'account.invoice.line'
-    model_ddt_line = 'stock.picking.package.preparation.line'
-    model_soline = 'sale.order.line'
+    if ctx['param_1'] == 'help':
+        print('check_rec_links(inv__date|ids)')
+        return
+
+    def parse_sale_from_invline(invoice_line, ctr, err_ctr, orders):
+        for sale_line in invoice_line.sale_line_ids:
+            ctr += 1
+            if sale_line.order_id.id not in orders:
+                orders.append(sale_line.order_id.id)
+            if (invoice.partner_id.id not in (
+                    sale_line.order_id.partner_id.id,
+                    sale_line.order_id.partner_invoice_id.id,
+                    sale_line.order_id.partner_shipping_id.id)):
+                os0.wlog('!!!!! Invoice %s (%d) partner differs from '
+                         'sale order %s (%d) partner!!!!!' % (
+                             invoice.number,
+                             invoice.id,
+                             sale_line.order_id.name,
+                             sale_line.order_id.id,))
+                err_ctr += 1
+                clodoo.writeL8(ctx, invline_model, invoice_line.id,
+                    {'sale_line_ids': [(3, sale_line.id)]})
+        if not invoice_line.sale_line_ids and invoice_line.product_id:
+            order_line_ids = clodoo.searchL8(ctx, orderline_model, [
+                ('company_id', '=', invoice_line.company_id.id),
+                ('invoice_lines', '=', False),
+                ('order_partner_id', '=', invoice_line.partner_id.id),
+                ('product_id', '=', invoice_line.product_id.id)])
+            print('Found %d line of sale.order.line to match' % len(
+                order_line_ids))
+        return ctr, err_ctr, orders
+
+    def parse_ddt_from_invline(invoice_line, ctr, err_ctr, ddts):
+        if invoice_line.ddt_line_id:
+            ddts.append(invoice_line.ddt_line_id.package_preparation_id.id)
+            if (invoice_line.ddt_line_id.sale_line_id and
+                    invoice_line.ddt_line_id.sale_line_id.order_id.id
+                    not in orders):
+                os0.wlog('!!!!! Invoice sale orders differs from '
+                         'DdT sale order %s (%d)!!!!!' % (
+                             invoice_line.ddt_line_id.sale_line_id. \
+                                 order_id.name,
+                             invoice_line.ddt_line_id.sale_line_id. \
+                                 order_id.id))
+                err_ctr += 1
+                clodoo.writeL8(ctx, invline_model, invoice_line.id,
+                    {'ddt_line_id': False})
+            elif (invoice_line.ddt_line_id and
+                  invoice_line.ddt_line_id.sale_line_id and
+                  (invoice.partner_id.id not in (
+                          invoice_line.ddt_line_id.sale_line_id.order_id. \
+                                  partner_id.id,
+                          invoice_line.ddt_line_id.sale_line_id.order_id. \
+                                  partner_invoice_id.id,
+                          invoice_line.ddt_line_id.sale_line_id.order_id. \
+                                  partner_shipping_id.id))):
+                os0.wlog('!!!!! Invoice %s (%d) partner differs from '
+                         'ddt sale order %s (%d) partner!!!!!' % (
+                             invoice.number,
+                             invoice.id,
+                             invoice_line.ddt_line_id.sale_line_id. \
+                                 order_id.name,
+                             invoice_line.ddt_line_id.sale_line_id. \
+                                 order_id.id,))
+                err_ctr += 1
+                clodoo.writeL8(ctx, invline_model, invoice_line.id,
+                    {'ddt_line_id': False})
+        elif invoice_line.sale_line_ids:
+            for sale_line in invoice_line.sale_line_ids:
+                for inv_line in sale_line.invoice_lines:
+                    if inv_line.id == invoice_line.id:
+                        os0.wlog(
+                            '!!!!! Missed DdT line for invoice %s (%d) '
+                            'order %s!!!!!' % (
+                                invoice.number,
+                                invoice.id,
+                                sale_line.order_id.id))
+                        err_ctr += 1
+                        ids = clodoo.searchL8(
+                            ctx,
+                            'stock.picking.package.preparation.line',
+                            [('sale_line_id', '=', sale_line.id)])
+                        if ids:
+                            clodoo.writeL8(ctx, invline_model, invoice_line.id,
+                                {'ddt_line_id': ids[0]})
+                        break
+        return ctr, err_ctr, ddts
+
+    pdb.set_trace()
+    invoice_model = 'account.invoice'
+    invline_model = 'account.invoice.line'
+    ddtline_model = 'stock.picking.package.preparation.line'
+    orderline_model = 'sale.order.line'
     date_ids = param_date(ctx['param_1'])
     if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
-        ids = clodoo.searchL8(ctx, model_inv,
+        ids = clodoo.searchL8(ctx, invoice_model,
                               [('date_invoice', '>=', date_ids)])
     else:
         ids = eval(date_ids)
@@ -5167,80 +5256,40 @@ def check_rec_links(ctx):
     err_ctr = 0
     ctr = 0
     for invoice in clodoo.browseL8(
-        ctx, model_inv, clodoo.searchL8(
-            ctx, model_inv, domain1, order='number desc')):
+        ctx, invoice_model, clodoo.searchL8(
+            ctx, invoice_model, domain1, order='number desc')):
         msg_burst('%s ...' % invoice.number)
         orders = []
+        ddts = []
         for invoice_line in invoice.invoice_line_ids:
             msg_burst('  - %s ...' % invoice_line.name[0:80])
-            for sale_line in invoice_line.sale_line_ids:
-                ctr += 1
-                if sale_line.order_id.id not in orders:
-                    orders.append(sale_line.order_id.id)
-                if (invoice.partner_id.id not in (
-                        sale_line.order_id.partner_id.id,
-                        sale_line.order_id.partner_invoice_id.id,
-                        sale_line.order_id.partner_shipping_id.id)):
-                    os0.wlog('!!!!! Invoice %s (%d) partner differs from '
-                             'sale order %s (%d) partner!!!!!' % (
-                                 invoice.number,
-                                 invoice.id,
-                                 sale_line.order_id.name,
-                                 sale_line.order_id.id,))
-                    err_ctr += 1
-                    clodoo.writeL8(ctx, model_invline, invoice_line.id,
-                                   {'sale_line_ids': [(3, sale_line.id)]})
-            if not invoice_line.sale_line_ids and invoice_line.product_id:
-                order_line_ids = clodoo.searchL8(ctx, model_soline, [
-                    ('company_id', '=', invoice_line.company_id.id),
-                    ('invoice_lines', '=', False),
-                    ('order_partner_id', '=', invoice_line.partner_id.id),
-                    ('product_id', '=', invoice_line.product_id.id)])
-                print('Found %d line of sale.order.line to match' % len(
-                    order_line_ids))
-                pdb.set_trace()
-            if invoice_line.ddt_line_id:
-                if (invoice_line.ddt_line_id.sale_line_id and
-                        invoice_line.ddt_line_id.sale_line_id.order_id.id
-                        not in orders):
-                    os0.wlog('!!!!! Invoice sale orders differs from '
-                             'DdT sale order %s (%d)!!!!!' % (
-                                invoice_line.ddt_line_id.sale_line_id.\
-                                    order_id.name,
-                                invoice_line.ddt_line_id.sale_line_id.\
-                                    order_id.id))
-                    err_ctr += 1
-                    clodoo.writeL8(ctx, model_invline, invoice_line.id,
-                                   {'ddt_line_id': False})
-                elif (invoice_line.ddt_line_id.sale_line_id and
-                        (invoice.partner_id.id not in (
-                            invoice_line.ddt_line_id.sale_line_id.order_id.\
-                            partner_id.id,
-                            invoice_line.ddt_line_id.sale_line_id.order_id.\
-                            partner_invoice_id.id,
-                            invoice_line.ddt_line_id.sale_line_id.order_id.\
-                            partner_shipping_id.id))):
-                    os0.wlog('!!!!! Invoice %s (%d) partner differs from '
-                             'ddt sale order %s (%d) partner!!!!!' % (
-                                 invoice.number,
-                                 invoice.id,
-                                 invoice_line.ddt_line_id.sale_line_id.\
-                                    order_id.name,
-                                 invoice_line.ddt_line_id.sale_line_id.\
-                                    order_id.id,))
-                    err_ctr += 1
-                    clodoo.writeL8(ctx, model_invline, invoice_line.id,
-                                   {'ddt_line_id': False})
-            else:
-                for sale_line in invoice_line.sale_line_ids:
-                    qty_to_invoice = sale_line.product_uom_qty
-                    for ddt_line in clodoo.browseL8(
-                            ctx, model_ddt_line, clodoo.searchL8(
-                                ctx, model_ddt_line,
-                                [('sale_line_id', '=', sale_line.id)])):
-                        if not ddt_line.invoice_line_id:
-                            print('error')
-
+            (ctr, err_ctr, orders) = parse_sale_from_invline(
+                invoice_line, ctr, err_ctr, orders)
+            (ctr, err_ctr, ddts) = parse_ddt_from_invline(
+                invoice_line, ctr, err_ctr, ddts)
+        diff = list(set([x.id for x in invoice.ddt_ids]) - set(ddts))
+        do_write = False
+        if diff:
+            os0.wlog('!!!!! Found some DdT %s in invoice %s (%d) header '
+                     'not detected in invoice lines!!!!!' % (
+                            diff,
+                            invoice.number,
+                            invoice.id))
+            err_ctr += 1
+            do_write = True
+        diff = list(set(ddts) - set([x.id for x in invoice.ddt_ids]))
+        if diff:
+            os0.wlog('!!!!! Some DdT (%s) in invoice lines are not detected '
+                     'in invoice %s (%d)!!!!!' % (
+                            diff,
+                            invoice.number,
+                            invoice.id))
+            err_ctr += 1
+            do_write = True
+        if do_write:
+            clodoo.writeL8(ctx, invoice_model, invoice.id, {
+                'ddt_ids': [(6, 0, ddts)]
+            })
 
     print('%d record read, %d record with wrong links!' % (ctr, err_ctr))
 

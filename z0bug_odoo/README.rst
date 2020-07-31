@@ -760,6 +760,7 @@ Usage
 =====
 
 Code example:
+
 ::
 
     # -*- coding: utf-8 -*-
@@ -910,7 +911,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-07-24
+Last Update / Ultimo aggiornamento: 2020-07-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

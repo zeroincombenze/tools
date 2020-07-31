@@ -1,4 +1,5 @@
 Code example:
+
 ::
 
     # -*- coding: utf-8 -*-

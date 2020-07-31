@@ -10,6 +10,7 @@
    rtd_description
    rtd_installation
    rtd_usage
+   rtd_automodule
 
 Indices and tables
 ==================

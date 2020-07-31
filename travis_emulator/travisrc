@@ -92,7 +92,7 @@ inherits_travis_opts() {
     A[E]="cdjmnqrv"
     A[N]="CKnOR"
     A[P]="cdfjmnOqruv"
-    A[T]="cKPpqrTv"
+    A[T]="BcKPpqrTv"
     A[8]="dnquv"
     if [ -n "$2" ]; then
       for o in C c d F f K j m n O o P p q R r T u v; do
@@ -553,7 +553,6 @@ create_virtual_env() {
 
 drop_virtual_env() {
     [ ${opt_dry_run:-0} -eq 0 -a ${opt_virt:-0} -gt 0 ] && deactivate
-    set -x  #debug
     export HOME=$TRAVIS_SAVED_HOME
     hash -r
     unset TRAVIS_SAVED_HOME
@@ -563,7 +562,6 @@ drop_virtual_env() {
         rm -fR $TRAVIS_HOME
         unset TRAVIS_HOME
     fi
-    set +x  #debug
     TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
 }
 
