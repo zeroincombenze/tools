@@ -29,7 +29,7 @@ if [ -z "$ZARLIB" ]; then
 fi
 . $ZARLIB
 
-__version__=0.1.17.2
+__version__=0.1.17.3
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)

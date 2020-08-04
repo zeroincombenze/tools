@@ -32,7 +32,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.3.11
+__version__=0.2.3.12
 
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
@@ -559,7 +559,7 @@ OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "do not execute autoflake (-A) neither autopep8 (-AA)"\
  "activate debug statements"\
- "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
+ "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0"\
  "change class name to CamelCase"\
  "add developers Copyright (def zero)"\
  "show debug informations"\
@@ -567,7 +567,7 @@ OPTHELP=("this help"\
  "do not apply enhance update"\
  "from odoo branch, value like -b switch"\
  "futurize"\
- "Write GPL info into header (agpl,lgpl)"\
+ "Write GPL info into header (agpl,lgpl,gpl)"\
  "sort import statements"\
  "set file excluded by lint parse"\
  "do nothing (dry-run)"\

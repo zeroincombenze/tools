@@ -74,7 +74,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.3.11"
+__version__ = "0.2.3.12"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0')
 COPY = {
@@ -200,6 +200,19 @@ class topep8():
         odoo_majver = int(ctx['to_ver'].split('.')[0])
         if ctx['opt_copy']:
             req_copyrights = ctx['opt_copy'].split(',')
+        elif os.path.isfile('./egg-info/authors.txt'):
+            req_copyrights = []
+            with open('./egg-info/authors.txt', 'rb') as fd:
+                for line in fd.read().split('\n'):
+                    if line.find('<') >= 0 and line.find('>') >= 0:
+                        website = line.split('<')[1].split('>')[0]
+                        website.replace('http:', 'https:/')
+                        if website.endswith('/'):
+                            website = website[0: -1]
+                        for kk, item in COPY.items():
+                            if item['website'] == website:
+                                req_copyrights.append(kk)
+                                break
         else:
             req_copyrights = []
         for org in req_copyrights:
@@ -209,6 +222,7 @@ class topep8():
                 return
         copy_found = []
         lineno = 0
+        empy_lines = 0
         rex = r'^# *([Cc]opyright|\([Cc]\)|©|http:|https:|\w+\@[a-zA-z0-9-.]+)'
         while (lineno < len(self.lines) and
                self.lines[lineno] and
@@ -219,6 +233,7 @@ class topep8():
                                       '# -*- coding: utf-8 -*-',
                                       ):
                 lineno += 1
+                empy_lines = 0
                 continue
             if (re.match('^# *License .GPL', self.lines[lineno]) or
                     re.match('^# .*This program is free software',
@@ -231,6 +246,7 @@ class topep8():
                 del self.lines[lineno]
                 continue
             if re.match(rex, self.lines[lineno]):
+                empy_lines = 0
                 found = False
                 for key in COPY.keys():
                     if found:
@@ -288,6 +304,15 @@ class topep8():
                         line = '%s<%s>' % (
                             line[0:x.start()], line[x.start() + 1:x.end() - 1])
                     self.lines[lineno] = line
+            if self.lines[lineno] == '#':
+                if empy_lines == 0:
+                    lineno += 1
+                    empy_lines += 1
+                    continue
+                del self.lines[lineno]
+                continue
+            else:
+                empy_lines = 0
             lineno += 1
             continue
         for org in req_copyrights:
@@ -1454,7 +1479,7 @@ def get_versions(ctx):
         ctx['odoo_ver'] = '12.0'
     ctx['to_ver'] = ctx['odoo_ver']
     if ctx.get('from_odoo_ver', None) is None:
-        ctx['from_odoo_ver'] = '7.0'
+        ctx['from_odoo_ver'] = ctx['to_ver']
     ctx['from_ver'] = ctx['from_odoo_ver']
     return ctx
 

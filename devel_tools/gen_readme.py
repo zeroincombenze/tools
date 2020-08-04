@@ -109,7 +109,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.3.11"
+__version__ = "0.2.3.12"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -375,14 +375,24 @@ def get_default_available_addons(ctx):
             lol = len(pkg)
     if lol > 36:
         lol = 36
-    fmt = '| %%-%d.%ds | %%-10.10s | %%-10.10s | %%-80.80s |\n' % (lol, lol)
-    lne = fmt % ('', '', '', '')
+    no_oca_diff = os0.str2bool(ctx.get('no_section_oca_diff', False), False)
+    if no_oca_diff:
+        fmt = '| %%-%d.%ds | %%-10.10s | %%-80.80s |\n' % (lol, lol)
+        lne = fmt % ('', '', '')
+    else:
+        fmt = '| %%-%d.%ds | %%-10.10s | %%-10.10s | %%-80.80s |\n' % (lol, lol)
+        lne = fmt % ('', '', '', '')
     lne = lne.replace(' ', '-').replace('|', '+')
     text += lne
-    text += fmt % ('Name / Nome',
-                   'Version',
-                   'OCA Ver.',
-                   'Description / Descrizione')
+    if no_oca_diff:
+        text += fmt % ('Name / Nome',
+                       'Version',
+                       'Description / Descrizione')
+    else:
+        text += fmt % ('Name / Nome',
+                       'Version',
+                       'OCA Ver.',
+                       'Description / Descrizione')
     text += lne
     for pkg in sorted(ctx['addons_info'].keys()):
         if not ctx['addons_info'][pkg].get('oca_installable', True):
@@ -400,10 +410,15 @@ def get_default_available_addons(ctx):
             version = '|no_check|'
         else:
             version = ctx['addons_info'][pkg]['version']
-        text += fmt % (pkg,
-                       version,
-                       oca_version,
-                       ctx['addons_info'][pkg]['summary'])
+        if no_oca_diff:
+            text += fmt % (pkg,
+                           version,
+                           ctx['addons_info'][pkg]['summary'])
+        else:
+            text += fmt % (pkg,
+                           version,
+                           oca_version,
+                           ctx['addons_info'][pkg]['summary'])
         text += lne
     return text
 
