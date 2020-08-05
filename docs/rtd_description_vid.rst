@@ -1,12 +1,27 @@
 .. toctree::
    :maxdepth: 2
 
-Unknown description_vid
++-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
+| Parameter   | name    | standard value     | versioned value                 | reserved to zeroincombenze    | reserved to oca              | axitec value                 | Note                                     |
++-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
+| xmlrpc port | RPCPORT | 8069               | 8160 + major version            | 8460 + major version          | 8260 + major version         | 8360 + major version         |                                          |
++-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
+| db_user     | USER    | odoo               | odoo{major_version}             | odoo{major_version}           | odoo{major_version}          | odoo{major_version}          | i.e odoo12                               |
++-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
+| config file | CONFN   | odoo[-server].conf | odoo{major_version}-server.conf | odoo{major_version}-zero.conf | odoo{major_version}-oca.conf | odoo{major_version}-axi.conf | Directory /etc/odoo (see Odoo structure) |
++-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
+| log file    | FLOG    | odoo[-server].log  | odoo{major_version}-server.log  | odoo{major_version}-zero.log  | odoo{major_version}-oca.log  | odoo{major_version}-axi.log  | Directory /var/log/odoo                  |
++-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
+| pid file    | FPID    | odoo[-server].pid  | odoo{major_version}-server.pid  | odoo{major_version}-zero.pid  | odoo{major_version}-oca.pid  | odoo{major_version}-axi.pid  | Directory /var/run/odoo                  |
++-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
+| longpolling | LPPORT  | 8072               | 8130 + major version            | 8430 + major version          | 8230 + major version         | 8330 + major version         |                                          |
++-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
+
 
 |
 
 
-Last Update / Ultimo aggiornamento: 2020-07-31
+Last Update / Ultimo aggiornamento: 2020-08-05
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

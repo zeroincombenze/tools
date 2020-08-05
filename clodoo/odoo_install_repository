@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.9.12
+__version__=0.3.9.13
 
 rmdir_if_exists() {
 #rmdir_if_exists (RPTNAME odoo_vid new_vid)
@@ -310,7 +310,7 @@ odoo_rver=$(build_odoo_param GIT_BRANCH "$odoo_vid")
 pkg_URL=$git_repo
 RPTNAME=$(basename $git_repo)
 [ -z "$opt_org" ] && opt_org=$(build_odoo_param GIT_ORGID $odoo_vid)
-if [[ $odoo_vid =~ (13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) && "$opt_org" == "zero" ]]; then
+if [[ $odoo_vid =~ (14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) && "$opt_org" == "zero" ]]; then
   def_opt_org=
 else
   def_opt_org=$opt_org
@@ -501,7 +501,7 @@ fi
 if [ -z "$(grep "$RPTNAME/" .gitignore 2>/dev/null)" ]; then
    run_traced "echo "$RPTNAME/">>.gitignore"
 fi
-confn=$(build_odoo_param CONFN "$new_odoo_vid")
+confn=$(build_odoo_param CONFN "$new_odoo_vid" '' $def_opt_org)
 if [ "$RPTNAME" == "OCB" ]; then
   DSTPATH="$DSTPATH/addons"
 fi

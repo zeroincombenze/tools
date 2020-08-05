@@ -32,7 +32,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.3.12
+__version__=0.2.3.13
 
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
@@ -719,7 +719,7 @@ for fl in $LIST; do
     done
     if [ -f "$f.new" ]; then
       if [ "$(diff -q $f $f.new)" ]; then
-        if [ $odoo_ver -le 10 -a "$f" == "__manifest__.py" -a ! -f "__openerp__.py" ]; then
+        if [ $odoo_ver -lt 10 -a "$f" == "__manifest__.py" -a ! -f "__openerp__.py" ]; then
           f="__openerp__.py"
           run_traced "mv __manifest__.py.new __openerp__.py.new"
           run_traced "mv __manifest__.py __openerp__.py"

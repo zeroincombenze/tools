@@ -1,7 +1,10 @@
 .. toctree::
    :maxdepth: 2
 
+Usage
+-----
 Code example:
+
 ::
 
     # -*- coding: utf-8 -*-
@@ -110,7 +113,7 @@ Load data of model from csv_fn. Internal use only.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-07-25
+Last Update / Ultimo aggiornamento: 2020-08-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -74,7 +74,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.3.12"
+__version__ = "0.2.3.13"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0')
 COPY = {
@@ -96,7 +96,7 @@ COPY = {
         'author': 'Axitec s.r.l.',
         'website': 'https://www.axitec.it',
     },
-    'didotec': {
+    'didotech': {
         'author': 'Didotech s.r.l.',
         'website': 'https://www.didotech.com',
     },
@@ -206,13 +206,24 @@ class topep8():
                 for line in fd.read().split('\n'):
                     if line.find('<') >= 0 and line.find('>') >= 0:
                         website = line.split('<')[1].split('>')[0]
-                        website.replace('http:', 'https:/')
+                        website = website.replace('http:', 'https:')
                         if website.endswith('/'):
                             website = website[0: -1]
+                        copy_found = False
                         for kk, item in COPY.items():
                             if item['website'] == website:
                                 req_copyrights.append(kk)
+                                copy_found = True
                                 break
+                        if not copy_found:
+                            auth = website.split('.')[-2]
+                            COPY[auth] = {
+                                'website':website,
+                                'author': auth,
+                            }
+                            req_copyrights.append(auth)
+
+
         else:
             req_copyrights = []
         for org in req_copyrights:
@@ -235,7 +246,10 @@ class topep8():
                 lineno += 1
                 empy_lines = 0
                 continue
-            if (re.match('^# *License .GPL', self.lines[lineno]) or
+            elif self.lines[lineno] == '# -*- encoding: utf-8 -*-':
+                del self.lines[lineno]
+                continue
+            elif (re.match('^# *License .GPL', self.lines[lineno]) or
                     re.match('^# .*This program is free software',
                         self.lines[lineno]) or
                     re.match('^# .*http://www.gnu.org/licenses',
@@ -245,7 +259,7 @@ class topep8():
                     ctx['opt_gpl'] = self.lines[lineno][10:14].lower()
                 del self.lines[lineno]
                 continue
-            if re.match(rex, self.lines[lineno]):
+            elif re.match(rex, self.lines[lineno]):
                 empy_lines = 0
                 found = False
                 for key in COPY.keys():

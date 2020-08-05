@@ -32,7 +32,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.3.9.9"
+__version__ = "0.3.9.10"
 
 
 MAX_DEEP = 20
@@ -2612,7 +2612,7 @@ def print_model_synchro_data(ctx):
     print('Show XML data to build model for synchro module')
     model = ''
     while not model:
-        model = input('Model to buld: ')
+        model = input('Model to build: ')
         if not model:
             return
         rec = clodoo.searchL8(ctx, 'ir.model', [('model', '=', model)])
@@ -2983,13 +2983,22 @@ def test_synchro_vg7(ctx):
         'transportation_reason_id': 'stock.picking.transportation_reason',
         'user_type_id': 'account.account.type',
     }
+    MODULE_LIST = [
+        'account', 'account_payment_term_extension', 'purchase', 'sale',
+        'stock',
+        'l10n_it_ddt', 'l10n_it_einvoice_out', 'l10n_it_ricevute_bancarie',
+        'connector_vg7',
+    ]
     ctx['ctr'] = 0
 
-    def init_test(ctx, company_id):
-        print('This test requires:')
-        print('1. Module connector_vg7 installed')
-        print('2. Partners & product of test environment (mk_test_env)')
-        print('3. Country Italy with Italian translation')
+    def init_test(ctx):
+        print('This test requires following modules installed:')
+        print('1. account, sale, stock, purchase, ')
+        print('2. l10n_it_einvoice_out, l10n_it_ricevute_bancarie ')
+        print('3. l10n_it_ddt, account_payment_term_extension')
+        print('4. connector_vg7 [connector_vg7_conai]')
+        print('Then')
+        print('5. Partners & product of test environment (mk_test_env)')
         input('Requirements are satisfied?')
         # Log level debug
         clodoo.executeL8(ctx,
@@ -3003,6 +3012,25 @@ def test_synchro_vg7(ctx):
                          'clean_cache',
                          0,
                          None, None, 5)
+
+        if test_conai:
+            MODULE_LIST.append('connector_vg7_conai')
+        model = 'ir.module.module'
+        for modname in MODULE_LIST:
+            print('checking module %s ..' % modname)
+            module_ids = clodoo.searchL8(ctx, model,
+                [('name', '=', modname)])
+            if not module_ids:
+                raise IOError('Module %s does not exist!!!' % modname)
+            module = clodoo.browseL8(ctx, model, module_ids[0])
+            if module.state != 'installed':
+                raise IOError('Module %s not installed!!!' % modname)
+
+        company_id = env_ref(ctx, 'z0bug.mycompany')
+        if not company_id:
+            raise IOError('!!Internal error: no company to test found!')
+
+        print('Initializing environment ...')
         # Default company for current user
         clodoo.writeL8(
             ctx, 'res.users', ctx['user_id'], {'company_id': company_id})
@@ -3018,6 +3046,9 @@ def test_synchro_vg7(ctx):
             'exchange_path': os.path.expanduser('~/clodoo'),
             'trace': True,
         })
+        model = 'res.country'
+        ids = clodoo.searchL8(ctx, model, [('code', '=', 'IT')])
+        clodoo.writeL8(ctx, model, ids, {'name': 'Italia'})
         # Delete file csv & unlink external ids
         records_to_delete = {}
         model = 'res.partner'
@@ -3071,6 +3102,7 @@ def test_synchro_vg7(ctx):
         model = 'stock.picking.package.preparation'
         delete_record(
             ctx, model, [('ddt_number', '=', X_NUM_DDT)],
+            action='action_cancel',
             company_id=company_id)
 
         # Delete sale order
@@ -3243,7 +3275,7 @@ def test_synchro_vg7(ctx):
             delete_record(ctx, model, domain)
         model = 'account.account'
         delete_record(ctx, model, [('code', '=', '180111')])
-        return ctx
+        return ctx, company_id
 
     def write_file_2_pull(ext_model, vals, mode=None):
         mode = mode or 'w'
@@ -3386,8 +3418,10 @@ def test_synchro_vg7(ctx):
                 if rec_value:
                     if not compare(rec_value, ext_ref, vals, model, check_fct):
                             raise IOError(
-                                '!!Invalid field %s.%d.%s!' % (
-                                    model, id, loc_name))
+                                '!!Invalid field %s.%d.%s! '
+                                'Found %s expected %s' % (
+                                    model, id, loc_name,
+                                    rec_value, vals[ext_ref]))
                     ctx['ctr'] += 1
                     continue
             if ((loc_name == 'tax_id' and model == 'sale.order.line') or
@@ -3457,7 +3491,8 @@ def test_synchro_vg7(ctx):
                         rec_value = 'Unit(s)'
             if not compare(rec_value, ext_ref, vals, model, check_fct):
                 raise IOError(
-                    '!!Invalid field %s.%d.%s!' % (model, id, loc_name))
+                    '!!Invalid field %s.%d.%s! Found %s expected %s' % (
+                        model, id, loc_name, rec_value, vals[ext_ref]))
             ctx['ctr'] += 1
             if (ext_ref == 'vg7:customer_shipping_id' and
                     vals[ext_ref] != vals['vg7:customer_id']):
@@ -4590,10 +4625,7 @@ def test_synchro_vg7(ctx):
         check_partner(ctx, partner_id, vals)
         return oe8_id
 
-    company_id = env_ref(ctx, 'z0bug.mycompany')
-    if not company_id:
-        raise IOError('!!Internal error: no company to test found!')
-    ctx = init_test(ctx, company_id)
+    ctx, company_id = init_test(ctx)
 
     # Repeat 2 times to check correct synchronization
     write_country(ctx)
@@ -5145,7 +5177,7 @@ def relinks_order_ddt(ctx):
 def check_rec_links(ctx):
     print('Check link for invoice records to DdTs and orders')
     if ctx['param_1'] == 'help':
-        print('check_rec_links(inv__date|ids)')
+        print('check_rec_links(inv__date|ids ddt_date!ids)')
         return
 
     def parse_sale_from_invline(invoice_line, ctr, err_ctr, orders):
@@ -5157,8 +5189,8 @@ def check_rec_links(ctx):
                     sale_line.order_id.partner_id.id,
                     sale_line.order_id.partner_invoice_id.id,
                     sale_line.order_id.partner_shipping_id.id)):
-                os0.wlog('!!!!! Invoice %s (%d) partner differs from '
-                         'sale order %s (%d) partner!!!!!' % (
+                os0.wlog('!!! Invoice %s (%d) partner differs from '
+                         'sale order %s (%d) partner!!!' % (
                              invoice.number,
                              invoice.id,
                              sale_line.order_id.name,
@@ -5182,8 +5214,8 @@ def check_rec_links(ctx):
             if (invoice_line.ddt_line_id.sale_line_id and
                     invoice_line.ddt_line_id.sale_line_id.order_id.id
                     not in orders):
-                os0.wlog('!!!!! Invoice sale orders differs from '
-                         'DdT sale order %s (%d)!!!!!' % (
+                os0.wlog('!!! Invoice sale orders differs from '
+                         'DdT sale order %s (%d)!!!' % (
                              invoice_line.ddt_line_id.sale_line_id. \
                                  order_id.name,
                              invoice_line.ddt_line_id.sale_line_id. \
@@ -5200,8 +5232,8 @@ def check_rec_links(ctx):
                                   partner_invoice_id.id,
                           invoice_line.ddt_line_id.sale_line_id.order_id. \
                                   partner_shipping_id.id))):
-                os0.wlog('!!!!! Invoice %s (%d) partner differs from '
-                         'ddt sale order %s (%d) partner!!!!!' % (
+                os0.wlog('!!! Invoice %s (%d) partner differs from '
+                         'ddt sale order %s (%d) partner!!!' % (
                              invoice.number,
                              invoice.id,
                              invoice_line.ddt_line_id.sale_line_id. \
@@ -5216,8 +5248,8 @@ def check_rec_links(ctx):
                 for inv_line in sale_line.invoice_lines:
                     if inv_line.id == invoice_line.id:
                         os0.wlog(
-                            '!!!!! Missed DdT line for invoice %s (%d) '
-                            'order %s!!!!!' % (
+                            '!!! Missed DdT line for invoice %s (%d) '
+                            'order %s!!!' % (
                                 invoice.number,
                                 invoice.id,
                                 sale_line.order_id.id))
@@ -5235,29 +5267,48 @@ def check_rec_links(ctx):
     pdb.set_trace()
     invoice_model = 'account.invoice'
     invline_model = 'account.invoice.line'
+    ddt_model = 'stock.picking.package.preparation'
     ddtline_model = 'stock.picking.package.preparation.line'
     orderline_model = 'sale.order.line'
-    date_ids = param_date(ctx['param_1'])
-    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
+    inv_date_ids = param_date(ctx['param_1'])
+    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', inv_date_ids):
         ids = clodoo.searchL8(ctx, invoice_model,
-                              [('date_invoice', '>=', date_ids)])
+                              [('date_invoice', '>=', inv_date_ids)])
     else:
-        ids = eval(date_ids)
+        ids = eval(inv_date_ids)
     if ids:
         if isinstance(ids, int):
-            domain = [('invoice_id', '=', ids)]
-            domain1 = [('id', '=', ids)]
+            inv_domain = [('invoice_id', '=', ids)]
+            inv_domain1 = [('id', '=', ids)]
         else:
-            domain = [('invoice_id', 'in', ids)]
-            domain1 = [('id', 'in', ids)]
+            inv_domain = [('invoice_id', 'in', ids)]
+            inv_domain1 = [('id', 'in', ids)]
     else:
-        domain = []
-        domain1 = []
+        inv_domain = []
+        inv_domain1 = []
+    inv_domain1.append(('type', 'in', ('out_invoice', 'out_refund')))
+    ddt_date_ids = param_date(ctx['param_2'])
+    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', ddt_date_ids):
+        ids = clodoo.searchL8(ctx, ddt_model,
+                              [('date', '>=', ddt_date_ids)])
+    else:
+        ids = eval(ddt_date_ids)
+    if ids:
+        if isinstance(ids, int):
+            ddt_domain = [('package_preparation_id', '=', ids)]
+            ddt_domain1 = [('id', '=', ids)]
+        else:
+            ddt_domain = [('package_preparation_id', 'in', ids)]
+            ddt_domain1 = [('id', 'in', ids)]
+    else:
+        ddt_domain = []
+        ddt_domain1 = []
+
     err_ctr = 0
     ctr = 0
     for invoice in clodoo.browseL8(
         ctx, invoice_model, clodoo.searchL8(
-            ctx, invoice_model, domain1, order='number desc')):
+            ctx, invoice_model, inv_domain1, order='number desc')):
         msg_burst('%s ...' % invoice.number)
         orders = []
         ddts = []
@@ -5270,8 +5321,8 @@ def check_rec_links(ctx):
         diff = list(set([x.id for x in invoice.ddt_ids]) - set(ddts))
         do_write = False
         if diff:
-            os0.wlog('!!!!! Found some DdT %s in invoice %s (%d) header '
-                     'not detected in invoice lines!!!!!' % (
+            os0.wlog('!!! Found some DdT %s in invoice %s (%d) header '
+                     'not detected in invoice lines!!!' % (
                             diff,
                             invoice.number,
                             invoice.id))
@@ -5279,8 +5330,8 @@ def check_rec_links(ctx):
             do_write = True
         diff = list(set(ddts) - set([x.id for x in invoice.ddt_ids]))
         if diff:
-            os0.wlog('!!!!! Some DdT (%s) in invoice lines are not detected '
-                     'in invoice %s (%d)!!!!!' % (
+            os0.wlog('!!! Some DdT (%s) in invoice lines are not detected '
+                     'in invoice %s (%d)!!!' % (
                             diff,
                             invoice.number,
                             invoice.id))
@@ -5290,6 +5341,57 @@ def check_rec_links(ctx):
             clodoo.writeL8(ctx, invoice_model, invoice.id, {
                 'ddt_ids': [(6, 0, ddts)]
             })
+
+    for ddt in clodoo.browseL8(
+        ctx, ddt_model, clodoo.searchL8(
+            ctx, ddt_model, ddt_domain1, order='ddt_number desc')):
+        msg_burst('%s ...' % ddt.ddt_number)
+        ctr += 1
+        invoices = [ddt.invoice_id.id] if ddt.invoice_id else []
+        found_link = False
+        for ddt_line in ddt.line_ids:
+            if ddt_line.invoice_line_id:
+                found_link = True
+                break
+        for ddt_line in ddt.line_ids:
+            ctr += 1
+            if (ddt_line.invoice_line_id and
+                    ddt_line.invoice_line_id.invoice_id.id not in invoices):
+                invoices.append(ddt_line.invoice_line_id.invoice_id.id)
+            elif not found_link and ddt.invoice_id:
+                ids = clodoo.searchL8(ctx, invline_model,
+                    [('invoice_id', '=',
+                      ddt_line.invoice_line_id.invoice_id.id),
+                     ('product_id', '=', ddt_line.product_id.id),
+                     ('quantity', '=', ddt_line.product_uom_qty),
+                     '|', ('ddt_line_id', '=', ddt_line.id),
+                          ('ddt_line_id', '=', False)])
+                if len(ids) == 1:
+                    clodoo.writeL8(ctx, ddtline_model, ddt_line.id, {
+                        'invoice_line_id': ids[0]
+                    })
+                err_ctr += 1
+                os0.wlog('!!! Found line of DdT %s w/o invoice line ref!!!' % (
+                                ddt.id))
+        diff = list(set(invoices) - set([x.id for x in ddt.invoice_ids]))
+        if diff:
+            ddt_state = ddt.state
+            err_ctr += 1
+            os0.wlog('!!! Invoice refs updated in DdT %s!!!' % (
+                ddt.id))
+            if ctx['_cr']:
+                query = "update %s set %s=%s,%s='%s' where id=%d" % (
+                    ddt_model.replace('.', '_'), 'invoice_id', 'null',
+                    'state', 'draft', ddt.id)
+                clodoo.exec_sql(ctx, query)
+            clodoo.writeL8(ctx, ddt_model, ddt.id, {
+                'invoice_ids': [(6, 0, invoices)]
+            })
+            if ctx['_cr']:
+                query = "update %s set %s=%s,%s='%s' where id=%d" % (
+                    ddt_model.replace('.', '_'), 'invoice_id', max(invoices),
+                    'state', ddt_state, ddt.id)
+                clodoo.exec_sql(ctx, query)
 
     print('%d record read, %d record with wrong links!' % (ctr, err_ctr))
 
@@ -6099,7 +6201,20 @@ print(' - configure_email_template       - print_tax_codes')
 print(' - test_synchro_vg7               - check_rec_links')
 print(' - set_db_4_test')
 
+print('\n\n')
+inv_model = 'account.invoice'
+ddt_model = 'stock.picking.package.preparation'
+so_model = 'sale.order'
+ddt_id = 7
+ddt = clodoo.browseL8(ctx, ddt_model, ddt_id)
+print('DdT -> id=%d, number=%s state=%s' % (ddt.id, ddt.ddt_number, ddt.state))
+for ddt_line in ddt.line_ids:
+    print('  - %s/%s prod_id=%s state=%s move.prod_id=%d pick=%s pick_prod_id=%d' % (
+        ddt_line.name, ddt_line.move_id.name, ddt_line.product_id.id,
+        ddt_line.move_id.state, ddt_line.move_id.product_id,
+        ddt_line.move_id.picking_id.name, ddt_line.move_id.picking_id.product_id))
 pdb.set_trace()
+
 
 def read_csv_file(csv_fn):
     model = 'account.account'

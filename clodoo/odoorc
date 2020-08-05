@@ -43,7 +43,7 @@
 # VCS          If GIT repository return "git" otherwise return ""
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.9.12
+#__version__=0.3.9.13
 
 
 DEFMLIST="OCB account-analytic account-budgeting account-closing account-consolidation\
