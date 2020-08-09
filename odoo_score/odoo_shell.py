@@ -32,7 +32,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.3.9.10"
+__version__ = "0.3.9.11"
 
 
 MAX_DEEP = 20
@@ -6201,6 +6201,7 @@ print(' - configure_email_template       - print_tax_codes')
 print(' - test_synchro_vg7               - check_rec_links')
 print(' - set_db_4_test')
 
+pdb.set_trace()
 print('\n\n')
 inv_model = 'account.invoice'
 ddt_model = 'stock.picking.package.preparation'

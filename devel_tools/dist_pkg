@@ -33,7 +33,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.13
+__version__=0.2.3.14
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -136,23 +136,45 @@ if [ $opt_dry_run -gt 0 ]; then
   fi
 fi
 
-if [ "$PRJNAME" != "Odoo" ]; then
-  LSETUP=$PKGPATH/$PKGNAME/setup.py
-  if [ -f $LSETUP ]; then
-    DEVSSTS0=" 1 - Planning"
-    if [ -z "$devstatus" ]; then
-      devstatus=$(if [ -f $LSETUP ]; then echo ""; else echo "$DEVSSTS0"; fi)
+if [ "$PRJNAME" == "Odoo" ]; then
+    valid=0
+    [[ -f __manifest__.py ]] && ((valid++))
+    [[ -f __openerp__.py ]] && ((valid++))
+    [[ -f __init__.py ]] && ((valid++))
+    [[ -f README.rst ]] && ((valid++))
+    [[ -f .travis.yml ]] && ((valid++))
+    [[ -d egg-info ]] && ((valid++))
+    if [ $valid -le 3 ]; then
+        echo "Invalid environment"
+        exit 1
     fi
-    if [ -z "$devstatus" ]; then
-      devstatus=$(if [ $(find . -executable -type f -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
+else
+    valid=0
+    [[ -f setup.py ]] && ((valid++))
+    [[ -f ../setup.py ]] && ((valid++))
+    [[ -d tests ]] && ((valid++))
+    [[ -d egg-info ]] && ((valid++))
+    [[ -f README.rst ]] && ((valid++))
+    if [ $valid -le 3 ]; then
+        echo "Invalid environment"
+        exit 1
     fi
-    if [ -z "$devstatus" ]; then
-      devstatus=$(if [ $(find . -type f -name "*.py" -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
+    LSETUP=$PKGPATH/$PKGNAME/setup.py
+    if [ -f $LSETUP ]; then
+        DEVSSTS0=" 1 - Planning"
+        if [ -z "$devstatus" ]; then
+          devstatus=$(if [ -f $LSETUP ]; then echo ""; else echo "$DEVSSTS0"; fi)
+        fi
+        if [ -z "$devstatus" ]; then
+          devstatus=$(if [ $(find . -executable -type f -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
+        fi
+        if [ -z "$devstatus" ]; then
+          devstatus=$(if [ $(find . -type f -name "*.py" -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
+        fi
+        if [ -z "$devstatus" ]; then
+          devstatus=$(grep " *'Development Status" $LSETUP 2>/dev/null|awk -F":" '{print $3}'|tr -d "\"',\r\n")
+        fi
     fi
-    if [ -z "$devstatus" ]; then
-      devstatus=$(grep " *'Development Status" $LSETUP 2>/dev/null|awk -F":" '{print $3}'|tr -d "\"',\r\n")
-    fi
-  fi
 fi
 if [ "$opt_cpush" == "-O" ]; then
   # Copy files from Odoo package to another Odoo distribution (same version)

@@ -28,12 +28,12 @@ the ttype 'value' has a more level for every field name:
 [pymodel]['value'][fldname][ver.name]
 """
 from __future__ import print_function, unicode_literals
+from builtins import input
 from past.builtins import basestring
 from python_plus import _c
 
 import re
 import csv
-# import pdb
 import os
 import sys
 try:
@@ -44,8 +44,30 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.9.13"
+__version__ = "0.3.9.10"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
+CVT_ACC_TYPE_OLD_NEW = {
+    'Bank': 'Bank and Cash',
+    'Cash': 'Bank and Cash',
+    'Check': 'Credit Card',
+    'Asset': 'Current Assets',
+    'Liability': 'Current Liabilities',
+    'Tax': 'Current Liabilities',
+}
+CVT_ACC_TYPE_NEW_OLD = {
+    'Bank and Cash': 'Bank',
+    'Credit Card': 'Check',
+    'Current Assets': 'Asset',
+    'Non-current Assets': 'Asset',
+    'Fixed Asset': 'Asset',
+    'Current Liabilities': 'Liability',
+    'Non-current Liabilities': 'Liability',
+    'Other Income': 'Income',
+    'Depreciation': 'Expense',
+    'Cost of Revenue': 'Expense',
+    'Prepayments': 'Expense',
+    'Current Year Earnings': 'Expense',
+}
 
 
 def get_pymodel(model):
@@ -118,18 +140,28 @@ def link_versioned_name(mindroot, model, hash, ttype, src_name, ver,
     return mindroot
 
 
+def tnl_acc_type(ctx, model, src_name, src_ver, tgt_ver, name):
+    src_majver = int(src_ver.split('.')[0])
+    tgt_majver = int(tgt_ver.split('.')[0])
+    if src_majver < 9 and tgt_majver >= 9:
+        name = CVT_ACC_TYPE_OLD_NEW.get(name, name)
+    elif src_majver >= 9 and tgt_majver < 9:
+        name = CVT_ACC_TYPE_NEW_OLD.get(name, name)
+    return name
+
+
 def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
     src_majver = int(src_ver.split('.')[0])
     tgt_majver = int(tgt_ver.split('.')[0])
     if name == '${amount}':
         if isinstance(src_name, basestring):
             src_name = float(src_name)
-        if (src_majver < 9 and tgt_majver >= 9):
-            if src_name in (0.04, 0.05, 0.1, 0.21, .22):
-                name = src_name * 100
-        elif (src_majver >= 9 and tgt_majver < 9):
-            if src_name in (4, 5, 10, 21, 22):
-                name = src_name / 100
+        if (src_majver < 9 and tgt_majver >= 9 and
+                src_name in (0.04, 0.05, 0.1, 0.21, 0.22)):
+            name = src_name * 100
+        elif (src_majver >= 9 and tgt_majver < 9 and
+              src_name in (4, 5, 10, 21, 22)):
+            name = src_name / 100
         else:
             name = src_name
     return name
@@ -329,6 +361,7 @@ def write_stored_dict(ctx):
                         if len(line) > 4:
                             writer.writerow(line)
 
+
 def transodoo_list(ctx):
 
     def do_line_ver(mindroot, nm, typ, fld_name):
@@ -375,7 +408,7 @@ def transodoo_edit(ctx):
     model = get_pymodel(ctx['model'])
     while True:
         while not model:
-            m = raw_input('Model (def=%s, type END to end): ' % model)
+            m = input('Model (def=%s, type END to end): ' % model)
             if m.upper() == 'END':
                 ctx['mindroot'] = mindroot
                 return 0
@@ -383,14 +416,14 @@ def transodoo_edit(ctx):
                 model = get_pymodel(model)
         name = ctx['sym']
         while not name:
-            name = raw_input(
+            name = input(
                 'Symbolic name (def=%s, type END to end): ' % name).upper()
         if name == 'END':
             ctx['mindroot'] = mindroot
             return 0
         key = ctx['opt_kind']
         while not key:
-            key = raw_input(
+            key = input(
                 'Name of field (def=%s, type END to end): ' % key).upper()
         if key == 'END':
             ctx['mindroot'] = mindroot
@@ -404,7 +437,7 @@ def transodoo_edit(ctx):
             while not term:
                 if ver in mindroot[k1]:
                     def_term = mindroot[k1][ver]
-                term = raw_input(
+                term = input(
                     'Term[%s] (def=%s, blank=\\b, END to end): ' % (ver,
                                                                     def_term))
                 if term == 'END':
