@@ -52,12 +52,8 @@ addons:
 before_install:
   # Use Zeroincombenze(R) tools
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --single-branch --depth=1
-  # - export PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}
   - ${HOME}/tools/install_tools.sh -qopt
   - source ${HOME}/dev/activate_tools
-  # Tools are used to test themselves packages
-  # - ln -s ${TRAVIS_BUILD_DIR} ${HOME}
-  # - export PATH=${HOME}/tools/zerobug/_travis:${PATH}
 
 install:
   - travis_install_env tools
@@ -73,9 +69,9 @@ env:
   - MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
   - MODULE_PATH=${TRAVIS_BUILD_DIR}/wok_code LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
   - MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
+  - MODULE_PATH=${TRAVIS_BUILD_DIR}/travis_emulator LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
   # - MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo LINT_CHECK="0" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH} ODOO_REPO="zeroincombenze/OCB" VERSION="10.0"
   # - MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo LINT_CHECK="0" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH} ODOO_REPO="zeroincombenze/OCB" VERSION="12.0"
-  # - MODULE_PATH=${TRAVIS_BUILD_DIR}/travis_emulator LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
 
 script:
   - cd $MODULE_PATH; pwd

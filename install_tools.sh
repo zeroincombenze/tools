@@ -19,8 +19,8 @@ if [[ $1 =~ -.*h ]]; then
     exit 0
 fi
 
-RFLIST__travis_emulator="gen_addons_table.py replica.sh travis travisrc wok_doc wok_doc.py"
-RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
+RFLIST__travis_emulator="replica.sh travis travisrc"
+RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
 RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py export_db_model.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
@@ -31,9 +31,9 @@ RFLIST__tools="odoo_default_tnl.csv odoo_default_tnl.xlsx templates"
 RFLIST__python_plus="vem vem.man"
 RFLIST__WOK_CODE="wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
-RFLIST__odoo_score="odoo_shell.pyv"
-MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py|vfcp|vfdiff)"
-FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py prjdiff run_odoo_debug.sh set_odoover_confn z0lib.py z0librun.py"
+RFLIST__odoo_score="odoo_shell.py"
+MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py|vfcp|vfdiff)"
+FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py prjdiff run_odoo_debug.sh set_odoover_confn wok_doc wok_doc.py z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
 [[ $1 =~ -.*[tT] ]] && HOME=$(readlink -e $(dirname $0)/..)
