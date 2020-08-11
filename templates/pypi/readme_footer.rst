@@ -10,7 +10,7 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |Maturity| image:: {{badge-maturity}}
     :target: {{maturity-URL}}
     :alt: {{maturity}}
-.. |Build Status| image:: {{badge-status}}?branch={{branch}}
+.. |Build Status| image:: {{badge-status}}?branch=master
     :target: {{ci-travis-URL}}
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/{{badge-gpl}}
