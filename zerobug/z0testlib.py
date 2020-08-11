@@ -1340,7 +1340,6 @@ class Z0test(object):
             if hasattr(Test, tname):
                 test_list.append(tname)
             test_num += 1
-        # if not ctx.get('opt_noctr', None) or ctx.get('run4cover', False):
         self.exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
@@ -1369,9 +1368,9 @@ class Z0test(object):
         # main_file is obsolete
         if ctx is None:
             ctx = self.ctx
-        if ctx.get('opt_debug', False) and \
-                ctx.get('run_on_top', False) and \
-                not ctx.get('_run_autotest', False):
+        if (ctx.get('opt_debug', False) and
+                ctx.get('run_on_top', False) and
+                not ctx.get('_run_autotest', False)):
             self.dbgmsg(ctx, "!Test tree of %s!" % self.module_id)
         self.dbgmsg(ctx, '.main')
         self.dbgmsg(ctx,

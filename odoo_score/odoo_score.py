@@ -50,7 +50,7 @@ else:
         pass
 
 
-__version__ = "0.3.9.11"
+__version__ = "0.3.9.12"
 
 MODULE_ID = 'odoo_score'
 TEST_FAILED = 1

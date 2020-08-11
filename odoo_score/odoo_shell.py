@@ -32,7 +32,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.3.9.11"
+__version__ = "0.3.9.12"
 
 
 MAX_DEEP = 20
@@ -2815,6 +2815,7 @@ def test_synchro_vg7(ctx):
         'product.product': 'products',
         'product.template': '',
         'product.uom': 'ums',
+        'res.currency': '',
         'res.country': 'countries',
         'res.country.state': 'regions',
         'res.partner': 'customers',
@@ -3017,6 +3018,12 @@ def test_synchro_vg7(ctx):
             MODULE_LIST.append('connector_vg7_conai')
         model = 'ir.module.module'
         for modname in MODULE_LIST:
+            vals = {'name': modname}
+            clodoo.executeL8(ctx,
+                             model,
+                             'synchro',
+                             vals)
+        for modname in MODULE_LIST:
             print('checking module %s ..' % modname)
             module_ids = clodoo.searchL8(ctx, model,
                 [('name', '=', modname)])
@@ -3025,6 +3032,14 @@ def test_synchro_vg7(ctx):
             module = clodoo.browseL8(ctx, model, module_ids[0])
             if module.state != 'installed':
                 raise IOError('Module %s not installed!!!' % modname)
+
+        model = 'res.lang'
+        vals = {'code': 'it_IT'}
+        print('Installing language %s ..' % vals['code'])
+        lang_id = clodoo.executeL8(ctx,
+            model,
+            'synchro',
+            vals)
 
         company_id = env_ref(ctx, 'z0bug.mycompany')
         if not company_id:
@@ -3102,7 +3117,7 @@ def test_synchro_vg7(ctx):
         model = 'stock.picking.package.preparation'
         delete_record(
             ctx, model, [('ddt_number', '=', X_NUM_DDT)],
-            action='action_cancel',
+            action=['action_cancel', 'set_draft'],
             company_id=company_id)
 
         # Delete sale order
@@ -3253,7 +3268,6 @@ def test_synchro_vg7(ctx):
                     ctx,
                     'l10n_it_einvoice_stamp.l10n_it_einvoice_stamp_2_euro')
             })
-
         # Journal
         model = 'account.journal'
         write_record(
@@ -3582,7 +3596,12 @@ def test_synchro_vg7(ctx):
                     if act == 'move_name=':
                         clodoo.writeL8(ctx, model, ids, {'move_name': ''})
                     else:
-                        clodoo.executeL8(ctx, model, act, ids)
+                        try:
+                            clodoo.executeL8(ctx, model, act, ids)
+                        except BaseException:
+                            print('Warning! Cannot execute %s.%s' % (
+                                model, act
+                            ))
             if childs:
                 for parent in clodoo.browseL8(ctx, model, ids):
                     for rec in parent[childs]:
@@ -4599,6 +4618,27 @@ def test_synchro_vg7(ctx):
         check_2_account(ctx, acc_id, vals)
         return oe8_id
 
+    def check_2_currency(ctx, ccy_id, vals):
+        general_check(ctx, 'res.currency', ccy_id, vals)
+
+    def write_2_currency(ctx, oe8_id=None, code=None, name=None):
+        model = 'res.currency'
+        print('Write %s ..' % model)
+        oe8_id = oe8_id or 13
+        name = name or 'EUR'
+        vals = {
+            'oe8:id': oe8_id,
+            'oe8:name': name,
+        }
+        ccy_id = clodoo.executeL8(ctx,
+                                  model,
+                                  'synchro',
+                                  vals)
+        store_id(ctx, model, ccy_id, oe8_id)
+        store_id(ctx, 'res.currency', ccy_id, oe8_id)
+        check_2_currency(ctx, ccy_id, vals)
+        return ccy_id
+
     def check_2_partner(ctx, partner_id, vals):
         general_check(ctx, 'res.partner', partner_id, vals)
 
@@ -5030,6 +5070,7 @@ def test_synchro_vg7(ctx):
     write_2_user(ctx)
     write_2_company(ctx)
     write_2_partner(ctx)
+    write_2_currency(ctx)
     write_2_account_type(ctx)
     write_2_account_type(ctx, oe8_id=2, code='receivable', name='Receivable',
                          utype='receivable', utype_new='receivable')

@@ -6,11 +6,19 @@ INCLUDE,,Modules to test (all, if empty)
 INSTALL_OPTIONS,,Options passed to odoo-bin/openerp-server to install modules
 MQT_TEMPLATE_DB,,Read above
 MQT_TEST_DB,,Read above
+NPM_CONFIG_PREFIX,\$HOME/.npm-global,N/D
 ODOO_REPO,odoo/odoo,OCB repository against test repository
+ODOO_SETUPS,__manifest__.py __openerp__.py __odoo__.py __terp__.py,Names of Odoo manifest files
 ODOO_TEST_SELECT,ALL,Read above
 ODOO_TNLBOT,0,No yet documented
 OPTIONS,,Options passed to odoo-bin/openerp-server to execute tests
 PHANTOMJS_VERSION,,Version of PhantomJS
+PS_TXT_COLOR,0;97;40,N/D
+PS_RUN_COLOR,1;36;48;5,N/D
+PS_NOP_COLOR,31;105,N/D
+PS_HDR1_COLOR,97;48;5;22,N/D
+PS_HDR2_COLOR,30;43,N/D
+PS_HDR3_COLOR,30;47,N/D
 PYPI_RUN_PYVER,(2.7|3.5|3.6|3.7|3.8),python versions to run (only PYPI projects)
 SERVER_EXPECTED_ERRORS,,# of expected errors after tests
 TRAVIS_DEBUG_MODE,0,Read above

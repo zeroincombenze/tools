@@ -30,7 +30,6 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 __version__=0.2.14
 
 
-
 Z0BUG_teardown() {
     if [ -f "$TESTDIR/z0testlib.py" -o -L "$TESTDIR/z0testlib.py" ]; then
       rm -f $TESTDIR/z0testlib.py

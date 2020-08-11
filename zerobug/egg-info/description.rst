@@ -2,8 +2,7 @@ Zeroincombenze® continuous testing framework for python and bash programs
 -------------------------------------------------------------------------
 
 This library can run unit test of target package software.
-Supported languages are *python* (through z0testlib.py)
-and *bash* (through z0testrc)
+Supported languages are *python* (through z0testlib.py) and *bash* (through z0testrc)
 
 *zerobug* supports test automation, aggregation of tests into collections
 and independence of the tests from the reporting framework.
@@ -19,3 +18,7 @@ total unit test to execute, that is a sort of advancing test progress.
 * test runner - it is a program to executes one or more test suites
 * test suite - it is a collection of test cases
 * test case -it is a smallest unit test
+
+You can you z0bug_odoo that is teh odoo integration to test Odoo modules.
+
+

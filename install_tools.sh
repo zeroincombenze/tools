@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=0.2.3.12
+# __version__=0.2.3.13
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -32,8 +32,8 @@ RFLIST__python_plus="vem vem.man"
 RFLIST__WOK_CODE="wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
-MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py|vfcp|vfdiff)"
-FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py prjdiff run_odoo_debug.sh set_odoover_confn wok_doc wok_doc.py z0lib.py z0librun.py"
+MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py|transodoo.py|transodoo.csv|vfcp|vfdiff)"
+FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py prjdiff run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
 [[ $1 =~ -.*[tT] ]] && HOME=$(readlink -e $(dirname $0)/..)

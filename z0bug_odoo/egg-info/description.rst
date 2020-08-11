@@ -1,13 +1,16 @@
 Zeroincombenze® continuous testing for odoo
 -------------------------------------------
 
-This package aim to easily create odoo tests.
+This package is an plug-in of zerobug and aim to easily create odoo tests.
 
 *z0bug_odoo* is built on follow concepts:
 
-* Odoo version independent
+* Odoo version independent; it can also test Odoo 6.1 and 7.0
+* It is designed to run in local environment too, using `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
+* It can run with reduced set of pylint tests (see below *LINT_CHECK_LEVEL*)
 * Read-made database
 * Quality Check Id
+
 
 qci
 ---
@@ -44,17 +47,19 @@ Sample travis configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to setup TravisCI continuous integration for your project, just copy the
-content of the `sample_files <https://github.com/zeroincombenze/tools/tree/master/maintainer-quality-tools/sample_files>`_
+content of the `sample_files <https://github.com/zeroincombenze/tools/tree/master/zerobug/sample_files/.travis.yml>`_
 to your project’s root directory.
 
-If your project depends on other OCA or other Github repositories, create a file called `oca_dependencies.txt` at the root of your project and list the dependencies there. One per line like so:
+If your project depends on other Odoo Github repositories like OCA, create a file called `oca_dependencies.txt` at the root of your project and list the dependencies there.
+One per line like so:
 
     project_name optional_repository_url optional_branch_name
 
-During testbed setup, z0bug_odoo will automatically download and place these repositories accordingly into the addon path.
+During testbed setup, z0bug_odo will automatically download and place these repositories accordingly into the addon path.
 Note on addons path ordering: They will be placed after your own repo, but before the odoo core repo.
 
-Warning: if missed optional_repository_url, OCA MQT loads OCA repository while z0bug_odoo searches for repository with the same owner of tested project.
+If missed optional_repository_url, the repository is searched for repository with the same owner of tested project.
+OCA MQT loads OCA repository while Zeroincombenze® MQT searches for
 
 
 Check your .travis file for syntax issues
@@ -280,10 +285,7 @@ Use this statements:
 `- git:`
 `  submodules: false`
 
-OCA does not use before_install section while z0bg_odoo requires before_install section like this:
-
-`before_install:`
-`  - export TRAVIS_DEBUG_MODE="1"`
+OCA does not use before_install section while z0bg_odoo requires before_install:
 
 z0bg_odoo set security environment. You have not to add security statements
 (with OCA MQT you must remove comment):

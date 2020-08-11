@@ -17,8 +17,7 @@ Zeroincombenze® continuous testing framework for python and bash programs
 -------------------------------------------------------------------------
 
 This library can run unit test of target package software.
-Supported languages are *python* (through z0testlib.py)
-and *bash* (through z0testrc)
+Supported languages are *python* (through z0testlib.py) and *bash* (through z0testrc)
 
 *zerobug* supports test automation, aggregation of tests into collections
 and independence of the tests from the reporting framework.
@@ -34,6 +33,10 @@ total unit test to execute, that is a sort of advancing test progress.
 * test runner - it is a program to executes one or more test suites
 * test suite - it is a collection of test cases
 * test case -it is a smallest unit test
+
+You can you z0bug_odoo that is teh odoo integration to test Odoo modules.
+
+
 
 
 
@@ -340,12 +343,12 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-07-31
+Last Update / Ultimo aggiornamento: 2020-08-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.15.3
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
