@@ -188,20 +188,12 @@ if [ -z "$opt_id" ]; then
     opt_id="odoo"
   fi
 fi
-if [ -z "$opt_pid" ]; then
-  opt_pid=$(build_odoo_param FPID $odoo_vid '' $opt_org)
-  # [[ $opt_org =~ (oca|zero|librerp) && ! $opt_org =~ $opt_pid ]] && opt_pid="${opt_pid:0: -4}-$opt_org.pid"
-fi
-if [ -z "$opt_flog" ]; then
-  opt_flog=$(build_odoo_param FLOG $odoo_vid '' $opt_org)
-  # [[ $opt_org =~ (oca|zero|librerp) && ! $opt_org =~ $opt_flog ]] && opt_flog="${opt_flog:0: -4}-$opt_org.log"
-fi
-[[ -z "$opt_cfg" ]] && opt_cfg=$(build_odoo_param CONFN $odoo_vid '' $opt_org)
+[[ -n "$opt_pid" ]] || opt_pid=$(build_odoo_param FPID $odoo_fver '' $opt_org)
+[[ -n "$opt_flog" ]] || opt_flog=$(build_odoo_param FLOG $odoo_fver '' $opt_org)
+[[ -n "$opt_cfg" ]] || opt_cfg=$(build_odoo_param CONFN $odoo_fver '' $opt_org)
 opt_cfg2="$(dirname $opt_cfg)"
 opt_cfg2="$(readlink -m $opt_cfg2/..)/$(basename $opt_cfg)"
-if [ -z "$script_name" ]; then
-  script_name=$(build_odoo_param FULL_SVCNAME $odoo_vid '' $opt_org)
-fi
+[[ -n "$script_name" ]] || script_name=$(build_odoo_param FULL_SVCNAME $odoo_fver '' $opt_org)
 if [ -n "$opt_osf" ]; then
   get_arch "$opt_osf"
   if [ "$FH" != "RHEL" -a "$FH" != "Debian" ]; then

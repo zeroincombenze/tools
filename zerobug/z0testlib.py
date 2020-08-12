@@ -53,11 +53,13 @@ Every unit test file may be called with follows switches:
   -N, --new             create new logfile
   -n, --dry-run         count and display # unit tests
   -O                    load odoorc
+  -p pattern, --search-pattern
+                        set to counted tests, 1st one next to this
   -q, --quiet           run tests without output (quiet mode)
   -r number, --restart number
                         set to counted tests, 1st one next to this
   -s number, --start number
-                        set to counted tests, 1st one next to this
+                        set to counted tests, 1st one next to this (deprecated)
   -V, --version         show program's version number and exit
   -v, --verbose         verbose mode
   -x, --qsanity         like -X but run silently
@@ -107,6 +109,7 @@ Every test can inquire internal context.
     opt_echo      True if echo test result onto std output                 "-e"
     opt_new       new log file [both bash and python tests]                "-N"
     opt_noctr     do not count # tests [both bash and python tests]        "-0"
+    opt_pattern   test files test pattern                                  "-p"
     opt_verbose   show messages during execution                           "-v"
     os_name       name of pltaform: posix, win32 or wms
     python3       Execute test in python3                                  "-3"
@@ -148,7 +151,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.15.3"
+__version__ = "0.2.15.4"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -186,7 +189,8 @@ LX_OPT_CFG_S = ('opt_echo',     'logfn',
                 'dry_run',      'opt_new',
                 'opt_verbose',  'opt_debug',
                 'opt_noctr',    'run4cover',
-                'max_test',     'min_test')
+                'max_test',     'min_test',
+                'opt_pattern')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_B = ('qsanity', 'esanity', 'opt_debug', 'opt_tjlib', 'opt_oelib')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -206,6 +210,7 @@ LX_OPT_ARGS = {'opt_debug': '-b',
                'dry_run': '-n',
                'opt_new': '-N',
                'opt_oelib': '-O',
+               'opt_pattern': '-p',
                'min_test': '-r',
                'opt_verbose': '-v',
                'max_test': '-z',
@@ -342,7 +347,7 @@ class SanityTest():
                                      ctx['ctr'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -n (-s)",
+                                     "Opt -n (-r)",
                                      0,
                                      ctx['min_test'])
         if sts == TEST_SUCCESS:
@@ -455,10 +460,10 @@ class SanityTest():
 
     def test_06(self, z0ctx):
         """Sanity autotest #6"""
-        opts = ['-s0']
+        opts = ['-r0']
         ctx = self.Z.parseoptest(opts)
         sts = self.Z.test_result(z0ctx,
-                                 "Opt -s0",
+                                 "Opt -r0",
                                  0,
                                  ctx['min_test'])
         if sts == TEST_SUCCESS:
@@ -467,27 +472,27 @@ class SanityTest():
                                      False,
                                      ctx['run_on_top'])
         if sts == TEST_SUCCESS:
-            opts = ['-s', '0']
+            opts = ['-r', '0']
             ctx = self.Z.parseoptest(opts)
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -s 0",
+                                     "Opt -r 0",
                                      0,
                                      ctx['min_test'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -s 0 -N",
+                                     "Opt -r 0 -N",
                                      True,
                                      ctx['opt_new'])
         if sts == TEST_SUCCESS:
-            opts = ['-s13']
+            opts = ['-r13']
             ctx = self.Z.parseoptest(opts)
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -s13",
+                                     "Opt -r13",
                                      13,
                                      ctx['min_test'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -s13 -n",
+                                     "Opt -r13 -n",
                                      False,
                                      ctx['dry_run'])
         if sts == TEST_SUCCESS:
@@ -496,30 +501,30 @@ class SanityTest():
                                      False,
                                      ctx['opt_new'])
         if sts == TEST_SUCCESS:
-            opts = ['-s', '13', '-N']
+            opts = ['-r', '13', '-N']
             ctx = self.Z.parseoptest(opts)
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -s 13",
+                                     "Opt -r 13",
                                      13,
                                      ctx['min_test'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -s 13 -N",
+                                     "Opt -r 13 -N",
                                      True,
                                      ctx['opt_new'])
         return sts
 
     def test_07(self, z0ctx):
         """Sanity autotest #7"""
-        opts = ['-s', '0', '-z', '13']
+        opts = ['-r', '0', '-z', '13']
         ctx = self.Z.parseoptest(opts)
         sts = self.Z.test_result(z0ctx,
-                                 "Opt -s 0",
+                                 "Opt -r 0",
                                  0,
                                  ctx['min_test'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -s 0 -z 13",
+                                     "Opt -r 0 -z 13",
                                      13,
                                      ctx['max_test'])
         return sts
@@ -654,10 +659,6 @@ class Z0test(object):
             argv = sys.argv[1:]
             this_fqn = sys.argv[0] if (len(sys.argv) and
                 not sys.argv[0].startswith('-')) else None
-            # if (len(sys.argv) > 0 and
-            #         sys.argv[0] and
-            #         sys.argv[0][0] != '-'):
-            #     this_fqn = sys.argv[0]
         else:
             self.autorun = True
         this_fqn = os.path.abspath(this_fqn or self.get_this_fqn())
@@ -713,7 +714,7 @@ class Z0test(object):
         else:
             self.autorun = True
         self.module_id = id
-        self.pattern = self.module_id + "_test*"
+        self.pattern = [self.module_id + '_test*', 'test_*']
         # If auto regression test is executing
         self.def_tlog_fn = os.path.join(self.testdir,
                                         self.module_id + "_test.log")
@@ -721,8 +722,7 @@ class Z0test(object):
         if self.autorun:
             self.ctx = self.parseoptest(argv,
                                         version=version)
-            sts = self.main()
-            sys.exit(sts)
+            sys.exit(self.main())
 
     def create_parser(self, version, ctx):
         """Standard test option parser; same funcionality of bash version
@@ -796,6 +796,11 @@ class Z0test(object):
                             action="store_true",
                             dest="opt_oelib",
                             default=False)
+        parser.add_argument("-p", "--search-pattern",
+                            help="test file pattern",
+                            dest="opt_pattern",
+                            metavar="file_list",
+                            default='')
         parser.add_argument("-q", "--quiet",
                             help="run tests without output (quiet mode)",
                             action="store_false",
@@ -1238,9 +1243,8 @@ class Z0test(object):
         if (not ctx.get('_run_autotest', False) and
                 ctx.get('run4cover', False and
                 not os.path.isfile(ctx['COVERAGE_PROCESS_START']))):
-            fd = open(ctx['COVERAGE_PROCESS_START'], 'w')
-            fd.write(DEFAULT_COVERARC)
-            fd.close()
+            with open(ctx['COVERAGE_PROCESS_START'], 'w') as fd:
+                fd.write(DEFAULT_COVERARC)
         ix = 0
         sts = 0
         ctx['ctr'] = ctx['min_test']
@@ -1297,7 +1301,7 @@ class Z0test(object):
                         test_w_args = [
                             'coverage',
                             'run',
-                            '-a',
+                            # '-a',
                             '--rcfile=%s' % ctx['COVERAGE_PROCESS_START'],
                             testname
                         ] + opt4childs
@@ -1321,8 +1325,7 @@ class Z0test(object):
                         sts = 127
                 ctx['ctr'] += self.ctr_list[ix]
                 ix += 1
-            if sts or \
-                    ctx.get('teststs', TEST_SUCCESS):       # pragma: no cover
+            if sts or ctx.get('teststs', TEST_SUCCESS):      # pragma: no cover
                 sts = TEST_FAILED
                 break
         ctx['min_test'] = ctx['ctr']
@@ -1380,10 +1383,11 @@ class Z0test(object):
                      ctx.get('opt_noctr', False),
                      ctx.get('run4cover', False)))
         # Execute sanity check on test library (no if zerobug testing itself)
-        if ctx['this'] != 'test_zerobug' and \
-                ctx.get('run_on_top', False) and \
-                not ctx.get('_run_autotest', False):
-            sts = self.sanity_check('-q')
+        if (ctx['this'] != 'test_zerobug' and
+                ctx.get('run_on_top', False) and
+                not ctx.get('_run_autotest', False)):
+            # sts = self.sanity_check('-q')
+            sts = 0  #debug
             if sts == TEST_FAILED:                         # pragma: no cover
                 print("Invalid test library!")
                 exit(TEST_FAILED)
@@ -1391,20 +1395,21 @@ class Z0test(object):
         if UT is not None and isinstance(UT, list):
             self.dbgmsg(ctx, '- UT list')
             test_list = UT
-        elif not ctx['this'].startswith(self.pattern) and \
-                not ctx.get('_run_autotest', False):
-            self.dbgmsg(ctx, '- Search for files %s' % self.pattern)
-            test_files = os.path.abspath(
-                os.path.join(self.testdir,
-                             self.pattern))
-            for fn in sorted(glob.glob(test_files)):
-                if len(fn) - fn.rfind('.') <= 4:
-                    if fn.endswith('.py'):
+        elif not ctx.get('_run_autotest', False):
+            test_list = []
+            for pattern in ctx['opt_pattern'] and ctx['opt_pattern'].split(
+                    ',') or self.pattern:
+                self.dbgmsg(ctx, '- Search for files %s' % pattern)
+                test_files = os.path.abspath(
+                    os.path.join(self.testdir, pattern))
+                for fn in sorted(glob.glob(test_files)):
+                    if len(fn) - fn.rfind('.') <= 4:
+                        if fn.endswith('.py'):
+                            test_list.append(fn)
+                        elif os.access(fn, os.X_OK) and fn.endswith('.sh'):
+                            test_list.append(fn)
+                    elif os.access(fn, os.X_OK) and os.name == 'posix':
                         test_list.append(fn)
-                    elif os.access(fn, os.X_OK) and fn.endswith('.sh'):
-                        test_list.append(fn)
-                elif os.access(fn, os.X_OK) and os.name == 'posix':
-                    test_list.append(fn)
         if len(test_list) == 0 and Test is not None:
             self.dbgmsg(ctx, '- len(test_list) == 0 ')
             test_num = 0

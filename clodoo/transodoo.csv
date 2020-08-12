@@ -1,7 +1,7 @@
 model	name	type	hash	6.1	7.0	8.0	9.0	10.0	11.0	12.0	13.0	14.0
+account_move_line		field	RECONCILED|RECONCILE_ID	reconciled	reconciled	reconciled	reconciled	reconcile_id	reconcile_id	reconcile_id	reconcile_id	reconcile_id
 account.account		field	TYPE|INTERNAL_TYPE	type	type	type	internal_type	internal_type	internal_type	internal_type	internal_type	internal_type
 account.account		field	USER_TYPE|USER_TYPE_ID	user_type	user_type	user_type	user_type_id	user_type_id	user_type_id	user_type_id	user_type_id	user_type_id
-account.account.type		field	REPORT_TYPE|TYPE	report_type	report_type	report_type	type	type	type	type	type	type
 account.account.type	name	value	name|Asset View		Asset View	Asset View						
 account.account.type	name	value	name|Asset View|Non-current Assets	Asset View	Asset View	Asset View	Non-current Assets	Non-current Assets	Non-current Assets	Non-current Assets	Non-current Assets	Non-current Assets
 account.account.type	name	value	name|Asset|Current Assets	Asset	Asset	Asset	Current Assets	Current Assets	Current Assets	Current Assets	Current Assets	Current Assets
@@ -45,6 +45,7 @@ account.account.type	type	value	type|income|other	income	income	income	other	oth
 account.account.type	type	value	type|liability|other	liability	liability	liability	other	other	other	other	other	other
 account.account.type	type	value	type|liability|payable	liability	liability	liability	payable	payable	payable	payable	payable	payable
 account.account.type	type	value	type|none|other	none	none	none	other	other	other	other	other	other
+account.account.type		field	REPORT_TYPE|TYPE	report_type	report_type	report_type	type	type	type	type	type	type
 account.invoice		action	ACTION_CANCEL|ACTION_INVOICE_CANCEL	action_cancel	action_cancel	action_cancel	action_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel
 account.invoice		action	INVOICE_CANCEL_DRAFT|ACTION_INVOICE_DRAFT	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft
 account.invoice		action	INVOICE_OPEN|ACTION_INVOICE_OPEN	invoice_open	invoice_open	invoice_open	invoice_open	action_invoice_open	action_invoice_open	action_invoice_open	action_invoice_open	action_invoice_open
@@ -54,11 +55,12 @@ account.invoice		field	PAYMENT_TERM|PAYMENT_TERM_ID	payment_term	payment_term	pa
 account.invoice		field	SUPPLIER_INVOICE_NUMBER|REFERENCE	supplier_invoice_number	supplier_invoice_number	supplier_invoice_number	reference	reference	reference	reference	reference	reference
 account.invoice.line		field	INVOICE_LINE_TAX_ID|INVOICE_LINE_TAX_IDS	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids
 account.invoice.line		field	UOS_ID|UOM_ID	uos_id	uos_id	uos_id	uom_id	uom_id	uom_id	uom_id	uom_id	uom_id
+"account.payment.term
+"	percent	value	procent|percent	procent	procent	procent	percent	percent	percent	percent	percent	percent
+account.tax	amount	value	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}
 account.tax		field	ACCOUNT_COLLECTED_ID|ACCOUNT_ID	account_collected_id	account_collected_id	account_collected_id	account_id	account_id	account_id	account_id	account_id	account_id
 account.tax		field	ACCOUNT_PAID_ID|REFUND_ACCOUNT_ID	account_paid_id	account_paid_id	account_paid_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id
 account.tax		field	TYPE|AMOUNT_TYPE	type	type	type	amount_type	amount_type	amount_type	amount_type	amount_type	amount_type
-account.tax	amount	value	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}
-account_move_line		field	RECONCILED|RECONCILE_ID	reconciled	reconciled	reconciled	reconciled	reconcile_id	reconcile_id	reconcile_id	reconcile_id	reconcile_id
 ir.model		merge	RES.PARTNER.ADRESS|RES.PARTNER	res.partner.adress	res.partner	res.partner	res.partner	res.partner	res.partner	res.partner	res.partner	res.partner
 ir.model		model	BASE.ACTION.RULE.LEAD.TEST|BASE.AUTOMATION.LEAD.TEST	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.automation.lead.test	base.automation.lead.test	base.automation.lead.test	base.automation.lead.test
 ir.model		model	BASE.ACTION.RULE.LINE.TEST|BASE.AUTOMATION.LINE.TEST	base.action.rule.line.test	base.action.rule.line.test	base.action.rule.line.test	base.action.rule.line.test	base.action.rule.line.test	base.automation.line.test	base.automation.line.test	base.automation.line.test	base.automation.line.test
@@ -307,15 +309,15 @@ res.groups	ADMINISTRATION_SETTINGS	name		base.group_erp_manager	base.group_erp_m
 res.groups	FINANCIAL_MANAGER	name		Manager	Financial Manager	Financial Manager	Adviser	Adviser	Adviser	Adviser	Adviser	Adviser
 res.groups	KNOWLEDGE	name		Knowledge Management	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge
 res.groups	KNOWLEDGE_USER	name		User	User	User	Knowledge user	Knowledge user	Knowledge user	Knowledge user	Knowledge user	Knowledge user
-res.groups	MANAGER	name		Manager	Manager	Manager	Manager	Manager	Manager	Manager	Manager	Manager
 res.groups	MANAGE_INVENTORY_VALUATION	name		Manage Inventory valuation	Manage Inventory valuation	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods
 res.groups	MANAGE_LOGISTIC_SERIAL_NUMBERS	name		Manage Logistic Serial Numbers	Manage Logistic Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers
 res.groups	MANAGE_MULTIPLE_LOCATION	name		Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage multiple stock_locations	Manage multiple stock_locations	Manage multiple stock_locations	Manage multiple stock_locations	Manage multiple stock_locations
 res.groups	MANAGE_SERIAL_NUMBERS	name		Manage Serial Numbers	Manage Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers
+res.groups	MANAGER	name		Manager	Manager	Manager	Manager	Manager	Manager	Manager	Manager	Manager
 res.groups	POINT_OF_SALE	name		Point of Sales	Point of Sale	Point of Sale	Point of Sale	Point of Sale	Point of Sale	Point of Sale	Point of Sale	Point of Sale
 res.groups	PROJECT	name		Project Management	Project	Project	Project	Project	Project	Project	Project	Project
-res.groups	PURCHASES	name		Purchase Management	Purchases	Purchases	Purchases	Purchases	Purchases	Purchases	Purchases	Purchases
 res.groups	PURCHASE_PRICELISTS	name		Purchase Pricelists	Purchase Pricelists	Purchase Pricelists	Pricelists On Product	Pricelists On Product	Pricelists On Product	Pricelists On Product	Pricelists On Product	Pricelists On Product
+res.groups	PURCHASES	name		Purchase Management	Purchases	Purchases	Purchases	Purchases	Purchases	Purchases	Purchases	Purchases
 res.groups	SALES	name		Sales Management	Sales	Sales	Sales	Sales	Sales	Sales	Sales	Sales
 res.groups	USER_ALL	name		User - All Leads	See all Leads	See all Leads	See all Leads	User: All Documents	User: All Documents	User: All Documents	User: All Documents	User: All Documents
 res.groups	USER_OWN	name		User	User	See Own Leads	See Own Leads	User: Own Documents Only	User: Own Documents Only	User: Own Documents Only	User: Own Documents Only	User: Own Documents Only
@@ -336,7 +338,6 @@ res.users		field	CONTEXT_TZ|TZ	context_tz	tz	tz	tz	tz	tz	tz	tz	tz
 res.users		field	COUNTRY_ID		country_id	country_id	country_id	country_id	country_id	country_id	country_id	country_id
 res.users		field	PARTNER_ID		partner_id	partner_id	partner_id	partner_id	partner_id	partner_id	partner_id	partner_id
 res.users		field	USER_EMAIL|EMAIL	user_email	email	email	email	email	email	email	email	email
-sale.order		action	ORDER_CONFIRM|ACTION_CONFIRM	order_confirm	order_confirm	order_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm
 sale.order	state	value	state|cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel
 sale.order	state	value	state|done	done	done	done	done	done	done	done	done	done
 sale.order	state	value	state|draft	draft	draft	draft	draft	draft	draft	draft	draft	draft
@@ -346,6 +347,7 @@ sale.order	state	value	state|progress|sale	progress	progress	progress	sale	sale	
 sale.order	state	value	state|sent	sent	sent	sent	sent	sent	sent	sent	sent	sent
 sale.order	state	value	state|shipping_except|sale	shipping_except	shipping_except	shipping_except	sale	sale	sale	sale	sale	sale
 sale.order	state	value	state|waiting_date|sale	waiting_date	waiting_date	waiting_date	sale	sale	sale	sale	sale	sale
+sale.order		action	ORDER_CONFIRM|ACTION_CONFIRM	order_confirm	order_confirm	order_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm
 sale.order.line	state	value	state|cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel
 sale.order.line	state	value	state|confirmed|sale	confirmed	confirmed	confirmed	confirmed	sale	sale	sale	sale	sale
 sale.order.line	state	value	state|done	done	done	done	done	done	done	done	done	done

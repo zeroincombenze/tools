@@ -29,7 +29,7 @@ from zerobug import Z0test
 from z0lib import z0lib
 
 
-__version__ = "0.2.9.2"
+__version__ = "0.2.9.3"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
@@ -158,7 +158,4 @@ if __name__ == "__main__":
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
-    sts = Z.main(ctx, RegressionTest)
-    exit(sts)
-
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+    exit(Z.main(ctx, RegressionTest))
