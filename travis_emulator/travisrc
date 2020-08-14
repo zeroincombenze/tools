@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.3.4
+#__version__=0.2.3.5
 
 
 MAKEF=$HOME/dev/Makefile
@@ -35,7 +35,7 @@ fi
 . $ODOOLIBDIR
 
 opts_travis() {
-#opts_travis(git-org/pkgname)
+# opts_travis(git-org/pkgname)
     local b x
     REMOTEREPO=
     PRJNAME=
@@ -43,10 +43,8 @@ opts_travis() {
     PKGNAME=
     PKGPATH=
     REPOSNAME=
-    if [ -n "$1" ]; then
-        IFS="/" read REMOTEREPO x <<< "$1"
-    fi
-    [ -z "$REMOTEREPO" ] && REMOTEREPO="local"
+    [[ -n "$1" ]] && IFS="/" read REMOTEREPO x <<< "$1"
+    [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
     build_pypi_param ALL $1
     export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
     if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
@@ -95,9 +93,11 @@ inherits_travis_opts() {
     A[T]="BcKPpqrTv"
     A[8]="dnquv"
     if [ -n "$2" ]; then
-      for o in C c d F f K j m n O o P p q R r T u v; do
+      for o in B C c d F f K j m n O o P p q R r T u v; do
         if [[ ${A[$2]} =~ $o ]]; then
-          if [ "$o" == "C" -a "$opt_cpush" == "-$o" ]; then
+          if [ "$o" == "B" -a $opt_debug -ne 0 ]; then
+            opts="${opts}$B"
+          elif [ "$o" == "C" -a "$opt_cpush" == "-$o" ]; then
             opts="${opts}$o"
           elif [ "$o" == "d" -a ${opt_diff:-0} -gt 0 ]; then
             opts="${opts}$o"
@@ -110,9 +110,7 @@ inherits_travis_opts() {
           elif [ "$o" == "n" -a ${opt_dry_run:-0} -gt 0 ]; then
             opts="${opts}$o"
           elif [ "$o" == "o" ]; then
-            if [ -n "$opt_ids" ]; then
-              opts2="-o$opt_ids"
-            fi
+            [ -n "$opt_ids" ] && opts2="-o$opt_ids"
           elif [ "$o" == "P" -a "$opt_cpush" == "-$o" ]; then
             opts="${opts}$o"
           elif [ "$o" == "p" -a "${opt_pyth:-0}" -gt 0 ]; then
@@ -135,7 +133,7 @@ inherits_travis_opts() {
     fi
 
     if [ "$2" == "T" ]; then
-      if [[ $e =~ [BK] ]]; then
+      if [[ $e =~ [K] ]]; then
         export BASH_CHECK="1"
       fi
       if [[ $e =~ [PK] ]]; then
@@ -188,19 +186,17 @@ get_value_from_file() {
 build_pypi_param() {
 # build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
     local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
-    [ -z "$ODOO_SETUPS" ] && ODOO_SETUPS="__openerp__.py,__manifest__.py"
+    [[ -z "$ODOO_SETUPS" ]] && ODOO_SETUPS="__openerp__.py,__manifest__.py"
     local ODOO_SETUPS=${ODOO_SETUPS//,/ }
     local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
     local r w x="$PWD"
     [ -n "$2" -a "$2" != "local" ] && x=$2
-    if [[ ! "$x" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
-        x=$(readlink -e $HOME/pypi/$2/$2)
-    fi
+    [[ "$x" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]] || x=$(readlink -e $HOME/pypi/$2/$2)
     r=
     for ODOO_SETUP in $ODOO_SETUPS; do
         r="$r -o -name $ODOO_SETUP"
     done
-    [ ${opt_dry_run:-0} -eq 0 ] && echo "find $x -maxdepth 2 -not -path '*tests*' ${r:3}|head -n1"      #debug
+    # [ ${opt_dry_run:-0} -eq 0 ] && echo "find $x -maxdepth 2 -not -path '*tests*' ${r:3}|head -n1"      #debug
     w=$(find $x -maxdepth 2 -not -path '*tests*' ${r:3}|head -n1)
     if [ -n "$w" ]; then
       _PRJNAME="Odoo"

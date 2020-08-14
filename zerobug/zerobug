@@ -16,7 +16,7 @@ except ImportError:
     from zerobug import Z0BUG
 
 
-__version__ = "0.2.15.4"
+__version__ = "0.2.15.5"
 
 
 def version():

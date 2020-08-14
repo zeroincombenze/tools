@@ -31,7 +31,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.15.4
+__version__=0.2.15.5
 
 
 travis_test_bash() {
@@ -123,14 +123,12 @@ please_test_pylint() {
 }
 
 run_regression_test() {
-    local x
+    local x opts OPTS
     echo "======== Running regression_test ========"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-            local OPTS=$(inherits_travis_opts "nB" "T")
-        else
-            local OPTS=$(inherits_travis_opts "B" "T")
-        fi
+        [[ "$TRAVIS_PDB" == "True" ]] && opts="${opts}B"
+        [[ "$TRAVIS_DEBUG_MODE" == "9" ]] && opts="${opts}n"
+        OPTS=$(inherits_travis_opts "$opts" "T")
         run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"
         COVERAGE_PROCESS_START=$(readlink -f .coveragerc)
         if [ ! -f $COVERAGE_PROCESS_START ]; then
@@ -182,30 +180,30 @@ EOF
         fi
         if [ -f ./tests/all_tests.py ]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
-                run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py"
+                run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py $OPTS"
             else
-                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py"
+                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py $OPTS"
             fi
             sts=$?
         elif [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 ]]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
-                run_traced "./tests/all_tests $OPTS -1"
+                run_traced "./tests/all_tests $OPTS"
             else
-                run_traced "cd ./tests; ./all_tests $OPTS -1"
+                run_traced "cd ./tests; ./all_tests $OPTS"
             fi
             sts=$?
         elif [ -f ./tests/test_$PRJNAME.py ]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
-                run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py"
+                run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py $OPTS"
             else
-                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py"
+                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py $OPTS"
             fi
             sts=$?
         else
             if [ ${opt_dprj:-0} -gt 0 ]; then
-                run_traced "DEV_ENVIRONMENT=$PRJNAME $(which zerobug) -b"
+                run_traced "DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
             else
-                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) -b"
+                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
             fi
             sts=$?
         fi
@@ -417,33 +415,33 @@ fi
 if [[ $TRAVIS_PYTHON_VERSION =~ $PYPI_RUN_PYVER ]]; then
     [[ ! "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]] && PIP=pip || PIP=pip3
     [[ ! "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]] && PYTHON=python || PYTHON=python3
-    install_n_activate_tools
-    pth=
-    for p in $(readlink -e $TRAVIS_BUILD_DIR/..); do
-        pth=$p:$pth;
-    done
-    pth=${pth:0:-1}
-    set_pythonpath "$pth" "" $PIP
-    check_pythonpath "$pth" $PYTHON
-    [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-    [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-    if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-        echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | python3
-    else
-        echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | python
-    fi
-    if [ $opt_verbose -gt 0 ]; then
-        echo -e "\e[${PS_HDR3_COLOR}mPATH=$PATH\e[${PS_TXT_COLOR}m"
-        echo -e "\e[${PS_HDR3_COLOR}mPYTHONPATH=$PYTHONPATH\e[${PS_TXT_COLOR}m"
-        echo -e "\e[${PS_HDR3_COLOR}mBASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__\e[${PS_TXT_COLOR}m"
-        if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
-            if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-                echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | python3
-            else
-                echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | python
-            fi
-        fi
-    fi
+    # install_n_activate_tools
+    # pth=
+    # for p in $(readlink -e $TRAVIS_BUILD_DIR/..); do
+    #     pth=$p:$pth;
+    # done
+    # pth=${pth:0:-1}
+    # set_pythonpath "$pth" "" $PIP
+    # check_pythonpath "$pth" $PYTHON
+    # [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
+    # [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+    # if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
+    #     echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | python3
+    # else
+    #     echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | python
+    # fi
+    # if [ $opt_verbose -gt 0 ]; then
+    #     echo -e "\e[${PS_HDR3_COLOR}mPATH=$PATH\e[${PS_TXT_COLOR}m"
+    #     echo -e "\e[${PS_HDR3_COLOR}mPYTHONPATH=$PYTHONPATH\e[${PS_TXT_COLOR}m"
+    #     echo -e "\e[${PS_HDR3_COLOR}mBASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__\e[${PS_TXT_COLOR}m"
+    #     if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
+    #         if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
+    #             echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | python3
+    #         else
+    #             echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | python
+    #         fi
+    #     fi
+    # fi
     if [ $BASH_CHECK_ENABLED -gt 0 ]; then
         [ "$TRAVIS_DEBUG_MODE" == "9" ] || travis_test_bash
         sts_bash=$?

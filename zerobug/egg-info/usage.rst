@@ -1,15 +1,3 @@
-
-Test main file (usually is called `all_tests`) execute the test suite declared
-in source file. If no test list declared, it searches for test runner files
-named 'test_[0-9]\*' executed in sorted order.
-
-Test suite is a collection of test case named 'test_[0-9]\*'
-executed in sorted order.
-
-Because *zerobug* can show total number of unit test to execute, it run tests
-in 2 passes. In the first pass it counts tests, in second pass executes really
-it.
-
 ::
 
     usage: zerobug [-h] [-b] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O] [-q]

@@ -4,53 +4,6 @@
 # Travis-ci emulator
 # Emulate travis-ci on local machine, to test before upgrade git project
 #
-# Tree directory: see README of MQT for furthermore info
-#   ~/tools                             stable environment
-#       ./travis_emulator               stable travis emulator
-#       ./maintainer-quality-tools      copied to $HOME when running test
-#           ./_travis                   TOOLS_PATH (script like travis_runs_tests, travis_after_tests_success)
-#           travis.yml                  YML_FILE: default travis.yml file (-r or missed in tested dir)
-#               ./cfg                   pylint & flake8 conf files (-r switch) -> FLAKE8_CONFIG_DIR
-#           ./travis                    MQT_PATH
-#               ./cfg                   pylint & flake8 conf files -> FLAKE8_CONFIG_DIR
-#       ./clodoo                        tool to build environment
-#       ./lisa                          tool to build environment
-#   ~/dev[el]                           alternate stable environment -> TOOLS_PATH (old dev)
-#       ./clodoo                        alternate tool to build environment
-#       ./lisa                          alternate tool to build environment
-#   ~/dev[el]/pypi/                     development environment (-M switch)
-#       ./travis_emulator
-#           ./travis_emulator           development travis emulator
-#       ./maintainer-quality-tools
-#           ./maintainer-quality-tools  copied to $HOME when running test
-#               ./_travis               TOOLS_PATH  (-M switch)
-#               travis.yml              YML_FILE: default travis.yml file (-M and -r or missed in tested dir)
-#                   ./cfg               pylint & flake8 conf files (-r switch) -> FLAKE8_CONFIG_DIR
-#               ./travis                MQT_PATH (-M switch)
-#                   ./cfg               pylint & flake8 conf files -> FLAKE8_CONFIG_DIR
-#       ./clodoo
-#           ./clodoo                    tool to build environment (-M switch)
-#       ./lisa
-#           ./lisa                      tool to build environment (-M switch)
-#
-# Yaml file process steps:
-#  1.Initialize from local .travis.conf (not in travis-ci.org)
-#  2.Install packages from <apt addons>
-#  3.Install packages from cache
-#  4.Execute global from <env global>
-#  5.Execute code from <before_install>
-#  6.Execute matrix initialization
-#  7.Execute code from <install>
-#  8.Execute matrix code from <before_script>
-#  9.Execute matrix code from <script>
-# 10.Execute code from <before_cache> (not emulated)
-# 11.Execute code from <after_success> (emulated) o <after_failure> (not emulated)
-# 12.Execute code from <before_deploy> (not emulated)
-# 13.Execute code from <deploy> (not emulated)
-# 14.Execute code from <after_deploy> (not emulated)
-# 15.Execute code from <after_script> (not emulated)
-# 16.Wep from local .travis.conf (not in travis-ci.org)
-#
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
@@ -85,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.4
+__version__=0.2.3.5
 
 
 store_cfg_param_value() {
@@ -741,11 +694,11 @@ process_yaml_run_cmd() {
           xcmd=$(echo $xcmd|sed -e "s|${x[$ix]}|${x[$ix]}$YML_pid|g")
         elif [[ "${x[$ix]}" =~ MQT_TEST_DB= ]]; then
           xcmd=$(echo $xcmd|sed -e "s|${x[$ix]}|${x[$ix]}$YML_pid|g")
-        elif [[ "${x[$ix]}" =~ ODOO_REPO=.$YML_repo. ]]; then
-          if [ ${opt_virt:-0} -eq 0 ]; then
-            xcmd=$(echo $xcmd|sed -e "s|$YML_repo|local/odoo|g")
-            x[$ix]=$(echo x[$ix]|sed -e "s|$YML_repo|local/odoo|g")
-          fi
+        # elif [[ "${x[$ix]}" =~ ODOO_REPO=.$YML_repo. ]]; then
+        #   if [ ${opt_virt:-0} -eq 0 ]; then
+        #     xcmd=$(echo $xcmd|sed -e "s|$YML_repo|local/odoo|g")
+        #     x[$ix]=$(echo x[$ix]|sed -e "s|$YML_repo|local/odoo|g")
+        #   fi
         elif [[ "${x[$ix]}" =~ INCLUDE=..getaddons.py.*/opt/odoo/build/.*/OCB/openerp/addons.*/opt/odoo/build/.*/OCB/addons ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
             xcmd="$(echo $xcmd|sed -e 's|/opt/odoo/build/.*/OCB/|/opt/odoo/$BRANCH/|g')"
@@ -975,6 +928,7 @@ checkpid() {
 
 
 OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
+OPTLONG=(help     debug     no-cache  conf     deb-lev  savenv    full     force     ''       keep     lint-lev logdir         ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
 OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
 OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
 OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
@@ -997,7 +951,7 @@ OPTHELP=("this help"\
  "git organization, i.e. oca or zeroincombenze"\
  "prefer python test over bash test when avaiable"\
  "silent mode"\
- "run restricted mode (def parsing travis.yml file)"\
+ "run restricted mode (deprecated)"\
  "use python system packages (def yaml dependents)"\
  "show version"\
  "verbose mode"\
@@ -1098,10 +1052,10 @@ sts=$STS_SUCCESS
 prepare_env_travis "$action"
 echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
 if [ $sts -eq $STS_SUCCESS ]; then
-    if [ $opt_r -gt 0 ]; then
-        process_local
-        sts=$?
-    else
+    # if [ $opt_r -gt 0 ]; then
+    #     process_local
+    #     sts=$?
+    # else
         [[ "${opt_logdir:0:1}" == "~" ]] && opt_logdir=$HOME/${opt_logdir:1}
         mkdir -p $opt_logdir
         [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
@@ -1114,6 +1068,6 @@ if [ $sts -eq $STS_SUCCESS ]; then
             process_yaml 2>&1 | tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
             sts=$?
         fi
-    fi
+    # fi
 fi
 exit $sts

@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.3.4
+__version__=0.2.3.5
 
 
 save_testenv() {
@@ -556,7 +556,6 @@ if [ ${opt_tjLib:-0} -ne 0 ]; then
   fi
   . $TRAVISLIBDIR
 fi
-
 
 
 UT1_LIST=""

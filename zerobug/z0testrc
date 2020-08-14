@@ -63,7 +63,7 @@
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.15.4
+__version__=0.2.15.5
 
 export opt_dry_run
 export ctr
@@ -222,15 +222,11 @@ inherit_opts() {
     else
       args="-q"
     fi
-    if [ ${opt_noctr:-0} -gt 0 ]; then
-      args="${args}0"
-    fi
+    [ ${opt_noctr:-0} -eq 0 ] || args="${args}0"
     if [ ${opt_verbose:-0} -gt 0 ]; then
       args="${args}v"
     fi
-    if [ ${opt_debug:-0} -ne 0 ]; then
-      args="${args}b"
-    fi
+    [ ${opt_debug:-0} -eq 0 ] || args="${args}B"
     if [ ${run4cover:-0} -ne 0 ]; then
       args="${args}1"
     fi

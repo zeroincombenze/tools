@@ -12,7 +12,7 @@ import os.path
 import sys
 from zerobug import Z0BUG
 
-__version__ = "0.2.15.4"
+__version__ = "0.2.15.5"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -27,20 +27,17 @@ def version():
 if __name__ == "__main__":
     ctx = Z0BUG.parseoptest(sys.argv[1:],
                             version=version())
-    if os.name == 'posix':
-        if os.environ.get('HOSTENV', '') == 'travis':
-            UT_LIST = ["__version_0_" + __version__]
-        else:
-            UT_LIST = [
-                "__version_0_" + __version__,
-                "__version_1_0.2.9.2%s/tools/z0lib/z0librc" % os.environ.get(
-                    'HOME', '')]
-        UT_LIST.append("__version_V_0.2.0${testdir}/dummy_01.py")
-        UT_LIST.append("__version_v_0.2.1${testdir}/dummy_01.py")
-        UT_LIST.append("__version_P_0.2.2${testdir}/dummy_01.py")
-    else:                                                   # pragma: no cover
-        UT_LIST = ["__version_0_" + __version__,
-                   "__version_V_0.2.0${testdir}/dummy_01.py",
-                   "__version_v_0.2.1${testdir}/dummy_01.py",
-                   "__version_P_0.2.2${testdir}/dummy_01.py"]
+    z0lib_file = ''
+    for fn in ('../zerobug/z0lib/z0lib/z0librc',
+               '../z0lib/z0librc',
+               os.path.expanduser('~/tools/z0lib/z0librc')):
+        if os.path.isfile(fn):
+            z0lib_file = fn
+            break
+    UT_LIST = ["__version_0_" + __version__]
+    if z0lib_file:
+        UT_LIST.append("__version_1_0.2.9.3%s" % z0lib_file)
+    UT_LIST.append("__version_V_0.2.0${testdir}/dummy_01.py")
+    UT_LIST.append("__version_v_0.2.1${testdir}/dummy_01.py")
+    UT_LIST.append("__version_P_0.2.2${testdir}/dummy_01.py")
     exit(Z0BUG.main(ctx, UT=UT_LIST))

@@ -19,24 +19,26 @@ Emulate travis to test application before pushing to git
 Travis emulator can emulate TravisCi parsing .travis.yml file in local Linux machine.
 You can test your application before pushing code to github.com web site.
 
-This emulator does following steps:
+A travis build does following steps:
 
 * Initialize from local .travis.conf (not in travis-ci.org)
-* Install packages from <apt addons>
-* Install packages from cache
-* Execute global from <env global>
-* Execute code from <before_install>
+* Optional install packages `apt addons`
+* Optional install packages `cache`
+* Set global values `env global`
+* Execute code `before_install`
 * Execute matrix initialization, included python version
-* Execute code from <install>
-* Execute matrix code from <before_script>
-* Execute matrix code from <script>
-* Execute code from <before_cache> (not emulated)
-* Execute code from <after_success> (emulated) o <after_failure> (not emulated)
-* Execute code from <before_deploy> (not emulated)
-* Execute code from <deploy> (not emulated)
-* Execute code from <after_deploy> (not emulated)
-* Execute code from <after_script> (not emulated)
+* Execute build code `install`
+* Execute build code `before_script`
+* Execute build code `script`
+* Execute build `before_cache` (only if cache is effective, not emulated)
+* Execute build code `after_success` (emulated) or `after_failure` (not emulated)
+* Optional code `before_deploy` (only if deployment is effective, not emulated)
+* Optional code `deploy` (not emulated)
+* Optional code `after_deploy` (only if deployment is effective, not emulated)
+* Execute code `after_script` (not emulated)
 * Wep from local .travis.conf (not in travis-ci.org)
+
+Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
 
 
 
@@ -71,39 +73,77 @@ Usage
 
 ::
 
-    Usage: travis [-hBC][-c file][-D number][-EFfjk][-L number][-l dir][-Mmn][-O git-org][-pqr][-S false|true][-VvW][-X 0|1][-Y file][-3] action sub sub2
+    Usage: travis [-hBC][-c file][-D number][-EFfjk][-L number][-l dir][-Mmn][-O git-org][-pqr][-S false|true][-Vv][-X 0|1][-Y file][-y pyver][-Z] action sub sub2
     Travis-ci emulator for local developer environment
     Action may be: [force-]lint, [force-]test, emulate (default), (new|chk|cp|mv|merge)_vm, chkconfig or parseyaml
-     -h              this help
-     -B              debug mode: do not create log
-     -C              do not use stored PYPI
-     -c file         configuration file (def .travis.conf)
-     -D number       travis_debug_mode: may be 0,1,2 or 9 (def yaml dependents)
-     -E              save virtual environment as ~/VME/VME{version}
-     -F              run final travis with full features
-     -f              force yaml to run w/o cmd subst
-     -j              execute tests in project dir rather in test dir (or expand macro if parseyaml)
-     -k              keep DB and virtual environment after tests
-     -L number       lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml
-     -l dir          log directory (def=~/travis_log)
-     -M              use local MQT
-     -m              show missing line in report coverage
-     -n              do nothing (dry-run)
-     -O git-org      git organization, i.e. oca or zeroincombenze
-     -p              prefer python test over bash test when avaiable
-     -q              silent mode
-     -r              run restricted mode (def parsing travis.yml file)
-     -S false|true   use python system packages (def yaml dependents)
-     -V              show version
-     -v              verbose mode
-     -W              do not use virtualenv to run tests
-     -X 0|1          enable translation test (def yaml dependents)
-     -Y file         file yaml to process (def .travis.yml)
-     -3              use python3
+     -h                      this help
+     -B                      debug mode: do not create log
+     -C                      do not use stored PYPI
+     -c file                 configuration file (def .travis.conf)
+     -D number               travis_debug_mode: may be 0,1,2 or 9 (def yaml dependents)
+     -E                      save virtual environment as ~/VME/VME{version}
+     -F                      run final travis with full features
+     -f                      force yaml to run w/o cmd subst
+     -j                      execute tests in project dir rather in test dir (or expand macro if parseyaml)
+     -k                      keep DB and virtual environment after tests
+     -L number               lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml
+     -l dir                  log directory (def=~/travis_log)
+     -M                      use local MQT (deprecated)
+     -m                      show missing line in report coverage
+     -n                      do nothing (dry-run)
+     -O git-org              git organization, i.e. oca or zeroincombenze
+     -p                      prefer python test over bash test when avaiable
+     -q                      silent mode
+     -r                      run restricted mode (def parsing travis.yml file)
+     -S false|true           use python system packages (def yaml dependents)
+     -V                      show version
+     -v                      verbose mode
+     -X 0|1                  enable translation test (def yaml dependents)
+     -Y file                 file yaml to process (def .travis.yml)
+     -y pyver                test with specific python versions (comma separated)
+     -Z                      use local zero-tools
+
+
+Tree directory
+~~~~~~~~~~~~~~
+
+While travis is running this is the tree directory:
+
+::
+
+    \${HOME}
+    ┣━━ build                       # build root (by TravisCI)
+    ┃    ┣━━ \${TRAVIS_BUILD_DIR}   # testing project repository (by TravisCI)
+    ┃    ┗━━ \${ODOO_REPO}          # Odoo or OCA/OCB repository to check with    (1) (2)
+    ┃
+    ┣━━ \${ODOO_REPO}-\${VERSION}   # symlnk of ${HOME}/build/{ODOO_REPO}         (1)
+    ┃
+    ┣━━ dependencies                # Odoo dependencies                           (3)
+    ┃
+    ┗━━ tools                       # clone of Zeroincombenze tools               (3) (4)
+         ┃
+         ┣━━ zerobug                # testing library
+         ┃       ┗━━ _travis        # testing commands
+         ┗━━ z0bug_odoo             # Odoo testing library
+                 ┗━━ _travis        # testing commands
+
+    (1) Directory with Odoo or OCA/OCB repository to check compatibility of testing project
+    (2) If testing project is OCB, travis_install_env ignore this directory
+    (3) Done reading one of following statements in .travis.yml:
+        - travis_install_env
+        Above statements replace the OCA statements:
+        - travis_install_nightly
+    (4) Done by following statements in .travis.yml::
+        - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
+        - \${HOME}/tools/install_tools.sh -qopt
+        - source ${HOME}/dev/activate_tools
+        Above statements replace OCA following statements:
+        - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
+        - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
 
 
 Configuration file
-------------------
+~~~~~~~~~~~~~~~~~~
 
 Values in configuration file are:
 
@@ -188,12 +228,12 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-10
+Last Update / Ultimo aggiornamento: 2020-08-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.2.27
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg

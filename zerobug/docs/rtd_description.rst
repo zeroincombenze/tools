@@ -11,20 +11,31 @@ Supported languages are *python* (through z0testlib.py) and *bash* (through z0te
 and independence of the tests from the reporting framework.
 The *zerobug* module provides all code that make it easy to support testing
 both for python programs both for bash scripts.
-*zerobug* differs from pytest standard library because show execution test with
-a message like "n/tot message" where *n* is current unit test and *tot* is the
-total unit test to execute, that is a sort of advancing test progress.
+*zerobug* shows execution test with a message like "n/tot message"
+where *n* is current unit test and *tot* is the total unit test to execute,
+that is a sort of advancing test progress.
+
+You can use z0bug_odoo that is the odoo integration to test Odoo modules.
 
 *zerobug* is built on follow concepts:
 
 * test main - it is a main program to executes all test runners
 * test runner - it is a program to executes one or more test suites
 * test suite - it is a collection of test cases
-* test case -it is a smallest unit test
+* test case - it is a smallest unit test
 
-You can you z0bug_odoo that is teh odoo integration to test Odoo modules.
+The main file is the command **zerobug** of this package; it searches for test runner files
+named `[id_]test_` where 'id' is the shor name of testing package.
 
+Test suite is a collection of test case named `test_[0-9]+` inside the runner file,
+executed in sorted order.
 
+Every suit can contains one or more test case, the smallest unit test;
+every unit test terminates with success or with failure.
+
+Because **zerobug** can show total number of unit test to execute, it runs tests
+in 2 passes. In the first pass it counts the number of test, in second pass executes really
+it. This behavior can be overridden by -0 switch.
 
 
 
@@ -35,7 +46,7 @@ You can you z0bug_odoo that is teh odoo integration to test Odoo modules.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-12
+Last Update / Ultimo aggiornamento: 2020-08-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -49,23 +60,23 @@ Last Update / Ultimo aggiornamento: 2020-08-12
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.15.4
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.15.4
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.15.5
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.15.5
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.4/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.4
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.5/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.5
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.15.4/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.15.5/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.15.4/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.15.5/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.15.4/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.15.4
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.15.5/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.15.5
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

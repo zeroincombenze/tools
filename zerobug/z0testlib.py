@@ -151,7 +151,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.15.4"
+__version__ = "0.2.15.5"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -203,7 +203,7 @@ DEFDCT = {'run4cover': False,
           'opt_debug': False,
           'opt_new': False}
 #
-LX_OPT_ARGS = {'opt_debug': '-b',
+LX_OPT_ARGS = {'opt_debug': '-B',
                'opt_echo': '-e',
                'opt_tjlib': '-J',
                'logfn': '-l',
@@ -366,7 +366,7 @@ class SanityTest():
                                      ctx['opt_noctr'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -b",
+                                     "Opt -B",
                                      0,
                                      ctx['opt_debug'])
         if sts == TEST_SUCCESS:
@@ -578,7 +578,7 @@ class SanityTest():
             sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
             sts = self.Z.test_result(z0ctx,
                                      "UT -0",
-                                     3,
+                                     0,
                                      ctx['max_test'])
         if sts == TEST_SUCCESS:
             opts = ['-n']
@@ -604,7 +604,7 @@ class SanityTest():
             sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
             sts = self.Z.test_result(z0ctx,
                                      "UT -n -0",
-                                     3,
+                                     0,
                                      ctx['max_test'])
         if sts == TEST_SUCCESS:
             opts = ['-z13', '-n']
@@ -752,7 +752,7 @@ class Z0test(object):
             description="Regression test on " + self.module_id,
             epilog="© 2015-2020 by SHS-AV s.r.l."
                    " - http://wiki.zeroincombenze.org/en/Zerobug")
-        parser.add_argument("-b", "--debug",
+        parser.add_argument("-B", "--debug",
                             help="trace msgs in zerobug.tracehis",
                             action="store_true",
                             dest="opt_debug",
@@ -861,14 +861,18 @@ class Z0test(object):
                 ('max_test' not in ctx or
                  ctx.get('max_test', None) is None):
             ctx['run_on_top'] = True
-            del ctx['min_test']
-            del ctx['max_test']
+            # del ctx['min_test']
+            # del ctx['max_test']
+            ctx['min_test'] = 0
+            ctx['max_test'] = 0
         else:
             ctx['run_on_top'] = False
             if not ctx.get('min_test', None):
                 ctx['min_test'] = 0
             if not ctx.get('max_test', None):
                 ctx['max_test'] = 0
+        ctx['min_test'] = int(ctx.get('min_test', '0'))
+        ctx['max_test'] = int(ctx.get('max_test', '0'))
         if 'opt_echo' not in ctx or ctx['opt_echo'] is None:
             ctx['opt_echo'] = ctx['run_tty']
         if ctx['dry_run']:
@@ -1167,13 +1171,12 @@ class Z0test(object):
 
     def exec_tests_4_count(self, test_list, ctx, TestCls=None):
         if ctx.get('_run_autotest', False):
-            self.dbgmsg(ctx, '.exec_tests_4_count (autotest)')
+            self.dbgmsg(ctx, '>>> exec_tests_4_count(autotest)')
         else:
-            self.dbgmsg(ctx, '.exec_tests_4_count')
+            self.dbgmsg(ctx, '>>> exec_tests_4_count(%s)' % test_list)
         opt4childs = ['-n']
         ctx = self.ready_opts(ctx)
         ctx = self.save_options(ctx)
-        # self.actrs = []
         testctr = 0
         if TestCls:
             T = TestCls(self)
@@ -1209,7 +1212,7 @@ class Z0test(object):
                         test_w_args = ['python'] + [testname] + opt4childs
                 else:
                     test_w_args = [testname] + opt4childs
-                self.dbgmsg(ctx, " %s" % test_w_args)
+                self.dbgmsg(ctx, ">>>  test_w_args=%s" % test_w_args)
                 p = Popen(test_w_args,
                           stdin=PIPE,
                           stdout=PIPE,
@@ -1282,12 +1285,12 @@ class Z0test(object):
                 self.doctest(ctx, testname)
             elif TestCls and hasattr(TestCls, testname):
                 if ctx.get('opt_debug', False):
-                    self.dbgmsg(ctx, " %s" % testname)
+                    self.dbgmsg(ctx, ">>> %s()" % testname)
                 sts = getattr(T, testname)(ctx)
             elif os0.nakedname(basetn) != ctx['this']:
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
-                if basetn[-3:] == '.py' or basetn[-4:] == '.pyc':
+                if basetn.endswith('.py') or basetn.endswith('.pyc'):
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
                     if os.environ.get('TRAVIS_PDB') == 'True':
                         if ctx.get('python3', False):
@@ -1310,14 +1313,13 @@ class Z0test(object):
                             test_w_args = ['python3'] + [testname] + opt4childs
                         else:
                             test_w_args = ['python'] + [testname] + opt4childs
-                    self.dbgmsg(ctx, " %s" % test_w_args)
-                    print('#DEBUG>>> subprocess.call(%s)' % test_w_args)
+                    self.dbgmsg(ctx, ">>> subprocess.call(%s)" % test_w_args)
                     try:
                         sts = subprocess.call(test_w_args)
                     except OSError:
                         sts = 127
                 else:
-                    self.dbgmsg(ctx, " %s %s" % (testname, opt4childs))
+                    self.dbgmsg(ctx, ">>> %s(%s)" % (testname, opt4childs))
                     test_w_args = [testname] + opt4childs
                     try:
                         sts = subprocess.call(test_w_args)
@@ -1335,7 +1337,7 @@ class Z0test(object):
 
     def main_local(self, ctx, Test, UT1=None, UT=None):
         """Default main program for local tests"""
-        self.dbgmsg(ctx, '.main_local')
+        self.dbgmsg(ctx, '>>> main_local(%s)' % Test)
         test_num = 0
         test_list = []
         for i in range(MAX_TEST_NUM):
@@ -1368,13 +1370,12 @@ class Z0test(object):
         UT1: protected Unit Test list (w/o log)
         UT: Unit Test list (if None, search for files)
         """
-        # main_file is obsolete
         if ctx is None:
             ctx = self.ctx
         if (ctx.get('opt_debug', False) and
                 ctx.get('run_on_top', False) and
                 not ctx.get('_run_autotest', False)):
-            self.dbgmsg(ctx, "!Test tree of %s!" % self.module_id)
+            self.dbgmsg(ctx, "# Test tree of %s!" % self.module_id)
         self.dbgmsg(ctx, '.main')
         self.dbgmsg(ctx,
                     '- min=%s, max=%s, -0=%s, Cover=%s' %
@@ -1390,10 +1391,10 @@ class Z0test(object):
             sts = 0  #debug
             if sts == TEST_FAILED:                         # pragma: no cover
                 print("Invalid test library!")
-                exit(TEST_FAILED)
+                exit(sts)
         test_list = []
         if UT is not None and isinstance(UT, list):
-            self.dbgmsg(ctx, '- UT list')
+            self.dbgmsg(ctx, '>>> test_list=%s' % UT)
             test_list = UT
         elif not ctx.get('_run_autotest', False):
             test_list = []
@@ -1419,7 +1420,8 @@ class Z0test(object):
                     test_list.append(tname)
                 test_num += 1
         self.dbgmsg(ctx, '- test_list=%s' % test_list)
-        self.exec_tests_4_count(test_list, ctx, Test)
+        if not ctx.get('opt_noctr', False):
+            self.exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['ctr'])
@@ -1438,14 +1440,14 @@ class Z0test(object):
                     print(fail_msg)
         return sts
 
-    def dbgmsg(self, ctx, msg):
+    def dbgmsg(self, ctx, msg, echo=None):
         if ctx.get('opt_debug', False):
-            if msg[0] == "!":
-                fd = open(os.path.join(self.testdir, 'z0bug.tracehis'), 'w')
-            else:
-                fd = open(os.path.join(self.testdir, 'z0bug.tracehis'), 'a')
-            fd.write("%s> %s\n" % (os.path.basename(ctx['this_fqn']), msg))
-            fd.close()
+            fmode = 'w' if msg[0] == "!" else 'a'
+            with open(os.path.join(
+                    self.testdir, 'z0bug.tracehis'), fmode) as fd:
+                fd.write("%s> %s\n" % (os.path.basename(ctx['this_fqn']), msg))
+        if echo:
+            print('#DEBUG>>> %s' % msg)
 
     def msg_test(self, ctx, msg):
         # ctx = self.ready_opts(ctx)
