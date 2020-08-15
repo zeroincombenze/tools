@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.15.5
+__version__=0.2.15.6
 
 
 run_coverage_test() {
@@ -46,30 +46,17 @@ run_coverage_test() {
 
 coverage_combine_n_report() {
 # coverage_combine_n_report pkglist
-    cd $PRJPATH
-    local COVRF=.coverage
-    if [ -f ./$COVRF ]; then
-      rm -f ./$COVRF
-    fi
-    local pkglist=${1//,/ }
-    for p in $pkglist; do
-      if [ -f $p/$COVRF ]; then
-        if [ -f ./$COVRF ]; then
-          run_traced "coverage combine ./$COVRF $p/$COVRF"
-        else
-          run_traced "cp $p/$COVRF ./$COVRF"
+    local COVRF=$MODULE_PATH/.coverage
+    local GBLCOVRF=${TRAVIS_BUILD_DIR}/.coverage
+    if [[ ! "$COVRF" == "$GBLCOVRF" ]]; then
+        if [ -f $COVRF ]; then
+            if [ -f $GBLCOVRF ]; then
+                run_traced "coverage combine $GBLCOVRF /$COVRF"
+            else
+                run_traced "coverage combine -a $GBLCOVRF /$COVRF"
+            fi
         fi
-      fi
-    done
-    coverage report
-    sts=$?
-    if [ $sts -eq $STS_SUCCESS ]; then
-      if [ -n "$COVERALLS_REPO_TOKEN" ]; then
-        COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN coveralls
-        sts=$STS_SUCCESS
-      fi
     fi
-    return $sts
 }
 
 run_coverage_1_test() {
@@ -148,7 +135,7 @@ OPTHELP=("this help"\
  "execute tests in project dir rather in test dir"\
  "do nothing (dry-run)"\
  "silent mode"\
- "run rescricted mode (w/o parsing travis.yml file)"\
+ "run restricted mode (deprecated)"\
  "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")
@@ -178,16 +165,16 @@ if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 prepare_env_travis "coverage"
 
-if [ -d $HOME/dev ]; then
-  [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
-  . $HOME/dev/activate_tools
-else
-  echo "!! Directory $HOME/dev not found!"
-fi
-if [ $opt_verbose -gt 0 ]; then
-  echo -e "\e[${PS_HDR3_COLOR}mPYTHONPATH=$PYTHONPATH\e[${PS_TXT_COLOR}m"
-  echo -e "\e[${PS_HDR3_COLOR}mBASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__\e[${PS_TXT_COLOR}m"
-fi
+# if [ -d $HOME/dev ]; then
+#   [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
+#   . $HOME/dev/activate_tools
+# else
+#   echo "!! Directory $HOME/dev not found!"
+# fi
+# if [ $opt_verbose -gt 0 ]; then
+#   echo -e "\e[${PS_HDR3_COLOR}mPYTHONPATH=$PYTHONPATH\e[${PS_TXT_COLOR}m"
+#   echo -e "\e[${PS_HDR3_COLOR}mBASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__\e[${PS_TXT_COLOR}m"
+# fi
 
 sts=$STS_SUCCESS
 if [ $test_mode -gt 0 ]; then
@@ -195,6 +182,7 @@ if [ $test_mode -gt 0 ]; then
   exit $STS_SUCCESS
 fi
 check_4_travis
-# run_coverage_test $pkglist
+coverage_combine_n_report
 run_traced "coverage report"
+[[ $TRAVIS =0 "true" ]] && run_traced "coveralls"
 exit $?
