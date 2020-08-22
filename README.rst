@@ -1,6 +1,6 @@
 
 ===============================
-|Zeroincombenze| tools 0.2.3.13
+|Zeroincombenze| tools 0.2.3.14
 ===============================
 
 |Build Status| |Coverage Status| |license gpl|
@@ -103,82 +103,67 @@ Components
 
 
 
+Odoo vid
+~~~~~~~~
+
+The odoo_vid is the code with a specific Odoo instance identification in multi instance environment.
+Imagine a scenario with different Odoo instance running on the same host.
+This is the development environment or the test environment.
+Every instance of Odoo must have a own configuration file and packages.
+Based on configuration file, every Odoo instance must have a own xmlrcp port, db user, log file, pid file, etcetera.
+
+So in this scenario every console command should supply all right values to aim the specific Odoo instance.
+
+The odoo_vid provides a simple way to manage multiple Odoo instance.
+Supplying odoo_vid you select the specific parameters values just in one code.
+
+The code contains the following information:
+
+* Odoo version
+* Odoo distribution
+
+Odoo version is the Odoo specific version; it is one value of: 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1
+
+Odoo distribution is on of: axitec,flectra,librerp,oca,zero or nothing
+
+Examples:
+
+* 12.0 -> Odoo 12.0, anonymous distribution
+* oca13 -> Odoo 13.0, distribution oca
+* librerp6 -> Odoo 6.1, distribution librerp
+
+Based on above information, tool software can assume the right value of specific Odoo instance.
+
+This table shows the Odoo parameter values based on odoo_vid;
+notice the symbol %M meaans Odoo major version and %V Odoo version.
+
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| Parameter name             | standard value             | anonymous distro     | zeroincombenze d | oca distro      | axitec distro   | Note                                     |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| ROOT (Odoo root)           |                            | ~/%V                 | ~/zero%M         | ~/oca%M         | ~/odoo_%M       | i.e. ~/oca14                             |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| CONFN (configuration file) | odoo.conf odoo-server.conf | odoo%M-server.conf   | odoo%M-zero.conf | odoo%M-oca.conf | odoo%M-axi.conf | Directory /etc/odoo (see Odoo structure) |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| USER (db user)             | odoo                       | odoo%M               | odoo%M           | odoo%M          | odoo%M          | i.e odoo12                               |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| FLOG (log file)            | odoo.log odoo-server.log   | odoo%M-server.log    | odoo%M-zero.log  | odoo%M-oca.log  | odoo%M-axi.log  | Directory /var/log/odoo                  |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| FPID (pid file)            | odoo.pid odoo-server.pid   | odoo%M-server.pid    | odoo%M-zero.pid  | odoo%M-oca.pid  | odoo%M-axi.pid  | Directory /var/run/odoo                  |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| RPCPORT (xmlrpc port)      | 8069                       | 8160 + %M            | 8460 + %M        | 8260 + %M       | 8360 + %M       |                                          |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| LPPORT (longpolling)       | 8072                       | 8130 + %M            | 8430 + %M        | 8230 + %M       | 8330 + %M       |                                          |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| SVCNAME (service name)     | odoo odoo-server           | odoo%M odoo%M-server | odoo%M-zero      | odoo%M-oca      | odoo%M-axi      |                                          |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+
+
+
+
 |it| Strumenti Python & bash
 ----------------------------
 
 Codice vario python & bash
-
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| Package                  | Name                    | Brief                                                                                                                                                      | Area                      |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| clodoo                   | check_4_seq.sh          | Check for postgres database index                                                                                                                          | maintenance               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | clodoo.py               | Massive operations on multiple Odoo DBs in cloud. It is used to create configurated Odoo DBs and to upgrade more DBs at the same time. No (yet) documented | maintenance               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | force_password.sh       | Force Odoo DB password                                                                                                                                     | maintenance               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | inv2draft_n_restore.py  | Force an invoice to draft state even if is paid and restore original state and payment (Odoo < 9.0)                                                        | maintenance               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | list_requirements.py    | List pypi and bin packages for an Odoo installation                                                                                                        | deployment                |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | manage_db               | Massive operations to multiple Odoo DBs in cloud, data based on csv files.                                                                                 | maintenance               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | manage_odoo             | Manage an Odoo installation                                                                                                                                | maintenance               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | odoo_install_repository | Install & upgrade odoo repository                                                                                                                          | Deployment & maintenance  |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | set_workers.sh          | Evaluate and set Odoo workers for best performance                                                                                                         | Deployment & maintenance  |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| devel_tools              | cvt_csv_to_rst.py       | Convert a csv file into rst text file with table inside                                                                                                    | documentation             |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | cvt_csv_to_xml.py       | Convert a csv file into xml file for Odoo module data                                                                                                      | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | cvt_script              | Make bash script to standard                                                                                                                               | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | gen_readme.py           | Generate README.rst, index.html and __openerp__.py ,documentation                                                                                          | documentation             |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | odoo_dependencies.py    | Show Odoo module tree, ancestors and/or childs                                                                                                             | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | odoo_translation.py     | Load Odoo translation (deprecated, must be replaced by weblate)                                                                                            | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | please                  | Developer shell                                                                                                                                            | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | topep8                  | Convert python and xml file across Odoo versions                                                                                                           | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | vfdiff                  | Make difference between 2 files or directories                                                                                                             | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| lisa                     | lisa                    | Linux Installer Simple App. LAMP and odoo server installer from scratch.                                                                                   | deployment                |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| maintainer-quality-tools |                         | Deprecated, replaced by z0bug_odoo                                                                                                                         | testing                   |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| odoo_score               | odoo_score.py           | Odoo super core ORM                                                                                                                                        | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | odoo_shell.py           | Odoo shell for Odoo versions from 6.1 to 13.0                                                                                                              | Development & maintenance |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| os0                      |                         | Simple os interface checked for OpenVMS too                                                                                                                | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| python-plus              | python-plus             | Various features to python 2 and python 3 programs as integration of pypi future to help to port your code from Python 2 to Python 3                       | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                          | vem                     | Virtual Environment Manager: create, copy, move, merge and many other functions with virtual environments                                                  | Deployment & maintenance  |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| pytok                    |                         | Simple python token parser (deprecated)                                                                                                                    |                           |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| travis_emulator          | travis                  | Travis Emulator on local machine. Check your project before release on TravisCi                                                                            | testing                   |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| wok_code                 |                         | Undocumented (deprecated)                                                                                                                                  |                           |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| wok_news                 |                         | Undocumented (deprecated)                                                                                                                                  |                           |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| z0bug_odoo               | z0bug_odoo              | Integration of zerobug and Odoo. Initially forked form OCA maintainer quality tools. It works with all Odoo version, from 6.1 to 13.0                      | testing                   |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| z0lib                    |                         | General purpose bash & python library                                                                                                                      | development               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| zar                      | zar                     | Zeroincombenze Archive and Replica. Backup your Odoo DBs                                                                                                   | maintenance               |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| zerobug                  | zerobug                 | testing & debug library                                                                                                                                    | testing                   |
-+--------------------------+-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-
-
 
 
 
@@ -229,7 +214,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2020-08-15
+Last Update / Ultimo aggiornamento: 2020-08-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
@@ -243,23 +228,23 @@ Last Update / Ultimo aggiornamento: 2020-08-15
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.13
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.13
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.14
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.14
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.13/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.13
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.13/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.14/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.13/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.14/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.13/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.13
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.14/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.14
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

@@ -8,15 +8,10 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -26,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.4.9
+__version__=0.1.4.10
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -503,7 +498,7 @@ check_4_needing_pkgs() {
     NEEDING_PKGS="future configparser os0 z0lib"
     for p in $NEEDING_PKGS; do
         x=${p^^}
-        eval $x=$(pip show $p 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
+        eval $x=$($PIP show $p 2>/dev/null|grep "Version"|grep -Eo "[0-9.]+")
     done
 }
 
@@ -513,7 +508,7 @@ check_installed_pkgs() {
     check_4_needing_pkgs
     for p in $NEEDING_PKGS; do
         x=${p^^}
-        [[ -z "${!x}" ]] && pip install -q $p
+        [[ -z "${!x}" ]] && $PIP install -q $p
     done
     check_4_needing_pkgs
 }
@@ -643,7 +638,7 @@ do_venv_mgr() {
           if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
             [ $opt_verbose -gt 1 ] && echo "$FLAG sed -i -e \"s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|\" $f"
             [ $opt_dry_run -eq 0 ] && sed -i -e "s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|" $f
-            [ $opt_dry_run -eq 0 -a "$cmd" == "reset" ] && chmod +x $f 
+            [ $opt_dry_run -eq 0 -a "$cmd" == "reset" ] && chmod +x $f
           fi
         done
     fi
@@ -657,7 +652,7 @@ do_venv_mgr() {
         [[ ! $cmd =~ (amend|check|cp) ]] && bin_install_1 $VENV
         [[ $cmd =~ (amend|check) ]] && bin_check_1 $VENV
         run_traced "pip install pip -U"
-        PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
+        PIPVER=$($PIP --version|grep -Eo [0-9]+|head -n1)
         [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "$popt --upgrade"
         [[ $cmd =~ (amend|check) ]] && pip_check_1 $cmd
         [[ -n "$opt_oever" && "$cmd" == "reset" ]] && pip_install_2 "$popt --upgrade"
@@ -750,8 +745,8 @@ do_venv_create() {
     [ $sts -ne 0 ] && return
     cd_venv $VENV -f
     do_activate
-    run_traced "pip install pip -U"
-    PIPVER=$(pip --version|grep -Eo [0-9]+|head -n1)
+    run_traced "$PIP install pip -U"
+    PIPVER=$($PIP --version|grep -Eo [0-9]+|head -n1)
     popt=""
     [ $opt_alone -ne 0 ] && popt="--isolated"
     [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
@@ -823,7 +818,7 @@ OPTHELP=("this help"\
  "bin packages to install (* means wkhtmltopdf,lessc)"\
  "debug mode: use local packages"\
  "create v.environment with development packages"\
- "force v.environment create, even if exists or inside anothr virtyale env"\
+ "force v.environment create, even if exists or inside another virtual env"\
  "keep python2 executable"\
  "run pip in an isolated mode, ignoring environment variables and user configuration"\
  "do nothing (dry-run)"\

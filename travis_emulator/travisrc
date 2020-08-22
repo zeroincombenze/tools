@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.3.6
+#__version__=0.2.3.7
 
 
 MAKEF=$HOME/dev/Makefile
@@ -476,11 +476,12 @@ custom_env() {
 }
 
 create_virtual_env() {
-    local f p t x VENVOPTS=-D
+    local f p t x
     local HOME_BRANCH=$HOME/$BRANCH
     export TRAVIS_BRANCH=$BRANCH
     local sts=0
     local VER=${VERSION}
+    VENVOPTS=-D
     [ -z "$VER" ] && VER="${TRAVIS_PYTHON_VERSION:0:1}"
     drop_test_db
     export TRAVIS_SAVED_HOME=$HOME
@@ -504,16 +505,31 @@ create_virtual_env() {
     HOME=$TRAVIS_HOME
     hash -r
     if [ $opt_full -eq 0 -a ${opt_cache:-0} -ne 0 -a -n "$TRAVIS_PYTHON_VERSION" ]; then
-        if [[ -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
-            run_traced "vem cp $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$BRANCH $TRAVIS_HOME -fq"
+        [[ -d $TRAVIS_SAVED_HOME ]] || mkdir $TRAVIS_SAVED_HOME
+        if [[ "$PRJNAME" == "Odoo" && -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
+            opt_keepE=0
+            TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$BRANCH
+            run_traced "vem cp $VENVOPTS $TRAVIS_SRC_VME $TRAVIS_HOME -fq"
             sts=$?
         elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
-            run_traced "vem cp $VENVOPTS $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION $TRAVIS_HOME -fq"
+            opt_keepE=0
+            TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
+            run_traced "vem cp $VENVOPTS $TRAVIS_SRC_VME $TRAVIS_HOME -fq"
             sts=$?
         else
-            echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
-            [ ${opt_dry_run:-0} -ne 0 ] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
-            sts=$?
+            # echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
+            # [ ${opt_dry_run:-0} -ne 0 ] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
+            # sts=$?
+            if [[ "$PRJNAME" == "Odoo" && -n "$VERSION" ]]; then
+                TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$VERSION
+                run_traced "vem create $VENVOPTS $TRAVIS_HOME -p$TRAVIS_PYTHON_VERSION -O$VERSION -fq"
+                sts=$?
+            else
+                TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
+                run_traced "vem create $VENVOPTS $TRAVIS_HOME -p$TRAVIS_PYTHON_VERSION -fq"
+                sts=$?
+            fi
+            [ $sts -ne 0 -o $opt_keepE -eq 0 ] || run_traced "vem cp $VENVOPTS $TRAVIS_HOME $TRAVIS_SRC_VME -fq"
         fi
     else
         echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
@@ -1490,46 +1506,46 @@ run_server_test() {
   return $sts
 }
 
-please_run_tests() {
-    sts=$STS_SUCCESS
-    if [[ $1 =~ [BK] ]]; then
-      please_test_bash
-      sts_bash=$?
-    else
-      sts_bash=127
-    fi
-    if [[ $1 =~ [LK] ]]; then
-      cd $TOOLS_PATH
-      please_test_flake8
-      sts_flake8=$?
-      please_test_pylint
-      sts_pylint=$?
-      if [ $sts_bash -ne 127 ]; then
-        sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
-      else
-        sts=$(($sts_flake8 || $sts_pylint))
-      fi
-    else
-      if [ $sts_bash -ne 127 ]; then
-        sts=$sts_bash
-      else
-        sts=$STS_SUCCESS
-      fi
-    fi
-    if [[ $1 =~ T ]]; then
-      if [ "$PRJNAME" == "Odoo" ]; then
-        run_server_test
-      else
-        run_regression_test
-      fi
-      test_sts=$?
-      if [ $test_sts -ne $STS_SUCCESS ]; then
-        sts=$test_sts
-      fi
-    fi
-    do_summary "$sts_bash" "$sts_flake8" "$sts_pylint" "$test_sts"
-    if [ $sts -eq $STS_SUCCESS ]; then
-      run_coverage_test
-    fi
-    return $sts
-}
+# please_run_tests() {
+#     sts=$STS_SUCCESS
+#     if [[ $1 =~ [BK] ]]; then
+#       please_test_bash
+#       sts_bash=$?
+#     else
+#       sts_bash=127
+#     fi
+#     if [[ $1 =~ [LK] ]]; then
+#       cd $TOOLS_PATH
+#       please_test_flake8
+#       sts_flake8=$?
+#       please_test_pylint
+#       sts_pylint=$?
+#       if [ $sts_bash -ne 127 ]; then
+#         sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
+#       else
+#         sts=$(($sts_flake8 || $sts_pylint))
+#       fi
+#     else
+#       if [ $sts_bash -ne 127 ]; then
+#         sts=$sts_bash
+#       else
+#         sts=$STS_SUCCESS
+#       fi
+#     fi
+#     if [[ $1 =~ T ]]; then
+#       if [ "$PRJNAME" == "Odoo" ]; then
+#         run_server_test
+#       else
+#         run_regression_test
+#       fi
+#       test_sts=$?
+#       if [ $test_sts -ne $STS_SUCCESS ]; then
+#         sts=$test_sts
+#       fi
+#     fi
+#     do_summary "$sts_bash" "$sts_flake8" "$sts_pylint" "$test_sts"
+#     if [ $sts -eq $STS_SUCCESS ]; then
+#       run_coverage_test
+#     fi
+#     return $sts
+# }

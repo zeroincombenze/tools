@@ -1,27 +1,31 @@
 .. toctree::
    :maxdepth: 2
 
-+-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
-| Parameter   | name    | standard value     | versioned value                 | reserved to zeroincombenze    | reserved to oca              | axitec value                 | Note                                     |
-+-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
-| xmlrpc port | RPCPORT | 8069               | 8160 + major version            | 8460 + major version          | 8260 + major version         | 8360 + major version         |                                          |
-+-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
-| db_user     | USER    | odoo               | odoo{major_version}             | odoo{major_version}           | odoo{major_version}          | odoo{major_version}          | i.e odoo12                               |
-+-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
-| config file | CONFN   | odoo[-server].conf | odoo{major_version}-server.conf | odoo{major_version}-zero.conf | odoo{major_version}-oca.conf | odoo{major_version}-axi.conf | Directory /etc/odoo (see Odoo structure) |
-+-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
-| log file    | FLOG    | odoo[-server].log  | odoo{major_version}-server.log  | odoo{major_version}-zero.log  | odoo{major_version}-oca.log  | odoo{major_version}-axi.log  | Directory /var/log/odoo                  |
-+-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
-| pid file    | FPID    | odoo[-server].pid  | odoo{major_version}-server.pid  | odoo{major_version}-zero.pid  | odoo{major_version}-oca.pid  | odoo{major_version}-axi.pid  | Directory /var/run/odoo                  |
-+-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
-| longpolling | LPPORT  | 8072               | 8130 + major version            | 8430 + major version          | 8230 + major version         | 8330 + major version         |                                          |
-+-------------+---------+--------------------+---------------------------------+-------------------------------+------------------------------+------------------------------+------------------------------------------+
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| Parameter name             | standard value             | anonymous distro     | zeroincombenze d | oca distro      | axitec distro   | Note                                     |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| ROOT (Odoo root)           |                            | ~/%V                 | ~/zero%M         | ~/oca%M         | ~/odoo_%M       | i.e. ~/oca14                             |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| CONFN (configuration file) | odoo.conf odoo-server.conf | odoo%M-server.conf   | odoo%M-zero.conf | odoo%M-oca.conf | odoo%M-axi.conf | Directory /etc/odoo (see Odoo structure) |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| USER (db user)             | odoo                       | odoo%M               | odoo%M           | odoo%M          | odoo%M          | i.e odoo12                               |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| FLOG (log file)            | odoo.log odoo-server.log   | odoo%M-server.log    | odoo%M-zero.log  | odoo%M-oca.log  | odoo%M-axi.log  | Directory /var/log/odoo                  |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| FPID (pid file)            | odoo.pid odoo-server.pid   | odoo%M-server.pid    | odoo%M-zero.pid  | odoo%M-oca.pid  | odoo%M-axi.pid  | Directory /var/run/odoo                  |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| RPCPORT (xmlrpc port)      | 8069                       | 8160 + %M            | 8460 + %M        | 8260 + %M       | 8360 + %M       |                                          |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| LPPORT (longpolling)       | 8072                       | 8130 + %M            | 8430 + %M        | 8230 + %M       | 8330 + %M       |                                          |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
+| SVCNAME (service name)     | odoo odoo-server           | odoo%M odoo%M-server | odoo%M-zero      | odoo%M-oca      | odoo%M-axi      |                                          |
++----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
 
 
 |
 
 
-Last Update / Ultimo aggiornamento: 2020-08-15
+Last Update / Ultimo aggiornamento: 2020-08-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
@@ -35,23 +39,23 @@ Last Update / Ultimo aggiornamento: 2020-08-15
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.13
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.13
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.14
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.14
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.13/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.13
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.13/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.14/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.13/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.14/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.13/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.13
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.14/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.14
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

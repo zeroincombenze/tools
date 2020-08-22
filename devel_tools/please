@@ -2721,6 +2721,7 @@ if [ "$actions" == "help" ]; then
   man $TDIR/$THIS.man
 else
   [ "$PRJNAME" == "Odoo" ] && odoo_fver=$(build_odoo_param FULLVER ".")
+  [ "$PRJNAME" == "Odoo" ] && odoo_fver=$(build_odoo_param FULLVER ".")
   actions=${actions//+/ }
   actions=${actions//,/ }
   for action in $actions; do

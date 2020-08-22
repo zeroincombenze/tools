@@ -7,12 +7,12 @@ Unknown macro
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-10
+Last Update / Ultimo aggiornamento: 2020-08-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.3.13
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg

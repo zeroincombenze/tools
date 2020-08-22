@@ -151,7 +151,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.15.6"
+__version__ = "0.2.15.7"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1543,7 +1543,7 @@ class Z0test(object):
             if path[0] not in ('~', '/') and not path.startswith('./'):
                 path = os.path.join(root, path)
             if not os.path.isdir(path):
-                os.mkdir(path)
+                os.makedirs(path)
         return root
  
     def remove_os_tree(self, ctx, os_tree):
@@ -1560,12 +1560,19 @@ class Z0test(object):
 
 class Z0testOdoo(object):
 
-    def build_odoo_env(self, ctx, version):
+    def build_odoo_env(self, ctx, version, hierarchy=None):
+        # hierarchy -> flat,tree,server (def=flat)
         if version in ('10.0', '11.0', '12.0', '13.0', '14.0'):
-            odoo_home = os.path.join(version, 'odoo')
+            if hierarchy == 'tree':
+                odoo_home = os.path.join(version, 'odoo', 'odoo')
+            else:
+                odoo_home = os.path.join(version, 'odoo')
             script = 'odoo-bin'
         elif version in ('6.1', '7.0', '8.0', '9.0'):
-            odoo_home = os.path.join(version, 'openerp')
+            if hierarchy == 'server':
+                odoo_home = os.path.join(version, 'server', 'openerp')
+            else:
+                odoo_home = os.path.join(version, 'openerp')
             script = 'openerp-server'
         else:
             raise KeyError('Invalid Odoo version')
@@ -1588,7 +1595,7 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
             fd.write(RELEASE_PY % (versions[0], versions[1]))
         with open(os.path.join(root, odoo_home, '__init__.py'), 'w') as fd:
             fd.write('import release\n')
-        with open(os.path.join(root, script), 'w') as fd:
+        with open(os.path.join(root, version, script), 'w') as fd:
             fd.write('\n')
         return root
 

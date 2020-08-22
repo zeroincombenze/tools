@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
@@ -16,7 +15,7 @@ except ImportError:
     from zerobug import Z0BUG
 
 
-__version__ = "0.2.15.6"
+__version__ = "0.2.15.7"
 
 
 def version():

@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.6
+__version__=0.2.3.7
 
 
 store_cfg_param_value() {
@@ -66,17 +66,17 @@ process_local() {
       fi
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       sts=$?
-    elif [ $opt_r -gt 0 ]; then
-      if [[ $action =~ (force-test|test) ]]; then
-        please_run_tests "-T"
-        sts=$?
-      elif [[ $action =~ (force-lint|lint) ]]; then
-        please_run_tests "-K"
-        sts=$?
-      else
-        please_run_tests "-KT"
-        sts=$?
-      fi
+    # elif [ $opt_r -gt 0 ]; then
+    #   if [[ $action =~ (force-test|test) ]]; then
+    #     please_run_tests "-T"
+    #     sts=$?
+    #   elif [[ $action =~ (force-lint|lint) ]]; then
+    #     please_run_tests "-K"
+    #     sts=$?
+    #   else
+    #     please_run_tests "-KT"
+    #     sts=$?
+    #   fi
     else
       sts=127
     fi
@@ -424,13 +424,16 @@ process_yaml_global() {
 process_yaml_before_install() {
     wlog "\e[${PS_HDR2_COLOR}m===== [Before install] =====\e[${PS_TXT_COLOR}m"
     local sts=$STS_SUCCESS
-    local i s line lne X
+    local i s line lne X CURPYVER
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
         wlog "\e[${PS_HDR3_COLOR}m------ [[addons.packages] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
+        CURPYVER=$(echo $TRAVIS_PYTHON_VERSION|grep -Eo [0-9]|head -n1)
         for lne in $YML_packages; do
-            if [ "$FH" == "RHEL" ]; then
+            if [[ "$lne" == "python-dev" && $CURPYVER == "3" ]]; then
+                [[ "$FH" == "RHEL" ]] && lne="python3-devel" || lne="python3-dev"
+            elif [ "$FH" == "RHEL" ]; then
                 if [[ "$lne" == "build-essential" ]]; then
                     lne="redhat-rpm-config"
                 elif [[ "$lne" == "python-dev" ]]; then
@@ -669,10 +672,10 @@ process_yaml_run_cmd() {
       xcmd="# $xcmd"
     elif [ "${x[$ix]}" == "sh" -a "${x[$ix2]}" == "/etc/init.d/xvfb" ]; then
       xcmd="# $xcmd"
-    elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sh" ]; then
-      xcmd="# $xcmd"
-    elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
-      :
+    # elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sh" ]; then
+    #   xcmd="# $xcmd"
+    # elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
+    #   :
     else
       if [ -z "$REPOSNAME" ]; then
         pp=$PKGPATH
@@ -699,10 +702,10 @@ process_yaml_run_cmd() {
         #     xcmd=$(echo $xcmd|sed -e "s|$YML_repo|local/odoo|g")
         #     x[$ix]=$(echo x[$ix]|sed -e "s|$YML_repo|local/odoo|g")
         #   fi
-        elif [[ "${x[$ix]}" =~ INCLUDE=..getaddons.py.*/opt/odoo/build/.*/OCB/openerp/addons.*/opt/odoo/build/.*/OCB/addons ]]; then
-          if [ ${opt_virt:-0} -eq 0 ]; then
-            xcmd="$(echo $xcmd|sed -e 's|/opt/odoo/build/.*/OCB/|/opt/odoo/$BRANCH/|g')"
-          fi
+        # elif [[ "${x[$ix]}" =~ INCLUDE=..getaddons.py.*/opt/odoo/build/.*/OCB/openerp/addons.*/opt/odoo/build/.*/OCB/addons ]]; then
+        #   if [ ${opt_virt:-0} -eq 0 ]; then
+        #     xcmd="$(echo $xcmd|sed -e 's|/opt/odoo/build/.*/OCB/|/opt/odoo/$BRANCH/|g')"
+        #   fi
         elif [ "${x[$ix]}" == "\${OPTS}" ]; then
           xcmd="$(echo $xcmd|sed -e 's|${OPTS}|'$OPTS'|g')"
           x[$ix]=$OPTS
@@ -741,6 +744,9 @@ process_yaml_run_cmd() {
          wlog "\e[${PS_NOP_COLOR}m## $c\e[${PS_TXT_COLOR}m\n"
       fi
       run_traced "$line1$xcmd"
+      if [[ $xcmd =~ "travis_install_env" ]]; then
+        [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME -p$TRAVIS_PYTHON_VERSION -fq"
+      fi
     fi
     return $?
 }
@@ -809,8 +815,8 @@ process_yaml() {
                 [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER)
                 PYTHON_VERSION=$($PYTHON --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
                 if [ "$PYTHON_VERSION" != "$TRAVIS_PYTHON_VERSION" ]; then
-                    wlog "\e[${PS_HDR1_COLOR}mWarning: Required version $TRAVIS_PYTHON_VERSION of python is replaced by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
-                    TRAVIS_PYTHON_VERSION="$PYTHON_VERSION"
+                    wlog "\e[${PS_HDR1_COLOR}mError: Required version $TRAVIS_PYTHON_VERSION of python is not availale. Replace by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
+                    continue
                 fi
                 alias python=$PYTHON
                 export TRAVIS_PYTHON_VERSION
@@ -928,17 +934,17 @@ checkpid() {
 
 
 OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
-OPTLONG=(help     debug     no-cache  conf     deb-lev  savenv    full     force     ''       keep     lint-lev logdir         ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
+OPTLONG=(help     debug     no-cache  conf     deb-lev  no-savenv full     force     ''       keep     lint-lev logdir         ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
 OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
-OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
-OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
+OPTACTI=(1        1         0         "="      "="      0         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
+OPTDEFL=(0        0         1         ""       ""       1         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
 OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
  "configuration file (def .travis.conf)"\
  "travis_debug_mode: may be 0,1,2 or 9 (def yaml dependents)"\
- "save virtual environment as ~/VME/VME{version}"\
+ "do not save virtual environment into ~/VME/... if does not exist"\
  "run final travis with full features"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\

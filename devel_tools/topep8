@@ -32,7 +32,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.3.13
+__version__=0.2.3.14
 
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
@@ -327,6 +327,8 @@ format_yaml() {
               :
             elif [[ $lne =~ -\ WKHTMLTOPDF_VERSION=... || "$cur_sect" == "global" ]]; then
               if [  $odoo_ver -ge 12 ]; then
+                  echo "  - WKHTMLTOPDF_VERSION=\"0.12.6\"">>$fntmp
+              elif [  $odoo_ver -ge 11 ]; then
                   echo "  - WKHTMLTOPDF_VERSION=\"0.12.5\"">>$fntmp
               elif [  $odoo_ver -ge 10 ]; then
                   echo "  - WKHTMLTOPDF_VERSION=\"0.12.4\"">>$fntmp
@@ -361,6 +363,10 @@ format_yaml() {
                   for a in $($LISTREQ -p"$p" -tbin -q -s' ' -BT); do
                       if [ "$a" == "psycopg2" ]; then
                           echo "      - $a-binary">>$fntmp
+                      elif [ "$a" == "python-dev" -a $odoo_ver -ge 11 ]; then
+                          echo "      - python3-dev">>$fntmp
+                      elif [ "$a" == "python3-dev" -a $odoo_ver -lt 11 ]; then
+                          echo "      - python-dev">>$fntmp
                       elif [[ $a =~ $NO_APT_GET ]]; then
                           printf "      # - %-32.32s# Pre-installed\n" "$a">>$fntmp
                       else

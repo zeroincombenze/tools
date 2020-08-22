@@ -16,7 +16,9 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.3.10'
+__version__ = '0.2.3.11'
+
+LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -141,7 +143,7 @@ def get_addons_path(travis_dependencies_dir, travis_base_dir, server_path,
     :return: Addons path
     """
     addons_path_list = []
-    for ldir in ('server/openerp', 'openerp', 'odoo'):
+    for ldir in LDIR:
         if os.path.isdir(os.path.join(server_path, ldir, 'addons')):
             addons_path_list = [os.path.join(server_path, ldir, 'addons')]
             break
@@ -159,7 +161,7 @@ def get_build_dir():
     odoo_version = os.environ.get("VERSION")
     travis_base_dir = os.environ.get("TRAVIS_BUILD_DIR", "../..")
     tested_version = ''
-    for ldir in ('./server/openerp', './openerp', './odoo'):
+    for ldir in LDIR:
         if os.path.isdir(ldir) and os.path.isfile('%s/release.py' % ldir):
             sys.path.append(ldir)
             import release

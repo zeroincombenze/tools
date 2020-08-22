@@ -63,7 +63,7 @@
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.15.6
+__version__=0.2.15.7
 
 export opt_dry_run
 export ctr
@@ -660,7 +660,7 @@ Z0BUG_main_file() {
 Z0BUG_build_os_tree() {
     local p path os_tree
     os_tree="${1//,/ }"
-    Z0BUG_root=$TESTDIR/res
+    [[ -n "$TESTDIR" ]] && Z0BUG_root=$TESTDIR/res || Z0BUG_root=$PWD/res
     [ ! -d "$Z0BUG_root" ] && mkdir -p $Z0BUG_root
     for p in $os_tree; do
       [[ $p =~ ^[.~/] ]] && path=$p || path=$Z0BUG_root/$p
@@ -683,13 +683,14 @@ Z0BUG_remove_os_tree() {
 
 
 Z0BUG_build_odoo_env() {
-    local ver odoo_home os_tree script x y
+    local ver hy odoo_home os_tree script x y
     ver=$1
+    hy=$2
     if [[ $ver =~ (10.0|11.0|12.0|13.0|14.0) ]]; then
-        odoo_home="$ver/odoo"
+        [[ $hy == "tree" ]] && odoo_home="$ver/odoo/odoo" || odoo_home="$ver/odoo"
         script="odoo-bin"
-    elif [[ $vers =~ (6.1|7.0|8.0|9.0) ]]; then
-        odoo_home="$ver/openerp"
+    elif [[ $ver =~ (6.1|7.0|8.0|9.0) ]]; then
+        [[ $hy == "server" ]] && odoo_home="$ver/server/openerp" || odoo_home="$ver/openerp"
         script="openerp-server"
     else
         echo "Invalid Odoo version $ver!"
@@ -712,5 +713,5 @@ EOF
     cat << EOF > $Z0BUG_root/$odoo_home/__init__.py
 import release
 EOF
-    touch $Z0BUG_root/$script
+    touch $Z0BUG_root/$ver/$script
 }

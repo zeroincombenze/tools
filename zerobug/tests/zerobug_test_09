@@ -1,0 +1,171 @@
+#! /bin/bash
+# Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=0.2.15.7
+
+
+
+
+test_01() {
+    local path sts RES b v x
+    sts=0
+    for v in 7.0 8.0 10.0 12.0; do
+        if [[ $v =~ (7.0|8.0) ]]; then
+            OS_TREE="$v $v/addons $v/openerp"
+        else
+            OS_TREE="$v $v/addons $v/odoo"
+        fi
+        [ ${opt_dry_run:-0} -eq 0 ] && Z0BUG_build_odoo_env "$v"
+        for path in $OS_TREE; do
+          if [ ${opt_dry_run:-0} -eq 0 ]; then
+            [[ $path =~ ^[/~] ]] || path=$Z0BUG_root/$path
+            [[ -d $path ]] && RES=1 || RES=0
+            test_result "odoo $path" "1" "$RES"
+            sts=$?
+          fi
+        done
+
+        x=$Z0BUG_root/$(echo $OS_TREE|awk '{print $3}')
+        [[ -f $x/release.py ]] && RES=1 || RES=0
+        test_result "odoo $x/release.py" "1" "$RES"
+        sts+=$?
+
+        x=$Z0BUG_root/$(echo $OS_TREE|awk '{print $1}')
+        [[ $v =~ (7.0|8.0) ]] && b="openerp-server" || b="odoo-bin"
+        [[ -f $x/$b ]] && RES=1 || RES=0
+        test_result "odoo $x/$b" "1" "$RES"
+        sts+=$?
+    done
+    return $sts
+}
+
+test_02() {
+    local path sts RES
+    sts=0
+    for v in 7.0 8.0 10.0 12.0; do
+        if [[ $v =~ (7.0|8.0) ]]; then
+            OS_TREE="$v $v/addons $v/openerp"
+        else
+            OS_TREE="$v $v/addons $v/odoo"
+        fi
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          Z0BUG_remove_os_tree "$OS_TREE"
+        fi
+        for path in $OS_TREE; do
+          if [ ${opt_dry_run:-0} -eq 0 ]; then
+            [ "${path:0:1}" != "/" ] && path=$Z0BUG_root/$path
+            [ -d $path ] && RES=0 || RES=1
+            test_result "odoo rmdir $path" "1" "$RES"
+            sts=$?
+          fi
+        done
+    done
+    return $sts
+}
+
+test_03() {
+    local path sts RES b v x
+    sts=0
+    for v in 7.0 8.0 10.0 12.0; do
+        if [[ $v =~ (7.0|8.0) ]]; then
+            OS_TREE="$v $v/addons $v/server/openerp"
+            hy="server"
+        else
+            OS_TREE="$v $v/addons $v/odoo/odoo"
+            hy="tree"
+        fi
+        [ ${opt_dry_run:-0} -eq 0 ] && Z0BUG_build_odoo_env "$v" "$hy"
+        for path in $OS_TREE; do
+          if [ ${opt_dry_run:-0} -eq 0 ]; then
+            [[ $path =~ ^[/~] ]] || path=$Z0BUG_root/$path
+            [[ -d $path ]] && RES=1 || RES=0
+            test_result "odoo $path" "1" "$RES"
+            sts=$?
+          fi
+        done
+
+        x=$Z0BUG_root/$(echo $OS_TREE|awk '{print $3}')
+        [[ -f $x/release.py ]] && RES=1 || RES=0
+        test_result "odoo $x/release.py" "1" "$RES"
+        sts+=$?
+
+        x=$Z0BUG_root/$(echo $OS_TREE|awk '{print $1}')
+        [[ $v =~ (7.0|8.0) ]] && b="openerp-server" || b="odoo-bin"
+        [[ -f $x/$b ]] && RES=1 || RES=0
+        test_result "odoo $x/$b" "1" "$RES"
+        sts+=$?
+    done
+    return $sts
+}
+
+test_04() {
+    local path sts RES
+    sts=0
+    for v in 7.0 8.0 10.0 12.0; do
+        if [[ $v =~ (7.0|8.0) ]]; then
+            OS_TREE="$v $v/addons $v/server/openerp"
+        else
+            OS_TREE="$v $v/addons $v/odoo/odoo"
+        fi
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          Z0BUG_remove_os_tree "$OS_TREE"
+        fi
+        for path in $OS_TREE; do
+          if [ ${opt_dry_run:-0} -eq 0 ]; then
+            [ "${path:0:1}" != "/" ] && path=$Z0BUG_root/$path
+            [ -d $path ] && RES=0 || RES=1
+            test_result "odoo rmdir $path" "1" "$RES"
+            sts=$?
+          fi
+        done
+    done
+    return $sts
+}
+
+
+Z0BUG_setup() {
+    Z0BUG_remove_os_tree "$OS_TREE"
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_zerobug.log "$@"
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+
+UT1_LIST=""
+UT_LIST=""
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

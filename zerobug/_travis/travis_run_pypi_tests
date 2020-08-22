@@ -31,12 +31,13 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.15.6
+__version__=0.2.15.7
 
 
 travis_test_bash() {
     echo "======== Testing test_bash   ========"
-    sts=$STS_SUCCESS
+    local s sts
+    sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       local f p param
       local shellcheck_ignore=$(grep -Eo "^ignore *= *[0-9,]+" $TDIR/cfg/travis_run_shellcheck.cfg|tr -d " "|awk -F= '{print $2}')
@@ -58,26 +59,29 @@ travis_test_bash() {
         if [ "$mime" == "text/x-shellscript" ]; then
           [ ${opt_verbose:-0} -gt 0 ] && echo "$ shellcheck -e $shellcheck_ignore $f"
           bash -n $f
-          if [ $? -eq 0 ]; then shellcheck -e $shellcheck_ignore $f; fi
-          local s=$?
-          if [ $sts -eq $STS_SUCCESS ]; then
+          s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+          [ $s -eq 0 ] && shellcheck -e $shellcheck_ignore $f
+          s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+          if [ $sts -eq 0 ]; then
             if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
               echo "Invalid statement 'set -x' in $f"
-              sts=$STS_FAILED
+              sts=1
             fi
           else
-            sts=$STS_FAILED
+            sts=1
           fi
         fi
       done
     else
-      sts=$STS_SUCCESS
+      sts=0
     fi
     return $sts
 }
 
 please_test_flake8() {
     echo "======== Testing test_flake8 ========"
+    local s sts
+    sts=0
     run_traced "export FLAKE8_CONFIG_DIR=$(readlink -f $TDIR/../_travis/cfg)"
     [[ -z "$FLAKE8_CONFIG_DIR" ]] && run_traced "export FLAKE8_CONFIG_DIR=$(readlink -f $TDIR/../travis/cfg)"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -87,24 +91,22 @@ please_test_flake8() {
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg
         fi
         run_traced "flake8 . --config=${FLAKE8_CONFIG}"
-        local status1=$?
+        s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
         if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8_$LINT_CHECK_LEVEL.cfg
         else
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg
         fi
         run_traced "flake8 . --config=${FLAKE8_CONFIG}"
-        local status2=$?
-        sts=$((${status1} || ${status2}))
-    else
-        sts=$STS_SUCCESS
+        s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
     return $sts
 }
 
 please_test_pylint() {
     echo "======== Testing test_pylint ========"
-    sts=$STS_SUCCESS
+    local s sts
+    sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       TRAVIS_BUILD_DIR=$PKGPATH
       MODULES_TO_TEST=$TRAVIS_BUILD_DIR
@@ -123,8 +125,10 @@ please_test_pylint() {
 }
 
 run_regression_test() {
-    local x opts OPTS
     echo "======== Running regression_test ========"
+    local x opts OPTS
+    local s sts
+    sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
         [[ "$TRAVIS_PDB" == "True" ]] && opts="${opts}B"
         [[ "$TRAVIS_DEBUG_MODE" == "9" ]] && opts="${opts}n"
@@ -184,33 +188,33 @@ EOF
             else
                 run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py $OPTS"
             fi
-            sts=$?
+            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
         elif [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 ]]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
                 run_traced "./tests/all_tests $OPTS"
             else
                 run_traced "cd ./tests; ./all_tests $OPTS"
             fi
-            sts=$?
+            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
         elif [ -f ./tests/test_$PRJNAME.py ]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
                 run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py $OPTS"
             else
                 run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py $OPTS"
             fi
-            sts=$?
+            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
         else
             if [ ${opt_dprj:-0} -gt 0 ]; then
                 run_traced "DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
             else
                 run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
             fi
-            sts=$?
+            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
         $(ls ./pytest* &> /dev/null) && cd ..
         if $(ls ./tests/pytest* &> /dev/null); then
             run_traced "coverage run -m pytest -v ./tests/pytest*"
-            sts=$?
+            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
         if [ ! -f .coverage ]; then
             echo "Result coverage file not found!"
@@ -218,25 +222,20 @@ EOF
             run_traced "mv .coverage .."
             run_traced "cd .."
         fi
-    else
-        sts=$STS_SUCCESS
     fi
     return $sts
 }
 
 do_test () {
     if [ "$PRJNAME" == "Odoo" ]; then
-        if [ $opt_verbose -gt 0 ]; then
-            echo "\$ run_server_test"
-        fi
+        [ $opt_verbose -gt 0 ] && echo "\$ run_server_test"
         run_server_test
+        sts=$?
     else
-        if [ $opt_verbose -gt 0 ]; then
-            echo "\$ run_regression_test"
-        fi
+        [ $opt_verbose -gt 0 ] && echo "\$ run_regression_test"
         run_regression_test
+        sts=$?
     fi
-    sts=$?
     return $sts
 }
 
@@ -366,10 +365,10 @@ if [ $opt_verbose -gt 1 ]; then
 fi
 init_travis
 prepare_env_travis
-sts=$STS_SUCCESS
+sts=0
 if [ $test_mode -gt 0 ]; then
     do_chkconfig
-    exit $STS_SUCCESS
+    exit 0
 fi
 check_4_travis
 if [ ${opt_regr:-0} -gt 0 ]; then
@@ -459,9 +458,9 @@ if [[ $TRAVIS_PYTHON_VERSION =~ $PYPI_RUN_PYVER ]]; then
             sts=$(($sts_flake8 || $sts_pylint))
         fi
     else
-        sts=$STS_SUCCESS
+        sts=0
     fi
-    if [ $sts -eq $STS_SUCCESS ]; then
+    if [ $sts -eq 0 ]; then
         if [ $TESTS_UNSPECIFIED -gt 0 -a $LINT_CHECK_ENABLED -eq 0 ]; then
             [ "$TRAVIS_DEBUG_MODE" == "9" ] || do_test
             test_sts=$?
@@ -471,7 +470,7 @@ if [[ $TRAVIS_PYTHON_VERSION =~ $PYPI_RUN_PYVER ]]; then
         fi
         sts=$test_sts
     else
-        test_sts=
+        test_sts=127
     fi
 else
     echo "This package cannot run under python $TRAVIS_PYTHON_VERSION"

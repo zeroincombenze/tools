@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=0.2.3.13
+# __version__=0.2.3.14
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -19,7 +19,7 @@ if [[ $1 =~ -.*h ]]; then
     exit 0
 fi
 
-RFLIST__travis_emulator="replica.sh travis travisrc"
+RFLIST__travis_emulator="travis travisrc"
 RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
 RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py export_db_model.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
@@ -138,7 +138,8 @@ fi
 if [[ $1 =~ -.*[Ss] ]]; then
     [[ ! $1 =~ -.*o ]] && SITECUSTOM=$HOME/devel/sitecustomize.py
     [[ $1 =~ -.*o ]] && SITECUSTOM=$HOME/dev/sitecustomize.py
-    PYLIB=$(dirname $(pip --version|grep -Eo "from [^ ]+"|awk '{print $2}'))
+    PYLIB=$(dirname $(pip --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
+    [[ -n "$PYLIB" ]] || PYLIB=$(dirname $(pip3 --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
     if [[ -n "$PYLIB" && -f SITECUSTOM ]]; then
         if [[ -f $PYLIB/sitecustomize.py ]]; then
             if grep -q "import sys" $PYLIB/sitecustomize.py; then
