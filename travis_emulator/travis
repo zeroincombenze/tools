@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.7
+__version__=0.2.3.8
 
 
 store_cfg_param_value() {
@@ -780,13 +780,13 @@ process_yaml() {
     if [ -f $YML_FILE ]; then
         echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
         wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"
-        TRAVIS_CWD=$PWD
+        export TRAVIS_HOME_BRANCH=$PWD
         process_yaml_file "$YML_FILE"
         unset PYTHONPATH
         sts=$STS_SUCCESS
         wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
         TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-        for lne in TODAY TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS_REPO_SLUG TRAVIS_CWD TRAVIS_PDB; do
+        for lne in TODAY TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
             lne1=${!lne}
             if [[ -n "$lne1" || $lne =~ PATH ]]; then
                 wlog "\$ $lne=$lne1"

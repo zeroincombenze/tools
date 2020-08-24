@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.3.7
+#__version__=0.2.3.8
 
 
 MAKEF=$HOME/dev/Makefile
@@ -477,7 +477,6 @@ custom_env() {
 
 create_virtual_env() {
     local f p t x
-    local HOME_BRANCH=$HOME/$BRANCH
     export TRAVIS_BRANCH=$BRANCH
     local sts=0
     local VER=${VERSION}
@@ -550,11 +549,11 @@ create_virtual_env() {
     [ ${opt_dry_run:-0} -eq 0 ] && mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
     export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
     if [ "$PKGNAME" == "OCB" ]; then
-        emulate_git_clone_OCB $TRAVIS_CWD $TRAVIS_BUILD_DIR
+        emulate_git_clone_OCB $TRAVIS_HOME_BRANCH $TRAVIS_BUILD_DIR
     else
         mkdir -p $TRAVIS_BUILD_DIR
         x=$(readlink -f $TRAVIS_BUILD_DIR/..)
-        run_traced "cp -R $TRAVIS_CWD/ $x/"
+        run_traced "cp -R $TRAVIS_HOME_BRANCH/ $x/"
         if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
             git_clone "https://github.com/zeroincombenze/tools.git"
             run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
@@ -573,6 +572,7 @@ drop_virtual_env() {
         drop_test_db
         rm -fR $TRAVIS_HOME
         unset TRAVIS_HOME
+        hash -r
     fi
     TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
 }
@@ -764,9 +764,9 @@ conf_default() {
     set_cfg_def "Environment" "bash"
     set_cfg_def "virtualenv_opts" ""
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
-    set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
+    set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.* *.md.oca *.rst.oca *.py.oca *.yml.oca *.z0i *.oia"
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ html/ .idea/ latex/ .tar .gz .zip __old_* .gitrepname __pycache__/"
-    set_cfg_def "filediffignore" ".po .pot LICENSE README README.md README.rst README.md.oca README.rst.oca README.md.z0i README.rst.z0i README.md.oia README.rst.oia .travis.yml.oca .travis.yml.z0i .travis.yml.oia /docs/"
+    set_cfg_def "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
     set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
     set_cfg_def "MQT_DEF_DEVPATH" "$HOME/dev/pypi/zerobug/zerobug/_travis"
     set_cfg_def "MQT_DEF_PATH" "$HOME/tools/zerobug/_travis"

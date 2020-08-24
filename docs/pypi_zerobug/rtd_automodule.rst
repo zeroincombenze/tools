@@ -1,4 +1,8 @@
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: zerobug
+Code documentation
+------------------
+
+.. automodule:: zerobug.z0testlib
+

@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.3.11'
+__version__ = '0.2.3.12'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 

@@ -1,6 +1,6 @@
 
 ===============================
-|Zeroincombenze| tools 0.2.3.14
+|Zeroincombenze| tools 0.2.3.15
 ===============================
 
 |Build Status| |Coverage Status| |license gpl|
@@ -214,7 +214,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2020-08-22
+Last Update / Ultimo aggiornamento: 2020-08-24
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
@@ -228,23 +228,23 @@ Last Update / Ultimo aggiornamento: 2020-08-22
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.14
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.14
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.15
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.15
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.15/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.15
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.14/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.15/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.14/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.15/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.14/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.14
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.15/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.15
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

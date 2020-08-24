@@ -457,6 +457,9 @@ set_pyver_files() {
         [ $pyver -le 2 ] && PIP=pip
         [ $pyver -gt 2 ] && PYTHON=python3
         [ $pyver -le 2 ] && PYTHON=python
+    elif [[ -z "$PIP" ]]; then
+        PIP=pip3
+        PYTHON=python3
     fi
     PIPVER=$($PIP --version|grep -Eo [0-9]+|head -n1)
 }
@@ -527,6 +530,7 @@ venv_mgr_check_oever() {
             pop_cd -q
         fi
     fi
+    set_pyver_files
     if [[ ! $1 =~ (help|create) ]]; then
         [ -n "$opt_oever" -a $opt_verbose -gt 0 ] && echo "### Odoo version $opt_oever ...  ###"
         check_installed_pkgs
@@ -572,24 +576,12 @@ do_venv_mgr() {
     local d f mime VENV V sitecustom popt x
     local cmd=$1
     VENV="$2"
-    [ -n "$3" ] && VENV_TGT=$(readlink -f $3)
+    [ -n "$3" ] && VENV_TGT=$(readlink -m $3)
     [[ $cmd =~ (amend|check|reset|test) ]] && VENV_TGT=$VENV
     popt=""
     [ $opt_alone -ne 0 ] && popt="--isolated"
     [ $PIPVER -gt 18 ] && [[ -z $popt || ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
     [ $opt_verbose -eq 0 ] && popt="$popt -q"
-    cd_venv "$VENV" "-fq"
-    do_activate "-q"
-    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
-    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -PT -t bin -y $opt_pyver"
-    [[ -n "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -BPRT -t bin -b $opt_oever -y $opt_pyver)
-    [[ -z "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -PT -t bin -y $opt_pyver)
-    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -y $opt_pyver"
-    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -PT -t python -y $opt_pyver"
-    [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -y $opt_pyver)
-    [[ -z "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -PT -t python -y $opt_pyver)
-    do_deactivate "-q"
-    pop_cd "-q"
     if [[ -z "$VENV" || -z "$VENV_TGT" ]]; then
         echo "Missed parameters!"
         echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
@@ -600,8 +592,20 @@ do_venv_mgr() {
         echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
         exit 1
     fi
+    cd_venv "$VENV" "-fq"
+    do_activate "-q"
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
+    [[ -n "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -BPRT -t bin -b $opt_oever -y $opt_pyver)
+    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -PT -t bin -y $opt_pyver"
+    [[ -z "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -PT -t bin -y $opt_pyver)
+    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -y $opt_pyver"
+    [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -y $opt_pyver)
+    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -PT -t python -y $opt_pyver"
+    [[ -z "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -PT -t python -y $opt_pyver)
+    do_deactivate "-q"
+    pop_cd "-q"
     if [[ $cmd =~ (amend|check|reset|test) ]]; then
-      V=$VENV
+        V=$VENV
     elif [[ "$cmd" == "cp" ]]; then
       if [[ -d $VENV_TGT ]]; then
         if [ $opt_force -eq 0 ]; then
@@ -611,6 +615,7 @@ do_venv_mgr() {
         fi
         run_traced "rm -fR $VENV_TGT"
       fi
+      [[ -d $(dirname $VENV_TGT) ]] || run_traced "mkdir -p $(dirname $VENV_TGT)"
       run_traced "cp -r $VENV $VENV_TGT"
       V=$VENV_TGT
     elif [[ "$cmd" == "merge" ]]; then
@@ -626,19 +631,19 @@ do_venv_mgr() {
         done
         V=$VENV_TGT
     else
-      if [[ -d $VENV_TGT ]]; then
-        echo "Destination virtual env $VENV_TGT already exists!"
-        exit 1
-      fi
-      V=$VENV
+        if [[ -d $VENV_TGT ]]; then
+            echo "Destination virtual env $VENV_TGT already exists!"
+            exit 1
+        fi
+        V=$VENV
     fi
     if [[ ! $cmd =~ (amend|check|test) ]]; then
         for f in $V/bin/*; do
-          mime=$(file --mime-type -b $f)
-          if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
-            [ $opt_verbose -gt 1 ] && echo "$FLAG sed -i -e \"s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|\" $f"
-            [ $opt_dry_run -eq 0 ] && sed -i -e "s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|" $f
-            [ $opt_dry_run -eq 0 -a "$cmd" == "reset" ] && chmod +x $f
+            mime=$(file --mime-type -b $f)
+            if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
+                [ $opt_verbose -gt 1 ] && echo "$FLAG sed -i -e \"s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|\" $f"
+                [ $opt_dry_run -eq 0 ] && sed -i -e "s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|" $f
+                [ $opt_dry_run -eq 0 -a "$cmd" == "reset" ] && chmod +x $f
           fi
         done
     fi
@@ -837,7 +842,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
-ACTIONS="help amend cp check create exec info install merge mv python shell show update test reset"
+ACTIONS="help amend cp check create exec info install merge mv python shell rm show update test reset"
 REXACT="(${ACTIONS// /|})"
 if [[ $p1 =~ $REXACT ]]; then
     action=$p1
@@ -899,7 +904,13 @@ NEEDING_PKGS="future os0 z0lib"
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
 [[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/$opt_oever ]] && opt_oepath="$HOME/$opt_oever"
-if [[ ! $action =~ (help|create) ]]; then
+[[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/$opt_oever/odoo ]] && opt_oepath="$HOME/$opt_oever/odoo"
+if [[ $action == "rm" ]]; then
+    [[ $PWD == $(readlink -f $p2) ]] && cd
+    rm -fR $p2
+    # hash -r
+    exit 0
+elif [[ ! $action =~ (help|create) ]]; then
     cd_venv $p2 "-q"
     do_activate "-q"
     [[ -z "$opt_pyver" ]] && venv_mgr_check_src_path $p2
@@ -941,22 +952,26 @@ if [[ -n "$ERROR_PKGS" ]]; then
     echo -e "\e[1mWarning! Following packages with wrong version or uninstalled\e[0m"
     echo "$ERROR_PKGS"
     echo "************************************************************"
+    DISTO=$(xuname -d)
+    FH=$(xuname -f)
     echo "Perhaps you should install ..."
-    echo "dnf install python-devel                             # If Fedora"
-    echo "yum install python-devel                             # If RHEL"
-    echo "apt-get install python-dev                           # If Debian"
+    [[ $DISTO == "Fedora" ]] && echo "dnf install python3-devel libsass-devel zlib-devel        # If Fedora"
+    [[ ! $DISTO == "Fedora" && $FH = "RHEL" ]] && echo "yum install python-devel python3-devel  # If RHEL"
+    [[ ! $DISTO == "Fedora" && $FH = "RHEL" ]] && echo "yum install libsass-devel zlib-devel    # If RHEL"
+    [[ $FH = "Debian" ]] && echo "apt-get install python3-dev python3-pip python3-venv          # If Debian"
+    [[ $FH = "Debian" ]] && echo "apt-get install python-dev zlib1g-dev                         # If Debian"
     if [[ $ERROR_PKGS =~ lxml ]]; then
-        echo "dnf install redhat-rpm-config                        # If Fedora"
-        echo "dnf install libxml2-devel libxslt-devel              # If Fedora"
-        echo "yum install libxml2-devel libxslt-devel              # If RHEL"
-        echo "apt-get install libxml2-dev libxslt-dev              # If Debian"
+        [[ $DISTO == "Fedora" ]] && echo "dnf install redhat-rpm-config                         # If Fedora"
+        [[ $DISTO == "Fedora" ]] && echo "dnf install libxml2-devel libxslt-devel               # If Fedora"
+        [[ ! $DISTO == "Fedora" && $FH = "RHEL" ]] && echo "yum install libxml2-devel libxslt-devel  # If RHEL"
+        [[ $FH = "Debian" ]] && echo "apt-get install libxml2-dev libxslt-dev                   # If Debian"
     fi
     if [[ $ERROR_PKGS =~ ldap ]]; then
-        echo "yum install openldap-devel                           # If RHEL"
-        echo "apt-get install libsasl2-dev libldap2-dev libssl-dev # If Debian"
+        [[ $FH = "RHEL" ]] && echo "yum install openldap-devel                                  # If RHEL"
+        [[ $FH = "Debian" ]] && echo "apt-get install libsasl2-dev libldap2-dev libssl-dev      # If Debian"
     fi
     if [[ $ERROR_PKGS =~ gevent ]]; then
-        echo "yum install libevent-devel                           # If RHEL"
-        echo "apt-get install libevent-dev                         # If Debian"
+        [[ $FH = "RHEL" ]] && echo "yum install libevent-devel                                  # If RHEL"
+        [[ $FH = "Debian" ]] && echo "apt-get install libevent-dev                              # If Debian"
     fi
 fi

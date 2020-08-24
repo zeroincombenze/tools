@@ -13,7 +13,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.9.15'
+__version__ = '0.3.9.16'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -206,6 +206,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'future',
                      'gdata',
                      'gevent',
+                     'html2text',
                      'Jinja2',
                      'lxml',
                      'Mako',

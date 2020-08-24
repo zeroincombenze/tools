@@ -12,7 +12,7 @@ from past.builtins import basestring
 import sys
 from zerobug import Z0BUG
 
-__version__ = "0.2.15.7"
+__version__ = "0.2.15.8"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1

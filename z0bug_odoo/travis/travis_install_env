@@ -25,7 +25,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.11
+__version__=0.2.3.12
 
 
 conf_default() {
@@ -129,29 +129,44 @@ cp_n_upd_odoo_conf() {
 }
 
 git_clone_ocb() {
-    ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
+    local majver prjhome
+    local SRCREPOPATH=
+    local ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
     echo -e "\e[${PS_HDR3_COLOR}m### Installing Odoo from $ODOO_URL\e[${PS_TXT_COLOR}m"
-    if [[ "$TRAVIS" == "true" ]]; then
-      run_traced "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
-      run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
-    elif [ ! -L ${ODOO_PATH} ]; then
-      if [[ "$REMOTE" == "oca" ]]; then
+    if [[ ! -L ${ODOO_PATH} && ! "$TRAVIS" == "true" ]]; then
+        prjhome=$(echo $TRAVIS_HOME_BRANCH|grep -Eo "$TRAVIS_SAVED_HOME/[^/]+")
         majver=$(echo $BRANCH|grep -Eo [0-9]+|head -n1)
-        if [[ ! -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
-          run_traced "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
-          run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
-          run_traced "mv ${ODOO_PATH} $TRAVIS_SAVED_HOME/oca$majver"
+        if [[ -n "$prjhome" ]]; then
+            if [[ $REMOTE == "oca" && -d $prjhome/oca$majver ]]; then
+                SRCREPOPATH="$prjhome/oca$majver"
+            elif [[ ! $REMOTE == "oca" && -d $prjhome/$BRANCH ]]; then
+                SRCREPOPATH="$prjhome/$BRANCH"
+            elif [[ ! $REMOTE == "oca" && -d $prjhome/odoo && -f $prjhome/odoo/odoo-bin ]]; then
+                SRCREPOPATH="$prjhome/odoo"
+            fi
         fi
-        if [[ -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
-          SRCREPOPATH="$TRAVIS_SAVED_HOME/${REMOTE}${majver}"
+        if [[ -z "$SRCREPOPATH" ]]; then
+            if [[ $REMOTE == "oca" && -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
+                SRCREPOPATH="$TRAVIS_SAVED_HOME/oca$majver"
+            elif [[ ! $REMOTE == "oca" && -d $TRAVIS_SAVED_HOME/$BRANCH ]]; then
+                SRCREPOPATH="$TRAVIS_SAVED_HOME/$BRANCH"
+            elif [[ ! $REMOTE == "oca" && -d $TRAVIS_SAVED_HOME/odoo && -f $TRAVIS_SAVED_HOME/odoo/odoo-bin ]]; then
+                SRCREPOPATH="$TRAVIS_SAVED_HOME/odoo"
+            fi
         fi
-      else
-        SRCREPOPATH="$TRAVIS_SAVED_HOME/$BRANCH"
-      fi
-      run_traced "ln -s $SRCREPOPATH ${ODOO_PATH}"
+    fi
+    if [[ -n "$SRCREPOPATH" ]]; then
+        run_traced "ln -s $SRCREPOPATH ${ODOO_PATH}"
+    else
+        if [[ $REMOTE == "oca" ]]; then
+            run_traced "git clone --depth=50 https://github.com/${REMOTE^^}/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
+        else
+            run_traced "git clone --depth=50 https://github.com/${REMOTE}/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
+        fi
+        run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
     fi
     if [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ]; then
-      run_traced "psql -l -U postgres"
+        run_traced "psql -l -U postgres"
     fi
 }
 
@@ -593,16 +608,16 @@ else
     if [ "${CHROME_TEST}" == "1" ]; then
       run_traced "google-chrome --version"
     fi
-  fi
-  if [[ "$PKGNAME" == "OCB" ]]; then
-    echo -e "\e[${PS_HDR3_COLOR}m### Tested repository is OCB\e[${PS_TXT_COLOR}m"
-    if [[ $TRAVIS =~ (true|emulate) ]]; then
-      run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
-    elif [ ! -L ${ODOO_PATH} ]; then
-      run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+    if [[ "$PKGNAME" == "OCB" ]]; then
+      echo -e "\e[${PS_HDR3_COLOR}m### Tested repository is OCB\e[${PS_TXT_COLOR}m"
+      if [[ $TRAVIS =~ (true|emulate) ]]; then
+        run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      elif [ ! -L ${ODOO_PATH} ]; then
+        run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      fi
+    else
+      git_clone_ocb
     fi
-  else
-    git_clone_ocb
   fi
   if [ "${TESTS}" != "1" ]; then
     dopts=
