@@ -1,140 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-"""@mainpage
-zerobug
-=======
 
-Zeroincombenze® continuous testing framework for python and bash programs
--------------------------------------------------------------------------
-
-This library can run unit test of target package software.
-Supported languages are *python* (through z0testlib.py)
-and *bash* (through z0testrc)
-
-*zerobug* supports test automation, aggregation of tests into collections
-and independence of the tests from the reporting framework.
-The *zerobug* module provides all code that make it easy to support testing
-both for python programs both for bash scripts.
-*zerobug* differs from pytest standard library because show execution test with
-a message like "n/tot message" where *n* is current unit test and *tot* is the
-total unit test to execute, that is a sort of advancing test progress.
-
-*zerobug* is built on follow concepts:
-
-* test main - it is a main program to executes all test runners
-* test runner - it is a program to executes one or more test suites
-* test suite - it is a collection of test cases
-* test case -it is a smallest unit test
-
-Test main file (usually is called 'all_tests') execute the test suite declared
-in source file. If no test list declared, it searches for test runner files
-named 'test_[0-9]*' executed in sorted order.
-This behavior differs slightly from pytest standard library.
-
-Test suite is a collection of test case named 'test_[0-9]*'
-executed in sorted order. Also this behavior differs from
-pytest standard library.
-
-Because *zerobug* can show total number of unit test to execute, it run tests
-in 2 passes. In the first pass it counts test, in second pass executes really
-it.
-
-Every unit test file may be called with follows switches:
-
-  -h, --help            show this help message and exit
-  -b, --debug           run tests in debug mode
-  -C  --no-coverage     run test without coverage
-  -e, --echo            enable echoing even if not interactive tty
-  -J                    load travisrc
-  -k, --keep            keep current logfile
-  -l file, --logname file
-                        set logfile name
-  -N, --new             create new logfile
-  -n, --dry-run         count and display # unit tests
-  -O                    load odoorc
-  -p pattern, --search-pattern
-                        set to counted tests, 1st one next to this
-  -q, --quiet           run tests without output (quiet mode)
-  -r number, --restart number
-                        set to counted tests, 1st one next to this
-  -s number, --start number
-                        set to counted tests, 1st one next to this (deprecated)
-  -V, --version         show program's version number and exit
-  -v, --verbose         verbose mode
-  -x, --qsanity         like -X but run silently
-  -X, --esanity         execute test library sanity check and exit
-  -z number, --end number
-                        display total # tests when execute them
-  -0, --no-count        no count # unit tests
-  -1, --coverage        run tests for coverage (obsolete)
-  -3, --python3         use python3
-
-  (w/o switches) do run test and return test result
-
-
-Package, test environment and deployment are:
-
-    ./                  Package directory
-                        inside python test program is self.rundir
-                        inside bash test script is $RUNDIR
-    ./tests             Unit test directory
-                        should contains one of 'all_tests' or 'test_PKGNAME'
-                        inside python test program is self.testdir
-                        inside bash test script is $TESTDIR
-    ./tests/z0testlib   Python file unit test library from zerobug package
-                        may be not present if zerobug python package installed
-    ./tests/z0testrc    Bash file unit test library from zerobug package
-                        may be not present if zerobug python package installed
-                        inside bash test script is $Z0TLIBDIR
-    ./tests/z0librc     Local bash script library for bash scripts;
-                        Could be in user root directory or in /etc directory
-                        inside bash test script is $Z0LIBDIR
-    ./_travis           Interface to travis emulator if present (obsolete);
-                        it used in local host to emulate some travis functions
-                        inside bash test script is $TRAVISDIR
-
-Unit test can run in package directory or in ./tests directory of package.
-
-
-Every test can inquire internal context.
-
-    ctr           test counter [both bash and python tests]
-    dry_run       dry-run (do nothing) [opt_dry_run in bash test]          "-n"
-    esanity       True if required sanity check with echo                  "-X"
-    logfn         real trace log file name from switch                     "-l"
-    max_test      # of tests to execute [both bash and python tests]       "-z"
-    min_test      # of test executed before this one                       "-r"
-    on_error      behavior after error, 'continue' or 'raise' (default)
-    opt_echo      True if echo test result onto std output                 "-e"
-    opt_new       new log file [both bash and python tests]                "-N"
-    opt_noctr     do not count # tests [both bash and python tests]        "-0"
-    opt_pattern   test files test pattern                                  "-p"
-    opt_verbose   show messages during execution                           "-v"
-    os_name       name of pltaform: posix, win32 or wms
-    python3       Execute test in python3                                  "-3"
-    qsanity       True if required sanity check w/o echo                   "-x"
-    run4cover     Run tests for coverage (use coverage run rather python)  "-1"
-    rundir        directory of this package (see self.rundir)
-    run_daemon    True if execution w/o tty as stdio
-    run_on_top    Top test (not parent)
-    run_tty       Opposite of run_daemon
-    testdir       unit test directory (see self.testdir)
-    this          parent name, w/o extension (i.e. z0bug)
-    this_fqn      parent caller full qualified name (i.e. /opt/odoo/z0bug.pyc)
-    tlog          default tracelog file name
-    _parser       cmd line parser
-    _run_autotest True if running auto-test
-    _opt_obj      parser obj, to acquire optional switches
-    WLOGCMD       override opt_echo; may be None, 'echo', 'echo-1', 'echo-0'
-
-Environment read:
-
-DEV_ENVIRONMENT Name of package; if set test is under travis emulator control
-
-COVERAGE_PROCESS_START
-                Name of coverage conf file; if set test is running for coverage
-"""
 from __future__ import print_function, unicode_literals
 # from past.builtins import basestring
 
@@ -339,7 +206,7 @@ class SanityTest():
                                      "Opt -n (-l)",
                                      '~/z0bug.log',
                                      ctx['logfn'])
-        ctx = self.Z.ready_opts(ctx)
+        ctx = self.Z._ready_opts(ctx)
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
                                      "Counter",
@@ -661,7 +528,7 @@ class Z0test(object):
                 not sys.argv[0].startswith('-')) else None
         else:
             self.autorun = True
-        this_fqn = os.path.abspath(this_fqn or self.get_this_fqn())
+        this_fqn = os.path.abspath(this_fqn or self._get_this_fqn())
         this = os0.nakedname(os.path.basename(this_fqn))
         this_dir = os.getcwd()
         if (not os.path.basename(this_dir) == 'tests' and 
@@ -724,7 +591,7 @@ class Z0test(object):
                                         version=version)
             sys.exit(self.main())
 
-    def create_parser(self, version, ctx):
+    def _create_parser(self, version, ctx):
         """Standard test option parser; same funcionality of bash version
         -b --debug      run test in debug mode
         -C --no-coverage run test w/o coverage
@@ -853,9 +720,9 @@ class Z0test(object):
                             default=False)
         return parser
 
-    def create_params_dict(self, ctx):
+    def _create_params_dict(self, ctx):
         """Create all params dictionary"""
-        ctx = self.create_def_params_dict(ctx)
+        ctx = self._create_def_params_dict(ctx)
         if ('min_test' not in ctx or
                 ctx.get('min_test', None) is None) and \
                 ('max_test' not in ctx or
@@ -910,7 +777,7 @@ class Z0test(object):
             ctx['run4cover'] = False
         return ctx
 
-    def create_def_params_dict(self, ctx):
+    def _create_def_params_dict(self, ctx):
         """Create default params dictionary"""
         opt_obj = ctx.get('_opt_obj', None)
         conf_obj = ctx.get('_conf_obj', None)
@@ -968,7 +835,7 @@ class Z0test(object):
             ctx[p] = os0.str2bool(ctx[p], ctx[p])
         return ctx
 
-    def get_this_fqn(self):
+    def _get_this_fqn(self):
         i = 1
         valid = False
         auto_this = False
@@ -994,7 +861,7 @@ class Z0test(object):
         ctx['os_name'] = os.name
         ctx['rundir'] = self.rundir
         ctx['testdir'] = self.testdir
-        this_fqn = self.get_this_fqn()
+        this_fqn = self._get_this_fqn()
         ctx['this_fqn'] = this_fqn
         this = os0.nakedname(os.path.basename(this_fqn))
         ctx['this'] = this
@@ -1010,11 +877,11 @@ class Z0test(object):
         # running autotest
         if version is None:
             ctx['_run_autotest'] = True
-        parser = self.create_parser(version, ctx)
+        parser = self._create_parser(version, ctx)
         ctx['_parser'] = parser
         opt_obj = parser.parse_args(arguments)
         ctx['_opt_obj'] = opt_obj
-        ctx = self.create_params_dict(ctx)
+        ctx = self._create_params_dict(ctx)
         if ctx['esanity']:                                  # pragma: no cover
             exit(self.sanity_check('-e'))
         elif ctx['qsanity']:                                # pragma: no cover
@@ -1024,7 +891,7 @@ class Z0test(object):
     def default_conf(self, ctx):
         return DEFDCT
 
-    def inherit_opts(self, ctx):
+    def _inherit_opts(self, ctx):
         args = []
         for p in LX_OPT_CFG_S:
             if p == 'opt_echo':
@@ -1048,7 +915,7 @@ class Z0test(object):
                     args.append(LX_OPT_ARGS[p] + str(ctx[p]))
         return args
 
-    def ready_opts(self, ctx):
+    def _ready_opts(self, ctx):
         if 'max_test' not in ctx or ctx['max_test'] is None:
             ctx['max_test'] = ctx.get('max_test', 0)
         if 'min_test' not in ctx or ctx['min_test'] is None:
@@ -1058,7 +925,7 @@ class Z0test(object):
         ctx['_prior_msg'] = ctx.get('_prior_msg', '')
         return ctx
 
-    def save_opt(self, ctx, p):
+    def _save_opt(self, ctx, p):
         if p in ctx:
             if ctx.get('_run_autotest', False):
                 sp = 'ratsave_' + p
@@ -1067,12 +934,12 @@ class Z0test(object):
             ctx[sp] = ctx[p]
         return ctx
 
-    def save_options(self, ctx):
+    def _save_options(self, ctx):
         for p in ('dry_run', 'min_test', 'ctr'):
-            ctx = self.save_opt(ctx, p)
+            ctx = self._save_opt(ctx, p)
         return ctx
 
-    def restore_opt(self, ctx, p):
+    def _restore_opt(self, ctx, p):
         if ctx.get('_run_autotest', False):
             sp = 'ratsave_' + p
         else:
@@ -1084,9 +951,9 @@ class Z0test(object):
             del ctx[p]
         return ctx
 
-    def restore_options(self, ctx):
+    def _restore_options(self, ctx):
         for p in ('dry_run', 'min_test', 'ctr'):
-            ctx = self.restore_opt(ctx, p)
+            ctx = self._restore_opt(ctx, p)
         return ctx
 
     def test_version(self, ctx, testname):
@@ -1169,14 +1036,14 @@ class Z0test(object):
         fd.write(code)
         fd.close()
 
-    def exec_tests_4_count(self, test_list, ctx, TestCls=None):
+    def _exec_tests_4_count(self, test_list, ctx, TestCls=None):
         if ctx.get('_run_autotest', False):
             self.dbgmsg(ctx, '>>> exec_tests_4_count(autotest)')
         else:
             self.dbgmsg(ctx, '>>> exec_tests_4_count(%s)' % test_list)
         opt4childs = ['-n']
-        ctx = self.ready_opts(ctx)
-        ctx = self.save_options(ctx)
+        ctx = self._ready_opts(ctx)
+        ctx = self._save_options(ctx)
         testctr = 0
         if TestCls:
             T = TestCls(self)
@@ -1225,7 +1092,7 @@ class Z0test(object):
                 self.ctr_list.append(ctx['ctr'])
             self.dbgmsg(ctx, '- testctr=%d+%d' % (testctr, ctx['ctr']))
             testctr += ctx['ctr']
-        ctx = self.restore_options(ctx)
+        ctx = self._restore_options(ctx)
         ctx['ctr'] = testctr
         if TestCls and hasattr(TestCls, 'teardown'):
             getattr(T, 'teardown')(ctx)
@@ -1237,12 +1104,12 @@ class Z0test(object):
         ctx['_prior_msg'] = ''
         return TEST_SUCCESS
 
-    def exec_all_tests(self, test_list, ctx, TestCls=None):
+    def _exec_all_tests(self, test_list, ctx, TestCls=None):
         if ctx.get('_run_autotest', False):
             self.dbgmsg(ctx, '.exec_all_tests (autotest)')
         else:
             self.dbgmsg(ctx, '.exec_all_tests')
-        ctx = self.ready_opts(ctx)
+        ctx = self._ready_opts(ctx)
         if (not ctx.get('_run_autotest', False) and
                 ctx.get('run4cover', False and
                 not os.path.isfile(ctx['COVERAGE_PROCESS_START']))):
@@ -1272,7 +1139,7 @@ class Z0test(object):
                          ctx['ctr'],
                          ctx.get('opt_noctr', False),
                          ctx.get('run4cover', False)))
-            opt4childs = self.inherit_opts(ctx)
+            opt4childs = self._inherit_opts(ctx)
             basetn = os.path.basename(testname)
             if testname.startswith('__test'):
                 sts = self.test_result(ctx,
@@ -1345,7 +1212,7 @@ class Z0test(object):
             if hasattr(Test, tname):
                 test_list.append(tname)
             test_num += 1
-        self.exec_tests_4_count(test_list, ctx, Test)
+        self._exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['max_test'])
@@ -1355,7 +1222,7 @@ class Z0test(object):
                 os0.set_tlog_file(ctx.get('logfn', None),
                                   new=ctx.get('opt_new', False),
                                   echo=ctx.get('opt_echo', False))
-            sts = self.exec_all_tests(test_list, ctx, Test)
+            sts = self._exec_all_tests(test_list, ctx, Test)
         return sts
 
     def main_file(self, ctx=None, Test=None, UT1=None, UT=None):
@@ -1421,7 +1288,7 @@ class Z0test(object):
                 test_num += 1
         self.dbgmsg(ctx, '- test_list=%s' % test_list)
         if not ctx.get('opt_noctr', False):
-            self.exec_tests_4_count(test_list, ctx, Test)
+            self._exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['ctr'])
@@ -1431,7 +1298,7 @@ class Z0test(object):
                 os0.set_tlog_file(ctx.get('logfn', None),
                                   new=ctx.get('opt_new', False),
                                   echo=ctx.get('opt_echo', False))
-            sts = self.exec_all_tests(test_list, ctx, Test)
+            sts = self._exec_all_tests(test_list, ctx, Test)
             if ctx.get('run_on_top', False) and \
                     not ctx.get('_run_autotest', False):
                 if sts == TEST_SUCCESS:
@@ -1483,7 +1350,7 @@ class Z0test(object):
                 os0.wlog(txt)
 
     def test_result(self, ctx, msg, test_value, result_val):
-        ctx = self.ready_opts(ctx)
+        ctx = self._ready_opts(ctx)
         ctx['ctr'] += 1
         if ctx.get('teststs', TEST_SUCCESS):                 # pragma: no cover
             return TEST_FAILED
@@ -1501,7 +1368,7 @@ class Z0test(object):
                     return TEST_FAILED
         return TEST_SUCCESS
 
-    def init_test_ctx(self, opt_echo, full=None):
+    def _init_test_ctx(self, opt_echo, full=None):
         """Set context value for autotest"""
         z0ctx = {}
         if full:                                            # just for tests
@@ -1524,7 +1391,7 @@ class Z0test(object):
         Module z0testlib is needed to run regression tests
         This function run auto validation tests for z0testlib functions
         """
-        z0ctx = self.init_test_ctx(opt_echo, full)
+        z0ctx = self._init_test_ctx(opt_echo, full)
         sts = self.main(z0ctx, SanityTest)
         if full:
             for p in 'min_test', 'max_test', 'ctr':
@@ -1561,6 +1428,8 @@ class Z0test(object):
 class Z0testOdoo(object):
 
     def build_odoo_env(self, ctx, version, hierarchy=None):
+        """Build a simplified Odoo directory tree
+        """
         # hierarchy -> flat,tree,server (def=flat)
         if version in ('10.0', '11.0', '12.0', '13.0', '14.0'):
             if hierarchy == 'tree':
