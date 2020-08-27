@@ -138,24 +138,24 @@ fi
 
 if [ "$PRJNAME" == "Odoo" ]; then
     valid=0
-    [[ -f __manifest__.py ]] && ((valid++))
-    [[ -f __openerp__.py ]] && ((valid++))
-    [[ -f __init__.py ]] && ((valid++))
+    [[ -f __manifest__.py ]] && ((valid+=2))
+    [[ -f __openerp__.py ]] && ((valid+=2))
+    [[ -f __init__.py ]] && ((valid+=2))
     [[ -f README.rst ]] && ((valid++))
     [[ -f .travis.yml ]] && ((valid++))
     [[ -d egg-info ]] && ((valid++))
-    if [ $valid -le 3 ]; then
+    if [ $valid -lt 5 ]; then
         echo "Invalid environment"
         exit 1
     fi
 else
     valid=0
     [[ -f setup.py ]] && ((valid++))
-    [[ -f ../setup.py ]] && ((valid++))
+    [[ -f ../setup.py ]] && ((valid+=2))
     [[ -d tests ]] && ((valid++))
     [[ -d egg-info ]] && ((valid++))
     [[ -f README.rst ]] && ((valid++))
-    if [ $valid -le 3 ]; then
+    if [ $valid -lt 5 ]; then
         echo "Invalid environment"
         exit 1
     fi

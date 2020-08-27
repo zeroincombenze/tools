@@ -6,7 +6,7 @@ import sys
 from getaddons import get_modules
 
 
-__version__ = '0.2.3.12'
+__version__ = '0.2.3.13'
 
 
 def get_build_dir():
@@ -31,6 +31,7 @@ flake8_config_dir = os.path.join(root_dir, 'cfg')
 folders = (os.environ.get("INCLUDE_LINT", "").split() or
            get_modules(os.path.abspath('.')))
 exclude_level = os.environ.get('LINT_CHECK_LEVEL', '')
+travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
 travis_base_dir, odoo_version = get_build_dir()
 status = 0
 
@@ -56,6 +57,9 @@ for addon in folders:
     if not os.path.isfile(specific_cfg):
         specific_cfg = os.path.join(flake8_config_dir,
                                     'travis_run_flake8.cfg')
+    if travis_debug_mode:
+        print('>>> %s' % ' '.join(['flake8', addon,
+                                   '--config=%s' % specific_cfg]))
     status += subprocess.call(['flake8', addon, '--config=%s' % specific_cfg])
 
 sys.exit(0 if status == 0 else 1)

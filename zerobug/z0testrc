@@ -63,7 +63,7 @@
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.15.8
+__version__=0.2.15.9
 
 export opt_dry_run
 export ctr
@@ -363,7 +363,7 @@ ci-test () {
     local s
     if [ $teststs -eq $STS_SUCCESS ]; then
       test_result "$1" "$2" "$3" "$4"
-      s=$?; [ ${s-0} -ne 0 ] && teststs=$s
+      s=$?; [ ${s-1} -ne 0 ] && teststs=$s
     fi
     return $teststs
 }

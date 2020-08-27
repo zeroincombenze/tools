@@ -31,7 +31,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.15.8
+__version__=0.2.15.9
 
 
 travis_test_bash() {
@@ -59,9 +59,9 @@ travis_test_bash() {
         if [ "$mime" == "text/x-shellscript" ]; then
           [ ${opt_verbose:-0} -gt 0 ] && echo "$ shellcheck -e $shellcheck_ignore $f"
           bash -n $f
-          s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+          s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
           [ $s -eq 0 ] && shellcheck -e $shellcheck_ignore $f
-          s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+          s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
           if [ $sts -eq 0 ]; then
             if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
               echo "Invalid statement 'set -x' in $f"
@@ -91,14 +91,14 @@ please_test_flake8() {
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg
         fi
         run_traced "flake8 . --config=${FLAKE8_CONFIG}"
-        s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8_$LINT_CHECK_LEVEL.cfg
         else
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg
         fi
         run_traced "flake8 . --config=${FLAKE8_CONFIG}"
-        s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
     return $sts
 }
@@ -188,33 +188,33 @@ EOF
             else
                 run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py $OPTS"
             fi
-            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         elif [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 ]]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
                 run_traced "./tests/all_tests $OPTS"
             else
                 run_traced "cd ./tests; ./all_tests $OPTS"
             fi
-            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         elif [ -f ./tests/test_$PRJNAME.py ]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
                 run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py $OPTS"
             else
                 run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py $OPTS"
             fi
-            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         else
             if [ ${opt_dprj:-0} -gt 0 ]; then
                 run_traced "DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
             else
                 run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
             fi
-            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
         $(ls ./pytest* &> /dev/null) && cd ..
         if $(ls ./tests/pytest* &> /dev/null); then
             run_traced "coverage run -m pytest -v ./tests/pytest*"
-            s=$?; [ $s -eq 0 -o $sts -ne 0 ] || sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
         if [ ! -f .coverage ]; then
             echo "Result coverage file not found!"

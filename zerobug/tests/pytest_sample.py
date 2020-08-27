@@ -12,7 +12,7 @@ from builtins import object
 import pytest
 from zerobug import Z0BUG
 
-__version__ = '0.2.15.8'
+__version__ = '0.2.15.9'
 
 
 def test_version_zerobug(version_to_test):

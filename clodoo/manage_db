@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.9.16
+__version__=0.3.9.17
 
 
 up_oemod() {
@@ -46,8 +46,8 @@ up_oemod() {
     sts=1
     errctr=0
     while [ $sts -ne 0 ]; do
-        psql -Upostgres -c "update ir_module_module set state='uninstalled' where state='to install';" $DB
-        psql -Upostgres -c "update ir_module_module set state='installed' where state='to upgrade';" $DB
+        psql -U$opt_dbuser -c "update ir_module_module set state='uninstalled' where state='to install';" $DB
+        psql -U$opt_dbuser -c "update ir_module_module set state='installed' where state='to upgrade';" $DB
         echo -e "\033[1;32m"; cat $passed_file || true
         echo -e "\033[1;31m"; cat $exclusion_file || true
         echo -e "\033[0m";
@@ -85,7 +85,7 @@ db_list() {
           DBlist=$DBlist,$db
         fi
       fi
-    done < <(psql -Upostgres -Atl)
+    done < <(psql -U$opt_dbuser -Atl)
     DBlist=${DBlist:1}
     echo "$DBlist"
 }
@@ -368,8 +368,8 @@ for odoo_vid in ${odoo_vids//,/ }; do
       if [ "$action" == "module" ]; then
         run_traced "nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk"
       elif [ "$action" == "upgrade" ]; then
-        [ "$opt_way" != "A" ] || run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -um $cmdlist -d $db -sk"
-        if [ "$cmdlist" != "all" -a "$opt_way" != "E"  ]; then
+        [[ "$opt_way" == "A" ]] || run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -um $cmdlist -d $db -sk"
+        if [[ ! "$cmdlist" == "all" && ! "$opt_way" == "E" ]]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
@@ -467,26 +467,26 @@ for odoo_vid in ${odoo_vids//,/ }; do
     fi
     OWNER=$cmdlist
     for db in $DBlist; do
-      run_traced "psql -Upostgres -qc 'COMMENT ON EXTENSION plpgsql IS null;' $db"
-      run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON DATABASE $db TO $OWNER;' $db"
-      run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $OWNER' $db"
-      run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $OWNER' $db"
-      run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $OWNER' $db"
-      run_traced "psql -Upostgres -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $OWNER' $db"
-      run_traced "psql -Upostgres -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $OWNER' $db"
+      run_traced "psql -U$opt_dbuser -qc 'COMMENT ON EXTENSION plpgsql IS null;' $db"
+      run_traced "psql -U$opt_dbuser -qc 'GRANT ALL PRIVILEGES ON DATABASE $db TO $OWNER;' $db"
+      run_traced "psql -U$opt_dbuser -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $OWNER' $db"
+      run_traced "psql -U$opt_dbuser -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $OWNER' $db"
+      run_traced "psql -U$opt_dbuser -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $OWNER' $db"
+      run_traced "psql -U$opt_dbuser -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $OWNER' $db"
+      run_traced "psql -U$opt_dbuser -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $OWNER' $db"
       if [ $opt_dry_run -eq 0 ]; then
         [ $opt_verbose -gt 0 ] && echo "Reassigning all tables ..."
-        for tbl in $(psql -Upostgres -qAtc "select tablename from pg_tables where schemaname = 'public'" $db); do
-          psql -Upostgres -qc "ALTER TABLE \"$tbl\" OWNER TO $OWNER" $db
-          psql -Upostgres -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $OWNER" $db
+        for tbl in $(psql -U$opt_dbuser -qAtc "select tablename from pg_tables where schemaname = 'public'" $db); do
+          psql -U$opt_dbuser -qc "ALTER TABLE \"$tbl\" OWNER TO $OWNER" $db
+          psql -U$opt_dbuser -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $OWNER" $db
         done
-        for tbl in $(psql -Upostgres -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $db); do
-          psql -Upostgres -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $OWNER" $db
-          psql -Upostgres -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $OWNER" $db
+        for tbl in $(psql -U$opt_dbuser -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $db); do
+          psql -U$opt_dbuser -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $OWNER" $db
+          psql -U$opt_dbuser -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $OWNER" $db
         done
         for tbl in $(psql -qAtc "select table_name from information_schema.views where table_schema = 'public'" $db); do
-          psql -Upostgres -qc "ALTER view \"$tbl\" OWNER TO $OWNER" $db
-          psql -Upostgres -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $OWNER" $db
+          psql -U$opt_dbuser -qc "ALTER view \"$tbl\" OWNER TO $OWNER" $db
+          psql -U$opt_dbuser -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $OWNER" $db
         done
       fi
     done

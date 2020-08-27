@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.8
+__version__=0.2.3.9
 
 
 store_cfg_param_value() {
@@ -56,6 +56,7 @@ store_cfg_param_value() {
 
 process_local() {
     wlog "=== Simulate YAML test ==="
+    local s sts
     if [ -f $TOOLS_PATH/travis_run_tests ]; then
       if [[ $action =~ (force-lint|lint) ]]; then
         opts=$(inherits_travis_opts "K" "T")
@@ -83,7 +84,7 @@ process_local() {
     if [ $sts -eq $STS_SUCCESS ] && [[ $action =~ (force-lint|lint|force-test|test) ]]; then
       opts=$(inherits_travis_opts "" "A")
       run_traced "$TOOLS_PATH/travis_after_tests_success $opts"
-      if [ $? -ne 0 ]; then sts=$?; fi
+      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
     return $sts
 }
@@ -359,7 +360,7 @@ process_yaml_initialize() {
       line=$(get_cfg_value "" "yaml_init_$i")
       if [ -n "$line" ]; then
         process_yaml_run_cmd "$line"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       fi
     done
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
@@ -372,7 +373,7 @@ process_yaml_initialize() {
         line=$(get_cfg_value "" "${X}yaml_init_$i")
         if [ -n "$line" ]; then
           process_yaml_run_cmd "$line"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
       done
     fi
@@ -416,7 +417,7 @@ process_yaml_global() {
     for lne in $YML_global; do
       line="export $(process_yaml_quote_xtl $lne)"
       run_traced "$line"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     done
     return $sts
 }
@@ -456,7 +457,7 @@ process_yaml_before_install() {
                 line="apt-get install $lne"
             fi
             process_yaml_run_cmd "$line"
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
             [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
         done
     fi
@@ -466,7 +467,7 @@ process_yaml_before_install() {
     if [ $sts -eq $STS_SUCCESS ]; then
         for lne in $YML_before_install; do
             process_yaml_run_cmd "$lne"
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
             [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
         done
     fi
@@ -477,7 +478,7 @@ process_yaml_before_install() {
         for lne in $YML_env; do
             line="export $(process_yaml_quote_xtl $lne)"
             run_traced "$line"
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         done
     fi
     return $sts
@@ -495,7 +496,7 @@ process_yaml_install() {
     run_traced "$line1"
     for lne in $YML_install; do
       process_yaml_run_cmd "$lne"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     done
     return $sts
 }
@@ -511,7 +512,7 @@ process_yaml_before_script() {
     else
       for lne in $YML_before_script; do
         process_yaml_run_cmd "$lne" "$line1"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       done
     fi
     return $sts
@@ -527,7 +528,7 @@ process_yaml_after_success() {
     for lne in $YML_after; do
       line=$(process_yaml_quote_xtl $lne)
       process_yaml_run_cmd "$line"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     done
     return $sts
 }
@@ -576,10 +577,10 @@ process_yaml_run_cmd() {
       x[$ix]="yum"
     fi
     if [[ ${x[$ix]} =~ ^(yum|apt-get)$ ]]; then
-      pp="python-serial libcups2-dev cups-devel unixodbc unixODBC unixodbc-dev unixODBC-dev unixODBC-devel"
-      pp="$pp python-mysqldb MYSQL-python python-yaml pyyaml pyYAML PyYAML python-pypdf pypdf pyPdf"
-      pp="$pp ruby-sass rubygem-sass python-simplejson python2-simplejson expect-dev antiword"
-      if [[ $pp =~ ${x[$ix2]} ]]; then
+      pp="(python-serial|libcups2-dev|cups-devel|unixodbc|unixODBC|unixodbc-dev|unixODBC-dev|unixODBC-devel"
+      pp="$pp|python-mysqldb|MYSQL-python|python-yaml|pyyaml|pyYAML|PyYAML|python-pypdf|pypdf|pyPdf"
+      pp="$pp|ruby-sass|rubygem-sass|python-simplejson|python2-simplejson|expect-dev|antiword)"
+      if [[ ${x[$ix2]} =~ $pp ]]; then
         xcmd=$(echo $xcmd|sed -e 's/yum/$YML_lisa/g')
         xcmd=$(echo $xcmd|sed -e 's/apt-get/$YML_lisa/g')
         x[$ix]=$YML_lisa
@@ -588,22 +589,28 @@ process_yaml_run_cmd() {
     if [ "${x[$ix]}" == "$YML_lisa" -a "${x[$ix1]}" == "install" ]; then
       if $($YML_lisa status ${x[$ix2]} &>/dev/null); then
         xcmd="# $xcmd"
+      elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel) ]]; then
+        xcmd="true;   # Warning! TODO> $xcmd"
       else
-        xcmd="false; # Warning! TODO> $xcmd"
+        xcmd="false;  # Error! TODO> $xcmd"
       fi
     elif [ "${x[$ix]}" == "yum" -a "${x[$ix1]}" == "install" ]; then
       if $(rpm -q ${x[$ix2]} &>/dev/null); then
         xcmd="# $xcmd"
       elif $(yum info ${x[$ix2]} &>/dev/null); then
         xcmd="# $xcmd"
+      elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel) ]]; then
+        xcmd="true;   # Warning! TODO> $xcmd"
       else
-        xcmd="false; # Warning! TODO> $xcmd"
+        xcmd="false;  # Error! TODO> $xcmd"
       fi
     elif [ "${x[$ix]}" == "apt-get" -a "${x[$ix1]}" == "install" ]; then
       if $(dpkg-query -s ${x[$ix2]} &>/dev/null); then
         xcmd="# $xcmd"
+      elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel) ]]; then
+        xcmd="true;   # Warning! TODO> $xcmd"
       else
-        xcmd="false; # Warning! TODO> $xcmd"
+        xcmd="false;  # Error! TODO> $xcmd"
       fi
     elif [ "${x[$ix]}" == "git" -a "${x[$ix1]}" == "clone" ]; then
       ix=$ix2
@@ -786,7 +793,7 @@ process_yaml() {
         sts=$STS_SUCCESS
         wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
         TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-        for lne in TODAY TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
+        for lne in TODAY TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
             lne1=${!lne}
             if [[ -n "$lne1" || $lne =~ PATH ]]; then
                 wlog "\$ $lne=$lne1"
@@ -794,7 +801,7 @@ process_yaml() {
         done
         if [ $sts -eq $STS_SUCCESS ]; then
             process_yaml_initialize
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
         if [ $sts -eq $STS_SUCCESS ]; then
             [[ -z "$python_ver_req" ]] && python_ver_req=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
@@ -866,21 +873,21 @@ process_yaml() {
                     process_yaml_global
                     if [ $sts -eq $STS_SUCCESS ]; then
                         process_yaml_before_install
-                        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
                     fi
                     if [ $sts -eq $STS_SUCCESS ]; then
                         process_yaml_install "$line1"
-                        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
                     fi
                     if [ $sts -eq $STS_SUCCESS ]; then
                         process_yaml_before_script "$line1"
-                        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
                     fi
                     if [ $sts -eq $STS_SUCCESS ]; then
                         wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[${PS_TXT_COLOR}m"
                         for lne in $YML_script; do
                             process_yaml_run_cmd "$lne"
-                            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
                             if [ $sts -ne $STS_SUCCESS ]; then
                                 elog "!Script aborted by error!!"
                                 break
@@ -1071,7 +1078,7 @@ if [ $sts -eq $STS_SUCCESS ]; then
             sts=2
         else
             [[ -f $opt_logdir/${PKGNAME}_${BRANCH}.log ]] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}.log
-            process_yaml 2>&1 | tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
+            process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
             sts=$?
         fi
     # fi

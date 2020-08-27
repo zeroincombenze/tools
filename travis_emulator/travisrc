@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.3.8
+#__version__=0.2.3.9
 
 
 MAKEF=$HOME/dev/Makefile
@@ -617,8 +617,7 @@ git_clone() {
                 [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
                 # [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ && "$p" != "$x" ]] && run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
                 [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ ]] && run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
-                s=$?
-                [ $s -eq 0 ] || echo "Internal error $s! Statement rsync $p failed!!"
+                s=$?; [ ${s-1} -eq 0 ] || echo "Internal error $s! Statement rsync $p failed!!"
             done
             for p in install_tools.sh odoo_default_tnl.xlsx; do
                 run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/$p $HOME/tools/$p"
@@ -751,7 +750,7 @@ conf_default() {
     set_cfg_def "RUN_travis_after_tests_success" "travis_after_tests_success"
     set_cfg_def "dbtemplate" "openerp_template"
     set_cfg_def "dbname" "openerp_test"
-    set_cfg_def "dbuser" "postgres"
+    set_cfg_def "dbuser" "odoo"
     set_cfg_def "UNBUFFER" "0"
     set_cfg_def "MQT_UPDT" "2017-01-01"
     set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
@@ -1365,11 +1364,11 @@ clone_core_dependencies() {
         if [ -n "$REPOSNAME" ]; then
           for p in $d/*; do
             clone_1_dependence "$p"
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
           done
         else
           clone_1_dependence "$d"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
       else
         elog "!????? Module $line not found!??????"
@@ -1378,7 +1377,7 @@ clone_core_dependencies() {
     done
     if [ -n "$REPOSNAME" ]; then
       clone_1_dependence "$oetpath/addons"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
     return $sts
 }
@@ -1400,11 +1399,11 @@ clone_oca_dependencies() {
             if [ -n "$REPOSNAME" ]; then
               for p in $d/*; do
                 clone_1_dependence "$p"
-                s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
               done
             else
               clone_1_dependence "$d"
-              s=$?; [ ${s-0} -ne 0 ] && sts=$s
+              s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
             fi
           else
             elog "!????? Module $line not found!??????"
@@ -1427,20 +1426,20 @@ clone_dependencies() {
       local oetpath=$(readlink -e $PRJPATH/..)
       for p in $oetpath/*; do
         clone_1_dependence "$p"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       done
       p=$(readlink -e $oetpath/odoo)
       if [ -n "$p" ]; then
         clone_1_dependence "$p"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       fi
       p=$(readlink -e $oetpath/openerp)
       if [ -n "$p" ]; then
         clone_1_dependence "$p"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       fi
       clone_core_dependencies
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     else
       run_traced "export INCLUDE="
     fi

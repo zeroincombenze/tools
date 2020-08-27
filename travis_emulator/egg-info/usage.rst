@@ -56,7 +56,7 @@ While travis is running this is the tree directory:
 
     (1) Directory with Odoo or OCA/OCB repository to check compatibility of testing project
     (2) If testing project is OCB, travis_install_env ignore this directory
-    (3) Done reading one of following statements in .travis.yml:
+    (3) Done by then following statements in .travis.yml:
         - travis_install_env
         Above statements replace the OCA statements:
         - travis_install_nightly

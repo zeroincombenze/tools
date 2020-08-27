@@ -2,6 +2,9 @@
 """
 helpers shared by the various QA tools
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+import sys
 
 
 RED = "\033[1;31m"
@@ -30,6 +33,14 @@ def red(text):
 
 def yellow_light(text):
     return colorized(text, YELLOW_LIGHT)
+
+
+def print_flush(msg):
+    if sys.version_info[0] == 3:
+        print(msg, flush=True)
+    else:
+        print(msg)
+        sys.stdout.flush()
 
 
 fail_msg = red("FAIL")

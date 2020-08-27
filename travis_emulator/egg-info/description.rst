@@ -1,8 +1,15 @@
 Emulate travis to test application before pushing to git
 --------------------------------------------------------
 
-Travis emulator can emulate TravisCi parsing .travis.yml file in local Linux machine.
+Travis emulator can emulate TravisCi parsing the .travis.yml file in local Linux machine.
 You can test your application before pushing code to github.com web site.
+
+Travis emulator can creates all the build declare by .travis.yml; all the builds are executed in sequential way.
+The directory ~/travis_log (see -l switch) keeps the logs of all build executed.
+Please note that log file is a binary file with screen escape code.
+If you want to see the log use follow command:
+
+    `less -R ~/travis_log/<build_name>.log`
 
 A travis build does following steps:
 

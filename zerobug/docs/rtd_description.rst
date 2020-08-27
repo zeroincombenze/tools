@@ -46,7 +46,7 @@ it. This behavior can be overridden by -0 switch.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-24
+Last Update / Ultimo aggiornamento: 2020-08-27
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -60,23 +60,23 @@ Last Update / Ultimo aggiornamento: 2020-08-24
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.15.8
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.15.8
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.15.9
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.15.9
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.8/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.8
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.9/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.15.9
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.15.8/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.15.9/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.15.8/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.15.9/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.15.8/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.15.8
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.15.9/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.15.9
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

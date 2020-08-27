@@ -5,51 +5,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import os
 import subprocess
-import shutil
+# import shutil
 import sys
 from travis_helpers import success_msg, fail_msg
-
-
-def set_sys_path():
-    # SITECUSTOMIZE = os.path.join(os.environ.get('HOME'),
-    #                              'dev',
-    #                              'sitecustomize.py')
-    # if os.path.isfile(SITECUSTOMIZE):
-    #     # TODO: findpkg in python
-    #     PYTHON_VER = 'python%s' % os.environ.get('TRAVIS_PYTHON_VERSION')
-    #     HOME = os.environ.get('HOME')
-    #     shcmd = 'source %s/dev/z0lib/z0librc; findpkg ""' % HOME
-    #     shcmd += ' "%s' % os.path.join(HOME, 'virtualenv')
-    #     shcmd += ' %s' % os.path.join(HOME,
-    #                                   'python%s_with_system_site_packages' %
-    #                                   os.environ.get('TRAVIS_PYTHON_VERSION'))
-    #     shcmd += ' %s' % os.path.join(HOME, 'local')
-    #     shcmd += ' %s' % os.path.join(HOME, '.local')
-    #     shcmd += ' %s' % os.path.join(HOME, 'lib64')
-    #     shcmd += ' %s"' % os.path.join(HOME, 'lib')
-    #     shcmd += ' "%s' % PYTHON_VER
-    #     shcmd += ' site-packages local lib64 lib"'
-    #     shcmd += ' "%s' % PYTHON_VER
-    #     shcmd += ' site-packages local lib64 lib"'
-    #     shcmd += ' "%s' % PYTHON_VER
-    #     shcmd += ' site-packages"'
-    #     shcmd += ' "site-packages"'
-    #     if travis_debug_mode > 2:
-    #         print('Searching with %s' % shcmd)
-    #     PYLIB = subprocess.check_output(shcmd, shell=True)
-    #     if PYLIB:
-    #         PYLIB = os.path.join(PYLIB.replace('\n', ''), 'sitecustomize.py')
-    #         if travis_debug_mode > 2:
-    #             print('cp %s %s ' % (SITECUSTOMIZE, PYLIB))
-    #         shutil.copyfile(SITECUSTOMIZE, PYLIB)
-    x = -1
-    for i in range(len(sys.path)):
-        x = i if sys.path[i].endswith('/tools') else x
-    if x > 0:
-        sys.path.insert(0, sys.path[x])
-        del sys.path[x + 1]
-    else:
-        sys.path.insert(0, os.path.join(os.environ.get('HOME'), 'tools'))
 
 
 def main(test_list):
@@ -65,7 +23,11 @@ def main(test_list):
     results = []
     for test in test_list:
         # keep backward compatibility with version as an argument
-        print("======== Testing %s ========" % test[0])
+        if sys.version_info[0] == 3:
+            print("======== Testing %s ========" % test[0], flush=True)
+        else:
+            print("======== Testing %s ========" % test[0])
+            sys.stdout.flush()
         test_w_args = test + args
         test_file = test_w_args[0]
         if test_file.endswith(".py"):
@@ -97,11 +59,8 @@ if __name__ == '__main__':
     tests_unspecified = os.environ.get('TESTS') is None
     is_oca_project = os.environ.get('TRAVIS_REPO_SLUG', '').startswith('OCA/')
     travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
-    if travis_debug_mode > 2:
-        print('DEBUG: travis_run_tests.sys.path=%s' % sys.path)
-    # set_sys_path()
-    if travis_debug_mode:
-        print('DEBUG: travis_run_tests.sys.path=%s' % sys.path)
+    # if travis_debug_mode:
+    #     print('DEBUG: travis_run_tests.sys.path=%s' % sys.path)
 
     # TRAVIS_PULL_REQUEST contains the pull request number or 'false'
     is_pull_request = os.environ.get('TRAVIS_PULL_REQUEST') != 'false'

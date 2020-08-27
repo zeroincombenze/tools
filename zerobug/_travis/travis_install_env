@@ -281,6 +281,11 @@ check_installed_pkgs() {
     check_4_needing_pkgs
 }
 
+cp_coveragerc() {
+    run_traced "cp ${HOME}/tools/z0bug_odoo/travis/cfg/.coveragerc ."
+    run_traced "sed -Ee \"s|^#? *..TRAVIS_BUILD_DIR./|    $TRAVIS_BUILD_DIR/|\" -i ./.coveragerc"
+    run_traced "sed -e \"s|^ *\*.py\$|#&|\" -i ./.coveragerc"
+}
 
 OPTOPTS=(h        b          j        K        H           n            q           T        t         V           v)
 OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_humdrum opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
@@ -372,16 +377,6 @@ fi
 run_traced "$PIP install -q pip --upgrade" "nolocal"
 check_installed_pkgs
 # run_traced "$PIP install -q future --upgrade" "nolocal"
-# MGRODOO=$(which manage_odoo 2>/dev/null)
-# if [[ -z "$MGRODOO" ]]; then
-#   if [ "$MQT_TEST_MODE" == "tools" ]; then
-#     [ -f $TRAVIS_BUILD_DIR/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TRAVIS_BUILD_DIR/clodoo/manage_odoo) || MGRODOO=manage_odoo
-#   elif [ -n "$YML_mgrodoo" ]; then
-#     MGRODOO=$YML_mgrodoo
-#   else
-#     [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
-#   fi
-# fi
 LISTREQ=$(which list_requirements.py 2>/dev/null)
 if [[ -z "$LISTREQ" ]]; then
   if [ -n "$YML_mgrodoo" ]; then
@@ -436,12 +431,6 @@ if [[ ! "$TRAVIS" == "false" ]]; then
     run_traced "$PIP install $p --upgrade --ignore-installed" "nolocal"
   done
 fi
-# Secure environment OK
-# echo -e "\e[${PS_HDR3_COLOR}m### Build Base Environment\e[${PS_TXT_COLOR}m"
-# for p in os0 configparser z0lib; do
-#   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
-#   [ $? -ne 0 ] && run_traced "$PIP install $p $PIP_OPTS" "nolocal"
-# done
 [ -z "${VERSION}" ] && VERSION="$opt_branch"
 [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
 : ${MQT_TEMPLATE_DB:="openerp_template"}
@@ -513,74 +502,12 @@ else
       [ -n "$x" ] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
     fi
     lessc --version
-    # x=$(find $PYLIB -name no-global-site-packages.txt)
-    # [ -n $x ] && run_traced "rm -f $x"
     [ -z "${WKHTMLTOPDF_VERSION}" ] && export WKHTMLTOPDF_VERSION="0.12.5"
     [ -n "$(which example.com 2>/dev/null)" ] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version|grep -Eo [0-9.]+|head -n1) || CUR_WKHTMLTOPDF_VERSION=
     if [[ "$CUR_WKHTMLTOPDF_VERSION" == "$WKHTMLTOPDF_VERSION" ]]; then
       [ $opt_verbose -gt 0 ] && echo "Installed version of wkhtmltopdf is $WKHTMLTOPDF_VERSION"
     else
       [ $opt_verbose -gt 0 ] && echo "Installing wkhtmltopdf version $WKHTMLTOPDF_VERSION (current is $CUR_WKHTMLTOPDF_VERSION)"
-      # FH="Debian"
-      # MACHARCH="x86_64"
-      # [ -x $HOME/tools/z0lib/xuname ] && FH=$($HOME/tools/z0lib/xuname -f)
-      # [ -x $HOME/tools/z0lib/xuname ] && MACHARCH=$($HOME/tools/z0lib/xuname -m)
-      # mkdir wkhtmltox.rpm_files
-      # pushd wkhtmltox.rpm_files > /dev/null
-      # if [[ "$FH" == "RHEL" ]]; then
-      #   dist=$($HOME/tools/z0lib/xuname -d)
-      #   dist=${dist,,}$($HOME/tools/z0lib/xuname -v|grep -Eo [0-9]|head -n1)
-      #   pkgext=".rpm"
-      #   if [[ ${WKHTMLTOPDF_VERSION} == "0.12.5" ]]; then
-      #     wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_1-${dist}-amd64.rpm"
-      #   elif [[ ${WKHTMLTOPDF_VERSION} == "0.12.4" ]]; then
-      #     wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-generic-amd64.tar.xz"
-      #     pkgext=".xz"
-      #   else
-      #     if [[ "$MACHARCH" == "x86_64" ]]; then
-      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-${dist}-amd64.rpm"
-      #     else
-      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-${dist}-i386.rpm"
-      #     fi
-      #   fi
-      # elif [[ "$FH" == "Debian" ]]; then
-      #   pkgext=".deb"
-      #   if [[ ${WKHTMLTOPDF_VERSION} == "0.12.5" ]]; then
-      #     if [[ "$MACHARCH" == "x86_64" ]]; then
-      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}-1.${dist}.${MACHARCH}.rpm"
-      #     else
-      #       wkhtmltopdf_wget="wkhtmltox_${WKHTMLTOPDF_VERSION}-1.$(lsb_release -sc)_amd64.deb"
-      #     fi
-      #   elif [[ ${WKHTMLTOPDF_VERSION} == "0.12.4" ]]; then
-      #     wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-generic-amd64.tar.xz"
-      #     pkgext=".xz"
-      #   else
-      #     if [[ "$MACHARCH" == "x86_64" ]]; then
-      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-$(lsb_release -sc)-amd64.deb"
-      #     else
-      #       wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-$(lsb_release -sc)-i386.deb"
-      #     fi
-      #   fi
-      #   run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox.deb"
-      # fi
-      # run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox${pkgext}"
-      # size=$(stat -c %s wkhtmltox${pkgext})
-      # if [ $size -eq 0 ]; then
-      #    echo "File wkhtmltox${pkgext} not found!"
-      # elif [ "$pkgext" == ".rpm" ]; then
-      #   run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
-      #   run_traced "cp ./usr/local/bin/wkhtmltopdf ${HOME}/tools/z0bug_odoo/travis/wkhtmltopdf"
-      # elif [ "$pkgext" == ".deb" ]; then
-      #   run_traced "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
-      #   run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${HOME}/tools/z0bug_odoo/travis/wkhtmltopdf"
-      #   rm -r wkhtmltox.deb*
-      # else
-      #   run_traced "tar -xf wkhtmltox${pkgext}"
-      #   run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/tools/z0bug_odoo/travis/wkhtmltopdf"
-      #   rm -fr ./wkhtmltox
-      # fi
-      # popd > /dev/null
-      # rm -fR wkhtmltox.rpm_files
       vem install "wkhtmltopdf==$WKHTMLTOPDF_VERSION"
       CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version|grep -Eo [0-9.]+|head -n1)
       [ $opt_verbose -gt 0 ] && echo "Current version of wkhtmltopdf is $CUR_WKHTMLTOPDF_VERSION"
@@ -625,7 +552,7 @@ else
       reqs=$(find ${ODOO_PATH} -name requirements.txt|tr "\n" ",")
       run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
-    run_traced "cp ${HOME}/tools/z0bug_odoo/cfg/.coveragerc ."
+    cp_coveragerc
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       if [ $opt_verbose -gt 0 ]; then
         echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
@@ -641,7 +568,7 @@ else
     dopts=
     mkdir -p ${HOME}/dependencies
     cp_n_upd_odoo_conf
-    run_traced "$TDIR/clone_oca_dependencies"
+    run_traced "clone_oca_dependencies"
     sts=$?
     if [ $sts -ne 0 ]; then
       echo "- Error cloning dependencies"
@@ -659,7 +586,7 @@ else
         reqs=$(find $ocb_dir $dependencies_dir -name requirements.txt|tr "\n" ",")
         run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
-    run_traced "cp ${HOME}/tools/z0bug_odoo/cfg/.coveragerc ."
+    cp_coveragerc
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
         run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"
@@ -682,8 +609,6 @@ else
     elif [[ -f "${ODOO_PATH}/odoo/tests/common.py" ]]; then
       run_traced "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
     fi
-    # # FIX BUG:  pillow require docutils 0.12 but doc packages install docutils >= 0.13
-    # run_traced "pip install pillow==3.4.2 -U -I"
     if [ $opt_verbose -gt 0 ]; then
         echo "Content of ${HOME}:"
         ls -l ${HOME}
