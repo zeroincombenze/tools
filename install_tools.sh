@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# __version__=0.2.3.15
 #
+__version__=0.2.3.16
+
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
-    echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v]"
+    echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
     echo "  -h  this help"
     echo "  -n  dry-run"
     echo "  -o  compatibility old mode (exec dir in $HOME/dev)"
@@ -16,6 +17,10 @@ if [[ $1 =~ -.*h ]]; then
     echo "  -t  activate test environment (PATH with CI/CT commands)"
     echo "  -T  activate OCA test environment (PATH with CI/CT commands) deprecated"
     echo "  -v  more verbose"
+    echo "  -V  show version and exit"
+    exit 0
+elif [[ $1 =~ -.*h ]]; then
+    echo $___version__
     exit 0
 fi
 
@@ -33,7 +38,7 @@ RFLIST__WOK_CODE="wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py|transodoo.py|transodoo.csv|vfcp|vfdiff)"
-FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py prjdiff run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
+FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py prjdiff replica.sh run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
 [[ $1 =~ -.*[tT] ]] && HOME=$(readlink -e $(dirname $0)/..)

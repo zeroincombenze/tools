@@ -25,9 +25,9 @@ copyright = '2015-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '0.2.3.15'
+version = '0.2.3.16'
 # The full version, including alpha/beta/rc tags
-release = '0.2.3.15'
+release = '0.2.3.16'
 
 
 # -- General configuration ---------------------------------------------------
@@ -44,6 +44,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
 ]
 
 
@@ -137,3 +138,11 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 html_logo = 'logozero_180x46.png'
+#
+# autodoc_default_flags = ['members']
+autosummary_generate = True
+autodoc_default_options = {
+    'members': '',
+    'undoc-members': True,
+    'exclude-members': ''
+}
