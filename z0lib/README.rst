@@ -45,7 +45,6 @@ Installation
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
     pip install z0lib
 
 |
@@ -58,8 +57,8 @@ Current version via Git
     cd $HOME
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
-    source /opt/odoo/devel/activate_tools
+    ./install_tools.sh -op
+    source /opt/odoo/dev/activate_tools
 
 
 |
@@ -83,7 +82,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-12
+Last Update / Ultimo aggiornamento: 2020-08-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -97,7 +96,7 @@ Last Update / Ultimo aggiornamento: 2020-08-12
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.9.3
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
     :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.9.3
     :alt: Coverage
 .. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.9.3/graph/badge.svg
