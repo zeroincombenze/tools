@@ -18,7 +18,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.15.9"
+__version__ = "0.2.15.10"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -523,9 +523,11 @@ class Z0test(object):
         self.autorun = autorun
         this_fqn = None
         if argv is None:
-            argv = sys.argv[1:]
-            this_fqn = sys.argv[0] if (len(sys.argv) and
-                not sys.argv[0].startswith('-')) else None
+            if len(sys.argv) and not sys.argv[0].startswith('-'):
+                argv = sys.argv[1:]
+                this_fqn = sys.argv[0]
+            else:
+                argv = []
         else:
             self.autorun = True
         this_fqn = os.path.abspath(this_fqn or self._get_this_fqn())
@@ -958,14 +960,14 @@ class Z0test(object):
 
     def test_version(self, ctx, testname):
         """testname format is '__version_T_VVVVFILE' where:
-        T: type - May be:
-               'V' = exec 'testfile -V'
-               'v' = exec 'testfile -v'
-               'P' = exec 'testfile --version'
-               '1' = use VVVV
-               '0' = use internal value __version__
-        VVVV: version - Version to match (must be {0-9.}+)
-        FILE: pathfile to execute to match version (macro expanded)
+            T: type - May be:
+                   'V' = exec 'testfile -V'
+                   'v' = exec 'testfile -v'
+                   'P' = exec 'testfile --version'
+                   '1' = use VVVV
+                   '0' = use internal value __version__
+            VVVV: version - Version to match (must be {0-9.}+)
+            FILE: pathfile to execute to match version (macro expanded)
         """
         if ctx['dry_run']:
             ctx['ctr'] = 1
@@ -1015,7 +1017,7 @@ class Z0test(object):
         file = Macro(testname[10:])
         file = file.safe_substitute(**ctx)
         msg = "doctest %s" % os.path.basename(file)
-        cmd = 'python -m doctest %s' % file
+        # cmd = 'python -m doctest %s' % file
         FNULL = open(os.devnull, 'w')
         res = subprocess.call(['python', '-m', 'doctest', file],
                               stdout=FNULL,
@@ -1092,10 +1094,10 @@ class Z0test(object):
                 self.ctr_list.append(ctx['ctr'])
             self.dbgmsg(ctx, '- testctr=%d+%d' % (testctr, ctx['ctr']))
             testctr += ctx['ctr']
-        ctx = self._restore_options(ctx)
-        ctx['ctr'] = testctr
         if TestCls and hasattr(TestCls, 'teardown'):
             getattr(T, 'teardown')(ctx)
+        ctx = self._restore_options(ctx)
+        ctx['ctr'] = testctr
         if ctx.get('max_test', 0) == 0:
             ctx['max_test'] = ctx.get('min_test', 0) + testctr
         self.dbgmsg(ctx, '- c=%d, min=%d, max=%d' % (ctx['ctr'],
@@ -1106,9 +1108,9 @@ class Z0test(object):
 
     def _exec_all_tests(self, test_list, ctx, TestCls=None):
         if ctx.get('_run_autotest', False):
-            self.dbgmsg(ctx, '.exec_all_tests (autotest)')
+            self.dbgmsg(ctx, '>>> exec_all_tests(autotest)')
         else:
-            self.dbgmsg(ctx, '.exec_all_tests')
+            self.dbgmsg(ctx, '>>> exec_all_tests()')
         ctx = self._ready_opts(ctx)
         if (not ctx.get('_run_autotest', False) and
                 ctx.get('run4cover', False and
@@ -1243,7 +1245,7 @@ class Z0test(object):
                 ctx.get('run_on_top', False) and
                 not ctx.get('_run_autotest', False)):
             self.dbgmsg(ctx, "# Test tree of %s!" % self.module_id)
-        self.dbgmsg(ctx, '.main')
+        self.dbgmsg(ctx, '>>> main()')
         self.dbgmsg(ctx,
                     '- min=%s, max=%s, -0=%s, Cover=%s' %
                     (ctx.get('min_test', None),

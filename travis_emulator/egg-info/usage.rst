@@ -1,3 +1,6 @@
+Travis emulator usage
+---------------------
+
 ::
 
     Usage: travis [-hBC][-c file][-D number][-EFfjk][-L number][-l dir][-Mmn][-O git-org][-pqr][-S false|true][-Vv][-X 0|1][-Y file][-y pyver][-Z] action sub sub2
@@ -38,12 +41,12 @@ While travis is running this is the tree directory:
 
 ::
 
-    \${HOME}
+    ${HOME}
     ┣━━ build                       # build root (by TravisCI)
-    ┃    ┣━━ \${TRAVIS_BUILD_DIR}   # testing project repository (by TravisCI)
-    ┃    ┗━━ \${ODOO_REPO}          # Odoo or OCA/OCB repository to check with    (1) (2)
+    ┃    ┣━━ ${TRAVIS_BUILD_DIR}    # testing project repository (by TravisCI)
+    ┃    ┗━━ ${ODOO_REPO}           # Odoo or OCA/OCB repository to check with    (1) (2)
     ┃
-    ┣━━ \${ODOO_REPO}-\${VERSION}   # symlnk of ${HOME}/build/{ODOO_REPO}         (1)
+    ┣━━ ${ODOO_REPO}-${VERSION}     # symlnk of ${HOME}/build/{ODOO_REPO}         (1)
     ┃
     ┣━━ dependencies                # Odoo dependencies                           (3)
     ┃

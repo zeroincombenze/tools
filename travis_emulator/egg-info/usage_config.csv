@@ -13,5 +13,5 @@ PS_NOP_COLOR,N/D,31;105
 PS_HDR1_COLOR,N/D,97;48;5;22
 PS_HDR2_COLOR,N/D,30;43
 PS_HDR3_COLOR,N/D,30;47
-PKGS_LIST,N/D,clodoo devel_tools lisa maintainer-quality-tools odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug
+PKGS_LIST,N/D,clodoo devel_tools lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug
 PYTHON_MATRIX,Python version available to test (space separated),

@@ -1,6 +1,6 @@
 
 ====================
-devel_tools 0.2.3.14
+devel_tools 0.2.3.15
 ====================
 
 
@@ -387,10 +387,10 @@ In this documentation VAR means the name of the macro while MACRO is the name of
 ::
 
     i.e.  .. $if branch == '12.0'
-          Current branch is 0.2.3.14
+          Current branch is 0.2.3.15
 
 In above example then word branch after statement $if ia the VAR branch.
-The word branch in the second line is a text. The item 0.2.3.14 is the macro, replaced by the value of varaibale branch.
+The word branch in the second line is a text. The item 0.2.3.15 is the macro, replaced by the value of varaibale branch.
 
 CONDITION may be a python condition or one of follow special condition:
 
@@ -677,7 +677,6 @@ Installation
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
     pip install devel_tools
 
 |
@@ -690,8 +689,8 @@ Current version via Git
     cd $HOME
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
-    source /opt/odoo/devel/activate_tools
+    ./install_tools.sh -op
+    source /opt/odoo/dev/activate_tools
 
 
 |
@@ -715,7 +714,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-27
+Last Update / Ultimo aggiornamento: 2020-08-28
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -729,23 +728,23 @@ Last Update / Ultimo aggiornamento: 2020-08-27
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.14
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.14
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.15
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.15/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.15
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.14/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.15/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.14/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.15/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.14/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.14
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.15/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.15
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

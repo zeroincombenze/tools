@@ -7,8 +7,8 @@
 from __future__ import print_function, unicode_literals
 
 # import pdb
-import os
-import os.path
+# import os
+# import os.path
 import sys
 from zerobug import Z0BUG
 from python_plus import (text_type, bytestr_type,

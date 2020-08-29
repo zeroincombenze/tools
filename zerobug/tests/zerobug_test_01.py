@@ -5,14 +5,14 @@
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 from __future__ import print_function,unicode_literals
-from past.builtins import basestring
+# from past.builtins import basestring
 
-import os
+# import os
 import os.path
 import sys
 from zerobug import Z0BUG
 
-__version__ = "0.2.15.9"
+__version__ = "0.2.15.10"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     ctx = Z0BUG.parseoptest(sys.argv[1:],
                             version=version())
     z0lib_file = ''
-    for fn in ('../zerobug/z0lib/z0lib/z0librc',
+    for fn in ('../../z0lib/z0lib/z0librc',
                '../z0lib/z0librc',
                os.path.expanduser('~/tools/z0lib/z0librc')):
         if os.path.isfile(fn):

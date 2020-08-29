@@ -273,8 +273,12 @@ check_bin_package() {
             [ -n "$curver" ] && xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
             if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
                 echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
-                ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-                [[ "$cmd" == "amend" ]] && run_traced "$PIP install $vpkg -U"
+                if [[ "$cmd" == "amend" ]]; then
+                    run_traced "$PIP install $vpkg -U"
+                    [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+                else
+                    ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+                fi
             else
                 printf "Package %-30.30s OK\n" "${pkg}${op}${curver}.............................."
             fi
@@ -322,14 +326,22 @@ check_package() {
         curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
         if [[ -z "$curver" ]]; then
             echo "Package $pkg not installed!!!"
-            ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-            [[ "$cmd" == "amend" ]] && run_traced "$PIP install $vpkg"
+            if [[ "$cmd" == "amend" ]]; then
+                run_traced "$PIP install $vpkg"
+                [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+            else
+                ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+            fi
         else
             [[ -n "$curver" ]] && xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
             if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
                 echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
-                ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-                [[ "$cmd" == "amend" ]] && run_traced "$PIP install $vpkg -U"
+                if [[ "$cmd" == "amend" ]]; then
+                    run_traced "$PIP install $vpkg -U"
+                    [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+                else
+                    ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+                fi
             else
                 printf "Package %-30.30s OK\n" "${pkg}${op}${reqver}.............................."
             fi
@@ -340,8 +352,12 @@ check_package() {
             printf "Package %-30.30s OK\n" "${pkg}.............................."
         else
             echo "Package $pkg not installed!!!"
-            ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-            [[ "$cmd" == "amend" ]] && run_traced "$PIP install $vpkg"
+            if [[ "$cmd" == "amend" ]]; then
+                run_traced "$PIP install $vpkg"
+                [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+            else
+                ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+            fi
         fi
     fi
     x=$($PIP show $pkg|grep ^[Ll]ocation|awk -F: '{print $2}'|tr -d ', \r\n\(\)')

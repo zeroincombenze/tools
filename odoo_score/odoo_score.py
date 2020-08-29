@@ -22,29 +22,29 @@ except ImportError:
 if release:
     majver = int(release.major_version.split('.')[0])
     if majver == 13:
-        from . import odoo_score_13
+        from . import odoo_score_13                                # noqa: F401
     elif majver == 12:
-        from . import odoo_score_12
+        from . import odoo_score_12                                # noqa: F401
     elif majver == 11:
-        from . import odoo_score_11
+        from . import odoo_score_11                                # noqa: F401
     elif majver == 10:
-        from . import odoo_score_10
+        from . import odoo_score_10                                # noqa: F401
     elif majver == 9:
-        from . import odoo_score_9
+        from . import odoo_score_9                                 # noqa: F401
     elif majver == 8:
-        from . import odoo_score_8
+        from . import odoo_score_8                                 # noqa: F401
     elif majver == 7:
-        from . import odoo_score_7
+        from . import odoo_score_7                                 # noqa: F401
     elif majver == 6:
-        from . import odoo_score_6
+        from . import odoo_score_6                                 # noqa: F401
 else:
     try:
-        import odoorpc
+        import odoorpc                                             # noqa: F401
         __db_protocol__ = 'json'
     except ImportError:
         __db_protocol__ = ''
     try:
-        import oerplib
+        import oerplib                                             # noqa: F401
         __db_protocol__ = 'xml' if not __db_protocol__ else 'json+xml'
     except ImportError:
         pass

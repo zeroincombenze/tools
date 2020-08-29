@@ -14,7 +14,7 @@ import re
 import odoorpc
 import oerplib
 from os0 import os0
-import datetime
+# import datetime
 
 
 from clodoolib import debug_msg_log, msg_log, decrypt
@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.9.17"
+__version__ = "0.3.9.18"
 
 
 #############################################################################

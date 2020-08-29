@@ -269,10 +269,10 @@ def read_stored_dict(ctx):
                 MODEL = row.index('model')
                 NAME = row.index('name')
                 TYPE = row.index('type')
-                if 'hash' in row:
-                    HASH = row.index('hash')
-                else:
-                    HASH = NAME
+                # if 'hash' in row:
+                #     HASH = row.index('hash')
+                # else:
+                #     HASH = NAME
                 VER_IX = {}
                 last_ver = False
                 for ver in VERSIONS:

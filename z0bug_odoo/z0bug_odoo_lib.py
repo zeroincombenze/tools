@@ -12,15 +12,15 @@ Functions with sql call are in test_common.py file.
 """
 
 from __future__ import print_function,unicode_literals
-from past.builtins import basestring
+# from past.builtins import basestring
 from python_plus import unicodes
 
 import os
-import sys
+# import sys
 import base64
 import csv
 # from zerobug import Z0BUG
-from os0 import os0
+# from os0 import os0
 
 __version__ = "0.2.3.13"
 

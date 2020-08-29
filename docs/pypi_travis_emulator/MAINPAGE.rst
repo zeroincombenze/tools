@@ -1,7 +1,7 @@
 
-=======================
-travis_emulator 0.2.3.9
-=======================
+========================
+travis_emulator 0.2.3.10
+========================
 
 
 
@@ -16,20 +16,20 @@ Overview
 Emulate travis to test application before pushing to git
 --------------------------------------------------------
 
-Travis emulator can emulate TravisCi parsing the .travis.yml file in local Linux machine.
+Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine.
 You can test your application before pushing code to github.com web site.
 
-Travis emulator can creates all the build declare by .travis.yml; all the builds are executed in sequential way.
-The directory ~/travis_log (see -l switch) keeps the logs of all build executed.
-Please note that log file is a binary file with screen escape code.
-If you want to see the log use follow command:
+Travis emulator can creates all the build declared in **.travis.yml**; all the builds are executed in sequential way.
+The directory ~/travis_log (see -l switch) keeps the logs of all then build created.
+Please note that log file is a binary file with escape ANSI screen code.
+If you want to see the log use the following command:
 
     `less -R ~/travis_log/<build_name>.log`
 
-A travis build does following steps:
+A travis build executes the following steps:
 
 * Initialize from local .travis.conf (not in travis-ci.org)
-* Optional install packages `apt addons`
+* Optional install packages `apt addons` (emulatore makes just the check)
 * Optional install packages `cache`
 * Set global values `env global`
 * Execute code `before_install`
@@ -54,29 +54,46 @@ Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job
 Features
 --------
 
-+--------------------------------+---------+-------------------------------+
-| Function                       | Status  | Note                          |
-+--------------------------------+---------+-------------------------------+
-| Execute in virtual environment | |check| | As TravisCI                   |
-+--------------------------------+---------+-------------------------------+
-| Python 2 test                  | |check| | If installed in local machine |
-+--------------------------------+---------+-------------------------------+
-| Python 3 test                  | |check| | If installed in local machine |
-+--------------------------------+---------+-------------------------------+
-| Bash test                      | |check| |                               |
-+--------------------------------+---------+-------------------------------+
-| Matrix                         | |check| | Test sequentialized           |
-+--------------------------------+---------+-------------------------------+
-| Coveralls                      | |check| | If installed in local machine |
-+--------------------------------+---------+-------------------------------+
-| MQT                            | |check| | Test using Odoo MQT           |
-+--------------------------------+---------+-------------------------------+
++--------------------------------------+--------------------+--------------------------------------+
+| Function                             | Status             | Note                                 |
++--------------------------------------+--------------------+--------------------------------------+
+| Execute tests in virtual environment | |check|            | As TravisCI                          |
++--------------------------------------+--------------------+--------------------------------------+
+| Python 2 test                        | |check|            | If installed in local machine        |
++--------------------------------------+--------------------+--------------------------------------+
+| Python 3 test                        | |check|            | If installed in local machine        |
++--------------------------------------+--------------------+--------------------------------------+
+| Bash test                            | |check|            | Using zerobug package                |
++--------------------------------------+--------------------+--------------------------------------+
+| Matrix                               | |check|            | Test sequentialized                  |
++--------------------------------------+--------------------+--------------------------------------+
+| Show coverage result                 | |check|            | If installed in local machine        |
++--------------------------------------+--------------------+--------------------------------------+
+| Quality check                        | |check|            | With zerobug and z0bug_odoo packages |
++--------------------------------------+--------------------+--------------------------------------+
+| Stored images                        | |check|            | In ~/VME/ directory (see -C switch)  |
++--------------------------------------+--------------------+--------------------------------------+
+| Debug information                    | |check|            | See -B and -D switches               |
++--------------------------------------+--------------------+--------------------------------------+
+| Keep DB after test                   | |check|            | See -k switch                        |
++--------------------------------------+--------------------+--------------------------------------+
+| Lint level                           | |check|            | With zerobug, see -L switch          |
++--------------------------------------+--------------------+--------------------------------------+
+| Build selection                      | |check|            | See -O switch                        |
++--------------------------------------+--------------------+--------------------------------------+
+| System packages                      | |check| |no_check| | See -S switch                        |
++--------------------------------------+--------------------+--------------------------------------+
+| Use specific python version          | |check|            | See -y switch                        |
++--------------------------------------+--------------------+--------------------------------------+
 
 
 |
 
 Usage
 =====
+
+Travis emulator usage
+---------------------
 
 ::
 
@@ -118,12 +135,12 @@ While travis is running this is the tree directory:
 
 ::
 
-    \${HOME}
+    ${HOME}
     ┣━━ build                       # build root (by TravisCI)
-    ┃    ┣━━ \${TRAVIS_BUILD_DIR}   # testing project repository (by TravisCI)
-    ┃    ┗━━ \${ODOO_REPO}          # Odoo or OCA/OCB repository to check with    (1) (2)
+    ┃    ┣━━ ${TRAVIS_BUILD_DIR}    # testing project repository (by TravisCI)
+    ┃    ┗━━ ${ODOO_REPO}           # Odoo or OCA/OCB repository to check with    (1) (2)
     ┃
-    ┣━━ \${ODOO_REPO}-\${VERSION}   # symlnk of ${HOME}/build/{ODOO_REPO}         (1)
+    ┣━━ ${ODOO_REPO}-${VERSION}     # symlnk of ${HOME}/build/{ODOO_REPO}         (1)
     ┃
     ┣━━ dependencies                # Odoo dependencies                           (3)
     ┃
@@ -154,41 +171,41 @@ Configuration file
 
 Values in configuration file are:
 
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| Parameter         | Descriptio                                         | Default value                                                                                                                     |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| CHAT_HOME         | URL to web chat to insert in documentation         |                                                                                                                                   |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| ODOO_SETUPS       | Names of Odoo manifest files                       | __manifest__.py __openerp__.py __odoo__.py __terp__.py                                                                            |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| dbtemplate        | DB template name in Odoo test                      | openerp_template                                                                                                                  |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| dbname            | DB name in Odoo test                               | openerp_test                                                                                                                      |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| dbuser            | Postgresql user                                    | postgres                                                                                                                          |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| UNBUFFER          | Use unbuffer                                       | 0                                                                                                                                 |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| virtualenv_opts   | Default option to create virtual environment       |                                                                                                                                   |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| NPM_CONFIG_PREFIX | N/D                                                | \$HOME/.npm-global                                                                                                                |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| PS_TXT_COLOR      | N/D                                                | 0;97;40                                                                                                                           |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| PS_RUN_COLOR      | N/D                                                | 1;36;48;5                                                                                                                         |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| PS_NOP_COLOR      | N/D                                                | 31;105                                                                                                                            |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| PS_HDR1_COLOR     | N/D                                                | 97;48;5;22                                                                                                                        |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| PS_HDR2_COLOR     | N/D                                                | 30;43                                                                                                                             |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| PS_HDR3_COLOR     | N/D                                                | 30;47                                                                                                                             |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| PKGS_LIST         | N/D                                                | clodoo devel_tools lisa maintainer-quality-tools odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
-| PYTHON_MATRIX     | Python version available to test (space separated) |                                                                                                                                   |
-+-------------------+----------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| Parameter         | Descriptio                                         | Default value                                                                                            |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| CHAT_HOME         | URL to web chat to insert in documentation         |                                                                                                          |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| ODOO_SETUPS       | Names of Odoo manifest files                       | __manifest__.py __openerp__.py __odoo__.py __terp__.py                                                   |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| dbtemplate        | DB template name in Odoo test                      | openerp_template                                                                                         |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| dbname            | DB name in Odoo test                               | openerp_test                                                                                             |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| dbuser            | Postgresql user                                    | postgres                                                                                                 |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| UNBUFFER          | Use unbuffer                                       | 0                                                                                                        |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| virtualenv_opts   | Default option to create virtual environment       |                                                                                                          |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| NPM_CONFIG_PREFIX | N/D                                                | \$HOME/.npm-global                                                                                       |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| PS_TXT_COLOR      | N/D                                                | 0;97;40                                                                                                  |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| PS_RUN_COLOR      | N/D                                                | 1;36;48;5                                                                                                |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| PS_NOP_COLOR      | N/D                                                | 31;105                                                                                                   |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| PS_HDR1_COLOR     | N/D                                                | 97;48;5;22                                                                                               |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| PS_HDR2_COLOR     | N/D                                                | 30;43                                                                                                    |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| PS_HDR3_COLOR     | N/D                                                | 30;47                                                                                                    |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| PKGS_LIST         | N/D                                                | clodoo devel_tools lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
+| PYTHON_MATRIX     | Python version available to test (space separated) |                                                                                                          |
++-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
 
 
 
@@ -206,12 +223,42 @@ Getting started
 Installation
 ------------
 
-For current version:
 
-`cd $HOME`
-`git@github.com:zeroincombenze/tools.git`
-`cd $HOME/tools`
-`./install_tools.sh`
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -op
+    source /opt/odoo/dev/activate_tools
+
+
+Troubleshooting
+---------------
+
+*Message "Denied inquire with psql [-U<name>]"*
+
+    User <name> cannot execute psql command.
+    Travis emulator cannot drop test database after build completation.
+    Please configure postgresql and enable user <name> to use psql via shell.
+    If user is not *odoo* declare username with following command:
+
+    `please config global`
+
+    and then set *dbuser* parameter value.
+
+
+*Message "false;   # Warning! TODO> apt-get install <pkg>*
+
+    The package <pkg> is not installed on your system.
+    Travis emulator run at low security level and cannot install debian or rpm packages.
+    Please install the package <pkg> via *apt-get* or *yum* or *dnf* based on your distro.
+    You can use *lisa* to install package <pkg> on all distribution with following command:
+
+    `lisa install <pkg>`
 
 
 |
@@ -236,7 +283,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-27
+Last Update / Ultimo aggiornamento: 2020-08-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -250,23 +297,23 @@ Last Update / Ultimo aggiornamento: 2020-08-27
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.9
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.9
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.10
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.9/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.9
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.10/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.10
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.9/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.10/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.9/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.10/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.9/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.9
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.10/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.10
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

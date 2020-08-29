@@ -19,7 +19,7 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: {{badge-coverage}}?branch={{branch}}
+.. |Coverage Status| image:: {{badge-coverage}}?branch=master
     :target: {{coverage-URL}}?branch={{branch}}
     :alt: Coverage
 .. |Codecov Status| image:: {{badge-codecov}}

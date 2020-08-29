@@ -98,10 +98,10 @@ import sys
 import os
 import ast
 from six import string_types
-try:
-    from os0 import os0
-except ImportError:
-    import os0
+# try:
+#     from os0 import os0
+# except ImportError:
+#     import os0
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
@@ -111,7 +111,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '0.2.3.14'
+__version__ = '0.2.3.15'
 
 
 MANIFEST_FILES = [
@@ -258,8 +258,8 @@ def read_valid_manifest(manifest_path, depends_by=None, ao_list=None):
         deps = manifest.get('depends', [])
         if ((ao_list == '|' and not list(set(depends_by) & set(deps))) or
             (ao_list == '&' and list(set(depends_by) - set(deps))) or
-            (ao_list == '=' and list(set(depends_by) - set(deps)) and 
-                                list(set(depends_by) - set(deps)))
+            (ao_list == '=' and list(set(depends_by) - set(deps)) and
+             list(set(depends_by) - set(deps)))
         ):
             return False
     return manifest
@@ -372,10 +372,10 @@ def get_modules(path, depth=1, depends_by=None, ao_list=None):
 
 def check_tree(path_list, matches=None, depth=None):
     depth = depth or 999
-    if isinstance(path_list, string_types):
-        paths = path_list.split(',')
-    else:
-        paths = path_list
+    # if isinstance(path_list, string_types):
+    #     paths = path_list.split(',')
+    # else:
+    #     paths = path_list
     modules = {}
     for path in path_list:
         modules.update(get_modules_info(path, depth=depth))
@@ -506,7 +506,7 @@ def get_dependents_list(path_list, matches=None, depth=None,
     depth = depth or 1
     depends_by = depends_by or ['base']
     ao_list = ao_list or '|'
-    module_list = matches or get_modules_list(path_list, depth=depth)
+    # module_list = matches or get_modules_list(path_list, depth=depth)
     modules = {}
     for path in paths:
         modules.update(get_modules_info(path, depth=depth))
@@ -540,7 +540,7 @@ def get_just_dependents_list(path_list, matches=None, depth=None,
     depth = depth or 1
     depends_by = depends_by or ['base']
     ao_list = ao_list or '|'
-    module_list = matches or get_modules_list(path_list, depth=depth)
+    # module_list = matches or get_modules_list(path_list, depth=depth)
     modules = {}
     for path in paths:
         modules.update(get_modules_info(path, depth=depth))
@@ -766,7 +766,7 @@ if __name__ == "__main__":
                         nargs='*')
     ctx = parser.parseoptargs(sys.argv[1:])
     if (ctx['action'] not in ACTIONS and 
-            ctx['path_list'] and  ctx['path_list'][0] in ACTIONS):
+            ctx['path_list'] and ctx['path_list'][0] in ACTIONS):
         ctx['action'] = ctx['path_list'].pop(0)
     if not ctx['action']:
         if ctx['act_show_full_help']:
@@ -804,9 +804,9 @@ if __name__ == "__main__":
         print('No configuration file for DB access!')
         exit(1)
     if ctx['only-missed'] and (ctx['external_dependencies'] or
-                                  ctx['external_bin_dependencies']):
+                               ctx['external_bin_dependencies']):
         print('Switches -E and -e or -b are mutually exclusive!')
-        exit (1)
+        exit(1)
     if ctx['conf_fn'] and not ctx['db_name']: 
         print('Warning: configuration file without db name!')
     if ctx['db_name'] and ctx['modules_to_match']:

@@ -9,16 +9,16 @@
 #
 from __future__ import print_function, unicode_literals
 
-from python_plus import _b
+# from python_plus import b
 
 import sys
 import os
 import re
 from subprocess import Popen
-try:
-    import ConfigParser
-except ImportError:
-    import configparser as ConfigParser
+# try:
+#     import ConfigParser
+# except ImportError:
+#     import configparser as ConfigParser
 # from unidecode import unidecode
 from os0 import os0
 try:
@@ -35,7 +35,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.3.14"
+__version__ = "0.2.3.15"
 
 
 def run_traced(*args):

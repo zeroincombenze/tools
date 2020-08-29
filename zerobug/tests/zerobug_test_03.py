@@ -6,13 +6,12 @@
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 from __future__ import print_function,unicode_literals
-from past.builtins import basestring
+# from past.builtins import basestring
 
-# import pdb
 import sys
 from zerobug import Z0BUG
 
-__version__ = "0.2.15.9"
+__version__ = "0.2.15.10"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1

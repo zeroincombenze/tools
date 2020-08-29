@@ -4,62 +4,41 @@
 Zeroincombenze® continuous testing for odoo
 -------------------------------------------
 
-This package is an plug-in of zerobug and aim to easily create odoo tests.
+This package is an plug-in of **zerobug** and aim to easily create odoo tests.
 
-The package replaces OCA MQT with some nice additional features.
+It replaces OCA MQT with some nice additional features.
 
 *z0bug_odoo* is built on follow concepts:
 
-* Odoo version independent; it can also test Odoo 6.1 and 7.0
+* Odoo version independent; it can test Odoo from 6.1 until 13.0
 * It is designed to run in local environment too, using `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
-* It can run with reduced set of pylint tests (see below *LINT_CHECK_LEVEL*)
-* Ready-made database
+* It can run with full or reduced set of pylint tests
+* Test using ready-made database records
 * Quality Check Id
 
-travis support
---------------
 
-Another goal of z0bug_odoo is to provide helpers to ensure the quality of Odoo addons.
-This function was forked from OCA MQT. However this package and OCA MQT differ by:
+travis ci support
+-----------------
 
-* z0bug_odoo can also test Odoo 6.1 and 7.0; OCA MQT fails with these versions
-* z0bug_odoo is designed to run in local environment too, using `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
-* z0bug_odoo is designed to execute some debug statements (see below *MQT debug informations*)
-* z0bug_odoo can run with reduced set of pylint tests (see below *LINT_CHECK_LEVEL*)
-* z0bug_odoo can run with reduced set of Odoo tests (see below *ODOO_TEST_SELECT*)
-* OCA MQT is the only component to build environment and test Odoo. Zeroincombenze® MQT is part of `Zeroincombenze® tools <https://github.com/zeroincombenze/tools>`_
-* As per prior rule, building test environment is made by clodoo and lisa tools. These commands can also build a complete Odoo environment out of the box.
+The goal of z0bug_odoo is to provide helpers to ensure the quality of Odoo addons.
+The code was forked from OCA MQT but some improvements were added.
+This package and OCA MQT differ by:
 
-Other differences between z0bg_odoo and OCA MQT
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* z0bug_odoo can also test Odoo 6.1 and 7.0 where OCA MQT fails with these versions
+* z0bug_odoo is designed to execute some debug statements, maily in local environment
+* z0bug_odoo has more options to run with reduced set of lint tests
+* OCA MQT is the only component to build environment and test Odoo while z0bug_odoo is part of `Zeroincombenze® tools <https://github.com/zeroincombenze/tools>`_
+* As per prior rule, building test environment is made by `vem <https://github.com/zeroincombenze/tools/tree/master/https://github.com/zeroincombenze/tools/tree/master/python_plus>`_, `clodoo <https://github.com/zeroincombenze/tools/tree/master/https://github.com/zeroincombenze/tools/tree/master/clodoo>`_ and `lisa <https://github.com/zeroincombenze/tools/tree/master/https://github.com/zeroincombenze/tools/tree/master/lisa>`_. These commands can also build a complete Odoo environment out of the box
 
-Zeroincombenze® OCB use submodules. When test in starting, submodules should not be upgraded.
-Use this statements:
+To make a complete test on TravisCI your project following 3 files are required:
 
-::
-
-    - git:
-      submodules: false
-
-OCA does not use before_install section while z0bg_odoo requires before_install:
-
-z0bg_odoo set security environment. You have not to add security statements
-(with OCA MQT you must remove comment):
-
-`#  - pip install urllib3[secure] --upgrade; true`
-
-z0bg_odoo do some code upgrade; using OCA MQT you must do these code by .travis.yml.
-When ODOO_TEST_SELECT="APPLICATIONS":
-
-`# sed -i "s/self.url_open(url)/self.url_open(url, timeout=100)/g" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py;`
-
-When ODOO_TEST_SELECT="LOCALIZATION":
-
-`# sed -i "/'_auto_install_l10n'/d" ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py`
+* .travis.yml
+* requirements.txt
+* oca_dependencies.txt
 
 
-Sample travis configuration file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+File .travis.yml
+~~~~~~~~~~~~~~~~
 
 In order to setup TravisCI continuous integration for your project, just copy the
 content of the `sample_files <https://github.com/zeroincombenze/tools/tree/master/zerobug/sample_files/.travis.yml>`_
@@ -71,107 +50,132 @@ Then execute the command:
 
     topep8 -b<odoo_version> .travis.yml
 
-You can check travis syntax with the `lint checker <http://lint.travis-ci.org/>`_ of travis if available.
+You can check travis syntax with the `lint checker <http://lint.travis-ci.org/>`_ of travis, if available.
 
-If your project depends on other Odoo Github repositories like OCA, create a file called `oca_dependencies.txt` at the root of your project and list the dependencies there.
+
+Odoo test integration
+~~~~~~~~~~~~~~~~~~~~~
+
+Current Odoo project version is declared by **VERSION** variable.
+If your Odoo module must be tested against Odoo core,
+you can test specific github repository by **ODOO_REPO** variable.
+You can test against:
+
+* odoo/odoo
+* OCA/OCB
+* zeroincombenze/OCB
+
+You can test against specific Odoo core version with ODOO_BRANCH variable if differs from your project version:
+
+::
+
+    # Odoo Branch 10.0
+    - VERSION="10.0" ODOO_REPO="odoo/odoo"
+
+    # Pull request odoo/odoo#143
+    -  VERSION="pull/143" ODOO_REPO="OCA/OCB"
+
+    # Branch saas-17
+    - ODOO_REPO="odoo/odoo" ODOO_BRANCH="saas-17"
+
+
+OCB / core test
+~~~~~~~~~~~~~~~
+
+Zeroincombenze® OCB uses submodules. When test in starting, travis-ci upgrade repository and submodules.
+To avoid submodules upgrade use this directive compatible with OCA MQT:
+
+::
+
+    - git:
+      submodules: false
+
+z0bg_odoo set security environment. You do not need to add any security statements.
+You can avoid the following OCA MQT directive:
+
+::
+
+    - pip install urllib3[secure] --upgrade; true
+
+z0bg_odoo does some code upgrade.
+You can avoid following directive in ODOO_TEST_SELECT="APPLICATIONS":
+
+::
+
+    - sed -i "s/self.url_open(url)/self.url_open(url, timeout=100)/g" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py;
+
+You can avoid following directive in ODOO_TEST_SELECT="LOCALIZATION":
+
+::
+
+    - sed -i "/'_auto_install_l10n'/d" ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py
+
+
+Python version
+~~~~~~~~~~~~~~
+
+Odoo version from 6.1 to 10.0 are teste with python 2.7
+From Odoo 11.0, python3 is used. You can test against 3.5, 3.6 and 3.7 python versions.
+Currently, python 3.8 is not yet supported.
+This is the declaration:
+
+::
+
+    python:
+      - "3.5"
+      - "3.6"
+      - "3.7"
+
+
+Deployment and setup environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to deploy test environment and setup code you have to declare some .travis.yml directives divides in following 3 parts:
+
+* Linux packages needed
+* PYPI packages
+* Odoo repositories dependencies
+
+Linux packages must be declared in `<addons/apt>` section of .travis.yml using Ubuntu semantic.
+If you run test in local environment, travis emulator automatically translate Ubuntu names in your local distro names, if necessary.
+See `travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_ guide for furthermore info.
+
+The PYPI packages, installable by PIP are declared in standard PIP way, using **requirements.txt** file.
+
+If your project depends on other Odoo Github repositories like OCA, create a file called **oca_dependencies.txt** at the root of your project and list the dependencies there.
 One per line like so:
 
     project_name optional_repository_url optional_branch_name
 
-During testbed setup, z0bug_odo will automatically download and place these repositories accordingly into the addon path.
-Note on addons path ordering: They will be placed after your own repo, but before the odoo core repo.
+During testbed setup, z0bug_odoo will automatically download and place these repositories accordingly into the addon path.
+Note on addons path ordering: they will be placed after your own repo, but before the odoo core repo.
 
 If missed optional_repository_url, the repository is searched for repository with the same owner of tested project.
-OCA MQT loads OCA repository while Zeroincombenze® MQT searches for
-
-
-Multiple values for environment variable VERSION
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use branch or pull request into environment variable VERSION:
-
-::
-
-    Branch 10.0
-    - VERSION="10.0" ODOO_REPO="odoo/odoo"
-
-    Pull request odoo/odoo#143
-    -  VERSION="pull/143" ODOO_REPO="odoo/odoo"
-
-
-Using custom branch inside odoo repository using ODOO_BRANCH
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use the custom branch into the ODOO_REPO using the environment variable ODOO_BRANCH:
-
-::
-
-    Branch saas-17
-    - ODOO_REPO="odoo/odoo" ODOO_BRANCH="saas-17"
-
-
-
-Module unit tests
-~~~~~~~~~~~~~~~~~
-
-z0bug_odoo is also capable to test each module individually.
-The intention is to check if all dependencies are correctly defined.
-Activate it through the `UNIT_TEST` directive.
-An additional line should be added to the `env:` section,
-similar to this one:
-
-::
-
-    - VERSION="12.0" UNIT_TEST="1"
-
-
-Coveralls/Codecov configuration file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-`Coveralls <https://coveralls.io/>`_ and `Codecov <https://codecov.io/>`_ services provide information on the test coverage of your modules.
-Currently both configurations are automatic (check default configuration `here <cfg/.coveragerc>`_.
-So, as of today, you don't need to include a `.coveragerc` into the repository,
-If you do it, it will be simply ignored.
-
-
-
-Names used for the test databases
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-z0bug_odoo has a nice feature of organizing your testing databases.
-You might want to do that if you want to double them up as
-staging DBs or if you want to work with an advanced set of
-templates in order to speed up your CI pipeline.
-Just specify at will:
-
-`MQT_TEMPLATE_DB='mqt_odoo_template' MQT_TEST_DB='mqt_odoo_test'`.
+Note on OCA MQT always loads OCA repository while z0bug_odoo searches for current owner. So you will test both with z0bug_ood an both OCA MQT, always insert the full repository URL.
 
 
 Isolated pylint+flake8 checks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you want to make a build exclusive for these checks, you can add a line
-on the `env:` section of the .travis.yml file with this content:
+on the `<env>` section of the .travis.yml file with this content:
 
 ::
 
-    - VERSION="7.0" LINT_CHECK="1"
-
-You will get a faster answer about these questions and also a fast view over
-semaphore icons in Travis build view.
+    - VERSION="12.0" LINT_CHECK="1"
 
 To avoid making again these checks on other builds, you have to add
 LINT_CHECK="0" variable on the line:
 
 ::
 
-    - VERSION="7.0" ODOO_REPO="odoo/odoo" LINT_CHECK="0"
+    - VERSION="12.0" ODOO_REPO="odoo/odoo" LINT_CHECK="0"
 
 You can superset above options in local travis emulator.
 
 
-Reduced set of check
-~~~~~~~~~~~~~~~~~~~~
+Reduced set of lint check
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can execute reduced set of check, in order to gradually evolve your code quality
 when you meet too many errors.
@@ -288,79 +292,137 @@ FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)
 
 PYLINT (see http://pylint-messages.wikidot.com/all-codes for details)
 
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| Test  | MINIMAL    | REDUCED | AVERAGE | NEARBY | OCA     | Notes                                                                               |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W0101 | |no_check| |         |         |        | |check| | `unreachable <http://pylint-messages.wikidot.com/messages:w0101>`_                  |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W0312 | |check|    |         |         |        | |check| | `wrong-tabs-instead-of-spaces <http://pylint-messages.wikidot.com/messages:w0312>`_ |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W0403 | |no_check| |         |         |        | |check| | relative-import                                                                     |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W1401 | |no_check| | |check| |         |        | |check| | anomalous-backslash-in-string                                                       |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| E7901 | |check|    |         |         |        | |check| | `rst-syntax-error <https://pypi.org/project/pylint-odoo/1.4.0>`_                    |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| C7902 | |no_check| | |check| |         |        | |check| | missing-readme                                                                      |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W7903 | |no_check| |         |         |        | |check| | javascript-lint                                                                     |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W7908 | |check|    |         |         |        | |check| | missing-newline-extrafiles                                                          |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W7909 | |no_check| |         |         |        | |check| | redundant-modulename-xml                                                            |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W7910 | |no_check| | |check| |         |        | |check| | wrong-tabs-instead-of-spaces                                                        |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W7930 | |no_check| |         |         |        | |check| | `file-not-used <https://pypi.org/project/pylint-odoo/1.4.0>`_                       |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W7935 | |no_check| |         |         |        | |check| | missing-import-error                                                                |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W7940 | |no_check| |         |         |        | |check| | dangerous-view-replace-wo-priority                                                  |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W7950 | |no_check| |         |         |        | |check| | odoo-addons-relative-import                                                         |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| E8102 | |no_check| |         |         |        | |check| | invalid-commit                                                                      |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| C8103 | |no_check| |         |         |        | |check| | `manifest-deprecated-key <https://pypi.org/project/pylint-odoo/1.4.0>`_             |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W8103 | |no_check| |         |         |        | |check| | translation-field                                                                   |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| C8104 | |no_check| |         |         |        | |check| | `class-camelcase <https://pypi.org/project/pylint-odoo/1.4.0>`_                     |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W8104 | |no_check| |         |         |        | |check| | api-one-deprecated                                                                  |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| C8105 | |no_check| |         |         |        | |check| | `license-allowed <https://pypi.org/project/pylint-odoo/1.4.0>`_                     |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| C8108 | |no_check| |         |         |        | |check| | method-compute                                                                      |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| R8110 | |no_check| |         |         |        | |check| | old-api7-method-defined                                                             |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| W8202 | |no_check| |         |         |        | |check| | use-vim-comment                                                                     |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| N/A   | |no_check| |         |         |        | |check| | sql-injection                                                                       |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| N/A   | |no_check| |         |         |        | |check| | duplicate-id-csv                                                                    |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| N/A   | |no_check| |         |         |        | |check| | create-user-wo-reset-password                                                       |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| N/A   | |no_check| |         |         |        | |check| | dangerous-view-replace-wo-priority                                                  |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| N/A   | |no_check| |         |         |        | |check| | translation-required                                                                |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| N/A   | |no_check| |         |         |        | |check| | duplicate-xml-record-id                                                             |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| N/A   | |no_check| |         |         |        | |check| | no-utf8-coding-comment                                                              |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| N/A   | |no_check| |         |         |        | |check| | attribute-deprecated                                                                |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
-| N/A   | |no_check| |         |         |        | |check| | consider-merging-classes-inherited                                                  |
-+-------+------------+---------+---------+--------+---------+-------------------------------------------------------------------------------------+
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| Test  | MINIMAL    | REDUCED    | AVERAGE | NEARBY | OCA     | Notes                                                                               |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W0101 | |no_check| | |no_check| |         |        | |check| | `unreachable <http://pylint-messages.wikidot.com/messages:w0101>`_                  |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W0312 | |no_check| | |check|    |         |        | |check| | `wrong-tabs-instead-of-spaces <http://pylint-messages.wikidot.com/messages:w0312>`_ |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W0403 | |no_check| | |no_check| |         |        | |check| | relative-import                                                                     |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W1401 | |no_check| | |check|    |         |        | |check| | anomalous-backslash-in-string                                                       |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| E7901 | |no_check| | |no_check| |         |        | |check| | `rst-syntax-error <https://pypi.org/project/pylint-odoo/1.4.0>`_                    |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| C7902 | |no_check| | |check|    |         |        | |check| | missing-readme                                                                      |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W7903 | |no_check| | |no_check| |         |        | |check| | javascript-lint                                                                     |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W7908 | |no_check| | |no_check| |         |        | |check| | missing-newline-extrafiles                                                          |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W7909 | |no_check| | |no_check| |         |        | |check| | redundant-modulename-xml                                                            |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W7910 | |no_check| | |check|    |         |        | |check| | wrong-tabs-instead-of-spaces                                                        |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W7930 | |no_check| | |no_check| |         |        | |check| | `file-not-used <https://pypi.org/project/pylint-odoo/1.4.0>`_                       |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W7935 | |no_check| | |no_check| |         |        | |check| | missing-import-error                                                                |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W7940 | |no_check| | |no_check| |         |        | |check| | dangerous-view-replace-wo-priority                                                  |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W7950 | |no_check| | |no_check| |         |        | |check| | odoo-addons-relative-import                                                         |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| E8102 | |no_check| | |check|    |         |        | |check| | invalid-commit                                                                      |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| C8103 | |no_check| | |check|    |         |        | |check| | `manifest-deprecated-key <https://pypi.org/project/pylint-odoo/1.4.0>`_             |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W8103 | |no_check| | |no_check| |         |        | |check| | translation-field                                                                   |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| C8104 | |no_check| | |no_check| |         |        | |check| | `class-camelcase <https://pypi.org/project/pylint-odoo/1.4.0>`_                     |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W8104 | |no_check| | |no_check| |         |        | |check| | api-one-deprecated                                                                  |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| C8105 | |no_check| | |check|    |         |        | |check| | `license-allowed <https://pypi.org/project/pylint-odoo/1.4.0>`_                     |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| C8108 | |no_check| | |no_check| |         |        | |check| | method-compute                                                                      |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| R8110 | |no_check| | |check|    |         |        | |check| | old-api7-method-defined                                                             |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| W8202 | |no_check| | |check|    |         |        | |check| | use-vim-comment                                                                     |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| N/A   | |no_check| | |check|    |         |        | |check| | sql-injection                                                                       |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| N/A   | |no_check| | |check|    |         |        | |check| | duplicate-id-csv                                                                    |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| N/A   | |no_check| | |no_check| |         |        | |check| | create-user-wo-reset-password                                                       |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| N/A   | |no_check| | |no_check| |         |        | |check| | dangerous-view-replace-wo-priority                                                  |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| N/A   | |no_check| | |no_check| |         |        | |check| | translation-required                                                                |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| N/A   | |no_check| | |check|    |         |        | |check| | duplicate-xml-record-id                                                             |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| N/A   | |no_check| | |no_check| |         |        | |check| | no-utf8-coding-comment                                                              |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| N/A   | |no_check| | |check|    |         |        | |check| | attribute-deprecated                                                                |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
+| N/A   | |no_check| | |no_check| |         |        | |check| | consider-merging-classes-inherited                                                  |
++-------+------------+------------+---------+--------+---------+-------------------------------------------------------------------------------------+
 
 
 
 
-Reduced set of modules test
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Disable some pylint and/or flake8 checks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can disable some specific test or some file from lint checks.
+
+To disable flake8 checks on specific file you can add following line at the beginning of python file:
+
+::
+
+    # flake8: noqa
+
+To disable pylint checks on specific file you can add following line at the beginning of python file:
+
+::
+
+    # pylint: skip-file
+
+To disable both flake8 and pylint checks on specific file you can add following line at the beginning of python file:
+
+::
+
+    # flake8: noqa - pylint: skip-file
+
+To disable pylint checks on specific XML file you can add following line in XML file after xml declaration:
+
+::
+
+    <!-- pylint:disable=deprecated-data-xml-node -->
+
+You can disable specific flake8 check in some source part of python file adding a comment at the same statement to disable check. Here an example to disable sql error (notice comment must be at beginning of the statement):
+
+::
+
+    from builtins import *  # noqa: F403
+
+If you have to disable more than one error you can add following declaration:
+
+::
+
+    from builtins import *  # noqa
+
+You can also disable specific pylint check in some source part of python file adding a comment at the same statement to disable check. Here an example to disable sql error (notice comment must be at beginning of the statement):
+
+::
+
+    self._cr.execute()      # pylint: disable=E8103
+
+
+Disable unit test
+~~~~~~~~~~~~~~~~~
+
+If you want to make a build without tests, you can use the following directive:
+`TEST_ENABLE="0"`
+
+You will simply get the databases with packages installed,
+but without running any tests.
+
+
+Reduced set of unit test
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Last Odoo packages may fail in Travis CI or in local environment.
 Currently Odoo OCB core tests fail; we are investigating for causes.
@@ -398,43 +460,39 @@ Look at follow table to understand which set of tests are enabled or disabled:
 
 
 
-Disable pylint and/or flake8 checks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Module unit tests
+~~~~~~~~~~~~~~~~~
 
-You can disable some specific test or some file from lint checks.
-
-To disable flake8 checks on specific file you can add following line at the beginning of python file:
-
-`# flake8: noqa`
-
-To disable pylint checks on specific file you can add following line at the beginning of python file:
-
-`# pylint: skip-file`
-
-To disable both flake8 and pylint checks on specific file you can add following line at the beginning of python file:
-
-`# flake8: noqa - pylint: skip-file`
-
-To disable pylint checks on specific XML file you can add following line in XML file after xml declaration:
-
-`<!-- pylint:disable=deprecated-data-xml-node -->`
-
-You can also disable specific pylint check in some source part of python file adding a comment at the same statement to disable check. Here an example to disable sql error (notice comment must be at beginning of the statement):
+z0bug_odoo is also capable to test each module individually.
+The intention is to check if all dependencies are correctly defined.
+Activate it through the `UNIT_TEST` directive.
+An additional line should be added to the `env:` section,
+similar to this one:
 
 ::
 
-    self._cr.execute()      # pylint: disable=E8103
+    - VERSION="12.0" UNIT_TEST="1"
 
 
+Names used for the test databases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Disable test
-~~~~~~~~~~~~
+z0bug_odoo has a nice feature of organizing your testing databases.
+You might want to do that if you want to double them up as
+staging DBs or if you want to work with an advanced set of
+templates in order to speed up your CI pipeline.
+Just specify at will:
 
-If you want to make a build without tests, you can use the following directive:
-`TEST_ENABLE="0"`
+`MQT_TEMPLATE_DB='mqt_odoo_template' MQT_TEST_DB='mqt_odoo_test'`.
 
-You will simply get the databases with packages installed,
-but without running any tests.
+
+Coveralls/Codecov configuration file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`Coveralls <https://coveralls.io/>`_ and `Codecov <https://codecov.io/>`_ services provide information on the test coverage of your modules.
+Currently both configurations are automatic (check default configuration `here <cfg/.coveragerc>`_.
+So, as of today, you don't need to include a `.coveragerc` into the repository,
+If you do it, it will be simply ignored.
 
 
 Other configurations
@@ -514,6 +572,7 @@ Debug informations
 ~~~~~~~~~~~~~~~~~~
 
 If you declare the following directive in <env global> section:
+
 `TRAVIS_DEBUG_MODE="n"`
 
 where "n" means:
@@ -537,6 +596,7 @@ where "n" means:
 Note this feature does not work with OCA MQT. Local test and TravisCI test have slightly different behavior.
 
 When MQT is execute in local environment the value
+
 `TRAVIS_DEBUG_MODE="9"`
 
 does not execute unit test. It is used to debug MQT itself.
@@ -734,7 +794,7 @@ partner qci
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-27
+Last Update / Ultimo aggiornamento: 2020-08-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -748,7 +808,7 @@ Last Update / Ultimo aggiornamento: 2020-08-27
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.13
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
     :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.13
     :alt: Coverage
 .. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.13/graph/badge.svg

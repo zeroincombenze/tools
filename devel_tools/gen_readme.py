@@ -95,7 +95,7 @@ import sys
 from datetime import datetime
 from shutil import copyfile
 from lxml import etree
-from python_plus import qsplit, unicodes
+from python_plus import unicodes
 from os0 import os0
 try:
     from z0lib import z0lib
@@ -109,7 +109,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.3.14"
+__version__ = "0.2.3.15"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -605,14 +605,14 @@ def tohtml(text, state=None):
                 del lines[lineno]
                 continue
             elif (re.match(r'^-+$', lines[lineno]) and
-                    lineno > 0 and
-                    len(lines[lineno]) == len(lines[lineno - 1])):
+                  lineno > 0 and
+                  len(lines[lineno]) == len(lines[lineno - 1])):
                 lines[lineno - 1] = '<h2>%s</h2>' % lines[lineno - 1]
                 del lines[lineno]
                 continue
             elif (re.match(r'^~+$', lines[lineno]) and
-                      lineno > 0 and
-                      len(lines[lineno]) == len(lines[lineno - 1])):
+                  lineno > 0 and
+                  len(lines[lineno]) == len(lines[lineno - 1])):
                 lines[lineno - 1] = '<h3>%s</h3>' % lines[lineno - 1]
                 del lines[lineno]
                 continue
@@ -1751,17 +1751,17 @@ if __name__ == "__main__":
                 ctx['odoo_layer'] = 'module'
             elif (ctx['odoo_majver'] >= 10 and
                     os.path.isdir(os.path.join(ctx['path_name'],
-                                                'odoo')) and
+                        'odoo')) and
                     os.path.isfile(os.path.join(ctx['path_name'],
-                                                'odoo-bin'))):
+                        'odoo-bin'))):
                 ctx['odoo_layer'] = 'ocb'
             elif (ctx['odoo_majver'] < 10 and
                     os.path.isdir(os.path.join(ctx['path_name'],
-                                                'openerp')) and
+                        'openerp')) and
                   (os.path.isfile(os.path.join(ctx['path_name'],
-                                                'openerp-server'))) or
+                      'openerp-server'))) or
                     os.path.isdir(os.path.join(ctx['path_name'],
-                                                'openerp', 'server'))):
+                        'openerp', 'server'))):
                 ctx['odoo_layer'] = 'ocb'
             # elif os.path.basename(ctx['path_name']) == ctx['odoo_fver']:
             #     ctx['odoo_layer'] = 'ocb'

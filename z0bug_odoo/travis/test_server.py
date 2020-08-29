@@ -19,7 +19,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '0.2.3.13'
+__version__ = '0.2.3.14'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -440,7 +440,7 @@ def get_environment():
     odoo_exclude = os.environ.get("EXCLUDE")
     odoo_include = os.environ.get("INCLUDE")
     odoo_unittest = str2bool(os.environ.get("UNIT_TEST"))
-    odoo_unittest |= str2bool(os.environ.get('ODOO_TNLBOT', '0'))
+    # odoo_unittest |= str2bool(os.environ.get('ODOO_TNLBOT', '0'))
     install_options = os.environ.get("INSTALL_OPTIONS", "").split()
     travis_home = os.environ.get("HOME", os.path.expanduser("~"))
     travis_dependencies_dir = os.path.join(travis_home, 'dependencies')

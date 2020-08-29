@@ -9,6 +9,8 @@ import subprocess
 import sys
 from travis_helpers import success_msg, fail_msg
 
+__version__ = '0.2.3.14'
+
 
 def main(test_list):
     """
@@ -82,7 +84,7 @@ if __name__ == '__main__':
     )
     must_run_tnlbot = (
         os.environ.get('ODOO_TNLBOT') == '1' and
-        not tests_enabled and
+        tests_enabled and
         not is_pull_request
     )
 

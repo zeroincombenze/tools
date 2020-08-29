@@ -167,24 +167,22 @@ from datetime import date, datetime, timedelta
 from os0 import os0
 
 from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
-                        is_valid_field, is_required_field, model_has_company,
-                        exec_sql, sql_reconnect, searchL8, browseL8,
+                        is_valid_field,
+                        searchL8, browseL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
                         get_model_model, get_model_name, extr_table_generic,
-                        extract_vals_from_rec, get_val_from_field,
-                        get_model_structure, execute_action_L8,
-                        cvt_from_ver_2_ver)
+                        get_model_structure, execute_action_L8)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
-                       default_conf, build_odoo_param)
+                       default_conf)
 from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.9.17"
+__version__ = "0.3.9.18"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -401,10 +399,10 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
               'login2_user', 'login2_password', 'crypt2_password',
               'svc_protocol', 'oe_version', 'xmlrpc_port',
               'lang', 'psycopg2')
-    S_LIST = ('db_host', 'db_name', 'db_user', 'db_password', 'admin_passwd',
-              'login_user', 'login_password',
-              'svc_protocol', 'oe_version', 'xmlrpc_port',
-              'lang')
+    # S_LIST = ('db_host', 'db_name', 'db_user', 'db_password', 'admin_passwd',
+    #           'login_user', 'login_password',
+    #           'svc_protocol', 'oe_version', 'xmlrpc_port',
+    #           'lang')
     DEFLT = default_conf(ctx)
 
     def oerp_env_fill(db=None, xmlrpc_port=None, oe_version=None,
@@ -1131,7 +1129,7 @@ def act_wep_company(ctx):
             globals()[inspect.stack()[0][3]].__doc__ % ctx.get('company_name'))
     data_selection = get_data_selection(ctx)
     sts = STS_SUCCESS
-    c_id = ctx['company_id']
+    # c_id = ctx['company_id']
     msg = ','.join(data_selection)
     msg_log(ctx, ctx['level'], msg)
     set_server_isolated(ctx)
@@ -3056,13 +3054,13 @@ def read_last_fiscalyear(company_id, ctx):
         date_start = fiscalyear.date_start
         if majver < 10:
             date_stop = fiscalyear.date_stop
-            ids = searchL8(ctx, 'account.period',
-                           [('company_id', '=', company_id),
-                            ('date_start', '>=', str(date_start)),
-                            ('date_stop', '<=', str(date_stop))])
+            # ids = searchL8(ctx, 'account.period',
+            #                [('company_id', '=', company_id),
+            #                 ('date_start', '>=', str(date_start)),
+            #                 ('date_stop', '<=', str(date_stop))])
         else:
             date_stop = fiscalyear.date_end
-            ids = []
+            # ids = []
         if date_stop > last_stop:
             last_stop = date_stop
             if date_stop < date.today():

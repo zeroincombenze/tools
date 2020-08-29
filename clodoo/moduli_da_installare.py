@@ -16,7 +16,7 @@ except ImportError:
         from z0lib import z0lib
     except ImportError:
         import z0lib
-import transodoo
+# import transodoo
 # import pdb
 
 __version__ = "0.2.0"
@@ -187,7 +187,7 @@ with open('code/z0_install_10.conf', 'rb') as f:
                 add_elem(mod2xtl, id, get_realname(row))
 
 sort_data(mod2xtl)
-print ','.join(mod2xtl['80'])
+print(','.join(mod2xtl['80']))
 item = ''
 ctrs = {}
 for id in VERSIONS_PLUS:
@@ -198,7 +198,7 @@ fd = open('moduli_da_installare.csv', 'w')
 fmto = '%-40.40s %-3.3s %-3.3s %-3.3s %-3.3s %-3.3s' \
        ' %-4.4s %-4.4s %-4.4s %-40.40s %-20.20s %-10.10s'
 fmtx = '"%s",%s,%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s"\n'
-print fmto % ('Technical Name',
+print(fmto % ('Technical Name',
               VERSIONS[0],
               '%s.%s' % (VERSIONS[1][0:-1], VERSIONS[1][-1]),
               '%s.%s' % (VERSIONS[2][0:-1], VERSIONS[2][-1]),
@@ -209,7 +209,7 @@ print fmto % ('Technical Name',
               '%s.%s' % (VERSIONS[7][0:-1], VERSIONS[7][-1]),
               'Description',
               'Author',
-              'Notes')
+              'Notes'))
 line = fmtx % ('Technical Name',
                VERSIONS[0],
                '%s.%s' % (VERSIONS[1][0:-1], VERSIONS[1][-1]),
@@ -244,7 +244,7 @@ while item != '~':
         #         if v == infos[item][5]:
         #             datas[i] = 'OK'
         try:
-            print fmto % (item,
+            print(fmto % (item,
                           datas[0],
                           datas[1],
                           datas[2],
@@ -255,9 +255,9 @@ while item != '~':
                           datas[7],
                           des,
                           author,
-                          note)
+                          note))
         except BaseException:
-            print fmto % (item,
+            print(fmto % (item,
                           datas[0],
                           datas[1],
                           datas[2],
@@ -268,7 +268,7 @@ while item != '~':
                           datas[7],
                           des,
                           '',
-                          note)
+                          note))
         try:
             line = fmtx % (item,
                            datas[0],
@@ -299,7 +299,7 @@ while item != '~':
 line = '%-65.65s' % 'TOTALE'
 for id in VERSIONS:
     line = '%s %3s' % (line, ctrs[id])
-print line
+print(line)
 line = 'TOTALE'
 for id in VERSIONS:
     line = '%s,%s' % (line, ctrs[id])

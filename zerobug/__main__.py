@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""z0bug
-testing & debug library
-"""
 
 from __future__ import print_function, unicode_literals
 from __future__ import absolute_import
@@ -21,7 +18,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = '0.2.15.9'
+__version__ = '0.2.15.10'
 STS_FAILED = 1
 STS_SUCCESS = 0
 

@@ -36,7 +36,7 @@ except BaseException:
 from zerobug import Z0test
 
 
-__version__ = "0.3.9.17"
+__version__ = "0.3.9.18"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -311,7 +311,7 @@ class Oerp():
             for id in self.db[model]:
                 if left not in self.db[model][id]:
                     raise IOError("*** Invalid field %s in model %s!!!" %
-                                   (left, model))
+                                  (left, model))
                 if self.comp_tuple(self.db[model][id][left], op, right):
                     res.append(id)
         return res
@@ -424,6 +424,8 @@ class Test():
         o_model = {}
         ctx = {}
         ctx['odoo_session'] = oerp
+        ctx['server_version'] = '8.0'
+        ctx['majver'] = int(ctx['server_version'].split('.')[0])
         ctx['svc_protocol'] = 'xmlrpc'
         if model not in ('res.zero', 'res.two', 'res.four'):
             ctx['def_company_id'] = DEF_CID

@@ -17,7 +17,7 @@ For current version:
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-27
+Last Update / Ultimo aggiornamento: 2020-08-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -31,7 +31,7 @@ Last Update / Ultimo aggiornamento: 2020-08-27
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.13
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
     :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.13
     :alt: Coverage
 .. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.13/graph/badge.svg

@@ -13,10 +13,10 @@ from __future__ import print_function
 
 import sys
 import os
-from getaddons import (get_addons, get_modules, get_dependents,
+from getaddons import (get_modules, get_dependents,
                        get_dependencies, get_modules_info)
-from six import string_types
-    
+# from six import string_types
+
 from test_server import get_test_dependencies
 
 __version__ = '0.2.3.13'
@@ -81,9 +81,12 @@ def main(argv=None):
         else:
             params.append(argv.pop(0))
 
-    if not list_type and len(params):    list_type = params.pop(0)
-    if len(params):    paths=params.pop(0)
-    if len(params):    module_list=params.pop(0).split(',')
+    if not list_type and len(params):
+        list_type = params.pop(0)
+    if len(params):
+        paths = params.pop(0)
+    if len(params):
+        module_list = params.pop(0).split(',')
 
     if list_type == 'mod':
         print(','.join(get_module_list(paths)))

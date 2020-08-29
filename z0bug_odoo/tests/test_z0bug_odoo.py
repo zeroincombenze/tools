@@ -7,8 +7,8 @@
 """
 
 # import pdb
-import os
-import os.path
+# import os
+# import os.path
 import sys
 from zerobug import Z0test
 
@@ -25,7 +25,6 @@ def version():
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    ctx = Z0test.parseoptest(sys.argv[1:],
-                             version=version())
-    sts = Z0test.main(ctx)
-    exit(sts)
+    exit(Z0test.main(
+        Z0test.parseoptest(sys.argv[1:],
+            version=version())))

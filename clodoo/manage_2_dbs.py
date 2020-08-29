@@ -17,7 +17,7 @@ import transodoo
 # import pdb
 
 
-__version__ = '0.3.9.17'
+__version__ = '0.3.9.18'
 
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
@@ -88,8 +88,9 @@ def msg_burst(text):
 
 def writelog(msg):
     print(msg)
-    fd = open('./migrate_odoo.log', 'a')
-    line = '%s,' % msg
+    with open('./migrate_odoo.log', 'a') as fd:
+        line = '%s,' % msg
+        fd.write(line)
 
 
 def manage_error():
@@ -550,8 +551,8 @@ def copy_table(dst_ctx, src_ctx, model, mode=None):
                     clodoo.unlinkL8(dst_ctx, model, id)
                 except BaseException:
                     writelog("Cannot delete record %d of %s" % (id, model))
-                    if not dst_ctx['assume_yes']:
-                        dummy = raw_input('Press RET to continue')
+                    # if not dst_ctx['assume_yes']:
+                    #     dummy = raw_input('Press RET to continue')
     where = []
     for rec in clodoo.browseL8(src_ctx, model, clodoo.searchL8(
             src_ctx, model, where, order='id')):
@@ -632,8 +633,8 @@ def build_table_tree(ctx):
     for model in model_list:
         msg_burst('    dependencies %s ...' % model)
         models[model]['depends'] = list(set(models[model]['depends']) -
-                                        set(models[model]['crossdep']) )
-    missed_models = {}
+                                        set(models[model]['crossdep']))
+    # missed_models = {}
     max_iter = 99
     parsing = True
     while parsing:

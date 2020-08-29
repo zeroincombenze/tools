@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.3.9
+#__version__=0.2.3.10
 
 
 MAKEF=$HOME/dev/Makefile
@@ -775,7 +775,7 @@ conf_default() {
     set_cfg_def "PS_HDR1_COLOR" "97;48;5;22"
     set_cfg_def "PS_HDR2_COLOR" "30;43"
     set_cfg_def "PS_HDR3_COLOR" "30;47"
-    set_cfg_def "PKGS_LIST" "clodoo devel_tools lisa maintainer-quality-tools odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
+    set_cfg_def "PKGS_LIST" "clodoo devel_tools lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
     set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
     set_cfg_def "DEV_SVG" "$HOME/dev/svg"
     set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"

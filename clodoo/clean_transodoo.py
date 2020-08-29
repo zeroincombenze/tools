@@ -8,7 +8,7 @@
 #    All Rights Reserved
 #
 from __future__ import print_function, unicode_literals
-from past.builtins import basestring
+# from past.builtins import basestring
 
 import re
 import csv
@@ -20,7 +20,7 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.3.9.17"
+__version__ = "0.3.9.18"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
@@ -31,7 +31,7 @@ def get_pymodel(model):
 
 def get_ver_name(name, ver):
     if name:
-        return  '%s__%s' % (ver, name)
+        return '%s__%s' % (ver, name)
     return name
 
 
@@ -117,7 +117,7 @@ def clean_transodoo(ctx=None):
                             prior_ver_names,ver_names))
                         break
             prior_ver_names = ver_names
-            uname = set_uname(row[TYPE], row[NAME], ver_names)
+            # uname = set_uname(row[TYPE], row[NAME], ver_names)
 
 
 if __name__ == "__main__":

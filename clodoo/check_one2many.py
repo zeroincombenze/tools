@@ -3,7 +3,7 @@
 import sys
 import time
 # import oerplib
-from os0 import os0
+# from os0 import os0
 try:
     from clodoo import clodoo
 except ImportError:
@@ -18,7 +18,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.3.9.17"
+__version__ = "0.3.9.18"
 msg_time = time.time()
 
 
@@ -26,7 +26,7 @@ def msg_burst(text):
     global msg_time
     t = time.time() - msg_time
     if (t > 3):
-        print text
+        print(text)
         msg_time = time.time()
 
 
@@ -56,13 +56,13 @@ model_fld = 'ir.model.fields'
 for fld_id in oerp.search(model_fld, [('ttype', '=', 'one2many')]):
     try:
         fld = oerp.browse(model_fld, fld_id)
-        print 'browse(%s, %d){"name":%s, "model_id":%s,' \
+        print('browse(%s, %d){"name":%s, "model_id":%s,'
               ' "relation":%s, "relation_field":%s}' % (model_fld,
                                                         fld_id,
                                                         fld.name,
                                                         fld.model_id.model,
                                                         fld.relation,
-                                                        fld.relation_field)
+                                                        fld.relation_field))
         with open('check_one2many.log', 'ab') as log:
             log.write("browse(%s, %d)\n" % (model_fld, fld_id))
         model2 = fld.model_id.model
@@ -81,12 +81,12 @@ for fld_id in oerp.search(model_fld, [('ttype', '=', 'one2many')]):
                             log.write("**** Error in model %s id %d! ****\n" %
                                       (fld.relation, kk.id))
             except BaseException:
-                print "**** Error in model %s id %d! ****" % (model2, id)
+                print("**** Error in model %s id %d! ****" % (model2, id))
                 with open('check_one2many.log', 'ab') as log:
                     log.write("**** Error in model %s id %d! ****\n" % (model2,
                                                                         id))
     except BaseException:
-        print "**** Error in model %s id %d! ****" % (model_fld, fld_id)
+        print("**** Error in model %s id %d! ****" % (model_fld, fld_id))
         with open('check_one2many.log', 'ab') as log:
             log.write("**** Error in model %s id %d! ****\n" % (model_fld,
                                                                 fld_id))

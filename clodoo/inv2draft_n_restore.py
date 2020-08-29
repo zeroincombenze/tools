@@ -17,7 +17,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.3.9.17"
+__version__ = "0.3.9.18"
 
 
 def get_name_by_ver(ctx, name):
@@ -43,7 +43,7 @@ def get_name_by_ver(ctx, name):
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
     move_name = get_name_by_ver(ctx, 'move_name')
-    reference = get_name_by_ver(ctx, 'reference')
+    # reference = get_name_by_ver(ctx, 'reference')
     if not tmp_num and not cur_num:
         print(">> Missing parameters")
         return

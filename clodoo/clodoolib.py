@@ -166,7 +166,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.9.17"
+__version__ = "0.3.9.18"
 
 
 #############################################################################
@@ -763,30 +763,30 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
     def build_name(item, odoo_vid, odoo_ver, multi, VENV, VID):
         if item == 'CONFN':
             p1 = '/etc/odoo/'
-            p11 = '/etc/'
+            # p11 = '/etc/'
             p4 = '.conf'
         elif item == 'FLOG':
             p1 = '/var/log/odoo/'
-            p11 = '/var/log/'
+            # p11 = '/var/log/'
             p4 = '.log'
         elif item == 'FPID':
             p1 = '/var/run/odoo/'
-            p11 = '/var/run/'
+            # p11 = '/var/run/'
             p4 = '.pid'
         elif item in ('FULL_SVCNAME', 'SVCNAME'):
             p1 = '/etc/init.d/'
-            p11 = ''
+            # p11 = ''
             p4 = ''
         elif item == 'BIN':
             if odoo_ver < 7:
                 p1 = '%s/server/' % VID
-                p11 = '%s/' % VID
+                # p11 = '%s/' % VID
             elif odoo_ver == 7 and odoo_vid[0] == 'v':
                 p1 = '%s/server/' % VID
-                p11 = '%s/' % VID
+                # p11 = '%s/' % VID
             else:
                 p1 = '%s/' % VID
-                p11 = ''
+                # p11 = ''
             p4 = ''
         else:
             raise KeyError('Invalid item %s' % item)

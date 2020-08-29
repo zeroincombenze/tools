@@ -2,17 +2,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-# content of test_server.py
 
 from future import standard_library
 standard_library.install_aliases()                                 # noqa: E402
-from builtins import *                                             # noqa: F403
 from builtins import object
 
-import pytest
 from zerobug import Z0BUG
 
-__version__ = '0.2.15.9'
+__version__ = '0.2.15.10'
 
 
 def test_version_zerobug(version_to_test):

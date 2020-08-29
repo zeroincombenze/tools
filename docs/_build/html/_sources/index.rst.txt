@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ==========================================
-Multi-purpose python & bash tools 0.2.3.16
+Multi-purpose python & bash tools 0.2.3.17
 ==========================================
 
 Overview
@@ -59,17 +59,7 @@ Clodoo
    pypi_clodoo/index
 
 
-MQT (deprecated)
-================
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   pypi_maintainer-quality-tools/index
-
-
-travis_emulator
+Travis Emulator
 ===============
 
 .. toctree::

@@ -9,7 +9,7 @@ Quality check,|check|,With zerobug and z0bug_odoo packages
 Stored images,|check|,In ~/VME/ directory (see -C switch)
 Debug information,|check|,See -B and -D switches
 Keep DB after test,|check|,See -k switch
-Lint level,|check|,With zerobug, see -L switch
+Lint level,|check|,"With zerobug, see -L switch"
 Build selection,|check|,See -O switch
 System packages,|check| |no_check|,See -S switch
 Use specific python version,|check|,See -y switch

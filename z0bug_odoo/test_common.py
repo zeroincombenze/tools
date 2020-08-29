@@ -16,11 +16,11 @@ except ImportError:
 if release:
     if int(release.major_version.split('.')[0]) < 10:
         import openerp.tests.common as test_common
-        from openerp.modules.module import get_module_resource
-        from openerp import workflow
+        from openerp.modules.module import get_module_resource     # noqa: F401
+        from openerp import workflow                               # noqa: F401
     else:
         import odoo.tests.common as test_common
-        from odoo.modules.module import get_module_resource
+        from odoo.modules.module import get_module_resource        # noqa: F401
 else:
     print('No Odoo environment found!')
     sys.exit(0)
@@ -222,7 +222,15 @@ class Z0bugBaseCase(test_common.BaseCase):
         return False
 
     def add_xref(self, xref, model, xid):
-        """TODO: write implementation"""
+        xrefs = xref.split('.')
+        if len(xrefs) == 2:
+            vals = {
+                'module': xrefs[0],
+                'model': model,
+                'name': xrefs[1],
+                'res_id': id,
+            }
+            return self.create_rec('ir.model.data', vals)
         return False
 
     def store_xref(self, xref, model, company_id,
