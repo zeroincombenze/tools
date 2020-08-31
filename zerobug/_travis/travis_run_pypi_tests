@@ -31,7 +31,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.15.10
+__version__=0.2.15.11
 
 
 travis_test_bash() {
@@ -130,7 +130,7 @@ run_regression_test() {
     local s sts
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-        [[ "$TRAVIS_PDB" == "True" ]] && opts="${opts}B"
+        [[ "$TRAVIS_PDB" == "true" ]] && opts="${opts}B"
         [[ "$TRAVIS_DEBUG_MODE" == "9" ]] && opts="${opts}n"
         OPTS=$(inherits_travis_opts "$opts" "T")
         run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"

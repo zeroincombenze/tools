@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.3.10
+#__version__=0.2.3.11
 
 
 MAKEF=$HOME/dev/Makefile
@@ -390,7 +390,7 @@ revaluate_travis() {
 
 drop_test_db() {
     if [ "$PRJNAME" == "Odoo" ]; then
-      local u=$(get_cfg_value "" "dbuser")
+      local u=${MQT_DBUSER:-$USER}
       local dbtemplate=${MQT_TEMPLATE_DB:-openerp_template}
       pg_db_active -wa $dbtemplate; dropdb $dbtemplate --if-exists &>/dev/null
       local database=${MQT_TEST_DB:-openerp_test}

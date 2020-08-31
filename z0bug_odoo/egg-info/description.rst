@@ -300,7 +300,12 @@ staging DBs or if you want to work with an advanced set of
 templates in order to speed up your CI pipeline.
 Just specify at will:
 
-`MQT_TEMPLATE_DB='mqt_odoo_template' MQT_TEST_DB='mqt_odoo_test'`.
+`MQT_TEMPLATE_DB='odoo_template' MQT_TEST_DB='odoo_test'`.
+
+In your local travis you can declare the default value but these values are not applied in web TravisCi web site.
+
+Database user is the current username. This behavior works both in local test both in TravisCi web site.
+However, sometimes, local user and db username can be different. You can set the default value in travis emulator.
 
 
 Coveralls/Codecov configuration file

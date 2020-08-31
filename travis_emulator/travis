@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.10
+__version__=0.2.3.11
 
 
 store_cfg_param_value() {
@@ -109,13 +109,14 @@ process_yaml_init() {
         YML_repo=
     fi
     export TRAVIS_PULL_REQUEST="false"
-    export MQT_TEMPLATE_DB="openerp_template$YML_pid"
-    export MQT_TEST_DB="openerp_test$YML_pid"
+    export MQT_TEMPLATE_DB="$(get_cfg_value "" "dbtemplate")$YML_pid"
+    export MQT_TEST_DB="$(get_cfg_value "" "dbname")$YML_pid"
+    export MQT_DBUSER="$(get_cfg_value "" "dbuser")"
     python_ver_req=
     if [ $opt_dbgmnt -ne 0 ]; then
         [[ -d $HOME/devel ]] && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
         [[ -d $HOME/devel ]] && export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo || export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
-        (($opt_debug)) && export TRAVIS_PDB="True"
+        (($opt_debug)) && export TRAVIS_PDB="rue"
     else
         export YML_lisa=lisa
         export YML_mgrodoo=manage_odoo

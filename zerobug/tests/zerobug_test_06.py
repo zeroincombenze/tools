@@ -12,7 +12,7 @@ import os
 import sys
 from zerobug import Z0BUG
 
-__version__ = "0.2.15.10"
+__version__ = "0.2.15.11"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1

@@ -18,7 +18,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.15.10"
+__version__ = "0.2.15.11"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1161,7 +1161,7 @@ class Z0test(object):
                     testname = os.path.join(self.testdir, testname)
                 if basetn.endswith('.py') or basetn.endswith('.pyc'):
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
-                    if os.environ.get('TRAVIS_PDB') == 'True':
+                    if os.environ.get('TRAVIS_PDB') == 'true':
                         if ctx.get('python3', False):
                             test_w_args = ['python3', '-m', 'pdb', testname
                                            ] + opt4childs

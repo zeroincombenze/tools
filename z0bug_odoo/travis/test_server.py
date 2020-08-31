@@ -295,7 +295,7 @@ def build_run_cmd_odoo(server_path, script_name, db, modules=None,
     script_path = get_script_path(server_path, script_name)
     test_loglevel = test_loglevel or 'info'
     preinstall_modules = modules or []
-    if os.environ.get('TRAVIS_PDB') == 'True':
+    if os.environ.get('TRAVIS_PDB') == 'true':
         if scope == 'test':
             cmd_odoo = ["python", "-m", "pdb"]
         else:
@@ -393,7 +393,7 @@ def set_conf_data(addons_path, data_dir):
         'data_dir': data_dir,
     }
     # [ antoniov: 2018-02-28 ]
-    if os.environ.get('TRAVIS') != 'True':
+    if os.environ.get('TRAVIS') != 'true':
         pid = os.getpid() % 65536
         if pid > 18000:
             rpcport = str(pid)

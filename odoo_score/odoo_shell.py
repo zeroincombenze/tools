@@ -2989,6 +2989,7 @@ def test_synchro_vg7(ctx):
         'stock',
         'l10n_it_ddt', 'l10n_it_einvoice_out', 'l10n_it_ricevute_bancarie',
         'connector_vg7',
+        'partner_bank',
     ]
     ctx['ctr'] = 0
 
@@ -4213,6 +4214,8 @@ def test_synchro_vg7(ctx):
             'price_unit': 25.50,
             'tax_id': '22v',
         }
+        if state == 'sale':
+            vals['tax_id'] = '4v'
         line_id = clodoo.executeL8(ctx,
                                    model,
                                    'synchro',
@@ -4232,7 +4235,7 @@ def test_synchro_vg7(ctx):
                 'vg7_product_id': get_vg7id_from_id(
                     ctx, 'product.product', ctx['test_product_x_id']),
                 'price_unit': 12.34,
-                'tax_id': '22v',
+                'tax_id': '4v',
             }
             if newprod:
                 vals['vg7_product_id'] = 3
@@ -4273,6 +4276,9 @@ def test_synchro_vg7(ctx):
             if len(rec['order_line']) != 3:
                 raise IOError('!!Invalid # of details!')
             ctx['ctr'] += 1
+        if state == 'sale':
+            check_sale_order_line(ctx, line_id, {
+                'vg7_order_id': vg7_order_id, 'tax_id': '4v'})
         if rec.payment_term_id != rec.partner_id.property_payment_term_id:
             raise IOError('!!Invalid payment term!')
         ctx['ctr'] += 1

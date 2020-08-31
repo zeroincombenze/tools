@@ -32,10 +32,10 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.3.15
+__version__=0.2.3.16
 
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
-YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
+YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
 NO_APT_GET="(build-essential|curl|git|gradle|gzip|java|lessc|less-plugin-clean-css|nodejs|npm|openssl|python-setuptools|python-simplejson|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
 
 
@@ -303,6 +303,8 @@ format_yaml() {
                 :
             elif [[ $lne =~ export.PATH=\$.HOME./.*/travis:\$.PATH ]]; then
                 :
+            elif [[ $lne =~ -\ \$.HOME./tools/install_tools.sh ]]; then
+                :
             elif [[ $lne =~ mv.\$.HOME./tools.\$.HOME ]]; then
                 :
             elif [[ $lne =~ "- pip install urllib3[secure] --upgrade" ]]; then
@@ -316,6 +318,10 @@ format_yaml() {
             elif [[ $lne =~ -\ TRAVIS_DEBUG_MODE=... ]]; then
               :
             elif [[ $lne =~ -\ ln\ -s\ .*/build/.*ODOO_REPO.*VERSION ]]; then
+              :
+            elif [[ $lne =~ -\ source\ \$.HOME./dev/activate_tools ]]; then
+              :
+            elif [[ $lne =~ -\ pov-wkhtmltopdf ]]; then
               :
             elif [[ $lne =~ -\ export\ EXCLUDE= ]]; then
               found[exclude]="t"
@@ -340,9 +346,13 @@ format_yaml() {
             elif [[ $lne =~ -\ travis_install_nightly ]]; then
               echo "# $line">>$fntmp
             elif [[ $lne =~ -\ LINT_CHECK=... ]]; then
+              if [[ $opt_rule =~ (MINIMAL|REDUCED|AVERAGE|NEARBY|OCA) ]]; then
+                line=$(echo "$line"|sed -Ee "s|LINT_CHECK_LEVEL=\"[A-Z]+\"|LINT_CHECK_LEVEL=\"$opt_rule\"|")
+              fi
               echo "$line">>$fntmp
             elif [[ $lne == -\ pip\ install\ -r\ .*/maintainer-quality-tools/requirements.txt ]]; then
-              echo "# $line">>$fntmp
+              # echo "# $line">>$fntmp
+              :
             elif [[ "$cur_sect" == "python" && "$lne" =~ [23]\.[0-9] ]]; then
               if [[ -z "$cur_sub" ]]; then
                 if [  $odoo_ver -ge 11 ]; then
@@ -357,8 +367,8 @@ format_yaml() {
               fi
             elif [[ "$cur_sect" == "addons" && ! $line =~ ^[a-z] ]]; then
               if [ "$lne" == "packages:" ]; then
-                  echo "    # Search your sources alias here:">>$fntmp
-                  echo "    # https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json">>$fntmp
+                  echo "      # Search your sources alias here:">>$fntmp
+                  echo "      # https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json">>$fntmp
                   echo "$line">>$fntmp
                   for a in $($LISTREQ -p"$p" -tbin -q -s' ' -BT); do
                       if [ "$a" == "psycopg2" ]; then
@@ -375,7 +385,7 @@ format_yaml() {
                   done
               elif [[ $lne =~ sources: ]]; then
                   echo "    sources:">>$fntmp
-                  echo "      - pov-wkhtmltopdf">>$fntmp
+                  # echo "      - pov-wkhtmltopdf">>$fntmp
               elif [[ $lne =~ apt: ]]; then
                   echo "$line">>$fntmp
               # elif [[ ! $lne =~ \#?\ *\- ]]; then
@@ -393,8 +403,8 @@ format_yaml() {
               elif [[ $cur_sect == "before_install" ]]; then
                   echo "  # Use Zeroincombenze(R) tools">>$fntmp
                   echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1">>$fntmp
-                  echo "  # - export PATH=\${HOME}/tools/maintainer-quality-tools/travis:\${PATH}">>$fntmp
-                  echo "  - \${HOME}/tools/install_tools.sh -qopts">>$fntmp
+                  # echo "  # - export PATH=\${HOME}/tools/maintainer-quality-tools/travis:\${PATH}">>$fntmp
+                  echo "  - \${HOME}/tools/install_tools.sh -qopt">>$fntmp
                   echo "  - source \${HOME}/dev/activate_tools">>$fntmp
                   if [[ $PKGNAME == "OCB" ]]; then
                       echo "  # - \"export DISPLAY=:99.0\"">>$fntmp

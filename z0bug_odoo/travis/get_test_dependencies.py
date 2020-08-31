@@ -19,7 +19,7 @@ from getaddons import (get_modules, get_dependents,
 
 from test_server import get_test_dependencies
 
-__version__ = '0.2.3.13'
+__version__ = '0.2.3.14'
 
 
 def get_module_list(paths):

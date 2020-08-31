@@ -1,6 +1,6 @@
 
 ===================
-z0bug_odoo 0.2.3.13
+z0bug_odoo 0.2.3.14
 ===================
 
 
@@ -495,7 +495,12 @@ staging DBs or if you want to work with an advanced set of
 templates in order to speed up your CI pipeline.
 Just specify at will:
 
-`MQT_TEMPLATE_DB='mqt_odoo_template' MQT_TEST_DB='mqt_odoo_test'`.
+`MQT_TEMPLATE_DB='odoo_template' MQT_TEST_DB='odoo_test'`.
+
+In your local travis you can declare the default value but these values are not applied in web TravisCi web site.
+
+Database user is the current username. This behavior works both in local test both in TravisCi web site.
+However, sometimes, local user and db username can be different. You can set the default value in travis emulator.
 
 
 Coveralls/Codecov configuration file
@@ -525,9 +530,11 @@ You can highly customize you test: look at below table.
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
 | INSTALL_OPTIONS        |                                                        | Options passed to odoo-bin/openerp-server to install modules |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| MQT_TEMPLATE_DB        |                                                        | Read above                                                   |
+| MQT_DBSUER             | $USER                                                  | Database username                                            |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| MQT_TEST_DB            |                                                        | Read above                                                   |
+| MQT_TEMPLATE_DB        | openerp_template                                       | Read above                                                   |
++------------------------+--------------------------------------------------------+--------------------------------------------------------------+
+| MQT_TEST_DB            | openerp_test                                           | Read above                                                   |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
 | NPM_CONFIG_PREFIX      | \$HOME/.npm-global                                     | N/D                                                          |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
@@ -561,9 +568,9 @@ You can highly customize you test: look at below table.
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
 | TRAVIS_DEBUG_MODE      | 0                                                      | Read above                                                   |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| TRAVIS_PDB             |                                                        | Activate pdb to local test (experimental)                    |
+| TRAVIS_PDB             |                                                        | The value 'true' activates pdb in local 'travis -B'          |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| UNBUFFER               | True                                                   | Use unbuffer (colors) to log results                         |
+| UNBUFFER               | 1                                                      | Use unbuffer (colors) to log results                         |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
 | UNIT_TEST              |                                                        | Read above                                                   |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
@@ -982,7 +989,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-29
+Last Update / Ultimo aggiornamento: 2020-08-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -997,22 +1004,22 @@ Last Update / Ultimo aggiornamento: 2020-08-29
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.13
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.14
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.13/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.13
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.14
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.13/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.14/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.13/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.14/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.13/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.13
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.14/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.14
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

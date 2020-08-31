@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.9.18
+__version__=0.3.9.19
 
 
 up_oemod() {
@@ -366,9 +366,9 @@ for odoo_vid in ${odoo_vids//,/ }; do
         eval $WCMD
       fi
       if [ "$action" == "module" ]; then
-        run_traced "nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk"
+        run_traced "nice $TDIR/run_odoo_debug -b$odoo_vid -um $cmdlist -d $db -sk"
       elif [ "$action" == "upgrade" ]; then
-        [[ "$opt_way" == "A" ]] || run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -um $cmdlist -d $db -sk"
+        [[ "$opt_way" == "A" ]] || run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -um $cmdlist -d $db -sk"
         if [[ ! "$cmdlist" == "all" && ! "$opt_way" == "E" ]]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
@@ -382,7 +382,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
         elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
-          run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -l -d $db"
+          run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -l -d $db"
         else
           echo "$TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
@@ -392,7 +392,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           fi
         fi
       elif [ "$action" == "translate" ]; then
-        run_traced "nice $TDIR/run_odoo_debug $OPTS $odoo_vid -l -d $db"
+        run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -l -d $db"
       else
         if [ -n "$cmdlist" ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"

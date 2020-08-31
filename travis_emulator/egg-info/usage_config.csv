@@ -1,9 +1,9 @@
 Parameter,Descriptio,Default value
 CHAT_HOME,URL to web chat to insert in documentation,
 ODOO_SETUPS,Names of Odoo manifest files,__manifest__.py __openerp__.py __odoo__.py __terp__.py
-dbtemplate,DB template name in Odoo test,openerp_template
-dbname,DB name in Odoo test,openerp_test
-dbuser,Postgresql user,postgres
+dbtemplate,Default value for MQT_TEMPLATE_DB,openerp_template
+dbname,Default value for MQT_TEST_DB,openerp_test
+dbuser,Postgresql user: default value for MQT_DBUSER,$USER
 UNBUFFER,Use unbuffer,0
 virtualenv_opts,Default option to create virtual environment,
 NPM_CONFIG_PREFIX,N/D,\$HOME/.npm-global
