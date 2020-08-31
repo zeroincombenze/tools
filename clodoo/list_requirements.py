@@ -13,7 +13,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.9.19'
+__version__ = '0.3.9.20'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -158,6 +158,7 @@ PIP_TEST_PACKAGES = ['astroid',
                      'MarkupSafe',
                      'mock',
                      'pbr',
+                     'polib',
                      'pycodestyle',
                      'pycparser',
                      'pyflakes',
