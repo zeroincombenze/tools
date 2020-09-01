@@ -23,7 +23,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.2.3.17
+__version__=1.0.0
 
 
 #//Only human upgradable code/

@@ -109,7 +109,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "0.2.3.17"
+__version__ = "1.0.0"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -687,7 +687,7 @@ def expand_macro(ctx, token, default=None):
             value = 'https://img.shields.io/badge/maturity-Alfa-red.png'
         elif ctx['maturity'].lower() == 'beta':
             value = 'https://img.shields.io/badge/maturity-Beta-yellow.png'
-        elif ctx['maturity'].lower() == 'mature':
+        elif ctx['maturity'].lower() in ('mature', 'production/stable'):
             value = 'https://img.shields.io/badge/maturity-Mature-green.png'
         else:
             value = 'https://img.shields.io/badge/maturity-Alfa-black.png'
@@ -1486,20 +1486,18 @@ def set_default_values(ctx):
                 elif pmv > 6:
                     ctx['prior2_branch'] = '%d.0' % pmv
     else:
-        releases = ctx['branch'].split('.')
-        ctx['odoo_majver'] = int(releases[1])
+        releases = [int(x) for x in ctx['branch'].split('.')]
         if not ctx.get('prior_branch'):
-            pmv = ctx['odoo_majver'] - 1
-            ctx['prior_branch'] = '%s.%s.%s' % (releases[0], pmv, releases[2])
-            if not ctx.get('prior2_branch'):
-                if int(releases[0]) > 0:
-                    ctx['prior2_branch'] = '%s.%s.%s' % (releases[0] - 1,
-                                                         releases[1],
-                                                         releases[2])
+            if releases[0] > 0:
+                ctx['odoo_majver'] = releases[0]
+                pmv = ctx['odoo_majver'] - 1
+                ctx['prior_branch'] = '%d.%d.%d' % (
+                    pmv, releases[1], releases[2])
             else:
-                ctx['prior2_branch'] = '%s.%s.%s' % (releases[0],
-                                                     releases[1] - 2,
-                                                     releases[2])
+                ctx['odoo_majver'] = releases[1]
+                pmv = ctx['odoo_majver'] - 1
+                ctx['prior_branch'] = '%d.%d.%d' % (
+                    releases[0], pmv, releases[2])
     if ctx['output_file']:
         ctx['dst_file'] = ctx['output_file']
     elif ctx['write_html']:

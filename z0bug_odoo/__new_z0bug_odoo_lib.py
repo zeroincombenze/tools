@@ -22,7 +22,7 @@ import csv
 # from zerobug import Z0BUG
 from os0 import os0
 
-__version__ = "0.2.3.14"
+__version__ = "1.0.0"
 
 
 class Z0bugOdoo(object):

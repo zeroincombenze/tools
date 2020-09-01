@@ -19,7 +19,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '0.2.3.14'
+__version__ = '1.0.0'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 

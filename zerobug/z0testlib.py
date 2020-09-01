@@ -18,7 +18,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "0.2.15.11"
+__version__ = "1.0.0"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
