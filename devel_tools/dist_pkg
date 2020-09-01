@@ -33,7 +33,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.16
+__version__=0.2.3.17
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -138,23 +138,26 @@ fi
 
 if [ "$PRJNAME" == "Odoo" ]; then
     valid=0
-    [[ -f __manifest__.py ]] && ((valid+=2))
-    [[ -f __openerp__.py ]] && ((valid+=2))
-    [[ -f __init__.py ]] && ((valid+=2))
-    [[ -f README.rst ]] && ((valid++))
-    [[ -f .travis.yml ]] && ((valid++))
-    [[ -d egg-info ]] && ((valid++))
+    # manifest files count for 2 times
+    for f in __manifest__.py __manifest__.py __openerp__.py __openerp__.py __init__.py README.rst .travis.yml LICENSE oca_dependencies.txt requirements.txt; do
+        [[ -f $f ]] && ((valid++))
+    done
+    for f in tests egg-info; do
+        [[ -d $f ]] && ((valid++))
+    done
     if [ $valid -lt 5 ]; then
         echo "Invalid environment"
         exit 1
     fi
 else
     valid=0
-    [[ -f setup.py ]] && ((valid++))
-    [[ -f ../setup.py ]] && ((valid+=2))
-    [[ -d tests ]] && ((valid++))
-    [[ -d egg-info ]] && ((valid++))
-    [[ -f README.rst ]] && ((valid++))
+    # ../setup.py count for 2 times!
+    for f in setup.py ../setup.py ../setup.py README.rst; do
+        [[ -f $f ]] && ((valid++))
+    done
+    for f in tests egg-info clodoo devel_tools odoo_score z0bug_odoo z0lib zerobug; do
+        [[ -d $f ]] && ((valid++))
+    done
     if [ $valid -lt 5 ]; then
         echo "Invalid environment"
         exit 1
@@ -176,6 +179,7 @@ else
         fi
     fi
 fi
+
 if [ "$opt_cpush" == "-O" ]; then
   # Copy files from Odoo package to another Odoo distribution (same version)
   opts_common=
@@ -248,6 +252,7 @@ if [ "$opt_cpush" == "-O" ]; then
   fi
   exit 0
 fi
+
 if [ "$opt_cpush" == "-D" ]; then
   # Duplicate files from Odoo package to another Odoo version (same distribution)
   opts_common=
@@ -320,6 +325,7 @@ if [ "$opt_cpush" == "-D" ]; then
   done
   exit 0
 fi
+
 if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
   robocopy_init "$PRJNAME" "$PKGNAME"
   f_done=0
@@ -334,6 +340,9 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
     declare tgtpath="$(get_cfg_value 0 $x)"
     declare tgtparm="$(get_cfg_value 0 $y)"
     if [ -n "$tgtpath" ]; then
+      srcpath=$PKGPATH
+      [[ -n $PKGPATH ]] || tgtpath="${tgtpath/pkgpath/prjpath}"
+      [[ -n $PKGPATH ]] || srcpath="$PRJPATH"
       tgtpath=$(expand_path $tgtpath)
       declare z=tgt${ii}enable
       declare enabled="$(get_cfg_value 0 $z)"
@@ -348,11 +357,11 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
       if [ ${enabled:-0} -gt 0 ]; then
         if [ "$tgtparm" ]; then
           declare $y="$(echo \"$tgtparm\"|sed 's:\\::g')"
-          [ $opt_verbose -gt 0 ] && echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh $tgtparm\""
-          robocopy "$PKGPATH" "$tgtpath" "ssh $tgtparm"
+          [ $opt_verbose -gt 0 ] && echo "$ robocopy \"$srcpath\" \"$tgtpath\" \"ssh $tgtparm\""
+          robocopy "$srcpath" "$tgtpath" "ssh $tgtparm"
         else
-          [ $opt_verbose -gt 0 ] && echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh\""
-          robocopy "$PKGPATH" "$tgtpath" "ssh"
+          [ $opt_verbose -gt 0 ] && echo "$ robocopy \"$srcpath\" \"$tgtpath\" \"ssh\""
+          robocopy "$srcpath" "$tgtpath" "ssh"
         fi
         f_done=1
         if [ "$opt_cpush" == "-C" ]; then

@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.11
+__version__=0.2.3.12
 
 
 store_cfg_param_value() {
@@ -55,18 +55,18 @@ store_cfg_param_value() {
 }
 
 process_local() {
-    wlog "=== Simulate YAML test ==="
-    local s sts
-    if [ -f $TOOLS_PATH/travis_run_tests ]; then
-      if [[ $action =~ (force-lint|lint) ]]; then
-        opts=$(inherits_travis_opts "K" "T")
-      elif [[ $action =~ (force-test|test) ]]; then
-        opts=$(inherits_travis_opts "T" "T")
-      else
-        opts=$(inherits_travis_opts "KT" "T")
-      fi
-      run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
-      sts=$?
+    # wlog "=== Simulate YAML test ==="
+    # local s sts
+    # if [ -f $TOOLS_PATH/travis_run_tests ]; then
+    #   if [[ $action =~ (force-lint|lint) ]]; then
+    #     opts=$(inherits_travis_opts "K" "T")
+    #   elif [[ $action =~ (force-test|test) ]]; then
+    #     opts=$(inherits_travis_opts "T" "T")
+    #   else
+    #     opts=$(inherits_travis_opts "KT" "T")
+    #   fi
+    #   run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
+    #   sts=$?
     # elif [ $opt_r -gt 0 ]; then
     #   if [[ $action =~ (force-test|test) ]]; then
     #     please_run_tests "-T"
@@ -78,14 +78,14 @@ process_local() {
     #     please_run_tests "-KT"
     #     sts=$?
     #   fi
-    else
-      sts=127
-    fi
-    if [ $sts -eq $STS_SUCCESS ] && [[ $action =~ (force-lint|lint|force-test|test) ]]; then
-      opts=$(inherits_travis_opts "" "A")
-      run_traced "$TOOLS_PATH/travis_after_tests_success $opts"
-      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-    fi
+    # else
+    #   sts=127
+    # fi
+    # if [ $sts -eq $STS_SUCCESS ] && [[ $action =~ (force-lint|lint|force-test|test) ]]; then
+    #   opts=$(inherits_travis_opts "" "A")
+    #   run_traced "$TOOLS_PATH/travis_after_tests_success $opts"
+    #   s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
+    # fi
     return $sts
 }
 
@@ -781,10 +781,10 @@ process_yaml() {
         [[ ! -f $YML_FILE ]] && YML_FILE=$PRJPATH/$opt_fyaml
         [[ ! -f $YML_FILE ]] && YML_FILE=$TOOLS_PATH/travis.yml
     fi
-    if [[ ! -d "$MQT_PATH" ]]; then
-        echo "Zeroincombenze(R) tools not found!"
-        return 1
-    fi
+    # if [[ ! -d "$MQT_PATH" ]]; then
+    #     echo "Zeroincombenze(R) tools not found!"
+    #     return 1
+    # fi
     if [ -f $YML_FILE ]; then
         echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
         wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"
@@ -794,8 +794,14 @@ process_yaml() {
         sts=$STS_SUCCESS
         wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
         TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-        for lne in TODAY TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
-            lne1=${!lne}
+        for lne in TODAY job-id TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo DIST PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
+            if [[ $lne == "job-id" ]]; then
+                lne1=$$
+            elif [[ $lne == "DIST" ]]; then
+                lne1=$(xuname -a)
+            else
+                lne1=${!lne}
+            fi
             if [[ -n "$lne1" || $lne =~ PATH ]]; then
                 wlog "\$ $lne=$lne1"
             fi
@@ -909,9 +915,9 @@ process_yaml() {
                 done
             done
         fi
-    else
-        process_local
-        sts=$?
+    # else
+    #     process_local
+    #     sts=$?
     fi
     echo -e "\e[0m"
     return $sts
@@ -1008,12 +1014,12 @@ init_travis
 if [ "$action" == "parseyaml" ]; then
     prepare_env_travis "$action"
     check_4_travis
-    if [ -z "$sub" ]; then
-        sub=$PRJPATH/.travis.yml
-        if [ ! -f $sub ]; then
-            sub=$TOOLS_PATH/travis.yml
-        fi
-    fi
+    # if [ -z "$sub" ]; then
+    #     sub=$PRJPATH/.travis.yml
+    #     if [ ! -f $sub ]; then
+    #         sub=$TOOLS_PATH/travis.yml
+    #     fi
+    # fi
     process_yaml_file "$sub"
     echo "addons:"
     echo "  apt:"

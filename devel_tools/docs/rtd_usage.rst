@@ -190,10 +190,10 @@ In this documentation VAR means the name of the macro while MACRO is the name of
 ::
 
     i.e.  .. $if branch == '12.0'
-          Current branch is 0.2.3.16
+          Current branch is 0.2.3.17
 
 In above example then word branch after statement $if ia the VAR branch.
-The word branch in the second line is a text. The item 0.2.3.16 is the macro, replaced by the value of varaibale branch.
+The word branch in the second line is a text. The item 0.2.3.17 is the macro, replaced by the value of varaibale branch.
 
 CONDITION may be a python condition or one of follow special condition:
 
@@ -430,37 +430,37 @@ topep8 usage
 
 ::
 
-    Usage: topep8 [-haAB][-b version][-c][-C org][-Dde][-F ver][-fGiLnN][-o file][-O][-R file][-quVvX01] fullname
+    Usage: topep8 [-haAB][-b version][-c][-C org][-Dde][-F ver][-f][-G gpl][-iLnN][-o file][-O][-R file][-quVvX01] fullname
     PEP8 source python file
     full path name maybe supplied or a single file
 
-     -h              this help
-     -a              enable non-whitespace changes (may issue multiple -a)
-     -A              do not execute autoflake (-A) neither autopep8 (-AA)
-     -B              activate debug statements
-     -b version      odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0
-     -c              change class name to CamelCase
-     -C org          add developers Copyright (def zero)
-     -D              show debug informations
-     -d              show diff
-     -e              do not apply enhance update
-     -F ver          from odoo branch, value like -b switch
-     -f              futurize
-     -G              Write GPL info into header
-     -i              sort import statements
-     -L              set file excluded by lint parse
-     -n              do nothing (dry-run)
-     -N              do not add newline at the EOF
-     -o file         output filename, leave source unchanged rather than source becomes .bak
-     -O              change copyright from openerp to odoo
-     -R file         use specific rule file
-     -q              silent mode
-     -u              use old api odoo<8.0 or create yaml old style
-     -V              show version
-     -v              verbose mode
-     -X              make file.py executable
-     -0              create yaml file from zero
-     -1              do not recurse travese directories
+     -h                      this help
+     -a                      enable non-whitespace changes (may issue multiple -a)
+     -A                      do not execute autoflake (-A) neither autopep8 (-AA)
+     -B                      activate debug statements
+     -b version              odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0
+     -c                      change class name to CamelCase
+     -C org                  add developers Copyright (def zero)
+     -D                      show debug informations
+     -d                      show diff
+     -e                      do not apply enhance update
+     -F ver                  from odoo branch, value like -b switch
+     -f                      futurize
+     -G gpl                  Write GPL info into header (agpl,lgpl,gpl)
+     -i                      sort import statements
+     -L                      set file excluded by lint parse
+     -n                      do nothing (dry-run)
+     -N                      do not add newline at the EOF
+     -o file                 output filename, leave source unchanged rather than source becomes .bak
+     -O                      change copyright from openerp to odoo
+     -R file                 use specific rule file
+     -q                      silent mode
+     -u                      use old api odoo<8.0 or create yaml old style
+     -V                      show version
+     -v                      verbose mode
+     -X                      make file.py executable
+     -0                      create yaml file from zero
+     -1                      do not recurse travese directories
 
 
 
@@ -468,11 +468,11 @@ topep8 usage
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-08-31
+Last Update / Ultimo aggiornamento: 2020-09-01
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
-    :alt: Beta
+    :alt: Production/Stable
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
     :target: https://travis-ci.org/zeroincombenze/tools
     :alt: github.com
@@ -483,22 +483,22 @@ Last Update / Ultimo aggiornamento: 2020-08-31
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.16
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.17
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.16/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.16
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.17/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.2.3.17
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.16/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.2.3.17/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.16/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.2.3.17/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.16/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.16
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.2.3.17/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.2.3.17
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

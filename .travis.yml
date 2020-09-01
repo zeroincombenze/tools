@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=0.2.3.18
+# __version__=0.2.3.19
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -70,6 +70,11 @@ env:
   - MODULE_PATH=${TRAVIS_BUILD_DIR}/wok_code LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
   - MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
   - MODULE_PATH=${TRAVIS_BUILD_DIR}/travis_emulator LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
+  - MODULE_PATH=${TRAVIS_BUILD_DIR}/devel_tools LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
+  - MODULE_PATH=${TRAVIS_BUILD_DIR}/odoo_score LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
+  - MODULE_PATH=${TRAVIS_BUILD_DIR}/os0 LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
+  - MODULE_PATH=${TRAVIS_BUILD_DIR}/python_plus LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
+  - MODULE_PATH=${TRAVIS_BUILD_DIR}/z0bug_odoo LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
   # - MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo LINT_CHECK="0" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH} ODOO_REPO="zeroincombenze/OCB" VERSION="10.0"
   # - MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo LINT_CHECK="0" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH} ODOO_REPO="zeroincombenze/OCB" VERSION="12.0"
 

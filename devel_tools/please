@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.3.16
+__version__=0.2.3.17
 
 
 #
@@ -1860,8 +1860,18 @@ do_docs() {
     wlog "do_docs"
     local docs_dir=./docs
     local author version theme SETUP b f t x
-    local opts src_png
+    local opts src_png odoo_fver
     [[ $PWD =~ /dev[el]*/pypi/ ]] && opts=-B || opts=
+    if [ "$PRJNAME" == "Odoo" ]; then
+        [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
+        run_traced "gen_readme.py -b$odoo_fver $opts"
+        version=$(build_odoo_param MAJVER $odoo_fver)
+        if [[ -d ./static ]]; then
+            [ $version -gt 7 ] && run_traced "gen_readme.py -b$odoo_fver $opts -H"
+            [ $version -le 7 ] && run_traced "gen_readme.py -b$odoo_fver $opts -R"
+        fi
+        return 0
+    fi
     if [ ! -d $docs_dir ]; then
         if [ $opt_force -eq 0 ]; then
             echo "Missing docs directory!"

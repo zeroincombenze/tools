@@ -74,7 +74,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.3.16"
+__version__ = "0.2.3.17"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0')
 COPY = {
@@ -1151,7 +1151,9 @@ class topep8():
         odoo_majver = int(ctx['to_ver'].split('.')[0])
         self.LEX_RULES = {}
         self.read_rules_from_file(ctx, self.set_rulefn(sys.argv[0]))
-        self.read_rules_from_file(ctx, self.set_rulefn(ctx['conf_fn']))
+        if ctx['conf_fn'] not in (
+                'MINIMAL', 'REDUCED', 'AVERAGE', 'NEARBY', 'OCA'):
+            self.read_rules_from_file(ctx, self.set_rulefn(ctx['conf_fn']))
         self.read_rules_from_file(ctx, self.set_rulefn(ctx['src_filepy']))
         rules_to_rm = []
         for ir in self.LEX_RULES.keys():

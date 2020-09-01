@@ -5,16 +5,15 @@
     os0 Regression Test Suite
 """
 from __future__ import print_function,unicode_literals
-from past.builtins import basestring
+# from past.builtins import basestring
 
-# import pdb
-import os
-import os.path
+# import os
+# import os.path
 import sys
 from zerobug import Z0BUG
 
 
-__version__ = "0.2.15.3"
+__version__ = "0.2.15.4"
 
 MODULE_ID = 'os0'
 TEST_FAILED = 1

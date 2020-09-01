@@ -6,14 +6,13 @@
     os0 Regression Test Suite
 """
 
-# import pdb
-import os
-import os.path
+# import os
+# import os.path
 import sys
 from zerobug import Z0BUG
 
 
-__version__ = "0.2.15.3"
+__version__ = "0.2.15.4"
 
 MODULE_ID = 'os0'
 
