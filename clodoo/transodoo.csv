@@ -1,7 +1,7 @@
 model	name	type	hash	6.1	7.0	8.0	9.0	10.0	11.0	12.0	13.0	14.0
-account_move_line		field	RECONCILED|RECONCILE_ID	reconciled	reconciled	reconciled	reconciled	reconcile_id	reconcile_id	reconcile_id	reconcile_id	reconcile_id
 account.account		field	TYPE|INTERNAL_TYPE	type	type	type	internal_type	internal_type	internal_type	internal_type	internal_type	internal_type
 account.account		field	USER_TYPE|USER_TYPE_ID	user_type	user_type	user_type	user_type_id	user_type_id	user_type_id	user_type_id	user_type_id	user_type_id
+account.account.type		field	REPORT_TYPE|TYPE	report_type	report_type	report_type	type	type	type	type	type	type
 account.account.type	name	value	name|Asset View		Asset View	Asset View						
 account.account.type	name	value	name|Asset View|Non-current Assets	Asset View	Asset View	Asset View	Non-current Assets	Non-current Assets	Non-current Assets	Non-current Assets	Non-current Assets	Non-current Assets
 account.account.type	name	value	name|Asset|Current Assets	Asset	Asset	Asset	Current Assets	Current Assets	Current Assets	Current Assets	Current Assets	Current Assets
@@ -45,7 +45,6 @@ account.account.type	type	value	type|income|other	income	income	income	other	oth
 account.account.type	type	value	type|liability|other	liability	liability	liability	other	other	other	other	other	other
 account.account.type	type	value	type|liability|payable	liability	liability	liability	payable	payable	payable	payable	payable	payable
 account.account.type	type	value	type|none|other	none	none	none	other	other	other	other	other	other
-account.account.type		field	REPORT_TYPE|TYPE	report_type	report_type	report_type	type	type	type	type	type	type
 account.invoice		action	ACTION_CANCEL|ACTION_INVOICE_CANCEL	action_cancel	action_cancel	action_cancel	action_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel
 account.invoice		action	INVOICE_CANCEL_DRAFT|ACTION_INVOICE_DRAFT	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft
 account.invoice		action	INVOICE_OPEN|ACTION_INVOICE_OPEN	invoice_open	invoice_open	invoice_open	invoice_open	action_invoice_open	action_invoice_open	action_invoice_open	action_invoice_open	action_invoice_open
@@ -55,12 +54,15 @@ account.invoice		field	PAYMENT_TERM|PAYMENT_TERM_ID	payment_term	payment_term	pa
 account.invoice		field	SUPPLIER_INVOICE_NUMBER|REFERENCE	supplier_invoice_number	supplier_invoice_number	supplier_invoice_number	reference	reference	reference	reference	reference	reference
 account.invoice.line		field	INVOICE_LINE_TAX_ID|INVOICE_LINE_TAX_IDS	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids
 account.invoice.line		field	UOS_ID|UOM_ID	uos_id	uos_id	uos_id	uom_id	uom_id	uom_id	uom_id	uom_id	uom_id
+account.journal	type	value	PURCHASE_REFUND|PURCHASE	purchase_refund	purchase_refund	purchase_refund	purchase_refund	purchase	purchase	purchase	purchase	purchase
+account.journal	type	value	SALE_REFUND|SALE	sale_refund	sale_refund	sale_refund	sale_refund	sale	sale	sale	sale	sale
+account.move.line		field	RECONCILED|RECONCILE_ID	reconciled	reconciled	reconciled	reconciled	reconcile_id	reconcile_id	reconcile_id	reconcile_id	reconcile_id
 "account.payment.term
 "	percent	value	procent|percent	procent	procent	procent	percent	percent	percent	percent	percent	percent
-account.tax	amount	value	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}
 account.tax		field	ACCOUNT_COLLECTED_ID|ACCOUNT_ID	account_collected_id	account_collected_id	account_collected_id	account_id	account_id	account_id	account_id	account_id	account_id
 account.tax		field	ACCOUNT_PAID_ID|REFUND_ACCOUNT_ID	account_paid_id	account_paid_id	account_paid_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id
 account.tax		field	TYPE|AMOUNT_TYPE	type	type	type	amount_type	amount_type	amount_type	amount_type	amount_type	amount_type
+account.tax	amount	value	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}
 ir.model		merge	RES.PARTNER.ADRESS|RES.PARTNER	res.partner.adress	res.partner	res.partner	res.partner	res.partner	res.partner	res.partner	res.partner	res.partner
 ir.model		model	BASE.ACTION.RULE.LEAD.TEST|BASE.AUTOMATION.LEAD.TEST	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.automation.lead.test	base.automation.lead.test	base.automation.lead.test	base.automation.lead.test
 ir.model		model	BASE.ACTION.RULE.LINE.TEST|BASE.AUTOMATION.LINE.TEST	base.action.rule.line.test	base.action.rule.line.test	base.action.rule.line.test	base.action.rule.line.test	base.action.rule.line.test	base.automation.line.test	base.automation.line.test	base.automation.line.test	base.automation.line.test
@@ -338,6 +340,7 @@ res.users		field	CONTEXT_TZ|TZ	context_tz	tz	tz	tz	tz	tz	tz	tz	tz
 res.users		field	COUNTRY_ID		country_id	country_id	country_id	country_id	country_id	country_id	country_id	country_id
 res.users		field	PARTNER_ID		partner_id	partner_id	partner_id	partner_id	partner_id	partner_id	partner_id	partner_id
 res.users		field	USER_EMAIL|EMAIL	user_email	email	email	email	email	email	email	email	email
+sale.order		action	ORDER_CONFIRM|ACTION_CONFIRM	order_confirm	order_confirm	order_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm
 sale.order	state	value	state|cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel
 sale.order	state	value	state|done	done	done	done	done	done	done	done	done	done
 sale.order	state	value	state|draft	draft	draft	draft	draft	draft	draft	draft	draft	draft
@@ -347,7 +350,6 @@ sale.order	state	value	state|progress|sale	progress	progress	progress	sale	sale	
 sale.order	state	value	state|sent	sent	sent	sent	sent	sent	sent	sent	sent	sent
 sale.order	state	value	state|shipping_except|sale	shipping_except	shipping_except	shipping_except	sale	sale	sale	sale	sale	sale
 sale.order	state	value	state|waiting_date|sale	waiting_date	waiting_date	waiting_date	sale	sale	sale	sale	sale	sale
-sale.order		action	ORDER_CONFIRM|ACTION_CONFIRM	order_confirm	order_confirm	order_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm
 sale.order.line	state	value	state|cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel
 sale.order.line	state	value	state|confirmed|sale	confirmed	confirmed	confirmed	confirmed	sale	sale	sale	sale	sale
 sale.order.line	state	value	state|done	done	done	done	done	done	done	done	done	done

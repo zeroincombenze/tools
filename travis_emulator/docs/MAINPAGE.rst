@@ -1,7 +1,7 @@
 
-=====================
-travis_emulator 1.0.0
-=====================
+=======================
+travis_emulator 1.0.0.1
+=======================
 
 
 
@@ -46,6 +46,30 @@ A travis build executes the following steps:
 * Wep from local .travis.conf (not in travis-ci.org)
 
 Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
+
+
+Difference between local travis and web site
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The travis emulator works mostly like TravisCi web site. However you ha to consider some points where you run local tests:
+
+Local software is not published
+
+    When you test on your local PC, the software is not yet publishd. Perhaps you prefer test
+    local packages or local modules.
+    The travis emulator with z0bug_odoo replace the commands `git clone` with local `ln -s` creating
+    logical link with local repository, if possible.
+    Local module are searched in the testing module directory. See Odoo structure for furthermore info.
+
+Your PC is not TravisCi web site
+
+    Probability you have just one python interpreter and your user is not sudo enabled.
+    The travis emulator run build just with Odoo interpreter installed even if your
+    .travis.yml file contains more python version to test.
+    The travis emulator does not try to install global packages because
+    it does not change the PC configuration.
+    Please, install manually all the global packages using apt-get, yum, dnf or your local installer software.
+
 
 
 
@@ -283,7 +307,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-09-01
+Last Update / Ultimo aggiornamento: 2020-09-03
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
@@ -298,22 +322,22 @@ Last Update / Ultimo aggiornamento: 2020-09-01
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.1
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.1/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.1
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.1/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.1/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.1/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.1
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

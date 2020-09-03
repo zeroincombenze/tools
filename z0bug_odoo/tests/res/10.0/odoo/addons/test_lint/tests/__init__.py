@@ -1,2 +1,0 @@
-import test_pylint
-import test_ecmascript

@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=1.0.0
+#__version__=1.0.0.1
 
 
 MAKEF=$HOME/dev/Makefile
@@ -341,41 +341,7 @@ init_travis() {
         # PRJPATH=$(build_odoo_param HOME '.')
         SETUP=$MANIFEST
     fi
-    # if [ ${opt_dbgmnt:-0} -ne 0 ]; then
-    #     local MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
-    # else
-    #     local MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
-    # fi
-    # if [ ! -d "$MQT_DEF_PATH" ]; then
-    #     if [ -d $TDIR/../travis ]; then
-    #         MQT_DEF_PATH=$(readlink -e $TDIR/../travis)
-    #     elif [ -d $TDIR/../../travis ]; then
-    #         MQT_DEF_PATH=$(readlink -e $TDIR/../../travis)
-    #     fi
-    # fi
-    # if [ -z "$MQT_PATH" ]; then
-    #     if [ ${opt_dbgmnt:-0} -ne 0 -a -d "$MQT_DEF_PATH" ]; then
-    #         MQT_PATH=$MQT_DEF_PATH
-    #     elif [ -d $HOME/maintainer-quality-tools/travis ]; then
-    #         MQT_PATH=$HOME/maintainer-quality-tools/travis
-    #     elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
-    #         MQT_PATH=/opt/odoo/maintainer-quality-tools/travis
-    #     elif [ -d $HOME/tools/maintainer-quality-tools/travis ]; then
-    #         MQT_PATH=$HOME/tools/maintainer-quality-tools/travis
-    #     else
-    #         MQT_PATH=$MQT_DEF_PATH
-    #     fi
-    # fi
     if [ -z "$TOOLS_PATH" ]; then
-    #     if [ ${opt_dbgmnt:-0} -ne 0 -a -d "$MQT_DEF_PATH" ]; then
-    #         TOOLS_PATH=$MQT_DEF_PATH
-    #     elif [ -d $HOME/dev/_travis ]; then
-    #         TOOLS_PATH=$HOME/dev/_travis
-    #     elif [ -d $HOME/tools/zerobug/_travis ]; then
-    #         TOOLS_PATH=$HOME/tools/zerobug/_travis
-    #     else
-    #         TOOLS_PATH=$(find $HOME -type d -name _travis | head -n1)
-    #     fi
         if [ -d $HOME/tools/zerobug/_travis ]; then
             TOOLS_PATH=$HOME/tools/zerobug/_travis
         else
@@ -395,11 +361,11 @@ revaluate_travis() {
 
 drop_test_db() {
     if [ "$PRJNAME" == "Odoo" ]; then
-      local u=${MQT_DBUSER:-$USER}
-      local dbtemplate=${MQT_TEMPLATE_DB:-openerp_template}
-      pg_db_active -wa $dbtemplate; dropdb $dbtemplate --if-exists &>/dev/null
-      local database=${MQT_TEST_DB:-openerp_test}
-      pg_db_active -wa $database; dropdb $database --if-exists &>/dev/null
+        [[ -n $MQT_DBUSER ]] || MQT_DBUSER=$USER
+        [[ -n $MQT_TEMPLATE_DB ]] || MQT_TEMPLATE_DB="openerp_template"
+        [[ -n $MQT_TEST_DB ]] || MQT_TEST_DB="openerp_test"
+        pg_db_active -wa $MQT_TEMPLATE_DB; dropdb -U$MQT_DBUSER $MQT_TEMPLATE_DB --if-exists &>/dev/null
+        pg_db_active -wa $MQT_TEST_DB; dropdb -U$MQT_DBUSER $MQT_TEST_DB --if-exists &>/dev/null
     fi
 }
 
@@ -698,7 +664,6 @@ prepare_env_travis() {
       fi
     fi
     export TOOLS_PATH
-    # export MQT_PATH
     export ODOO_SETUP
     export REPOSNAME
     export PRJNAME
@@ -753,11 +718,10 @@ conf_default() {
     set_cfg_def "RUN_travis_install_nightly" "travis_install_nightly"
     set_cfg_def "RUN_travis_run_tests" "travis_run_tests"
     set_cfg_def "RUN_travis_after_tests_success" "travis_after_tests_success"
-    set_cfg_def "dbtemplate" "openerp_template"
-    set_cfg_def "dbname" "openerp_test"
-    set_cfg_def "dbuser" "odoo"
+    set_cfg_def "MQT_TEMPLATE_DB" "openerp_template"
+    set_cfg_def "MQT_TEST_DB" "openerp_test"
+    set_cfg_def "MQT_DBUSER" ""
     set_cfg_def "UNBUFFER" "0"
-    set_cfg_def "MQT_UPDT" "2017-01-01"
     set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
     set_cfg_def "RFLIST__travis_emulator" "autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff replica.sh topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
     set_cfg_def "RDLIST__travis_emulator" "_travis/"
@@ -772,7 +736,7 @@ conf_default() {
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ html/ .idea/ latex/ .tar .gz .zip __old_* .gitrepname __pycache__/"
     set_cfg_def "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
     set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
-    set_cfg_def "MQT_DEF_DEVPATH" "$HOME/dev/pypi/zerobug/zerobug/_travis"
+    # set_cfg_def "MQT_DEF_DEVPATH" "$HOME/dev/pypi/zerobug/zerobug/_travis"
     # set_cfg_def "MQT_DEF_PATH" "$HOME/tools/zerobug/_travis"
     set_cfg_def "PS_TXT_COLOR" "0;97;40"
     set_cfg_def "PS_RUN_COLOR" "1;36;48;5"

@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0
+__version__=1.0.0.1
 
 
 store_cfg_param_value() {
@@ -54,42 +54,8 @@ store_cfg_param_value() {
     a_add "$1" "$2" "$3" "$4"
 }
 
-process_local() {
-    # wlog "=== Simulate YAML test ==="
-    # local s sts
-    # if [ -f $TOOLS_PATH/travis_run_tests ]; then
-    #   if [[ $action =~ (force-lint|lint) ]]; then
-    #     opts=$(inherits_travis_opts "K" "T")
-    #   elif [[ $action =~ (force-test|test) ]]; then
-    #     opts=$(inherits_travis_opts "T" "T")
-    #   else
-    #     opts=$(inherits_travis_opts "KT" "T")
-    #   fi
-    #   run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
-    #   sts=$?
-    # elif [ $opt_r -gt 0 ]; then
-    #   if [[ $action =~ (force-test|test) ]]; then
-    #     please_run_tests "-T"
-    #     sts=$?
-    #   elif [[ $action =~ (force-lint|lint) ]]; then
-    #     please_run_tests "-K"
-    #     sts=$?
-    #   else
-    #     please_run_tests "-KT"
-    #     sts=$?
-    #   fi
-    # else
-    #   sts=127
-    # fi
-    # if [ $sts -eq $STS_SUCCESS ] && [[ $action =~ (force-lint|lint|force-test|test) ]]; then
-    #   opts=$(inherits_travis_opts "" "A")
-    #   run_traced "$TOOLS_PATH/travis_after_tests_success $opts"
-    #   s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-    # fi
-    return $sts
-}
-
 process_yaml_init() {
+    local u
     YML_sect=
     YML_sect0=
     YML_env=
@@ -109,9 +75,18 @@ process_yaml_init() {
         YML_repo=
     fi
     export TRAVIS_PULL_REQUEST="false"
-    export MQT_TEMPLATE_DB="$(get_cfg_value "" "dbtemplate")$YML_pid"
-    export MQT_TEST_DB="$(get_cfg_value "" "dbname")$YML_pid"
-    export MQT_DBUSER="$(get_cfg_value "" "dbuser")"
+    export MQT_TEMPLATE_DB="$(get_cfg_value "" "MQT_TEMPLATE_DB")$YML_pid"
+    export MQT_TEST_DB="$(get_cfg_value "" "MQT_TEST_DB")$YML_pid"
+    export MQT_DBUSER="$(get_cfg_value "" "MQT_DBUSER")"
+    if [[ -z $MQT_DBUSER ]]; then
+        for u in $USER odoo openerp postgresql; do
+            psql -U$u -l &>/dev/null
+            if [ $? -eq 0 ]; then
+                export MQT_DBUSER="$u"
+                break
+            fi
+        done
+    fi
     python_ver_req=
     if [ $opt_dbgmnt -ne 0 ]; then
         [[ -d $HOME/devel ]] && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
@@ -438,7 +413,7 @@ process_yaml_before_install() {
             elif [ "$FH" == "RHEL" ]; then
                 if [[ "$lne" == "build-essential" ]]; then
                     lne="redhat-rpm-config"
-                elif [[ "$lne" == "python-dev" ]]; then
+                elif [[ "$lne" =~ (python-dev|python3-dev) ]]; then
                     lne="python3-devel"
                 elif [[ "$lne" == "libxml2-dev" ]]; then
                     lne="libxml2-devel"
@@ -601,9 +576,9 @@ process_yaml_run_cmd() {
       elif $(yum info ${x[$ix2]} &>/dev/null); then
         xcmd="# $xcmd"
       elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel) ]]; then
-        xcmd="true;   # Warning! TODO> $xcmd"
+        xcmd="true;   # Warning! TODO# $xcmd"
       else
-        xcmd="false;  # Error! TODO> $xcmd"
+        xcmd="false;  # Error! TODO# $xcmd"
       fi
     elif [ "${x[$ix]}" == "apt-get" -a "${x[$ix1]}" == "install" ]; then
       if $(dpkg-query -s ${x[$ix2]} &>/dev/null); then
@@ -705,21 +680,12 @@ process_yaml_run_cmd() {
           xcmd=$(echo $xcmd|sed -e "s|${x[$ix]}|${x[$ix]}$YML_pid|g")
         elif [[ "${x[$ix]}" =~ MQT_TEST_DB= ]]; then
           xcmd=$(echo $xcmd|sed -e "s|${x[$ix]}|${x[$ix]}$YML_pid|g")
-        # elif [[ "${x[$ix]}" =~ ODOO_REPO=.$YML_repo. ]]; then
-        #   if [ ${opt_virt:-0} -eq 0 ]; then
-        #     xcmd=$(echo $xcmd|sed -e "s|$YML_repo|local/odoo|g")
-        #     x[$ix]=$(echo x[$ix]|sed -e "s|$YML_repo|local/odoo|g")
-        #   fi
-        # elif [[ "${x[$ix]}" =~ INCLUDE=..getaddons.py.*/opt/odoo/build/.*/OCB/openerp/addons.*/opt/odoo/build/.*/OCB/addons ]]; then
-        #   if [ ${opt_virt:-0} -eq 0 ]; then
-        #     xcmd="$(echo $xcmd|sed -e 's|/opt/odoo/build/.*/OCB/|/opt/odoo/$BRANCH/|g')"
-        #   fi
         elif [ "${x[$ix]}" == "\${OPTS}" ]; then
           xcmd="$(echo $xcmd|sed -e 's|${OPTS}|'$OPTS'|g')"
           x[$ix]=$OPTS
         else
           for xpkg in travis_install_nightly travis_after_tests_success; do
-            if [ "${x[$ix]}" == "$xpkg" ]; then
+            if [[ "${x[$ix]}" == "$xpkg" ]]; then
               xtlcmd="$xpkg"
               if [ "$xlint" != "1" -o "$xtest" == "1" ] && [ "$xcd" != "1" -a $opt_force -eq 0 ]; then
                 if [ ${opt_virt:-0} -eq 0 ]; then
@@ -742,21 +708,22 @@ process_yaml_run_cmd() {
       ((ix++));
       done
     fi
-    if [ "$action" == "parseyaml" ]; then
+    sts=0
+    if [[ "$action" == "parseyaml" ]]; then
        if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
          echo "\e[${PS_NOP_COLOR}m## $c\e[${PS_TXT_COLOR}m"
        fi
        echo "$xcmd"
+       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     else
-      if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
-         wlog "\e[${PS_NOP_COLOR}m## $c\e[${PS_TXT_COLOR}m\n"
-      fi
+      [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ] && wlog "\e[${PS_NOP_COLOR}m> $c\e[${PS_TXT_COLOR}m\n"
       run_traced "$line1$xcmd"
+      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       if [[ $xcmd =~ "travis_install_env" ]]; then
         [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME -p$TRAVIS_PYTHON_VERSION -fq"
       fi
     fi
-    return $?
+    return $sts
 }
 
 process_yaml() {
@@ -781,10 +748,6 @@ process_yaml() {
         [[ ! -f $YML_FILE ]] && YML_FILE=$PRJPATH/$opt_fyaml
         [[ ! -f $YML_FILE ]] && YML_FILE=$TOOLS_PATH/travis.yml
     fi
-    # if [[ ! -d "$MQT_PATH" ]]; then
-    #     echo "Zeroincombenze(R) tools not found!"
-    #     return 1
-    # fi
     if [ -f $YML_FILE ]; then
         echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
         wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"
@@ -794,11 +757,13 @@ process_yaml() {
         sts=$STS_SUCCESS
         wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
         TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-        for lne in TODAY job-id TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo DIST PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
+        for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST MQT_DBUSER MQT_TEMPLATE_DB MQT_TEST_DB PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
             if [[ $lne == "job-id" ]]; then
                 lne1=$$
             elif [[ $lne == "DIST" ]]; then
                 lne1=$(xuname -a)
+            elif [[ $lne == "__version__" ]]; then
+                lne1=$__version__
             else
                 lne1=${!lne}
             fi
@@ -905,7 +870,7 @@ process_yaml() {
                         wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[${PS_TXT_COLOR}m"
                         process_yaml_after_success
                     fi
-                    [[ "$TRAVIS_DEBUG_MODE" == "9" ]] && read -p "Press RET to continue ..."
+                    # [[ "$TRAVIS_DEBUG_MODE" == "9" ]] && read -p "Press RET to continue ..."
                     if [ $sts -eq $STS_SUCCESS ]; then
                         process_yaml_exit
                         drop_virtual_env
@@ -915,9 +880,6 @@ process_yaml() {
                 done
             done
         fi
-    # else
-    #     process_local
-    #     sts=$?
     fi
     echo -e "\e[0m"
     return $sts
@@ -957,7 +919,7 @@ OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
  "configuration file (def .travis.conf)"\
- "travis_debug_mode: may be 0,1,2 or 9 (def yaml dependents)"\
+ "travis_debug_mode: may be 0,1,2,8 or 9 (def yaml dependents)"\
  "do not save virtual environment into ~/VME/... if does not exist"\
  "run final travis with full features"\
  "force yaml to run w/o cmd subst"\
@@ -1014,19 +976,29 @@ init_travis
 if [ "$action" == "parseyaml" ]; then
     prepare_env_travis "$action"
     check_4_travis
-    # if [ -z "$sub" ]; then
-    #     sub=$PRJPATH/.travis.yml
-    #     if [ ! -f $sub ]; then
-    #         sub=$TOOLS_PATH/travis.yml
-    #     fi
-    # fi
+    if [ -z "$sub" ]; then
+        sub=$PRJPATH/.travis.yml
+        if [ ! -f $sub ]; then
+            sub=$TOOLS_PATH/travis.yml
+        fi
+    fi
     process_yaml_file "$sub"
+
+    echo "python:"
+    for v in $python_ver_req; do
+        echo "  - $v"
+    done
+    echo ""
+    echo "virtualenv:"
+    echo " - system_site_packages: $SYSTEM_SITE_PACKAGES"
+    echo ""
     echo "addons:"
     echo "  apt:"
     echo "    packages:"
     for lne in $YML_packages; do
         process_yaml_echo 3 "$lne"
     done
+    echo ""
     echo "env:"
     for lne in $YML_env; do
         process_yaml_echo 1 "$lne"
@@ -1035,26 +1007,31 @@ if [ "$action" == "parseyaml" ]; then
     for lne in $YML_global; do
         process_yaml_echo 1 "$lne"
     done
-    echo "before_install:"
-    for lne in $YML_before_install; do
-        process_yaml_echo 1 "$lne"
-    done
     echo "  matrix:"
     for lne in $YML_matrix; do
         process_yaml_echo 1 "$lne"
     done
+    echo ""
+    echo "before_install:"
+    for lne in $YML_before_install; do
+        process_yaml_echo 1 "$lne"
+    done
+    echo ""
     echo "install:"
     for lne in $YML_install; do
         process_yaml_echo 1 "$lne"
     done
+    echo ""
     echo "before_script:"
     for lne in $YML_before_script; do
         process_yaml_echo 1 "$lne"
     done
+    echo ""
     echo "script:"
     for lne in $YML_script; do
         process_yaml_echo 1 "$lne"
     done
+    echo ""
     echo "after_success:"
     for lne in $YML_after; do
         process_yaml_echo 1 "$lne"
@@ -1072,22 +1049,17 @@ sts=$STS_SUCCESS
 prepare_env_travis "$action"
 echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
 if [ $sts -eq $STS_SUCCESS ]; then
-    # if [ $opt_r -gt 0 ]; then
-    #     process_local
-    #     sts=$?
-    # else
-        [[ "${opt_logdir:0:1}" == "~" ]] && opt_logdir=$HOME/${opt_logdir:1}
-        mkdir -p $opt_logdir
-        [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
-        # [ $opt_full -ne 0 -a "$PKGNAME" != "OCB" ] && set_executable
-        if [ $opt_debug -ne 0 ]; then
-            process_yaml
-            sts=2
-        else
-            [[ -f $opt_logdir/${PKGNAME}_${BRANCH}.log ]] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}.log
-            process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
-            sts=$?
-        fi
-    # fi
+    [[ "${opt_logdir:0:1}" == "~" ]] && opt_logdir=$HOME/${opt_logdir:1}
+    mkdir -p $opt_logdir
+    [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
+    # [ $opt_full -ne 0 -a "$PKGNAME" != "OCB" ] && set_executable
+    if [ $opt_debug -ne 0 ]; then
+        process_yaml
+        sts=2
+    else
+        [[ -f $opt_logdir/${PKGNAME}_${BRANCH}.log ]] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}.log
+        process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
+        sts=$?
+    fi
 fi
 exit $sts

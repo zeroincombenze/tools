@@ -16,7 +16,7 @@ except ImportError:
     from zerobug import Z0BUG
 
 
-__version__ = "0.3.9.20"
+__version__ = "0.3.9.21"
 STS_FAILED = 1
 STS_SUCCESS = 0
 

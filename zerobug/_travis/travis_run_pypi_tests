@@ -31,7 +31,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=1.0.0
+__version__=1.0.0.1
 
 
 travis_test_bash() {
@@ -130,8 +130,8 @@ run_regression_test() {
     local s sts
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-        [[ "$TRAVIS_PDB" == "true" ]] && opts="${opts}B"
-        [[ "$TRAVIS_DEBUG_MODE" == "9" ]] && opts="${opts}n"
+        [[ $TRAVIS_PDB" == "true ]] && opts="${opts}B"
+        [[ $TRAVIS_DEBUG_MODE =~ [89] ]] && opts="${opts}n"
         OPTS=$(inherits_travis_opts "$opts" "T")
         run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"
         COVERAGE_PROCESS_START=$(readlink -f .coveragerc)
@@ -414,44 +414,20 @@ fi
 if [[ $TRAVIS_PYTHON_VERSION =~ $PYPI_RUN_PYVER ]]; then
     [[ ! "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]] && PIP=pip || PIP=pip3
     [[ ! "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]] && PYTHON=python || PYTHON=python3
-    # install_n_activate_tools
-    # pth=
-    # for p in $(readlink -e $TRAVIS_BUILD_DIR/..); do
-    #     pth=$p:$pth;
-    # done
-    # pth=${pth:0:-1}
-    # set_pythonpath "$pth" "" $PIP
-    # check_pythonpath "$pth" $PYTHON
-    # [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-    # [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-    # if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-    #     echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | python3
-    # else
-    #     echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | python
-    # fi
-    # if [ $opt_verbose -gt 0 ]; then
-    #     echo -e "\e[${PS_HDR3_COLOR}mPATH=$PATH\e[${PS_TXT_COLOR}m"
-    #     echo -e "\e[${PS_HDR3_COLOR}mPYTHONPATH=$PYTHONPATH\e[${PS_TXT_COLOR}m"
-    #     echo -e "\e[${PS_HDR3_COLOR}mBASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__\e[${PS_TXT_COLOR}m"
-    #     if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
-    #         if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-    #             echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | python3
-    #         else
-    #             echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | python
-    #         fi
-    #     fi
-    # fi
     if [ $BASH_CHECK_ENABLED -gt 0 ]; then
-        [ "$TRAVIS_DEBUG_MODE" == "9" ] || travis_test_bash
+        [[ $TRAVIS_DEBUG_MODE =~ [89] ]] || travis_test_bash
         sts_bash=$?
+        [[ $TRAVIS_DEBUG_MODE == "8" ]] && sts_bash=1
     else
         sts_bash=127
     fi
     if [ $LINT_CHECK_DISABLED -eq 0 ]; then
-        [ "$TRAVIS_DEBUG_MODE" == "9" ] || please_test_flake8
+        [[ $TRAVIS_DEBUG_MODE =~ [89] ]] || please_test_flake8
         sts_flake8=$?
-        [ "$TRAVIS_DEBUG_MODE" == "9" ] || please_test_pylint
+        [[ $TRAVIS_DEBUG_MODE == "8" ]] && sts_flake8=1
+        [[ $TRAVIS_DEBUG_MODE =~ [89] ]] || please_test_pylint
         sts_pylint=$?
+        [[ $TRAVIS_DEBUG_MODE == "8" ]] && sts_pylint=1
         if [ $sts_bash -ne 127 ]; then
             sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
         else
@@ -462,12 +438,13 @@ if [[ $TRAVIS_PYTHON_VERSION =~ $PYPI_RUN_PYVER ]]; then
     fi
     if [ $sts -eq 0 ]; then
         if [ $TESTS_UNSPECIFIED -gt 0 -a $LINT_CHECK_ENABLED -eq 0 ]; then
-            [ "$TRAVIS_DEBUG_MODE" == "9" ] || do_test
+            [[ $TRAVIS_DEBUG_MODE =~ [89] ]] || do_test
             test_sts=$?
         elif [ $TEST_CHECK_ENABLED -gt 0 ]; then
-            [ "$TRAVIS_DEBUG_MODE" == "9" ] || do_test
+            [[ $TRAVIS_DEBUG_MODE =~ [89] ]] || do_test
             test_sts=$?
         fi
+        [[ $TRAVIS_DEBUG_MODE == "8" ]] && test_sts=1
         sts=$test_sts
     else
         test_sts=127
