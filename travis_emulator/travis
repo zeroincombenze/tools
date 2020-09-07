@@ -909,12 +909,12 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
-OPTLONG=(help     debug     no-cache  conf     deb-lev  no-savenv full     force     ''       keep     lint-lev logdir         ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
-OPTACTI=(1        1         0         "="      "="      0         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
-OPTDEFL=(0        0         1         ""       ""       1         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
-OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
+OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l                  M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
+OPTLONG=(help     debug     no-cache  conf     deb-lev  no-savenv full     force     ''       keep     lint-lev logdir             ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir         opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
+OPTACTI=(1        1         0         "="      "="      0         1        1         1        1        "="      "="                1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
+OPTDEFL=(0        0         1         ""       ""       1         0        0         0        0        ""       "$HOME/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
+OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"              ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
@@ -926,7 +926,7 @@ OPTHELP=("this help"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "keep DB and virtual environment after tests"\
  "lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml"\
- "log directory (def=~/travis_log)"\
+ "log directory (def=$HOME/travis_log)"\
  "use local MQT (deprecated)"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
@@ -956,7 +956,7 @@ fi
 
 export PYTHONWARNINGS="ignore"
 [[ -z "$action" ]] && action=emulate
-ACTIONS="(force-lint|lint|force-test|test|emulate|chkconfig|parseyaml)"
+ACTIONS="(emulate|force-lint|lint|force-test|test|chkconfig|parseyaml|wep_db|wep-db)"
 VIRTACTS="(force-lint|lint|force-test|test|emulate)"
 opt_virt=1
 if [[ $action =~ $ACTIONS ]]; then
@@ -1036,8 +1036,55 @@ if [ "$action" == "parseyaml" ]; then
     for lne in $YML_after; do
         process_yaml_echo 1 "$lne"
     done
-    sts=$STS_SUCCESS
-    exit $sts
+    exit $STS_SUCCESS
+elif [[ $action =~ (wep_db|wep-db) ]]; then
+    MQT_DBUSER="$(get_cfg_value "" "MQT_DBUSER")"
+    if [[ -z $MQT_DBUSER ]]; then
+        for u in $USER odoo openerp postgresql; do
+            psql -U$u -l &>/dev/null
+            if [ $? -eq 0 ]; then
+                MQT_DBUSER="$u"
+                break
+            fi
+        done
+    fi
+    if [[ -n $MQT_DBUSER ]]; then
+        done=0
+        all_dbs=1
+        [ $opt_force -ne 0 ] && md=30 || md=1800
+        dt=$(date "+%s")
+        for d in $HOME/VENV_*; do
+          if [ "$d" != "$HOME/VENV_*" ]; then
+            dd=$(stat -c "%Y" $d)
+            df=$(($dt-$dd))
+            if [ $df -gt $md ]; then
+              echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
+              rm -fR $d
+              sfx=$(echo "$d"|grep -Eo "[0-9]+$")
+              for db in openerp_template$sfx openerp_test$sfx; do
+                  echo "\$ dropdb -U$MQT_DBUSER $db"
+                  pg_db_active -wa $db; dropdb -U$MQT_DBUSER $db --if-exists &>/dev/null
+                  done=1
+              done
+            else
+              ((dd=md-df))
+              echo "$d ($(date -d@$df -u +"%H:%M:%S") old) will be removed in ${dd}s"
+              all_dbs=0
+            fi
+          fi
+        done
+        if [ $all_dbs -ne 0 ]; then
+            for db in $(psql -U$MQT_DBUSER -Atl|grep -E "(openerp_template|openerp_test)"|awk -F"|" '{print $2}'); do
+                echo "\$ dropdb -U$MQT_DBUSER $db"
+                pg_db_active -wa $db; dropdb -U$MQT_DBUSER $db --if-exists &>/dev/null
+                done=1
+            done
+        fi
+        [ $done -eq 0 ] && echo "Nothing to wep"
+        exit $STS_SUCCESS
+    else
+        exit 2
+    fi
 fi
 
 if [[ $PWD == $HOME ]]; then
@@ -1049,15 +1096,19 @@ sts=$STS_SUCCESS
 prepare_env_travis "$action"
 echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
 if [ $sts -eq $STS_SUCCESS ]; then
-    [[ "${opt_logdir:0:1}" == "~" ]] && opt_logdir=$HOME/${opt_logdir:1}
+    opt_logdir=$(readlink -f $opt_logdir)
     mkdir -p $opt_logdir
-    [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
+    # [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
     # [ $opt_full -ne 0 -a "$PKGNAME" != "OCB" ] && set_executable
     if [ $opt_debug -ne 0 ]; then
         process_yaml
         sts=2
     else
-        [[ -f $opt_logdir/${PKGNAME}_${BRANCH}.log ]] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}.log
+        if [[ -f $opt_logdir/${PKGNAME}_${BRANCH}.log ]]; then
+            [[ -f $opt_logdir/${PKGNAME}_${BRANCH}_old.log ]] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}_old.log
+            echo mv -f $opt_logdir/${PKGNAME}_${BRANCH}.log $opt_logdir/${PKGNAME}_${BRANCH}_old.log
+        fi
+        # touch $opt_logdir/${PKGNAME}_${BRANCH}.log
         process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
         sts=$?
     fi

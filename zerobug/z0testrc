@@ -63,7 +63,7 @@
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.0.1
+__version__=1.0.0.2
 
 export opt_dry_run
 export ctr
@@ -683,24 +683,25 @@ Z0BUG_remove_os_tree() {
 
 
 Z0BUG_build_odoo_env() {
-    local ver hy odoo_home os_tree script x y
+    local ver hy odoo_home os_tree script x y path
     ver=$1
     hy=$2
-    if [[ $ver =~ (10.0|11.0|12.0|13.0|14.0) ]]; then
-        [[ $hy == "tree" ]] && odoo_home="$ver/odoo/odoo" || odoo_home="$ver/odoo"
-        script="odoo-bin"
-    elif [[ $ver =~ (6.1|7.0|8.0|9.0) ]]; then
-        [[ $hy == "server" ]] && odoo_home="$ver/server/openerp" || odoo_home="$ver/openerp"
-        script="openerp-server"
+    if [[ $ver =~ v?(6|7|8|9|10|11|12|13|14)(\.[01])?[-a-z_]?$ ]]; then
+        [[ $ver =~ (10|11|12|13|14) ]] && odoo_home="$ver/odoo" || odoo_home="$ver/openerp"
+        [[ $hy == "tree" ]] && odoo_home="$ver/odoo/odoo"
+        [[ $hy == "server" || $ver =~ (v6|v7) ]] && odoo_home="$ver/server/openerp"
+        [[ $ver =~ (10|11|12|13|14) ]] && script="odoo-bin" || script="openerp-server"
     else
         echo "Invalid Odoo version $ver!"
         exit 1
     fi
     os_tree="$ver $ver/addons $odoo_home $odoo_home/addons"
     Z0BUG_build_os_tree "$os_tree"
-    x=$(echo $ver|awk -F"." '{print $1}')
-    y=$(echo $ver|awk -F"." '{print $2}')
-    cat << EOF > $Z0BUG_root/$odoo_home/release.py
+    x=$(echo $ver|grep -Eo [0-9.]+|tail -n1|awk -F"." '{print $1}')
+    y=$(echo $ver|grep -Eo [0-9.]+|tail -n1|awk -F"." '{print $2}')
+    [[ -n "$y" ]] || y="0"
+    [[ $ver =~ ^[.~/] ]] && path=$odoo_home || path=$Z0BUG_root/$odoo_home
+    cat << EOF > $path/release.py
 RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
 RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
                           BETA: BETA,
@@ -710,8 +711,8 @@ version_info = ($x, $y, 0, ''final, 0, '')
 version = '.'.join(map(str, version_info[:2])) + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
 series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
 EOF
-    cat << EOF > $Z0BUG_root/$odoo_home/__init__.py
+    cat << EOF > $path/__init__.py
 import release
 EOF
-    touch $Z0BUG_root/$ver/$script
+    touch $(dirname $path)/$script
 }

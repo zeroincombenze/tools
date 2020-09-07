@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.3.34
+__version__=1.3.35
 
 
 db_act_list() {
@@ -104,11 +104,11 @@ db_act_list() {
     return 0
 }
 
-OPTOPTS=(h        a           C        c       G         k        L        n           p        s        V           v           w       z)
-OPTDEST=(opt_help act_kill4db act_ctra act_ctr opt_grant act_kill opt_lock opt_dry_run pool     opt_show opt_version opt_verbose wait_db opt_last)
-OPTACTI=(1        "1>"        "1>"     "1>"    1         "1>"     1        1           "="      1        "*"         1           1       1)
-OPTDEFL=(0        0           0        0       0         0        0        0           -1       0        ""          0           0       0)
-OPTMETA=("help"   "kill_all" "count"   "count" ""        "kill"   ""       ""          "number" ""       "version"   "verbose"   "wait"  "")
+OPTOPTS=(h        a           C        c       G         k        L        n           p        s        U        V           v           w       z)
+OPTDEST=(opt_help act_kill4db act_ctra act_ctr opt_grant act_kill opt_lock opt_dry_run pool     opt_show opt_user opt_version opt_verbose wait_db opt_last)
+OPTACTI=(1        "1>"        "1>"     "1>"    1         "1>"     1        1           "="      1        "="      "*"          1           1       1)
+OPTDEFL=(0        0           0        0       0         0        0        0           -1       0        ""       ""           0           0       0)
+OPTMETA=("help"   "kill_all" "count"   "count" ""        "kill"   ""       ""          "number" ""       "dbuser" "version"   "verbose"   "wait"  "")
 OPTHELP=("this help"\
  "kill all sessions of DB!"\
  "count all active connections"\
@@ -120,6 +120,7 @@ OPTHELP=("this help"\
  "declare # of session pool"\
  "show pool size"\
  "show version end exit"\
+ "db user"\
  "verbose mode"\
  "wait for DB idle after kill"\
  "search just for last session")
@@ -139,12 +140,17 @@ psql -l &>/dev/null
 if [ $? -eq 0 ]; then
     PSQL="psql -dtemplate1"
 else
-    psql -l -Upostgres &>/dev/null
-    if [ $? -ne 0 ]; then
-        echo "Denied inquire with psql [-Upostgres]"
-        exit 2
-    fi
-    PSQL="psql -Upostgres -dtemplate1"
+    for u in $opt_user $USER odoo openerp postgresql; do
+        psql -U$u -l &>/dev/null
+        if [ $? -eq 0 ]; then
+            PSQL="psql -U$u -dtemplate1"
+            break
+        fi
+    done
+fi
+if [[ -z $PSQL ]]; then
+    echo "Denied inquire with psql. Please configure user $USER to access via psql"
+    exit 2
 fi
 PSQL_VER=$(psql --version|grep -Eo "[0-9]+\.[0-9]"|tr -d "."|head -n1)
 if [ $pool -lt 1 ]; then

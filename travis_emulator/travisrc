@@ -279,22 +279,22 @@ build_pypi_param() {
 
 init_travis() {
     local r x
-    TRAVIS_ENV=$(get_cfg_value "" "Environment")
-    TRAVIS_ENVOPTS=
-    if [ ${opt_virt:-0} -eq -1 ]; then
-        if [ "$TRAVIS_ENV" == "virtualenv" ]; then
-            opt_virt=1
-        else
-            opt_virt=0
-        fi
-    elif [ ${opt_virt:-0} -eq 1 -a "$TRAVIS_ENV" == "bash" ]; then
-        TRAVIS_ENV=virtualenv
-    fi
-    if [ ${opt_virt:-0} -gt 0 ]; then
-        if [ "$TRAVIS_ENV" == "virtualenv" ]; then
-            TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
-        fi
-    fi
+    # TRAVIS_ENV=$(get_cfg_value "" "Environment")
+    # TRAVIS_ENVOPTS=
+    # if [ ${opt_virt:-0} -eq -1 ]; then
+    #     if [ "$TRAVIS_ENV" == "virtualenv" ]; then
+    #         opt_virt=1
+    #     else
+    #         opt_virt=0
+    #     fi
+    # elif [ ${opt_virt:-0} -eq 1 -a "$TRAVIS_ENV" == "bash" ]; then
+    TRAVIS_ENV=virtualenv
+    # fi
+    # if [ ${opt_virt:-0} -gt 0 ]; then
+    #     if [ "$TRAVIS_ENV" == "virtualenv" ]; then
+    TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
+    #     fi
+    # fi
     ## DEPRECATED, TODO: inherits_travis_opts()
     if [ ${opt_dry_run:-0} -gt 0 ]; then
         opts_dry_run=-n
@@ -456,7 +456,7 @@ create_virtual_env() {
     drop_test_db
     export TRAVIS_SAVED_HOME=$HOME
     export TRAVIS_HOME=$(readlink -f $HOME/VENV_$$)
-    if [ "$TRAVIS_SAVED_HOME" == "/home/travis" ]; then
+    if [[ $TRAVIS_SAVED_HOME =~ ^/(home|opt)/travis ]]; then
         export TRAVIS=true
     elif [ $opt_full -ne 0 -o $opt_cache -eq 0 ]; then
         export TRAVIS=emulate

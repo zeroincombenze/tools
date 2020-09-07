@@ -66,7 +66,7 @@ class Test():
 
             res = build_odoo_param('FULLVER', odoo_vid='v%s' % ver)
             sts = self.Z.test_result(z0ctx,
-                                     'Full version v%s' % ver,
+                                     'Full version v%s [python]' % ver,
                                      TRES[ver],
                                      res)
             if sts:
@@ -74,7 +74,7 @@ class Test():
 
             res = build_odoo_param('FULLVER', odoo_vid=TRES[ver])
             sts = self.Z.test_result(z0ctx,
-                                     'Full version %s' % TRES[ver],
+                                     'Full version %s [python]' % TRES[ver],
                                      TRES[ver],
                                      res)
             if sts:
@@ -82,7 +82,7 @@ class Test():
 
             res = build_odoo_param('FULLVER', odoo_vid='v%s' % TRES[ver])
             sts = self.Z.test_result(z0ctx,
-                                     'Full version v%s' % TRES[ver],
+                                     'Full version v%s [python]' % TRES[ver],
                                      TRES[ver],
                                      res)
             if sts:
@@ -90,31 +90,34 @@ class Test():
 
             res = build_odoo_param('FULLVER', odoo_vid='V%s' % TRES[ver])
             sts = self.Z.test_result(z0ctx,
-                                     'Full version V%s' % TRES[ver],
+                                     'Full version V%s [python]' % TRES[ver],
                                      TRES[ver],
                                      res)
             if sts:
                 break
 
             res = build_odoo_param('FULLVER', odoo_vid='VENV-%s' % TRES[ver])
-            sts = self.Z.test_result(z0ctx,
-                                     'Full version VENV-%s' % TRES[ver],
-                                     TRES[ver],
-                                     res)
+            sts = self.Z.test_result(
+                z0ctx,
+                'Full version VENV-%s [python]' % TRES[ver],
+                TRES[ver],
+                res)
             if sts:
                 break
 
-            sts = self.Z.test_result(z0ctx,
-                                     'Full version odoo-%s' % TRES[ver],
-                                     TRES[ver],
-                                     res)
+            sts = self.Z.test_result(
+                z0ctx,
+                'Full version odoo-%s [python]' % TRES[ver],
+                TRES[ver],
+                res)
             if sts:
                 break
 
-            sts = self.Z.test_result(z0ctx,
-                                     'Full version ODOO-%s' % TRES[ver],
-                                     TRES[ver],
-                                     res)
+            sts = self.Z.test_result(
+                z0ctx,
+                'Full version ODOO-%s [python]' % TRES[ver],
+                TRES[ver],
+                res)
             if sts:
                 break
         return sts
@@ -134,7 +137,7 @@ class Test():
         for ver in VERSIONS_TO_TEST:
             res = build_odoo_param('MAJVER', odoo_vid=ver)
             sts = self.Z.test_result(z0ctx,
-                                     'major version %s' % ver,
+                                     'major version %s [python]' % ver,
                                      TRES[ver],
                                      res)
             if sts:
@@ -143,7 +146,7 @@ class Test():
             w = 'V%s' % ver
             res = build_odoo_param('MAJVER', odoo_vid=w)
             sts = self.Z.test_result(z0ctx,
-                                     'major version %s' % w,
+                                     'major version %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -152,7 +155,7 @@ class Test():
             w = 'OCB-%s' % ver
             res = build_odoo_param('MAJVER', odoo_vid=w)
             sts = self.Z.test_result(z0ctx,
-                                     'major version %s' % w,
+                                     'major version %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -174,17 +177,18 @@ class Test():
         }
         for ver in MAJVERS_TO_TEST:
             res = build_odoo_param('CONFN', odoo_vid=ver)
-            sts = self.Z.test_result(z0ctx,
-                                     'config unique filename %s' % ver,
-                                     TRES[ver],
-                                     res)
+            sts = self.Z.test_result(
+                z0ctx,
+                'config unique filename %s [python]' % ver,
+                TRES[ver],
+                res)
             if sts:
                 break
 
             w = 'VENV-%s' % ver
             res = build_odoo_param('CONFN', odoo_vid=w)
             sts = self.Z.test_result(z0ctx,
-                                     'config unique filename %s' % w,
+                                     'config unique filename %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -199,7 +203,7 @@ class Test():
                 w = '%s.0' % ver
             res = build_odoo_param('CONFN', odoo_vid=w)
             sts = self.Z.test_result(z0ctx,
-                                     'config unique filename %s' % w,
+                                     'config unique filename %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -223,7 +227,7 @@ class Test():
         for ver in MAJVERS_TO_TEST:
             res = build_odoo_param('CONFN', odoo_vid=ver, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'config multi filename %s' % ver,
+                                     'config multi filename %s [python]' % ver,
                                      TRES[ver],
                                      res)
             if sts:
@@ -232,7 +236,7 @@ class Test():
             w = 'VENV-%s' % ver
             res = build_odoo_param('CONFN', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'config multi filename %s' % w,
+                                     'config multi filename %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -247,7 +251,7 @@ class Test():
                 w = '%s.0' % ver
             res = build_odoo_param('CONFN', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'config multi filename %s' % w,
+                                     'config multi filename %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -274,7 +278,7 @@ class Test():
                 w = '%s.0' % ver
             res = build_odoo_param('FLOG', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'log filename %s' % w,
+                                     'log filename %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -302,7 +306,7 @@ class Test():
                 w = '%s.0' % ver
             res = build_odoo_param('FPID', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'pid filename %s' % w,
+                                     'pid filename %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -329,7 +333,7 @@ class Test():
                 w = '%s.0' % ver
             res = build_odoo_param('FULL_SVCNAME', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'service script name %s' % w,
+                                     'service script name %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -356,7 +360,7 @@ class Test():
                 w = '%s.0' % ver
             res = build_odoo_param('SVCNAME', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'service name %s' % w,
+                                     'service name %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -383,7 +387,7 @@ class Test():
                 w = '%s.0' % ver
             res = build_odoo_param('BIN', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'run script name %s' % w,
+                                     'run script name %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -404,7 +408,7 @@ class Test():
             w = 'VENV-%s' % ver
             res = build_odoo_param('BIN', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'run script name %s' % w,
+                                     'run script name %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -425,7 +429,7 @@ class Test():
         for ver in VERSIONS_TO_TEST + ['v7']:
             res = build_odoo_param('MANIFEST', odoo_vid=ver, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'manifest %s' % ver,
+                                     'manifest %s [python]' % ver,
                                      TRES[ver],
                                      res)
             if sts:
@@ -447,7 +451,7 @@ class Test():
         for ver in VERSIONS_TO_TEST + ['v7', 'v8.0']:
             res = build_odoo_param('RPCPORT', odoo_vid=ver, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'rpcport %s' % ver,
+                                     'rpcport %s [python]' % ver,
                                      TRES[ver],
                                      res)
             if sts:
@@ -467,7 +471,7 @@ class Test():
         for ver in VERSIONS_TO_TEST:
             res = build_odoo_param('RPCPORT', odoo_vid=ver, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'rpcport %s' % ver,
+                                     'rpcport %s [python]' % ver,
                                      TRES[ver],
                                      res)
             if sts:
@@ -488,7 +492,7 @@ class Test():
         for ver in VERSIONS_TO_TEST + ['v7']:
             res = build_odoo_param('USER', odoo_vid=ver, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'user %s' % ver,
+                                     'user %s [python]' % ver,
                                      TRES[ver],
                                      res)
             if sts:
@@ -509,7 +513,7 @@ class Test():
             w = 'VENV-%s' % ver
             res = build_odoo_param('USER', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'user %s' % w,
+                                     'user %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
@@ -530,7 +534,7 @@ class Test():
             w = 'ODOO-%s' % ver
             res = build_odoo_param('FULLVER', odoo_vid=w, multi=True)
             sts = self.Z.test_result(z0ctx,
-                                     'naming %s' % w,
+                                     'naming %s [python]' % w,
                                      TRES[ver],
                                      res)
             if sts:
