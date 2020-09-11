@@ -13,7 +13,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.9.21'
+__version__ = '0.3.9.22'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -336,8 +336,8 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
                         min_v = v
                         break
             if not min_v:
-                for v in ('0', '13.0', '12.0', '11.0',
-                          '10.0', '9.0', '8.0', '7.0', '6.1'):
+                for v in ('0', '6.1', '7.0', '8.0', '9.0',
+                          '10.0', '11.0', '12.0', '13.0'):
                     if v in REQVERSION[item]:
                         min_v = v
                         if v == odoo_ver or valid_ver or (not odoo_ver and
