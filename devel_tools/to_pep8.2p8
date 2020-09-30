@@ -8,7 +8,7 @@
 # are indented right. RULE_NAME has python syntax name.
 # If RULE_NAME ends with _78, rule may not applied to odoo 8.0 if -u switch
 # is supplied: means convert to odoo 8.0 holding old api.
-#   First parameter is STATEMENTS with python intructions to match rule
+#   First parameter is STATEMENTS with python instructions to match rule
 #   Format of indented lines is: <PARAM: VALUE>
 #   Paramaters may be:
 #       [VER] => Statement to replace/evaluate to specific odoo version
@@ -36,9 +36,9 @@
 # - If a specific odoo version is not declared, lower version is used (see
 #   example above)
 # - Statement to match rule is a python instructions with some macros:
-#   $any: match any python tokens
+#   $any: match any python token
 #         when used in replace string means do not change token
-#   $more: match zero, one or more python tokens until token next $more matches
+#   $more: match zero, one or more python tokens until token next to $more matches
 #   $expr: like more but match next token only at the same paren level
 #   $tokens: replace macro with specific odoo version replacements/evaluate
 #   $name: match any python name, i.e. a but not "a"

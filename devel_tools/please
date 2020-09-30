@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0
+__version__=1.0.0.2
 
 
 #
@@ -76,6 +76,23 @@ __version__=1.0.0
 # -W whatis
 # -w wep
 
+get_dbuser() {
+    local u
+    for u in $USER odoo openerp postgresql; do
+        if [[ -n "$1" ]]; then
+            psql -U$u$1 -l &>/dev/null
+            if [ $? -eq 0 ]; then
+                opt_user="$u$1"
+                break
+            fi
+        fi
+        psql -U$u -l &>/dev/null
+        if [ $? -eq 0 ]; then
+            opt_user="$u"
+            break
+        fi
+    done
+}
 
 move() {
 # move(src dst)
@@ -1864,11 +1881,29 @@ do_docs() {
     [[ $PWD =~ /dev[el]*/pypi/ ]] && opts=-B || opts=
     if [ "$PRJNAME" == "Odoo" ]; then
         [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
-        run_traced "gen_readme.py -b$odoo_fver $opts"
+        [[ -z "$opt_branch" ]] && orgid=$(build_odoo_param GIT_ORGID ".") || odoo_fver=$(build_odoo_param GIT_ORGID "$opt_branch")
+        # TODO: GIT_ORGid of build_odoo_param does not work
+        PARENTDIR=$(build_odoo_param PARENTDIR ".")
+        if [[ -z "$opt_branch" && -d ./.git && $(git status -s &>/dev/null) ]]; then
+            GIT_URL=$(git remote get-url --push origin 2>/dev/null)
+            [[ -n "$GIT_URL" ]] && GIT_ORGNM=$(basename $(dirname $(git remote -v|echo $GIT_URL|awk -F: '{print $2}')))
+            [[ $GIT_ORGNM == "OCA" ]] && orgid="oca"
+            [[ $GIT_ORGNM == "zeroincombenze" ]] && orgid="zero"
+            [[ $GIT_ORGNM =~ (axitec|axilor) ]] && orgid="axitec"
+        elif [[ -z "$opt_branch" && -d $PARENTDIR/.git ]]; then
+            push $PARENTDIR >/dev/null
+            GIT_URL=$(git remote get-url --push origin 2>/dev/null)
+            [[ -n "$GIT_URL" ]] && GIT_ORGNM=$(basename $(dirname $(git remote -v|echo $GIT_URL|awk -F: '{print $2}')))
+            [[ $GIT_ORGNM == "OCA" ]] && orgid="oca"
+            [[ $GIT_ORGNM == "zeroincombenze" ]] && orgid="zero"
+            [[ $GIT_ORGNM =~ (axitec|axilor) ]] && orgid="axitec"
+            popd >/dev/null
+        fi
+        run_traced "gen_readme.py -b$odoo_fver $opts -G$orgid"
         version=$(build_odoo_param MAJVER $odoo_fver)
         if [[ -d ./static ]]; then
-            [ $version -gt 7 ] && run_traced "gen_readme.py -b$odoo_fver $opts -H"
-            [ $version -le 7 ] && run_traced "gen_readme.py -b$odoo_fver $opts -R"
+            [ $version -gt 7 ] && run_traced "gen_readme.py -b$odoo_fver $opts -H -G$orgid"
+            [ $version -le 7 ] && run_traced "gen_readme.py -b$odoo_fver $opts -R -G$orgid"
         fi
         return 0
     fi
@@ -2189,13 +2224,21 @@ do_export() {
         db=$2
     fi
     [[ "$module" == '.' ]] && module=$PKGNAME
-    [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
-    if [ -z "$module" -o -z "$db" ]; then
+    [[ -n "$opt_branch" ]] && odoo_fver=$opt_branch || odoo_fver=10.0
+    odoo_ver=$(echo $odoo_fver|grep -Eo [0-9]+|head -n1)
+    # [[ -z "$db" ]] && db="tnl_odoo$odoover"
+    if [[ -z "$module" || -z "$db" ]]; then
         echo "Missing parameters! use:"
         echo "> do_export -bBRANCH 'MODULE' 'DB'"
         return $STS_FAILED
     fi
-    run_traced "run_odoo_debug -Wb$odoo_fver -usm $module -d $db"
+    get_dbuser $odoo_ver
+    stat=$(psql -U$opt_user -Atc "select state from ir_module_module where name = '$module'" $db)
+    if [[ $stat == "uninstalled" ]]; then
+        run_traced "run_odoo_debug -Wb$odoo_fver -Ism $module -d $db"
+    else
+        run_traced "run_odoo_debug -Wb$odoo_fver -usm $module -d $db"
+    fi
     sts=$?
     [ $? -eq 0 ] && run_traced "run_odoo_debug -Wb$odoo_fver -em $module -d $db"
     sts=$?

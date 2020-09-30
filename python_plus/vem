@@ -21,10 +21,14 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.0.0
+__version__=1.0.0.1
+NEEDING_PKGS="future os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
+EI_PKGS="(distribute)"
+BZR_PKSG="(aeroolib)"
+BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
 ERROR_PKGS=""
 LOCAL_PKGS="(clodoo|odoo_score|os0|python_plus|z0bug_odoo|z0lib|zerobug)"
@@ -185,6 +189,7 @@ bin_install_1() {
 
 pip_install() {
 #pip_install pkg
+    local d x
     local pkg=$1
     local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
     local srcdir
@@ -201,6 +206,34 @@ pip_install() {
                 run_traced "ln -s $HOME/pypi/$pkg/$pkg $pypath"
             fi
             [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+        elif [[ $pkg =~ $EI_PKGS ]]; then
+            run_traced "easy_install install $pkg"
+            run_traced "$PIP install --upgrade $pkg --disable-pip-version-check"
+        elif [[ $pkg =~ $BZR_PKSG ]]; then
+            x=$(which bzr 2>/dev/null)
+            if [[ -z "$x" ]]; then
+                echo "Package $pkg require bazar software but this software is not installed on your system"
+                echo "You should install bazar ..."
+                DISTO=$(xuname -d)
+                FH=$(xuname -f)
+                [[ $DISTO == "Fedora" ]] && echo "dnf install bzr"
+                [[ ! $DISTO == "Fedora" && $FH = "RHEL" ]] && echo "yum install bzr"
+                [[ $DISTO == "Debian" ]] && echo "apt-get -t lenny-backports install bzr"
+                [[ $DISTO == "Ubuntu" ]] && echo "add-apt-repository ppa:bzr/ppa"
+                [[ $FH == "Debian" ]] && echo "apt-get update"
+            else
+                run_traced "mkdir -p $HOME/bazar"
+                run_traced "cd $HOME/bazar"
+                run_traced "bzr branch lp:$pkg"
+                d=$(find $pkg -name setup.py|head -n1)
+                [[ -n "$d" ]] && d=$(dirname $d) || d=""
+                if [[ -n "$d" && -d "$d" ]]; then
+                    run_traced "cd $d"
+                    run_traced "python ./setup.py install"
+                else
+                    echo "Invalid bazar package: file setup.py not found!"
+                fi
+            fi
         else
             run_traced "$PIP install $* --disable-pip-version-check"
             [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -304,8 +337,8 @@ bin_check_1() {
     local pkg
     local binreq bin_re
     [[ -n "$opt_bins" ]] && binreq="${opt_bins//,/ }"
-    [[ -z "$opt_bins" ]] && binreq="wkhtmltopdf lessc"
-    [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing bin $opt_bins\e[0m"
+    [[ -z "$opt_bins" ]] && binreq="${BIN_PKGS//|/ }" && binreq="${binreq:1: -1}"
+    [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing bin $binreq\e[0m"
     for pkg in $binreq; do
         check_bin_package $pkg
     done
@@ -537,7 +570,13 @@ venv_mgr_check_oever() {
 #venv_mgr_check_oever action
     local p x
     if [[ -z "$opt_oever" && ! $1 =~ (help|create) ]]; then
-        x=$(find -L $p2 -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*"  -not -path "*/tests/res/*" -name release.py)
+        p=""
+        for x in odoo openerp server; do
+            [[ -d $p2/odoo/$x ]] && p="$p $p2/odoo/$x"
+            [[ ! $x == "odoo" && -d $p2/$x ]] && p="$p $p2/$x"
+        done
+        [ $opt_verbose -gt 2 ] && echo ">>> find -L $p -not -path \"*/__to_remove/*\" -not -path \"*/lib/*\" -not -path \"*/lib64/*\"  -not -path \"*/tests/res/*\" -name release.py"
+        x=$(find -L $p -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*"  -not -path "*/tests/res/*" -name release.py)
         if [[ -n "$x" ]]; then
             p=$(dirname $x)
             cd_venv $p -fq
@@ -811,17 +850,21 @@ do_venv_pip() {
     VENV="$1"
     cd_venv "$VENV" "-f"
     do_activate
-    if [[ $3 =~ (wkhtmltopdf|lessc) ]]; then
+    pkg="$3"
+    popt=""
+    [ $opt_alone -ne 0 ] && popt="--isolated"
+    [ $opt_verbose -eq 0 ] && popt="$popt -q"
+    [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
+    if [[ $3 =~ $BIN_PKGS ]]; then
         [[ "$cmd" == "install" ]] && bin_install "$3" "$1"
+    elif [[ $3 =~ $EI_PKGS && "$cmd" == "install" ]]; then
+        pip_install "$3" "$popt --disable-pip-version-check"
+    elif [[ $3 =~ $BZR_PKGS && "$cmd" == "install" ]]; then
+        pip_install "$3"
     else
-        pkg="$3"
-        popt=""
-        [ $opt_alone -ne 0 ] && popt="--isolated"
-        [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
-        [ $opt_verbose -eq 0 ] && popt="$popt -q"
         [ "$cmd" == "info" ] && run_traced "$PIP show $pkg"
         [ "$cmd" == "show" ] && run_traced "$PIP show $pkg"
-        [ "$cmd" == "install" ] && run_traced "$PIP $cmd $pkg --disable-pip-version-check"
+        [ "$cmd" == "install" ] && run_traced "$PIP $cmd $pkg $popt --disable-pip-version-check"
         [ "$cmd" == "uninstall" ] && run_traced "$PIP $cmd $pkg --disable-pip-version-check"
         [ "$cmd" == "upgrade" ] && run_traced "$PIP install $pkg $popt --upgrade --disable-pip-version-check"
     fi
@@ -915,7 +958,6 @@ DO_POP=0
 DO_DEACT=0
 export PYTHONWARNINGS="ignore"
 SAVED_HOME=$HOME
-NEEDING_PKGS="future os0 z0lib"
 [ $opt_debug -ne 0 -a -d $HOME/tools/ ] && PYTHONPATH=$HOME/tools/
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
@@ -932,7 +974,7 @@ elif [[ ! $action =~ (help|create) ]]; then
     [[ -z "$opt_pyver" ]] && venv_mgr_check_src_path $p2
     [[ -n "$opt_pyver" ]] && set_pyver_files
 fi
-[[ "$opt_bins" == "*" ]] && opt_bins="wkhtmltopdf,lessc"
+[[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1: -1}"
 venv_mgr_check_oever $action
 [ $opt_dev -eq 0 -a -d "$p2" ] && x=$(find ${p2}/lib -name pylint -o -name unittest2 -o -name coverage -o -name flake8|wc -l)
 [ $opt_dev -eq 0 -a ${x:-0} -gt 1 ] && opt_dev=1

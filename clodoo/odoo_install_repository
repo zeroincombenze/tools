@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.9.21
+__version__=0.3.9.24
 
 rmdir_if_exists() {
 #rmdir_if_exists (RPTNAME odoo_vid new_vid)
@@ -322,16 +322,11 @@ elif [ -z "$opt_user" -a "$USER" != "travis" -a $EUID -eq 0 ]; then
 else
   pkg_user=
 fi
-if [ "${RPTNAME: -4}" == ".git" ]; then
-  RPTNAME=${RPTNAME:0: -4}
-fi
-if [ "${RPTNAME: -1}" == "/" ]; then
-  RPTNAME=${RPTNAME:0: -1}
-fi
-if [ "${pkg_URL: -1}" == "/" ]; then
-  pkg_URL=${pkg_URL:0: -1}
-fi
-odoo_root=$(build_odoo_param ROOT $odoo_vid "OCB" $def_opt_org)
+[[ "${RPTNAME: -4}" == ".git" ]] && RPTNAME=${RPTNAME:0: -4}
+[[ "${RPTNAME: -1}" == "/" ]] && RPTNAME=${RPTNAME:0: -1}
+[[ "${pkg_URL: -1}" == "/" ]] && pkg_URL=${pkg_URL:0: -1}
+odoo_root=$(build_odoo_param ROOT $odoo_fver "OCB" $def_opt_org)
+echo "<<<$odoo_root=\$(build_odoo_param ROOT $odoo_fver \"OCB\" $def_opt_org)>>>" #debug
 if [ -z "$new_odoo_vid" ]; then
   new_odoo_fver=$odoo_fver
   if [ "$pkg_URL" == "$RPTNAME" ]; then

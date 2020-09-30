@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.1
+__version__=1.0.0.2
 
 
 store_cfg_param_value() {
@@ -956,7 +956,7 @@ fi
 
 export PYTHONWARNINGS="ignore"
 [[ -z "$action" ]] && action=emulate
-ACTIONS="(emulate|force-lint|lint|force-test|test|chkconfig|parseyaml|wep_db|wep-db)"
+ACTIONS="(help|emulate|force-lint|lint|force-test|test|chkconfig|parseyaml|show-log|summary|wep-db)"
 VIRTACTS="(force-lint|lint|force-test|test|emulate)"
 opt_virt=1
 if [[ $action =~ $ACTIONS ]]; then
@@ -973,7 +973,11 @@ link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 
-if [ "$action" == "parseyaml" ]; then
+LOGFILE=$opt_logdir/${PKGNAME}_${BRANCH}.log
+if [ "$action" == "help" ]; then
+    man $0.man
+    exit $STS_SUCCESS
+elif [ "$action" == "parseyaml" ]; then
     prepare_env_travis "$action"
     check_4_travis
     if [ -z "$sub" ]; then
@@ -1085,8 +1089,21 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
     else
         exit 2
     fi
+elif [[ $action == "summary" ]]; then
+    if [[ -f $LOGFILE ]]; then
+        grep -H -E "(\| .*test|TODAY=|PKGNAME=)" $LOGFILE
+    else
+        echo "File $LOGFILE not found!"
+    fi
+    exit 0
+elif [[ $action == "show-log" ]]; then
+    if [[ -f $LOGFILE ]]; then
+        less -R $LOGFILE
+    else
+        echo "File $LOGFILE not found!"
+    fi
+    exit 0
 fi
-
 if [[ $PWD == $HOME ]]; then
     echo "Cannot execute travis-ci from home directory!"
     exit 1
@@ -1104,12 +1121,13 @@ if [ $sts -eq $STS_SUCCESS ]; then
         process_yaml
         sts=2
     else
-        if [[ -f $opt_logdir/${PKGNAME}_${BRANCH}.log ]]; then
-            [[ -f $opt_logdir/${PKGNAME}_${BRANCH}_old.log ]] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}_old.log
-            echo mv -f $opt_logdir/${PKGNAME}_${BRANCH}.log $opt_logdir/${PKGNAME}_${BRANCH}_old.log
+        if [[ -f $LOGFILE ]]; then
+            OLD_LOGFILE=${LOGFILE/.log/_old.log}
+            [[ -f $OLD_LOGFILE ]] && rm -f $OLD_LOGFILE
+            mv -f $LOGFILE $OLD_LOGFILE
         fi
-        # touch $opt_logdir/${PKGNAME}_${BRANCH}.log
-        process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
+        # touch $LOGFILE
+        process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
         sts=$?
     fi
 fi

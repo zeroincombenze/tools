@@ -3,77 +3,76 @@
 
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])" | python)
 for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
-    . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  fi
+    if [ -e $d/z0librc ]; then
+        . $d/z0librc
+        Z0LIBDIR=$d
+        Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+        break
+    elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
+        . $d/z0lib/z0librc
+        Z0LIBDIR=$d/z0lib
+        Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+        break
+    fi
 done
 if [ -z "$Z0LIBDIR" ]; then
-  echo "Library file z0librc not found!"
-  exit 2
+    echo "Library file z0librc not found!"
+    exit 2
 fi
 ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
-  echo "Library file odoorc not found!"
-  exit 2
+    echo "Library file odoorc not found!"
+    exit 2
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.9.21
+__version__=0.3.9.24
 
-
-OPTOPTS=(h        B       b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_db   opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_stop  opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_xport)
-OPTACTI=(1        1       "=>"       "="      "="      1       1        1       1       1        "="      "="         1         "1"         "="       1      "="      1         1        1         "="        1       "*>"        1           1       1        "=")
-OPTDEFL=(1        0       ""         ""       ""       0       0        0       0       0        ""       ""          -1        0           ""        0      ""       0         0        0         ""         0       ""          0           0       0        "")
-OPTMETA=("help"   ""      "branch"   "fname"  "dbname" ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    ""        ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
-OPTHELP=("this help"\
- "debug mode"\
- "odoo branch (version id)"\
- "configuration file"\
- "db name to test,translate o upgrade (require -m switch)"\
- "export it translation (conflict with -i -u -I)"\
- "do not create new DB and keep it after run"\
- "import it translation (conflict with -e -u -I)"\
- "install module (conflict with -e -i -u)"\
- "load it language"\
- "set log level: may be info or debug"\
- "modules to test, translate or upgrade"\
- "multi-version odoo environment"\
- "do nothing (dry-run)"\
- "output file (if export multiple modules)"\
- "use openupgrade, if avaiable"\
- "odoo root path"\
- "stop after init"\
- "execute odoo test on module"\
- "touch config file, do not run odoo"\
- "db username"\
- "upgrade module (conflict with -e -i -I)"\
- "show version"\
- "verbose mode"\
- "run as web server"\
- "run virtualenv if avaiable"
- "set odoo xmlrpc port")
+OPTOPTS=(h B b c d e k i I l L m M n o O p s T t U u V v w W x)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_db opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_xport)
+OPTACTI=(1 1 "=>" "=" "=" 1 1 1 1 1 "=" "=" 1 "1" "=" 1 "=" 1 1 1 "=" 1 "*>" 1 1 1 "=")
+OPTDEFL=(1 0 "" "" "" 0 0 0 0 0 "" "" -1 0 "" 0 "" 0 0 0 "" 0 "" 0 0 0 "")
+OPTMETA=("help" "" "branch" "fname" "dbname" "" "" "" "" "" "level" "modules" "" "no op" "file" "" "dir" "" "" "touch" "user" "" "version" "verbose" 0 "" "port")
+OPTHELP=("this help"
+    "debug mode"
+    "odoo branch (version id)"
+    "configuration file"
+    "db name to test,translate o upgrade (require -m switch)"
+    "export it translation (conflict with -i -u -I)"
+    "do not create new DB and keep it after run"
+    "import it translation (conflict with -e -u -I)"
+    "install module (conflict with -e -i -u)"
+    "load it language"
+    "set log level: may be info or debug"
+    "modules to test, translate or upgrade"
+    "multi-version odoo environment"
+    "do nothing (dry-run)"
+    "output file (if export multiple modules)"
+    "use openupgrade, if avaiable"
+    "odoo root path"
+    "stop after init"
+    "execute odoo test on module"
+    "touch config file, do not run odoo"
+    "db username"
+    "upgrade module (conflict with -e -i -I)"
+    "show version"
+    "verbose mode"
+    "run as web server"
+    "run virtualenv if avaiable"
+    "set odoo xmlrpc port")
 OPTARGS=(odoo_vid)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
-  echo "$__version__"
-  exit 0
+    echo "$__version__"
+    exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Run odoo for debug mode"\
-  "(C) 2015-2020 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
-  exit 0
+    print_help "Run odoo for debug mode" \
+        "(C) 2015-2020 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+    exit 0
 fi
 [[ -n "$opt_branch" && -z "$odoo_vid" ]] && odoo_vid=$opt_branch
 [ $opt_venv -ne 0 ] && odoo_vid="VENV-$odoo_vid"
@@ -81,28 +80,28 @@ discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 if [ -n "$opt_conf" ]; then
-  confn=$opt_conf
+    confn=$opt_conf
 else
-  confn=$(build_odoo_param CONFN $odoo_vid search)
+    confn=$(build_odoo_param CONFN $odoo_vid search)
 fi
 lconfn=$(build_odoo_param LCONFN $odoo_vid search)
 script=$(build_odoo_param BIN $odoo_vid search)
 [[ -n "$script" ]] || script=$(build_odoo_param BIN $odoo_vid)
 if [ -n "$opt_odir" ]; then
-  odoo_root=$(readlink -f $opt_odir)
-  x=$(basename $script)
-  script="$odoo_root/$x"
+    odoo_root=$(readlink -f $opt_odir)
+    x=$(basename $script)
+    script="$odoo_root/$x"
 elif [ $opt_ou -ne 0 ]; then
-  x=$(basename $script)
-  script=
-  [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/server/$x ] && script=~/tmp/ou_$odoo_fver/server/$x
-  [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/$x ] && script=~/tmp/ou_$odoo_fver/$x
-  if [ -z "$script" ]; then
-    echo "Openupgrade script not found!!"
-    exit 1
-  fi
+    x=$(basename $script)
+    script=
+    [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/server/$x ] && script=~/tmp/ou_$odoo_fver/server/$x
+    [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/$x ] && script=~/tmp/ou_$odoo_fver/$x
+    if [ -z "$script" ]; then
+        echo "Openupgrade script not found!!"
+        exit 1
+    fi
 else
-  odoo_root=$(build_odoo_param ROOT $odoo_vid search)
+    odoo_root=$(build_odoo_param ROOT $odoo_vid search)
 fi
 if [ -z "$script" ]; then
     echo "No odoo script found!!"
@@ -115,247 +114,247 @@ create_db=0
 drop_db=0
 depmods=""
 if [ $opt_test -ne 0 ]; then
-  opt_web=0
-  opt_lang=0 opt_exp=0 opt_imp=0
-  opt_upd=0 opt_stop=1
-  opt_xtl=1
-  opt_dbg=1
-  [ -z "$opt_db" ] && opt_db="test_openerp_$odoo_ver"
-  create_db=1 drop_db=1
+    opt_web=0
+    opt_lang=0 opt_exp=0 opt_imp=0
+    opt_upd=0 opt_stop=1
+    opt_xtl=1
+    opt_dbg=1
+    [ -z "$opt_db" ] && opt_db="test_openerp_$odoo_ver"
+    create_db=1 drop_db=1
 fi
 if [ $opt_web -ne 0 ]; then
-  rpcport=$(build_odoo_param RPCPORT $odoo_vid)
-  odoo_user=$(build_odoo_param USER $odoo_vid)
+    rpcport=$(build_odoo_param RPCPORT $odoo_vid)
+    odoo_user=$(build_odoo_param USER $odoo_vid)
 else
-  rpcport=
-  odoo_user=$(build_odoo_param USER $odoo_vid debug)
+    rpcport=
+    odoo_user=$(build_odoo_param USER $odoo_vid debug)
 fi
 if [ $opt_lang -ne 0 ]; then
-  opt_keep=1
-  opt_stop=1
-  if [ -n "$opt_modules" ]; then
-    opt_modules=
-  fi
+    opt_keep=1
+    opt_stop=1
+    if [ -n "$opt_modules" ]; then
+        opt_modules=
+    fi
 elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
-  opt_keep=1
-  opt_stop=1
-  if [ -z "$opt_modules" ]; then
-    echo "Missing -m switch"
-    exit 1
-  fi
-  if [ -z "$opt_db" ]; then
-    echo "Missing -d switch"
-    exit 1
-  fi
+    opt_keep=1
+    opt_stop=1
+    if [ -z "$opt_modules" ]; then
+        echo "Missing -m switch"
+        exit 1
+    fi
+    if [ -z "$opt_db" ]; then
+        echo "Missing -d switch"
+        exit 1
+    fi
 elif [ $opt_upd -ne 0 ]; then
-  opt_keep=1
-  if [ -z "$opt_modules" ]; then
-    echo "Missing -m switch"
-    exit 1
-  fi
-  if [ -z "$opt_db" ]; then
-    echo "Missing -d switch"
-    exit 1
-  fi
+    opt_keep=1
+    if [ -z "$opt_modules" ]; then
+        echo "Missing -m switch"
+        exit 1
+    fi
+    if [ -z "$opt_db" ]; then
+        echo "Missing -d switch"
+        exit 1
+    fi
 elif [ $opt_xtl -ne 0 ]; then
-  if [ -z "$opt_modules" ]; then
-    echo "Missing -m switch"
-    exit 1
-  fi
-  if [ -z "$opt_db" ]; then
-    echo "Missing -d switch"
-    exit 1
-  fi
+    if [ -z "$opt_modules" ]; then
+        echo "Missing -m switch"
+        exit 1
+    fi
+    if [ -z "$opt_db" ]; then
+        echo "Missing -d switch"
+        exit 1
+    fi
 fi
 [[ -z "$opt_dbuser" ]] && opt_dbuser=$odoo_user
 if [ -n "$opt_modules" ]; then
-  if [ $opt_keep -eq 0 ]; then
-    PL="$(grep ^addons_path /etc/odoo/odoo10.conf|awk -F= '{print $2}')"
-    if [ -z "$($which odoo_dependencies.py 2>/dev/null)" ]; then
-      echo "Test incomplete!"
-      echo "File odoo_dependencies.py not found!"
-    else
-      if [ "$opt_modules" == "all" ];then
-        depmods=$(odoo_dependencies.py -A mod $PL)
-      else
-        depmods=$(odoo_dependencies.py -A dep $PL -PM $opt_modules)
-      fi
-      if [ -n "$depmods" -a $opt_test -eq 0 ]; then
-        opt_modules="$opt_modules,$depmods"
-      fi
-    fi
-    OPTS="-i $opt_modules"
-    OPTDB=""
-    [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
-    create_db=1
-  else
-    mods=${opt_modules//,/ }
-    OPTI=
-    xi=-i
-    OPTU=
-    xu=-u
-    for m in $mods; do
-      r=$(psql -U$opt_dbuser $opt_db -tc "select state from ir_module_module where name='$m';")
-      if [[ $r =~ uninstalled ]]; then
-        OPTI="$OPTI$xi$m"
-        xi=,
-      else
-        OPTU="$OPTU$xu$m"
-        xu=,
-      fi
-    done
-    OPTSIU="$OPTI $OPTU"
-    alt=
-    if [ $opt_exp -ne 0 -a -n "$opt_ofile" ]; then
-      src=$(readlink -f $opt_ofile)
-      OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
-    elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
-      srcs=$(find -L $odoo_root  -not -path '*/__to_remove/*' -type d -name "$opt_modules")
-      f=0
-      for src in $srcs; do
-        if [ -n "$src" ]; then
-          if [ -f $src/i18n/it.po ]; then
-            src=$src/i18n/it.po
-            if [ $opt_exp -ne 0 ]; then
-              run_traced "cp $src $src.bak"
+    if [ $opt_keep -eq 0 ]; then
+        PL="$(grep ^addons_path /etc/odoo/odoo10.conf | awk -F= '{print $2}')"
+        if [ -z "$($which odoo_dependencies.py 2>/dev/null)" ]; then
+            echo "Test incomplete!"
+            echo "File odoo_dependencies.py not found!"
+        else
+            if [ "$opt_modules" == "all" ]; then
+                depmods=$(odoo_dependencies.py -A mod $PL)
+            else
+                depmods=$(odoo_dependencies.py -A dep $PL -PM $opt_modules)
             fi
-            f=1
-            break
-          else
-            alt=$(find -L $src/i18n -name '*.po'|head -n1)
-            src=
-            if [ -n "$alt" ]; then fi=1 break; fi
-          fi
+            if [ -n "$depmods" -a $opt_test -eq 0 ]; then
+                opt_modules="$opt_modules,$depmods"
+            fi
         fi
-      done
-      if [ $f -eq 0 ]; then
-        echo "Translation file not found!"
-        if [ -n "$alt" ]; then
-          echo "may be $alt"
-        fi
-        exit 1
-      fi
-      src=$(readlink -f $src)
-      if [ $opt_imp -ne 0 ]; then
-        OPTS="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
-      else
-        OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
-      fi
-    elif [ $opt_upd -ne 0 -a $opt_xtl -ne 0 ]; then
-      OPTS="$OPTSIU"
-      [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
-    elif [ $opt_upd -ne 0 ]; then
-      OPTS="$OPTU"
-      [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
-    elif [  $opt_xtl -ne 0 ]; then
-      OPTS="$OPTI"
-      [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
+        OPTS="-i $opt_modules"
+        OPTDB=""
+        [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
+        create_db=1
     else
-      OPTS="$OPTSIU"
+        mods=${opt_modules//,/ }
+        OPTI=
+        xi=-i
+        OPTU=
+        xu=-u
+        for m in $mods; do
+            r=$(psql -U$opt_dbuser $opt_db -tc "select state from ir_module_module where name='$m';")
+            if [[ $r =~ uninstalled ]]; then
+                OPTI="$OPTI$xi$m"
+                xi=,
+            else
+                OPTU="$OPTU$xu$m"
+                xu=,
+            fi
+        done
+        OPTSIU="$OPTI $OPTU"
+        alt=
+        if [ $opt_exp -ne 0 -a -n "$opt_ofile" ]; then
+            src=$(readlink -f $opt_ofile)
+            OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
+        elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
+            srcs=$(find -L $odoo_root -not -path '*/__to_remove/*' -type d -name "$opt_modules")
+            f=0
+            for src in $srcs; do
+                if [ -n "$src" ]; then
+                    if [ -f $src/i18n/it.po ]; then
+                        src=$src/i18n/it.po
+                        if [ $opt_exp -ne 0 ]; then
+                            run_traced "cp $src $src.bak"
+                        fi
+                        f=1
+                        break
+                    else
+                        alt=$(find -L $src/i18n -name '*.po' | head -n1)
+                        src=
+                        if [ -n "$alt" ]; then fi=1 break; fi
+                    fi
+                fi
+            done
+            if [ $f -eq 0 ]; then
+                echo "Translation file not found!"
+                if [ -n "$alt" ]; then
+                    echo "may be $alt"
+                fi
+                exit 1
+            fi
+            src=$(readlink -f $src)
+            if [ $opt_imp -ne 0 ]; then
+                OPTS="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
+            else
+                OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
+            fi
+        elif [ $opt_upd -ne 0 -a $opt_xtl -ne 0 ]; then
+            OPTS="$OPTSIU"
+            [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
+        elif [ $opt_upd -ne 0 ]; then
+            OPTS="$OPTU"
+            [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
+        elif [ $opt_xtl -ne 0 ]; then
+            OPTS="$OPTI"
+            [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
+        else
+            OPTS="$OPTSIU"
+        fi
     fi
-  fi
 else
-  if [ $opt_lang -ne 0 ]; then
-    OPTS=--load-language=it_IT
-  else
-    OPTS=""
-    OPTDB=""
-  fi
+    if [ $opt_lang -ne 0 ]; then
+        OPTS=--load-language=it_IT
+    else
+        OPTS=""
+        OPTDB=""
+    fi
 fi
 [[ -z "$opt_xport" ]] && opt_xport=$rpcport
 if [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_xtl -ne 0 -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
-  if [ -z "$opt_db" ]; then
-    opt_db="test_openerp"
-    if [ $opt_stop -gt 0 -a $opt_keep -eq 0 ]; then
-      drop_db=1
+    if [ -z "$opt_db" ]; then
+        opt_db="test_openerp"
+        if [ $opt_stop -gt 0 -a $opt_keep -eq 0 ]; then
+            drop_db=1
+        fi
     fi
-  fi
 fi
 OPTDB="$OPTDB --stop-after-init"
 if [ $opt_stop -gt 0 ]; then
-  OPTS="$OPTS --stop-after-init"
-  if [ $opt_exp -eq 0 -a $opt_imp -eq 0 -a  $opt_lang -eq 0 ]; then
-    [ $opt_test -ne 0 -a $odoo_ver -lt 12 ] && OPTS="$OPTS --test-commit"
-  fi
+    OPTS="$OPTS --stop-after-init"
+    if [ $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
+        [ $opt_test -ne 0 -a $odoo_ver -lt 12 ] && OPTS="$OPTS --test-commit"
+    fi
 fi
 if [ -n "$opt_db" ]; then
-   OPTS="$OPTS -d $opt_db"
-   OPTDB="$OPTDB -d $opt_db"
+    OPTS="$OPTS -d $opt_db"
+    OPTDB="$OPTDB -d $opt_db"
 fi
 if [ $opt_touch -eq 0 ]; then
-  [ $drop_db -gt 0 ] && run_traced "pg_db_active -wa $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
-  ve_root=$HOME
-  if [ $VENV -ne 0 ]; then
-    ve_root=$(dirname $odoo_root)
-    [ $opt_verbose -gt 0 ] && echo "\$ cd $ve_root; source ./bin/activate"
-    cd $ve_root
-    source ./bin/activate
-  fi
-  if [ $create_db -gt 0 -a $odoo_ver -lt 10 ]; then
-    run_traced "createdb -U$opt_dbuser $opt_db"
-  fi
-  OPT_LLEV=
-  LCONF="$ve_root/$lconfn"
-  OPT_CONF="--config=$LCONF"
-  if [ $opt_dry_run -eq 0 ]; then
-    for f in .openerp_serverrc .odoorc; do
-      for d in $HOME $ve_root; do
-        [[ -f $d/$f ]] && rm -f $d/$f
-      done
-    done
+    [ $drop_db -gt 0 ] && run_traced "pg_db_active -wa $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
+    ve_root=$HOME
+    if [ $VENV -ne 0 ]; then
+        ve_root=$(dirname $odoo_root)
+        [ $opt_verbose -gt 0 ] && echo "\$ cd $ve_root; source ./bin/activate"
+        cd $ve_root
+        source ./bin/activate
+    fi
+    [ $create_db -gt 0 -a $odoo_ver -lt 10 ] && run_traced "createdb -U$opt_dbuser $opt_db"
+    OPT_LLEV=
+    LCONF="$ve_root/$lconfn"
+    OPT_CONF="--config=$LCONF"
+    if [ $opt_dry_run -eq 0 ]; then
+        for f in .openerp_serverrc .odoorc; do
+            for d in $HOME $ve_root; do
+                [[ -f $d/$f ]] && rm -f $d/$f
+            done
+        done
+    fi
     run_traced "cp $confn $LCONF"
-    tty -s
-    if [ $? == 0 ]; then
-      sed -i -e "s|^logfile *=.*|logfile = False|" $LCONF
-    else
-      sed -i -e "s|^logfile *=.*|logfile = $ve_root/$$.log|" $LCONF
+    if [ $opt_dry_run -eq 0 ]; then
+        tty -s
+        if [ $? == 0 ]; then
+            sed -i -e "s|^logfile *=.*|logfile = False|" $LCONF
+        else
+            sed -i -e "s|^logfile *=.*|logfile = $ve_root/$$.log|" $LCONF
+        fi
+        if [ $opt_dbg -ne 0 ]; then
+            sed -i -e "s|^limit_time_cpu *=.*|limit_time_cpu = 0|" $LCONF
+            sed -i -e "s|^limit_time_real *=.*|limit_time_real = 0|" $LCONF
+        fi
+        if [[ -z "$opt_xport" || "$opt_xport" == "0" ]]; then
+            sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = False|" $LCONF
+            OPT_CONF="$OPT_CONF --no-xmlrpc"
+        else
+            sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = $opt_xport|" $LCONF
+            OPT_CONF="$OPT_CONF --xmlrpc-port=$opt_xport"
+        fi
+        if [ -n "$opt_dbuser" ]; then
+            sed -i -e "s|^db_user *=.*|db_user = $opt_dbuser|" $LCONF
+            OPT_CONF="$OPT_CONF --db_user=$opt_dbuser"
+        fi
+        if [ -n "$opt_llvl" ]; then
+            sed -i -e "s|^log_level *=.*|log_level = $opt_llvl|" $LCONF
+            OPT_LLEV="--log-level=$opt_llvl"
+        fi
+        sed -i -e "s|^workers *=.*|workers = 0|" $LCONF
     fi
-    if [ $opt_dbg -ne 0 ]; then
-      sed -i -e "s|^limit_time_cpu *=.*|limit_time_cpu = 0|" $LCONF
-      sed -i -e "s|^limit_time_real *=.*|limit_time_real = 0|" $LCONF
+    if [ $create_db -gt 0 ]; then
+        if [ -n "$depmods" -a $opt_test -ne 0 ]; then
+            run_traced "$script $OPTDB $OPT_CONF --log-level=error -i $depmods"
+        else
+            run_traced "$script $OPTDB $OPT_CONF --log-level=error"
+        fi
     fi
-    if [[ -z "$opt_xport" || "$opt_xport" == "0" ]]; then
-      sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = False|" $LCONF
-      OPT_CONF="$OPT_CONF --no-xmlrpc"
-    else
-      sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = $opt_xport|" $LCONF
-      OPT_CONF="$OPT_CONF --xmlrpc-port=$opt_xport"
+    echo "===================================================================="
+    if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
+        OPTS="--debug $OPTS"
     fi
-    if [ -n "$opt_dbuser" ]; then
-      sed -i -e "s|^db_user *=.*|db_user = $opt_dbuser|" $LCONF
-      OPT_CONF="$OPT_CONF --db_user=$opt_dbuser"
+    run_traced "$script $OPT_CONF $OPT_LLEV $OPTS"
+    if [ $VENV -ne 0 ]; then
+        [ $opt_verbose -gt 0 ] && echo "\$ deactivate"
+        deactivate
     fi
-    if [ -n "$opt_llvl" ]; then
-      sed -i -e "s|^log_level *=.*|log_level = $opt_llvl|" $LCONF
-      OPT_LLEV="--log-level=$opt_llvl"
+    if [ $drop_db -gt 0 ]; then
+        if [ -z "$opt_modules" -o $opt_stop -eq 0 ]; then
+            run_traced "dropdb -U$opt_dbuser --if-exists $opt_db"
+        fi
     fi
-    sed -i -e "s|^workers *=.*|workers = 0|" $LCONF
-  fi
-  if [ $create_db -gt 0 ]; then
-    if [ -n "$depmods" -a $opt_test -ne 0 ]; then
-      run_traced "$script $OPTDB $OPT_CONF --log-level=error -i $depmods"
-    else
-      run_traced "$script $OPTDB $OPT_CONF --log-level=error"
+    if [ $opt_exp -ne 0 ]; then
+        makepo_it.py -b$odoo_vid -m$opt_modules $src
+        echo "Translation exported to '$src' file"
+    elif [ $opt_imp -ne 0 ]; then
+        echo "Translation imported from '$src' file"
     fi
-  fi
-  echo "===================================================================="
-  if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
-    OPTS="--debug $OPTS"
-  fi
-  run_traced "$script $OPT_CONF $OPT_LLEV $OPTS"
-  if [ $VENV -ne 0 ]; then
-    [ $opt_verbose -gt 0 ] && echo "\$ deactivate"
-    deactivate
-  fi
-  if [ $drop_db -gt 0 ]; then
-    if [ -z "$opt_modules" -o $opt_stop -eq 0 ]; then
-      run_traced "dropdb -U$opt_dbuser --if-exists $opt_db"
-    fi
-  fi
-  if [ $opt_exp -ne 0 ]; then
-    makepo_it.py -b$odoo_vid -m$opt_modules $src
-    echo "Translation exported to '$src' file"
-  elif [ $opt_imp -ne 0 ]; then
-    echo "Translation imported from '$src' file"
-  fi
 fi

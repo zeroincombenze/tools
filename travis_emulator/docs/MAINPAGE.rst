@@ -1,6 +1,6 @@
 
 =======================
-travis_emulator 1.0.0.1
+travis_emulator 1.0.0.2
 =======================
 
 
@@ -20,9 +20,11 @@ Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local L
 You can test your application before pushing code to github.com web site.
 
 Travis emulator can creates all the build declared in **.travis.yml**; all the builds are executed in sequential way.
-The directory ~/travis_log (see -l switch) keeps the logs of all then build created.
+The directory ~/travis_log (see -l switch) keeps the logs of all builds created.
 Please note that log file is a binary file with escape ANSI screen code.
-If you want to see the log use the following command:
+If you want to see the log use one of following command:
+
+    `travis show`
 
     `less -R ~/travis_log/<build_name>.log`
 
@@ -307,7 +309,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-09-07
+Last Update / Ultimo aggiornamento: 2020-09-15
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
@@ -322,22 +324,22 @@ Last Update / Ultimo aggiornamento: 2020-09-07
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.1
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.2
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.1/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.1
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.2/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.2
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.1/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.2/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.1/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.2/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.1/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.1
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.2/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.2
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

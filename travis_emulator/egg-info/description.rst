@@ -5,9 +5,11 @@ Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local L
 You can test your application before pushing code to github.com web site.
 
 Travis emulator can creates all the build declared in **.travis.yml**; all the builds are executed in sequential way.
-The directory ~/travis_log (see -l switch) keeps the logs of all then build created.
+The directory ~/travis_log (see -l switch) keeps the logs of all builds created.
 Please note that log file is a binary file with escape ANSI screen code.
-If you want to see the log use the following command:
+If you want to see the log use one of following command:
+
+    `travis show`
 
     `less -R ~/travis_log/<build_name>.log`
 

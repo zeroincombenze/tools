@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.1
+__version__=1.0.0.3
 
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -16,10 +16,11 @@ if [[ $1 =~ -.*h ]]; then
     echo "  -S  store sitecustomize.py in python path (you must have privileges)"
     echo "  -t  activate test environment (PATH with CI/CT commands)"
     echo "  -T  activate OCA test environment (PATH with CI/CT commands) deprecated"
+    echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
     exit 0
-elif [[ $1 =~ -.*h ]]; then
+elif [[ $1 =~ -.*V ]]; then
     echo $___version__
     exit 0
 fi
@@ -34,7 +35,7 @@ RFLIST__wok_code=""
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="odoo_default_tnl.csv odoo_default_tnl.xlsx templates"
 RFLIST__python_plus="vem vem.man"
-RFLIST__WOK_CODE="wget_odoo_repositories.py"
+RFLIST__wok_code="wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py|transodoo.py|transodoo.csv|vfcp|vfdiff)"
@@ -59,6 +60,7 @@ if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
     $0 -h
     exit 1
 fi
+[[ $1 =~ -.*U ]] && cd $SRCPATH && git pull
 [[ $1 =~ -.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
 [[ $1 =~ -.*n ]] || find $SRCPATH -name "*.pyc" -delete
 [[ $1 =~ -.*n ]] || find $DSTPATH -name "*.pyc" -delete

@@ -63,7 +63,7 @@
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.0.2
+__version__=1.0.0.3
 
 export opt_dry_run
 export ctr
@@ -683,36 +683,43 @@ Z0BUG_remove_os_tree() {
 
 
 Z0BUG_build_odoo_env() {
-    local ver hy odoo_home os_tree script x y path
-    ver=$1
-    hy=$2
-    if [[ $ver =~ v?(6|7|8|9|10|11|12|13|14)(\.[01])?[-a-z_]?$ ]]; then
-        [[ $ver =~ (10|11|12|13|14) ]] && odoo_home="$ver/odoo" || odoo_home="$ver/openerp"
-        [[ $hy == "tree" ]] && odoo_home="$ver/odoo/odoo"
-        [[ $hy == "server" || $ver =~ (v6|v7) ]] && odoo_home="$ver/server/openerp"
-        [[ $ver =~ (10|11|12|13|14) ]] && script="odoo-bin" || script="openerp-server"
+    local odoo_home os_tree script h v w x y path
+    local odoo_vid=$1
+    local hy=$2
+    x=$(echo $odoo_vid | grep -Eo "VENV[_-]([0-9]{3,10})?/?" | tail -n1)
+    [[ -n $x ]] && x=$(echo $odoo_vid | grep -Eo "^.*$x")
+    [[ -n $x ]] && w=${odoo_vid/$x/} || w=$odoo_vid
+    [[ $odoo_vid =~ ^($HOME/)?VENV ]] && h="$odoo_vid/odoo" || h=$odoo_vid
+    v=$(echo $w|grep -Eo "(6|7|8|9|10|11|12|13|14)"|head -n1)
+    if [[ -n $v ]]; then
+        [ $v -ge 10 ] && odoo_home="$h/odoo" || odoo_home="$h/openerp"
+        [[ $hy == "tree" ]] && odoo_home="$odoo_vid/odoo/odoo"
+        [[ $hy == "server" || $odoo_vid =~ (v6|v7) ]] && odoo_home="$odoo_vid/server/openerp"
+        [ $v -ge 10 ] && script="odoo-bin" || script="openerp-server"
     else
-        echo "Invalid Odoo version $ver!"
+        echo "Invalid Odoo odoo_version $odoo_vid!"
         exit 1
     fi
-    os_tree="$ver $ver/addons $odoo_home $odoo_home/addons"
+    os_tree="$odoo_vid $h $h/addons $odoo_home $odoo_home/addons"
     Z0BUG_build_os_tree "$os_tree"
-    x=$(echo $ver|grep -Eo [0-9.]+|tail -n1|awk -F"." '{print $1}')
-    y=$(echo $ver|grep -Eo [0-9.]+|tail -n1|awk -F"." '{print $2}')
-    [[ -n "$y" ]] || y="0"
-    [[ $ver =~ ^[.~/] ]] && path=$odoo_home || path=$Z0BUG_root/$odoo_home
+    [[ $v == "6" ]] && y="1" || y="0"
+    [[ $odoo_vid =~ ^[.~/] ]] && path=$odoo_home || path=$Z0BUG_root/$odoo_home
     cat << EOF > $path/release.py
 RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
 RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
                           BETA: BETA,
                           RELEASE_CANDIDATE: 'rc',
                           FINAL: ''}
-version_info = ($x, $y, 0, ''final, 0, '')
+version_info = ($v, $y, $y, FINAL, 0, '')
 version = '.'.join(map(str, version_info[:2])) + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
-series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
+series = serie = major_version = '.'.join(map(str, version_info[:2]))
 EOF
+    # sed -e "s|6, 0, 0, FINAL,|6, 1, 1, FINAL,|" -i $path/release.py
     cat << EOF > $path/__init__.py
 import release
 EOF
     touch $(dirname $path)/$script
+    chmod +x $(dirname $path)/$script
+    [[ $odoo_vid =~ ^[.~/] ]] && path=$odoo_vid || path=$Z0BUG_root/$odoo_vid
+    touch $path/.travis.yml
 }

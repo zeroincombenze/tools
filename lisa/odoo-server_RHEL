@@ -74,9 +74,9 @@ fi
 USER=${xtl_user}
 USERHOME=$(eval echo ~$USER)
 # search for execution command script
-xtl_org=$(echo $(basename $1)|grep -Eo "(oca|librerp|flectra|zero)")
+xtl_org=$(echo $(basename $0)|grep -Eo "(oca|librerp|flectra|zero)"|tail -n1)
 [[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
-mult=$(echo $(basename $1)|grep -Eo "(6|7|8|9|10|11|12|13|14)")
+mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12|13|14)")
 LL=""
 DAEMON=""
 VENV_DIR=""
@@ -87,7 +87,10 @@ for dr in /usr/local/bin /usr/bin ${USERHOME}; do
             [[ $dr =~ ^/usr && ( -z "$dp" || $dp =~ ^(v|V|VENV|OCB) ) ]] && continue
             [[ $dp =~ ^(v|V|OCB)$ && ( -z "$dv" || ! "$ORG" == "odoo" ) ]] && continue
             [[ "$dp" == "VENV" && -z "$dv" ]] && continue
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $dr/${dp}-${ORG}${xtl_version}/odoo <<<$ORG|${xtl_version}>>>"
+            [[ "$dp" == "VENV" && -d $dr/${dp}-${ORG}${xtl_version}/odoo ]] && LL="$LL $dr/${dp}-${ORG}${xtl_version}/odoo"
             [[ "$dp" == "VENV" ]] && FD=$dr/$dp$dv/$ORG || FD=$dr/$dp$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
             if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
             [[ -d "$FD" ]] && LL="$LL $FD"
             [[ -z "$dp" || -z "$dv" ]] && continue
@@ -116,6 +119,7 @@ if [[ -z "$DAEMON" ]]; then
         [[ -n "$DAEMON" ]] && break
     done
 fi
+[ $DRY_RUN -gt 0 ] && echo "DAEMON=$DAEMON"
 [[ -z "$DAEMON" ]] && exit 2
 
 NAME=${xtl_name}
