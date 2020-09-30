@@ -1,0 +1,148 @@
+.\" Manpage for travis.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH travis 8
+.SH NAME
+travis \- TracisCi local emulator
+.SH SYNOPSIS
+travis [options] action
+.SH DESCRIPTION
+\fBtravis\fR can emulate TravisCi parsing the \fB.travis.yml\fR file in local Linux machine.
+You can test your application before pushing code to github.com web site.
+.br
+Travis emulator can creates all the build declared in \fB.travis.yml\fR; all the builds are executed in sequential way.
+The directory ~/travis_log (see -l switch) keeps the logs of all builds created.
+Please note that log file is a binary file with escape ANSI screen code.
+.br
+If you want to see the log use one of following command:
+.P
+.RS
+travis show
+.br
+less -R ~/travis_log/<build_name>.log
+.RE
+.P
+A travis build executes the following steps:
+.br
+* Initialize from local .travis.conf (not in travis-ci.org)
+.br
+* Optional install packages \fIapt addons\fR (emulatore makes just the check)
+.br
+* Optional install packages \fIcache\fR
+.br
+* Set global values \fIenv global\fR
+.br
+* Execute code \fIbefore_install\fR
+.br
+* Execute matrix initialization, included python version
+.br
+* Execute build code \fIinstall\fR
+.br
+* Execute build code \fIbefore_script\fR
+.br
+* Execute build code \fIscript\fR
+.br
+* Execute build \fIbefore_cache\fR (only if cache is effective, not emulated)
+.br
+* Execute build code \fIafter_success\fR (emulated) or \fIafter_failure\fR (not emulated)
+.br
+* Optional code \fIbefore_deploy\fR (only if deployment is effective, not emulated)
+.br
+* Optional code \fIdeploy\fR (not emulated)
+.br
+* Optional code \fIafter_deploy\fR (only if deployment is effective, not emulated)
+.br
+* Execute code \fIafter_script\fR (not emulated)
+.br
+* Wep from local .travis.conf (not in travis-ci.org)
+.br
+Read furthermore info read https://docs.travis-ci.com/user/job-lifecycle/
+.P
+Action is one of:
+.br
+* help
+.br
+* emulate
+.br
+* force-lint
+.br
+* lint
+.br
+* force-test
+.br
+* test
+.br
+* chkconfig
+.br
+* parseyaml
+.br
+* show
+.br
+* summary
+.br
+* wep_db
+.br
+* wep-db
+.br
+.P
+\fBemulate\fR
+.RS
+Emulate TravisCi
+.br
+Start TravisCi emulator processing current .travis.yml file
+.RE
+.P
+\fBforce-lint\fR \fBlint\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file, setting LINT_CHECK variabile to value "1" and TESTS to value "0".
+In this way only the build of linting is executed.
+.RE
+.P
+\fBforce-test\fR \fBtest\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file, setting TESTS to value "1" and LINT_CHECK variabile to value "0".
+In this way only the build of test is executed.
+.RE
+.P
+\fBshow-log\fR
+.RS
+Show last log
+.RE
+.P
+\fBsummary\fR
+.RS
+Show last log summary
+.br
+.RE
+.P
+\fBweb-db\fR
+.RS
+Remove virtual environments and postgres database created by previous travis emulator interuppted
+.br
+.RE
+.SH OPTIONS
+.TP
+.BR \-B
+Run in debug mode and do not create log file
+.TP
+.BR \-D \fIdebu-level\fR
+Set travis_debug_mode: may be 0,1,2,8 or 9
+.br
+default value from .travis.yml
+.TP
+.TP
+.BR \-L  \fIlint-level_level\fR
+Set lint_check_level: may be minimal,reduced,average,nearby,oca
+.br
+default value from .travis.yml
+.TP
+.BR \-V
+Show version
+.TP
+.BR \-v
+Verbose mode
+.SH EXAMPLES
+travis
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)
