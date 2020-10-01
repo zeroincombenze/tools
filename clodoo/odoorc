@@ -143,9 +143,9 @@ get_odoo_full_ver() {
 find_odoo_ver() {
     #find_odoo_ver(odoo_root_dir)
     local ldir odoo_fver x
-    [ -n "$1" ] && cd $1
-    while [ -z "$odoo_fver" ]; do
-        for ldir in $PWD/server/openerp $PWD/openerp $PWD/odoo; do
+    [[ -n "$1" ]] && cd $1
+    while [[ -z "$odoo_fver" ]]; do
+        for ldir in $PWD/odoo $PWD/openerp $PWD/server/openerp; do
             if [[ -d $ldir && -f $ldir/release.py ]]; then
                 pushd $ldir &>/dev/null
                 x=$(echo -e "from __future__ import print_function\nimport release\nprint(release.version)\n" | python)
@@ -154,12 +154,33 @@ find_odoo_ver() {
                 break
             fi
         done
-        if [ "$PWD" == "$HOME" ]; then
-            break
-        fi
-        [ "$PWD" != "/" ] && PWD=$(readlink -f $PWD/..) || break
+        [[ $PWD == $HOME ]] && break
+        [[ ! $PWD == "/" ]] && PWD=$(readlink -f "$PWD/..") || break
     done
     echo "$odoo_fver"
+}
+
+is_ocb_dir() {
+    local x
+    [[ -z $1 ]] && return 1
+    for x in $1/odoo-bin $1/odoo/odoo-bin $1/openerp-server $1/odoo/openerp-server $1/server/openerp-server; do
+        [[ -x $x ]] && return 0
+    done
+    return 1
+}
+
+is_repos() {
+    local x
+    [[ -z $1 ]] && return 1
+    [[ (-f $1/.travis.yml || -f $1/.gitlab-ci.yml) && (-d $1/.git || -f $1/requirements.txt || -f $1/oca_dependencies.txt || -f $1/README.rst || -f $1/README.md) ]] && return 0
+    return 1
+}
+
+is_module() {
+    local x
+    [[ -z $1 ]] && return 1
+    [[ (-f $1/__manifest__.py || -f $1/__openerp__.py) && -f $1/__init__.py ]] && return 0
+    return 1
 }
 
 build_odoo_param() {
@@ -192,42 +213,34 @@ build_odoo_param() {
     if [[ "$2" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) || $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
         [[ -n "$2" ]] && cdir=$(readlink -f $2) || cdir=$(readlink -f $PWD)
         [ -f $cdir ] && cdir=$(dirname $cdir)
-        while [[ -z "$odoo_vid" && -z "$ROOT" && -n "$cdir" ]]; do
+        while [[ (-z "$odoo_vid" || -z "$ROOT") && -n "$cdir" ]]; do
             [[ -n $PKGNAME && -d odoo && -d venv_odoo ]] && VENV=1
-            if [[ -z "$PKGPATH" && (-f $cdir/__manifest__.py || -f $cdir/__openerp__.py) && -f $cdir/__init__.py ]]; then
+            if $(is_module "$cdir"); then
                 PKGPATH=$cdir
                 PKGNAME=$(basename $cdir)
                 PARENTDIR=$(dirname $cdir)
-            elif [[ -x $cdir/odoo-bin || -x $cdir/openerp-server || -x $cdir/server/openerp-server ]]; then
-                REPOS=OCB
-                ROOT=$cdir
+            elif $(is_ocb_dir "$cdir"); then
+                [[ -z "$REPOS" ]] && REPOS=OCB
+                [[ -z "$ROOT" ]] && ROOT=$cdir
                 [[ -z "$PARENTDIR" ]] && PARENTDIR=$ROOT
                 odoo_vid=$(basename $cdir)
                 FULLVER=$(find_odoo_ver)
-            elif [[ -f $cdir/.travis.yml || -f $cdir/.gitlab-ci.yml || (-n "$PKGNAME" && -d $cdir/$PKGNAME) ]]; then
+            elif $(is_repos "$cdir") || [[ (-n "$PKGNAME" && -d $cdir/$PKGNAME) ]]; then
                 r=$(basename $cdir)
-                [[ $r =~ $rex ]] && REPOS=OCB || REPOS=$r
-                [[ $REPOS == "OCB" ]] && ROOT=$cdir || ROOT=$(dirname $cdir)
-                [[ -z "$PARENTDIR" ]] && PARENTDIR=$ROOT
+                [[ ! $r =~ $rex ]] && REPOS=$r
+                [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
                 odoo_vid=$(basename $cdir)
             elif [[ -z "$PKGNAME" ]]; then
                 p=0
                 for d in $(find $cdir -maxdepth 2); do
-                    [[ (-f $d/__manifest__.py || -f $d/__openerp__.py) && -f $d/__init__.py ]] && p=1
+                    $(is_module "$d") && PKGNAME=$(basename $d) && PARENTDIR=$(dirname $d) && p=1 && break
                 done
                 if [ $p -ne 0 ]; then
                     r="$(basename $cdir)"
-                    if [[ $r =~ $rex ]]; then
-                        REPOS=OCB
-                        ROOT=$cdir
-                        odoo_vid=$(basename $cdir)
-                    else
-                        REPOS=$r
-                        PARENTDIR=$cdir
-                    fi
+                    [[ ! $r =~ $rex ]] && REPOS=$r
                 fi
             fi
-            if [[ -z "$GIT_ORGNM" && -d $cdir/.git && $(git status -s &>/dev/null) ]]; then
+            if [[ -z "$GIT_ORGNM" && -d $cdir/.git ]] && $(git status -s &>/dev/null); then
                 GIT_URL=$(git remote get-url --push origin 2>/dev/null)
                 RUPSTREAM=$(git remote get-url --push upstream 2>/dev/null)
                 if [[ -n "$GIT_URL" ]]; then

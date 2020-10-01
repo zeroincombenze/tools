@@ -494,7 +494,7 @@ test_05() {
             test_result "5d> multi ROOT $w [bash]" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param ROOT $w "crm")
-            test_result "5d> multi root $w/crm [bash]" "$b" "$RES"
+            test_result "5d> multi ROOT $w/crm [bash]" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ $x == "oca" ]]; then
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param ROOT $v "OCB" $x)
@@ -512,6 +512,7 @@ test_05() {
                     Z0BUG_build_os_tree "$w/crm"
                     touch $Z0BUG_root/$w/.travis.yml
                     touch $Z0BUG_root/$w/crm/.travis.yml
+                    mkdir -p $Z0BUG_root/$w/crm/.git
                     Z0BUG_build_module_path "$Z0BUG_root/$w/addons/crm" "$v"
                     pushd $Z0BUG_root/$w>/dev/null || return 1
                     RES=$(build_odoo_param ROOT ".")
@@ -541,6 +542,7 @@ test_05() {
                     Z0BUG_build_os_tree "$HOME/$w/crm"
                     touch $HOME/$w/.travis.yml
                     touch $HOME/$w/crm/.travis.yml
+                    mkdir -p $HOME/$w/crm/.git
                     pushd $HOME/$w>/dev/null || return 1
                     RES=$(build_odoo_param ROOT ".")
                 fi

@@ -63,7 +63,7 @@
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.0.3
+__version__=1.0.0.4
 
 export opt_dry_run
 export ctr
@@ -722,4 +722,5 @@ EOF
     chmod +x $(dirname $path)/$script
     [[ $odoo_vid =~ ^[.~/] ]] && path=$odoo_vid || path=$Z0BUG_root/$odoo_vid
     touch $path/.travis.yml
+    mkdir -p $path/.git
 }
