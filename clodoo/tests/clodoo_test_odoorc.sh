@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.9.24
+__version__=0.3.9.25
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca librerp VENV_123- devel"
@@ -43,6 +43,7 @@ test_01() {
     local sts=0
     export opt_multi=0
     declare -A TRES
+
     discover_multi
     test_result "Discover_multi (0)" "0" "$opt_multi"
     for v in 12 12.0 v12 V12 v12.0 V12.0 VENV-12.0 VENV_123-12.0; do
@@ -619,238 +620,59 @@ test_05() {
     return $sts
 }
 
-__test_06() {
-    local s sts v w
+test_06() {
+    local b m o s sts v w x
     sts=0
-    export opt_multi=1
     declare -A TRES
 
-    TRES[6.1]="$LCL_ROOT/6.1/openerp/filestore"
-    TRES[v7]="$LCL_ROOT/v7/openerp/filestore"
-    TRES[7.0]="$LCL_ROOT/7.0/openerp/filestore"
-    TRES[v8.0]="$LCL_ROOT/.local/share/Odoo"
-    TRES[8.0]="$LCL_ROOT/.local/share/Odoo8"
-    TRES[9.0]="$LCL_ROOT/.local/share/Odoo9"
-    TRES[10.0]="$LCL_ROOT/.local/share/Odoo10"
-    TRES[VENV-10]="$LCL_ROOT/VENV-10/.local/share/Odoo"
-    TRES[11.0]="$LCL_ROOT/.local/share/Odoo11"
-    TRES[12.0]="$LCL_ROOT/.local/share/Odoo12"
-    for v in $VERSIONS_TO_TEST VENV-10 v8.0 v7; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param DDIR $v)
-      fi
-      test_result "Filestore $v" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-
-    TRES[6.1]="$LCL_ROOT/6.1/crm"
-    TRES[v7]="$LCL_ROOT/v7/crm"
-    TRES[7.0]="$LCL_ROOT/7.0/crm"
-    TRES[v8.0]="$LCL_ROOT/v8.0/crm"
-    TRES[8.0]="$LCL_ROOT/8.0/crm"
-    TRES[9.0]="$LCL_ROOT/9.0/crm"
-    TRES[10.0]="$LCL_ROOT/10.0/crm"
-    TRES[11.0]="$LCL_ROOT/11.0/crm"
-    TRES[12.0]="$LCL_ROOT/12.0/crm"
-    for v in $VERSIONS_TO_TEST v8.0 v7; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param HOME $v "crm")
-      fi
-      test_result "Home $v/crm" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param PARENTDIR $v "crm")
-      fi
-      test_result "Parent dir $v/crm" "$LCL_ROOT/$v" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-
-    TRES[6.1]="$LCL_ROOT/VENV-6.1/odoo/crm"
-    TRES[7.0]="$LCL_ROOT/VENV-7.0/odoo/crm"
-    TRES[8.0]="$LCL_ROOT/VENV-8.0/odoo/crm"
-    TRES[9.0]="$LCL_ROOT/VENV-9.0/odoo/crm"
-    TRES[10.0]="$LCL_ROOT/VENV-10.0/odoo/crm"
-    TRES[11.0]="$LCL_ROOT/VENV-11.0/odoo/crm"
-    TRES[12.0]="$LCL_ROOT/VENV-12.0/odoo/crm"
     for v in $VERSIONS_TO_TEST; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param HOME VENV-$v "crm")
-      fi
-      test_result "Home VENV-$v/crm" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        m=$(echo $v|awk -F. '{print $1}')
+        for x in "" $SUB_TO_TEST; do
+            [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue
+            [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
+            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+
+            opt_multi=0
+            [ $m -le 7 ] && TRES[$v]="$HOME/$w/openerp/filestore" || TRES[$v]="$HOME/.local/share/Odoo"
+            if [[ $x =~ ^VENV ]]; then
+                [ $m -le 7 ] && TRES[$v]="$HOME/$w/odoo/openerp/filestore" || TRES[$v]="$HOME/VENV-$v/.local/share/Odoo"
+            elif [[ $w =~ (v|V) ]]; then
+                [ $m -le 7 ] && TRES[$v]="$HOME/$w/openerp/filestore" || TRES[$v]="$HOME/.local/share/Odoo"
+            fi
+            [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param DDIR $w)
+            test_result "6a> Unique DDIR $w [bash]" "${TRES[$v]}" "$RES"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        done
     done
     return $sts
-    }
+}
 
-__test_07() {
-    local s sts v w
+test_07() {
+    local b m o s sts v w x z
     sts=0
-    export opt_multi=0
     declare -A TRES
-    for z in "OCB" "l10n-italy"; do
-      TRES[zero-git]="git@github.com:zeroincombenze/$z"
-      TRES[zero-http]="https://github.com/zeroincombenze/$z"
-      TRES[oca]="https://github.com/OCA/$z"
-      TRES[librerp]="https://github.com/iw3hxn/server"
-      if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
-        TRES[zero]=${TRES[zero-git]}
-      else
-        TRES[zero]=${TRES[zero-http]}
-      fi
-      for w in zero zero-git zero-http oca librerp; do
-        [ "$z" == "l10n-italy" -a "$w" == "librerp" ] && continue
-        for v in $VERSIONS_TO_TEST; do
-          if [ ${opt_dry_run:-0} -eq 0 ]; then
-            RES=$(build_odoo_param URL $v $z $w)
-          fi
-          test_result "URL $w/$z $v" "${TRES[$w]}" "$RES"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
-          #
-          if [ ${opt_dry_run:-0} -eq 0 ]; then
-            RES=$(build_odoo_param GIT_URL $v $z $w)
-          fi
-          test_result "GIT_URL $w/$z $v" "${TRES[$w]}.git" "$RES"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
-          #
-          if [ ${opt_dry_run:-0} -eq 0 ]; then
-            RES=$(build_odoo_param URL_BRANCH $v $z $w)
-          fi
-          test_result "URL_BRANCH $w/$z $v" "${TRES[$w]}/tree/$v" "$RES"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+
+    opt_multi=1
+    for v in $VERSIONS_TO_TEST; do
+        m=$(echo $v|awk -F. '{print $1}')
+        for x in "" $SUB_TO_TEST; do
+            [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue
+            [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
+            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            for z in "OCB" "l10n-italy"; do
+                [[ $HOSTNAME =~ (shs[a-z0-9]{4,6}|zeroincombenze) ]] && TRES[$v]="git@github.com:zeroincombenze/${z}.git" || TRES[$v]="https://github.com/zeroincombenze/${z}.git"
+                [[ $x =~ ^(odoo|ODOO) ]] && TRES[$v]="https://github.com/odoo/odoo.git"
+                [[ $x =~ ^(odoo|ODOO) && ! $z == "OCB" ]] && continue
+                [[ $x == "librerp" && $v == "6.1" && $z == "l10n-italy" ]] && continue
+                [[ $x =~ ^(oca|OCB) ]] && TRES[$v]="https://github.com/OCA/${z}.git"
+                [[ $x == "librerp" && $v == "12.0" ]] && TRES[$v]="https://github.com/librerp/${z}.git"
+                [[ $x == "librerp" && $v == "6.1" ]] && TRES[$v]="https://github.com/iw3hxn/server.git"
+                [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_URL $w $z)
+                test_result "7a> multi GIT_URL $w/$z [bash]" "${TRES[$v]}" "$RES"
+                s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            done
         done
-      done
     done
-    #
-    for z in "OCB" "l10n-italy"; do
-      TRES[zero-git]="git@github.com:zeroincombenze"
-      TRES[zero-http]="https://github.com/zeroincombenze"
-      TRES[oca]="https://github.com/OCA"
-      TRES[librerp]="https://github.com/iw3hxn"
-      if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
-        TRES[zero]=${TRES[zero-git]}
-      else
-        TRES[zero]=${TRES[zero-http]}
-      fi
-      for w in zero zero-git zero-http oca librerp; do
-        [ "$z" == "l10n-italy" -a "$w" == "librerp" ] && continue
-        for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
-          if [ ${opt_dry_run:-0} -eq 0 ]; then
-            RES=$(build_odoo_param GIT_ORG $v $z $w)
-          fi
-          test_result "GIT_ORG $w/$z $v" "${TRES[$w]}" "$RES"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        done
-      done
-    done
-    #
-    for z in "OCB" "l10n-italy"; do
-      TRES[zero]="https://github.com/OCA/$z"
-      TRES[zero-git]="https://github.com/OCA/$z"
-      TRES[zero-http]="https://github.com/OCA/$z"
-      TRES[oca]="https://github.com/OCA/$z"
-      TRES[librerp]="https://github.com/iw3hxn/$z"
-      for w in zero zero-git zero-http oca librerp; do
-        [ "$z" == "l10n-italy" -a "$w" == "librerp" ] && continue
-        for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
-          if [ ${opt_dry_run:-0} -eq 0 ]; then
-            RES=$(build_odoo_param UPSTREAM $v $z $w)
-          fi
-          if [ "$v" == "6.1" -o "$w" == "oca" -o "$w" == "librerp" ]; then
-            test_result "UPSTREAM $w/$z $v" "" "$RES"
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
-          else
-            test_result "UPSTREAM $w/$z $v" "${TRES[$w]}.git" "$RES"
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
-          fi
-        done
-      done
-    done
-    #
-    for v in 12.0 11.0 10.0 8.0 7.0; do
-      w=$(echo $v|grep -Eo "[0-9]+"|head -n1)
-      # TO FIX HOME
-      # TRES[zero]="$HOME/zero$w"
-      # TRES[zero-git]="$HOME/zero$w"
-      # TRES[zero-http]="$HOME/zero$w"
-      # TRES[oca]="$HOME/oca$w"
-      # TRES[oia]="$HOME/oia$w"
-      # TRES[oia-git]="$HOME/oia$w"
-      # TRES[oia-http]="$HOME/oia$w"
-      TRES[zero]="$LCL_ROOT/zero$w"
-      TRES[zero-git]="$LCL_ROOT/zero$w"
-      TRES[zero-http]="$LCL_ROOT/zero$w"
-      TRES[oca]="$LCL_ROOT/oca$w"
-      TRES[oia]="$LCL_ROOT/oia$w"
-      TRES[oia-git]="$LCL_ROOT/oia$w"
-      TRES[oia-http]="$LCL_ROOT/oia$w"
-      for w in zero zero-git zero-http oca oia oia-git oia-http; do
-        if [ ${opt_dry_run:-0} -eq 0 ]; then
-          RES=$(build_odoo_param HOME $v '' $w)
-        fi
-        test_result "HOME $v $w" "${TRES[$w]}" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      done
-    done
-
-    return $sts
-    }
-
-__test_08() {
-    local s sts v w x
-    sts=0
-    export opt_multi=1
-    declare -A TRES
-    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10; do
-        pushd $Z0BUG_root/$v >/dev/null
-        RES=$(build_odoo_param HOME '.')
-        test_result "HOME ./$v" "$PWD" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        #
-        w=$(echo $v|grep -Eo "[0-9]+"|head -n1)
-        if [ "$w" == "6" ]; then
-          w="$w.1"
-        else
-          w="$w.0"
-        fi
-        RES=$(build_odoo_param FULLVER '.')
-        test_result "Full version ./$v" "$w" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        #
-        w=$(echo $v|grep -Eo "[0-9]+"|head -n1)
-        if [[ "10.0 11.0 12.0" =~ "$v" ]]; then
-          w="/etc/odoo/odoo${w}.conf"
-        elif [[ "6.1 7.0 8.0 9.0" =~ "$v" ]]; then
-          w="/etc/odoo/odoo${w}-server.conf"
-        elif [[ "${v:0:3}" == "oca" ]]; then
-          w="/etc/odoo/odoo${w}-oca.conf"
-        elif [[ "${v:0:3}" == "oia" ]]; then
-          w="/etc/odoo/odoo${w}-oia.conf"
-        elif [[ "${v:0:7}" == "librerp" ]]; then
-          w="/etc/odoo/odoo${w}-librerp.conf"
-        else
-          w=
-        fi
-        RES=$(build_odoo_param CONFN $v)
-        test_result "Configuration file ./$v" "$w" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        popd >/dev/null || return 1
-
-
-        if [ "${v:0:3}" != "oia" ]; then
-          x=$(readlink -f $Z0BUG_root/$v)
-          RES=$(build_odoo_param HOME $Z0BUG_root/$v)
-          test_result "HOME $Z0BUG_root/$v" "$x" "$RES"
-          RES=$(build_odoo_param HOME $Z0BUG_root/$v/addons)
-          test_result "HOME $Z0BUG_root/$v/addons" "$x" "$RES"
-          RES=$(build_odoo_param HOME "$x")
-          test_result "HOME $x" "$x" "$RES"
-          RES=$(build_odoo_param HOME "$x/addons")
-          test_result "HOME $x/addons" "$x" "$RES"
-        fi
-      done
-    fi
     return $sts
 }
 

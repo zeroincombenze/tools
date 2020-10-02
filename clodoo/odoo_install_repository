@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.9.24
+__version__=0.3.9.25
 
 rmdir_if_exists() {
 #rmdir_if_exists (RPTNAME odoo_vid new_vid)
@@ -244,15 +244,16 @@ update_confn() {
   fi
 }
 
-OPTOPTS=(h        b          c        C          D        j        L        m          n            O         o         q           r          U       u          V           v           y       1)
-OPTDEST=(opt_help opt_branch opt_conf opt_noconf opt_ucfg opt_only opt_link opt_multi  opt_dry_run  opt_org   opt_odir  opt_verbose opt_updrmt opt_upd opt_user   opt_version opt_verbose opt_yes opt_one)
-OPTACTI=(1        "="        "="      1          1        1        1        1          1            "="       "="       0           1          1       "="        "*>"        "+"         1       1)
-OPTDEFL=(0        ""         ""       0          0        0        0        0          0            ""        ""        -1          0          0       ""         ""          -1          0       0)
-OPTMETA=("help"   "branch"   "file"   ""         ""       ""       ""       ""         "do nothing" "git-org" "path"    "verbose"   ""         ""      "username" "version"   "verbose"   ""      "")
+OPTOPTS=(h        b          c        C          d           D        j        L        m          n            O         o         q           r          U       u          V           v           y       1)
+OPTDEST=(opt_help opt_branch opt_conf opt_noconf opt_deploy  opt_ucfg opt_only opt_link opt_multi  opt_dry_run  opt_org   opt_odir  opt_verbose opt_updrmt opt_upd opt_user   opt_version opt_verbose opt_yes opt_one)
+OPTACTI=(1        "="        "="      1          "="         1        1        1        1          1            "="       "="       0           1          1       "="        "*>"        "+"         1       1)
+OPTDEFL=(0        ""         ""       0          ""          0        0        0        0          0            ""        ""        -1          0          0       ""         ""          -1          0       0)
+OPTMETA=("help"   "branch"   "file"   ""         "deploy" "" ""       ""       ""         "do nothing" "git-org" "path"    "verbose"   ""         ""      "username" "version"   "verbose"   ""      "")
 OPTHELP=("this help"\
  "default odoo branch"\
  "configuration file (def .travis.conf)"\
  "do not touch configuration file (conflict with -D)"\
+ "deployment layout if not flat, may be tree or server"
  "update default values in /etc configuration file before creating script (conflict with -C)"\
  "install only repository owned by git organization"\
  "create symbolic link rather copy files (if new_odoo_ver supplied)"\
@@ -307,7 +308,7 @@ TMPFILE=$HOME/tmp_$$.out
 odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 odoo_rver=$(build_odoo_param GIT_BRANCH "$odoo_vid")
-pkg_URL=$git_repo
+pkg_URL=$(build_odoo_param GIT_URL "$odoo_vid" $git_repo $opt_org)
 RPTNAME=$(basename $git_repo)
 [ -z "$opt_org" ] && opt_org=$(build_odoo_param GIT_ORGID $odoo_vid)
 if [[ $odoo_vid =~ (14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) && "$opt_org" == "zero" ]]; then
@@ -325,8 +326,7 @@ fi
 [[ "${RPTNAME: -4}" == ".git" ]] && RPTNAME=${RPTNAME:0: -4}
 [[ "${RPTNAME: -1}" == "/" ]] && RPTNAME=${RPTNAME:0: -1}
 [[ "${pkg_URL: -1}" == "/" ]] && pkg_URL=${pkg_URL:0: -1}
-odoo_root=$(build_odoo_param ROOT $odoo_fver "OCB" $def_opt_org)
-echo "<<<$odoo_root=\$(build_odoo_param ROOT $odoo_fver \"OCB\" $def_opt_org)>>>" #debug
+odoo_root=$(build_odoo_param ROOT $odoo_fver "OCB" $opt_org "$opt_deploy")
 if [ -z "$new_odoo_vid" ]; then
   new_odoo_fver=$odoo_fver
   if [ "$pkg_URL" == "$RPTNAME" ]; then

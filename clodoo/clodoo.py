@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
-__version__ = "0.3.9.24"
+__version__ = "0.3.9.25"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -428,7 +428,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                 if not ctx.get('odoo_vid'):
                     ctx['odoo_vid'] = ctx['oe_version']
             elif p == 'svc_protocol' and (p not in ctx or not ctx[p]):
-                if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
+                if ctx.get('oe_version') in ('6.1', '7.0', '8.0'):
                     ctx[p] = 'xmlrpc'
                 elif ctx.get('oe_version'):
                     ctx[p] = 'jsonrpc'
