@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.9.25
+__version__=0.3.9.26
 
 OPTOPTS=(h B b c d e k i I l L m M n o O p s T t U u V v w W x)
 OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_db opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_xport)
