@@ -21,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.0.0.1
+__version__=1.0.0.2
 NEEDING_PKGS="future os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
@@ -636,6 +636,7 @@ do_venv_mgr() {
     popt=""
     [ $opt_alone -ne 0 ] && popt="--isolated"
     [ $PIPVER -gt 18 ] && [[ -z $popt || ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
+    [ $PIPVER -gt 19 ] && [[ -z $popt || ! --use-feature =~ $popt ]] && popt="$popt --use-feature=2020-resolver"
     [ $opt_verbose -eq 0 ] && popt="$popt -q"
     if [[ -z "$VENV" || -z "$VENV_TGT" ]]; then
         echo "Missed parameters!"
@@ -810,6 +811,7 @@ do_venv_create() {
     popt=""
     [ $opt_alone -ne 0 ] && popt="--isolated"
     [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
+    [ $PIPVER -gt 19 ] && [[ -z $popt || ! --use-feature =~ $popt ]] && popt="$popt --use-feature=2020-resolver"
     [ $opt_verbose -eq 0 ] && popt="$popt -q"
     for pkg in $NEEDING_PKGS; do
         pip_install $pkg $popt
@@ -855,6 +857,7 @@ do_venv_pip() {
     [ $opt_alone -ne 0 ] && popt="--isolated"
     [ $opt_verbose -eq 0 ] && popt="$popt -q"
     [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
+    [ $PIPVER -gt 19 ] && [[ -z $popt || ! --use-feature =~ $popt ]] && popt="$popt --use-feature=2020-resolver"
     if [[ $3 =~ $BIN_PKGS ]]; then
         [[ "$cmd" == "install" ]] && bin_install "$3" "$1"
     elif [[ $3 =~ $EI_PKGS && "$cmd" == "install" ]]; then

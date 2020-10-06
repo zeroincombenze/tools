@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.2
+__version__=1.0.0.3
 
 
 store_cfg_param_value() {
@@ -91,7 +91,7 @@ process_yaml_init() {
     if [ $opt_dbgmnt -ne 0 ]; then
         [[ -d $HOME/devel ]] && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
         [[ -d $HOME/devel ]] && export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo || export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
-        (($opt_debug)) && export TRAVIS_PDB="rue"
+        (($opt_debug)) && export TRAVIS_PDB="true"
     else
         export YML_lisa=lisa
         export YML_mgrodoo=manage_odoo

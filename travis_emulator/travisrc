@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=1.0.0.2
+#__version__=1.0.0.3
 
 
 MAKEF=$HOME/dev/Makefile
@@ -369,7 +369,7 @@ drop_test_db() {
     fi
 }
 
-venv_mgr_install_pkg() {
+__venv_mgr_install_pkg() {
 #venv_mgr_install_pkg(VENV PKG)
     local VENV PKG
     [ -n "$1" ] && VENV=$(readlink -f $1)
@@ -391,7 +391,7 @@ venv_mgr_install_pkg() {
     fi
 }
 
-venv_mgr_test() {
+__venv_mgr_test() {
 #venv_mgr_test(VENV)
     local f x VENV
     [ -n "$1" ] && VENV=$(readlink -f $1)

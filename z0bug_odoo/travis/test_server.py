@@ -19,7 +19,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '1.0.0.1'
+__version__ = '1.0.0.2'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -352,7 +352,7 @@ def setup_server(db, server_path, script_name,
     if server_options is None:
         server_options = []
     try:
-        subprocess.check_call(["createdb", db])
+        subprocess.check_call(["createdb", db, "-E", "UTF-8"])
         print_flush("INFO: database %s created." % db)
     except subprocess.CalledProcessError:
         print_flush("INFO: Using previous %s database." % db)
@@ -630,7 +630,7 @@ def main(argv=None):
         # db_odoo_created = False
         try:
             db_odoo_created = subprocess.call(
-                ["createdb", "-T", dbtemplate, database])
+                ["createdb", "-T", dbtemplate, database, "-E", "UTF-8"])
             copy_attachments(dbtemplate, database, data_dir)
         except subprocess.CalledProcessError:
             db_odoo_created = True
