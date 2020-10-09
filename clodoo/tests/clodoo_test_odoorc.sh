@@ -658,6 +658,9 @@ test_05() {
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
         TRES="odoo"
+        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param DB_USER $v)
+        test_result "5i> unique db username $v [bash]" "$TRES" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param USER $v)
         test_result "5i> unique db username $v [bash]" "$TRES" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -665,6 +668,9 @@ test_05() {
         export opt_multi=1
         TRES="odoo${m}"
         [[ $w =~ ^(v|V)[0-9] ]] && TRES="odoo"
+        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param DB_USER $v)
+        test_result "5i> multi db username $v [bash]" "$TRES" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param USER $v)
         test_result "5i> multi db username $v [bash]" "$TRES" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -736,6 +742,28 @@ test_07() {
                 test_result "7c> multi RUPSTREAM $w/$z [bash]" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
             done
+            if [[ ! $x == "VENV_123-" ]]; then
+                if [ ${opt_dry_run:-0} -eq 0 ]; then
+                    Z0BUG_build_os_tree "$w/venv_odoo $w/venv_odoo/bin"
+                    touch $Z0BUG_root/$w/venv_odoo/bin/activate
+                    pushd $Z0BUG_root/$w>/dev/null || return 1
+                    RES=$(build_odoo_param VDIR ".")
+                fi
+                test_result "$PWD> VDIR '.' [bash]" "$Z0BUG_root/$w/venv_odoo" "$RES"
+                [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
+                if [ ${opt_dry_run:-0} -eq 0 ]; then
+                    Z0BUG_remove_os_tree "$w/venv_odoo"
+                    Z0BUG_build_os_tree "VENV-$w/bin"
+                    touch $Z0BUG_root/VENV-$w/bin/activate
+                    pushd $Z0BUG_root/$w>/dev/null || return 1
+                    RES=$(build_odoo_param VDIR ".")
+                fi
+                test_result "$PWD> VDIR '.' [bash]" "$Z0BUG_root/VENV-$w" "$RES"
+                [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
+                RES=$(build_odoo_param VDIR "VENV-$w")
+                test_result "7d> VDIR VENV-$w [bash]" "$HOME/VENV-$w" "$RES"
+                [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
+            fi
         done
     done
 
@@ -832,8 +860,9 @@ Z0BUG_setup() {
     local f m o v w x OS_TREE
     [ ${opt_dry_run:-0} -ne 0 ] && return
     export ODOO_GIT_ORGID=zero
-    export ODOO_GIT_PROT=git
     export ODOO_GIT_SHORT="(oca|librerp)"
+    export ODOO_DB_USER=""
+
     for v in $VERSIONS_TO_TEST $MAJVERS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
@@ -849,50 +878,12 @@ Z0BUG_setup() {
                     OS_TREE="$OS_TREE $x${m}${o} $HOME/$x${m}${o}"
                 done
             fi
-            # Z0BUG_build_odoo_env "$w"
-            # for f in l10n-italy l10n-italy/l10n_it_base web; do
-            #     OS_TREE="$OS_TREE $Z0BUG_root/$w/$f"
-            #     if [ $m -ge 10 ]; then
-            #         OS_TREE="$OS_TREE $Z0BUG_root/$w/odoo"
-            #         OS_TREE="$OS_TREE $Z0BUG_root/$w/odoo/addons"
-            #         OS_TREE="$OS_TREE $Z0BUG_root/$w/odoo/addons/base"
-            #     else
-            #         OS_TREE="$OS_TREE $Z0BUG_root/$w/openerp"
-            #         OS_TREE="$OS_TREE $Z0BUG_root/$w/openerp/addons"
-            #         OS_TREE="$OS_TREE $Z0BUG_root/$w/openerp/addons/base"
-            #     fi
-            # done
-            # for f in account sale web; do
-            #     OS_TREE="$OS_TREE $Z0BUG_root/$w/addons/$f"
-            # done
-            # Z0BUG_build_os_tree "$OS_TREE"
-            # for f in l10n-italy web; do
-            #     touch $Z0BUG_root/$w/$f/.travis.yml
-            #     if [ $m -ge 10 ]; then
-            #         touch $Z0BUG_root/$w/odoo/addons/base/__init__.py
-            #         touch $Z0BUG_root/$w/odoo/addons/base/__manifest__.py
-            #     else
-            #         touch $Z0BUG_root/$w/openerp/addons/base/__init__.py
-            #         touch $Z0BUG_root/$w/openerp/addons/base/__openerp__.py
-            #     fi
-            # done
-            # if [ $m -ge 10 ]; then
-            #     touch $Z0BUG_root/$w/odoo/addons/base/__manifest__.py
-            #     touch $Z0BUG_root/$w/odoo/addons/base/__init__.py
-            # else
-            #     touch $Z0BUG_root/$w/openerp/addons/base/__openerp__.py
-            #     touch $Z0BUG_root/$w/openerp/addons/base/__init__.py
-            # fi
-            # for f in l10n-italy/l10n_it_base addons/account addons/sale addons/web; do
-            #     [ $m -lt 10 ] && touch $Z0BUG_root/$w/$f/__openerp__.py || touch $Z0BUG_root/$w/$f/__manifest__.py
-            #     touch $Z0BUG_root/$w/$f/__init__.py
-            # done
         done
     done
     Z0BUG_remove_os_tree "$OS_TREE"
 }
 
-__Z0BUG_teardown() {
+Z0BUG_teardown() {
     local f m o v w x OS_TREE
     [ ${opt_dry_run:-0} -ne 0 ] && return
     for v in $VERSIONS_TO_TEST $MAJVERS_TO_TEST; do

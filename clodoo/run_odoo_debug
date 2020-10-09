@@ -30,11 +30,20 @@ fi
 
 __version__=0.3.9.27
 
-OPTOPTS=(h B b c d e k i I l L m M n o O p s T t U u V v w W x)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_db opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_xport)
-OPTACTI=(1 1 "=>" "=" "=" 1 1 1 1 1 "=" "=" 1 "1" "=" 1 "=" 1 1 1 "=" 1 "*>" 1 1 1 "=")
-OPTDEFL=(1 0 "" "" "" 0 0 0 0 0 "" "" -1 0 "" 0 "" 0 0 0 "" 0 "" 0 0 0 "")
-OPTMETA=("help" "" "branch" "fname" "dbname" "" "" "" "" "" "level" "modules" "" "no op" "file" "" "dir" "" "" "touch" "user" "" "version" "verbose" 0 "" "port")
+run_traced_debug() {
+    if [ $opt_verbose -gt 1 ]; then
+        run_traced "$1"
+    elif [ $opt_dry_run -eq 0 ]; then
+        eval $1
+    fi
+}
+
+
+OPTOPTS=(h        B       b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s        T        t         U          u       V           v           w       W        x)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_db   opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_xport)
+OPTACTI=(1        1       "=>"       "="      "="      1       1        1       1       1        "="      "="         1         1           "="       1      "="      1        1        1         "="        1       "*>"        "+"         1       1        "=")
+OPTDEFL=(1        0       ""         ""       ""       0       0        0       0       0        ""       ""          -1        0           ""        0      ""       0        0        0         ""         0       ""          -1          0       0        "")
+OPTMETA=("help"   ""      "branch"   "fname"  "dbname" ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
 OPTHELP=("this help"
     "debug mode"
     "odoo branch (version id)"
@@ -75,41 +84,23 @@ if [ $opt_help -gt 0 ]; then
     exit 0
 fi
 [[ -n "$opt_branch" && -z "$odoo_vid" ]] && odoo_vid=$opt_branch
-[ $opt_venv -ne 0 ] && odoo_vid="VENV-$odoo_vid"
+# [ $opt_venv -ne 0 ] && odoo_vid="VENV-$odoo_vid"
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
-if [ -n "$opt_conf" ]; then
-    confn=$opt_conf
-else
-    confn=$(build_odoo_param CONFN $odoo_vid search)
-fi
-lconfn=$(build_odoo_param LCONFN $odoo_vid search)
-script=$(build_odoo_param BIN $odoo_vid search)
-[[ -n "$script" ]] || script=$(build_odoo_param BIN $odoo_vid)
-if [ -n "$opt_odir" ]; then
-    odoo_root=$(readlink -f $opt_odir)
-    x=$(basename $script)
-    script="$odoo_root/$x"
-elif [ $opt_ou -ne 0 ]; then
-    x=$(basename $script)
-    script=
-    [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/server/$x ] && script=~/tmp/ou_$odoo_fver/server/$x
-    [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/$x ] && script=~/tmp/ou_$odoo_fver/$x
-    if [ -z "$script" ]; then
-        echo "Openupgrade script not found!!"
-        exit 1
-    fi
-else
-    odoo_root=$(build_odoo_param ROOT $odoo_vid search)
-fi
+[[ -n "$opt_odir" ]] && odoo_root=$(readlink -f $opt_odir) || odoo_root=$(build_odoo_param ROOT $odoo_vid search)
+[[ -n "$opt_conf" ]] && CONFN=$opt_conf || CONFN=$(build_odoo_param CONFN $odoo_vid search)
+LCONFN=$(build_odoo_param LCONFN $odoo_vid)
+script=$(build_odoo_param BIN $odoo_root search)
 if [ -z "$script" ]; then
     echo "No odoo script found!!"
     exit 1
 fi
-VENV=$(build_odoo_param VENV $odoo_vid)
-[[ -f $odoo_root/bin/activate ]] && VENV=1
-manifest=$(build_odoo_param MANIFEST $odoo_vid search)
+VENV=$(build_odoo_param VENV $odoo_root)
+VDIR=$(build_odoo_param VDIR $odoo_root)
+GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_root)
+manifest=$(build_odoo_param MANIFEST $odoo_vid)
+
 create_db=0
 drop_db=0
 depmods=""
@@ -122,12 +113,19 @@ if [ $opt_test -ne 0 ]; then
     [ -z "$opt_db" ] && opt_db="test_openerp_$odoo_ver"
     create_db=1 drop_db=1
 fi
-if [ $opt_web -ne 0 ]; then
-    rpcport=$(build_odoo_param RPCPORT $odoo_vid)
-    odoo_user=$(build_odoo_param USER $odoo_vid)
+if [[ -n "$opt_xport" ]]; then
+    RPCPORT=$opt_xport
+elif [ $opt_web -ne 0 ]; then
+    RPCPORT=$(build_odoo_param RPCPORT $odoo_vid $GIT_ORGNM)
 else
-    rpcport=
-    odoo_user=$(build_odoo_param USER $odoo_vid debug)
+    RPCPORT=
+fi
+if [[ -n "$opt_dbuser" ]]; then
+    DB_USER=$opt_dbuser
+elif [ $opt_web -ne 0 ]; then
+    DB_USER=$(build_odoo_param DB_USER $odoo_vid $GIT_ORGNM)
+else
+    DB_USER=$(build_odoo_param DB_USER $odoo_vid DEBUG)
 fi
 if [ $opt_lang -ne 0 ]; then
     opt_keep=1
@@ -166,7 +164,7 @@ elif [ $opt_xtl -ne 0 ]; then
         exit 1
     fi
 fi
-[[ -z "$opt_dbuser" ]] && opt_dbuser=$odoo_user
+
 if [ -n "$opt_modules" ]; then
     if [ $opt_keep -eq 0 ]; then
         PL="$(grep ^addons_path /etc/odoo/odoo10.conf | awk -F= '{print $2}')"
@@ -194,7 +192,7 @@ if [ -n "$opt_modules" ]; then
         OPTU=
         xu=-u
         for m in $mods; do
-            r=$(psql -U$opt_dbuser $opt_db -tc "select state from ir_module_module where name='$m';")
+            r=$(psql -U$DB_USER $opt_db -tc "select state from ir_module_module where name='$m';")
             if [[ $r =~ uninstalled ]]; then
                 OPTI="$OPTI$xi$m"
                 xi=,
@@ -261,7 +259,6 @@ else
         OPTDB=""
     fi
 fi
-[[ -z "$opt_xport" ]] && opt_xport=$rpcport
 if [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_xtl -ne 0 -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
     if [ -z "$opt_db" ]; then
         opt_db="test_openerp"
@@ -282,18 +279,18 @@ if [ -n "$opt_db" ]; then
     OPTDB="$OPTDB -d $opt_db"
 fi
 if [ $opt_touch -eq 0 ]; then
-    [ $drop_db -gt 0 ] && run_traced "pg_db_active -wa $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
+    [ $drop_db -gt 0 ] && run_traced "pg_db_active -wa $opt_db; dropdb -U$DB_USER --if-exists $opt_db"
     ve_root=$HOME
-    if [ $VENV -ne 0 ]; then
-        ve_root=$(dirname $odoo_root)
-        [ $opt_verbose -gt 0 ] && echo "\$ cd $ve_root; source ./bin/activate"
-        cd $ve_root
+    if [[ -n "$VDIR" ]]; then
+        [ $opt_verbose -gt 0 ] && echo "\$ cd $VDIR; source ./bin/activate"
+        cd $VDIR
         source ./bin/activate
+        ve_root=$VDIR
     fi
-    [ $create_db -gt 0 -a $odoo_ver -lt 10 ] && run_traced "createdb -U$opt_dbuser $opt_db"
+    [ $create_db -gt 0 -a $odoo_ver -lt 10 ] && run_traced "createdb -U$DB_USER $opt_db"
     OPT_LLEV=
-    LCONF="$ve_root/$lconfn"
-    OPT_CONF="--config=$LCONF"
+    FULL_LCONFN="$ve_root/$LCONFN"
+    OPT_CONF="--config=$FULL_LCONFN"
     if [ $opt_dry_run -eq 0 ]; then
         for f in .openerp_serverrc .odoorc; do
             for d in $HOME $ve_root; do
@@ -301,35 +298,33 @@ if [ $opt_touch -eq 0 ]; then
             done
         done
     fi
-    run_traced "cp $confn $LCONF"
-    if [ $opt_dry_run -eq 0 ]; then
-        tty -s
-        if [ $? == 0 ]; then
-            sed -i -e "s|^logfile *=.*|logfile = False|" $LCONF
-        else
-            sed -i -e "s|^logfile *=.*|logfile = $ve_root/$$.log|" $LCONF
-        fi
-        if [ $opt_dbg -ne 0 ]; then
-            sed -i -e "s|^limit_time_cpu *=.*|limit_time_cpu = 0|" $LCONF
-            sed -i -e "s|^limit_time_real *=.*|limit_time_real = 0|" $LCONF
-        fi
-        if [[ -z "$opt_xport" || "$opt_xport" == "0" ]]; then
-            sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = False|" $LCONF
-            OPT_CONF="$OPT_CONF --no-xmlrpc"
-        else
-            sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = $opt_xport|" $LCONF
-            OPT_CONF="$OPT_CONF --xmlrpc-port=$opt_xport"
-        fi
-        if [ -n "$opt_dbuser" ]; then
-            sed -i -e "s|^db_user *=.*|db_user = $opt_dbuser|" $LCONF
-            OPT_CONF="$OPT_CONF --db_user=$opt_dbuser"
-        fi
-        if [ -n "$opt_llvl" ]; then
-            sed -i -e "s|^log_level *=.*|log_level = $opt_llvl|" $LCONF
-            OPT_LLEV="--log-level=$opt_llvl"
-        fi
-        sed -i -e "s|^workers *=.*|workers = 0|" $LCONF
+    run_traced "cp $CONFN $FULL_LCONFN"
+    tty -s
+    if [ $? == 0 ]; then
+        run_traced_debug "sed -e \"s|^logfile *=.*|logfile = False|\" -i $FULL_LCONFN"
+    else
+        run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $ve_root/$$.log|\" -i $FULL_LCONFN"
     fi
+    if [ $opt_dbg -ne 0 ]; then
+        run_traced_debug "sed -e \"s|^limit_time_cpu *=.*|limit_time_cpu = 0|\" -i $FULL_LCONFN"
+        run_traced_debug "sed -e \"s|^limit_time_real *=.*|limit_time_real = 0|\" -i $FULL_LCONFN"
+    fi
+    if [[ -z "$RPCPORT" || "$RPCPORT" == "0" ]]; then
+        run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = False|\" -i $FULL_LCONFN"
+        OPT_CONF="$OPT_CONF --no-xmlrpc"
+    else
+        run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = $RPCPORT|\" -i $FULL_LCONFN"
+        OPT_CONF="$OPT_CONF --xmlrpc-port=$RPCPORT"
+    fi
+    if [[ -n "$DB_USER" ]]; then
+        run_traced_debug "sed -e \"s|^db_user *=.*|db_user = $DB_USER|\" -i $FULL_LCONFN"
+        OPT_CONF="$OPT_CONF --db_user=$DB_USER"
+    fi
+    if [ -n "$opt_llvl" ]; then
+        run_traced_debug "sed -e \"s|^log_level *=.*|log_level = $opt_llvl|\" -i $FULL_LCONFN"
+        OPT_LLEV="--log-level=$opt_llvl"
+    fi
+    run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $FULL_LCONFN"
     if [ $create_db -gt 0 ]; then
         if [ -n "$depmods" -a $opt_test -ne 0 ]; then
             run_traced "$script $OPTDB $OPT_CONF --log-level=error -i $depmods"
@@ -342,13 +337,13 @@ if [ $opt_touch -eq 0 ]; then
         OPTS="--debug $OPTS"
     fi
     run_traced "$script $OPT_CONF $OPT_LLEV $OPTS"
-    if [ $VENV -ne 0 ]; then
+    if [[ -n "$VDIR" ]]; then
         [ $opt_verbose -gt 0 ] && echo "\$ deactivate"
         deactivate
     fi
     if [ $drop_db -gt 0 ]; then
         if [ -z "$opt_modules" -o $opt_stop -eq 0 ]; then
-            run_traced "dropdb -U$opt_dbuser --if-exists $opt_db"
+            run_traced "dropdb -U$DB_USER --if-exists $opt_db"
         fi
     fi
     if [ $opt_exp -ne 0 ]; then
