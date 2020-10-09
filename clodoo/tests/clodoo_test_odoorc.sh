@@ -47,51 +47,51 @@ test_01() {
     test_result "Discover_multi (0)" "0" "$opt_multi"
     for v in 12 12.0 v12 V12 v12.0 V12.0 VENV-12.0 VENV_123-12.0; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1a> full version $v" "12.0" "$RES"
+        test_result "1a> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in odoo12 odoo_12 VENV_123-odoo12 odoo-12-devel odoo12-main; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1b> full version $v" "12.0" "$RES"
+        test_result "1b> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1b> git org id $v" "odoo" "$RES"
+        test_result "1b> GIT_ORGID $v" "odoo" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1b> git org name $v" "odoo" "$RES"
+        test_result "1b> GIT_ORGNM $v" "odoo" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in OCB-12 OCB-12.0 oca12 odoo12-oca VENV-odoo12-oca VENV_123-odoo12-oca; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1c> full version $v" "12.0" "$RES"
+        test_result "1c> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1c> git org id $v" "oca" "$RES"
+        test_result "1c> GIT_ORGID $v" "oca" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1c> git org name $v" "OCA" "$RES"
+        test_result "1c> GIT_ORGNM $v" "OCA" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in axitec12 odoo12-axitec odoo12-axi odoo_12-axi VENV-odoo12-axi VENV_123-odoo12-axi; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1d> full version $v" "12.0" "$RES"
+        test_result "1d> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1d> git org id $v" "axi" "$RES"
+        test_result "1d> GIT_ORGID $v" "axi" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1d> git org name $v" "axitec" "$RES"
+        test_result "1d> GIT_ORGNM $v" "axitec" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in librerp6 librerp odoo6-librerp VENV-librerp6 VENV-librerp VENV_123-librerp6 VENV_123-librerp; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1e> full version $v" "6.1" "$RES"
+        test_result "1e> FULLVER $v" "6.1" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1e> git org id $v" "librerp" "$RES"
+        test_result "1e> GIT_ORGID $v" "librerp" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1e> git org name $v" "iw3hxn" "$RES"
+        test_result "1e> GIT_ORGNM $v" "iw3hxn" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts
@@ -554,7 +554,9 @@ test_05() {
                 test_result "$PWD> ROOT '.' [bash]" "$Z0BUG_root/$w" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param REPOS ".")
+                [ ${opt_dry_run:-0} -eq 0 ] && [[ $w == "librerp6" ]] && find . 
                 [[ $w == "librerp6" ]] && test_result "$PWD> REPOS '.' [bash]" "server" "$RES" || test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
+                # test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
                 [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
 
                 if [ ${opt_dry_run:-0} -eq 0 ]; then
