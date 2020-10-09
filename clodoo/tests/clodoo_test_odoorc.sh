@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.9.26
+__version__=0.3.9.27
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca librerp VENV_123- devel"
@@ -322,13 +322,12 @@ test_04() {
             [[ $x =~ (oca|librerp) ]] && w="$x$m"
             o=""
             [[ $x == "OCB-" ]] && o="-oca"
-            [[ $x == "devel" ]] && o="-${x}"
+            [[ $x =~ (oca|librerp|devel) ]] && o="-${x}"
             TRES="/etc/odoo/odoo${m}${o}.conf"
             [[ "$v" =~ (9.0|8.0|7.0|6.1) && -z "$o" ]] && TRES="/etc/odoo/odoo${m}-server.conf"
             [[ "$w" =~ (v|V)(7|6) ]] && TRES="/etc/odoo/openerp-server.conf"
             [[ "$w" =~ (v|V)(9|8) ]] && TRES="/etc/odoo/odoo-server.conf"
             [[ "$w" =~ (v|V)(14|13|12|11|10) ]] && TRES="/etc/odoo/odoo.conf"
-            [[ $x =~ (oca|librerp) ]] && TRES="/etc/odoo/odoo${m}-$x.conf"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param CONFN $w)
             test_result "4a> multi CONFN $w [bash]" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -834,7 +833,7 @@ Z0BUG_setup() {
     [ ${opt_dry_run:-0} -ne 0 ] && return
     export ODOO_GIT_ORGID=zero
     export ODOO_GIT_PROT=git
-    export ODOO_GIT_ORGM="(oca|librerp)"
+    export ODOO_GIT_SHORT="(oca|librerp)"
     for v in $VERSIONS_TO_TEST $MAJVERS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do

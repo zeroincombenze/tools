@@ -30,7 +30,7 @@
 # OCB_SUBDIRS_RE
 # OPTS_ASM     Undocumented (deprecated)
 # PARENTDIR    Parent directory of specific Odoo module (i.e. /opt/odoo/11.0/l10n-italy)
-# PKGNAME      Package (module) name
+# PKGNAME      Package (module) nameve
 # PKGPATH      Home directory of Odoo module (i.e. /opt/odoo/11.0/l10n-italy/l10n_it)
 # REPOS        Repository name
 # ROOT         Odoo home directory of specific vid/version (i.e. /opt/odoo/11.0)
@@ -42,9 +42,10 @@
 # URL_BRANCH   URL tp specific version of source git project (default value)
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
+# VDIR         Virtual directory
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.9.26
+#__version__=0.3.9.27
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
     echo "You must source this script: \$ source $0" >&2
@@ -77,7 +78,7 @@ DEFMLIST="OCB account-analytic account-budgeting account-closing account-consoli
  webhook webkit-tools website website-cms website-themes wms zerobug-test zeroincombenze"
 OCB_SUBDIRS="addons build debian dist doc docs egg-info _extensions filestore history howtos images odoo openerp redhat reference scripts server _static website-themes win32"
 OCB_SUBDIRS_RE="^(${OCB_SUBDIRS// /|})$"
-INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html latex node_modules openupgrade setup _static tests themes __to_remove __unported__"
+INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html .idea latex node_modules openupgrade setup _static tests themes __to_remove __unported__"
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
 "OCA/project-service,OCA/multi-company,"\
@@ -199,7 +200,7 @@ traverse() {
 }
 
 build_odoo_param() {
-    # build_odoo_param(ALL|BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VENV
+    # build_odoo_param(ALL|BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV
     #                  vid [(search|debug|default|tree|server|<rptname>|<modname>)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|debug|default|tree|server)])
     if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
         echo "${!1}"
@@ -210,7 +211,7 @@ build_odoo_param() {
     local FULLVER MAJVER odoo_vid noenv_vid MULTIVER REPOS
     local GIT_URL GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS ORGSFX OPTS_ASM
     local RUPSTREAM RORIGIN
-    local PKGPATH PKGNAME
+    local PKGPATH PKGNAME ORGNM VDIR
     local cdir d ldir p p1 p11 p2 p3 p4 pd r x
     p1="v|V|ODOO|ocb|OCB"
     p2="odoo|oca|axi|axitec|librerp|flectra|zero|zeroincombenze"
@@ -219,10 +220,10 @@ build_odoo_param() {
     local reo="^($p1)"
     local reg="($p2)"
     local ref="($ODOO_FVERS)"
-    [[ -z "$ODOO_GIT_ORGM" ]] && ODOO_GIT_ORGM="(oca)"
+    [[ -n "$ODOO_GIT_SHORT" ]] && SHORT="$ODOO_GIT_SHORT" || SHORT="(oca)"
     [[ -z "ODOO_GIT_HOSTNAME" ]] && ODOO_GIT_HOSTNAME="(github.com)"
-    [[ $3 =~ (debug|default|search|server|tree|odoo) ]] && spec=$3 || REPOS=$3
-    [[ $5 =~ (debug|default|search|server|tree|odoo) ]] && spec=$5
+    [[ $3 =~ ^((debug|default|search|server|tree|odoo|short),?)+$ ]] && spec=$3 || REPOS=$3
+    [[ $5 =~ ^((debug|default|search|server|tree|odoo|short),?)+$ ]] && spec=$5
     exorg=0
     GIT_ORGNM=""
     GIT_PROT=""
@@ -232,7 +233,7 @@ build_odoo_param() {
         [[ -n "$2" ]] && cdir=$(readlink -f $2) || cdir=$(readlink -f $PWD)
         [ -f $cdir ] && cdir=$(dirname $cdir)
         while [[ (-z "$odoo_vid" || -z "$ROOT") && -n "$cdir" ]]; do
-            [[ -n $PKGNAME && -d odoo && -d venv_odoo ]] && VENV=1
+            # [[ -n $PKGNAME && -d odoo && -f venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
             if $(is_module "$cdir"); then
                 PKGPATH=$cdir
                 PKGNAME=$(basename $cdir)
@@ -245,6 +246,8 @@ build_odoo_param() {
                 [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
                 odoo_vid=$(basename $cdir)
                 FULLVER=$(find_odoo_ver)
+                [[ -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
+                [ $VENV -eq 0 ] && [[ -f $cdir/../VENV-${odo_vid}/bin/activate ]] && VENV=1 && VDIR=$(readlink -e $cdir/../VENV-${odo_vid})
             elif $(is_repos "$cdir") || [[ (-n "$PKGNAME" && -d $cdir/$PKGNAME) ]]; then
                 r=$(basename $cdir)
                 [[ ! $r =~ $rex ]] && REPOS=$r && PRJPATH=$cdir
@@ -274,7 +277,7 @@ build_odoo_param() {
     else
         IFS=/ read odoo_vid x <<<$2
         [[ -n $x ]] && REPOS=$x
-        [[ $odoo_vid =~ ^($HOME/)?VENV ]] && VENV=1
+        [[ $odoo_vid =~ ^($HOME/)?VENV ]] && VENV=1 && VDIR=$HOME/VENV
     fi
     [[ -z $REPOS ]] && REPOS=OCB
     x=$(echo $odoo_vid | grep -Eo "VENV[_-]([0-9]{3,10})?/?" | tail -n1)
@@ -338,7 +341,7 @@ build_odoo_param() {
     if [[ -z $ROOT ]]; then
         if [ $MULTIVER -eq 0 -o $exorg -eq 0 -o $main -ne 0 ] || [[ -z $GIT_ORGID || $GIT_ORGID == "odoo" || $odo_vid =~ $ref || $odoo_vid =~ $reo ]]; then
             [ $VENV -ne 0 ] && ROOT=$HOME/$odoo_vid/odoo || ROOT=$HOME/$odoo_vid
-        elif [[ $GIT_ORGID =~ $ODOO_GIT_ORGM ]]; then
+        elif [[ $GIT_ORGID =~ $SHORT ]]; then
             [ $VENV -ne 0 ] && ROOT=$HOME/${GIT_ORGID}${MAJVER}/odoo || ROOT=$HOME/${GIT_ORGID}${MAJVER}
         else
             [ $VENV -ne 0 ] && ROOT=$HOME/odoo$MAJVER-$GIT_ORGID/odoo || ROOT=$HOME/odoo$MAJVER-$GIT_ORGID
@@ -386,13 +389,13 @@ build_odoo_param() {
     fi
     [[ -n "$GIT_ORG" && -n "$REPOS" ]] && URL=$GIT_ORG/$REPOS
     [[ -n "$GIT_ORG" && "$REPOS" == "OCB" && $GIT_ORGID == "odoo" ]] && URL=$GIT_ORG/odoo
-    [[ -n "$GIT_ORG" && "$REPOS" == "OCB" && $GIT_ORGID == "oca" && $spec == "odoo" ]] && URL=odoo/odoo
+    [[ -n "$GIT_ORG" && "$REPOS" == "OCB" && $GIT_ORGID == "oca" && $spec =~ odoo ]] && URL="https://github.com/odoo/odoo"
     [[ -n "$URL" ]] && URL_BRANCH="$URL/tree/$FULLVER"
     [[ -z "$GIT_URL" && -n "$URL" ]] && GIT_URL="${URL}.git"
     [[ -z "$RORIGN" ]] && RORIGIN=$GIT_URL
     [[ -z "$RUPSTREAM" ]] && RUPSTREAM=$GIT_URL
 
-    if [[ "$ITEM" =~ ^(FULLVER|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|MAJVER|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RUPSTREAM|URL|URL_BRANCH|VCS|VENV)$ ]]; then
+    if [[ "$ITEM" =~ ^(FULLVER|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|MAJVER|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RUPSTREAM|URL|URL_BRANCH|VCS|VDIR|VENV)$ ]]; then
         echo "${!ITEM}"
         return
     fi
@@ -415,7 +418,7 @@ build_odoo_param() {
         echo $p
         return
     elif [[ $ITEM == "RPCPORT" ]]; then
-        if [[ $spec == "debug" ]]; then
+        if [[ $spec =~ debug ]]; then
             ((p = 18060 + $MAJVER))
         elif [ $main -ne 0 -o $MULTIVER -eq 0 ]; then
             p=8069
@@ -452,7 +455,7 @@ build_odoo_param() {
         else
             p="$p/Odoo"
         fi
-        if [[ $spec == "search" ]]; then
+        if [[ $spec =~ search ]]; then
             pd=$p
             p1=/etc/odoo/
             p11=/etc/
@@ -495,7 +498,7 @@ build_odoo_param() {
             [ $MAJVER -ge 8 ] && p2=odoo || p2=openerp
         elif [ "$ITEM" == "DDIR" -a $VENV -ne 0 ]; then
             p2=odoo
-        elif [[ ! $ITEM =~ (CONFN|FULL_SVCNAME|SVCNAME|FLOG|FPID|DDIR) && $GIT_ORGID =~ $ODOO_GIT_ORGM ]]; then
+        elif [[ ! $ITEM =~ (CONFN|FULL_SVCNAME|SVCNAME|FLOG|FPID|DDIR) && $GIT_ORGID =~ $SHORT ]]; then
             p2="${GIT_ORGID}${MAJVER}"
         else
             p2="odoo${MAJVER}"
@@ -509,8 +512,14 @@ build_odoo_param() {
     fi
     if [[ $ITEM =~ (CONFN|FULL_SVCNAME|SVCNAME|FLOG|FPID|DDIR) ]]; then
         p3=
-        [ $MULTIVER -ne 0 -a $exorg -ne 0 ] && p3="-${GIT_ORGID}${ORGSFX}"
-        [ $MULTIVER -ne 0 -a $exorg -eq 0 ] && [[ -n $ORGSFX ]] && p3="-${ORGSFX}"
+        if [ $MULTIVER -ne 0 ]; then
+            if [ $exorg -ne 0 ]; then
+                [[ -z $ORGSFX ]] && p3="-${GIT_ORGID}"
+                [[ -n $ORGSFX ]] && p3="-${GIT_ORGID}${ORGSFX}"
+            elif [ $exorg -eq 0 ]; then
+                [[ -n $ORGSFX ]] && p3="-${ORGSFX}"
+            fi
+        fi
         if [[ -z $p3 || $p3 == "-odoo" ]]; then
             [ $MAJVER -ge 10 ] && p3="" || p3="-server"
         fi
@@ -520,7 +529,7 @@ build_odoo_param() {
         p3="-server"
     fi
     [[ $ITEM == "BIN" && ($spec =~ (server|tree) || $MAJVER == 6 || $noenv_vid =~ ^(v7|V7)) ]] && p="$p11$p2$p3$p4" || p="$p1$p2$p3$p4"
-    if [[ $spec == "search" ]]; then
+    if [[ $spec =~ search ]]; then
         p=$(findpkg "$p2$p3$p4" "$p1 $p11")
         if [ -z "$p" ]; then
             p=$(findpkg "odoo$p3$p4" "$p1 $p11")

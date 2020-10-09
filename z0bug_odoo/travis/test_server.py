@@ -113,7 +113,7 @@ def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
 
 
 def parse_list(comma_sep_list):
-    return [x.strip() for x in comma_sep_list.split(',')]
+    return [x.strip() for x in comma_sep_list.split(',') if x.strip()]
 
 
 def str2bool(string):
@@ -193,7 +193,7 @@ def get_server_script(server_path):
 
 
 def get_addons_to_check(travis_base_dir, odoo_include, odoo_exclude,
-                        odoo_test_select):
+                        odoo_test_select, travis_debug_mode=None):
     """
     Get the list of modules that need to be installed
     :param travis_base_dir: Travis odoo core directory
@@ -214,6 +214,8 @@ def get_addons_to_check(travis_base_dir, odoo_include, odoo_exclude,
         addons_list = [
             x for x in addons_list
             if x not in exclude_list]
+        if travis_debug_mode > 1:
+            print_flush('DEBUG: exclude_list=%s' % odoo_exclude)
 
     if odoo_test_select in ('APPLICATION', 'NO-APPLICATION',
                             'LOCALIZATION', 'NO-LOCALIZATION'):
@@ -575,10 +577,12 @@ def main(argv=None):
     coveragerc = set_coveragerc()
     conf_data = set_conf_data(addons_path, data_dir)
     create_server_conf(conf_data, odoo_version)
-    tested_addons_list = get_addons_to_check(travis_base_dir,
-                                             odoo_include,
-                                             odoo_exclude,
-                                             odoo_test_select)
+    tested_addons_list = get_addons_to_check(
+        travis_base_dir,
+        odoo_include,
+        odoo_exclude,
+        odoo_test_select,
+        travis_debug_mode=travis_debug_mode)
     tested_addons = ','.join(tested_addons_list)
 
     print_flush("INFO: Working in %s" % travis_base_dir)
