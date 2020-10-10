@@ -719,7 +719,8 @@ test_07() {
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp) ]] && w="$x$m"
             for z in "OCB" "l10n-italy"; do
-                [[ $HOSTNAME =~ (shs[a-z0-9]{4,6}|zeroincombenze) ]] && TRES="git@github.com:zeroincombenze/${z}.git" || TRES="https://github.com/zeroincombenze/${z}.git"
+                # [[ $HOSTNAME =~ (shs[a-z0-9]{4,6}|zeroincombenze) ]] && TRES="git@github.com:zeroincombenze/${z}.git" || TRES="https://github.com/zeroincombenze/${z}.git"
+                TRES="git@github.com:zeroincombenze/${z}.git"
                 [[ $x =~ ^(odoo|ODOO) ]] && TRES="https://github.com/odoo/odoo.git"
                 [[ $x =~ ^(odoo|ODOO) && ! $z == "OCB" ]] && continue
                 [[ $x == "librerp" && $v == "6.1" && $z == "l10n-italy" ]] && continue
@@ -727,9 +728,6 @@ test_07() {
                 [[ $x == "librerp" && $v == "12.0" ]] && TRES="https://github.com/librerp/${z}.git"
                 [[ $x == "librerp" && $v == "6.1" ]] && TRES="https://github.com/iw3hxn/server.git"
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_URL $w $z)
-
-                [ ${opt_dry_run:-0} -eq 0 ] && [[ $v == "14.0" && $z == "OCB" ]] && set -x && build_odoo_param GIT_URL $w $z && set +x
-
                 test_result "7a> multi GIT_URL $w/$z [bash]" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
