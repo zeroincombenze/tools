@@ -554,7 +554,7 @@ test_05() {
                 test_result "$PWD> ROOT '.' [bash]" "$Z0BUG_root/$w" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param REPOS ".")
-                [ ${opt_dry_run:-0} -eq 0 ] && [[ $w == "librerp6" ]] && find . 
+                [ ${opt_dry_run:-0} -eq 0 ] && [[ $w == "librerp6" ]] && set -x && build_odoo_param REPOS "." && set +x
                 [[ $w == "librerp6" ]] && test_result "$PWD> REPOS '.' [bash]" "server" "$RES" || test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
                 # test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
                 [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
