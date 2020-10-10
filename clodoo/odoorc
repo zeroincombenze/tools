@@ -589,8 +589,6 @@ module_list() {
     if [ -n "$3" ]; then
         if [[ " zeroincombenze zero zero-git zero-http " =~ " $3 " ]]; then
             org="zeroincombenze"
-        elif [[ " oia oia-git oia-http " =~ " $3 " ]]; then
-            org="Odoo-Italia-Associazione"
         elif [[ " librerp " =~ " $3 " ]]; then
             org="iw3hxn"
         elif [[ " flectra " =~ " $3 " ]]; then

@@ -554,7 +554,6 @@ test_05() {
                 test_result "$PWD> ROOT '.' [bash]" "$Z0BUG_root/$w" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param REPOS ".")
-                [ ${opt_dry_run:-0} -eq 0 ] && [[ $w == "librerp6" ]] && set -x && build_odoo_param REPOS "." && set +x
                 [[ $w == "librerp6" ]] && test_result "$PWD> REPOS '.' [bash]" "server" "$RES" || test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
                 # test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
                 [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
@@ -728,6 +727,9 @@ test_07() {
                 [[ $x == "librerp" && $v == "12.0" ]] && TRES="https://github.com/librerp/${z}.git"
                 [[ $x == "librerp" && $v == "6.1" ]] && TRES="https://github.com/iw3hxn/server.git"
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_URL $w $z)
+
+                [ ${opt_dry_run:-0} -eq 0 ] && [[ $v == "14.0" && $z == "OCB" ]] && set -x && build_odoo_param GIT_URL $w $z && set +x
+
                 test_result "7a> multi GIT_URL $w/$z [bash]" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
