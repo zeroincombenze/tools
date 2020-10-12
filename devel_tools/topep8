@@ -32,7 +32,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=1.0.0.2
+__version__=1.0.0.3
 
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
@@ -561,6 +561,15 @@ format_xml() {
     [ $empty -eq 0 ] && echo "" >>$fntmp
 }
 
+keep_opts_list() {
+    local src new item
+    src="$1"
+    new="$2"
+    for item in $(grep -E "^OPT[A-Z]+=" $src); do
+        :
+    done
+}
+
 FCONF=$TDIR/.$THIS.conf
 
 # main
@@ -683,8 +692,10 @@ for fl in $LIST; do
         else
             mime=$(file -b --mime-type $f)
             if [ "$mime" == "text/x-shellscript" -o "${f: -3}" == ".sh" ]; then
-                cat $f | shfmt -i 4 >${f}.new
+                # Ident like google styleguide https://google.github.io/styleguide/shellguide.html
+                cat $f | shfmt -i 2 -ci >${f}.new
                 [ $? -eq 0 ] || cp $f ${f}.new
+                keep_opts_list "${f}" "${f}.new"
             elif [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
                 AP8OPTS=
                 if [[ $opt_rule =~ (MINIMAL|REDUCED|AVERAGE|NEARBY|OCA) ]]; then
