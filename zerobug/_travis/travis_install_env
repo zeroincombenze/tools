@@ -437,7 +437,7 @@ export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
 
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   echo -e "\e[${PS_HDR3_COLOR}m### Build Tools Environment\e[${PS_TXT_COLOR}m"
-  [[ -z "$PYPI_CACHED" && $TRAVIS == "false" ]] && run_traced "$VEM amend -D"
+  [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]] && run_traced "$VEM amend -D"
   if [ "${ODOO_REPO}" != "odoo/odoo" ]; then
     git_clone_ocb
   fi
@@ -541,7 +541,7 @@ else
   if [ "${TESTS}" != "1" ]; then
     [[ "$PKGNAME" == "OCB" ]] && ocb_dir='.' || ocb_dir=${ODOO_PATH}
     dopts=""
-    if [[ -z "$PYPI_CACHED" && $TRAVIS == "false" ]]; then
+    if [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]]; then
       reqs=$(find $ocb_dir -name requirements.txt | tr "\n" ",")
       run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
@@ -575,7 +575,7 @@ else
       dependencies_dir="$TRAVIS_BUILD_DIR,${HOME}/dependencies"
     fi
     # dopts="-d$dependencies_dir"
-    if [[ -z "$PYPI_CACHED" && $TRAVIS == "false" ]]; then
+    if [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]]; then
       reqs=$(find $ocb_dir $dependencies_dir -name requirements.txt | tr "\n" ",")
       run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
     fi
