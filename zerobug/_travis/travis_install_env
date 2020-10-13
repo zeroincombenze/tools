@@ -540,7 +540,6 @@ else
   fi
   if [ "${TESTS}" != "1" ]; then
     [[ "$PKGNAME" == "OCB" ]] && ocb_dir='.' || ocb_dir=${ODOO_PATH}
-    dopts=""
     if [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]]; then
       reqs=$(find $ocb_dir -name requirements.txt | tr "\n" ",")
       run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
@@ -548,8 +547,8 @@ else
     cp_coveragerc
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       if [ $opt_verbose -gt 0 ]; then
-        echo "- reqs=\$($LISTREQ -b$VERSION -p$ocb_dir $dopts -t python -s ' ' -qBTR)"
-        reqs="$($LISTREQ -b$VERSION -p$ocb_dir $dopts -t python -s ' ' -qBTR)"
+        echo "- reqs=\$($LISTREQ -b$VERSION -p$ocb_dir -t python -s ' ' -qBTR)"
+        reqs="$($LISTREQ -b$VERSION -p$ocb_dir -t python -s ' ' -qBTR)"
         reqs=$(echo "$reqs" | tr " " "\n" | sort | tr "\n" " ")
         for pkg in $reqs; do
           v=$($PIP show $pkg | grep "^[Vv]ersion" | awk '{print $2}')
@@ -558,7 +557,6 @@ else
       fi
     fi
   else
-    # dopts=
     mkdir -p ${HOME}/dependencies
     cp_n_upd_odoo_conf
     run_traced "clone_oca_dependencies"
@@ -572,9 +570,8 @@ else
       dependencies_dir=${HOME}/dependencies
     else
       ocb_dir=${ODOO_PATH}
-      dependencies_dir="$TRAVIS_BUILD_DIR,${HOME}/dependencies"
+      dependencies_dir="$TRAVIS_BUILD_DIR ${HOME}/dependencies"
     fi
-    # dopts="-d$dependencies_dir"
     if [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]]; then
       reqs=$(find $ocb_dir $dependencies_dir -name requirements.txt | tr "\n" ",")
       run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
