@@ -17,7 +17,7 @@ For current version:
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-10-08
+Last Update / Ultimo aggiornamento: 2020-10-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

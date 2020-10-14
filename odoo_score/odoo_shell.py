@@ -32,7 +32,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "1.0.0"
+__version__ = "1.0.0.1"
 
 
 MAX_DEEP = 20
@@ -2812,6 +2812,7 @@ def test_synchro_vg7(ctx):
         'account.invoice.line': '',
         'account.payment.term': 'payments',
         'account.tax': 'tax_codes',
+        # 'crm.team': '',
         'product.product': 'products',
         'product.template': '',
         'product.uom': 'ums',
@@ -2995,8 +2996,8 @@ def test_synchro_vg7(ctx):
 
     def init_test(ctx):
         print('This test requires following modules installed:')
-        print('1. account, sale, stock, purchase, ')
-        print('2. l10n_it_einvoice_out, l10n_it_ricevute_bancarie ')
+        print('1. account, sale, stock, purchase, partner_bank')
+        print('2. l10n_it_einvoice_out, l10n_it_ricevute_bancarie')
         print('3. l10n_it_ddt, account_payment_term_extension')
         print('4. connector_vg7 [connector_vg7_conai]')
         print('Then')
@@ -3024,6 +3025,7 @@ def test_synchro_vg7(ctx):
                              model,
                              'synchro',
                              vals)
+        time.sleep(2)
         for modname in MODULE_LIST:
             print('checking module %s ..' % modname)
             module_ids = clodoo.searchL8(ctx, model,
@@ -3284,6 +3286,10 @@ def test_synchro_vg7(ctx):
         delete_record(ctx, model, [('name', '=', '(TO)')])
         model = 'stock.picking.goods_description'
         delete_record(ctx, model, [('name', '=', 'BANCALI')])
+        model = 'crm.team'
+        delete_record(ctx, model, [('name', '=', 'Sale Example Team')])
+        model = 'ir.model.synchro.data'
+        delete_record(ctx, model, [], multi=True)
         for item in records_to_delete.items():
             model = item[0]
             domain = [('id', 'in', item[1])]
@@ -4560,8 +4566,8 @@ def test_synchro_vg7(ctx):
         general_check(ctx, 'account.account.type', company_id, vals)
 
 
-    def write_2_account_type(ctx, oe8_id=None, code=None,
-                             name=None, utype=None, utype_new=None):
+    def write_2_account_type(ctx, oe8_id=None, code=None, name=None,
+                             utype=None, utype_new=None, uid_new=None):
         model = 'account.account.type'
         print('Write %s ..' % model)
 
@@ -4580,6 +4586,9 @@ def test_synchro_vg7(ctx):
                                   model,
                                   'synchro',
                                   vals)
+        if uid_new:
+            if uid_new != env_ref(ctx, uid_new):
+                raise IOError('!!Invalid record id of account.type!')
         store_id(ctx, model, acc_id, oe8_id)
         vals['type'] = utype_new
         del vals['oe8:report_type']
@@ -5078,8 +5087,24 @@ def test_synchro_vg7(ctx):
     write_2_partner(ctx)
     write_2_currency(ctx)
     write_2_account_type(ctx)
-    write_2_account_type(ctx, oe8_id=2, code='receivable', name='Receivable',
-                         utype='receivable', utype_new='receivable')
+    for (oe8_id, code, name, utype, utype_new, id_new) in (
+            (1, 'bank', 'Bank and Cash', 'liquidity', 'liquidity',
+             'account.data_account_type_liquidity'),
+            (2, 'receivable', 'Receivable', 'receivable', 'receivable',
+             'account.data_account_type_receivable'),
+            (3, 'payable', 'Payable', 'payable', 'payable',
+             'account.data_account_type_payable'),
+            (4, 'asset', 'Assets', 'other', 'other',
+             'account.data_account_type_current_assets'),
+            (5, 'liability', 'Current Liabilities', 'other', 'other',
+             'account.data_account_type_current_liabilities'),
+            (6, 'income', 'Income', 'other', 'other',
+             'account.data_account_type_revenue'),
+            (7, 'expense', 'Expenses', 'other', 'other',
+             'account.data_account_type_expenses'),
+    ):
+        write_2_account_type(ctx, oe8_id=oe8_id, code=code, name=name,
+            utype=utype, utype_new=utype_new)
     write_2_account(ctx, company_id)
     write_2_account(ctx, company_id)
     write_2_account(ctx, company_id, oe8_id=555, code='152100',
@@ -5158,6 +5183,40 @@ def test_synchro_vg7(ctx):
             vals = eval(vals3['vg7:date_scadenza'][1:-1])[ii]
             vals['payment_id'] = payment_id
             general_check(ctx, model, id, jacket_vals(vals))
+
+    print('*** Starting test on unmanaged tables ***')
+
+    ext_model = 'crm.team'
+    model = ext_model
+    vals = {'id': 1, 'name': 'Sale Example Team'}
+    write_file_2_pull(ext_model, vals, mode='w')
+    crm_ids = clodoo.searchL8(ctx, model, [('name', '=', 'Sale Example Team')])
+    if crm_ids:
+        raise IOError('Record %s already present in %s' % (vals, model))
+    ctx['ctr'] += 1
+    crm_id = clodoo.executeL8(ctx,
+                              'ir.model.synchro',
+                              'trigger_one_record',
+                              ext_model,
+                              'oe8',
+                              1)
+    if not crm_id or crm_id < 1:
+        raise IOError('Record %s not written in %s' % (vals, model))
+    ctx['ctr'] += 1
+    crm_ids = clodoo.searchL8(ctx, model, [('name', '=', 'Sale Example Team')])
+    if not crm_ids or crm_ids[0] != crm_id:
+        raise IOError('Record %s not found in %s' % (vals, model))
+    ctx['ctr'] += 1
+    crm_id2 = clodoo.executeL8(ctx,
+                               'ir.model.synchro',
+                               'trigger_one_record',
+                               ext_model,
+                               'oe8',
+                               1)
+    if crm_id != crm_id2:
+        raise IOError(
+            'Record %s not rewriteen in %s.%d' % (vals, model, crm_id))
+    ctx['ctr'] += 1
 
     print('%d tests connector_vg7 successfully ended' % ctx['ctr'])
 

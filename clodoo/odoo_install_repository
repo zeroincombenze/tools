@@ -220,7 +220,7 @@ update_confn() {
 set_var() {
     #set_var(var parm vid)
     local x=$(build_odoo_param "$2" "$3" "$git_repo" "$opt_org" "$opt_deploy")
-    [[ -n "$x" ]] && eval $1="$x"
+    [[ -n "$x" ]] && eval $1="'$x'"
     [ $opt_verbose -gt 1 ] && echo "$1=$x"
 }
 
@@ -404,7 +404,8 @@ else
     [ $opt_link -eq 0 ] && run_traced "cp -r $SRCPATH/ $DSTROOT/" || run_traced "ln -s $SRCPATH/ $DSTROOT"
 fi
 [[ -z "$new_odoo_vid" ]] && new_odoo_vid=$odoo_vid
-set_remote_info "$REPOS" "$new_odoo_vid" "$GIT_URL" "$opt_org"
+[[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
+set_remote_info "$REPOS" ".dir /" "$GIT_URL" "$opt_org"
 if [ $opt_updrmt -eq 0 ]; then
     auto_add_files "$new_odoo_fver"
     commit_files "$new_odoo_fver"
