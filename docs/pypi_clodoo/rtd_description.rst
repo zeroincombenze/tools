@@ -207,6 +207,21 @@ odoo_install_repository: manage repositories
      -1              if clone depth=1
 
 
+odoorc: general purpose bash function
+-------------------------------------
+
+The bash file odoorc is a general purpose Odoo library. It supplies some Odoo values from odoo_vid or from odoo directory.
+
+Usage:
+
+    . odoorc
+    RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|<rptname>|<modname>)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER)])
+
+where:
+
+    PARAM is one of (ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV)
+
+
 Translate Odoo entinty name across versions.
 
 
@@ -214,7 +229,7 @@ Translate Odoo entinty name across versions.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-10-09
+Last Update / Ultimo aggiornamento: 2020-10-15
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -229,22 +244,22 @@ Last Update / Ultimo aggiornamento: 2020-10-09
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.9.27
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.28
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.9.27/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.9.27
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-3.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.9.27/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.28/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-3.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.9.27/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.28/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-3.svg
     :target: https://erp3.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.9.27/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.3.9.27
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.28/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.3.28
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

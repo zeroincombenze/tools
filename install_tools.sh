@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.8
+__version__=1.0.0.9
 
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
