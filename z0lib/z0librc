@@ -578,21 +578,21 @@ export -f run_traced
 ##############################################################################
 # Parse directory to search a file
 # __version__="0.1.1"
-# Search a file o directory of a list.
-# This function is used to find where is an application.
+# Search a file or directory from a list.
+# This function is used to find an application from path list
 #
 # Parameter $1:
 #    File to search (if null is searched just for directory of $2 ...)
 # Parameter $2:
-#    Directory list (space separated) where file could be found (mandatory)
+#    Directory list (space separated) where file could be found (required)
 # Parameter $3:
-#    Level 2 subdirectory list (space separated) where file could be found (mayby be empty)
+#    Level 2 subdirectory list (space separated) where file could be found (maybe be empty)
 # Parameter $4:
-#    Level 3 subdirectory list (space separated) where file could be found (mayby be empty)
+#    Level 3 subdirectory list (space separated) where file could be found (maybe be empty)
 # Parameter $5:
-#    Level 4 subdirectory list (space separated) where file could be found (mayby be empty)
+#    Level 4 subdirectory list (space separated) where file could be found (maybe be empty)
 # Parameter $6:
-#    Level 5 subdirectory list (space separated) where file could be found (mayby be empty)
+#    Level 5 subdirectory list (space separated) where file could be found (maybe be empty)
 findpkg() {
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p2=

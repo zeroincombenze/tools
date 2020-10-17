@@ -11,25 +11,25 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/devel $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/devel_tools/devel_tools/../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib/z0lib; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/devel $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$TDIR ${PATH//:/ } ${PYPATH//:/ } . .." "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
 fi
 . $ODOOLIBDIR
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $HOME/tools/travis_emulator $HOME/devel $HOME/dev ${PYPATH//:/ } . .." "travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR ${PATH//:/ } ${PYPATH//:/ } . .." "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.4
+__version__=1.0.0.5
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -77,19 +77,15 @@ process_yaml_init() {
   export MQT_TEMPLATE_DB="$(get_cfg_value "" "MQT_TEMPLATE_DB")$YML_pid"
   export MQT_TEST_DB="$(get_cfg_value "" "MQT_TEST_DB")$YML_pid"
   export MQT_DBUSER="$(get_cfg_value "" "MQT_DBUSER")"
-  if [[ -z $MQT_DBUSER ]]; then
-    for u in $USER odoo openerp postgresql; do
-      psql -U$u -l &>/dev/null
-      if [ $? -eq 0 ]; then
-        export MQT_DBUSER="$u"
-        break
-      fi
-    done
-  fi
+  [[ -z $MQT_DBUSER ]] && export MQT_DBUSER==$(get_dbuser)
   python_ver_req=
   if [ $opt_dbgmnt -ne 0 ]; then
-    [[ -d $HOME/devel ]] && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
-    [[ -d $HOME/devel ]] && export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo || export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
+    [[ -d $HOME/devel ]] \
+        && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa \
+        || export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
+    [[ -d $HOME/devel ]] \
+        && export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo \
+        || export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
     (($opt_debug)) && export TRAVIS_PDB="true"
   else
     export YML_lisa=lisa
@@ -759,7 +755,7 @@ process_yaml() {
     sts=$STS_SUCCESS
     wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
     TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-    for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST MQT_DBUSER MQT_TEMPLATE_DB MQT_TEST_DB PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
+    for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST LOGFILE MQT_DBUSER MQT_TEMPLATE_DB MQT_TEST_DB PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
       if [[ $lne == "job-id" ]]; then
         lne1=$$
       elif [[ $lne == "DIST" ]]; then
@@ -910,12 +906,12 @@ checkpid() {
   return 1
 }
 
-OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l                  M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
-OPTLONG=(help     debug     no-cache  conf     deb-lev  no-savenv full     force     ''       keep     lint-lev logdir             ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir         opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
-OPTACTI=(1        1         0         "="      "="      0         1        1         1        1        "="      "="                1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
-OPTDEFL=(0        0         1         ""       ""       1         0        0         0        0        ""       "$HOME/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
-OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"              ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
+OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l        M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
+OPTLONG=(help     debug     no-cache  conf     deb-lev  no-savenv full     force     ''       keep     lint-lev logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
+OPTACTI=(1        1         0         "="      "="      0         1        1         1        1        "="      "="      1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
+OPTDEFL=(0        0         1         ""       ""       1         0        0         0        0        ""       ""       0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
+OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"    ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
 OPTHELP=("this help"
   "debug mode: do not create log"
   "do not use stored PYPI"
@@ -974,7 +970,14 @@ link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 
-LOGFILE=$opt_logdir/${PKGNAME}_${BRANCH}.log
+LOGDIR="$(get_cfg_value "" "LOGDIR")"
+[[ -d $LOGDIR ]] || mkdir $LOGDIR
+[[ -n "$REPOSNAME" ]] && LOGFILE="$REPOSNAME" || LOGFILE=""
+[[ -n "$PKGNAME" && ! $PKGNAME == $REPOSNAME ]] && LOGFILE="${LOGFILE}_$PKGNAME"
+[[ "$PRJNAME" == "Odoo" ]] && LOGFILE="${LOGFILE}_$(build_odoo_param GIT_ORGNM '.')"
+[[ -n "$BRANCH" ]] && LOGFILE="${LOGFILE}_$BRANCH"
+LOGFILE="$LOGDIR/${LOGFILE}.log"
+
 if [ "$action" == "help" ]; then
   man $0.man
   exit $STS_SUCCESS
@@ -1087,6 +1090,15 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
         done=1
       done
     fi
+    ((md=60*60*24*90))
+    for d in $LOGDIR/*; do
+      dd=$(stat -c "%Y" $d)
+      df=$(($dt - $dd))
+      if [ $df -gt $md ]; then
+        echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
+        rm -fR $d
+      fi
+    done
     [ $done -eq 0 ] && echo "Nothing to wep"
     exit $STS_SUCCESS
   else
@@ -1116,8 +1128,10 @@ sts=$STS_SUCCESS
 prepare_env_travis "$action"
 echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
 if [ $sts -eq $STS_SUCCESS ]; then
-  opt_logdir=$(readlink -f $opt_logdir)
-  mkdir -p $opt_logdir
+  if [[ -n $opt_flog ]]; then
+    mkdir -p $(dirname $opt_flog)
+    LOGFILE=$opt_flog
+  fi
   # [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
   # [ $opt_full -ne 0 -a "$PKGNAME" != "OCB" ] && set_executable
   if [ $opt_debug -ne 0 ]; then

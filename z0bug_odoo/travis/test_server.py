@@ -47,6 +47,7 @@ def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
         'At least one test failed',
         'no access rules, consider adding one',
         'invalid module names, ignored',
+        'raise exception'
         ]
     # Only check ERROR lines before 7.0
     if int(odoo_version.split('.')[0]) < 7:

@@ -419,7 +419,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
             elif p == 'login_password' and pwd:
                 ctx[p] = pwd
             elif p == 'xmlrpc_port' and xmlrpc_port:
-                if isinstance(ctx[p], basestring):
+                if isinstance(xmlrpc_port, basestring):
                     ctx[p] = int(xmlrpc_port)
                 else:
                     ctx[p] = xmlrpc_port
@@ -451,6 +451,8 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
         fd = open(confn, 'rU')
         lines = fd.read().split('\n')
         for line in lines:
+            if not line or line[0] in '#;':
+                continue
             tkn = line.split('=')
             tkn = map(lambda x: x.strip(), tkn)
             for p in P_LIST:
@@ -462,6 +464,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
         fd.close()
     except BaseException:
         write_confn = True
+    ctx = read_config(ctx)
     ctx = oerp_env_fill(db=db,
                         xmlrpc_port=xmlrpc_port,
                         user=user, pwd=pwd,
@@ -472,7 +475,6 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
     # saved = {}
     # for p in S_LIST:
     #     saved[p] = ctx.get(p)
-    ctx = read_config(ctx)
     # for p in S_LIST:
     #     ctx[p] = saved[p]
     open_connection(ctx)

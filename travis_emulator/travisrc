@@ -2,36 +2,32 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.0.4
+#__version__=1.0.0.5
 
 MAKEF=$HOME/dev/Makefile
 # DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
 
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])" | python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/devel_tools/devel_tools/../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib/z0lib; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
-  elif [ -d $d/z0lib ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$TDIR ${PATH//:/ } ${PYPATH//:/ } . .." "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
 fi
 . $ODOOLIBDIR
+
 
 opts_travis() {
   # opts_travis(git-org/pkgname)
@@ -278,22 +274,8 @@ build_pypi_param() {
 
 init_travis() {
   local r x
-  # TRAVIS_ENV=$(get_cfg_value "" "Environment")
-  # TRAVIS_ENVOPTS=
-  # if [ ${opt_virt:-0} -eq -1 ]; then
-  #     if [ "$TRAVIS_ENV" == "virtualenv" ]; then
-  #         opt_virt=1
-  #     else
-  #         opt_virt=0
-  #     fi
-  # elif [ ${opt_virt:-0} -eq 1 -a "$TRAVIS_ENV" == "bash" ]; then
   TRAVIS_ENV=virtualenv
-  # fi
-  # if [ ${opt_virt:-0} -gt 0 ]; then
-  #     if [ "$TRAVIS_ENV" == "virtualenv" ]; then
   TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
-  #     fi
-  # fi
   ## DEPRECATED, TODO: inherits_travis_opts()
   if [ ${opt_dry_run:-0} -gt 0 ]; then
     opts_dry_run=-n
@@ -327,17 +309,15 @@ init_travis() {
   if [[ -z "$PKGPATH" || -z "$PRJPATH" ]]; then
     build_pypi_param ALL
   fi
-  if [ "$PRJNAME" == "Odoo" ]; then
+  if [[ "$PRJNAME" == "Odoo" ]]; then
     local npm_curpfx=$(npm config get prefix)
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
     if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
       mkdir -p $NPM_CONFIG_PREFIX
       npm config set prefix $NPM_CONFIG_PREFIX
     fi
-    # PKGNAME=$(build_odoo_param PKGNAME ".")
     [ -z "$REPOSNAME" ] && REPOSNAME=$(build_odoo_param REPOS ".")
     BRANCH=$(build_odoo_param FULLVER ".")
-    # PRJPATH=$(build_odoo_param HOME '.')
     SETUP=$MANIFEST
   fi
   if [ -z "$TOOLS_PATH" ]; then
@@ -358,6 +338,25 @@ revaluate_travis() {
   init_travis
 }
 
+get_dbuser() {
+  # get_dbuser odoo_majver
+  local u
+  for u in $USER odoo openerp postgresql; do
+    if [[ -n "$1" ]]; then
+      psql -U$u$1 -l &>/dev/null
+      if [[ $? -eq 0 ]]; then
+        echo "$u$1"
+        break
+      fi
+    fi
+    psql -U$u -l &>/dev/null
+    if [[ $? -eq 0 ]]; then
+      echo "$u"
+      break
+    fi
+  done
+}
+
 drop_test_db() {
   if [ "$PRJNAME" == "Odoo" ]; then
     [[ -n $MQT_DBUSER ]] || MQT_DBUSER=$USER
@@ -367,54 +366,6 @@ drop_test_db() {
     dropdb -U$MQT_DBUSER $MQT_TEMPLATE_DB --if-exists &>/dev/null
     pg_db_active -wa $MQT_TEST_DB
     dropdb -U$MQT_DBUSER $MQT_TEST_DB --if-exists &>/dev/null
-  fi
-}
-
-__venv_mgr_install_pkg() {
-  #venv_mgr_install_pkg(VENV PKG)
-  local VENV PKG
-  [ -n "$1" ] && VENV=$(readlink -f $1)
-  PKG=$2
-  if [[ -z "$VENV" || -z "$PKG" ]]; then
-    echo "Missed parameters!"
-    echo "use: venv_mgr_install_pkg VENV PKG"
-    exit 1
-  fi
-  if [[ ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-    echo "Invalid virtual env $VENV!"
-    exit 1
-  fi
-  if [ ${opt_dry_run:-0} -eq 0 ]; then
-    cd $VENV/bin/activate
-    . ./bin/activate
-    pip install $PKG --upgrade --no-warn-conflicts --disable-pip-version-check
-    deactivate
-  fi
-}
-
-__venv_mgr_test() {
-  #venv_mgr_test(VENV)
-  local f x VENV
-  [ -n "$1" ] && VENV=$(readlink -f $1)
-  if [[ -z "$VENV" ]]; then
-    echo "Missed parameters!"
-    echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
-    exit 1
-  fi
-  if [[ ! -d $VENV || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-    echo "Invalid virtual env $VENV!"
-    exit 1
-  fi
-  if ((${opt_dry_run:-0} == 0)); then
-    cd $VENV
-    . bin/activate
-    for f in python pip coveralls codecov flake8 pylint; do
-      x=$(readlink -e $(which $f))
-      [[ ! ${x} =~ ^$1 ]] && echo "Corrupted VME ($f)"
-      [[ ! "$f" == "pylint" ]] && eval $f --version
-      [[ "$f" == "pylint" ]] && eval $f --version 2>/dev/null
-    done
-    deactivate
   fi
 }
 
@@ -465,7 +416,7 @@ create_virtual_env() {
     export TRAVIS=false
   fi
   [[ -d $HOME/devel ]] && Z0DEV_DIR=$HOME/devel
-  [[ -d $HOME/dev ]] && Z0DEV_DIR=$HOME/dev
+  [[ -d $HOME/dev && ! -d $HOME/devel ]] && Z0DEV_DIR=$HOME/dev
   if [[ -z "$Z0DEV_DIR" ]]; then
     echo "Zeroincombenze(R) tools not found!"
     exit 1
@@ -528,7 +479,9 @@ create_virtual_env() {
     run_traced "cp -R $TRAVIS_HOME_BRANCH/ $x/"
     if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
       git_clone "https://github.com/zeroincombenze/tools.git"
-      run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
+      [[ Z0DEV_DIR =~ /devel$ ]] \
+        && run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o" \
+        || run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
     fi
   fi
   [ "$PWD" != "$TRAVIS_BUILD_DIR" ] && run_traced "cd $TRAVIS_BUILD_DIR"
@@ -587,12 +540,16 @@ git_clone() {
       for p in $(get_cfg_value 0 "PKGS_LIST"); do
         # Use unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
-        # [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ && "$p" != "$x" ]] && run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
-        [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ ]] && run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
+        [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ ]] \
+            && run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
+        [[ -d $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/ ]] \
+            && run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/ $HOME/tools/$p/"
         s=$?; [ ${s-1} -eq 0 ] || echo "Internal error $s! Statement rsync $p failed!!"
       done
       for p in install_tools.sh odoo_default_tnl.xlsx; do
-        run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/$p $HOME/tools/$p"
+        [[ -d $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/ ]] \
+            && run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/$p $HOME/tools/$p" \
+            || run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/$p $HOME/tools/$p"
       done
       true # FIX: return no error
     fi
@@ -724,12 +681,12 @@ conf_default() {
   set_cfg_def "MQT_DBUSER" ""
   set_cfg_def "UNBUFFER" "0"
   set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
-  set_cfg_def "RFLIST__travis_emulator" "autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff replica.sh topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
-  set_cfg_def "RDLIST__travis_emulator" "_travis/"
-  set_cfg_def "RFLIST__z0lib" "Makefile"
-  set_cfg_def "RFLIST__zerobug" "z0testrc"
-  set_cfg_def "RFLIST__clodoo" "clodoo.py clodoocore.py clodoolib.py"
-  set_cfg_def "RFLIST__z0tester" "z0testercode.py"
+  # set_cfg_def "RFLIST__travis_emulator" "autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff replica.sh topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
+  # set_cfg_def "RDLIST__travis_emulator" "_travis/"
+  # set_cfg_def "RFLIST__z0lib" "Makefile"
+  # set_cfg_def "RFLIST__zerobug" "z0testrc"
+  # set_cfg_def "RFLIST__clodoo" "clodoo.py clodoocore.py clodoolib.py"
+  # set_cfg_def "RFLIST__z0tester" "z0testercode.py"
   set_cfg_def "Environment" "bash"
   set_cfg_def "virtualenv_opts" ""
   set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
@@ -737,8 +694,6 @@ conf_default() {
   set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ html/ .idea/ latex/ .tar .gz .zip __old_* .gitrepname __pycache__/"
   set_cfg_def "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
   set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
-  # set_cfg_def "MQT_DEF_DEVPATH" "$HOME/dev/pypi/zerobug/zerobug/_travis"
-  # set_cfg_def "MQT_DEF_PATH" "$HOME/tools/zerobug/_travis"
   set_cfg_def "PS_TXT_COLOR" "0;97;40"
   set_cfg_def "PS_RUN_COLOR" "1;36;48;5"
   set_cfg_def "PS_NOP_COLOR" "31;105"
@@ -747,10 +702,11 @@ conf_default() {
   set_cfg_def "PS_HDR3_COLOR" "30;47"
   set_cfg_def "PKGS_LIST" "clodoo devel_tools lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
   set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
-  set_cfg_def "DEV_SVG" "$HOME/dev/svg"
+  set_cfg_def "DEV_SVG" "$HOME/devel/svg"
   set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
   set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
   set_cfg_def "PYTHON_MATRIX" "(2.7|3.5|3.6|3.7|3.8)"
+  set_cfg_def "LOGDIR" "$HOME/travis_log"
 }
 
 expand_path() {
@@ -787,8 +743,8 @@ set_pkgname() {
 install_dev() {
   if [ "$USER" == "openerp" -o "$USER" == "odoo" ]; then
     local yod=$(date +%Y)
-    if [ ! -d ~/dev ]; then
-      mkdir -p ~/dev
+    if [ ! -d ~/devel ]; then
+      mkdir -p ~/devel
     fi
   fi
 }
