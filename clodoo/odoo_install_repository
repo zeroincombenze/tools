@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28
+__version__=0.3.28.1
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -405,7 +405,7 @@ else
 fi
 [[ -z "$new_odoo_vid" ]] && new_odoo_vid=$odoo_vid
 [[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
-set_remote_info "$REPOS" ".dir /" "$GIT_URL" "$opt_org"
+set_remote_info "$REPOS" "$new_odoo_vid" "$GIT_URL" "$opt_org"
 if [ $opt_updrmt -eq 0 ]; then
     auto_add_files "$new_odoo_fver"
     commit_files "$new_odoo_fver"

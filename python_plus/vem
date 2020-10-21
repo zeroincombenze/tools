@@ -21,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.0.0.2
+__version__=1.0.0.3
 NEEDING_PKGS="future os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
@@ -787,7 +787,7 @@ do_venv_create() {
     pyexe=$(which $PYTHON)
     venvexe=$(which virtualenv)
     if [[ -n "$venvexe" ]]; then
-        v=$(virtualenv --version|grep -Eo [0-9]+|head -n1)
+        v=$(virtualenv --version 2>&1|grep -Eo [0-9]+|head -n1)
         if [ $v -gt 17 ]; then
             [ $opt_spkg -ne 0 ] && p="--system-site-packages"
         else

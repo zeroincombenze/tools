@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.12-RHEL
+# version: 0.4.13-RHEL
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -95,9 +95,19 @@ for dr in /usr/local/bin /usr/bin ${USERHOME}; do
             [[ -d "$FD" ]] && LL="$LL $FD"
             [[ -z "$dp" || -z "$dv" ]] && continue
             [[ "$dp" == "VENV" ]] && FD=$dr/$dp-$dv/$ORG || FD=$dr/$dp-$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
             if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
             [[ -d "$FD" ]] && LL="$LL $FD"
             [[ "$dp" == "VENV" ]] && FD=$dr/${dp}_$dv/$ORG || FD=$dr/${dp}_$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
+            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
+            [[ -d "$FD" ]] && LL="$LL $FD"
+            [[ "$dp" == "VENV" ]] && FD=$dr/$dp-v$dv/$ORG || FD=$dr/$dp-v$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
+            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
+            [[ -d "$FD" ]] && LL="$LL $FD"
+            [[ "$dp" == "VENV" ]] && FD=$dr/${dp}_V$dv/$ORG || FD=$dr/${dp}_V$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
             if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
             [[ -d "$FD" ]] && LL="$LL $FD"
         done
@@ -230,6 +240,7 @@ check_4_venv() {
     if [ -f $p/bin/activate ]; then
         local x=$(date +"%Y-%m-%d %H:%M:%S,000")
         echo "$x $$ DAEMON ? $0: cd $p; source ./bin/activate" >> $LOGFILE
+        [ $DRY_RUN -gt 0 ] && echo "cd $p" && echo "source ./bin/activate"
         cd $p
         source ./bin/activate
     fi

@@ -468,7 +468,7 @@ topep8 usage
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-10-17
+Last Update / Ultimo aggiornamento: 2020-10-18
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

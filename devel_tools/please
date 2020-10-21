@@ -2290,7 +2290,6 @@ do_export() {
   [[ $stat == "uninstalled" ]] && run_traced "run_odoo_debug -b$odoo_fver -Ism $module -d $db"
   dbdt=$(psql -U$opt_user -Atc "select write_date from ir_module_module where name='$module' and state='installed'" $db)
   [[ -n "$dbdt" ]] && dbdt=$(date -d "$dbdt" +"%s") || dbdt="999999999999999999"
-  echo "db_date=$dbdt"   #debug
   podt=$(stat -c "%Y" $pofile)
   ((dbdt < podt)) && run_traced "run_odoo_debug -b$odoo_fver -usm $module -d $db"
   run_traced "run_odoo_debug -b$odoo_fver -em $module -d $db"

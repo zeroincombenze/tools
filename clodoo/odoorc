@@ -46,7 +46,7 @@
 # VDIR         Virtual directory
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.28
+#__version__=0.3.28.1
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
     echo "You must source this script: \$ source $0" >&2
@@ -233,7 +233,7 @@ build_odoo_param() {
     RORIGIN=""
     if [[ "$2" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
         [[ -n "$2" ]] && cdir=$(readlink -f $2) || cdir=$(readlink -f $PWD)
-        [ -f $cdir ] && cdir=$(dirname $cdir)
+        [[ -f $cdir ]] && cdir=$(dirname $cdir)
         while [[ (-z "$odoo_vid" || -z "$ROOT") && -n "$cdir" ]]; do
             if $(is_module "$cdir"); then
                 PKGPATH=$cdir

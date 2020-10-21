@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.12-Debian
+# version: 0.4.13-Debian
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -63,20 +63,20 @@ if [[ "$FH" == "RHEL" ]]; then
 fi
 # Set path (Only Debian)
 if [[ "$FH" == "Debian" ]]; then
-  PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
+    PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
     if [[ -f /lib/lsb/init-functions ]]; then
-    . /lib/lsb/init-functions
+        . /lib/lsb/init-functions
     else
         exit 1
-  fi
+    fi
 fi
 # Specify the user name (Default: odoo).
 USER=${xtl_user}
 USERHOME=$(eval echo ~$USER)
 # search for execution command script
-xtl_org=$(echo $(basename $1)|grep -Eo "(oca|librerp|flectra|zero)")
+xtl_org=$(echo $(basename $0)|grep -Eo "(oca|librerp|flectra|zero)"|tail -n1)
 [[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
-mult=$(echo $(basename $1)|grep -Eo "(6|7|8|9|10|11|12|13|14)")
+mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12|13|14)")
 LL=""
 DAEMON=""
 VENV_DIR=""
@@ -87,14 +87,27 @@ for dr in /usr/local/bin /usr/bin ${USERHOME}; do
             [[ $dr =~ ^/usr && ( -z "$dp" || $dp =~ ^(v|V|VENV|OCB) ) ]] && continue
             [[ $dp =~ ^(v|V|OCB)$ && ( -z "$dv" || ! "$ORG" == "odoo" ) ]] && continue
             [[ "$dp" == "VENV" && -z "$dv" ]] && continue
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $dr/${dp}-${ORG}${xtl_version}/odoo <<<$ORG|${xtl_version}>>>"
+            [[ "$dp" == "VENV" && -d $dr/${dp}-${ORG}${xtl_version}/odoo ]] && LL="$LL $dr/${dp}-${ORG}${xtl_version}/odoo"
             [[ "$dp" == "VENV" ]] && FD=$dr/$dp$dv/$ORG || FD=$dr/$dp$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
             if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
             [[ -d "$FD" ]] && LL="$LL $FD"
             [[ -z "$dp" || -z "$dv" ]] && continue
             [[ "$dp" == "VENV" ]] && FD=$dr/$dp-$dv/$ORG || FD=$dr/$dp-$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
             if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
             [[ -d "$FD" ]] && LL="$LL $FD"
             [[ "$dp" == "VENV" ]] && FD=$dr/${dp}_$dv/$ORG || FD=$dr/${dp}_$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
+            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
+            [[ -d "$FD" ]] && LL="$LL $FD"
+            [[ "$dp" == "VENV" ]] && FD=$dr/$dp-v$dv/$ORG || FD=$dr/$dp-v$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
+            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
+            [[ -d "$FD" ]] && LL="$LL $FD"
+            [[ "$dp" == "VENV" ]] && FD=$dr/${dp}_V$dv/$ORG || FD=$dr/${dp}_V$dv
+            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
             if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
             [[ -d "$FD" ]] && LL="$LL $FD"
         done
@@ -103,19 +116,20 @@ for dr in /usr/local/bin /usr/bin ${USERHOME}; do
     [[ -n "$DAEMON" ]] && break
 done
 if [[ -z "$DAEMON" ]]; then
-for dn in odoo-bin openerp-server odoo-server odoo openerp; do
-  for dp in $LL; do
+    for dn in odoo-bin openerp-server odoo-server odoo openerp; do
+        for dp in $LL; do
             if [[ ! -d "$dp/$dn" && -x "$dp/$dn" ]]; then
-    DAEMON=$dp/$dn
-      break
+                DAEMON=$dp/$dn
+                break
             elif [[ -d "$dp/server" && -x "$dp/server/$dn" ]]; then
-      DAEMON=$dp/server/$dn
-        break
-      fi
-  done
+                DAEMON=$dp/server/$dn
+                break
+            fi
+        done
         [[ -n "$DAEMON" ]] && break
-done
+    done
 fi
+[ $DRY_RUN -gt 0 ] && echo "DAEMON=$DAEMON"
 [[ -z "$DAEMON" ]] && exit 2
 
 NAME=${xtl_name}
@@ -224,10 +238,11 @@ check_4_venv() {
         done
     fi
     if [ -f $p/bin/activate ]; then
-      local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-      echo "$x $$ DAEMON ? $0: cd $p; source ./bin/activate">>$LOGFILE
-      cd $p
-      source ./bin/activate
+        local x=$(date +"%Y-%m-%d %H:%M:%S,000")
+        echo "$x $$ DAEMON ? $0: cd $p; source ./bin/activate" >> $LOGFILE
+        [ $DRY_RUN -gt 0 ] && echo "cd $p" && echo "source ./bin/activate"
+        cd $p
+        source ./bin/activate
     fi
 }
 
@@ -344,13 +359,13 @@ start() {
 }
 
 
-stop_RHEL () {
+stop_RHEL() {
     if [ -f $PIDFILE ]; then
-  if [ $DRY_RUN -gt 0 ]; then
-    echo "kill -TERM \$(cat $PIDFILE) > /dev/null 2>&1"
-  else
-      kill -TERM $(cat $PIDFILE) > /dev/null 2>&1
-    fi
+        if [ $DRY_RUN -gt 0 ]; then
+            echo "kill -TERM \$(cat $PIDFILE) > /dev/null 2>&1"
+        else
+            kill -TERM $(cat $PIDFILE) > /dev/null 2>&1
+        fi
     fi
     RETVAL=$?
     if [ $RETVAL -ne 0 ]; then
@@ -358,19 +373,19 @@ stop_RHEL () {
         [ ${xtl_version} -lt 11 ] && py=python || py=python3
         local pid=$(ps -ef | grep "$py .*$DAEMON.*\.conf" | grep -v grep | awk '{print $2}')
         [ -z "$pid" ] || kill $pid
-  RETVAL=$?
+        RETVAL=$?
     fi
-    if [ $RETVAL -eq 0 ] ; then
-      if [ $DRY_RUN -eq 0 ]; then
-          rm -f $LOCKFILE
-         fi
+    if [ $RETVAL -eq 0 ]; then
+        if [ $DRY_RUN -eq 0 ]; then
+            rm -f $LOCKFILE
+        fi
         echo_success
         echo
     else
         echo_failure
         echo
     fi
-    if [ -d /etc/${xtl_id}/stop.d ] ; then
+    if [ -d /etc/${xtl_id}/stop.d ]; then
         echo -n "Clearing $DESC: "
         run-parts /etc/${xtl_id}/stop.d
         echo
@@ -380,9 +395,9 @@ stop_RHEL () {
 
 
 stop_Debian () {
-  if [ $DRY_RUN -gt 0 ]; then
-    echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo"
-  else
+    if [ $DRY_RUN -gt 0 ]; then
+        echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo"
+    else
         start-stop-daemon --stop --quiet --pidfile ${PIDFILE}  --oknodo
     fi
     RETVAL=$?
