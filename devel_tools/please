@@ -44,7 +44,7 @@ __version__=1.0.0.4
 # General Purpose options:
 # -A dont exec odoo test
 # -B exec bash test
-# -b branch: must be 6.1 7.0, 8.0, 9.0 10.0 11.0 12.0 or 13.0
+# -b branch: must be 6.1 7.0, 8.0, 9.0 10.0 11.0 12.0 13.0 or 14.0
 # -C commit & push | dont exc clodoo test
 # -c configuration file
 # -D duplicate odoo to another version
@@ -1513,7 +1513,7 @@ do_edit() {
     eval $cmd "$@"
   else
     echo "Missing object! Use:"
-    echo "> please edit (pofile|translation|untranslated)"
+    echo "> please edit (pofile|translation|translation_from_pofile|untranslated)"
     sts=$STS_FAILED
   fi
   return $sts
@@ -1532,11 +1532,62 @@ do_edit_translation() {
   return $STS_STS_SUCCESS
 }
 
+do_edit_translation_from_pofile() {
+  local xfile
+  local confn db module odoo_fver sts=$STS_FAILED opts pyv pofile
+  if [[ ! "$PRJNAME" == "Odoo" ]]; then
+    echo "No Odoo module"
+    return $STS_FAILED
+  fi
+  module="."
+  odoo_fver=$(build_odoo_param FULLVER '.')
+  pofile="$(build_odoo_param PKGPATH '.')/i18n/it.po"
+  module=$(build_odoo_param PKGNAME '.')
+  if [[ -z "$odoo_fver" || -z "$module" ]]; then
+    echo "Invalid Odoo environment!"
+    return $STS_FAILED
+  fi
+  odoo_ver=$(echo $odoo_fver | grep -Eo [0-9]+ | head -n1)
+  if [[ ! -f "$pofile" ]]; then
+    echo "File $pofile not found!"
+    return $STS_FAILED
+  fi
+  pyv=$(python3 --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
+  [[ -n "$pyv" ]] && pyver="-p $pyv"
+  pyver="-p 2.7"    #debug
+  [[ ! -d $HOME/clodoo/venv ]] \
+    && run_traced "vem $pyver create $HOME/clodoo/venv" \
+    && run_traced "vem $HOME/clodoo/venv install xlrd" \
+    && run_traced "vem $HOME/clodoo/venv install Babel" \
+    && run_traced "vem $HOME/clodoo/venv install clodoo"
+  run_traced "pushd $HOME/clodoo >/dev/null"
+  [ $opt_verbose -ne 0 ] && opts="-v" || opts="-q"
+  [ $opt_dbg -ne 0 ] && opts="${opts}B"
+  run_traced "vem $HOME/clodoo/venv exec \"odoo_translation.py $opts -b$odoo_fver -m $module -R $pofile\""
+  sts=$?
+  run_traced "popd >/dev/null"
+  return $sts
+
+
+
+
+
+
+
+
+
+  [[ -f "$HOME/dev/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/dev/pypi/tools/odoo_default_tnl.xlsx"
+  [[ -f "$HOME/devel/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/devel/pypi/tools/odoo_default_tnl.xlsx"
+  [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
+  return $STS_STS_SUCCESS
+}
+
 do_edit_untranslated() {
   local xfile
   [[ -f "$HOME/odoo_default_tnl.csv" ]] && run_traced "libreoffice $HOME/odoo_default_tnl.csv" || echo "No file odoo_default_tnl.csv found!"
   return $STS_STS_SUCCESS
 }
+
 create_pkglist() {
   # create_pkglist(pkgname type)
   local PKGLIST Z0LIB OELIB x
@@ -2221,12 +2272,12 @@ do_download_rep() {
 do_duplicate() {
   set_executable
   if [ "$PRJNAME" == "Odoo" ]; then
-    if [[ ! $LGITPATH =~ (13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) ]]; then
+    if [[ ! $LGITPATH =~ (14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) ]]; then
       echo "Missing or invalid target Odoo version"
       exit 1
     fi
     cur_ver=""
-    for ver in 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
+    for ver in 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
       if [[ $PWD =~ $HOME/$ver ]]; then
         cur_ver="$ver"
         break
@@ -2570,7 +2621,7 @@ do_replica() {
   local cur_ver fn srcfn tp ver
   if [ "$PRJNAME" == "Odoo" ]; then
     cur_ver=""
-    for ver in 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
+    for ver in 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
       if [[ $PWD =~ $HOME/$ver ]]; then
         cur_ver="$ver"
         break
@@ -2589,7 +2640,7 @@ do_replica() {
       exit 1
     fi
     srcfn=$(readlink -f $fn)
-    for ver in 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
+    for ver in 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
       if [ "$ver" != "$cur_ver" ]; then
         tgtfn="${srcfn/$cur_ver/$ver}"
         if [ "$tp" == "f" ]; then
@@ -2821,7 +2872,7 @@ OPTDEFL=(1        0       ""         ""       ""       0         0        0     
 OPTMETA=("help"   ""      "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"
   "debug mode"
-  "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0"
+  "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0"
   "configuration file (def .travis.conf)"
   "date to search in log"
   "force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro) | full (status)"
@@ -2831,7 +2882,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"
   "show missing line in report coverage"
   "do nothing (dry-run)"
   "push only external project ids (of push)"
-  "pull original README (and docs) in distribution"
+  "pull original README (and docs) in distribution (deprecated)"
   "declare local destination path"
   "silent mode"
   "run restricted mode (w/o parsing travis.yml file) | recurse distribution OCB"

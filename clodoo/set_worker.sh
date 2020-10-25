@@ -2,7 +2,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -26,7 +26,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.28.1
+__version__=0.3.28.3
 
 
 evaluate_params() {
@@ -111,13 +111,13 @@ evaluate_params() {
     fi
 }
 
-OPTOPTS=(h        b          C        c      D          K        H        L                M       n           N          p          S          V           v)
-OPTDEST=(opt_help opt_branch opt_cpu  confn  max_dbconn opt_cw   opt_huge longpolling_port opt_mem opt_dry_run no_workers opt_nopsql opt_sparse opt_version opt_verbose)
-OPTACTI=(1        "="        "="      "=>"   "="        "="      1        "="              "="     1           1          1          1          "*>"        "+")
-OPTDEFL=(0        ""         ""       ""     100        1        0        8072             ""      0           0          0          0          ""          -1)
-OPTMETA=("help"   "branch"   "number" "file" "number"   "number" ""       "port"           "MB"    ""          ""         ""         ""         ""          "")
+OPTOPTS=(h        b          C        c      D          K        H        L          M       m         n           N          p          S          V           v)
+OPTDEST=(opt_help opt_branch opt_cpu  confn  max_dbconn opt_cw   opt_huge opt_lpport opt_mem opt_multi opt_dry_run no_workers opt_nopsql opt_sparse opt_version opt_verbose)
+OPTACTI=(1        "="        "="      "=>"   "="        "="      1        "="        "="     1         1           1          1          1          "*>"        "+")
+OPTDEFL=(0        ""         ""       ""     100        1        0        ""         ""      0         0           0          0          0          ""          -1)
+OPTMETA=("help"   "branch"   "number" "file" "number"   "number" ""       "port"     "MB"    ""        ""          ""         ""         ""         ""          "")
 OPTHELP=("this help"\
- "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0"\
+ "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0"\
  "# of cpu to evaluate"\
  "odoo configuration file"\
  "max odoo db connection"\
@@ -125,6 +125,7 @@ OPTHELP=("this help"\
  "huge database"\
  "long polling port (def=8072)"\
  "MB of memory to evaluate"\
+ "multi-instance odoo environment"\
  "do nothing (dry-run)"\
  "disable workers"\
  "psql server run in separate machine"\
@@ -143,9 +144,13 @@ if [ $opt_verbose -eq -1 ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Update Odoo configuration file to best performance"\
-  "(C) 2018-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
+discover_multi
+odoo_vid=$(echo ""|grep "^addons_path *=.*" $confn|tr -d " "|awk -F= '{print $2}'|awk -F, '{print $1}')
+b=$(basename $odoo_vid)
+[[ $b == "addons" ]] && odoo_vid=$(dirname $odoo_vid)
 CUR_NUSER=$(echo ""|grep -E "^# .antoniov.*Workers are set for [0-9]+ users" $confn|grep -Eo "[0-9]+"|tail -n1)
 [ -z "$CUR_NUSER" ] && CUR_NUSER=0
 if [[ -n "$NUSER" && ! $NUSER =~ ^[0-9]+$ ]]; then
@@ -177,6 +182,10 @@ else
     PRC4WRK=2
 fi
 # Deteced or sumulated values
+CUR_LPPORT=$(echo ""|grep "^longpolling_port *=.*" $confn|awk -F= '{print $2}'|grep -Eo "[0-9]+")
+[[ -n $opt_lpport ]] && WK_LPPORT=$opt_lpport || WK_LPPORT=$CUR_LPPORT
+[[ -z $WK_LPPORT || $WK_LPPORT == "0" ]] && WK_LPPORT=$(build_odoo_param LPPORT $odoo_vid)
+[ -z "$WK_LPPORT" ] && WK_LPPORT=8072
 [ -z "$NUSER" -a $CUR_NUSER -ne 0 ] && NUSER=$CUR_NUSER
 [ -z "$NUSER" ] && NUSER=16
 [ $NUSER -lt 2 ] && NUSER=2
@@ -187,8 +196,6 @@ CUR_PG_DBCONN=$(pg_db_active -s)
 [ -z "$CUR_PG_DBCONN" ] && CUR_PG_DBCONN=100
 [ $opt_cw -lt 1 ] && opt_cw=1
 [ $opt_cw -gt 2 ] && opt_cw=2
-CUR_LPPORT=$(echo ""|grep "^longpolling_port *=.*" $confn|grep -Eo "[0-9]+")
-[ -z "$CUR_LPPORT" ] && CUR_LPPORT=8072
 cur_proxy_mode=$(echo ""|grep "^proxy_mode *=.*" $confn|awk -F= '{print $2}')
 [ -z "$cur_proxy_mode" ] && cur_proxy_mode=False
 cur_time_cpu=$(echo ""|grep "^limit_time_cpu *=.*" $confn|grep -Eo "[0-9]+")
@@ -222,7 +229,7 @@ printf "# hard workers.....:           %8d %8d %8d\n" $MAX_HWRK $REQ_HWRK $HWRK
 printf "# soft workers.....:           %8d %8d %8d\n" $MAX_LWRK $REQ_LWRK $LWRK
 printf "# DB connections...:  %8d %8d %8d %8d\n" $CUR_DBCONN $MAX_DBCONN $REQ_DBCONN $WK_DBCONN
 printf "# psql connections.:  %8d %8d %8d %8d  %s\n" $CUR_PG_DBCONN $MAX_PG_DBCONN $REQ_PG_DBCONN $WK_PG_DBCONN "$STS_DBC"
-printf "longpolling_port...:  %8d                   %8d\n" $CUR_LPPORT $longpolling_port
+printf "longpolling_port...:  %8d                   %8d\n" $CUR_LPPORT $WK_LPPORT
 printf "Proxy mode.........:  %8.8s                   %8.8s\n" $cur_proxy_mode $PROXY_MODE
 printf "limit time CPU.....:  %8d                   %8d\n" $cur_time_cpu $TIME_CPU
 printf "limit time real....:  %8d                   %8d\n" $cur_time_real $TIME_REAL
@@ -258,9 +265,10 @@ if [[ -n "$confn" ]]; then
     run_traced "sed -e \"s/^workers *=.*/workers = $WK_WORKERS/\" -i $confn"
     run_traced "sed -e \"s/^db_maxconn *=.*/db_maxconn = $WK_DBCONN/\" -i $confn"
     run_traced "sed -e \"s/^proxy_mode *=.*/proxy_mode = $PROXY_MODE/\" -i $confn"
-    run_traced "sed -e \"s/^longpolling_port *=.*/longpolling_port = $longpolling_port/\" -i $confn"
+    run_traced "sed -e \"s/^longpolling_port *=.*/longpolling_port = $WK_LPPORT/\" -i $confn"
     run_traced "sed -e \"s/^limit_time_cpu *=.*/limit_time_cpu = $TIME_CPU/\" -i $confn"
     run_traced "sed -e \"s/^limit_time_real *=.*/limit_time_real = $TIME_REAL/\" -i $confn"
+    run_traced "sed -e \"s/^logrotate *=.*/logrotate = True/\" -i $confn"
     echo "You should restart odoo with a comand like this one"
     echo "sudo systemctl restart odoo"
 fi

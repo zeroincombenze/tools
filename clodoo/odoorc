@@ -25,6 +25,7 @@
 # INVALID_MODNAMES_RE
 # LICENSE      License (AGPL or LGPL)
 # LCONFN       Local Configuration filename (+)
+# LPPORT       Long polling port
 # MAJVER       Major Odoo version
 # MANIFEST     Manifest filename (__openerp__.py or __manifest__.py)
 # OCB_SUBDIRS
@@ -46,7 +47,7 @@
 # VDIR         Virtual directory
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.28.1
+#__version__=0.3.28.3
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
     echo "You must source this script: \$ source $0" >&2
@@ -201,7 +202,7 @@ traverse() {
 }
 
 build_odoo_param() {
-    # build_odoo_param(ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV
+    # build_odoo_param(ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|LPPORT|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV
     #                  vid [(search|DEBUG|default|tree|SERVER|<rptname>|<modname>)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER)])
     if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
         echo "${!1}"
@@ -215,7 +216,7 @@ build_odoo_param() {
     local PKGPATH PKGNAME ORGNM VDIR
     local cdir d ldir p p1 p11 p2 p3 p4 pd r x
     p1="v|V|ODOO|ocb|OCB"
-    p2="odoo|oca|axi|axitec|librerp|flectra|zero|zeroincombenze"
+    p2="odoo|oca|powerp|librerp|flectra|zero|zeroincombenze"
     # p4="14|13|12|11|10|9|8|7|6"
     local rex="^(VENV[_-]([0-9]{3,10})?)?($p1|$p2)?[_-]?($ODOO_FVERS|$ODOO_VERS)[_-]?($p2)?"
     local reo="^($p1)"
@@ -249,12 +250,18 @@ build_odoo_param() {
                 FULLVER=$(find_odoo_ver)
                 [[ -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
                 [ $VENV -eq 0 ] && [[ -f $cdir/../VENV-${odoo_vid}/bin/activate ]] && VENV=1 && VDIR=$(readlink -e $cdir/../VENV-${odoo_vid})
-            elif $(is_repos "$cdir") || [[ (-n "$PKGNAME" && -d $cdir/$PKGNAME) ]]; then
+            elif $(is_repos "$cdir"); then
                 r=$(basename $cdir)
                 [[ ! $r =~ $rex ]] && REPOS=$r && PRJPATH=$cdir
                 [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
-                # [[ -z "$PKGPATH" ]] && PKGPATH=$cidr && PKGNAME=$(basename $cdir)
-                # odoo_vid=$(basename $cdir)
+                [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
+                if [[ -z "$PKGNAME" ]]; then
+                    IFS="|" read PKGNAME PKGPATH PARENTIDR REPOS PRJPATH <<< $(traverse "$cdir" "$PKGNAME" "$PKGPATH" "$PARENTIDR" "$REPOS" "$PRJPATH")
+                fi
+            elif [[ (-n "$PKGNAME" && -d $cdir/$PKGNAME) ]]; then
+                r=$(basename $cdir)
+                [[ ! $r =~ $rex ]] && REPOS=$r && PRJPATH=$cdir
+                [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
                 if [[ -z "$PKGNAME" ]]; then
                     IFS="|" read PKGNAME PKGPATH PARENTIDR REPOS PRJPATH <<< $(traverse "$cdir" "$PKGNAME" "$PKGPATH" "$PARENTIDR" "$REPOS" "$PRJPATH")
                 fi
@@ -276,6 +283,7 @@ build_odoo_param() {
                 fi
             fi
             [[ $cdir == $HOME ]] && break
+            # $(is_repos "$cdir") && break
             [[ ! $cdir == "/" ]] && cdir=$(readlink -e $cdir/..) || cdir=
         done
     else
@@ -329,7 +337,7 @@ build_odoo_param() {
         GIT_ORGNM="$GIT_ORGID"
         [[ $GIT_ORGID == "oca" ]] && GIT_ORGNM="OCA"
         [[ $GIT_ORGID =~ (zero|zeroincombenze) ]] && GIT_ORGID="zero" && GIT_ORGNM="zeroincombenze" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
-        [[ $GIT_ORGID =~ (axi|axitec) ]] && GIT_ORGID="axi" && GIT_ORGNM="axitec" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+        [[ $GIT_ORGID == "powerp" ]] && GIT_ORGID="powerp" && GIT_ORGNM="powerp1" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
         [[ $GIT_ORGID =~ librerp[6]? && "$FULLVER" == "6.1" ]] && GIT_ORGNM="iw3hxn" && GIT_BRANCH="master"
         [[ $GIT_ORGID == "librerp" && "$FULLVER" == "12.0" ]] && GIT_ORGID="librerp" && GIT_ORGNM="librerp" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
         if [[ $GIT_ORGID =~ (odoo|oca) && "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
@@ -339,7 +347,7 @@ build_odoo_param() {
     fi
     [[ $GIT_ORGNM == "OCA" ]] && GIT_ORGID="oca"
     [[ $GIT_ORGNM == "zeroincombenze" ]] && GIT_ORGID="zero"
-    [[ $GIT_ORGNM =~ (axitec|axilor) ]] && GIT_ORGID="axi"
+    [[ $GIT_ORGNM == "powerp1" ]] && GIT_ORGID="powerp"
     [[ $GIT_ORGID == $ODOO_GIT_ORGID ]] && GIT_PROT="git"
 
     if [[ -z $ROOT ]]; then
@@ -364,7 +372,7 @@ build_odoo_param() {
         [[ $REPOS == "OCB" ]] && PRJPATH=$ROOT || PRJPATH="$ROOT/$REPOS"
     fi
 
-    [[ -z $RUPSTREAM && $GIT_ORGID =~ (zero|axi) ]] && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+    [[ -z $RUPSTREAM && $GIT_ORGID =~ (zero|powerp) ]] && RUPSTREAM="https://github.com/OCA/$REPOS.git"
     [[ -z "$GIT_PROT" ]] && GIT_PROT="https"
     [[ "$FULLVER" == "6.1" ]] && RUPSTREAM=""
     if [[ $REPOS =~ $REPT_NO_OCA_RE ]]; then
@@ -430,7 +438,7 @@ build_odoo_param() {
                 ((p = 8160 + $MAJVER))
             elif [[ $GIT_ORGID == "oca" ]]; then
                 ((p = 8260 + $MAJVER))
-            elif [[ $GIT_ORGID =~ (axi|librerp) ]]; then
+            elif [[ $GIT_ORGID =~ (powerp|librerp) ]]; then
                 ((p = 8360 + $MAJVER))
             elif [[ $GIT_ORGID =~ (zero|flectra) ]]; then
                 ((p = 8460 + $MAJVER))
@@ -439,6 +447,28 @@ build_odoo_param() {
             fi
         else
             p=8069
+        fi
+        echo $p
+        return
+    elif [[ $ITEM == "LPPORT" ]]; then
+        if [[ $spec =~ (debug|DEBUG) ]]; then
+            ((p = 18160 + $MAJVER))
+        elif [ $main -ne 0 -o $MULTIVER -eq 0 ]; then
+            p=8072
+        elif [ $MULTIVER -ne 0 ]; then
+            if [ $exorg -eq 0 ]; then
+                ((p = 8130 + $MAJVER))
+            elif [[ $GIT_ORGID == "oca" ]]; then
+                ((p = 8230 + $MAJVER))
+            elif [[ $GIT_ORGID =~ (powerp|librerp) ]]; then
+                ((p = 8330 + $MAJVER))
+            elif [[ $GIT_ORGID =~ (zero|flectra) ]]; then
+                ((p = 8430 + $MAJVER))
+            else
+                ((p = 8130 + $MAJVER))
+            fi
+        else
+            p=8072
         fi
         echo $p
         return

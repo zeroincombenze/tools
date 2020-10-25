@@ -33,12 +33,47 @@ except ImportError:
 __version__ = "1.0.0.4"
 
 MAX_RECS = 100
+PUNCT = [' ', '.', ',', '!', ':']
 TNL_DICT = {}
 TNL_ACTION = {}
 SYNTAX = {
     'string': re.compile(u'"([^"\\\n]|\\.|\\\n)*"'),
 }
 VERSIONS = ('14.0', '13.0', '12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
+PROTECT_TOKENS = [
+    'Adviser',
+    'Apply',
+    'Approve',
+    'Cancel',
+    'Close',
+    'Compute',
+    'Confirm',
+    'Cost of Revenue',
+    'Create',
+    'Currencies',
+    'Currency',
+    'Discard',
+    'Display',
+    'Dominica',
+    'done', 'Done',
+    'Export',
+    'Kenya',
+    'Journal',
+    'Mauritania',
+    'Myanmar',
+    'Name',
+    'Niger',
+    'Partner', 'Partners',
+    'Remove',
+    'Report',
+    'Run',
+    'Save',
+    'Set',
+    'The rate of the currency to the currency of rate 1',
+    'Uninstall',
+    'Update',
+    'You can either upload a file from your computer or copy/paste an internet link to your file',
+]
 msg_time = time.time()
 
 
@@ -73,54 +108,54 @@ def change_name(ctx, filename, version):
     return filename
 
 
+def term_wo_punct(msgid, msgstr):
+    if msgid and msgid[-1] in PUNCT:
+        if msgstr and msgstr[-1] == msgid[-1]:
+            msgstr = msgstr[0: -1]
+        msgid = msgid[0: -1]
+    elif msgstr and msgstr[-1] in PUNCT:
+        msgstr = msgstr[0: -1]
+    if msgid and msgstr:
+        caseid = 'U' if msgid[0].isupper() else 'l'
+        casestr = 'U' if msgstr[0].isupper() else 'l'
+        if len(msgid) > 1:
+            caseid += 'U' if msgid[1].isupper() else 'l'
+        if len(msgstr) > 1:
+            casestr += 'U' if msgstr[1].isupper() else 'l'
+        if casestr != casestr:
+            if caseid == 'Ul' and casestr == 'll':
+                msgstr = msgstr[0].upper() + msgstr[1:]
+            elif caseid == 'll' and casestr == 'Ul':
+                msgstr = msgstr[0].lower() + msgstr[1:]
+    return msgid, msgstr
+
+
+def term_with_punct(msgid, msgstr, punct):
+    return msgid + punct, msgstr + punct
+
+
 def load_default_dictionary(ctx, source):
 
-    def term_with_punct(row, msgid, punct):
-        if msgid[-1] == punct:
-            msg2 = os0.u(msgid[:-1])
-            if row['msgstr'][-1] == punct:
-                des2 = os0.u(row['msgstr'][:-1])
-            else:
-                des2 = os0.u(row['msgstr'])
-        else:
-            msg2 = os0.u(msgid + punct)
-            if row['msgstr'][-1] == punct:
-                des2 = os0.u(row['msgstr'])
-            else:
-                des2 = os0.u(row['msgstr']) + punct
-        TNL_DICT[msg2] = des2
-        TNL_ACTION[msg2] = 'D'
-
-    def set_terms_n_punct(row, msgid):
-        if msgid == '%s%s' % (msgid[0].upper(), msgid[1:].lower()):
-            msg2 = os0.u(msgid.lower())
-            TNL_DICT[msg2] = os0.u(row['msgstr']).lower()
-            TNL_ACTION[msg2] = 'D'
-            for punct in (':', '.'):
-                term_with_punct(row, os0.u(row['msgstr']).lower(), punct)
-        for punct in (':', '.'):
-            term_with_punct(row, os0.u(row['msgstr']), punct)
-
     def process_row(ctx, row):
-        if not row['status'] or row['status'] == ctx['module_name']:
+        if not row['module'] or row['module'] == ctx['module_name']:
             if not row['msgid'] or not row['msgstr']:
                 return 0
-            msgid = os0.u(row['msgid'])
-            TNL_DICT[msgid] = os0.u(row['msgstr'])
-            if msgid == TNL_DICT[msgid]:
+            msgid, TNL_DICT[msgid] = term_wo_punct(
+                os0.u(row['msgid']), os0.u(row['msgstr']))
+            if not TNL_DICT[msgid]:
+                TNL_ACTION[msgid] = 'P'
                 return 0
-            try:
-                if (msgid[0] != ' ' and
-                        msgid[0] == TNL_DICT[msgid][0].lower() and
-                        msgid[1:] == TNL_DICT[msgid][1:]):
-                    return 0
-            except BaseException:
-                pass
-            TNL_ACTION[msgid] = 'D'
+            elif (msgid == TNL_DICT[msgid] or (
+                    msgid[0] != ' ' and msgid[0] != '\n' and
+                    msgid[0] == TNL_DICT[msgid][0].lower() and
+                    msgid[1:] == TNL_DICT[msgid][1:])):
+                TNL_ACTION[msgid] = '*'
+                return 0
             if ctx['action'] and ctx['action'][0].upper() in (
                     'D', 'P', '*'):
                 TNL_ACTION[msgid] = ctx['action'][0].upper()
-            set_terms_n_punct(row, msgid)
+            else:
+                TNL_ACTION[msgid] = 'D'
             return 1
         return 0
 
@@ -177,60 +212,94 @@ def load_default_dictionary(ctx, source):
 
 
 def save_untranslated(ctx, untnl):
-
+    csv.register_dialect('transodoo',
+                         delimiter=_c(','),
+                         quotechar=_c('\"'),
+                         quoting=csv.QUOTE_MINIMAL)
     dict_name = os.path.expanduser('~/odoo_default_tnl.csv')
-    fd = open(dict_name, 'w')
-    fd.write('status\tmsgid\tmsgstr\n')
-    for msgid in sorted(untnl):
-        msg_burst(msgid)
-        fd.write(b'%s\t%s\t%s\n' % (
-            b'', os0.b(msgid), b''))
-    fd.close()
+    with open(dict_name, 'wb') as fd:
+        writer = csv.DictWriter(
+            fd,
+            fieldnames=('module', 'msgid', 'msgstr'),
+            dialect='transodoo')
+        writer.writeheader()
+        if untnl is None:
+            sorted_list = sorted(TNL_DICT.keys(), key=lambda x: x.lower())
+        else:
+            sorted_list = sorted(untnl, key=lambda x: x.lower())
+        for item in sorted_list:
+            msg_burst(item)
+            line = {
+                'module': '',
+                'msgid': os0.b(item),
+                'msgstr': '',
+            }
+            if untnl is None:
+                line['msgstr'] = os0.b(TNL_DICT[item])
+            if untnl is not None or (not item.startswith(' ') and
+                                     not item.startswith('\n') and
+                                     not item.startswith('===')):
+                writer.writerow(line)
     if ctx['opt_verbose']:
         print("*** Untranslated dictionary saved at %s ***" % dict_name)
 
 
-def load_dictionary_from_file(ctx, pofn):
+def load_dictionary_from_file(ctx, pofn, def_action=None):
     ctr = 0
+    trline = '-' * 60
     if os.path.isfile(pofn):
         if ctx['opt_verbose']:
             print("\tReading %s into dictionary" % pofn)
         catalog = pofile.read_po(open(pofn, 'r'))
         for message in catalog:
+            if not message.id:
+                continue
             msgid = message.id
             msgstr = message.string
-            if msgid in TNL_DICT:
-                if msgstr != TNL_DICT[msgid]:
-                    print('  Duplicate key "%s"' % msgid)
-                    print('    Dictionary="%s"' % TNL_DICT[msgid])
-                    print('    Po="%s"' % msgstr)
-                    dummy = ''
-                    if '*' in TNL_ACTION:
-                        dummy = TNL_ACTION['*']
-                    elif msgid in TNL_ACTION:
-                        dummy = TNL_ACTION[msgid]
-                    while dummy not in ('D', 'P', 'E', 'I') and \
-                            len(dummy) <= 3:
-                        dummy = input(
-                            '>>> (Dictionary,Po,End,Ignore,<Text>)? ')
-                    if dummy == 'E':
-                        TNL_ACTION['*'] = dummy
-                        return
-                    elif dummy == 'I':
-                        TNL_ACTION[msgid] = dummy
-                        continue
-                    elif len(dummy) >= 3:
-                        TNL_DICT[msgid] = dummy
-                        ctr += 1
-                    elif dummy == 'P':
-                        TNL_DICT[msgid] = msgstr
-                        ctr += 1
-                        print('       KEY="%s"' % msgstr)
-                    else:
-                        TNL_ACTION[msgid] = dummy
-                else:
-                    TNL_DICT[msgid] = msgstr
+            msgid2, msgstr2 = term_wo_punct(msgid, msgstr)
+            punct = '' if msgid == msgid2 else msgid[-1]
+            if msgid2 not in TNL_DICT:
+                TNL_DICT[msgid2] = msgstr2
+                TNL_ACTION[msgid2] = 'P'
+                ctr += 1
+            elif msgstr2 != TNL_DICT[msgid2]:
+                print('  Duplicate key "%s"' % msgid)
+                print('    Dictionary="%s%s"' % (TNL_DICT[msgid2], punct))
+                print('    %-60.60s' % trline)
+                print('    Po="%s"' % msgstr)
+                print('    %-60.60s' % trline)
+                dummy = ''
+                if msgid2 in PROTECT_TOKENS:
+                    dummy = 'D'
+                elif def_action:
+                    dummy = def_action
+                elif not msgstr:
+                    dummy = 'D'
+                elif not TNL_DICT[msgid2]:
+                    dummy = 'P'
+                elif msgid2 in TNL_ACTION:
+                    dummy = TNL_ACTION[msgid2]
+                elif '*' in TNL_ACTION:
+                    dummy = TNL_ACTION['*']
+                while dummy not in ('D', 'P', 'E', 'I') and \
+                        len(dummy) <= 3:
+                    dummy = input(
+                        '>>> (Dictionary,Po,End,Ignore,<Text>)? ')
+                if dummy == 'E':
+                    TNL_ACTION['*'] = dummy
+                    return
+                elif dummy == 'I':
+                    TNL_ACTION[msgid2] = dummy
+                    continue
+                elif len(dummy) >= 3:
+                    TNL_DICT[msgid2] = os0.u(dummy)
                     ctr += 1
+                elif dummy == 'P':
+                    TNL_DICT[msgid2] = msgstr2
+                    ctr += 1
+                    print('       KEY="%s"' % msgstr)
+                else:
+                    TNL_ACTION[msgid2] = dummy
         if ctx['opt_verbose']:
             print("\t... Read %d new records" % ctr)
     return ctr
@@ -246,19 +315,31 @@ def parse_pofile(ctx, source, untnl):
         for message in catalog:
             msgid = os0.u(message.id)
             msgstr = os0.u(message.string)
-            if msgid in TNL_DICT and msgstr != TNL_DICT[msgid]:
+            msgid2, msgstr2 = term_wo_punct(msgid, msgstr)
+            punct = ''
+            if msgid and msgid[-1] in PUNCT:
+                punct = msgid[-1]
+                msgid, msgstr = term_with_punct(msgid, msgstr, punct)
+            if not msgid:
                 for k, value in message.__dict__.iteritems():
                     if k == 'string':
-                        message.string = TNL_DICT[msgid]
+                        message.string = ''
+                    elif value:
+                        setattr(message, k, value)
+                ctr += 1
+            elif msgid2 in TNL_DICT and msgstr != TNL_DICT[msgid2]:
+                for k, value in message.__dict__.iteritems():
+                    if k == 'string':
+                        message.string = TNL_DICT[msgid2] + punct
                     elif value:
                         setattr(message, k, value)
                 ctr += 1
                 fdiff = True
-            elif msgid and msgid not in TNL_DICT and msgid not in untnl:
+            elif msgid and msgid2 not in TNL_DICT and msgid2 not in untnl:
                 if ctx['opt_verbose']:
                     print('\tWarning: key <%s> not found in translation!'
-                          % msgid)
-                untnl.append(msgid)
+                          % msgid2)
+                untnl.append(msgid2)
         if ctx['opt_verbose']:
             print("\t... %d records to update" % ctr)
         return fdiff, catalog, untnl
@@ -307,6 +388,31 @@ def rewrite_pofile(ctx, pofn, target, version):
         os.rename(pofn, bakfile)
     os.rename(tmpfile, pofn)
 
+def get_module_pofile_name(ctx, version):
+    odoo_path = set_odoo_path(ctx, version)
+    if odoo_path:
+        module_path = False
+        for root, dirs, files in os.walk(odoo_path):
+            if (root.find('__to_remove') < 0 and
+                    os.path.basename(root) == ctx['module_name'] and
+                    (os.path.isfile(os.path.join(
+                        root, '__manifest__.py')) or
+                     os.path.isfile(os.path.join(
+                         root, '__openerp__.py')))):
+                module_path = root
+                break
+        if not module_path:
+            print('*** Module %s not found for Odoo %s !!!' % (
+                ctx['module_name'], version))
+            return False
+        print('Found path %s' % module_path)
+        pofn = os.path.join(module_path, 'i18n', 'it.po')
+        if not os.path.isfile(pofn):
+            print('*** File %s not found !!!' % pofn)
+            return False
+        return pofn
+    return False
+
 
 def load_dictionary(ctx):
     if os.path.isdir(os.path.expanduser('~/devel')):
@@ -319,7 +425,7 @@ def load_dictionary(ctx):
     if ctx['dbg_template']:
         dict_name = os.path.join(root, 'pypi', 'tools', 'odoo_default_tnl')
     else:
-        dict_name = os.path.expanduser(root, 'odoo_default_tnl')
+        dict_name = os.path.join(root, 'odoo_default_tnl')
     ctr = load_default_dictionary(ctx, dict_name)
     ctx['pofiles'] = {}
     ctx['ctrs'] = {'0': ctr}
@@ -327,32 +433,26 @@ def load_dictionary(ctx):
         if ctx['branch'] and version == ctx['branch'] and ctx['pofile']:
             pofn = ctx['pofile']
         else:
-            odoo_path = set_odoo_path(ctx, version)
-            if odoo_path:
-                module_path = False
-                for root, dirs, files in os.walk(odoo_path):
-                    if (root.find('__to_remove') < 0 and
-                        os.path.basename(root) == ctx['module_name'] and
-                            (os.path.isfile(os.path.join(
-                                root, '__manifest__.py')) or
-                             os.path.isfile(os.path.join(
-                                 root, '__openerp__.py')))):
-                        module_path = root
-                        break
-                if not module_path:
-                    print('*** Module %s not found for Odoo %s !!!' % (
-                        ctx['module_name'], version))
-                    continue
-                print('Found path %s' % module_path)
-                pofn = os.path.join(module_path, 'i18n', 'it.po')
-                if not os.path.isfile(pofn):
-                    print('*** File %s not found !!!' % pofn)
-                    return 0
+            pofn = get_module_pofile_name(ctx, version)
         if pofn:
             ctx['pofiles'][version] = pofn
             ctr = load_dictionary_from_file(ctx, pofn)
             ctx['ctrs'][version] = ctr
     return 0
+
+
+def refresh_dictionary(ctx):
+    if os.path.isdir(os.path.expanduser('~/devel')):
+        root = os.path.expanduser('~/devel')
+    elif os.path.isdir(os.path.expanduser('~/dev')):
+        root = os.path.expanduser('~/dev')
+    else:
+        print('Development directory ~/devel not found!')
+        return 1
+    dict_name = os.path.join(root, 'pypi', 'tools', 'odoo_default_tnl')
+    load_default_dictionary(ctx, dict_name)
+    load_dictionary_from_file(ctx, ctx['ref_pofile'], def_action=ctx['action'])
+    save_untranslated(ctx, None)
 
 
 def set_header_pofile(ctx, pofile):
@@ -403,40 +503,22 @@ def parse_file(ctx):
                 print("No change done.")
         else:
             rewrite_pofile(ctx, pofn, target, version)
-    if untnl:
-        save_untranslated(ctx, untnl)
+    save_untranslated(ctx, untnl)
     return 0
 
 
-def upgrade_db(ctx):
-
-    def write_tnl(ctx, model, ids, msgid, ctr):
-        if ids and len(ids) < MAX_RECS:
-            for id in ids:
-                try:
-                    clodoo.writeL8(ctx, model, id, {'value': TNL_DICT[msgid]})
-                    ctr += 1
-                except IOError as e:
-                    print("*** Error %e writing '%s'!!!" % (e, TNL_DICT[msgid]))
-                except BaseException as e:
-                    print("*** Fatal error %s writing '%s'!!!" % (
-                        e, TNL_DICT[msgid]))
-                    clodoo.unlinkL8(ctx, model, id)
-        return ctr
-
+def connect_db(ctx):
+    dbname = ''
     if ctx['branch']:
         version = ctx['branch']
-        ctr = 0
         dbname = ctx['db_prefix']
         if ctx['opt_verbose']:
             print("\tUpgrade DB %s" % dbname)
-        xmlrpc_port = 8160 + int(version.split('.')[0])
         ctx['svc_protocol'] = ''
         db_found = False
         try:
             uid, ctx = clodoo.oerp_set_env(ctx=ctx,
                                            db=dbname,
-                                           xmlrpc_port=xmlrpc_port,
                                            oe_version=version)
             db_found = True
         except BaseException:
@@ -445,20 +527,42 @@ def upgrade_db(ctx):
             try:
                 uid, ctx = clodoo.oerp_set_env(ctx=ctx,
                                                db=dbname,
-                                               xmlrpc_port=xmlrpc_port,
                                                oe_version=version)
                 db_found = True
             except BaseException:
                 print("No DB %s found" % ctx['db_prefix'])
-                return
+                dbname = ''
+    return uid, ctx, dbname
+
+
+def upgrade_db(ctx):
+
+    def write_tnl(ctx, model, ids, msgid, msgstr, ctr):
+        if ids and len(ids) < MAX_RECS:
+            for id in ids:
+                try:
+                    clodoo.writeL8(ctx, model, id, {'value': msgstr})
+                    ctr += 1
+                except IOError as e:
+                    print("*** Error %e writing '%s'!!!" % (e, msgstr))
+                except BaseException as e:
+                    print("*** Fatal error %s writing '%s'!!!" % (e, msgstr))
+                    clodoo.unlinkL8(ctx, model, id)
+        return ctr
+
+    if ctx['branch']:
+        uid, ctx, dbname = connect_db(ctx)
+        if not dbname:
+            return
+        ctr = 0
         # ir.translation contains Odoo translation terms
         # @src: original (english) term
         # @source: evaluated field that seems a copy of src
         # @value: translated term
-        # @name: is environment name; content may be:
-        #   - type model: model name,field name
-        #   - type code: source file name, format 'addons/MODULE_PATH'
-        #   - type selection: MODULE_PATH,field name
+        # @name: is environment name; value may be:
+        #   - type model: "model name,field name"
+        #   - type code: "source file name", format 'addons/MODULE_PATH'
+        #   - type selection: "MODULE_PATH,field name"
         # @type: may be [code,constraint,model,selection,sql_constraint]
         # @module: module which added term
         # @state: may be [translated, to_translate]
@@ -474,31 +578,34 @@ def upgrade_db(ctx):
         #                      ('name', 'in', ('ir.module.module,description'
         #                                      'ir.module.module,shortdesc',
         #                                      'ir.module.module,summary'))]))
-        for msgid in TNL_DICT:
-            if ctx['opt_verbose']:
-                msg_burst(msgid)
-            ids = clodoo.searchL8(ctx, model,
-                                  [('lang', '=', 'it_IT'),
-                                   ('type', '=', 'model'),
-                                   ('src', '=', msgid),
-                                   ('module', '=', ctx['module_name']),
-                                   ('value', '!=', TNL_DICT[msgid])])
-            ctr = write_tnl(ctx, model, ids, msgid, ctr)
-            ids = clodoo.searchL8(
-                ctx, model,
-                [('lang', '=', 'it_IT'),
-                 ('name', 'in', ('ir.actions.act_window,name',
-                                 'ir.model,name',
-                                 'ir.module.category,name',
-                                 'ir.module.module,description'
-                                 'ir.module.module,shortdesc',
-                                 'ir.module.module,summary',
-                                 'ir.ui.menu,name',
-                                 'ir.ui.view,arch_db',
-                                 )),
-                 ('src', '=', msgid),
-                 ('value', '!=', TNL_DICT[msgid])])
-            ctr = write_tnl(ctx, model, ids, msgid, ctr)
+        for msgid2 in TNL_DICT:
+            for punct in PUNCT + ['']:
+                msgid = msgid2 + punct
+                msgstr = TNL_DICT[msgid2] + punct
+                if ctx['opt_verbose']:
+                    msg_burst(msgid)
+                ids = clodoo.searchL8(ctx, model,
+                                      [('lang', '=', 'it_IT'),
+                                       ('type', '=', 'model'),
+                                       ('src', '=', msgid),
+                                       ('module', '=', ctx['module_name']),
+                                       ('value', '!=', msgstr)])
+                ctr = write_tnl(ctx, model, ids, msgid, msgstr, ctr)
+                ids = clodoo.searchL8(
+                    ctx, model,
+                    [('lang', '=', 'it_IT'),
+                     ('name', 'in', ('ir.actions.act_window,name',
+                                     'ir.model,name',
+                                     'ir.module.category,name',
+                                     'ir.module.module,description'
+                                     'ir.module.module,shortdesc',
+                                     'ir.module.module,summary',
+                                     'ir.ui.menu,name',
+                                     'ir.ui.view,arch_db',
+                                     )),
+                     ('src', '=', msgid),
+                     ('value', '!=', msgstr)])
+                ctr = write_tnl(ctx, model, ids, msgid, msgstr, ctr)
         if ctx['opt_verbose']:
             print("\t... %d record upgraded" % ctr)
         if ctx['load_language']:
@@ -507,31 +614,11 @@ def upgrade_db(ctx):
 
 
 def delete_translation(ctx):
-    dbname = ctx['db_prefix']
+    uid, ctx, dbname = connect_db(ctx)
+    if not dbname:
+        return 0
     if ctx['opt_verbose']:
         print("\tDelete translation from DB %s" % dbname)
-    version = ctx['branch']
-    xmlrpc_port = 8160 + int(version.split('.')[0])
-    ctx['svc_protocol'] = ''
-    db_found = False
-    try:
-        uid, ctx = clodoo.oerp_set_env(ctx=ctx,
-                                       db=dbname,
-                                       xmlrpc_port=xmlrpc_port,
-                                       oe_version=version)
-        db_found = True
-    except BaseException:
-        dbname = '%s%s' % (ctx['db_prefix'], version.split('.')[0])
-    if not db_found:
-        try:
-            uid, ctx = clodoo.oerp_set_env(ctx=ctx,
-                                           db=dbname,
-                                           xmlrpc_port=xmlrpc_port,
-                                           oe_version=version)
-            db_found = True
-        except BaseException:
-            print("No DB %s found" % ctx['db_prefix'])
-            return 1
     model = 'ir.translation'
     clodoo.unlinkL8(
         ctx, model, clodoo.searchL8(
@@ -582,6 +669,10 @@ if __name__ == "__main__":
                         help='pathname',
                         dest='pofile')
     parser.add_argument('-q')
+    parser.add_argument('-R', '--ref-pofile',
+                        action='store',
+                        help='pathname',
+                        dest='ref_pofile')
     parser.add_argument('-V')
     parser.add_argument('-v')
     ctx = parser.parseoptargs(sys.argv[1:])
@@ -590,9 +681,12 @@ if __name__ == "__main__":
         sys.exit(1)
     if ctx['del_tnl']:
         sys.exit(delete_translation(ctx))
-    sts = load_dictionary(ctx)
-    if sts == 0:
-        sts = parse_file(ctx)
-    if sts == 0 and ctx['db_prefix']:
-        sts = upgrade_db(ctx)
+    if ctx['ref_pofile']:
+        sts = refresh_dictionary(ctx)
+    else:
+        sts = load_dictionary(ctx)
+        if sts == 0:
+            sts = parse_file(ctx)
+        if sts == 0 and ctx['db_prefix']:
+            sts = upgrade_db(ctx)
     sys.exit(sts)

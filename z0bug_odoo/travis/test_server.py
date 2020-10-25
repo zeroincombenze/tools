@@ -549,8 +549,6 @@ def set_sys_path():
 
 
 def main(argv=None):
-    # if argv is None:
-    #     argv = sys.argv
     run_from_env_var('RUN_COMMAND_MQT', os.environ)
     options = os.environ.get("OPTIONS", "").split()
     server_options = os.environ.get('SERVER_OPTIONS', "").split()

@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.28.1
+__version__=0.3.28.3
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca librerp VENV_123- devel"
@@ -72,15 +72,15 @@ test_01() {
         test_result "1c> GIT_ORGNM $v" "OCA" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in axitec12 odoo12-axitec odoo12-axi odoo_12-axi VENV-odoo12-axi VENV_123-odoo12-axi; do
+    for v in powerp12 odoo12-powerp odoo12-powerp odoo_12-powerp VENV-odoo12-powerp VENV_123-odoo12-powerp; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
         test_result "1d> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1d> GIT_ORGID $v" "axi" "$RES"
+        test_result "1d> GIT_ORGID $v" "powerp" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1d> GIT_ORGNM $v" "axitec" "$RES"
+        test_result "1d> GIT_ORGNM $v" "powerp1" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in librerp6 librerp odoo6-librerp VENV-librerp6 VENV-librerp VENV_123-librerp6 VENV_123-librerp; do
@@ -182,7 +182,7 @@ test_02() {
             test_result "$PWD> MAJVER '.' [bash]" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-axi" "-zero"; do
+                for o in "-oca" "-powerp" "-zero"; do
                     if [ ${opt_dry_run:-0} -eq 0 ]; then
                         Z0BUG_build_odoo_env "$x${m}${o}"
                         pushd $Z0BUG_root/$w>/dev/null || return 1
@@ -237,7 +237,7 @@ test_02() {
             fi
 
             [[ $x != "odoo" ]] && continue
-            for o in "-oca" "-axi" "-zero"; do
+            for o in "-oca" "-powerp" "-zero"; do
                 Z0BUG_build_odoo_env "$HOME/$x${m}${o}"
                 [ ${opt_dry_run:-0} -eq 0 ] && pushd $HOME/$x${m}${o}>/dev/null || return 1
                 RES=$(build_odoo_param MAJVER ".")
@@ -333,7 +333,7 @@ test_04() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-axi" "-zero"; do
+                for o in "-oca" "-powerp" "-zero"; do
                     w="$x${m}${o}"
                     TRES="/etc/odoo/odoo${m}${o}.conf"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param CONFN $w)
@@ -358,7 +358,7 @@ test_04() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-axi" "-zero"; do
+                for o in "-oca" "-powerp" "-zero"; do
                     w="$x${m}${o}"
                     TRES="/var/log/odoo/odoo${m}${o}.log"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FLOG $w)
@@ -383,7 +383,7 @@ test_04() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-axi" "-zero"; do
+                for o in "-oca" "-powerp" "-zero"; do
                     w="$x${m}${o}"
                     TRES="/var/run/odoo/odoo${m}${o}.pid"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FPID $w)
@@ -412,7 +412,7 @@ test_04() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-axi" "-zero"; do
+                for o in "-oca" "-powerp" "-zero"; do
                     w="$x${m}${o}"
                     TRES="/etc/init.d/odoo${m}${o}"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULL_SVCNAME $w)
@@ -618,6 +618,10 @@ test_05() {
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RPCPORT $w)
             test_result "5h> unique RPCPORT $w [bash]" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            TRES=8072
+            [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param LPPORT $w)
+            test_result "5h> unique LPPORT $w [bash]" "$TRES" "$RES"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             export opt_multi=1
             ((TRES=m+8160))
@@ -629,6 +633,15 @@ test_05() {
             test_result "5h> multi RPCPORT $w [bash]" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
+            ((TRES=m+8130))
+            [[ $w =~ ^(v|V)[0-9] ]] && TRES=8072
+            [[ $x =~ (odoo|odoo_|ODOO) ]] && ((TRES=m+8130))
+            [[ $x =~ (OCB-|oca) ]] && ((TRES=m+8230))
+            [[ $x =~ (librerp) ]] && ((TRES=m+8330))
+            [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param LPPORT $w)
+            test_result "5h> multi LPPORT $w [bash]" "$TRES" "$RES"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+
             if [[ $x == "odoo" ]]; then
                 o="-oca"
                 w="$x${m}${o}"
@@ -636,7 +649,7 @@ test_05() {
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RPCPORT $w)
                 test_result "5h> multi RPCPORT $w [bash]" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
-                o="-axi"
+                o="-powerp"
                 w="$x${m}${o}"
                 ((TRES=m+8360))
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RPCPORT $w)
@@ -876,7 +889,7 @@ Z0BUG_setup() {
             [[ $x =~ (oca|librerp) ]] && w="odoo${m}-$x"
             OS_TREE="$OS_TREE $w $HOME/$w"
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-axi" "-zero"; do
+                for o in "-oca" "-powerp" "-zero"; do
                     OS_TREE="$OS_TREE $x${m}${o} $HOME/$x${m}${o}"
                 done
             fi
@@ -899,7 +912,7 @@ Z0BUG_teardown() {
             [[ $x =~ (oca|librerp) ]] && w="odoo${m}-$x"
             OS_TREE="$OS_TREE $w $HOME/$w"
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-axi" "-zero"; do
+                for o in "-oca" "-powerp" "-zero"; do
                     OS_TREE="$OS_TREE $x${m}${o} $HOME/$x${m}${o}"
                 done
             fi

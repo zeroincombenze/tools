@@ -3025,7 +3025,7 @@ def test_synchro_vg7(ctx):
                              model,
                              'synchro',
                              vals)
-        time.sleep(2)
+        time.sleep(4)
         for modname in MODULE_LIST:
             print('checking module %s ..' % modname)
             module_ids = clodoo.searchL8(ctx, model,
@@ -3111,12 +3111,21 @@ def test_synchro_vg7(ctx):
             print('No sql support found!')
             input('Press RET to continue')
         else:
-            query = "delete from procurement_order"
-            clodoo.exec_sql(ctx, query)
-            query = "delete from stock_pack_operation"
-            clodoo.exec_sql(ctx, query)
-            query = "delete from stock_move"
-            clodoo.exec_sql(ctx, query)
+            try:
+                query = "delete from procurement_order"
+                clodoo.exec_sql(ctx, query)
+            except BaseException:
+                pass
+            try:
+                query = "delete from stock_pack_operation"
+                clodoo.exec_sql(ctx, query)
+            except BaseException:
+                pass
+            try:
+                query = "delete from stock_move"
+                clodoo.exec_sql(ctx, query)
+            except BaseException:
+                pass
         model = 'stock.picking.package.preparation'
         delete_record(
             ctx, model, [('ddt_number', '=', X_NUM_DDT)],
@@ -3135,7 +3144,8 @@ def test_synchro_vg7(ctx):
         model = 'res.partner'
         delete_record(
             ctx, model, [('name', 'like', 'Partner A%'),
-                         ('type', '=', 'contact')], childs='child_ids')
+                         ('type', '=', 'contact')],
+            multi=True, childs='child_ids')
 
         # Se partner (person) name
         model = 'res.partner'
@@ -3280,10 +3290,11 @@ def test_synchro_vg7(ctx):
         model = 'account.tax'
         for id in clodoo.searchL8(ctx, model, [('description', '=', '22v')]):
             clodoo.writeL8(ctx, model, id, {'name': 'IVA 22%'})
+        delete_record(ctx, model, [('description', '=', 'a101')])
 
         # Delete other records
         model = 'res.country.state'
-        delete_record(ctx, model, [('name', '=', '(TO)')])
+        delete_record(ctx, model, [('name', 'like', '(TO)')])
         model = 'stock.picking.goods_description'
         delete_record(ctx, model, [('name', '=', 'BANCALI')])
         model = 'crm.team'
@@ -4633,6 +4644,33 @@ def test_synchro_vg7(ctx):
         check_2_account(ctx, acc_id, vals)
         return oe8_id
 
+    def check_2_tax(ctx, tax_id, vals):
+        general_check(ctx, 'account.tax', tax_id, vals)
+
+    def write_2_tax(ctx, oe8_id=None, code=None, name=None, utype=None):
+        model = 'account.tax'
+        print('Write %s ..' % model)
+        oe8_id = oe8_id or 101
+        code = code or 'a101'
+        name = name or 'Forfettario art 101'
+        utype = utype or 'all'
+        vals = {
+            'oe8:id': oe8_id,
+            'oe8:description': code,
+            'oe8:name': name,
+            'oe8:type': utype,
+            'oe8:company_id': 1,
+        }
+        tax_id = clodoo.executeL8(ctx,
+                                  model,
+                                  'synchro',
+                                  vals)
+        store_id(ctx, model, tax_id, oe8_id)
+        vals['type_tax_use'] = 'purchase'
+        del vals['oe8:type']
+        check_2_tax(ctx, tax_id, vals)
+        return oe8_id
+
     def check_2_currency(ctx, ccy_id, vals):
         general_check(ctx, 'res.currency', ccy_id, vals)
 
@@ -4681,7 +4719,6 @@ def test_synchro_vg7(ctx):
         return oe8_id
 
     ctx, company_id = init_test(ctx)
-
     # Repeat 2 times to check correct synchronization
     write_country(ctx)
     write_country(ctx, vg7_id='39')
@@ -4700,7 +4737,7 @@ def test_synchro_vg7(ctx):
         write_conai(ctx)
 
     # Repeat 2 times to check correct synchronization
-    vg7_id_product_a = write_product(ctx, company_id)
+    write_product(ctx, company_id)
     vg7_id_product_a = write_product(ctx, company_id, vg7_id='1')
 
     vg7_id_product_b = write_product(ctx, company_id,
@@ -4800,7 +4837,6 @@ def test_synchro_vg7(ctx):
     vals7['billing_city'] = 'Milano'
     vals7['billing_postal_code'] = '20123'
     write_file_2_pull(ext_model, vals7)
-
 
     model = 'res.partner'
     ext_model = 'suppliers'
@@ -5110,7 +5146,7 @@ def test_synchro_vg7(ctx):
     write_2_account(ctx, company_id, oe8_id=555, code='152100',
         name='Crediti v/clienti Italia', utype='receivable',
         type_xref='account.data_account_type_receivable')
-
+    write_2_tax(ctx, company_id)
 
     print('*** Starting pull record test ***')
 
@@ -5215,7 +5251,7 @@ def test_synchro_vg7(ctx):
                                1)
     if crm_id != crm_id2:
         raise IOError(
-            'Record %s not rewriteen in %s.%d' % (vals, model, crm_id))
+            'Record %s not rewritten in %s.%d' % (vals, model, crm_id))
     ctx['ctr'] += 1
 
     print('%d tests connector_vg7 successfully ended' % ctx['ctr'])
@@ -5369,7 +5405,6 @@ def check_rec_links(ctx):
                         break
         return ctr, err_ctr, ddts
 
-    pdb.set_trace()
     invoice_model = 'account.invoice'
     invline_model = 'account.invoice.line'
     ddt_model = 'stock.picking.package.preparation'

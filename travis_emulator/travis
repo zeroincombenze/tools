@@ -1106,7 +1106,7 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
   fi
 elif [[ $action == "summary" ]]; then
   if [[ -f $LOGFILE ]]; then
-    grep -H -E "(\| .*test|TODAY=|PKGNAME=)" $LOGFILE
+    grep -H -E "(\| .*test|TODAY=|PKGNAME=|LOGFILE=)" $LOGFILE
   else
     echo "File $LOGFILE not found!"
   fi
@@ -1139,14 +1139,18 @@ if [ $sts -eq $STS_SUCCESS ]; then
     sts=2
   else
     TMP_LOGFILE=${LOGFILE/.log/.tmp}
-    process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $TMP_LOGFILE
-    sts=$?
-    if [[ -f $LOGFILE ]]; then
-      OLD_LOGFILE=${LOGFILE/.log/_old.log}
-      [[ -f $OLD_LOGFILE ]] && rm -f $OLD_LOGFILE
-      mv -f $LOGFILE $OLD_LOGFILE
+    if [ ${opt_dry_run:-0} -gt 0 ]; then
+      echo "> travis > $LOGFILE"
+    else
+      process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $TMP_LOGFILE
+      sts=$?
+      if [[ -f $LOGFILE ]]; then
+        OLD_LOGFILE=${LOGFILE/.log/_old.log}
+        [[ -f $OLD_LOGFILE ]] && rm -f $OLD_LOGFILE
+        mv -f $LOGFILE $OLD_LOGFILE
+      fi
+      mv -f $TMP_LOGFILE $LOGFILE
     fi
-    mv -f $TMP_LOGFILE $LOGFILE
   fi
 fi
 exit $sts

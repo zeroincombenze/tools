@@ -25,21 +25,16 @@ from datetime import date
 
 from os0 import os0
 
-
+ODOO_VERS = ('14.0', '13.0', '12.0', '11.0',
+             '10.0', '9.0', '8.0', '7.0', '6.1')
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
 CONF_FN = "./clodoo.conf"
 # Read Odoo configuration file (False or /etc/odoo-server.conf)
-ODOO_CONF = ["/etc/odoo/odoo-server.conf",
-             "/etc/odoo/odoo.conf",
-             "/etc/odoo-server.conf",
-             "/etc/odoo.conf",
-             "/etc/openerp/openerp-server.conf",
-             "/etc/openerp-server.conf",
-             "/etc/odoo/openerp-server.conf", ]
+# ODOO_CONF = False
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
-OE_CONF = False
+# OE_CONF = False
 # Warning: if following LX have no values LX=(), if have 1 value LX=(value,)
 # list of string parameters in [options] of config file
 LX_CFG_S = ('db_name',
@@ -166,7 +161,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.28.1"
+__version__ = "0.3.28.3"
 
 
 #############################################################################
@@ -523,47 +518,40 @@ def fullname_conf(ctx):
 
 def read_config(ctx):
     """Read both user configuration and local configuration."""
+    def append_confn(ctx, item):
+        fnver = False
+        if item in ('odoo_vid', 'oe_version'):
+            if item in ctx:
+                fnver = build_odoo_param('CONFN', ctx[item], multi=True)
+        elif item in ODOO_VERS:
+            fnver = build_odoo_param('CONFN', item, multi=True)
+        else:
+            fnver = item
+        if fnver and os.path.isfile(fnver):
+            if fnver not in ctx['conf_fns']:
+                ctx['conf_fns'].append(fnver)
+        if not fnver and item in ('odoo_vid', 'oe_version') and item in ctx:
+            fnver = build_odoo_param('CONFN', ctx[item])
+            if fnver not in ctx['conf_fns']:
+                ctx['conf_fns'].append(fnver)
+        return ctx
+
     if not ctx.get('conf_fn', None):
         ctx['conf_fn'] = ctx.get('caller', 'clodoo') + ".conf"
-    conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
-    ctx['conf_fns'] = []
-    base = False
-    if ODOO_CONF:
-        if 'odoo_vid' in ctx:
-            fnver = build_odoo_param('CONFN', ctx['odoo_vid'], multi=True)
-            if os.path.isfile(fnver):
-                ctx['conf_fns'].append(fnver)
-                base = os.path.basename(fnver)
-            else:
-                fnver = build_odoo_param('CONFN', ctx['odoo_vid'])
-                if os.path.isfile(fnver):
-                    ctx['conf_fns'].append(fnver)
-                    base = os.path.basename(fnver)
-        if isinstance(ODOO_CONF, list):
-            for f in ODOO_CONF:
-                fn = f
-                if 'odoo_vid' in ctx:
-                    if base:
-                        fn = os.path.join(os.path.dirname(f), base)
-                    if os.path.isfile(fn) and fn not in ctx['conf_fns']:
-                        ctx['conf_fns'].append(fn)
-                        break
-                elif os.path.isfile(f) and fn not in ctx['conf_fns']:
-                    ctx['conf_fns'].append(f)
-                    break
-        elif os.path.isfile(ODOO_CONF):
-            ctx['conf_fns'].append(ODOO_CONF)
-        elif os.path.isfile(OE_CONF):
-            ctx['conf_fns'].append(OE_CONF)
-        if CONF_FN and CONF_FN not in ctx['conf_fns']:
-            ctx['conf_fns'].append(CONF_FN)
     ctx = fullname_conf(ctx)
-    if ctx['conf_fn'] not in ctx['conf_fns']:
-        ctx['conf_fns'].insert(0, ctx['conf_fn'])
+    conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
+    ctx['conf_fns'] = [ctx['conf_fn']]
+    if CONF_FN:
+        ctx = append_confn(ctx, CONF_FN)
+    for item in ('odoo_vid', 'oe_version'):
+        ctx = append_confn(ctx, item)
+    ctx['conf_fns'] = conf_obj.read(ctx['conf_fns'])
+    odoo_fver = conf_obj.get('options', 'oe_version')
+    if odoo_fver:
+        ctx = append_confn(ctx, odoo_fver)
     ctx['conf_fns'] = conf_obj.read(ctx['conf_fns'])
     ctx['_conf_obj'] = conf_obj
-    if 'oe_version' in ctx:
-        ctx = create_params_dict(ctx)
+    ctx = create_params_dict(ctx)
     return ctx
 
 
