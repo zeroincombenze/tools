@@ -4,24 +4,24 @@
 # Set Odoo Version in clodo files
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/../z0lib /home/odoo/devel/../../z0lib /home/odoo/devel/../../z0lib/z0lib; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$TDIR ${PATH//:/ } ${PYPATH//:/ } . .." "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28.3
+__version__=0.3.28.4
 
 
 up_oemod() {
@@ -74,6 +74,25 @@ up_oemod() {
     return $sts
 }
 
+get_dbuser() {
+  # get_dbuser odoo_majver
+  local u
+  for u in $USER odoo openerp postgresql; do
+    if [[ -n "$1" ]]; then
+      psql -U$u$1 -l &>/dev/null
+      if [[ $? -eq 0 ]]; then
+        echo "$u$1"
+        break
+      fi
+    fi
+    psql -U$u -l &>/dev/null
+    if [[ $? -eq 0 ]]; then
+      echo "$u"
+      break
+    fi
+  done
+}
+
 db_list() {
     DBlist=
     local db user a b c
@@ -115,22 +134,19 @@ declare_cfloop() {
 }
 
 set_opt_conf() {
-    if [ -f "$opt_conf" ]; then
-      cf=$opt_conf
-    elif [ -f "$opt_conf.conf" ]; then
-      cf=$opt_conf.conf
-    elif [ -f "code/$opt_conf" ]; then
-      cf=code/$opt_conf
-    elif [ -f "code/$opt_conf.conf" ]; then
-      cf=code/$opt_conf.conf
-    else
-      cf=
-    fi
-    [ -n "$cf" ] && opts_cf="-c $cf" || opts_cf=""
-    if [ -n "$cf" ]; then
+    local x
+    cf=""
+    for x in $opt_conf $opt_conf.conf code/$opt_conf code/$opt_conf.conf; do
+      if [[ -f "$x" ]]; then
+        cf=$x
+        break
+      fi
+    done
+    if [[ -n "$cf" ]]; then
+      opts_cf="-c $cf"
       x=$(parse_URI "$cf" "" "+NAMEID+LOCAL")
       x=${x: -2}
-      if [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$x[[:space:]] ]]; then
+      if [[ -z "$opt_with_demo" && " $DEMO_PHASE_LIST " =~ [[:space:]]$x[[:space:]] ]]; then
         echo "This file require -o switch to be executed!"
         exit 1
       fi
@@ -144,7 +160,7 @@ OPTDEFL=(1        0       "10.0"    ""       0       ""     -1        0         
 OPTMETA=("help"   ""      "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "A|E"   "")
 OPTHELP=("this help"\
  "execute clodoo in debug mode"\
- "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or * (def 10.0)"\
+ "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 or * (def 10.0)"\
  "configuration file (only update/action)"\
  "delete DB if exists"\
  "set database name or regex when update/action (@ is replaced by odoo major version)"\
@@ -170,7 +186,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Manage Cloud DB(s) \n"\
-  "Action may be on of: action,install,update,upgrade,module,translate,reassign,rename,rename_phase\ncmdlist of action may be upd_oemod or clodoo action\ncmdlist of module,upgrade is module list\ncmdlist of install/update is phase list: $PHASE_LIST\ncmdlist of reassign is new username\ncmdlist of rename_phase (phase) is old=new\ncmdlist of rename is a csv filename with module renames list\n\n(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "Action may be on of: action,install,update,upgrade,module,translate,reassign,rename,rename_phase\ncmdlist of action may be upd_oemod or clodoo action\ncmdlist of module,upgrade is module list\ncmdlist of install/update is phase list: $PHASE_LIST\ncmdlist of reassign is new username\ncmdlist of rename_phase (phase) is old=new\ncmdlist of rename is a csv filename with module renames list\n\n(C) 2015-2020 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 OPTS=
@@ -188,34 +204,22 @@ fi
 sts=$STS_SUCCESS
 discover_multi
 if [ "$odoo_vids" == "*" ]; then
-  [ $opt_multi -gt 0 ] && odoo_vids="13.0,12.0,11.0,10.0,9.0,8.0,7.0,6.1" || odoo_vids="10.0"
+  [ $opt_multi -gt 0 ] && odoo_vids="14.0 13.0,12.0,11.0,10.0,9.0,8.0,7.0,6.1" || odoo_vids="10.0"
 fi
 [ $opt_exit -ne 0 ] && opts_x=-x || opts_x=
 for odoo_vid in ${odoo_vids//,/ }; do
   odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
   odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
-  if [ -z "$opt_DBuser" ]; then
-    opt_dbuser=$(build_odoo_param USER $odoo_vid)
-  else
-    opt_dbuser=${opt_DBuser/@/$odoo_ver}
-  fi
-  if [ -z "$opt_xmlport" ]; then
-    xmlport=$(build_odoo_param RPCPORT $odoo_vid)
-  else
-    xmlport=$opt_xmlport
-  fi
-  if [ "${HOSTNAME:0:3}" == "shs" ]; then
+  [[ -z "$opt_DBuser" ]] && opt_dbuser=$(build_odoo_param DB_USER $odoo_vid) || opt_dbuser=${opt_DBuser/@/$odoo_ver}
+  [[ -z "$opt_xmlport" ]] && xmlport=$(build_odoo_param RPCPORT $odoo_vid) || xmlport=$opt_xmlport
+  if [[ $HOSTNAME =~ shs ]]; then
     lgi_user=zeroadm
-  elif [ "${HOSTNAME:0:7}" == "vg7odoo" ]; then
+  elif [[ $HOSTNAME =~ ~vg7odoo ]]; then
     lgi_user=vg7admin
   else
     lgi_user=admin
   fi
-  if [ -n "$opt_DB" ]; then
-    opt_db=${opt_DB/@/$odoo_ver}
-  else
-    opt_db=
-  fi
+  [[ -n "$opt_DB" ]] && opt_db=${opt_DB/@/$odoo_ver} || opt_db=""
   if [[ $action =~ (install|update) ]]; then
     if [ ! -d data -a ! -d code -a -d ~/clodoo ]; then
       cd ~/clodoo
@@ -345,9 +349,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
       echo "No actions declared!"
       exit 1
     fi
-    if [ -z "$opt_db" ]; then
-      opt_db=".*"
-    fi
+    [[ -z "$opt_db" ]] && opt_db=".*"
     DBlist=$(db_list)
     if [ -z "$DBlist" ]; then
       if [ $found -eq 0 ]; then
@@ -366,9 +368,9 @@ for odoo_vid in ${odoo_vids//,/ }; do
         eval $WCMD
       fi
       if [ "$action" == "module" ]; then
-        run_traced "nice $TDIR/run_odoo_debug -b$odoo_vid -um $cmdlist -d $db -sk"
+        run_traced "nice $TDIR/run_odoo_debug -b$odoo_vid -U$opt_DBuser -um $cmdlist -d $db -sk"
       elif [ "$action" == "upgrade" ]; then
-        [[ "$opt_way" == "A" ]] || run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -um $cmdlist -d $db -sk"
+        [[ "$opt_way" == "A" ]] || run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -U$opt_DBuser -um $cmdlist -d $db -sk"
         if [[ ! "$cmdlist" == "all" && ! "$opt_way" == "E" ]]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
@@ -382,7 +384,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
         elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
-          run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -l -d $db"
+          run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -U$opt_DBuser -l -d $db"
         else
           echo "$TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
@@ -392,7 +394,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           fi
         fi
       elif [ "$action" == "translate" ]; then
-        run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -l -d $db"
+        run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -U$opt_DBuser -l -d $db"
       else
         if [ -n "$cmdlist" ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"

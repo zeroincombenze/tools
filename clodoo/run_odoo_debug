@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.28.3
+__version__=0.3.28.4
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then
@@ -84,7 +84,6 @@ if [ $opt_help -gt 0 ]; then
     exit 0
 fi
 [[ -n "$opt_branch" && -z "$odoo_vid" ]] && odoo_vid=$opt_branch
-# [ $opt_venv -ne 0 ] && odoo_vid="VENV-$odoo_vid"
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
@@ -93,13 +92,13 @@ odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 LCONFN=$(build_odoo_param LCONFN $odoo_vid)
 script=$(build_odoo_param BIN $odoo_root search)
 if [ -z "$script" ]; then
-    echo "No odoo script found!!"
+    echo "! No odoo script found!!"
     exit 1
 fi
-VENV=$(build_odoo_param VENV $odoo_root)
 VDIR=$(build_odoo_param VDIR $odoo_root)
 GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_root)
 manifest=$(build_odoo_param MANIFEST $odoo_vid)
+[ $opt_verbose -gt 0 ] && [[ -n "$VDIR" ]] && echo "# Found $VDIR virtual directory"
 
 create_db=0
 drop_db=0
@@ -137,21 +136,21 @@ elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
     opt_keep=1
     opt_stop=1
     if [ -z "$opt_modules" ]; then
-        echo "Missing -m switch"
+        echo "! Missing -m switch!!"
         exit 1
     fi
     if [ -z "$opt_db" ]; then
-        echo "Missing -d switch"
+        echo "! Missing -d switch !!"
         exit 1
     fi
 elif [ $opt_upd -ne 0 ]; then
     opt_keep=1
     if [ -z "$opt_modules" ]; then
-        echo "Missing -m switch"
+        echo "! Missing -m switch !!"
         exit 1
     fi
     if [ -z "$opt_db" ]; then
-        echo "Missing -d switch"
+        echo "! Missing -d switch!!"
         exit 1
     fi
 elif [ $opt_xtl -ne 0 ]; then
@@ -226,9 +225,9 @@ if [ -n "$opt_modules" ]; then
                 fi
             done
             if [ $f -eq 0 ]; then
-                echo "Translation file not found!"
+                echo "! Translation file not found!!"
                 if [ -n "$alt" ]; then
-                    echo "may be $alt"
+                    echo ".. may be $alt ?"
                 fi
                 exit 1
             fi
@@ -280,14 +279,8 @@ if [ -n "$opt_db" ]; then
 fi
 if [ $opt_touch -eq 0 ]; then
     [ $drop_db -gt 0 ] && run_traced "pg_db_active -wa $opt_db; dropdb -U$DB_USER --if-exists $opt_db"
-    ve_root=$HOME
-    if [[ -n "$VDIR" ]]; then
-        [ $opt_verbose -gt 0 ] && echo "\$ cd $VDIR; source ./bin/activate"
-        cd $VDIR
-        source ./bin/activate
-        ve_root=$VDIR
-    fi
     [ $create_db -gt 0 -a $odoo_ver -lt 10 ] && run_traced "createdb -U$DB_USER $opt_db"
+    [[ -n "$VDIR" ]] && ve_root=$VDIR || ve_root=$HOME
     OPT_LLEV=
     FULL_LCONFN="$ve_root/$LCONFN"
     OPT_CONF="--config=$FULL_LCONFN"
@@ -299,6 +292,15 @@ if [ $opt_touch -eq 0 ]; then
         done
     fi
     run_traced "cp $CONFN $FULL_LCONFN"
+    echo "===================================================================="
+    if [[ -n "$VDIR" ]]; then
+        x=$(date +"%Y-%m-%d %H:%M:%S,000")
+        [ $opt_verbose -gt 0 ] && echo "$x $$ DAEMON ? $(basename $0): cd $VDIR; source ./bin/activate"
+        if [ $opt_dry_run -eq 0 ]; then
+          cd $VDIR
+          source ./bin/activate
+        fi
+    fi
     tty -s
     if [ $? == 0 ]; then
         run_traced_debug "sed -e \"s|^logfile *=.*|logfile = False|\" -i $FULL_LCONFN"
@@ -332,14 +334,14 @@ if [ $opt_touch -eq 0 ]; then
             run_traced "$script $OPTDB $OPT_CONF --log-level=error"
         fi
     fi
-    echo "===================================================================="
     if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
         OPTS="--debug $OPTS"
     fi
     run_traced "$script $OPT_CONF $OPT_LLEV $OPTS"
     if [[ -n "$VDIR" ]]; then
-        [ $opt_verbose -gt 0 ] && echo "\$ deactivate"
-        deactivate
+        x=$(date +"%Y-%m-%d %H:%M:%S,000")
+        [ $opt_verbose -gt 0 ] && echo "$x $$ DAEMON ? $(basename $0): deactivate"
+        [ $opt_dry_run -eq 0 ] && deactivate
     fi
     if [ $drop_db -gt 0 ]; then
         if [ -z "$opt_modules" -o $opt_stop -eq 0 ]; then
@@ -348,8 +350,8 @@ if [ $opt_touch -eq 0 ]; then
     fi
     if [ $opt_exp -ne 0 ]; then
         makepo_it.py -b$odoo_vid -m$opt_modules $src
-        echo "Translation exported to '$src' file"
+        echo "# Translation exported to '$src' file"
     elif [ $opt_imp -ne 0 ]; then
-        echo "Translation imported from '$src' file"
+        echo "# Translation imported from '$src' file"
     fi
 fi

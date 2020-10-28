@@ -47,7 +47,7 @@
 # VDIR         Virtual directory
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.28.3
+#__version__=0.3.28.4
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
     echo "You must source this script: \$ source $0" >&2
@@ -146,7 +146,7 @@ get_odoo_full_ver() {
 find_odoo_ver() {
     #find_odoo_ver(odoo_root_dir)
     local ldir odoo_fver x
-    [[ -n "$1" ]] && cd $1
+    [[ -n "$1" ]] && pushd $1 &>/dev/null
     while [[ -z "$odoo_fver" ]]; do
         for ldir in $PWD/odoo $PWD/openerp $PWD/server/openerp; do
             if [[ -d $ldir && -f $ldir/release.py ]]; then
@@ -160,6 +160,7 @@ find_odoo_ver() {
         [[ $PWD == $HOME ]] && break
         [[ ! $PWD == "/" ]] && PWD=$(readlink -f "$PWD/..") || break
     done
+    [[ -n "$1" ]] && popd &>/dev/null
     echo "$odoo_fver"
 }
 
@@ -247,9 +248,10 @@ build_odoo_param() {
                 [[ -z "$PRJPATH" ]] && PRJPATH=$cdir
                 [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
                 odoo_vid=$(basename $cdir)
-                FULLVER=$(find_odoo_ver)
-                [[ -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
                 [ $VENV -eq 0 ] && [[ -f $cdir/../VENV-${odoo_vid}/bin/activate ]] && VENV=1 && VDIR=$(readlink -e $cdir/../VENV-${odoo_vid})
+                [[ $odoo  == "odoo" ]] && cdir=$(readlink -e $cdir/..) && odoo_vid=$(basename $cdir)
+                FULLVER=$(find_odoo_ver $cdir)
+                [[ -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
             elif $(is_repos "$cdir"); then
                 r=$(basename $cdir)
                 [[ ! $r =~ $rex ]] && REPOS=$r && PRJPATH=$cdir
@@ -283,7 +285,6 @@ build_odoo_param() {
                 fi
             fi
             [[ $cdir == $HOME ]] && break
-            # $(is_repos "$cdir") && break
             [[ ! $cdir == "/" ]] && cdir=$(readlink -e $cdir/..) || cdir=
         done
     else
@@ -329,7 +330,7 @@ build_odoo_param() {
         else
             [[ -n "$4" ]] && GIT_ORGID=$4 && exorg=1
             [[ -z $GIT_ORGID && $noenv_vid =~ ^(OCB|ocb) ]] && GIT_ORGID="oca" && exorg=1
-            [[ -z $GIT_ORGID && $noenv_vid =~ ^(ODOO|odoo) ]] && GIT_ORGID="odoo" && exorg=1
+            [[ -z $GIT_ORGID && $noenv_vid =~ ^(ODOO|odoo) ]] && GIT_ORGID="odoo" && exorg=0    ## TODO
             [[ -z $GIT_ORGID && $noenv_vid =~ ^$reg ]] && GIT_ORGID=$(echo $noenv_vid | grep -Eo $reg | head -n1) && [[ ! $noenv_vid =~ ^odoo ]] && exorg=1
             [[ -z $GIT_ORGID && ! $noenv_vid =~ ^$reg && -n "$ODOO_GIT_ORGID" ]] && GIT_ORGID=$ODOO_GIT_ORGID && GIT_PROT="git"
             [[ -z "$GIT_ORGID" ]] && GIT_ORGID="odoo"

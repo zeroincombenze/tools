@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.28.3
+__version__=0.3.28.4
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca librerp VENV_123- devel"
@@ -333,7 +333,7 @@ test_04() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-powerp" "-zero"; do
+                for o in "-oca" "-powerp" "-zero" "-devel"; do
                     w="$x${m}${o}"
                     TRES="/etc/odoo/odoo${m}${o}.conf"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param CONFN $w)
@@ -358,7 +358,7 @@ test_04() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-powerp" "-zero"; do
+                for o in "-oca" "-powerp" "-zero" "-devel"; do
                     w="$x${m}${o}"
                     TRES="/var/log/odoo/odoo${m}${o}.log"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FLOG $w)
@@ -383,7 +383,7 @@ test_04() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-powerp" "-zero"; do
+                for o in "-oca" "-powerp" "-zero" "-devel"; do
                     w="$x${m}${o}"
                     TRES="/var/run/odoo/odoo${m}${o}.pid"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FPID $w)
@@ -412,7 +412,7 @@ test_04() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-powerp" "-zero"; do
+                for o in "-oca" "-powerp" "-zero" "-devel"; do
                     w="$x${m}${o}"
                     TRES="/etc/init.d/odoo${m}${o}"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULL_SVCNAME $w)
@@ -643,24 +643,16 @@ test_05() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
-                o="-oca"
-                w="$x${m}${o}"
-                ((TRES=m+8260))
-                [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RPCPORT $w)
-                test_result "5h> multi RPCPORT $w [bash]" "$TRES" "$RES"
-                s=$?; [ ${s-0} -ne 0 ] && sts=$s
-                o="-powerp"
-                w="$x${m}${o}"
-                ((TRES=m+8360))
-                [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RPCPORT $w)
-                test_result "5h> multi RPCPORT $w [bash]" "$TRES" "$RES"
-                s=$?; [ ${s-0} -ne 0 ] && sts=$s
-                o="-zero"
-                w="$x${m}${o}"
-                ((TRES=m+8460))
-                [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RPCPORT $w)
-                test_result "5h> multi RPCPORT $w [bash]" "$TRES" "$RES"
-                s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                for o in "-oca" "-powerp" "-zero" "-devel"; do
+                    w="$x${m}${o}"
+                    ((TRES=m+8160))
+                    [[ $o == "-oca" ]] && ((TRES=m+8260))
+                    [[ $o == "-powerp" ]] && ((TRES=m+8360))
+                    [[ $o == "-zero" ]] && ((TRES=m+8460))
+                    [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RPCPORT $w)
+                    test_result "5h> multi RPCPORT $w [bash]" "$TRES" "$RES"
+                    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                done
             fi
         done
 
@@ -889,7 +881,7 @@ Z0BUG_setup() {
             [[ $x =~ (oca|librerp) ]] && w="odoo${m}-$x"
             OS_TREE="$OS_TREE $w $HOME/$w"
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-powerp" "-zero"; do
+                for o in "-oca" "-powerp" "-zero" "-devel"; do
                     OS_TREE="$OS_TREE $x${m}${o} $HOME/$x${m}${o}"
                 done
             fi
@@ -898,7 +890,7 @@ Z0BUG_setup() {
     Z0BUG_remove_os_tree "$OS_TREE"
 }
 
-Z0BUG_teardown() {
+__Z0BUG_teardown() {
     local f m o v w x OS_TREE
     [ ${opt_dry_run:-0} -ne 0 ] && return
     for v in $VERSIONS_TO_TEST $MAJVERS_TO_TEST; do
@@ -912,7 +904,7 @@ Z0BUG_teardown() {
             [[ $x =~ (oca|librerp) ]] && w="odoo${m}-$x"
             OS_TREE="$OS_TREE $w $HOME/$w"
             if [[ $x == "odoo" ]]; then
-                for o in "-oca" "-powerp" "-zero"; do
+                for o in "-oca" "-powerp" "-zero" "-devel"; do
                     OS_TREE="$OS_TREE $x${m}${o} $HOME/$x${m}${o}"
                 done
             fi

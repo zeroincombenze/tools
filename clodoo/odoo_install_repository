@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28.3
+__version__=0.3.28.4
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -237,9 +237,9 @@ OPTHELP=("this help"
     "update default values in /etc configuration file before creating script (conflict with -C)"
     "install only repository owned by git organization"
     "create symbolic link rather copy files (if new_odoo_ver supplied)"
-    "multi-version odoo environment"
+    "multi-instance odoo environment"
     "do nothing (dry-run)"
-    "git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"
+    "git organization, one of oca librerp powerp zero"
     "odoo directory"
     "silent mode"
     "do just update remote info (if no new_odoo_ver supplied)"
