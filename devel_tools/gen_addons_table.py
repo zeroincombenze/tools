@@ -25,7 +25,7 @@ import sys
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'
 MANIFESTS = ('__openerp__.py', '__manifest__.py')
-__version__ = "1.0.0.4"
+__version__ = "1.0.0.5"
 
 
 class UserError(Exception):

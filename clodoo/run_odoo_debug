@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.28.4
+__version__=0.3.28.5
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then

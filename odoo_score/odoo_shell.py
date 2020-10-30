@@ -736,13 +736,13 @@ def set_tax_code_on_invoice(ctx):
     inv_model = 'account.invoice'
     inv_line_model = 'account.invoice.line'
     inv_id = input('Invoice id: ')
+    ctr = 0
     if inv_id:
         inv_id = int(inv_id)
         invoice = clodoo.browseL8(ctx, inv_model, inv_id)
         tax_id = _get_tax_record(ctx, company_id=invoice.company_id.id)
         if not tax_id:
             print('Tax 22v not found!')
-        ctr = 0
         for inv_line in clodoo.browseL8(
             ctx, inv_line_model, clodoo.searchL8(
                 ctx, inv_line_model, [('invoice_id', '=', inv_id)])):
@@ -2087,6 +2087,7 @@ def configure_fiscal_position(ctx):
     }
     vat_a7tv_id = synchro(ctx, model, vals)
 
+    rc_type_id = False
     if ctx['majver'] > 7:
         model = 'account.rc.type'
         rc_type_id = env_ref(ctx, 'l10n_it_reverse_charge.account_rc_type_1')

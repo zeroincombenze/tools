@@ -161,7 +161,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.28.4"
+__version__ = "0.3.28.5"
 
 
 #############################################################################
@@ -539,7 +539,7 @@ def read_config(ctx):
     if not ctx.get('conf_fn', None):
         ctx['conf_fn'] = ctx.get('caller', 'clodoo') + ".conf"
     ctx = fullname_conf(ctx)
-    conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
+    conf_obj = ConfigParser.RawConfigParser(default_conf(ctx))
     ctx['conf_fns'] = [ctx['conf_fn']]
     if CONF_FN:
         ctx = append_confn(ctx, CONF_FN)

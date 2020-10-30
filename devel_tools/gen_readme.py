@@ -109,12 +109,12 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.0.4"
+__version__ = "1.0.0.5"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
     'oca': 'OCA',
-    'axitec': 'axitec',
+    'powerp': 'powerp',
 }
 DEFINED_SECTIONS = ['description', 'descrizione', 'features',
                     'oca_diff', 'certifications', 'prerequisites',
@@ -1728,7 +1728,7 @@ if __name__ == "__main__":
         if not ctx['git_orgid']:
             ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
                                                 odoo_vid=ctx['odoo_vid'])
-    if ctx['git_orgid'] not in ('zero', 'oca', 'axitec'):
+    if ctx['git_orgid'] not in ('zero', 'oca', 'powerp'):
         ctx['git_orgid'] = 'zero'
         if not ctx['suppress_warning']:
             print('Invalid git-org: use -G %s or of zero|oca' %

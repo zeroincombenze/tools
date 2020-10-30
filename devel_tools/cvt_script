@@ -23,7 +23,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.4
+__version__=1.0.0.5
 
 #//Only human upgradable code/
 # blk1 => z0librc
