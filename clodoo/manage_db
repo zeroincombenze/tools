@@ -189,9 +189,13 @@ if [ $opt_help -gt 0 ]; then
   "Action may be on of: action,install,update,upgrade,module,translate,reassign,rename,rename_phase\ncmdlist of action may be upd_oemod or clodoo action\ncmdlist of module,upgrade is module list\ncmdlist of install/update is phase list: $PHASE_LIST\ncmdlist of reassign is new username\ncmdlist of rename_phase (phase) is old=new\ncmdlist of rename is a csv filename with module renames list\n\n(C) 2015-2020 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
+sts=$STS_SUCCESS
+discover_multi
+
 OPTS=
 [ $opt_dry_run -ne 0 ] && OPTS="${OPTS}n"
 [ $opt_dbg -ne 0 ] && OPTS="${OPTS}v"
+[ $opt_multi -ne 0 ] && OPTS="${OPTS}M"
 [ -n "$OPTS" ] && OPTS="-${OPTS}"
 
 WCMD=$(which pg_db_active 2>/dev/null)
@@ -201,10 +205,9 @@ else
   SLEEP_TIME=30
   WCMD="sleep $SLEEP_TIME"
 fi
-sts=$STS_SUCCESS
-discover_multi
+
 if [ "$odoo_vids" == "*" ]; then
-  [ $opt_multi -gt 0 ] && odoo_vids="14.0 13.0,12.0,11.0,10.0,9.0,8.0,7.0,6.1" || odoo_vids="10.0"
+  [ $opt_multi -gt 0 ] && odoo_vids="14.0 13.0,12.0,11.0,10.0,9.0,8.0,7.0,6.1" || odoo_vids="12.0"
 fi
 [ $opt_exit -ne 0 ] && opts_x=-x || opts_x=
 for odoo_vid in ${odoo_vids//,/ }; do
@@ -368,7 +371,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
         eval $WCMD
       fi
       if [ "$action" == "module" ]; then
-        run_traced "nice $TDIR/run_odoo_debug -b$odoo_vid -U$opt_DBuser -um $cmdlist -d $db -sk"
+        run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -U$opt_DBuser -um $cmdlist -d $db -sk"
       elif [ "$action" == "upgrade" ]; then
         [[ "$opt_way" == "A" ]] || run_traced "nice $TDIR/run_odoo_debug $OPTS -b$odoo_vid -U$opt_DBuser -um $cmdlist -d $db -sk"
         if [[ ! "$cmdlist" == "all" && ! "$opt_way" == "E" ]]; then
