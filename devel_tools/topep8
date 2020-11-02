@@ -32,7 +32,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=1.0.0.5
+__version__=1.0.0.6
 
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
@@ -573,11 +573,16 @@ keep_opts_list() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h a A B b c C D d e F f G i L n N o O R q u V v X 0 1)
-OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid opt_Camel opt_copy opt_dbg opt_diff opt_nenh opt_from opt_fut opt_gpl opt_imp opt_nlint opt_dry_run opt_nonl opt_out opt_c2o opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z opt_1)
-OPTACTI=(1 "+" '+' 1 "=" 1 "=" 1 1 1 "=" 1 "=" 1 1 1 1 "=" 1 "=" 0 1 "*>" "+" 1 1 1)
-OPTDEFL=(1 0 0 0 "" 0 "" 0 0 0 "" 0 "" 0 0 0 0 "" 0 "" -1 0 "" -1 0 0 0)
-OPTMETA=("help" "aggres" "" "" "version" "camel" "org" "" "diff" "" "ver" "" "gpl" "" "" "do nothing" "" "file" "" "file" "silent" "ut7" "version" "verbose" "" "" "")
+# OPTOPTS=(h a A B b c C D d e F f G i L n N o O R q u V v X 0 1)
+# OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid opt_Camel opt_copy opt_dbg opt_diff opt_nenh opt_from opt_fut opt_gpl opt_imp opt_nlint opt_dry_run opt_nonl opt_out opt_c2o opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z opt_1)
+# OPTACTI=(1 "+" '+' 1 "=" 1 "=" 1 1 1 "=" 1 "=" 1 1 1 1 "=" 1 "=" 0 1 "*>" "+" 1 1 1)
+# OPTDEFL=(1 0 0 0 "" 0 "" 0 0 0 "" 0 "" 0 0 0 0 "" 0 "" -1 0 "" -1 0 0 0)
+# OPTMETA=("help" "aggres" "" "" "version" "camel" "org" "" "diff" "" "ver" "" "gpl" "" "" "do nothing" "" "file" "" "file" "silent" "ut7" "version" "verbose" "" "" "")
+OPTOPTS=(h        a        A         B         b         c         C        D       d        e        F        f       G       i       L         n            N        o       O        R        q           u       V           v           X       x       0     1)
+OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_dbg opt_diff opt_nenh opt_from opt_fut opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_fmt opt_z opt_1)
+OPTACTI=(1        "+"      '+'       1         "="       1         "="      1       1        1        "="      1       "="     1       1         1            1        "="     1        "="      0           1       "*>"        "+"         1       1       1     1)
+OPTDEFL=(1        0        0         0         ""        0         ""       0       0        0        ""       0       ""      0       0         0            0        ""      0        ""       -1          0       ""          -1          0       0       0     0)
+OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    ""      "diff"   ""       "ver"    ""      "gpl"   ""      ""        "do nothing" ""       "file"  ""       "file"   "silent"   "ut7"   "version"    "verbose"   ""      ""      ""    "")
 OPTHELP=("this help"
     "enable non-whitespace changes (may issue multiple -a)"
     "do not execute autoflake (-A) neither autopep8 (-AA)"
@@ -603,6 +608,7 @@ OPTHELP=("this help"
     "show version"
     "verbose mode"
     "make file.py executable"
+    "format lines"
     "create yaml file from zero"
     "do not recurse travese directories")
 OPTARGS=(fullname)
@@ -639,6 +645,7 @@ OPTS=
 [ $opt_nlint -gt 0 ] && OPTS="${OPTS}L"
 [ $opt_nonl -gt 0 ] && OPTS="${OPTS}N"
 [ $opt_xec -gt 0 ] && OPTS="${OPTS}X"
+[ $opt_fmt -gt 0 ] && OPTS="${OPTS}x"
 [ -n "$OPTS" ] && OPTS="-${OPTS}"
 [ -n "$odoo_vid" ] && OPTS="$OPTS -b$odoo_fver"
 [ -n "$opt_from" ] && OPTS="$OPTS -F$opt_from"
@@ -646,7 +653,7 @@ OPTS=
 [ -n "$opt_rule" ] && OPTS="${OPTS} -R$opt_rule"
 [ -n "$opt_gpl" ] && OPTS="${OPTS} -G$opt_gpl"
 [[ "${fullname: -1}" == "/" ]] && fullname="${fullname:0:-1}"
-if [ -d $fullname ]; then
+if [[ -d $fullname ]]; then
     LIST="$(find $fullname $optfnd -name '*.py' -or -name '*.xml' -or -name '*.html' -or -name '*.xsd' -or -name '.travis.yml' -not -path '*/\.idea/*' -not -path '*/docs/*' | tr '\n' ' ')"
     [ -d $fullname/static ] && LIST="$fullname/static $LIST"
 else
@@ -659,7 +666,7 @@ fi
 [ $opt_fut -ne 0 ] && mkdir -p ~/py3
 for fl in $LIST; do
     sts=0
-    if [ -d $fl ]; then
+    if [[ -d $fl ]]; then
         [ $opt_verbose -gt 0 ] && echo "Scanning $fl ..."
         b=$(basename $fl)
         if [[ "$b" == "static" ]]; then

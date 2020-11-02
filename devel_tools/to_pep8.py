@@ -74,9 +74,10 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.0.5"
+__version__ = "1.0.0.6"
 
-METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0')
+METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',
+         '11.0', '12.0', '13.0', '14.0')
 COPY = {
     'zero': {
         'author': 'SHS-AV s.r.l.',
@@ -114,8 +115,11 @@ class topep8():
     #
     def __init__(self, src_filepy, ctx):
         self.src_filepy = src_filepy
-        with open(src_filepy, 'rb') as fd:
-            source = fd.read()
+        if ctx['fmt_line']:
+            source = self.hard_format(src_filepy)
+        else:
+            with open(src_filepy, 'rb') as fd:
+                source = fd.read()
         self.lines = source.split('\n')
         self.setup_py_header(ctx)
         if ctx['opt_gpl']:
@@ -162,6 +166,61 @@ class topep8():
                                    (srow, scol),
                                    (erow, ecol)])
         self.init_parse()
+
+    def hard_format(self, src_filepy):
+
+        def split_comment(line, x):
+            pos = line.rfind(' ', 0, 79)
+            left = line[0: pos + 1].rstrip()
+            right = '%s# %s' % (' ' * (x.end() - 1), line[pos + 1:])
+            return left, right
+
+        def split_expr(line, x):
+            pos = x.end()
+            y = re.match(r'^ *', line)
+            if y and y.span() != (0, 0):
+                y = y.end() + 4
+            else:
+                y = 4
+            left = line[0: pos].rstrip()
+            right = '%s%s' % (' ' * y, line[pos:])
+            return left, right
+
+        with open(src_filepy, 'r') as fd:
+            lines = fd.read()
+            text_tgt = ''
+            for line in lines.split('\n'):
+                # if line.find('__SignatureValue = pyxb.binding.content.ElementDeclaration')>=0:
+                #     import pdb
+                #     pdb.set_trace()
+                while len(line) > 79:
+                    left = line
+                    right = ''
+                    x = re.match(r'^( *#)?', line)
+                    if x and x.span() != (0,0):
+                        left, right = split_comment(line, x)
+                    if not right:
+                        x = re.match(r'^.*?[(]', line)
+                        y = re.match(r'[^"\']*?', line)
+                        if not x or x.end() > 79:
+                            z = re.match(r'^.*?\),', line)
+                            if z and (not x or z.end() < x.end()):
+                                x = z
+                        if not x or x.end() > 79:
+                            z = re.match(r'^.*?, ', line)
+                            if z and (not x or z.end() < x.end()):
+                                x = z
+                        if x and (not y or x.start() <= y.start()):
+                            left, right = split_expr(line, x)
+                    if right:
+                        text_tgt += left
+                        text_tgt += '\n'
+                        line = right
+                    elif len(left) > 78:
+                        break
+                text_tgt += line
+                text_tgt += '\n'
+        return text_tgt
 
     def setup_py_header(self, ctx):
         odoo_majver = int(ctx['to_ver'].split('.')[0])
@@ -1501,8 +1560,6 @@ def get_versions(ctx):
 
 
 def parse_yaml(ctx, src_file, dst_file):
-    import pdb
-    pdb.set_trace()
     text_tgt = ''
     # yaml = YAML()
     # yaml.indent(mapping=2, sequence=2, offset=2)
@@ -1632,7 +1689,7 @@ def parse_file(ctx=None):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Topep8",
-                          "© 2015-2020 by SHS-AV s.r.l.",
+                          "(C) 2015-2020 by SHS-AV s.r.l.",
                           version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-B', '--recall-debug-statements',
@@ -1684,6 +1741,10 @@ if __name__ == "__main__":
                         action='store_true',
                         dest='set_exec',
                         default=False)
+    parser.add_argument('-x', '--format-line',
+                        action='store_true',
+                        dest='fmt_line',
+                        help='experimental')
     parser.add_argument('src_filepy')
     parser.add_argument('dst_filepy',
                         nargs='?')

@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.5
+__version__=1.0.0.6
 
 #
 # General Purpose options:
@@ -2619,7 +2619,7 @@ do_replace() {
 do_replica() {
   # do_replica(pkgname file)
   local cur_ver fn srcfn tp ver
-  if [ "$PRJNAME" == "Odoo" ]; then
+  if [[ $PRJNAME == "Odoo" ]]; then
     cur_ver=""
     for ver in 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
       if [[ $PWD =~ $HOME/$ver ]]; then
@@ -2627,15 +2627,15 @@ do_replica() {
         break
       fi
     done
-    if [ -z "$cur_ver" ]; then
+    if [[ -z "$cur_ver" ]]; then
       echo "Unrecognized Odoo version"
       exit 1
     fi
     tp="f"
     fn="$2"
-    if [ -d "$fn" ]; then
+    if [[ -d "$fn" ]]; then
       tp="d"
-    elif [ ! -f "$fn" ]; then
+    elif [[ ! -f "$fn" ]]; then
       echo "File $fn not found"
       exit 1
     fi
@@ -2645,7 +2645,7 @@ do_replica() {
         tgtfn="${srcfn/$cur_ver/$ver}"
         if [ "$tp" == "f" ]; then
           tgtdir=$(dirname "$tgtfn")
-          if [ -d "$tgtdir" ]; then
+          if [[ -d "$tgtdir" ]]; then
             echo "cp $srcfn $tgtfn"
             cp $srcfn $tgtfn
             if [ "${tgtfn: -4}" == ".xml" ]; then
@@ -2656,10 +2656,15 @@ do_replica() {
           fi
         else
           tgtdir=$(dirname "$tgtfn")
-          if [ -d "$tgtdir" ]; then
-            run_traced "cp -R $srcfn $tgtdir/"
+          if [[ ! -d "$tgtdir" ]]; then
+            if [[ ! -d "$tgtdir/.." ]]; then
+              echo "Directory $tgtdir not found!"
+            else
+              echo "Warning: directory $tgtdir not found!"
+              run_traced "cp -R $srcfn $tgtdir/"
+            fi
           else
-            echo "Directory $tgtdir not found"
+            run_traced "rsync -avzb $srcfn/ $tgtfn/"
           fi
         fi
       fi
@@ -2856,9 +2861,9 @@ do_config() {
 }
 
 do_wep() {
-  if [ $opt_verbose -gt 0 ]; then
-    echo "clean_dirs \"$PKGPATH\""
-  fi
+  wlog "do_wep '$1' '$2' '$3'"
+  [[ "$PRJNAME" == "Odoo" ]] && PKGPATH=$2 || PKGPATH=$1
+  [[ -z "$PKGPATH" ]] && PKGPATH="."
   clean_dirs "$PKGPATH"
   set_executable
   return 0

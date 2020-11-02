@@ -16,7 +16,7 @@ MODULE_ID = 'devel_tools'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "1.0.0.5"
+__version__ = "1.0.0.6"
 
 
 def version():
@@ -30,9 +30,9 @@ class Test():
 
     def setup_file_base_oca(self):
         with open('%s/__manifest__.py' % self.BASE_OCA, 'w') as fd:
-            fd.write('''{'version': '10.0.1.0.0.5'}''')
+            fd.write('''{'version': '10.0.1.0.0.6'}''')
         with open('%s/__init__.py' % self.BASE_OCA, 'w') as fd:
-            fd.write('''# 10.0.1.0.0.5''')
+            fd.write('''# 10.0.1.0.0.6''')
 
     def setup_file_base_z0(self):
         with open('%s/__manifest__.py' % self.BASE_Z0, 'w') as fd:

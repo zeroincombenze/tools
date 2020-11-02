@@ -28,6 +28,8 @@ SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
 EI_PKGS="(distribute)"
 BZR_PKSG="(aeroolib)"
+WGET_PKGS="(pychart|python-chart)"
+PYBIN_PKGS="(dateutil|openid)"
 BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
 ERROR_PKGS=""
@@ -209,6 +211,16 @@ pip_install() {
         elif [[ $pkg =~ $EI_PKGS ]]; then
             run_traced "easy_install install $pkg"
             run_traced "$PIP install --upgrade $pkg --disable-pip-version-check"
+        elif [[ $pkg =~ $WGET_PKGS ]]; then
+            d=""
+            [[ $pkg == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
+            [[ -z "$d" ]] && echo "Unknown URL for $pkg" && return
+            x=$(basename $d)
+            run_traced "mkdir -p $VIRTUAL_ENV/tmp"
+            run_traced "cd $VIRTUAL_ENV/tmp"
+            [[ -f $x ]] && run_traced "rm -f $x"
+            run_traced "wget $d"
+            run_traced "$PIP install --disable-pip-version-check $x"
         elif [[ $pkg =~ $BZR_PKSG ]]; then
             x=$(which bzr 2>/dev/null)
             if [[ -z "$x" ]]; then
@@ -793,13 +805,20 @@ do_venv_create() {
         else
             [ $opt_spkg -ne 0 ] && p="--system-site-packages" || p="--no-site-packages"
         fi
-        [ -d $VENV ] && p="$p --clear"
+        [[ -d $VENV ]] && p="$p --clear"
+        [ $opt_alone -ne 0 ] && p="$p --always-copy"
         p="$p -q"
         p="$p -p $pyexe"
     else
+        $pyexe -m venv --help &>/dev/null
+        if [ $? -ne 0 ]; then
+            echo "No virtualenv / venv package found!"
+            exit 1
+        fi
         venvexe="$pyexe -m venv"
         [ $opt_spkg -ne 0 ] && p="--system-site-packages"
-        [ -d $VENV ] && p="$p --clear"
+        [[ -d $VENV ]] && p="$p --clear"
+        [ $opt_alone -ne 0 ] && p="$p --copies"
     fi
     run_traced "$venvexe $p $VENV"
     sts=$?
@@ -853,17 +872,19 @@ do_venv_pip() {
     cd_venv "$VENV" "-f"
     do_activate
     pkg="$3"
+    [[ $3 == "pychart" ]] && pkg="python-chart"
+    [[ $3 =~ $PYBIN_PKGS ]] && pkg="python-$3"
     popt=""
     [ $opt_alone -ne 0 ] && popt="--isolated"
     [ $opt_verbose -eq 0 ] && popt="$popt -q"
     [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popt ]] && popt="$popt --no-warn-conflicts"
     [ $PIPVER -gt 19 ] && [[ -z $popt || ! --use-feature =~ $popt ]] && popt="$popt --use-feature=2020-resolver"
-    if [[ $3 =~ $BIN_PKGS ]]; then
-        [[ "$cmd" == "install" ]] && bin_install "$3" "$1"
-    elif [[ $3 =~ $EI_PKGS && "$cmd" == "install" ]]; then
-        pip_install "$3" "$popt --disable-pip-version-check"
-    elif [[ $3 =~ $BZR_PKGS && "$cmd" == "install" ]]; then
-        pip_install "$3"
+    if [[ $pkg =~ $BIN_PKGS ]]; then
+        [[ "$cmd" == "install" ]] && bin_install "$pkg" "$1"
+    elif [[ $pkg =~ $EI_PKGS && "$cmd" == "install" ]]; then
+        pip_install "$pkg" "$popt --disable-pip-version-check"
+    elif [[ $pkg =~ $BZR_PKGS && "$cmd" == "install" ]]; then
+        pip_install "$pkg"
     else
         [ "$cmd" == "info" ] && run_traced "$PIP show $pkg"
         [ "$cmd" == "show" ] && run_traced "$PIP show $pkg"
@@ -883,7 +904,7 @@ OPTDEFL=(0        ""       0         0       0         0        0         0     
 OPTMETA=("help"   "list"   ""        ""      ""        ""       ""        ""          "ver"     "dir"      "pyver"   ""          "file"    ""       "version"   "verbose")
 OPTHELP=("this help"\
  "bin packages to install (* means wkhtmltopdf,lessc)"\
- "debug mode: use local packages"\
+ "debug mode: use local zerotools packages"\
  "create v.environment with development packages"\
  "force v.environment create, even if exists or inside another virtual env"\
  "keep python2 executable"\

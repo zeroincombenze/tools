@@ -229,7 +229,7 @@ def param_date(param, model=None, date_field=None, ctx=ctx):
     else:
         if param and param.startswith('+'):
             date_ids = date.strftime(
-                date.today() - timedelta(int(param)), '%04Y-%02m-%02d')
+                date.today() - timedelta(eval(param)), '%04Y-%02m-%02d')
         else:
             day = datetime.now().day
             month = datetime.now().month
@@ -266,9 +266,9 @@ def param_product_agent(param):
     product_id = agent_id = False
     if param:
         if param.startswith('P'):
-            product_id = int(param[1:])
+            product_id = eval(param[1:])
         elif param.startswith('A'):
-            agent_id = int(param[1:])
+            agent_id = eval(param[1:])
     return product_id, agent_id
 
 
@@ -289,7 +289,7 @@ def all_addr_same_customer(ctx):
     if ctx['param_2'] in ('I', 'D', 'B'):
         select = ctx['param_2']
     if ctx['param_3']:
-        force_partner_id = int(ctx['param_3'])
+        force_partner_id = eval(ctx['param_3'])
     else:
         force_partner_id = False
     ctr = 0
@@ -640,10 +640,10 @@ def update_einvoice_out_attachment(ctx):
         print('update_einvoice_out_attachment invoice_id [state]')
         return
     if ctx['param_1']:
-        inv_id = int(ctx['param_1'])
+        inv_id = eval(ctx['param_1'])
     else:
         inv_id = input('Invoice id: ')
-        inv_id = int(inv_id) if inv_id else 0
+        inv_id = eval(inv_id) if inv_id else 0
     if inv_id:
         inv = clodoo.browseL8(ctx, model, inv_id)
         att = inv.fatturapa_attachment_out_id
@@ -671,10 +671,10 @@ def unlink_einvoice_out_attachment(ctx):
         print('unlink_einvoice_out_attachment invoice_id IN|OUT')
         return
     if ctx['param_1']:
-        inv_id = int(ctx['param_1'])
+        inv_id = eval(ctx['param_1'])
     else:
         inv_id = input('Invoice id: ')
-        inv_id = int(inv_id) if inv_id else 0
+        inv_id = eval(inv_id) if inv_id else 0
     if ctx['param_2'] in ('IN', 'in', 'OUT', 'out'):
         in_out = ctx['param_2'].lower()
     else:
@@ -738,7 +738,7 @@ def set_tax_code_on_invoice(ctx):
     inv_id = input('Invoice id: ')
     ctr = 0
     if inv_id:
-        inv_id = int(inv_id)
+        inv_id = eval(inv_id)
         invoice = clodoo.browseL8(ctx, inv_model, inv_id)
         tax_id = _get_tax_record(ctx, company_id=invoice.company_id.id)
         if not tax_id:
@@ -771,7 +771,7 @@ def show_module_group(ctx):
     while gid:
         gid = input('Res.groups id: ')
         if gid:
-            gid = int(gid)
+            gid = eval(gid)
         if gid:
             group = clodoo.browseL8(ctx, model_grp, gid, context={'lang': 'en_US'})
             cid = group.category_id.id
@@ -1663,7 +1663,7 @@ def manage_riba(ctx):
         riba_id = input('RiBA list id: ')
         if not riba_id:
             return
-        riba_id = int(riba_id)
+        riba_id = eval(riba_id)
         riba_list = clodoo.browseL8(ctx, 'riba.distinta', riba_id)
         print('Riba list # %s -  state: %s' % (riba_list.name,
                                                riba_list.state))
@@ -2535,7 +2535,7 @@ def change_ddt_number(ctx):
     model = 'stock.picking.package.preparation'
     ddt_id = input('DdT id: ')
     if ddt_id:
-        ddt_id = int(ddt_id)
+        ddt_id = eval(ddt_id)
         ddt = clodoo.browseL8(ctx, model, ddt_id)
         print('Current DdT number is: %s' % ddt.ddt_number)
         ddt_number = input('New number: ')
@@ -2676,7 +2676,7 @@ def print_model_synchro_data(ctx):
                          vg7_partner_id, vg7_shipping_addr_id, product_a_id):
         model = 'sale.order'
         print('Write %s ..' % model)
-        order_name = '%06d' % int(order_num)
+        order_name = '%06d' % eval(order_num)
         vals = {
             'company_id': company_id,
             'vg7_id': order_num,
@@ -2694,7 +2694,7 @@ def print_model_synchro_data(ctx):
 
         model = 'sale.order.line'
         print('Write %s ..' % model)
-        vg7_id = int(order_num) * 10
+        vg7_id = eval(order_num) * 10
         vals = {
             'company_id': company_id,
             'vg7_id': vg7_id,
@@ -3377,7 +3377,7 @@ def test_synchro_vg7(ctx):
             if ext_ref in ('vg7_id', 'oe8_id'):
                 if (isinstance(vals[ext_ref], basestring) and
                         vals[ext_ref].isdigit()):
-                    vals[ext_ref] = int(vals[ext_ref])
+                    vals[ext_ref] = eval(vals[ext_ref])
                 if getattr(rec, ext_ref) != vals[ext_ref]:
                     raise IOError('!!Invalid field %s.%s!' % (model, ext_ref))
                 ctx['ctr'] += 1
@@ -3410,7 +3410,7 @@ def test_synchro_vg7(ctx):
             if (loc_name.endswith('_id') and
                     isinstance(vals[ext_ref], basestring) and
                     vals[ext_ref].isdigit()):
-                vals[ext_ref] = int(vals[ext_ref])
+                vals[ext_ref] = eval(vals[ext_ref])
             rec_value = False
             if not ext_ref.startswith('oe8:'):
                 if model == 'res.partner':
@@ -3548,8 +3548,8 @@ def test_synchro_vg7(ctx):
             BORDERLINE_TABLE[model]['LOC'] = {}
             BORDERLINE_TABLE[model]['EXT'] = {}
         if isinstance(vg7_id, basestring):
-            BORDERLINE_TABLE[model]['LOC'][id] = int(vg7_id)
-            BORDERLINE_TABLE[model]['EXT'][int(vg7_id)] = id
+            BORDERLINE_TABLE[model]['LOC'][id] = eval(vg7_id)
+            BORDERLINE_TABLE[model]['EXT'][eval(vg7_id)] = id
         else:
             BORDERLINE_TABLE[model]['LOC'][id] = vg7_id
             BORDERLINE_TABLE[model]['EXT'][vg7_id] = id
@@ -5323,6 +5323,7 @@ def check_rec_links(ctx):
         return
 
     def parse_sale_from_invline(invoice_line, ctr, err_ctr, orders):
+        pdb.set_trace()
         for sale_line in invoice_line.sale_line_ids:
             ctr += 1
             if sale_line.order_id.id not in orders:
@@ -5340,17 +5341,41 @@ def check_rec_links(ctx):
                 err_ctr += 1
                 clodoo.writeL8(ctx, invline_model, invoice_line.id,
                     {'sale_line_ids': [(3, sale_line.id)]})
-        if not invoice_line.sale_line_ids and invoice_line.product_id:
-            order_line_ids = clodoo.searchL8(ctx, orderline_model, [
+        order_line_ids = clodoo.searchL8(ctx, soline_model, [
+            ('invoice_lines', '=', invoice_line.id)])
+        if not order_line_ids and invoice_line.product_id:
+            order_line_ids = clodoo.searchL8(ctx, soline_model, [
                 ('company_id', '=', invoice_line.company_id.id),
-                ('invoice_lines', '=', False),
                 ('order_partner_id', '=', invoice_line.partner_id.id),
                 ('product_id', '=', invoice_line.product_id.id)])
-            print('Found %d line of sale.order.line to match' % len(
-                order_line_ids))
+            for soline in clodoo.browseL8(
+                    ctx, soline_model, order_line_ids):
+                if invoice_line.id in soline.invoice_lines:
+                    continue
+                if soline.product_qty == soline.qty_invoiced:
+                    continue
+                if soline.invoice_lines:
+                    print('Found SO %s' % (soline.order_id.name))
+                    dummy = input('Link this order (y/N)? ')
+                    if dummy != 'y':
+                        continue
+                if (soline.product_uom and
+                        soline.product_uom != invoice_line.uom_id):
+                    print('Invalid uom so=%s inv=%s' % (
+                        soline.product_uom and soline.product_uom.id,
+                        invoice_line.uom_id and invoice_line.uom_id.id))
+                    clodoo.writeL8(ctx, invline_model, invoice_line.id,
+                        {'uom_id': soline.product_uom.id})
+                clodoo.writeL8(ctx, soline_model, soline.id,
+                    {'invoice_lines': [(4, invoice_line.id)]})
+                err_ctr += 1
+                print('Linked invoice line %d to sale.order.line id %d' % (
+                    invoice_line.id, soline.id))
         return ctr, err_ctr, orders
 
     def parse_ddt_from_invline(invoice_line, ctr, err_ctr, ddts):
+        if invoice_line.product_id.type == 'service':
+            return ctr, err_ctr, ddts
         if invoice_line.ddt_line_id:
             ddts.append(invoice_line.ddt_line_id.package_preparation_id.id)
             if (invoice_line.ddt_line_id.sale_line_id and
@@ -5410,7 +5435,8 @@ def check_rec_links(ctx):
     invline_model = 'account.invoice.line'
     ddt_model = 'stock.picking.package.preparation'
     ddtline_model = 'stock.picking.package.preparation.line'
-    orderline_model = 'sale.order.line'
+    # so_model = 'sale.order'
+    soline_model = 'sale.order.line'
     inv_date_ids = param_date(ctx['param_1'])
     if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', inv_date_ids):
         ids = clodoo.searchL8(ctx, invoice_model,
@@ -5677,7 +5703,7 @@ def check_integrity_by_vg7(ctx):
                 dummy = input('Id of parent? ')
                 if dummy.isdigit():
                     clodoo.writeL8(
-                        ctx, model, partner.id, {'parent_id': int(dummy)})
+                        ctx, model, partner.id, {'parent_id': eval(dummy)})
                     ctx['ctr'] += 1
             elif dummy.upper() == 'R':
                 try:
@@ -6276,9 +6302,9 @@ def rename_coa(ctx):
                     new_code = new_codes[0] + code[3:5]
                 else:
                     new_code = new_codes[0]
-                    diff = abs(int(new_codes[0]) - int(code[0:3]))
+                    diff = abs(eval(new_codes[0]) - eval(code[0:3]))
                     for x in new_codes[1:]:
-                        i = abs(int(x) - int(code[0:3]))
+                        i = abs(eval(x) - eval(code[0:3]))
                         if i < diff:
                             new_code = x
                             diff = i
@@ -6289,7 +6315,7 @@ def rename_coa(ctx):
                 continue
         while new_code in rev_cvt_coa:
             print('Duplicate code %s' % new_code)
-            i = int(new_code[5]) + 1
+            i = eval(new_code[5]) + 1
             new_code = new_code[0:5] + str(i)
         cvt_coa[code] = new_code
         rev_cvt_coa[new_code] = code
@@ -6401,7 +6427,7 @@ CVT = {
     '180003': '01233',
 }
 # read_csv_file('/opt/odoo/clodoo/pentagraf/account.account.csv')
-company_id = int(input('company_id)? '))
+company_id = eval(input('company_id)? '))
 db = input('database)? ')
 CVT = {}
 for id in clodoo.searchL8(ctx, model, []):

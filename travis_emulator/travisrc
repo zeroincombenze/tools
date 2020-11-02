@@ -249,7 +249,7 @@ build_pypi_param() {
     _PRJNAME=Odoo
   fi
   if [[ "$_PRJNAME" == "Odoo" ]]; then
-    if [[ $_PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca)?-?(13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|13|12|11|10|9|8|7|6) ]]; then
+    if [[ $_PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca)?-?(14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|14|13|12|11|10|9|8|7|6) ]]; then
       _PKGNAME="OCB"
       _REPOS="OCB"
     fi
@@ -687,7 +687,7 @@ conf_default() {
   set_cfg_def "Environment" "bash"
   set_cfg_def "virtualenv_opts" ""
   set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
-  set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.* *.md.oca *.rst.oca *.py.oca *.yml.oca *.z0i *.oia"
+  set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ *~ test*.pdf tmp.* npm-debug.log.* .oca .z0i .oia"
   set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ html/ .idea/ latex/ .tar .gz .zip __old_* .gitrepname __pycache__/"
   set_cfg_def "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
   set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
@@ -732,7 +732,7 @@ set_pkgpath() {
 set_pkgname() {
   #set_pkgname(PKGPATH)
   PKGNAME=$(basename $1)
-  if [[ $PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|13|12|11|10|9|8|7|6) ]]; then
+  if [[ $PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|14|13|12|11|10|9|8|7|6) ]]; then
     PKGNAME=OCB
   fi
 }
@@ -894,7 +894,7 @@ robocopy_init() {
   else
     a_append "setup.py" ""
     if [ "$2" == "OCB" ]; then
-      local p=$(echo $PWD | grep -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0)" | head -n1)
+      local p=$(echo $PWD | grep -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0)" | head -n1)
       if [ -n "$p" ]; then
         a_append "$p" "/"
       fi
@@ -1017,55 +1017,24 @@ clean_dirs() {
   # clean_dirs (directory)::
   # return:
   local cmd d excl f o p XXXX x
-  [ -n "$1" ] && d=$1 || d="."
-  if [ ${opt_verbose:-0} -gt 0 ]; then
-    p="-print "
-  else
-    p=
-  fi
+  [[ -n "$1" ]] && d=$1 || d="."
+  # [ ${opt_verbose:-0} -gt 0 ] && p="-print " || p=""
   XXXX=$(get_cfg_value "" "filedel")
-  if [ "$PWD" == "/opt/odoo/tools" ]; then
-    XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
-  fi
-  if [ -f ".gitmodules" ]; then
-    excl=$(cat .gitmodules | grep path | awk -F= '{print $2}' | tr -d "\n" | tr " " "|")
-  else
-    excl=""
-  fi
-  excl="(.git|lib|git|__to_remove|.local|.npm|tmp|.gem|node_modules|.cache$excl)"
+  [[ $PWD == "$HOME/tools" ]] && XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
+  [[ -f ".gitmodules" ]] \
+    && excl=$(cat .gitmodules | grep path | awk -F= '{print $2}' | tr -d "\n" | tr " " "|") \
+    || excl=""
+  excl="(.git|lib|git|__to_remove|.local|.npm|pycharm*|PycharmProjects|tmp|.gem|node_modules|Trash|.cache$excl)"
   cmd="find"
   for f in $d/*; do
-    if [ -d $f ]; then
-      if [ -n "$excl" ]; then
-        if [[ ! $f =~ $excl ]]; then
-          cmd="$cmd $f"
-        fi
-      else
-        cmd="$cmd $f"
-      fi
-    else
-      cmd="$cmd $f"
-    fi
+    [[ -d $f ]] && [[ -z "$excl" || ( -n "$excl" && ! $f =~ $excl ) ]] && cmd="$cmd $f"
   done
   o="-nowarn \("
   for x in $XXXX; do
-    if [ "$x" != ".conf" ]; then
-      cmd="$cmd $o -name '*$x'"
-      o="-o"
-    fi
+    [[ ! "$x" =~ (.conf|\*) ]] && cmd="$cmd $o -name '*$x'" && o="-o"
+    [[ "$x" =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
   done
   run_traced "$cmd \) -exec rm -f '{}' \;"
-  if [ -f .gitignore ]; then
-    if [ -z "$(grep "stdout.log" .gitignore 2>/dev/null)" ]; then
-      echo "stdout.log" >>.gitignore
-    fi
-    if [ -z "$(grep "*.oca" .gitignore 2>/dev/null)" ]; then
-      echo "*.oca" >>.gitignore
-    fi
-    if [ -z "$(grep "*.z0i" .gitignore 2>/dev/null)" ]; then
-      echo "*.z0i" >>.gitignore
-    fi
-  fi
 }
 
 do_summary() {
@@ -1146,34 +1115,20 @@ ant_erase() {
 }
 
 set_executable() {
-  local b cmd excl f x
-  if [ ${opt_dry_run: -0} -eq 0 ]; then
-    if [ -f ".gitmodules" ]; then
-      excl=$(cat .gitmodules | grep path | awk -F= '{print $2}' | tr -d "\n" | tr " " "|")
-    else
-      excl=""
-    fi
-    excl="(.git|lib|git|__to_remove|.local|.npm|tmp|.gem|node_modules|.cache$excl)"
-    cmd=""
-    for f in $PKGPATH/*; do
-      b=$(basename $f)
-      if [ -d $f ]; then
-        if [ -n "$excl" ]; then
-          if [[ ! $b =~ $excl ]]; then
-            cmd="$cmd $f"
-          fi
-        else
-          cmd="$cmd $f"
-        fi
-      else
-        cmd="$cmd $f"
-      fi
-    done
-    cmd="find $cmd -type f"
-    run_traced "$cmd -not -name '*.sh' -a -not -name openerp-server -a -not -name odoo-bin -executable -exec chmod -x '{}' \;"
-    run_traced "$cmd -name '*.sh\' -exec chmod +x '{}' \;"
-    run_traced "$cmd -not -path '*/__old_*' -a -not -path '*/VME*' -type f -not -name '*.js' -exec grep -El '#. *(/bin/bash|/usr/bin/env )' '{}' \;|xargs -I{} chmod +x {}"
-  fi
+  local b cmd d excl f x
+  [[ -n "$1" ]] && d=$1 || d="."
+  [[ -f ".gitmodules" ]] \
+    && excl=$(cat .gitmodules | grep path | awk -F= '{print $2}' | tr -d "\n" | tr " " "|") \
+    || excl=""
+  excl="(.git|lib|git|__to_remove|.local|.npm|pycharm*|PycharmProjects|tmp|.gem|node_modules|Trash|.cache$excl)"
+  cmd="find "
+  for f in $d/*; do
+    [[ -d $f ]] && [[ -z "$excl" || ( -n "$excl" && ! $f =~ $excl ) ]] && cmd="$cmd $f"
+  done
+  cmd="$cmd -type f"
+  run_traced "$cmd -not -name '*.sh' -a -not -name openerp-server -a -not -name odoo-bin -executable -exec chmod -x '{}' \;"
+  run_traced "$cmd -name '*.sh' -exec chmod +x '{}' \;"
+  run_traced "$cmd -not -path '*/__old_*' -a -not -path '*/VME*' -type f -not -name '*.js' -exec grep -El '#. *(/bin/bash|/usr/bin/env )' '{}' \;|xargs -I{} chmod +x {}"
 }
 
 coverage() {
