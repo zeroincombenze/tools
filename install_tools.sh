@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.11
+__version__=1.0.0.12
 
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
     echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
     echo "  -h  this help"
+    echo "  -D  create development environment"
     echo "  -n  dry-run"
     echo "  -o  compatibility old mode (exec dir in $HOME/dev)"
     echo "  -p  mkdir $HOME/dev[el] if does not exist"
@@ -25,7 +26,7 @@ elif [[ $1 =~ -.*V ]]; then
     exit 0
 fi
 
-RFLIST__travis_emulator="travis travisrc"
+RFLIST__travis_emulator="travis travis.man travisrc"
 RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
 RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py export_db_model.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
@@ -33,7 +34,7 @@ RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
 RFLIST__wok_code=""
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
-RFLIST__tools="odoo_default_tnl.csv odoo_default_tnl.xlsx templates"
+RFLIST__tools="odoo_default_tnl.xlsx templates"
 RFLIST__python_plus="vem vem.man"
 RFLIST__wok_code="wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
@@ -168,6 +169,12 @@ elif [[ ! $1 =~ -.*q && ! $1 =~ -.*P ]]; then
     echo ". $DSTPATH/activate_tools"
     echo "If you prefer, you can re-execute this script with -P switch"
     echo "------------------------------------------------------------"
+fi
+if [[ ! $1 =~ -.*D ]]; then
+    for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator wok_code z0lib zar zerobug; do
+        mkdir -p $HOME_DEV/$pkg
+        [[ $pkg == "tools" ]] && rsync -avzb $SRCPATH/$pkg/ $HOME_DEV/$pkg/ || rsync -avzb $SRCPATH/$pkg/ $HOME_DEV/$pkg/$pkg/
+    done
 fi
 if [[ ! $1 =~ -.*n && $1 =~ -.*P ]]; then
     $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile

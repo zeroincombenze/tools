@@ -2,8 +2,8 @@
 #  -*- coding: utf-8 -*-
 """
 Action may be:
-- Dictionary (formerly Current)
-- PO (formerly New)
+- Dictionary
+- PO
 - End
 - Ignore
 """
@@ -339,7 +339,8 @@ def parse_pofile(ctx, source, untnl):
                 if ctx['opt_verbose']:
                     print('\tWarning: key <%s> not found in translation!'
                           % msgid2)
-                untnl.append(msgid2)
+                # untnl.append(msgid2)
+                untnl[msgid2] = msgstr2
         if ctx['opt_verbose']:
             print("\t... %d records to update" % ctr)
         return fdiff, catalog, untnl
@@ -487,7 +488,8 @@ def set_header_pofile(ctx, pofile):
 
 
 def parse_file(ctx):
-    untnl = []
+    # untnl = []
+    untnl = {}
     for version in ctx['pofiles'].keys():
         pofn = ctx['pofiles'][version]
         fdiff, target, untnl = parse_pofile(ctx, pofn, untnl)

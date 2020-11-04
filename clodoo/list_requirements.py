@@ -13,7 +13,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.28.5'
+__version__ = '0.3.28.6'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -69,6 +69,7 @@ REQVERSION = {
     'pylint-plugin-utils': {'2.7': '==0.4',
                             '3.5': '==0.5'},
     'pyopenssl': {'0': '>=16.2.0', },                    # by MQT
+    'pyotp': {'2.7': '==2.3.0', '3.5': '>=2.4.0'},
     'pysftp': {'7.0': '>=0.2.9'},
     'pyparsing': {'7.0': '==2.0.3', '10.0': '==2.1.10'},
     'pyPdf': {'7.0': '==1.13'},
@@ -110,6 +111,7 @@ REQVERSION = {
 ALIAS = {
     'babel': 'Babel',
     'click': 'Click',
+    'crypto': 'pycrypto',
     'dateutil': 'python-dateutil',
     'jinja2': 'Jinja2',
     'ldap': 'python-ldap',
@@ -282,6 +284,9 @@ DEPS3 = {
             'libxslt1-dev', 'zlib1g-dev')},
     'python-psycopg2': {'bin': (PY3_DEV, 'libpq-dev')},
 }
+DEPS9 = ['pylint==1.9.3', 'pylint==1.9.5',
+         'docutils==0.12', 'Pillow==3.4.1', 'Pygments==2.0.2',
+         'pylint-plugin-utils==0.4']
 
 
 def eval_requirement_cond(line, odoo_ver=None, pyver=None):
@@ -371,7 +376,10 @@ def add_package(deps_list, kw, item,
         deps_list[kw].append(item)
         if kw == 'python':
             if with_version and full_item:
-                kw = 'python2'
+                if full_item in DEPS9:
+                    kw = 'python9'
+                else:
+                    kw = 'python2'
                 deps_list[kw].append(full_item)
             else:
                 kw = 'python1'
@@ -438,7 +446,10 @@ def add_package(deps_list, kw, item,
         if item in deps_list['python1']:
             ii = deps_list['python1'].index(item)
             del deps_list['python1'][ii]
-            deps_list['python2'].append(full_item)
+            if full_item in DEPS9:
+                deps_list['python9'].append(full_item)
+            else:
+                deps_list['python2'].append(full_item)
         elif not defver and full_item not in deps_list['python2']:
             sys.stderr.write('Version mismatch: package %s\n' % full_item)
     elif kw == 'bin' and full_item:
@@ -643,8 +654,8 @@ def main():
                                                reqfiles,
                                                files)
     deps_list = {}
-    for kw in ('python', 'python1', 'python2', 'bin', 'bin1', 'bin2',
-               'modules'):
+    for kw in ('python', 'python1', 'python2', 'python9',
+               'bin', 'bin1', 'bin2', 'modules'):
         deps_list[kw] = []
     for reqfile in reqfiles:
         requirements = parse_requirements(
@@ -690,14 +701,14 @@ def main():
                                       pyver=ctx['pyver'])
 
     deps_list['python'] = sorted(
-        deps_list['python2'], key=lambda s: s.lower()) + sorted(
-        deps_list['python1'], key=lambda s: s.lower())
+        sorted(deps_list['python1'], key=lambda s: s.lower()) + deps_list[
+            'python2'], key=lambda s: s.lower()) + deps_list['python9']
     for ii, pkg in enumerate(deps_list['python']):
         if pkg.find('>') >= 0 or pkg.find('<') >= 0:
             deps_list['python'][ii] = "'%s'" % pkg
     deps_list['bin'] = sorted(
-        deps_list['bin2'], key=lambda s: s.lower()) + sorted(
-        deps_list['bin1'], key=lambda s: s.lower())
+        sorted(deps_list['bin1'], key=lambda s: s.lower()) + deps_list[
+            'bin2'], key=lambda s: s.lower())
     for ii, pkg in enumerate(deps_list['bin']):
         if pkg.find('>') >= 0 or pkg.find('<') >= 0:
             deps_list['bin'][ii] = "'%s'" % pkg

@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
-__version__ = "0.3.28.5"
+__version__ = "0.3.28.6"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -445,6 +445,25 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
         return ctx
 
     ctx = ctx or {}
+    confn = confn or ctx.get('conf_fn', './clodoo.conf')
+    write_confn = False
+    try:
+        fd = open(confn, 'rU')
+        lines = fd.read().split('\n')
+        for line in lines:
+            if not line or line[0] in '#;':
+                continue
+            tkn = line.split('=')
+            tkn = map(lambda x: x.strip(), tkn)
+            for p in P_LIST:
+                if tkn[0] == p and tkn[1] != 'False':
+                    if p in ('xmlrpc_port', 'psycopg2'):
+                        ctx[p] = int(tkn[1])
+                    else:
+                        ctx[p] = tkn[1]
+        fd.close()
+    except BaseException:
+        write_confn = True
     ctx = read_config(ctx)
     ctx = oerp_env_fill(db=db,
                         xmlrpc_port=xmlrpc_port,
@@ -452,7 +471,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                         oe_version=oe_version or ctx.get('oe_version'),
                         lang=lang,
                         ctx=ctx,
-                        inquire=False and ctx.get('ena_inquire'))
+                        inquire=write_confn and ctx.get('ena_inquire'))
     # saved = {}
     # for p in S_LIST:
     #     saved[p] = ctx.get(p)
@@ -465,6 +484,32 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
     if not lgiuser:
         raise RuntimeError('Invalid user or password!')      # pragma: no cover
     uid = lgiuser.id
+    if write_confn:
+        fd = open(confn, 'w')
+        fd.write('[options]\n')
+        for p in (P_LIST):
+            if p == 'xmlrpc_port':
+                if isinstance(ctx[p], basestring):
+                    ctx[p] = eval(ctx[p])
+                if ctx[p] != 8069:
+                    fd.write('%s=%d\n' % (p, ctx[p]))
+            elif p == 'oe_version' and ctx[p] == '*':
+                pass
+            elif p == 'svc_protocol' and ctx[p] == 'xmlrpc':
+                pass
+            elif p == 'db_host' and ctx[p] == 'localhost':
+                pass
+            elif p == 'psycopg2' and not ctx[p]:
+                pass
+            elif p == 'db_name' and ctx[p] == 'demo':
+                pass
+            elif p == 'admin_passwd' and ctx[p] == 'admin':
+                pass
+            elif p == 'crypt_password':
+                fd.write('%s=%s\n' % (p, crypt(ctx[p])))
+            else:
+                fd.write('%s=%s\n' % (p, ctx[p]))
+        fd.close()
     return uid, ctx
 
 

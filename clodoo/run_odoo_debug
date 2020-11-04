@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.28.5
+__version__=0.3.28.6
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then
@@ -164,9 +164,9 @@ elif [ $opt_xtl -ne 0 ]; then
     fi
 fi
 
-if [ -n "$opt_modules" ]; then
+if [[ -n "$opt_modules" ]]; then
     if [ $opt_keep -eq 0 ]; then
-        PL="$(grep ^addons_path /etc/odoo/odoo10.conf | awk -F= '{print $2}')"
+        PL="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
         if [ -z "$($which odoo_dependencies.py 2>/dev/null)" ]; then
             echo "Test incomplete!"
             echo "File odoo_dependencies.py not found!"
@@ -192,7 +192,7 @@ if [ -n "$opt_modules" ]; then
         xu=-u
         for m in $mods; do
             r=$(psql -U$DB_USER $opt_db -tc "select state from ir_module_module where name='$m';")
-            if [[ $r =~ uninstalled ]]; then
+            if [[ -z "$r" || $r =~ uninstalled ]]; then
                 OPTI="$OPTI$xi$m"
                 xi=,
             else
