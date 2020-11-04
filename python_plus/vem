@@ -29,7 +29,7 @@ SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyas
 EI_PKGS="(distribute)"
 BZR_PKGS="(aeroolib)"
 WGET_PKGS="(pychart|python-chart)"
-PYBIN_PKGS="(dateutil|openid)"
+PYBIN_PKGS="(dateutil|ldap|openid)"
 BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
 ERROR_PKGS=""
@@ -863,7 +863,7 @@ do_venv_pip() {
   do_activate
   pkg="$3"
   [[ $3 == "pychart" ]] && pkg="python-chart"
-  [[ $3 =~ $PYBIN_PKGS ]] && pkg="python-$3"
+  [[ $3 =~ ^$PYBIN_PKGS\$ ]] && pkg="python-$3"
   [ $opt_alone -ne 0 ] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [ $opt_verbose -eq 0 ] && popts="$popts -q"
   [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
