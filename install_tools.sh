@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.12
+__version__=1.0.0.13
 
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -170,7 +170,7 @@ elif [[ ! $1 =~ -.*q && ! $1 =~ -.*P ]]; then
     echo "If you prefer, you can re-execute this script with -P switch"
     echo "------------------------------------------------------------"
 fi
-if [[ ! $1 =~ -.*D ]]; then
+if [[ $1 =~ -.*D ]]; then
     for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator wok_code z0lib zar zerobug; do
         mkdir -p $HOME_DEV/$pkg
         [[ $pkg == "tools" ]] && rsync -avzb $SRCPATH/$pkg/ $HOME_DEV/$pkg/ || rsync -avzb $SRCPATH/$pkg/ $HOME_DEV/$pkg/$pkg/

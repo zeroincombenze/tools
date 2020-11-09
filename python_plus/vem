@@ -21,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.0.0.4
+__version__=1.0.0.5
 NEEDING_PKGS="future os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
@@ -64,7 +64,9 @@ pop_cd() {
 }
 
 do_activate() {
+  local i f
   [ $opt_verbose -gt 2 ] && echo ">>> do_activate($@)"
+  [[ -z $VENV_STACK ]] && declare -A VENV_STACK && export VENV_STACK
   if [[ -z "$VIRTUAL_ENV" ]]; then
     [[ "$1" == "-q" ]] || [ $opt_verbose -eq 0 ] || echo "$FLAG source bin/activate"
     [[ ! -f bin/activate && -n "$FINAL_CMD" ]] && DO_DEACT=1 && return
@@ -73,17 +75,40 @@ do_activate() {
     [ $opt_verbose -gt 3 ] && echo "$FLAG source bin/activate"
     . bin/activate
     [ $opt_verbose -gt 3 ] && set -x
+    ((i=${#VENV_STACK[@]}))
+    VENV_STACK[$i]=$VIRTUAL_ENV
     DO_DEACT=1
+  else
+    f=0
+    for i in "${!VENV_STACK[@]}"; do
+      if [[ ${VENV_STACK[i]} == $VIRTUAL_ENV ]]; then
+        f=1
+        break
+      fi
+    done
+    ((i=${#VENV_STACK[@]}))
+    [[ $f -eq 0 ]] && VENV_STACK[$i]=$VIRTUAL_ENV
   fi
 }
 
 do_deactivate() {
+  local i VENV OLD_VENV
   [ $opt_verbose -gt 2 ] && echo ">>> do_deactivate($@)"
   if [ $DO_DEACT -ne 0 ]; then
     [[ "$1" == "-q" ]] || [ $opt_verbose -eq 0 ] || echo "$FLAG deactivate"
     [[ ! -f bin/activate && -n "$FINAL_CMD" ]] && DO_DEACT=0 && return
+    VENV="$VIRTUAL_ENV"
+    if [[ -n $VENV_STACK ]]; then
+      for i in "${!VENV_STACK[@]}"; do
+        if [[ ${VENV_STACK[i]} == $VENV ]]; then
+          OLD_VENV=${VENV_STACK[$i]}
+          unset VENV_STACK[$i]
+        fi
+      done
+    fi
     deactivate
     DO_DEACT=0
+    [[ -n "$OLD_VENV" ]] && VIRTUAL_ENV=$OLD_VENV
   fi
 }
 
@@ -306,13 +331,18 @@ check_bin_package() {
   if [[ -n "$reqver" ]]; then
     if [[ -z "$curver" ]]; then
       echo "Package $pkg not installed!!!"
-      ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      if [[ "$cmd" == "amend" ]]; then
+        bin_install "$vpkg"
+        [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      else
+        ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      fi
     else
       [ -n "$curver" ] && xcurver=$(echo $curver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
       if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
         echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
         if [[ "$cmd" == "amend" ]]; then
-          run_traced "$PIP install $vpkg -U"
+          bin_install "$vpkg"
           [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         else
           ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -332,7 +362,10 @@ check_bin_package() {
   if [[ -n "$curver" ]]; then
     x=$(readlink -e $(which $pkg 2>/dev/null) 2>/dev/null)
     [[ -z "$x" ]] && echo "Corrupted VME: file $pkg not found!!"
-    [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "Warning: file $x is outside of virtual env"
+    if [[ -n "$x" && ! $x =~ ^$VENV && ! -L $VENV/bin/$pkg ]]; then
+      echo "Warning: file $x is outside of virtual env"
+      run_traced "ln -s $x $VENV/bin"
+    fi
   fi
 }
 
@@ -476,7 +509,7 @@ custom_env() {
     [ $pyver -gt 2 -a $opt_keep -eq 0 ] && sed -ri "/deactivate *\(\) *\{/a\    unalias python &>/dev/null" $PWD/bin/activate
     [ $opt_spkg -ne 0 -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] && ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip" >>$PWD/bin/activate
     echo "for f in \$VIRTUAL_ENV/bin/*;do" >>$PWD/bin/activate
-    echo "    [ -x \$f -a ! -d \$f ] && sed -i -e \"s|^#\!.*/bin/python|#\!\$VIRTUAL_ENV/bin/python|\" \$f" >>$PWD/bin/activate
+    echo "    [[ -x \$f && ! -d \$f ]] && grep -q \"^#\!.*/bin/python\" \$f &>/dev/null && sed -i -e \"s|^#\!.*/bin/python|#\!\$VIRTUAL_ENV/bin/python|\" \$f" >>$PWD/bin/activate
     echo "done" >>$PWD/bin/activate
     [ $opt_alone -ne 0 ] && echo "export HOME=\"\$VIRTUAL_ENV\"" >>$PWD/bin/activate
     [ $opt_alone -eq 0 ] && echo "# export HOME=\"\$VIRTUAL_ENV\"" >>$PWD/bin/activate
@@ -640,6 +673,13 @@ do_venv_mgr() {
     echo "Source and destination directories are the same!"
     echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
     exit 1
+  fi
+  if [[ $cmd =~ (amend|reset) ]]; then
+    grep -q "^ *\[ -x \$f -a ! -d \$f ] " $VENV/bin/activate &>/dev/null
+    if [[ $? -eq 0 ]]; then
+      echo "Wrong activation script $VENV/bin/activate"
+      sed -Ee "s|^ *\[ -x \\\$f -a ! -d \\\$f ] |    [[ -x \$f \&\& ! -d \$f ]] \&\& grep -q \"^#\!.*/bin/python\" \$f \&>/dev/null |" -i $VENV/bin/activate
+    fi
   fi
   cd_venv "$VENV" "-fq"
   do_activate "-q"
@@ -863,7 +903,7 @@ do_venv_pip() {
   do_activate
   pkg="$3"
   [[ $pkg == "pychart" ]] && pkg="python-chart"
-  [[ $pkg =~ ^$PYBIN_PKGS$ ]] && pkg="python-$3"
+  [[ $pkg =~ ^$PYBIN_PKGS([<=>!][0-9.]+)?$ ]] && pkg="python-$pkg"
   [ $opt_alone -ne 0 ] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [ $opt_verbose -eq 0 ] && popts="$popts -q"
   [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
