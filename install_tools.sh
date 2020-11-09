@@ -2,8 +2,10 @@
 #
 __version__=1.0.0.14
 
+OS=$(uname -s)
+[[ $OS == "Darwin" ]] && READLINK=greadlink || READLINK=readlink
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
+TDIR=$($READLINK -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
     echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
     echo "  -h  this help"
@@ -25,9 +27,6 @@ elif [[ $1 =~ -.*V ]]; then
     echo $___version__
     exit 0
 fi
-
-DIST=$(uname -s)
-[[ $OS == "Darwin" ]] && READLINK=greadlink || READLINK=readlink
 
 RFLIST__travis_emulator="travis travis.man travisrc"
 RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
