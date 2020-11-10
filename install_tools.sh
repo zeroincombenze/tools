@@ -24,7 +24,7 @@ if [[ $1 =~ -.*h ]]; then
     echo "  -V  show version and exit"
     exit 0
 elif [[ $1 =~ -.*V ]]; then
-    echo $___version__
+    echo $__version__
     exit 0
 fi
 

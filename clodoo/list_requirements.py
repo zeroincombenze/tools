@@ -7,13 +7,14 @@ import ast
 import sys
 import os
 import re
+from os0 import os0
 try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
 
 
-__version__ = '0.3.28.6'
+__version__ = '0.3.28.7'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -83,7 +84,7 @@ REQVERSION = {
     'python-stdnum': {'7.0': '>=1.8.1'},
     'pytz': {'7.0': '==2014.10', '10.0': '==2016.7'},
     'pyusb': {'7.0': '>=1.0.0b1', '10.0': '==1.0.0'},
-    'pyxb': {'7.0':  '==1.2.5'},
+    'pyxb': {'7.0':  '==1.2.5', '10.0':  '==1.2.6'},
     'PyWebDAV': {'7.0':  '<0.9.8'},
     'PyYAML': {'7.0': '==3.11', '8.0': '==3.12', '3.6': '>=5.1'},
     'qrcode': {'7.0': '==5.1', '10.0': '==5.3'},
@@ -92,7 +93,7 @@ REQVERSION = {
     'reportlab': {'7.0': '==3.1.44', '10.0': '==3.3.0'},
     'requests': {'7.0': '==2.6.0', '10.0': '==2.11.1'},
     'simplejson': {'7.0': '==3.5.3'},
-    'six': {'7.0': '==1.9.0',  '10.0': '==1.10.0'},
+    'six': {'7.0': '==1.9.0',  '10.0': '>=1.10.0'},
     'suds': {'7.0': '==0.4'},
     'suds-jurko': {'7.0': '==0.6'},
     'unicodecsv': {'7.0': '>=0.14.1'},
@@ -122,6 +123,7 @@ ALIAS = {
     'past': 'future',
     'pillow': 'Pillow',
     'psycopg2': 'psycopg2-binary',
+    'py-asterisk': 'py-Asterisk',
     'pychart': 'PyChart',
     'pypdf': 'pyPdf',
     'pypdf2': 'pyPDF2',
@@ -255,6 +257,18 @@ BIN_PACKAGES = ['git',
 PIP_WITH_DOT = ['py3o.',
                 'anybox.',
                 ]
+BUILTIN = [
+    'csv',
+]
+MANIFEST_NAMES = {
+    'accept_language': 'parse-accept-language',
+    'Asterisk': 'py-Asterisk',
+    'cmislib': '-e git+https://github.com/apache/chemistry-cmislib.git@py3_compat#egg=cmislib',
+    'facturx': 'factur-x',
+    'past': 'future',
+    'u2flib_server': 'python-u2flib-server',
+    'voicent': 'Voicent-Python',
+}
 # Retrieve python3 version
 cmd = ['python3', '--version']
 try:
@@ -273,20 +287,30 @@ DEPS = {
     'barcode': {'python': 'python-Levenshtein'},
     'astroid': {'python': 'six'},
     'Pillow': {'python': 'docutils'},
+    'gevent': {'bin': 'libevent-dev'},
+    'pycups': {'bin': 'libcups2-dev'},
+    'shapely': {'bin': 'libgeos-dev'},
 }
 DEPS2 = {
     'lxml': {'bin': ('python-dev', 'libxml2-dev',
              'libxslt1-dev', 'zlib1g-dev')},
     'python-psycopg2': {'bin': ('python-dev', 'libpq-dev')},
+    'python-ldap': {'bin': ('libsasl2-dev', 'libldap2-dev', 'libssl-dev')},
 }
 DEPS3 = {
     'lxml': {'bin': (PY3_DEV, 'libxml2-dev',
             'libxslt1-dev', 'zlib1g-dev')},
     'python-psycopg2': {'bin': (PY3_DEV, 'libpq-dev')},
+    'python3-ldap': {'bin': ('libsasl2-dev', 'libldap2-dev', 'libssl-dev')},
 }
-DEPS9 = ['pylint==1.9.3', 'pylint==1.9.5',
-         'docutils==0.12', 'Pillow==3.4.1', 'Pygments==2.0.2',
-         'pylint-plugin-utils==0.4']
+DEPS9 = [
+    'astroid==1.6.5', 'astroid==2.2.0', 'astroid==2.4.2',
+    'docutils==0.12', 'docutils==0.14', 'docutils==0.16',
+    'Pillow==3.4.1', 'Pygments==2.0.2',
+    'pylint==1.9.3', 'pylint==1.9.5', 'pylint==2.3.0', 'pylint==2.5.3',
+    'pylint-plugin-utils==0.4',
+    'six==1.15.0',
+]
 
 
 def eval_requirement_cond(line, odoo_ver=None, pyver=None):
@@ -325,7 +349,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         item = item.split('.')[0].lower()
     if item in ALIAS:
         item = ALIAS[item]
-    if odoo_ver in ('13.0', '12.0', '11.0'):
+    if odoo_ver in ('14.0', '13.0', '12.0', '11.0'):
         if item in ALIAS3:
             item = ALIAS3[item]
     defver = False
@@ -359,11 +383,14 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         item = item[1: -1]
     if full_item.startswith("'"):
         full_item = full_item[1: -1]
+    full_item = full_item.replace(' =', '=').replace('= ', '=')
     return item, full_item, defver
 
 
 def add_package(deps_list, kw, item,
                 with_version=None, odoo_ver=None, pyver=None):
+    if item in BUILTIN:
+        return deps_list
     item, full_item, defver = name_n_version(item,
                                              with_version=with_version,
                                              odoo_ver=odoo_ver,
@@ -485,6 +512,8 @@ def package_from_manifest(deps_list, manifest_file,
             for kw in ('python', 'bin'):
                 if deps.get(kw):
                     for item in deps[kw]:
+                        if item in MANIFEST_NAMES:
+                            item = MANIFEST_NAMES[item]
                         deps_list = add_package(deps_list,
                                                 kw,
                                                 item,
@@ -704,13 +733,17 @@ def main():
         sorted(deps_list['python1'], key=lambda s: s.lower()) + deps_list[
             'python2'], key=lambda s: s.lower()) + deps_list['python9']
     for ii, pkg in enumerate(deps_list['python']):
-        if pkg.find('>') >= 0 or pkg.find('<') >= 0:
+        if pkg.find('>') >= 0 or pkg.find('<') >= 0 or pkg.find(' ') >= 0:
+            if pkg.find(' ') >= 0:
+                pkg = pkg.replace(' ', r'§')
             deps_list['python'][ii] = "'%s'" % pkg
     deps_list['bin'] = sorted(
         sorted(deps_list['bin1'], key=lambda s: s.lower()) + deps_list[
             'bin2'], key=lambda s: s.lower())
     for ii, pkg in enumerate(deps_list['bin']):
-        if pkg.find('>') >= 0 or pkg.find('<') >= 0:
+        if pkg.find('>') >= 0 or pkg.find('<') >= 0 or pkg.find(' ') >= 0:
+            if pkg.find(' ') >= 0:
+                pkg = pkg.replace(' ', r'§')
             deps_list['bin'][ii] = "'%s'" % pkg
     for item in DEPS:
         if 'python' in DEPS[item]:
@@ -760,7 +793,8 @@ def main():
                 if kw == ctx['itypes'] or (ctx['itypes'] == 'both' and
                                            kw in ('python', 'bin')):
                     if ctx['opt_verbose']:
-                        print('%s=%s' % (kw, ctx['sep'].join(deps_list[kw])))
+                        print(os0.b(
+                            '%s=%s' % (kw, ctx['sep'].join(deps_list[kw]))))
                     else:
                         print(ctx['sep'].join(deps_list[kw]))
 

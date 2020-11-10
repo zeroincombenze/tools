@@ -544,7 +544,7 @@ git_clone() {
         s=$?; [ ${s-1} -eq 0 ] || echo "Internal error $s! Statement rsync $p failed!!"
       done
       for p in install_tools.sh odoo_default_tnl.xlsx; do
-        [[ -d $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/ ]] \
+        [[ -d $TRAVIS_SAVED_HOME/devel/pypi/tools/ ]] \
             && run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/$p $HOME/tools/$p" \
             || run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/$p $HOME/tools/$p"
       done

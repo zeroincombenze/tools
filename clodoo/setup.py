@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='clodoo',
-      version='0.3.28.6',
+      version='0.3.28.7',
       description='Do massive operations on Odoo Cloud',
       long_description="""
 Crete consistent DB for test and/or

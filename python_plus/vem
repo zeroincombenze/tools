@@ -192,7 +192,8 @@ bin_install() {
       popd >/dev/null
       rm -fR wkhtmltox.rpm_files
     fi
-    [[ -z $XPKGS_RE ]] && XPKGS_RE="$pkg" || XPKGS_RE="$XPKGS_RE|$pkg"
+    x="${pkgs//+/.}"
+    [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
   fi
 }
 
@@ -211,13 +212,19 @@ bin_install_1() {
 }
 
 pip_install() {
-  #pip_install pkg
-  local d x
-  local pkg=$1
+  #pip_install(pkg opts)
+  local pkg d x srcdir popts
   local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
-  local srcdir popts
-  [ $opt_alone -ne 0 ] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
-  [[ $pkg =~ (psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
+  pkg="${1//§/ }"
+  [[ $pkg == "pychart" ]] && pkg="python-chart"
+  [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
+  [[ $pkg =~ ^$PYBIN_PKGS([<=>!][0-9.]+)?$ ]] && pkg="python-$pkg"
+  [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
+  [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
+  [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
+  [[ $PIPVER -gt 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+  [ $opt_verbose -eq 0 ] && popts="$popts -q"
+  # [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ $pkg =~ $LOCAL_PKGS ]] && [ $opt_debug -ne 0 ]; then
       [[ -d $pypath/$pkg && ! -L $pypath/$pkg ]] && rm -fR $pypath/$pkg
@@ -269,50 +276,53 @@ pip_install() {
         fi
       fi
     else
-      run_traced "$PIP install $*"
+      run_traced "$PIP install $popts $pkg $2"
       [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     fi
-    [[ -z $XPKGS_RE ]] && XPKGS_RE="$pkg" || XPKGS_RE="$XPKGS_RE|$pkg"
-    if [[ "$pkg" =~ $FLT_PKGS ]]; then
-      run_traced "$PIP uninstall cryptography -y"
-      run_traced "$PIP install $popts cryptography"
-    fi
+    x="${pkgs//+/.}"
+    [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
+    # if [[ "$pkg" =~ $FLT_PKGS ]]; then
+    #   run_traced "$PIP uninstall cryptography -y"
+    #   run_traced "$PIP install $popts cryptography"
+    # fi
   fi
 }
 
 pip_install_1() {
   # pip_install_1(popts)
-  local pkg popts=$1
+  local pkg
   [ $opt_verbose -gt 0 ] && echo -e "\e[1m2 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m"
   for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
-    pip_install $pkg $popts
+    pip_install "$pkg" "$1"
   done
 }
 
 pip_install_2() {
   # pip_install_2(popts)
-  local pkg popts=$1
+  local pkg
   [ $opt_verbose -gt 0 ] && echo -e "\e[1m3 - Analyzing $OEPKGS\e[0m"
   for pkg in $OEPKGS; do
-    pip_install $pkg $popts
+    pip_install "$pkg" "$1"
   done
 }
 
 pip_install_req() {
   # pip_install_req(popts)
-  local f fn pkg popts=$1 flist
+  local f fn pkg flist cmd
   for f in ${opt_rfile//,/ }; do
     fn=$(readlink -f $f)
     [ -z "$fn" ] && echo "File $f not found!"
     [ -z "$fn" ] && continue
     [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
-    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -m $fn -y $opt_pyver"
-    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -m $fn -y $opt_pyver"
-    [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -m $fn -y $opt_pyver)
-    [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -qs" " -BPRT -t python -m $fn -y $opt_pyver)
-    [ $opt_verbose -gt 0 ] && echo "--> $flist"
+    cmd="list_requirements.py -qt python -BP"
+    [ $opt_dev -ne 0 ] && cmd="${cmd}TR"
+    [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
+    [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
+    [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $fn -qs\" \""
+    flist=$($cmd -m $fn -qs" ")
+    [[ $opt_verbose -gt 1 ]] && echo "--> $flist"
     for pkg in $flist; do
-      pip_install $pkg $popts
+      pip_install "$pkg" "$1"
     done
   done
 }
@@ -348,12 +358,12 @@ check_bin_package() {
           ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         fi
       else
-        printf "Package %-30.30s OK\n" "${pkg}${op}${curver}.............................."
+        printf "Package %-40.40s OK\n" "${pkg}${op}${curver}........................................"
       fi
     fi
   else
     if [[ -n "$curver" ]]; then
-      printf "Package %-30.30s OK\n" "${pkg}.............................."
+      printf "Package %-40.40s OK\n" "${pkg}........................................"
     else
       echo "Package $pkg not installed!!!"
       ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -396,7 +406,7 @@ check_package() {
     if [[ -z "$curver" ]]; then
       echo "Package $pkg not installed!!!"
       if [[ "$cmd" == "amend" ]]; then
-        run_traced "$PIP install $vpkg"
+        pip_install "$vpkg"
         [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
         ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -406,23 +416,23 @@ check_package() {
       if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
         echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
         if [[ "$cmd" == "amend" ]]; then
-          run_traced "$PIP install $vpkg -U"
+          pip_install "$vpkg" "--upgrade"
           [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         else
           ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         fi
       else
-        printf "Package %-30.30s OK\n" "${pkg}${op}${reqver}.............................."
+        printf "Package %-40.40s OK\n" "${pkg}${op}${reqver}........................................"
       fi
     fi
   else
     eval $PIP show $pkg &>/dev/null
     if [ $? -eq 0 ]; then
-      printf "Package %-30.30s OK\n" "${pkg}.............................."
+      printf "Package %-40.40s OK\n" "${pkg}........................................"
     else
       echo "Package $pkg not installed!!!"
       if [[ "$cmd" == "amend" ]]; then
-        run_traced "$PIP install $vpkg"
+        pip_install "$vpkg"
         [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
         ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -454,16 +464,19 @@ pip_check_2() {
 
 pip_check_req() {
   # pip_check_req(cmd)
-  local f fn pkg cmd=$1 flist
+  local f fn pkg cmd=$1 flist cmd
   for f in ${opt_rfile//,/ }; do
     fn=$(readlink -f $f)
     [ -z "$fn" ] && echo "File $f not found!"
     [ -z "$fn" ] && continue
     [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
-    [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -m $fn -y $opt_pyver"
-    [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -m $fn -y $opt_pyver"
-    [[ -n "$opt_oever" ]] && flist=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -m $fn -y $opt_pyver)
-    [[ -z "$opt_oever" ]] && flist=$(list_requirements.py -qs" " -BPRT -t python -m $fn -y $opt_pyver)
+    cmd="list_requirements.py -qt python -BP"
+    [ $opt_dev -ne 0 ] && cmd="${cmd}TR"
+    [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
+    [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
+    [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $fn -qs\" \""
+    flist=$($cmd -m $fn -qs" ")
+    [[ $opt_verbose -gt 1 ]] && echo "--> $flist"
     for pkg in $flist; do
       check_package $pkg $cmd
     done
@@ -496,7 +509,7 @@ package_debug() {
 custom_env() {
   # custom_env(VENV pyver)
   [ $opt_verbose -gt 2 ] && echo ">>> custom_env($@)"
-  local VIRTUAL_ENV=$1
+  local VIRTUAL_ENV=$1 pyver=$2
   sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
   if $(grep -q "^export HOME=" $PWD/bin/activate); then
     sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
@@ -530,12 +543,23 @@ custom_env() {
 }
 
 set_pyver_files() {
+  local pyexe pyver
   if [ -n "$opt_pyver" ]; then
     pyver=$(echo $opt_pyver | grep -o [0-9] | head -n1)
-    [ $pyver -gt 2 ] && PIP=pip3
-    [ $pyver -le 2 ] && PIP=pip
-    [ $pyver -gt 2 ] && PYTHON=python3
-    [ $pyver -le 2 ] && PYTHON=python
+    pyexe=$(which python$opt_pyver 2>/dev/null)
+    if [[ -n "$pyexec" ]]; then
+      PYTHON=$pyexec
+    else
+      [[ $pyver -gt 2 ]] && PYTHON=python3
+      [[ $pyver -le 2 ]] && PYTHON=python
+    fi
+    pyexe=$(which pip$opt_pyver 2>/dev/null)
+    if [[ -n "$pyexec" ]]; then
+      PIP=$pyexec
+    else
+      [[ $pyver -gt 2 ]] && PIP=pip3
+      [[ $pyver -le 2 ]] && PIP=pip
+    fi
   elif [[ -z "$PIP" ]]; then
     PIP=pip3
     PYTHON=python3
@@ -564,7 +588,7 @@ venv_mgr_check_src_path() {
     break
   done
   [[ -z "$PYTHON" && -x ./bin/python ]] && PYTHON=$(readlink -e ./bin/python)
-  [[ -z "$PYTHON" && -n "$2" ]] && PYTHON=$(which python)
+  [[ -z "$PYTHON" && -n "$2" ]] && PYTHON=$(which python 2>/dev/null)
   if [[ -z "$PYTHON" ]]; then
     echo "Virtual env $VENV without python!!"
     exit 1
@@ -573,7 +597,6 @@ venv_mgr_check_src_path() {
   check_4_needing_pkgs $VENV
   pop_cd "-q"
   [ $opt_verbose -gt 0 ] && echo "### Python version $opt_pyver ... ###"
-  # set_pyver_files
 }
 
 check_4_needing_pkgs() {
@@ -655,15 +678,11 @@ do_venv_mgr_test() {
 do_venv_mgr() {
   # do_venv_mgr {cp|mv|merge|reset|test} VENV NEW_VENV
   [ $opt_verbose -gt 2 ] && echo ">>> do_venv_mgr($@)"
-  local d f mime VENV V sitecustom popts x
+  local d f mime VENV V sitecustom x lropts
   local cmd=$1
   VENV="$2"
   [ -n "$3" ] && VENV_TGT=$(readlink -m $3)
   [[ $cmd =~ (amend|check|reset|test) ]] && VENV_TGT=$VENV
-  [ $opt_alone -ne 0 ] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
-  [ $PIPVER -gt 18 ] && [[ -z $popts || ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
-  [ $PIPVER -gt 19 ] && [[ -z $popts || ! --use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
-  [ $opt_verbose -eq 0 ] && popts="$popts -q"
   if [[ -z "$VENV" || -z "$VENV_TGT" ]]; then
     echo "Missed parameters!"
     echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
@@ -683,14 +702,12 @@ do_venv_mgr() {
   fi
   cd_venv "$VENV" "-fq"
   do_activate "-q"
-  [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
-  [[ -n "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -BPRT -t bin -b $opt_oever -y $opt_pyver)
-  [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -PT -t bin -y $opt_pyver"
-  [[ -z "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -PT -t bin -y $opt_pyver)
-  [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -y $opt_pyver"
-  [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -y $opt_pyver)
-  [ $opt_verbose -gt 1 -a -z "$opt_oever" ] && echo "list_requirements.py -qs\" \" -PT -t python -y $opt_pyver"
-  [[ -z "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -PT -t python -y $opt_pyver)
+  [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
+  [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
+  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs\" \" $lropts -t bin"
+  BINPKGS=$(list_requirements.py -qs" " $lropts -t bin)
+  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs\" \" $lropts -t python"
+  OEPKGS=$(list_requirements.py -qs" " $lropts -t python)
   do_deactivate "-q"
   pop_cd "-q"
   if [[ $cmd =~ (amend|check|reset|test) ]]; then
@@ -747,11 +764,11 @@ do_venv_mgr() {
     [[ $cmd =~ (amend|check) ]] && bin_check_1 $VENV
     run_traced "pip install pip -U"
     PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
-    [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "$popts --upgrade"
+    [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "--upgrade"
     [[ $cmd =~ (amend|check) ]] && pip_check_1 $cmd
-    [[ -n "$opt_oever" && "$cmd" == "reset" ]] && pip_install_2 "$popts --upgrade"
+    [[ -n "$opt_oever" && "$cmd" == "reset" ]] && pip_install_2 "--upgrade"
     [[ -n "$opt_oever" && $cmd =~ (amend|check) ]] && pip_check_2 $cmd
-    [[ "$cmd" == "reset" && -n "$opt_rfile" ]] && pip_install_req "$popts --upgrade"
+    [[ "$cmd" == "reset" && -n "$opt_rfile" ]] && pip_install_req "--upgrade"
     [[ $cmd =~ (amend|check) && -n "$opt_rfile" ]] && pip_check_req $cmd
     if [[ ! $cmd == "check" && -z "$VENV_STS" ]]; then
       run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VENV_TGT'\":g' $PWD/bin/activate"
@@ -805,7 +822,7 @@ do_venv_mgr() {
 do_venv_create() {
   # do_venv_create VENV
   [ $opt_verbose -gt 2 ] && echo ">>> do_venv_create($@)"
-  local f p pkg VENV xpkgs popts v
+  local f p pkg VENV xpkgs v lropts
   local venvexe pyexe
   export VENV__SAVED_HOME=$HOME
   VENV="$1"
@@ -819,8 +836,10 @@ do_venv_create() {
     fi
   fi
   hash -r
-  pyexe=$(which $PYTHON)
-  venvexe=$(which virtualenv)
+  pyexe=$(which python$opt_pyver 2>/dev/null)
+  [[ -z "$pyexe" ]] && pyexe=$(which $PYTHON 2>/dev/null)
+  opt_pyver=$($pyexe --version 2>&1 | grep -Eo "[0-9]\.[0-9]")
+  venvexe=$(which virtualenv 2>/dev/null)
   if [[ -n "$venvexe" ]]; then
     v=$(virtualenv --version 2>&1 | grep -Eo [0-9]+ | head -n1)
     if [ $v -gt 17 ]; then
@@ -850,23 +869,21 @@ do_venv_create() {
   do_activate
   run_traced "$PIP install pip -U"
   PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
-  [ $opt_alone -ne 0 ] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
-  [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
-  [ $PIPVER -gt 19 ] && [[ -z $popts || ! --use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
-  [ $opt_verbose -eq 0 ] && popts="$popts -q"
   for pkg in $NEEDING_PKGS; do
-    pip_install $pkg $popts
+    pip_install $pkg
   done
-  [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t bin -b $opt_oever -y $opt_pyver"
-  [[ -n "$opt_oever" ]] && BINPKGS=$(list_requirements.py -qs" " -BPRT -t bin -b $opt_oever -y $opt_pyver)
-  [ $opt_verbose -gt 1 -a -n "$opt_oever" ] && echo "list_requirements.py -qs\" \" -BPRT -t python -b $opt_oever -y $opt_pyver"
-  [[ -n "$opt_oever" ]] && OEPKGS=$(list_requirements.py -qs" " -BPRT -t python -b $opt_oever -y $opt_pyver)
+  [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
+  [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
+  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs\" \" $lropts -t bin"
+  BINPKGS=$(list_requirements.py -qs" " $lropts -t bin)
+  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs\" \" $lropts -t python"
+  OEPKGS=$(list_requirements.py -qs" " $lropts -t python)
   bin_install_1 $VENV
   [ $opt_dry_run -eq 0 ] && custom_env $VENV $opt_pyver
-  pip_install_1 "$popts"
+  pip_install_1
   # [ $opt_dev -eq 0 ] && DEV_PKGS=
-  [ -n "$opt_oever" ] && pip_install_2 "$popts"
-  [ -n "$opt_rfile" ] && pip_install_req "$popts"
+  [ -n "$opt_oever" ] && pip_install_2
+  [ -n "$opt_rfile" ] && pip_install_req
   do_deactivate
   [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $(readlink -f ./odoo)"
   pop_cd
@@ -903,11 +920,13 @@ do_venv_pip() {
   do_activate
   pkg="$3"
   [[ $pkg == "pychart" ]] && pkg="python-chart"
+  [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
   [[ $pkg =~ ^$PYBIN_PKGS([<=>!][0-9.]+)?$ ]] && pkg="python-$pkg"
-  [ $opt_alone -ne 0 ] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
+  [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
+  [[ $opt_alone -ne 0 && ! $pkg =~ ^- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
+  [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
+  [[ $PIPVER -gt 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [ $opt_verbose -eq 0 ] && popts="$popts -q"
-  [ $PIPVER -gt 18 ] && [[ ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
-  [ $PIPVER -gt 19 ] && [[ -z $popts || ! --use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   if [[ $pkg =~ $BIN_PKGS ]]; then
     [[ "$cmd" == "install" ]] && bin_install "$pkg" "$1"
   elif [[ $pkg =~ $EI_PKGS && "$cmd" == "install" ]]; then
@@ -1017,8 +1036,11 @@ SAVED_PYTHONPATH=$PYTHONPATH
 [ $opt_debug -ne 0 -a -d $HOME/tools/ ] && PYTHONPATH=$HOME/tools/ || PYTHONPATH=""
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
-[[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/$opt_oever ]] && opt_oepath="$HOME/$opt_oever"
+[[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/odoo/$opt_oever/odoo ]] && opt_oepath="$HOME/odoo/$opt_oever/odoo"
+[[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/odoo/$opt_oever ]] && opt_oepath="$HOME/odoo/$opt_oever"
 [[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/$opt_oever/odoo ]] && opt_oepath="$HOME/$opt_oever/odoo"
+[[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/$opt_oever ]] && opt_oepath="$HOME/$opt_oever"
+[ $opt_verbose -gt 2 ] && echo "# Odoo dir = '$opt_oever'"
 if [[ $action == "rm" ]]; then
   [[ $PWD == $(readlink -f $p2) ]] && cd
   rm -fR $p2
@@ -1090,5 +1112,13 @@ if [[ -n "$ERROR_PKGS" ]]; then
   if [[ $ERROR_PKGS =~ gevent ]]; then
     [[ $FH = "RHEL" ]] && echo "yum install libevent-devel                                  # If RHEL"
     [[ $FH = "Debian" ]] && echo "apt-get install libevent-dev                              # If Debian"
+  fi
+  if [[ $ERROR_PKGS =~ pycups ]]; then
+    [[ $FH = "RHEL" ]] && echo "yum install libcups2-devel                                  # If RHEL"
+    [[ $FH = "Debian" ]] && echo "apt-get install libcups2-dev                              # If Debian"
+  fi
+  if [[ $ERROR_PKGS =~ shapely ]]; then
+    [[ $FH = "RHEL" ]] && echo "yum install geos-devel                                      # If RHEL"
+    [[ $FH = "Debian" ]] && echo "apt-get install libgeos-dev                               # If Debian"
   fi
 fi

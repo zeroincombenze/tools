@@ -22,7 +22,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.3.28.6"
+__version__ = "0.3.28.7"
 
 
 CACHE = {}
