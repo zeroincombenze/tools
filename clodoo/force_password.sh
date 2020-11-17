@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -31,23 +31,43 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28.7
+__version__=0.3.28.9
+
+get_dbuser() {
+  # get_dbuser odoo_majver
+  local u
+  for u in $USER odoo openerp postgresql; do
+    if [[ -n "$1" ]]; then
+      psql -U$u$1 -l &>/dev/null
+      if [[ $? -eq 0 ]]; then
+        echo "$u$1"
+        break
+      fi
+    fi
+    psql -U$u -l &>/dev/null
+    if [[ $? -eq 0 ]]; then
+      echo "$u"
+      break
+    fi
+  done
+}
 
 
-OPTOPTS=(h        b          d        k         m         n            q           U        V           v)
-OPTDEST=(opt_help opt_branch opt_db   opt_crypt opt_multi opt_dry_run  opt_verbose opt_user opt_version opt_verbose)
-OPTACTI=(1        "="        "="      1         1         1            0           "="      "*>"        "+")
-OPTDEFL=(0        ""         ""       -1        0         0            -1          ""       ""          1)
-OPTMETA=("help"   "branch"   "dbname" ""        ""        "do nothing" "verbose"   "user"   "version"   "verbose")
-OPTHELP=("this help"\
- "odoo version"\
- "dbname"\
- "use crypt password"\
- "multi-version odoo environment"\
- "do nothing (dry-run)"\
- "silent mode"\
- "username to change password"\
- "show version"\
+OPTOPTS=(h        b          d        k         m         n            q           u        U          V           v)
+OPTDEST=(opt_help opt_branch opt_db   opt_crypt opt_multi opt_dry_run  opt_verbose opt_user opt_dbuser opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1         1         1            0           "="      "="        "*>"        "+")
+OPTDEFL=(0        ""         ""       -1        0         0            -1          ""       ""         ""          1)
+OPTMETA=("help"   "branch"   "dbname" ""        ""        "do nothing" "verbose"   "user"   ""         "version"   "verbose")
+OPTHELP=("this help"
+ "odoo version"
+ "dbname"
+ "use crypt password"
+ "multi-version odoo environment"
+ "do nothing (dry-run)"
+ "silent mode"
+ "username to change password"
+ "postgres db role"
+ "show version"
  "verbose mode")
 OPTARGS=()
 
@@ -60,11 +80,11 @@ fi
 [ -z "$opt_user" ] && opt_help=1
 if [ $opt_help -gt 0 ]; then
   print_help "Install odoo theme"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
-if [[ ! $opt_branch =~ (6.1|7.0|8.0|9.0|10.0|11.0|12.0) ]] ; then
+if [[ ! $opt_branch =~ (6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0) ]] ; then
   echo "Invalid Odoo version"
   exit 1
 fi
@@ -72,7 +92,8 @@ fi
 discover_multi
 odoo_ver=$(build_odoo_param MAJVER $opt_branch)
 
-userid=$(psql -tc "select id from res_users where login='$opt_user';" $opt_db)
+[[ -n $opt_dbuser ]] && db_user=$opt_dbuser || db_user=$(get_dbuser)
+userid=$(psql -U$db_user -tc "select id from res_users where login='$opt_user';" $opt_db)
 userid=$(echo $userid)
 if [ -z "$userid" ]; then
   echo "User $opt_user not found!"
@@ -101,7 +122,7 @@ if [ $opt_crypt -ne 0 ]; then
   echo -e "from passlib.context import CryptContext\nprint CryptContext(['pbkdf2_sha512']).encrypt('$pwd1')\n"|python
   crypt=$(echo -e "from passlib.context import CryptContext\nprint CryptContext(['pbkdf2_sha512']).encrypt('$pwd1')\n"|python)
   crypt="${crypt//\$/\\\$}"
-  run_traced "psql -c \"update res_users set password='',password_crypt='$crypt' where id=$userid;\" $opt_db"
+  run_traced "psql -U$db_user -c \"update res_users set password='',password_crypt='$crypt' where id=$userid;\" $opt_db"
 else
   run_traced "psql -c \"update res_users set password='$pwd1' where id=$userid;\" $opt_db"
 fi

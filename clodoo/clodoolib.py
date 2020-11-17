@@ -166,7 +166,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.28.7"
+__version__ = "0.3.28.9"
 
 
 #############################################################################
@@ -513,56 +513,49 @@ def docstring_summary(docstring):
 
 def fullname_conf(ctx):
     if ctx.get('conf_fn'):
-        if not os.path.isfile(ctx['conf_fn']):
-            for p in ('.', './confs', './conf', './code'):
-                if os.path.isfile('%s/%s' % (p, ctx['conf_fn'])):
-                    ctx['conf_fn'] = '%s/%s' % (p, ctx['conf_fn'])
-                    break
+        confs = []
+        for confn in ctx['conf_fn'].split(','):
+            if not os.path.isfile(confn):
+                for path in ('.', './confs', './conf', './code'):
+                    if os.path.isfile('%s/%s' % (path, confn)):
+                        confn = '%s/%s' % (path, confn)
+                        break
+            confs.append(confn)
+        if len(confs) == 1:
+            ctx['conf_fn'] = confs[0]
+        else:
+            ctx['conf_fn'] = ','.join(confs)
     return ctx
-
 
 def read_config(ctx):
     """Read both user configuration and local configuration."""
+
+    def set_confs(ctx):
+        version_is_set = False
+        for ver in ('odoo_vid', 'oe_version'):
+            if ctx.get(ver):
+                fnver = build_odoo_param('CONFN', ctx[ver], multi=True)
+                if os.path.isfile(fnver) and fnver not in ctx['conf_fns']:
+                    ctx['conf_fns'].append(fnver)
+                    version_is_set = True
+                else:
+                    fnver = build_odoo_param('CONFN', ctx[ver])
+                    if os.path.isfile(fnver) and fnver not in ctx['conf_fns']:
+                        ctx['conf_fns'].append(fnver)
+                        version_is_set = True
+        return ctx, version_is_set
+
     if not ctx.get('conf_fn', None):
         ctx['conf_fn'] = ctx.get('caller', 'clodoo') + ".conf"
-    conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
-    ctx['conf_fns'] = []
-    base = False
-    if ODOO_CONF:
-        if 'odoo_vid' in ctx:
-            fnver = build_odoo_param('CONFN', ctx['odoo_vid'], multi=True)
-            if os.path.isfile(fnver):
-                ctx['conf_fns'].append(fnver)
-                base = os.path.basename(fnver)
-            else:
-                fnver = build_odoo_param('CONFN', ctx['odoo_vid'])
-                if os.path.isfile(fnver):
-                    ctx['conf_fns'].append(fnver)
-                    base = os.path.basename(fnver)
-        if isinstance(ODOO_CONF, list):
-            for f in ODOO_CONF:
-                fn = f
-                if 'odoo_vid' in ctx:
-                    if base:
-                        fn = os.path.join(os.path.dirname(f), base)
-                    if os.path.isfile(fn) and fn not in ctx['conf_fns']:
-                        ctx['conf_fns'].append(fn)
-                        break
-                elif os.path.isfile(f) and fn not in ctx['conf_fns']:
-                    ctx['conf_fns'].append(f)
-                    break
-        elif os.path.isfile(ODOO_CONF):
-            ctx['conf_fns'].append(ODOO_CONF)
-        elif os.path.isfile(OE_CONF):
-            ctx['conf_fns'].append(OE_CONF)
-        if CONF_FN and CONF_FN not in ctx['conf_fns']:
-            ctx['conf_fns'].append(CONF_FN)
     ctx = fullname_conf(ctx)
-    if ctx['conf_fn'] not in ctx['conf_fns']:
-        ctx['conf_fns'].insert(0, ctx['conf_fn'])
-    ctx['conf_fns'] = conf_obj.read(ctx['conf_fns'])
-    ctx['_conf_obj'] = conf_obj
-    if 'oe_version' in ctx:
+    ctx['conf_fns'] = ctx['conf_fn'].split(',')
+    ctx, version_is_set = set_confs(ctx)
+    ctx['_conf_obj'] = ConfigParser.SafeConfigParser(default_conf(ctx))
+    ctx['conf_fns'] = ctx['_conf_obj'].read(ctx['conf_fns'])
+    ctx = create_params_dict(ctx)
+    if not version_is_set:
+        ctx, version_is_set = set_confs(ctx)
+        ctx['conf_fns'] = ctx['_conf_obj'].read(ctx['conf_fns'])
         ctx = create_params_dict(ctx)
     return ctx
 
@@ -581,7 +574,7 @@ def create_parser(version, doc, ctx):
     """
     parser = argparse.ArgumentParser(
         description=docstring_summary(doc),
-        epilog="© 2015-2019 by SHS-AV s.r.l."
+        epilog="© 2015-2020 by SHS-AV s.r.l."
                " - http://www.zeroincombenze.org")
     parser.add_argument("-A", "--action-to-do",
                         help="action to do (use list_actions to dir)",
@@ -678,19 +671,14 @@ def parse_args(arguments,
                apply_conf=APPLY_CONF, version=None, tlog=None, doc=None):
     """Parse command-line options."""
     ctx = {}
-    caller_fqn = inspect.stack()[1][1]
-    ctx['caller_fqn'] = caller_fqn
-    caller = os0.nakedname(os.path.basename(caller_fqn))
-    ctx['caller'] = caller
-    if os.isatty(0):
-        ctx['run_daemon'] = False
-    else:
-        ctx['run_daemon'] = True
+    ctx['caller_fqn'] = inspect.stack()[1][1]
+    ctx['caller'] = os0.nakedname(os.path.basename(ctx['caller_fqn']))
+    ctx['run_daemon'] = False if os.isatty(0) else True
     ctx['run_tty'] = os.isatty(0)
     if tlog:
         ctx['tlog'] = tlog
     else:
-        ctx['tlog'] = "./" + caller + ".log"
+        ctx['tlog'] = "./%s.log" % ctx['caller']
     # running autotest
     if version is None:
         ctx['_run_autotest'] = True
@@ -701,8 +689,7 @@ def parse_args(arguments,
     if apply_conf:
         if hasattr(opt_obj, 'conf_fn'):
             ctx['conf_fn'] = opt_obj.conf_fn
-            ctx = fullname_conf(ctx)
-        if hasattr(opt_obj, 'odoo_vid'):
+        if hasattr(opt_obj, 'odoo_vid') and opt_obj.odoo_vid:
             ctx['odoo_vid'] = opt_obj.odoo_vid
         ctx = read_config(ctx)
         opt_obj = parser.parse_args(arguments)

@@ -8,14 +8,20 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+export READLINK=readlink
+OS=$(uname -s)
+if [[ $OS == "Darwin" ]]; then
+  READLINK=$(which greadlink 2>/dev/null)
+  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
+fi
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
+TDIR=$($READLINK -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/devel_tools/devel_tools/../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib/z0lib; do
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
@@ -80,12 +86,12 @@ process_yaml_init() {
   [[ -z $MQT_DBUSER ]] && export MQT_DBUSER==$(get_dbuser)
   python_ver_req=
   if [ $opt_dbgmnt -ne 0 ]; then
-    [[ -d $HOME/devel ]] \
-        && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa \
-        || export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
-    [[ -d $HOME/devel ]] \
-        && export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo \
-        || export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
+    [[ -d $HOME/devel ]] && \
+      export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || \
+      export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
+    [[ -d $HOME/devel ]] && \
+      export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo || \
+      export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
     (($opt_debug)) && export TRAVIS_PDB="true"
   else
     export YML_lisa=lisa
@@ -661,7 +667,7 @@ process_yaml_run_cmd() {
     if [ -z "$REPOSNAME" ]; then
       pp=$PKGPATH
     else
-      pp=$(readlink -e $PRJPATH/../$REPOSNAME/)
+      pp=$($READLINK -e $PRJPATH/../$REPOSNAME/)
     fi
     while [ -n "${x[$ix]}" ]; do
       if [[ "${x[$ix]}" =~ cd ]]; then
@@ -1090,7 +1096,7 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
         done=1
       done
     fi
-    ((md=60*60*24*90))
+    ((md = 60 * 60 * 24 * 90))
     for d in $LOGDIR/*; do
       dd=$(stat -c "%Y" $d)
       df=$(($dt - $dd))

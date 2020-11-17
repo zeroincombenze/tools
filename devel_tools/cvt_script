@@ -7,14 +7,20 @@
 # author: Antonio Maria Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2016-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+export READLINK=readlink
+OS=$(uname -s)
+if [[ $OS == "Darwin" ]]; then
+  READLINK=$(which greadlink 2>/dev/null)
+  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
+fi
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
+TDIR=$($READLINK -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/devel_tools/devel_tools/../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib/z0lib; do
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
@@ -23,7 +29,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.6
+__version__=1.0.0.8
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -136,6 +142,7 @@ cvt_file() {
             line_ver="__version__=$y.$x"
           fi
           if [ $prc -eq 0 ]; then
+            [[ $opt_keep -ne 0 ]] && echo "$line_ver" >>$fntmp
             continue
           fi
         fi
@@ -148,7 +155,7 @@ cvt_file() {
         elif [ $incl -eq 1 ]; then
           echo "$line" >>$fntmp
         elif [ $prc -eq 0 ]; then
-          if [[ $line =~ ^THIS.*basename.* ]]; then
+          if [[ $line =~ ^THIS=..basename || $line =~ ^export.READLINK=readlink ]]; then
             prc=1
             blk_1 "$fntmp"
             empty=0
@@ -377,14 +384,20 @@ cvt_file() {
 
 blk_1() {
   cat <<EOF >>$1
+export READLINK=readlink
+OS=\$(uname -s)
+if [[ \$OS == "Darwin" ]]; then
+  READLINK=\$(which greadlink 2>/dev/null)
+  [[ -n "\$READLINK" ]] && READLINK=\$(basename \$READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
+fi
 THIS=\$(basename "\$0")
-TDIR=\$(readlink -f \$(dirname \$0))
+TDIR=\$(\$READLINK -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \${PATH//:/ } \${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
+for d in \$TDIR \${PATH//:/ } \${PYPATH//:/ } /etc \$TDIR/../z0lib \$TDIR/../../z0lib \$TDIR/../../z0lib/z0lib; do
   if [[ -e \$d/z0librc ]]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
-    Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
+    Z0LIBDIR=\$(\$READLINK -e \$Z0LIBDIR)
     break
   fi
 done
@@ -476,7 +489,7 @@ EOF
 blk_8() {
   cat <<EOF >>$1
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
-RUNDIR=\$(readlink -e \$TESTDIR/..)
+RUNDIR=\$($READLINK -e \$TESTDIR/..)
 EOF
 }
 
@@ -542,7 +555,6 @@ if [ \$opt_verbose -gt 1 ]; then set -x; fi
 EOF
 }
 #//Enable.auto.upgrade.code/
-
 
 OPTOPTS=(h        J         K        k        m         n           O         q           T        U      V           v           w          y       Z)
 OPTDEST=(opt_help opt_tjLib opt_lev3 opt_keep opt_id    opt_dry_run opt_oeLib opt_verbose opt_Test opt_UT opt_version opt_verbose opt_nowarn opt_yes opt_zLib)

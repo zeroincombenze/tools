@@ -163,6 +163,7 @@ import time
 import inspect
 import platform
 from datetime import date, datetime, timedelta
+# from passlib.context import CryptContext
 from os0 import os0
 
 from clodoocore import (is_valid_field, searchL8, browseL8,        # noqa: F401
@@ -184,7 +185,7 @@ from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
-__version__ = "0.3.28.7"
+__version__ = "0.3.28.9"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -311,6 +312,7 @@ def do_login(ctx):
     db_name = get_dbname(ctx, 'login')
     for username in userlist:
         for pwd in cryptlist:
+            crypted = True
             try:
                 msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'],
                                                  username,
@@ -329,6 +331,7 @@ def do_login(ctx):
             except BaseException:
                 pass
         if not user:
+            crypted = False
             for pwd in pwdlist:
                 try:
                     msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'],
@@ -362,10 +365,17 @@ def do_login(ctx):
         vals = {}
         if user.login != ctx['login_user']:
             vals['login'] = ctx['login_user']
-        if ctx['crypt_password'] and pwd != ctx['crypt_password']:
-            vals['new_password'] = decrypt(ctx['crypt_password'])
-        elif ctx['login_password'] and pwd != ctx['login_password']:
-            vals['new_password'] = ctx['login_password']
+        if ctx['crypt_password'] and crypted and pwd != ctx['crypt_password']:
+            vals['password'] = decrypt(ctx['crypt_password'])
+        elif (ctx['crypt_password'] and not crypted and
+              pwd != decrypt(ctx['crypt_password'])):
+            vals['password'] = decrypt(ctx['crypt_password'])
+        elif (ctx['login_password'] and crypted and
+              decrypt(pwd) != ctx['login_password']):
+            vals['password'] = ctx['login_password']
+        elif (ctx['login_password'] and not crypted and
+              pwd != ctx['login_password']):
+            vals['password'] = ctx['login_password']
         if ctx['oe_version'] != '6.1':
             if ((ctx['with_demo'] and user.email != ctx['def_email']) or
                     (not ctx['with_demo'] and
@@ -376,6 +386,11 @@ def do_login(ctx):
                                                 user.email,
                                                 model='res.users')
         if vals:
+            if vals.get('password'):
+                # ctx['password_crypt'] = CryptContext(
+                #     ['pbkdf2_sha512']).encrypt(vals.get('new_password'))
+                if 'password_crypt' in vals:
+                    del vals['password_crypt']
             try:
                 writeL8(ctx, 'res.users', user.id, vals)
                 if not ctx.get('no_warning_pwd', False):
@@ -383,6 +398,7 @@ def do_login(ctx):
                              tounicode(ctx['db_name']),
                              tounicode(username),
                              tounicode(ctx['login_user'])))
+                    os0.wlog(u"You should restart the Odoo service")
             except BaseException:
                 os0.wlog(u"!!Passpartout user %s/%s write error!" % (
                     tounicode(username),
@@ -401,10 +417,6 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
               'login2_user', 'login2_password', 'crypt2_password',
               'svc_protocol', 'oe_version', 'xmlrpc_port',
               'lang', 'psycopg2')
-    # S_LIST = ('db_host', 'db_name', 'db_user', 'db_password', 'admin_passwd',
-    #           'login_user', 'login_password',
-    #           'svc_protocol', 'oe_version', 'xmlrpc_port',
-    #           'lang')
     DEFLT = default_conf(ctx)
 
     def oerp_env_fill(db=None, xmlrpc_port=None, oe_version=None,
@@ -1868,37 +1880,86 @@ def act_check_tax(ctx):
             if tax.amount not in ():
                 if ((ctx['majver'] < 9 and
                         not tax.parent_id and
-                        abs(tax.amount) not in (0.04, 0.1, .22)) or
+                        abs(tax.amount) not in (0.04, 0.1, 0.21, .22)) or
                     (ctx['majver'] >= 9 and
                         not tax.parent_tax_ids and
-                        abs(tax.amount) not in (4, 10, 22))):
+                        abs(tax.amount) not in (4, 10, 21, 22))):
                     writeL8(ctx, model, [tax.id],
                             {'active': False})
                     msg = 'Tax code %s deactivated' % tax.description
                     msg_log(ctx, ctx['level'] + 1, msg)
-            if re.search('[Aa]rt[^0-9]17[ -./]ter', tax.name):
+            if re.search('[Aa]rt[ .]*17[ -./]ter', tax.name):
                 payability = 'S'
             elif re.search('[Ss]plit[ -./][Pp]aym', tax.name):
                 payability = 'S'
             elif re.search('cassa', tax.name):
                 payability = 'D'
-            if re.search('[Aa]rt[^0-9]74[^0-9]?c[-./a-zA-Z]*[78][^0-9]', tax.name):
+            if re.search('[Aa]rt[ .]*74[- .,]*c(omma)?[- ./]*[78][^0-9]',
+                    tax.name):
+                # N6.1: cessione rottami > Art. 74c7/8
                 if tax.type_tax_use == 'purchase':
-                    nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt[^0-9]17[^0-9]?c[-./a-zA-Z]*[26][^0-9]', tax.name):
+                    nature_id = tax_nature['N6.1']
+            elif re.search('[Aa]rt[ .]*74[- .,]*c(omma)?[- ./]*5[^0-9]',
+                    tax.name):
+                # N6.2: oro e argento > Art. 74c5
                 if tax.type_tax_use == 'purchase':
-                    nature_id = tax_nature['N6']
+                    nature_id = tax_nature['N6.2']
+            elif re.search(
+                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etr.]*a[- ./]+bis',
+                    tax.name):
+                # N6.4: cessione fabbricati > Art. 17c6 lett.a-bis
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.4']
+            elif re.search(
+                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etr.]*a[- ./]+ter',
+                    tax.name):
+                    # N6.7: prestazioni comparto edile > Art. 17c6 lett.a-ter
+                    if tax.type_tax_use == 'purchase':
+                        nature_id = tax_nature['N6.7']
+            elif re.search(
+                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b',
+                    tax.name):
+                # N6.4: cellulari > Art. 17c6 lett.b
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.5']
+            elif re.search(
+                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b',
+                    tax.name):
+                    # N6.4: cellulari > Art. 17c6 lett.c
+                    if tax.type_tax_use == 'purchase':
+                        nature_id = tax_nature['N6.6']
+            elif re.search(
+                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*a',
+                    tax.name):
+                # N6.4: subappalto edile > Art. 17c6 lett.a
+                # Attenzione! Non spostare in alto
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.3']
+            elif re.search(
+                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*d[- ./]+(ter|quater)',
+                    tax.name):
+                # N6.8: prestazioni energetichee > Art. 17c6 lett.d-ter/quater
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.8']
+            elif re.search(
+                    '[Aa]rt[ .]*4[12] *([a-zA-Z.](331|427).*)?$', tax.name):
+                # N6.9: altri rc > Art. 41/42 DL.331
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.9']
+                elif tax.type_tax_use == 'sale':
+                    nature_id = tax_nature['N3.2']
+
+            elif re.search('[Aa]rt[ .]*38[- .]*ter', tax.name):
+                # N6.8: prestazioni energetichee > Art. 17c6 lett.d-ter/quater
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.8']
+
             elif re.search('[Aa]rt[^0-9]38[^0-9]?', tax.name):
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6']
             elif re.search('[Aa]rt[^0-9]40[^0-9]?', tax.name):
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt[^0-9]41[^0-9]?[-./a-zA-Z]*427', tax.name):
-                if tax.type_tax_use == 'purchase':
-                    nature_id = tax_nature['N6']
-                elif tax.type_tax_use == 'sale':
-                    nature_id = tax_nature['N3']
             elif re.search('[Rr]ev[a-zA-Z]* [Cc]harge', tax.name):
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6']
@@ -5702,9 +5763,9 @@ def import_file(ctx, o_model, csv_fn):
                     name_old = ''
                 msg = u"Update %d %s" % (id, name_old)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
-            if model == 'res.users' and \
-                    'new_password' in vals and \
-                    len(ids) == 0:
+            if (model == 'res.users' and
+                    'new_password' in vals and
+                    len(ids) == 0):
                 vals['password'] = vals['new_password']
                 del vals['new_password']
                 vals['password_crypt'] = ''
@@ -5726,9 +5787,9 @@ def import_file(ctx, o_model, csv_fn):
                             tounicode(name_new))
                         os0.wlog(msg)
                     if written:
-                        if model == 'res.users' and \
-                                'login' in vals and \
-                                cur_login == ctx['login_user']:
+                        if (model == 'res.users' and
+                                'login' in vals and
+                                cur_login == ctx['login_user']):
                             if 'login' in vals:
                                 ctx['login_user'] = vals['login']
                             if 'new_password' in vals:

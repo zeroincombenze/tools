@@ -8,14 +8,20 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+export READLINK=readlink
+OS=$(uname -s)
+if [[ $OS == "Darwin" ]]; then
+  READLINK=$(which greadlink 2>/dev/null)
+  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
+fi
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
+TDIR=$($READLINK -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/devel_tools/devel_tools/../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib/z0lib; do
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
@@ -38,7 +44,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.6
+__version__=1.0.0.8
 
 #
 # General Purpose options:
@@ -90,24 +96,24 @@ move_n_bak() {
 }
 
 search_pofile() {
-    srcs=$(find -L $odoo_root -not -path '*/__to_remove/*' -type d -name "$opt_modules")
-    f=0
-    for src in $srcs; do
-        if [ -n "$src" ]; then
-            if [ -f $src/i18n/it.po ]; then
-                src=$src/i18n/it.po
-                if [ $opt_exp -ne 0 ]; then
-                    run_traced "cp $src $src.bak"
-                fi
-                f=1
-                break
-            else
-                alt=$(find -L $src/i18n -name '*.po' | head -n1)
-                src=
-                if [ -n "$alt" ]; then fi=1 break; fi
-            fi
+  srcs=$(find -L $odoo_root -not -path '*/__to_remove/*' -type d -name "$opt_modules")
+  f=0
+  for src in $srcs; do
+    if [ -n "$src" ]; then
+      if [ -f $src/i18n/it.po ]; then
+        src=$src/i18n/it.po
+        if [ $opt_exp -ne 0 ]; then
+          run_traced "cp $src $src.bak"
         fi
-    done
+        f=1
+        break
+      else
+        alt=$(find -L $src/i18n -name '*.po' | head -n1)
+        src=
+        if [ -n "$alt" ]; then fi=1 break; fi
+      fi
+    fi
+  done
 }
 
 add_copyright() {
@@ -1554,12 +1560,12 @@ do_edit_translation_from_pofile() {
   fi
   pyv=$(python3 --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
   [[ -n "$pyv" ]] && pyver="-p $pyv"
-  pyver="-p 2.7"    #debug
-  [[ ! -d $HOME/clodoo/venv ]] \
-    && run_traced "vem $pyver create $HOME/clodoo/venv" \
-    && run_traced "vem $HOME/clodoo/venv install xlrd" \
-    && run_traced "vem $HOME/clodoo/venv install Babel" \
-    && run_traced "vem $HOME/clodoo/venv install clodoo"
+  pyver="-p 2.7" #debug
+  [[ ! -d $HOME/clodoo/venv ]] && \
+    run_traced "vem $pyver create $HOME/clodoo/venv" && \
+    run_traced "vem $HOME/clodoo/venv install xlrd" && \
+    run_traced "vem $HOME/clodoo/venv install Babel" && \
+    run_traced "vem $HOME/clodoo/venv install clodoo"
   run_traced "pushd $HOME/clodoo >/dev/null"
   [ $opt_verbose -ne 0 ] && opts="-v" || opts="-q"
   [ $opt_dbg -ne 0 ] && opts="${opts}B"
@@ -1567,14 +1573,6 @@ do_edit_translation_from_pofile() {
   sts=$?
   run_traced "popd >/dev/null"
   return $sts
-
-
-
-
-
-
-
-
 
   [[ -f "$HOME/dev/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/dev/pypi/tools/odoo_default_tnl.xlsx"
   [[ -f "$HOME/devel/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/devel/pypi/tools/odoo_default_tnl.xlsx"
@@ -1824,13 +1822,13 @@ do_distribution_odoo() {
         sts=$STS_FAILED
       else
         run_traced "git clone $GITPRJ tmp -b $BRANCH --depth 1 --single-branch"
-        ORIG=$(readlink -e tmp)
+        ORIG=$($READLINK -e tmp)
       fi
     else
       if [ -d ~/original ]; then rm -fR -d ~/original; fi
       if [ -n "$GITPRJ" ]; then
         run_traced "git clone $GITPRJ ~/original/$1 -b $BRANCH --depth 1 --single-branch"
-        ORIG=$(readlink -e ~/original/$1)
+        ORIG=$($READLINK -e ~/original/$1)
       fi
     fi
   fi
@@ -1846,7 +1844,7 @@ do_distribution_odoo() {
   fi
   local PKGS= FL= PIGN=
   for f in $(find . -type f \( -name __openerp__.py -o -name __manifest__.py -o -name ".travis.yml" -o -name "README*" -a -not -name "*.bak" -a -not -name "*~" -a -not -name "*.z0i" -a -not -name "*.oca" -a -not -name "*.tmp" \)); do
-    x=$(readlink -e $f)
+    x=$($READLINK -e $f)
     f1=$(dirname $x)
     f2=$(build_odoo_param REPOS $f1)
     b=$(basename $f)
@@ -1875,7 +1873,7 @@ do_distribution_odoo() {
       fi
     fi
   done
-  f2=$(readlink -e .)
+  f2=$($READLINK -e .)
   for f in $(find . -type d -name 'egg-info'); do
     d=$(dirname $f)
     run_traced "pushd $d >/dev/null"
@@ -1961,7 +1959,7 @@ do_docs() {
   local docs_dir=./docs
   local author version theme SETUP b f t x
   local opts src_png odoo_fver
-  [[ $PWD =~ /dev(el)?/pypi/ ]] && opts=-B || opts=
+  [[ $opt_dbg -ne 0 || $PWD =~ /dev(el)?/pypi/ ]] && opts=-B || opts=
   if [ "$PRJNAME" == "Odoo" ]; then
     [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
     [[ -z "$opt_branch" ]] && orgid=$(build_odoo_param GIT_ORGID ".") || odoo_fver=$(build_odoo_param GIT_ORGID "$opt_branch")
@@ -1974,7 +1972,7 @@ do_docs() {
       [[ $GIT_ORGNM == "zeroincombenze" ]] && orgid="zero"
       [[ $GIT_ORGNM =~ (axitec|axilor) ]] && orgid="axitec"
     elif [[ -z "$opt_branch" && -d $PARENTDIR/.git ]]; then
-      push $PARENTDIR >/dev/null
+      pushd $PARENTDIR >/dev/null
       GIT_URL=$(git remote get-url --push origin 2>/dev/null)
       [[ -n "$GIT_URL" ]] && GIT_ORGNM=$(basename $(dirname $(git remote -v | echo $GIT_URL | awk -F: '{print $2}')))
       [[ $GIT_ORGNM == "OCA" ]] && orgid="oca"
@@ -1999,8 +1997,8 @@ do_docs() {
   fi
   if [[ ! -f $docs_dir/logozero_180x46.png ]]; then
     src_png=
-    [[ -z "$src_png" && -f ../tools/docs/logozero_180x46.png ]] && src_png=$(readlink -e ../tools/docs/logozero_180x46.png)
-    [[ -z "$src_png" && -f ../../tools/docs/logozero_180x46.png ]] && src_png=$(readlink -e ../../tools/docs/logozero_180x46.png)
+    [[ -z "$src_png" && -f ../tools/docs/logozero_180x46.png ]] && src_png=$($READLINK -e ../tools/docs/logozero_180x46.png)
+    [[ -z "$src_png" && -f ../../tools/docs/logozero_180x46.png ]] && src_png=$($READLINK -e ../../tools/docs/logozero_180x46.png)
     [[ -n "$src_png" ]] && run_traced "cp $src_png $docs_dir/logozero_180x46.png"
   fi
   for f in $(grep -E "^ *(rtd_|pypi_)" docs/index.rst | tr "\n" " "); do
@@ -2325,7 +2323,7 @@ do_export() {
     return $STS_FAILED
   fi
   if [[ -z "$db" ]]; then
-    DBs=$(psql -Atl|awk -F'|' '{print $1}'|tr \"\\n\" '|')
+    DBs=$(psql -Atl | awk -F'|' '{print $1}' | tr \"\\n\" '|')
     DBs="^(${DBs:0: -1})\$"
     for x in tnl test demo; do
       [[ $x$odoo_ver =~ $DBs ]] && db="$x$odoo_ver" && break
@@ -2417,7 +2415,7 @@ do_translate() {
     return $STS_FAILED
   fi
   if [[ -z "$db" ]]; then
-    DBs=$(psql -Atl|awk -F'|' '{print $1}'|tr \"\\n\" '|')
+    DBs=$(psql -Atl | awk -F'|' '{print $1}' | tr \"\\n\" '|')
     DBs="^(${DBs:0: -1})\$"
     for x in tnl test demo; do
       [[ $x$odoo_ver =~ $DBs ]] && db="$x$odoo_ver" && break
@@ -2435,12 +2433,12 @@ do_translate() {
   fi
   pyv=$(python3 --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
   [[ -n "$pyv" ]] && pyver="-p $pyv"
-  pyver="-p 2.7"    #debug
-  [[ ! -d $HOME/clodoo/venv ]] \
-    && run_traced "vem $pyver create $HOME/clodoo/venv" \
-    && run_traced "vem $HOME/clodoo/venv install xlrd" \
-    && run_traced "vem $HOME/clodoo/venv install Babel" \
-    && run_traced "vem $HOME/clodoo/venv install clodoo"
+  pyver="-p 2.7" #debug
+  [[ ! -d $HOME/clodoo/venv ]] && \
+    run_traced "vem $pyver create $HOME/clodoo/venv" && \
+    run_traced "vem $HOME/clodoo/venv install xlrd" && \
+    run_traced "vem $HOME/clodoo/venv install Babel" && \
+    run_traced "vem $HOME/clodoo/venv install clodoo"
   run_traced "pushd $HOME/clodoo >/dev/null"
   [ $opt_verbose -ne 0 ] && opts="-v" || opts="-q"
   [ $opt_dbg -ne 0 ] && opts="${opts}B"
@@ -2639,7 +2637,7 @@ do_replica() {
       echo "File $fn not found"
       exit 1
     fi
-    srcfn=$(readlink -f $fn)
+    srcfn=$($READLINK -f $fn)
     for ver in 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
       if [ "$ver" != "$cur_ver" ]; then
         tgtfn="${srcfn/$cur_ver/$ver}"
@@ -2677,7 +2675,7 @@ do_replica() {
 do_showdoc() {
   if [[ ! "$PRJNAME" == "Odoo" ]]; then
     if [[ -f ./docs/_build/html/index.html ]]; then
-      firefox $(readlink -e ./docs/_build/html/index.html) &
+      firefox $($READLINK -e ./docs/_build/html/index.html) &
     else
       echo "No documentation found in ./docs!"
     fi
@@ -2822,9 +2820,9 @@ do_config() {
   if [ "$sub1" == "global" ]; then
     cfgfn=$TCONF
   elif [ "$sub1" == "repository" ]; then
-    cfgfn=$(readlink -m $PKGPATH/../conf/.local_dist_pkg.conf)
+    cfgfn=$($READLINK -m $PKGPATH/../conf/.local_dist_pkg.conf)
   elif [ "$sub1" == "local" ]; then
-    cfgfn=$(readlink -m $PKGPATH/conf/.local_dist_pkg.conf)
+    cfgfn=$($READLINK -m $PKGPATH/conf/.local_dist_pkg.conf)
   elif [ "$sub1" == "current" ]; then
     cfgfn=$DIST_CONF
   elif [ "$sub1" == "zero" -o "$sub1" == "axitec" ]; then
@@ -2868,7 +2866,6 @@ do_wep() {
   set_executable
   return 0
 }
-
 
 OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O        p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)

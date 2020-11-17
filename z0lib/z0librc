@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.0
+#__version__=1.0.0.1
 STS_FAILED=1
 STS_SUCCESS=0
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -42,6 +42,14 @@ _install_z0librc() {
 }
 export -f _install_z0librc
 
+ack_os() {
+    [[ -n "$READLINK" ]] && return
+    export READLINK=readlink
+    OS=$(uname -s)
+    [[ $OS == "Darwin" ]] && \
+      READLINK=$(which readlink 2>/dev/null) && \
+      [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125"
+}
 
 ##############################################################################
 # Detect and print more OS informations than uname command
@@ -95,6 +103,10 @@ xuname() {
     OSSTR="${OS} ${REV}(${ARCH} $(uname -v))"
   elif [ "${OS}" = "AIX" ]; then
     OSSTR="${OS} $(oslevel) ($(oslevel -r))"
+  elif [ "${OS}" = "Darwin" ]; then
+    DIST=$OS
+    FAMILY="osx"
+    OSSTR="${OS} ${VER}(${CODENAME} ${KERNEL} ${MACH})"
   elif [ "${OS}" = "Linux" ]; then
     KERNEL=$(uname -r)
     CODENAME=""

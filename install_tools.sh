@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.14
+__version__=1.0.0.15
 
 OS=$(uname -s)
 [[ $OS == "Darwin" ]] && READLINK=greadlink || READLINK=readlink

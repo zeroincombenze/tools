@@ -109,7 +109,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.0.6"
+__version__ = "1.0.0.8"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -128,14 +128,16 @@ DEFINED_TAG = ['__init__', '__manifest__',
                'name', 'summary', 'sommario',
                'maturity', 'module_name', 'repos_name',
                'today',
-               'authors', 'contributors', 'translators', 'acknowledges']
+               'authors', 'contributors', 'translators', 'acknowledges',
+               'maintainer']
 DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
 ZERO_PYPI_PKGS = 'devel_tools'
 ZERO_PYPI_SECTS = 'description usage'
 LIST_TAG = ('authors',
             'contributors',
             'translators',
-            'acknowledges')
+            'acknowledges',
+            'maintainer')
 DEFINED_GRYMB_SYMBOLS = {
     'it': ['flags/it_IT.png',
            'https://www.facebook.com/Zeroincombenze-'

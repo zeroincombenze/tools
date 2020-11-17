@@ -1,17 +1,22 @@
 ----------------
 
-.. $if git_orgid == 'oia'
+.. $if git_orgid == 'powerp'
 
-|en| **Odoo Italia Associazione**, or the `Associazione Odoo Italia <https://www.odoo-italia.org/>`__ is the nonprofit Italian Community Association born in 2011, whose mission is promote use of Odoo to cover Italian law and markeplace.
-Since 2017 Odoo Italia Associazione issues modules for Italian localization developed by OCA and others not released under `Odoo Proprietary License <https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html>`__
+|en| **Powerp** is the Italian Enterprises Network born in 2020, whose mission is promote use of Odoo to cover Italian law and markeplace.
 
-Odoo Italia Associazione distributes code under `AGPL <https://www.gnu.org/licenses/agpl-3.0.html>`__ or `LGPL <https://www.gnu.org/licenses/lgpl.html>`__ free licenses.
+`Powerp <http://www.powerp.it/>`__ distributes code under `LGPL <https://www.gnu.org/licenses/lgpl-3.0.html>`__ or `OPL <https://www.odoo.com/documentation/user/14.0/legal/licenses/licenses.html>`__ licenses.
 
 Read carefully published README for more info about authors.
 
-|it| `Odoo Italia Associazione <https://www.odoo-italia.org/>`__ è un'Associazione senza fine di lucro, nata nel 2011 che dal 2017 rilascia moduli per la localizzazione italiana sviluppati da OCA o da terze parti che non siano rilasciati con `Odoo Proprietary License <https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html>`__
+|it| `Powerp <http://www.powerp.it/>`__ è una rete di imprese, nata nel 2020 che rilascia moduli per la localizzazione italiana evoluta.
 
-Odoo Italia Associazione distribuisce il codice esclusivamente con licenze `AGPL <https://www.gnu.org/licenses/agpl-3.0.html>`__ o `LGPL <https://www.gnu.org/licenses/lgpl.html>`__
+`Powerp <http://www.powerp.it/>`__ distribuisce il codice con licenze `LGPL <https://www.gnu.org/licenses/lgpl-3.0.html>`__ e `OPL <https://www.odoo.com/documentation/user/14.0/legal/licenses/licenses.html>`__
+
+I soci fondatori sono:
+
+* `Didotech s.r.l. <http://www.didotech.com>`__
+* `SHS-AV s.r.l. <https://www.shs-av.com/>`__
+* `Xplain s.r.l. <http://x-plain.it//>`__
 
 Leggere con attenzione i file README per maggiori informazioni sugli autori.
 .. $else

@@ -1,0 +1,114 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=1.0.0.8
+
+
+test_01() {
+    # Test RST files
+    local TESTSRC TESTRES
+    TESTSRC=$TESTDIR/res/do_something
+    TESTRES=$TESTDIR/res/do_something.sh
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTSRC
+#
+THIS=\$(basename "\$0")
+TDIR=\$(readlink -f \$(dirname \$0))
+PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in \$TDIR \${PATH//:/ } \${PYPATH//:/ } /etc /home/odoo/devel/pypi/devel_tools/devel_tools/../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib/z0lib; do
+  if [[ -e \$d/z0librc ]]; then
+    . \$d/z0librc
+    Z0LIBDIR=\$d
+    Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
+    break
+  fi
+done
+if [[ -z "\$Z0LIBDIR" ]]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+
+__version__=1.0.0.8
+
+main
+EOF
+      cat <<EOF >$TESTRES
+#
+export READLINK=readlink
+OS=\$(uname -s)
+if [[ \$OS == "Darwin" ]]; then
+  READLINK=\$(which greadlink 2>/dev/null)
+  [[ -n "\$READLINK" ]] && READLINK=\$(basename \$READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
+fi
+THIS=\$(basename "\$0")
+TDIR=\$(\$READLINK -f \$(dirname \$0))
+PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in \$TDIR \${PATH//:/ } \${PYPATH//:/ } /etc \$TDIR/../z0lib \$TDIR/../../z0lib \$TDIR/../../z0lib/z0lib; do
+  if [[ -e \$d/z0librc ]]; then
+    . \$d/z0librc
+    Z0LIBDIR=\$d
+    Z0LIBDIR=\$(\$READLINK -e \$Z0LIBDIR)
+    break
+  fi
+done
+if [[ -z "\$Z0LIBDIR" ]]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+
+__version__=1.0.0.8
+
+main
+EOF
+      chmod +x $TESTSRC
+      $RUNDIR/cvt_script -kqy $TESTSRC
+    fi
+    test_result "cvt_script -kqy $TESTSRC" "$TESTSRC" "$TESTRES" "diff"
+}
+
+Z0BUG_setup() {
+    [[ ! -d $TESTDIR/res ]] && mkdir $TESTDIR/res
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_devel_tools.log "$@"
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+
+UT1_LIST=""
+UT_LIST=""
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

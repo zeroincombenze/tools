@@ -198,6 +198,13 @@ Sponsor
 
 {{sponsor}}
 .. $fi
+.. $if defined maintainer
+
+Maintainer / Manutenzione
+-------------------------
+
+{{maintainer}}
+.. $fi
 .. $if defined copyright_notes
 
 |

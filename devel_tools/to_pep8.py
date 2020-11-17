@@ -74,7 +74,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.0.6"
+__version__ = "1.0.0.8"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',
          '11.0', '12.0', '13.0', '14.0')
@@ -121,6 +121,8 @@ class topep8():
             with open(src_filepy, 'rb') as fd:
                 source = fd.read()
         self.lines = source.split('\n')
+        ## for ln in self.lines:   print(ln)   #debug
+        ## sys.exit(1)                         #debug
         self.setup_py_header(ctx)
         if ctx['opt_gpl']:
             self.write_license_info(ctx)
@@ -171,6 +173,8 @@ class topep8():
 
         def split_comment(line, x):
             pos = line.rfind(' ', 0, 79)
+            if pos >= 79 or (len(line) - pos) >= 79:
+                return line, ''
             left = line[0: pos + 1].rstrip()
             right = '%s# %s' % (' ' * (x.end() - 1), line[pos + 1:])
             return left, right
@@ -186,6 +190,9 @@ class topep8():
             right = '%s%s' % (' ' * y, line[pos:])
             return left, right
 
+        def match_token():
+            pass
+
         with open(src_filepy, 'r') as fd:
             lines = fd.read()
             text_tgt = ''
@@ -196,22 +203,22 @@ class topep8():
                 while len(line) > 79:
                     left = line
                     right = ''
-                    x = re.match(r'^( *#)?', line)
-                    if x and x.span() != (0,0):
-                        left, right = split_comment(line, x)
-                    if not right:
-                        x = re.match(r'^.*?[(]', line)
-                        y = re.match(r'[^"\']*?', line)
-                        if not x or x.end() > 79:
+                    rematch = re.match(r'^( *#)?', line)
+                    if rematch and rematch.span() != (0, 0):
+                        left, right = split_comment(line, rematch)
+                    else:
+                        rematch = re.match(r'^.*?[(]', line)
+                        rematch_quote = re.match(r'[^"\']*?', line)
+                        if not rematch or rematch.end() > 79:
                             z = re.match(r'^.*?\),', line)
-                            if z and (not x or z.end() < x.end()):
-                                x = z
-                        if not x or x.end() > 79:
+                            if z and (not rematch or z.end() < rematch.end()):
+                                rematch = z
+                        if not rematch or rematch.end() > 79:
                             z = re.match(r'^.*?, ', line)
-                            if z and (not x or z.end() < x.end()):
-                                x = z
-                        if x and (not y or x.start() <= y.start()):
-                            left, right = split_expr(line, x)
+                            if z and (not rematch or z.end() < rematch.end()):
+                                rematch = z
+                        if rematch and (not rematch_quote or rematch.start() <= rematch_quote.start()):
+                            left, right = split_expr(line, rematch)
                     if right:
                         text_tgt += left
                         text_tgt += '\n'

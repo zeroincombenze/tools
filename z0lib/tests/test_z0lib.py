@@ -29,7 +29,7 @@ from zerobug import Z0test
 from z0lib import z0lib
 
 
-__version__ = "1.0.0"
+__version__ = "1.0.0.1"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1

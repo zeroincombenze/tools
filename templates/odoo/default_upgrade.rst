@@ -1,23 +1,21 @@
 
-+---------------------------------+------------------------------------------+
-| |en|                            | |it|                                     |
-+---------------------------------+------------------------------------------+
-| When you want upgrade and you   | Per aggiornare, se avete installato con  |
-| installed using above           | le istruzioni di cui sopra:              |
-| statements:                     |                                          |
-+---------------------------------+------------------------------------------+
-
 ::
 
     cd $HOME
-    # Tools installation & activation: skip if you have installed this tool
+    # *** Tools installation & activation ***
+    # Case 1: you have not installed zeroincombenze tools
     git clone https://github.com/zeroincombenze/tools.git
-    cd ./tools
+    cd $HOME/tools
     ./install_tools.sh -p
-    source /opt/odoo/dev/activate_tools
-    # Odoo upgrade
-    odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}} -U
-    vem amend /opt/odoo/VENV-{{branch}} -O {{branch}} -DI
+    source $HOME/devel/activate_tools
+    # Case 2: you have already installed zeroincombenze tools
+    cd $HOME/tools
+    ./install_tools.sh -U
+    source $HOME/devel/activate_tools
+    # *** End of tools installation or upgrade ***
+    # Odoo repository upgrade
+    odoo_install_repository {{repos_name}} -b {{branch}} -o $HOME/{{branch}} -U
+    vem amend $HOME/{{branch}}/venv_odoo -o $HOME/{{branch}}
     # Adjust following statements as per your system
     sudo systemctl restart odoo
 
