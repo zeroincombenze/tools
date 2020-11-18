@@ -4,9 +4,10 @@
 #
 #__version__=1.0.0.5
 
-MAKEF=$HOME/dev/Makefile
-# DIST_CONF=./conf/.local_dist_pkg.conf
+# MAKEF=$HOME/dev/Makefile
+[[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
+READLINK=readlink
 
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])" | python)
 for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/devel_tools/devel_tools/../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib/z0lib; do
@@ -825,7 +826,7 @@ update_dev() {
         fi
       done
     fi
-    MAKEF=$PKGPATH/$PKGNAME/Makefile
+    # MAKEF=$PKGPATH/$PKGNAME/Makefile
   fi
 }
 

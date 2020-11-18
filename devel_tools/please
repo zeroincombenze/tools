@@ -1302,6 +1302,7 @@ do_publish() {
     echo "publish pypi     -> publish package to pypi website (from odoo user)"
     echo "publish svg      -> publish test result svg file (require system privileges)"
     echo "publish tar      -> write a tarball with package files"
+    echo "publish testpypi -> publish package to testpypi website (from odoo user)"
     sts=$STS_FAILED
   fi
   return $sts
@@ -1409,11 +1410,16 @@ do_publish_download() {
   return $sts
 }
 
+do_publish_testpypi() {
+  do_publish_pypi testpypi
+}
+
 do_publish_pypi() {
   #do_publish_pypi pgkname
   local sts=$STS_SUCCESS
-  local rpt=pypi
+  local rpt=$1
   local n p s v
+  [[ -z $rpt ]] && rpt=pypi
   if [ "$PRJNAME" != "Odoo" ]; then
     if twine --version &>/dev/null; then
       run_traced "cd $PKGPATH"
@@ -1434,28 +1440,6 @@ do_publish_pypi() {
       echo "Do pip install twine"
       sts=1
     fi
-  fi
-  return $sts
-}
-
-do_publish_testpypi() {
-  #do_publish_testpypi pgkname
-  local sts=$STS_SUCCESS
-  local rpt=testpypi
-  local n p s v
-  if [ "$PRJNAME" != "Odoo" ]; then
-    run_traced "cd $PKGPATH"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep -Eo [a-zA-Z0-9_-]+ | head -n1)
-    v=$(cat setup.py | grep version | grep -Eo [0-9]+[0-9\.]* | head -n1)
-    p=$(find dist -name "$n*$v*tar.gz")
-    if [ -z "$p" -o $opt_force -gt 0 ]; then
-      run_traced "python setup.py build sdist"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    fi
-    p=$(find dist -name "$n*$v*tar.gz")
-    run_traced "twine upload $p -r $rpt"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
   fi
   return $sts
 }

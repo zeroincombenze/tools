@@ -4,24 +4,29 @@
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+export READLINK=readlink
+OS=$(uname -s)
+if [[ $OS == "Darwin" ]]; then
+  READLINK=$(which greadlink 2>/dev/null)
+  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
+fi
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
+TDIR=$($READLINK -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
 
 __version__=1.0.0.5
-
 
 OPTOPTS=(h        G         n            V           v)
 OPTDEST=(opt_help opt_group opt_dry_run  opt_version opt_verbose)
@@ -29,10 +34,10 @@ OPTACTI=(1        "="       "1>"         "*>"        1)
 OPTDEFL=(1        ""        0            ""          0)
 OPTMETA=("help"   "group"   "do nothing" "version"   "verbose")
 OPTHELP=("this help"\
- "set group ownership"\
- "do nothing (dry-run)"\
- "show version"\
- "verbose mode")
+  "set group ownership"
+  "do nothing (dry-run)"
+  "show version"
+  "verbose mode")
 OPTARGS=(tgtpath)
 parseoptargs "$@"
 
@@ -41,8 +46,8 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Set default protection of user root dir in order to run ssh"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Set default protection of user root dir in order to run ssh" \
+    "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ $opt_verbose -gt 1 ]; then set -x; fi
@@ -50,7 +55,7 @@ if [ -z "$tgtpath" ]; then
   echo "Missed path"
   exit 1
 fi
-rootpath=$(readlink -e $tgtpath)
+rootpath=$($READLINK -e $tgtpath)
 if [ ! -d "$rootpath" ]; then
   echo "Path does not exist"
   exit 1
@@ -61,14 +66,14 @@ else
   echo "Path is not home directory of any user"
   exit 1
 fi
-tgtpath=$(readlink -e $rootpath/.ssh)
+tgtpath=$($READLINK -e $rootpath/.ssh)
 if [ ! -d "$tgtpath" ]; then
   echo "$rootpath/.ssh does not exist"
   exit 1
 fi
-user=$(grep :$rootpath: /etc/passwd|head -n1|awk -F: '{print $1}')
-rgid=$(grep ^$user: /etc/passwd|awk -F: '{print $4}')
-rgroup=$(grep :$rgid: /etc/group|head -n1|awk -F: '{print $1}')
+user=$(grep :$rootpath: /etc/passwd | head -n1 | awk -F: '{print $1}')
+rgid=$(grep ^$user: /etc/passwd | awk -F: '{print $4}')
+rgroup=$(grep :$rgid: /etc/group | head -n1 | awk -F: '{print $1}')
 if [ -z $opt_group ]; then
   group=$rgroup
 else
@@ -82,33 +87,33 @@ fi
 echo "Ownership = $user:$group ($rgroup)"
 if [ "${tgtpath:0:5}" == "/opt/" ]; then
   echo "chown $opts_dry_run root:root /opt/"
-  (($opt_dry_run))||chown root:root /opt/
+  (($opt_dry_run)) || chown root:root /opt/
   echo "chmod $opts_dry_run u=rwx,g=rx,o=rx /opt/"
-  (($opt_dry_run))||chmod u=rwx,g=rx,o=rx /opt/
+  (($opt_dry_run)) || chmod u=rwx,g=rx,o=rx /opt/
 fi
 echo "chown $opts_dry_run $user:$group $rootpath"
-(($opt_dry_run))||chown $user:$group $rootpath
+(($opt_dry_run)) || chown $user:$group $rootpath
 # echo "chmod $opts_dry_run u=rwx,g=rwx,o-rwx $rootpath"
 # (($opt_dry_run))||chmod u=rwx,g=rwx,o-rwx $rootpath
 echo "chown $opts_dry_run $user:$rgroup $tgtpath"
-(($opt_dry_run))||chown $user:$rgroup $tgtpath
+(($opt_dry_run)) || chown $user:$rgroup $tgtpath
 echo "chmod $opts_dry_run u=rwx,g-rwx,o-rwx $tgtpath"
-(($opt_dry_run))||chmod u=rwx,g-rwx,o-rwx $tgtpath
+(($opt_dry_run)) || chmod u=rwx,g-rwx,o-rwx $tgtpath
 echo "chmod $opts_dry_run u=rwx,g-rwx,o-rwx $tgtpath/.."
-(($opt_dry_run))||chmod u=rwx,g-rwx,o-rwx $tgtpath/..
+(($opt_dry_run)) || chmod u=rwx,g-rwx,o-rwx $tgtpath/..
 echo "chown $opts_dry_run $user:$rgroup $tgtpath/*"
-(($opt_dry_run))||chown $user:$rgroup $tgtpath/*
+(($opt_dry_run)) || chown $user:$rgroup $tgtpath/*
 echo "chmod $opts_dry_run u=r,g-rwx,o-rwx $tgtpath/*"
-(($opt_dry_run))||chmod u=r,g-rwx,o-rwx $tgtpath/*
+(($opt_dry_run)) || chmod u=r,g-rwx,o-rwx $tgtpath/*
 echo "chmod $opts_dry_run u=r,g=r,o=r $tgtpath/*.pub"
-(($opt_dry_run))||chmod u=r,g=r,o=r $tgtpath/*.pub
+(($opt_dry_run)) || chmod u=r,g=r,o=r $tgtpath/*.pub
 if [ -f $tgtpath/authorized_keys ]; then
   echo "chmod $opts_dry_run u=rw,g=r,o=r $tgtpath/authorized_keys"
-  (($opt_dry_run))||chmod u=rw,g=r,o=r $tgtpath/authorized_keys
+  (($opt_dry_run)) || chmod u=rw,g=r,o=r $tgtpath/authorized_keys
 fi
 if [ -f $tgtpath/known_hosts ]; then
   echo "chmod $opts_dry_run u=rw,g=r,o=r $tgtpath/known_hosts"
-  (($opt_dry_run))||chmod u=rw,g=r,o=r $tgtpath/known_hosts
+  (($opt_dry_run)) || chmod u=rw,g=r,o=r $tgtpath/known_hosts
 fi
 dir -alhd $rootpath/ $tgtpath/. $tgtpath/..
 dir -alh $tgtpath/
