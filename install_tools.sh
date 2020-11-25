@@ -3,7 +3,10 @@
 __version__=1.0.0.15
 
 OS=$(uname -s)
-[[ $OS == "Darwin" ]] && READLINK=greadlink || READLINK=readlink
+if [[ $OS == "Darwin" ]]; then
+  READLINK=$(which greadlink 2>/dev/null)
+  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
+fi
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then

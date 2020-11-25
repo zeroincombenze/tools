@@ -428,6 +428,8 @@ process_yaml_before_install() {
           lne="libffi-devel"
         elif [[ "$lne" == "libssl-dev" ]]; then
           lne="openssl-devel"
+        elif [[ "$lne" == "libevent-dev" ]]; then
+          lne="libevent-devel"
         fi
         line="yum install $lne"
       else
