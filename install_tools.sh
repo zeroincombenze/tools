@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.15
+__version__=1.0.0.16
 
+export READLINK=readlink
 OS=$(uname -s)
 if [[ $OS == "Darwin" ]]; then
   READLINK=$(which greadlink 2>/dev/null)
