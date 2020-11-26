@@ -5,6 +5,7 @@
 # Common function to manage Odoo
 # Most of directory examples refer to /opt/odoo/11.0/l10n-italy/l10n_it
 # Item to process (+ means can be searched):
+# ALL          |FULLVER|REPOS|PKGPATH|PKGNAME|
 # BIN          Pathname + name of file to execute Odoo (+)
 # CONFN        Configuration filename (+)
 # DB_USER      Postgres username in multi-version environment
@@ -32,7 +33,7 @@
 # OCB_SUBDIRS_RE
 # OPTS_ASM     Undocumented (deprecated)
 # PARENTDIR    Parent directory of specific Odoo module (i.e. /opt/odoo/11.0/l10n-italy)
-# PKGNAME      Package (module) nameve
+# PKGNAME      Package (module) name
 # PKGPATH      Home directory of Odoo module (i.e. /opt/odoo/11.0/l10n-italy/l10n_it)
 # REPOS        Repository name
 # ROOT         Odoo home directory of specific vid/version (i.e. /opt/odoo/11.0)
@@ -421,7 +422,7 @@ build_odoo_param() {
         return
     fi
     if [[ $ITEM == "ALL" ]]; then
-        echo "|$FULLVER|$REPOS|$PKGNAME|"
+        echo "|$FULLVER|$REPOS|$PKGPATH|$PKGNAME|"
         return
     elif [[ $ITEM == "USER" ]]; then
         echo "$DB_USER"

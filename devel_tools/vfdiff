@@ -135,7 +135,7 @@ exec_os() {
         r=${r//:/}
         run_traced "$opt_dcmd $l $r"
       fi
-      eval "diff $opts $left $right" | grep -v ^Files
+      [[ $opt_dry_run -eq 0 ]] && eval "diff $opts $left $right" | grep -v ^Files
     else
       run_traced "$opt_dcmd $left $right"
     fi
@@ -205,11 +205,6 @@ exec_iar() {
         if [[ "$left" =~ $opt_sel ]]; then
           local mime=$(file -b --mime-type $left)
           if [ $opt_md -ne 0 -a "$mime" == "text/x-python" -o "${left: -3}" == ".py" ]; then
-            # if [ $opt_verbose -eq 0 ]; then
-            #   if diff -qZBI'^#' $left $right; then
-            #     echo "diff -ZBI'^#' $cparv $left $right"
-            #   fi
-            # fi
             run_traced "diff -ZBI'^#' $cparv $left $right"
           else
             run_traced "diff $cparv $left $right"
@@ -245,52 +240,57 @@ set_oever() {
 #   /etc/init.d/odoo${ver}[-server]
 #   filename
 #   ${ver}
-get_path_ver() {
-  # get_path_ver(path rep pkg)
-  VF_MSTS=0
-  local i
-  local p r t v x
-  local re="(13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|v7)"
-  [ -n "$2" ] && i=$(build_odoo_param ALL "$1" "$2") || i=$(build_odoo_param ALL "$1" "$3")
-  IFS="|" read x v r p x <<<"$i"
-  if [[ -n "$v" && -n "$r" && (! "$r" == "OCB" || -z "$VF_REPO") ]]; then
-    [ -n "$2" ] && i=$(build_odoo_param ROOT "$1" "$2") || i=$(build_odoo_param ROOT "$1" "$3")
-    VF_ROOT=$(dirname $i)
-    VF_REPO=$r
-    [ -n "$2" ] && VF_PATH=$(build_odoo_param PKGPATH "$1" "$2") || VF_PATH=$(build_odoo_param PKGPATH "$1" "$3")
-  else
-    VF_PATH=""
-  fi
-  VF_FVER=$v
-  [[ -n "$r" && ! "$r" == "OCB" ]] || [[ -z "$VF_REPO" ]] && VF_REPO=${r}
-  [[ -n "$p" && ! "$p" == "OCB" ]] && VF_PKG=${p}
-  if [[ -z "$VF_PATH" ]]; then
-    VF_PATH=$VF_ROOT/$VF_FVER
-    [[ -n "$VF_REPO" && ! "$VF_REPO" == "OCB" ]] && VF_PATH="$VF_PATH/$VF_REPO"
-    [[ -n "$VF_PKG" && ! "$VF_PKG" == "OCB" ]] && VF_PATH="$VF_PATH/$VF_PKG"
-  fi
-  [[ -f $1 ]] && VF_FN=$(basename $1)
-  if [[ -f $1 ]]; then
-    result=$1
+get_path() {
+  # get_path(path rep pkg)
+  local v x ver repo path name
+  local re="(14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1)"
+  result="$1"
+  if [[ $1 =~ ^$re$ ]]; then
+    [[ -n "$VF_FN" && -n "$VF_VER" ]] && result=${VF_FN/$VF_VER/$1}
+  elif [[ $1 =~ ^[a-zA-Z[0-9]_.]+$ ]]; then
+    v=$(echo $VF_VER|grep -Eo [0-9]+|head -n1)
+    [[ -n "$VF_FN" && -n "$VF_VER" ]] && result=${VF_FN/$VF_VER/${1}${v}}
+    # [[ ! -d $result && ! -f $result ]] && result=${VF_FN/tools/devel\/pypi}
+    # [[ ! -d $result && ! -f $result ]] && result=${VF_FN/devel\/pypi/tools}
   elif [[ -d $1 ]]; then
-    [[ -n "$VF_FN" ]] && result=$1/$VF_FN || result=$1
-  else
-    result=$VF_PATH
-    [[ -n "$VF_FN" ]] && result=$result/$VF_FN
+    ver=$(build_odoo_param FULLVER "$1" "$opt_repo" "$opt_org")
+    repo=$(build_odoo_param REPOS "$1" "$opt_repo" "$opt_org")
+    path=$(build_odoo_param PKGPATH "$1" "$opt_repo" "$opt_org")
+    if [[ $(basename $1) == $(basename $(dirname $path)) ]]; then
+      path=$(dirname $path)
+    elif [[ -f $1/__manifest__.py || -f $1/__openerp__.py || ! $(basename $1) == $(basename $path) ]]; then
+      name=$(build_odoo_param PKGNAME "$1" "$opt_repo" "$opt_org")
+    fi
+    [[ -z "$VF_VER" ]] && VF_VER=$ver
+    [[ -z "$VF_REPO" ]] && VF_REPO=$repo
+    [[ -z "$VF_PATH" ]] && VF_PATH=$path
+    [[ -n "$name" && -z "$VF_PKG" ]] && VF_PKG=$name
+    [[ -z "$VF_FN" ]] && VF_FN=$1
+  elif [[ -f $1 ]]; then
+    result=$(build_odoo_param FULLVER "$1" "$opt_repo" "$opt_org")
+    repo=$(build_odoo_param REPOS "$1" "$opt_repo" "$opt_org")
+    path=$(build_odoo_param PKGPATH "$1" "$opt_repo" "$opt_org")
+    name=$(build_odoo_param PKGNAME "$1" "$opt_repo" "$opt_org")
+    [[ -z "$VF_VER" ]] && VF_VER=$ver
+    [[ -z "$VF_REPO" ]] && VF_REPO=$repo
+    [[ -z "$VF_PATH" ]] && VF_PATH=$path
+    [[ -n "$name" && -z "$VF_PKG" ]] && VF_PKG=$name
+    [[ -z "$VF_FN" ]] && VF_FN=$1
   fi
 }
 
-OPTOPTS=(h        a       b        c        e         i       m      n            O         p         q           r            R        V           v           w         X        y        0       1       2)
-OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_verbose opt_rep      opt_reve opt_version opt_verbose opt_ignas opt_dcmd opt_para opt_sts opt_sts opt_2nd)
-OPTACTI=(1        1       1        "="      1         1       1      1            "="       "="       0           "="          1        "*>"        1           1         "="      1        0       1       1)
-OPTDEFL=(0        0       0        ""       0         0       0      0            ""        ""        -1          ""           0        ""          -1          0         ""       0        0       0       0)
-OPTMETA=("help"   ""      ""       "file"   ""        ""      ""     "do nothing" "version" "package" ""          "repository" ""       "version"   "verbose"   ""        "cmd"    ""       ""      ""      "")
+OPTOPTS=(h        a       b        c        e         i       G        m      n            O         p         q           r            R        V           v           w         X        y        0       1       2)
+OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_org  opt_md opt_dry_run  odoo_ver  opt_pkg   opt_verbose opt_repo     opt_reve opt_version opt_verbose opt_ignas opt_dcmd opt_para opt_sts opt_sts opt_2nd)
+OPTACTI=(1        1       1        "="      1         1       "="      1      1            "="       "="       0           "="          1        "*>"        1           1         "="      1        0       1       1)
+OPTDEFL=(0        0       0        ""       0         0       ""       0      0            ""        ""        -1          ""           0        ""          -1          0         ""       0        0       0       0)
+OPTMETA=("help"   ""      ""       "file"   ""        ""      "gitorg" ""     "do nothing" "version" "package" ""          "repository" ""       "version"   "verbose"   ""        "cmd"    ""       ""      ""      "")
 OPTHELP=("this help"\
   "diff all files (ignore exclusion list)"
   "ignore space differences"
   "configuration file (def ~/dev/.travis.conf)"
   "side by side (only differences)"
-  "use internal algorithm rather than standard recursive diff"
+  "use internal algorithm (deprecated)"
+  "git organization: may be zero,oca or powerp"
   "ignore minor difference (i.e. remarks)"
   "do nothing (dry-run)"
   "select target Odoo version (may be 7, 8, 9 o 10)"
@@ -305,7 +305,7 @@ OPTHELP=("this help"\
   "side by side (all lines)"
   "initial status is true"
   "initial status is false"
-  "undocumented")
+  "the 2nd param must be a full path")
 OPTARGS=(source target)
 
 parseoptargs "$@"
@@ -320,7 +320,6 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 [ $opt_all -gt 0 ] && opt_iar=0
-[ $opt_diffe -ne 0 ] &
 opt_para=1
 [[ " 14 13 12 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]] && odoo_ver="$odoo_ver.0"
 if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
@@ -337,26 +336,16 @@ conf_default
 link_cfg $TCONF
 vf_init
 
+[[ $source =~ /$ ]] && source=${source:0: -1}
+[[ $target =~ /$ ]] && target=${target:0: -1}
 if [ $opt_2nd -eq 0 ]; then
-  VF_ROOT=$HOME
-  VF_FVER=
-  VF_REPO=
-  VF_PKG=
-  VF_PATH=
-  VF_FN=
-  if [[ "$source" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
-    get_path_ver "$source" "$opt_rep" "$opt_pkg"
-    left=$source
-  else
-    get_path_ver "$source" "$opt_rep" "$opt_pkg"
-    left=$result
-  fi
-  if [[ "$target" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
-    right="$target"
-  else
-    get_path_ver "$target" "$opt_rep" "$opt_pkg"
-    right=$result
-  fi
+  VF_FN=""
+  VF_VER=""
+  VF_REPO=""
+  VF_PATH=""
+  VF_PKG=""
+  get_path "$source" "$opt_repo" "$opt_pkg"; left="$result"
+  get_path "$target" "$opt_repo" "$opt_pkg"; right="$result"
 else
   left=$source
   right=$target

@@ -36,7 +36,7 @@ if __name__ == "__main__":
             break
     UT_LIST = ["__version_0_" + __version__]
     if z0lib_file:
-        UT_LIST.append("__version_1_1.0.0%s" % z0lib_file)
+        UT_LIST.append("__version_1_1.0.0.1%s" % z0lib_file)
     UT_LIST.append("__version_V_0.2.0${testdir}/dummy_01.py")
     UT_LIST.append("__version_v_0.2.1${testdir}/dummy_01.py")
     UT_LIST.append("__version_P_0.2.2${testdir}/dummy_01.py")
