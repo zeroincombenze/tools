@@ -32,7 +32,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "1.0.0.1"
+__version__ = "1.0.0.2"
 
 
 MAX_DEEP = 20
@@ -542,7 +542,6 @@ def inv_commission_by_partner(ctx):
 
 
 def correct_invoice_entry_date(ctx):
-    pdb.set_trace()
     print('Move old registration_date into date')
     if ctx['param_1'] == 'help':
         print('correct_invoice_entry_date from_date|ids')
@@ -2987,9 +2986,10 @@ def test_synchro_vg7(ctx):
         'user_type_id': 'account.account.type',
     }
     MODULE_LIST = [
-        'account', 'account_payment_term_extension', 'purchase', 'sale',
-        'stock',
-        'l10n_it_ddt', 'l10n_it_einvoice_out', 'l10n_it_ricevute_bancarie',
+        'account', 'account_payment_term_extension', 'purchase',
+        'sale', 'stock',
+        'l10n_it_fiscalcode', 'l10n_it_ddt',
+        'l10n_it_einvoice_out', 'l10n_it_ricevute_bancarie',
         'connector_vg7',
         'partner_bank',
     ]
@@ -2999,8 +2999,12 @@ def test_synchro_vg7(ctx):
         print('This test requires following modules installed:')
         print('1. account, sale, stock, purchase, partner_bank')
         print('2. l10n_it_einvoice_out, l10n_it_ricevute_bancarie')
-        print('3. l10n_it_ddt, account_payment_term_extension')
-        print('4. connector_vg7 [connector_vg7_conai]')
+        print('3. l10n_it_ddt, l10n_it_fiscalcode, '
+              'account_payment_term_extension')
+        if test_conai:
+            print('4. connector_vg7, connector_vg7_conai')
+        else:
+            print('4. connector_vg7')
         print('Then')
         print('5. Partners & product of test environment (mk_test_env)')
         input('Requirements are satisfied?')
@@ -3027,14 +3031,25 @@ def test_synchro_vg7(ctx):
                              'synchro',
                              vals)
         time.sleep(4)
+        if not test_conai:
+            MODULE_LIST.append('connector_vg7_conai')
         for modname in MODULE_LIST:
             print('checking module %s ..' % modname)
             module_ids = clodoo.searchL8(ctx, model,
                 [('name', '=', modname)])
-            if not module_ids:
+            if modname == 'connector_vg7_conai' and not test_conai:
+                pass
+            elif not module_ids:
                 raise IOError('Module %s does not exist!!!' % modname)
             module = clodoo.browseL8(ctx, model, module_ids[0])
-            if module.state != 'installed':
+            if modname == 'connector_vg7_conai':
+                if test_conai and module.state != 'installed':
+                    raise IOError('Module %s not installed!!!' % modname)
+                elif not test_conai and module.state == 'installed':
+                    raise IOError(
+                        'Module %s installed! Please use conai option' %
+                        modname)
+            elif module.state != 'installed':
                 raise IOError('Module %s not installed!!!' % modname)
 
         model = 'res.lang'
@@ -3154,11 +3169,16 @@ def test_synchro_vg7(ctx):
             ctx, model, [('name', 'like', 'Rossi')], {
                 'splitmode': 'LF',
                 'name': 'Rossi Mario',
-                'company_id': company_id
+                'company_id': company_id,
+                'fiscalcode': 'RSSMRA69C02D612M',
             }, create=True, unique=True)
         delete_record(
-            ctx, model, [('name', '=', 'La Romagnola srl')],
-            childs='child_ids')
+            ctx, model, [('name', '=', 'La Romagnola srl'),
+                         ('type', '=', 'contact')],
+            childs='child_ids', multi=True)
+        delete_record(
+            ctx, model, [('fiscalcode', '=', 'RSSMRA60T45L219M')],
+            childs='child_ids', multi=True)
         ids = write_record(ctx, model, [('name', 'like', 'Delta')], {
             'city': False,
             'state_id': False,
@@ -4809,6 +4829,8 @@ def test_synchro_vg7(ctx):
         'billing_city': '',
         'billing_codice_univoco': '',
         'billing_company': 'Partner AAA',
+        'billing_name': '',
+        'billing_surename': '',
         'billing_country': '',
         'billing_country_id': 39,
         'billing_email': '',
@@ -4973,30 +4995,6 @@ def test_synchro_vg7(ctx):
     print('Write %s ..' % model)
     ext_model = 'customers'
 
-    # Test supplier and customer (at the end of test flow)
-    vals114 = {
-        'id': 114,
-        'note': '',
-        'billing_bank_id': '',
-        'billing_cf': '01781920150',
-        'billing_city': 'Milano',
-        'billing_codice_univoco': '',
-        'billing_company': 'Delta 4 s.r.l.',
-        'billing_country': 'Italia',
-        'billing_country_id': 39,
-        'billing_email': '',
-        'billing_esonerato_fe': 1,
-        'billing_piva': '00723670964',
-        'billing_postal_code': '20864',
-        'billing_region': 'MILANO',
-        'billing_region_id': 2,
-        'billing_street': 'Via Sofocle',
-        'billing_street_number': '13',
-        'billing_telephone': '0396898792-6210086',
-        'billing_telephone2': '',
-    }
-    write_file_2_pull(ext_model, vals114, mode='a')
-
     name = 'La Romagnola srl'
     vg7_id = 44
     vals_billing = {
@@ -5007,6 +5005,8 @@ def test_synchro_vg7(ctx):
         'billing_city': 'Imola',
         'billing_codice_univoco': 'X12345Y',
         'billing_company': name,
+        'billing_name': '',
+        'billing_surename': '',
         'billing_country': 'Italia',
         'billing_country_id': 39,
         'billing_email': 'antoniomaria@laromagnola.it',
@@ -5093,7 +5093,64 @@ def test_synchro_vg7(ctx):
                                model,
                                'synchro',
                                vals)
+    ids = clodoo.searchL8(ctx, 'res.partner',
+                          [('vg7_id', '=', vg7_id2 + 100000000)])
+    store_id(ctx, 'res.partner', ids[0], vg7_id2)
     general_check(ctx, model, sale_id, vals)
+
+    # Test supplier and customer (at the end of test flow)
+    ext_model = 'customers'
+    vals114 = {
+        'id': 114,
+        'note': '',
+        'billing_bank_id': '',
+        'billing_cf': '01781920150',
+        'billing_city': 'Milano',
+        'billing_codice_univoco': '',
+        'billing_company': 'Delta 4 s.r.l.',
+        'billing_name': '',
+        'billing_surename': '',
+        'billing_country': 'Italia',
+        'billing_country_id': 39,
+        'billing_email': '',
+        'billing_esonerato_fe': 1,
+        'billing_piva': '00723670964',
+        'billing_postal_code': '20864',
+        'billing_region': 'MILANO',
+        'billing_region_id': 2,
+        'billing_street': 'Via Sofocle',
+        'billing_street_number': '13',
+        'billing_telephone': '0396898792-6210086',
+        'billing_telephone2': '',
+    }
+    write_file_2_pull(ext_model, vals114, mode='a')
+
+    vg7_id = 117
+    # name = 'Rossi Maria'
+    vals117 = {
+        'id': vg7_id,
+        'note': '',
+        'billing_bank_id': '',
+        'billing_cf': 'RSSMRA60T45L219M',
+        'billing_city': 'TORINO',
+        'billing_codice_univoco': '0000000',
+        'billing_company': '',
+        'billing_name': 'Maria',
+        'billing_surename': 'Rossi',
+        'billing_country': 'Italia',
+        'billing_country_id': 39,
+        'billing_email': 'maria.rossi.60@gmail.com',
+        'billing_esonerato_fe': 0,
+        'billing_piva': '',
+        'billing_postal_code': '10121',
+        'billing_region': 'TORINO',
+        'billing_region_id': 11,
+        'billing_street': 'Via Roma',
+        'billing_street_number': '17',
+        'billing_telephone': '342.8740910',
+        'billing_telephone2': '',
+    }
+    write_file_2_pull(ext_model, vals117, mode='a')
 
     partner_id = clodoo.executeL8(ctx,
                                   'ir.model.synchro',
@@ -5115,6 +5172,21 @@ def test_synchro_vg7(ctx):
                                   7)
     general_check(
         ctx, 'res.partner', partner_id, jacket_vals(shirt_vals(vals7)))
+
+    partner_id = clodoo.executeL8(ctx,
+                                  'ir.model.synchro',
+                                  'trigger_one_record',
+                                  'customers',
+                                  'vg7',
+                                  117)
+    if partner_id < 1:
+        raise IOError('!!Error creating res.parter w/o vat!')
+    if partner_id in ctx['partner_MR_ids']:
+        raise IOError('!!Wrong partner_id %s: should be a new record!')
+    vals114 = jacket_vals(shirt_vals(vals117))
+    vals114['customer'] = True
+    vals114['supplier'] = False
+    general_check(ctx, 'res.partner', partner_id, vals117)
 
 
     print('*** Starting odoo to odoo test ***')
@@ -5323,7 +5395,6 @@ def check_rec_links(ctx):
         return
 
     def parse_sale_from_invline(invoice_line, ctr, err_ctr, orders):
-        pdb.set_trace()
         for sale_line in invoice_line.sale_line_ids:
             ctr += 1
             if sale_line.order_id.id not in orders:

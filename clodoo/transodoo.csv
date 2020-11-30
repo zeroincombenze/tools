@@ -56,6 +56,7 @@ account.invoice.line		field	INVOICE_LINE_TAX_ID|INVOICE_LINE_TAX_IDS	invoice_lin
 account.invoice.line		field	UOS_ID|UOM_ID	uos_id	uos_id	uos_id	uom_id	uom_id	uom_id	uom_id	uom_id	uom_id
 account.journal	type	value	PURCHASE_REFUND|PURCHASE	purchase_refund	purchase_refund	purchase_refund	purchase_refund	purchase	purchase	purchase	purchase	purchase
 account.journal	type	value	SALE_REFUND|SALE	sale_refund	sale_refund	sale_refund	sale_refund	sale	sale	sale	sale	sale
+account.move		field	LINE_ID|LINE_IDS	line_id	line_id	line_id	line_ids	line_ids	line_ids	line_ids	line_ids	line_ids
 account.move.line		field	RECONCILED|RECONCILE_ID	reconciled	reconciled	reconciled	reconciled	reconcile_id	reconcile_id	reconcile_id	reconcile_id	reconcile_id
 "account.payment.term
 "	"account.payment.term

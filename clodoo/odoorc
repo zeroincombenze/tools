@@ -48,7 +48,7 @@
 # VDIR         Virtual directory
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.28.10
+#__version__=0.3.28.11
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
     echo "You must source this script: \$ source $0" >&2

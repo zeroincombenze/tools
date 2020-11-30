@@ -136,28 +136,30 @@ def term_with_punct(msgid, msgstr, punct):
 
 def load_default_dictionary(ctx, source):
 
-    def process_row(ctx, row):
-        if not row['module'] or row['module'] == ctx['module_name']:
-            if not row['msgid'] or not row['msgstr']:
-                return 0
-            msgid, TNL_DICT[msgid] = term_wo_punct(
-                os0.u(row['msgid']), os0.u(row['msgstr']))
-            if not TNL_DICT[msgid]:
-                TNL_ACTION[msgid] = 'P'
-                return 0
-            elif (msgid == TNL_DICT[msgid] or (
-                    msgid[0] != ' ' and msgid[0] != '\n' and
-                    msgid[0] == TNL_DICT[msgid][0].lower() and
-                    msgid[1:] == TNL_DICT[msgid][1:])):
-                TNL_ACTION[msgid] = '*'
-                return 0
-            if ctx['action'] and ctx['action'][0].upper() in (
-                    'D', 'P', '*'):
-                TNL_ACTION[msgid] = ctx['action'][0].upper()
-            else:
-                TNL_ACTION[msgid] = 'D'
-            return 1
-        return 0
+    def process_row(ctx, module_rows, row):
+        if isinstance(module_rows, list) and row['module']:
+            if row['module'] == ctx['module_name']:
+                module_rows.append(row)
+            return 0
+        if not row['msgid'] or not row['msgstr']:
+            return 0
+        msgid, TNL_DICT[msgid] = term_wo_punct(
+            os0.u(row['msgid']), os0.u(row['msgstr']))
+        if not TNL_DICT[msgid]:
+            TNL_ACTION[msgid] = 'P'
+            return 0
+        elif (msgid == TNL_DICT[msgid] or (
+                msgid[0] != ' ' and msgid[0] != '\n' and
+                msgid[0] == TNL_DICT[msgid][0].lower() and
+                msgid[1:] == TNL_DICT[msgid][1:])):
+            TNL_ACTION[msgid] = '*'
+            return 0
+        if ctx['action'] and ctx['action'][0].upper() in (
+                'D', 'P', '*'):
+            TNL_ACTION[msgid] = ctx['action'][0].upper()
+        else:
+            TNL_ACTION[msgid] = 'D'
+        return 1
 
     def read_csv(ctx, source):
         ctr = 0
@@ -173,12 +175,15 @@ def load_default_dictionary(ctx, source):
                                  fieldnames=[],
                                  restkey='undef_name',
                                  dialect='dict')
+        module_rows = []
         for row in csv_obj:
             if not hdr_read:
                 hdr_read = True
                 csv_obj.fieldnames = row['undef_name']
                 continue
-            ctr += process_row(ctx, row)
+            ctr += process_row(ctx, module_rows, row)
+        for row in module_rows:
+            ctr += process_row(ctx, None, row)
         if ctx['opt_verbose']:
             print("\t... Read %d records" % ctr)
         return ctr
@@ -192,11 +197,14 @@ def load_default_dictionary(ctx, source):
         colnames = []
         for ncol in range(sheet.ncols):
             colnames.append(sheet.cell_value(0, ncol))
+        module_rows = []
         for nrow in range(1, sheet.nrows):
             row = {}
             for ncol in range(sheet.ncols):
                 row[colnames[ncol]] = sheet.cell_value(nrow, ncol)
-            ctr += process_row(ctx, row)
+            ctr += process_row(ctx, module_rows, row)
+        for row in module_rows:
+            ctr += process_row(ctx, None, row)
         if ctx['opt_verbose']:
             print("\t... Read %d records" % ctr)
         return ctr

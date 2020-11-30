@@ -50,7 +50,7 @@ else:
         pass
 
 
-__version__ = "1.0.0.1"
+__version__ = "1.0.0.2"
 
 MODULE_ID = 'odoo_score'
 TEST_FAILED = 1
@@ -64,8 +64,8 @@ class SingletonCache(object):
     #
     def __init__(self):
         self.EXPIRATION_TIME = 3600
-        self.INCR_EXPIRATION_TIME = 5
-        self.INCR_QUEUE_TIME = 5
+        self.INCR_EXPIRATION_TIME = 15
+        self.INCR_QUEUE_TIME = 10
         self.STRUCT = {}
         self.MANAGED_MODELS = {}
         self.LIVE = {}
@@ -81,21 +81,13 @@ class SingletonCache(object):
         return model >= 'a'
 
     def clean_cache(self, dbname, channel_id=None, model=None, lifetime=None):
-        self.STRUCT[dbname] = self.STRUCT.get(dbname, {})
-        self.MANAGED_MODELS[dbname] = self.MANAGED_MODELS.get(dbname, {})
         if model:
-            self.STRUCT[dbname][model] = {}
+            self.STRUCT[dbname] = self.STRUCT.get(dbname, {})
+            self.init_struct_model(dbname, model)
         else:
-            self.STRUCT[dbname] = {}
+            self.init_struct(dbname)
         if channel_id:
-            if model:
-                self.MANAGED_MODELS[dbname][channel_id] = self.MANAGED_MODELS[
-                    dbname].get(channel_id, {})
-                self.MANAGED_MODELS[dbname][channel_id][model] = {}
-            else:
-                self.MANAGED_MODELS[dbname][channel_id] = {}
-        else:
-            self.MANAGED_MODELS[dbname] = {}
+            self.init_channel(dbname, channel_id)
         if lifetime:
             self.lifetime(lifetime)
         return self.lifetime(0)
@@ -110,7 +102,6 @@ class SingletonCache(object):
         if model:
             self.set_struct_model(dbname, model)
             self.reset_struct_cache(dbname, model)
-            # self.STRUCT[dbname][model] = {}
 
     def set_struct_cache(self, dbname, model):
         self.mutex.acquire()
