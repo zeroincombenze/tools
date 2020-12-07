@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.0.1
+#__version__=0.2.8
 STS_FAILED=1
 STS_SUCCESS=0
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -42,14 +42,6 @@ _install_z0librc() {
 }
 export -f _install_z0librc
 
-ack_os() {
-    [[ -n "$READLINK" ]] && return
-    export READLINK=readlink
-    OS=$(uname -s)
-    [[ $OS == "Darwin" ]] && \
-      READLINK=$(which readlink 2>/dev/null) && \
-      [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125"
-}
 
 ##############################################################################
 # Detect and print more OS informations than uname command
@@ -103,10 +95,6 @@ xuname() {
     OSSTR="${OS} ${REV}(${ARCH} $(uname -v))"
   elif [ "${OS}" = "AIX" ]; then
     OSSTR="${OS} $(oslevel) ($(oslevel -r))"
-  elif [ "${OS}" = "Darwin" ]; then
-    DIST=$OS
-    FAMILY="osx"
-    OSSTR="${OS} ${VER}(${CODENAME} ${KERNEL} ${MACH})"
   elif [ "${OS}" = "Linux" ]; then
     KERNEL=$(uname -r)
     CODENAME=""
@@ -124,6 +112,11 @@ xuname() {
       DIST='Gentoo'
       CODENAME=$(cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//)
       VER=$(cat /etc/gentoo-release | sed s/.*release\ // | sed s/\ .*//)
+    elif [ -f /etc/redhat-release ]; then
+      DIST='RedHat'
+      CODENAME=$(cat /etc/redhat-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//)
+      FAMILY="RHEL"
     elif [ -f /etc/SUSE-release ]; then
       DIST="SuSE"
       CODENAME=$(cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//)
@@ -165,11 +158,6 @@ xuname() {
       ls_relase &>/dev/null
       [ $? -ne 127 ] && VER=$(lsb_release --release --short) || VER=$(cat /etc/debian_version)
       FAMILY="Debian"
-    elif [ -f /etc/redhat-release ]; then
-      DIST='RedHat'
-      CODENAME=$(cat /etc/redhat-release | sed s/.*\(// | sed s/\)//)
-      VER=$(cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//)
-      FAMILY="RHEL"
     elif [ -f /etc/os-release ]; then
       DIST="Debian"
       ls_relase &>/dev/null
@@ -377,6 +365,8 @@ export -f parseoptargs
 # Print help for parse command line arguments
 # __version__="0.1.9"
 print_help() {
+# You can find more help about this function on
+# http://wiki.zeroincombenze.org/en/Linux/dev
     local txt="Usage: "
     local hlp=""
     txt+="$(basename $0) "
@@ -391,22 +381,14 @@ print_help() {
         fi
         txt+="$xx${OPTOPTS[jy]}"
         xx=""
-        if [[ -n ${OPTLONG[jy]} ]]; then
-            hlp+=$(printf ' %-3.3s%-21.21s%s%s' "-${OPTOPTS[jy]}" "-${OPTLONG[jy]}" "${OPTHELP[jy]}" '\n')
-        else
-            hlp+=$(printf ' %-24.24s%s%s' "-${OPTOPTS[jy]}" "${OPTHELP[jy]}" '\n')
-        fi
+        hlp+=$(printf ' %-16.16s%s%s' "-${OPTOPTS[jy]}" "${OPTHELP[jy]}" '\n')
       elif [ "$a" == "=" ]; then
         if [ -z "$xx" -o "$xx" == "]" ]; then
           xx="][-"
         fi
         txt+="$xx${OPTOPTS[jy]} ${OPTMETA[jy]}"
         xx="]"
-        if [[ -n ${OPTLONG[jy]} ]]; then
-            hlp+=$(printf '%3.3s%-10.10s %-11.11s%s%s' "-${OPTOPTS[jy]}" "-${OPTLONG[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
-        else
-            hlp+=$(printf '%3.3s %-21.21s%s%s' "-${OPTOPTS[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
-        fi
+        hlp+=$(printf '%3.3s %-13.13s%s%s' "-${OPTOPTS[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
       fi
       ((++jy))
     done
@@ -590,21 +572,21 @@ export -f run_traced
 ##############################################################################
 # Parse directory to search a file
 # __version__="0.1.1"
-# Search a file or directory from a list.
-# This function is used to find an application from path list
+# Search a file o directory of a list.
+# This function is used to find where is an application.
 #
 # Parameter $1:
 #    File to search (if null is searched just for directory of $2 ...)
 # Parameter $2:
-#    Directory list (space separated) where file could be found (required)
+#    Directory list (space separated) where file could be found (mandatory)
 # Parameter $3:
-#    Level 2 subdirectory list (space separated) where file could be found (maybe be empty)
+#    Level 2 subdirectory list (space separated) where file could be found (mayby be empty)
 # Parameter $4:
-#    Level 3 subdirectory list (space separated) where file could be found (maybe be empty)
+#    Level 3 subdirectory list (space separated) where file could be found (mayby be empty)
 # Parameter $5:
-#    Level 4 subdirectory list (space separated) where file could be found (maybe be empty)
+#    Level 4 subdirectory list (space separated) where file could be found (mayby be empty)
 # Parameter $6:
-#    Level 5 subdirectory list (space separated) where file could be found (maybe be empty)
+#    Level 5 subdirectory list (space separated) where file could be found (mayby be empty)
 findpkg() {
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p2=

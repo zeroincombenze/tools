@@ -32,7 +32,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "1.0.0.2"
+__version__ = "1.0.0.3"
 
 
 MAX_DEEP = 20
@@ -146,7 +146,6 @@ def add_xref(ctx, xref, model, res_id):
         return clodoo.createL8(ctx, model, vals)
     clodoo.writeL8(ctx, model, id, vals)
     return id
-
 
 def synchro(ctx, model, vals):
     # sts = 0
@@ -1183,7 +1182,7 @@ def create_document_test_env(ctx):
 
         model = 'product.template'
         model2 = 'product.product'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         PROD_LIST = {
             'AAA': 'Product Alpha',
             'BBB': 'Product Beta',
@@ -1249,7 +1248,7 @@ def create_document_test_env(ctx):
 
     def write_sale_order(ctx, company_id):
         model = 'sale.order'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vals = {
             'company_id': company_id,
             'partner_id': env_ref(ctx, 'z0bug.res_partner_2'),
@@ -1275,7 +1274,7 @@ def create_document_test_env(ctx):
         def_tax = False
         for nr, product in enumerate(
                 clodoo.browseL8(ctx, model_prod, prod_ids)):
-            print('Write %s ..' % model)
+            print('Write %s ...' % model)
             if not def_tax:
                 def_tax = product.taxes_id.id
             seq = (nr + 1) * 10
@@ -1323,7 +1322,7 @@ def create_document_test_env(ctx):
 
     def write_purchase_order(ctx, company_id):
         model = 'purchase.order'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vals = {
             'company_id': company_id,
             'partner_id': env_ref(ctx, 'z0bug.res_partner_2'),
@@ -1348,7 +1347,7 @@ def create_document_test_env(ctx):
         tax_id = False
         for nr, product in enumerate(
                 clodoo.browseL8(ctx, model_prod, prod_ids)):
-            print('Write %s ..' % model)
+            print('Write %s ...' % model)
             if product.supplier_taxes_id:
                 tax_id = product.supplier_taxes_id.id
             seq = (nr + 1) * 10
@@ -1672,7 +1671,7 @@ def manage_riba(ctx):
             action = input('Action: Accredited,Quit: ')
             action = action[0].upper() if action else 'Q'
             if action == 'A':
-                print('Restore RiBA list to Accredited ..')
+                print('Restore RiBA list to Accredited ...')
                 cancel_riba_moves(ctx, riba_list,
                                   riba_list.payment_ids, by_line=True)
                 set_riba_state(ctx, riba_list, 'accredited')
@@ -1688,7 +1687,7 @@ def manage_riba(ctx):
                 except BaseException:
                     pass
             elif action == 'A':
-                print('Restore RiBA list to accepted ..')
+                print('Restore RiBA list to accepted ...')
                 cancel_riba_moves(ctx, riba_list,
                                   riba_list.accreditation_move_id)
                 set_riba_state(ctx, riba_list, 'accepted')
@@ -1723,7 +1722,7 @@ def manage_riba(ctx):
                 except BaseException:
                     pass
             elif action == 'C':
-                print('Cancelling RiBA list ..')
+                print('Cancelling RiBA list ...')
                 # TODO: remove after debug
                 cancel_riba_moves(ctx, riba_list,
                                   riba_list.accreditation_move_id)
@@ -2655,7 +2654,7 @@ def print_model_synchro_data(ctx):
 
     def write_product(ctx, company_id):
         model = 'product.product'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vg7_id = 1
         code = 'AAA'
         name = 'Product Alpha'
@@ -2674,7 +2673,7 @@ def print_model_synchro_data(ctx):
     def write_sale_order(ctx, company_id, order_num,
                          vg7_partner_id, vg7_shipping_addr_id, product_a_id):
         model = 'sale.order'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         order_name = '%06d' % eval(order_num)
         vals = {
             'company_id': company_id,
@@ -2692,7 +2691,7 @@ def print_model_synchro_data(ctx):
                                     vals)
 
         model = 'sale.order.line'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vg7_id = eval(order_num) * 10
         vals = {
             'company_id': company_id,
@@ -2798,6 +2797,9 @@ def test_synchro_vg7(ctx):
     test_conai = False
     if ctx['param_1']:
         test_conai = True
+    ask_4_test = True
+    if ctx['param_2']:
+        ask_4_test = False
 
     L_NUM_FATT1 = 'FAT/2020/0001'
     L_NUM_FATT2 = 'FAT/2020/0002'
@@ -2971,6 +2973,7 @@ def test_synchro_vg7(ctx):
         'conai_category_id': 'italy.conai.product.category',
         'goods_description_id': 'stock.picking.goods_description',
         'invoice_id': 'account.invoice',
+        'journal_id': 'account.journal',
         'order_id': 'sale.order',
         'partner_id': 'res.partner',
         'partner_shipping_id': 'res.partner',
@@ -3007,7 +3010,8 @@ def test_synchro_vg7(ctx):
             print('4. connector_vg7')
         print('Then')
         print('5. Partners & product of test environment (mk_test_env)')
-        input('Requirements are satisfied?')
+        if ask_4_test:
+            input('Requirements are satisfied?')
         # Log level debug
         clodoo.executeL8(ctx,
                          'ir.model.synchro.cache',
@@ -3034,7 +3038,7 @@ def test_synchro_vg7(ctx):
         if not test_conai:
             MODULE_LIST.append('connector_vg7_conai')
         for modname in MODULE_LIST:
-            print('checking module %s ..' % modname)
+            print('checking module %s ...' % modname)
             module_ids = clodoo.searchL8(ctx, model,
                 [('name', '=', modname)])
             if modname == 'connector_vg7_conai' and not test_conai:
@@ -3054,7 +3058,7 @@ def test_synchro_vg7(ctx):
 
         model = 'res.lang'
         vals = {'code': 'it_IT'}
-        print('Installing language %s ..' % vals['code'])
+        print('Installing language %s ...' % vals['code'])
         clodoo.executeL8(ctx,
             model,
             'synchro',
@@ -3097,6 +3101,10 @@ def test_synchro_vg7(ctx):
         ids = clodoo.searchL8(ctx, model, [('vg7_id', '=', 3)])
         if ids:
             records_to_delete[model] = ids
+        model = 'account.move'
+        ids = clodoo.searchL8(ctx, model, [('oe8_id', '=', 201130)])
+        if ids:
+            records_to_delete[model] = ids
 
         for model in TNL_TABLE:
             ext_model = TNL_TABLE[model]
@@ -3125,7 +3133,8 @@ def test_synchro_vg7(ctx):
         # Delete DdT
         if not ctx.get('_cr'):
             print('No sql support found!')
-            input('Press RET to continue')
+            if ask_4_test:
+                input('Press RET to continue')
         else:
             try:
                 query = "delete from procurement_order"
@@ -3328,6 +3337,13 @@ def test_synchro_vg7(ctx):
             delete_record(ctx, model, domain)
         model = 'account.account'
         delete_record(ctx, model, [('code', '=', '180111')])
+        channel_ids = clodoo.searchL8(
+            ctx, 'synchro.channel', [('identity', '!=', 'odoo')])
+        if channel_ids:
+            model = 'synchro.channel.model'
+            delete_record(
+                ctx, model, [('synchro_channel_id', '!=', channel_ids[0])],
+                multi=True)
         return ctx, company_id
 
     def write_file_2_pull(ext_model, vals, mode=None):
@@ -3496,13 +3512,15 @@ def test_synchro_vg7(ctx):
                     if (ext_ref != 'vg7_id' and
                             (ext_ref.startswith('vg7_') or
                              ext_ref.startswith('vg7:') or
-                             ext_ref == 'oe8:company_id')):
+                             ext_ref in ('oe8:company_id',
+                                         'oe8:journal_id'))):
                         ckstr = False
                         if loc_name in TABLE_OF_FIELD:
                             ref_model = TABLE_OF_FIELD[loc_name]
                             if TABLE_OF_FIELD[loc_name] in BORDERLINE_TABLE:
                                 rec_value = BORDERLINE_TABLE[
-                                    ref_model]['LOC'].get(rec_value,rec_value)
+                                    ref_model]['LOC'].get(rec_value,
+                                                        rec_value)
                             ckstr = True
                         elif loc_name == 'parent_id':
                             if model in BORDERLINE_TABLE:
@@ -3540,6 +3558,9 @@ def test_synchro_vg7(ctx):
                         else:
                             rec_value = datetime.strftime(
                                 rec_value, '%Y-%m-%d %H:%M:%S')
+                    elif isinstance(rec_value, date):
+                        rec_value = datetime.strftime(
+                            rec_value, '%Y-%m-%d')
                     elif model == 'product.uom' and rec_value == 'Unità':
                         rec_value = 'Unit(s)'
             if not compare(rec_value, ext_ref, vals, model, check_fct):
@@ -3584,17 +3605,17 @@ def test_synchro_vg7(ctx):
             return ids[0]
         return -1
 
-    def jacket_vals(vals):
+    def jacket_vals(vals, prefix=None):
+        prefix = prefix or 'vg7:'
         for nm in vals.copy():
-            if not nm.startswith('vg7:'):
-                vals['vg7:%s' % nm] = vals[nm]
+            if not nm.startswith('%s'):
+                vals['%s%s' % (prefix, nm)] = vals[nm]
                 del vals[nm]
         return vals
 
     def shirt_vals(vals):
         for nm in vals.copy():
-            new_name = nm.replace('billing_',
-                                  'vg7:').replace('shipping_', 'vg7:')
+            new_name = nm.replace('billing_', '').replace('shipping_', '')
             if new_name != nm:
                 vals[new_name] = vals[nm]
                 del vals[nm]
@@ -3691,7 +3712,7 @@ def test_synchro_vg7(ctx):
 
     def write_country(ctx, vg7_id=None, code=None, name=None):
         model = 'res.country'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         vg7_id = vg7_id or 39
         code = code or 'IT'
@@ -3709,7 +3730,7 @@ def test_synchro_vg7(ctx):
         check_country(ctx, country_id, vals)
 
         model = 'res.country.state'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         vg7_id = 11
         code = 'TO'
@@ -3749,7 +3770,7 @@ def test_synchro_vg7(ctx):
 
     def write_tax(ctx, vg7_id=None, code=None, name=None, only_amount=None):
         model = 'account.tax'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         vg7_id = vg7_id or 22
         code = code or '22v'
@@ -3782,7 +3803,7 @@ def test_synchro_vg7(ctx):
 
     def write_payment(ctx, vg7_id=None, code=None, name=None):
         model = 'account.payment.term'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         vg7_id = vg7_id or 3060
         if vg7_id == 30:
@@ -3809,7 +3830,7 @@ def test_synchro_vg7(ctx):
 
     def write_conai(ctx, vg7_id=None, code=None, name=None):
         model = 'italy.conai.product.category'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         vg7_id = vg7_id or 1
         code = code or 'CA'
@@ -3840,7 +3861,7 @@ def test_synchro_vg7(ctx):
 
     def write_product(ctx, company_id, vg7_id=None, code=None, name=None):
         model = 'product.product'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vg7_id = vg7_id or 1
         code = code or 'AAA'
         name = name or 'Product Alpha'
@@ -3910,7 +3931,7 @@ def test_synchro_vg7(ctx):
             else:
                 vals['vg7:region'] = 'TORINO'
                 vals['vg7:region_id'] = 11
-        print('Write %s (%s) ..' % (
+        print('Write %s (%s) ...' % (
             model, vals.get('vg7:company') or vals['vg7:surename']))
         partner_id = clodoo.executeL8(ctx,
                                       model,
@@ -3962,7 +3983,7 @@ def test_synchro_vg7(ctx):
     def write_partner_pull(ctx, company_id, vg7_id=None, name=None,
                            wrong_data=None):
         model = 'res.partner'
-        print('Write %s (full pull) ..' % model)
+        print('Write %s (full pull) ...' % model)
         vg7_id = vg7_id or 7
         if vg7_id == 7:
             name = name or 'Partner A'
@@ -4106,7 +4127,7 @@ def test_synchro_vg7(ctx):
 
     def write_uom(ctx, vg7_id=None, code=None, name=None):
         model = 'product.uom'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         vg7_id = vg7_id or 13
         name = name or 'Unit(s)'
@@ -4127,7 +4148,7 @@ def test_synchro_vg7(ctx):
 
     def write_transport_reason(ctx, vg7_id=None, code=None, name=None):
         model = 'stock.picking.transportation_reason'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         vg7_id = vg7_id or 3
         name = name or 'Vendita'
@@ -4173,7 +4194,7 @@ def test_synchro_vg7(ctx):
     def write_sale_order(ctx, company_id, partner_id=None, vg7_order_id=None,
                          state=None, note=None, newprod=None, new_prot=None):
         model = 'sale.order'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         partner_id = partner_id or env_ref(ctx, 'z0bug.res_partner_2')
         vg7_id = vg7_order_id or 1
@@ -4221,7 +4242,7 @@ def test_synchro_vg7(ctx):
         check_sale_order(ctx, order_id, vals, state='draft', note=note)
 
         model = 'sale.order.line'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vg7_order_id = vg7_id
         vg7_id = vg7_order_id * 100
         vals = {
@@ -4239,7 +4260,7 @@ def test_synchro_vg7(ctx):
         store_id(ctx, model, line_id, vg7_id)
         check_sale_order_line(ctx, line_id, vals)
 
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vg7_id = vg7_order_id * 100 + 1
         # Field partner_id does not exit: test to avoid crash
         vals = {
@@ -4262,7 +4283,7 @@ def test_synchro_vg7(ctx):
         check_sale_order_line(ctx, line_id, vals)
 
         if not state or state == 'draft' or newprod:
-            print('Write %s ..' % model)
+            print('Write %s ...' % model)
             vg7_id = vg7_order_id * 100 + 2
             vals = {
                 'vg7_id': vg7_id,
@@ -4331,7 +4352,7 @@ def test_synchro_vg7(ctx):
     def write_invoice(ctx, company_id, partner_id=None,
                       vg7_invoice_id=None, state=None):
         model = 'account.invoice'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         partner_id = partner_id or ctx[
             'odoo_session'].env.ref('z0bug.res_partner_2').id
@@ -4358,7 +4379,7 @@ def test_synchro_vg7(ctx):
         check_invoice(ctx, invoice_id, vals)
 
         model = 'account.invoice.line'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vg7_invoice_id = vg7_id
         vg7_id = vg7_invoice_id * 200
         vals = {
@@ -4378,7 +4399,7 @@ def test_synchro_vg7(ctx):
         store_id(ctx, model, line_id, vg7_id)
         check_invoice_line(ctx, line_id, vals)
 
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vg7_id = vg7_invoice_id * 200 + 1
         # Field partner_id does not exit: test to avoid crash
         vals = {
@@ -4400,7 +4421,7 @@ def test_synchro_vg7(ctx):
         check_invoice_line(ctx, line_id, vals)
 
         if not state or state == 'draft':
-            print('Write %s ..' % model)
+            print('Write %s ...' % model)
             vg7_id = vg7_invoice_id * 200 + 2
             vals = {
                 'vg7_id': vg7_id,
@@ -4457,7 +4478,7 @@ def test_synchro_vg7(ctx):
     def write_ddt(ctx, company_id, partner_id=None,
                   vg7_id=None, state=None, shipping_id=None):
         model = 'stock.picking.package.preparation'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         partner_id = partner_id or 7
         vg7_id = vg7_id or 17
         vals = {
@@ -4510,7 +4531,7 @@ def test_synchro_vg7(ctx):
             sale_line_id = get_vg7id_from_id(ctx, 'sale.order.line', ids[0])
             store_id(ctx, 'sale.order.line', ids[0], sale_line_id)
         model = 'stock.picking.package.preparation.line'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         vg7_ddt_id = vg7_id
         vg7_id = vg7_ddt_id * 300
         vals = {
@@ -4547,12 +4568,38 @@ def test_synchro_vg7(ctx):
             raise IOError('!!Commit Failed (%d)!' % id)
         ctx['ctr'] += 1
 
+    def check_4_translation(ctx, model, name10, name8):
+        print('Checking translation %s.%s -> %s ...' % (model, name10, name8))
+        sync_model = 'synchro.channel'
+        channel_ids = clodoo.searchL8(
+            ctx, sync_model, [('identity', '=', 'odoo'),
+                              ('prefix', '=', 'oe8')])
+        if len(channel_ids) != 1:
+            raise IOError('No odoo 8.0 channel found!')
+        sync_model = 'synchro.channel.model'
+        model_ids = clodoo.searchL8(
+            ctx, sync_model, [('synchro_channel_id', '=', channel_ids[0]),
+                              ('name', '=', model)])
+        if len(model_ids) != 1:
+            raise IOError('No odoo model %s 8.0 found!' % model)
+        sync_model = 'synchro.channel.model.fields'
+        fld_ids = clodoo.searchL8(
+            ctx, sync_model, [('model_id', '=', model_ids[0]),
+                              ('name', '=', name10)])
+        if len(fld_ids) != 1:
+            raise IOError('No odoo field model %s 8.0 found!' % name10)
+        rec = clodoo.browseL8(ctx, sync_model, fld_ids[0])
+        if rec.counterpart_name != name8:
+            raise IOError('Invalid translation %s: expected %s found %s!' % (
+                name10, name8, rec.counterpart_name))
+        ctx['ctr'] += 1
+
     def check_2_user(ctx, user_id, vals):
         general_check(ctx, 'res.users', user_id, vals)
 
     def write_2_user(ctx, oe8_id=None, login=None, name=None):
         model = 'res.users'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         oe8_id = oe8_id or 1
         login = login or 'zeroadm'
@@ -4575,7 +4622,7 @@ def test_synchro_vg7(ctx):
 
     def write_2_company(ctx, oe8_id=None, partner_id=None):
         model = 'res.company'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         oe8_id = oe8_id or 1
         partner_id = partner_id or env_ref(ctx, 'z0bug.partner_mycompany')
@@ -4601,7 +4648,7 @@ def test_synchro_vg7(ctx):
     def write_2_account_type(ctx, oe8_id=None, code=None, name=None,
                              utype=None, utype_new=None, uid_new=None):
         model = 'account.account.type'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         oe8_id = oe8_id or 1
         code = code or 'bank'
@@ -4634,7 +4681,7 @@ def test_synchro_vg7(ctx):
     def write_2_account(ctx, company_id, oe8_id=None, code=None,
                         name=None, utype=None, type_xref=None):
         model = 'account.account'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
 
         oe8_id = oe8_id or 567
         code = code or '180111'
@@ -4670,7 +4717,7 @@ def test_synchro_vg7(ctx):
 
     def write_2_tax(ctx, oe8_id=None, code=None, name=None, utype=None):
         model = 'account.tax'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         oe8_id = oe8_id or 101
         code = code or 'a101'
         name = name or 'Forfettario art 101'
@@ -4697,7 +4744,7 @@ def test_synchro_vg7(ctx):
 
     def write_2_currency(ctx, oe8_id=None, code=None, name=None):
         model = 'res.currency'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         oe8_id = oe8_id or 13
         name = name or 'EUR'
         vals = {
@@ -4718,7 +4765,7 @@ def test_synchro_vg7(ctx):
 
     def write_2_partner(ctx, oe8_id=None, name=None, wrong_data=None):
         model = 'res.partner'
-        print('Write %s ..' % model)
+        print('Write %s ...' % model)
         oe8_id = oe8_id or 807
         name = name or 'Partner A'
         vals = {
@@ -4737,6 +4784,76 @@ def test_synchro_vg7(ctx):
                                       vals)
         store_id(ctx, model, partner_id, oe8_id)
         check_partner(ctx, partner_id, vals)
+        return oe8_id
+
+    def check_2_account_journal(ctx, journal_id, vals):
+        general_check(ctx, 'account.journal', journal_id, vals)
+
+    def write_2_account_journal(ctx, oe8_id=None, name=None):
+        model = 'account.journal'
+        print('Write %s ...' % model)
+        oe8_id = oe8_id or 5
+        name = name or 'Operazioni varie'
+        vals = {
+            'id': oe8_id,
+            'name': name,
+            'company_id': 1,
+            'code': 'MISC',
+            'type': 'general',
+        }
+        write_file_2_pull(model, vals)
+        journal_id = clodoo.executeL8(ctx,
+                                      'ir.model.synchro',
+                                      'trigger_one_record',
+                                      model,
+                                      'oe8',
+                                      oe8_id)
+        store_id(ctx, model, journal_id, oe8_id)
+        check_2_account_journal(ctx, journal_id, vals)
+        return oe8_id
+
+    def check_2_account_move(ctx, move_id, vals):
+        general_check(ctx, 'account.move', move_id, vals)
+
+    def write_2_account_move(ctx, oe8_id=None, name=None):
+        model = 'account.move'
+        print('Write %s ...' % model)
+        oe8_id = oe8_id or 201130
+        name = name or 'Giroconto'
+        vals = {
+            'id': oe8_id,
+            'name': name,
+            'ref': '2020-11',
+            'company_id': 1,
+            'date': '2020-11-30',
+            'journal_id': 5,
+            'state': 'posted',
+            'line_id': '''"[
+            {
+                'account_id': 567,
+                'credit': 2606.59,
+                'debit': 0.0,
+                'name': 'Giroconto',
+                'ref': '2020-122',
+            },
+            {
+                'account_id': 555,
+                'credit': 0.0,
+                'debit': 2606.59,
+                'name': 'Giroconto',
+                'ref': '2020-122',
+            },
+            ]"'''.replace('\n', '').replace(' ', '')
+        }
+        write_file_2_pull(model, vals)
+        move_id = clodoo.executeL8(ctx,
+                                   'ir.model.synchro',
+                                   'trigger_one_record',
+                                   model,
+                                   'oe8',
+                                   oe8_id)
+        store_id(ctx, model, move_id, oe8_id)
+        check_2_account_move(ctx, move_id, jacket_vals(vals, prefix='oe8:'))
         return oe8_id
 
     ctx, company_id = init_test(ctx)
@@ -4847,7 +4964,10 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals7)
     print('Go to web page, menù customer, partner "AAA"')
     print('then click on synchronize button')
-    dummy = input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    if ask_4_test:
+        dummy = input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    else:
+        dummy = 'n'
     if not dummy.startswith('n') and not dummy.startswith('N'):
         bank_id = get_id_from_vg7id(
             ctx, 'res.partner.bank', 123, name='vg7_id')
@@ -4863,7 +4983,6 @@ def test_synchro_vg7(ctx):
 
     model = 'res.partner'
     ext_model = 'suppliers'
-    ext_model = 'suppliers'
     vg7_id = 14
     vals = {
         'id': vg7_id,
@@ -4876,7 +4995,10 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals)
     print('Go to web page, menù supplier, partner "Delta 4"')
     print('then click on synchronize button')
-    dummy = input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    if ask_4_test:
+        dummy = input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    else:
+        dummy = 'n'
     if not dummy.startswith('n') and not dummy.startswith('N'):
         id = get_id_from_vg7id(ctx, model, vg7_id, name='vg72_id')
         vals = jacket_vals(vals)
@@ -4895,7 +5017,10 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals)
     print('Go to web page, menù product, product "AA"')
     print('then click on synchronize button')
-    dummy = input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    if ask_4_test:
+        dummy = input('Did you synchronize %s record (Yes,No)? ' % ext_model)
+    else:
+        dummy = 'n'
     if not dummy.startswith('n') and not dummy.startswith('N'):
         check_product(
             ctx, get_id_from_vg7id(ctx, model, vg7_id), jacket_vals(vals))
@@ -4911,9 +5036,9 @@ def test_synchro_vg7(ctx):
     write_sale_order(ctx, company_id, state='sale', newprod=True)
     check_product(
         ctx, get_id_from_vg7id(
-            ctx, 'product.product', vg7_id), jacket_vals(vals))
+             ctx, 'product.product', vg7_id), jacket_vals(vals))
 
-    model = 'res.partner.shipping'
+    # model = 'res.partner.shipping'
     ext_model = 'customers_shipping_addresses'
     vg7_id = 1001
     vals = {
@@ -4940,7 +5065,7 @@ def test_synchro_vg7(ctx):
     print('*** Starting trigger test ***')
 
     model = 'account.payment.term'
-    print('Write %s ..' % model)
+    print('Write %s ...' % model)
     ext_model = 'payments'
     vals = {
         'id': 25,
@@ -4957,7 +5082,7 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals)
 
     model = 'res.country'
-    print('Write %s ..' % model)
+    print('Write %s ...' % model)
     ext_model = 'countries'
     vals = {
         'code': 'IT',
@@ -4967,7 +5092,7 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals)
 
     model = 'res.country.state'
-    print('Write %s ..' % model)
+    print('Write %s ...' % model)
     ext_model = 'regions'
     vals = {
         'code': 'TO',
@@ -4992,7 +5117,7 @@ def test_synchro_vg7(ctx):
     state_vals = vals
 
     model = 'res.partner'
-    print('Write %s ..' % model)
+    print('Write %s ...' % model)
     ext_model = 'customers'
 
     name = 'La Romagnola srl'
@@ -5060,7 +5185,7 @@ def test_synchro_vg7(ctx):
     general_check(ctx, 'res.country.state', BO_id, jacket_vals(state_vals))
 
     model = 'sale.order'
-    print('Write %s ..' % model)
+    print('Write %s ...' % model)
     vals = {
         'vg7:payment_id': 25,
         'name': '2187',
@@ -5196,6 +5321,7 @@ def test_synchro_vg7(ctx):
     write_2_partner(ctx)
     write_2_currency(ctx)
     write_2_account_type(ctx)
+    check_4_translation(ctx, 'account.account.type', 'type', 'report_type')
     for (oe8_id, code, name, utype, utype_new, id_new) in (
             (1, 'bank', 'Bank and Cash', 'liquidity', 'liquidity',
              'account.data_account_type_liquidity'),
@@ -5215,11 +5341,17 @@ def test_synchro_vg7(ctx):
         write_2_account_type(ctx, oe8_id=oe8_id, code=code, name=name,
             utype=utype, utype_new=utype_new)
     write_2_account(ctx, company_id)
+    check_4_translation(ctx, 'account.account', 'user_type_id', 'user_type')
+    check_4_translation(ctx, 'account.account', 'internal_type', 'type')
     write_2_account(ctx, company_id)
     write_2_account(ctx, company_id, oe8_id=555, code='152100',
         name='Crediti v/clienti Italia', utype='receivable',
         type_xref='account.data_account_type_receivable')
     write_2_tax(ctx, company_id)
+    check_4_translation(ctx, 'account.tax', 'type_tax_use', 'type')
+    write_2_account_journal(ctx)
+    # pdb.set_trace()
+    ## write_2_account_move(ctx)
 
     print('*** Starting pull record test ***')
 
@@ -5277,7 +5409,10 @@ def test_synchro_vg7(ctx):
     write_file_2_pull(ext_model, vals3, mode='a')
     print('Go to web page, menù Setting > Technical > DB > sync channel')
     print('then import account.payment.term of vg7 channel')
-    dummy = input('Did you import %s records (Yes,No)? ' % ext_model)
+    if ask_4_test:
+        dummy = input('Did you import %s records (Yes,No)? ' % ext_model)
+    else:
+        dummy = 'n'
     if not dummy.startswith('n') and not dummy.startswith('N'):
         payment_id = get_id_from_vg7id(ctx, model, 10)
         store_id(ctx, model, payment_id, 10)

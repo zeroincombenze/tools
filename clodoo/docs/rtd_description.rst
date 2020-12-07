@@ -229,7 +229,7 @@ Translate Odoo entinty name across versions.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-11-30
+Last Update / Ultimo aggiornamento: 2020-12-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -244,22 +244,22 @@ Last Update / Ultimo aggiornamento: 2020-11-30
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.28.11
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.28.12
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28.11/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28.11
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28.12/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28.12
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-3.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.28.11/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.28.12/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-3.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.28.11/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.28.12/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-3.svg
     :target: https://erp3.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.28.11/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.3.28.11
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.28.12/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.3.28.12
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

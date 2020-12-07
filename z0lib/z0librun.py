@@ -40,6 +40,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+# import pdb
 from future import standard_library
 standard_library.install_aliases()                                 # noqa: E402
 # from builtins import *                                             # noqa: F403
@@ -65,7 +66,7 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "1.0.0.1"
+__version__ = "0.2.9"
 
 
 class CountAction(argparse.Action):

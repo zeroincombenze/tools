@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.16
+__version__=1.0.0.17
 
 export READLINK=readlink
 OS=$(uname -s)
@@ -26,6 +26,7 @@ if [[ $1 =~ -.*h ]]; then
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
+    echo -e "\n(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $1 =~ -.*V ]]; then
     echo $__version__
@@ -34,7 +35,7 @@ fi
 
 RFLIST__travis_emulator="travis travis.man travisrc"
 RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
-RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py export_db_model.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
+RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py export_db_model.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
@@ -44,8 +45,8 @@ RFLIST__tools="odoo_default_tnl.xlsx templates"
 RFLIST__python_plus="vem vem.man"
 RFLIST__wok_code="wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
-RFLIST__odoo_score="odoo_shell.py"
-MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py|transodoo.py|transodoo.csv|vfcp|vfdiff)"
+RFLIST__odoo_score="odoo_shell.py run_odoo_debug"
+MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|to_pep8.2p8|to_pep8.py|topep8.py|transodoo.py|transodoo.csv|vfcp|vfdiff)"
 FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py prjdiff replica.sh run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=

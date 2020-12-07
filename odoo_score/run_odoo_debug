@@ -80,7 +80,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
     print_help "Run odoo for debug mode" \
-        "(C) 2015-2020 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
 [[ -n "$opt_branch" && -z "$odoo_vid" ]] && odoo_vid=$opt_branch
@@ -185,21 +185,25 @@ if [[ -n "$opt_modules" ]]; then
         [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
         create_db=1
     else
-        mods=${opt_modules//,/ }
         OPTI=
         xi=-i
         OPTU=
         xu=-u
-        for m in $mods; do
-            r=$(psql -U$DB_USER $opt_db -tc "select state from ir_module_module where name='$m';")
-            if [[ -z "$r" || $r =~ uninstalled ]]; then
-                OPTI="$OPTI$xi$m"
-                xi=,
-            else
-                OPTU="$OPTU$xu$m"
-                xu=,
-            fi
-        done
+        if [[ $opt_modules == "all" ]]; then
+            OPTU=-uall
+        else
+            mods=${opt_modules//,/ }
+            for m in $mods; do
+                r=$(psql -U$DB_USER $opt_db -tc "select state from ir_module_module where name='$m';")
+                if [[ -z "$r" || $r =~ uninstalled ]]; then
+                    OPTI="$OPTI$xi$m"
+                    xi=,
+                else
+                    OPTU="$OPTU$xu$m"
+                    xu=,
+                fi
+            done
+        fi
         OPTSIU="$OPTI $OPTU"
         alt=
         if [ $opt_exp -ne 0 -a -n "$opt_ofile" ]; then
@@ -291,7 +295,7 @@ if [ $opt_touch -eq 0 ]; then
             done
         done
     fi
-    run_traced "cp $CONFN $FULL_LCONFN"
+    [[ -f "$CONFN" ]] && run_traced "cp $CONFN $FULL_LCONFN"
     echo "===================================================================="
     if [[ -n "$VDIR" ]]; then
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
@@ -301,6 +305,7 @@ if [ $opt_touch -eq 0 ]; then
           source ./bin/activate
         fi
     fi
+    [[ ! -f "$CONFN" ]] && run_traced "$script -s --stop-after-init"
     tty -s
     if [ $? == 0 ]; then
         run_traced_debug "sed -e \"s|^logfile *=.*|logfile = False|\" -i $FULL_LCONFN"
