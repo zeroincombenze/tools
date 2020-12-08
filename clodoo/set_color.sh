@@ -16,7 +16,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.3.28.12
+__version__=0.3.28.13
 
 
 OPTOPTS=(h        n            V           v)

@@ -1,6 +1,6 @@
 
 ===============================
-|Zeroincombenze| tools 1.0.0.17
+|Zeroincombenze| tools 1.0.0.18
 ===============================
 
 |Build Status| |Coverage Status| |license gpl|
@@ -217,7 +217,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2020-12-07
+Last Update / Ultimo aggiornamento: 2020-12-08
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
@@ -232,22 +232,22 @@ Last Update / Ultimo aggiornamento: 2020-12-07
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.17
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.18
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.17/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.17
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.18/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.18
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.17/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.18/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.17/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.18/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.17/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.17
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.18/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.18
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org
