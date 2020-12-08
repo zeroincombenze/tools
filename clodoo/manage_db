@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28.13
+__version__=0.3.28.14
 
 
 up_oemod() {
@@ -154,7 +154,7 @@ set_opt_conf() {
 }
 
 OPTOPTS=(h        B       b         c        D       d      m         n           o             q           r           t         U          V           v           w       x)
-OPTDEST=(opt_help opt_dbg odoo_vids opt_conf opt_del opt_DB opt_multi opt_dry_run opt_with_demo opt_verbose opt_xmlport test_mode opt_DBuser opt_version opt_verbose opt_way opt_exit)
+OPTDEST=(opt_help opt_dbg odoo_vids opt_conf opt_del opt_DB opt_multi opt_dry_run opt_with_demo opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose opt_way opt_exit)
 OPTACTI=(1        1       "="       "="      1       "="    1         1           "*"           0           "="         1         "="        "*"         "+"         "="     1)
 OPTDEFL=(1        0       "10.0"    ""       0       ""     -1        0           ""            -1          ""          0         ""         ""          -1          ""      0)
 OPTMETA=("help"   ""      "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "A|E"   "")
@@ -215,7 +215,7 @@ fi
 for odoo_vid in ${odoo_vids//,/ }; do
   odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
   odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
-  [[ -z "$opt_DBuser" ]] && opt_dbuser=$(build_odoo_param DB_USER $odoo_vid) || opt_dbuser=${opt_DBuser/@/$odoo_ver}
+  [[ -z "$opt_dbuser" ]] && opt_dbuser=$(build_odoo_param DB_USER $odoo_vid) || opt_dbuser=${opt_dbuser/@/$odoo_ver}
   [[ -z "$opt_xmlport" ]] && xmlport=$(build_odoo_param RPCPORT $odoo_vid) || xmlport=$opt_xmlport
   if [[ $HOSTNAME =~ shs ]]; then
     lgi_user=zeroadm
@@ -373,9 +373,9 @@ for odoo_vid in ${odoo_vids//,/ }; do
         eval $WCMD
       fi
       if [ "$action" == "module" ]; then
-        run_traced "nice $TDIR/run_odoo_debug $OPTR -b$odoo_vid -U$opt_DBuser -um $cmdlist -d $db -sk"
+        run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -um $cmdlist -d $db -sk"
       elif [ "$action" == "upgrade" ]; then
-        [[ "$opt_way" == "A" ]] || run_traced "nice $TDIR/run_odoo_debug $OPTR -b$odoo_vid -U$opt_DBuser -um $cmdlist -d $db -sk"
+        [[ "$opt_way" == "A" ]] || run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -um $cmdlist -d $db -sk"
         if [[ ! "$cmdlist" == "all" && ! "$opt_way" == "E" ]]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
@@ -389,7 +389,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
         elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
-          run_traced "nice $TDIR/run_odoo_debug $OPTR -b$odoo_vid -U$opt_DBuser -l -d $db"
+          run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -l -d $db"
         else
           echo "$TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
@@ -399,7 +399,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           fi
         fi
       elif [ "$action" == "translate" ]; then
-        run_traced "nice $TDIR/run_odoo_debug $OPTR -b$odoo_vid -U$opt_DBuser -l -d $db"
+        run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -l -d $db"
       else
         if [ -n "$cmdlist" ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"

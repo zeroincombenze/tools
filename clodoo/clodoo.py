@@ -185,7 +185,7 @@ from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
-__version__ = "0.3.28.13"
+__version__ = "0.3.28.14"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -313,23 +313,28 @@ def do_login(ctx):
     for username in userlist:
         for pwd in cryptlist:
             crypted = True
-            try:
-                msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'],
-                                                 username,
-                                                 pwd)
-                debug_msg_log(ctx, ctx['level'] + 2, msg)
-                if ctx['svc_protocol'] == 'jsonrpc':
+            msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'],
+                                             username,
+                                             pwd)
+            debug_msg_log(ctx, ctx['level'] + 2, msg)
+            if ctx['svc_protocol'] == 'jsonrpc':
+                try:
                     ctx['odoo_session'].login(db=db_name,
-                                              login=username,
-                                              password=decrypt(pwd))
-                    user = get_login_user(ctx)
-                else:
+                                          login=username,
+                                          password=decrypt(pwd))
+                except BaseException:
+                    continue
+                # Keep out of try / except to catch user error
+                user = get_login_user(ctx)
+                break
+            else:
+                try:
                     user = ctx['odoo_session'].login(database=db_name,
                                                      user=username,
                                                      passwd=decrypt(pwd))
-                break
-            except BaseException:
-                pass
+                    break
+                except BaseException:
+                    pass
         if not user:
             crypted = False
             for pwd in pwdlist:
@@ -484,11 +489,6 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                         lang=lang,
                         ctx=ctx,
                         inquire=write_confn and ctx.get('ena_inquire'))
-    # saved = {}
-    # for p in S_LIST:
-    #     saved[p] = ctx.get(p)
-    # for p in S_LIST:
-    #     ctx[p] = saved[p]
     open_connection(ctx)
     if ctx['no_login']:
         return False, ctx
@@ -6323,8 +6323,8 @@ def main():
         if act == "new_db":
             do_newdb = True
     if conn2do:
-        open_connection(ctx)
         ctx = read_config(ctx)
+        open_connection(ctx)
         print_hdr_msg(ctx)
     ctx['multi_user'] = multiuser(ctx,
                                   ctx['actions'].split(','))

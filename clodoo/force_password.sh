@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28.13
+__version__=0.3.28.14
 
 get_dbuser() {
   # get_dbuser odoo_majver
