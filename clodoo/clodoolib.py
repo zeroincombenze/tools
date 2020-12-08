@@ -550,7 +550,7 @@ def read_config(ctx):
     ctx = fullname_conf(ctx)
     ctx['conf_fns'] = ctx['conf_fn'].split(',')
     ctx, version_is_set = set_confs(ctx)
-    ctx['_conf_obj'] = ConfigParser.SafeConfigParser(default_conf(ctx))
+    ctx['_conf_obj'] = ConfigParser.RawConfigParser(default_conf(ctx))
     ctx['conf_fns'] = ctx['_conf_obj'].read(ctx['conf_fns'])
     ctx = create_params_dict(ctx)
     if not version_is_set:
