@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.28.14"
+__version__ = "0.3.28.15"
 
 
 #############################################################################
@@ -151,11 +151,15 @@ def browseL8(ctx, model, id, context=None):
         return ctx['odoo_session'].browse(model, id, context=context)
 
 
-def createL8(ctx, model, vals):
+def createL8(ctx, model, vals, context=None):
     vals = drop_invalid_fields(ctx, model, vals)
     vals = complete_fields(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
-        return ctx['odoo_session'].env[model].create(vals)
+        if context:
+            return ctx['odoo_session'].env[model].create(vals).with_context(
+                context)
+        else:
+            return ctx['odoo_session'].env[model].create(vals)
     else:
         return ctx['odoo_session'].create(model, vals)
 #
@@ -169,15 +173,17 @@ def createL8(ctx, model, vals):
 #         ctx['odoo_session'].write_record(record)
 
 
-def writeL8(ctx, model, ids, vals):
+def writeL8(ctx, model, ids, vals, context=None):
     vals = drop_invalid_fields(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
-        return ctx['odoo_session'].env[model].write(ids,
-                                                    vals)
+        if context:
+            return ctx['odoo_session'].env[model].browse(ids).with_context(
+                context).write(vals)
+        else:
+            return ctx['odoo_session'].env[model].write(ids, vals)
     else:
-        return ctx['odoo_session'].write(model,
-                                         ids,
-                                         vals)
+        return ctx['odoo_session'].write(
+            model, ids, vals, context=context)
 
 
 def unlinkL8(ctx, model, ids):

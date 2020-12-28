@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28.14
+__version__=0.3.28.15
 
 
 up_oemod() {
@@ -219,7 +219,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
   [[ -z "$opt_xmlport" ]] && xmlport=$(build_odoo_param RPCPORT $odoo_vid) || xmlport=$opt_xmlport
   if [[ $HOSTNAME =~ shs ]]; then
     lgi_user=zeroadm
-  elif [[ $HOSTNAME =~ ~vg7odoo ]]; then
+  elif [[ $HOSTNAME =~ vg7odoo ]]; then
     lgi_user=vg7admin
   else
     lgi_user=admin
@@ -374,15 +374,14 @@ for odoo_vid in ${odoo_vids//,/ }; do
       fi
       if [ "$action" == "module" ]; then
         run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -um $cmdlist -d $db -sk"
+        [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
       elif [ "$action" == "upgrade" ]; then
         [[ "$opt_way" == "A" ]] || run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -um $cmdlist -d $db -sk"
         if [[ ! "$cmdlist" == "all" && ! "$opt_way" == "E" ]]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
-        if [ $sts -ne $STS_SUCCESS ]; then
-          break
-        fi
+        [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
       elif [ "$action" == "action" ]; then
         if [ "$cmdlist" == "upd_oemod" ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c=code/z0_install_10.conf -d $db -r$xmlport $opt_with_demo $opts"
@@ -394,9 +393,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           echo "$TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
-          if [ $sts -ne $STS_SUCCESS ]; then
-            break
-          fi
+          [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
         fi
       elif [ "$action" == "translate" ]; then
         run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -l -d $db"
@@ -404,9 +401,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
         if [ -n "$cmdlist" ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
-          if [ $sts -ne $STS_SUCCESS ]; then
-            break
-          fi
+          [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
         else
           if [ -z "$cf" ]; then
             echo "Configuration file $opt_conf not found!"

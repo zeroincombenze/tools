@@ -166,7 +166,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.28.14"
+__version__ = "0.3.28.15"
 
 
 #############################################################################
@@ -536,12 +536,12 @@ def read_config(ctx):
             if ctx.get(ver):
                 fnver = build_odoo_param('CONFN', ctx[ver], multi=True)
                 if os.path.isfile(fnver) and fnver not in ctx['conf_fns']:
-                    ctx['conf_fns'].append(fnver)
+                    ctx['conf_fns'].insert(0, fnver)
                     version_is_set = True
                 else:
                     fnver = build_odoo_param('CONFN', ctx[ver])
                     if os.path.isfile(fnver) and fnver not in ctx['conf_fns']:
-                        ctx['conf_fns'].append(fnver)
+                        ctx['conf_fns'].insert(0, fnver)
                         version_is_set = True
         return ctx, version_is_set
 

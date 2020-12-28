@@ -185,7 +185,7 @@ from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
-__version__ = "0.3.28.14"
+__version__ = "0.3.28.15"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True

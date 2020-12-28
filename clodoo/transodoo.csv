@@ -63,10 +63,11 @@ account.move.line		field	RECONCILED|RECONCILE_ID	reconciled	reconciled	reconcile
 "	value	procent|percent	procent	procent	procent	percent	percent	percent	percent	percent	percent
 account.tax		field	ACCOUNT_COLLECTED_ID|ACCOUNT_ID	account_collected_id	account_collected_id	account_collected_id	account_id	account_id	account_id	account_id	account_id	account_id
 account.tax		field	ACCOUNT_PAID_ID|REFUND_ACCOUNT_ID	account_paid_id	account_paid_id	account_paid_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id
-account.tax		field	TYPE|TYPE_TAX_USE	type	type	type	type_tax_use	type_tax_use	type_tax_use	type_tax_use	type_tax_use	type_tax_use
 account.tax	amount	value	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}
 account.tax	type	value	type|all|purchase	all	all	all	purchase	purchase	purchase	purchase	purchase	purchase
 account.tax	type_tax_use	value	type_tax_use|all|purchase	all	all	all	purchase	purchase	purchase	purchase	purchase	purchase
+ir.model		model	ACCOUNT.FISCALYEAR|ACCOUNT.FISCAL.YEAR	account.fiscalyear	account.fiscalyear	account.fiscalyear	account.fiscalyear	account.fiscalyear	account.fiscalyear	account.fiscal.year	account.fiscal.year	account.fiscal.year
+ir.model		model	ACCOUNT.PERIOD|DATE.RANGE	account.period	account.period	account.period	account.period	date.range	date.range	date.range	date.range	date.range
 ir.model		merge	RES.PARTNER.ADRESS|RES.PARTNER	res.partner.adress	res.partner	res.partner	res.partner	res.partner	res.partner	res.partner	res.partner	res.partner
 ir.model		model	BASE.ACTION.RULE.LEAD.TEST|BASE.AUTOMATION.LEAD.TEST	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.automation.lead.test	base.automation.lead.test	base.automation.lead.test	base.automation.lead.test
 ir.model		model	BASE.ACTION.RULE.LINE.TEST|BASE.AUTOMATION.LINE.TEST	base.action.rule.line.test	base.action.rule.line.test	base.action.rule.line.test	base.action.rule.line.test	base.action.rule.line.test	base.automation.line.test	base.automation.line.test	base.automation.line.test	base.automation.line.test
