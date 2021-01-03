@@ -26,7 +26,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.28.15
+__version__=0.3.28.16
 
 
 evaluate_params() {

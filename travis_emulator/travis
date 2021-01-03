@@ -44,7 +44,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.5
+__version__=1.0.0.6
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -98,6 +98,7 @@ process_yaml_init() {
     export YML_mgrodoo=manage_odoo
   fi
   export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
+  [[ $osx_d -ne 0 ]] && export TRAVIS_EMULATE_OSX="true"
   ODOO_TNLBOT="${opt_tnl:-0}"
   if [ $opt_full -ne 0 ]; then
     export SYSTEM_SITE_PACKAGES="${opt_syspkg:-false}"
@@ -763,7 +764,7 @@ process_yaml() {
     sts=$STS_SUCCESS
     wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
     TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-    for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST LOGFILE MQT_DBUSER MQT_TEMPLATE_DB MQT_TEST_DB PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
+    for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST LOGFILE MQT_DBUSER MQT_TEMPLATE_DB MQT_TEST_DB PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_EMULATE_OSX TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
       if [[ $lne == "job-id" ]]; then
         lne1=$$
       elif [[ $lne == "DIST" ]]; then
@@ -914,17 +915,18 @@ checkpid() {
   return 1
 }
 
-OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l        M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
-OPTLONG=(help     debug     no-cache  conf     deb-lev  no-savenv full     force     ''       keep     lint-lev logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
-OPTACTI=(1        1         0         "="      "="      0         1        1         1        1        "="      "="      1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
-OPTDEFL=(0        0         1         ""       ""       1         0        0         0        0        ""       ""       0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
-OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"    ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
+OPTOPTS=(h        B         C         c        D        d     E         F        f         j        k        L        l        M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
+OPTLONG=(help     debug     no-cache  conf     deb-lev  osx   no-savenv full     force     ''       keep     lint-lev logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl osx_d opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
+OPTACTI=(1        1         0         "="      "="      1     0         1        1         1        1        "="      "="      1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
+OPTDEFL=(0        0         1         ""       ""       0     1         0        0         0        0        ""       ""       0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
+OPTMETA=("help"   "version" ""        "file"   "number" ""    ""        ""       ""        "dprj"   ""       "number" "dir"    ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
 OPTHELP=("this help"
   "debug mode: do not create log"
   "do not use stored PYPI"
   "configuration file (def .travis.conf)"
   "travis_debug_mode: may be 0,1,2,8 or 9 (def yaml dependents)"
+  "emulate osx-darwin"
   "do not save virtual environment into ~/VME/... if does not exist"
   "run final travis with full features"
   "force yaml to run w/o cmd subst"
@@ -1091,7 +1093,7 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
       fi
     done
     if [ $all_dbs -ne 0 ]; then
-      for db in $(psql -U$MQT_DBUSER -Atl | grep -E "(openerp_template|openerp_test)" | awk -F"|" '{print $2}'); do
+      for db in $(psql -U$MQT_DBUSER -Atl | grep -E "(openerp_template|openerp_test)" | awk -F"|" '{print $1}'); do
         echo "\$ dropdb -U$MQT_DBUSER $db"
         pg_db_active -wa $db
         dropdb -U$MQT_DBUSER $db --if-exists &>/dev/null

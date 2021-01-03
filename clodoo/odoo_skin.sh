@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28.15
+__version__=0.3.28.16
 
 
 get_odoo_service_name() {

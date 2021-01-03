@@ -44,7 +44,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.28.15"
+__version__ = "0.3.28.16"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
 CVT_ACC_TYPE_OLD_NEW = {
     'Bank': 'Bank and Cash',

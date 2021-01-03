@@ -3177,7 +3177,7 @@ def test_synchro_vg7(ctx):
         model = 'stock.picking.package.preparation'
         delete_record(
             ctx, model, [('ddt_number', '=', X_NUM_DDT)],
-            action=['action_cancel', 'set_draft'],
+            action=['set_draft', 'action_cancel'],
             company_id=company_id)
 
         # Delete sale order
@@ -4132,7 +4132,7 @@ def test_synchro_vg7(ctx):
             'vg7:region_id': 2,
             'vg7:tax_code_id': 0,
             'vg7:bank_id': 372,
-            'vg7:piva': '00723670964',
+            'vg7:piva': '06631580013',
             'vg7:cf': '01781920150',
             'vg7:country_id': 39,
             # 'supplier': True,

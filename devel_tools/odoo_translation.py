@@ -252,6 +252,10 @@ def save_untranslated(ctx, untnl):
         print("*** Untranslated dictionary saved at %s ***" % dict_name)
 
 
+def translate_html(ctx, msgstr):
+    return msgstr
+
+
 def load_dictionary_from_file(ctx, pofn, def_action=None):
     ctr = 0
     trline = '-' * 60
@@ -265,6 +269,8 @@ def load_dictionary_from_file(ctx, pofn, def_action=None):
             msgid = message.id
             msgstr = message.string
             msgid2, msgstr2 = term_wo_punct(msgid, msgstr)
+            if ctx['tnl_html']:
+                msgstr = translate_html(ctx, msgstr)
             punct = '' if msgid == msgid2 else msgid[-1]
             if msgid2 not in TNL_DICT:
                 TNL_DICT[msgid2] = msgstr2
@@ -666,6 +672,9 @@ if __name__ == "__main__":
                         metavar="dbname",
                         default='')
     parser.add_argument('-h')
+    parser.add_argument('-H', '--translate-html',
+                        action='store_true',
+                        dest='tnl_html')
     parser.add_argument('-l', '--load-language',
                         action='store_true',
                         dest='load_language')
