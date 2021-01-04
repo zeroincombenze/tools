@@ -780,7 +780,7 @@ get_pkg_ver_inq() {
       :
     else
       if [ "$FH" == "RHEL" -a "$1" == "build-essential" ]; then
-        x=$(yum -e1 group info 'Development Tools' 1>/dev/null|grep -q "Warning.*group.*does not exist")
+        x=$(yum -ye1 group info 'Development Tools' 1>/dev/null|grep -q "Warning.*group.*does not exist")
         if [ -z "$x" ]; then
           pkgversion="N/A"
         else
