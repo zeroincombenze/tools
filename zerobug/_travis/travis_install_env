@@ -5,25 +5,31 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+export READLINK=readlink
+OS=$(uname -s)
+if [[ $OS == "Darwin" ]]; then
+  READLINK=$(which greadlink 2>/dev/null)
+  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
+fi
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/devel $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+TDIR=$($READLINK -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])" | python)
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$(readlink -e $TESTDIR/..)
+RUNDIR=$($READLINK -e $TESTDIR/..)
 
 __version__=1.0.0.5
 
@@ -304,7 +310,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Install packages to run travis tests\n if supplied 'oca' executes travis_install_nightly" \
-    "(C) 2016-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "(C) 2016-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -381,15 +387,15 @@ if [[ -z "$LISA" ]]; then
     LISA=$YML_lisa
   else
     LISA=$HOME/tools/lisa/lisa
-    [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
-    [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
+    [ -f $TDIR/../../lisa/lisa ] && LISA=$($READLINK -e $TDIR/../../lisa/lisa)
+    [ -f $TDIR/../lisa/lisa ] && LISA=$($READLINK -e $TDIR/../lisa/lisa)
   fi
 fi
 VEM=$(which vem 2>/dev/null)
 if [[ -z "$VEM" ]]; then
   VEM=$HOME/tools/python_plus/vem
-  [ -f $TDIR/../../python_plus/python_plus ] && VEM=$(readlink -e $TDIR/../../python_plus/python_plus)
-  [ -f $TDIR/../python_plus/python_plus ] && VEM=$(readlink -e $TDIR/../python_plus/python_plus)
+  [ -f $TDIR/../../python_plus/python_plus ] && VEM=$($READLINK -e $TDIR/../../python_plus/python_plus)
+  [ -f $TDIR/../python_plus/python_plus ] && VEM=$($READLINK -e $TDIR/../python_plus/python_plus)
 fi
 if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"
@@ -571,8 +577,9 @@ else
       dependencies_dir="$TRAVIS_BUILD_DIR ${HOME}/dependencies"
     fi
     if [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]]; then
-      reqs=$(find $ocb_dir $dependencies_dir -name requirements.txt | tr "\n" ",")
-      run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
+      # reqs=$(find $ocb_dir $dependencies_dir -name requirements.txt | tr "\n" ",")
+      # run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
+      run_traced "$VEM amend -DO $ODOO_BRANCH -d $dependencies_dir"
     fi
     cp_coveragerc
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
