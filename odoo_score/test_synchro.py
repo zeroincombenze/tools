@@ -24,7 +24,7 @@ except ImportError:
     from z0lib import z0lib
 # import pdb      # pylint: disable=deprecated-module
 
-__version__ = "1.0.0.3"
+__version__ = "1.0.0.4"
 
 L_NUM_FATT1 = 'FAT/2020/0001'
 L_NUM_FATT2 = 'FAT/2020/0002'
@@ -477,12 +477,12 @@ PAYMENT_TERM_LINE_VG7 = [
         'giorni_fine_mese': 0,
         'fine_mese': 1,
     },
-    # {
-    #     'id': 3060,
-    #     'scadenza': 60,
-    #     'giorni_fine_mese': 0,
-    #     'fine_mese': 'S',
-    # },
+    {
+        'id': 3060,
+        'scadenza': 60,
+        'giorni_fine_mese': 0,
+        'fine_mese': 'S',
+    },
 ]
 PAYMENT_TERM_OE8 = [
     {'id': 30, 'name': 'RiBA 30GG/FM'},
@@ -1138,8 +1138,10 @@ def load_n_test_model(
         ctx, model, default, mode=None, store=None, test_pfx=None,
         ext_model=None, test_suppl=None, fct_test=None):
     fct_test = fct_test or 'synchro'
-    write_log(ctx, 'load_n_test_model(ctx, %s, default, mode=%s, pfx=%s)\n' % (
-                model, mode, test_pfx))
+    write_log(ctx,
+        '%s: load_n_test_model(ctx, %s, default, mode=%s, pfx=%s)\n' % (
+            datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'),
+            model, mode, test_pfx))
 
     def get_shipping_vals(vg7_id):
         for item in RES_PARTNER_SHIPPING:
@@ -1263,8 +1265,8 @@ def load_n_test_model(
                     child_ids = clodoo.browseL8(ctx, model, rec_id).line_ids
                     if len(child_ids) != len(vals_line):
                         raise IOError(
-                            '!!Wrong len(%s[%d].line_ids)==%d: expcted %d!' % (
-                                model, rec_id, len(child_ids), len(vals_line)))
+                            '!!Wrong len(%s[%d].line_ids)==%d: expected %d!' %
+                            (model, rec_id, len(child_ids), len(vals_line)))
                     ctx['ctr'] += 1
                     for ix, child_id in enumerate(child_ids):
                         general_check(
@@ -1389,7 +1391,8 @@ def get_unknown_partners(ctx):
         [('name', 'ilike', 'Unknown')])
 
 def init_test(ctx):
-    write_log(ctx, 'init_test(ctx)', eol=True)
+    write_log(ctx, '%s: init_test(ctx)' % datetime.strftime(
+        datetime.now(), '%Y-%m-%d %H:%M:%S'), eol=True)
     if ctx['conai']:
         MODULE_LIST.append('connector_vg7_conai')
     print('This test requires following modules installed:')

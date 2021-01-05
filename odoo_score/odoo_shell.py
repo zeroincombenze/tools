@@ -32,7 +32,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "1.0.0.3"
+__version__ = "1.0.0.4"
 
 
 MAX_DEEP = 20
@@ -2368,7 +2368,7 @@ def reset_email_admins(ctx):
         model2 = 'res.partner'
         email = {'vg7bot': 'vg7bot@vg7.it',
                  'vg7admin': 'noreply@vg7.it',
-                 'zeroadm': 'noreply@zeroincombenze.it',}[username]
+                 'zeroadm': 'noreply@zeroincombenze.it'}[username]
         ctr = 0
         ids = clodoo.searchL8(ctx, model,
                               [('login', '=', username)])
@@ -5895,7 +5895,7 @@ def link_sale_2_invoice(ctx):
             clodoo.exec_sql(ctx, query)
         clodoo.writeL8(ctx, invl_model, invline.id,
                        {'sale_line_ids': [(3, soline.id)]})
-        'Order line %d.%d linked ...' % (soline.id, soline.order_id.id)
+        print('Order line %d.%d linked ...' % (soline.id, soline.order_id.id))
         if ctx.get('_cr'):
             query = "UPDATE account_invoice set state='%s' "\
                     "where id=%d" % (prior_state, inv.id)
@@ -6524,6 +6524,34 @@ def setup_balance_report(ctx):
     synchro(ctx, model, vals)
 
 
+def fix_weburl(ctx):
+    pdb.set_trace()
+    print('Fix web url to avoid print trouble ...')
+    if ctx['param_1'] == 'help':
+        print('fix_weburl URL|.')
+        return
+    if not ctx['param_1']:
+        print('Missed URL')
+        return
+    web_url = ctx['param_1']
+    model = 'ir.config_parameter'
+    ids = clodoo.searchL8(ctx, model, [('key', '=', 'web.base.url')])
+    if len(ids) != 1:
+        print('Wrong Odoo configuration')
+        return
+    cur_web_url = clodoo.browseL8(ctx, model, ids[0]).value
+    if web_url == '.':
+        web_url = cur_web_url
+    if cur_web_url != web_url:
+        clodoo.writeL8(ctx, model, ids[0], {'value': web_url})
+    ids = clodoo.searchL8(ctx, model, [('key', '=', 'web.base.url.freeze')])
+    if ids:
+        clodoo.writeL8(ctx, model, ids[0], {'value': '1'})
+    else:
+        clodoo.createL8(ctx, model,
+            {'key': 'web.base.url.freeze', 'value': '1'}
+        )
+
 def rename_coa(ctx):
     CVT_TBL = {
         'crediti v/clienti ': 'Crediti v/clienti Italia',
@@ -6750,6 +6778,7 @@ print(' - clean_translations             - display_module')
 print(' - configure_email_template       - print_tax_codes')
 print(' - test_synchro_vg7               - check_rec_links')
 print(' - set_db_4_test')
+print(' - fix_weburl')
 
 pdb.set_trace()
 print('\n\n')
