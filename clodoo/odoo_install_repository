@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
-# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com <info@shs-av.com>
+# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com <info@shs-av.com>
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28.16
+__version__=0.3.28.17
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -266,7 +266,7 @@ if [ $opt_noconf -ne 0 -a $opt_ucfg -ne 0 ]; then
 fi
 if [ $opt_help -gt 0 ]; then
     print_help "Add or duplicate odoo repository into local filesystem" \
-        "(C) 2015-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit $STS_SUCCESS
 fi
 [ $opt_verbose -eq -1 ] && opt_verbose=1
@@ -306,6 +306,7 @@ if [[ -n "$opt_odir" ]]; then
     ROOT="$PARENTDIR"
 else
     DSTPATH=$(build_odoo_param HOME "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy")
+    PARENTDIR=$(build_odoo_param PARENTDIR "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy")
 fi
 
 if [ -z "$new_odoo_vid" ]; then

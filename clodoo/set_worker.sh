@@ -2,7 +2,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -26,7 +26,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.28.16
+__version__=0.3.28.17
 
 
 evaluate_params() {
@@ -99,8 +99,8 @@ evaluate_params() {
     [ $WK_DBCONN -lt 16 ] && WK_DBCONN=16
     [ $WK_WORKERS -lt 2 ] && WK_WORKERS=0
     [ $WK_WORKERS -gt 0 ] && PROXY_MODE="True" || PROXY_MODE="False"
-    [ $WK_WORKERS -gt 0 ] && TIME_CPU=600 || TIME_CPU=60
-    [ $WK_WORKERS -gt 0 ] && TIME_REAL=1200 || TIME_REAL=120
+    [ $WK_WORKERS -gt 0 ] && TIME_CPU=1200 || TIME_CPU=300
+    [ $WK_WORKERS -gt 0 ] && TIME_REAL=2400 || TIME_REAL=600
     ((MAX_NUSER=MAX_WRKS*WRKS4CPU))
     if [ $opt_nopsql -ne 0 ]; then
         ((RAM=REQ_AVAI_MEM/3*4))
@@ -144,7 +144,7 @@ if [ $opt_verbose -eq -1 ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Update Odoo configuration file to best performance"\
-  "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2018-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 discover_multi

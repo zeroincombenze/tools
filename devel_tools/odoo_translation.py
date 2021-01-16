@@ -706,6 +706,6 @@ if __name__ == "__main__":
         sts = load_dictionary(ctx)
         if sts == 0:
             sts = parse_file(ctx)
-        if sts == 0 and ctx['db_prefix']:
-            sts = upgrade_db(ctx)
+        # if sts == 0 and ctx['db_prefix']:
+        #     sts = upgrade_db(ctx)
     sys.exit(sts)
