@@ -373,7 +373,6 @@ build_odoo_param() {
     if [[ -z $PRJPATH ]]; then
         [[ $REPOS == "OCB" ]] && PRJPATH=$ROOT || PRJPATH="$ROOT/$REPOS"
     fi
-
     [[ -z $RUPSTREAM && $GIT_ORGID =~ (zero|powerp) ]] && RUPSTREAM="https://github.com/OCA/$REPOS.git"
     [[ -z "$GIT_PROT" ]] && GIT_PROT="https"
     [[ "$FULLVER" == "6.1" ]] && RUPSTREAM=""

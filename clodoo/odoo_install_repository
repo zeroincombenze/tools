@@ -56,6 +56,7 @@ rmdir_if_exists() {
         fi
         if [[ "$REPOS" == "OCB" ]]; then
             OCB_SUBDIRS_RE=$(build_odoo_param OCB_SUBDIRS_RE)
+            [[ -d $HOME/__to_remove ]] && run_traced "rm -fR $HOME/__to_remove"
             run_traced "mkdir -p $HOME/__to_remove"
             run_traced "mkdir -p $HOME/__to_remove/OCB"
             for fn in $DSTPATH/*; do
@@ -82,19 +83,19 @@ set_remote_info() {
     local RUPSTREAM=$(build_odoo_param RUPSTREAM "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy")
     local rval
     local PKGPATH=$(build_odoo_param PKGPATH "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy")
-    if [[ -n $(build_odoo_param VCS "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy") ]]; then
-        rval=$(build_odoo_param RUPSTREAM "$odoo_vid" "$git_repo" "$opt_org" "default")
+    if [[ -n $(build_odoo_param VCS "$PKGPATH" "$git_repo" "$opt_org" "$opt_deploy") ]]; then
+        rval=$(build_odoo_param RUPSTREAM "$PKGPATH" "$git_repo" "$opt_org" "default")
         if [[ -n "$RUPSTREAM" && ! "$rval" == "$RUPSTREAM" ]]; then
             [[ -n "$rval" ]] && run_traced "git remote remove upstram" "$RUN_USER"
             run_traced "git remote add upstream $RUPSTREAM" "$RUN_USER"
         fi
-        rval=$(build_odoo_param RORIGIN "$odoo_vid" "$git_repo" "$opt_org" "default")
+        rval=$(build_odoo_param RORIGIN "$PKGPATH" "$git_repo" "$opt_org" "default")
         if [[ -n "$GIT_URL" && ! "$rval" == "$GIT_URL" ]]; then
             [[ -n "$rval" ]] && run_traced "git remote remove origin" "$RUN_USER"
             run_traced "git remote add origin $GIT_URL" "$RUN_USER"
         fi
     else
-        echo "No git repositoy $REPOS!"
+        echo "No git repository $REPOS!"
     fi
 }
 
@@ -346,7 +347,10 @@ if [ -z "$new_odoo_vid" ]; then
     fi
     [[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
     if [ "$REPOS" == "OCB" ]; then
-        run_traced "mv $HOME/__to_remove $DSTPATH"
+        for d in  $HOME/__to_remove; do
+            [[ $d == "OCB" ]] && continue
+             run_traced "mv $d $DSTPATH"
+        done
         discover_multi
         if [[ ! -f "$CONFN" ]]; then
             odoo_bin=$(build_odoo_param BIN "$odoo_vid" "$git_repo" "$opt_org" "search")

@@ -3,7 +3,7 @@
 # Manage virtual environment
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 export READLINK=readlink
 OS=$(uname -s)
@@ -27,7 +27,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.6
+__version__=1.0.0.7
 NEEDING_PKGS="future os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
@@ -228,7 +228,7 @@ pip_install() {
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
-  [[ $PIPVER -gt 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+  [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [ $opt_verbose -eq 0 ] && popts="$popts -q"
   # [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
@@ -515,7 +515,7 @@ custom_env() {
   # custom_env(VENV pyver)
   [ $opt_verbose -gt 2 ] && echo ">>> custom_env($@)"
   local VIRTUAL_ENV=$1 pyver=$(echo $2|grep -Eo [0-9]|head -n1)
-  sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$($READLINK -f \$(dirname \$($READLINK -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
+  sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
   if $(grep -q "^export HOME=" $PWD/bin/activate); then
     sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
   elif $(grep -q "^# export HOME=" $PWD/bin/activate); then
@@ -682,7 +682,7 @@ do_venv_mgr_test() {
 }
 
 do_venv_mgr() {
-  # do_venv_mgr {cp|mv|merge|reset|test} VENV NEW_VENV
+  # do_venv_mgr {amend|check|cp|mv|merge|reset|test} VENV NEW_VENV
   [ $opt_verbose -gt 2 ] && echo ">>> do_venv_mgr($@)"
   local d f mime VENV V sitecustom x lropts
   local cmd=$1
@@ -710,10 +710,10 @@ do_venv_mgr() {
   do_activate "-q"
   [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
   [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
-  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs\" \" $lropts -t bin"
-  BINPKGS=$(list_requirements.py -qs" " $lropts -t bin)
-  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs\" \" $lropts -t python"
-  OEPKGS=$(list_requirements.py -qs" " $lropts -t python)
+  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t bin"
+  BINPKGS=$(list_requirements.py -qs' ' $lropts -t bin)
+  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t python"
+  OEPKGS=$(list_requirements.py -qs' ' $lropts -t python)
   do_deactivate "-q"
   pop_cd "-q"
   if [[ $cmd =~ (amend|check|reset|test) ]]; then
@@ -880,10 +880,10 @@ do_venv_create() {
   done
   [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
   [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
-  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs\" \" $lropts -t bin"
-  BINPKGS=$(list_requirements.py -qs" " $lropts -t bin)
-  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs\" \" $lropts -t python"
-  OEPKGS=$(list_requirements.py -qs" " $lropts -t python)
+  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t bin"
+  BINPKGS=$(list_requirements.py -qs' ' $lropts -t bin)
+  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t python"
+  OEPKGS=$(list_requirements.py -qs' ' $lropts -t python)
   bin_install_1 $VENV
   [ $opt_dry_run -eq 0 ] && custom_env $VENV $opt_pyver
   pip_install_1
@@ -931,7 +931,7 @@ do_venv_pip() {
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   [[ $opt_alone -ne 0 && ! $pkg =~ ^- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
-  [[ $PIPVER -gt 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+  [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [ $opt_verbose -eq 0 ] && popts="$popts -q"
   if [[ $pkg =~ $BIN_PKGS ]]; then
     [[ "$cmd" == "install" ]] && bin_install "$pkg" "$1"
@@ -994,7 +994,7 @@ fi
 [[ -z "$opt_pyver" && -n "$TRAVIS_PYTHON_VERSION" ]] && opt_pyver=$TRAVIS_PYTHON_VERSION
 [ $opt_verbose -eq -1 ] && opt_verbose=1
 if [ $opt_help -gt 0 ]; then
-  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 [ $opt_verbose -gt 3 ] && set -x
@@ -1058,7 +1058,7 @@ FLAG=">"
 if [[ $action == "rm" ]]; then
   [[ $PWD == $($READLINK -f $p2) ]] && cd
   rm -fR $p2
-  # hash -r
+  hash -r
   exit 0
 elif [[ ! $action =~ (help|create) ]]; then
   cd_venv $p2 "-q"
