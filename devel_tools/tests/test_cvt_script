@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.8
+__version__=1.0.0.9
 
 
 test_01() {
@@ -54,18 +54,14 @@ if [[ -z "\$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.8
+__version__=1.0.0.9
 
 main
 EOF
       cat <<EOF >$TESTRES
 #
-export READLINK=readlink
-OS=\$(uname -s)
-if [[ \$OS == "Darwin" ]]; then
-  READLINK=\$(which greadlink 2>/dev/null)
-  [[ -n "\$READLINK" ]] && READLINK=\$(basename \$READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
-fi
+READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/null)
+export READLINK
 THIS=\$(basename "\$0")
 TDIR=\$(\$READLINK -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -82,7 +78,7 @@ if [[ -z "\$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.8
+__version__=1.0.0.9
 
 main
 EOF

@@ -19,7 +19,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '1.0.0.3'
+__version__ = '1.0.0.4'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -162,25 +162,44 @@ def get_addons_path(travis_dependencies_dir, travis_base_dir, server_path,
 
 # Discover automatically Odoo dir and version
 # Recognizes old 6.1 tree, 7.0/8.0/9.0 tree and new 10.0/11.0/12.0 tree
-def get_build_dir():
-    odoo_version = os.environ.get("VERSION")
-    travis_base_dir = os.environ.get("TRAVIS_BUILD_DIR", "../..")
+def get_build_dir(odoo_full, version=None):
+    odoo_version = version or os.environ.get("VERSION")
+    travis_base_dir = os.path.abspath(
+        os.environ.get("TRAVIS_BUILD_DIR", "./"))
+    if os.path.basename(travis_base_dir) == 'tests':
+        travis_base_dir = os.path.abspath(
+            os.path.join(travis_base_dir, "../../../.."))
+    else:
+        travis_base_dir = os.path.abspath(
+            os.path.join(travis_base_dir, "../../.."))
+    lroot = False
     for ldir in LDIR:
         if os.path.isdir(ldir) and os.path.isfile('%s/release.py' % ldir):
-            sys.path.append(ldir)
-            import release
-            tested_version = release.version
-            if odoo_version == "auto":
-                odoo_version = tested_version
-            travis_base_dir = os.path.abspath('%s/addons' % ldir)
-            del sys.path[-1]
+            lroot = ldir
             break
-    if not odoo_version and sys.argv[1]:
-        # For backward compatibility, take version from parameter
-        # if it's not globally set
-        odoo_version = sys.argv[1]
-        print_flush("WARNING: no env variable set for VERSION. "
-              "Using '%s'" % odoo_version)
+    if not lroot:
+        for home in os.listdir(travis_base_dir):
+            for ldir in LDIR:
+                ldir = os.path.join(travis_base_dir, home, ldir)
+                if (os.path.isdir(ldir) and
+                        os.path.isfile('%s/release.py' % ldir)):
+                    lroot = ldir
+                    break
+            if lroot:
+                break
+    if lroot:
+        sys.path.append(lroot)
+        import release
+        tested_version = release.version
+        del release
+        if not odoo_version or odoo_version == "auto":
+            odoo_version = tested_version
+        travis_base_dir = os.path.abspath('%s/addons' % lroot)
+        del sys.path[-1]
+    else:
+        print_flush("ERROR: no travis build dir detected!")
+    if not odoo_version:
+        print_flush("ERROR: no odoo version detected!")
     return travis_base_dir, odoo_version
 
 
@@ -439,7 +458,7 @@ def copy_attachments(dbtemplate, dbdest, data_dir):
 
 def get_environment():
     odoo_full = os.environ.get("ODOO_REPO", "odoo/odoo")
-    travis_base_dir, odoo_version = get_build_dir()
+    travis_base_dir, odoo_version = get_build_dir(odoo_full)
     odoo_exclude = os.environ.get("EXCLUDE")
     odoo_include = os.environ.get("INCLUDE")
     odoo_unittest = str2bool(os.environ.get("UNIT_TEST"))
@@ -572,6 +591,7 @@ def main(argv=None):
         print_flush("DEBUG: server_path='%s'" % server_path)
         print_flush("DEBUG: script_name='%s'" % script_name)
     if script_name == 'Script not found!':
+        print_flush("ERROR: %s!" % script_name)
         return 1
     coveragerc = set_coveragerc()
     conf_data = set_conf_data(addons_path, data_dir)

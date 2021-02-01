@@ -817,13 +817,18 @@ def clean_translations(ctx):
 def close_sale_orders(ctx):
     print('Close sale orders with linked invoice')
     if ctx['param_1'] == 'help':
-        print('close_sale_orders')
+        print('close_sale_orders {no|to invoice}')
         return
+    if ctx['param_1'] in ('no', 'to invoice'):
+        sel_state = ctx['param_1']
+    else:
+        sel_state = 'no'
     model = 'sale.order'
     ctr = 0
     for so in clodoo.browseL8(ctx, model, clodoo.searchL8(
             ctx, model, [('state', '=', 'sale'),
-                         ('invoice_status', '=', 'to invoice')])):
+                         ('invoice_count', '>', 0),
+                         ('invoice_status', '=', sel_state)])):
         if so.invoice_ids:
             clodoo.writeL8(ctx, model, so.id, {'invoice_status': 'invoiced'})
             ctr += 1
@@ -1687,7 +1692,7 @@ def manage_riba(ctx):
                 cancel_riba_moves(ctx, riba_list,
                                   riba_list.payment_ids, by_line=True)
                 set_riba_state(ctx, riba_list, 'accredited')
-        elif riba_list.state == 'accredited':
+        elif riba_list.state in ('accredited', 'unsolved'):
             action = input('Action: do_Paid,Accepted,State_paid,Quit,Unsolved: ')
             action = action[0].upper() if action else 'Q'
             if action == 'P':
@@ -3248,6 +3253,7 @@ def test_synchro_vg7(ctx):
         # Productc (MISC)
         model = 'product.template'
         model2 = 'product.product'
+        pdb.set_trace()
         if test_conai:
             conai_category_id = clodoo.searchL8(
                 ctx, 'italy.conai.product.category', [('code', '=', 'L')])[0]
@@ -5905,7 +5911,6 @@ def link_sale_2_invoice(ctx):
     if ctx['param_1'] == 'help':
         print('link_sale_2_invoice SO INV')
         return
-    pdb.set_trace()
     if ctx['param_1']:
         so_id = eval(ctx['param_1'])
     else:

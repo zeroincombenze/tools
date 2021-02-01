@@ -17,6 +17,13 @@ OCA version of module
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()                                 # noqa: E402
+# from builtins import *                                             # noqa: F403
 import ast
 import os
 import re
@@ -25,7 +32,7 @@ import sys
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'
 MANIFESTS = ('__openerp__.py', '__manifest__.py')
-__version__ = "1.0.0.8"
+__version__ = "1.0.0.9"
 
 
 class UserError(Exception):
@@ -106,7 +113,7 @@ def replace_in_readme(readme_path, header, rows_available, rows_unported):
         ])
     addons.append('\n')
     parts[2:5] = addons
-    parts = [p.encode('utf-8') if isinstance(p, unicode) else p for p in parts]
+    parts = [p.encode('utf-8') if isinstance(p, str) else p for p in parts]
     readme = ''.join(parts)
     open(readme_path, 'w').write(readme)
 
@@ -123,7 +130,7 @@ def get_values_from_manifest(addon_path, manifest_path, element):
     installable = manifest.get('installable', True)
     if not installable and version != 'deprecated':
         version = version + ' (unported)'
-    return [link, version, summary],  installable
+    return [link, version, summary], installable
 
 
 def gen_addons_table(args):

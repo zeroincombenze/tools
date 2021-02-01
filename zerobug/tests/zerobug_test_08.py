@@ -13,7 +13,7 @@ import sys
 from zerobug import Z0BUG
 from zerobug import Z0testOdoo
 
-__version__ = "1.0.0.5"
+__version__ = "1.0.0.6"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1

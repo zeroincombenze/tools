@@ -5,14 +5,10 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio Maria Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-export READLINK=readlink
-OS=$(uname -s)
-if [[ $OS == "Darwin" ]]; then
-  READLINK=$(which greadlink 2>/dev/null)
-  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
-fi
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -29,7 +25,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.8
+__version__=1.0.0.9
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -384,12 +380,8 @@ cvt_file() {
 
 blk_1() {
   cat <<EOF >>$1
-export READLINK=readlink
-OS=\$(uname -s)
-if [[ \$OS == "Darwin" ]]; then
-  READLINK=\$(which greadlink 2>/dev/null)
-  [[ -n "\$READLINK" ]] && READLINK=\$(basename \$READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
-fi
+READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/null)
+export READLINK
 THIS=\$(basename "\$0")
 TDIR=\$(\$READLINK -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -585,14 +577,14 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Update bash script" \
-    "© 2016-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "© 2016-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 declare -A COPY
-COPY[z0lib]="© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
-COPY[travis_em]="© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+COPY[z0lib]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+COPY[travis_em]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
 ToRepeat=
 cvt_file $bashscript
 if [ -n "$ToRepeat" ]; then

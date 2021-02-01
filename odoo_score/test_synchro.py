@@ -26,12 +26,6 @@ except ImportError:
 
 __version__ = "1.0.0.4"
 
-L_NUM_FATT1 = 'FAT/2020/0001'
-L_NUM_FATT2 = 'FAT/2020/0002'
-X_NUM_DDT = '1234'
-# X_NUM_ORDER = '1234'
-L_NUM_ORDER = 'SO002'
-
 CANDIDATE_KEYS = (
     'acc_number', 'login','default_code', 'code', 'key',
     'serial_number', 'description', 'comment', 'name', 'dim_name',
@@ -44,6 +38,7 @@ RESET_FIELD = (
 WRONG_DATA = {
     'region': ['TO', '(TO)'],
     'street': ['Via Porta Nuova', 'Via Porta Vecchia'],
+    'shipping_name': ['$', 'Agro Latte Due s.n.c.'],
 }
 SOME_DEFAULT = {
     'res.country.state': [
@@ -182,6 +177,7 @@ TNL_VG7_TABLES = {
     'account.invoice': '',
     'account.invoice.line': '',
     'account.payment.term': 'payments',
+    'account.payment.term.line': '',
     'account.tax': 'tax_codes',
     # 'crm.team': '',
     'italy.conai.product.category': 'conai',
@@ -198,7 +194,7 @@ TNL_VG7_TABLES = {
     'stock.picking.package.preparation': 'ddt',
     'stock.picking.package.preparation.line': '',
     'stock.picking.transportation_reason': '',
-    'sale.order': '',
+    'sale.order': 'orders',
     'sale.order.line': '',
 }
 
@@ -297,6 +293,7 @@ TNL_VG7_DICT = {
         'quantity': 'product_uom_qty',
         'partner_id': False,
         'vg7_partner_id': False,
+        'job_name': False,
     },
     'stock.picking.package.preparation': {
         'numero_colli': 'parcels',
@@ -446,6 +443,12 @@ ACCOUNT_ACCOUNT_TYPE_OE8 = [
      'code': 'credit_card', 'name': 'Credit Card', 'report_type': 'liquidity'},
     {'id': 10, 'code': 'equity', 'name': 'Equity', 'report_type': 'other'},
 ]
+ACCOUNT_TAX_DEF = [
+    {'id': 'z0bug.tax_22v', 'type_tax_use': 'sale',
+     'name': 'IVA vendite 22%', 'description': '22v', 'amount': 22},
+    {'id': 'z0bug.tax_22a', 'type_tax_use': 'purchase',
+     'name': 'IVA acquisti 22%', 'description': '22a', 'amount': 22},
+]
 ACCOUNT_TAX_VG7 = [
     {'id': 22, 'code': '22%', 'description': '', 'aliquota': 22},
     {'id': 4, 'code': '4%', 'description': '', 'aliquota': 4},
@@ -505,10 +508,10 @@ PAYMENT_TERM_LINE_OE8 = [
         'days': 60,
     },
 ]
-ACCOUNT_CONAI_DEF = [
+CONAI_PROD_DEF = [
     {'code': 'CA', 'name': 'Carta', 'conai_price_unit': 30},
 ]
-ACCOUNT_CONAI_VG7 = [
+CONAI_PROD_VG7 = [
     {'id': 1, 'code': 'CA',
      'description': 'Carta ondulata', 'prezzo_unitario': 35},
 ]
@@ -538,6 +541,14 @@ PRODUCT_TEMPLATE_VG7 = [
     {'id': 2, 'code': 'BB', 'description': 'Product Beta', 'conai_id': 1},
     {'id': 3, 'code': 'CC', 'description': 'Product CC', 'conai_id': False},
 ]
+PRODUCT_UOM_DEF = [
+    {'id': 'product.product_uom_unit', 'name': 'Unit(s)'},
+    {'id': 'product.product_uom_kgm', 'name': 'kg'},
+]
+PRODUCT_UOM_VG7 = [
+    {'id': 1, 'code': 'NR'},
+    {'id': 2, 'code': 'KG'},
+]
 RES_PARTNER_SHIPPING = [
     {'customer_shipping_id': 101, 'customer_id': 1,
      'shipping_name': 'Partner A', 'shipping_surename': '',
@@ -546,7 +557,7 @@ RES_PARTNER_SHIPPING = [
      'shipping_city': 'Padova',
      },
     {'customer_shipping_id': 102, 'customer_id': 2,
-     'shipping_name': 'Magazzino', 'shipping_surename': '',
+     'shipping_name': '', 'shipping_surename': '',
      'shipping_country_id': 39, 'shipping_region_id': 11,
      'shipping_postal_code': '10061',
      'shipping_city': 'S. Secondo fraz. Pinasca',
@@ -554,13 +565,13 @@ RES_PARTNER_SHIPPING = [
 ]
 RES_PARTNER_BILLING = [
     {'customer_billing_id': 1, 'customer_id': 1,
-     'billing_country_id': 39, 'billing_name': ' ',
+     'billing_country_id': 39, 'billing_name': '',
      'billing_postal_code': '',
      'billing_city': 'Torino',
      'billing_piva': '00385870480'
      },
     {'customer_billing_id': 2, 'customer_id': 2,
-     'billing_country_id': 39, 'billing_name': ' ',
+     'billing_country_id': 39, 'billing_name': '',
      'billing_postal_code': '',
      'billing_city': '',
      'billing_piva': ''
@@ -614,6 +625,7 @@ RES_PARTNER_VG7 = [
         'splitmode': None,
     },
     {
+        # Agro Latte Due  s.n.c.
         'id': 2, 'company': None, 'name': None, 'surename': None,
         'street': None, 'street_number': None,
         'postal_code': None, 'city': None,
@@ -628,6 +640,7 @@ RES_PARTNER_VG7 = [
         'splitmode': None,
     },
     {
+        # None
         'id': 7, 'company': None, 'name': None, 'surename': None,
         'street': None, 'street_number': None,
         'postal_code': None, 'city': None,
@@ -642,6 +655,7 @@ RES_PARTNER_VG7 = [
         'splitmode': None,
     },
     {
+        # New record
         'id': 17, 'company': None, 'name': 'Mario', 'surename': 'Rossi',
         'street': None, 'street_number': None,
         'postal_code': None, 'city': None,
@@ -665,6 +679,27 @@ RES_PARTNER_SUPPLIER_VG7 = [
         'country_id': 39,
         'piva': '06631580013', 'cf': '01781920150',
     },
+]
+SALE_ORDER_VG7 = [
+    {
+        'id': 1, 'customer_id': 1,'customer_shipping_id': 101,
+        'order_number': '210123',
+        'billing': {
+        },
+        "shipping": {
+        },
+    }
+]
+SALE_ORDER_LINE_VG7 = [
+    {
+        'id': 1, 'order_id': 1,
+        'job_name': 'Product Alpha',
+        'product_name': 'Product Alpha',
+        'quantity': 5,
+        'unitary_price': 10.5,
+    },
+]
+SALE_ORDER_OE8 = [
 ]
 STOCK_PICKING_PACKAGE_PREPARATION = [
     {
@@ -790,7 +825,8 @@ def delete_record(ctx, model, domains, multi=False, action=None,
                         try:
                             clodoo.unlinkL8(ctx, model, rec.id)
                             write_log(ctx,
-                                '>>> %s.unlink(%s)' % (model, rec.id))
+                                '>>> %s.unlink(%s)' % (model, rec.id),
+                                eol=True)
                         except BaseException as e:
                             print('Error %s removing records ...' % e)
             try:
@@ -969,6 +1005,14 @@ def get_loc_name(model, field, test_pfx):
             if loc_name and isinstance(loc_name, (tuple, list)):
                 mode = loc_name[1]
                 loc_name = loc_name[0]
+        if loc_name == field:
+            if field.startswith('shipping_'):
+                loc_name = field[9:]
+            elif field.startswith('billing_'):
+                loc_name = field[9:]
+            if (model and model in TNL_VG7_DICT and
+                    loc_name in TNL_VG7_DICT[model]):
+                loc_name = TNL_VG7_DICT[model][loc_name]
     elif test_pfx.startswith('oe8'):
         if (model and model in TNL_OE8_DICT and
                 field in TNL_OE8_DICT[model]):
@@ -987,6 +1031,8 @@ def get_loc_value(
             loc_value = getattr(loc_rec, loc_name).id
         except BaseException:
             loc_value = getattr(loc_rec, loc_name)
+        if not spec and isinstance(loc_value, int):
+            loc_value = loc_value % 100000000
         ckstr = False
         if loc_name in TABLE_OF_REF_FIELD:
             ref_model = TABLE_OF_REF_FIELD[loc_name]
@@ -1053,7 +1099,8 @@ def get_ext_value(
             (isinstance(vals[ext_ref], basestring) and
              vals[ext_ref].isdigit())):
         ext_value = eval(vals[ext_ref])
-    elif spec in ('delivery', 'invoice') and loc_name in ('vat', 'fiscalcode'):
+    elif (spec in ('delivery', 'invoice') and
+          loc_name in ('name', 'firstname', 'vat', 'fiscalcode')):
         ext_value = False
     elif loc_name == 'company_id':
         ext_value = env_ref(ctx, 'z0bug.mycompany')
@@ -1143,23 +1190,115 @@ def load_n_test_model(
             datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'),
             model, mode, test_pfx))
 
-    def get_shipping_vals(vg7_id):
+    def get_shipping_vals(vg7_id, test_pfx, mode):
         for item in RES_PARTNER_SHIPPING:
-            if item['customer_id'] == vg7_id:
-                return item
+            if item.get('customer_id') == vg7_id:
+                return set_wrong_data(item, test_pfx, mode)
         return {}
 
-    def get_billing_vals(vg7_id):
+    def get_billing_vals(vg7_id, test_pfx, mode):
         for item in RES_PARTNER_BILLING:
             if item['customer_id'] == vg7_id:
-                return item
+                return set_wrong_data(item, test_pfx, mode)
         return {}
 
     def get_payment_term_line_vals(vg7_id):
         vals = []
-        for item in PAYMENT_TERM_LINE_VG7:
+        for ix,item in enumerate(PAYMENT_TERM_LINE_VG7):
             if item['id'] == vg7_id:
-                vals.append(item.copy())
+                lines = item.copy()
+                lines['id'] = lines['id'] * 10 + ix
+                vals.append(lines)
+        return vals
+
+    def store_child_vg7id(child_model, child_id, ext_id, test_pfx):
+        if child_id and ext_id:
+            if test_pfx.startswith('vg7'):
+                store_vg7id(ctx, child_model, child_id, ext_id)
+            elif test_pfx.startswith('oe8'):
+                store_oe8id(ctx, child_model, child_id, ext_id)
+
+    def set_wrong_data(vals, test_pfx, mode):
+        for nm in WRONG_DATA:
+            if nm in vals:
+                if (test_pfx == 'vg7:' and mode == 'wrong' and
+                        vals[nm] == WRONG_DATA[nm][0]):
+                    vals[nm] = WRONG_DATA[nm][1]
+                    if nm == 'region' in vals and 'region_id' in vals:
+                        del vals['region_id']
+                elif vals[nm] == '$':
+                    vals[nm] = ''
+        return vals
+
+    def check_child_record(
+            ctx, rec_id, rec_type, test_vals, vals, child_vals, test_pfx,
+            mode=None):
+        child_vals = set_wrong_data(child_vals, test_pfx, mode)
+        if rec_type == 'product':
+            model = 'product.product'
+            child_id = clodoo.browseL8(ctx, model, rec_id).product_tmpl_id
+            if not child_id:
+                raise IOError(
+                    '!!Missing product.template ref of rec %d!' % rec_id)
+            ctx['ctr'] += 1
+            child_id = child_id.id
+            child_model = 'product.template'
+            for field in test_vals.keys():
+                del child_vals[field]
+            general_check(ctx, child_model, child_id, child_vals)
+            # store_child_vg7id(child_model,
+            #     child_id, child_vals['%sid' % test_pfx], test_pfx)
+        elif rec_type in ('delivery', 'invoice'):
+            model = 'res.partner'
+            ids = clodoo.searchL8(
+                ctx, model,
+                [('parent_id', '=', rec_id), ('type', '=', rec_type)])
+            if not ids:
+                if (child_vals.get('customer_billing_id') not in (1, 2) and
+                        child_vals.get('customer_shipping_id') != 102):
+                    raise IOError(
+                        '!!Missing child record type %s of rec %d!' %
+                        (rec_type, rec_id))
+                return
+            ctx['ctr'] += 1
+            child_id = ids[0]
+            child_model = model
+            for field in test_vals.keys():
+                del child_vals[field]
+            if test_pfx.startswith('vg7'):
+                if rec_type == 'delivery':
+                    child_vals['id'] = child_vals['customer_shipping_id']
+                    del child_vals['customer_shipping_id']
+                elif rec_type == 'invoice':
+                    child_vals['id'] = child_vals['customer_billing_id']
+                    del child_vals['customer_billing_id']
+            general_check(
+                ctx, child_model, child_id, jacket_vals(child_vals, test_pfx),
+                mode=rec_type)
+            store_child_vg7id(child_model,
+                child_id, child_vals['%sid' % test_pfx], test_pfx)
+        elif rec_id == 'payment.term':
+            model = 'account.payment.term'
+            child_model = 'account.payment.term.line'
+            if child_vals:
+                child_ids = clodoo.browseL8(ctx, model, rec_id).line_ids
+                if len(child_ids) != len(child_vals):
+                    raise IOError(
+                        '!!Wrong len(%s[%d].line_ids)==%d: expected %d!' %
+                        (model, rec_id, len(child_ids), len(child_vals)))
+                ctx['ctr'] += 1
+                for ix, child_id in enumerate(child_ids):
+                    general_check(
+                        ctx, child_model, child_id.id,
+                        jacket_vals(child_vals[ix], test_pfx), mode='child')
+
+    def get_sale_order_line_vals(vg7_id):
+        vals = []
+        for ix,item in enumerate(SALE_ORDER_LINE_VG7):
+            if item['id'] == vg7_id:
+                lines = item.copy()
+                lines['id'] = lines['id'] * 10 + ix
+                vals.append(lines)
         return vals
 
     if not ext_model:
@@ -1185,11 +1324,18 @@ def load_n_test_model(
                             field = x[0]
                             break
                 if compare_some(dict_item, vals, field=field):
-                    test_vals[dict_item['value'][0]] = ctx[dict_item['value'][1]]
+                    if test_pfx:
+                        test_vals['%s%s' % (test_pfx, dict_item['value'][0]
+                                            )] = ctx[dict_item['value'][1]]
+                    else:
+                        test_vals[
+                            dict_item['value'][0]] = ctx[dict_item['value'][1]]
         if ext_model in ('customers_shipping_addresses',
                          'customers_billing_addresses',):
             shirt_vals(vals)
         for field in datas:
+            if field in ():
+                pass
             if field in vals and vals[field] is None:
                 del vals[field]
                 continue
@@ -1203,8 +1349,8 @@ def load_n_test_model(
                 del vals[field]
 
         if test_pfx == 'vg7:' and model == 'res.partner' and mode != 'wrong':
-            vals_shipping = get_shipping_vals(vals.get('id'))
-            vals_billing = get_billing_vals(vals.get('id'))
+            vals_shipping = get_shipping_vals(vals.get('id'), test_pfx, mode)
+            vals_billing = get_billing_vals(vals.get('id'), test_pfx, mode)
             vals['shipping'] = vals_shipping
             vals['billing'] = vals_billing
             if vals_billing:
@@ -1216,6 +1362,10 @@ def load_n_test_model(
                 mode != 'wrong'):
             vals_line = get_payment_term_line_vals(vals.get('id'))
             vals['date_scadenza'] = vals_line
+        elif (test_pfx == 'vg7:' and model == 'sale.order' and
+                mode != 'wrong'):
+            vals_line = get_sale_order_line_vals(vals.get('id'))
+            vals['order_rows'] = vals_line
 
         if not main_ext_id and vals.get('id'):
             main_ext_id = vals['id']
@@ -1224,25 +1374,26 @@ def load_n_test_model(
             wa = 'a'
         if mode == 'upper' and 'description' in vals:
             vals['description'] = vals['description'].upper()
-        if test_pfx == 'vg7:' and mode == 'wrong':
-            for nm in WRONG_DATA:
-                if nm in vals and vals[nm] == WRONG_DATA[nm][0]:
-                    vals[nm] = WRONG_DATA[nm][1]
-                    if nm == 'region' in vals and 'region_id' in vals:
-                        del vals['region_id']
+        vals = set_wrong_data(vals, test_pfx, mode)
         ext_id = False
         if vals.get('id'):
             ext_id = vals['id']
+        elif vals.get('customer_shipping_id'):
+            ext_id = vals['customer_shipping_id']
+        elif vals.get('customer_billing_id'):
+            ext_id = vals['customer_billing_id']
         if mode == 'only_amount':
             del vals['code']
         if model:
             if fct_test == 'synchro':
                 rec_id, vals = test_function_synchro(ctx, model, vals,
-                    test_pfx=test_pfx,   ext_id=ext_id)
+                    test_pfx=test_pfx, ext_id=ext_id)
             else:
                 rec_id, vals = test_function_trigger(
                     ctx, ext_model, vals, test_pfx, ext_id)
-            if test_pfx == 'vg7:' and model == 'res.partner' and ext_id == 7:
+            if (test_pfx == 'vg7:' and
+                    (model == 'res.partner' and ext_id == 7) or
+                    (model == 'res.partner.shipping' and ext_id == 102)):
                 if rec_id == -7:
                     ctx['ctr'] += 1
                     continue
@@ -1251,15 +1402,18 @@ def load_n_test_model(
                 vals.update(test_vals)
             general_check(ctx, model, rec_id, vals, mode=mode)
             if model == 'product.product':
-                child_id = clodoo.browseL8(ctx, model, rec_id).product_tmpl_id.id
-                for field in test_vals.keys():
-                    del vals[field]
-                general_check(ctx, 'product.template', child_id, vals)
+                check_child_record(
+                    ctx, rec_id, 'product', test_vals, vals, vals, test_pfx,
+                    mode=mode)
             elif model == 'res.partner':
                 if vals_shipping:
-                    pass
-                elif vals_billing:
-                    pass
+                    rec_type = 'delivery'
+                    check_child_record(ctx, rec_id, rec_type, test_vals, vals,
+                        vals_shipping, test_pfx, mode=mode)
+                if vals_billing:
+                    rec_type = 'invoice'
+                    check_child_record(ctx, rec_id, rec_type, test_vals, vals,
+                        vals_billing, test_pfx, mode=mode)
             elif model == 'account.payment.term':
                 if vals_line:
                     child_ids = clodoo.browseL8(ctx, model, rec_id).line_ids
@@ -1272,6 +1426,19 @@ def load_n_test_model(
                         general_check(
                             ctx, 'account.payment.term.line', child_id.id,
                             jacket_vals(vals_line[ix], test_pfx), mode='child')
+            elif model == 'sale.order':
+                if vals_line:
+                    child_ids = clodoo.browseL8(ctx, model, rec_id).order_line
+                    if len(child_ids) != len(vals_line):
+                        raise IOError(
+                            '!!Wrong len(%s[%d].line_ids)==%d: expected %d!' %
+                            (model, rec_id, len(child_ids), len(vals_line)))
+                    ctx['ctr'] += 1
+                    for ix, child_id in enumerate(child_ids):
+                        general_check(
+                            ctx, 'sale.order.line', child_id.id,
+                            jacket_vals(vals_line[ix], test_pfx), mode='child')
+
     return main_ext_id
 
 
@@ -1526,6 +1693,14 @@ def init_test(ctx):
             ('res.partner',
              [('fiscalcode', '=', 'RSSMRA60T45L219M')],
              False, True, 'child_ids', None),
+            ('product.template',
+             [('default_code', 'in', ['AA','AAA', 'BB', 'BBB', 'CC', 'CCC'])],
+             False, False,False, False),
+            ('product.product',
+             [('default_code', 'in', ['AA','AAA', 'BB', 'BBB', 'CC', 'CCC'])],
+            False, False, False, False),
+            ('product.uom',
+             [('name', 'in', ['NR','KG'])], False, False,False, False),
             ('account.payment.term',
              -1, company_id, True, None, None),
             ('account.tax', -1, company_id, True, None, None),
@@ -1547,14 +1722,16 @@ def init_test(ctx):
              RES_COUNTRY_STATE_OE8, 'oe8:', False, False, False),
             ('res.partner', RES_PARTNER_DEF, False, False, False, False),
             ('italy.conai.product.category',
-             ACCOUNT_CONAI_DEF, False, False, False, False),
+             CONAI_PROD_DEF, False, False, False, False),
+            ('product.uom',
+             PRODUCT_UOM_DEF, False, False, False, False),
             ('product.template',
              PRODUCT_TEMPLATE_DEF, False, False, 'it_IT', False),
             ('product.product',
              PRODUCT_PRODUCT_DEF, False, False, False, False),
             ('account.payment.term',
              PAYMENT_TERM_VG7, 'vg7:', company_id, False, False),
-            # ('account.tax', ACCOUNT_TAX_OE8, False, company_id, False, False),
+            ('account.tax', ACCOUNT_TAX_DEF, False, company_id, False, False),
     ):
         reset_model(ctx, model, datas,
             company_id=company, test_pfx=test_pfx, tnl=tnl, only_def=only_def)
@@ -1608,6 +1785,8 @@ def general_check(ctx, model, loc_id, vals, mode=None):
                 'billing': 'invoice',
                 'supplier': 'supplier'}[model.split('.')[2]]
         model = 'res.partner'
+    elif model == 'res.partner' and mode in ('delivery', 'invoice'):
+        spec = mode
     loc_rec = clodoo.browseL8(ctx, model, loc_id)
     if spec:
         if not compare(ctx, loc_rec.type, spec, spec):
@@ -1619,7 +1798,8 @@ def general_check(ctx, model, loc_id, vals, mode=None):
     for ext_ref in vals:
         if ext_ref in (
                 'vg7:date_scadenza', 'vg7:shipping', 'vg7:billing',
-                'vg7:surename', 'vg7:name', 'id', 'vg7:street_number'):
+                'vg7:surename', 'vg7:name', 'id', 'vg7:street_number',
+                'vg7:order_rows'):
             continue
         # Odoo BUG !?
         if (model == 'res.partner' and
@@ -1745,9 +1925,16 @@ def test_synchro_vg7(ctx):
     def test_conai(ctx, mode=None):
         model = 'italy.conai.product.category'
         print('Write %s ...' % model)
-        vg7_id = load_n_test_model(ctx, model, ACCOUNT_CONAI_VG7,
+        vg7_id = load_n_test_model(ctx, model, CONAI_PROD_VG7,
             mode=mode, store=not mode, test_pfx='vg7:')
         ctx['italy.conai.product.category.CA'] = vg7_id
+
+    def test_uom(ctx, mode=None):
+        model = 'product.uom'
+        print('Write %s ...' % model)
+        vg7_id = load_n_test_model(ctx, model, PRODUCT_UOM_VG7,
+            mode=mode, store=not mode, test_pfx='vg7:')
+        ctx['product.uom.NR'] = vg7_id
 
     def test_product(ctx, mode=None):
         model = 'product.product'
@@ -1781,6 +1968,15 @@ def test_synchro_vg7(ctx):
         load_n_test_model(ctx, model, ACCOUNT_ACCOUNT_TYPE_OE8,
             mode=mode, store=not mode, test_pfx='oe8:', fct_test='trigger')
 
+    def test_sale_order(ctx, mode=None, test_pfx=None, fct_test=None):
+        test_pfx = test_pfx or 'vg7:'
+        model = 'sale.order'
+        print('Write %s ...' % model)
+        vg7_id = load_n_test_model(ctx, model,
+            SALE_ORDER_VG7 if test_pfx == 'vg7:' else SALE_ORDER_OE8,
+            mode=mode, store=not mode, test_pfx=test_pfx, fct_test=fct_test)
+        ctx['sale.order.210123'] = vg7_id
+
     ctx, company_id = init_test(ctx)
     #
     # Repeat tests 2 times to check correct synchronization
@@ -1801,11 +1997,17 @@ def test_synchro_vg7(ctx):
         test_conai(ctx)
         test_conai(ctx, mode=True)
 
+    test_uom(ctx)
+    test_uom(ctx, mode=True)
+
     test_product(ctx)
     test_product(ctx, mode=True)
 
     test_partner(ctx, mode='wrong')
     test_partner(ctx)
+
+    test_sale_order(ctx, test_pfx='vg7:')
+    test_sale_order(ctx, mode=True, test_pfx='vg7:')
 
     print('*** Starting OE8 test ***')
 
