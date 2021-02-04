@@ -5552,6 +5552,20 @@ def test_einvoice_in(ctx):
                      [invoice_id])
 
 
+def purify_invoice_line(ctx):
+    print('Remove wrong encoding from VG7')
+    model = 'sale.order.line'
+    print('Analyzing invoice lines ...')
+    for line in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
+        msg_burst('%s ...' % line.name)
+        try:
+            name = line.name.encode('uft8')
+        except BaseException:
+            name = line.name.encode('utf8', 'replace').decode('utf8')
+            clodoo.writeL8(ctx, model, line.id, {'name': name})
+            print('Invoice %s ...' % line.invoice_id.number)
+
+
 def relinks_order_ddt(ctx):
     print('Link lost DdT line with sale order line')
     model = 'stock.picking.package.preparation.line'

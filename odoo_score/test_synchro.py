@@ -33,36 +33,46 @@ CANDIDATE_KEYS = (
 RESET_FIELD = (
     'id', 'prezzo_unitario', 'goods_description_id', 'carriage_condition_id',
     'transportation_method_id', 'country_id', 'state_id', 'vat', 'fiscalcode',
-    'electronic_invoice_subjected', 'firstname', 'lastname',
+    'electronic_invoice_subjected', 'firstname', 'lastname', 'user_type_id',
 )
+UNCHECK_FIELDS = [
+    'vg7:date_scadenza', 'vg7:shipping', 'vg7:billing',
+    'vg7:surename', 'vg7:name', 'id', 'vg7:street_number',
+    'vg7:order_rows'
+]
+UNCHECK_MODEL_FIELDS = {
+    'account.tax': ['vg7:description', 'vg7:code']
+}
 WRONG_DATA = {
     'region': ['TO', '(TO)'],
     'street': ['Via Porta Nuova', 'Via Porta Vecchia'],
     'shipping_name': ['$', 'Agro Latte Due s.n.c.'],
+    'name': ['CLIENTI', 'Crediti v/clienti Italia'],
 }
+# Default value to add before validation data
 SOME_DEFAULT = {
     'res.country.state': [
         {
-            'domain': ['code', 'in', ['TO', 'MI', 'BO']],
+            'domain': ['code', 'in', ['TO', 'MI', 'BO', 'NA', 'CE']],
             'value': ['country_id', 'res.country.IT']
         }
     ],
     'product.product': [
         {
             'domain': ['default_code', '=~', 'AA'],
-            'value': ['product_tmpl_id', 'product.template.A'],
+            'value': [':product_tmpl_id', 'product.template.A'],
         },
         {
             'domain': ['default_code', '=~', 'BB'],
-            'value': ['product_tmpl_id', 'product.template.B'],
+            'value': [':product_tmpl_id', 'product.template.B'],
         },
         {
             'domain': ['default_code', '=~', 'CC'],
-            'value': ['product_tmpl_id', 'product.template.C'],
+            'value': [':product_tmpl_id', 'product.template.C'],
         },
     ],
 }
-SET_SOME_DEFAULT = {
+SET_DEFAULT_FROM_CTX = {
     'res.country': [
         {
             'domain': ['code', '=', 'IT'],
@@ -180,6 +190,7 @@ TNL_VG7_TABLES = {
     'account.payment.term.line': '',
     'account.tax': 'tax_codes',
     # 'crm.team': '',
+    'delivery.carrier': 'couriers',
     'italy.conai.product.category': 'conai',
     'italy.conai.partner.category': 'esenzione_conai',
     'product.product': 'products',
@@ -189,18 +200,18 @@ TNL_VG7_TABLES = {
     'res.country': 'countries',
     'res.country.state': 'regions',
     'res.partner': 'customers',
+    'res.partner.bank': 'banks',
+    'res.partner.bank.company': 'bank_accounts',
     'res.partner.shipping': 'customers_shipping_addresses',
     'res.partner.supplier': 'suppliers',
     'stock.picking.package.preparation': 'ddt',
     'stock.picking.package.preparation.line': '',
-    'stock.picking.transportation_reason': '',
+    'stock.picking.transportation_reason': 'causals',
     'sale.order': 'orders',
     'sale.order.line': '',
 }
-
 TNL_OE8_TABLES = {
 }
-
 TNL_VG7_DICT = {
     'account.account': {
     },
@@ -332,17 +343,19 @@ TNL_VG7_DICT = {
         'conai_id': 'conai_category_id',
     },
     'stock.picking.transportation_reason': {
+        'code': False,
         'description': 'name',
     },
 }
-
 TNL_OE8_DICT = {
     'account.account.type': {
         'code': False,
         'report_type': 'type',
     },
+    'account.account': {
+        'user_type': 'user_type_id',
+    },
 }
-
 TABLE_OF_REF_FIELD = {
     'company_id': 'res.company',
     'country_id': 'res.country',
@@ -363,6 +376,38 @@ TABLE_OF_REF_FIELD = {
     'state_id': 'res.country.state',
     'transportation_reason_id': 'stock.picking.transportation_reason',
     'user_type_id': 'account.account.type',
+}
+# Record structure:
+# 0:model, 1:child_ids, 2:parent_field, 3:ext_child_field, 4:function,
+# 5:rec_type, 6:multi-child
+TABLE_OF_REF_CHILD = {
+    'account.payment.term': [
+        'account.payment.term.line', 'line_ids', 'payment_id', 'date_scadenza',
+        'get_payment_term_line_vals', False, True,
+    ],
+    'product.product': [
+        'product.product', False, False, False, False, 'profuvt', False,
+    ],
+    'res.partner': [
+        'res.partner', 'child_ids', 'parent_id', False, False, False, False,
+    ],
+    'res.partner.shipping': [
+        'res.partner', 'child_ids', 'parent_id', 'shipping',
+        'get_shipping_vals', 'delivery', False,
+    ],
+    'res.partner.invoice': [
+        'res.partner', 'child_ids', 'parent_id', 'billing',
+        'get_billing_vals', 'invoice', False,
+    ],
+    'sale.order': [
+        'sale.order.line', 'order_line', 'order_id', 'order_rows',
+        'get_sale_order_line_vals', False, True,
+    ],
+    'stock.picking.package.preparation': [
+        'stock.picking.package.preparation.line', 'line_ids',
+        'package_preparation_id', 'order_rows', 'get_ddt_line_vals',
+        False, True,
+    ],
 }
 MODULE_LIST = [
     'account', 'account_payment_term_extension', 'date_range', 'purchase',
@@ -386,11 +431,15 @@ RES_COUNTRY_STATE_VG7 = [
     {'id': 2, 'code': 'MI', 'description': 'Milano'},
     {'id': 11, 'code': 'TO', 'description': 'Torino'},
     {'id': 54, 'code': 'BO', 'description': 'Bologna'},
+    {'id': 81, 'code': 'NA', 'description': 'Napoli'},
+    {'id': 82, 'code': 'CE', 'description': 'Caserta'},
 ]
 RES_COUNTRY_STATE_OE8 = [
     {'id': 2, 'country_id': 39, 'code': 'MI', 'name': 'Milano'},
     {'id': 11, 'country_id': 39, 'code': 'TO', 'name': 'Torino'},
     {'id': 54, 'country_id': 39, 'code': 'BO', 'name': 'Bologna'},
+    {'id': 81, 'country_id': 39, 'code': 'NA', 'name': 'Napoli'},
+    {'id': 82, 'country_id': 39, 'code': 'CE', 'name': 'Caserta'},
 ]
 ACCOUNT_ACCOUNT_TYPE_DEF = [
     {'id': 'account.data_account_type_receivable',
@@ -443,6 +492,18 @@ ACCOUNT_ACCOUNT_TYPE_OE8 = [
      'code': 'credit_card', 'name': 'Credit Card', 'report_type': 'liquidity'},
     {'id': 10, 'code': 'equity', 'name': 'Equity', 'report_type': 'other'},
 ]
+ACCOUNT_ACCOUNT_DEF = [
+    {
+        'code': '152100', 'name': 'Crediti v/clienti Italia',
+        'user_type_id': 'account.data_account_type_receivable',
+    },
+]
+ACCOUNT_ACCOUNT_VG7 = []
+ACCOUNT_ACCOUNT_OE8 = [
+    {
+        'id': 152, 'code': '152100', 'name': 'CLIENTI', 'user_type': 1,
+    },
+]
 ACCOUNT_TAX_DEF = [
     {'id': 'z0bug.tax_22v', 'type_tax_use': 'sale',
      'name': 'IVA vendite 22%', 'description': '22v', 'amount': 22},
@@ -452,8 +513,9 @@ ACCOUNT_TAX_DEF = [
 ACCOUNT_TAX_VG7 = [
     {'id': 22, 'code': '22%', 'description': '', 'aliquota': 22},
     {'id': 4, 'code': '4%', 'description': '', 'aliquota': 4},
-    {'id': 101, 'code': 'a101', 'description': 'Forfettario art 101',
+    {'id': 101, 'code': 'a101', 'description': 'Forfettario art. 101',
      'aliquota': 0},
+    {'id': 115, 'code': 'a101', 'description': 'Art. 15', 'aliquota': 0},
 ]
 ACCOUNT_TAX_OE8 = [
     {'id': 1, 'description': '22v', 'name': 'IVA 22%', 'amount': 22,
@@ -510,10 +572,13 @@ PAYMENT_TERM_LINE_OE8 = [
 ]
 CONAI_PROD_DEF = [
     {'code': 'CA', 'name': 'Carta', 'conai_price_unit': 30},
+    {'code': 'AC', 'name': 'Acciaio', 'conai_price_unit': 3},
 ]
 CONAI_PROD_VG7 = [
     {'id': 1, 'code': 'CA',
      'description': 'Carta ondulata', 'prezzo_unitario': 35},
+    {'id': 10, 'code': 'AC',
+     'description': 'Acciaio', 'prezzo_unitario': 18},
 ]
 PRODUCT_PRODUCT_DEF = [
     {'id': 'z0bug.product_product_1',
@@ -548,15 +613,22 @@ PRODUCT_UOM_DEF = [
 PRODUCT_UOM_VG7 = [
     {'id': 1, 'code': 'NR'},
     {'id': 2, 'code': 'KG'},
+    {'id': 5, 'code': 'm'},
+]
+RES_COMPANY_VG7 = []
+RES_COMPANY_OE8 = [
+    {
+        'id': 2, 'partner_id': 3, 'name': 'Test Company',
+    }
 ]
 RES_PARTNER_SHIPPING = [
-    {'customer_shipping_id': 101, 'customer_id': 1,
+    {'customer_shipping_id': 101, 'customer_id': 11,
      'shipping_name': 'Partner A', 'shipping_surename': '',
      'shipping_country_id': 39, 'shipping_region_id': 11,
      'shipping_postal_code': '35100',
      'shipping_city': 'Padova',
      },
-    {'customer_shipping_id': 102, 'customer_id': 2,
+    {'customer_shipping_id': 102, 'customer_id': 12,
      'shipping_name': '', 'shipping_surename': '',
      'shipping_country_id': 39, 'shipping_region_id': 11,
      'shipping_postal_code': '10061',
@@ -564,13 +636,13 @@ RES_PARTNER_SHIPPING = [
      },
 ]
 RES_PARTNER_BILLING = [
-    {'customer_billing_id': 1, 'customer_id': 1,
+    {'customer_billing_id': 11, 'customer_id': 11,
      'billing_country_id': 39, 'billing_name': '',
      'billing_postal_code': '',
      'billing_city': 'Torino',
      'billing_piva': '00385870480'
      },
-    {'customer_billing_id': 2, 'customer_id': 2,
+    {'customer_billing_id': 12, 'customer_id': 12,
      'billing_country_id': 39, 'billing_name': '',
      'billing_postal_code': '',
      'billing_city': '',
@@ -611,7 +683,7 @@ RES_PARTNER_DEF = [
 ]
 RES_PARTNER_VG7 = [
     {
-        'id': 1, 'company': 'Partner A', 'name': None, 'surename': None,
+        'id': 11, 'company': 'Partner A', 'name': None, 'surename': None,
         'street': 'Via Porta Nuova', 'street_number': '1',
         'postal_code': '10100', 'city': 'Torino',
         'region': 'TORINO', 'region_id': 11,
@@ -626,7 +698,7 @@ RES_PARTNER_VG7 = [
     },
     {
         # Agro Latte Due  s.n.c.
-        'id': 2, 'company': None, 'name': None, 'surename': None,
+        'id': 12, 'company': None, 'name': None, 'surename': None,
         'street': None, 'street_number': None,
         'postal_code': None, 'city': None,
         'region': None, 'region_id': None,
@@ -670,6 +742,14 @@ RES_PARTNER_VG7 = [
         'splitmode': 'LF',
     },
 ]
+RES_PARTNER_OE8 = [
+    {
+        'id': 1, 'name': 'admbot', 'email': 'admbot@example.com',
+    },
+    {
+        'id':3, 'name': 'Test Company', 'email': 'info@example.com',
+    },
+]
 RES_PARTNER_SUPPLIER_VG7 = [
     {
         'id': 14, 'company': 'Delta 4 s.r.l.', 'name': None, 'surename': None,
@@ -680,9 +760,15 @@ RES_PARTNER_SUPPLIER_VG7 = [
         'piva': '06631580013', 'cf': '01781920150',
     },
 ]
+RES_USERS_VG7 = []
+RES_USERS_OE8 = [
+    {
+        'id': 13, 'login': 'admbot', 'partner_id': 1,
+    },
+]
 SALE_ORDER_VG7 = [
     {
-        'id': 1, 'customer_id': 1,'customer_shipping_id': 101,
+        'id': 1, 'customer_id': 11,'customer_shipping_id': 101,
         'order_number': '210123',
         'billing': {
         },
@@ -695,18 +781,40 @@ SALE_ORDER_LINE_VG7 = [
         'id': 1, 'order_id': 1,
         'job_name': 'Product Alpha',
         'product_name': 'Product Alpha',
-        'quantity': 5,
-        'unitary_price': 10.5,
+        'quantity': 50,
+        'unitary_price': 1.05,
+    },
+    {
+        'id': 1, 'order_id': 1,
+        'job_name': 'Product Beta',
+        'product_name': 'Product Beta',
+        'quantity': 1,
+        'unitary_price': 5.38,
     },
 ]
 SALE_ORDER_OE8 = [
+    {
+        'id': 80, 'name': 'SO080',
+    },
 ]
-STOCK_PICKING_PACKAGE_PREPARATION = [
+SALE_ORDER_LINE_OE8 = [
+    {
+        'id': 80, 'name': 'Product Alpha',
+        'client_order_ref': 'Test 8.0',
+
+    },
+]
+STOCK_PICKING_TRANSPORTATION_REASON_VG7 = [
+    {'id': 3, 'code': 'V', 'description': 'Vendita'},
+    {'id': 4, 'code': 'L', 'description': 'Conto Lavoro'},
+]
+STOCK_PICKING_TRANSPORTATION_REASON_OE8 = []
+STOCK_PICKING_PACKAGE_PREPARATION_VG7 = [
     {
         'id': 7,
         'ddt_number': '1234',
         'numero_colli': 1,
-        'customer_id': 7,
+        'customer_id': 11,
         'vettori_prima_riga': '',
         'vettori_seconda_riga': '',
         'voce_doganale': '',
@@ -722,6 +830,23 @@ STOCK_PICKING_PACKAGE_PREPARATION = [
         'mezzo': u'MITTENTE'
     }
 ]
+STOCK_PICKING_PACKAGE_PREPARATION_LINE_VG7 = [
+    {
+        'id': 7,
+        'product_id': 1,
+        'quantita': 100,
+        'prezzo_unitario': 1.05,
+    }
+]
+STOCK_PICKING_PACKAGE_PREPARATION_OE8 = [
+]
+
+
+def get_csv_path(identity):
+    if not identity:
+        return os.path.expanduser('~/clodoo/test')
+    return os.path.expanduser('~/clodoo/test/%s' % (identity.split(':')[0]))
+
 
 def env_ref(ctx, xref, retxref_id=None):
     xrefs = xref.split('.')
@@ -762,6 +887,11 @@ def delete_record(ctx, model, domains, multi=False, action=None,
     excl_list = [rec.res_id for rec in clodoo.browseL8(
         ctx, 'ir.model.data', clodoo.searchL8(
             ctx, 'ir.model.data', [('model', '=', model)]))]
+    if model=='res.partner':
+        for rec in clodoo.browseL8(ctx, 'res.users', clodoo.searchL8(
+                ctx, 'res.users', [])):
+            if rec.partner_id.id not in excl_list:
+                excl_list.append(rec.partner_id.id)
     if not isinstance(domains, (list, tuple)):
         domains = [domains]
     single_query = True
@@ -832,7 +962,7 @@ def delete_record(ctx, model, domains, multi=False, action=None,
             try:
                 clodoo.unlinkL8(ctx, model, rec_ids)
                 write_log(ctx,
-                    '>>> %s.unlink(%s)' % (model, rec_ids))
+                    '>>> %s.unlink(%s)' % (model, rec_ids), eol=True)
             except BaseException as e:
                 print('Error %s removing records ...' % e)
                 if ctx['ask']:
@@ -880,9 +1010,10 @@ def reset_ext_id(model):
         clodoo.writeL8(ctx, model, id, vals)
 
 
-def rm_file_2_pull(ext_model):
-    if os.path.isfile(os.path.expanduser('~/clodoo/%s.csv' % ext_model)):
-        os.unlink(os.path.expanduser('~/clodoo/%s.csv' % ext_model))
+def rm_file_2_pull(ext_model, identity):
+    fn = os.path.join(get_csv_path(identity), '%s.csv' % ext_model)
+    if os.path.isfile(fn):
+        os.unlink(fn)
 
 
 def set_sequence(ctx, domain, next_number, multi=False, company_id=False):
@@ -918,17 +1049,17 @@ def store_vg7id(ctx, model, id, vg7_id):
 
 
 def store_oe8id(ctx, model, id, oe8_id):
-    if model not in TNL_VG7_DICT:
-        TNL_VG7_DICT[model] = {}
-    if 'EXT' not in TNL_VG7_DICT[model]:
-        TNL_VG7_DICT[model]['LOC'] = {}
-        TNL_VG7_DICT[model]['EXT'] = {}
+    if model not in TNL_OE8_DICT:
+        TNL_OE8_DICT[model] = {}
+    if 'EXT' not in TNL_OE8_DICT[model]:
+        TNL_OE8_DICT[model]['LOC'] = {}
+        TNL_OE8_DICT[model]['EXT'] = {}
     if isinstance(oe8_id, basestring):
-        TNL_VG7_DICT[model]['LOC'][id] = eval(oe8_id)
-        TNL_VG7_DICT[model]['EXT'][eval(oe8_id)] = id
+        TNL_OE8_DICT[model]['LOC'][id] = eval(oe8_id)
+        TNL_OE8_DICT[model]['EXT'][eval(oe8_id)] = id
     else:
-        TNL_VG7_DICT[model]['LOC'][id] = oe8_id
-        TNL_VG7_DICT[model]['EXT'][oe8_id] = id
+        TNL_OE8_DICT[model]['LOC'][id] = oe8_id
+        TNL_OE8_DICT[model]['EXT'][oe8_id] = id
 
 
 def write_file_2_pull(ext_model, vals, mode=None, identity=None):
@@ -943,9 +1074,9 @@ def write_file_2_pull(ext_model, vals, mode=None, identity=None):
             ','.join(map(lambda x: str(vals[x]), vals.keys()))
         )
     if identity:
-        fn = os.path.expanduser('~/clodoo/%s/%s.csv' % (identity, ext_model))
+        fn = os.path.join(get_csv_path(identity), '%s.csv' % ext_model)
     else:
-        fn = os.path.expanduser('~/clodoo/%s.csv' % ext_model)
+        fn = os.path.join(get_csv_path(), '%s.csv' % ext_model)
     with open(fn, mode) as fd:
         fd.write(data)
 
@@ -976,7 +1107,7 @@ def jacket_vals(vals, prefix=None):
     for nm in vals.copy():
         if is_untranslable(nm, nm, vals):
             continue
-        if not nm.startswith('%s'):
+        if not nm.startswith('%s' % prefix) and not nm.startswith(':'):
             vals['%s%s' % (prefix, nm)] = vals[nm]
             del vals[nm]
     return vals
@@ -993,12 +1124,12 @@ def shirt_vals(vals):
     return vals
 
 
-def get_loc_name(model, field, test_pfx):
+def get_loc_name(model, field, identity):
     mode = False
     loc_name = field
     if field in ('vg7:id', 'oe8:id'):
         loc_name = 'id'
-    elif test_pfx.startswith('vg7'):
+    elif identity.startswith('vg7'):
         if (model and model in TNL_VG7_DICT and
                 field in TNL_VG7_DICT[model]):
             loc_name = TNL_VG7_DICT[model][field]
@@ -1013,7 +1144,7 @@ def get_loc_name(model, field, test_pfx):
             if (model and model in TNL_VG7_DICT and
                     loc_name in TNL_VG7_DICT[model]):
                 loc_name = TNL_VG7_DICT[model][loc_name]
-    elif test_pfx.startswith('oe8'):
+    elif identity.startswith('oe8'):
         if (model and model in TNL_OE8_DICT and
                 field in TNL_OE8_DICT[model]):
             loc_name = TNL_OE8_DICT[model][field]
@@ -1024,7 +1155,7 @@ def get_loc_name(model, field, test_pfx):
 
 
 def get_loc_value(
-        ctx, model, loc_rec, ext_ref, ext_name, loc_name, vals, test_pfx, spec):
+        ctx, model, loc_rec, ext_ref, ext_name, loc_name, vals, identity, spec):
     mode = False
     if loc_name.endswith('_id'):
         try:
@@ -1036,16 +1167,28 @@ def get_loc_value(
         ckstr = False
         if loc_name in TABLE_OF_REF_FIELD:
             ref_model = TABLE_OF_REF_FIELD[loc_name]
-            if (TABLE_OF_REF_FIELD[loc_name] in TNL_VG7_DICT and
-                    'LOC' in TNL_VG7_DICT[ref_model]):
-                loc_value = TNL_VG7_DICT[
-                    ref_model]['LOC'].get(loc_value,
-                    loc_value)
+            if identity.startswith('vg7'):
+                if (TABLE_OF_REF_FIELD[loc_name] in TNL_VG7_DICT and
+                        'LOC' in TNL_VG7_DICT[ref_model]):
+                    loc_value = TNL_VG7_DICT[
+                        ref_model]['LOC'].get(loc_value,
+                        loc_value)
+            elif identity.startswith('oe8'):
+                if (TABLE_OF_REF_FIELD[loc_name] in TNL_OE8_DICT and
+                        'LOC' in TNL_OE8_DICT[ref_model]):
+                    loc_value = TNL_OE8_DICT[
+                        ref_model]['LOC'].get(loc_value,
+                        loc_value)
             ckstr = True
         elif loc_name == 'parent_id':
-            if model in TNL_VG7_DICT:
-                loc_value = TNL_VG7_DICT[
-                    model]['LOC'].get(loc_value, loc_value)
+            if identity.startswith('vg7'):
+                if model in TNL_VG7_DICT:
+                    loc_value = TNL_VG7_DICT[
+                        model]['LOC'].get(loc_value, loc_value)
+            elif identity.startswith('oe8'):
+                if model in TNL_OE8_DICT:
+                    loc_value = TNL_OE8_DICT[
+                        model]['LOC'].get(loc_value, loc_value)
             ckstr = True
         if ckstr and isinstance(vals[ext_ref], basestring):
             ids = clodoo.searchL8(
@@ -1061,8 +1204,12 @@ def get_loc_value(
                     print('Warning: '
                           'multiple records %s.%s detected' % (
                               ref_model, vals[ext_ref]))
-                if ref_model in TNL_VG7_DICT:
+                if identity.startswith('vg7') and ref_model in TNL_VG7_DICT:
                     vals[ext_ref] = TNL_VG7_DICT[
+                        ref_model]['LOC'].get(ids[0],
+                        ids[0])
+                elif identity.startswith('oe8') and ref_model in TNL_OE8_DICT:
+                    vals[ext_ref] = TNL_OE8_DICT[
                         ref_model]['LOC'].get(ids[0],
                         ids[0])
                 else:
@@ -1089,13 +1236,32 @@ def get_loc_value(
 
 
 def get_ext_value(
-        ctx, model, ext_ref, ext_name, loc_name, vals, spec, test_pfx=None):
+        ctx, model, ext_ref, ext_name, loc_name, vals, spec, identity=None):
     mode = False
     field_pfx = False
     if ext_ref.startswith('vg7:') or ext_ref.startswith('oe8:'):
         field_pfx = ext_ref[0:4]
-    ext_value = vals[ext_ref]
-    if (ext_ref in ('vg7:id', 'vg7_id', 'oe8:id', 'oe8_id') and
+    if (is_untranslable(loc_name, ext_ref, vals) and
+            not field_pfx and
+            vals[ext_ref]):
+        ext_value = env_ref(ctx, vals[ext_ref])
+    else:
+        ext_value = vals[ext_ref]
+    # ext_ref like ":name" are not local translated; translate here
+    if ext_ref.startswith(':') and ext_name:
+        if loc_name in TABLE_OF_REF_FIELD:
+            ref_model = TABLE_OF_REF_FIELD[loc_name]
+            if not identity or identity.startswith('vg7'):
+                if (TABLE_OF_REF_FIELD[loc_name] in TNL_VG7_DICT and
+                        'LOC' in TNL_VG7_DICT[ref_model]):
+                    ext_value = TNL_VG7_DICT[
+                        ref_model]['LOC'].get(ext_value, ext_value)
+            elif identity.startswith('oe8'):
+                if (TABLE_OF_REF_FIELD[loc_name] in TNL_OE8_DICT and
+                        'LOC' in TNL_OE8_DICT[ref_model]):
+                    ext_value = TNL_OE8_DICT[
+                        ref_model]['LOC'].get(ext_value, ext_value)
+    elif (ext_ref in ('vg7:id', 'vg7_id', 'oe8:id', 'oe8_id') and
             (isinstance(vals[ext_ref], basestring) and
              vals[ext_ref].isdigit())):
         ext_value = eval(vals[ext_ref])
@@ -1114,7 +1280,7 @@ def get_ext_value(
             vals.get('vg7:street_number', vals.get('street_number', '')))
     elif ext_ref == 'state' and field_pfx:
         ext_value = 'draft'
-    elif loc_name == 'vat' and (field_pfx == 'vg7:' or test_pfx == 'vg7:'):
+    elif loc_name == 'vat' and (field_pfx == 'vg7:' or identity == 'vg7:'):
         if vals[ext_ref]:
             ext_value = 'IT%s' % vals[ext_ref]
     elif model == 'account.tax' and loc_name in ('name', 'description'):
@@ -1124,8 +1290,6 @@ def get_ext_value(
           loc_name == 'electronic_invoice_subjected' and
           field_pfx == 'vg7:'):
         ext_value = not os0.str2bool(vals[ext_ref], 0)
-    elif is_untranslable(loc_name, ext_ref, vals) and not field_pfx:
-        ext_value = env_ref(ctx, vals[ext_ref])
     if (model == 'res.partner' and ext_ref == 'vg7:name' and
             vals.get('vg7_id') == 17):
         mode = 'individual'
@@ -1145,9 +1309,9 @@ def reset_cache(ctx):
     ctx['ctr'] += 1
 
 
-def test_function_synchro(ctx, model, vals, test_pfx=None, ext_id=None):
-    if test_pfx:
-        vals = jacket_vals(vals, test_pfx)
+def test_function_synchro(ctx, model, vals, identity=None, ext_id=None):
+    if identity:
+        vals = jacket_vals(vals, identity)
     write_log(ctx, '>>> synchro(ctx, %s, %s)' % (model, vals))
     rec_id = clodoo.executeL8(ctx,
                               model,
@@ -1155,54 +1319,87 @@ def test_function_synchro(ctx, model, vals, test_pfx=None, ext_id=None):
                               vals)
     write_log(ctx, ' => %s' % rec_id, eol=True)
     if ext_id and rec_id > 0:
-        if test_pfx.startswith('vg7'):
+        if identity.startswith('vg7'):
             store_vg7id(ctx, model, rec_id, ext_id)
-        elif test_pfx.startswith('oe8'):
+        elif identity.startswith('oe8'):
             store_oe8id(ctx, model, rec_id, ext_id)
     return rec_id, vals
 
 
-def test_function_trigger(ctx, ext_model, vals, test_pfx, ext_id):
+def test_function_synchro2(
+        ctx, model, vals, parent_field, child_field, child_model,
+        identity=None, ext_id=None):
+    if child_field not in vals:
+        raise KeyError('No child field!')
+    child_vals = vals[child_field]
+    del vals[child_field]
+    if identity:
+        vals = jacket_vals(vals, identity)
+    write_log(ctx, '>>> synchro(ctx, %s, %s)' % (model, vals))
+    rec_id = clodoo.executeL8(ctx,
+                              model,
+                              'synchro',
+                              vals)
+    write_log(ctx, ' => %s' % rec_id, eol=True)
+    if ext_id and rec_id > 0:
+        if identity.startswith('vg7'):
+            store_vg7id(ctx, model, rec_id, ext_id)
+        elif identity.startswith('oe8'):
+            store_oe8id(ctx, model, rec_id, ext_id)
+    for item in child_vals:
+        if identity:
+            child_vals = jacket_vals(item, identity)
+        child_vals[':%s' % parent_field] = rec_id
+        write_log(ctx, '>>> synchro(ctx, %s, %s)' % (child_model, child_vals))
+        child_id = clodoo.executeL8(ctx,
+            child_model,
+            'synchro',
+            child_vals)
+        write_log(ctx, ' => %s' % child_id, eol=True)
+    return rec_id, vals
+
+
+def test_function_trigger(ctx, ext_model, vals, identity, ext_id):
     write_log(ctx, '>>> trigger_one_record(ctx, %s, %s, %s)' % (
-            ext_model, ext_id, test_pfx))
+            ext_model, ext_id, identity))
     rec_id = clodoo.executeL8(ctx,
                               'ir.model.synchro',
                               'trigger_one_record',
                               ext_model,
-                              test_pfx,
+                              identity,
                               ext_id)
     if ext_id and rec_id > 0:
-        if test_pfx.startswith('vg7'):
+        if identity.startswith('vg7'):
             store_vg7id(ctx, ext_model, rec_id, ext_id)
-        elif test_pfx.startswith('oe8'):
+        elif identity.startswith('oe8'):
             store_oe8id(ctx, ext_model, rec_id, ext_id)
-    vals = jacket_vals(vals, test_pfx)
+    vals = jacket_vals(vals, identity)
     write_log(ctx, ' => %s, %s' % (rec_id, vals), eol=True)
     return rec_id, vals
 
 
 def load_n_test_model(
-        ctx, model, default, mode=None, store=None, test_pfx=None,
+        ctx, model, default, mode=None, store=None, identity=None,
         ext_model=None, test_suppl=None, fct_test=None):
     fct_test = fct_test or 'synchro'
     write_log(ctx,
-        '%s: load_n_test_model(ctx, %s, default, mode=%s, pfx=%s)\n' % (
+        '\n%s: load_n_test_model(ctx, %s, mode=%s, pfx=%s, fct=%s)\n' % (
             datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'),
-            model, mode, test_pfx))
+            model, mode, identity, fct_test or 'trigger'))
 
-    def get_shipping_vals(vg7_id, test_pfx, mode):
+    def get_shipping_vals(vg7_id, identity, mode):
         for item in RES_PARTNER_SHIPPING:
             if item.get('customer_id') == vg7_id:
-                return set_wrong_data(item, test_pfx, mode)
+                return set_wrong_data(item, identity, mode)
         return {}
 
-    def get_billing_vals(vg7_id, test_pfx, mode):
+    def get_billing_vals(vg7_id, identity, mode):
         for item in RES_PARTNER_BILLING:
             if item['customer_id'] == vg7_id:
-                return set_wrong_data(item, test_pfx, mode)
+                return set_wrong_data(item, identity, mode)
         return {}
 
-    def get_payment_term_line_vals(vg7_id):
+    def get_payment_term_line_vals(vg7_id, identity, mode):
         vals = []
         for ix,item in enumerate(PAYMENT_TERM_LINE_VG7):
             if item['id'] == vg7_id:
@@ -1211,18 +1408,35 @@ def load_n_test_model(
                 vals.append(lines)
         return vals
 
-    def store_child_vg7id(child_model, child_id, ext_id, test_pfx):
+    def get_sale_order_line_vals(vg7_id, identity, mode):
+        vals = []
+        for ix,item in enumerate(SALE_ORDER_LINE_VG7):
+            if item['id'] == vg7_id:
+                lines = item.copy()
+                lines['id'] = lines['id'] * 10 + ix
+                vals.append(lines)
+        return vals
+
+    def get_ddt_line_vals(vg7_id, identity, mode):
+        vals = []
+        for ix,item in enumerate(STOCK_PICKING_PACKAGE_PREPARATION_LINE_VG7):
+            if item['id'] == vg7_id:
+                lines = item.copy()
+                lines['id'] = lines['id'] * 10 + ix
+                vals.append(lines)
+        return vals
+
+    def store_child_vg7id(child_model, child_id, ext_id, identity):
         if child_id and ext_id:
-            if test_pfx.startswith('vg7'):
+            if identity.startswith('vg7'):
                 store_vg7id(ctx, child_model, child_id, ext_id)
-            elif test_pfx.startswith('oe8'):
+            elif identity.startswith('oe8'):
                 store_oe8id(ctx, child_model, child_id, ext_id)
 
-    def set_wrong_data(vals, test_pfx, mode):
+    def set_wrong_data(vals, identity, mode):
         for nm in WRONG_DATA:
             if nm in vals:
-                if (test_pfx == 'vg7:' and mode == 'wrong' and
-                        vals[nm] == WRONG_DATA[nm][0]):
+                if (mode == 'wrong' and vals[nm] == WRONG_DATA[nm][0]):
                     vals[nm] = WRONG_DATA[nm][1]
                     if nm == 'region' in vals and 'region_id' in vals:
                         del vals['region_id']
@@ -1230,10 +1444,35 @@ def load_n_test_model(
                     vals[nm] = ''
         return vals
 
+    def check_childs(ctx, model, rec_id, vals_line, identity,
+                     mode=None, spec=None):
+        xmodel = '%s.%s' % (model, spec) if spec else model
+        child_model = TABLE_OF_REF_CHILD[xmodel][0]
+        childs = TABLE_OF_REF_CHILD[xmodel][1]
+        child_ids = clodoo.browseL8(ctx, model, rec_id)[childs]
+        parent_field = TABLE_OF_REF_CHILD[xmodel][2]
+        multi = TABLE_OF_REF_CHILD[xmodel][6]
+        if multi and len(child_ids) != len(vals_line):
+            raise IOError(
+                '!!Wrong len(%s[%d].line_ids)==%d: expected %d!' %
+                (model, rec_id, len(child_ids), len(vals_line)))
+        ctx['ctr'] += 1
+        rec_type = TABLE_OF_REF_CHILD[xmodel][5]
+        if multi:
+            for ix, child_id in enumerate(child_ids):
+                vals_line[ix][':%s' % parent_field] = rec_id
+                general_check(
+                    ctx, child_model, child_id.id,
+                    jacket_vals(vals_line[ix], identity),
+                    mode='child')
+        else:
+            check_child_record(ctx, rec_id, rec_type, test_vals,
+                vals, vals_line, identity, mode=mode)
+
     def check_child_record(
-            ctx, rec_id, rec_type, test_vals, vals, child_vals, test_pfx,
+            ctx, rec_id, rec_type, test_vals, vals, child_vals, identity,
             mode=None):
-        child_vals = set_wrong_data(child_vals, test_pfx, mode)
+        child_vals = set_wrong_data(child_vals, identity, mode)
         if rec_type == 'product':
             model = 'product.product'
             child_id = clodoo.browseL8(ctx, model, rec_id).product_tmpl_id
@@ -1247,14 +1486,14 @@ def load_n_test_model(
                 del child_vals[field]
             general_check(ctx, child_model, child_id, child_vals)
             # store_child_vg7id(child_model,
-            #     child_id, child_vals['%sid' % test_pfx], test_pfx)
+            #     child_id, child_vals['%sid' % identity], identity)
         elif rec_type in ('delivery', 'invoice'):
             model = 'res.partner'
             ids = clodoo.searchL8(
                 ctx, model,
                 [('parent_id', '=', rec_id), ('type', '=', rec_type)])
             if not ids:
-                if (child_vals.get('customer_billing_id') not in (1, 2) and
+                if (child_vals.get('customer_billing_id') not in (11, 12) and
                         child_vals.get('customer_shipping_id') != 102):
                     raise IOError(
                         '!!Missing child record type %s of rec %d!' %
@@ -1265,7 +1504,7 @@ def load_n_test_model(
             child_model = model
             for field in test_vals.keys():
                 del child_vals[field]
-            if test_pfx.startswith('vg7'):
+            if identity.startswith('vg7'):
                 if rec_type == 'delivery':
                     child_vals['id'] = child_vals['customer_shipping_id']
                     del child_vals['customer_shipping_id']
@@ -1273,38 +1512,47 @@ def load_n_test_model(
                     child_vals['id'] = child_vals['customer_billing_id']
                     del child_vals['customer_billing_id']
             general_check(
-                ctx, child_model, child_id, jacket_vals(child_vals, test_pfx),
+                ctx, child_model, child_id, jacket_vals(child_vals, identity),
                 mode=rec_type)
-            store_child_vg7id(child_model,
-                child_id, child_vals['%sid' % test_pfx], test_pfx)
-        elif rec_id == 'payment.term':
-            model = 'account.payment.term'
-            child_model = 'account.payment.term.line'
-            if child_vals:
-                child_ids = clodoo.browseL8(ctx, model, rec_id).line_ids
-                if len(child_ids) != len(child_vals):
-                    raise IOError(
-                        '!!Wrong len(%s[%d].line_ids)==%d: expected %d!' %
-                        (model, rec_id, len(child_ids), len(child_vals)))
-                ctx['ctr'] += 1
-                for ix, child_id in enumerate(child_ids):
-                    general_check(
-                        ctx, child_model, child_id.id,
-                        jacket_vals(child_vals[ix], test_pfx), mode='child')
+            if rec_type == 'delivery':
+                store_child_vg7id(child_model,
+                    child_id, child_vals['%sid' % identity], identity)
+        # elif rec_id == 'payment.term':
+        #     model = 'account.payment.term'
+        #     child_model = 'account.payment.term.line'
+        #     if child_vals:
+        #         child_ids = clodoo.browseL8(ctx, model, rec_id).line_ids
+        #         if len(child_ids) != len(child_vals):
+        #             raise IOError(
+        #                 '!!Wrong len(%s[%d].line_ids)==%d: expected %d!' %
+        #                 (model, rec_id, len(child_ids), len(child_vals)))
+        #         ctx['ctr'] += 1
+        #         for ix, child_id in enumerate(child_ids):
+        #             general_check(
+        #                 ctx, child_model, child_id.id,
+        #                 jacket_vals(child_vals[ix], identity), mode='child')
 
-    def get_sale_order_line_vals(vg7_id):
-        vals = []
-        for ix,item in enumerate(SALE_ORDER_LINE_VG7):
-            if item['id'] == vg7_id:
-                lines = item.copy()
-                lines['id'] = lines['id'] * 10 + ix
-                vals.append(lines)
+    def get_ext_id_from_vals(vals):
+        ext_id = False
+        if vals.get('id'):
+            ext_id = vals['id']
+        elif vals.get('customer_shipping_id'):
+            ext_id = vals['customer_shipping_id']
+        elif vals.get('customer_billing_id'):
+            ext_id = vals['customer_billing_id']
+        return ext_id
+
+    def apply_4_custom(vals, mode):
+        if mode == 'upper' and 'description' in vals:
+            vals['description'] = vals['description'].upper()
+        if mode == 'only_amount' and 'code' in vals:
+            del vals['code']
         return vals
 
     if not ext_model:
-        if test_pfx.startswith('vg7') and model in TNL_VG7_TABLES:
+        if identity.startswith('vg7') and model in TNL_VG7_TABLES:
             ext_model = TNL_VG7_TABLES[model]
-        elif test_pfx.startswith('oe8'):
+        elif identity.startswith('oe8'):
             ext_model = model
         else:
             ext_model = model
@@ -1318,80 +1566,89 @@ def load_n_test_model(
         if model in SOME_DEFAULT:
             for dict_item in SOME_DEFAULT[model]:
                 field = dict_item['domain'][0]
-                if test_pfx.startswith('vg7'):
+                if identity.startswith('vg7'):
                     for x in TNL_VG7_DICT[model].items():
                         if x[1] == dict_item['domain'][0]:
                             field = x[0]
                             break
                 if compare_some(dict_item, vals, field=field):
-                    if test_pfx:
-                        test_vals['%s%s' % (test_pfx, dict_item['value'][0]
+                    if dict_item['value'][0].startswith(':'):
+                        test_vals[dict_item['value'][0][1:]] = ctx[
+                            dict_item['value'][1]]
+                    elif identity:
+                        test_vals['%s%s' % (identity, dict_item['value'][0]
                                             )] = ctx[dict_item['value'][1]]
                     else:
                         test_vals[
                             dict_item['value'][0]] = ctx[dict_item['value'][1]]
         if ext_model in ('customers_shipping_addresses',
-                         'customers_billing_addresses',):
+                         'customers_billing_addresses'):
             shirt_vals(vals)
         for field in datas:
-            if field in ():
-                pass
             if field in vals and vals[field] is None:
                 del vals[field]
                 continue
-            loc_name, dummy = get_loc_name(model, field, test_pfx)
+            loc_name, dummy = get_loc_name(model, field, identity)
             if not ctx['conai'] and field == 'conai_id':
                 del vals[field]
                 continue
-            if ((test_pfx and is_untranslable(loc_name, field, vals)) or
-                    (not test_pfx and
+            if ((identity and is_untranslable(loc_name, field, vals)) or
+                    (not identity and
                      not is_untranslable(loc_name, field, vals))):
                 del vals[field]
 
-        if test_pfx == 'vg7:' and model == 'res.partner' and mode != 'wrong':
-            vals_shipping = get_shipping_vals(vals.get('id'), test_pfx, mode)
-            vals_billing = get_billing_vals(vals.get('id'), test_pfx, mode)
-            vals['shipping'] = vals_shipping
-            vals['billing'] = vals_billing
-            if vals_billing:
-                for field in ('piva', 'city'):
-                    if vals_billing['billing_%s' % field]:
-                        vals[field] = ''
-
-        if (test_pfx == 'vg7:' and model == 'account.payment.term' and
-                mode != 'wrong'):
-            vals_line = get_payment_term_line_vals(vals.get('id'))
-            vals['date_scadenza'] = vals_line
-        elif (test_pfx == 'vg7:' and model == 'sale.order' and
-                mode != 'wrong'):
-            vals_line = get_sale_order_line_vals(vals.get('id'))
-            vals['order_rows'] = vals_line
+        parent_field = ext_child_field = child_model = False
+        if identity == 'vg7:' and model == 'res.partner' and mode != 'wrong':
+            for xmodel in ('res.partner.shipping', 'res.partner.invoice'):
+                child_model = TABLE_OF_REF_CHILD[xmodel][0]
+                parent_field = TABLE_OF_REF_CHILD[xmodel][2]
+                ext_child_field = TABLE_OF_REF_CHILD[xmodel][3]
+                fct = TABLE_OF_REF_CHILD[xmodel][4]
+                if xmodel == 'res.partner.invoice':
+                    vals_billing = locals()[fct](
+                        vals.get('id'), identity, mode)
+                    vals[ext_child_field] = vals_billing
+                    # for field in ('piva', 'city'):
+                    #     if vals_billing['billing_%s' % field]:
+                    #         vals[field] = ''
+                else:
+                    vals_shipping = locals()[fct](
+                        vals.get('id'), identity, mode)
+                    vals[ext_child_field] = vals_shipping
+        elif (identity == 'vg7:' and model in (
+                'account.payment.term',
+                'sale.order',
+                'stock.picking.package.preparation') and
+              mode != 'wrong'):
+            child_model = TABLE_OF_REF_CHILD[model][0]
+            parent_field = TABLE_OF_REF_CHILD[model][2]
+            ext_child_field = TABLE_OF_REF_CHILD[model][3]
+            fct = TABLE_OF_REF_CHILD[model][4]
+            vals_line = locals()[fct](vals.get('id'), identity, mode)
+            vals[ext_child_field] = vals_line
 
         if not main_ext_id and vals.get('id'):
             main_ext_id = vals['id']
         if store:
-            write_file_2_pull(ext_model, vals, wa)
+            write_file_2_pull(ext_model, vals, wa, identity=identity)
             wa = 'a'
-        if mode == 'upper' and 'description' in vals:
-            vals['description'] = vals['description'].upper()
-        vals = set_wrong_data(vals, test_pfx, mode)
-        ext_id = False
-        if vals.get('id'):
-            ext_id = vals['id']
-        elif vals.get('customer_shipping_id'):
-            ext_id = vals['customer_shipping_id']
-        elif vals.get('customer_billing_id'):
-            ext_id = vals['customer_billing_id']
-        if mode == 'only_amount':
-            del vals['code']
+        vals = apply_4_custom(vals, mode)
+        vals = set_wrong_data(vals, identity, mode)
+        ext_id = get_ext_id_from_vals(vals)
+        if mode == 'wrong' and fct_test == 'trigger':
+            fct_test = 'synchro'
         if model:
             if fct_test == 'synchro':
                 rec_id, vals = test_function_synchro(ctx, model, vals,
-                    test_pfx=test_pfx, ext_id=ext_id)
+                    identity=identity, ext_id=ext_id)
+            elif fct_test == 'synchro2':
+                rec_id, vals = test_function_synchro2(ctx, model, vals,
+                    parent_field, ext_child_field, child_model,
+                    identity=identity, ext_id=ext_id)
             else:
                 rec_id, vals = test_function_trigger(
-                    ctx, ext_model, vals, test_pfx, ext_id)
-            if (test_pfx == 'vg7:' and
+                    ctx, ext_model, vals, identity, ext_id)
+            if (identity == 'vg7:' and
                     (model == 'res.partner' and ext_id == 7) or
                     (model == 'res.partner.shipping' and ext_id == 102)):
                 if rec_id == -7:
@@ -1402,79 +1659,56 @@ def load_n_test_model(
                 vals.update(test_vals)
             general_check(ctx, model, rec_id, vals, mode=mode)
             if model == 'product.product':
-                check_child_record(
-                    ctx, rec_id, 'product', test_vals, vals, vals, test_pfx,
-                    mode=mode)
+                check_childs(ctx, model, rec_id, vals, identity, mode=mode)
             elif model == 'res.partner':
                 if vals_shipping:
-                    rec_type = 'delivery'
-                    check_child_record(ctx, rec_id, rec_type, test_vals, vals,
-                        vals_shipping, test_pfx, mode=mode)
+                    check_childs(ctx, model, rec_id, vals_shipping,
+                        identity, mode=mode, spec='shipping')
                 if vals_billing:
-                    rec_type = 'invoice'
-                    check_child_record(ctx, rec_id, rec_type, test_vals, vals,
-                        vals_billing, test_pfx, mode=mode)
-            elif model == 'account.payment.term':
+                    check_childs(ctx, model, rec_id, vals_billing,
+                        identity, mode=mode, spec='invoice')
+            elif model in ('account.payment.term',
+                           'sale.order',
+                           'stock.picking.package.preparation'):
                 if vals_line:
-                    child_ids = clodoo.browseL8(ctx, model, rec_id).line_ids
-                    if len(child_ids) != len(vals_line):
-                        raise IOError(
-                            '!!Wrong len(%s[%d].line_ids)==%d: expected %d!' %
-                            (model, rec_id, len(child_ids), len(vals_line)))
-                    ctx['ctr'] += 1
-                    for ix, child_id in enumerate(child_ids):
-                        general_check(
-                            ctx, 'account.payment.term.line', child_id.id,
-                            jacket_vals(vals_line[ix], test_pfx), mode='child')
-            elif model == 'sale.order':
-                if vals_line:
-                    child_ids = clodoo.browseL8(ctx, model, rec_id).order_line
-                    if len(child_ids) != len(vals_line):
-                        raise IOError(
-                            '!!Wrong len(%s[%d].line_ids)==%d: expected %d!' %
-                            (model, rec_id, len(child_ids), len(vals_line)))
-                    ctx['ctr'] += 1
-                    for ix, child_id in enumerate(child_ids):
-                        general_check(
-                            ctx, 'sale.order.line', child_id.id,
-                            jacket_vals(vals_line[ix], test_pfx), mode='child')
-
+                    check_childs(ctx, model, rec_id, vals_line, identity,
+                        mode=mode)
     return main_ext_id
 
 
 def reset_model(ctx, model, default,
-                company_id=None, test_pfx=None, tnl=None, only_def=None):
-    print('Reset model %s (%s) ...' % (model, test_pfx))
+                company_id=None, identity=None, tnl=None, only_def=None):
+    print('Reset model %s (%s) ...' % (model, identity))
     ext_id = False
     loc_id = False
-    if test_pfx:
-        ext_name = '%s_id' % test_pfx.split(':')[0]
+    if identity:
+        ext_name = '%s_id' % identity.split(':')[0]
     rec_ids = []
     for datas in default:
         vals = {}
         for field in datas:
             if datas[field] is None:
                 continue
-            if test_pfx:
-                loc_name, dummy = get_loc_name(model, field, test_pfx)
+            if identity:
+                loc_name, dummy = get_loc_name(model, field, identity)
             else:
                 loc_name = field
             if loc_name == 'id':
-                if not test_pfx:
+                if not identity:
                     loc_id, dummy = get_ext_value(
                         ctx, model, field, field, 'id', datas, '',
-                        test_pfx=test_pfx)
-                elif test_pfx and ext_name:
+                        identity=identity)
+                elif identity and ext_name:
                     ext_id, dummy = get_ext_value(
                         ctx, model, field, field, 'id', datas, '',
-                        test_pfx=test_pfx)
+                        identity=identity)
                 continue
             if not ctx['conai'] and field == 'conai_id':
                 loc_name = False
             if loc_name:
                 vals[loc_name], dummy = get_ext_value(
                     ctx, model, field, field, loc_name, datas, '',
-                    test_pfx=test_pfx)
+                    identity=identity)
         if not vals:
             continue
         if model in SOME_DEFAULT:
@@ -1527,18 +1761,18 @@ def reset_model(ctx, model, default,
                 clodoo.writeL8(ctx, model, ids, vals)
                 write_log(ctx, '>>> %s.write(%s, %s)' % (
                     model, ids, vals), eol=True)
-            if model in SET_SOME_DEFAULT:
-                for item in SET_SOME_DEFAULT[model]:
+            if model in SET_DEFAULT_FROM_CTX:
+                for item in SET_DEFAULT_FROM_CTX[model]:
                     if compare_some(item, vals):
                         ctx[item['value']] = ids[0]
         else:
             print('Warning: No records found "%s.%s"' % (model, domain))
-    if test_pfx:
-        if test_pfx.startswith('vg7'):
+    if identity:
+        if identity.startswith('vg7'):
             ext_model = TNL_VG7_TABLES[model]
         else:
             ext_model = TNL_OE8_TABLES.get(model, model)
-        rm_file_2_pull(ext_model)
+        rm_file_2_pull(ext_model, identity)
     reset_ext_id(model)
     if only_def and rec_ids:
         delete_record(ctx, model, [('id', 'not in', rec_ids)],
@@ -1558,7 +1792,7 @@ def get_unknown_partners(ctx):
         [('name', 'ilike', 'Unknown')])
 
 def init_test(ctx):
-    write_log(ctx, '%s: init_test(ctx)' % datetime.strftime(
+    write_log(ctx, '\n%s: init_test(ctx)' % datetime.strftime(
         datetime.now(), '%Y-%m-%d %H:%M:%S'), eol=True)
     if ctx['conai']:
         MODULE_LIST.append('connector_vg7_conai')
@@ -1631,18 +1865,33 @@ def init_test(ctx):
     print('Initializing environment ...')
     model = 'res.company'
     company = clodoo.browseL8(ctx, model, company_id)
-    if not company.country_id:
-        clodoo.writeL8(
-            ctx, model, company_id, {'country_id': env_ref(ctx, 'base.it')})
+    if not company.country_id or company.name != 'Test Company':
+        clodoo.writeL8(ctx, model, company_id,
+            {
+                'country_id': env_ref(ctx, 'base.it'),
+                'name': 'Test Company',
+            })
 
     # Default values for current user
-    vals = {'company_id': company_id}
-    if ctx['lang'] != '.':
+    model = 'res.users'
+    user_id = env_ref(ctx, 'base.user_root')
+    if user_id != ctx['user_id']:
+        raise IOError('!!Invalid current user id %s; set %s!' % (
+            ctx['user_id'], user_id))
+    user = clodoo.browseL8(ctx, model, ctx['user_id'])
+    if user.login != 'zeroadm':
+        raise IOError(
+            '!!Invalid current user login %s; set zeroadm!' % user.login)
+    vals = {}
+    if user.company_id.id != company_id:
+        vals['company_id'] = company_id
+    if ctx['lang'] != '.' and user.lang != ctx['lang']:
         vals['lang'] = ctx['lang']
-    clodoo.writeL8(ctx, 'res.users', ctx['user_id'], vals)
-    write_log(ctx, '>>> res.users.write(%s, %s)' % (
-        ctx['user_id'], vals), eol=True)
-    ctx['lang'] = clodoo.browseL8(ctx, model, ctx['user_id']).lang
+    if vals:
+        clodoo.writeL8(ctx, 'res.users', ctx['user_id'], vals)
+        write_log(ctx, '>>> res.users.write(%s, %s)' % (
+            ctx['user_id'], vals), eol=True)
+        ctx['lang'] = clodoo.browseL8(ctx, model, ctx['user_id']).lang
     # Set message note
     ctx['company_note'] = 'Si prega di controllate i dati entro le 24h.'
     vals = {'sale_note': ctx['company_note']}
@@ -1654,7 +1903,7 @@ def init_test(ctx):
     model = 'synchro.channel'
     write_record(ctx, model, [], {
         'method': 'JSON',
-        'exchange_path': os.path.expanduser('~/clodoo'),
+        'exchange_path': get_csv_path('vg7:'),
         'tracelevel': '4',
     })
     if not ctx.get('_cr'):
@@ -1693,6 +1942,8 @@ def init_test(ctx):
             ('res.partner',
              [('fiscalcode', '=', 'RSSMRA60T45L219M')],
              False, True, 'child_ids', None),
+            ('res.partner',
+             [('name', '=like', 'Unknown %')], False, True, False, None),
             ('product.template',
              [('default_code', 'in', ['AA','AAA', 'BB', 'BBB', 'CC', 'CCC'])],
              False, False,False, False),
@@ -1711,16 +1962,27 @@ def init_test(ctx):
             ('account.account',
              [('code', '=', '180111')], company_id, False, None, None),
             ('ir.model.synchro.data', [], False, True, None, None),
+            ('res.users',
+             [('login', '=', 'admbot')], False, False, None, None),
+            ('res.partner',
+             [('name', '=', 'admbot')], False, False, None, None),
     ):
         delete_record(ctx, model, domains, multi=multi, action=action,
             childs=childs, company_id=company_id)
-    for model, datas, test_pfx, company, tnl, only_def in (
+    for model, datas, identity, company, tnl, only_def in (
             ('account.account.type',
-             ACCOUNT_ACCOUNT_TYPE_DEF, False, False, 'it_IT', True),
+             ACCOUNT_ACCOUNT_TYPE_DEF, 'oe8:', False, 'it_IT', True),
+            ('account.account',
+             ACCOUNT_ACCOUNT_DEF, 'oe8:', company_id, False, False),
+            ('res.country', RES_COUNTRY_VG7, 'vg7:', False, False, False),
             ('res.country', RES_COUNTRY_OE8, 'oe8:', False, False, False),
+            ('res.country.state',
+             RES_COUNTRY_STATE_VG7, 'vg7:', False, False, False),
             ('res.country.state',
              RES_COUNTRY_STATE_OE8, 'oe8:', False, False, False),
             ('res.partner', RES_PARTNER_DEF, False, False, False, False),
+            ('res.company', [], 'oe8:', False, False, False),
+            ('res.users', [], 'oe8:', False, False, False),
             ('italy.conai.product.category',
              CONAI_PROD_DEF, False, False, False, False),
             ('product.uom',
@@ -1732,9 +1994,12 @@ def init_test(ctx):
             ('account.payment.term',
              PAYMENT_TERM_VG7, 'vg7:', company_id, False, False),
             ('account.tax', ACCOUNT_TAX_DEF, False, company_id, False, False),
+            ('stock.picking.transportation_reason',
+             STOCK_PICKING_TRANSPORTATION_REASON_VG7,
+             False, False, False, False),
     ):
         reset_model(ctx, model, datas,
-            company_id=company, test_pfx=test_pfx, tnl=tnl, only_def=only_def)
+            company_id=company, identity=identity, tnl=tnl, only_def=only_def)
     for model, domain, company_id, vals in (
             ('res.partner', [('name', 'like', 'Rossi')], False,
              {'individual': True}),
@@ -1794,12 +2059,12 @@ def general_check(ctx, model, loc_id, vals, mode=None):
                 '!!Field %s[%s].%s: invalid value <%s> expected <%s>' % (
                     model, loc_id, 'type', loc_rec.type, spec))
         ctx['ctr'] += 1
-    test_pfx = False
+    identity = False
     for ext_ref in vals:
-        if ext_ref in (
-                'vg7:date_scadenza', 'vg7:shipping', 'vg7:billing',
-                'vg7:surename', 'vg7:name', 'id', 'vg7:street_number',
-                'vg7:order_rows'):
+        if ext_ref in UNCHECK_FIELDS:
+            continue
+        if (model in UNCHECK_MODEL_FIELDS and
+                ext_ref in UNCHECK_MODEL_FIELDS[model]):
             continue
         # Odoo BUG !?
         if (model == 'res.partner' and
@@ -1814,11 +2079,15 @@ def general_check(ctx, model, loc_id, vals, mode=None):
                 loc_name = 'vg72_id'
         elif (ext_ref.startswith('vg7:') or
               ext_ref.startswith('oe8:')):
-            test_pfx = ext_ref[0:4]
+            identity = ext_ref[0:4]
             ext_name = ext_ref[4:]
-            loc_name, mode2 = get_loc_name(model, ext_ref, test_pfx)
+            loc_name, mode2 = get_loc_name(model, ext_ref, identity)
             if loc_name == ext_ref:
-                loc_name, mode2 = get_loc_name(model, ext_name, test_pfx)
+                loc_name, mode2 = get_loc_name(model, ext_name, identity)
+        elif ext_ref.startswith(':'):
+            identity = ''
+            ext_name = ''
+            loc_name = ext_ref[1:]
         if not loc_name:
             continue
         if loc_name in ('vg7_id', 'oe8_id') and mode == 'child':
@@ -1830,7 +2099,7 @@ def general_check(ctx, model, loc_id, vals, mode=None):
             mode_compare = mode2
 
         loc_value, mode2 = get_loc_value(ctx, model,
-            loc_rec, ext_ref, ext_name, loc_name, vals, test_pfx, spec)
+            loc_rec, ext_ref, ext_name, loc_name, vals, identity, spec)
         mode_compare = mode_compare or mode2
         ext_value, mode2 = get_ext_value(
             ctx, model, ext_ref, ext_name, loc_name, vals, spec)
@@ -1884,114 +2153,164 @@ def test_synchro_vg7(ctx):
     print('Test synchronization VG7 module')
     ctx['ctr'] = 0
 
-    def test_country(ctx, mode=None, test_pfx=None, fct_test=None):
-        test_pfx = test_pfx or 'vg7:'
+    def test_company(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'oe8:'
+        model = 'res.company'
+        print('Write %s (%s) ...' % (model, identity))
+        load_n_test_model(ctx, model,
+            RES_COMPANY_VG7 if identity == 'vg7:' else RES_COMPANY_OE8,
+            mode=mode, store=not mode, identity=identity)
+
+    def test_user(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'oe8:'
+        model = 'res.users'
+        print('Write %s (%s) ...' % (model, identity))
+        load_n_test_model(ctx, model,
+            RES_USERS_VG7 if identity == 'vg7:' else RES_USERS_OE8,
+            mode=mode, store=not mode, identity=identity)
+
+    def test_country(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
         model = 'res.country'
-        print('Write %s (%s) ...' % (model, test_pfx))
+        print('Write %s (%s) ...' % (model, identity))
         vg7_id = load_n_test_model(ctx, model,
-            RES_COUNTRY_VG7 if test_pfx == 'vg7:' else RES_COUNTRY_OE8,
-            mode=mode, store=not mode, test_pfx=test_pfx, fct_test=fct_test)
-        if test_pfx == 'vg7:':
+            RES_COUNTRY_VG7 if identity == 'vg7:' else RES_COUNTRY_OE8,
+            mode=mode, store=not mode, identity=identity, fct_test=fct_test)
+        if identity == 'vg7:':
             ctx['res.country.IT'] = vg7_id
 
         model = 'res.country.state'
-        print('Write %s (%s) ...' % (model, test_pfx))
+        print('Write %s (%s) ...' % (model, identity))
         vg7_id = load_n_test_model(ctx, model,
             RES_COUNTRY_STATE_VG7
-            if test_pfx == 'vg7:' else RES_COUNTRY_STATE_OE8,
-            mode=mode, store=not mode, test_pfx=test_pfx, fct_test=fct_test,
+            if identity == 'vg7:' else RES_COUNTRY_STATE_OE8,
+            mode=mode, store=not mode, identity=identity, fct_test=fct_test,
             test_suppl='country_id')
-        if test_pfx == 'vg7:':
+        if identity == 'vg7:':
             ctx['res.country.state.MI'] = vg7_id
 
-    def test_tax(ctx, mode=None, test_pfx=None, fct_test=None):
-        test_pfx = test_pfx or 'vg7:'
+    def test_tax(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
         model = 'account.tax'
-        print('Write %s ...' % model)
+        print('Write %s (%s) ...' % (model, identity))
         vg7_id = load_n_test_model(ctx, model,
-            ACCOUNT_TAX_VG7 if test_pfx == 'vg7:' else ACCOUNT_TAX_OE8,
-            mode=mode, store=not mode, test_pfx=test_pfx, fct_test=fct_test)
+            ACCOUNT_TAX_VG7 if identity == 'vg7:' else ACCOUNT_TAX_OE8,
+            mode=mode, store=not mode, identity=identity, fct_test=fct_test)
         ctx['account.tax.22v'] = vg7_id
 
-    def test_payment(ctx, mode=None, test_pfx=None, fct_test=None):
-        test_pfx = test_pfx or 'vg7:'
+    def test_payment(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
         model = 'account.payment.term'
-        print('Write %s ...' % model)
+        print('Write %s (%s) ...' % (model, identity))
         vg7_id = load_n_test_model(ctx, model,
-            PAYMENT_TERM_VG7 if test_pfx == 'vg7:' else PAYMENT_TERM_OE8,
-            mode=mode, store=not mode, test_pfx=test_pfx, fct_test=fct_test)
+            PAYMENT_TERM_VG7 if identity == 'vg7:' else PAYMENT_TERM_OE8,
+            mode=mode, store=not mode, identity=identity, fct_test=fct_test)
         ctx['account.payment.term.30GG'] = vg7_id
 
-    def test_conai(ctx, mode=None):
+    def test_conai(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
         model = 'italy.conai.product.category'
-        print('Write %s ...' % model)
+        print('Write %s (%s) ...' % (model, identity))
         vg7_id = load_n_test_model(ctx, model, CONAI_PROD_VG7,
-            mode=mode, store=not mode, test_pfx='vg7:')
+            mode=mode, store=not mode, identity='vg7:')
         ctx['italy.conai.product.category.CA'] = vg7_id
 
-    def test_uom(ctx, mode=None):
+    def test_uom(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
         model = 'product.uom'
-        print('Write %s ...' % model)
+        print('Write %s (%s) ...' % (model, identity))
         vg7_id = load_n_test_model(ctx, model, PRODUCT_UOM_VG7,
-            mode=mode, store=not mode, test_pfx='vg7:')
+            mode=mode, store=not mode, identity=identity)
         ctx['product.uom.NR'] = vg7_id
 
-    def test_product(ctx, mode=None):
+    def test_product(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
         model = 'product.product'
-        print('Write %s ...' % model)
+        print('Write %s (%s) ...' % (model, identity))
         vg7_id = load_n_test_model(ctx, model, PRODUCT_TEMPLATE_VG7,
-            mode=mode, store=not mode, test_pfx='vg7:')
+            mode=mode, store=not mode, identity='vg7:')
         ctx['product.product.A'] = vg7_id
 
-    def test_partner(ctx, mode=None):
+    def test_partner(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
         model = 'res.partner'
-        print('Write %s ...' % model)
-        if not mode:
+        print('Write %s (%s) ...' % (model, identity))
+        if not mode and identity == 'vg7:':
             load_n_test_model(ctx, 'res.partner.shipping',
                 RES_PARTNER_SHIPPING,
-                mode=mode, store=not mode, test_pfx='vg7:')
+                mode=mode, store=not mode, identity=identity)
             load_n_test_model(ctx, 'customers_billing_addresses',
                 RES_PARTNER_SHIPPING,
-                mode=mode, store=not mode, test_pfx='vg7:')
-        vg7_id = load_n_test_model(ctx, model, RES_PARTNER_VG7,
-            mode=mode, store=not mode, test_pfx='vg7:')
-        ctx['res.partner.A'] = vg7_id
-
-        model = 'res.partner.supplier'
-        print('Write %s ...' % model)
-        vg7_id = load_n_test_model(ctx, model, RES_PARTNER_SUPPLIER_VG7,
-            mode=mode, store=not mode, test_pfx='vg7:')
-
-    def test_account_type(ctx, mode=None):
-        model = 'account.account.type'
-        print('Write %s ...' % model)
-        load_n_test_model(ctx, model, ACCOUNT_ACCOUNT_TYPE_OE8,
-            mode=mode, store=not mode, test_pfx='oe8:', fct_test='trigger')
-
-    def test_sale_order(ctx, mode=None, test_pfx=None, fct_test=None):
-        test_pfx = test_pfx or 'vg7:'
-        model = 'sale.order'
-        print('Write %s ...' % model)
+                mode=mode, store=not mode, identity=identity)
         vg7_id = load_n_test_model(ctx, model,
-            SALE_ORDER_VG7 if test_pfx == 'vg7:' else SALE_ORDER_OE8,
-            mode=mode, store=not mode, test_pfx=test_pfx, fct_test=fct_test)
+            RES_PARTNER_VG7 if identity == 'vg7:' else RES_PARTNER_OE8,
+            mode=mode, store=not mode, identity=identity)
+        if identity == 'vg7:':
+            ctx['res.partner.A'] = vg7_id
+
+            model = 'res.partner.supplier'
+            print('Write %s (%s) ...' % (model, identity))
+            vg7_id = load_n_test_model(ctx, model, RES_PARTNER_SUPPLIER_VG7,
+                mode=mode, store=not mode, identity=identity)
+
+    def test_account_type(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'oe8:'
+        model = 'account.account.type'
+        print('Write %s (%s) ...' % (model, identity))
+        load_n_test_model(ctx, model, ACCOUNT_ACCOUNT_TYPE_OE8,
+            mode=mode, store=not mode, identity='oe8:', fct_test='trigger')
+
+    def test_account(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'oe8:'
+        model = 'account.account'
+        print('Write %s (%s) ...' % (model, identity))
+        load_n_test_model(ctx, model, ACCOUNT_ACCOUNT_OE8,
+            mode=mode, store=not mode, identity='oe8:', fct_test='trigger')
+
+    def test_sale_order(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
+        model = 'sale.order'
+        print('Write %s (%s) ...' % (model, identity))
+        vg7_id = load_n_test_model(ctx, model,
+            SALE_ORDER_VG7 if identity == 'vg7:' else SALE_ORDER_OE8,
+            mode=mode, store=not mode, identity=identity, fct_test=fct_test)
         ctx['sale.order.210123'] = vg7_id
+
+    def test_causale_trasporto(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
+        model = 'stock.picking.transportation_reason'
+        print('Write %s (%s) ...' % (model, identity))
+        vg7_id = load_n_test_model(ctx, model,
+            STOCK_PICKING_TRANSPORTATION_REASON_VG7,
+            mode=mode, store=not mode, identity='vg7:')
+        ctx['stock.picking.transportation_reason.V'] = vg7_id
+
+    def test_ddt(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'vg7:'
+        model = 'stock.picking.package.preparation'
+        print('Write %s (%s) ...' % (model, identity))
+        vg7_id = load_n_test_model(ctx, model,
+            STOCK_PICKING_PACKAGE_PREPARATION_VG7 if identity == 'vg7:' else STOCK_PICKING_PACKAGE_PREPARATION_OE8,
+            mode=mode, store=not mode, identity=identity, fct_test=fct_test)
+        ctx['stock.picking.package.preparation.1234'] = vg7_id
 
     ctx, company_id = init_test(ctx)
     #
     # Repeat tests 2 times to check correct synchronization
     #
     print('*** Starting VG7 test ***')
+    write_log(ctx, '\n%s: *** Starting VG7 test ***' % datetime.strftime(
+        datetime.now(), '%Y-%m-%d %H:%M:%S'), eol=True)
 
-    test_country(ctx, test_pfx='vg7:')
-    test_country(ctx, mode='upper', test_pfx='vg7:')
+    test_country(ctx, identity='vg7:')
+    test_country(ctx, mode='upper', identity='vg7:')
 
-    test_tax(ctx, mode='only_amount', test_pfx='vg7:')
-    test_tax(ctx, test_pfx='vg7:')
+    test_tax(ctx, mode='only_amount', identity='vg7:')
+    test_tax(ctx, identity='vg7:')
 
-    test_payment(ctx, mode='wrong', test_pfx='vg7:')
-    test_payment(ctx, test_pfx='vg7:')
-    test_payment(ctx, mode=True, test_pfx='vg7:')
+    test_payment(ctx, mode='wrong', identity='vg7:')
+    test_payment(ctx, identity='vg7:')
+    test_payment(ctx, mode=True, identity='vg7:')
 
     if ctx['conai']:
         test_conai(ctx)
@@ -2006,25 +2325,40 @@ def test_synchro_vg7(ctx):
     test_partner(ctx, mode='wrong')
     test_partner(ctx)
 
-    test_sale_order(ctx, test_pfx='vg7:')
-    test_sale_order(ctx, mode=True, test_pfx='vg7:')
+    test_causale_trasporto(ctx, identity='vg7:')
+    test_causale_trasporto(ctx, mode=True, identity='vg7:')
+
+    test_sale_order(ctx, identity='vg7:', fct_test='synchro2')
+    test_sale_order(ctx, identity='vg7:')
+    test_sale_order(ctx, mode=True, identity='vg7:')
+
+    test_ddt(ctx, identity='vg7:', fct_test='synchro2')
+    test_ddt(ctx, identity='vg7:')
+    test_ddt(ctx, mode=True, identity='vg7:')
 
     print('*** Starting OE8 test ***')
+    write_log(ctx, '\n%s: *** Starting OE8 test ***' % datetime.strftime(
+        datetime.now(), '%Y-%m-%d %H:%M:%S'), eol=True)
 
     # Set method CSV and reset cache
     model = 'synchro.channel'
     clodoo.writeL8(ctx, model, clodoo.searchL8(
         ctx, model, []), {
                        'method': 'CSV',
-                       'exchange_path': os.path.expanduser('~/clodoo'),
+                       'exchange_path': get_csv_path('oe8:'),
                        'tracelevel': '4',
                    })
     reset_cache(ctx)
 
-    test_country(ctx, test_pfx='oe8:', fct_test='trigger')
-    test_account_type(ctx)
-    test_tax(ctx, test_pfx='oe8:', fct_test='trigger')
-    test_payment(ctx, test_pfx='oe8:', fct_test='trigger')
+    test_partner(ctx, identity='oe8:', fct_test='trigger')
+    test_company(ctx, identity='oe8:', fct_test='trigger')
+    test_user(ctx, identity='oe8:', fct_test='trigger')
+    test_country(ctx, identity='oe8:', fct_test='trigger')
+    test_account_type(ctx, identity='oe8:', fct_test='trigger')
+    test_account(ctx, mode='wrong', identity='oe8:', fct_test='trigger')
+    test_account(ctx, identity='oe8:', fct_test='trigger')
+    test_tax(ctx, identity='oe8:', fct_test='trigger')
+    test_payment(ctx, identity='oe8:', fct_test='trigger')
 
     # Final checks
     ids = get_invalid_partners(ctx)
