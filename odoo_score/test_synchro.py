@@ -26,6 +26,12 @@ except ImportError:
 
 __version__ = "1.0.0.4"
 
+EXT_COMPANY_ID = 2
+MODEL_WITH_CHILD = ('account.payment.term', 'account.move', 'sale.order',
+                    'stock.picking.package.preparation')
+MODEL_WITH_COMPANY = ('account.account', 'account.journal',
+                      'account.payment.term', 'account.move', 'account.tax',
+                      'sale.order', 'stock.picking.package.preparation')
 CANDIDATE_KEYS = (
     'acc_number', 'login','default_code', 'code', 'key',
     'serial_number', 'description', 'comment', 'name', 'dim_name',
@@ -35,13 +41,14 @@ RESET_FIELD = (
     'transportation_method_id', 'country_id', 'state_id', 'vat', 'fiscalcode',
     'electronic_invoice_subjected', 'firstname', 'lastname', 'user_type_id',
 )
-UNCHECK_FIELDS = [
+UNCHECK_FIELDS = (
     'vg7:date_scadenza', 'vg7:shipping', 'vg7:billing',
     'vg7:surename', 'vg7:name', 'id', 'vg7:street_number',
-    'vg7:order_rows'
-]
+    'vg7:order_rows', 'oe8:line_id', 'oe8:line_ids',
+)
 UNCHECK_MODEL_FIELDS = {
-    'account.tax': ['vg7:description', 'vg7:code']
+    'account.tax': ['vg7:description', 'vg7:code'],
+    'account.payment.term.line': ['oe8:days', 'oe8:value'],  # TODO
 }
 WRONG_DATA = {
     'region': ['TO', '(TO)'],
@@ -355,17 +362,23 @@ TNL_OE8_DICT = {
     'account.account': {
         'user_type': 'user_type_id',
     },
+    'account.move': {
+        'line_id': 'line_ids',
+    },
 }
 TABLE_OF_REF_FIELD = {
+    'account_id': 'account.account',
     'company_id': 'res.company',
     'country_id': 'res.country',
     'conai_category_id': 'italy.conai.product.category',
     'goods_description_id': 'stock.picking.goods_description',
     'invoice_id': 'account.invoice',
     'journal_id': 'account.journal',
+    'move_id': 'account.move',
     'order_id': 'sale.order',
     'partner_id': 'res.partner',
     'partner_shipping_id': 'res.partner',
+    'payment_id': 'account.payment.term',
     'payment_term_id': 'account.payment.term',
     'product_id': 'product.product',
     'product_tmpl_id': 'product.template',
@@ -381,32 +394,39 @@ TABLE_OF_REF_FIELD = {
 # 0:model, 1:child_ids, 2:parent_field, 3:ext_child_field, 4:function,
 # 5:rec_type, 6:multi-child
 TABLE_OF_REF_CHILD = {
+    'account.move': [
+        'account.move.line', 'line_ids', 'move_id', {'oe8': 'line_id'},
+        'get_move_line_vals', False, True,
+    ],
     'account.payment.term': [
-        'account.payment.term.line', 'line_ids', 'payment_id', 'date_scadenza',
+        'account.payment.term.line', 'line_ids', 'payment_id',
+        {'vg7': 'date_scadenza', 'oe8': 'line_ids'},
         'get_payment_term_line_vals', False, True,
     ],
     'product.product': [
-        'product.product', False, False, False, False, 'profuvt', False,
+        'product.product', False, False, False, False, 'product', False,
     ],
     'res.partner': [
         'res.partner', 'child_ids', 'parent_id', False, False, False, False,
     ],
     'res.partner.shipping': [
-        'res.partner', 'child_ids', 'parent_id', 'shipping',
+        'res.partner', 'child_ids', 'parent_id', {'vg7': 'shipping'},
         'get_shipping_vals', 'delivery', False,
     ],
     'res.partner.invoice': [
-        'res.partner', 'child_ids', 'parent_id', 'billing',
+        'res.partner', 'child_ids', 'parent_id', {'vg7': 'billing'},
         'get_billing_vals', 'invoice', False,
     ],
     'sale.order': [
-        'sale.order.line', 'order_line', 'order_id', 'order_rows',
+        'sale.order.line', 'order_line', 'order_id',
+        {'vg7': 'order_rows'},
         'get_sale_order_line_vals', False, True,
     ],
     'stock.picking.package.preparation': [
         'stock.picking.package.preparation.line', 'line_ids',
-        'package_preparation_id', 'order_rows', 'get_ddt_line_vals',
-        False, True,
+        'package_preparation_id',
+        {'vg7':'order_rows'},
+        'get_ddt_line_vals', False, True,
     ],
 }
 MODULE_LIST = [
@@ -497,12 +517,32 @@ ACCOUNT_ACCOUNT_DEF = [
         'code': '152100', 'name': 'Crediti v/clienti Italia',
         'user_type_id': 'account.data_account_type_receivable',
     },
+    {
+        'code': '250100', 'name': 'Debiti v/fornitori Italia',
+        'user_type_id': 'account.data_account_type_payable',
+    },
+    {
+        'code': '180002', 'name': 'Banca',
+        'user_type_id': 'account.data_account_type_liquidity',
+    },
 ]
 ACCOUNT_ACCOUNT_VG7 = []
 ACCOUNT_ACCOUNT_OE8 = [
     {
         'id': 152, 'code': '152100', 'name': 'CLIENTI', 'user_type': 1,
     },
+    {
+        'id': 250, 'code': '250100', 'name': 'FORNITORI', 'user_type': 2,
+    },
+    {
+        'id': 180, 'code': '180002', 'name': 'Banca Pop. Zero', 'user_type': 3,
+    },
+]
+ACCOUNT_JOURNAL_VG7 = []
+ACCOUNT_JOURNAL_OE8 = [
+    {
+        'id': 1, 'code': 'INV', 'name': 'Customer Invoices', 'type': 'sale',
+    }
 ]
 ACCOUNT_TAX_DEF = [
     {'id': 'z0bug.tax_22v', 'type_tax_use': 'sale',
@@ -555,16 +595,20 @@ PAYMENT_TERM_OE8 = [
 ]
 PAYMENT_TERM_LINE_OE8 = [
     {
+        'id': 30,
         'payment_id': 30,
         'value': 'balance',
         'days': 30,
     },
     {
+        'id': 31,
         'payment_id': 31,
-        'value': 'procent',
+        # 'value': 'procent',
+        'value': 'percent',
         'days': 30,
     },
     {
+        'id': 31,
         'payment_id': 31,
         'value': 'balance',
         'days': 60,
@@ -618,7 +662,7 @@ PRODUCT_UOM_VG7 = [
 RES_COMPANY_VG7 = []
 RES_COMPANY_OE8 = [
     {
-        'id': 2, 'partner_id': 3, 'name': 'Test Company',
+        'id': EXT_COMPANY_ID, 'partner_id': 3, 'name': 'Test Company',
     }
 ]
 RES_PARTNER_SHIPPING = [
@@ -749,6 +793,9 @@ RES_PARTNER_OE8 = [
     {
         'id':3, 'name': 'Test Company', 'email': 'info@example.com',
     },
+    {
+        'id': 101, 'name': 'Partner A', 'email': 'partnera@example.com',
+    }
 ]
 RES_PARTNER_SUPPLIER_VG7 = [
     {
@@ -838,7 +885,31 @@ STOCK_PICKING_PACKAGE_PREPARATION_LINE_VG7 = [
         'prezzo_unitario': 1.05,
     }
 ]
-STOCK_PICKING_PACKAGE_PREPARATION_OE8 = [
+STOCK_PICKING_PACKAGE_PREPARATION_OE8 = []
+STOCK_PICKING_PACKAGE_PREPARATION_LINE_OE8 = []
+
+ACCOUNT_MOVE_VG7 = []
+ACCOUNT_MOVE_LINE_VG7 = []
+ACCOUNT_MOVE_OE8 = [
+    {
+        'id': 2001, 'name': 'BNK/2020/0001', 'journal_id': 1, 'state': 'draft',
+    },
+]
+ACCOUNT_MOVE_LINE_OE8 = [
+    {
+        'id': 2001, 'move_id': 2001,
+        'name': 'BNK/2020/0001',
+        'account_id': 180,
+        'debit': 100.0, 'credit': 0.0,
+        'partner_id': False,
+    },
+    {
+        'id': 2001, 'move_id': 2001,
+        'name': 'BNK/2020/0001',
+        'debit': 0.0, 'credit': 100.0,
+        'account_id': 152,
+        'partner_id': 101,
+    },
 ]
 
 
@@ -1040,7 +1111,7 @@ def store_vg7id(ctx, model, id, vg7_id):
     if 'EXT' not in TNL_VG7_DICT[model]:
         TNL_VG7_DICT[model]['LOC'] = {}
         TNL_VG7_DICT[model]['EXT'] = {}
-    if isinstance(vg7_id, basestring):
+    if isinstance(vg7_id, basestring) and vg7_id.isdigit():
         TNL_VG7_DICT[model]['LOC'][id] = eval(vg7_id)
         TNL_VG7_DICT[model]['EXT'][eval(vg7_id)] = id
     else:
@@ -1054,7 +1125,7 @@ def store_oe8id(ctx, model, id, oe8_id):
     if 'EXT' not in TNL_OE8_DICT[model]:
         TNL_OE8_DICT[model]['LOC'] = {}
         TNL_OE8_DICT[model]['EXT'] = {}
-    if isinstance(oe8_id, basestring):
+    if isinstance(oe8_id, basestring) and oe8_id.isdigit():
         TNL_OE8_DICT[model]['LOC'][id] = eval(oe8_id)
         TNL_OE8_DICT[model]['EXT'][eval(oe8_id)] = id
     else:
@@ -1123,6 +1194,31 @@ def shirt_vals(vals):
             del vals[nm]
     return vals
 
+def value_by_identity(identity, val_vg7, val_oe8):
+    if identity.startswith('vg7'):
+        return val_vg7
+    elif identity.startswith('oe8'):
+        return val_oe8
+    return False
+
+
+def get_id_from_extid(loc_name, loc_value, identity):
+    if loc_name in TABLE_OF_REF_FIELD:
+        ref_model = TABLE_OF_REF_FIELD[loc_name]
+        if identity.startswith('vg7'):
+            if (ref_model in TNL_VG7_DICT and
+                    'LOC' in TNL_VG7_DICT[ref_model]):
+                loc_value = TNL_VG7_DICT[
+                    ref_model]['LOC'].get(loc_value,
+                    loc_value)
+        elif identity.startswith('oe8'):
+            if (ref_model in TNL_OE8_DICT and
+                    'LOC' in TNL_OE8_DICT[ref_model]):
+                loc_value = TNL_OE8_DICT[
+                    ref_model]['LOC'].get(loc_value,
+                    loc_value)
+    return loc_name
+
 
 def get_loc_name(model, field, identity):
     mode = False
@@ -1168,13 +1264,13 @@ def get_loc_value(
         if loc_name in TABLE_OF_REF_FIELD:
             ref_model = TABLE_OF_REF_FIELD[loc_name]
             if identity.startswith('vg7'):
-                if (TABLE_OF_REF_FIELD[loc_name] in TNL_VG7_DICT and
+                if (ref_model in TNL_VG7_DICT and
                         'LOC' in TNL_VG7_DICT[ref_model]):
                     loc_value = TNL_VG7_DICT[
                         ref_model]['LOC'].get(loc_value,
                         loc_value)
             elif identity.startswith('oe8'):
-                if (TABLE_OF_REF_FIELD[loc_name] in TNL_OE8_DICT and
+                if (ref_model in TNL_OE8_DICT and
                         'LOC' in TNL_OE8_DICT[ref_model]):
                     loc_value = TNL_OE8_DICT[
                         ref_model]['LOC'].get(loc_value,
@@ -1268,7 +1364,7 @@ def get_ext_value(
     elif (spec in ('delivery', 'invoice') and
           loc_name in ('name', 'firstname', 'vat', 'fiscalcode')):
         ext_value = False
-    elif loc_name == 'company_id':
+    elif loc_name == 'company_id' and not identity.startswith('oe8'):
         ext_value = env_ref(ctx, 'z0bug.mycompany')
     elif (loc_name.endswith('_id') and
             isinstance(vals[ext_ref], basestring) and
@@ -1387,45 +1483,6 @@ def load_n_test_model(
             datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'),
             model, mode, identity, fct_test or 'trigger'))
 
-    def get_shipping_vals(vg7_id, identity, mode):
-        for item in RES_PARTNER_SHIPPING:
-            if item.get('customer_id') == vg7_id:
-                return set_wrong_data(item, identity, mode)
-        return {}
-
-    def get_billing_vals(vg7_id, identity, mode):
-        for item in RES_PARTNER_BILLING:
-            if item['customer_id'] == vg7_id:
-                return set_wrong_data(item, identity, mode)
-        return {}
-
-    def get_payment_term_line_vals(vg7_id, identity, mode):
-        vals = []
-        for ix,item in enumerate(PAYMENT_TERM_LINE_VG7):
-            if item['id'] == vg7_id:
-                lines = item.copy()
-                lines['id'] = lines['id'] * 10 + ix
-                vals.append(lines)
-        return vals
-
-    def get_sale_order_line_vals(vg7_id, identity, mode):
-        vals = []
-        for ix,item in enumerate(SALE_ORDER_LINE_VG7):
-            if item['id'] == vg7_id:
-                lines = item.copy()
-                lines['id'] = lines['id'] * 10 + ix
-                vals.append(lines)
-        return vals
-
-    def get_ddt_line_vals(vg7_id, identity, mode):
-        vals = []
-        for ix,item in enumerate(STOCK_PICKING_PACKAGE_PREPARATION_LINE_VG7):
-            if item['id'] == vg7_id:
-                lines = item.copy()
-                lines['id'] = lines['id'] * 10 + ix
-                vals.append(lines)
-        return vals
-
     def store_child_vg7id(child_model, child_id, ext_id, identity):
         if child_id and ext_id:
             if identity.startswith('vg7'):
@@ -1459,11 +1516,16 @@ def load_n_test_model(
         ctx['ctr'] += 1
         rec_type = TABLE_OF_REF_CHILD[xmodel][5]
         if multi:
-            for ix, child_id in enumerate(child_ids):
-                vals_line[ix][':%s' % parent_field] = rec_id
+            # for ix, child_id in enumerate(child_ids):
+            for ix, child_vals in enumerate(vals_line):
+                child_vals[':%s' % parent_field] = rec_id
+                child_id = get_id_from_vg7id(
+                    ctx, child_model,
+                    child_vals.get('%sid' % identity) or child_vals.get('id'),
+                    name='%s_id' % identity.split(':')[0])
                 general_check(
-                    ctx, child_model, child_id.id,
-                    jacket_vals(vals_line[ix], identity),
+                    ctx, child_model, child_id,
+                    jacket_vals(child_vals, identity),
                     mode='child')
         else:
             check_child_record(ctx, rec_id, rec_type, test_vals,
@@ -1517,20 +1579,6 @@ def load_n_test_model(
             if rec_type == 'delivery':
                 store_child_vg7id(child_model,
                     child_id, child_vals['%sid' % identity], identity)
-        # elif rec_id == 'payment.term':
-        #     model = 'account.payment.term'
-        #     child_model = 'account.payment.term.line'
-        #     if child_vals:
-        #         child_ids = clodoo.browseL8(ctx, model, rec_id).line_ids
-        #         if len(child_ids) != len(child_vals):
-        #             raise IOError(
-        #                 '!!Wrong len(%s[%d].line_ids)==%d: expected %d!' %
-        #                 (model, rec_id, len(child_ids), len(child_vals)))
-        #         ctx['ctr'] += 1
-        #         for ix, child_id in enumerate(child_ids):
-        #             general_check(
-        #                 ctx, child_model, child_id.id,
-        #                 jacket_vals(child_vals[ix], identity), mode='child')
 
     def get_ext_id_from_vals(vals):
         ext_id = False
@@ -1549,6 +1597,81 @@ def load_n_test_model(
             del vals['code']
         return vals
 
+    def get_child_values(ctx, model, identity, mode, vals, join=None):
+
+        def get_shipping_vals(vg7_id, identity, mode):
+            for item in RES_PARTNER_SHIPPING:
+                if item.get('customer_id') == vg7_id:
+                    return set_wrong_data(item, identity, mode)
+            return {}
+
+        def get_billing_vals(vg7_id, identity, mode):
+            for item in RES_PARTNER_BILLING:
+                if item['customer_id'] == vg7_id:
+                    return set_wrong_data(item, identity, mode)
+            return {}
+
+        def get_payment_term_line_vals(vg7_id, identity, mode):
+            vals = []
+            for ix, item in enumerate(
+                    value_by_identity(identity,
+                                      PAYMENT_TERM_LINE_VG7,
+                                      PAYMENT_TERM_LINE_OE8)):
+                if item['id'] == vg7_id:
+                    lines = item.copy()
+                    lines['id'] = lines['id'] * 10 + ix
+                    vals.append(lines)
+            return vals
+
+        def get_move_line_vals(vg7_id, identity, mode):
+            vals = []
+            for ix, item in enumerate(
+                    value_by_identity(identity,
+                                      ACCOUNT_MOVE_LINE_VG7,
+                                      ACCOUNT_MOVE_LINE_OE8)):
+                if item['id'] == vg7_id:
+                    lines = item.copy()
+                    lines['id'] = lines['id'] * 10 + ix
+                    vals.append(lines)
+            return vals
+
+        def get_sale_order_line_vals(vg7_id, identity, mode):
+            vals = []
+            for ix, item in enumerate(
+                    value_by_identity(identity,
+                                      SALE_ORDER_LINE_VG7,
+                                      SALE_ORDER_LINE_OE8)):
+                if item['id'] == vg7_id:
+                    lines = item.copy()
+                    lines['id'] = lines['id'] * 10 + ix
+                    vals.append(lines)
+            return vals
+
+        def get_ddt_line_vals(vg7_id, identity, mode):
+            vals = []
+            for ix, item in enumerate(
+                    value_by_identity(
+                        identity,
+                        STOCK_PICKING_PACKAGE_PREPARATION_LINE_VG7,
+                        STOCK_PICKING_PACKAGE_PREPARATION_LINE_OE8)):
+                if item['id'] == vg7_id:
+                    lines = item.copy()
+                    lines['id'] = lines['id'] * 10 + ix
+                    vals.append(lines)
+            return vals
+
+        child_model = TABLE_OF_REF_CHILD[model][0]
+        parent_field = TABLE_OF_REF_CHILD[model][2]
+        ext_child_field = False
+        if TABLE_OF_REF_CHILD[model][3]:
+            ext_child_field = TABLE_OF_REF_CHILD[model][3].get(
+                identity.split(':')[0])
+        fct = TABLE_OF_REF_CHILD[model][4]
+        vals_line = locals()[fct](vals.get('id'), identity, mode)
+        if ext_child_field and join:
+            vals[ext_child_field] = vals_line
+        return vals, vals_line, parent_field, ext_child_field, child_model
+
     if not ext_model:
         if identity.startswith('vg7') and model in TNL_VG7_TABLES:
             ext_model = TNL_VG7_TABLES[model]
@@ -1559,7 +1682,7 @@ def load_n_test_model(
             model = False
     vals_shipping = vals_billing = vals_line = {}
     main_ext_id = False
-    wa = 'w'
+    wa = wal = 'w'
     for datas in default:
         vals = datas.copy()
         test_vals = {}
@@ -1596,46 +1719,47 @@ def load_n_test_model(
                     (not identity and
                      not is_untranslable(loc_name, field, vals))):
                 del vals[field]
+        if identity.startswith('oe8') and model in MODEL_WITH_COMPANY:
+            vals['company_id'] = EXT_COMPANY_ID
 
         parent_field = ext_child_field = child_model = False
         if identity == 'vg7:' and model == 'res.partner' and mode != 'wrong':
             for xmodel in ('res.partner.shipping', 'res.partner.invoice'):
-                child_model = TABLE_OF_REF_CHILD[xmodel][0]
-                parent_field = TABLE_OF_REF_CHILD[xmodel][2]
-                ext_child_field = TABLE_OF_REF_CHILD[xmodel][3]
-                fct = TABLE_OF_REF_CHILD[xmodel][4]
                 if xmodel == 'res.partner.invoice':
-                    vals_billing = locals()[fct](
-                        vals.get('id'), identity, mode)
-                    vals[ext_child_field] = vals_billing
-                    # for field in ('piva', 'city'):
-                    #     if vals_billing['billing_%s' % field]:
-                    #         vals[field] = ''
+                    (vals, vals_billing, parent_field, ext_child_field,
+                     child_model) = get_child_values(
+                        ctx, xmodel, identity, mode, vals, join=True)
                 else:
-                    vals_shipping = locals()[fct](
-                        vals.get('id'), identity, mode)
-                    vals[ext_child_field] = vals_shipping
-        elif (identity == 'vg7:' and model in (
-                'account.payment.term',
-                'sale.order',
-                'stock.picking.package.preparation') and
-              mode != 'wrong'):
-            child_model = TABLE_OF_REF_CHILD[model][0]
-            parent_field = TABLE_OF_REF_CHILD[model][2]
-            ext_child_field = TABLE_OF_REF_CHILD[model][3]
-            fct = TABLE_OF_REF_CHILD[model][4]
-            vals_line = locals()[fct](vals.get('id'), identity, mode)
-            vals[ext_child_field] = vals_line
+                    (vals, vals_shipping, parent_field, ext_child_field,
+                     child_model) = get_child_values(
+                        ctx, xmodel, identity, mode, vals, join=True)
+        elif model in MODEL_WITH_CHILD and mode != 'wrong':
+            (vals, vals_line, parent_field, ext_child_field,
+             child_model) = get_child_values(
+                ctx, model, identity, mode, vals, join=True)
 
         if not main_ext_id and vals.get('id'):
             main_ext_id = vals['id']
         if store:
-            write_file_2_pull(ext_model, vals, wa, identity=identity)
+            if ext_child_field and fct_test == 'trigger' and child_model:
+                child_ids = []
+                for datas in vals[ext_child_field]:
+                    child_ids.append(datas['id'])
+                    write_file_2_pull(
+                        child_model, datas, wal, identity=identity)
+                    wal = 'a'
+            datas = vals.copy()
+            if ext_child_field and fct_test != 'trigger':
+                datas[ext_child_field] = '"%s"' % datas[ext_child_field]
+            elif ext_child_field and fct_test == 'trigger' and child_model:
+                datas[ext_child_field] = '"%s"' % child_ids
+                vals[ext_child_field] = child_ids
+            write_file_2_pull(ext_model, datas, wa, identity=identity)
             wa = 'a'
         vals = apply_4_custom(vals, mode)
         vals = set_wrong_data(vals, identity, mode)
         ext_id = get_ext_id_from_vals(vals)
-        if mode == 'wrong' and fct_test == 'trigger':
+        if not store and fct_test == 'trigger':
             fct_test = 'synchro'
         if model:
             if fct_test == 'synchro':
@@ -1667,9 +1791,7 @@ def load_n_test_model(
                 if vals_billing:
                     check_childs(ctx, model, rec_id, vals_billing,
                         identity, mode=mode, spec='invoice')
-            elif model in ('account.payment.term',
-                           'sale.order',
-                           'stock.picking.package.preparation'):
+            elif model in MODEL_WITH_CHILD:
                 if vals_line:
                     check_childs(ctx, model, rec_id, vals_line, identity,
                         mode=mode)
@@ -2102,7 +2224,8 @@ def general_check(ctx, model, loc_id, vals, mode=None):
             loc_rec, ext_ref, ext_name, loc_name, vals, identity, spec)
         mode_compare = mode_compare or mode2
         ext_value, mode2 = get_ext_value(
-            ctx, model, ext_ref, ext_name, loc_name, vals, spec)
+            ctx, model, ext_ref, ext_name, loc_name, vals, spec,
+            identity=identity)
         mode_compare = mode_compare or mode2
         if loc_name == 'vg7_id':
             mode_compare = spec
@@ -2202,6 +2325,9 @@ def test_synchro_vg7(ctx):
         identity = identity or 'vg7:'
         model = 'account.payment.term'
         print('Write %s (%s) ...' % (model, identity))
+        if identity.startswith('oe8'):
+            store_oe8id(ctx, 'account.payment.term.line',
+                'percent', 'procent')
         vg7_id = load_n_test_model(ctx, model,
             PAYMENT_TERM_VG7 if identity == 'vg7:' else PAYMENT_TERM_OE8,
             mode=mode, store=not mode, identity=identity, fct_test=fct_test)
@@ -2267,6 +2393,14 @@ def test_synchro_vg7(ctx):
         load_n_test_model(ctx, model, ACCOUNT_ACCOUNT_OE8,
             mode=mode, store=not mode, identity='oe8:', fct_test='trigger')
 
+    def test_journal(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'oe8:'
+        model = 'account.journal'
+        print('Write %s (%s) ...' % (model, identity))
+        load_n_test_model(ctx, model,
+            ACCOUNT_JOURNAL_VG7 if identity == 'vg7:' else ACCOUNT_JOURNAL_OE8,
+            mode=mode, store=not mode, identity='oe8:', fct_test='trigger')
+
     def test_sale_order(ctx, mode=None, identity=None, fct_test=None):
         identity = identity or 'vg7:'
         model = 'sale.order'
@@ -2293,6 +2427,14 @@ def test_synchro_vg7(ctx):
             STOCK_PICKING_PACKAGE_PREPARATION_VG7 if identity == 'vg7:' else STOCK_PICKING_PACKAGE_PREPARATION_OE8,
             mode=mode, store=not mode, identity=identity, fct_test=fct_test)
         ctx['stock.picking.package.preparation.1234'] = vg7_id
+
+    def test_account_move(ctx, mode=None, identity=None, fct_test=None):
+        identity = identity or 'oe8:'
+        model = 'account.move'
+        print('Write %s (%s) ...' % (model, identity))
+        load_n_test_model(ctx, model,
+            ACCOUNT_MOVE_VG7 if identity == 'vg7:' else ACCOUNT_MOVE_OE8,
+            mode=mode, store=not mode, identity=identity, fct_test=fct_test)
 
     ctx, company_id = init_test(ctx)
     #
@@ -2359,6 +2501,8 @@ def test_synchro_vg7(ctx):
     test_account(ctx, identity='oe8:', fct_test='trigger')
     test_tax(ctx, identity='oe8:', fct_test='trigger')
     test_payment(ctx, identity='oe8:', fct_test='trigger')
+    test_journal(ctx, mode='wrong', identity='oe8:', fct_test='trigger')
+    test_account_move(ctx, identity='oe8:', fct_test='trigger')
 
     # Final checks
     ids = get_invalid_partners(ctx)
