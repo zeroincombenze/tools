@@ -32,7 +32,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "1.0.0.4"
+__version__ = "1.0.0.5"
 
 
 MAX_DEEP = 20
@@ -5610,6 +5610,52 @@ def purify_invoice_line(ctx):
             print('Invoice %s ...' % line.invoice_id.number)
 
 
+def unlink_ddt_from_invoice(ctx):
+    if ctx['param_1'] == 'help':
+        print('Unlink DDT form invoice [from_date|+days|ids]')
+        return
+    print('Unlink DdT from invoice')
+    invoice_model = 'account.invoice'
+    invoice_line_model = 'account.invoice.line'
+    ddt_model = 'stock.picking.package.preparation'
+    ddt_line_model = 'stock.picking.package.preparation.line'
+    date_ids = param_date(ctx['param_1'])
+    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
+        ids = clodoo.searchL8(ctx, invoice_model,
+                              [('date_invoice', '>=', date_ids)])
+    else:
+        ids = eval(date_ids)
+    if not ids:
+        print('Too many records!')
+        return
+    ctr = 0
+    inv_line_ids = []
+    ddt_line_ids = []
+    for invoice in clodoo.browseL8(ctx, invoice_model, ids):
+        for ln in invoice.invoice_line_ids:
+            ddt_line_ids.append(ln.ddt_line_id.id)
+            clodoo.writeL8(ctx, invoice_line_model, ln.id,
+                {'ddt_line_id': False})
+            ctr += 1
+            inv_line_ids.append(ln.id)
+    ddt_ids = []
+    for ln in clodoo.browseL8(
+            ctx, ddt_line_model, clodoo.searchL8(
+                ctx, ddt_line_model,
+                ['|',
+                 ('id', 'in', ddt_line_ids),
+                 ('invoice_line_id', 'in', inv_line_ids)])):
+        clodoo.writeL8(ctx, ddt_line_model, ln.id,
+            {'invoice_line_id': False})
+        ctr += 1
+        if ln.package_preparation_id.id not in ddt_ids:
+            clodoo.writeL8(ctx, ddt_model, ln.package_preparation_id.id,
+                {'to_be_invoiced': True, 'invoice_id': False})
+            ddt_ids.append(ln.package_preparation_id.id)
+            ctr += 1
+    print('%d record unlinked!' % ctr)
+
+
 def relinks_order_ddt(ctx):
     print('Link lost DdT line with sale order line')
     model = 'stock.picking.package.preparation.line'
@@ -6823,12 +6869,12 @@ print(' PURCHASE ORDER                  - unlink_einvoice_out_attachment')
 print(' - close_purchase_orders         - set_tax_code_on_invoice')
 print(' PRODUCT                         - set_comment_on_invoice')
 print(' - set_products_2_consumable     - set_move_partner_from_invoice')
-print(' - set_products_delivery_policy  COMMISSION')
-print(' - set_fiscal_on_products        - create_commission_env')
-print(' ACCOUNT                         DELIVERY/SHIPPING')
-print(' - create_RA_config              - change_ddt_number')
-print(' - manage_due_line               - create_delivery_env')
-print(' PARTNER/USER')
+print(' - set_products_delivery_policy  - unlink_ddt_from_invoice')
+print(' - set_fiscal_on_products        COMMISSION')
+print(' ACCOUNT                         - create_commission_env')
+print(' - create_RA_config              DELIVERY/SHIPPING')
+print(' - manage_due_line               - change_ddt_number')
+print(' PARTNER/USER                    - create_delivery_env')
 print(' - check_integrity_by_vg7        - show_empty_ddt')
 print(' - configure_fiscal_position     RIBA')
 print(' - set_ppf_on_partner            - configure_RiBA')
