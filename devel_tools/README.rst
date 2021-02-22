@@ -697,6 +697,15 @@ Current version via Git
     source /opt/odoo/dev/activate_tools
 
 
+History
+-------
+
+1.0.0.10 (2021-02-19)
+~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] cvt_script: best code replacement
+[IMP] topep8: recognize power organization
+
 |
 |
 
@@ -718,7 +727,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-01-18
+Last Update / Ultimo aggiornamento: 2021-02-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

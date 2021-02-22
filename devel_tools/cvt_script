@@ -119,11 +119,14 @@ cvt_file() {
       [[ -n "$OPTS_JOZ" ]] && OPTS_JOZ="-$OPTS_JOZ"
       local incl=0
       empty=0
+      susp=0
+      break_susp=""
       rm -f $fntmp
       while IFS= read -r line || [[ -n "$line" ]]; do
         while [[ "${line: -1}" == " " ]]; do line="${line:0:-1}"; done
-        # echo "$prc>$line"  #debug
-        if [ $prc -lt 10 ] && [[ $line =~ ^__version__=.* ]]; then
+        [[ susp -lt 0 && $line =~ $break_susp ]] && ((susp=-susp)) && break_susp=""
+        [[ susp -gt 0 ]] && ((susp--)) && continue
+        if [[ $prc -lt 10 && $line =~ ^__version__=.* ]]; then
           if [ $opt_keep -ne 0 ]; then
             line_ver="$line"
           elif [ $opt_lev3 -eq 0 ]; then
@@ -151,14 +154,16 @@ cvt_file() {
         elif [ $incl -eq 1 ]; then
           echo "$line" >>$fntmp
         elif [ $prc -eq 0 ]; then
-          if [[ $line =~ ^THIS=..basename || $line =~ ^export.READLINK=readlink ]]; then
+          if [[ $line =~ ^THIS=..basename || $line =~ ^export.READLINK= || $line =~ ^READLINK= ]]; then
             prc=1
             blk_1 "$fntmp"
             empty=0
+            susp=-3
+            break_susp="^if ..? -z ..Z0LIBDIR. ..?; then"
           else
             echo "$line" >>$fntmp
           fi
-        elif [ $prc -ge 1 -a $prc -le 9 ]; then
+        elif [[ $prc -ge 1 && $prc -le 9 ]]; then
           if [[ $line =~ ^ODOOLIBDIR.*findpkg.*odoorc ]]; then
             parse_blk_2
             if [ $opt_oeLib -eq 0 -a $opt_nowarn -eq 0 ]; then
@@ -220,7 +225,7 @@ cvt_file() {
               echo "Warning: found Zerobug library w/o -U switch"
               ToRepeat="$ToRepeat $opt_UT=1"
             fi
-          elif [[ $line =~ ^__version__.* ]] || [[ $line =~ ^[a-zA_Z0-9_]+[:space:]*\( ]]; then
+          elif [[ $line =~ ^__version__.* || $line =~ ^[a-zA_Z0-9_]+[:space:]*\( ]]; then
             if [ $prc -lt 2 ]; then
               parse_blk_2
             fi
@@ -347,6 +352,7 @@ cvt_file() {
       diff -q $f1 $fntmp &>/dev/null
     else
       diff --suppress-common-line -y $f1 $fntmp
+      # diff -y $f1 $fntmp
     fi
     if [ $? -eq 0 ]; then
       dummy='q'

@@ -1025,6 +1025,50 @@ def print_tax_codes(ctx):
             print('%-16.16s %-60.60s' % (rec.code, rec.name))
 
 
+def manage_due_line(ctx):
+    print('Manage due lines')
+    if ctx['param_1'] == 'help':
+        print('manage_due_line id')
+        return
+    model = 'account.move.line'
+    date_ids = param_date(ctx['param_1'])
+    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
+        ids = clodoo.searchL8(ctx, model,
+                              [('date', '>=', date_ids)])
+    else:
+        ids = eval(date_ids)
+        if isinstance(ids, int):
+            ids = [ids]
+    for rec_id in ids:
+        rec = clodoo.browseL8(ctx, model, rec_id)
+        print(rec.name, rec.move_id.name)
+        if rec.distinta_line_ids:
+            riba_list_ids = []
+            for ln in rec.distinta_line_ids:
+                riba_list_ids.append(ln.riba_line_id.distinta_id.id)
+            print('RiBA list %s (line %s)' % (
+                riba_list_ids, rec.distinta_line_ids))
+            action = input('Action: Unlink_riba,Quit: ')
+        else:
+            action = input('Action: Link_riba,Quit: ')
+        action = action[0].upper() if action else 'Q'
+        if action == 'Q':
+            break
+        if action == 'U':
+            print('Unlink record from RiBA list %s (line %s)' %
+                  (riba_list_ids, rec.distinta_line_ids))
+            clodoo.writeL8(ctx, model, rec_id, {'distinta_line_ids': [(5,0)]})
+        elif action == 'L':
+            riba_lines = input('Riba lines to link (i.e. 1,2,3): ')
+            if not riba_lines:
+                continue
+            riba_lines = eval(riba_lines)
+            if isinstance(riba_lines, int):
+                riba_lines = [riba_lines]
+            clodoo.writeL8(ctx, model, rec_id,
+                {'distinta_line_ids': [(6,0, riba_lines)]})
+
+
 def set_report_config(ctx):
     print('Set report and multireport configuration')
     print('Require module "base_multireport"')
@@ -6783,7 +6827,8 @@ print(' - set_products_delivery_policy  COMMISSION')
 print(' - set_fiscal_on_products        - create_commission_env')
 print(' ACCOUNT                         DELIVERY/SHIPPING')
 print(' - create_RA_config              - change_ddt_number')
-print(' PARTNER/USER                    - create_delivery_env')
+print(' - manage_due_line               - create_delivery_env')
+print(' PARTNER/USER')
 print(' - check_integrity_by_vg7        - show_empty_ddt')
 print(' - configure_fiscal_position     RIBA')
 print(' - set_ppf_on_partner            - configure_RiBA')

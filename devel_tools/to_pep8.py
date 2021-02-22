@@ -93,15 +93,26 @@ COPY = {
         'author': 'Odoo Community Association (OCA)',
         'website': 'https://odoo-community.org',
     },
-    'axitec': {
-        'author': 'Axitec s.r.l.',
-        'website': 'https://www.axitec.it',
+    'powerp': {
+        'author': 'powERP, Didotech srl, SHS-AV srl',
+        'website': 'https://www.powerp.it',
+        'devman': 'powERP enterprise network',
     },
     'didotech': {
         'author': 'Didotech s.r.l.',
         'website': 'https://www.didotech.com',
     },
 }
+AUTHORS_TEMPLATE = """
+* powERP <https://www.powerp.it>
+* SHS-AV s.r.l. <https://www.zeroincombenze.it>
+* Didotech srl <https://www.didotech.com>
+"""
+CONTRIBUTORS_TEMPLATE = """
+* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+* Marco Tosato <marco.tosato@didotech.com>
+* Fabio Giovannelli <fabio.giovannelli@didotech.com>
+"""
 NO_APT_GET = [
     'build-essential', 'curl', 'git', 'gradle', 'gzip', 'java',
     'lessc', 'nodejs', 'npm', 'openssl', 'python-setuptools',
@@ -197,9 +208,6 @@ class topep8():
             lines = fd.read()
             text_tgt = ''
             for line in lines.split('\n'):
-                # if line.find('__SignatureValue = pyxb.binding.content.ElementDeclaration')>=0:
-                #     import pdb
-                #     pdb.set_trace()
                 while len(line) > 79:
                     left = line
                     right = ''
@@ -262,41 +270,82 @@ class topep8():
         elif self.lines[lineno] == text:
             del self.lines[lineno]
 
+    def extract_website_from_line(self, line):
+        auth = False
+        website = False
+        copy_found = False
+        if line.find('<') >= 0 and line.find('>') >= 0:
+            website = line.split('<')[1].split('>')[0]
+            website = website.replace('http:', 'https:')
+            if website.endswith('/'):
+                website = website[0: -1]
+            for kk, item in COPY.items():
+                if item['website'].endswith(website):
+                    auth = kk
+                    copy_found = True
+                    break
+            if not copy_found:
+                auth = website.split('.')[-2]
+                COPY[auth] = {
+                    'website': 'http://%s' % website,
+                    'author': auth,
+                }
+        return copy_found, auth, website
+
     def write_license_info(self, ctx):
         odoo_majver = int(ctx['to_ver'].split('.')[0])
         if ctx['opt_copy']:
             req_copyrights = ctx['opt_copy'].split(',')
-        elif os.path.isfile('./egg-info/authors.txt'):
-            req_copyrights = []
-            with open('./egg-info/authors.txt', 'rb') as fd:
-                for line in fd.read().split('\n'):
-                    if line.find('<') >= 0 and line.find('>') >= 0:
-                        website = line.split('<')[1].split('>')[0]
-                        website = website.replace('http:', 'https:')
-                        if website.endswith('/'):
-                            website = website[0: -1]
-                        copy_found = False
-                        for kk, item in COPY.items():
-                            if item['website'] == website:
-                                req_copyrights.append(kk)
-                                copy_found = True
-                                break
-                        if not copy_found:
-                            auth = website.split('.')[-2]
-                            COPY[auth] = {
-                                'website':website,
-                                'author': auth,
-                            }
-                            req_copyrights.append(auth)
-
-
         else:
             req_copyrights = []
+        if os.path.isfile('./egg-info/authors.txt'):
+            with open('./egg-info/authors.txt', 'rb') as fd:
+                for line in fd.read().split('\n'):
+                    copy_found, auth, website = self.extract_website_from_line(
+                        line)
+                    if auth and auth not in req_copyrights:
+                        req_copyrights.append(auth)
         for org in req_copyrights:
             if org not in COPY:
                 print(
                     'Invalid copyright option! Values are %s' % COPY.keys())
                 return
+            elif org == 'powerp':
+                info_fn = './egg-info/authors.txt'
+                if os.path.isfile(info_fn):
+                    with open(info_fn, 'rb') as fd:
+                        authors = fd.read()
+                        do_rewrite = False
+                        for line in AUTHORS_TEMPLATE.split('\n'):
+                            copy_found, auth, website = \
+                                self.extract_website_from_line(line)
+                            if not copy_found:
+                                continue
+                            if website not in authors:
+                                authors += line
+                                authors += '\n'
+                                do_rewrite = True
+                    if do_rewrite:
+                        with open(info_fn, 'wb') as fd:
+                            fd.write(authors)
+                info_fn = './egg-info/contributors.txt'
+                if os.path.isfile(info_fn):
+                    with open(info_fn) as fd:
+                        authors = fd.read()
+                        do_rewrite = False
+                        for line in CONTRIBUTORS_TEMPLATE.split('\n'):
+                            email = False
+                            if line.find('<') >= 0 and line.find('>') >= 0:
+                                email = line.split('<')[1].split('>')[0]
+                            if not email:
+                                continue
+                            if email not in authors:
+                                authors += line
+                                authors += '\n'
+                                do_rewrite = True
+                    if do_rewrite:
+                        with open(info_fn, 'wb') as fd:
+                            fd.write(authors)
         copy_found = []
         lineno = 0
         empy_lines = 0
