@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='wok_code',
-      version='0.1.17',
+      version='0.1.17.1',
       description='Cook news',
       long_description="""
 manage new in various ways

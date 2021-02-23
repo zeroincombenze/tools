@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2019-2020 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2019-2021 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -13,10 +13,6 @@ import urllib2
 import json
 
 try:
-    from clodoo import clodoo
-except ImportError:
-    import clodoo
-try:
     from z0lib.z0lib import z0lib
 except ImportError:
     try:
@@ -24,7 +20,253 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = ''
+__version__ = '0.1.17.1'
+
+ROOT_URL = 'https://api.github.com/repos/zeroincombenze/'
+USER_URL = 'https://api.github.com/users/'
+TEST_REP = 'OCB'
+TEST_REP_OCB = {
+    'issues_url': '%s%s/issues{/number}' % (ROOT_URL, TEST_REP),
+    'deployments_url': '%s%s/deployments' % (ROOT_URL, TEST_REP),
+    'stargazers_count': 0,
+    'forks_url': '%s%s/forks' % (ROOT_URL, TEST_REP),
+    'mirror_url': None,
+    'subscription_url': '%s%s/subscription' % (ROOT_URL, TEST_REP),
+    'notifications_url':
+        '%s%s/notifications{?since,all,participating}' % (
+            ROOT_URL, TEST_REP),
+    'collaborators_url':
+        '%s%s/collaborators{collaborator}' % (ROOT_URL, TEST_REP),
+    'updated_at': '2013-07-15T20:26:20Z',
+    'private': False,
+    'pulls_url': '%s%s/pulls{/number}' % (ROOT_URL, TEST_REP),
+    'disabled': False,
+    'issue_comment_url':
+        '%s%s/issues/comments{number}' % (ROOT_URL, TEST_REP),
+    'labels_url': '%s%s/labels{/name}' % (ROOT_URL, TEST_REP),
+    'has_wiki': True,
+    'full_name': 'zeroincombenze/%s' % TEST_REP,
+    'owner': {
+        'following_url':
+            '%s%s/following{other_user}' % (ROOT_URL, TEST_REP),
+        'events_url':
+            '%s%s/events{/privacy}' % (ROOT_URL, TEST_REP),
+        'avatar_url':
+            'https://avatars2.githubusercontent.com/u/234?v=4',
+        'url': '%s%s' % (USER_URL, TEST_REP),
+        'gists_url': '%s%s/gists{/gist_id}' % (USER_URL, TEST_REP),
+        'html_url': 'https://github.com/%s' % TEST_REP,
+        'subscriptions_url':
+            '%s%s/subscriptions' % (USER_URL, TEST_REP),
+        'node_id': 'MDQ6VXNlcjY5NzI1NTU=',
+        'test_repos_url': '%s%s/test_repos' % (USER_URL, TEST_REP),
+        'received_events_url':
+            '%s%s/received_events' % (USER_URL, TEST_REP),
+        'gravatar_id': '',
+        'starred_url':
+            '%s%s/starred{/owner}{/TEST_REPo}' % (USER_URL, TEST_REP),
+        'site_admin': False,
+        'login': 'zeroincombenze',
+        'type': 'User',
+        'id': 6972533,
+        'followers_url':
+            '%s%s/followers' % (USER_URL, TEST_REP),
+        'organizations_url': '%s%s/orgs' % (USER_URL, TEST_REP),
+    },
+    'statuses_url': '%s%s/statuses/{sha}' % (ROOT_URL, TEST_REP),
+    'id': 58389479,
+    'keys_url':
+        '%s%s/keys{/key_id}' % (ROOT_URL, TEST_REP),
+    'description': 'Odoo Accountant closing tools',
+    'tags_url': '%s%s/tags' % (ROOT_URL, TEST_REP),
+    'archived': False,
+    'downloads_url': '%s%s/downloads' % (ROOT_URL, TEST_REP),
+    'assignees_url': '%s%s/assignees{/user}' % (ROOT_URL, TEST_REP),
+    'contents_url':
+        '%s%s/contents/{+path}' % (ROOT_URL, TEST_REP),
+    'has_pages': False,
+    'git_refs_url': '%s%s/git/refs{/sha}' % (ROOT_URL, TEST_REP),
+    'open_issues_count': 0,
+    'has_projects': True,
+    'clone_url': '%s%s.git' % (ROOT_URL, TEST_REP),
+    'watchers_count': 0,
+    'git_tags_url': '%s%s/git/tags{/sha}' % (ROOT_URL, TEST_REP),
+    'milestones_url':
+        '%s%s/milestones{/number}' % (ROOT_URL, TEST_REP),
+    'languages_url': '%s%s/languages' % (ROOT_URL, TEST_REP),
+    'size': 1884251,
+    'homepage': '',
+    'fork': True,
+    'commits_url':
+        '%s%s/commits{/sha}' % (ROOT_URL, TEST_REP),
+    'releases_url': '%s%s/releases{id}' % (ROOT_URL, TEST_REP),
+    'issue_events_url':
+        '%s%s/issues/events{/number}' % (ROOT_URL, TEST_REP),
+    'archive_url':
+        '%s%s/{archive_format}{/ref}' % (ROOT_URL, TEST_REP),
+    'comments_url': '%s%s/comments{number}' % (ROOT_URL, TEST_REP),
+    'events_url': '%s%s/events' % (ROOT_URL, TEST_REP),
+    'contributors_url': '%s%s/contributors' % (ROOT_URL, TEST_REP),
+    'html_url': '%s%s' % (ROOT_URL, TEST_REP),
+    'forks': 0,
+    'compare_url':
+        '%s%s/compare/{base}...{ead}' % (ROOT_URL, TEST_REP),
+    'open_issues': 0,
+    'node_id': 'MDEwOlJlcG9zaXRvcnk1ODM4OTkzNg==',
+    'git_url':
+        'git://github.com/zeroincombenze/%s.git' % TEST_REP,
+    'svn_url': '%s%s/%s' % (ROOT_URL, TEST_REP, TEST_REP),
+    'merges_url': '%s%s/merges' % (ROOT_URL, TEST_REP),
+    'has_issues': False,
+    'ssh_url': 'git@github.com:zeroincombenze/%s.git' % TEST_REP,
+    'blobs_url': '%s%s/git/blobs{/sha}' % (ROOT_URL, TEST_REP),
+    'git_commits_url':
+        '%s%s/git/commits{/sha}' % (ROOT_URL, TEST_REP),
+    'hooks_url': '%s%s/hooks' % (ROOT_URL, TEST_REP),
+    'has_downloads': True,
+    'license': {
+        'spdx_id': 'AGPL-3.0',
+        'url': 'https://api.github.com/licenses/agpl-3.0',
+        'node_id': 'MDc6TGljZW5zZTE=',
+        'name': 'GNU Affero General Public License v3.0',
+        'key': 'agpl-3.0'
+    },
+    'name': '%s' % TEST_REP,
+    'language': 'Python',
+    'url': '%s%s' % (ROOT_URL, TEST_REP),
+    'created_at': '2016-05-09T16:03:20Z',
+    'watchers': 0,
+    'pushed_at': '2018-06-06T12:58:38Z',
+    'forks_count': 0,
+    'default_branch': '7.0',
+    'teams_url': '%s%s/teams' % (ROOT_URL, TEST_REP),
+    'trees_url': '%s%s/git/trees{/sha}' % (ROOT_URL, TEST_REP),
+    'branches_url': '%s%s/branches{/branch}' % (ROOT_URL, TEST_REP),
+    'subscribers_url': '%s%s/subscribers' % (ROOT_URL, TEST_REP),
+    'stargazers_url': '%s%s/stargazers' % (ROOT_URL, TEST_REP),
+}
+TEST_REP = 'account-closing'
+TEST_REP_ACC_CLO = {
+    'issues_url': '%s%s/issues{/number}' % (ROOT_URL, TEST_REP),
+    'deployments_url': '%s%s/deployments' % (ROOT_URL, TEST_REP),
+    'stargazers_count': 0,
+    'forks_url': '%s%s/forks' % (ROOT_URL, TEST_REP),
+    'mirror_url': None,
+    'subscription_url': '%s%s/subscription' % (ROOT_URL, TEST_REP),
+    'notifications_url':
+        '%s%s/notifications{?since,all,participating}' % (
+            ROOT_URL, TEST_REP),
+    'collaborators_url':
+        '%s%s/collaborators{collaborator}' % (ROOT_URL, TEST_REP),
+    'updated_at': '2018-03-29T20:26:20Z',
+    'private': False,
+    'pulls_url': '%s%s/pulls{/number}' % (ROOT_URL, TEST_REP),
+    'disabled': False,
+    'issue_comment_url':
+        '%s%s/issues/comments{number}' % (ROOT_URL, TEST_REP),
+    'labels_url': '%s%s/labels{/name}' % (ROOT_URL, TEST_REP),
+    'has_wiki': True,
+    'full_name': 'zeroincombenze/%s' % TEST_REP,
+    'owner': {
+        'following_url':
+            '%s%s/following{other_user}' % (ROOT_URL, TEST_REP),
+        'events_url':
+            '%s%s/events{/privacy}' % (ROOT_URL, TEST_REP),
+        'avatar_url':
+            'https://avatars2.githubusercontent.com/u/123?v=4',
+        'url': '%s%s' % (USER_URL, TEST_REP),
+        'gists_url': '%s%s/gists{/gist_id}' % (USER_URL, TEST_REP),
+        'html_url': 'https://github.com/%s' % TEST_REP,
+        'subscriptions_url':
+            '%s%s/subscriptions' % (USER_URL, TEST_REP),
+        'node_id': 'MDQ6VXNlcjY5NzI1NTU=',
+        'test_repos_url': '%s%s/test_repos' % (USER_URL, TEST_REP),
+        'received_events_url':
+            '%s%s/received_events' % (USER_URL, TEST_REP),
+        'gravatar_id': '',
+        'starred_url':
+            '%s%s/starred{/owner}{/TEST_REPo}' % (USER_URL, TEST_REP),
+        'site_admin': False,
+        'login': 'zeroincombenze',
+        'type': 'User',
+        'id': 6972555,
+        'followers_url':
+            '%s%s/followers' % (USER_URL, TEST_REP),
+        'organizations_url': '%s%s/orgs' % (USER_URL, TEST_REP),
+    },
+    'statuses_url': '%s%s/statuses/{sha}' % (ROOT_URL, TEST_REP),
+    'id': 58389936,
+    'keys_url':
+        '%s%s/keys{/key_id}' % (ROOT_URL, TEST_REP),
+    'description': 'Odoo Accountant closing tools',
+    'tags_url': '%s%s/tags' % (ROOT_URL, TEST_REP),
+    'archived': False,
+    'downloads_url': '%s%s/downloads' % (ROOT_URL, TEST_REP),
+    'assignees_url': '%s%s/assignees{/user}' % (ROOT_URL, TEST_REP),
+    'contents_url':
+        '%s%s/contents/{+path}' % (ROOT_URL, TEST_REP),
+    'has_pages': False,
+    'git_refs_url': '%s%s/git/refs{/sha}' % (ROOT_URL, TEST_REP),
+    'open_issues_count': 0,
+    'has_projects': True,
+    'clone_url': '%s%s.git' % (ROOT_URL, TEST_REP),
+    'watchers_count': 0,
+    'git_tags_url': '%s%s/git/tags{/sha}' % (ROOT_URL, TEST_REP),
+    'milestones_url':
+        '%s%s/milestones{/number}' % (ROOT_URL, TEST_REP),
+    'languages_url': '%s%s/languages' % (ROOT_URL, TEST_REP),
+    'size': 1884706,
+    'homepage': '',
+    'fork': True,
+    'commits_url':
+        '%s%s/commits{/sha}' % (ROOT_URL, TEST_REP),
+    'releases_url': '%s%s/releases{id}' % (ROOT_URL, TEST_REP),
+    'issue_events_url':
+        '%s%s/issues/events{/number}' % (ROOT_URL, TEST_REP),
+    'archive_url':
+        '%s%s/{archive_format}{/ref}' % (ROOT_URL, TEST_REP),
+    'comments_url': '%s%s/comments{number}' % (ROOT_URL, TEST_REP),
+    'events_url': '%s%s/events' % (ROOT_URL, TEST_REP),
+    'contributors_url': '%s%s/contributors' % (ROOT_URL, TEST_REP),
+    'html_url': '%s%s' % (ROOT_URL, TEST_REP),
+    'forks': 0,
+    'compare_url':
+        '%s%s/compare/{base}...{ead}' % (ROOT_URL, TEST_REP),
+    'open_issues': 0,
+    'node_id': 'MDEwOlJlcG9zaXRvcnk1ODM4OTkzNg==',
+    'git_url':
+        'git://github.com/zeroincombenze/%s.git' % TEST_REP,
+    'svn_url': '%s%s/%s' % (ROOT_URL, TEST_REP, TEST_REP),
+    'merges_url': '%s%s/merges' % (ROOT_URL, TEST_REP),
+    'has_issues': False,
+    'ssh_url': 'git@github.com:zeroincombenze/%s.git' % TEST_REP,
+    'blobs_url': '%s%s/git/blobs{/sha}' % (ROOT_URL, TEST_REP),
+    'git_commits_url':
+        '%s%s/git/commits{/sha}' % (ROOT_URL, TEST_REP),
+    'hooks_url': '%s%s/hooks' % (ROOT_URL, TEST_REP),
+    'has_downloads': True,
+    'license': {
+        'spdx_id': 'AGPL-3.0',
+        'url': 'https://api.github.com/licenses/agpl-3.0',
+        'node_id': 'MDc6TGljZW5zZTE=',
+        'name': 'GNU Affero General Public License v3.0',
+        'key': 'agpl-3.0'
+    },
+    'name': '%s' % TEST_REP,
+    'language': 'Python',
+    'url': '%s%s' % (ROOT_URL, TEST_REP),
+    'created_at': '2016-05-09T16:03:20Z',
+    'watchers': 0,
+    'pushed_at': '2018-06-06T12:58:38Z',
+    'forks_count': 0,
+    'default_branch': '7.0',
+    'teams_url': '%s%s/teams' % (ROOT_URL, TEST_REP),
+    'trees_url': '%s%s/git/trees{/sha}' % (ROOT_URL, TEST_REP),
+    'branches_url': '%s%s/branches{/branch}' % (ROOT_URL, TEST_REP),
+    'subscribers_url': '%s%s/subscribers' % (ROOT_URL, TEST_REP),
+    'stargazers_url': '%s%s/stargazers' % (ROOT_URL, TEST_REP),
+}
+
 
 
 def get_list_from_url(ctx, git_org):
@@ -43,131 +285,7 @@ def get_list_from_url(ctx, git_org):
         if ctx['opt_verbose']:
             print('Acquire data from github.com (page=%d)...' % page)
         if ctx['dry_run']:
-            root_url = 'https://api.github.com/repos/zeroincombenze/'
-            user_url = 'https://api.github.com/users/'
-            rep = 'account-closing'
-            data = [
-                {
-                    'issues_url': '%s%s/issues{/number}' % (root_url, rep),
-                    'deployments_url': '%s%s/deployments' % (root_url, rep),
-                    'stargazers_count': 0,
-                    'forks_url': '%s%s/forks' % (root_url, rep),
-                    'mirror_url': None,
-                    'subscription_url': '%s%s/subscription' % (root_url, rep),
-                    'notifications_url':
-                         '%s%s/notifications{?since,all,participating}' % (
-                             root_url, rep),
-                    'collaborators_url':
-                         '%s%s/collaborators{collaborator}' % (root_url, rep),
-                    'updated_at': '2018-03-29T20:26:20Z',
-                    'private': False,
-                    'pulls_url': '%s%s/pulls{/number}' % (root_url, rep),
-                    'disabled': False,
-                    'issue_comment_url':
-                        '%s%s/issues/comments{number}' % (root_url, rep),
-                    'labels_url': '%s%s/labels{/name}' % (root_url, rep),
-                    'has_wiki': True,
-                    'full_name': 'zeroincombenze/%s' % rep,
-                    'owner': {
-                        'following_url':
-                            '%s%s/following{other_user}' % (root_url, rep),
-                        'events_url':
-                            '%s%s/events{/privacy}' % (root_url, rep),
-                        'avatar_url':
-                            'https://avatars2.githubusercontent.com/u/123?v=4',
-                        'url': '%s%s' % (user_url, rep),
-                        'gists_url': '%s%s/gists{/gist_id}' % (user_url, rep),
-                        'html_url': 'https://github.com/%s' % rep,
-                        'subscriptions_url':
-                            '%s%s/subscriptions' % (user_url, rep),
-                        'node_id': 'MDQ6VXNlcjY5NzI1NTU=',
-                        'repos_url': '%s%s/repos' % (user_url, rep),
-                         'received_events_url':
-                             '%s%s/received_events' % (user_url, rep),
-                        'gravatar_id': '',
-                        'starred_url':
-                            '%s%s/starred{/owner}{/repo}' % (user_url, rep),
-                        'site_admin': False,
-                        'login': 'zeroincombenze',
-                        'type': 'User',
-                        'id': 6972555,
-                         'followers_url':
-                             '%s%s/followers' % (user_url, rep),
-                        'organizations_url': '%s%s/orgs' % (user_url, rep),
-                    },
-                    'statuses_url': '%s%s/statuses/{sha}' % (root_url, rep),
-                    'id': 58389936,
-                    'keys_url':
-                        '%s%s/keys{/key_id}' % (root_url, rep),
-                    'description': 'Odoo Accountant closing tools',
-                    'tags_url': '%s%s/tags' % (root_url, rep),
-                    'archived': False,
-                    'downloads_url': '%s%s/downloads' % (root_url, rep),
-                    'assignees_url': '%s%s/assignees{/user}' % (root_url, rep),
-                    'contents_url':
-                         '%s%s/contents/{+path}' % (root_url, rep),
-                    'has_pages': False,
-                    'git_refs_url': '%s%s/git/refs{/sha}' % (root_url, rep),
-                    'open_issues_count': 0,
-                    'has_projects': True,
-                    'clone_url': '%s%s.git' % (root_url, rep),
-                    'watchers_count': 0,
-                    'git_tags_url': '%s%s/git/tags{/sha}' % (root_url, rep),
-                    'milestones_url':
-                        '%s%s/milestones{/number}' % (root_url, rep),
-                    'languages_url': '%s%s/languages' % (root_url, rep),
-                    'size': 1884706,
-                    'homepage': '',
-                    'fork': True,
-                    'commits_url':
-                        '%s%s/commits{/sha}' % (root_url, rep),
-                    'releases_url': '%s%s/releases{id}' % (root_url, rep),
-                    'issue_events_url':
-                        '%s%s/issues/events{/number}' % (root_url, rep),
-                    'archive_url':
-                        '%s%s/{archive_format}{/ref}' % (root_url, rep),
-                    'comments_url': '%s%s/comments{number}' % (root_url, rep),
-                    'events_url': '%s%s/events' % (root_url, rep),
-                    'contributors_url': '%s%s/contributors' % (root_url, rep),
-                    'html_url': '%s%s' % (root_url, rep),
-                    'forks': 0,
-                    'compare_url':
-                        '%s%s/compare/{base}...{ead}' % (root_url, rep),
-                    'open_issues': 0,
-                    'node_id': 'MDEwOlJlcG9zaXRvcnk1ODM4OTkzNg==',
-                    'git_url':
-                        'git://github.com/zeroincombenze/%s.git' % rep,
-                    'svn_url': '%s%s/%s' % (root_url, rep, rep),
-                    'merges_url': '%s%s/merges' % (root_url, rep),
-                    'has_issues': False,
-                    'ssh_url': 'git@github.com:zeroincombenze/%s.git' % rep,
-                    'blobs_url': '%s%s/git/blobs{/sha}' % (root_url, rep),
-                    'git_commits_url':
-                        '%s%s/git/commits{/sha}' % (root_url, rep),
-                    'hooks_url': '%s%s/hooks' % (root_url, rep),
-                    'has_downloads': True,
-                    'license': {
-                        'spdx_id': 'AGPL-3.0',
-                        'url': 'https://api.github.com/licenses/agpl-3.0',
-                        'node_id': 'MDc6TGljZW5zZTE=',
-                        'name': 'GNU Affero General Public License v3.0',
-                        'key': 'agpl-3.0'
-                    },
-                    'name': '%s' % rep,
-                    'language': 'Python',
-                    'url': '%s%s' % (root_url, rep),
-                    'created_at': '2016-05-09T16:03:20Z',
-                    'watchers': 0,
-                    'pushed_at': '2018-06-06T12:58:38Z',
-                    'forks_count': 0,
-                    'default_branch': '7.0',
-                    'teams_url': '%s%s/teams' % (root_url, rep),
-                    'trees_url': '%s%s/git/trees{/sha}' % (root_url, rep),
-                    'branches_url': '%s%s/branches{/branch}' % (root_url, rep),
-                    'subscribers_url': '%s%s/subscribers' % (root_url, rep),
-                    'stargazers_url': '%s%s/stargazers' % (root_url, rep),
-                },
-            ]
+            data = [TEST_REP_OCB, TEST_REP_ACC_CLO]
             if page > 1:
                 data = []
         else:
@@ -188,7 +306,7 @@ def get_list_from_url(ctx, git_org):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Get repository list from github.com",
-                                "(R) 2019-2020 by SHS-AV s.r.l.",
+                                "(R) 2019-2021 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument(

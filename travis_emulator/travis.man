@@ -9,49 +9,47 @@ travis [options] action
 \fBtravis\fR can emulate TravisCi parsing the \fB.travis.yml\fR file in local Linux machine.
 You can test your application before pushing code to github.com web site.
 .br
-Travis emulator can creates all the build declared in \fB.travis.yml\fR; all the builds are executed in sequential way.
-The directory ~/travis_log (see -l switch) keeps the logs of all builds created.
+Travis emulator can creates all the build declared in \fB.travis.yml\fR; all builds are executed in sequential way.
+The directory ~/travis_log (see -l switch) keeps the logs of all created builds.
 Please note that log file is a binary file with escape ANSI screen code.
 .br
 If you want to see the log use one of following command:
 .P
 .RS
-travis show
-.br
-less -R ~/travis_log/<build_name>.log
+travis show-log
 .RE
 .P
 A travis build executes the following steps:
 .br
 * Initialize from local .travis.conf (not in travis-ci.org)
 .br
-* Optional install packages \fIapt addons\fR (emulatore makes just the check)
+* Optional install packages \fIapt addons\fR (emulator does not install, it makes just the check)
 .br
 * Optional install packages \fIcache\fR
 .br
 * Set global values \fIenv global\fR
 .br
-* Execute code \fIbefore_install\fR
+* Execute code from \fIbefore_install\fR
 .br
 * Execute matrix initialization, included python version
 .br
-* Execute build code \fIinstall\fR
+* Execute build code from \fIinstall\fR
 .br
-* Execute build code \fIbefore_script\fR
+* Execute build code from \fIbefore_script\fR
 .br
-* Execute build code \fIscript\fR
+* Execute build code from \fIscript\fR
 .br
-* Execute build \fIbefore_cache\fR (only if cache is effective, not emulated)
+* TravisCi executes build from \fIbefore_cache\fR (only if cache is effective, not emulated)
 .br
-* Execute build code \fIafter_success\fR (emulated) or \fIafter_failure\fR (not emulated)
+* TravisCi executes build code from \fIafter_success\fR (emulated) or \fIafter_failure\fR (not emulated)
 .br
-* Optional code \fIbefore_deploy\fR (only if deployment is effective, not emulated)
+* TravisCi execute optional code \fIbefore_deploy\fR (only if deployment is effective, not emulated)
 .br
-* Optional code \fIdeploy\fR (not emulated)
+* TravisCi execute optional code \fIdeploy\fR (not emulated)
 .br
-* Optional code \fIafter_deploy\fR (only if deployment is effective, not emulated)
+* TravisCi executes optional code \fIafter_deploy\fR (only if deployment is effective, not emulated)
 .br
-* Execute code \fIafter_script\fR (not emulated)
+* TravisCi executes code \fIafter_script\fR (not emulated)
 .br
 * Wep from local .travis.conf (not in travis-ci.org)
 .br
@@ -75,20 +73,18 @@ Action is one of:
 .br
 * parseyaml
 .br
-* show
+* show-log
 .br
 * summary
 .br
 * wep_db
-.br
-* wep-db
 .br
 .P
 \fBemulate\fR
 .RS
 Emulate TravisCi
 .br
-Start TravisCi emulator processing current .travis.yml file
+Start TravisCi emulator processing current .travis.yml file. This is the default action.
 .RE
 .P
 \fBforce-lint\fR \fBlint\fR
@@ -116,13 +112,13 @@ Show last log summary
 .P
 \fBweb-db\fR
 .RS
-Remove virtual environments and postgres database created by previous travis emulator interuppted
+Remove virtual environments and postgres database created by previous travis emulator interupted
 .br
 .RE
 .SH OPTIONS
 .TP
 .BR \-B
-Run in debug mode and do not create log file
+Run in debug mode without creating log file; enable pdb for local debug
 .TP
 .BR \-D \fIdebu-level\fR
 Set travis_debug_mode: may be 0,1,2,8 or 9
