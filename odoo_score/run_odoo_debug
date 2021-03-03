@@ -95,6 +95,7 @@ if [ -z "$script" ]; then
     echo "! No odoo script found!!"
     exit 1
 fi
+ODOO_RUNDIR=$(dirname $script)
 VDIR=$(build_odoo_param VDIR $odoo_root)
 GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_root)
 manifest=$(build_odoo_param MANIFEST $odoo_vid)
@@ -334,15 +335,15 @@ if [ $opt_touch -eq 0 ]; then
     run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $FULL_LCONFN"
     if [ $create_db -gt 0 ]; then
         if [ -n "$depmods" -a $opt_test -ne 0 ]; then
-            run_traced "$script $OPTDB $OPT_CONF --log-level=error -i $depmods"
+            run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error -i $depmods"
         else
-            run_traced "$script $OPTDB $OPT_CONF --log-level=error"
+            run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error"
         fi
     fi
     if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
         OPTS="--debug $OPTS"
     fi
-    run_traced "$script $OPT_CONF $OPT_LLEV $OPTS"
+    run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
     if [[ -n "$VDIR" ]]; then
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
         [ $opt_verbose -gt 0 ] && echo "$x $$ DAEMON ? $(basename $0): deactivate"

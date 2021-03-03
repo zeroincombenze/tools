@@ -44,7 +44,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.6
+__version__=1.0.0.7
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -569,7 +569,7 @@ process_yaml_run_cmd() {
   if [ "${x[$ix]}" == "$YML_lisa" -a "${x[$ix1]}" == "install" ]; then
     if $($YML_lisa status ${x[$ix2]} &>/dev/null); then
       xcmd="# $xcmd"
-    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel) ]]; then
+    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel|python-dev) ]]; then
       xcmd="true;   # Warning! TODO> $xcmd"
     else
       xcmd="false;  # Error! TODO> $xcmd"
@@ -579,7 +579,7 @@ process_yaml_run_cmd() {
       xcmd="# $xcmd"
     elif $(yum info ${x[$ix2]} &>/dev/null); then
       xcmd="# $xcmd"
-    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel) ]]; then
+    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel|python-dev) ]]; then
       xcmd="true;   # Warning! TODO# $xcmd"
     else
       xcmd="false;  # Error! TODO# $xcmd"
@@ -587,7 +587,7 @@ process_yaml_run_cmd() {
   elif [ "${x[$ix]}" == "apt-get" -a "${x[$ix1]}" == "install" ]; then
     if $(dpkg-query -s ${x[$ix2]} &>/dev/null); then
       xcmd="# $xcmd"
-    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel) ]]; then
+    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel|python-dev) ]]; then
       xcmd="true;   # Warning! TODO> $xcmd"
     else
       xcmd="false;  # Error! TODO> $xcmd"

@@ -1,3 +1,8 @@
+1.0.0.6 (2021-02-23)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] run_odoo_debug: run from odoo script directory (no trouble with relative paths)
+
 1.0.0.5 (2021-02-19)
 ~~~~~~~~~~~~~~~~~~~~
 
