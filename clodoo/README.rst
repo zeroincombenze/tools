@@ -1,6 +1,6 @@
 
 ================
-clodoo 0.3.28.17
+clodoo 0.3.28.18
 ================
 
 
@@ -282,13 +282,12 @@ Current version via Git
 History
 -------
 
-0.3.8.65 (2019-12-29)
-~~~~~~~~~~~~~~~~~~~~~
+0.3.28.17 (2021-03-03)
+~~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] Tax config with statement data / Configurazione codici IVA con dati liquidazione IVA
-
-
-
+* [FIX] list-requirements.py: lxml,pillow,pyserial,pyxb,pyyaml,sphinx,werkzeug
+* [FIX] list-requirements.py: some versioned file had wrong version
+* [FIX] odoo_install_repository: update OCB repository does not keep subprojects
 
 
 |
@@ -313,7 +312,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-02-01
+Last Update / Ultimo aggiornamento: 2021-03-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -328,22 +327,22 @@ Last Update / Ultimo aggiornamento: 2021-02-01
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.28.17
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.28.18
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28.17/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28.17
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28.18/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.28.18
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-3.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.28.17/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.28.18/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-3.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.28.17/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.28.18/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-3.svg
     :target: https://erp3.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.28.17/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.3.28.17
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.28.18/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.3.28.18
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

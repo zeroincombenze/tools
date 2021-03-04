@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.28.17
+__version__=0.3.28.18
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -347,7 +347,7 @@ if [ -z "$new_odoo_vid" ]; then
     fi
     [[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
     if [ "$REPOS" == "OCB" ]; then
-        for d in  $HOME/__to_remove; do
+        for d in  $HOME/__to_remove/*; do
             [[ $d == "OCB" ]] && continue
              run_traced "mv $d $DSTPATH"
         done

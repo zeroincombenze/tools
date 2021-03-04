@@ -1,7 +1,6 @@
-0.3.8.65 (2019-12-29)
-~~~~~~~~~~~~~~~~~~~~~
+0.3.28.17 (2021-03-03)
+~~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] Tax config with statement data / Configurazione codici IVA con dati liquidazione IVA
-
-
-
+* [FIX] list-requirements.py: lxml,pillow,pyserial,pyxb,pyyaml,sphinx,werkzeug
+* [FIX] list-requirements.py: some versioned file had wrong version
+* [FIX] odoo_install_repository: update OCB repository does not keep subprojects

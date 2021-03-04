@@ -14,7 +14,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.28.17'
+__version__ = '0.3.28.18'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -49,18 +49,21 @@ REQVERSION = {
     'jcconv': {'7.0': '==0.2.3'},
     'Jinja2': {'7.0': '==2.7.3', '9.0': '==2.8.1', '10.0': '==2.10.1'},
     'lessc': {'0': '==3.0.4'},
-    'lxml': {'7.0': '>=3.4.1', '0': '==4.2.3'},
+    'lxml': {'7.0': '>=3.4.1', '0': '>=4.2.3'},
     'Mako':  {'7.0': '==1.0.1', '8.0': '==1.0.4'},
     'MarkupSafe': {'7.0': '>=0.23'},                    # Tested 1.0
     'mock': {'7.0': '==1.0.1', '8.0': '==2.0.0'},
     'ofxparse': {'7.0': '==0.16'},
     'passlib': {'7.0': '==1.6.2', '10.0': '==1.6.5'},
-    'Pillow': {'7.0': '==3.4.2', '8.0': '==3.4.1', '11.0': '==4.0.0',
-               '12.0': '==6.1.0', '0': '==4.0.0'},        # With py3.7 -> 6.1.0
+    'Pillow': {'7.0': '==3.4.2', '8.0': '==3.4.1',
+               '11.0': '==4.0.0',
+               '3.6': '==6.1.0', '3.7': '==6.1.0', '3.8': '>=6.2.1',
+               },        # With py3.7 -> 6.1.0
     'psutil': {'7.0': '==2.2.0', '8.0': '==4.3.1'},
     'psycogreen': {'7.0': '==1.0'},
-    'psycopg2-binary': {# '7.0': '>=2.0.0',
-                        # '8.0': '==2.5.4',
+    'psycopg2-binary': {'7.0': '>=2.0.0',
+                        '8.0': '>=2.5.4',
+                        '10.0': '>=2.7.4',
                         '12.0': '>=2.8.3',
                         '0': '>=2.7.4'},
     'pycodestyle': {'0': '==2.3.1'},
@@ -74,7 +77,7 @@ REQVERSION = {
     'pysftp': {'7.0': '>=0.2.9'},
     'pyparsing': {'7.0': '==2.0.3', '10.0': '==2.1.10'},
     'pyPdf': {'7.0': '==1.13'},
-    'pyserial':  {'7.0': '==2.7', '10.0': '==3.1.1'},
+    'pyserial':  {'7.0': '==2.7', '10.0': '>=3.1.1'},
     'Python-Chart': {'7.0': '==1.39'},
     'python-dateutil': {'7.0': '==2.4.0', '8.0': '==2.5.3'},
     'python-ldap': {'7.0': '==2.4.19',
@@ -84,9 +87,10 @@ REQVERSION = {
     'python-stdnum': {'7.0': '>=1.8.1'},
     'pytz': {'7.0': '==2014.10', '10.0': '==2016.7'},
     'pyusb': {'7.0': '>=1.0.0b1', '10.0': '==1.0.0'},
-    'pyxb': {'7.0':  '==1.2.5', '10.0':  '==1.2.6'},
+    'pyxb': {'7.0':  '==1.2.5', '12.0':  '==1.2.6'},
     'PyWebDAV': {'7.0':  '<0.9.8'},
-    'PyYAML': {'7.0': '==3.11', '8.0': '==3.12', '3.6': '>=5.1'},
+    'PyYAML': {'7.0': '==3.11', '8.0': '==3.12',
+               '3.7': '==3.13'},
     'qrcode': {'7.0': '==5.1', '10.0': '==5.3'},
     'restructuredtext_lint': {'7.0': '==0.12.2',
                               '0': '==1.1.3'},
@@ -94,6 +98,7 @@ REQVERSION = {
     'requests': {'7.0': '==2.6.0', '10.0': '==2.11.1'},
     'simplejson': {'7.0': '==3.5.3'},
     'six': {'7.0': '==1.9.0',  '10.0': '>=1.10.0'},
+    'Sphinx': {'2.7': '==1.2.3', '3.7': '>=2.4.0'},
     'suds': {'7.0': '==0.4'},
     'suds-jurko': {'7.0': '==0.6'},
     'unicodecsv': {'7.0': '>=0.14.1'},
@@ -102,7 +107,8 @@ REQVERSION = {
     'validate_email': {'7.0': '>=1.3'},
     'vatnumber': {'7.0': '==1.2'},
     'vobject': {'7.0': '==0.9.3'},                      # Tested 0.9.5
-    'Werkzeug': {'7.0': '==0.9.6', '10.0': '==0.11.11', '11.0': '==0.11.15'},
+    'Werkzeug': {'7.0': '==0.9.6', '10.0': '==0.11.11',
+                 '11.0': '==0.11.15', '3.7': '==0.14.1'},
     'wkhtmltopdf': {'7.0': '==0.12.1', '10.0': '==0.12.4', '12.0': '==0.12.5'},
     'wsgiref': {'7.0': '==0.1.2'},
     'XlsxWriter': {'7.0': '==0.9.3'},                   # Tested 1.0.2
@@ -137,6 +143,7 @@ ALIAS = {
     'requests': 'requests[security]',
     'qunitsuite': 'QUnitSuite',
     'serial': 'pyserial',
+    'sphinx': 'Sphinx',
     'stdnum': 'python-stdnum',
     'usb': 'pyusb',
     'werkzeug': 'Werkzeug',
@@ -216,6 +223,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'lxml',
                      'Mako',
                      'numpy',
+                     'num2words',
                      'passlib',
                      'Pillow',
                      'psutil',
@@ -299,7 +307,7 @@ DEPS2 = {
 }
 DEPS3 = {
     'lxml': {'bin': (PY3_DEV, 'libxml2-dev',
-            'libxslt1-dev', 'zlib1g-dev')},
+                     'libxslt1-dev', 'zlib1g-dev')},
     'python-psycopg2': {'bin': (PY3_DEV, 'libpq-dev')},
     'python3-ldap': {'bin': ('libsasl2-dev', 'libldap2-dev', 'libssl-dev')},
 }
@@ -314,7 +322,7 @@ DEPS9 = [
 
 
 def eval_requirement_cond(line, odoo_ver=None, pyver=None):
-    odoo_ver = odoo_ver or '10.0'
+    # odoo_ver = odoo_ver or '10.0'
     pyver = pyver or 3.7
     items = line.split(';')
     if len(items) == 1:
@@ -342,9 +350,13 @@ def parse_requirements(reqfile, odoo_ver=None, pyver=None):
 def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
     item = re.split('[!=<>]', full_item)
     if len(item) == 1:
-        full_item = ''
-    item = item[0]
+        full_item = item_ver = ''
+    else:
+        item_ver = item[-1]
+    item = item[0].strip()
     item = os.path.basename(item)
+    if item.endswith('.git'):
+        item = item[:-4]
     if not filter(lambda x: item.startswith(x), PIP_WITH_DOT):
         item = item.split('.')[0].lower()
     if item in ALIAS:
@@ -353,13 +365,13 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         if item in ALIAS3:
             item = ALIAS3[item]
     defver = False
-    if with_version:
+    if with_version and not item_ver:
         if item in REQVERSION:
             min_v = False
             valid_ver = False
             if pyver in REQVERSION[item]:
                 min_v = pyver
-            else:
+            elif pyver.startswith('3'):
                 for v in ('3.7', '3.6', '3.5'):
                     if v in REQVERSION[item]:
                         min_v = v
@@ -383,7 +395,8 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         item = item[1: -1]
     if full_item.startswith("'"):
         full_item = full_item[1: -1]
-    full_item = full_item.replace(' =', '=').replace('= ', '=')
+    full_item = full_item.strip().replace(' =', '=').replace('= ', '=').replace(
+        ' >', '>').replace('> ', '>')
     return item, full_item, defver
 
 
@@ -489,9 +502,9 @@ def add_package(deps_list, kw, item,
     return deps_list
 
 
-def package_from_list(deps_list, kw, PKG_LIST,
+def package_from_list(deps_list, kw, pkg_list,
                       with_version=None, odoo_ver=None, pyver=None):
-    for item in PKG_LIST:
+    for item in pkg_list:
         deps_list = add_package(deps_list, kw, item,
                                 with_version=with_version,
                                 odoo_ver=odoo_ver,
@@ -558,13 +571,33 @@ def swap(deps, itm1, itm2):
         if item.startswith(itm1):
             itm1_id = deps.index(item)
         elif item.startswith(itm2):
-            itm2_id =  deps.index(item)
+            itm2_id = deps.index(item)
         if itm1_id >= 0 and itm2_id >= 0:
             break
     if itm1_id < itm2_id:
         item = deps[itm2_id]
         del deps[itm2_id]
         deps.insert(itm1_id, item)
+
+
+def walk_dir(cdir, manifests, reqfiles):
+    no_deep = ' '
+    for root, dirs, files in os.walk(cdir):
+        if root.startswith(no_deep):
+            continue
+        if os.path.basename(root) in (
+                '.git', '__to_remove', 'doc', 'setup'):
+            no_deep = root
+            continue
+        if '__init__.py' in files and ('__manifest__.py' in files or
+                                       '__openerp__.py' in files):
+            no_deep = root
+            continue
+        manifests, reqfiles = add_manifest(root,
+                                           manifests,
+                                           reqfiles,
+                                           files)
+    return manifests, reqfiles
 
 
 def main():
@@ -655,11 +688,22 @@ def main():
         ctx['test_pkgs'] = False
         ctx['oca_dependencies'] = False
         ctx['opt_fn'] = '/'.join([ctx['odoo_dir'], 'requirements.txt'])
-    if (not ctx['odoo_dir'] and ctx['odoo_ver'] and
-            os.path.isdir(os.path.join(os.path.expanduser('~'),
-                                       ctx['odoo_ver']))):
-        ctx['odoo_dir'] = os.path.join(os.path.expanduser('~'),
-                                       ctx['odoo_ver'])
+    if not ctx['odoo_dir'] and ctx['odoo_ver']:
+        for ldir in ('~/odoo/%s',
+                     '~/odoo_%s',
+                     '~/odoo-%s',
+                     '~/odoo%s',
+                     '~/%s'):
+            if os.path.isdir(
+                    os.path.join(
+                        os.path.expanduser(ldir % ctx['odoo_ver']))):
+                ctx['odoo_dir'] = os.path.join(
+                    os.path.expanduser(ldir % ctx['odoo_ver']))
+        if not ctx['odoo_dir']:
+            for ldir in sys.path + [os.path.join(os.path.expanduser('~/'))]:
+                if os.path.isdir(
+                        os.path.join(ldir, 'odoo')):
+                    ctx['odoo_dir'] = os.path.join(ldir, 'odoo')
     manifests = []
     reqfiles = []
     if ctx['manifests']:
@@ -671,17 +715,9 @@ def main():
     elif ctx['odoo_dir']:
         if ctx['oca_dependencies']:
             for cdir in ctx['oca_dependencies'].split(','):
-                for root, dirs, files in os.walk(cdir,
-                                                 followlinks=True):
-                    manifests, reqfiles = add_manifest(root,
-                                                       manifests,
-                                                       reqfiles,
-                                                       files)
-        for root, dirs, files in os.walk(ctx['odoo_dir']):
-            manifests, reqfiles = add_manifest(root,
-                                               manifests,
-                                               reqfiles,
-                                               files)
+                manifests, reqfiles = walk_dir(cdir, manifests, reqfiles)
+        manifests, reqfiles = walk_dir(
+            ctx['odoo_dir'], manifests, reqfiles)
     deps_list = {}
     for kw in ('python', 'python1', 'python2', 'python9',
                'bin', 'bin1', 'bin2', 'modules'):
@@ -794,9 +830,10 @@ def main():
                                            kw in ('python', 'bin')):
                     if ctx['opt_verbose']:
                         print(os0.b(
-                            '%s=%s' % (kw, ctx['sep'].join(deps_list[kw]))))
+                            '%s=%s' % (
+                                kw, ctx['sep'].join(deps_list[kw]))).decode())
                     else:
-                        print(ctx['sep'].join(deps_list[kw]))
+                        print(os0.b(ctx['sep'].join(deps_list[kw])).decode())
 
 
 if __name__ == "__main__":
