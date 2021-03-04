@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.13-RHEL
+# version: 0.4.14-RHEL
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -259,7 +259,7 @@ check_privsep_dir() {
     fi
     if [ ! -f "$PIDFILE" ]; then
       touch $PIDFILE
-      chmod 0755 $PIDFILE
+      chmod 0774 $PIDFILE
       chown ${USER}:${USER} $PIDFILE
     fi
     if [ "$PIDDIR" != "/var/run" -a "$PIDDIR" != "/run" ]; then
@@ -267,7 +267,7 @@ check_privsep_dir() {
       if [ "$uu" != "${USER}" ]; then
         local x=$(date +"%Y-%m-%d %H:%M:%S,000")
         echo "$x $$ DAEMON ? $0: Invalid pid directory owner!">>$LOGFILE
-        chmod 0755 $PIDDIR
+        chmod 0774 $PIDDIR
         chown ${USER}:${USER} $PIDDIR
       fi
     fi
@@ -276,7 +276,7 @@ check_privsep_dir() {
       if [ "$uu" != "${USER}" ]; then
         local x=$(date +"%Y-%m-%d %H:%M:%S,000")
         echo "$x $$ DAEMON ? $0: Invalid pid directory owner!">>$LOGFILE
-        chmod 0755 $PIDFILE
+        chmod 0774 $PIDFILE
         chown ${USER}:${USER} $PIDFILE
       fi
     fi
@@ -396,9 +396,9 @@ stop_RHEL() {
 
 stop_Debian () {
     if [ $DRY_RUN -gt 0 ]; then
-        echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo"
+        echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo --remove-pidfile"
     else
-        start-stop-daemon --stop --quiet --pidfile ${PIDFILE}  --oknodo
+        start-stop-daemon --stop --quiet --pidfile ${PIDFILE}  --oknodo --remove-pidfile
     fi
     RETVAL=$?
     # echo "${NAME}."
