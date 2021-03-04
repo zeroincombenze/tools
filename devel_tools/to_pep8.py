@@ -74,7 +74,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.0.9"
+__version__ = "1.0.0.10"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',
          '11.0', '12.0', '13.0', '14.0')
@@ -294,6 +294,7 @@ class topep8():
 
     def write_license_info(self, ctx):
         odoo_majver = int(ctx['to_ver'].split('.')[0])
+        cur_year = datetime.today().year
         if ctx['opt_copy']:
             req_copyrights = ctx['opt_copy'].split(',')
         else:
@@ -385,46 +386,63 @@ class topep8():
                             break
                         re_item = COPY[key].get(item, '').replace(
                             'https:', 'https?:').replace('.', '.?')
-                        if re_item and re.search(re_item, self.lines[lineno]):
-                            found = True
-                            if key not in copy_found:
-                                copy_found.append(key)
-                            years = ''
-                            ipos = 1
-                            x = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
-                                         self.lines[lineno][ipos:])
+                        if (not re_item or
+                                not re.search(re_item, self.lines[lineno])):
+                            continue
+
+                        found = True
+                        if key not in copy_found:
+                            copy_found.append(key)
+                        years = ''
+                        ipos = 1
+                        x = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
+                                     self.lines[lineno][ipos:])
+                        if x:
+                            ipos += x.end() + 1
+                            x = re.match('^ *[0-9]+',
+                                self.lines[lineno][ipos:])
                             if x:
-                                ipos += x.end() + 1
-                                x = re.match('^ *[0-9]+',
-                                    self.lines[lineno][ipos:])
-                                if x:
-                                    i = ipos + x.end()
-                                    years = self.lines[lineno][ipos:i]
-                                    if self.lines[lineno][i] == '-':
-                                        ipos = i + 1
-                                        x = re.match('[0-9]+',
-                                            self.lines[lineno][ipos:])
-                                        if x:
-                                            i = x.end()
-                                            if i == 4:
-                                                ipos += 2
-                                                i = ipos + i - 2
-                                            else:
-                                                i += ipos
+                                i = ipos + x.end()
+                                years = self.lines[lineno][ipos:i]
+                                if self.lines[lineno][i] == '-':
+                                    ipos = i + 1
+                                    x = re.match('[0-9]+',
+                                        self.lines[lineno][ipos:])
+                                    if x:
+                                        i = x.end()
+                                        if i == 4:
+                                            ipos += 2
+                                            i = ipos + i - 2
+                                        else:
+                                            i += ipos
+                                        if self.lines[lineno][ipos:i] == str(
+                                                cur_year)[2:]:
                                             years = '%s-%s' % (
                                                 years,
                                                 self.lines[lineno][ipos:i])
-                            if years:
-                                line = '# Copyright %s %s <%s>' % (
-                                    years,
-                                    COPY[key]['author'], COPY[key]['website']
-                                )
-                            else:
-                                line = '# Copyright %s <%s>' % (
-                                    COPY[key]['author'], COPY[key]['website']
-                                )
-                            self.lines[lineno] = line
-                            break
+                                        else:
+                                            years = '%s-%s' % (
+                                                years,
+                                                str(cur_year)[-2:])
+                                    elif years != str(cur_year):
+                                        years = '%s-%s' % (
+                                            years,
+                                            str(cur_year)[-2:])
+                                elif years != str(cur_year):
+                                    years = '%s-%s' % (
+                                        years,
+                                        str(cur_year)[-2:])
+                        if years:
+                            line = '# Copyright %s %s <%s>' % (
+                                years,
+                                COPY[key]['author'], COPY[key]['website']
+                            )
+                        else:
+                            line = '# Copyright %s <%s>' % (
+                                COPY[key]['author'], COPY[key]['website']
+                            )
+                        self.lines[lineno] = line
+                        break
                 if not found:
                     line = self.lines[lineno].replace('#  ', '# ').replace(
                         '-201', '-1').replace('(<', '<').replace('>)', '>')
@@ -447,7 +465,7 @@ class topep8():
         for org in req_copyrights:
             if org not in copy_found:
                 line = '# Copyright %s %s <%s>' % (
-                    datetime.today().year,
+                    cur_year,
                     COPY[org]['author'],
                     COPY[org]['website']
                 )
