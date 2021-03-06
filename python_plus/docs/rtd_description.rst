@@ -18,7 +18,7 @@ This packge is released with an nice command: **vem** that is an interactive too
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-01-16
+Last Update / Ultimo aggiornamento: 2021-03-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

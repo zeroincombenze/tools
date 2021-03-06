@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.19
+__version__=1.0.0.20
 
 export READLINK=readlink
 OS=$(uname -s)

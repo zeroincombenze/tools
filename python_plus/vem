@@ -27,7 +27,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.7
+__version__=1.0.0.8
 NEEDING_PKGS="future os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
@@ -35,6 +35,7 @@ SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyas
 EI_PKGS="(distribute)"
 BZR_PKGS="(aeroolib)"
 WGET_PKGS="(pychart|python-chart)"
+GIT_PKGS="(openupgradelib|prestapyt)"
 PYBIN_PKGS="(dateutil|ldap|openid)"
 BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
@@ -116,6 +117,14 @@ do_deactivate() {
     DO_DEACT=0
     [[ -n "$OLD_VENV" ]] && VIRTUAL_ENV=$OLD_VENV
   fi
+}
+
+get_actual_pkg() {
+  local pkg=$1
+  [[ $pkg == "pychart" ]] && pkg="python-chart"
+  [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
+  [[ $pkg =~ ^$PYBIN_PKGS([<=>!][0-9.]+)?$ ]] && pkg="python-$pkg"
+  echo $pkg
 }
 
 get_wkhtmltopdf_dwname() {
@@ -219,30 +228,36 @@ bin_install_1() {
 
 pip_install() {
   #pip_install(pkg opts)
-  local pkg d x srcdir popts
+  local pkg d x srcdir popts v
   local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
   pkg="${1//§/ }"
-  [[ $pkg == "pychart" ]] && pkg="python-chart"
-  [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
-  [[ $pkg =~ ^$PYBIN_PKGS([<=>!][0-9.]+)?$ ]] && pkg="python-$pkg"
+  pkg="$(get_actual_pkg $pkg)"
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [ $opt_verbose -eq 0 ] && popts="$popts -q"
-  # [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     srcdir=""
     [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$pkg ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$pkg)
     [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$pkg/$pkg ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$pkg/$pkg)
     [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$pkg/$pkg ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$pkg/$pkg)
+    [[ $pkg == "odoo" && -n $opt_oepath ]] && srcdir=$($READLINK -f $opt_oepath)
     if [[ -n "$srcdir" ]]; then
-      [[ -d $pypath/$pkg && ! -L $pypath/$pkg ]] && rm -fR $pypath/$pkg
-      for d in $pypath/${pkg}-*dist-info; do rm -fR $d; done
-      if [[ $opt_debug -ge 2 ]]; then
-        [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
-        run_traced "ln -s $srcdir $pypath"
+      [[ -d $pypath/$pkg && ! -L $pypath/$pkg ]] && run_traced "rm -fR $pypath/$pkg"
+      pushd $srcdir/.. >/dev/null
+      [[ $pkg == "odoo" ]] && x="$opt_oever" || x=$(python $pkg -V)
+      v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
+      popd >/dev/null
+      for d in $pypath/${pkg}-[0-9]*dist-info; do [[ -d $d ]] && run_traced "mv $d $pypath/${pkg}-${v}.dist-info"; done
+      if [[ ! -d $pypath/${pkg}-${v}.dist-info ]]; then
+        run_traced "mkdir $pypath/${pkg}-${v}.dist-info"
+        for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
+          run_traced "touch $pypath/${pkg}-${v}.dist-info/$d"
+        done
       fi
+      [[ -L $pypath/$pkg ]] && run_traced "rm -f $pypath/$pkg"
+      run_traced "ln -s $srcdir $pypath"
       [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install $pkg"
@@ -257,6 +272,12 @@ pip_install() {
       [[ -f $x ]] && run_traced "rm -f $x"
       run_traced "wget $d"
       run_traced "$PIP install $popts $x"
+    elif [[ $pkg =~ $GIT_PKGS ]]; then
+      d=""
+      [[ $pkg =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
+      [[ $pkg =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
+      [[ -z "$d" ]] && echo "Unknown URL for $pkg" && return
+      run_traced "$PIP install $pkg"
     elif [[ $pkg =~ $BZR_PKGS ]]; then
       x=$(which bzr 2>/dev/null)
       if [[ -z "$x" ]]; then
@@ -266,9 +287,9 @@ pip_install() {
         FH=$(xuname -f)
         [[ $DISTO == "Fedora" ]] && echo "dnf install bzr"
         [[ ! $DISTO == "Fedora" && $FH = "RHEL" ]] && echo "yum install bzr"
-        [[ $DISTO == "Debian" ]] && echo "apt-get -t lenny-backports install bzr"
+        [[ $DISTO == "Debian" ]] && echo "apt -t lenny-backports install bzr"
         [[ $DISTO == "Ubuntu" ]] && echo "add-apt-repository ppa:bzr/ppa"
-        [[ $FH == "Debian" ]] && echo "apt-get update"
+        [[ $FH == "Debian" ]] && echo "apt update"
       else
         run_traced "mkdir -p $HOME/bazar"
         run_traced "cd $HOME/bazar"
@@ -285,18 +306,14 @@ pip_install() {
     elif [[ $opt_debug -eq 1 ]]; then
       [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
       run_traced "$PIP install $popts --extra-index-url https://testpypi.python.org/pypi $pkg $2"
-      [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     else
       [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
       run_traced "$PIP install $popts $pkg $2"
-      [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     fi
     x="${pkgs//+/.}"
     [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
-    # if [[ "$pkg" =~ $FLT_PKGS ]]; then
-    #   run_traced "$PIP uninstall cryptography -y"
-    #   run_traced "$PIP install $popts cryptography"
-    # fi
   fi
 }
 
@@ -330,9 +347,10 @@ pip_install_req() {
     [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
     [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
+    [[ -d $HOME/OCA ]] && cmd="$cmd -d${HOME}/OCA"
     [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $fn -qs\" \""
     flist=$($cmd -m $fn -qs" ")
-    [[ $opt_verbose -gt 1 ]] && echo "--> $flist"
+    [[ $opt_verbose -gt 2 ]] && echo "flist=$flist"
     for pkg in $flist; do
       pip_install "$pkg" "$1"
     done
@@ -406,7 +424,7 @@ bin_check_1() {
 check_package() {
   # check_package(pkg cmd)
   local op reqver xreqver sts curver vpkg x
-  local vpkg=$1
+  local vpkg="$(get_actual_pkg $1)"
 
   op=$(echo "$vpkg" | grep -Eo '[!<=>]*' | head -n1)
   pkg=$(echo "$vpkg" | grep -Eo '[^!<=>\\[]*' | tr -d "'" | head -n1)
@@ -486,6 +504,7 @@ pip_check_req() {
     [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
     [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
+    [[ -d $HOME/OCA ]] && cmd="$cmd -d${HOME}/OCA"
     [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $fn -qs\" \""
     flist=$($cmd -m $fn -qs" ")
     [[ $opt_verbose -gt 1 ]] && echo "--> $flist"
@@ -563,7 +582,7 @@ set_pyver_files() {
       PIP=$pyexec
     else
       [[ $pyver -gt 2 ]] && PIP=pip3
-      [[ $pyver -le 2 ]] && PIP=pip
+      [[ $pyver -le 2 ]] && PIP=pip2
     fi
   elif [[ -z "$PIP" ]]; then
     PIP=pip3
@@ -710,10 +729,13 @@ do_venv_mgr() {
   do_activate "-q"
   [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
   [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
-  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t bin"
+  [[ -d $HOME/OCA ]] && lropts="$lropts -d${HOME}/OCA"
+  [[ $opt_verbose -gt 1 ]] && echo "list_requirements.py -qs' ' $lropts -t bin"
   BINPKGS=$(list_requirements.py -qs' ' $lropts -t bin)
-  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t python"
+  [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS"
+  [[ $opt_verbose -gt 1 ]] && echo "list_requirements.py -qs' ' $lropts -t python"
   OEPKGS=$(list_requirements.py -qs' ' $lropts -t python)
+  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
   do_deactivate "-q"
   pop_cd "-q"
   if [[ $cmd =~ (amend|check|reset|test) ]]; then
@@ -816,7 +838,7 @@ do_venv_mgr() {
       fi
     fi
     do_deactivate
-    [[ -n "$opt_oever" && ("$cmd" == "reset" && ! -L ./odoo) ]] && run_traced "ln -s $opt_oepath $($READLINK -f ./odoo)"
+    ### [[ -n "$opt_oever" && ("$cmd" == "reset" && ! -L ./odoo) ]] && run_traced "ln -s $opt_oepath $($READLINK -f ./odoo)"
     pop_cd
     if [[ "$cmd" == "mv" ]]; then
       run_traced "mv $VENV $VENV_TGT"
@@ -880,10 +902,13 @@ do_venv_create() {
   done
   [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
   [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
+  [[ -d $HOME/OCA ]] && lropts="$lropts -d${HOME}/OCA"
   [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t bin"
   BINPKGS=$(list_requirements.py -qs' ' $lropts -t bin)
+  [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS"
   [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t python"
   OEPKGS=$(list_requirements.py -qs' ' $lropts -t python)
+  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
   bin_install_1 $VENV
   [ $opt_dry_run -eq 0 ] && custom_env $VENV $opt_pyver
   pip_install_1
@@ -924,29 +949,24 @@ do_venv_pip() {
   V=""
   cd_venv "$VENV" "-f"
   do_activate
-  pkg="$3"
-  [[ $pkg == "pychart" ]] && pkg="python-chart"
-  [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
-  [[ $pkg =~ ^$PYBIN_PKGS([<=>!][0-9.]+)?$ ]] && pkg="python-$pkg"
+  pkg="$(get_actual_pkg $3)"
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   [[ $opt_alone -ne 0 && ! $pkg =~ ^- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [ $opt_verbose -eq 0 ] && popts="$popts -q"
-  if [[ $pkg =~ $BIN_PKGS ]]; then
-    [[ "$cmd" == "install" ]] && bin_install "$pkg" "$1"
-  elif [[ $pkg =~ $EI_PKGS && "$cmd" == "install" ]]; then
-    pip_install "$pkg" "$popts"
-  elif [[ $pkg =~ $BZR_PKGS && "$cmd" == "install" ]]; then
-    pip_install "$pkg"
-  else
-    [[ $cmd =~ (info|show) ]] && run_traced "$PIP show $pkg"
-    # [[ "$cmd" == "install" ]] && run_traced "$PIP $cmd $pkg $popts"
-    [[ $cmd == "install" ]] && pip_install "$pkg"
-    [[ "$cmd" == "uninstall" ]] && run_traced "$PIP $cmd $pkg"
-    # [[ "$cmd" == "update" ]] && run_traced "$PIP install $pkg $popts --upgrade"
-    [[ $cmd == "update" ]] && pip_install "$pkg" "--upgrade"
-  fi
+  # if [[ $pkg =~ $BIN_PKGS ]]; then
+  #   [[ "$cmd" == "install" ]] && bin_install "$pkg" "$1"
+  # elif [[ $pkg =~ $EI_PKGS && "$cmd" == "install" ]]; then
+  #   pip_install "$pkg" "$popts"
+  # elif [[ $pkg =~ $BZR_PKGS && "$cmd" == "install" ]]; then
+  #   pip_install "$pkg"
+  # else
+  [[ $cmd =~ (info|show) ]] && run_traced "$PIP show $pkg"
+  [[ $cmd == "install" ]] && pip_install "$pkg"
+  [[ "$cmd" == "uninstall" ]] && run_traced "$PIP $cmd $pkg"
+  [[ $cmd == "update" ]] && pip_install "$pkg" "--upgrade"
+  # fi
   do_deactivate
   pop_cd
   export PATH=$SAVED_PATH
@@ -997,7 +1017,7 @@ if [ $opt_help -gt 0 ]; then
   print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
-[ $opt_verbose -gt 3 ] && set -x
+[[ $opt_verbose -gt 3 ]] && set -x
 if [[ $action == "create" && -n "$VIRTUAL_ENV" ]] && [ ${opt_force:-0} -eq 0 ]; then
   echo "You cannot create a new virtual environment inside the current virtual environment"
   exit 1
@@ -1047,14 +1067,12 @@ SAVED_PYTHONPATH=$PYTHONPATH
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -n "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools:$PYTHONPATH
 [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -z "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools
+[[ $opt_debug -eq 2 && -d $HOME/odoo/tools && :$PATH: =~ :$HOME/odoo/tools: && -n "$PYTHONPATH" ]] && PYTHONPATH=$HOME/odoo/tools:$PYTHONPATH
+[[ $opt_debug -eq 2 && -d $HOME/odoo/tools && :$PATH: =~ :$HOME/odoo/tools: && -z "$PYTHONPATH" ]] && PYTHONPATH=$HOME/odoo/tools
 [[ $opt_debug -eq 3 ]] && package_debug
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
-[[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/odoo/$opt_oever/odoo ]] && opt_oepath="$HOME/odoo/$opt_oever/odoo"
-[[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/odoo/$opt_oever ]] && opt_oepath="$HOME/odoo/$opt_oever"
-[[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/$opt_oever/odoo ]] && opt_oepath="$HOME/$opt_oever/odoo"
-[[ -n "$opt_oever" && -z "$opt_oepath" && -d $HOME/$opt_oever ]] && opt_oepath="$HOME/$opt_oever"
-[ $opt_verbose -gt 2 ] && echo "# Odoo dir = '$opt_oever'"
+venv_mgr_check_oever $action
 if [[ $action == "rm" ]]; then
   [[ $PWD == $($READLINK -f $p2) ]] && cd
   rm -fR $p2
@@ -1067,7 +1085,18 @@ elif [[ ! $action =~ (help|create) ]]; then
   [[ -n "$opt_pyver" ]] && set_pyver_files
 fi
 [[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
-venv_mgr_check_oever $action
+if [[ -n "$opt_oever" && -z "$opt_oepath" ]]; then
+  for ldir in $HOME/odoo/$opt_oever $HOME/$opt_oever; do
+    [[ -d $ldir/odoo ]] && opt_oepath="$ldir/odoo" && break
+    [[ -d $ldir ]] && opt_oepath="$ldir" && break
+  done
+fi
+if [[ -n "$opt_oever" && -z "$opt_oepath" ]]; then
+  for ldir in $SAVED_HOME/odoo/$opt_oever $SAVED_HOME/$opt_oever; do
+    [[ -d $ldir ]] && opt_oepath="$ldir" && break
+  done
+fi
+[ $opt_verbose -gt 2 ] && echo "# Odoo dir = '$opt_oever'"
 # [ $opt_dev -eq 0 -a -d "$p2" ] && x=$(find ${p2}/lib -name pylint -o -name unittest2 -o -name coverage -o -name flake8 | wc -l)
 # [ $opt_dev -eq 0 -a ${x:-0} -gt 1 ] && opt_dev=1
 if [[ $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
@@ -1077,7 +1106,9 @@ else
   [[ $opt_dev -ne 0 ]] && cmd="$cmd -TR"
   [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
   [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
+  [[ -d $HOME/OCA ]] && cmd="$cmd -d${HOME}/OCA"
   DEV_PKGS=$($cmd -s" ")
+  [[ $opt_verbose -gt 2 ]] && echo "DEV_PKGS=$DEV_PKGS"
 fi
 do_deactivate "-q"
 pop_cd "-q"
@@ -1107,32 +1138,42 @@ if [[ -n "$ERROR_PKGS" ]]; then
   echo "************************************************************"
   DISTO=$(xuname -d)
   FH=$(xuname -f)
+  [[ $FH = "RHEL" ]] && XTAL="yum" || XTAL="apt"
+  [[ $DISTO == "Fedora" ]] && XTAL="dnf"
   echo "Perhaps you should install ..."
-  [[ $DISTO == "Fedora" ]] && echo "dnf install python3-devel libsass-devel zlib-devel        # If Fedora"
-  [[ ! $DISTO == "Fedora" && $FH = "RHEL" ]] && echo "yum install python-devel python3-devel  # If RHEL"
-  [[ ! $DISTO == "Fedora" && $FH = "RHEL" ]] && echo "yum install libsass-devel zlib-devel    # If RHEL"
-  [[ $FH = "Debian" ]] && echo "apt-get install python3-dev python3-pip python3-venv          # If Debian"
-  [[ $FH = "Debian" ]] && echo "apt-get install python-dev zlib1g-dev                         # If Debian"
+  [[ $FH = "RHEL" ]] && PKGLIST="python-devel" || PKGLIST="python-dev"
+  [[ $DISTO == "Fedora" ]] && PKGLIST=""
+  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST python3-devel" || PKGLIST="$PKGLIST python3-dev"
+  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST python3-pip" || PKGLIST="$PKGLIST python3-pip"
+  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST python3-venv" || PKGLIST="$PKGLIST python3-venv"
+  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libsass-devel"
+  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST zlib-devel" || PKGLIST="$PKGLIST zlib1g-dev"
+  echo "$XTAL install $PKGLIST"
   if [[ $ERROR_PKGS =~ lxml ]]; then
-    [[ $DISTO == "Fedora" ]] && echo "dnf install redhat-rpm-config                         # If Fedora"
-    [[ $DISTO == "Fedora" ]] && echo "dnf install libxml2-devel libxslt-devel               # If Fedora"
-    [[ ! $DISTO == "Fedora" && $FH = "RHEL" ]] && echo "yum install libxml2-devel libxslt-devel  # If RHEL"
-    [[ $FH = "Debian" ]] && echo "apt-get install libxml2-dev libxslt-dev                   # If Debian"
+    PKGLIST=""
+    [[ $DISTO == "Fedora" ]] && PKGLIST="redhat-rpm-config"
+    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libxml2-devel" || PKGLIST="$PKGLIST libxml2-dev"
+    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libxslt-devel" || PKGLIST="$PKGLIST libxslt-dev"
+    echo "$XTAL install $PKGLIST    # lxml"
   fi
   if [[ $ERROR_PKGS =~ ldap ]]; then
-    [[ $FH = "RHEL" ]] && echo "yum install openldap-devel                                  # If RHEL"
-    [[ $FH = "Debian" ]] && echo "apt-get install libsasl2-dev libldap2-dev libssl-dev      # If Debian"
+    PKGLIST=""
+    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST openldap-devel" || PKGLIST="$PKGLIST libsasl2-dev libldap2-dev libssl-dev"
+    echo "$XTAL install $PKGLIST    # ldap"
   fi
   if [[ $ERROR_PKGS =~ gevent ]]; then
-    [[ $FH = "RHEL" ]] && echo "yum install libevent-devel                                  # If RHEL"
-    [[ $FH = "Debian" ]] && echo "apt-get install libevent-dev                              # If Debian"
+    PKGLIST=""
+    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libevent-devel" || PKGLIST="$PKGLIST libevent-dev"
+    echo "$XTAL install $PKGLIST    # gevent"
   fi
   if [[ $ERROR_PKGS =~ pycups ]]; then
-    [[ $FH = "RHEL" ]] && echo "yum install libcups2-devel                                  # If RHEL"
-    [[ $FH = "Debian" ]] && echo "apt-get install libcups2-dev                              # If Debian"
+    PKGLIST=""
+    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libcups2-devel" || PKGLIST="$PKGLIST libcups2-dev"
+    echo "$XTAL install $PKGLIST    # pycups"
   fi
   if [[ $ERROR_PKGS =~ shapely ]]; then
-    [[ $FH = "RHEL" ]] && echo "yum install geos-devel                                      # If RHEL"
-    [[ $FH = "Debian" ]] && echo "apt-get install libgeos-dev                               # If Debian"
+    PKGLIST=""
+    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST geos-devel" || PKGLIST="$PKGLIST libgeos-dev"
+    echo "$XTAL install $PKGLIST    # shapely"
   fi
 fi
