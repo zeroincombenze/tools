@@ -70,7 +70,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.15.4"
+__version__ = "1.0.0"
 
 if sys.version_info[0] == 3:
     unicode = str               # This just to avoid lint error

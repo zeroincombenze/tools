@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to os0 0.2.15.4 documentation!
+Welcome to os0 1.0.0 documentation!
 ===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|
