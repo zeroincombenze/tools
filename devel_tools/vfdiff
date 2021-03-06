@@ -122,7 +122,7 @@ exec_os() {
   fi
   if [[ $opt_dcmd == "meld" ]]; then
     if [ -d "$left" ]; then
-      for ln in $(eval "diff $opts $left $right" | grep ^Files | awk '{print $2 "|" $4}'); do
+      for ln in $(eval "LANG=en_US diff $opts $left $right" | grep ^Files | awk '{print $2 "|" $4}'); do
         l=$(echo $ln | awk -F"|" '{print $1}')
         r=$(echo $ln | awk -F"|" '{print $2}')
         run_traced "$opt_dcmd $l $r"
