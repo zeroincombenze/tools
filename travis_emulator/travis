@@ -165,6 +165,10 @@ process_yaml_do() {
   if [[ "$line" =~ LINT_CHECK_LEVEL= ]] && [ -n "$opt_llvl" ]; then
     line=$(echo "$line" | sed -e "s/LINT_CHECK_LEVEL=[A-Za-z0-9_\"']\+/LINT_CHECK_LEVEL=\"${opt_llvl^^}\"/")
   fi
+
+  TNY
+
+
   if [[ "${line:0:1}" == "(" && "${line: -1}" == ")" ]]; then
     lne=$(process_yaml_unquote "${line:1:-1}")
   elif [[ "${line:0:1}" == "\"" && "${line: -1}" == "\"" ]]; then
@@ -334,6 +338,8 @@ process_yaml_initialize() {
   if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[initialize] from .travis.conf] ------\e[${PS_TXT_COLOR}m"
   fi
+  line=$(get_cfg_value "" "GBL_EXCLUDE")
+  [[ -n "$line" ]] && run_traced "export GBL_EXCLUDE=$line"
   for i in {1..9}; do
     line=$(get_cfg_value "" "yaml_init_$i")
     if [ -n "$line" ]; then

@@ -4,6 +4,7 @@
 [IMP] travisrc: Best fileignore list
 [FIX] travisrc: clean_dirs
 [FIX] travisrc: set_executable
+[IMP] travis: local odoo module to not test
 
 1.0.0.7 (2021-03-03)
 ~~~~~~~~~~~~~~~~~~~~

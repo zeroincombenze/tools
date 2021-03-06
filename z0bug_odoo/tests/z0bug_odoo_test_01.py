@@ -13,7 +13,7 @@ from zerobug import Z0BUG
 # from z0bug_odoo import test_common
 from zerobug import Z0testOdoo
 
-__version__ = "1.0.0.4"
+__version__ = "1.0.0.5"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
@@ -49,12 +49,12 @@ class RegressionTest():
                                  bool(res),
                                  True)
         TEST = {'customer': 'True',
-                'name': 'Prima Distribuzione S.p.A.',
+                'name': 'Prima Alpha S.p.A.',
                 'street': 'Via I Maggio, 11',
                 'zip': '20022', 
                 'city': 'Castano Primo',
-                'email': 'info@prima-distribuzione.it',
-                'website': 'www.prima-distribuzione.it',
+                'email': 'info@prima-alpha.it',
+                'website': 'www.prima-alpha.it',
                 'phone': '+39 0255582285',
                 'vat': 'IT00115719999'}
         for nm in TEST:
