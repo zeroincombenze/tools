@@ -166,7 +166,7 @@ process_yaml_do() {
     line=$(echo "$line" | sed -e "s/LINT_CHECK_LEVEL=[A-Za-z0-9_\"']\+/LINT_CHECK_LEVEL=\"${opt_llvl^^}\"/")
   fi
 
-  TNY
+  # TNY
 
 
   if [[ "${line:0:1}" == "(" && "${line: -1}" == ")" ]]; then
