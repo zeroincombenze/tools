@@ -31,7 +31,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=1.0.0.6
+__version__=1.0.0.7
 
 
 travis_test_bash() {
@@ -370,6 +370,7 @@ if [ $opt_verbose -gt 1 ]; then
 fi
 init_travis
 prepare_env_travis
+
 sts=0
 if [ $test_mode -gt 0 ]; then
     do_chkconfig
