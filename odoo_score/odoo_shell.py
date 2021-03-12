@@ -11,7 +11,7 @@ from builtins import *                                             # noqa
 from past.utils import old_div
 from builtins import input
 
-from python_plus import unicodes
+from python_plus import unicodes, _b
 import os
 import sys
 from datetime import date, datetime, timedelta
@@ -32,7 +32,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "1.0.0.6"
+__version__ = "1.0.0.7"
 
 
 MAX_DEEP = 20
@@ -6631,6 +6631,55 @@ def setup_balance_report(ctx):
         'account_report_id': False,
     }
     synchro(ctx, model, vals)
+
+
+def export_csv(ctx):
+    print('Export file CSV')
+    if ctx['param_1'] == 'help':
+        print('export_csv model domain w|a')
+        return
+    if ctx['param_1']:
+        model = ctx['param_1']
+    else:
+        model = input('Model? ')
+    if ctx['param_2']:
+        domain = eval(ctx['param_2'])
+    else:
+        domain = []
+    if ctx['param_3']:
+        file_mode = '%sb' % ctx['param_3']
+    else:
+        file_mode = 'wb'
+    # csv_fn = '%s.csv' % model.replace('.', '_')
+    csv_fn = '%s.csv' % model
+    fields_get = clodoo.executeL8(
+        ctx, model, 'fields_get'
+    )
+    field_list = [
+        x
+        for x in fields_get.keys()
+        if fields_get[x]['type'] not in ('one2many', 'many2many')]
+    ctr = 0
+    with open(csv_fn, file_mode) as fd:
+        writer = csv.DictWriter(
+            fd,
+            fieldnames=field_list)
+        writer.writeheader()
+        for rec in clodoo.browseL8(
+                ctx, model, clodoo.searchL8(
+                    ctx, model, domain)):
+            msg_burst('Id %d...' % rec.id)
+            vals = {}
+            for field in field_list:
+                if rec[field] is False:
+                    vals[field] = ''
+                elif fields_get[field]['type'] == 'many2one':
+                    vals[field] = rec[field].id
+                else:
+                    vals[field] = _b(rec[field])
+            writer.writerow(vals)
+            ctr += 1
+    print('%d records' % ctr)
 
 
 def fix_weburl(ctx):

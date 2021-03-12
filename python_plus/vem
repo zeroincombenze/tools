@@ -127,6 +127,12 @@ get_actual_pkg() {
   echo $pkg
 }
 
+get_pkg_wo_version() {
+  pkg=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
+  echo $pkg
+}
+
+
 get_wkhtmltopdf_dwname() {
   #get_wkhtmltopdf_dwname(pkg FH dist MACHARCH)
   local pkg=$1 FH=$2 dist=$3 MACHARCH=$4 pkgext wkhtmltopdf_wget x y z
@@ -257,7 +263,7 @@ pip_install() {
         done
       fi
       [[ -L $pypath/$pkg ]] && run_traced "rm -f $pypath/$pkg"
-      run_traced "ln -s $srcdir $pypath"
+      run_traced "ln -s $srcdir $pypath/$pkg"
       [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install $pkg"
@@ -934,7 +940,7 @@ do_venv_exec() {
 
 do_venv_pip() {
   # do_venv_pip VENV action pkg
-  local d f VENV V popts
+  local d f VENV V popts x
   local SAVED_PATH=$PATH
   local cmd="$2"
   VENV="$1"
@@ -955,18 +961,16 @@ do_venv_pip() {
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [ $opt_verbose -eq 0 ] && popts="$popts -q"
-  # if [[ $pkg =~ $BIN_PKGS ]]; then
-  #   [[ "$cmd" == "install" ]] && bin_install "$pkg" "$1"
-  # elif [[ $pkg =~ $EI_PKGS && "$cmd" == "install" ]]; then
-  #   pip_install "$pkg" "$popts"
-  # elif [[ $pkg =~ $BZR_PKGS && "$cmd" == "install" ]]; then
-  #   pip_install "$pkg"
-  # else
-  [[ $cmd =~ (info|show) ]] && run_traced "$PIP show $pkg"
+  if [[ $cmd =~ (info|show) ]]; then
+    pkg=$(get_pkg_wo_version $pkg)
+    run_traced "$PIP show $pkg"
+    x=$($PIP show $pkg | grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
+    [[ -n $x ]] && x=$x/$pkg
+    [[ -L $x ]] && echo "Actual location is $($READLINK -e $x)"
+  fi
   [[ $cmd == "install" ]] && pip_install "$pkg"
   [[ "$cmd" == "uninstall" ]] && run_traced "$PIP $cmd $pkg"
   [[ $cmd == "update" ]] && pip_install "$pkg" "--upgrade"
-  # fi
   do_deactivate
   pop_cd
   export PATH=$SAVED_PATH

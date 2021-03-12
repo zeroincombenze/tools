@@ -21,7 +21,9 @@ except ImportError:
         release = ''
 if release:
     majver = int(release.major_version.split('.')[0])
-    if majver == 13:
+    if majver == 14:
+        from . import odoo_score_14                                # noqa: F401
+    elif majver == 13:
         from . import odoo_score_13                                # noqa: F401
     elif majver == 12:
         from . import odoo_score_12                                # noqa: F401
@@ -50,7 +52,7 @@ else:
         pass
 
 
-__version__ = "1.0.0.6"
+__version__ = "1.0.0.7"
 
 MODULE_ID = 'odoo_score'
 TEST_FAILED = 1

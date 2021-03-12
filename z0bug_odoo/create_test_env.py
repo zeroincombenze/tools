@@ -38,7 +38,7 @@ except ImportError:
     from z0lib import z0lib
 from z0bug_odoo import z0bug_odoo_lib
 
-__version__ = "1.0.1"
+__version__ = "1.0.1.1"
 
 
 def env_ref(ctx, xref, retxref_id=None):

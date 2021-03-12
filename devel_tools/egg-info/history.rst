@@ -1,10 +1,13 @@
-1.0.0.11 (2021-03-05)
+1.0.0.12 (2021-03-05)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: publish pypi
 [FIX] vfdiff: if lang not en_US
+[IMP] gen_readme.py: recognizes powerp
+[IMP] gen_readme.py: set website for any organization
+[IMP] please: status more precise
 
-[IMP] topep8: recognize power organization1.0.0.11 (2021-02-19)
+[IMP] topep8: recognize power organization1.0.0.12 (2021-02-19)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] cvt_script: best code replacement

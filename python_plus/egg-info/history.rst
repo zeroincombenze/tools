@@ -1,3 +1,9 @@
+1.0.0.9 (2021-03-05)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: odoo link as package
+[FIX] vem: info / show package with version
+
 1.0.0.8 (2021-03-03)
 ~~~~~~~~~~~~~~~~~~~~
 

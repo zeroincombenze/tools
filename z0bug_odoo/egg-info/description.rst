@@ -186,6 +186,11 @@ To enable reduced set of check add one of follow lines:
     - LINT_CHECK="1" LINT_CHECK_LEVEL="AVERAGE"
     - LINT_CHECK="1" LINT_CHECK_LEVEL="NEARBY"
 
+Odoo core has internal pylint test that checks for all modules even the dependecies.
+So if some dependecies module does not meet this test, then the full travis test fails without testing the target repository.
+
+Please, add test_lint to EXCLUDE variable to avoid this fail-over.
+
 Look at follow table to understand which tests are disabled at specific level:
 
 FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)

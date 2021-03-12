@@ -109,12 +109,37 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.0.11"
+__version__ = "1.0.0.12"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
     'oca': 'OCA',
     'powerp': 'powerp',
+}
+COPY = {
+    'zero': {
+        'author': 'SHS-AV s.r.l.',
+        'website': 'https://www.zeroincombenze.it',
+        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
+    },
+    'shs': {
+        'author': 'SHS-AV s.r.l.',
+        'website': 'https://www.shs-av.com',
+        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
+    },
+    'oca': {
+        'author': 'Odoo Community Association (OCA)',
+        'website': 'https://odoo-community.org',
+    },
+    'powerp': {
+        'author': 'powERP, Didotech srl, SHS-AV srl',
+        'website': 'https://www.powerp.it',
+        'devman': 'powERP enterprise network',
+    },
+    'didotech': {
+        'author': 'Didotech s.r.l.',
+        'website': 'https://www.didotech.com',
+    },
 }
 DEFINED_SECTIONS = ['description', 'descrizione', 'features',
                     'oca_diff', 'certifications', 'prerequisites',
@@ -172,6 +197,7 @@ MANIFEST_ITEMS = ('name', 'version', 'category',
                   'maturity', 'license', 'depends',
                   'external_dependencies',
                   'data', 'demo', 'test',
+                  'maintainer',
                   'installable')
 RST2HTML = {
     # &': '&amp;',
@@ -1335,7 +1361,11 @@ def read_all_manifests(ctx):
 def manifest_item(ctx, item):
     if item == 'website':
         if ctx['set_website']:
-            text = 'https://www.zeroincombenze.it/servizi-le-imprese/'
+            text = COPY.get(
+                ctx['git_orgid'], {
+                    'website':
+                        'https://www.zeroincombenze.it/servizi-le-imprese/'
+                })['website']
         else:
             authors = []
             for x in ctx['authors'].split('\n'):
@@ -1346,7 +1376,7 @@ def manifest_item(ctx, item):
                     if aut:
                         i = aut.find('<')
                         j = aut.find('>')
-                        if i > 1 and j > 1:
+                        if i > 1 and j > i:
                             text = aut[i + 1: j].strip()
                             break
             else:
@@ -1354,7 +1384,12 @@ def manifest_item(ctx, item):
         target = "    '%s': '%s',\n" % (item, text)
     elif item == 'maintainer':
         if ctx['set_website']:
-            text = 'Antonio Maria Vigliotti'
+            text = COPY.get(
+                ctx['git_orgid'], {
+                    'devman': 'Antonio Maria Vigliotti'
+                })['website']
+        elif ctx['manifest'].get(item):
+            text = ctx['manifest'][item]
         else:
             text = 'Odoo Community Association (OCA)'
         target = "    '%s': '%s',\n" % (item, text)
@@ -1363,10 +1398,14 @@ def manifest_item(ctx, item):
         for x in ctx['authors'].split('\n'):
             if x:
                 authors.append(x)
-        text = ''
-        if not ctx['set_website']:
+        if ctx['set_website']:
+            text = COPY.get(
+                ctx['git_orgid'], {
+                    'author': 'Odoo Community Association (OCA)'
+                })['author']
+        else:
             text = 'Odoo Community Association (OCA)'
-        if len(authors) < 3:
+        if len(authors) <= 3:
             for aut in authors:
                 if aut:
                     i = aut.find('<')

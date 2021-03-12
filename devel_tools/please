@@ -44,7 +44,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.11
+__version__=1.0.0.12
 
 #
 # General Purpose options:
@@ -1420,19 +1420,20 @@ do_publish_pypi() {
   local rpt=$1
   local n p s v
   [[ -z $rpt || ! $rpt =~ (pypi|testpypi) ]] && rpt=pypi
-  if [ "$PRJNAME" != "Odoo" ]; then
+  if [[ "$PRJNAME" != "Odoo" ]]; then
     if twine --version &>/dev/null; then
       run_traced "cd $PKGPATH"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      [ -f $PRJPATH/README.rst ] && run_traced "cp $PRJPATH/README.rst ./"
+      [[ -f $PRJPATH/README.rst ]] && run_traced "cp $PRJPATH/README.rst ./"
       n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep -Eo [a-zA-Z0-9_-]+ | head -n1)
       v=$(cat setup.py | grep version | grep -Eo [0-9]+[0-9\.]* | head -n1)
-      p=$(find dist -name "$n*$v*tar.gz")
-      if [ -z "$p" -o $opt_force -gt 0 ]; then
+      p=$(find dist -name "${n}-${v}.tar.gz")
+      if [[ -z "$p" || $opt_force -gt 0 ]]; then
         run_traced "python setup.py build sdist"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
-      p=$(find dist -name "$n*$v*tar.gz")
+      p=$(find dist -name "${n}-${v}.tar.gz")
+      [[ -z $p ]] && echo "Internal error: file tar not found!" && return 127
       run_traced "twine upload $p -r $rpt"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     else
@@ -2668,24 +2669,39 @@ do_showdoc() {
 }
 
 do_status() {
-  local HOME_DEV
+  local HOME_DEV v1 v2 v x y
   local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
   [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
   pushd $HOME/tools >/dev/null
-  local PKGS=$(git status | tr "\t" " " | grep -E "^#? +(modified|modificato):" | awk -F: '{print $2}' | tr -d " " | awk -F/ '{print $1}' | sort -u | tr "\n" "|")
+  local PKGS=$(git status -s | grep -E "^ M" | awk '{print $2}' | awk -F/ '{print $1}' | sort -u | tr "\n" "|")
   [[ -n "$PKGS" ]] && PKGS="(${PKGS:0:-1})" || PKGS="()"
   popd >/dev/null
   for pkg in $PKGS_LIST; do
+    x=""
     [ $opt_force -ne 0 ] && echo -e "\e[1m[ $pkg ]\e[0m"
     [ $opt_force -eq 0 ] && echo -e "[ $pkg ]"
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg="${pkg//-/_}"
     [ $opt_force -ne 0 ] && vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q | grep -v "diff -x"
     if [ $opt_force -eq 0 ]; then
       vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
-      [ $? -ne 0 ] && echo -e "\e[1m    Execute: cd $HOME_DEV/pypi/$pkg/$pkg; please replace\e[0m"
+      [ $? -ne 0 ] && x="R"
     fi
-    if [[ ! "$PKGS" == "()" && $pkg =~ $PKGS ]]; then
-      echo -e "\e[1m    Package $pkg have to be pushed on github.com\e[0m"
+    if [[ -n "$PKGS" && $pkg =~ $PKGS ]]; then
+      # echo -e "\e[1m    Package $pkg have to be pushed on github.com\e[0m"
+      x="$x G"
+    fi
+    v1=""
+    v2=""
+    if [[ $x =~ "R" ]]; then
+      v1=$(grep -E "version" $HOME/tools/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+      v2=$(grep -E "version" $HOME_DEV/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+    fi
+    if [[ $x =~ "R" && ! $x =~ "G" && $v1 == $v2 ]]; then
+      v=$(echo $v2 | awk -F. '{if ($NF == 3) {OFS="."; print $1,$2,int($3)+1} else {OFS="."; print $1,$2,$3,int($4)+1}}')
+      echo -e "\e[1m    Execute: cd $HOME_DEV/pypi/$pkg/$pkg; please version $v2 $v; please replace\e[0m"
+    else
+      [[ $x =~ "R" ]] && echo -e "\e[1m    Execute: cd $HOME_DEV/pypi/$pkg/$pkg; please replace\e[0m"
+      [[ $x =~ "G" ]] && echo -e "\e[1m    Package $pkg have to be pushed on github.com\e[0m"
     fi
   done
 }
