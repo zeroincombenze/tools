@@ -1,0 +1,174 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=0.2.3.1
+
+
+Z0BUG_setup() {
+    LCLTEST_RMDIR=
+    for VERSION in v7 7.0 8.0 9.0 10.0; do
+      if [ ! -d ~/$VERSION ]; then
+        LCLTEST_RMDIR="$LCLTEST_RMDIR $VERSION"
+        mkdir -p ~/$VERSION
+        mkdir -p ~/$VERSION/l10n-italy
+        mkdir -p ~/$VERSION/l10n-italy/l10n_it_vat_registries
+        mkdir -p ~/$VERSION/l10n-italy/l10n_it_vat_registries/i18n
+        touch ~/$VERSION/l10n-italy/l10n_it_vat_registries/__openerp__.py
+      fi
+    done
+}
+
+Z0BUG_teardown() {
+    for VERSION in v7 7.0 8.0 9.0 10.0; do
+      if [[ "$LCLTEST_RMDIR" =~ $VERSION ]]; then
+        rm -fR ~/$VERSION/l10n-italy/l10n_it_vat_registries/i18n
+        rm -fR ~/$VERSION/l10n-italy/l10n_it_vat_registries
+        rm -fR ~/$VERSION/l10n-italy
+        rm -fR ~/$VERSION
+      fi
+    done
+}
+
+test_copy() {
+    export opt_conf=$TESTDIR/test_travis.conf
+    local cmd="$RUNDIR/vfcp -c$opt_conf -anv $1 $2"
+    if [ -n "$1" ]; then
+      local msg1=$1
+    else
+      local msg1=
+    fi
+    if [ -n "$2" ]; then
+      local msg2=$2
+    else
+      local msg2=.
+    fi
+    if [ -n "$3" ]; then
+      cmd="$cmd -r $3"
+      msg1=$msg1/$3
+    fi
+    if [ -n "$4" ]; then
+      cmd="$cmd -p $4"
+      msg1=$msg1/$4
+    fi
+    if [ -n "$5" ]; then
+      if [ "${5:0:1}" == "-" ]; then
+        cmd="$cmd -R"
+        if [ -n "${5:1}" ]; then
+          cmd="$cmd -O ${5:1}"
+        fi
+      else
+        cmd="$cmd -O $5"
+      fi
+    fi
+    TRES=$(eval $cmd)
+    test_result "$PWD>cp $msg1 $msg2" "$6" "$TRES"
+}
+
+test_01() {
+    # if [ $opt_dry_run -ne 0 ]; then set -x; fi  #debug
+    local s t
+    export opt_conf=$TESTDIR/test_travis.conf
+    if [ -f $opt_conf ]; then rm -f $opt_conf; fi
+    touch $opt_conf
+    echo "filedel=.pyc .log .bak  ~">>$opt_conf
+    echo "fileignore=.conf">>$opt_conf
+    echo "filediffignore=.po .pot">>$opt_conf
+    for s in v7 8.0 10.0; do
+      if [ -d /opt/odoo/$s ]; then
+        for t in v7 7.0 9.0; do
+          if [ -d /opt/odoo/$t ]; then
+            test_copy "$s" "$t" "" "" "" "> cp -R /opt/odoo/$s /opt/odoo"
+            # TODO: Test does not work in travis env
+            if [ "${PWD:0:18}" == "/opt/odoo/dev/pypi" ]; then
+              test_copy "~/$s" "$t" "" "" "" "> cp -R /opt/odoo/$s /opt/odoo"
+            fi
+            test_copy "/opt/odoo/$s" "$t" "l10n-italy" "" "" "> cp -R /opt/odoo/$s/l10n-italy /opt/odoo/$t"
+            test_copy "/opt/odoo/$s" "$t" "l10n-italy" "l10n_it_vat_registries" "" "> cp -R /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy"
+            test_copy "/opt/odoo/$s/l10n-italy" "$t" "" "" "" "> cp -R /opt/odoo/$s/l10n-italy /opt/odoo/$t"
+            test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries" "$t" "" "" "" "> cp -R /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy"
+            if [ "$s" == "$t" ]; then
+              test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" ""  "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+              test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t"  "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+              test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-$t" "> cp /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+            else
+              test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" ""  "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'$s/'version': '$t/g\" -e \"s/\\\"version\\\": *\\\"$s/\\\"version': \\\"$t/g\" /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+              test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t"  "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'$s/'version': '$t/g\" -e \"s/\\\"version\\\": *\\\"$s/\\\"version': \\\"$t/g\" /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+              test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-$t" "> cp /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'$t/'version': '$s/g\" -e \"s/\\\"version\\\": *\\\"$t/\\\"version': \\\"$s/g\" /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+            fi
+          fi
+        done
+      fi
+    done
+    for s in v7 10.0; do
+      if [ -d /opt/odoo/$s ]; then
+        test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "8.0" "l10n-italy-supplemental" "" "" "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'$s/'version': '8.0/g\" -e \"s/\\\"version\\\": *\\\"$s/\\\"version': \\\"8.0/g\" /opt/odoo/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py"
+      fi
+    done
+    for s in 7 8; do
+      if [ -d /opt/odoo/$s.0 ]; then
+        test_copy "/etc/odoo/odoo$s-server.conf" "9.0" "" "" "" "> cp /etc/odoo/odoo$s-server.conf /etc/odoo/odoo9-server.conf"
+      fi
+    done
+    test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n/" "8.0" "" "" "" "> cp -R /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries"
+    test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n" "8.0" "" "" "" "> cp -R /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries"
+    local CWD=$PWD
+    cd /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries
+    test_copy "__openerp__.py" "" "" "" "8" "> cp /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'7.0/'version': '8.0/g\" -e \"s/\\\"version\\\": *\\\"7.0/\\\"version': \\\"8.0/g\" /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+    cd $CWD
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_travis_em.log "$@"
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+
+
+
+
+UT1_LIST=
+UT_LIST=
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

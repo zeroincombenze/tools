@@ -1,0 +1,43 @@
+# Config file .coveragerc 2019-08-22
+[report]
+include =
+#    ${TRAVIS_BUILD_DIR}/*
+    *.py
+
+omit =
+    */scenario/*
+    */scenarios/*
+    */test/*
+    */tests/*
+    *_example/*
+    __main__.py
+    setup.py
+    */site-packages/*
+    */lib/python*/*
+    */lib64/python*/*
+    */__init__.py
+    */__openerp__.py
+    */__manifest__.py
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about null context checking
+    if context is None:
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if __name__ == .__main__.:
+    if 0:
+    if False:
+
+    # Ignore unit test failure
+    return TEST_FAILED
