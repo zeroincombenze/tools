@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.12
+__version__=1.0.0.13
 
 
 test_01() {
@@ -97,9 +97,9 @@ EOF
 .. \$elif branch in '11.0'
 * antonio <antoniov@libero.it>
 .. \$elif branch in '10.0'
-* lorenzo <lorenzo@libero.it>
+* alberta <alberta@libero.it>
 .. \$elif branch in '9.0'
-* Davide <davide@libero.it>
+* daniela <daniela@libero.it>
 .. \$elif branch in '7.0'
 * antonio <antoniov@shs-av.com>
 .. \$else
@@ -202,8 +202,8 @@ Contributors
 Acknoledges to
 --------------
 
-* Davide <davide@libero.it>
-* lorenzo <lorenzo@libero.it>
+* daniela <daniela@libero.it>
+* alberta <alberta@libero.it>
 
 ----------------------
 
@@ -454,9 +454,9 @@ EOF
 .. \$elif branch in '11.0'
 * antonio <antoniov@libero.it>
 .. \$elif branch in '10.0'
-* lorenzo <lorenzo@libero.it>
+* alberta <alberta@libero.it>
 .. \$elif branch in '9.0'
-* Davide <davide@libero.it>
+* daniela <daniela@libero.it>
 .. \$elif branch in '7.0'
 * antonio <antoniov@shs-av.com>
 .. \$else
@@ -561,8 +561,8 @@ Contributors
 Acknoledges to
 --------------
 
-* Davide <davide@libero.it>
-* lorenzo <lorenzo@libero.it>
+* daniela <daniela@libero.it>
+* alberta <alberta@libero.it>
 
 ----------------------
 
@@ -580,6 +580,37 @@ EOF
     test_result "gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
 }
 
+
+test_05() {
+    # Test __manifest__.py
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_04
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/__manifest__.py
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      touch $TESTDIR/res/__init__.py
+      cat <<EOF >$TESTDIR/res/__manifest__.py
+{
+    'name': 'mtest',
+    'version': '12.0.1.0',
+}
+EOF
+      # Files for test match
+      cat <<EOF >$TESTRES
+{
+    'name': 'mtest',
+    'version': '12.0.1.0',
+    'website': 'https://www.powerp.it',
+}
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -q -b12.0 -Gpowerp -WR
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -q -b12.0 -Gzero -R" "$TESTOUT" "$TESTRES" "diff"
+}
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_devel_tools.log "$@"

@@ -99,13 +99,14 @@ Like build_os_tree but create a specific odoo os tree.
 
     # (python)
     from zerobug import Z0BUG
+    from zerobug import Z0testOdoo
     class RegressionTest():
 
         def __init__(self, Z0BUG):
             self.Z0BUG = Z0BUG
 
         def test_01(self, ctx):
-            root = self.Z0BUG.build_odoo_env(ctx, '10.0')
+            root = Z0testOdoo.build_odoo_env(ctx, '10.0')
 
 |
 

@@ -67,6 +67,7 @@ import tokenize
 import yaml
 from subprocess import PIPE, Popen
 
+import license_mgnt
 from os0 import os0
 try:
     from z0lib import z0lib
@@ -74,39 +75,15 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.0.12"
+__version__ = "1.0.0.13"
 
+LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',
          '11.0', '12.0', '13.0', '14.0')
-COPY = {
-    'zero': {
-        'author': 'SHS-AV s.r.l.',
-        'website': 'https://www.zeroincombenze.it',
-        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
-    },
-    'shs': {
-        'author': 'SHS-AV s.r.l.',
-        'website': 'https://www.shs-av.com',
-        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
-    },
-    'oca': {
-        'author': 'Odoo Community Association (OCA)',
-        'website': 'https://odoo-community.org',
-    },
-    'powerp': {
-        'author': 'powERP, Didotech srl, SHS-AV srl',
-        'website': 'https://www.powerp.it',
-        'devman': 'powERP enterprise network',
-    },
-    'didotech': {
-        'author': 'Didotech s.r.l.',
-        'website': 'https://www.didotech.com',
-    },
-}
 AUTHORS_TEMPLATE = """
 * powERP <https://www.powerp.it>
 * SHS-AV s.r.l. <https://www.zeroincombenze.it>
-* Didotech srl <https://www.didotech.com>
+* Didotech s.r.l. <https://www.didotech.com>
 """
 CONTRIBUTORS_TEMPLATE = """
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
@@ -182,16 +159,16 @@ class topep8():
 
     def hard_format(self, src_filepy):
 
-        def split_comment(line, x):
+        def split_comment(line, loom):
             pos = line.rfind(' ', 0, 79)
             if pos >= 79 or (len(line) - pos) >= 79:
                 return line, ''
             left = line[0: pos + 1].rstrip()
-            right = '%s# %s' % (' ' * (x.end() - 1), line[pos + 1:])
+            right = '%s# %s' % (' ' * (loom.end() - 1), line[pos + 1:])
             return left, right
 
-        def split_expr(line, x):
-            pos = x.end()
+        def split_expr(line, loom):
+            pos = loom.end()
             y = re.match(r'^ *', line)
             if y and y.span() != (0, 0):
                 y = y.end() + 4
@@ -279,14 +256,14 @@ class topep8():
             website = website.replace('http:', 'https:')
             if website.endswith('/'):
                 website = website[0: -1]
-            for kk, item in COPY.items():
+            for kk, item in license_mgnt.COPY.items():
                 if item['website'].endswith(website):
                     auth = kk
                     copy_found = True
                     break
             if not copy_found:
                 auth = website.split('.')[-2]
-                COPY[auth] = {
+                license_mgnt.COPY[auth] = {
                     'website': 'http://%s' % website,
                     'author': auth,
                 }
@@ -307,9 +284,9 @@ class topep8():
                     if auth and auth not in req_copyrights:
                         req_copyrights.append(auth)
         for org in req_copyrights:
-            if org not in COPY:
+            if org not in license_mgnt.COPY:
                 print(
-                    'Invalid copyright option! Values are %s' % COPY.keys())
+                    'Invalid copyright option! Values are %s' % license_mgnt.COPY.keys())
                 return
             elif org == 'powerp':
                 info_fn = './egg-info/authors.txt'
@@ -347,9 +324,10 @@ class topep8():
                     if do_rewrite:
                         with open(info_fn, 'wb') as fd:
                             fd.write(authors)
+
         copy_found = []
         lineno = 0
-        empy_lines = 0
+        empty_lines = 0
         rex = r'^# *([Cc]opyright|\([Cc]\)|©|http:|https:|\w+\@[a-zA-z0-9-.]+)'
         while (lineno < len(self.lines) and
                self.lines[lineno] and
@@ -360,7 +338,7 @@ class topep8():
                                       '# -*- coding: utf-8 -*-',
                                       ):
                 lineno += 1
-                empy_lines = 0
+                empty_lines = 0
                 continue
             elif self.lines[lineno] == '# -*- encoding: utf-8 -*-':
                 del self.lines[lineno]
@@ -376,15 +354,15 @@ class topep8():
                 del self.lines[lineno]
                 continue
             elif re.match(rex, self.lines[lineno]):
-                empy_lines = 0
+                empty_lines = 0
                 found = False
-                for key in COPY.keys():
+                for key in license_mgnt.COPY.keys():
                     if found:
                         break
                     for item in ('author', 'website', 'devman'):
                         if found:
                             break
-                        re_item = COPY[key].get(item, '').replace(
+                        re_item = license_mgnt.COPY[key].get(item, '').replace(
                             'https:', 'https?:').replace('.', '.?')
                         if (not re_item or
                                 not re.search(re_item, self.lines[lineno])):
@@ -395,21 +373,21 @@ class topep8():
                             copy_found.append(key)
                         years = ''
                         ipos = 1
-                        x = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
-                                     self.lines[lineno][ipos:])
-                        if x:
-                            ipos += x.end() + 1
-                            x = re.match('^ *[0-9]+',
+                        loom = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
+                                        self.lines[lineno][ipos:])
+                        if loom:
+                            ipos += loom.end() + 1
+                            loom = re.match('^ *[0-9]+',
                                 self.lines[lineno][ipos:])
-                            if x:
-                                i = ipos + x.end()
+                            if loom:
+                                i = ipos + loom.end()
                                 years = self.lines[lineno][ipos:i]
                                 if self.lines[lineno][i] == '-':
                                     ipos = i + 1
-                                    x = re.match('[0-9]+',
+                                    loom = re.match('[0-9]+',
                                         self.lines[lineno][ipos:])
-                                    if x:
-                                        i = x.end()
+                                    if loom:
+                                        i = loom.end()
                                         if i == 4:
                                             ipos += 2
                                             i = ipos + i - 2
@@ -435,39 +413,39 @@ class topep8():
                         if years:
                             line = '# Copyright %s %s <%s>' % (
                                 years,
-                                COPY[key]['author'], COPY[key]['website']
+                                license_mgnt.COPY[key]['author'], license_mgnt.COPY[key]['website']
                             )
                         else:
                             line = '# Copyright %s <%s>' % (
-                                COPY[key]['author'], COPY[key]['website']
+                                license_mgnt.COPY[key]['author'], license_mgnt.COPY[key]['website']
                             )
                         self.lines[lineno] = line
                         break
                 if not found:
                     line = self.lines[lineno].replace('#  ', '# ').replace(
                         '-201', '-1').replace('(<', '<').replace('>)', '>')
-                    x = re.search(r'\([\w.-]+@[\w-]+\.[\w]+\)', line)
-                    if x:
+                    loom = re.search(r'\([\w.-]+@[\w-]+\.[\w]+\)', line)
+                    if loom:
                         line = '%s<%s>' % (
-                            line[0:x.start()], line[x.start() + 1:x.end() - 1])
+                            line[0:loom.start()], line[loom.start() + 1:loom.end() - 1])
                     self.lines[lineno] = line
             if self.lines[lineno] == '#':
-                if empy_lines == 0:
+                if lineno and empty_lines == 0:
                     lineno += 1
-                    empy_lines += 1
+                    empty_lines += 1
                     continue
                 del self.lines[lineno]
                 continue
             else:
-                empy_lines = 0
+                empty_lines = 0
             lineno += 1
             continue
         for org in req_copyrights:
             if org not in copy_found:
                 line = '# Copyright %s %s <%s>' % (
                     cur_year,
-                    COPY[org]['author'],
-                    COPY[org]['website']
+                    license_mgnt.COPY[org]['author'],
+                    license_mgnt.COPY[org]['website']
                 )
                 self.lines.insert(lineno, line)
                 lineno += 1
@@ -475,15 +453,34 @@ class topep8():
             self.lines.insert(lineno, '#')
             lineno += 1
 
+        odoo_license_root = 'https://www.odoo.com/documentation/user'
+        odoo_license_path = 'legal/licenses/licenses.html'
         if odoo_majver <= 8:
             ctx['opt_gpl'] = 'agpl'
+        elif ctx['opt_gpl'].lower() in ('opl', 'oee'):
+            ctx['opt_gpl'] = '%s-1' % ctx['opt_gpl']
         elif ctx['opt_gpl'].lower() not in ('agpl', 'lgpl'):
             ctx['opt_gpl'] = 'lgpl'
-        line = '# License %s-3.0 or later (%s/%s).' % (
-            ctx['opt_gpl'].upper(),
-            'https://www.gnu.org/licenses',
-            ctx['opt_gpl'].lower(),
-        )
+        if ctx['opt_gpl'].startswith('oee'):
+            line = '# License %s-1 or later (%s/%s/%s%s).' % (
+                ctx['opt_gpl'].upper(),
+                odoo_license_root,
+                ctx['to_ver'],
+                odoo_license_path,
+                '#odoo-enterprise-license')
+        elif ctx['opt_gpl'].startswith('opl'):
+            line = '# License %s-1 or later (%s/%s/%s%s).' % (
+                ctx['opt_gpl'].upper(),
+                odoo_license_root,
+                ctx['to_ver'],
+                odoo_license_path,
+                '#odoo-apps')
+        else:
+            line = '# License %s-3.0 or later (%s/%s).' % (
+                ctx['opt_gpl'].upper(),
+                'https://www.gnu.org/licenses',
+                ctx['opt_gpl'].lower(),
+            )
         self.lines.insert(lineno, line)
         lineno += 1
         self.lines.insert(lineno, '#')
@@ -984,34 +981,34 @@ class topep8():
         param_ids = self.LEX_RULES[ir]['meta_ids'][ver]
         return params, param_ids
 
-    def parse_eol_rule(self, value, state, x):
-        if x:
-            i = state['ipos'] + x.end()
+    def parse_eol_rule(self, value, state, loom):
+        if loom:
+            i = state['ipos'] + loom.end()
         else:
             i = state['ipos']
         state['ipos'] = len(value)
         tokval = value[i:state['ipos']].strip()
         return state, tokval
 
-    def parse_doc_rule(self, value, state, x):
+    def parse_doc_rule(self, value, state, loom):
         """Found triple quote, all inside next triple quote is doc"""
-        state, tokid, tokval = self.parse_eol_rule(value, state, x)
+        state, tokid, tokval = self.parse_eol_rule(value, state, loom)
         tokid = tokenize.DOC
         return state, tokid, tokval, [1, 1]
 
-    def parse_strdoc1_rule(self, value, state, x):
-        return self.parse_doc_rule(self, value, state, x)
+    def parse_strdoc1_rule(self, value, state, loom):
+        return self.parse_doc_rule(self, value, state, loom)
 
-    def parse_strdoc2_rule(self, value, state, x):
-        return self.parse_doc_rule(self, value, state, x)
+    def parse_strdoc2_rule(self, value, state, loom):
+        return self.parse_doc_rule(self, value, state, loom)
 
-    def parse_remark_eol_rule(self, value, state, x):
+    def parse_remark_eol_rule(self, value, state, loom):
         """Found token # (hash), all following it until eol is comment"""
-        state, tokval = self.parse_eol_rule(value, state, x)
+        state, tokval = self.parse_eol_rule(value, state, loom)
         tokid = tokenize.COMMENT
         return state, tokid, tokval, [1, 1]
 
-    def parse_escape_rule(self, value, state, x):
+    def parse_escape_rule(self, value, state, loom):
         """Escape token replaces single python keyword. Escape rule may be:
         $any     means any python token
         $expr    means all tokens until global paren level decreases
@@ -1030,27 +1027,27 @@ class topep8():
         @return: min_max, token_id, token, next_ipos
         """
         i = state['ipos']
-        x = self.SYNTAX_RE['name'].match(value[i + 1:])
-        if x:
-            state['ipos'] += x.end() + 1
-            x = value[i + 1: i + 1 + x.end()]
+        loom = self.SYNTAX_RE['name'].match(value[i + 1:])
+        if loom:
+            state['ipos'] += loom.end() + 1
+            loom = value[i + 1: i + 1 + loom.end()]
         else:
             state['ipos'] += 2
-            x = value[i + 1]
-        if x in self.ESCAPES:
-            tokid = self.ESCAPES[x][0]
-            tokval = self.ESCAPES[x][1]
-            min_max = self.ESCAPES[x][2]
+            loom = value[i + 1]
+        if loom in self.ESCAPES:
+            tokid = self.ESCAPES[loom][0]
+            tokval = self.ESCAPES[loom][1]
+            min_max = self.ESCAPES[loom][2]
         else:
             tokval = False
             tokid = tokenize.PARENT_RULE
             min_max = [1, 1]
         return state, tokid, tokval, min_max
 
-    def parse_string_rule(self, value, state, x):
+    def parse_string_rule(self, value, state, loom):
         ipos = state['ipos']
         i = ipos
-        ipos += x.end()
+        ipos += loom.end()
         state['ipos'] = ipos
         tokval = value[i:ipos]
         tokid = tokenize.STRING
@@ -1058,30 +1055,30 @@ class topep8():
 
     def parse_txt_rule(self, value, state, endtok, esctok):
         i = state['ipos']
-        x = True
-        while x:
-            x = self.SYNTAX_RE[endtok].match(value[state['ipos']:])
-            if x:
-                state['ipos'] += x.end()
+        loom = True
+        while loom:
+            loom = self.SYNTAX_RE[endtok].match(value[state['ipos']:])
+            if loom:
+                state['ipos'] += loom.end()
                 if value[state['ipos']:state['ipos'] + 1] == self.SYNTAX_RE[esctok]:
                     state['ipos'] += 1
                 else:
-                    x = None
+                    loom = None
             else:
                 state['ipos'] = len(value)
         tokval = value[i:state['ipos']]
         tokid = tokenize.STRING
         return state, tokid, tokval, [1, 1]
 
-    def parse_string1_rule(self, value, state, x):
+    def parse_string1_rule(self, value, state, loom):
         return self.parse_txt_rule(value, state, 'endstr1', 'escstr1')
 
-    def parse_string2_rule(self, value, state, x):
+    def parse_string2_rule(self, value, state, loom):
         return self.parse_txt_rule(value, state, 'endstr2', 'escstr2')
 
-    def parse_generic_rule(self, value, ipos, x, token_name):
+    def parse_generic_rule(self, value, ipos, loom, token_name):
         i = ipos
-        ipos += x.end()
+        ipos += loom.end()
         tokval = value[i:ipos]
         tokid = token_name
         return tokid, tokval, ipos
@@ -1097,8 +1094,8 @@ class topep8():
     def parse_token_text(self, text, state):
         """Parse 1 token from source text"""
         for istkn in self.SYNTAX:
-            x = self.SYNTAX_RE[istkn].match(text[state['ipos']:])
-            if not x:
+            loom = self.SYNTAX_RE[istkn].match(text[state['ipos']:])
+            if not loom:
                 continue
             unknown = False
             tokid = False
@@ -1106,7 +1103,7 @@ class topep8():
             min_max_list = [1,1]
             i = state['ipos']
             if istkn in ('space', ):
-                state['ipos'] += x.end()
+                state['ipos'] += loom.end()
                 if not state['indent'] or i > 0:
                     continue
                 tokid = tokenize.INDENT
@@ -1117,14 +1114,14 @@ class topep8():
                 if hasattr(self, action):
                     action = getattr(self, action)
                     state, tokid, tokval, min_max = action(
-                        text, state, x)
+                        text, state, loom)
                     # Token is one of prior repetition: $? $* $+
                     if tokid == -1:
                         min_max_list[-1] = min_max
                         continue
                 else:
                     tokid, tokval, state['ipos'] = self.parse_generic_rule(
-                        text, state['ipos'], x,
+                        text, state['ipos'], loom,
                         self.SYNTAX_TNL_ID[istkn])
             break
         if unknown:
@@ -1381,7 +1378,9 @@ class topep8():
             tokid = tokenize.NEWLINE
         return tokid
 
-    def wash_token(self, tokid, tokval, (srow, scol), (erow, ecol)):
+    def wash_token(self, tokid, tokval, s_rowcol, e_rowcol):
+        (srow, scol) = s_rowcol
+        (erow, ecol) = e_rowcol
         if tokid in self.GHOST_TOKENS:
             if srow:
                 self.tabstop = {}
@@ -1745,6 +1744,13 @@ def save_file(ctx, src_file, dst_file, text_tgt):
 
 def parse_file(ctx=None):
     ctx = ctx or {}
+    if ctx['opt_gpl'] and ctx['opt_gpl'].isdigit():
+        # Compatibility with old codes
+        ctx['opt_gpl'] = 'gpl'
+    if ctx['opt_gpl'] and ctx['opt_gpl'] not in LICENSES:
+        print('Invalid license %s: valid values are: %s' % (
+            ctx['opt_gpl'], str(LICENSES)))
+        return 1
     src_filepy, dst_filepy, ctx = get_filenames(ctx)
     ctx = get_versions(ctx)
     if ctx['opt_verbose']:

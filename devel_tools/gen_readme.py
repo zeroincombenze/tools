@@ -95,6 +95,7 @@ import sys
 from datetime import datetime
 from shutil import copyfile
 from lxml import etree
+import license_mgnt
 from python_plus import unicodes
 from os0 import os0
 try:
@@ -109,37 +110,13 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.0.12"
+__version__ = "1.0.0.13"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
     'oca': 'OCA',
     'powerp': 'powerp',
-}
-COPY = {
-    'zero': {
-        'author': 'SHS-AV s.r.l.',
-        'website': 'https://www.zeroincombenze.it',
-        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
-    },
-    'shs': {
-        'author': 'SHS-AV s.r.l.',
-        'website': 'https://www.shs-av.com',
-        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
-    },
-    'oca': {
-        'author': 'Odoo Community Association (OCA)',
-        'website': 'https://odoo-community.org',
-    },
-    'powerp': {
-        'author': 'powERP, Didotech srl, SHS-AV srl',
-        'website': 'https://www.powerp.it',
-        'devman': 'powERP enterprise network',
-    },
-    'didotech': {
-        'author': 'Didotech s.r.l.',
-        'website': 'https://www.didotech.com',
-    },
+    'didotech': 'didotech',
 }
 DEFINED_SECTIONS = ['description', 'descrizione', 'features',
                     'oca_diff', 'certifications', 'prerequisites',
@@ -199,6 +176,8 @@ MANIFEST_ITEMS = ('name', 'version', 'category',
                   'data', 'demo', 'test',
                   'maintainer',
                   'installable')
+# MANIFEST_ITEMS_REQUIRED = ('name', 'version', 'author', 'website', 'license')
+MANIFEST_ITEMS_REQUIRED = ('name', 'version', 'website')
 RST2HTML = {
     # &': '&amp;',
     '©': '&copy',
@@ -1361,7 +1340,7 @@ def read_all_manifests(ctx):
 def manifest_item(ctx, item):
     if item == 'website':
         if ctx['set_website']:
-            text = COPY.get(
+            text = license_mgnt.COPY.get(
                 ctx['git_orgid'], {
                     'website':
                         'https://www.zeroincombenze.it/servizi-le-imprese/'
@@ -1384,7 +1363,7 @@ def manifest_item(ctx, item):
         target = "    '%s': '%s',\n" % (item, text)
     elif item == 'maintainer':
         if ctx['set_website']:
-            text = COPY.get(
+            text = license_mgnt.COPY.get(
                 ctx['git_orgid'], {
                     'devman': 'Antonio Maria Vigliotti'
                 })['website']
@@ -1399,7 +1378,7 @@ def manifest_item(ctx, item):
             if x:
                 authors.append(x)
         if ctx['set_website']:
-            text = COPY.get(
+            text = license_mgnt.COPY.get(
                 ctx['git_orgid'], {
                     'author': 'Odoo Community Association (OCA)'
                 })['author']
@@ -1458,6 +1437,8 @@ def manifest_contents(ctx):
     target += '{\n'
     for item in MANIFEST_ITEMS:
         if item in ctx['manifest']:
+            target += manifest_item(ctx, item)
+        elif ctx['set_website'] and item in MANIFEST_ITEMS_REQUIRED:
             target += manifest_item(ctx, item)
     for item in list(ctx['manifest'].keys()):
         if item != 'description' and item not in MANIFEST_ITEMS:
@@ -1630,6 +1611,7 @@ def generate_readme(ctx):
 
     ctx = read_manifest_setup(ctx)
     set_default_values(ctx)
+    # license = license_mgnt.License()
     # Read predefined section / tags
     for section in DEFINED_TAG:
         out_fmt = None
@@ -1769,10 +1751,10 @@ if __name__ == "__main__":
         if not ctx['git_orgid']:
             ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
                                                 odoo_vid=ctx['odoo_vid'])
-    if ctx['git_orgid'] not in ('zero', 'oca', 'powerp'):
+    if ctx['git_orgid'] not in ('zero', 'oca', 'powerp', 'didotech'):
         ctx['git_orgid'] = 'zero'
         if not ctx['suppress_warning']:
-            print('Invalid git-org: use -G %s or of zero|oca' %
+            print('Invalid git-org: use -G %s or of zero|oca|didotech' %
                   ctx['git_orgid'])
     if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
         if ctx['product_doc'] == 'odoo':

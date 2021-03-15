@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.12
+__version__=1.0.0.13
 
 
 test_01() {
@@ -359,9 +359,9 @@ EOF
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
 #
 EOF
-        $RUNDIR/topep8 -qAA -G1 -b10.0 $TESTSRC -o $TESTOUT
+        $RUNDIR/topep8 -qAA -Ggpl -b10.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -G1 -b10.0 'odoo.com'" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AA -Ggpl -b10.0 'odoo.com'" "$TESTOUT" "$TESTRES" "diff"
 }
 
 

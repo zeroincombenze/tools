@@ -44,7 +44,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.8
+__version__=1.0.0.9
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -85,6 +85,7 @@ process_yaml_init() {
   export MQT_DBUSER="$(get_cfg_value "" "MQT_DBUSER")"
   [[ -z $MQT_DBUSER ]] && export MQT_DBUSER==$(get_dbuser)
   python_ver_req=
+  python_ver_ena=$(cat $PRJPATH/travis.ini|grep PYPI_RUN_PYVER|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
     [[ -d $HOME/devel ]] && \
       export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || \
@@ -178,7 +179,7 @@ process_yaml_do() {
     lne=$(process_yaml_unquote "$line")
   fi
   if [ "$YML_sect" == "python" ]; then
-    python_ver_req="$python_ver_req $lne"
+    [[ -z $python_ver_ena || $lne == $python_ver_ena ]] && python_ver_req="$python_ver_req $lne"
     lne="#"
   elif [ "$YML_sect" == "addons.apt.packages" ]; then
     YML_packages="$YML_packages $lne"
@@ -1166,6 +1167,7 @@ if [ $sts -eq $STS_SUCCESS ]; then
         mv -f $LOGFILE $OLD_LOGFILE
       fi
       mv -f $TMP_LOGFILE $LOGFILE
+      $0 wep-db &>/dev/null
     fi
   fi
 fi
