@@ -25,7 +25,7 @@ parser.add_argument('-V')
 ctx = parser.parseoptargs(['-V'])
 """
 
-__version__ = "1.0.0.9"
+__version__ = "1.0.0.10"
 
 
 def version():
@@ -73,6 +73,7 @@ class Test():
     def test_09(self, z0ctx):
         if os.path.isdir(self.venv_dir):
             shutil.rmtree(self.venv_dir)
+
 
 if __name__ == "__main__":
     exit(Z0BUG.main_local(

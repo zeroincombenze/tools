@@ -283,7 +283,7 @@ pip_install() {
       [[ $pkg =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
       [[ $pkg =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
       [[ -z "$d" ]] && echo "Unknown URL for $pkg" && return
-      run_traced "$PIP install $pkg"
+      run_traced "$PIP install $d"
     elif [[ $pkg =~ $BZR_PKGS ]]; then
       x=$(which bzr 2>/dev/null)
       if [[ -z "$x" ]]; then
