@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.0.9
+#__version__=1.0.0.10
 
 # MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
@@ -1032,7 +1032,7 @@ robocopy() {
 clean_dirs() {
   # clean_dirs (directory)::
   # return:
-  local b cmd d excl f gx="" o p XXXX x yy
+  local b cmd d excl f gx="" o p w XXXX x yy
   [[ -n "$1" ]] && d=$1 || d="."
   # [ ${opt_verbose:-0} -gt 0 ] && p="-print " || p=""
   XXXX=$(get_cfg_value "" "filedel")
@@ -1048,9 +1048,10 @@ clean_dirs() {
   [[ $opt_verbose -gt 1 ]] && echo "gitignore='$gx'"
   d="."
   cmd="find $d"
+  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp)]] && w=1 || w=0
   for f in $d/*; do
     b=$(basename $f)
-    [[ $opt_verbose -gt 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openero) ]] && echo "Warning! Directory $f should be in .gitmodules"
+    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openero) ]] && echo "Warning! Directory $f should be in .gitmodules"
     [[ -d $f && (-z "$gx" || (-n "$gx" && $b =~ $gx)) ]] && cmd="$cmd -not -path '$f/*'"
   done
   for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
@@ -1140,7 +1141,7 @@ ant_erase() {
 }
 
 set_executable() {
-  local b cmd d excl f gx="" o p XXXX x yy
+  local b cmd d excl f gx="" o p w XXXX x yy
   [[ -n "$1" ]] && d=$1 || d="."
   XXXX=$(get_cfg_value "" "filedel")
   [[ $PWD == "$HOME/tools" ]] && XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
@@ -1155,18 +1156,21 @@ set_executable() {
   [[ $opt_verbose -gt 1 ]] && echo "gitignore='$gx'"
   d="."
   cmd="find $d"
+  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp)]] && w=1 || w=0
   for f in $d/*; do
     b=$(basename $f)
-    [[ $opt_verbose -gt 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openero) ]] && echo "Warning! Directory $f should be in .gitmodules"
+    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openerp) ]] && echo "Warning! Directory $f should be in .gitmodules"
     [[ -d $f && (-z "$gx" || (-n "$gx" && $b =~ $gx)) ]] && cmd="$cmd -not -path '$f/*'"
   done
   for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
-  o="-nowarn \("
-  for x in $XXXX; do
-    [[ ! $x =~ (.conf|\*) ]] && cmd="$cmd $o -name '*$x'" && o="-o"
-    [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
-  done
-  cmd="$cmd \) -type f"
+  o="-nowarn"
+#  o="-nowarn \("
+#  for x in $XXXX; do
+#    [[ ! $x =~ (.conf|\*) ]] && cmd="$cmd $o -name '*$x'" && o="-o"
+#    [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
+#  done
+#  cmd="$cmd \) -type f"
+  cmd="$cmd -type f"
   run_traced "$cmd -not -name '*.sh' -a -not -name openerp-server -a -not -name odoo-bin -executable -exec chmod -x '{}' \;"
   run_traced "$cmd -name '*.sh' -exec chmod +x '{}' \;"
   run_traced "$cmd -not -name '*.js' -exec grep -El '#. *(/bin/bash|/usr/bin/env )' '{}' \;|xargs -I{} chmod +x {}"

@@ -51,16 +51,18 @@ account.invoice		action	INVOICE_OPEN|ACTION_INVOICE_OPEN	invoice_open	invoice_op
 account.invoice		field	FISCAL_POSITION|FISCAL_POSITION_ID	fiscal_position	fiscal_position	fiscal_position	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id
 account.invoice		field	INTERNAL_NUMBER|MOVE_NAME	internal_number	internal_number	internal_number	move_name	move_name	move_name	move_name	move_name	move_name
 account.invoice		field	PAYMENT_TERM|PAYMENT_TERM_ID	payment_term	payment_term	payment_term	payment_term_id	payment_term_id	payment_term_id	payment_term_id	payment_term_id	payment_term_id
-account.invoice		field	SUPPLIER_INVOICE_NUMBER|REFERENCE	supplier_invoice_number	supplier_invoice_number	supplier_invoice_number	reference	reference	reference	reference	reference	reference
 account.invoice.line		field	INVOICE_LINE_TAX_ID|INVOICE_LINE_TAX_IDS	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids
 account.invoice.line		field	UOS_ID|UOM_ID	uos_id	uos_id	uos_id	uom_id	uom_id	uom_id	uom_id	uom_id	uom_id
-account.journal	type	value	PURCHASE_REFUND|PURCHASE	purchase_refund	purchase_refund	purchase_refund	purchase_refund	purchase	purchase	purchase	purchase	purchase
 account.journal	type	value	SALE_REFUND|SALE	sale_refund	sale_refund	sale_refund	sale_refund	sale	sale	sale	sale	sale
 account.move		field	LINE_ID|LINE_IDS	line_id	line_id	line_id	line_ids	line_ids	line_ids	line_ids	line_ids	line_ids
 account.move.line		field	RECONCILED|RECONCILE_ID	reconciled	reconciled	reconciled	reconciled	reconcile_id	reconcile_id	reconcile_id	reconcile_id	reconcile_id
 "account.payment.term
 "	"account.payment.term
 "	value	procent|percent	procent	procent	procent	percent	percent	percent	percent	percent	percent
+account.payment.term.line		field	OPTION				option	option	option	option	option	option
+account.payment.term.line	option	value	option|fix_day_following_month|after_invoice_month				fix_day_following_month	fix_day_following_month	fix_day_following_month	after_invoice_month	after_invoice_month	after_invoice_month
+account.payment.term.line	option	value	option|last_day_following_month|day_following_month				last_day_following_month	last_day_following_month	last_day_following_month	day_following_month	day_following_month	day_following_month
+account.payment.term.line	option	value	option|last_day_current_month|day_current_month				last_day_current_month	last_day_current_month	last_day_current_month	day_current_month	day_current_month	day_current_month
 account.tax		field	ACCOUNT_COLLECTED_ID|ACCOUNT_ID	account_collected_id	account_collected_id	account_collected_id	account_id	account_id	account_id	account_id	account_id	account_id
 account.tax		field	ACCOUNT_PAID_ID|REFUND_ACCOUNT_ID	account_paid_id	account_paid_id	account_paid_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id
 account.tax	amount	value	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}

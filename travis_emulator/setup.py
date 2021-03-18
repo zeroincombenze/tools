@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='travis_emulator',
-      version='0.2.2.27',
+      version='1.0.0.10',
       description='Travis CI emulator for local develop environment',
       long_description="""
 Simple emulator to simulate travis-ci operations on local host
@@ -10,7 +10,7 @@ Warning: this code does not replace travis-ci functionality!
 It serves just to test before git push command
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 5 - Production/Stable',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Programming Language :: Python :: 2.7',
           'Intended Audience :: Developers',

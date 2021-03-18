@@ -20,7 +20,7 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.3.28.18"
+__version__ = "0.3.28.19"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
