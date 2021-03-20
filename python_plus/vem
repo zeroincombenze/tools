@@ -28,7 +28,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 
 __version__=1.0.0.8
-NEEDING_PKGS="future os0 z0lib"
+NEEDING_PKGS="future configparser os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python_plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -612,7 +612,6 @@ venv_mgr_check_src_path() {
     exit 1
   fi
   cd_venv "$VENV" "-fq"
-  # do_activate "-q"
   for f in ./bin/python[23].*; do
     PYTHON=$(echo $f | grep -Eo "python[2-3]\.[0-9]")
     break
@@ -624,14 +623,14 @@ venv_mgr_check_src_path() {
     exit 1
   fi
   opt_pyver=$($PYTHON --version 2>&1 | grep -Eo "[0-9]\.[0-9]")
-  check_4_needing_pkgs $VENV
+  # check_4_needing_pkgs $VENV
   pop_cd "-q"
   [ $opt_verbose -gt 0 ] && echo "### Python version $opt_pyver ... ###"
 }
 
 check_4_needing_pkgs() {
   local p x
-  NEEDING_PKGS="future configparser os0 z0lib"
+  # NEEDING_PKGS="future configparser os0 z0lib"
   for p in $NEEDING_PKGS; do
     x=${p^^}
     eval $x=$($PIP show $p 2>/dev/null | grep "Version" | grep -Eo "[0-9.]+")
@@ -652,13 +651,13 @@ venv_mgr_check_oever() {
   #venv_mgr_check_oever action
   local p x
   if [[ -z "$opt_oever" && ! $1 =~ (help|create) ]]; then
-    p=""
+    p="$p2"
     for x in odoo openerp server; do
       [[ -d $p2/odoo/$x ]] && p="$p $p2/odoo/$x"
       [[ ! $x == "odoo" && -d $p2/$x ]] && p="$p $p2/$x"
     done
-    [ $opt_verbose -gt 2 ] && echo ">>> find -L $p -not -path \"*/__to_remove/*\" -not -path \"*/lib/*\" -not -path \"*/lib64/*\"  -not -path \"*/tests/res/*\" -name release.py"
-    x=$(find -L $p -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -name release.py)
+    [ $opt_verbose -gt 2 ] && echo ">>> find -L $p -not -path \"*/__to_remove/*\" -not -path \"*/lib/*\" -not -path \"*/lib64/*\" -not -path \"*/tests/res/*\" -not -path \"*/include/*\" -not -path \"*/.npm/*\" -not -path \"*/node_modules/*\" -not -path \"*/.cache/*\" -name release.py"
+    x=$(find -L $p -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py|head -n1)
     if [[ -n "$x" ]]; then
       p=$(dirname $x)
       cd_venv $p -fq
@@ -667,10 +666,10 @@ venv_mgr_check_oever() {
       pop_cd -q
     fi
   fi
-  set_pyver_files
+  # set_pyver_files
   if [[ ! $1 =~ (help|create) ]]; then
     [ -n "$opt_oever" -a $opt_verbose -gt 0 ] && echo "### Odoo version $opt_oever ...  ###"
-    check_installed_pkgs
+    # check_installed_pkgs
   else
     check_4_needing_pkgs
   fi
@@ -1034,7 +1033,7 @@ if [[ ! $action =~ (help|create) ]]; then
       exit 1
     fi
     p1=$VIRTUAL_ENV
-    VENV_STS="pre"
+    VENV_STS="preinstalled"   # running inside a virtul environment
   else
     if [[ -d "$p2" ]]; then
       p1=$($READLINK -e $p2)
@@ -1076,7 +1075,6 @@ SAVED_PYTHONPATH=$PYTHONPATH
 [[ $opt_debug -eq 3 ]] && package_debug
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
-venv_mgr_check_oever $action
 if [[ $action == "rm" ]]; then
   [[ $PWD == $($READLINK -f $p2) ]] && cd
   rm -fR $p2
@@ -1085,8 +1083,10 @@ if [[ $action == "rm" ]]; then
 elif [[ ! $action =~ (help|create) ]]; then
   cd_venv $p2 "-q"
   do_activate "-q"
+  venv_mgr_check_oever $action
   [[ -z "$opt_pyver" ]] && venv_mgr_check_src_path $p2
   [[ -n "$opt_pyver" ]] && set_pyver_files
+  check_installed_pkgs
 fi
 [[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
 if [[ -n "$opt_oever" && -z "$opt_oepath" ]]; then
@@ -1101,8 +1101,6 @@ if [[ -n "$opt_oever" && -z "$opt_oepath" ]]; then
   done
 fi
 [ $opt_verbose -gt 2 ] && echo "# Odoo dir = '$opt_oever'"
-# [ $opt_dev -eq 0 -a -d "$p2" ] && x=$(find ${p2}/lib -name pylint -o -name unittest2 -o -name coverage -o -name flake8 | wc -l)
-# [ $opt_dev -eq 0 -a ${x:-0} -gt 1 ] && opt_dev=1
 if [[ $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
   DEV_PKGS=""
 else
