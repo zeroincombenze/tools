@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.0.10
+#__version__=1.0.0.11
 
 # MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
@@ -1164,16 +1164,11 @@ set_executable() {
   done
   for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
   o="-nowarn"
-#  o="-nowarn \("
-#  for x in $XXXX; do
-#    [[ ! $x =~ (.conf|\*) ]] && cmd="$cmd $o -name '*$x'" && o="-o"
-#    [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
-#  done
-#  cmd="$cmd \) -type f"
+  [[ $opt_verbose -gt 0 ]] && x="-v +x" || x="+x"
   cmd="$cmd -type f"
-  run_traced "$cmd -not -name '*.sh' -a -not -name openerp-server -a -not -name odoo-bin -executable -exec chmod -x '{}' \;"
-  run_traced "$cmd -name '*.sh' -exec chmod +x '{}' \;"
-  run_traced "$cmd -not -name '*.js' -exec grep -El '#. *(/bin/bash|/usr/bin/env )' '{}' \;|xargs -I{} chmod +x {}"
+  run_traced "$cmd -not -name '*.sh' -not -name '*.pyc' -not -perm /+x -exec grep -El '^#\! */.+' '{}' \;|xargs -I{} chmod $x {}"
+  run_traced "$cmd \( -name '*.sh' -o -name '*.pyc' \) -not -perm /+x -exec chmod $x '{}' \;"
+  run_traced "$cmd -not -name '*.js' -not -perm /+x -exec grep -El '#. *(/bin/|/usr/)' '{}' \;|xargs -I{} chmod $x {}"
 }
 
 coverage() {

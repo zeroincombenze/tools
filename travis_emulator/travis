@@ -44,7 +44,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.10
+__version__=1.0.0.11
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -84,8 +84,9 @@ process_yaml_init() {
   export MQT_TEST_DB="$(get_cfg_value "" "MQT_TEST_DB")$YML_pid"
   export MQT_DBUSER="$(get_cfg_value "" "MQT_DBUSER")"
   [[ -z $MQT_DBUSER ]] && export MQT_DBUSER==$(get_dbuser)
-  python_ver_req=
-  python_ver_ena=$(cat $PRJPATH/travis.ini|grep PYPI_RUN_PYVER|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
+  python_ver_req=""
+  python_ver_ena=""
+  [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep PYPI_RUN_PYVER|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
     [[ -d $HOME/devel ]] && \
       export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || \
@@ -913,13 +914,6 @@ process_yaml_echo() {
     local line="- $(process_yaml_quote_xtl $lne)"
     echo "$lm$line"
   fi
-}
-
-checkpid() {
-  [ -f $1 ] || return 1
-  local pid=$(cat $1)
-  [ -d /proc/$pid ] && return 0
-  return 1
 }
 
 OPTOPTS=(h        B         C         c        D        d     E         F        f         j        k        L        l        M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
