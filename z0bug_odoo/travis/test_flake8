@@ -6,7 +6,7 @@ import sys
 from getaddons import get_modules
 
 
-__version__ = '1.0.1.1'
+__version__ = '1.0.1.2'
 
 
 def get_build_dir():
