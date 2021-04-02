@@ -50,7 +50,7 @@ All the tools serving Odoo are based on follow file system structure (flat layou
     (4) Multi-version environment
     (5) Some old 6.1 and 7.0 installations
     {majver} Odoo major version, i.e. 12 for 12.0
-    {org} Organization, i.e. oca axitec zero
+    {org} Organization, i.e. oca powerp zero
     {vid} Odoo root (see about Odoo vid)
     {repository} Odoo/OCA or any repository
     {venv} Virtual directory
@@ -89,7 +89,7 @@ This is the hierarchical layout):
       ┃         ┗━ ...
       ┣━ etc
       ┃    ┗━ *.conf                     (link)
-      ┣━ axidoo
+      ┣━ powerp
       ┃    ┣━ deploy
       ┃    ┣━ generic
       ┃    ┃    ┣━ {profile-modules}
@@ -97,9 +97,9 @@ This is the hierarchical layout):
       ┃    ┃    ┗━ {profile-modules} ...
       ┃    ┃          ┗━ ...
       ┃    ┗━ accounting
-      ┃         ┣━ {axitec-modules}
+      ┃         ┣━ {powerp-modules}
       ┃         ┃     ┗━ ...
-      ┃         ┗━ {axitec-modules} ...
+      ┃         ┗━ {powerp-modules} ...
       ┃               ┗━ ...
       ┗━ venv_odoo                       (4)
 
@@ -111,13 +111,13 @@ This is the hierarchical layout):
     {vid} Odoo root (see about Odoo vid)
     {repository} Odoo/OCA and other repositories
     {customized-addons} Client specific custom modules
-    {axitec-modules} Italian Accounting modules
+    {powerp-modules} Italian Accounting modules
 
 
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-03-08
+Last Update / Ultimo aggiornamento: 2021-04-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
@@ -132,22 +132,22 @@ Last Update / Ultimo aggiornamento: 2021-03-08
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.21
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.22
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.21/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.21
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.22/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.22
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.21/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.22/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.21/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.22/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.21/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.21
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.22/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.22
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.0.11
+#__version__=1.0.0.12
 
 # MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
@@ -42,7 +42,7 @@ opts_travis() {
   [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
   build_pypi_param ALL $1
   export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
-  if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+  if [[ -n "$opt_conf" && -f "$opt_conf" ]]; then
     TCONF=$opt_conf
   elif [[ -f $TDIR/.travis.conf ]]; then
     TCONF=$TDIR/.travis.conf
@@ -51,6 +51,7 @@ opts_travis() {
     x=$TDIR
     while [[ ! "$b" == "pypi" && ! "b" == "tools" && ! "$x" == "$HOME" ]]; do
       x=$($READLINK -e $x/..)
+      [[ $x == / ]] && break
       b=$(basename $x)
     done
     TCONF=$x/travis_emulator/.travis.conf
@@ -477,6 +478,7 @@ create_virtual_env() {
   echo -en "\e[${PS_RUN_COLOR}m"
   cd $TRAVIS_HOME
   source bin/activate
+  [[ -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && source $NVM_DIR/nvm.sh
   if [ $opt_cache -ne 0 -a "$TRAVIS" == "false" -a -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]; then
     export PYPI_CACHED=$HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/
   fi

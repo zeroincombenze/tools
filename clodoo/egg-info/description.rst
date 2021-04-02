@@ -180,6 +180,11 @@ odoorc: general purpose bash function
 -------------------------------------
 
 The bash file odoorc is a general purpose Odoo library. It supplies some Odoo values from odoo_vid or from odoo directory.
+Some values may depends by environment:
+
+- ODOO_DB_USER is the rule to return db username (def odoo%(MAJVER)s)
+- ODOO_GIT_HOSTNAME is the git hostname (def github.com)
+- ODOO_GIT_SHORT -> regex of git organizzations with vid short name (def /(oca)/, see odoo-vid)
 
 Usage:
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.21
+__version__=1.0.0.22
 
 export READLINK=readlink
 OS=$(uname -s)
@@ -104,9 +104,9 @@ for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator 
             echo "File $src not found!"
         elif [[ ! -L "$tgt" || $1 =~ -.*p || $fn =~ $MOVED_FILES_RE ]]; then
             if [[ -L "$tgt" && "$($READLINK -e $tgt)" == "$src" && ! $1 =~ -.*p ]]; then
-                [[ ! $1 =~ -.*q ]] && echo "$PMPT ln -s $src $tgt  # (confirmed)"
+                [[ $1 =~ -.*v ]] && echo "$PMPT ln -s $src $tgt  # (confirmed)"
             else
-                if [ -L "$tgt"  -o -f "$tgt" ]; then
+                if [[ -L "$tgt" || -f "$tgt" ]]; then
                     [[ ! $1 =~ -.*q ]] && echo "$PMPT rm -f $tgt"
                     [[ $1 =~ -.*n ]] || rm -f $tgt
                     [[ ! $1 =~ -.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
@@ -121,7 +121,7 @@ done
 if [[ -f $HOME/maintainers-tools/env/bin/oca-autopep8 ]]; then
     tgt=$DSTPATH/oca-autopep8
     if [[ ! -L "$tgt" || $1 =~ -.*p ]]; then
-        if [ -L "$tgt" -o -f "$tgt" ]; then
+        if [[ -L "$tgt" || -f "$tgt" ]]; then
             [[ ! $1 =~ -.*q ]] && echo "$PMPT rm -f $tgt"
             [[ $1 =~ -.*n ]] || rm -f $tgt
             [[ ! $1 =~ -.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
@@ -132,7 +132,7 @@ if [[ -f $HOME/maintainers-tools/env/bin/oca-autopep8 ]]; then
 fi
 for fn in $FILES_2_DELETE; do
     tgt="$DSTPATH/$fn"
-    if [ -L "$tgt" -o -f "$tgt" ]; then
+    if [[ -L "$tgt" || -f "$tgt" ]]; then
         [[ ! $1 =~ -.*q ]] && echo "$PMPT rm -f $tgt"
         [[ $1 =~ -.*n ]] || rm -f $tgt
         [[ ! $1 =~ -.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
@@ -147,7 +147,8 @@ if [[ ! $1 =~ -.*n ]]; then
     [[ $1 =~ -.*T ]] && echo "[[ ! -d $SRCPATH/maintainer-quality-tools/travis || :\$PATH: =~ :$SRCPATH/maintainer-quality-tools/travis: ]] || export PATH=$SRCPATH/maintainer-quality-tools/travis:\$PATH">>$DSTPATH/activate_tools
     [[ $1 =~ -.*t ]] && echo "[[ -d $SRCPATH/z0bug_odoo/travis || ! -d $SRCPATH/maintainer-quality-tools/travis || :\$PATH: =~ :$SRCPATH/maintainer-quality-tools/travis: ]] || export PATH=$SRCPATH/maintainer-quality-tools/travis:\$PATH">>$DSTPATH/activate_tools
     [[ $1 =~ -.*t ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
-    [ -n "$PLEASE_CMDS" ] && echo "complete -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
+    [[ -n $PLEASE_CMDS ]] && echo "complete -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
+    echo "[[ -f $DSTPATH/venv/bin/activate ]] && VIRTUAL_ENV_DISABLE_PROMPT='1' && . $DSTPATH/venv/bin/activate && unset VIRTUAL_ENV">>$DSTPATH/activate_tools
     [[ $1 =~ -.*[Tt] ]] || source $DSTPATH/activate_tools
 fi
 if [[ $1 =~ -.*[Ss] ]]; then
@@ -169,13 +170,10 @@ if [[ $1 =~ -.*[Ss] ]]; then
             [[ $1 =~ -.*n ]] || cp $SITECUSTOM $PYLIB
         fi
     fi
-elif [[ ! $1 =~ -.*q && ! $1 =~ -.*P ]]; then
-    echo "------------------------------------------------------------"
-    echo "If you wish to use these tools at the next time,  please add"
-    echo "the following statement in your login file (.bash_profile)"
-    echo ". $DSTPATH/activate_tools"
-    echo "If you prefer, you can re-execute this script with -P switch"
-    echo "------------------------------------------------------------"
+fi
+if [[ ! $1 =~ -.*n && ! $1 =~ -.*D && ! -d $DSTPATH/venv ]]; then
+    source $DSTPATH/activate_tools
+    vem create $DSTPATH/venv -p2.7 -qDBB && vem $DSTPATH/venv install clodoo -qBB
 fi
 if [[ ! $1 =~ -.*n && $1 =~ -.*D ]]; then
     mkdir -p $HOME_DEV/pypi
@@ -186,4 +184,12 @@ if [[ ! $1 =~ -.*n && $1 =~ -.*D ]]; then
 fi
 if [[ ! $1 =~ -.*n && $1 =~ -.*P ]]; then
     $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
+fi
+if [[ ! $1 =~ -.*q && ! $1 =~ -.*P ]]; then
+    echo "------------------------------------------------------------"
+    echo "If you wish to use these tools at the next time,  please add"
+    echo "the following statement in your login file (.bash_profile)"
+    echo ". $DSTPATH/activate_tools"
+    echo "If you prefer, you can re-execute this script with -P switch"
+    echo "------------------------------------------------------------"
 fi

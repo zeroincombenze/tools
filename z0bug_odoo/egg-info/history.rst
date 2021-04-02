@@ -1,3 +1,9 @@
+1.0.1.2 (2021-04-02)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] data: res_partner_bank reclassification to avoid conflict with demo data
+
+
 1.0.1.1 (2021-03-10)
 ~~~~~~~~~~~~~~~~~~~~
 

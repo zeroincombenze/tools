@@ -1,6 +1,6 @@
 
 ===============================
-|Zeroincombenze| tools 1.0.0.21
+|Zeroincombenze| tools 1.0.0.22
 ===============================
 
 |Build Status| |Coverage Status| |license gpl|
@@ -119,21 +119,21 @@ The odoo_vid item is composed by:
 
 * Prefix "VENV" if virtual environment
 * Prefix V to identify main instance
-* Odoo distribution (here or as suffix)
+* Odoo distribution (for organizations with short name)
 * Odoo version (full version or major version)
-* Odoo distribution (here or as prior prefix)
+* Odoo distribution (all organizzations)
 * User specific identification
 
-Odoo distribution is on of: axitec,flectra,librerp,oca,zero or nothing
+Odoo distribution is on of: flectra,librerp,oca,powerp,zero or nothing
 
 Odoo version is the Odoo specific version; it is one value of: 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1
 
 Examples of valid odoo_vid:
 
 * 12.0 -> Odoo 12.0, anonymous distribution
-* oca13 -> Odoo 13.0, distribution oca
-* librerp6 -> Odoo 6.1, distribution librerp
-* odoo14-oca -> Odoo 14.0, distribution oca
+* oca13 -> Odoo 13.0, distribution oca (short name)
+* librerp6 -> Odoo 6.1, distribution librerp (short name)
+* odoo14-oca -> Odoo 14.0, distribution oca (full name)
 * odoo12-devel -> Odoo 12.0, odoo ditribution, user identification "devel"
 
 Based on above information, tool software can assume the right value of specific Odoo instance.
@@ -217,7 +217,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-03-08
+Last Update / Ultimo aggiornamento: 2021-04-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
@@ -232,22 +232,22 @@ Last Update / Ultimo aggiornamento: 2021-03-08
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.21
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.22
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.21/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.21
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.22/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.22
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.21/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.22/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.21/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.22/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.21/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.21
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.22/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.22
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

@@ -47,8 +47,15 @@
 # VCS          If GIT repository return "git" otherwise return ""
 # VDIR         Virtual directory
 # VENV         Return 1 if path is in virtualenv
+#
+# -------------------------------
+# Environment variables
+# ODOO_DB_USER" -> db username (def odoo%(MAJVER)s)
+# ODOO_GIT_HOSTNAME -> git hostname (def github.com)
+# ODOO_GIT_SHORT -> regex of git organizzations with short name (def /(oca)/)
+#
 
-#__version__=0.3.29
+#__version__=0.3.29.1
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
     echo "You must source this script: \$ source $0" >&2

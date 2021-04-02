@@ -78,10 +78,12 @@ do_activate() {
     [[ "$1" == "-q" ]] || [ $opt_verbose -eq 0 ] || echo "$FLAG source bin/activate"
     [[ ! -f bin/activate && -n "$FINAL_CMD" ]] && DO_DEACT=1 && return
     [[ ! -f bin/activate ]] && echo "Fatal error! bin/activate not found in $PWD" && exit 1
-    [ $opt_verbose -gt 3 ] && set +x
-    [ $opt_verbose -gt 3 ] && echo "$FLAG source bin/activate"
+    [[ $opt_verbose -gt 3 ]] && set +x
+    [[ $opt_verbose -ge 3 ]] && echo "$FLAG source bin/activate"
     . bin/activate
-    [ $opt_verbose -gt 3 ] && set -x
+    [[ $opt_verbose -ge 3 && -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && echo "$FLAG source $NVM_DIR/nvm.sh"
+    [[ -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && . $NVM_DIR/nvm.sh
+    [[ $opt_verbose -gt 3 ]] && set -x
     ((i = ${#VENV_STACK[@]}))
     VENV_STACK[$i]=$VIRTUAL_ENV
     DO_DEACT=1
@@ -234,7 +236,7 @@ bin_install_1() {
 
 pip_install() {
   #pip_install(pkg opts)
-  local pkg d x srcdir popts v
+  local pkg d x srcdir p popts v
   local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
   pkg="${1//§/ }"
   pkg="$(get_actual_pkg $pkg)"
@@ -245,25 +247,27 @@ pip_install() {
   [ $opt_verbose -eq 0 ] && popts="$popts -q"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     srcdir=""
-    [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$pkg ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$pkg)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$pkg/$pkg ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$pkg/$pkg)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$pkg/$pkg ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$pkg/$pkg)
-    [[ $pkg == "odoo" && -n $opt_oepath ]] && srcdir=$($READLINK -f $opt_oepath)
+    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && p=${pkg//-/_} || p=$pkg
+    [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$p ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$p)
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$p/$p ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$p/$p)
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$p/$p ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$p/$p)
+    [[ $pkg == "odoo" && -n $opt_oepath ]] && srcdir=$(odoo_orm_path $opt_oepath)
     if [[ -n "$srcdir" ]]; then
-      [[ -d $pypath/$pkg && ! -L $pypath/$pkg ]] && run_traced "rm -fR $pypath/$pkg"
+      [[ -d $pypath/$p && ! -L $pypath/$p ]] && run_traced "rm -fR $pypath/$p"
       pushd $srcdir/.. >/dev/null
-      [[ $pkg == "odoo" ]] && x="$opt_oever" || x=$(python $pkg -V)
+      [[ $pkg == "odoo" ]] && x="$opt_oever" || x=$(python $p -V)
       v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
       popd >/dev/null
-      for d in $pypath/${pkg}-[0-9]*dist-info; do [[ -d $d ]] && run_traced "mv $d $pypath/${pkg}-${v}.dist-info"; done
-      if [[ ! -d $pypath/${pkg}-${v}.dist-info ]]; then
-        run_traced "mkdir $pypath/${pkg}-${v}.dist-info"
+      x=$(ls -d $pypath/${p}-*dist-info 2>/dev/null|grep -E "${p}-[0-9.]*dist-info")
+      [[ -n $x && $x != $pypath/${p}-${v}.dist-info ]] && run_traced "mv $x $pypath/${p}-${v}.dist-info"
+      if [[ ! -d $pypath/${p}-${v}.dist-info ]]; then
+        run_traced "mkdir $pypath/${p}-${v}.dist-info"
         for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
-          run_traced "touch $pypath/${pkg}-${v}.dist-info/$d"
+          run_traced "touch $pypath/${p}-${v}.dist-info/$d"
         done
       fi
-      [[ -L $pypath/$pkg ]] && run_traced "rm -f $pypath/$pkg"
-      run_traced "ln -s $srcdir $pypath/$pkg"
+      [[ -L $pypath/$p ]] && run_traced "rm -f $pypath/$p"
+      run_traced "ln -s $srcdir $pypath/$p"
       [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install $pkg"
@@ -645,6 +649,16 @@ check_installed_pkgs() {
     [[ -z "${!x}" ]] && $PIP install -q $p
   done
   check_4_needing_pkgs
+}
+
+odoo_orm_path() {
+    p=$1
+    for x in odoo openerp; do
+      [[ -d $1/$x ]] && p="$1/$x" && break
+      [[ -d $1/odoo/$x ]] && p="$1/odoo/$x" && break
+      [[ -d $1/server/$x ]] && p="$1/server/$x" && break
+    done
+    eval $READLINK -f $p
 }
 
 venv_mgr_check_oever() {

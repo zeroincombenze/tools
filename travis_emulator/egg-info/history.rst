@@ -1,3 +1,10 @@
+1.0.0.12 (2021-03-31)
+~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] travis: no crash it tools not found
+[IMP] travis: manage nvm
+
+
 1.0.0.11 (2021-03-19)
 ~~~~~~~~~~~~~~~~~~~~~
 

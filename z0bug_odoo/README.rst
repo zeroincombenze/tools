@@ -975,6 +975,12 @@ For current version:
 History
 -------
 
+1.0.1.2 (2021-04-02)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] data: res_partner_bank reclassification to avoid conflict with demo data
+
+
 1.0.1.1 (2021-03-10)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -1009,7 +1015,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-03-20
+Last Update / Ultimo aggiornamento: 2021-04-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

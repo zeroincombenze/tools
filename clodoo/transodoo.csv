@@ -51,14 +51,13 @@ account.invoice		action	INVOICE_OPEN|ACTION_INVOICE_OPEN	invoice_open	invoice_op
 account.invoice		field	FISCAL_POSITION|FISCAL_POSITION_ID	fiscal_position	fiscal_position	fiscal_position	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id
 account.invoice		field	INTERNAL_NUMBER|MOVE_NAME	internal_number	internal_number	internal_number	move_name	move_name	move_name	move_name	move_name	move_name
 account.invoice		field	PAYMENT_TERM|PAYMENT_TERM_ID	payment_term	payment_term	payment_term	payment_term_id	payment_term_id	payment_term_id	payment_term_id	payment_term_id	payment_term_id
+account.invoice		field	INVOICE_LINE|INVOICE_LINE_IDS	invoice_line	invoice_line	invoice_line	invoice_line	invoice_line_ids	invoice_line_ids	invoice_line_ids	invoice_line_ids	invoice_line_ids
 account.invoice.line		field	INVOICE_LINE_TAX_ID|INVOICE_LINE_TAX_IDS	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids
 account.invoice.line		field	UOS_ID|UOM_ID	uos_id	uos_id	uos_id	uom_id	uom_id	uom_id	uom_id	uom_id	uom_id
 account.journal	type	value	SALE_REFUND|SALE	sale_refund	sale_refund	sale_refund	sale_refund	sale	sale	sale	sale	sale
 account.move		field	LINE_ID|LINE_IDS	line_id	line_id	line_id	line_ids	line_ids	line_ids	line_ids	line_ids	line_ids
 account.move.line		field	RECONCILED|RECONCILE_ID	reconciled	reconciled	reconciled	reconciled	reconcile_id	reconcile_id	reconcile_id	reconcile_id	reconcile_id
-"account.payment.term
-"	"account.payment.term
-"	value	procent|percent	procent	procent	procent	percent	percent	percent	percent	percent	percent
+account.payment.term.line	value	value	procent|percent	procent	procent	procent	percent	percent	percent	percent	percent	percent
 account.payment.term.line		field	OPTION				option	option	option	option	option	option
 account.payment.term.line	option	value	option|fix_day_following_month|after_invoice_month				fix_day_following_month	fix_day_following_month	fix_day_following_month	after_invoice_month	after_invoice_month	after_invoice_month
 account.payment.term.line	option	value	option|last_day_following_month|day_following_month				last_day_following_month	last_day_following_month	last_day_following_month	day_following_month	day_following_month	day_following_month
@@ -361,6 +360,7 @@ res.users		field	COUNTRY_ID		country_id	country_id	country_id	country_id	country
 res.users		field	PARTNER_ID		partner_id	partner_id	partner_id	partner_id	partner_id	partner_id	partner_id	partner_id
 res.users		field	USER_EMAIL|EMAIL	user_email	email	email	email	email	email	email	email	email
 sale.order		action	ORDER_CONFIRM|ACTION_CONFIRM	order_confirm	order_confirm	order_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm	action_confirm
+sale.order		field	PAYMENT_TERM|PAYMENT_TERM_ID	payment_term	payment_term	payment_term	payment_term	payment_term_id	payment_term_id	payment_term_id	payment_term_id	payment_term_id
 sale.order	state	value	state|cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel	cancel
 sale.order	state	value	state|done	done	done	done	done	done	done	done	done	done
 sale.order	state	value	state|draft	draft	draft	draft	draft	draft	draft	draft	draft	draft

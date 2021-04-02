@@ -1,3 +1,9 @@
+1.0.0.12 (2021-03-28)
+~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: odoo as package
+[FIX] vem: sometime local package installation error
+
 1.0.0.11 (2021-03-19)
 ~~~~~~~~~~~~~~~~~~~~~
 
