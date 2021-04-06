@@ -203,18 +203,19 @@ fi
 if [[ -n "$opt_modules" ]]; then
     if [[ $opt_keep -eq 0 ]]; then
         PL="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
+        [[ -z $PL ]] && echo "No path list found in $CONFN!" && exit 1
         if [[ -z "$($which odoo_dependencies.py 2>/dev/null)" ]]; then
             echo "Test incomplete!"
             echo "File odoo_dependencies.py not found!"
         else
             if [[ "$opt_modules" == "all" ]]; then
-                depmods=$(odoo_dependencies.py -A mod $PL)
+                depmods=$(odoo_dependencies.py -RA mod $PL)
             else
-                depmods=$(odoo_dependencies.py -A mod $PL -PM $opt_modules)
+                depmods=$(odoo_dependencies.py -RA mod $PL -PM $opt_modules)
             fi
             [[ -z "$depmods" ]] && echo "Modules $opt_modules not found!" && exit 1
             if [[ "$opt_modules" != "all" ]]; then
-                depmods=$(odoo_dependencies.py -A dep $PL -PM $opt_modules)
+                depmods=$(odoo_dependencies.py -RA dep $PL -PM $opt_modules)
             fi
             if [[ -n "$depmods" && $opt_test -eq 0 ]]; then
                 opt_modules="$opt_modules,$depmods"

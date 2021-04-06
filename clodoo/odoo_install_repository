@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.29.1
+__version__=0.3.29.2
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -303,7 +303,8 @@ else
 fi
 if [[ -n "$opt_odir" ]]; then
     DSTPATH="$opt_odir"
-    [[ "$REPOS" == "OCB" ]] && PARENTDIR="$DSTPATH" || PARENTDIR="$(dirname $DSTPATH)"
+    # [[ "$REPOS" == "OCB" ]] && PARENTDIR="$DSTPATH" || PARENTDIR="$(dirname $DSTPATH)"
+    PARENTDIR="$(dirname $DSTPATH)"
     ROOT="$PARENTDIR"
 else
     DSTPATH=$(build_odoo_param HOME "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy")

@@ -3,7 +3,8 @@
 
 [FIX] travis: no crash it tools not found
 [IMP] travis: manage nvm
-
+[REF] travis: new colors output
+[IMP] vem: osx/darwin compatible
 
 1.0.0.11 (2021-03-19)
 ~~~~~~~~~~~~~~~~~~~~~

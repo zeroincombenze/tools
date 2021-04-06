@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.0.1
+#__version__=1.0.0.2
 STS_FAILED=1
 STS_SUCCESS=0
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -234,8 +234,7 @@ export -f xuname
 #      opt_dry_run  do nothing (int)
 #   OPTACTI  array of action (matches one to one OPTOPTS)
 #      1.st character:
-#      0    Set variable to zero (false)
-#      1    Set variable to 1 (true)
+#      0-9  Set variable to numeric value
 #      +    Increase variable value (like -vv for more verbose)
 #      *    Set variable with option switch name itself (i.e. -h)
 #      =    Set variable to following option value
@@ -251,9 +250,7 @@ parseoptargs() {
 # http://wiki.zeroincombenze.org/en/Linux/dev
     local jy=0 f=0 a b v
     while ((jy<${#OPTDEST[*]})); do
-      if [ "${OPTDEFL[jy]}" != "#" ]; then
-        export ${OPTDEST[jy]}="${OPTDEFL[jy]}"
-      fi
+      [[ "${OPTDEFL[jy]}" != "#" ]] && export ${OPTDEST[jy]}="${OPTDEFL[jy]}"
       ((++jy))
     done
     local jy=0
@@ -266,29 +263,31 @@ parseoptargs() {
     local failed=0
     while ((ii<=$#)); do
       local oo="${!ii}"
-      if [ "${oo:0:2}" == "--" -a "$o" != "--" ]; then
+      if [[ $oo =~ ^-- && "$oo" != "--" ]]; then
         IFS== read a v <<<$oo
         jy=0
         f=0
         while ((jy<${#OPTLONG[*]})); do
-          if [ "${a:2}" == ${OPTLONG[jy]} ]; then
+          if [[ ${a:2} == ${OPTLONG[jy]} ]]; then
             f=1
             a=${OPTACTI[jy]}
             b=${a:1:1}
-            if [ "$b" == ">" ]; then
+            if [[ $b == ">" ]]; then
                export opt_help=0
                export opt_version=""
             fi
             a=${a:0:1}
-            if [ "$a" == "0" -o "$a" == "1" ]; then
+            if [[ $a =~ ^[0123456789] ]]; then
               export ${OPTDEST[jy]}=$a
-            elif [ "$a" == "+" ]; then
+            elif [[ $a =~ ^\* ]]; then
+                export ${OPTDEST[jy]}="-${oo:jj:1}"
+            elif [[ $a =~ ^\+ ]]; then
               if [ ${!OPTDEST[jy]} -lt 0 ]; then export ${OPTDEST[jy]}=0; fi
               ((${OPTDEST[jy]}++))
               export ${OPTDEST[jy]}
-            elif [ "$a" == "=" ]; then
-              if [ -n "$v" ]; then
-                export ${OPTDEST[jy]}=$v
+            elif [[ $a =~ ^= ]]; then
+              if [[ -n "$v" ]]; then
+                export ${OPTDEST[jy]}="$v"
               else
                 ((++ii))
                 export ${OPTDEST[jy]}="${!ii}"
@@ -302,13 +301,13 @@ parseoptargs() {
         if [ $f -eq 0 ]; then
           local failed=1
         fi
-      elif [ "${oo:0:1}" == "-" ]; then
+      elif [[ $oo =~ ^- ]]; then
         local jj=1
         while ((jj<${#oo})); do
           jy=0
           f=0
           while ((jy<${#OPTOPTS[*]})); do
-            if [ "${oo:jj:1}" == ${OPTOPTS[jy]} ]; then
+            if [[ ${oo:jj:1} == ${OPTOPTS[jy]} ]]; then
               # set -x
               f=1
               a=${OPTACTI[jy]}
@@ -318,20 +317,19 @@ parseoptargs() {
                  export opt_version=""
               fi
               a=${a:0:1}
-              if [ "$a" == "0" -o "$a" == "1" ]; then
+              if [[ $a =~ ^[0123456789] ]]; then
                 export ${OPTDEST[jy]}=$a
-              elif [ "$a" == "*" ]; then
+              elif [[ $a =~ ^\* ]]; then
                 export ${OPTDEST[jy]}="-${oo:jj:1}"
-              elif [ "$a" == "+" ]; then
+              elif [[ $a =~ ^\+ ]]; then
                 if [ ${!OPTDEST[jy]} -lt 0 ]; then export ${OPTDEST[jy]}=0; fi
                 ((${OPTDEST[jy]}++))
                 export ${OPTDEST[jy]}
-              elif [ "$a" == "=" ]; then
+              elif [[ $a =~ ^= ]]; then
                 ((++jj))
-                export ${OPTDEST[jy]}=${oo:jj}
+                export ${OPTDEST[jy]}="${oo:jj}"
                 a="${!OPTDEST[jy]}"
-                if [ -n "$a" ]
-                then
+                if [[ -n "$a" ]]; then
                   jj=${#oo}
                 else
                   ((++ii))
@@ -343,14 +341,13 @@ parseoptargs() {
               ((++jy))
             fi
           done
-          if [ $f -eq 0 ]; then
+          if [[ $f -eq 0 ]]; then
             local failed=1
             break
           fi
           ((++jj))
-          # set +x
         done
-      elif [ "$oo" ]; then
+      elif [[ -n "$oo" ]]; then
         export ${OPTARGS[kk]}="$oo"
         export opt_help=0
         export opt_version=""
@@ -358,11 +355,11 @@ parseoptargs() {
       fi
       ((++ii))
     done
-    if [ $failed -gt 0 ]; then
+    if [[ $failed -gt 0 ]]; then
       export opt_help=1
     fi
     if [ ${opt_verbose:-0} -eq -1 ]; then
-      if [ "$VERBOSE_MODE" == "1" -o "$VERBOSE_MODE" == "0" ]; then
+      if [[ $VERBOSE_MODE =~ ^[0123]$ ]]; then
         opt_verbose=$VERBOSE_MODE
       elif [[ -t 0 || -p /dev/stdin ]]; then
         opt_verbose=0
@@ -385,16 +382,18 @@ print_help() {
     while ((jy<${#OPTOPTS[*]})); do
       local a=${OPTACTI[jy]}
       a=${a:0:1}
-      if [ "$a" == "0" -o "$a" == "1" -o "$a" == "+" -o "$a" == "*" ]; then
+      if [[ $a =~ ^[0123456789+*] ]]; then
         if [ "$xx" == "]" ]; then
           xx="][-"
         fi
         txt+="$xx${OPTOPTS[jy]}"
         xx=""
         if [[ -n ${OPTLONG[jy]} ]]; then
-            hlp+=$(printf ' %-3.3s%-21.21s%s%s' "-${OPTOPTS[jy]}" "-${OPTLONG[jy]}" "${OPTHELP[jy]}" '\n')
+            (((${#OPTLONG[jy]}+${#OPTLONG[jy]})<=22)) && \
+                        hlp+=$(printf ' -%s --%-16.16s%s%s' "${OPTOPTS[jy]}" "${OPTLONG[jy]}" "${OPTHELP[jy]}" '\n') || \
+                        hlp+=$(printf ' -%s --%-16.16s\n%22.22s%s%s' "${OPTOPTS[jy]}" "${OPTLONG[jy]}" " " "${OPTHELP[jy]}" '\n')
         else
-            hlp+=$(printf ' %-24.24s%s%s' "-${OPTOPTS[jy]}" "${OPTHELP[jy]}" '\n')
+            hlp+=$(printf ' -%-20.20s%s%s' "${OPTOPTS[jy]}" "${OPTHELP[jy]}" '\n')
         fi
       elif [ "$a" == "=" ]; then
         if [ -z "$xx" -o "$xx" == "]" ]; then
@@ -403,9 +402,9 @@ print_help() {
         txt+="$xx${OPTOPTS[jy]} ${OPTMETA[jy]}"
         xx="]"
         if [[ -n ${OPTLONG[jy]} ]]; then
-            hlp+=$(printf '%3.3s%-10.10s %-11.11s%s%s' "-${OPTOPTS[jy]}" "-${OPTLONG[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
+            hlp+=$(printf ' -%s --%s %s\n%22.22s%s%s' "${OPTOPTS[jy]}" "${OPTLONG[jy]}" "${OPTMETA[jy]}" " " "${OPTHELP[jy]}" '\n')
         else
-            hlp+=$(printf '%3.3s %-21.21s%s%s' "-${OPTOPTS[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
+            hlp+=$(printf ' -%s %-17.17s %s %s' "${OPTOPTS[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
         fi
       fi
       ((++jy))
@@ -465,10 +464,10 @@ set_tlog_file() {
 # Write log on file $FLOG: see set_tlog_file function
 wlog() {
     local dt=$(date +"%F %H:%M:%S")
-    if [ -n "$FLOG" ]; then
+    if [[ -n "$FLOG" ]]; then
       echo $dt "$@">>$FLOG
     fi
-    if [ "$FLOG_ECHO" == "echo" ]; then
+    if [[ $FLOG_ECHO == "echo" ]]; then
       $FLOG_ECHO -e "$@"
     fi
 }
@@ -478,7 +477,7 @@ export -f wlog
 # Write log on file $FLOG without echo
 slog() {
     local dt=$(date +"%F %H:%M:%S")
-    if [ -n "$FLOG" ]; then
+    if [[ -n "$FLOG" ]]; then
       echo $dt "$@">>$FLOG
     fi
 }
@@ -488,7 +487,7 @@ export -f wlog
 # Echo meassage and write log on file $FLOG: see set_tlog_file function
 elog() {
     wlog "$@"
-    if [ "$FLOG_ECHO" != "echo" ]; then
+    if [[ $FLOG_ECHO != "echo" ]]; then
       echo -e "$@"
     fi
 }
@@ -497,34 +496,34 @@ export -f elog
 ##############################################################################
 # Log message if error level (opt_verbose=2)
 wlog_error() {
-    [ ${opt_verbose:-0} -ge 2 ] && wlog "$@"
+    [[ ${opt_verbose:-0} -ge 2 ]] && wlog "$@"
 }
 elog_error() {
-    [ ${opt_verbose:-0} -ge 2 ] && elog "$@"
+    [[ ${opt_verbose:-0} -ge 2 ]] && elog "$@"
 }
 
 # Log message if warning level (opt_verbose=3)
 wlog_warning() {
-    [ ${opt_verbose:-0} -ge 3 ] && wlog "$@"
+    [[ ${opt_verbose:-0} -ge 3 ]] && wlog "$@"
 }
 elog_warning() {
-    [ ${opt_verbose:-0} -ge 3 ] && elog "$@"
+    [[ ${opt_verbose:-0} -ge 3 ]] && elog "$@"
 }
 
 # Log message if info level (opt_verbose=4)
 wlog_info() {
-    [ ${opt_verbose:-0} -ge 4 ] && wlog "$@"
+    [[ ${opt_verbose:-0} -ge 4 ]] && wlog "$@"
 }
 elog_info() {
-    [ ${opt_verbose:-0} -ge 4 ] && elog "$@"
+    [[ ${opt_verbose:-0} -ge 4 ]] && elog "$@"
 }
 
 # Log message if debug level (opt_verbose=5)
 wlog_debug() {
-    [ ${opt_verbose:-0} -ge 5 ] && wlog "$@"
+    [[ ${opt_verbose:-0} -ge 5 ]] && wlog "$@"
 }
 elog_debug() {
-    [ ${opt_verbose:-0} -ge 5 ] && elog "$@"
+    [[ ${opt_verbose:-0} -ge 5 ]] && elog "$@"
 }
 
 
@@ -542,45 +541,49 @@ elog_debug() {
 # Parameter $3:
 #    do login (1) if execute as user
 run_traced() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
     local xcmd="$1"
     local sts=$STS_SUCCESS
-    if [ -n "$2" -a "$2" != "$USER" ]; then
-      if [ ${3:-0} -gt 0 ]; then
+    if [[ -n "$2" && $2 != "$USER" ]]; then
+      if [[ ${3:-0} -gt 0 ]]; then
         xcmd="sudo -iu$2 $1"
       else
         xcmd="sudo -u$2 $1"
       fi
     fi
     local pfx=
-    if [ "${1:0:1}" == "#" ]; then
+    if [[ $1 =~ ^# ]]; then
       pfx=
-    elif [ ${opt_dry_run:-0} -eq 0 ]; then
+    elif [[ ${opt_dry_run:-0} -eq 0 ]]; then
       pfx="\$ "
     else
       pfx="> "
     fi
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ "${1:0:5}" != "wlog " ];then
-        if [ ${opt_verbose:-0} -gt 0 ]; then
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+      if [[ ! $1 =~ ^wlog[[:space:]] ]];then
+        if [[ ${opt_verbose:-0} -gt 0 ]]; then
+          [[ ${opt_humdrum:-0} -eq 0 && -n "$PS_RUN_COLOR" ]] && echo -en "\e[${PS_RUN_COLOR}m"
           elog "$pfx$xcmd"
+          [[ ${opt_humdrum:-0} -eq 0 && -n $PS_NOP_COLOR ]] && echo -en "\e[${PS_NOP_COLOR}m"
         else
           wlog "$pfx$xcmd"
         fi
       fi
-      if [ "${1:0:1}" != "#" ]; then
+      if [[ ! $1 =~ ^# ]]; then
         eval "$xcmd"
         sts=$?
       fi
-    elif [ "${1:0:6}" != "sleep " ]; then
-      if [ ${opt_verbose:-0} -gt 0 ]; then
+    elif [[ ! $1 =~ ^sleep[[:space:]] ]]; then
+      if [[ ${opt_verbose:-0} -gt 0 ]]; then
         echo "$pfx$xcmd"
       fi
-      if [ "${1:0:3}" == "cd " -o "$1" == "cd" ]; then
+      if [[ $1 =~ ^(cd[[:space:]].*|cd)$ ]]; then
         eval "$xcmd" 2>/dev/null
       fi
     fi
-    $SET_X
+    echo -en "\e[0m"
+    # [[ ${opt_humdrum:-0} -eq 0 && -n $PS_TXT_COLOR ]] && echo -en "\e[${PS_TXT_COLOR}m"
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
     return $sts
 }
 

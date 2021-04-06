@@ -3,6 +3,9 @@
 
 [FIX] vem: odoo as package
 [FIX] vem: sometime local package installation error
+[REF] vem refactoring in order to best use inside travis emulator
+[IMP] vem: osx/darwin compatible
+[IMP] vem: new action inspect
 
 1.0.0.11 (2021-03-19)
 ~~~~~~~~~~~~~~~~~~~~~

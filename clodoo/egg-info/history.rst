@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] transodoo.csv
+* [FIX] odoo_install_repository: OCB
 
 0.3.28.17 (2021-03-03)
 ~~~~~~~~~~~~~~~~~~~~~~

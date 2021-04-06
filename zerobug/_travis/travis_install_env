@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 
-__version__=1.0.0.8
+__version__=1.0.0.9
 
 conf_default() {
   if [ -z "$PS_TXT_COLOR" ]; then
@@ -45,25 +45,38 @@ conf_default() {
 }
 
 run_traced() {
+  [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
   local xcmd="$1"
   local sts=$STS_SUCCESS
   local pfx=
-  if [ "${1:0:1}" == "#" ]; then
+  if [[ $1 =~ ^# ]]; then
     pfx=
-  elif [ ${opt_dry_run:-0} -eq 0 ] && [[ ! "$2" == "nolocal" || $TRAVIS =~ (true|emulate) ]]; then
+  elif [[ ${opt_dry_run:-0} -eq 0 && ( $2 != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
     pfx="\$ "
   else
     pfx="> "
   fi
-  [ $opt_verbose -gt 0 -a ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" ] && echo -en "\e[${PS_RUN_COLOR}m$pfx$xcmd"
-  [ $opt_verbose -gt 0 -a ${opt_humdrum:-0} -ne 0 -o -z "$PS_RUN_COLOR" ] && echo -en "$pfx$xcmd"
-  if [ ${opt_dry_run:-0} -eq 0 ]; then
-    if [[ ! "${1:0:1}" == "#" && (! "$2" == "nolocal" || $TRAVIS =~ (true|emulate)) ]]; then
+  if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+    if [[ ${opt_verbose:-0} -gt 0 ]]; then
+      [[ ${opt_humdrum:-0} -eq 0 && -n "$PS_RUN_COLOR" ]] && echo -en "\e[${PS_RUN_COLOR}m"
+      echo "$pfx$xcmd"
+      [[ ${opt_humdrum:-0} -eq 0 && -n $PS_NOP_COLOR ]] && echo -en "\e[${PS_NOP_COLOR}m"
+    fi
+    if [[ ! $1 =~ ^# && ( $2 != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
       eval $xcmd
       sts=$?
     fi
+  elif [[ ! $1 =~ ^sleep[[:space:]] ]]; then
+    if [[ ${opt_verbose:-0} -gt 0 ]]; then
+      echo "$pfx$xcmd"
+    fi
+    if [[ $1 =~ ^(cd[[:space:]].*|cd)$ ]]; then
+      eval "$xcmd" 2>/dev/null
+    fi
   fi
-  [ ${opt_humdrum:-0} -eq 0 -a -n "$PS_TXT_COLOR" ] && echo -en "\e[${PS_TXT_COLOR}m\n"
+  echo -en "\e[0m"
+  # [[ ${opt_humdrum:-0} -eq 0 && -n $PS_TXT_COLOR ]] && echo -en "\e[${PS_TXT_COLOR}m"
+  [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
   return $sts
 }
 

@@ -14,7 +14,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.29.1'
+__version__ = '0.3.29.2'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -272,7 +272,7 @@ BUILTIN = [
 MANIFEST_NAMES = {
     'accept_language': 'parse-accept-language',
     'Asterisk': 'py-Asterisk',
-    'cmislib': '-e git+https://github.com/apache/chemistry-cmislib.git@py3_compat#egg=cmislib',
+    'cmislib': '/--editable=git+https://github.com/apache/chemistry-cmislib.git@py3_compat#egg=cmislib',
     'facturx': 'factur-x',
     'past': 'future',
     'u2flib_server': 'python-u2flib-server',
@@ -772,7 +772,7 @@ def main():
     for ii, pkg in enumerate(deps_list['python']):
         if pkg.find('>') >= 0 or pkg.find('<') >= 0 or pkg.find(' ') >= 0:
             if pkg.find(' ') >= 0:
-                pkg = pkg.replace(' ', r'§')
+                pkg = pkg.replace(' ', '')
             deps_list['python'][ii] = "'%s'" % pkg
     deps_list['bin'] = sorted(
         sorted(deps_list['bin1'], key=lambda s: s.lower()) + deps_list[
@@ -780,7 +780,7 @@ def main():
     for ii, pkg in enumerate(deps_list['bin']):
         if pkg.find('>') >= 0 or pkg.find('<') >= 0 or pkg.find(' ') >= 0:
             if pkg.find(' ') >= 0:
-                pkg = pkg.replace(' ', r'§')
+                pkg = pkg.replace(' ', '')
             deps_list['bin'][ii] = "'%s'" % pkg
     for item in DEPS:
         if 'python' in DEPS[item]:

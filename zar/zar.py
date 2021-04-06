@@ -60,7 +60,7 @@ except ImportError:
 from . import zarlib_new as zarlib
 
 
-__version__ = "1.3.35"
+__version__ = "1.3.35.1"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)

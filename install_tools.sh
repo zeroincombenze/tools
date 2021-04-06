@@ -1,19 +1,16 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.22
+__version__=1.0.0.24
 
-export READLINK=readlink
-OS=$(uname -s)
-if [[ $OS == "Darwin" ]]; then
-  READLINK=$(which greadlink 2>/dev/null)
-  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
-fi
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
-if [[ $1 =~ -.*h ]]; then
+if [[ $1 =~ ^-.*h ]]; then
     echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
     echo "  -h  this help"
     echo "  -D  create development environment"
+    echo "  -f  force create virtual environment even if exists"
     echo "  -n  dry-run"
     echo "  -o  compatibility old mode (exec dir in $HOME/dev)"
     echo "  -p  mkdir $HOME/dev[el] if does not exist"
@@ -21,21 +18,21 @@ if [[ $1 =~ -.*h ]]; then
     echo "  -q  quiet mode"
     echo "  -s  store sitecustomize.py in python path (you must have privileges)"
     echo "  -S  store sitecustomize.py in python path (you must have privileges)"
-    echo "  -t  (deprecated)"
-    echo "  -T  (deprecated)"
+    echo "  -t  execute in travis environment"
+    echo "  -T  execute regression tests"
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
     echo -e "\n(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
-elif [[ $1 =~ -.*V ]]; then
+elif [[ $1 =~ ^-.*V ]]; then
     echo $__version__
     exit 0
 fi
 
 RFLIST__travis_emulator="travis travis.man travisrc"
-RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man please.py topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
-RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py export_db_model.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
+RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
+RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
@@ -47,20 +44,20 @@ RFLIST__wok_code="wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py run_odoo_debug"
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|to_pep8.2p8|to_pep8.py|topep8.py|transodoo.py|transodoo.csv|vfcp|vfdiff)"
-FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py odoo_default_tnl.csv prjdiff replica.sh run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
+FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py export_db_model.py odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
-[[ $1 =~ -.*[tT] ]] && HOME=$($READLINK -e $(dirname $0)/..)
-[[ $1 =~ -.*n ]] && PMPT="> " || PMPT="\$ "
-[[ $1 =~ -.*o ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+[[ $1 =~ ^-.*t ]] && HOME=$($READLINK -e $(dirname $0)/..)
+[[ $1 =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
+[[ $1 =~ ^-.*o ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
 [[ -d $HOME/tools ]] && SRCPATH=$HOME/tools
 [[ -z "$SRCPATH" && -d $TDIR/../tools ]] && SRCPATH=$($READLINK -f $TDIR/../tools)
-[[ ! $1 =~ -.*o && ! -d $HOME/devel && -n "$SRCPATH" && $1 =~ -.*p && $1 =~ -.*v ]] && echo "$PMPT mkdir -p $HOME_DEV"
-[[ ! $1 =~ -.*o && ! -d $HOME/devel && -n "$SRCPATH" && $1 =~ -.*p && ! $1 =~ -.*n ]] && mkdir -p $HOME_DEV
-[[ $1 =~ -.*o && ! -d $HOME/dev && -n "$SRCPATH" && $1 =~ -.*p && $1 =~ -.*v ]] && echo "$PMPT mkdir -p $HOME_DEV"
-[[ $1 =~ -.*o && ! -d $HOME/dev && -n "$SRCPATH" && $1 =~ -.*p && ! $1 =~ -.*n ]] && mkdir -p $HOME_DEV
-[[ ! $1 =~ -.*o && -d $HOME/devel ]] && DSTPATH=$HOME_DEV
-[[ $1 =~ -.*o && -d $HOME/dev ]] && DSTPATH=$HOME_DEV
+[[ ! $1 =~ ^-.*o && ! -d $HOME/devel && -n "$SRCPATH" && $1 =~ ^-.*p && $1 =~ ^-.*v ]] && echo "$PMPT mkdir -p $HOME_DEV"
+[[ ! $1 =~ ^-.*o && ! -d $HOME/devel && -n "$SRCPATH" && $1 =~ ^-.*p && ! $1 =~ ^-.*n ]] && mkdir -p $HOME_DEV
+[[ $1 =~ ^-.*o && ! -d $HOME/dev && -n "$SRCPATH" && $1 =~ ^-.*p && $1 =~ ^-.*v ]] && echo "$PMPT mkdir -p $HOME_DEV"
+[[ $1 =~ ^-.*o && ! -d $HOME/dev && -n "$SRCPATH" && $1 =~ ^-.*p && ! $1 =~ ^-.*n ]] && mkdir -p $HOME_DEV
+[[ ! $1 =~ ^-.*o && -d $HOME/devel ]] && DSTPATH=$HOME_DEV
+[[ $1 =~ ^-.*o && -d $HOME/dev ]] && DSTPATH=$HOME_DEV
 if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
     echo "Invalid environment!"
     [[ -d $HOME/dev ]] && echo ".. perhaps you can use -o switch"
@@ -68,15 +65,15 @@ if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
     $0 -h
     exit 1
 fi
-[[ $1 =~ -.*U ]] && cd $SRCPATH && git pull
-[[ $1 =~ -.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
-[[ $1 =~ -.*n ]] || find $SRCPATH -name "*.pyc" -delete
-[[ $1 =~ -.*n ]] || find $DSTPATH -name "*.pyc" -delete
+[[ $1 =~ ^-.*U ]] && cd $SRCPATH && git pull
+[[ $1 =~ ^-.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
+[[ $1 =~ ^-.*n ]] || find $SRCPATH -name "*.pyc" -delete
+[[ $1 =~ ^-.*n ]] || find $DSTPATH -name "*.pyc" -delete
 PLEASE_CMDS=
 for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator wok_code z0lib zar zerobug; do
     l="RFLIST__$pkg"
     flist=${!l}
-    [[ $1 =~ -.*v ]] && echo "[$pkg=$flist]"
+    [[ $1 =~ ^-.*v ]] && echo "[$pkg=$flist]"
     for fn in $flist; do
         if [ "$fn" == "." ]; then
             src="$SRCPATH/${pkg}"
@@ -102,90 +99,106 @@ for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator 
         fi
         if [ ! -f "$src" -a ! -d "$src" ]; then
             echo "File $src not found!"
-        elif [[ ! -L "$tgt" || $1 =~ -.*p || $fn =~ $MOVED_FILES_RE ]]; then
-            if [[ -L "$tgt" && "$($READLINK -e $tgt)" == "$src" && ! $1 =~ -.*p ]]; then
-                [[ $1 =~ -.*v ]] && echo "$PMPT ln -s $src $tgt  # (confirmed)"
+        elif [[ ! -L "$tgt" || $1 =~ ^-.*p || $fn =~ $MOVED_FILES_RE ]]; then
+            if [[ -L "$tgt" && "$($READLINK -e $tgt)" == "$src" && ! $1 =~ ^-.*p ]]; then
+                [[ $1 =~ ^-.*v ]] && echo "$PMPT ln -s $src $tgt  # (confirmed)"
             else
                 if [[ -L "$tgt" || -f "$tgt" ]]; then
-                    [[ ! $1 =~ -.*q ]] && echo "$PMPT rm -f $tgt"
-                    [[ $1 =~ -.*n ]] || rm -f $tgt
-                    [[ ! $1 =~ -.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
+                    [[ ! $1 =~ ^-.*q ]] && echo "$PMPT rm -f $tgt"
+                    [[ $1 =~ ^-.*n ]] || rm -f $tgt
+                    [[ ! $1 =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
                 fi
-                [[ ! $1 =~ -.*q ]] && echo "$PMPT ln -s $src $tgt"
-                [[ $1 =~ -.*n ]] || ln -s $src $tgt
+                [[ ! $1 =~ ^-.*q ]] && echo "$PMPT ln -s $src $tgt"
+                [[ $1 =~ ^-.*n ]] || ln -s $src $tgt
             fi
         fi
     done
 done
-[[ ! $1 =~ -.*n && -d "$DSTPATH/_travis" ]] && rm -fR $DSTPATH/_travis
+[[ ! $1 =~ ^-.*n && -d "$DSTPATH/_travis" ]] && rm -fR $DSTPATH/_travis
+[[ $1 =~ ^-.*v ]] && echo "$PMPT cp $SRCPATH/tests/test_tools.sh $DSTPATH/test_tools.sh"
+[[ $1 =~ ^-.*n ]] || cp $SRCPATH/tests/test_tools.sh $DSTPATH/test_tools.sh
 if [[ -f $HOME/maintainers-tools/env/bin/oca-autopep8 ]]; then
     tgt=$DSTPATH/oca-autopep8
-    if [[ ! -L "$tgt" || $1 =~ -.*p ]]; then
+    if [[ ! -L "$tgt" || $1 =~ ^-.*p ]]; then
         if [[ -L "$tgt" || -f "$tgt" ]]; then
-            [[ ! $1 =~ -.*q ]] && echo "$PMPT rm -f $tgt"
-            [[ $1 =~ -.*n ]] || rm -f $tgt
-            [[ ! $1 =~ -.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
+            [[ ! $1 =~ ^-.*q ]] && echo "$PMPT rm -f $tgt"
+            [[ $1 =~ ^-.*n ]] || rm -f $tgt
+            [[ ! $1 =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
         fi
-        [[ ! $1 =~ -.*q ]] && echo "$PMPT ln -s $HOME/maintainers-tools/env/bin/oca-autopep8 $tgt"
-        [[ $1 =~ -.*n ]] || ln -s $HOME/maintainers-tools/env/bin/oca-autopep8 $tgt
+        [[ ! $1 =~ ^-.*q ]] && echo "$PMPT ln -s $HOME/maintainers-tools/env/bin/oca-autopep8 $tgt"
+        [[ $1 =~ ^-.*n ]] || ln -s $HOME/maintainers-tools/env/bin/oca-autopep8 $tgt
     fi
 fi
 for fn in $FILES_2_DELETE; do
     tgt="$DSTPATH/$fn"
     if [[ -L "$tgt" || -f "$tgt" ]]; then
-        [[ ! $1 =~ -.*q ]] && echo "$PMPT rm -f $tgt"
-        [[ $1 =~ -.*n ]] || rm -f $tgt
-        [[ ! $1 =~ -.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
+        [[ ! $1 =~ ^-.*q ]] && echo "$PMPT rm -f $tgt"
+        [[ $1 =~ ^-.*n ]] || rm -f $tgt
+        [[ ! $1 =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
     fi
 done
-if [[ ! $1 =~ -.*n ]]; then
+if [[ ! $1 =~ ^-.*n ]]; then
     echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
-    echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">$DSTPATH/activate_tools
+    echo "[[ -f $DSTPATH/venv/bin/activate ]] && export PATH=$DSTPATH/venv/bin:\$PATH">$DSTPATH/activate_tools
+    echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">>$DSTPATH/activate_tools
     echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:$PYTHONPATH">>$DSTPATH/activate_tools
     echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
-    [[ $1 =~ -.*[tT] ]] && echo "[[ ! -d $SRCPATH/zerobug/_travis || :\$PATH: =~ :$SRCPATH/zerobug/_travis: ]] || export PATH=$SRCPATH/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
-    [[ $1 =~ -.*T ]] && echo "[[ ! -d $SRCPATH/maintainer-quality-tools/travis || :\$PATH: =~ :$SRCPATH/maintainer-quality-tools/travis: ]] || export PATH=$SRCPATH/maintainer-quality-tools/travis:\$PATH">>$DSTPATH/activate_tools
-    [[ $1 =~ -.*t ]] && echo "[[ -d $SRCPATH/z0bug_odoo/travis || ! -d $SRCPATH/maintainer-quality-tools/travis || :\$PATH: =~ :$SRCPATH/maintainer-quality-tools/travis: ]] || export PATH=$SRCPATH/maintainer-quality-tools/travis:\$PATH">>$DSTPATH/activate_tools
-    [[ $1 =~ -.*t ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
+    [[ $1 =~ ^-.*t ]] && echo "[[ ! -d $SRCPATH/zerobug/_travis || :\$PATH: =~ :$SRCPATH/zerobug/_travis: ]] || export PATH=$SRCPATH/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
+    [[ $1 =~ ^-.*t ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "complete -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
-    echo "[[ -f $DSTPATH/venv/bin/activate ]] && VIRTUAL_ENV_DISABLE_PROMPT='1' && . $DSTPATH/venv/bin/activate && unset VIRTUAL_ENV">>$DSTPATH/activate_tools
-    [[ $1 =~ -.*[Tt] ]] || source $DSTPATH/activate_tools
+    [[ $1 =~ ^-.*t ]] || source $DSTPATH/activate_tools
 fi
-if [[ $1 =~ -.*[Ss] ]]; then
-    [[ ! $1 =~ -.*o ]] && SITECUSTOM=$HOME/devel/sitecustomize.py
-    [[ $1 =~ -.*o ]] && SITECUSTOM=$HOME/dev/sitecustomize.py
+if [[ $1 =~ ^-.*[Ss] ]]; then
+    [[ ! $1 =~ ^-.*o ]] && SITECUSTOM=$HOME/devel/sitecustomize.py
+    [[ $1 =~ ^-.*o ]] && SITECUSTOM=$HOME/dev/sitecustomize.py
     PYLIB=$(dirname $(pip --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
     [[ -n "$PYLIB" ]] || PYLIB=$(dirname $(pip3 --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
     if [[ -n "$PYLIB" && -f SITECUSTOM ]]; then
         if [[ -f $PYLIB/sitecustomize.py ]]; then
             if grep -q "import sys" $PYLIB/sitecustomize.py; then
-                [[ ! $1 =~ -.*q ]] && echo "$PMPT tail $SITECUSTOM -n -1 >> $PYLIB/sitecustomize.py"
-                [[ $1 =~ -.*n ]] || tail $SITECUSTOM -n -1 >> $SITECUSTOM
+                [[ ! $1 =~ ^-.*q ]] && echo "$PMPT tail $SITECUSTOM -n -1 >> $PYLIB/sitecustomize.py"
+                [[ $1 =~ ^-.*n ]] || tail $SITECUSTOM -n -1 >> $SITECUSTOM
             else
-                [[ ! $1 =~ -.*q ]] && echo "$PMPT cat $SITECUSTOM >> $PYLIB/sitecustomize.py"
-                [[ $1 =~ -.*n ]] || cat $SITECUSTOM >> $PYLIB/sitecustomize.py
+                [[ ! $1 =~ ^-.*q ]] && echo "$PMPT cat $SITECUSTOM >> $PYLIB/sitecustomize.py"
+                [[ $1 =~ ^-.*n ]] || cat $SITECUSTOM >> $PYLIB/sitecustomize.py
             fi
         else
-            [[ ! $1 =~ -.*q ]] && echo "$PMPT cp $SITECUSTOM $PYLIB"
-            [[ $1 =~ -.*n ]] || cp $SITECUSTOM $PYLIB
+            [[ ! $1 =~ ^-.*q ]] && echo "$PMPT cp $SITECUSTOM $PYLIB"
+            [[ $1 =~ ^-.*n ]] || cp $SITECUSTOM $PYLIB
         fi
     fi
 fi
-if [[ ! $1 =~ -.*n && ! $1 =~ -.*D && ! -d $DSTPATH/venv ]]; then
+if [[ ! $1 =~ ^-.*n && ( $1 =~ ^-.*f || ! -d $DSTPATH/venv ) ]]; then
     source $DSTPATH/activate_tools
-    vem create $DSTPATH/venv -p2.7 -qDBB && vem $DSTPATH/venv install clodoo -qBB
+    vem create $DSTPATH/venv -p2.7 -qiDBB -f
+    [[ $? -ne 0 ]] && echo "Error creating Tools virtual environment!" && exit 1
+    PYTHON=""
+    PYTHON3=""
+    [[ -x $DSTPATH/venv/bin/python ]] && PYTHON=$DSTPATH/venv/bin/python
+    [[ -x $DSTPATH/venv/bin/python2 ]] && PYTHON=$DSTPATH/venv/bin/python2
+    [[ -x $DSTPATH/venv/bin/python3 ]] && PYTHON3=$DSTPATH/venv/bin/python3
+    for f in $DSTPATH/bin/*; do
+        [[ -x $f && ! -d $f ]] && grep -q "^#\!.*/bin/python3" $f &>/dev/null && sed -i -e "s|^#\!.*/bin/python3|#\!$PYTHON3" $f
+        [[ -x $f && ! -d $f ]] && grep -q "^#\!.*/bin/python" $f &>/dev/null && sed -i -e "s|^#\!.*/bin/python|#\!$PYTHON" $f
+    done
+    # Please do not change package list order
+    for pkg in odoorpc oerplib babel lxml unidecode xlrd pyyaml zerobug clodoo; do
+        [[ ! $1 =~ ^-.*q ]] && echo "Installing $pkg ..."
+        [[ -d $HOME_DEV/pypi/$pkg/$pkg ]] && vem $DSTPATH/venv install $pkg -qBB || vem $DSTPATH/venv install $pkg
+    done
 fi
-if [[ ! $1 =~ -.*n && $1 =~ -.*D ]]; then
+if [[ ! $1 =~ ^-.*n && $1 =~ ^-.*D ]]; then
     mkdir -p $HOME_DEV/pypi
     for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator wok_code z0lib zar zerobug; do
         mkdir -p $HOME_DEV/pypi/$pkg
         [[ $pkg == "tools" ]] && rsync -avzb $SRCPATH/$pkg/ $HOME_DEV/pypi/$pkg/ || rsync -avzb $SRCPATH/$pkg/ $HOME_DEV/pypi/$pkg/$pkg/
     done
 fi
-if [[ ! $1 =~ -.*n && $1 =~ -.*P ]]; then
+if [[ ! $1 =~ ^-.*n && $1 =~ ^-.*P ]]; then
     $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
 fi
-if [[ ! $1 =~ -.*q && ! $1 =~ -.*P ]]; then
+[[ $1 =~ ^-.*T ]] && $DSTPATH/test_tools.sh
+if [[ ! $1 =~ ^-.*q && ! $1 =~ ^-.*P ]]; then
     echo "------------------------------------------------------------"
     echo "If you wish to use these tools at the next time,  please add"
     echo "the following statement in your login file (.bash_profile)"

@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.1
+__version__=1.0.0.2
 
 
 test_run() {
@@ -105,8 +105,6 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
-
 
 
 

@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.0.12
+#__version__=1.0.0.13
 
 # MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
@@ -438,11 +438,11 @@ create_virtual_env() {
     exit 1
   fi
   TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p /usr/bin/python$TRAVIS_PYTHON_VERSION"
-  [[ "$SYSTEM_SITE_PACKAGES" == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
-  [[ ! "$SYSTEM_SITE_PACKAGES" == "true" ]] && VENVOPTS="-DI"
+  [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
+  [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
   HOME=$TRAVIS_HOME
   hash -r
-  if [ $opt_full -eq 0 -a ${opt_cache:-0} -ne 0 -a -n "$TRAVIS_PYTHON_VERSION" ]; then
+  if [[ $opt_full -eq 0 && ${opt_cache:-0} -ne 0 && -n "$TRAVIS_PYTHON_VERSION" ]]; then
     [[ -d $TRAVIS_SAVED_HOME ]] || mkdir $TRAVIS_SAVED_HOME
     if [[ "$PRJNAME" == "Odoo" && -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
       opt_keepE=0
@@ -473,16 +473,16 @@ create_virtual_env() {
   fi
   [ $sts -ne 0 ] && return
   [[ $TRAVIS_EMULATE_OSX == "true" ]] && set_osx
-  local SAVE_COLOR=$PS_RUN_COLOR
-  export PS_RUN_COLOR=$PS_HDR3_COLOR
-  echo -en "\e[${PS_RUN_COLOR}m"
+  # local SAVE_COLOR=$PS_RUN_COLOR
+  # export PS_RUN_COLOR=$PS_HDR3_COLOR
+  # echo -en "\e[${PS_RUN_COLOR}m"
   cd $TRAVIS_HOME
   source bin/activate
   [[ -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && source $NVM_DIR/nvm.sh
   if [ $opt_cache -ne 0 -a "$TRAVIS" == "false" -a -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]; then
     export PYPI_CACHED=$HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/
   fi
-  export PS_RUN_COLOR=$SAVE_COLOR
+  # export PS_RUN_COLOR=$SAVE_COLOR
   [ ${opt_dry_run:-0} -eq 0 ] && mkdir -p $TRAVIS_HOME/build
   [ ${opt_dry_run:-0} -eq 0 ] && mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
   export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
@@ -520,8 +520,8 @@ drop_virtual_env() {
 emulate_git_clone_OCB() {
   # emulate_git_clone_OCB(src tgt)
   local d f
-  local SAVE_COLOR=$PS_RUN_COLOR
-  export PS_RUN_COLOR="1;90;46"
+  # local SAVE_COLOR=$PS_RUN_COLOR
+  # export PS_RUN_COLOR="1;90;46"
   run_traced "mkdir -p $2/"
   valid="addons babel.cfg bin CONTRIBUTING.md COPYRIGHT debian doc gen_translations.sh gunicorn.conf.py LICENSE logging.json Makefile MANIFEST.in npybabel.py odoo odoo.py odoo-bin openerp openerp-cron-worker openerp-gevent openerp-server openerp-web openerp-web.cfg openerp-wsgi.py README.md requirements.txt server setup setup.cfg setup.py win32"
   for d in $1/*; do
@@ -534,7 +534,7 @@ emulate_git_clone_OCB() {
       fi
     fi
   done
-  export PS_RUN_COLOR=$SAVE_COLOR
+  # export PS_RUN_COLOR=$SAVE_COLOR
 }
 
 git_clone() {
@@ -710,11 +710,11 @@ conf_default() {
   set_cfg_def "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
   set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
   set_cfg_def "PS_TXT_COLOR" "0;97;40"
-  set_cfg_def "PS_RUN_COLOR" "1;36;48;5"
-  set_cfg_def "PS_NOP_COLOR" "31;105"
-  set_cfg_def "PS_HDR1_COLOR" "97;48;5;22"
+  set_cfg_def "PS_RUN_COLOR" "1;37;44"
+  set_cfg_def "PS_NOP_COLOR" "31;100"
+  set_cfg_def "PS_HDR1_COLOR" "97;42"
   set_cfg_def "PS_HDR2_COLOR" "30;43"
-  set_cfg_def "PS_HDR3_COLOR" "30;47"
+  set_cfg_def "PS_HDR3_COLOR" "30;45"
   set_cfg_def "PKGS_LIST" "clodoo devel_tools lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
   set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
   set_cfg_def "DEV_SVG" "$HOME/devel/svg"
@@ -1067,12 +1067,12 @@ clean_dirs() {
 
 do_summary() {
   # do_summary(bash,flake8,pylint,test)
-  local RED="\033[1;31m"
-  local GREEN="\033[1;32m"
-  local CLEAR="\033[${PS_HDR3_COLOR}m"
+  local RED="\e[1;31m"
+  local GREEN="\e[1;32m"
+  local CLEAR="\e[${PS_TXT_COLOR}m"
   echo -e "${CLEAR}+======================================="
-  echo "|  Tests summary:"
-  echo "|---------------------------------------"
+  echo -e "${CLEAR}|  Tests summary:"
+  echo -e "${CLEAR}|---------------------------------------"
   if [ "$PRJNAME" == "Odoo" ]; then
     local des=("" "test_bash" "test_flake8" "test_pylint" "test_server.py")
   else
@@ -1082,13 +1082,13 @@ do_summary() {
     if [ -n "${!i}" ]; then
       local x=$(printf "%-20.20s" "${des[$i]}")
       if [ ${!i} -eq $STS_SUCCESS ]; then
-        echo -e "| $x        ${GREEN}Success${CLEAR}"
+        echo -e "${CLEAR}| $x        ${GREEN}Success${CLEAR}"
       elif [ ${!i} -ne 127 ]; then
-        echo -e "| $x        ${RED}FAIL${CLEAR}"
+        echo -e "${CLEAR}| $x        ${RED}FAIL${CLEAR}"
       fi
     fi
   done
-  echo -e "+=======================================\033[${PS_TXT_COLOR}m"
+  echo -e "${CLEAR}+=======================================\e[0m"
 }
 
 ant_rm_trap() {

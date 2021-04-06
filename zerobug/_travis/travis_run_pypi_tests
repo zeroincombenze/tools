@@ -31,7 +31,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=1.0.0.8
+__version__=1.0.0.9
 
 
 travis_test_bash() {

@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.35
+__version__=1.3.35.1
 
 
 detached_login() {
@@ -224,16 +224,19 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   if [ -f $GZFN ]; then
     rm -f $GZFN
   fi
+  odoo_home=$(grep odoo /etc/passwd|awk -F: '{print $6}')
   if [ "$action" == "build_last" ]; then
-    cp /opt/odoo/dev/pypi/z0lib/z0lib/z0librc $HOME/tmp
-    cp /opt/odoo/dev/pypi/travis_emulator/travis_emulator/cronow $HOME/tmp
+    cp $odoo_home/devel/pypi/z0lib/z0lib/z0librc $HOME/tmp
+    cp $odoo_home/devel/pypi/travis_emulator/travis_emulator/cronow $HOME/tmp
   else
-    cp /etc/z0librc $HOME/tmp
-    if [ -f /opt/odoo/bin/cronow ]; then
-      cp /opt/odoo/bin/cronow $HOME/tmp
+    [[ -f /etc/z0librc ]] && cp /etc/z0librc $HOME/tmp || cp $odoo_home/tools/z0lib/z0librc $HOME/tmp
+    if [[ -f $odoo_home/bin/cronow ]]; then
+      cp $odoo_home/bin/cronow $HOME/tmp
+    elif [[ -f $odoo_home/tools/travis_emulator/cronow ]]; then
+      cp $odoo_home/tools/travis_emulator/cronow $HOME/tmp
     else
       x=$(which cronow)
-      [ -n "$x" ] && cp $x $HOME/tmp
+      [[ -n "$x" ]] && cp $x $HOME/tmp
     fi
   fi
   CWD=$PWD
@@ -243,7 +246,7 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   fi
   for f in $FLIST cronow; do
     if [ "$f" != "zarrc" ]; then
-      v=$($HOME/tmp/$f -V)
+      v=$($HOME/tmp/$f -V 2>/dev/null)
       echo "$f $v"
       wlog "$f $v"
     fi
@@ -295,10 +298,10 @@ fi
 wlog "Found $PGHOME directory"
 wlog "Found $PGDIR directory"
 cd /tmp
-if [  -n "$opt_tar" ]; then
+if [[ -n "$opt_tar" ]]; then
   tar -xvf $opt_tar
 else
-  if [ -f $GZFN ]; then
+  if [[ -f $GZFN ]]; then
     rm -f $GZFN
   fi
   wget http://download.zeroincombenze.org/$GZFN

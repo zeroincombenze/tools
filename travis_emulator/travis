@@ -8,12 +8,8 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-export READLINK=readlink
-OS=$(uname -s)
-if [[ $OS == "Darwin" ]]; then
-  READLINK=$(which greadlink 2>/dev/null)
-  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
-fi
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -44,7 +40,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.12
+__version__=1.0.0.13
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -100,6 +96,7 @@ process_yaml_init() {
     export YML_mgrodoo=manage_odoo
   fi
   export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
+  [[ $TRAVIS_DEBUG_MODE -gt 1 ]] && export VERBOSE_MODE=$TRAVIS_DEBUG_MODE
   [[ $osx_d -ne 0 ]] && export TRAVIS_EMULATE_OSX="true"
   ODOO_TNLBOT="${opt_tnl:-0}"
   if [ $opt_full -ne 0 ]; then
@@ -132,7 +129,7 @@ process_yaml_quote_xtl() {
 
 process_yaml_do() {
   local a b i lne
-  if [ "${1:0:1}" == " " ]; then
+  if [[ ${1:0:1} == " " ]]; then
     local line="${1:1}"
   else
     local line="$1"
@@ -158,8 +155,8 @@ process_yaml_do() {
       line=$(echo "$line" | sed -e s/TESTS=[\"']0[\"']/TESTS=\"1\"/g)
     fi
   fi
-  if [[ "$line" =~ TRAVIS_DEBUG_MODE= ]] && [ -n "$opt_dlvl" ]; then
-    line=$(echo "$line" | sed -e "s/TRAVIS_DEBUG_MODE=[A-Za-z0-9_\"']\+/TRAVIS_DEBUG_MODE=\"$opt_dlvl\"/")
+  if [[ $line =~ TRAVIS_DEBUG_MODE= && -n "$opt_dlvl" ]]; then
+    line=$(echo "$line" | sed -e "s/TRAVIS_DEBUG_MODE=[0-9\"']\+/TRAVIS_DEBUG_MODE=\"$opt_dlvl\"/")
   fi
   if [[ "$line" =~ ODOO_TNLBOT= ]] && [ -n "$opt_tnl" ]; then
     line=$(echo "$line" | sed -e "s/ODOO_TNLBOT=[A-Za-z0-9_\"']\+/ODOO_TNLBOT=\"$opt_tnl\"/")
@@ -167,10 +164,6 @@ process_yaml_do() {
   if [[ "$line" =~ LINT_CHECK_LEVEL= ]] && [ -n "$opt_llvl" ]; then
     line=$(echo "$line" | sed -e "s/LINT_CHECK_LEVEL=[A-Za-z0-9_\"']\+/LINT_CHECK_LEVEL=\"${opt_llvl^^}\"/")
   fi
-
-  # TNY
-
-
   if [[ "${line:0:1}" == "(" && "${line: -1}" == ")" ]]; then
     lne=$(process_yaml_unquote "${line:1:-1}")
   elif [[ "${line:0:1}" == "\"" && "${line: -1}" == "\"" ]]; then
@@ -191,7 +184,7 @@ process_yaml_do() {
       lne="# $lne"
     else
       YML_global="$YML_global $lne"
-      [[ "$line" =~ TRAVIS_DEBUG_MODE= ]] && eval $(process_yaml_quote $lne)
+      [[ $line =~ TRAVIS_DEBUG_MODE= ]] && eval $(process_yaml_quote $lne)
     fi
   elif [ "$YML_sect" == "env.matrix" ]; then
     YML_matrix="$YML_matrix $lne"
@@ -336,9 +329,9 @@ process_yaml_file() {
 process_yaml_initialize() {
   local sts=$STS_SUCCESS
   local i s line lne X
-  wlog "\e[${PS_HDR2_COLOR}m===== [Initialize] =====\e[${PS_TXT_COLOR}m"
-  if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[initialize] from .travis.conf] ------\e[${PS_TXT_COLOR}m"
+  wlog "\e[${PS_HDR2_COLOR}m===== [Initialize] =====\e[0m"
+  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
+    wlog "\e[${PS_HDR3_COLOR}m------ [[initialize] from .travis.conf] ------\e[0m"
   fi
   line=$(get_cfg_value "" "GBL_EXCLUDE")
   [[ -n "$line" ]] && run_traced "export GBL_EXCLUDE=$line"
@@ -349,8 +342,8 @@ process_yaml_initialize() {
         s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
   done
-  if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[initialize.packages] from .travis.conf] ------\e[${PS_TXT_COLOR}m"
+  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
+    wlog "\e[${PS_HDR3_COLOR}m------ [[initialize.packages] from .travis.conf] ------\e[0m"
   fi
   X="${PKGNAME}__"
   line=$(get_cfg_value "" "${X}yaml_init_1")
@@ -369,9 +362,9 @@ process_yaml_initialize() {
 process_yaml_exit() {
   local sts=$STS_SUCCESS
   local i line lne X
-  wlog "\e[${PS_HDR2_COLOR}m===== [Ending] =====\e[${PS_TXT_COLOR}m"
-  if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[exit.packages] from .travis.conf] ------\e[${PS_TXT_COLOR}m"
+  wlog "\e[${PS_HDR2_COLOR}m===== [Ending] =====\e[0m"
+  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
+    wlog "\e[${PS_HDR3_COLOR}m------ [[exit.packages] from .travis.conf] ------\e[0m"
   fi
   X="${PKGNAME}__"
   line=$(get_cfg_value "" "${X}yaml_exit_1")
@@ -383,8 +376,8 @@ process_yaml_exit() {
       fi
     done
   fi
-  if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[exit] from .travis.conf] ------\e[${PS_TXT_COLOR}m"
+  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
+    wlog "\e[${PS_HDR3_COLOR}m------ [[exit] from .travis.conf] ------\e[0m"
   fi
   for i in {1..9}; do
     line=$(get_cfg_value "" "yaml_exit_$i")
@@ -396,9 +389,9 @@ process_yaml_exit() {
 }
 
 process_yaml_global() {
-  [ "$PWD" != "$TRAVIS_BUILD_DIR" ] && run_traced "cd $TRAVIS_BUILD_DIR"
-  if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[env.global] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
+  [[ $PWD != $TRAVIS_BUILD_DIR ]] && run_traced "cd $TRAVIS_BUILD_DIR"
+  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
+    wlog "\e[${PS_HDR3_COLOR}m------ [[env.global] in .travis.yml] ------\e[0m"
   fi
   for lne in $YML_global; do
     line="export $(process_yaml_quote_xtl $lne)"
@@ -409,11 +402,11 @@ process_yaml_global() {
 }
 
 process_yaml_before_install() {
-  wlog "\e[${PS_HDR2_COLOR}m===== [Before install] =====\e[${PS_TXT_COLOR}m"
+  wlog "\e[${PS_HDR2_COLOR}m===== [Before install] =====\e[0m"
   local sts=$STS_SUCCESS
   local i s line lne X CURPYVER
-  if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[addons.packages] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
+  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
+    wlog "\e[${PS_HDR3_COLOR}m------ [[addons.packages] in .travis.yml] ------\e[0m"
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
     CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo [0-9] | head -n1)
@@ -449,8 +442,8 @@ process_yaml_before_install() {
       [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
     done
   fi
-  if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[before_install] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
+  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
+    wlog "\e[${PS_HDR3_COLOR}m------ [[before_install] in .travis.yml] ------\e[0m"
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
     for lne in $YML_before_install; do
@@ -459,8 +452,8 @@ process_yaml_before_install() {
       [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
     done
   fi
-  if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[env] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
+  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
+    wlog "\e[${PS_HDR3_COLOR}m------ [[env] in .travis.yml] ------\e[0m"
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
     for lne in $YML_env; do
@@ -477,9 +470,9 @@ process_yaml_install() {
   local sts=$STS_SUCCESS
   local i s line line1 lne
   [ -n "$1" ] && line1="export $(process_yaml_quote_xtl $1)"
-  wlog "\e[${PS_HDR2_COLOR}m===== [Install $line1] =====\e[${PS_TXT_COLOR}m"
-  if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[install] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
+  wlog "\e[${PS_HDR2_COLOR}m===== [Install $line1] =====\e[0m"
+  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
+    wlog "\e[${PS_HDR3_COLOR}m------ [[install] in .travis.yml] ------\e[0m"
   fi
   run_traced "$line1"
   for lne in $YML_install; do
@@ -494,7 +487,7 @@ process_yaml_before_script() {
   local sts=$STS_SUCCESS
   local line1 lne
   line1=$(process_yaml_quote $1)
-  wlog "\e[${PS_HDR2_COLOR}m===== [Before script $line1] =====\e[${PS_TXT_COLOR}m"
+  wlog "\e[${PS_HDR2_COLOR}m===== [Before script $line1] =====\e[0m"
   if [ -z "$line1" -o "${line1:0:1}" == "#" ]; then
     sts=127
   else
@@ -526,7 +519,7 @@ process_yaml_run_cmd() {
   local xcmd=$(process_yaml_quote_xtl "$1")
   local ix ix1 ix2 c i x s p pp tk z sts xtlcmd
   local xlint xtest xtfex xpkg xcd
-  if [ -n "$2" ]; then
+  if [[ -n "$2" ]]; then
     local line1="$(process_yaml_quote_xtl $2) "
   else
     local line1
@@ -670,10 +663,6 @@ process_yaml_run_cmd() {
     xcmd="# $xcmd"
   elif [ "${x[$ix]}" == "sh" -a "${x[$ix2]}" == "/etc/init.d/xvfb" ]; then
     xcmd="# $xcmd"
-  # elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sh" ]; then
-  #   xcmd="# $xcmd"
-  # elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
-  #   :
   else
     if [ -z "$REPOSNAME" ]; then
       pp=$PKGPATH
@@ -725,13 +714,13 @@ process_yaml_run_cmd() {
   fi
   sts=0
   if [[ "$action" == "parseyaml" ]]; then
-    if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
-      echo "\e[${PS_NOP_COLOR}m## $c\e[${PS_TXT_COLOR}m"
-    fi
+    [[ $c != $xcmd && ! $xcmd =~ ^# ]] && echo "\e[${PS_NOP_COLOR}m## $c\e[${PS_TXT_COLOR}m"
     echo "$xcmd"
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
   else
-    [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ] && wlog "\e[${PS_NOP_COLOR}m> $c\e[${PS_TXT_COLOR}m\n"
+    [[ $xcmd =~ ^source ]] && sed -e "1s/^/set -x\n/" $HOME/devel/activate_tools
+    [[ $xcmd =~ ^source ]] && echo "set +x">>$HOME/devel/activate_tools
+    [[ $c != $xcmd && ! $xcmd =~ ^# ]] && wlog "\e[${PS_NOP_COLOR}m> $c\e[${PS_TXT_COLOR}m\n"
     run_traced "$line1$xcmd"
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     if [[ $xcmd =~ "travis_install_env" ]]; then
@@ -765,12 +754,12 @@ process_yaml() {
   fi
   if [ -f $YML_FILE ]; then
     echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
-    wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"
+    wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[0m"
     export TRAVIS_HOME_BRANCH=$PWD
     process_yaml_file "$YML_FILE"
     unset PYTHONPATH
     sts=$STS_SUCCESS
-    wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
+    wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[0m"
     TODAY=$(date "+%Y-%m-%d %H:%M:%S")
     for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST LOGFILE MQT_DBUSER MQT_TEMPLATE_DB MQT_TEST_DB PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_EMULATE_OSX TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
       if [[ $lne == "job-id" ]]; then
@@ -803,12 +792,12 @@ process_yaml() {
       done
       for TRAVIS_PYTHON_VERSION in $python_matrix; do
         [ $sts -eq $STS_SUCCESS ] || break
-        wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[${PS_TXT_COLOR}m"
+        wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[0m"
         CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo [0-9] | head -n1)
         PYTHON=$(which python$TRAVIS_PYTHON_VERSION)
         [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER)
         PYTHON_VERSION=$($PYTHON --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
-        if [ "$PYTHON_VERSION" != "$TRAVIS_PYTHON_VERSION" ]; then
+        if [[ $PYTHON_VERSION != $TRAVIS_PYTHON_VERSION ]]; then
           wlog "\e[${PS_HDR1_COLOR}mError: Required version $TRAVIS_PYTHON_VERSION of python is not availale. Replace by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
           continue
         fi
@@ -821,7 +810,7 @@ process_yaml() {
           lne1=${!lne}
           [[ -n "$lne1" || $lne =~ PATH ]] && wlog "\$ $lne=$lne1"
         done
-        if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
+        if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01]$ ]]; then
           if [ $CURPYVER -eq 3 ]; then
             echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | $PYTHON
           else
@@ -849,7 +838,7 @@ process_yaml() {
             wlog "\e[${PS_HDR3_COLOR}mMatrix skipped because does not match the test action\e[${PS_TXT_COLOR}m"
             continue
           fi
-          wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[${PS_TXT_COLOR}m"
+          wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[0m"
           create_virtual_env
           for p in PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_BRANCH HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
             X=${!p}
@@ -871,7 +860,7 @@ process_yaml() {
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
           fi
           if [ $sts -eq $STS_SUCCESS ]; then
-            wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[${PS_TXT_COLOR}m"
+            wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[0m"
             for lne in $YML_script; do
               process_yaml_run_cmd "$lne"
               s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
@@ -882,10 +871,9 @@ process_yaml() {
             done
           fi
           if [ $sts -eq $STS_SUCCESS ]; then
-            wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[${PS_TXT_COLOR}m"
+            wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[0m"
             process_yaml_after_success
           fi
-          # [[ "$TRAVIS_DEBUG_MODE" == "9" ]] && read -p "Press RET to continue ..."
           if [ $sts -eq $STS_SUCCESS ]; then
             process_yaml_exit
             drop_virtual_env
@@ -916,17 +904,17 @@ process_yaml_echo() {
   fi
 }
 
-OPTOPTS=(h        B         C         c        D        d     E         F        f         j        k        L        l        M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
-OPTLONG=(help     debug     no-cache  conf     deb-lev  osx   no-savenv full     force     ''       keep     lint-lev logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl osx_d opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
-OPTACTI=(1        1         0         "="      "="      1     0         1        1         1        1        "="      "="      1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
-OPTDEFL=(0        0         1         ""       ""       0     1         0        0         0        0        ""       ""       0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
-OPTMETA=("help"   "version" ""        "file"   "number" ""    ""        ""       ""        "dprj"   ""       "number" "dir"    ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
+OPTOPTS=(h        B         C         c        D           d     E         F        f         j        k        L          l        M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
+OPTLONG=(help     debug     no-cache  conf     debug-level osx   no-savenv full     force     ''       keep     lint-level logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose     ""      yaml-file     pyver   zero)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl    osx_d opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
+OPTACTI=(1        1         0         "="      "="         1     0         1        1         1        1        "="        "="      1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="     "="           "="     1)
+OPTDEFL=(0        0         1         ""       ""          0     1         0        0         0        0        ""         ""       0          0       0            "local"   0        -1          0     ""           ""          -1          ""      ".travis.yml" ""      0)
+OPTMETA=("help"   "version" ""        "file"   "number"    ""    ""        ""       ""        "dprj"   ""       "number"   "dir"    ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"   "file"        "pyver" "")
 OPTHELP=("this help"
   "debug mode: do not create log"
   "do not use stored PYPI"
   "configuration file (def .travis.conf)"
-  "travis_debug_mode: may be 0,1,2,8 or 9 (def yaml dependents)"
+  "travis_debug_mode: may be 0,1,2,3,8 or 9 (def yaml dependents)"
   "emulate osx-darwin"
   "do not save virtual environment into ~/VME/... if does not exist"
   "run final travis with full features"

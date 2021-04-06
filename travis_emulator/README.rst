@@ -1,6 +1,6 @@
 
 ========================
-travis_emulator 1.0.0.12
+travis_emulator 1.0.0.13
 ========================
 
 
@@ -16,7 +16,7 @@ Overview
 Emulate travis to test application before pushing to git
 --------------------------------------------------------
 
-Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine.
+Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.
 You can test your application before pushing code to github.com web site.
 
 Travis emulator can creates all the build declared in **.travis.yml**; all the builds are executed in sequential way.
@@ -74,7 +74,6 @@ Your PC is not TravisCi web site
 
 
 
-
 |
 
 Features
@@ -123,35 +122,44 @@ Travis emulator usage
 
 ::
 
-    Usage: travis [-hBC][-c file][-D number][-EFfjk][-L number][-l dir][-Mmn][-O git-org][-pqr][-S false|true][-Vv][-X 0|1][-Y file][-y pyver][-Z] action sub sub2
+    Usage: travis [-hBC][-c file][-D number][-dEFfjk][-L number][-l dir][-Mmn][-O git-org][-pqr][-S false|true][-Vv][-X 0|1][-Y file][-y pyver][-Z] action sub sub2
     Travis-ci emulator for local developer environment
     Action may be: [force-]lint, [force-]test, emulate (default), (new|chk|cp|mv|merge)_vm, chkconfig or parseyaml
-     -h                      this help
-     -B                      debug mode: do not create log
-     -C                      do not use stored PYPI
-     -c file                 configuration file (def .travis.conf)
-     -D number               travis_debug_mode: may be 0,1,2 or 9 (def yaml dependents)
-     -E                      save virtual environment as ~/VME/VME{version}
-     -F                      run final travis with full features
-     -f                      force yaml to run w/o cmd subst
-     -j                      execute tests in project dir rather in test dir (or expand macro if parseyaml)
-     -k                      keep DB and virtual environment after tests
-     -L number               lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml
-     -l dir                  log directory (def=~/travis_log)
-     -M                      use local MQT (deprecated)
-     -m                      show missing line in report coverage
-     -n                      do nothing (dry-run)
-     -O git-org              git organization, i.e. oca or zeroincombenze
-     -p                      prefer python test over bash test when avaiable
-     -q                      silent mode
-     -r                      run restricted mode (def parsing travis.yml file)
-     -S false|true           use python system packages (def yaml dependents)
-     -V                      show version
-     -v                      verbose mode
-     -X 0|1                  enable translation test (def yaml dependents)
-     -Y file                 file yaml to process (def .travis.yml)
-     -y pyver                test with specific python versions (comma separated)
-     -Z                      use local zero-tools
+     -h --help            this help
+     -B --debug           debug mode: do not create log
+     -C --no-cache        do not use stored PYPI
+     -c --conf file
+                          configuration file (def .travis.conf)
+     -D --debug-level number
+                          travis_debug_mode: may be 0,1,2,3,8 or 9 (def yaml dependents)
+     -d --osx             emulate osx-darwin
+     -E --no-savenv       do not save virtual environment into ~/VME/... if does not exist
+     -F --full            run final travis with full features
+     -f --force           force yaml to run w/o cmd subst
+     -j                   execute tests in project dir rather in test dir (or expand macro if parseyaml)
+     -k --keep            keep DB and virtual environment after tests
+     -L --lint-level number
+                          lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml
+     -l --logdir dir
+                          log directory (def=/home/antoniomaria/odoo/travis_log)
+     -M                   use local MQT (deprecated)
+     -m --missing         show missing line in report coverage
+     -n --dry-run         do nothing (dry-run)
+     -O --org git-org
+                          git organization, i.e. oca or zeroincombenze
+     -p --pytest          prefer python test over bash test when avaiable
+     -q --quiet           silent mode
+     -r                   run restricted mode (deprecated)
+     -S --syspkg false|true
+                          use python system packages (def yaml dependents)
+     -V --version         show version
+     -v --verbose         verbose mode
+     -X 0|1               enable translation test (def yaml dependents)
+     -Y --yaml-file file
+                          file yaml to process (def .travis.yml)
+     -y --pyver pyver
+                          test with specific python versions (comma separated)
+     -Z --zero            use local zero-tools
 
 
 Tree directory
@@ -218,15 +226,15 @@ Values in configuration file are:
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
 | PS_TXT_COLOR      | N/D                                                | 0;97;40                                                                                                  |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
-| PS_RUN_COLOR      | N/D                                                | 1;36;48;5                                                                                                |
+| PS_RUN_COLOR      | N/D                                                | 1;37;44                                                                                                  |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
-| PS_NOP_COLOR      | N/D                                                | 31;105                                                                                                   |
+| PS_NOP_COLOR      | N/D                                                | 31;100                                                                                                   |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
-| PS_HDR1_COLOR     | N/D                                                | 97;48;5;22                                                                                               |
+| PS_HDR1_COLOR     | N/D                                                | 97;42                                                                                                    |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
 | PS_HDR2_COLOR     | N/D                                                | 30;43                                                                                                    |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
-| PS_HDR3_COLOR     | N/D                                                | 30;47                                                                                                    |
+| PS_HDR3_COLOR     | N/D                                                | 30;45                                                                                                    |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
 | PKGS_LIST         | N/D                                                | clodoo devel_tools lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------+
@@ -294,7 +302,8 @@ History
 
 [FIX] travis: no crash it tools not found
 [IMP] travis: manage nvm
-
+[REF] travis: new colors output
+[IMP] vem: osx/darwin compatible
 
 1.0.0.11 (2021-03-19)
 ~~~~~~~~~~~~~~~~~~~~~
@@ -347,7 +356,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-04-02
+Last Update / Ultimo aggiornamento: 2021-04-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
@@ -362,22 +371,22 @@ Last Update / Ultimo aggiornamento: 2021-04-02
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.12
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.13
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.12/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.12
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.13/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.13
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.13/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.13/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.12/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.12
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.13/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.13
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

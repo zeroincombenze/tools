@@ -1,7 +1,7 @@
 Emulate travis to test application before pushing to git
 --------------------------------------------------------
 
-Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine.
+Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.
 You can test your application before pushing code to github.com web site.
 
 Travis emulator can creates all the build declared in **.travis.yml**; all the builds are executed in sequential way.
@@ -56,4 +56,3 @@ Your PC is not TravisCi web site
     The travis emulator does not try to install global packages because
     it does not change the PC configuration.
     Please, install manually all the global packages using apt-get, yum, dnf or your local installer software.
-
