@@ -27,31 +27,37 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.2
+__version__=1.0.0.3
 
 
 test_run() {
-   # set -x
    local SAVE_FLOG_ECHO=$FLOG_ECHO
    local SAVE_FLOG=$FLOG
    local SAVE_opt_verbose=$opt_verbose
    local SAVE_opt_dry_run=$opt_dry_run
    local SAVE_opt_humdrum=${opt_humdrum:-0}
+   local s=-1 x
    FLOG_ECHO=
    FLOG=
    opt_verbose=
    opt_humdrum=1
-   if [ "${1:0:3}" == "cd " -o "$1" == "cd" ]; then
-     opt_dry_run=1
+   if [[ $1 == "ls" ]]; then
+     opt_verbose=1
+     x=$(run_traced "$1" "-q")
+     [[ -n "$x" ]] && false || true
+     s=$?
+   else
+     if [[ ${1:0:3} == "cd " || $1 == "cd" ]]; then
+       opt_dry_run=1
+     fi
+     run_traced "$1"
+     s=$?
    fi
-   run_traced "$1"
-   local s=$?
    opt_humdrum=$SAVE_opt_humdrum
    opt_dry_run=$SAVE_opt_dry_run
    opt_verbose=$SAVE_opt_verbose
    FLOG=$SAVE_FLOG
    FLOG_ECHO=$SAVE_FLOG_ECHO
-   # set +x
    return $s
 }
 
@@ -72,10 +78,10 @@ test_02() {
 test_03() {
     local f s
     f="NOT_EXISTS"
-    if [ -f $f ]; then rm -f $f; fi
+    [[ -f $f ]] && rm -f $f
     test_run "touch $f"
     s=$?
-    if [ -f $f ]; then
+    if [[ -f $f ]]; then
       test_result "run touch $f" "$s" "$STS_SUCCESS"
     else
       test_result "run touch $f" "$s" "$STS_FAILED"
@@ -83,7 +89,7 @@ test_03() {
 
     test_run "rm -f $f"
     s=$?
-    if [ -f $f ]; then
+    if [[ -f $f ]]; then
       test_result "rm -f $f" "$s" "$STS_FAILED"
     else
       test_result "rm -f $f" "$s" "$STS_SUCCESS"
@@ -98,6 +104,13 @@ test_04() {
     test_result "cd $f" "$s" "$STS_SUCCESS"
 }
 
+test_05() {
+    local f s
+    test_run "ls"
+    s=$?
+    test_result "ls" "$s" "$STS_SUCCESS"
+}
+
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_z0lib.log "$@"
@@ -105,7 +118,6 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
 
 
 

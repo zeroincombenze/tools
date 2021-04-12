@@ -40,7 +40,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.13
+__version__=1.0.0.14
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -78,8 +78,8 @@ process_yaml_init() {
   export TRAVIS_PULL_REQUEST="false"
   export MQT_TEMPLATE_DB="$(get_cfg_value "" "MQT_TEMPLATE_DB")$YML_pid"
   export MQT_TEST_DB="$(get_cfg_value "" "MQT_TEST_DB")$YML_pid"
-  export MQT_DBUSER="$(get_cfg_value "" "MQT_DBUSER")"
-  [[ -z $MQT_DBUSER ]] && export MQT_DBUSER==$(get_dbuser)
+  export PGUSER="$(get_cfg_value "" "MQT_DBUSER")"
+  [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
   python_ver_req=""
   python_ver_ena=""
   [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep PYPI_RUN_PYVER|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
@@ -718,14 +718,15 @@ process_yaml_run_cmd() {
     echo "$xcmd"
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
   else
-    [[ $xcmd =~ ^source ]] && sed -e "1s/^/set -x\n/" $HOME/devel/activate_tools
-    [[ $xcmd =~ ^source ]] && echo "set +x">>$HOME/devel/activate_tools
-    [[ $c != $xcmd && ! $xcmd =~ ^# ]] && wlog "\e[${PS_NOP_COLOR}m> $c\e[${PS_TXT_COLOR}m\n"
+    [[ $c != $xcmd && ! $xcmd =~ ^# ]] && wlog "\e[${PS_NOP_COLOR}m> $c\e[${PS_TXT_COLOR}m" && ((Z0_STACK=Z0_STACK+2))
     run_traced "$line1$xcmd"
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     if [[ $xcmd =~ "travis_install_env" ]]; then
+      ((Z0_STACK=Z0_STACK+2))
       [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME -p$TRAVIS_PYTHON_VERSION -fq"
+      ((Z0_STACK=Z0_STACK-2))
     fi
+    [[ $c != $xcmd && ! $xcmd =~ ^# ]] && ((Z0_STACK=Z0_STACK-2))
   fi
   return $sts
 }
@@ -735,12 +736,7 @@ process_yaml() {
   local sts=$STS_SUCCESS
   local i s p v X
   local line lne line1 lne1
-  export PS_TXT_COLOR=$(get_cfg_value "" "PS_TXT_COLOR")
-  export PS_RUN_COLOR=$(get_cfg_value "" "PS_RUN_COLOR")
-  export PS_NOP_COLOR=$(get_cfg_value "" "PS_NOP_COLOR")
-  export PS_HDR1_COLOR=$(get_cfg_value "" "PS_HDR1_COLOR")
-  export PS_HDR2_COLOR=$(get_cfg_value "" "PS_HDR2_COLOR")
-  export PS_HDR3_COLOR=$(get_cfg_value "" "PS_HDR3_COLOR")
+  load_colors
   if [ "$action" == "chkconfig" ]; then
     YML_FILE=$TOOLS_PATH/chkconfig.yml
     if [ ! -f $YML_FILE ]; then
@@ -761,7 +757,7 @@ process_yaml() {
     sts=$STS_SUCCESS
     wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[0m"
     TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-    for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST LOGFILE MQT_DBUSER MQT_TEMPLATE_DB MQT_TEST_DB PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_EMULATE_OSX TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
+    for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST LOGFILE PGUSER MQT_TEMPLATE_DB MQT_TEST_DB PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_EMULATE_OSX TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
       if [[ $lne == "job-id" ]]; then
         lne1=$$
       elif [[ $lne == "DIST" ]]; then
@@ -771,9 +767,7 @@ process_yaml() {
       else
         lne1=${!lne}
       fi
-      if [[ -n "$lne1" || $lne =~ PATH ]]; then
-        wlog "\$ $lne=$lne1"
-      fi
+      [[ -n "$lne1" || $lne =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $lne=$lne1\e[0m"
     done
     if [ $sts -eq $STS_SUCCESS ]; then
       process_yaml_initialize
@@ -808,9 +802,9 @@ process_yaml() {
         alias pip=$PIP
         for lne in PIP PYTHON PYTHONPATH TRAVIS_PYTHON_VERSION; do
           lne1=${!lne}
-          [[ -n "$lne1" || $lne =~ PATH ]] && wlog "\$ $lne=$lne1"
+          [[ -n "$lne1" || $lne =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $lne=$lne1\e[0m"
         done
-        if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01]$ ]]; then
+        if [[ $TRAVIS_DEBUG_MODE -gt 2 ]]; then
           if [ $CURPYVER -eq 3 ]; then
             echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | $PYTHON
           else
@@ -842,9 +836,7 @@ process_yaml() {
           create_virtual_env
           for p in PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_BRANCH HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
             X=${!p}
-            if [[ -n "$X" || $p =~ PATH ]]; then
-              wlog "\$ $p=$X"
-            fi
+            [[ -n "$X" || $p =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $p=$X\e[0m"
           done
           process_yaml_global
           if [ $sts -eq $STS_SUCCESS ]; then
@@ -904,6 +896,15 @@ process_yaml_echo() {
   fi
 }
 
+load_colors() {
+    export PS_TXT_COLOR=$(get_cfg_value "" "PS_TXT_COLOR")
+    export PS_RUN_COLOR=$(get_cfg_value "" "PS_RUN_COLOR")
+    export PS_NOP_COLOR=$(get_cfg_value "" "PS_NOP_COLOR")
+    export PS_HDR1_COLOR=$(get_cfg_value "" "PS_HDR1_COLOR")
+    export PS_HDR2_COLOR=$(get_cfg_value "" "PS_HDR2_COLOR")
+    export PS_HDR3_COLOR=$(get_cfg_value "" "PS_HDR3_COLOR")
+}
+
 OPTOPTS=(h        B         C         c        D           d     E         F        f         j        k        L          l        M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
 OPTLONG=(help     debug     no-cache  conf     debug-level osx   no-savenv full     force     ''       keep     lint-level logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose     ""      yaml-file     pyver   zero)
 OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl    osx_d opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
@@ -944,22 +945,22 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
+ACTIONS="(help|emulate|force-lint|lint|force-test|test|chkconfig|parseyaml|show-log|show-color|summary|wep-db)"
 if [ $opt_help -gt 0 ]; then
-  print_help "Travis-ci emulator for local developer environment\nAction may be: [force-]lint, [force-]test, emulate (default), (new|chk|cp|mv|merge)_vm, chkconfig or parseyaml" \
+  print_help "Travis-ci emulator for local developer environment\nAction may be: ${ACTIONS//|/,}" \
     "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 
 export PYTHONWARNINGS="ignore"
 [[ -z "$action" ]] && action=emulate
-ACTIONS="(help|emulate|force-lint|lint|force-test|test|chkconfig|parseyaml|show-log|summary|wep-db)"
 VIRTACTS="(force-lint|lint|force-test|test|emulate)"
 opt_virt=1
 if [[ $action =~ $ACTIONS ]]; then
   [[ ! $action =~ $VIRTACTS ]] && opt_virt=0
 else
   echo "Invalid action!"
-  echo "action should be one of $ACTIONS"
+  echo "action should be one of ${ACTIONS//|/,}"
   exit $STS_FAILED
 fi
 opts_travis
@@ -977,10 +978,10 @@ LOGDIR="$(get_cfg_value "" "LOGDIR")"
 [[ -n "$BRANCH" ]] && LOGFILE="${LOGFILE}_$BRANCH"
 LOGFILE="$LOGDIR/${LOGFILE}.log"
 
-if [ "$action" == "help" ]; then
+if [[ $action == "help" ]]; then
   man $0.man
   exit $STS_SUCCESS
-elif [ "$action" == "parseyaml" ]; then
+elif [[ $action == "parseyaml" ]]; then
   prepare_env_travis "$action"
   check_4_travis
   if [ -z "$sub" ]; then
@@ -1045,17 +1046,9 @@ elif [ "$action" == "parseyaml" ]; then
   done
   exit $STS_SUCCESS
 elif [[ $action =~ (wep_db|wep-db) ]]; then
-  MQT_DBUSER="$(get_cfg_value "" "MQT_DBUSER")"
-  if [[ -z $MQT_DBUSER ]]; then
-    for u in $USER odoo openerp postgresql; do
-      psql -U$u -l &>/dev/null
-      if [ $? -eq 0 ]; then
-        MQT_DBUSER="$u"
-        break
-      fi
-    done
-  fi
-  if [[ -n $MQT_DBUSER ]]; then
+  export PGUSER="$(get_cfg_value "" "MQT_DBUSER")"
+  [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
+  if [[ -n $PGUSER ]]; then
     done=0
     all_dbs=1
     [ $opt_force -ne 0 ] && md=30 || md=1800
@@ -1069,9 +1062,9 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
           rm -fR $d
           sfx=$(echo "$d" | grep -Eo "[0-9]+$")
           for db in openerp_template$sfx openerp_test$sfx; do
-            echo "\$ dropdb -U$MQT_DBUSER $db"
+            echo "\$ dropdb -U$PGUSER $db"
             pg_db_active -wa $db
-            dropdb -U$MQT_DBUSER $db --if-exists &>/dev/null
+            dropdb -U$PGUSER $db --if-exists &>/dev/null
             done=1
           done
         else
@@ -1082,10 +1075,10 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
       fi
     done
     if [ $all_dbs -ne 0 ]; then
-      for db in $(psql -U$MQT_DBUSER -Atl | grep -E "(openerp_template|openerp_test)" | awk -F"|" '{print $1}'); do
-        echo "\$ dropdb -U$MQT_DBUSER $db"
+      for db in $(psql -U$PGUSER -Atl | grep -E "(openerp_template|openerp_test)" | awk -F"|" '{print $1}'); do
+        echo "\$ dropdb -U$PGUSER $db"
         pg_db_active -wa $db
-        dropdb -U$MQT_DBUSER $db --if-exists &>/dev/null
+        dropdb -U$PGUSER $db --if-exists &>/dev/null
         done=1
       done
     fi
@@ -1111,11 +1104,23 @@ elif [[ $action == "summary" ]]; then
   fi
   exit 0
 elif [[ $action == "show-log" ]]; then
-  if [[ -f $LOGFILE ]]; then
+  if [ ${opt_dry_run:-0} -gt 0 ]; then
+    echo "> travis > $LOGFILE"
+  elif [[ -f $LOGFILE ]]; then
     less -R $LOGFILE
   else
     echo "File $LOGFILE not found!"
   fi
+  exit 0
+elif [[ $action =~ show-colors? ]]; then
+  load_colors
+  echo "Colors dump"
+  echo -e "\e[${PS_HDR1_COLOR}m=== HEADER 1 ===\e[0m"
+  echo -e "\e[${PS_HDR2_COLOR}m--- HEADER 2 ---\e[0m"
+  echo -e "\e[${PS_HDR3_COLOR}m... HEADER 3 ...\e[0m"
+  echo -e "\e[${PS_RUN_COLOR}mCommand execution\e[0m"
+  echo -e "\e[${PS_TXT_COLOR}mInfo text\e[0m"
+  echo -e "\e[${PS_NOP_COLOR}mNo operational info\e[0m"
   exit 0
 fi
 if [[ $PWD == $HOME ]]; then
@@ -1125,7 +1130,6 @@ fi
 
 sts=$STS_SUCCESS
 prepare_env_travis "$action"
-echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
 if [ $sts -eq $STS_SUCCESS ]; then
   if [[ -n $opt_flog ]]; then
     mkdir -p $(dirname $opt_flog)
@@ -1133,7 +1137,8 @@ if [ $sts -eq $STS_SUCCESS ]; then
   fi
   # [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
   # [ $opt_full -ne 0 -a "$PKGNAME" != "OCB" ] && set_executable
-  if [ $opt_debug -ne 0 ]; then
+  if [[ $opt_debug -ne 0 ]]; then
+    echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
     process_yaml
     sts=2
   else
@@ -1141,6 +1146,7 @@ if [ $sts -eq $STS_SUCCESS ]; then
     if [ ${opt_dry_run:-0} -gt 0 ]; then
       echo "> travis > $LOGFILE"
     else
+      echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
       process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $TMP_LOGFILE
       sts=$?
       if [[ -f $LOGFILE ]]; then

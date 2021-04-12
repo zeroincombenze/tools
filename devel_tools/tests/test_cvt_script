@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.13
+__version__=1.0.0.14
 
 
 test_01() {
@@ -54,7 +54,7 @@ if [[ -z "\$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.13
+__version__=1.0.0.14
 
 main
 EOF
@@ -64,8 +64,8 @@ READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/nu
 export READLINK
 THIS=\$(basename "\$0")
 TDIR=\$(\$READLINK -f \$(dirname \$0))
-PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \${PATH//:/ } \${PYPATH//:/ } /etc \$TDIR/../z0lib \$TDIR/../../z0lib \$TDIR/../../z0lib/z0lib; do
+PYPATH=\$(echo -e "import os,sys\np=[x for x in os.environ['PATH'].split(':') if x not in sys.path];p.extend(sys.path);print('\$TDIR '+' '.join(p)+' .')"|python)
+for d in \$TDIR \$PYPATH /etc . ..; do
   if [[ -e \$d/z0librc ]]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
@@ -78,7 +78,7 @@ if [[ -z "\$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.13
+__version__=1.0.0.14
 
 main
 EOF

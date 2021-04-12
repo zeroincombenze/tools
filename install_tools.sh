@@ -139,9 +139,9 @@ for fn in $FILES_2_DELETE; do
 done
 if [[ ! $1 =~ ^-.*n ]]; then
     echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
-    echo "[[ -f $DSTPATH/venv/bin/activate ]] && export PATH=$DSTPATH/venv/bin:\$PATH">$DSTPATH/activate_tools
+    echo "[[ -f $DSTPATH/venv/bin/activate ]] && export PATH=\$PATH:$DSTPATH/venv/bin">$DSTPATH/activate_tools
     echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">>$DSTPATH/activate_tools
-    echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:$PYTHONPATH">>$DSTPATH/activate_tools
+    echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:\$PYTHONPATH">>$DSTPATH/activate_tools
     echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
     [[ $1 =~ ^-.*t ]] && echo "[[ ! -d $SRCPATH/zerobug/_travis || :\$PATH: =~ :$SRCPATH/zerobug/_travis: ]] || export PATH=$SRCPATH/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
     [[ $1 =~ ^-.*t ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
@@ -178,11 +178,11 @@ if [[ ! $1 =~ ^-.*n && ( $1 =~ ^-.*f || ! -d $DSTPATH/venv ) ]]; then
     [[ -x $DSTPATH/venv/bin/python2 ]] && PYTHON=$DSTPATH/venv/bin/python2
     [[ -x $DSTPATH/venv/bin/python3 ]] && PYTHON3=$DSTPATH/venv/bin/python3
     for f in $DSTPATH/bin/*; do
-        [[ -x $f && ! -d $f ]] && grep -q "^#\!.*/bin/python3" $f &>/dev/null && sed -i -e "s|^#\!.*/bin/python3|#\!$PYTHON3" $f
-        [[ -x $f && ! -d $f ]] && grep -q "^#\!.*/bin/python" $f &>/dev/null && sed -i -e "s|^#\!.*/bin/python|#\!$PYTHON" $f
+        [[ -x $f && ! -d $f ]] && grep -q "^#\!.*/bin/python3" $f &>/dev/null && sed -i -e "s|^#\!.*/bin/python3|#\!$PYTHON3|" $f
+        [[ -x $f && ! -d $f ]] && grep -q "^#\!.*/bin/python" $f &>/dev/null && sed -i -e "s|^#\!.*/bin/python|#\!$PYTHON|" $f
     done
     # Please do not change package list order
-    for pkg in odoorpc oerplib babel lxml unidecode xlrd pyyaml zerobug clodoo; do
+    for pkg in odoorpc oerplib babel lxml unidecode xlrd pyyaml z0lib zerobug clodoo; do
         [[ ! $1 =~ ^-.*q ]] && echo "Installing $pkg ..."
         [[ -d $HOME_DEV/pypi/$pkg/$pkg ]] && vem $DSTPATH/venv install $pkg -qBB || vem $DSTPATH/venv install $pkg
     done
@@ -202,7 +202,7 @@ if [[ ! $1 =~ ^-.*q && ! $1 =~ ^-.*P ]]; then
     echo "------------------------------------------------------------"
     echo "If you wish to use these tools at the next time,  please add"
     echo "the following statement in your login file (.bash_profile)"
-    echo ". $DSTPATH/activate_tools"
+    echo "source $DSTPATH/activate_tools"
     echo "If you prefer, you can re-execute this script with -P switch"
     echo "------------------------------------------------------------"
 fi

@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.2
+__version__=1.0.0.3
 
 
 test_01() {
@@ -53,37 +53,37 @@ test_02() {
 
     result=$(findpkg "" "$p" "$Y1")
     TRES=$(readlink -e $p/$Y1)
-    test_result "find myself ($Y1)" "$TRES" "$result"
+    test_result "find '' $p $Y1" "$TRES" "$result"
 
     result=$(findpkg "" "$p" "$Y2")
     TRES=$(readlink -e $p/$Y2)
-    test_result "find myself ($Y2)" "$TRES" "$result"
+    test_result "find '' $p $Y2" "$TRES" "$result"
 
     result=$(findpkg "" "$p" "$Y2 $Y1" "9.1")
     TRES=$(readlink -e $p/$Y2/9.1)
-    test_result "find myself ($Y2 $Y1)" "$TRES" "$result"
+    test_result "find '' $p '$Y2 $Y1' 9.1" "$TRES" "$result"
 
     result=$(findpkg "psql" "$p" "$Y1 $Y2" "9.1")
     TRES=$(readlink -e $p/$Y2/psql)
-    test_result "find myself ($Y2/psql)" "$TRES" "$result"
+    test_result "find psql $p '$Y2 $Y1' 9.1" "$TRES" "$result"
 
     result=$(findpkg "psql9" "$p" "$Y1 $Y2" "9.1")
     TRES=$(readlink -e $p/$Y2/9.1/psql9)
-    test_result "find myself ($Y2/psql9)" "$TRES" "$result"
+    test_result "find psql9 $p '$Y2 $Y1' 9.1" "$TRES" "$result"
 
     p1=$(basename $p)
     p=$(dirname $p)
     result=$(findpkg "psql9" "$p" "$p1" "$Y1 $Y2" "9.1")
-    test_result "find myself ($Y2/psql9 2)" "$TRES" "$result"
+    test_result "find psql9 $p $p1 '$Y2 $Y1' 9.1" "$TRES" "$result"
 
     p2=$(basename $p)
     p=$(dirname $p)
     result=$(findpkg "psql9" "$p" "$p2" "$p1" "$Y1 $Y2" "9.1")
-    test_result "find myself ($Y2/psql9 3)" "$TRES" "$result"
+    test_result "find psql9 $p $p2 $p1 '$Y2 $Y1' 9.1" "$TRES" "$result"
 
     result=$(findpkg "" "$p" "$p2" "$p1" "$Y1 $Y2" "9.2")
-    TRES=$(readlink -e $p/$p2/$p1/$Y1)
-    test_result "find myself ($Y1)" "$TRES" "$result"
+    # TRES=$(readlink -e $p/$p2/$p1/$Y1)
+    test_result "find '' $p $p2 $p1 '$Y2 $Y1' 9.2" "" "$result"
 }
 
 test_03() {
@@ -92,7 +92,7 @@ test_03() {
     p="/etc /usr"
     result=$(findpkg "$f" "$p")
     TRES="/etc"
-    test_result "find /etc dir" "$TRES" "$result"
+    test_result "find $f $p" "$TRES" "$result"
 }
 
 test_04() {
@@ -101,7 +101,7 @@ test_04() {
     p="./Non_Exists /etc /usr"
     result=$(findpkg "$f" "$p")
     TRES="/etc"
-    test_result "find /etc dir" "$TRES" "$result"
+    test_result "find $f $p" "$TRES" "$result"
 }
 
 test_05() {
@@ -114,7 +114,7 @@ test_05() {
     else
       TRES="/bin/bash"
     fi
-    test_result "find $f" "$TRES" "$result"
+    test_result "find $f $p" "$TRES" "$result"
 }
 
 test_06() {
@@ -138,7 +138,7 @@ test_06() {
       f=failed
       result=$(findpkg "$f" "$p" "$s")
     fi
-    [ "$f" == "failed" ] || test_result "find $f in $p" "$TRES" "$result"
+    [ "$f" == "failed" ] || test_result "find $f $p $s" "$TRES" "$result"
 }
 
 test_07() {
@@ -152,7 +152,7 @@ test_07() {
     else
       TRES=/var/spool/mail
     fi
-    test_result "find $f in $p" "$TRES" "$result"
+    test_result "find $f $p $s" "$TRES" "$result"
 }
 
 test_09() {

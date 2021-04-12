@@ -11,8 +11,8 @@ READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null
 export READLINK
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
+PYPATH=$(echo -e "import os,sys\np=[x for x in os.environ['PATH'].split(':') if x not in sys.path];p.extend(sys.path);print('$TDIR '+' '.join(p)+' .')"|python)
+for d in $TDIR $PYPATH /etc . ..; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -25,7 +25,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.13
+__version__=1.0.0.14
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -390,8 +390,8 @@ READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/nu
 export READLINK
 THIS=\$(basename "\$0")
 TDIR=\$(\$READLINK -f \$(dirname \$0))
-PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \${PATH//:/ } \${PYPATH//:/ } /etc \$TDIR/../z0lib \$TDIR/../../z0lib \$TDIR/../../z0lib/z0lib; do
+PYPATH=\$(echo -e "import os,sys\np=[x for x in os.environ['PATH'].split(':') if x not in sys.path];p.extend(sys.path);print('\$TDIR '+' '.join(p)+' .')"|python)
+for d in \$TDIR \$PYPATH /etc . ..; do
   if [[ -e \$d/z0librc ]]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
@@ -408,7 +408,7 @@ EOF
 
 blk_2() {
   cat <<EOF >>$1
-ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \${PATH//:/ } \${PYPATH//:/ } . .." "clodoo")
+ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$PYPATH . .." "clodoo")
 if [ -z "\$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
@@ -421,7 +421,7 @@ blk_2z() {
   if [ $opt_oeLib -ne 0 ]; then
     cat <<EOF >>$1
 if [ \${opt_oeLib:-0} -ne 0 ]; then
-  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \${PATH//:/ } \${PYPATH//:/ } . .." "clodoo")
+  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$PYPATH . .." "clodoo")
   if [ -z "\$ODOOLIBDIR" ]; then
     echo "Library file odoorc not found!"
     exit 2
@@ -434,7 +434,7 @@ EOF
 
 blk_3() {
   cat <<EOF >>$1
-TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \${PATH//:/ } \${PYPATH//:/ } . .." "travis_emulator")
+TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$PYPATH . .." "travis_emulator")
 if [ -z "\$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -447,7 +447,7 @@ blk_3z() {
   if [ $opt_tjLib -ne 0 ]; then
     cat <<EOF >>$1
 if [ \${opt_tjLib:-0} -ne 0 ]; then
-  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \${PATH//:/ } \${PYPATH//:/ } . .." "travis_emulator")
+  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$PYPATH . .." "travis_emulator")
   if [ -z "\$TRAVISLIBDIR" ]; then
     echo "Library file travisrc not found!"
     exit 2
@@ -460,7 +460,7 @@ EOF
 
 blk_4() {
   cat <<EOF >>$1
-ZARLIB=\$(findpkg zarrc "\$TDIR \${PATH//:/ } \${PYPATH//:/ } . ..")
+ZARLIB=\$(findpkg zarrc "\$TDIR \$PYPATH . ..")
 if [[ -z "\$ZARLIB" ]]; then
   echo "Library file zarrc not found!"
   exit 2
@@ -473,7 +473,7 @@ blk_4z() {
   if [ $opt_zLib -ne 0 ]; then
     cat <<EOF >>$1
 if [ \$opt_zLib -ne 0 ]; then
-  ZARLIB=\$(findpkg zarrc "\$TDIR \${PATH//:/ } \${PYPATH//:/ } . ..")
+  ZARLIB=\$(findpkg zarrc "\$TDIR \$PYPATH . ..")
   if [ -z "\$ZARLIB" ]; then
     echo "Library file zarrc not found!"
     exit 2
@@ -493,7 +493,7 @@ EOF
 
 blk_9() {
   cat <<EOF >>$1
-Z0TLIBDIR=\$(findpkg z0testrc "\$TDIR \${PATH//:/ } \${PYPATH//:/ } . .." "zerobug")
+Z0TLIBDIR=\$(findpkg z0testrc "\$TDIR \$PYPATH . .." "zerobug")
 if [[ -z "\$Z0TLIBDIR" ]]; then
   echo "Library file z0testrc not found!"
   exit 2

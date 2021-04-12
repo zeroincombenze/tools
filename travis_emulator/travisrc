@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.0.13
+#__version__=1.0.0.14
 
 # MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
@@ -340,7 +340,7 @@ revaluate_travis() {
 }
 
 get_dbuser() {
-  # get_dbuser odoo_majver
+  # get_dbuser(suffix)
   local u
   for u in $USER odoo openerp postgresql; do
     if [[ -n "$1" ]]; then
@@ -360,13 +360,13 @@ get_dbuser() {
 
 drop_test_db() {
   if [ "$PRJNAME" == "Odoo" ]; then
-    [[ -n $MQT_DBUSER ]] || MQT_DBUSER=$USER
+    [[ -n $PGUSER ]] || PGUSER=$USER
     [[ -n $MQT_TEMPLATE_DB ]] || MQT_TEMPLATE_DB="openerp_template"
     [[ -n $MQT_TEST_DB ]] || MQT_TEST_DB="openerp_test"
     pg_db_active -wa $MQT_TEMPLATE_DB
-    dropdb -U$MQT_DBUSER $MQT_TEMPLATE_DB --if-exists &>/dev/null
+    dropdb -U$PGUSER $MQT_TEMPLATE_DB --if-exists &>/dev/null
     pg_db_active -wa $MQT_TEST_DB
-    dropdb -U$MQT_DBUSER $MQT_TEST_DB --if-exists &>/dev/null
+    dropdb -U$PGUSER $MQT_TEST_DB --if-exists &>/dev/null
   fi
 }
 
@@ -844,7 +844,6 @@ update_dev() {
         fi
       done
     fi
-    # MAKEF=$PKGPATH/$PKGNAME/Makefile
   fi
 }
 

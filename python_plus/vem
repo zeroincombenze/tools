@@ -41,37 +41,37 @@ XPKGS_RE=""
 
 cd_venv() {
   # cd_venv(VENV -q)
-  [ $opt_verbose -gt 2 ] && echo ">>> cd_venv($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> cd_venv($@)"
   if [[ ! "$1" == "$PWD" || $2 =~ f ]]; then
     [[ ! -d $1 && $opt_dry_run -ne 0 ]] && mkdir $1 && FINAL_CMD="rm -fR $1"
-    [[ $2 =~ q ]] || [ $opt_verbose -eq 0 ] || echo "$FLAG pushd $1 >/dev/null"
+    [[ $2 =~ q || $opt_verbose -eq 0 ]] || echo "$FLAG pushd $1 >/dev/null"
     if [[ -d $1 ]]; then
       pushd $1 >/dev/null
       ((DO_POP++))
     fi
-    [ $opt_verbose -gt 2 ] && echo "$PWD>"
+    [[ $opt_verbose -gt 2 ]] && echo "$PWD>"
   fi
 }
 
 pop_cd() {
-  [ $opt_verbose -gt 2 ] && echo ">>> pop_cd($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> pop_cd($@)"
   if [ $DO_POP -ne 0 ]; then
-    [[ "$1" == "-q" ]] || [ $opt_verbose -eq 0 ] || echo "$FLAG popd >/dev/null"
+    [[ $1 =~ q || $opt_verbose -eq 0 ]] || echo "$FLAG popd >/dev/null"
     if [ $DO_POP -gt 0 ]; then
       popd >/dev/null
       ((DO_POP--))
       [[ -n "$FINAL_CMD" ]] && eval $FINAL_CMD && unset FINAL_CMD
     fi
-    [ $opt_verbose -gt 2 ] && echo "$PWD>DO_POP=$DO_POP"
+    [[ $opt_verbose -gt 2 ]] && echo "$PWD>DO_POP=$DO_POP"
   fi
 }
 
 do_activate() {
   local i f
-  [ $opt_verbose -gt 2 ] && echo ">>> do_activate($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> do_activate($@)"
   [[ -z $VENV_STACK ]] && declare -A VENV_STACK && export VENV_STACK
   if [[ -z "$VIRTUAL_ENV" ]]; then
-    [[ "$1" == "-q" ]] || [ $opt_verbose -eq 0 ] || echo "$FLAG source bin/activate"
+    [[ $1 =~ q || $opt_verbose -eq 0 ]] || echo "$FLAG source bin/activate"
     [[ ! -f bin/activate && -n "$FINAL_CMD" ]] && DO_DEACT=1 && return
     [[ ! -f bin/activate ]] && echo "Fatal error! bin/activate not found in $PWD" && exit 1
     [[ $opt_verbose -gt 3 ]] && set +x
@@ -98,9 +98,9 @@ do_activate() {
 
 do_deactivate() {
   local i VENV OLD_VENV
-  [ $opt_verbose -gt 2 ] && echo ">>> do_deactivate($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> do_deactivate($@)"
   if [ $DO_DEACT -ne 0 ]; then
-    [[ "$1" == "-q" ]] || [ $opt_verbose -eq 0 ] || echo "$FLAG deactivate"
+    [[ $1 =~ q || $opt_verbose -eq 0 ]] || echo "$FLAG deactivate"
     [[ ! -f bin/activate && -n "$FINAL_CMD" ]] && DO_DEACT=0 && return
     VENV="$VIRTUAL_ENV"
     if [[ -n $VENV_STACK ]]; then
@@ -167,7 +167,7 @@ get_wkhtmltopdf_dwname() {
 
 bin_install() {
   #bin_install(pkg VENV)
-  [ $opt_verbose -gt 2 ] && echo ">>> bin_install($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> bin_install($@)"
   local x
   local reqver size
   local FH=$(xuname -f)
@@ -191,7 +191,7 @@ bin_install() {
       wkhtmltopdf_wget=$(get_wkhtmltopdf_dwname $pkg $FH $dist $MACHARCH)
       pkgext=$(echo wkhtmltopdf_wget | grep -Eo ".xz$")
       [[ -z "$pkgext" ]] && pkgext=${wkhtmltopdf_wget: -4}
-      [ $opt_verbose -gt 0 ] && echo "Download ${wkhtmltopdf_wget}"
+      [[ $opt_verbose -gt 0 ]] && echo "Download ${wkhtmltopdf_wget}"
       wget -q --timeout=240 ${wkhtmltopdf_wget} -O wkhtmltox${pkgext}
       size=$(stat -c %s wkhtmltox${pkgext})
       if [ $size -eq 0 ]; then
@@ -218,12 +218,12 @@ bin_install() {
 
 bin_install_1() {
   # bin_install_1(VENV)
-  [ $opt_verbose -gt 2 ] && echo ">>> bin_install_1($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> bin_install_1($@)"
   local pkg VENV=$1
   local binreq bin_re
   [[ -n "$opt_bins" ]] && binreq="${opt_bins//,/ }"
   if [[ -n "$opt_bins" ]]; then
-    [ $opt_verbose -gt 0 ] && echo -e "\e[1m.Analyzing $opt_bins\e[0m"
+    [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m.Analyzing $opt_bins\e[0m"
     for pkg in $binreq; do
       bin_install $pkg $VENV
     done
@@ -232,7 +232,7 @@ bin_install_1() {
 
 pip_install() {
   #pip_install(pkg opts)
-  local pkg d x srcdir p popts v
+  local pkg d x srcdir fn popts v
   local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
   # pkg="${1//§/ }"
   pkg="$(get_actual_pkg $1)"
@@ -240,30 +240,38 @@ pip_install() {
   [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
-  [ $opt_verbose -eq 0 ] && popts="$popts -q"
+  [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     srcdir=""
-    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && p=${pkg//-/_} || p=$pkg
-    [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$p ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$p)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$p/$p ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$p/$p)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$p/$p ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$p/$p)
+    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
+    [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$fn)
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$fn/$fn)
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$agkg/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$fn/$fn)
+    if [[ $pkg == "odoo" && -z $opt_oepath ]]; then
+      echo "Missed Odoo version to install (please use -O switch)!"
+      exit 1
+    fi
     [[ $pkg == "odoo" && -n $opt_oepath ]] && srcdir=$(odoo_orm_path $opt_oepath)
+    if [[ $pkg == "odoo" && -z $srcdir ]]; then
+      echo "Odoo path not found! Please supply path with -o switch)!"
+      exit 1
+    fi
     if [[ -n "$srcdir" ]]; then
-      [[ -d $pypath/$p && ! -L $pypath/$p ]] && run_traced "rm -fR $pypath/$p"
+      [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
       pushd $srcdir/.. >/dev/null
-      [[ $pkg == "odoo" ]] && x="$opt_oever" || x=$(python $p -V)
+      [[ $pkg == "odoo" ]] && x="$opt_oever" || x=$(python $fn -V)
       v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
       popd >/dev/null
-      x=$(ls -d $pypath/${p}-*dist-info 2>/dev/null|grep -E "${p}-[0-9.]*dist-info")
-      [[ -n $x && $x != $pypath/${p}-${v}.dist-info ]] && run_traced "mv $x $pypath/${p}-${v}.dist-info"
-      if [[ ! -d $pypath/${p}-${v}.dist-info ]]; then
-        run_traced "mkdir $pypath/${p}-${v}.dist-info"
+      x=$(ls -d $pypath/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
+      [[ -n $x && $x != $pypath/${fn}-${v}.dist-info ]] && run_traced "mv $x $pypath/${fn}-${v}.dist-info"
+      if [[ ! -d $pypath/${fn}-${v}.dist-info ]]; then
+        run_traced "mkdir $pypath/${fn}-${v}.dist-info"
         for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
-          run_traced "touch $pypath/${p}-${v}.dist-info/$d"
+          run_traced "touch $pypath/${fn}-${v}.dist-info/$d"
         done
       fi
-      [[ -L $pypath/$p ]] && run_traced "rm -f $pypath/$p"
-      run_traced "ln -s $srcdir $pypath/$p"
+      [[ -L $pypath/$fn ]] && run_traced "rm -f $pypath/$fn"
+      run_traced "ln -s $srcdir $pypath/$fn"
       [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install $pkg"
@@ -326,7 +334,7 @@ pip_install() {
 pip_install_1() {
   # pip_install_1(popts)
   local pkg
-  [ $opt_verbose -gt 0 ] && echo -e "\e[1m2 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m"
   for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
     pip_install "$pkg" "$1"
   done
@@ -335,7 +343,7 @@ pip_install_1() {
 pip_install_2() {
   # pip_install_2(popts)
   local pkg
-  [ $opt_verbose -gt 0 ] && echo -e "\e[1m3 - Analyzing $OEPKGS\e[0m"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m3 - Analyzing $OEPKGS\e[0m"
   for pkg in $OEPKGS; do
     pip_install "$pkg" "$1"
   done
@@ -348,7 +356,7 @@ pip_install_req() {
     fn=$($READLINK -f $f)
     [ -z "$fn" ] && echo "File $f not found!"
     [ -z "$fn" ] && continue
-    [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
+    [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
     cmd="list_requirements.py -qt python -BP"
     [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
@@ -421,7 +429,7 @@ bin_check_1() {
   local binreq bin_re
   [[ -n "$opt_bins" ]] && binreq="${opt_bins//,/ }"
   [[ -z "$opt_bins" ]] && binreq="${BIN_PKGS//|/ }" && binreq="${binreq:1:-1}"
-  [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing bin $binreq\e[0m"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing bin $binreq\e[0m"
   for pkg in $binreq; do
     check_bin_package $pkg
   done
@@ -483,7 +491,7 @@ pip_check_1() {
   # pip_check_1(cmd)
   local pkg cmd=$1
   local op reqver xreqver sts curver vpkg
-  [ $opt_verbose -gt 0 ] && echo -e "\e[1m1 - Analyzing\e[0m"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m1 - Analyzing\e[0m"
   for vpkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
     check_package $vpkg $cmd
   done
@@ -492,7 +500,7 @@ pip_check_1() {
 pip_check_2() {
   # pip_check_2(cmd)
   local pkg cmd=$1
-  [ $opt_verbose -gt 0 ] && echo -e "\e[1m2 - Analyzing\e[0m"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing\e[0m"
   for vpkg in $OEPKGS; do
     check_package $vpkg $cmd
   done
@@ -505,7 +513,7 @@ pip_check_req() {
     fn=$($READLINK -f $f)
     [ -z "$fn" ] && echo "File $f not found!"
     [ -z "$fn" ] && continue
-    [ $opt_verbose -gt 0 ] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
+    [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
     cmd="list_requirements.py -qt python -BP"
     [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
@@ -530,6 +538,7 @@ package_debug() {
   [[ -d $HOME/devel/pypi ]] && pkgdir=$HOME/devel/pypi
   if [[ -n "$pkgdir" ]]; then
     for pkg in $pkgs; do
+      [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg=${pkg//-/_} || pkg=$pkg
       if [[ -d $pkgdir/$pkg/$pkg && ! :$PYTHONPATH: =~ :$pkgdir/$pkg/$pkg: ]]; then
         [[ -n "$PYTHONPATH" ]] && export PYTHONPATH=$pkgdir/$pkg:$PYTHONPATH || export PYTHONPATH=$pkgdir/$pkg
       fi
@@ -539,7 +548,7 @@ package_debug() {
 
 custom_env() {
   # custom_env(VENV pyver)
-  [ $opt_verbose -gt 2 ] && echo ">>> custom_env($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> custom_env($@)"
   local VIRTUAL_ENV=$1 pyver=$(echo $2|grep -Eo [0-9]|head -n1)
   sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$($READLINK -f \$(dirname \$($READLINK -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
   if $(grep -q "^export HOME=" $PWD/bin/activate); then
@@ -549,8 +558,8 @@ custom_env() {
   else
     sed -ri "/deactivate *\(\) *\{/i\READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/null)" $PWD/bin/activate
     sed -ri "/deactivate *\(\) *\{/i\export READLINK\n" $PWD/bin/activate
-    [[ $opt_alone -gt 1 ]] && sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
-    [[ $opt_alone -gt 1 ]] && sed -ri "/deactivate *\(\) *\{/a\    # export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
+    [[ $opt_alone -gt 1 ]] && sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" $PWD/bin/activate
+    [[ $opt_alone -gt 1 ]] && sed -ri "/deactivate *\(\) *\{/a\    # export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" $PWD/bin/activate
     [ $pyver -gt 2 -a $opt_keep -eq 0 ] && sed -ri "/deactivate *\(\) *\{/a\    unalias pip &>/dev/null" $PWD/bin/activate
     [ $pyver -gt 2 -a $opt_keep -eq 0 ] && sed -ri "/deactivate *\(\) *\{/a\    unalias python &>/dev/null" $PWD/bin/activate
     [ $opt_spkg -ne 0 -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] && ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip" >>$PWD/bin/activate
@@ -608,22 +617,25 @@ venv_mgr_check_src_path() {
       [[ -z "$PYTHON" && -n $opt_pyver && $OPT_pyver =~ ^3 ]] && PYTHON=python3
       [[ -z "$PYTHON" && -n $opt_pyver && $OPT_pyver =~ ^2 ]] && PYTHON=python
     fi
-    if [[ $2 != "create" ]]; then
-      for f in $VENV/bin/python[32].* $VENV/bin/python[32]*; do
+    if [[ -z "$PYTHON" && $2 != "create" ]]; then
+      for f in $VENV/bin/python3.* $VENV/bin/python3* $VENV/bin/python2.* $VENV/bin/python2*; do
         [[ -x $f ]] && PYTHON=$($READLINK -e $f)
         break
       done
-      for f in $VENV/bin/pip[32].* $VENV/bin/pip[32]*; do
+      for f in $VENV/bin/pip3.* $VENV/bin/pip3* $VENV/bin/pip2.* $VENV/bin/pip2*; do
         [[ -x $f ]] && PIP=$($READLINK -e $f)
         break
       done
     fi
-    [[ $2 != "create" && -z "$PYTHON" && -x $VENV/bin/python3 ]] && PYTHON=$($READLINK -e $VENV/bin/python3)
-    [[ $2 != "create" && -z "$PIP" && -x $VENV/bin/pip3 ]] && PIP=$($READLINK -e $VENV/bin/pip3)
-    [[ $2 != "create" && -z "$PYTHON" && -x $VENV/bin/python ]] && PYTHON=$($READLINK -e $VENV/bin/python)
-    [[ $2 != "create" && -z "$PIP" && -x $VENV/bin/pip ]] && PIP=$($READLINK -e $VENV/bin/pip)
-    [[ $2 == "create" && -z "$PYTHON" ]] && PYTHON=$(which python3 2>/dev/null) && PIP="$PYTHON -m pip"
-    [[ $2 == "create" && -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null) && PIP="$PYTHON -m pip"
+    if [[ $2 != "create" ]];then
+      [[ -z "$PYTHON" && -x $VENV/bin/python3 ]] && PYTHON=$($READLINK -e $VENV/bin/python3)
+      [[ -z "$PIP" && -x $VENV/bin/pip3 ]] && PIP=$($READLINK -e $VENV/bin/pip3)
+      [[ -z "$PYTHON" && -x $VENV/bin/python ]] && PYTHON=$($READLINK -e $VENV/bin/python)
+      [[ -z "$PIP" && -x $VENV/bin/pip ]] && PIP=$($READLINK -e $VENV/bin/pip)
+    else
+      [[ -z "$PYTHON" ]] && PYTHON=$(which python3 2>/dev/null) && PIP="$PYTHON -m pip"
+      [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null) && PIP="$PYTHON -m pip"
+    fi
     if [[ -z "$PYTHON" ]]; then
       [[ $2 != "create" ]] && echo "Virtual env $VENV without python!!"
       [[ $2 == "create" ]] && echo "Python executable not found!!"
@@ -632,7 +644,7 @@ venv_mgr_check_src_path() {
   fi
   [[ -z "$PIP" ]] && PIP="$PYTHON -m pip"
   opt_pyver=$($PYTHON --version 2>&1 | grep -Eo "[0-9]\.[0-9]")
-  [ $opt_verbose -gt 0 ] && echo "### Python version $opt_pyver ... ###"
+  [[ $opt_verbose -gt 1 ]] && echo "### Python version $opt_pyver ... ###"
 }
 
 check_4_needing_pkgs() {
@@ -664,15 +676,16 @@ odoo_orm_path() {
 }
 
 venv_mgr_check_oever() {
-  #venv_mgr_check_oever action
+  #venv_mgr_check_oever action venv
   local p x
   if [[ -z "$opt_oever" && ! $1 =~ (help|create) ]]; then
-    p="$p2"
-    for x in odoo openerp server; do
+    p=""
+    for x in lib/python$opt_pyver/site-packages/odoo odoo openerp server; do
       [[ -d $p2/odoo/$x ]] && p="$p $p2/odoo/$x"
-      [[ ! $x == "odoo" && -d $p2/$x ]] && p="$p $p2/$x"
+      [[ $x != "odoo" && -d $p2/$x ]] && p="$p $p2/$x"
     done
-    [ $opt_verbose -gt 2 ] && echo ">>> find -L $p -not -path \"*/__to_remove/*\" -not -path \"*/lib/*\" -not -path \"*/lib64/*\" -not -path \"*/tests/res/*\" -not -path \"*/include/*\" -not -path \"*/.npm/*\" -not -path \"*/node_modules/*\" -not -path \"*/.cache/*\" -name release.py"
+    [[ -z $p ]] && p="$2"
+    [[ $opt_verbose -gt 2 ]] && echo ">>> find -L $p -not -path \"*/__to_remove/*\" -not -path \"*/lib/*\" -not -path \"*/lib64/*\" -not -path \"*/tests/res/*\" -not -path \"*/include/*\" -not -path \"*/.npm/*\" -not -path \"*/node_modules/*\" -not -path \"*/.cache/*\" -name release.py"
     x=$(find -L $p -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py|head -n1)
     if [[ -n "$x" ]]; then
       p=$(dirname $x)
@@ -683,29 +696,29 @@ venv_mgr_check_oever() {
     fi
   fi
   if [[ ! $1 =~ (help|create) ]]; then
-    [ -n "$opt_oever" -a $opt_verbose -gt 0 ] && echo "### Odoo version $opt_oever ...  ###"
+    [[ -n "$opt_oever" && $opt_verbose -gt 1 ]] && echo "### Odoo version $opt_oever ...  ###"
   fi
 }
 
 do_venv_mgr_test() {
   #do_venv_mgr_test(VENV)
-  [ $opt_verbose -gt 2 ] && echo ">>> do_venv_mgr_test($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_mgr_test($@)"
   local f x VENV
   VENV="$1"
-  [ $opt_verbose -gt 0 ] && echo "Validation test ..."
+  [[ $opt_verbose -gt 0 ]] && echo "Validation test ..."
   [ $opt_dry_run -ne 0 ] && return
   cd_venv $VENV "-fq"
   if [[ -z "$VIRTUAL_ENV" ]]; then
     do_activate "-q"
-    if [ $opt_verbose -gt 0 ]; then
+    if [[ $opt_verbose -gt 0 ]]; then
       [[ -n "$HOME" && ! "$HOME" == "$SAVED_HOME" ]] && echo "Isolated environment (created with -I switch)."
       [[ "$HOME" == "$SAVED_HOME" ]] && echo "Environment not isolated (created w/o -I switch)."
     fi
     [[ -z "$HOME" ]] && echo "Wrong environment (No HOME directory declared)."
     [[ $opt_dev -eq 0 ]] && echo "Environment w/o devel packages." || echo "Environment with devel packages (created with -D switch)."
   fi
-  [ $opt_verbose -gt 1 ] && echo "VPATH=$PATH"
-  [ $opt_verbose -gt 1 ] && echo "VPYTHONPATH=$PYTHONPATH"
+  [[ $opt_verbose -gt 1 ]] && echo "VPATH=$PATH"
+  [[ $opt_verbose -gt 1 ]] && echo "VPYTHONPATH=$PYTHONPATH"
   for f in $PYTHON $PIP; do
     f=$(echo $f | awk -F= '{print $1}')
     x=$($READLINK -e $(which $f 2>/dev/null) 2>/dev/null)
@@ -719,7 +732,7 @@ do_venv_mgr_test() {
 
 do_venv_mgr() {
   # do_venv_mgr {amend|check|cp|mv|merge|reset|test} VENV NEW_VENV
-  [ $opt_verbose -gt 2 ] && echo ">>> do_venv_mgr($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_mgr($@)"
   local d f mime VENV V sitecustom x lropts
   local cmd=$1
   VENV="$2"
@@ -776,8 +789,8 @@ do_venv_mgr() {
     fi
     for d in bin include lib lib64 .local; do
       if [ -d "$VENV/$d" ]; then
-        [ $opt_verbose -gt 1 ] && run_traced "rsync -a $VENV/$d/ $VENV_TGT/$d/"
-        [ $opt_verbose -eq 0 ] && run_traced "rsync -aq $VENV/$d/ $VENV_TGT/$d/"
+        [[ $opt_verbose -gt 1 ]] && run_traced "rsync -a $VENV/$d/ $VENV_TGT/$d/"
+        [[ $opt_verbose -eq 0 ]] && run_traced "rsync -aq $VENV/$d/ $VENV_TGT/$d/"
       fi
     done
     V=$VENV_TGT
@@ -792,7 +805,7 @@ do_venv_mgr() {
     for f in $V/bin/*; do
       mime=$(file --mime-type -b $f)
       if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
-        [ $opt_verbose -gt 1 ] && echo "$FLAG sed -i -e \"s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|\" $f"
+        [[ $opt_verbose -gt 1 ]] && echo "$FLAG sed -i -e \"s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|\" $f"
         [ $opt_dry_run -eq 0 ] && sed -i -e "s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|" $f
         [ $opt_dry_run -eq 0 -a "$cmd" == "reset" ] && chmod +x $f
       fi
@@ -824,9 +837,9 @@ do_venv_mgr() {
         [ $opt_alone -gt 1 ] && run_traced "sed -i -e 's|^export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
         [ $opt_alone -le 1 ] && run_traced "sed -i -e 's|^export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
       fi
-      if $(grep -q "^ *# export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate); then
+      if $(grep -q "^ *# export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" $PWD/bin/activate); then
         [ $opt_alone -le 1 ] && run_traced "sed -i -e 's|# export HOME=\$(grep|export HOME=\$(grep|' $PWD/bin/activate"
-      elif $(grep -q "^ *export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate); then
+      elif $(grep -q "^ *export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" $PWD/bin/activate); then
         [ $opt_alone -le 1 ] && run_traced "sed -i -e 's|export HOME=\$(grep|# export HOME=\$(grep|' $PWD/bin/activate"
       fi
       if [ $opt_dry_run -eq 0 ]; then
@@ -884,10 +897,9 @@ do_venv_mgr() {
 
 do_venv_create() {
   # do_venv_create VENV
-  [ $opt_verbose -gt 2 ] && echo ">>> do_venv_create($@)"
-  local f lropts p pkg v VENV xpkgs
+  [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_create($@)"
+  local f lropts p pkg v VENV xpkgs SAVED_PATH
   local venvexe pyexe
-  export VENV__SAVED_HOME=$HOME
   VENV="$1"
   venv_mgr_check_src_path "$VENV" "create"
   if [[ -d $VENV ]]; then
@@ -924,9 +936,15 @@ do_venv_create() {
   run_traced "$venvexe $p $VENV"
   sts=$?
   [[ $sts -ne 0 ]] && return
+  SAVED_PATH=$PATH
+  [[ -d $VENV/bin ]] && export PATH=$VENV/bin:$PATH
+  [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
+  [[ -x $opt_pyver ]] && opt_pyver=$($opt_pyver--version 2>&1 | grep -Eo "[0-9]\.[0-9]")
   PYTHON=""
   PIP=""
   venv_mgr_check_src_path "$VENV"
+  PATH=$SAVED_PATH
+  [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   cd_venv $VENV -f
   do_activate
   run_traced "$PIP install pip -U"
@@ -934,10 +952,10 @@ do_venv_create() {
   check_installed_pkgs
   [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
   [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
-  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t bin"
+  [[ $opt_verbose -gt 1 ]] && echo "list_requirements.py -qs' ' $lropts -t bin"
   BINPKGS=$(list_requirements.py -qs' ' $lropts -t bin)
   [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS"
-  [ $opt_verbose -gt 1 ] && echo "list_requirements.py -qs' ' $lropts -t python"
+  [[ $opt_verbose -gt 1 ]] && echo "list_requirements.py -qs' ' $lropts -t python"
   OEPKGS=$(list_requirements.py -qs' ' $lropts -t python)
   [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
   bin_install_1 $VENV
@@ -984,7 +1002,7 @@ do_venv_pip() {
   [[ $opt_alone -ne 0 && ! $pkg =~ ^- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
-  [ $opt_verbose -eq 0 ] && popts="$popts -q"
+  [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
   if [[ $cmd =~ (info|show) ]]; then
     pkg=$(get_pkg_wo_version $pkg)
     run_traced "$PIP show $pkg"
@@ -1106,14 +1124,15 @@ FLAG=">"
 if [[ $action == "rm" ]]; then
   [[ $PWD == $($READLINK -f $p2) ]] && cd
   rm -fR $p2
-  hash -r
+  [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
+  unset PYTHON PIP
   exit 0
 elif [[ ! $action =~ (help|create) ]]; then
   cd_venv $p2 "-q"
   do_activate "-q"
   venv_mgr_check_src_path $p2
   check_installed_pkgs
-  venv_mgr_check_oever $action
+  venv_mgr_check_oever $action $p2
 fi
 [[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
 if [[ $action != "help" ]]; then
@@ -1128,7 +1147,7 @@ if [[ $action != "help" ]]; then
       [[ -d $ldir ]] && opt_oepath="$ldir" && break
     done
   fi
-  [ $opt_verbose -gt 2 ] && echo "# Odoo dir = '$opt_oever'"
+  [[ $opt_verbose -gt 2 ]] && echo "# Odoo dir = '$opt_oever'"
 fi
 if [[ $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
   DEV_PKGS=""
@@ -1161,7 +1180,7 @@ else
   do_venv_mgr "$action" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
 fi
 PYTHONPATH=$SAVED_PYTHONPATH
-[ $opt_verbose -gt 3 ] && set +x
+[[ $opt_verbose -gt 3 ]] && set +x
 if [[ -n "$ERROR_PKGS" ]]; then
   echo "************************************************************"
   echo -e "\e[1mWarning! Following packages with wrong version or uninstalled\e[0m"
@@ -1208,3 +1227,5 @@ if [[ -n "$ERROR_PKGS" ]]; then
     echo "$XTAL install $PKGLIST    # shapely"
   fi
 fi
+unset PYTHON PIP
+exit 0

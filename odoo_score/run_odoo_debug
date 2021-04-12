@@ -152,6 +152,8 @@ if [[ -n "$opt_rport" ]]; then
     RPCPORT=$opt_rport
 elif [ $opt_web -ne 0 ]; then
     RPCPORT=$(build_odoo_param RPCPORT $odoo_vid $GIT_ORGNM)
+elif [[ $opt_test -ne 0 ]]; then
+    RPCPORT=$(build_odoo_param RPCPORT $odoo_vid DEBUG)
 else
     RPCPORT=
 fi
