@@ -166,21 +166,45 @@ from datetime import date, datetime, timedelta
 # from passlib.context import CryptContext
 from os0 import os0
 
-from clodoocore import (is_valid_field, searchL8, browseL8,        # noqa: F401
-                        eval_value, get_query_id, import_file_get_hdr,
-                        createL8, writeL8, unlinkL8, executeL8, connectL8,
-                        get_res_users, psql_connect, put_model_alias,
-                        set_some_values, get_company_id, build_model_struct,
-                        get_model_model, get_model_name, extr_table_generic,
-                        get_model_structure, execute_action_L8,
-                        is_required_field, model_has_company,      # noqa: F401
-                        exec_sql, extract_vals_from_rec,           # noqa: F401
-                        sql_reconnect, get_val_from_field,         # noqa: F401
-                        cvt_from_ver_2_ver)                        # noqa: F401
-from clodoolib import (crypt, debug_msg_log, decrypt, msg_burst,   # noqa: F401
-                       msg_log, parse_args, tounicode,             # noqa: F401
-                       read_config, init_logger,                   # noqa: F401
-                       default_conf, build_odoo_param)             # noqa: F401
+try:
+    from clodoo.clodoocore import (                           # noqa: F401
+        is_valid_field, searchL8, browseL8,                   # noqa: F401
+        eval_value, get_query_id, import_file_get_hdr,        # noqa: F401
+        createL8, writeL8, unlinkL8, executeL8, connectL8,    # noqa: F401
+        get_res_users, psql_connect, put_model_alias,         # noqa: F401
+        set_some_values, get_company_id, build_model_struct,  # noqa: F401
+        get_model_model, get_model_name, extr_table_generic,  # noqa: F401
+        get_model_structure, execute_action_L8,               # noqa: F401
+        is_required_field, model_has_company,                 # noqa: F401
+        exec_sql, extract_vals_from_rec,                      # noqa: F401
+        sql_reconnect, get_val_from_field,                    # noqa: F401
+        cvt_from_ver_2_ver)                                   # noqa: F401
+except:
+    from clodoocore import (                                  # noqa: F401
+        is_valid_field, searchL8, browseL8,                   # noqa: F401
+        eval_value, get_query_id, import_file_get_hdr,        # noqa: F401
+        createL8, writeL8, unlinkL8, executeL8, connectL8,    # noqa: F401
+        get_res_users, psql_connect, put_model_alias,         # noqa: F401
+        set_some_values, get_company_id, build_model_struct,  # noqa: F401
+        get_model_model, get_model_name, extr_table_generic,  # noqa: F401
+        get_model_structure, execute_action_L8,               # noqa: F401
+        is_required_field, model_has_company,                 # noqa: F401
+        exec_sql, extract_vals_from_rec,                      # noqa: F401
+        sql_reconnect, get_val_from_field,                    # noqa: F401
+        cvt_from_ver_2_ver)                                   # noqa: F401
+try:
+    from clodoo.clodoolib import (                            # noqa: F401
+        crypt, debug_msg_log, decrypt, msg_burst,             # noqa: F401
+        msg_log, parse_args, tounicode,                       # noqa: F401
+        read_config, init_logger,                             # noqa: F401
+        default_conf, build_odoo_param)                       # noqa: F401
+except:
+    from clodoolib import (                                   # noqa: F401
+        crypt, debug_msg_log, decrypt, msg_burst,             # noqa: F401
+        msg_log, parse_args, tounicode,                       # noqa: F401
+        read_config, init_logger,                             # noqa: F401
+        default_conf, build_odoo_param)                       # noqa: F401
+
 from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen

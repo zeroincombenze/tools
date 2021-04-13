@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.24
+__version__=1.0.0.26
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -31,8 +31,8 @@ elif [[ $1 =~ ^-.*V ]]; then
 fi
 
 RFLIST__travis_emulator="travis travis.man travisrc"
-RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man topep8  to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
-RFLIST__clodoo="awsfw bck_filestore.sh . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
+RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py license_mgnt.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man topep8 to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff"
+RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.csv"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
@@ -43,7 +43,7 @@ RFLIST__python_plus="vem vem.man"
 RFLIST__wok_code="wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py run_odoo_debug"
-MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|to_pep8.2p8|to_pep8.py|topep8.py|transodoo.py|transodoo.csv|vfcp|vfdiff)"
+MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.csv|vfcp|vfdiff)"
 FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py export_db_model.py odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
@@ -75,15 +75,15 @@ for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator 
     flist=${!l}
     [[ $1 =~ ^-.*v ]] && echo "[$pkg=$flist]"
     for fn in $flist; do
-        if [ "$fn" == "." ]; then
+        if [[ $fn == "." ]]; then
             src="$SRCPATH/${pkg}"
             tgt="$DSTPATH/${pkg}"
             ftype=d
-        elif [ "$pkg" != "tools" ]; then
+        elif [[ $pkg != "tools" ]]; then
             src="$SRCPATH/${pkg}/$fn"
             tgt="$DSTPATH/$fn"
-            ftype=f
-            if [ "$fn" == "please" ]; then
+            [[ -d "$SRCPATH/${pkg}/$fn" ]] && ftype=d || ftype=f
+            if [[ $fn == "please" ]]; then
                 PLEASE_CMDS=$(grep "^HLPCMDLIST=" $src|awk -F= '{print $2}'|tr -d '"')
                 PLEASE_CMDS="${PLEASE_CMDS//|/ }"
             fi
@@ -97,19 +97,18 @@ for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator 
             tgt=$(dirname "$tgt")
             ftype=d
         fi
-        if [ ! -f "$src" -a ! -d "$src" ]; then
+        if [[ ! -f "$src" && ! -d "$src" ]]; then
             echo "File $src not found!"
-        elif [[ ! -L "$tgt" || $1 =~ ^-.*p || $fn =~ $MOVED_FILES_RE ]]; then
-            if [[ -L "$tgt" && "$($READLINK -e $tgt)" == "$src" && ! $1 =~ ^-.*p ]]; then
-                [[ $1 =~ ^-.*v ]] && echo "$PMPT ln -s $src $tgt  # (confirmed)"
-            else
-                if [[ -L "$tgt" || -f "$tgt" ]]; then
-                    [[ ! $1 =~ ^-.*q ]] && echo "$PMPT rm -f $tgt"
-                    [[ $1 =~ ^-.*n ]] || rm -f $tgt
-                    [[ ! $1 =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
-                fi
-                [[ ! $1 =~ ^-.*q ]] && echo "$PMPT ln -s $src $tgt"
-                [[ $1 =~ ^-.*n ]] || ln -s $src $tgt
+        elif [[ -L "$tgt" || $1 =~ ^-.*[fp] || $fn =~ $MOVED_FILES_RE ]]; then
+            [[ -L "$tgt" ]] && echo "$PMPT rm -f $tgt"
+            [[ -L "$tgt" && ! $1 =~ ^-.*n ]] && rm -f $tgt
+            [[ -d "$tgt" ]] && echo "$PMPT rm -fR $tgt"
+            [[ -d "$tgt" && ! $1 =~ ^-.*n ]] && rm -fR $tgt
+            if [[ ! -e "$tgt" || $1 =~ ^-.*[fp] ]]; then
+                [[ $ftype == f ]] && opts="" || opts="-r"
+                [[ ! $1 =~ ^-.*q ]] && echo "$PMPT cp $opts $src $tgt"
+                [[ $1 =~ ^-.*n ]] || cp $opts $src $tgt
+                [[ ! $1 =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
             fi
         fi
     done
@@ -119,7 +118,7 @@ done
 [[ $1 =~ ^-.*n ]] || cp $SRCPATH/tests/test_tools.sh $DSTPATH/test_tools.sh
 if [[ -f $HOME/maintainers-tools/env/bin/oca-autopep8 ]]; then
     tgt=$DSTPATH/oca-autopep8
-    if [[ ! -L "$tgt" || $1 =~ ^-.*p ]]; then
+    if [[ ! -L "$tgt" || $1 =~ ^-.*[fp] ]]; then
         if [[ -L "$tgt" || -f "$tgt" ]]; then
             [[ ! $1 =~ ^-.*q ]] && echo "$PMPT rm -f $tgt"
             [[ $1 =~ ^-.*n ]] || rm -f $tgt
@@ -168,24 +167,35 @@ if [[ $1 =~ ^-.*[Ss] ]]; then
         fi
     fi
 fi
-if [[ ! $1 =~ ^-.*n && ( $1 =~ ^-.*f || ! -d $DSTPATH/venv ) ]]; then
+if [[ ! $1 =~ ^-.*n ]]; then
     source $DSTPATH/activate_tools
-    vem create $DSTPATH/venv -p2.7 -qiDBB -f
-    [[ $? -ne 0 ]] && echo "Error creating Tools virtual environment!" && exit 1
+    if [[ $1 =~ ^-.*f || ! -d $DSTPATH/venv ]]; then
+        vem create $DSTPATH/venv -p2.7 -qiDBB -f
+        [[ $? -ne 0 ]] && echo "Error creating Tools virtual environment!" && exit 1
+    fi
     PYTHON=""
     PYTHON3=""
     [[ -x $DSTPATH/venv/bin/python ]] && PYTHON=$DSTPATH/venv/bin/python
     [[ -x $DSTPATH/venv/bin/python2 ]] && PYTHON=$DSTPATH/venv/bin/python2
     [[ -x $DSTPATH/venv/bin/python3 ]] && PYTHON3=$DSTPATH/venv/bin/python3
-    for f in $DSTPATH/bin/*; do
-        [[ -x $f && ! -d $f ]] && grep -q "^#\!.*/bin/python3" $f &>/dev/null && sed -i -e "s|^#\!.*/bin/python3|#\!$PYTHON3|" $f
-        [[ -x $f && ! -d $f ]] && grep -q "^#\!.*/bin/python" $f &>/dev/null && sed -i -e "s|^#\!.*/bin/python|#\!$PYTHON|" $f
+    [[ $1 =~ ^-.*f || ! -d $DSTPATH/venv ]] && path="$DSTPATH/bin/*" || path2=""
+    for f in $DSTPATH/* $path2; do
+        [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python3|#\!$PYTHON3|" $f
+        [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python2|#\!$PYTHON|" $f
+        [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python|#\!$PYTHON|" $f
     done
-    # Please do not change package list order
-    for pkg in odoorpc oerplib babel lxml unidecode xlrd pyyaml z0lib zerobug clodoo; do
-        [[ ! $1 =~ ^-.*q ]] && echo "Installing $pkg ..."
-        [[ -d $HOME_DEV/pypi/$pkg/$pkg ]] && vem $DSTPATH/venv install $pkg -qBB || vem $DSTPATH/venv install $pkg
-    done
+    if [[ $1 =~ ^-.*f || ! -d $DSTPATH/venv ]]; then
+        # Please do not change package list order
+        for pkg in configparser odoorpc oerplib babel lxml unidecode xlrd pyyaml z0lib zerobug clodoo; do
+            [[ ! $1 =~ ^-.*q ]] && echo "Installing $pkg ..."
+            [[ -d $HOME_DEV/pypi/$pkg/$pkg ]] && vem $DSTPATH/venv install $pkg -qBB || vem $DSTPATH/venv install $pkg
+        done
+        [[ ! $1 =~ ^-.*q && -d $DSTPATH/clodoo ]] && echo "rm -f $DSTPATH/clodoo"
+        [[ -d $DSTPATH/clodoo ]] && rm -f $DSTPATH/clodoo
+        x=$(vem $DSTPATH/venv info clodoo|grep -E "Location"|cut -d' ' -f2)/clodoo
+        [[ ! $1 =~ ^-.*q && -d $x ]] && echo "ln -s $x $DSTPATH/clodoo"
+        [[ -d $x ]] && ln -s $x $DSTPATH/clodoo
+    fi
 fi
 if [[ ! $1 =~ ^-.*n && $1 =~ ^-.*D ]]; then
     mkdir -p $HOME_DEV/pypi

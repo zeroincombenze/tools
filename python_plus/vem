@@ -909,6 +909,7 @@ do_venv_create() {
       run_traced "rm -fR $VENV"
     fi
   fi
+  validate_py_oe_vers
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   venvexe=$(which virtualenv 2>/dev/null)
   if [[ -n "$venvexe" ]]; then
@@ -1017,6 +1018,21 @@ do_venv_pip() {
   pop_cd
   export PATH=$SAVED_PATH
 }
+
+validate_py_oe_vers() {
+  local odoo_majver
+  if [[ -n $opt_oever && -z $opt_pyver ]]; then
+    odoo_majver=$(echo $opt_oever|cut -d. -f1)
+    [[ $odoo_mahver -le 10 ]] && opt_pyver=2 || opt_pyver=3
+  elif [[ -n $opt_oever && -n $opt_pyver ]]; then
+    odoo_majver=$(echo $opt_oever|cut -d. -f1)
+    if [[ ( $odoo_majver -le 10 && $opt_pyver =~ ^3 ) || ( $odoo_majver -gt 10 && $opt_pyver =~ ^2 ) ]]; then
+      echo "Invalid python version $opt_pyver for Odoo $opt_oever!"
+      exit 1
+    fi
+  fi
+}
+
 
 OPTOPTS=(h        a        B         C      D       f         k        I           i         n           O         o          p         q           r           s                    V           v)
 OPTLONG=(help     ""       ""        ""     devel   force     keep     indipendent isolated  dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages version     verbose)
@@ -1133,6 +1149,7 @@ elif [[ ! $action =~ (help|create) ]]; then
   venv_mgr_check_src_path $p2
   check_installed_pkgs
   venv_mgr_check_oever $action $p2
+  validate_py_oe_vers
 fi
 [[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
 if [[ $action != "help" ]]; then
