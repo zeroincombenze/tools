@@ -103,25 +103,26 @@ exec_os() {
     local left=$1
     local right=$2
   fi
-  if [ -d "$left" ]; then
+  if [[ -d "$left" ]]; then
     if [ $opt_all -gt 0 ]; then
       opts=" -Zqr"
     else
       opts="$XLDF -ZBqr"
     fi
-    [ $opt_igns -gt 0 ] && opts="${opts}Eb"
-    [ $opt_ignas -gt 0 ] && opts="${opts}w"
-    [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    [[ $opt_igns -gt 0 ]] && opts="${opts}Eb"
+    [[ $opt_ignas -gt 0 ]] && opts="${opts}w"
+    [[ $opt_md -ne 0 ]] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    [[ $opt_md -ne 0 ]] && opts="$opts -x '*.po' -x '*.pot'"
   else
     opts=" -ZB"
-    [ $opt_para -ne 0 ] && opts="${opts}y"
-    [ $opt_igns -gt 0 ] && opts="${opts}Eb"
-    [ $opt_ignas -gt 0 ] && opts="${opts}w"
-    [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
-    [ $opt_diffe -ne 0 ] && opts="$opts  --suppress-common-line"
+    [[ $opt_para -ne 0 ]] && opts="${opts}y"
+    [[ $opt_igns -gt 0 ]] && opts="${opts}Eb"
+    [[ $opt_ignas -gt 0 ]] && opts="${opts}w"
+    [[ $opt_md -ne 0 ]] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    [[ $opt_diffe -ne 0 ]] && opts="$opts  --suppress-common-line"
   fi
   if [[ $opt_dcmd == "meld" ]]; then
-    if [ -d "$left" ]; then
+    if [[ -d "$left" ]]; then
       for ln in $(eval "LANG=en_US diff $opts $left $right" | grep ^Files | awk '{print $2 "|" $4}'); do
         l=$(echo $ln | awk -F"|" '{print $1}')
         r=$(echo $ln | awk -F"|" '{print $2}')

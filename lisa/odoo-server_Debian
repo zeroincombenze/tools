@@ -89,6 +89,10 @@ for dr in /usr/local/bin /usr/bin ${USERHOME}; do
               [[ -x $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../odoo-bin ]] && DAEMON="$(readlink -e $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../odoo-bin)" && VENV_DIR=$dr/${dp}-${ORG}$dv && break
               [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../odoo-bin"
               [[ -x $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../odoo-bin ]] && DAEMON="$(readlink -e $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../odoo-bin)" && VENV_DIR=$dr/${dp}-$dv && break
+              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../openerp-server"
+              [[ -x $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../openerp-server ]] && DAEMON="$(readlink -e $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../openerp-server)" && VENV_DIR=$dr/${dp}-${ORG}$dv && break
+              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../openerp-server"
+              [[ -x $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../openerp-server ]] && DAEMON="$(readlink -e $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../openerp-server)" && VENV_DIR=$dr/${dp}-$dv && break
             done
           done
         fi

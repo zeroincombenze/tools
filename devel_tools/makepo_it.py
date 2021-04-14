@@ -7,8 +7,11 @@ from __future__ import print_function
 import sys
 # import pdb
 
+__version__ = "1.0.0.15"
+
 params = {'clear_base_tnl': False}
 me = True
+
 for prm in sys.argv:
     if me:
         me = False
@@ -20,6 +23,9 @@ for prm in sys.argv:
             params['clear_base_tnl'] = True
         elif prm[0:2] == '-m':
             params['module'] = prm[2:]
+        elif prm[0:2] == '-V':
+            print(__version__)
+            exit(0)
         else:
             print('makepo_it.py [-bbranch] [-C] [-mmodule] file_po')
             exit(1)

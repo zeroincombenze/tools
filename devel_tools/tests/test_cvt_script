@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.14
+__version__=1.0.0.15
 
 
 test_01() {
@@ -54,7 +54,7 @@ if [[ -z "\$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.14
+__version__=1.0.0.15
 
 main
 EOF
@@ -78,7 +78,7 @@ if [[ -z "\$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.14
+__version__=1.0.0.15
 
 main
 EOF

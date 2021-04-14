@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.26
+__version__=1.0.0.27
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -90,7 +90,7 @@ for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator 
         else
             src="$SRCPATH/$fn"
             tgt="$DSTPATH/$fn"
-            ftype=f
+            [[ -d "$SRCPATH/$fn" ]] && ftype=d || ftype=f
         fi
         if $(echo "$src"|grep -Eq "\*"); then
             src=$(dirname "$src")

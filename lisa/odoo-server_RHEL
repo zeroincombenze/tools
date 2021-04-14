@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.14-RHEL
+# version: 0.4.15-RHEL
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -82,6 +82,21 @@ DAEMON=""
 VENV_DIR=""
 for dr in /usr/local/bin /usr/bin ${USERHOME}; do
     for dp in "VENV" "${xtl_org}" $ORG ${ORG^^} OCB "v" "V"; do
+        if [[ $dp == "VENV" && ! $dr =~ ^/usr/ ]]; then
+          for dv in ${xtl_fversion} ${xtl_version} ""; do
+            for py in 3.7 3.6 3.5 2.7; do
+              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../odoo-bin"
+              [[ -x $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../odoo-bin ]] && DAEMON="$(readlink -e $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../odoo-bin)" && VENV_DIR=$dr/${dp}-${ORG}$dv && break
+              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../odoo-bin"
+              [[ -x $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../odoo-bin ]] && DAEMON="$(readlink -e $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../odoo-bin)" && VENV_DIR=$dr/${dp}-$dv && break
+              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../openerp-server"
+              [[ -x $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../openerp-server ]] && DAEMON="$(readlink -e $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../openerp-server)" && VENV_DIR=$dr/${dp}-${ORG}$dv && break
+              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../openerp-server"
+              [[ -x $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../openerp-server ]] && DAEMON="$(readlink -e $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../openerp-server)" && VENV_DIR=$dr/${dp}-$dv && break
+            done
+          done
+        fi
+        [[ -n "$DAEMON" ]] && break
         for dv in ${xtl_fversion} ${xtl_version} ""; do
             [[ -z "$dp" && -z "$dv" ]] && continue
             [[ $dr =~ ^/usr && ( -z "$dp" || $dp =~ ^(v|V|VENV|OCB) ) ]] && continue
@@ -229,19 +244,22 @@ checkpid() {
 
 
 check_4_venv() {
-    local p=$(dirname ${DAEMON}) dn
-    [[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
-    [[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
-    if [ ! -f $p/bin/activate ]; then
-        for dn in venv_odoo venv; do
-            [[ -f $p/$dn/bin/activate ]] && p=$p/$dn
-        done
+    if [[ -z "$VENV_DIR" ]]; then
+      local p=$(dirname ${DAEMON}) dn
+      [[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
+      [[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
+      if [[ ! -f $p/bin/activate ]]; then
+          for dn in venv_odoo venv; do
+              [[ -f $p/$dn/bin/activate ]] && p=$p/$dn
+          done
+      fi
+      VENV_DIR=$p
     fi
-    if [ -f $p/bin/activate ]; then
+    if [[ -f $VENV_DIR/bin/activate ]]; then
         local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        echo "$x $$ DAEMON ? $0: cd $p; source ./bin/activate" >> $LOGFILE
-        [ $DRY_RUN -gt 0 ] && echo "cd $p" && echo "source ./bin/activate"
-        cd $p
+        echo "$x $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate" >> $LOGFILE
+        [[ $DRY_RUN -gt 0 ]] && echo "cd $VENV_DIR" && echo "source ./bin/activate"
+        cd $VENV_DIR
         source ./bin/activate
     fi
 }
