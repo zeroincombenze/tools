@@ -19,7 +19,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '1.0.1.2'
+__version__ = '1.0.1.3'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -153,7 +153,6 @@ def get_addons_path(travis_dependencies_dir, travis_base_dir, server_path,
                 os.path.join(server_path, ldir, 'addons'))
             break
     addons_path_list.append(os.path.join(server_path, "addons"))
-    # if odoo_test_select != 'NO-CORE':
     addons_path_list.extend(get_addons(travis_base_dir))
     addons_path_list.extend(get_addons(travis_dependencies_dir))
     addons_path = ','.join(addons_path_list)
@@ -227,7 +226,7 @@ def get_addons_to_check(travis_base_dir, odoo_include, odoo_exclude,
     elif odoo_test_select != 'NO-CORE':
         addons_list = get_modules(travis_base_dir)
     else:
-        addons_list = []
+        addons_list = ['base']
 
     if odoo_exclude:
         exclude_list = parse_list(odoo_exclude)

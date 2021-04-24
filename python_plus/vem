@@ -568,8 +568,8 @@ custom_env() {
     echo "done" >>$PWD/bin/activate
     [ $opt_alone -gt 1 ] && echo "export HOME=\"\$VIRTUAL_ENV\"" >>$PWD/bin/activate
     [ $opt_alone -le 1 ] && echo "# export HOME=\"\$VIRTUAL_ENV\"" >>$PWD/bin/activate
-    [ $pyver -gt 2 -a $opt_keep -eq 0 ] && echo "alias pip=$PIP" >>$PWD/bin/activate
-    [ $pyver -gt 2 -a $opt_keep -eq 0 ] && echo "alias python=$PYTHON" >>$PWD/bin/activate
+    [ $pyver -gt 2 -a $opt_keep -eq 0 ] && echo "alias pip=\"$PIP\"" >>$PWD/bin/activate
+    [ $pyver -gt 2 -a $opt_keep -eq 0 ] && echo "alias python=\"$PYTHON\"" >>$PWD/bin/activate
   fi
   sed -i -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' $PWD/bin/activate
   if [ $opt_spkg -ne 0 ]; then

@@ -26,11 +26,12 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.29.3
+__version__=0.3.30.1
 
 
 evaluate_params() {
-    local val prc
+    local val prc minconn
+    [[ $opt_branch =~ ^1[123456789] ]] && minconn=64 || minconn=32
     if [ $opt_nopsql -ne 0 ]; then
         ((AVAI_MEM=(CUR_MEM*3)/4))
     elif [ $opt_huge -ne 0 ]; then
@@ -49,62 +50,62 @@ evaluate_params() {
     ((REQ_LWRK=REQ_WRKS-REQ_HWRK))
     ((HWRK=(WK_WORKERS+4)/5))
     ((LWRK=WK_WORKERS-HWRK))
-    [ $no_workers -eq 0 ] && prc=2 || prc=$PRC4WRK
+    [[ $no_workers -eq 0 ]] && prc=2 || prc=$PRC4WRK
     ((REQ_AVAI_MEM=REQ_HWRK*MEM4HWRK*prc+REQ_LWRK*MEM4LWRK*prc))
-    [ $REQ_AVAI_MEM -gt $AVAI_MEM ] && WK_AVAI_MEM=$AVAI_MEM || WK_AVAI_MEM=$REQ_AVAI_MEM
-    [ $no_workers -ne 0 ] && ((MAX_HLIMIT=AVAI_MEM)) || (((MAX_HLIMIT=AVAI_MEM+2)/3))
-    [ $MAX_HLIMIT -lt $MEM4HWRK ] && MAX_HLIMIT=$MEM4HWRK
-    [ $MAX_HLIMIT -lt $MIN_HLIMIT ] && MAX_HLIMIT=$MIN_HLIMIT
-    [ $MAX_HLIMIT -gt $AVAI_MEM ] && MAX_HLIMIT=$AVAI_MEM
+    [[ $REQ_AVAI_MEM -gt $AVAI_MEM ]] && WK_AVAI_MEM=$AVAI_MEM || WK_AVAI_MEM=$REQ_AVAI_MEM
+    [[ $no_workers -ne 0 ]] && ((MAX_HLIMIT=AVAI_MEM)) || (((MAX_HLIMIT=AVAI_MEM+2)/3))
+    [[ $MAX_HLIMIT -lt $MEM4HWRK ]] && MAX_HLIMIT=$MEM4HWRK
+    [[ $MAX_HLIMIT -lt $MIN_HLIMIT ]] && MAX_HLIMIT=$MIN_HLIMIT
+    [[ $MAX_HLIMIT -gt $AVAI_MEM ]] && MAX_HLIMIT=$AVAI_MEM
     ((MAX_LLIMIT=AVAI_MEM*2/MAX_WRKS))
     ((val=MAX_HLIMIT*3/4))
-    [ $MAX_LLIMIT -gt $val ] && MAX_LLIMIT=$val
+    [[ $MAX_LLIMIT -gt $val ]] && MAX_LLIMIT=$val
     ((val=MAX_HLIMIT/2))
-    [ $MAX_LLIMIT -lt $val ] && MAX_LLIMIT=$val
-    [ $no_workers -ne 0 ] && ((REQ_HLIMIT=REQ_AVAI_MEM)) || (((REQ_HLIMIT=REQ_AVAI_MEM+2)/3))
-    [ $REQ_HLIMIT -lt $MEM4HWRK ] && REQ_HLIMIT=$MEM4HWRK
-    [ $REQ_HLIMIT -lt $MIN_HLIMIT ] && REQ_HLIMIT=$MIN_HLIMIT
+    [[ $MAX_LLIMIT -lt $val ]] && MAX_LLIMIT=$val
+    [[ $no_workers -ne 0 ]] && ((REQ_HLIMIT=REQ_AVAI_MEM)) || (((REQ_HLIMIT=REQ_AVAI_MEM+2)/3))
+    [[ $REQ_HLIMIT -lt $MEM4HWRK ]] && REQ_HLIMIT=$MEM4HWRK
+    [[ $REQ_HLIMIT -lt $MIN_HLIMIT ]] && REQ_HLIMIT=$MIN_HLIMIT
     ((REQ_LLIMIT=REQ_AVAI_MEM*2/REQ_WRKS))
     ((val=REQ_HLIMIT*3/4))
-    [ $REQ_LLIMIT -gt $val ] && REQ_LLIMIT=$val
+    [[ $REQ_LLIMIT -gt $val ]] && REQ_LLIMIT=$val
     ((val=REQ_HLIMIT/2))
-    [ $REQ_LLIMIT -lt $val ] && REQ_LLIMIT=$val
-    if [ $REQ_AVAI_MEM -gt $AVAI_MEM ]; then
-        [ $no_workers -ne 0 ] && ((WK_HLIMIT=AVAI_MEM)) || (((WK_HLIMIT=AVAI_MEM+2)/3))
+    [[ $REQ_LLIMIT -lt $val ]] && REQ_LLIMIT=$val
+    if [[ $REQ_AVAI_MEM -gt $AVAI_MEM ]]; then
+        [[ $no_workers -ne 0 ]] && ((WK_HLIMIT=AVAI_MEM)) || (((WK_HLIMIT=AVAI_MEM+2)/3))
         ((WK_LLIMIT=AVAI_MEM*2/WK_WORKERS))
     else
-        [ $no_workers -ne 0 ] && ((WK_HLIMIT=REQ_AVAI_MEM)) || (((WK_HLIMIT=REQ_AVAI_MEM+2)/3))
+        [[ $no_workers -ne 0 ]] && ((WK_HLIMIT=REQ_AVAI_MEM)) || (((WK_HLIMIT=REQ_AVAI_MEM+2)/3))
         ((WK_LLIMIT=REQ_AVAI_MEM*2/WK_WORKERS))
     fi
-    [ $WK_HLIMIT -lt $MEM4HWRK ] && WK_HLIMIT=$MEM4HWRK
-    [ $WK_HLIMIT -gt $AVAI_MEM ] && WK_HLIMIT=$AVAI_MEM
-    [ $WK_HLIMIT -lt $MIN_HLIMIT ] && WK_HLIMIT=$MIN_HLIMIT
+    [[ $WK_HLIMIT -lt $MEM4HWRK ]] && WK_HLIMIT=$MEM4HWRK
+    [[ $WK_HLIMIT -gt $AVAI_MEM ]] && WK_HLIMIT=$AVAI_MEM
+    [[ $WK_HLIMIT -lt $MIN_HLIMIT ]] && WK_HLIMIT=$MIN_HLIMIT
     ((val=WK_HLIMIT*3/4))
-    [ $WK_LLIMIT -gt $val ] && WK_LLIMIT=$val
+    [[ $WK_LLIMIT -gt $val ]] && WK_LLIMIT=$val
     ((val=WK_HLIMIT/2))
-    [ $WK_LLIMIT -lt $val ] && WK_LLIMIT=$val
-    [ $no_workers -ne 0 ] && ((MAX_PG_DBCONN=(NUSER/32+1)*64)) || ((MAX_PG_DBCONN=(NUSER/32+1)*32))
-    ((MAX_DBCONN=MAX_PG_DBCONN/(1+MAX_WRKS)*prc))
-    [ $MAX_PG_DBCONN -gt $CUR_PG_DBCONN ] && ((MAX_DBCONN=CUR_PG_DBCONN/(1+MAX_WRKS)*prc))
-    [ $MAX_DBCONN -gt $max_dbconn ] && MAX_DBCONN=$max_dbconn
-    [ $MAX_DBCONN -lt 16 ] && MAX_DBCONN=16
-    [ $no_workers -ne 0 ] && ((REQ_PG_DBCONN=(NUSER/32+1)*64)) || ((REQ_PG_DBCONN=(NUSER/32+1)*32))
-    ((REQ_DBCONN=REQ_PG_DBCONN/(1+REQ_WRKS)*prc))
-    [ $REQ_PG_DBCONN -gt $CUR_PG_DBCONN ] && ((REQ_DBCONN=CUR_PG_DBCONN/(1+REQ_WRKS)*prc))
-    [ $no_workers -ne 0 ] && ((WK_PG_DBCONN=(NUSER/32+1)*64)) || ((WK_PG_DBCONN=(NUSER/32+1)*32))
-    [ $REQ_DBCONN -lt 16 ] && REQ_DBCONN=16
-    ((WK_DBCONN=WK_PG_DBCONN/(1+WK_WORKERS)*prc))
-    [ $WK_PG_DBCONN -gt $CUR_PG_DBCONN ] && ((WK_DBCONN=CUR_PG_DBCONN/(1+WK_WORKERS)*prc))
-    [ $WK_PG_DBCONN -gt $CUR_PG_DBCONN ] && WK_PG_DBCONN=$CUR_PG_DBCONN
-    [ $WK_DBCONN -lt 16 ] && WK_DBCONN=16
-    [ $WK_WORKERS -lt 2 ] && WK_WORKERS=0
-    [ $WK_WORKERS -gt 0 ] && PROXY_MODE="True" || PROXY_MODE="False"
-    [ $WK_WORKERS -gt 0 ] && TIME_CPU=1200 || TIME_CPU=300
-    [ $WK_WORKERS -gt 0 ] && TIME_REAL=2400 || TIME_REAL=600
+    [[ $WK_LLIMIT -lt $val ]] && WK_LLIMIT=$val
+    [[ $no_workers -eq 0 ]] && ((MAX_PG_DBCONN=(NUSER/16+1)*32)) || ((MAX_PG_DBCONN=(NUSER/16+1)*16))
+    ((MAX_DBCONN=MAX_PG_DBCONN))
+    [[ $MAX_PG_DBCONN -gt $CUR_PG_DBCONN ]] && ((MAX_DBCONN=CUR_PG_DBCONN))
+    [[ $MAX_DBCONN -gt $max_dbconn ]] && MAX_DBCONN=$max_dbconn
+    [[ $MAX_DBCONN -lt $minconn ]] && MAX_DBCONN=$minconn
+    [[ $no_workers -eq 0 ]] && ((REQ_PG_DBCONN=(NUSER/16+1)*32)) || ((REQ_PG_DBCONN=(NUSER/16+1)*16))
+    ((REQ_DBCONN=REQ_PG_DBCONN))
+    [[ $REQ_PG_DBCONN -gt $CUR_PG_DBCONN ]] && ((REQ_DBCONN=CUR_PG_DBCONN))
+    [[ $no_workers -eq 0 ]] && ((WK_PG_DBCONN=(NUSER/16+1)*32)) || ((WK_PG_DBCONN=(NUSER/16+1)*16))
+    [[ $REQ_DBCONN -lt $minconn ]] && REQ_DBCONN=$minconn
+    ((WK_DBCONN=WK_PG_DBCONN))
+    [[ $WK_PG_DBCONN -gt $CUR_PG_DBCONN ]] && ((WK_DBCONN=CUR_PG_DBCONN))
+    [[ $WK_PG_DBCONN -gt $CUR_PG_DBCONN ]] && WK_PG_DBCONN=$CUR_PG_DBCONN
+    [[ $WK_DBCONN -lt $minconn ]] && WK_DBCONN=$minconn
+    [[ $WK_WORKERS -lt 2 ]] && WK_WORKERS=0
+    [[ $WK_WORKERS -gt 0 ]] && PROXY_MODE="True" || PROXY_MODE="False"
+    [[ $WK_WORKERS -gt 0 ]] && TIME_CPU=1200 || TIME_CPU=300
+    [[ $WK_WORKERS -gt 0 ]] && TIME_REAL=2400 || TIME_REAL=600
     ((MAX_NUSER=MAX_WRKS*WRKS4CPU))
-    if [ $opt_nopsql -ne 0 ]; then
+    if [[ $opt_nopsql -ne 0 ]]; then
         ((RAM=REQ_AVAI_MEM/3*4))
-    elif [ $opt_huge -ne 0 ]; then
+    elif [[ $opt_huge -ne 0 ]]; then
         ((RAM=REQ_AVAI_MEM*3))
     else
         ((RAM=REQ_AVAI_MEM*4))
@@ -114,7 +115,7 @@ evaluate_params() {
 OPTOPTS=(h        b          C        c      D          K        H        L          M       m         n           N          p          S          V           v)
 OPTDEST=(opt_help opt_branch opt_cpu  confn  max_dbconn opt_cw   opt_huge opt_lpport opt_mem opt_multi opt_dry_run no_workers opt_nopsql opt_sparse opt_version opt_verbose)
 OPTACTI=(1        "="        "="      "=>"   "="        "="      1        "="        "="     1         1           1          1          1          "*>"        "+")
-OPTDEFL=(0        ""         ""       ""     100        1        0        ""         ""      0         0           0          0          0          ""          -1)
+OPTDEFL=(0        "12.0"     ""       ""     100        1        0        ""         ""      0         0           0          0          0          ""          -1)
 OPTMETA=("help"   "branch"   "number" "file" "number"   "number" ""       "port"     "MB"    ""        ""          ""         ""         ""         ""          "")
 OPTHELP=("this help"\
  "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0"\
@@ -175,41 +176,41 @@ else
     ((MEM4LWRK=MEM4WRK/2))
 fi
 if [ $no_workers -eq 0 ]; then
-    PRC4WRK=32
+    PRC4WRK=64
 elif [ $opt_huge -eq 0 ]; then
-    PRC4WRK=4
+    PRC4WRK=8
 else
-    PRC4WRK=2
+    PRC4WRK=4
 fi
-# Deteced or sumulated values
+# Detected or simulated values
 CUR_LPPORT=$(echo ""|grep "^longpolling_port *=.*" $confn|awk -F= '{print $2}'|grep -Eo "[0-9]+")
 [[ -n $opt_lpport ]] && WK_LPPORT=$opt_lpport || WK_LPPORT=$CUR_LPPORT
 [[ -z $WK_LPPORT || $WK_LPPORT == "0" ]] && WK_LPPORT=$(build_odoo_param LPPORT $odoo_vid)
-[ -z "$WK_LPPORT" ] && WK_LPPORT=8072
-[ -z "$NUSER" -a $CUR_NUSER -ne 0 ] && NUSER=$CUR_NUSER
-[ -z "$NUSER" ] && NUSER=16
-[ $NUSER -lt 2 ] && NUSER=2
-[ -n "$opt_cpu" ] && CUR_NCPU=$opt_cpu || CUR_NCPU="$(lscpu|grep "^CPU.s.:"|awk -F: '{print $2}')"
+[[ -z "$WK_LPPORT" ]] && WK_LPPORT=8072
+[[ -z "$NUSER" && $CUR_NUSER -ne 0 ]] && NUSER=$CUR_NUSER
+[[ -z "$NUSER" ]] && NUSER=16
+[[ $NUSER -lt 2 ]] && NUSER=2
+[[ -n "$opt_cpu" ]] && CUR_NCPU=$opt_cpu || CUR_NCPU="$(lscpu|grep "^CPU.s.:"|awk -F: '{print $2}')"
 CUR_NCPU=${CUR_NCPU// /}
 [ -n "$opt_mem" ] && CUR_MEM=$opt_mem || CUR_MEM=$(free -m|grep "Mem:"|awk '{print $2}')
 CUR_PG_DBCONN=$(pg_db_active -s)
-[ -z "$CUR_PG_DBCONN" ] && CUR_PG_DBCONN=100
-[ $opt_cw -lt 1 ] && opt_cw=1
-[ $opt_cw -gt 2 ] && opt_cw=2
+[[ -z "$CUR_PG_DBCONN" ]] && CUR_PG_DBCONN=100
+[[ $opt_cw -lt 1 ]] && opt_cw=1
+[[ $opt_cw -gt 2 ]] && opt_cw=2
 cur_proxy_mode=$(echo ""|grep "^proxy_mode *=.*" $confn|awk -F= '{print $2}')
-[ -z "$cur_proxy_mode" ] && cur_proxy_mode=False
+[[ -z "$cur_proxy_mode" ]] && cur_proxy_mode=False
 cur_time_cpu=$(echo ""|grep "^limit_time_cpu *=.*" $confn|grep -Eo "[0-9]+")
-[ -z "$cur_time_cpu" ] && cur_time_cpu=60
+[[ -z "$cur_time_cpu" ]] && cur_time_cpu=60
 cur_time_real=$(echo ""|grep "^limit_time_real *=.*" $confn|grep -Eo "[0-9]+")
-[ -z "$cur_time_real" ] && cur_time_real=120
+[[ -z "$cur_time_real" ]] && cur_time_real=120
 CUR_HWRK=$(echo "2147483648"|grep "^limit_memory_hard *=.*" $confn|grep -Eo "[0-9]+")
 ((CUR_HLIMIT=(CUR_HWRK+1048575)/1048576))
 CUR_LWRK=$(echo "1610612736"|grep "^limit_memory_soft *=.*" $confn|grep -Eo "[0-9]+")
 ((CUR_LLIMIT=(CUR_LWRK+1048575)/1048576))
 CUR_WRKS=$(echo ""|grep "^workers *=.*" $confn|grep -Eo "[0-9]+")
-[ -z "$CUR_WRKS" ] && CUR_WRKS=0
+[[ -z "$CUR_WRKS" ]] && CUR_WRKS=0
 CUR_DBCONN=$(echo ""|grep "^db_maxconn *=.*" $confn|grep -Eo "[0-9]+")
-[ -z "$CUR_DBCONN" ] && CUR_DBCONN=64
+[[ -z "$CUR_DBCONN" ]] && CUR_DBCONN=64
 #
 evaluate_params
 #

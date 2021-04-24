@@ -1,6 +1,6 @@
 
 ===============
-clodoo 0.3.29.3
+clodoo 0.3.30.1
 ===============
 
 
@@ -287,6 +287,16 @@ Current version via Git
 History
 -------
 
+0.3.30.1 (2021-04-19)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] set_worker.sh: db connections
+
+0.3.30 (2021-04-16)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo.csv
+
 0.3.29.1 (2021-03-26)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -323,7 +333,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-04-12
+Last Update / Ultimo aggiornamento: 2021-04-24
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -338,22 +348,22 @@ Last Update / Ultimo aggiornamento: 2021-04-12
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.29.3
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.30.1
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.29.3/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.29.3
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.30.1/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.30.1
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-3.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.29.3/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.30.1/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-3.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.29.3/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.30.1/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-3.svg
     :target: https://erp3.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.29.3/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.3.29.3
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.30.1/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.3.30.1
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org
