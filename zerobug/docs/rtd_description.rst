@@ -46,7 +46,7 @@ it. This behavior can be overridden by -0 switch.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-04-12
+Last Update / Ultimo aggiornamento: 2021-05-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

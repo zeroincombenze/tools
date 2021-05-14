@@ -1427,12 +1427,14 @@ class Z0test(object):
                 continue
             shutil.rmtree(path, ignore_errors=True)
 
+
 class Z0testOdoo(object):
 
     def build_odoo_env(self, ctx, version, hierarchy=None):
         """Build a simplified Odoo directory tree
+        version: 14.0, 13.0, ..., 7.0, 6.1
+        hierarchy: flat,tree,server (def=flat)
         """
-        # hierarchy -> flat,tree,server (def=flat)
         if version in ('10.0', '11.0', '12.0', '13.0', '14.0'):
             if hierarchy == 'tree':
                 odoo_home = os.path.join(version, 'odoo', 'odoo')
@@ -1450,7 +1452,7 @@ class Z0testOdoo(object):
         os_tree = [version,
                    os.path.join(version, 'addons'),
                    odoo_home,
-                   os.path.join(odoo_home, 'addons'),]
+                   os.path.join(odoo_home, 'addons')]
         root = Z0test().build_os_tree(ctx, os_tree)
         RELEASE_PY = '''
 RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
