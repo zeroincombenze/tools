@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.0.28
+__version__=1.0.0.29
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -97,9 +97,9 @@ for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator 
             tgt=$(dirname "$tgt")
             ftype=d
         fi
-        if [[ ! -f "$src" && ! -d "$src" ]]; then
+        if [[ ! -e "$src" ]]; then
             echo "File $src not found!"
-        elif [[ -L "$tgt" || $1 =~ ^-.*[fp] || $fn =~ $MOVED_FILES_RE ]]; then
+        elif [[ ! -e "$tgt" || -L "$tgt" || $1 =~ ^-.*[fp] || $fn =~ $MOVED_FILES_RE ]]; then
             [[ -L "$tgt" ]] && echo "$PMPT rm -f $tgt"
             [[ -L "$tgt" && ! $1 =~ ^-.*n ]] && rm -f $tgt
             [[ -d "$tgt" ]] && echo "$PMPT rm -fR $tgt"

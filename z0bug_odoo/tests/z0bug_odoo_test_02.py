@@ -10,7 +10,7 @@
 import os
 import sys
 import shutil
-from zerobug import Z0BUG
+# from zerobug import Z0BUG
 # from z0bug_odoo import test_common
 from zerobug import Z0testOdoo
 
@@ -90,7 +90,7 @@ class RegressionTest():
         return sts
 
 
-if __name__ == "__main__":
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(sys.argv[1:],
-                          version=version()), RegressionTest))
+# if __name__ == "__main__":
+#     exit(Z0BUG.main_local(
+#         Z0BUG.parseoptest(sys.argv[1:],
+#                           version=version()), RegressionTest))

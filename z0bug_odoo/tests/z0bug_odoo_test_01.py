@@ -65,7 +65,7 @@ class RegressionTest():
         return sts
 
 
-if __name__ == "__main__":
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(sys.argv[1:],
-                          version=version()), RegressionTest))
+# if __name__ == "__main__":
+#     exit(Z0BUG.main_local(
+#         Z0BUG.parseoptest(sys.argv[1:],
+#                           version=version()), RegressionTest))
