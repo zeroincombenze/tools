@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.3
+__version__=1.0.0.4
 
 
 test_01() {
@@ -163,14 +163,10 @@ if [ $sts -ne 127 ]; then
 fi
 
 
-
-
-
-
 UT1_LIST=
 UT_LIST=
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
-# Follow code must be executed at main level sue bash limitations
+# Follow code must be executed at main level due bash limitations
 eval $(init_cfg)
 eval $(active_cfg)
 # /End Included Block/
