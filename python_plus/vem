@@ -933,7 +933,7 @@ do_venv_create() {
   VENV="$1"
   venv_mgr_check_src_path "$VENV" "create"
   if [[ -d $VENV ]]; then
-    if [ $opt_force -eq 0 ]; then
+    if [[ $opt_force -eq 0 ]]; then
       echo "Warning: virtual environment $VENV already exists!!"
     else
       run_traced "rm -fR $VENV"
@@ -1198,7 +1198,7 @@ if [[ $action != "help" ]]; then
   [[ -n "$opt_oever" && -z "$opt_oepath" ]] && find_odoo_path $HOME
   [[ $opt_verbose -gt 2 ]] && echo "# Odoo dir = '$opt_oepath'"
 fi
-if [[ $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
+if [[ $action =~ (help|create) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
   DEV_PKGS=""
 else
   cmd="list_requirements.py -qt python -BP"
