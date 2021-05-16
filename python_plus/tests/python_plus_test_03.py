@@ -10,7 +10,7 @@ import os
 import os.path
 import sys
 import shutil
-from zerobug import Z0BUG
+# from zerobug import Z0BUG
 
 
 MODULE_ID = 'python_plus'
@@ -25,7 +25,7 @@ parser.add_argument('-V')
 ctx = parser.parseoptargs(['-V'])
 """
 
-__version__ = "1.0.0.16"
+__version__ = "1.0.0.17"
 
 
 def version():
@@ -75,9 +75,9 @@ class Test():
             shutil.rmtree(self.venv_dir)
 
 
-if __name__ == "__main__":
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(
-            sys.argv[1:],
-            version=version()),
-        Test))
+# if __name__ == "__main__":
+#     exit(Z0BUG.main_local(
+#         Z0BUG.parseoptest(
+#             sys.argv[1:],
+#             version=version()),
+#         Test))

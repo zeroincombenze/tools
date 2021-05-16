@@ -11,8 +11,10 @@ READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null
 export READLINK
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
-PYPATH=$(echo -e "import os,sys\np=[x for x in os.environ['PATH'].split(':') if x not in sys.path];p.extend(sys.path);print('$TDIR '+' '.join(p)+' .')"|python)
-for d in $TDIR $PYPATH /etc . ..; do
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -24,8 +26,9 @@ if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.0.15
+__version__=1.0.0.16
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -390,8 +393,10 @@ READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/nu
 export READLINK
 THIS=\$(basename "\$0")
 TDIR=\$(\$READLINK -f \$(dirname \$0))
-PYPATH=\$(echo -e "import os,sys\np=[x for x in os.environ['PATH'].split(':') if x not in sys.path];p.extend(sys.path);print('\$TDIR '+' '.join(p)+' .')"|python)
-for d in \$TDIR \$PYPATH /etc . ..; do
+[[ -d "\$HOME/dev" ]] && HOME_DEV="\$HOME/dev" || HOME_DEV="\$HOME/devel"
+PYPATH=\$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':\$TDIR:..:\$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=\$PYPATH"
+for d in \$PYPATH /etc; do
   if [[ -e \$d/z0librc ]]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
@@ -403,17 +408,19 @@ if [[ -z "\$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=\$Z0LIBDIR"
 EOF
 }
 
 blk_2() {
   cat <<EOF >>$1
-ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$PYPATH . .." "clodoo")
+ODOOLIBDIR=\$(findpkg odoorc "\$PYPATH" "clodoo")
 if [ -z "\$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
 fi
 . \$ODOOLIBDIR
+[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=\$ODOOLIBDIR"
 EOF
 }
 
@@ -421,12 +428,13 @@ blk_2z() {
   if [ $opt_oeLib -ne 0 ]; then
     cat <<EOF >>$1
 if [ \${opt_oeLib:-0} -ne 0 ]; then
-  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$PYPATH . .." "clodoo")
+  ODOOLIBDIR=\$(findpkg odoorc "\$PYPATH" "clodoo")
   if [ -z "\$ODOOLIBDIR" ]; then
     echo "Library file odoorc not found!"
     exit 2
   fi
   . \$ODOOLIBDIR
+  [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=\$ODOOLIBDIR"
 fi
 EOF
   fi
@@ -434,12 +442,13 @@ EOF
 
 blk_3() {
   cat <<EOF >>$1
-TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$PYPATH . .." "travis_emulator")
+TRAVISLIBDIR=\$(findpkg travisrc "\$PYPATH" "travis_emulator")
 if [ -z "\$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
 fi
 . \$TRAVISLIBDIR
+[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=\$TRAVISLIBDIR"
 EOF
 }
 
@@ -447,12 +456,13 @@ blk_3z() {
   if [ $opt_tjLib -ne 0 ]; then
     cat <<EOF >>$1
 if [ \${opt_tjLib:-0} -ne 0 ]; then
-  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$PYPATH . .." "travis_emulator")
+  TRAVISLIBDIR=\$(findpkg travisrc "\$PYPATH" "travis_emulator")
   if [ -z "\$TRAVISLIBDIR" ]; then
     echo "Library file travisrc not found!"
     exit 2
   fi
   . \$TRAVISLIBDIR
+  [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=\$TRAVISLIBDIR"
 fi
 EOF
   fi
@@ -460,12 +470,13 @@ EOF
 
 blk_4() {
   cat <<EOF >>$1
-ZARLIB=\$(findpkg zarrc "\$TDIR \$PYPATH . ..")
+ZARLIB=\$(findpkg zarrc "\$PYPATH")
 if [[ -z "\$ZARLIB" ]]; then
   echo "Library file zarrc not found!"
   exit 2
 fi
 . \$ZARLIB
+[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ZARLIB=\$ZARLIB"
 EOF
 }
 
@@ -473,12 +484,13 @@ blk_4z() {
   if [ $opt_zLib -ne 0 ]; then
     cat <<EOF >>$1
 if [ \$opt_zLib -ne 0 ]; then
-  ZARLIB=\$(findpkg zarrc "\$TDIR \$PYPATH . ..")
+  ZARLIB=\$(findpkg zarrc "\$PYPATH")
   if [ -z "\$ZARLIB" ]; then
     echo "Library file zarrc not found!"
     exit 2
   fi
   . \$ZARLIB
+  [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ZARLIB=\$ZARLIB"
 fi
 EOF
   fi
@@ -487,19 +499,22 @@ EOF
 blk_8() {
   cat <<EOF >>$1
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
+[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=\$TESTDIR"
 RUNDIR=\$($READLINK -e \$TESTDIR/..)
+[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=\$RUNDIR"
 EOF
 }
 
 blk_9() {
   cat <<EOF >>$1
-Z0TLIBDIR=\$(findpkg z0testrc "\$TDIR \$PYPATH . .." "zerobug")
+Z0TLIBDIR=\$(findpkg z0testrc "\$PYPATH" "zerobug")
 if [[ -z "\$Z0TLIBDIR" ]]; then
   echo "Library file z0testrc not found!"
   exit 2
 fi
 . \$Z0TLIBDIR
 Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
+[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=\$Z0TLIBDIR"
 EOF
 }
 
@@ -518,9 +533,7 @@ EOF
   fi
   cat <<EOF >>$1
 sts=\$?
-if [ \$sts -ne 127 ]; then
-  exit \$sts
-fi
+[[ \$sts -ne 127 ]] && exit \$sts
 EOF
   blk_2z "$1"
   blk_3z "$1"
@@ -530,7 +543,7 @@ EOF
 
 blk_13() {
   cat <<EOF >>$1
-if [[ "\$(type -t Z0BUG_setup)" == "function" ]]; then Z0BUG_setup; fi
+[[ "\$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
 EOF
 }
 
@@ -538,7 +551,7 @@ blk_14() {
   cat <<EOF >>$1
 Z0BUG_main_file "\$UT1_LIST" "\$UT_LIST"
 sts=\$?
-if [[ "\$(type -t Z0BUG_teardown)" == "function" ]]; then Z0BUG_teardown; fi
+[[ "\$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
 exit \$sts
 EOF
 }
@@ -549,7 +562,7 @@ opts_travis
 CFG_init
 conf_default
 link_cfg \$DIST_CONF \$TCONF
-if [ \$opt_verbose -gt 1 ]; then set -x; fi
+[[ \$opt_verbose -gt 1 ]] && set -x
 EOF
 }
 #//Enable.auto.upgrade.code/
@@ -587,7 +600,7 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-if [ $opt_verbose -gt 1 ]; then set -x; fi
+[[ $opt_verbose -gt 1 ]] && set -x
 declare -A COPY
 COPY[z0lib]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
 COPY[travis_em]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"

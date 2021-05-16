@@ -24,7 +24,7 @@ if [[ -n "$1" && ( "$1" == "-i" || "$1" == "-I" ) ]]; then
         exit 1
     fi
     cd $home_travis/tools
-    ./install_tools.sh -qp
+    ./install_tools.sh -qfp
     # [[ ! -L $home_travis/bin/travis ]] && ln -s $home_travis/tools/travis_emulator/travis $home_travis/bin
     # [[ ! -L $home_travis/bin/vem ]] && ln -s $home_travis/tools/python_plus/vem $home_travis/bin
 elif [[ -n "$1" && ! "$1" == "-i" && ! "$1" == "-I"  && ! "$1" == "-T" ]]; then

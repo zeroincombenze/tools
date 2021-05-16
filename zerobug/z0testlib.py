@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2021 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
@@ -18,7 +18,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "1.0.0.10"
+__version__ = "1.0.0.11"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -619,7 +619,7 @@ class Z0test(object):
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
-            epilog="© 2015-2020 by SHS-AV s.r.l."
+            epilog="© 2015-2021 by SHS-AV s.r.l."
                    " - http://wiki.zeroincombenze.org/en/Zerobug")
         parser.add_argument("-B", "--debug",
                             help="trace msgs in zerobug.tracehis",
@@ -1266,6 +1266,7 @@ class Z0test(object):
             self.dbgmsg(ctx, '>>> test_list=%s' % UT)
             test_list = UT
         elif not ctx.get('_run_autotest', False):
+            # Discover test files
             test_list = []
             for pattern in ctx['opt_pattern'] and ctx['opt_pattern'].split(
                     ',') or self.pattern:
@@ -1301,8 +1302,8 @@ class Z0test(object):
                                   new=ctx.get('opt_new', False),
                                   echo=ctx.get('opt_echo', False))
             sts = self._exec_all_tests(test_list, ctx, Test)
-            if ctx.get('run_on_top', False) and \
-                    not ctx.get('_run_autotest', False):
+            if (ctx.get('run_on_top', False) and
+                    not ctx.get('_run_autotest', False)):
                 if sts == TEST_SUCCESS:
                     print(success_msg)
                 else:

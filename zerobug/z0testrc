@@ -60,10 +60,10 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.0.10
+__version__=1.0.0.11
 
 export opt_dry_run
 export ctr
@@ -122,7 +122,7 @@ parseoptest() {
       exit 0
     elif [ $opt_help -gt 0 ]; then
       print_help "Regression test on $module_id"\
-      "(C) 2015-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Zerobug\nAuthor: antoniomaria.vigliotti@gmail.com"
+      "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Zerobug\nAuthor: antoniomaria.vigliotti@gmail.com"
       exit 0
     fi
     if [ ${opt_echo:-1} -eq 0 ]; then
@@ -296,13 +296,13 @@ test_result () {
   dbgmsg "\$ test_result($@)  # min=$min_test, max=$max_test, ctr=$ctr"
   ready_opts
   ((ctr++))
-  if [ $teststs -ne $STS_SUCCESS ]; then
+  if [[ $teststs -ne $STS_SUCCESS ]]; then
     dbgmsg "\$ return $STS_FAILED"
     return $STS_FAILED
   fi
   msg_test "$1"
   dbgmsg "\$ msg_test($1)"
-  if [ ${opt_dry_run:-0} -eq 0 ]; then
+  if [[ ${opt_dry_run:-0} -eq 0 ]]; then
     if [[ -n "$4" ]]; then
       dbgmsg "\$ if [[ -n "\$4" ]]; then"
       if $($4 $2 $3 &>/dev/null); then
@@ -311,18 +311,18 @@ test_result () {
             echo "$THIS> Test failed: $4 '$2' '$3'"
             dbgmsg "\$ echo(Test failed: $4 '$2' '$3')"
             teststs=$STS_FAILED
-            if [ "$Z0BUG_on_error" == "continue" ]; then
+            if [[ $Z0BUG_on_error == "continue" ]]; then
               return $STS_FAILED
             else
               exit $STS_FAILED
             fi
           fi
-        elif [ "$5" == "str-n" ]; then
-          if [ -z "$($4 $2 $3)" ]; then
+        elif [[ $5 == "str-n" ]]; then
+          if [[ -z "$($4 $2 $3)" ]]; then
             echo "$THIS> Test failed: $4 '$2' '$3'"
             dbgmsg "\$ echo(Test failed: $4 '$2' '$3')"
             teststs=$STS_FAILED
-            if [ "$Z0BUG_on_error" == "continue" ]; then
+            if [[ $Z0BUG_on_error == "continue" ]]; then
               return $STS_FAILED
             else
               exit $STS_FAILED
@@ -333,7 +333,7 @@ test_result () {
         echo "$THIS> Test failed: $4 '$2' '$3'"
         dbgmsg "\$ echo(Test failed: $4 '$2' '$3')"
         teststs=$STS_FAILED
-        if [ "$Z0BUG_on_error" == "continue" ]; then
+        if [[ $Z0BUG_on_error == "continue" ]]; then
           return $STS_FAILED
         else
           exit $STS_FAILED
@@ -344,7 +344,7 @@ test_result () {
         echo "$THIS> Test '$1' failed: expected '$2', found '$3'"
         dbgmsg "\$ echo(Test '$1' failed: expected '$2', found '$3')"
         teststs=$STS_FAILED
-        if [ "$Z0BUG_on_error" == "continue" ]; then
+        if [[ $Z0BUG_on_error == "continue" ]]; then
           return $STS_FAILED
         else
           exit $STS_FAILED
@@ -361,9 +361,9 @@ export -f test_result
 ci-test () {
     # deprecated
     local s
-    if [ $teststs -eq $STS_SUCCESS ]; then
+    if [[ $teststs -eq $STS_SUCCESS ]]; then
       test_result "$1" "$2" "$3" "$4"
-      s=$?; [ ${s-1} -ne 0 ] && teststs=$s
+      s=$?; [[ ${s-1} -ne 0 ]] && teststs=$s
     fi
     return $teststs
 }

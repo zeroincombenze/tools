@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.14
+__version__=1.0.0.15
 
 
 save_testenv() {
@@ -122,28 +122,6 @@ $ cp /etc/odoo/odoo9-server.conf $LCL_ROOT/.openerp_serverrc
 > ln -s $LCL_ROOT/dev/odoo/9.0/l10n_italy/l10n_it_base $LCL_ROOT/l10n_it_base-9.0
 
 EOF
-    # if [ -L ~/maintainer-quality-tools ]; then
-    #   rm -f ~/maintainer-quality-tools
-    # elif [ -d ~/maintainer-quality-tools/ ]; then
-    #   rm -fR ~/maintainer-quality-tools/
-    # elif [ -f ~/maintainer-quality-tools ]; then
-    #   rm -f ~/maintainer-quality-tools
-    # fi
-    # LCLTEST_MQT_PATH=
-    # if [ ! -L ~/maintainer-quality-tools ]; then
-    #   if [ -d ~/tools/maintainer-quality-tools/ ]; then
-    #     ln -s ~/tools/maintainer-quality-tools/ ~/
-    #     LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
-    #   elif [ -d ~/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
-    #     ln -s ~/pypi/maintainer-quality-tools/maintainer-quality-tools/ ~/
-    #     LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
-    #   elif [ -d $HOME/tools/maintainer-quality-tools/travis/ ]; then
-    #     LCLTEST_MQT_PATH=$HOME/tools/maintainer-quality-tools/travis
-    #   else
-    #     false
-    #   fi
-    # fi
-    # PYPI setup
     LCL_PY_PRJNAME="example"
     LCL_PY_PKGNAME=$LCL_PY_PRJNAME
     LCL_PY_REPOS="pypi"
@@ -556,7 +534,6 @@ if [ ${opt_tjLib:-0} -ne 0 ]; then
   fi
   . $TRAVISLIBDIR
 fi
-
 
 UT1_LIST=""
 UT_LIST=""

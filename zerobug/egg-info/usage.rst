@@ -1,14 +1,14 @@
 ::
 
-    usage: zerobug [-h] [-b] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O] [-q]
-                   [-r number] [-s number] [-V] [-v] [-x] [-X] [-z number] [-0]
-                   [-1] [-3]
+    usage: zerobug [-h] [-B] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O]
+                   [-p file_list] [-q] [-r number] [-s number] [-V] [-v] [-x] [-X]
+                   [-z number] [-0] [-1] [-3]
 
-    Regression test on clodoo
+    Regression test on z0bug_odoo
 
     optional arguments:
       -h, --help            show this help message and exit
-      -b, --debug           trace msgs in zerobug.tracehis
+      -B, --debug           trace msgs in zerobug.tracehis
       -C, --no-coverage     run tests without coverage
       -e, --echo            enable echoing even if not interactive tty
       -J                    load travisrc
@@ -18,6 +18,8 @@
       -N, --new             create new logfile
       -n, --dry-run         count and display # unit tests
       -O                    load odoorc
+      -p file_list, --search-pattern file_list
+                            test file pattern
       -q, --quiet           run tests without output (quiet mode)
       -r number, --restart number
                             set to counted tests, 1st one next to this

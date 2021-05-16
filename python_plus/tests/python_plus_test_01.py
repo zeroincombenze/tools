@@ -6,11 +6,8 @@
 """
 from __future__ import print_function, unicode_literals
 
-# import pdb
-# import os
-# import os.path
 import sys
-from zerobug import Z0BUG
+# from zerobug import Z0BUG
 from python_plus import (text_type, bytestr_type,
                          unicodes, bstrings,
                          _u, _b,
@@ -21,7 +18,7 @@ MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "1.0.0.16"
+__version__ = "1.0.0.17"
 
 
 def version():
@@ -209,9 +206,9 @@ class Test():
                                   res)
         return sts
 
-if __name__ == "__main__":
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(
-            sys.argv[1:],
-            version=version()),
-        Test))
+# if __name__ == "__main__":
+#     exit(Z0BUG.main_local(
+#         Z0BUG.parseoptest(
+#             sys.argv[1:],
+#             version=version()),
+#         Test))

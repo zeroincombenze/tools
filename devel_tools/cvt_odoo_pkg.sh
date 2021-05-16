@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.0.15
+__version__=1.0.0.16
 
 cvt_dir() {
     # echo "cvt_dir ($1,$2)"

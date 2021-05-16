@@ -1,6 +1,6 @@
 
 ================
-zerobug 1.0.0.10
+zerobug 1.0.0.11
 ================
 
 
@@ -74,15 +74,15 @@ Usage
 
 ::
 
-    usage: zerobug [-h] [-b] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O] [-q]
-                   [-r number] [-s number] [-V] [-v] [-x] [-X] [-z number] [-0]
-                   [-1] [-3]
+    usage: zerobug [-h] [-B] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O]
+                   [-p file_list] [-q] [-r number] [-s number] [-V] [-v] [-x] [-X]
+                   [-z number] [-0] [-1] [-3]
 
-    Regression test on clodoo
+    Regression test on z0bug_odoo
 
     optional arguments:
       -h, --help            show this help message and exit
-      -b, --debug           trace msgs in zerobug.tracehis
+      -B, --debug           trace msgs in zerobug.tracehis
       -C, --no-coverage     run tests without coverage
       -e, --echo            enable echoing even if not interactive tty
       -J                    load travisrc
@@ -92,6 +92,8 @@ Usage
       -N, --new             create new logfile
       -n, --dry-run         count and display # unit tests
       -O                    load odoorc
+      -p file_list, --search-pattern file_list
+                            test file pattern
       -q, --quiet           run tests without output (quiet mode)
       -r number, --restart number
                             set to counted tests, 1st one next to this
@@ -351,7 +353,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-05-15
+Last Update / Ultimo aggiornamento: 2021-05-16
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
@@ -366,22 +368,22 @@ Last Update / Ultimo aggiornamento: 2021-05-15
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.10
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.11
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.10/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.10
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.11/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.11
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.10/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.11/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.10/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.11/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.10/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.10
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.11/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.11
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

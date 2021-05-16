@@ -4,12 +4,30 @@
 .SH NAME
 travis \- TracisCi local emulator
 .SH SYNOPSIS
-travis [options] action
+.SY travis
+.OP \-hBC
+.OP \-c file
+.OP \-D number
+.OP \-d
+.OP \-EFfjk
+.OP \-L number
+.OP \-l dir
+.OP \-Mmn
+.OP \-O git-org
+.OP \-pqr
+.OP \-S false|true
+.OP \-Vv
+.OP \-X 0|1
+.OP \-Y file
+.OP \-y pyver
+.OP \-Z
+.OP action sub sub2
+.YS
 .SH DESCRIPTION
 \fBtravis\fR can emulate TravisCi parsing the \fB.travis.yml\fR file in local Linux machine.
 You can test your application before pushing code to github.com web site.
-.br
-Travis emulator can creates all the build declared in \fB.travis.yml\fR; all builds are executed in sequential way.
+.sp 2
+Travis emulator can creates all the builds declared in \fB.travis.yml\fR; all builds are executed in sequential way.
 The directory ~/travis_log (see -l switch) keeps the logs of all created builds.
 Please note that log file is a binary file with escape ANSI screen code.
 .br
@@ -20,7 +38,9 @@ travis show-log
 .RE
 .P
 A travis build executes the following steps:
+.sp 2
 .br
+.RS
 * Initialize from local .travis.conf (not in travis-ci.org)
 .br
 * Optional install packages \fIapt addons\fR (emulator does not install, it makes just the check)
@@ -52,11 +72,16 @@ A travis build executes the following steps:
 * TravisCi executes code \fIafter_script\fR (not emulated)
 .br
 * Wep from local .travis.conf (not in travis-ci.org)
+.RE
 .br
-Read furthermore info read https://docs.travis-ci.com/user/job-lifecycle/
+Read furthermore info read
+.UR https://docs.travis-ci.com/user/job-lifecycle/
+travis job lifecycle
+.UE
+.ls
 .P
 Action is one of:
-.br
+.RS
 * help
 .br
 * emulate
@@ -73,12 +98,14 @@ Action is one of:
 .br
 * parseyaml
 .br
+* show-color
+.br
 * show-log
 .br
 * summary
 .br
 * wep_db
-.br
+.RE
 .P
 \fBemulate\fR
 .RS
@@ -87,16 +114,27 @@ Emulate TravisCi
 Start TravisCi emulator processing current .travis.yml file. This is the default action.
 .RE
 .P
-\fBforce-lint\fR \fBlint\fR
+\fBforce-lint\fR
 .RS
-Start TravisCi emulator processing current .travis.yml file, setting LINT_CHECK variabile to value "1" and TESTS to value "0".
+Start TravisCi emulator processing current .travis.yml file and setting LINT_CHECK variabile to value "1" and TESTS to value "0".
+In this way the build of linting is always executed.
+.RE
+.P
+\fBforce-test\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file, setting TESTS to value "1" and LINT_CHECK variabile to value "0".
+In this way the build of test is always executed.
+.RE
+.P
+\fBlint\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file and execute just build with LINT_CHECK="1".
 In this way only the build of linting is executed.
 .RE
 .P
-\fBforce-test\fR \fBtest\fR
+\fBshow-color\fR
 .RS
-Start TravisCi emulator processing current .travis.yml file, setting TESTS to value "1" and LINT_CHECK variabile to value "0".
-In this way only the build of test is executed.
+Show colored message meaning
 .RE
 .P
 \fBshow-log\fR
@@ -110,6 +148,12 @@ Show last log summary
 .br
 .RE
 .P
+\fBtest\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file and execute just build with TESTS="1".
+In this way only the build of test is executed.
+.RE
+.P
 \fBweb-db\fR
 .RS
 Remove virtual environments and postgres database created by previous travis emulator interupted
@@ -117,17 +161,32 @@ Remove virtual environments and postgres database created by previous travis emu
 .RE
 .SH OPTIONS
 .TP
-.BR \-B
-Run in debug mode without creating log file; enable pdb for local debug
+.BR \-B\ \-\-debug
+Run in debug mode without creating log file and enable pdb for local debug
 .TP
-.BR \-D \fIdebu-level\fR
+.BR \-c\ \-\-conf\ \fIfile\fR
+Local travis configuration file (default .travis.conf)
+.TP
+.BR \-D\ \fIdebug-level\fR
 Set travis_debug_mode: may be 0,1,2,8 or 9
 .br
 default value from .travis.yml
 .TP
+.BR \-d\ \-\-osx
+Emulate Darwin osx operating system
+.br
+This mean readlink is replaced by greadlink
 .TP
-.BR \-L  \fIlint-level_level\fR
+.BR \-k\ \-\-keep
+Keep virtual environment and databases after builds are terminated
+.TP
+.BR \-L\ \fIlint-level_level\fR
 Set lint_check_level: may be minimal,reduced,average,nearby,oca
+.br
+default value from .travis.yml
+.TP
+.BR \-S\ \-\-syspkg\ true|false
+use python system packages
 .br
 default value from .travis.yml
 .TP

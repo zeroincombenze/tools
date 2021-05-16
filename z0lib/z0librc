@@ -3,10 +3,10 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.0.4
+#__version__=1.0.0.5
 STS_FAILED=1
 STS_SUCCESS=0
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:$HOME/devel::$HOME/dev:.:..').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
 
 ##############################################################################
 # Install this lib file in /etc if version is more recent
@@ -41,15 +41,6 @@ _install_z0librc() {
     fi
 }
 export -f _install_z0librc
-
-ack_os() {
-    [[ -n "$READLINK" ]] && return
-    export READLINK=readlink
-    OS=$(uname -s)
-    [[ $OS == "Darwin" ]] && \
-      READLINK=$(which readlink 2>/dev/null) && \
-      [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125"
-}
 
 ##############################################################################
 # Detect and print more OS informations than uname command

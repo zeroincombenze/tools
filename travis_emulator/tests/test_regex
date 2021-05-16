@@ -27,17 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.14
-
-
-#Z0BUG_init
-#parseoptest -l$TESTDIR/test_travis_em.log $@
-#sts=$?
-#if [ $sts -ne 127 ]; then
-#  exit $sts
-#fi
-#sts=0
-
+__version__=1.0.0.15
 
 
 test_result_k () {
@@ -147,15 +137,6 @@ test_01() {
     test_result_cp "robocopy" "1||cp -L /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf/res_sample /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data" "$TRES"
 }
 
-# TODO: integration with z0librc
-# $(init_cfg)
-# $(active_cfg)
-# FCONF="$TESTDIR/test_local.conf"
-# GCONF="$TESTDIR/test_glocal.conf"
-# if [ -f $FCONF ]; then rm -f $FCONF; fi
-# if [ -f $GCONF ]; then rm -f $GCONF; fi
-# link_cfg $FCONF $GCONF
-# set_cfg_def "ignore" ".pyc .log .bak .out .conf build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
 saved_opt_dry_run=$opt_dry_run
 
 Z0BUG_init
@@ -172,12 +153,6 @@ if [ ${opt_tjLib:-0} -ne 0 ]; then
   fi
   . $TRAVISLIBDIR
 fi
-
-
-
-
-
-
 
 UT1_LIST=""
 UT_LIST=""

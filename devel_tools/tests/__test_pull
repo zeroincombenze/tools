@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.15
+__version__=1.0.0.16
 
 
 test_01() {
@@ -41,10 +41,10 @@ test_01() {
 
 setup_file_base_oca() {
     cat <<EOF >$Z0BUG_BASE_OCA/__manifest__.py
-{'version': '10.0.1.0.0.15'}
+{'version': '10.0.1.0.0.16'}
 EOF
     cat <<EOF >$Z0BUG_BASE_OCA/__init__.py
-# 10.0.1.0.0.15
+# 10.0.1.0.0.16
 EOF
 }
 

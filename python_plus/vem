@@ -234,7 +234,6 @@ pip_install() {
   #pip_install(pkg opts)
   local pkg d x srcdir fn popts v
   local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
-  # pkg="${1//§/ }"
   pkg="$(get_actual_pkg $1)"
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
@@ -246,20 +245,20 @@ pip_install() {
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
     [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$fn)
     [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$fn/$fn)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$agkg/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$fn/$fn)
-    if [[ $pkg == "odoo" && -z $opt_oepath ]]; then
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$fn/$fn)
+    if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
       echo "Missed Odoo version to install (please use -O switch)!"
       exit 1
     fi
-    [[ $pkg == "odoo" && -n $opt_oepath ]] && srcdir=$(odoo_orm_path $opt_oepath)
-    if [[ $pkg == "odoo" && -z $srcdir ]]; then
+    [[ $pkg =~ ^(odoo|openerp)$ && -n $opt_oepath ]] && srcdir=$(odoo_orm_path $opt_oepath)
+    if [[ $pkg =~ ^(odoo|openerp)$ && -z $srcdir ]]; then
       echo "Odoo path not found! Please supply path with -o switch)!"
       exit 1
     fi
     if [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
       pushd $srcdir/.. >/dev/null
-      [[ $pkg == "odoo" ]] && x="$opt_oever" || x=$(python $fn -V)
+      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(python $fn -V)
       v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
       popd >/dev/null
       x=$(ls -d $pypath/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
@@ -300,7 +299,7 @@ pip_install() {
         DISTO=$(xuname -d)
         FH=$(xuname -f)
         [[ $DISTO == "Fedora" ]] && echo "dnf install bzr"
-        [[ ! $DISTO == "Fedora" && $FH = "RHEL" ]] && echo "yum install bzr"
+        [[ $DISTO != "Fedora" && $FH = "RHEL" ]] && echo "yum install bzr"
         [[ $DISTO == "Debian" ]] && echo "apt -t lenny-backports install bzr"
         [[ $DISTO == "Ubuntu" ]] && echo "add-apt-repository ppa:bzr/ppa"
         [[ $FH == "Debian" ]] && echo "apt update"
@@ -371,6 +370,36 @@ pip_install_req() {
   done
 }
 
+pip_uninstall() {
+  #pip_uninstall(pkg opts)
+  local pkg d x srcdir fn popts v
+  local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
+  pkg="$(get_actual_pkg $1)"
+  [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
+  if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
+    srcdir=""
+    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
+    [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$fn)
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$fn/$fn)
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$fn/$fn)
+    if [[ -n "$srcdir" ]]; then
+      [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
+      pushd $srcdir/.. >/dev/null
+      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(python $fn -V)
+      v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
+      popd >/dev/null
+      x=$(ls -d $pypath/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
+      [[ -n $x && $x != $pypath/${fn}-${v}.dist-info ]] && run_traced "rm $x"
+    else
+      [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
+      run_traced "$PIP uninstall $popts $pkg $2"
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+    fi
+    x="${pkgs//+/.}"
+    [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
+  fi
+}
+
 check_bin_package() {
   # check_bin_package(pkg)
   local op reqver xreqver sts curver vpkg x
@@ -417,7 +446,7 @@ check_bin_package() {
     x=$($READLINK -e $(which $pkg 2>/dev/null) 2>/dev/null)
     [[ -z "$x" ]] && echo "Corrupted VME: file $pkg not found!!"
     if [[ -n "$x" && ! $x =~ ^$VENV && ! -L $VENV/bin/$pkg ]]; then
-      echo "Warning: file $x is outside of virtual env"
+      [[ $opt_verbose -gt 0 ]] && echo "Warning: file $x is outside of virtual env"
       run_traced "ln -s $x $VENV/bin"
     fi
   fi
@@ -685,15 +714,16 @@ venv_mgr_check_oever() {
       [[ $x != "odoo" && -d $p2/$x ]] && p="$p $p2/$x"
     done
     [[ -z $p ]] && p="$2"
-    [[ $opt_verbose -gt 2 ]] && echo ">>> find -L $p -not -path \"*/__to_remove/*\" -not -path \"*/lib/*\" -not -path \"*/lib64/*\" -not -path \"*/tests/res/*\" -not -path \"*/include/*\" -not -path \"*/.npm/*\" -not -path \"*/node_modules/*\" -not -path \"*/.cache/*\" -name release.py"
-    x=$(find -L $p -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py|head -n1)
-    if [[ -n "$x" ]]; then
-      p=$(dirname $x)
-      cd_venv $p -fq
-      x=$(echo -e "import release\nprint(release.version)\n" | python)
-      opt_oever="$x"
-      pop_cd -q
-    fi
+    find_odoo_path "$p2" "-L"
+#    [[ $opt_verbose -gt 2 ]] && echo ">>> find -L $p -not -path \"*/__to_remove/*\" -not -path \"*/lib/*\" -not -path \"*/lib64/*\" -not -path \"*/tests/res/*\" -not -path \"*/include/*\" -not -path \"*/.npm/*\" -not -path \"*/node_modules/*\" -not -path \"*/.cache/*\" -name release.py"
+#    x=$(find -L $p -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py|head -n1)
+#    if [[ -n "$x" ]]; then
+#      p=$(dirname $x)
+#      cd_venv $p -fq
+#      x=$(echo -e "import release\nprint(release.version)\n" | python)
+#      opt_oever="$x"
+#      pop_cd -q
+#    fi
   fi
   if [[ ! $1 =~ (help|create) ]]; then
     [[ -n "$opt_oever" && $opt_verbose -gt 1 ]] && echo "### Odoo version $opt_oever ...  ###"
@@ -1000,23 +1030,38 @@ do_venv_pip() {
   do_activate
   pkg="$(get_actual_pkg $3)"
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
-  [[ $opt_alone -ne 0 && ! $pkg =~ ^- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
-  [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
-  [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
-  [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
-  if [[ $cmd =~ (info|show) ]]; then
-    pkg=$(get_pkg_wo_version $pkg)
-    run_traced "$PIP show $pkg"
-    x=$($PIP show $pkg | grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
-    [[ -n $x ]] && x=$x/$pkg
-    [[ -L $x ]] && echo "Actual location is $($READLINK -e $x)"
+  if [[ $cmd == "uninstall" ]]; then
+    pip_uninstall "$pkg"
+  else
+    [[ $opt_alone -ne 0 && ! $pkg =~ ^- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
+    [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
+    [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+    [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
+    if [[ $cmd =~ (info|show) ]]; then
+      pkg=$(get_pkg_wo_version $pkg)
+      run_traced "$PIP show $pkg"
+      x=$($PIP show $pkg | grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
+      [[ -n $x ]] && x=$x/$pkg
+      [[ -L $x ]] && echo "Actual location is $($READLINK -e $x)"
+    fi
+    [[ $cmd == "install" ]] && pip_install "$pkg"
+    [[ "$cmd" == "uninstall" ]] && run_traced "$PIP $cmd $pkg"
+    [[ $cmd == "update" ]] && pip_install "$pkg" "--upgrade"
   fi
-  [[ $cmd == "install" ]] && pip_install "$pkg"
-  [[ "$cmd" == "uninstall" ]] && run_traced "$PIP $cmd $pkg"
-  [[ $cmd == "update" ]] && pip_install "$pkg" "--upgrade"
   do_deactivate
   pop_cd
   export PATH=$SAVED_PATH
+}
+
+find_odoo_path() {
+# find_odoo_path(path opts)
+    local p v x
+    [[ $opt_verbose -gt 2 ]] && echo ">>> find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py"
+    for f in $(find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py 2>/dev/null|sort); do
+        v=$(grep "^version_info" $f|cut -d= -f2|tr -d "("|tr -d ")"|tr -d " "|awk -F, '{print $1 "." $2}')
+        [[ -n "$opt_oever" && $v == $opt_oever ]] && opt_oepath="$(readlink -e $(dirname $f)/..)" && break
+        [[ -z "$opt_oever" ]] && opt_oever="$v" && break
+    done
 }
 
 validate_py_oe_vers() {
@@ -1058,7 +1103,7 @@ OPTHELP=("this help"
   "create v.environment with access to the global site-packages"
   "show version"
   "verbose mode")
-OPTARGS=(p1 p2 p3 p4 p5 p6 p7 p8 p9)
+OPTARGS=(p3 p4 p5 p6 p7 p8 p9)
 # no-global-site-packages.txt
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -1066,22 +1111,49 @@ if [ "$opt_version" ]; then
   exit $STS_SUCCESS
 fi
 
-ACTIONS="help amend cp check create exec info inspect install merge mv python shell rm show update test reset"
-REXACT="(${ACTIONS// /|})"
-if [[ $p1 =~ $REXACT ]]; then
-  action=$p1
-elif [[ $p2 =~ $REXACT ]]; then
-  action=$p2
-  p2=$p1
+ACTIONS="help amend cp check create exec info inspect install merge mv python shell rm show uninstall update test reset"
+REXACT="^(${ACTIONS// /|})\$"
+# In old vem version p1 -> action and p2 > venv
+action=""
+p2=""
+for x in 3 4 5 6; do
+  p="p$x"
+  if [[ ${!p} =~ $REXACT ]]; then
+    action="${!p}"
+    eval $p=""
+    [[ $action == "help" ]] && break
+  elif [[ -d "${!p}" && -f ${!p}/bin/activate ]]; then
+    p2="$($READLINK -e ${!p})"
+    eval $p=""
+  elif [[ $action == "create" ]]; then
+    if [[ -z "$p2" && -n "${!p}" ]]; then
+      p2="${!p}"
+      eval $p=""
+    fi
+  elif [[ $action == "" ]]; then
+    action="exec"
+  fi
+  [[ -n "$p2" && -n "$action" ]] && break
+done
+if [[ -z "$p2" && -n "$VIRTUAL_ENV" && -f $VIRTUAL_ENV/bin/activate ]]; then
+  p2=$VIRTUAL_ENV
+  VENV_STS="preinstalled"   # running inside a virtual environment
+elif [[ -z "$p2" && -f ./bin/activate ]]; then
+  p2="$(readlink -e ./)"
 fi
-[[ -z "$action" ]] && opt_help=1
-# If it is running inside travis test environment
-[[ -z "$opt_pyver" && -n "$TRAVIS_PYTHON_VERSION" ]] && opt_pyver=$TRAVIS_PYTHON_VERSION
-[[ $opt_verbose -eq -1 ]] && opt_verbose=1
+[[ -z "$p8" && -n "$p9" ]] && p8="$p9" && p9=""
+[[ -z "$p7" && -n "$p8" ]] && p7="$p8" && p8=""
+[[ -z "$p6" && -n "$p7" ]] && p6="$p7" && p7=""
+[[ -z "$p5" && -n "$p6" ]] && p5="$p6" && p6=""
+[[ -z "$p4" && -n "$p5" ]] && p4="$p5" && p5=""
+[[ -z "$p3" && -n "$p4" ]] && p3="$p4" && p4=""
 if [ $opt_help -gt 0 ]; then
   print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
+# If it is running inside travis test environment
+[[ -z "$opt_pyver" && -n "$TRAVIS_PYTHON_VERSION" ]] && opt_pyver=$TRAVIS_PYTHON_VERSION
+[[ $opt_verbose -eq -1 ]] && opt_verbose=1
 [[ $opt_verbose -gt 3 ]] && set -x
 if [[ $action == "create" && -n "$VIRTUAL_ENV" && ${opt_force:-0} -eq 0 ]]; then
   echo "You cannot create a new virtual environment inside $VIRTUAL_ENV"
@@ -1089,36 +1161,6 @@ if [[ $action == "create" && -n "$VIRTUAL_ENV" && ${opt_force:-0} -eq 0 ]]; then
 fi
 PYTHON=""
 PIP=""
-if [[ ! $action =~ (help|create) ]]; then
-  p1=
-  VENV_STS=""
-  if [[ -d "$p2" && -f $p2/bin/activate ]]; then
-    p1=$($READLINK -e $p2)
-    unset p2
-  elif [[ -n "$VIRTUAL_ENV" ]]; then
-    if [[ ! -f $VIRTUAL_ENV/bin/activate ]]; then
-      echo "Invalid virtual environment"
-      exit 1
-    fi
-    p1=$VIRTUAL_ENV
-    VENV_STS="preinstalled"   # running inside a virtual environment
-  fi
-  [[ -z "$p1" ]] && p1=$($READLINK -e ./)
-  [[ ! -f $p1/bin/activate && -f $HOME/bin/activate ]] && p1=$($READLINK -e $HOME)
-  if [[ -z "$p2" ]]; then
-    p2=$p1
-  else
-    p9="$p8"
-    p8="$p7"
-    p7="$p6"
-    p6="$p5"
-    p5="$p4"
-    p4="$p3"
-    p3="$p2"
-    p2="$p1"
-  fi
-  unset p1
-fi
 DO_POP=0
 DO_DEACT=0
 export PYTHONWARNINGS="ignore"
@@ -1153,18 +1195,8 @@ elif [[ ! $action =~ (help|create) ]]; then
 fi
 [[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
 if [[ $action != "help" ]]; then
-  if [[ -n "$opt_oever" && -z "$opt_oepath" ]]; then
-    for ldir in $HOME/odoo/$opt_oever $HOME/$opt_oever; do
-      [[ -d $ldir/odoo ]] && opt_oepath="$ldir/odoo" && break
-      [[ -d $ldir ]] && opt_oepath="$ldir" && break
-    done
-  fi
-  if [[ -n "$opt_oever" && -z "$opt_oepath" ]]; then
-    for ldir in $SAVED_HOME/odoo/$opt_oever $SAVED_HOME/$opt_oever; do
-      [[ -d $ldir ]] && opt_oepath="$ldir" && break
-    done
-  fi
-  [[ $opt_verbose -gt 2 ]] && echo "# Odoo dir = '$opt_oever'"
+  [[ -n "$opt_oever" && -z "$opt_oepath" ]] && find_odoo_path $HOME
+  [[ $opt_verbose -gt 2 ]] && echo "# Odoo dir = '$opt_oepath'"
 fi
 if [[ $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
   DEV_PKGS=""
@@ -1174,6 +1206,8 @@ else
   [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
   [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
   [[ -d $HOME/OCA ]] && cmd="$cmd -d${HOME}/OCA"
+  [[ -d $HOME/maintainer-tools ]] && cmd="$cmd -d${HOME}/maintainer-tools"
+  [[ -d $HOME/maintainer-quality-tools ]] && cmd="$cmd -d${HOME}/maintainer-quality-tools"
   DEV_PKGS=$($cmd -s" ")
   [[ $opt_verbose -gt 2 ]] && echo "DEV_PKGS=$DEV_PKGS"
 fi
@@ -1187,7 +1221,7 @@ elif [ "$action" == "python" ]; then
   do_venv_exec "$p2" "python" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
 elif [ "$action" == "shell" ]; then
   do_venv_exec "$p2" "$SHELL" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
-elif [[ $action =~ (info|install|show|update) ]]; then
+elif [[ $action =~ (info|install|show|uninstall|update) ]]; then
   [[ $opt_cc -ne 0 && -d $HOME/.cache/pip ]] && run_traced "rm -fR $HOME/.cache/pip"
   do_venv_pip "$p2" "$action" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
 elif [ "$action" == "create" ]; then
