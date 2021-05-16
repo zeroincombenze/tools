@@ -14,9 +14,9 @@ cache:
 
 python:
   - "2.7"
-  - "3.5"
   - "3.6"
   - "3.7"
+  - "3.8"
 
 virtualenv:
   system_site_packages: false
@@ -52,8 +52,8 @@ addons:
 before_install:
   # Use Zeroincombenze(R) tools
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --single-branch --depth=1
-  - ${HOME}/tools/install_tools.sh -qopt
-  - source ${HOME}/dev/activate_tools
+  - ${HOME}/tools/install_tools.sh -qpt
+  - source ${HOME}/devel/activate_tools
 
 install:
   - travis_install_env tools
@@ -87,4 +87,3 @@ after_success:
 
 after_failure:
     - cat $:{HOME}/odoo_10-0.log
-

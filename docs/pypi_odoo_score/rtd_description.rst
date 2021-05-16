@@ -17,7 +17,7 @@ Odoo shell is a simple line command shell to manager Odoo database using the int
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-05-13
+Last Update / Ultimo aggiornamento: 2021-05-16
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

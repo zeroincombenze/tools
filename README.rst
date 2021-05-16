@@ -201,7 +201,7 @@ Current version via Git
     cd $HOME
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -op
+    ./install_tools.sh -p
     source /opt/odoo/dev/activate_tools
 
 
@@ -217,7 +217,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-05-15
+Last Update / Ultimo aggiornamento: 2021-05-16
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

@@ -19,12 +19,13 @@ virtualenv:
 
 git:
   submodules: false
+  depth: false
 
 services:
   - postgresql
 
 addons:
-  postgresql: "9.5"
+  # postgresql: "9.5"
   apt:
     sources:
     # Search your sources alias here:
@@ -49,8 +50,8 @@ addons:
 before_install:
   # Use Zeroincombenze(R) tools
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --single-branch --depth=1
-  - ${HOME}/tools/install_tools.sh -qopts
-  - source ${HOME}/dev/activate_tools
+  - ${HOME}/tools/install_tools.sh -qpt
+  - source ${HOME}/devel/activate_tools
   # Sometimes complicated website repos need Compass & SaSS:
   #  - rvm install ruby --latest
   #  - gem install bootstrap-sass
@@ -64,7 +65,7 @@ install:
 env:
   global:
   - TRAVIS_DEBUG_MODE="2"
-  - VERSION="$TRAVIS_BRANCH" TESTS="0" LINT_CHECK="0"  MAKEPOT="0" TRANSIFEX="0" ODOO_REPO="$TRAVIS_REPO_SLUG"
+  - VERSION="$TRAVIS_BRANCH" TESTS="0" LINT_CHECK="0"  MAKEPOT="0" ODOO_REPO="$TRAVIS_REPO_SLUG"
   # Set this variable to some version existing as linux-generic build on
   # https://github.com/wkhtmltopdf/wkhtmltopdf/releases
   # if you need to install wkhtmltopdf
