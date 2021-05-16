@@ -356,7 +356,7 @@ pip_install_req() {
     [ -z "$fn" ] && echo "File $f not found!"
     [ -z "$fn" ] && continue
     [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
-    cmd="list_requirements.py -qt python -BP"
+    cmd="$LIST_REQ -qt python -BP"
     [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
     [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
@@ -543,7 +543,7 @@ pip_check_req() {
     [ -z "$fn" ] && echo "File $f not found!"
     [ -z "$fn" ] && continue
     [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
-    cmd="list_requirements.py -qt python -BP"
+    cmd="$LIST_REQ -qt python -BP"
     [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
     [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
@@ -593,7 +593,7 @@ custom_env() {
     [ $pyver -gt 2 -a $opt_keep -eq 0 ] && sed -ri "/deactivate *\(\) *\{/a\    unalias python &>/dev/null" $PWD/bin/activate
     [ $opt_spkg -ne 0 -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] && ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip" >>$PWD/bin/activate
     echo "for f in \$VIRTUAL_ENV/bin/*;do" >>$PWD/bin/activate
-    echo "    [[ -x \$f && ! -d \$f ]] && grep -q \"^#\!.*/bin/python\" \$f &>/dev/null && sed -i -e \"s|^#\!.*/bin/python|#\!\$VIRTUAL_ENV/bin/python|\" \$f" >>$PWD/bin/activate
+    echo "    [[ -x \$f && ! -d \$f ]] && grep -q \"^#\!.*[ /]python\" \$f &>/dev/null && sed -i -e \"s|^#\!.*[ /]python|#\!\$VIRTUAL_ENV/bin/python|\" \$f" >>$PWD/bin/activate
     echo "done" >>$PWD/bin/activate
     [ $opt_alone -gt 1 ] && echo "export HOME=\"\$VIRTUAL_ENV\"" >>$PWD/bin/activate
     [ $opt_alone -le 1 ] && echo "# export HOME=\"\$VIRTUAL_ENV\"" >>$PWD/bin/activate
@@ -678,6 +678,7 @@ venv_mgr_check_src_path() {
 
 check_4_needing_pkgs() {
   local p x
+  [[ ! $NEEDING_PKGS =~ clodoo && ( -n "$opt_oepath" || -n "$opt_oever" ) ]] && NEEDING_PKGS="$NEEDING_PKGS clodoo"
   for p in $NEEDING_PKGS; do
     x=${p^^}
     eval $x=$($PIP show $p 2>/dev/null | grep "Version" | grep -Eo "[0-9.]+")
@@ -687,10 +688,22 @@ check_4_needing_pkgs() {
 check_installed_pkgs() {
   local p x
   check_4_needing_pkgs
+  [[ ! $NEEDING_PKGS =~ clodoo && ( -n "$opt_oepath" || -n "$opt_oever" ) ]] && NEEDING_PKGS="$NEEDING_PKGS clodoo"
   for p in $NEEDING_PKGS; do
     x=${p^^}
+    [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install --use-feature=2020-resolver -q $p"
     [[ -z "${!x}" ]] && $PIP install --use-feature=2020-resolver -q $p
   done
+  LIST_REQ="list_requirements.py"
+  if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
+    if [[ -z $(which list_requirements.py 2>/dev/null) ]]; then
+      x=$($PIP show clodoo|grep Location|awk -F: '{print $2}')
+      x=$(echo $x/clodoo/list_requirements.py)
+      run_traced "chmod +x $x"
+      LIST_REQ="$($READLINK -f $x)"
+      run_traced "sed -i -e \"s|^#\!.*[ /]python|#\!$PYTHON|\" $x"
+    fi
+  fi
   check_4_needing_pkgs
 }
 
@@ -782,7 +795,7 @@ do_venv_mgr() {
     grep -q "^ *\[ -x \$f -a ! -d \$f ] " $VENV/bin/activate &>/dev/null
     if [[ $? -eq 0 ]]; then
       echo "Wrong activation script $VENV/bin/activate"
-      sed -Ee "s|^ *\[ -x \\\$f -a ! -d \\\$f ] |    [[ -x \$f \&\& ! -d \$f ]] \&\& grep -q \"^#\!.*/bin/python\" \$f \&>/dev/null |" -i $VENV/bin/activate
+      sed -Ee "s|^ *\[ -x \\\$f -a ! -d \\\$f ] |    [[ -x \$f \&\& ! -d \$f ]] \&\& grep -q \"^#\!.*[ /]python\" \$f \&>/dev/null |" -i $VENV/bin/activate
     fi
   fi
   cd_venv "$VENV" "-fq"
@@ -790,11 +803,11 @@ do_venv_mgr() {
   [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
   [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
   [[ -d $HOME/OCA ]] && lropts="$lropts -d${HOME}/OCA"
-  [[ $opt_verbose -gt 1 ]] && echo "list_requirements.py -qs' ' $lropts -t bin"
-  BINPKGS=$(list_requirements.py -qs' ' $lropts -t bin)
+  [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t bin"
+  BINPKGS=$($LIST_REQ -qs' ' $lropts -t bin)
   [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS"
-  [[ $opt_verbose -gt 1 ]] && echo "list_requirements.py -qs' ' $lropts -t python"
-  OEPKGS=$(list_requirements.py -qs' ' $lropts -t python)
+  [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t python"
+  OEPKGS=$($LIST_REQ -qs' ' $lropts -t python)
   [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
   do_deactivate "-q"
   pop_cd "-q"
@@ -835,8 +848,8 @@ do_venv_mgr() {
     for f in $V/bin/*; do
       mime=$(file --mime-type -b $f)
       if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
-        [[ $opt_verbose -gt 1 ]] && echo "$FLAG sed -i -e \"s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|\" $f"
-        [ $opt_dry_run -eq 0 ] && sed -i -e "s|^#\!.*/bin/python|#\!$VENV_TGT/bin/python|" $f
+        [[ $opt_verbose -gt 1 ]] && echo "$FLAG sed -i -e \"s|^#\!.*[ /]python|#\!$VENV_TGT/bin/python|\" $f"
+        [ $opt_dry_run -eq 0 ] && sed -i -e "s|^#\!.*[ /]python|#\!$VENV_TGT/bin/python|" $f
         [ $opt_dry_run -eq 0 -a "$cmd" == "reset" ] && chmod +x $f
       fi
     done
@@ -928,7 +941,7 @@ do_venv_mgr() {
 do_venv_create() {
   # do_venv_create VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_create($@)"
-  local f lropts p pkg v VENV xpkgs SAVED_PATH
+  local f lropts p pkg v VENV xpkgs SAVED_PATH x
   local venvexe pyexe
   VENV="$1"
   venv_mgr_check_src_path "$VENV" "create"
@@ -981,16 +994,18 @@ do_venv_create() {
   run_traced "$PIP install pip -U"
   PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
   check_installed_pkgs
-  [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
-  [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
-  [[ $opt_verbose -gt 1 ]] && echo "list_requirements.py -qs' ' $lropts -t bin"
-  BINPKGS=$(list_requirements.py -qs' ' $lropts -t bin)
-  [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS"
-  [[ $opt_verbose -gt 1 ]] && echo "list_requirements.py -qs' ' $lropts -t python"
-  OEPKGS=$(list_requirements.py -qs' ' $lropts -t python)
-  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
-  bin_install_1 $VENV
-  [ $opt_dry_run -eq 0 ] && custom_env $VENV $opt_pyver
+  if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
+    [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
+    [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
+    [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t bin"
+    BINPKGS=$($LIST_REQ -qs' ' $lropts -t bin)
+    [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS"
+    [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t python"
+    OEPKGS=$($LIST_REQ -qs' ' $lropts -t python)
+    [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
+    bin_install_1 $VENV
+    [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
+  fi
   pip_install_1
   [ -n "$opt_oever" ] && pip_install_2
   [ -n "$opt_rfile" ] && pip_install_req
@@ -1059,7 +1074,7 @@ find_odoo_path() {
     [[ $opt_verbose -gt 2 ]] && echo ">>> find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py"
     for f in $(find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py 2>/dev/null|sort); do
         v=$(grep "^version_info" $f|cut -d= -f2|tr -d "("|tr -d ")"|tr -d " "|awk -F, '{print $1 "." $2}')
-        [[ -n "$opt_oever" && $v == $opt_oever ]] && opt_oepath="$(readlink -e $(dirname $f)/..)" && break
+        [[ -n "$opt_oever" && $v == $opt_oever ]] && opt_oepath="$($READLINK -e $(dirname $f)/..)" && break
         [[ -z "$opt_oever" ]] && opt_oever="$v" && break
     done
 }
@@ -1139,7 +1154,7 @@ if [[ -z "$p2" && -n "$VIRTUAL_ENV" && -f $VIRTUAL_ENV/bin/activate ]]; then
   p2=$VIRTUAL_ENV
   VENV_STS="preinstalled"   # running inside a virtual environment
 elif [[ -z "$p2" && -f ./bin/activate ]]; then
-  p2="$(readlink -e ./)"
+  p2="$($READLINK -e ./)"
 fi
 [[ -z "$p8" && -n "$p9" ]] && p8="$p9" && p9=""
 [[ -z "$p7" && -n "$p8" ]] && p7="$p8" && p8=""
