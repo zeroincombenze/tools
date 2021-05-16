@@ -74,7 +74,7 @@ While travis is running this is the tree directory:
         - travis_install_nightly
     (4) Done by following statements in .travis.yml::
         - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
-        - \${HOME}/tools/install_tools.sh -qopt
+        - \${HOME}/tools/install_tools.sh -qp
         - source ${HOME}/dev/activate_tools
         Above statements replace OCA following statements:
         - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1

@@ -103,7 +103,7 @@ Current version via Git
     cd $HOME
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -op
+    ./install_tools.sh -p
     source /opt/odoo/dev/activate_tools
 
 

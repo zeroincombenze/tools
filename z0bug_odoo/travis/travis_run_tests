@@ -9,7 +9,7 @@ import subprocess
 import sys
 from travis_helpers import success_msg, fail_msg
 
-__version__ = '1.0.1.3'
+__version__ = '1.0.2'
 
 
 def main(test_list):

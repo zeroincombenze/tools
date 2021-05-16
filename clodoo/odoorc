@@ -55,7 +55,7 @@
 # ODOO_GIT_SHORT -> regex of git organizzations with short name (def /(oca)/)
 #
 
-#__version__=0.3.30.1
+#__version__=0.3.30.2
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
     echo "You must source this script: \$ source $0" >&2
