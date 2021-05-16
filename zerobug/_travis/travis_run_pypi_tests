@@ -37,7 +37,7 @@ fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-__version__=1.0.0.11
+__version__=1.0.0.12
 
 
 travis_test_bash() {
@@ -321,8 +321,8 @@ install_n_activate_tools() {
     if [ -d $HOME/tools ]; then
         [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
         pushd $HOME/tools > /dev/null
-        [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-op
-        [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qop
+        [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-pt
+        [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qpt
         run_traced "./install_tools.sh $x"
         [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
         . $HOME/dev/activate_tools

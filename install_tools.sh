@@ -170,7 +170,10 @@ fi
 if [[ ! $1 =~ ^-.*n ]]; then
     source $DSTPATH/activate_tools
     if [[ $1 =~ ^-.*f || ! -d $DSTPATH/venv ]]; then
-        vem create $DSTPATH/venv -p2.7 -qiDBB -f
+         x="-iDBB"
+        [[ $1 =~ ^-.*q ]] && x="-qiDBB"
+        [[ $1 =~ ^-.*v ]] && x="-viDBB"
+        vem create $DSTPATH/venv -p2.7 $x -f
         [[ $? -ne 0 ]] && echo "Error creating Tools virtual environment!" && exit 1
     fi
     PYTHON=""

@@ -7,16 +7,14 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2016-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-export READLINK=readlink
-OS=$(uname -s)
-if [[ $OS == "Darwin" ]]; then
-  READLINK=$(which greadlink 2>/dev/null)
-  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
-fi
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])" | python)
-for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -28,10 +26,13 @@ if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$($READLINK -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$(/usr/bin/readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.0.11
+__version__=1.0.0.12
 
 conf_default() {
   if [ -z "$PS_TXT_COLOR" ]; then
@@ -255,8 +256,8 @@ install_n_activate_tools() {
   if [[ -d $HOME/tools && $(which travis_run_tests 2>&1 >/dev/null) ]]; then
     [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
     pushd $HOME/tools >/dev/null
-    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-opt
-    [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qopt
+    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-pt
+    [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qpt
     run_traced "./install_tools.sh $x"
     [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
     . $HOME/dev/activate_tools
