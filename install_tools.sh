@@ -18,7 +18,7 @@ if [[ $1 =~ ^-.*h ]]; then
     echo "  -q  quiet mode"
     echo "  -s  store sitecustomize.py in python path (you must have privileges)"
     echo "  -S  store sitecustomize.py in python path (you must have privileges)"
-    echo "  -t  execute in travis environment"
+    echo "  -t  execute in travis-ci environment"
     echo "  -T  execute regression tests"
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
@@ -50,14 +50,11 @@ DSTPATH=
 [[ $1 =~ ^-.*t ]] && HOME=$($READLINK -e $(dirname $0)/..)
 [[ $1 =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
 [[ $1 =~ ^-.*o ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-[[ -d $HOME/tools ]] && SRCPATH=$HOME/tools
 [[ -z "$SRCPATH" && -d $TDIR/../tools ]] && SRCPATH=$($READLINK -f $TDIR/../tools)
-[[ ! $1 =~ ^-.*o && ! -d $HOME/devel && -n "$SRCPATH" && $1 =~ ^-.*p && $1 =~ ^-.*v ]] && echo "$PMPT mkdir -p $HOME_DEV"
-[[ ! $1 =~ ^-.*o && ! -d $HOME/devel && -n "$SRCPATH" && $1 =~ ^-.*p && ! $1 =~ ^-.*n ]] && mkdir -p $HOME_DEV
-[[ $1 =~ ^-.*o && ! -d $HOME/dev && -n "$SRCPATH" && $1 =~ ^-.*p && $1 =~ ^-.*v ]] && echo "$PMPT mkdir -p $HOME_DEV"
-[[ $1 =~ ^-.*o && ! -d $HOME/dev && -n "$SRCPATH" && $1 =~ ^-.*p && ! $1 =~ ^-.*n ]] && mkdir -p $HOME_DEV
-[[ ! $1 =~ ^-.*o && -d $HOME/devel ]] && DSTPATH=$HOME_DEV
-[[ $1 =~ ^-.*o && -d $HOME/dev ]] && DSTPATH=$HOME_DEV
+[[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
+[[ ! -d $HOME_DEV && -n "$SRCPATH" && $1 =~ ^-.*p && $1 =~ ^-.*v ]] && echo "$PMPT mkdir -p $HOME_DEV"
+[[ ! -d $HOME_DEV && -n "$SRCPATH" && $1 =~ ^-.*p && ! $1 =~ ^-.*n ]] && mkdir -p $HOME_DEV
+[[ -d $HOME_DEV ]] && DSTPATH=$HOME_DEV
 if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
     echo "Invalid environment!"
     [[ -d $HOME/dev ]] && echo ".. perhaps you can use -o switch"
@@ -142,8 +139,8 @@ if [[ ! $1 =~ ^-.*n ]]; then
     echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">>$DSTPATH/activate_tools
     echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:\$PYTHONPATH">>$DSTPATH/activate_tools
     echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
-    [[ $1 =~ ^-.*t ]] && echo "[[ ! -d $SRCPATH/zerobug/_travis || :\$PATH: =~ :$SRCPATH/zerobug/_travis: ]] || export PATH=$SRCPATH/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
-    [[ $1 =~ ^-.*t ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
+    [[ $1 =~ ^-.*t || $TRAVIS =~ (true|emulate) ]] && echo "[[ ! -d $SRCPATH/zerobug/_travis || :\$PATH: =~ :$SRCPATH/zerobug/_travis: ]] || export PATH=$SRCPATH/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
+    [[ $1 =~ ^-.*t || $TRAVIS =~ (true|emulate) ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "complete -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ $1 =~ ^-.*t ]] || source $DSTPATH/activate_tools
 fi
@@ -170,12 +167,13 @@ fi
 if [[ ! $1 =~ ^-.*n ]]; then
     source $DSTPATH/activate_tools
     if [[ $1 =~ ^-.*f || ! -d $DSTPATH/venv ]]; then
-         x="-iDBB"
+        x="-iDBB"
         [[ $1 =~ ^-.*q ]] && x="-qiDBB"
-        [[ $1 =~ ^-.*v ]] && x="-viDBB"
+        [[ $1 =~ ^-.*v ]] && x="-vvviDBB"
         vem create $DSTPATH/venv -p2.7 $x -f
         [[ $? -ne 0 ]] && echo "Error creating Tools virtual environment!" && exit 1
     fi
+    [[ $PATH =~ $DSTPATH/venv/bin ]] || export PATH="$DSTPATH/venv/bin:$PATH"
     PYTHON=""
     PYTHON3=""
     [[ -x $DSTPATH/venv/bin/python ]] && PYTHON=$DSTPATH/venv/bin/python

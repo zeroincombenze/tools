@@ -26,7 +26,7 @@ fi
 __version__=1.0.0.8
 NEEDING_PKGS="future configparser os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
-SUP_PKGS="future python_plus"
+SUP_PKGS="future python-plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
 EI_PKGS="(distribute)"
 BZR_PKGS="(aeroolib)"
@@ -123,6 +123,10 @@ get_actual_pkg() {
   [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
   [[ $pkg =~ ^$PYBIN_PKGS([<=>!][0-9.]+)?$ ]] && pkg="python-$pkg"
   echo $pkg
+}
+
+get_local_version() {
+  grep "version" ./setup.py|awk -F= '{print $2}'|tr -d "'"|tr -d ","
 }
 
 get_pkg_wo_version() {
@@ -258,7 +262,7 @@ pip_install() {
     if [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
       pushd $srcdir/.. >/dev/null
-      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(python $fn -V)
+      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $fn)
       v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
       popd >/dev/null
       x=$(ls -d $pypath/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
@@ -385,7 +389,7 @@ pip_uninstall() {
     if [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
       pushd $srcdir/.. >/dev/null
-      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(python $fn -V)
+      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $fn)
       v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
       popd >/dev/null
       x=$(ls -d $pypath/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
@@ -863,7 +867,8 @@ do_venv_mgr() {
     fi
     [[ ! $cmd =~ (amend|check|cp) ]] && bin_install_1 $VENV
     [[ $cmd =~ (amend|check) ]] && bin_check_1 $VENV
-    run_traced "pip install pip -U"
+    x=$($PIP --version|grep -Eo "python [23]"|grep -Eo [23])
+    [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -U" || run_traced "$PIP install pip -U"
     PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
     [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "--upgrade"
     [[ $cmd =~ (amend|check) ]] && pip_check_1 $cmd
@@ -991,7 +996,8 @@ do_venv_create() {
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   cd_venv $VENV -f
   do_activate
-  run_traced "$PIP install pip -U"
+  x=$($PIP --version|grep -Eo "python [23]"|grep -Eo [23])
+  [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -U" || run_traced "$PIP install pip -U"
   PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
   check_installed_pkgs
   if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
