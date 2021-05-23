@@ -171,13 +171,13 @@ DEFINED_GRYMB_SYMBOLS = {
 EXCLUDED_MODULES = ['lxml', ]
 MANIFEST_ITEMS = ('name', 'version', 'category',
                   'summary', 'author', 'website',
-                  'maturity', 'license', 'depends',
+                  'development_status', 'license', 'depends',
                   'external_dependencies',
                   'data', 'demo', 'test',
                   'maintainer',
                   'installable')
-# MANIFEST_ITEMS_REQUIRED = ('name', 'version', 'author', 'website', 'license')
-MANIFEST_ITEMS_REQUIRED = ('name', 'version', 'website')
+MANIFEST_ITEMS_REQUIRED = ('name', 'version', 'author', 'website',
+                           'development_status', 'license')
 RST2HTML = {
     # &': '&amp;',
     '©': '&copy',
@@ -679,11 +679,12 @@ def expand_macro(ctx, token, default=None):
     elif token == 'GIT_ORGID':
         value = ctx['git_orgid']
     elif token == 'badge-maturity':
-        if ctx['maturity'].lower() == 'alfa':
+        if ctx['development_status'].lower() == 'alfa':
             value = 'https://img.shields.io/badge/maturity-Alfa-red.png'
-        elif ctx['maturity'].lower() == 'beta':
+        elif ctx['development_status'].lower() == 'beta':
             value = 'https://img.shields.io/badge/maturity-Beta-yellow.png'
-        elif ctx['maturity'].lower() in ('mature', 'production/stable'):
+        elif ctx['development_status'].lower() in ('mature',
+                                                   'production/stable'):
             value = 'https://img.shields.io/badge/maturity-Mature-green.png'
         else:
             value = 'https://img.shields.io/badge/maturity-Alfa-black.png'
@@ -1375,63 +1376,23 @@ def read_all_manifests(ctx):
 
 def manifest_item(ctx, item):
     if item == 'website':
-        if ctx['set_website']:
-            text = license_mgnt.COPY.get(
-                ctx['git_orgid'], {
-                    'website':
-                        'https://www.zeroincombenze.it/servizi-le-imprese/'
-                })['website']
+        if ctx['set_authinfo']:
+            text = ctx['license_mgnt'].get_website()
         else:
-            authors = []
-            for x in ctx['authors'].split('\n'):
-                if x:
-                    authors.append(x)
-            if len(authors) < 3:
-                for aut in authors:
-                    if aut:
-                        i = aut.find('<')
-                        j = aut.find('>')
-                        if i > 1 and j > i:
-                            text = aut[i + 1: j].strip()
-                            break
-            else:
-                text = 'https://odoo-community.org/'
+            text = ctx['manifest'].get(item, ctx['license_mgnt'].get_website())
         target = "    '%s': '%s',\n" % (item, text)
     elif item == 'maintainer':
-        if ctx['set_website']:
-            text = license_mgnt.COPY.get(
-                ctx['git_orgid'], {
-                    'devman': 'Antonio Maria Vigliotti'
-                })['website']
-        elif ctx['manifest'].get(item):
-            text = ctx['manifest'][item]
+        if ctx['set_authinfo']:
+            text = ctx['license_mgnt'].get_maintainer()
         else:
-            text = 'Odoo Community Association (OCA)'
+            text = ctx['manifest'].get(
+                item, ctx['license_mgnt'].get_maintainer())
         target = "    '%s': '%s',\n" % (item, text)
     elif item == 'author':
-        authors = []
-        for x in ctx['authors'].split('\n'):
-            if x:
-                authors.append(x)
-        if ctx['set_website']:
-            text = license_mgnt.COPY.get(
-                ctx['git_orgid'], {
-                    'author': 'Odoo Community Association (OCA)'
-                })['author']
+        if ctx['set_authinfo']:
+            text = ctx['license_mgnt'].summary_authors()
         else:
-            text = 'Odoo Community Association (OCA)'
-        if len(authors) <= 3:
-            for aut in authors:
-                if aut:
-                    i = aut.find('<')
-                    if i < 1:
-                        i = len(aut)
-                    if len(text):
-                        text += (', %s' % aut[1: i].strip())
-                    else:
-                        text = aut[1: i].strip()
-        else:
-            text += ' and other partners'
+            text = ctx['manifest'].get(item, ctx['license_mgnt'].summary_authors())
         target = "    '%s': '%s',\n" % (item, text)
     elif isinstance(ctx['manifest'][item], basestring):
         text = ctx['manifest'][item].replace("'", '"')
@@ -1472,9 +1433,23 @@ def manifest_contents(ctx):
         target += line + '\n'
     target += '{\n'
     for item in MANIFEST_ITEMS:
-        if item in ctx['manifest']:
-            target += manifest_item(ctx, item)
-        elif ctx['set_website'] and item in MANIFEST_ITEMS_REQUIRED:
+        if item not in ctx['manifest'] and item in MANIFEST_ITEMS_REQUIRED:
+            if item == 'license':
+                if ctx['opt_gpl'] not in ('agpl', 'lgpl', 'opl', 'oee'):
+                    ctx['opt_gpl'] = ctx['license_mgnt'].get_license(
+                        odoo_majver=ctx['odoo_majver'])
+                ctx['manifest'][item] = {
+                    'agpl': 'AGPL-3',
+                    'lgpl': 'LGPL-3',
+                    'opl': 'OPL-1',
+                    'oee': 'OEE-1',
+                }[ctx['opt_gpl']]
+            elif item == 'authors':
+                ctx['manifest'][item] = ctx['license_mgnt'].summary_authors()
+            elif item in ctx:
+                ctx['manifest'][item] = ctx[item]
+        if item in ctx['manifest'] or (ctx['set_authinfo'] and
+                                       item in MANIFEST_ITEMS_REQUIRED):
             target += manifest_item(ctx, item)
     for item in list(ctx['manifest'].keys()):
         if item != 'description' and item not in MANIFEST_ITEMS:
@@ -1574,12 +1549,14 @@ def set_default_values(ctx):
             'development_status': 'Alfa',
         }
     if ctx['product_doc'] == 'odoo':
-        ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
+        ctx['development_status'] = ctx['manifest'].get(
+            'development_status',
+            ctx.get('force_maturity', 'Alpha')) or 'Alpha'
     else:
-        ctx['maturity'] = 'Alfa'
+        ctx['development_status'] = 'Alfa'
         for item in ctx['manifest'].get('classifiers', []):
             if item.startswith('Development Status'):
-                ctx['maturity'] = item.split('-')[1].strip()
+                ctx['development_status'] = item.split('-')[1].strip()
                 break
     ctx['name'] = ctx['manifest'].get('name',
                                       ctx['module_name'].replace('_', ' '))
@@ -1647,7 +1624,10 @@ def generate_readme(ctx):
 
     ctx = read_manifest_setup(ctx)
     set_default_values(ctx)
-    # license = license_mgnt.License()
+    ctx['license_mgnt'] = license_mgnt.License()
+
+    ctx['license_mgnt'].add_copyright(
+        ctx['git_orgid'], '', '', '', '')
     # Read predefined section / tags
     for section in DEFINED_TAG:
         out_fmt = None
@@ -1701,7 +1681,7 @@ def generate_readme(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Generate README",
-                                "© 2018-2020 by SHS-AV s.r.l.",
+                                "© 2018-2021 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
@@ -1714,6 +1694,10 @@ if __name__ == "__main__":
     parser.add_argument('-G', '--git-org',
                         action='store',
                         dest='git_orgid')
+    parser.add_argument('-g', '--gpl-info',
+                        action='store',
+                        dest='opt_gpl',
+                        default='')
     parser.add_argument('-H', '--write-index_html',
                         action='store_true',
                         dest='write_html')
@@ -1725,6 +1709,10 @@ if __name__ == "__main__":
                         action='store',
                         help='filename',
                         dest='module_name')
+    parser.add_argument('-M', '--force-maturity',
+                        action='store',
+                        help='Alfa,Beta,Mature,Production/stable',
+                        dest='force_maturity')
     parser.add_argument('-n')
     parser.add_argument('-o', '--output-file',
                         action='store',
@@ -1757,9 +1745,9 @@ if __name__ == "__main__":
                         dest='trace_file')
     parser.add_argument('-V')
     parser.add_argument('-v')
-    parser.add_argument('-W', '--set_website',
+    parser.add_argument('-W', '--write-authinfo',
                         action='store_true',
-                        dest='set_website')
+                        dest='set_authinfo')
     parser.add_argument('-w', '--suppress-warning',
                         action='store_true',
                         dest='suppress_warning')

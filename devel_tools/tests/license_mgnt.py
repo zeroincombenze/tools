@@ -58,6 +58,11 @@ class License:
 
     def add_copyright(self, org_id, name, website, email, years):
         if org_id and org_id not in self.org_ids:
+            if org_id in COPY:
+                if not name:
+                    name = COPY[org_id]['author']
+                if not website:
+                    website = COPY[org_id]['website']
             self.org_ids[org_id] = [name, website, email, years]
         elif email and email not in self.contributors:
             self.contributors[email] = [name, email, years]
@@ -227,3 +232,16 @@ class License:
                     if maintainer:
                         break
         return maintainer
+
+    def get_license(self, odoo_majver=None):
+        odoo_majver = odoo_majver or 12.0
+        if odoo_majver <= 8:
+            license = 'agpl'
+        else:
+            if 'oca' in self.org_ids:
+                license = 'lgpl'
+            elif 'powerp' in self.org_ids:
+                license = 'opl'
+            else:
+                license = 'lgpl'
+        return license

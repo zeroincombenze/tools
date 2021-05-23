@@ -326,6 +326,8 @@ EOF
 # (C) SHS-Av s.r.l.
 {
     'name': 'test',
+    'development_status': 'Alpha',
+    'license': 'AGPL-3',
     'depends': [
         'base',
         'account',
@@ -582,9 +584,8 @@ EOF
 
 
 test_05() {
-    # Test __manifest__.py
-    local TESTOUT TESTRES TESTFN
-    TESTFN=test_gen_readme_04
+    # Test __manifest__.py    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_05
     TESTSRC=$TESTDIR/res/$TESTFN.py
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/__manifest__.py
@@ -602,7 +603,10 @@ EOF
 {
     'name': 'mtest',
     'version': '12.0.1.0',
+    'author': 'powERP enterprise network',
     'website': 'https://www.powerp.it',
+    'development_status': 'Alpha',
+    'license': 'OPL-1',
 }
 EOF
       pushd $TESTDIR/res &>/dev/null

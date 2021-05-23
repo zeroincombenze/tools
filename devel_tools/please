@@ -1957,9 +1957,10 @@ do_docs() {
     run_traced "gen_readme.py -b$odoo_fver $opts -G$orgid"
     version=$(build_odoo_param MAJVER $odoo_fver)
     if [[ -d ./static ]]; then
-      [ $version -gt 7 ] && run_traced "gen_readme.py -b$odoo_fver $opts -H -G$orgid"
-      [ $version -le 7 ] && run_traced "gen_readme.py -b$odoo_fver $opts -R -G$orgid"
+      [[ $version -gt 7 ]] && run_traced "gen_readme.py -b$odoo_fver $opts -H -G$orgid"
+      [[ $version -le 7 && $opt_force -eq 0 ]] && run_traced "gen_readme.py -b$odoo_fver $opts -R -G$orgid"
     fi
+    [[ $opt_force -ne 0 ]] && run_traced "gen_readme.py -b$odoo_fver $opts -RW -G$orgid"
     return 0
   fi
   if [ ! -d $docs_dir ]; then
