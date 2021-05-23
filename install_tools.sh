@@ -96,12 +96,15 @@ for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator 
         fi
         if [[ ! -e "$src" ]]; then
             echo "File $src not found!"
-        elif [[ ! -e "$tgt" || -L "$tgt" || $1 =~ ^-.*[fp] || $fn =~ $MOVED_FILES_RE ]]; then
+        elif [[ ! -e "$tgt" || -L "$tgt" || $1 =~ ^-.*[fpU] || $fn =~ $MOVED_FILES_RE ]]; then
             [[ -L "$tgt" ]] && echo "$PMPT rm -f $tgt"
             [[ -L "$tgt" && ! $1 =~ ^-.*n ]] && rm -f $tgt
             [[ -d "$tgt" ]] && echo "$PMPT rm -fR $tgt"
             [[ -d "$tgt" && ! $1 =~ ^-.*n ]] && rm -fR $tgt
-            if [[ ! -e "$tgt" || $1 =~ ^-.*[fp] ]]; then
+            if [[ $fn =~ (kbase|templates) ]]; then
+                [[ ! $1 =~ ^-.*q ]] && echo "$PMPT ln -s $src $tgt"
+                [[ $1 =~ ^-.*n ]] || ln -s $opts $src $tgt
+            elif [[ ! -e "$tgt" || $1 =~ ^-.*[fpU] ]]; then
                 [[ $ftype == f ]] && opts="" || opts="-r"
                 [[ ! $1 =~ ^-.*q ]] && echo "$PMPT cp $opts $src $tgt"
                 [[ $1 =~ ^-.*n ]] || cp $opts $src $tgt
@@ -115,7 +118,7 @@ done
 [[ $1 =~ ^-.*n ]] || cp $SRCPATH/tests/test_tools.sh $DSTPATH/test_tools.sh
 if [[ -f $HOME/maintainers-tools/env/bin/oca-autopep8 ]]; then
     tgt=$DSTPATH/oca-autopep8
-    if [[ ! -L "$tgt" || $1 =~ ^-.*[fp] ]]; then
+    if [[ ! -L "$tgt" || $1 =~ ^-.*[fpU] ]]; then
         if [[ -L "$tgt" || -f "$tgt" ]]; then
             [[ ! $1 =~ ^-.*q ]] && echo "$PMPT rm -f $tgt"
             [[ $1 =~ ^-.*n ]] || rm -f $tgt
@@ -166,7 +169,7 @@ if [[ $1 =~ ^-.*[Ss] ]]; then
 fi
 if [[ ! $1 =~ ^-.*n ]]; then
     source $DSTPATH/activate_tools
-    if [[ $1 =~ ^-.*f || ! -d $DSTPATH/venv ]]; then
+    if [[ $1 =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
         x="-iDBB"
         [[ $1 =~ ^-.*q ]] && x="-qiDBB"
         [[ $1 =~ ^-.*v ]] && x="-vvviDBB"
@@ -179,13 +182,13 @@ if [[ ! $1 =~ ^-.*n ]]; then
     [[ -x $DSTPATH/venv/bin/python ]] && PYTHON=$DSTPATH/venv/bin/python
     [[ -x $DSTPATH/venv/bin/python2 ]] && PYTHON=$DSTPATH/venv/bin/python2
     [[ -x $DSTPATH/venv/bin/python3 ]] && PYTHON3=$DSTPATH/venv/bin/python3
-    [[ $1 =~ ^-.*f || ! -d $DSTPATH/venv ]] && path="$DSTPATH/bin/*" || path2=""
+    [[ $1 =~ ^-.*[fU] || ! -d $DSTPATH/venv ]] && path="$DSTPATH/bin/*" || path2=""
     for f in $DSTPATH/* $path2; do
         [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python3|#\!$PYTHON3|" $f
         [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python2|#\!$PYTHON|" $f
         [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python|#\!$PYTHON|" $f
     done
-    if [[ $1 =~ ^-.*f || ! -d $DSTPATH/venv ]]; then
+    if [[ $1 =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
         # Please do not change package list order
         for pkg in configparser odoorpc oerplib babel lxml unidecode xlrd pyyaml z0lib zerobug clodoo; do
             [[ ! $1 =~ ^-.*q ]] && echo "Installing $pkg ..."

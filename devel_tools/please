@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(/usr/bin/readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.0.17
+__version__=1.0.0.18
 
 #
 # General Purpose options:
@@ -120,9 +120,9 @@ search_pofile() {
 }
 
 add_copyright() {
-  #add_copyright(file rst zero|oca|oia)
-  if [ "$PRJNAME" == "Odoo" ]; then
-    if [ $2 -eq 1 ]; then
+  #add_copyright(file rst zero|oca|powerp)
+  if [[ "$PRJNAME" == "Odoo" ]]; then
+    if [[ $2 -eq 1 ]]; then
       echo ".. [//]: # (copyright)" >>$1
     else
       echo "[//]: # (copyright)" >>$1
@@ -130,7 +130,7 @@ add_copyright() {
     echo "" >>$1
     echo "----" >>$1
     echo "" >>$1
-    if [ $2 -eq 1 ]; then
+    if [[ $2 -eq 1 ]]; then
       echo "**Odoo** is a trademark of  \`Odoo S.A." >>$1
       echo "<https://www.odoo.com/>\`_." >>$1
       echo "(formerly OpenERP, formerly TinyERP)" >>$1
@@ -138,7 +138,7 @@ add_copyright() {
       echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)" >>$1
     fi
     echo "" >>$1
-    if [ $2 -eq 1 ]; then
+    if [[ $2 -eq 1 ]]; then
       echo "**OCA**, or the  \`Odoo Community Association" >>$1
       echo "<http://odoo-community.org/>\`_." >>$1
       echo "is a nonprofit organization whose" >>$1
@@ -148,19 +148,16 @@ add_copyright() {
     echo "mission is to support the collaborative development of Odoo features and" >>$1
     echo "promote its widespread use." >>$1
     echo "" >>$1
-    if [ "$3" == "oia" ]; then
-      echo "**Odoo Italia Associazione**, or the [Associazione Odoo Italia](https://www.odoo-italia.org/)" >>$1
-      echo "is the nonprofit Italian Community Association whose mission" >>$1
-      echo "is to support the collaborative development of Odoo designed for Italian law and markeplace." >>$1
-      echo "Since 2017 Odoo Italia Associazione issues modules for Italian localization not developed by OCA" >>$1
-      echo "or available only with Odoo Proprietary License." >>$1
-      echo "Odoo Italia Associazione distributes code under [AGPL](https://www.gnu.org/licenses/agpl-3.0.html) or [LGPL](https://www.gnu.org/licenses/lgpl.html) free license." >>$1
-      echo "" >>$1
-      echo "[Odoo Italia Associazione](https://www.odoo-italia.org/) è un'Associazione senza fine di lucro" >>$1
-      echo "che dal 2017 rilascia moduli per la localizzazione italiana non sviluppati da OCA" >>$1
-      echo "o disponibili solo con [Odoo Proprietary License](https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html)." >>$1
-      echo "" >>$1
-      echo "Odoo Italia Associazione distribuisce il codice esclusivamente con licenza [AGPL](https://www.gnu.org/licenses/agpl-3.0.html) o [LGPL](https://www.gnu.org/licenses/lgpl.html)" >>$1
+    if [[ "$3" == "powerp" ]]; then
+      echo "**powERP**, or the [powERP enterprise network](https://www.powerp.it/)" >>$1
+      echo "is an Italian enterprise network whose mission is to develop high-level" >>$1
+      echo "addons designed for Italian enterprise companies." >>$1
+      echo "The powER software, released under Odoo Proprietary License," >>$1
+      echo "adds new enhanced features to Italian localization." >>$1
+      echo "La rete di imprese [powERP](https://www.powerp.it/)" >>$1
+      echo "fornisce, sotto licenza OPL, estensioni evolute della localizzazine italiana." >>$1
+      echo "Il software è progettato per medie e grandi imprese italiane" >>$1
+      echo "che richiedono caratteristiche non disponibili nella versione Odoo CE" >>$1
       echo "" >>$1
     else
       if [ $2 -eq 1 ]; then
@@ -1096,7 +1093,7 @@ cvt_readme() {
 }
 
 cvt_file() {
-  # cvt_file(file oca|zero|oia travis|readme|manifest currpt ORIG)
+  # cvt_file(file oca|zero|powerp travis|readme|manifest currpt ORIG)
   local f1=$1
   local sts=$STS_SUCCESS
   if [ -n "$f1" ]; then
@@ -1151,18 +1148,7 @@ cvt_file() {
       if [ "$3" == "travis" ]; then
         cvt_travis $f1 "$2" "$4" "$5"
       elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
-        if [ "$b" == "README.rst" -a -d $d/egg-info ]; then
-          pushd $d >/dev/null
-          [ -f README.md ] && rm -fR README.md
-          if [ -f __openerp__.py -o -f __manifest__.py ]; then
-            run_traced "$TDIR/gen_readme.py -Goia -lmodule"
-          else
-            run_traced "$TDIR/gen_readme.py -Goia -lrepository"
-          fi
-          popd &>/dev/null
-        else
-          cvt_readme $f1 "$2" "$4" "$5"
-        fi
+        cvt_readme $f1 "$2" "$4" "$5"
       fi
       if [ -f $f1_cur ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
         diff -q $f1 $f1_cur &>/dev/null
@@ -1870,7 +1856,7 @@ do_distribution_odoo() {
     else
       OPTS=-lmodule
     fi
-    [ -f README.md ] && run_traced "rm -fR README.md"
+    [[ -f README.md ]] && run_traced "rm -fR README.md"
     run_traced "gen_readme.py -qG$GIT_ORG $OPTS"
     if [ $odoo_ver -ge 8 ]; then
       if [ -f __openerp__.py -o -f __manifest__.py ]; then
@@ -1958,14 +1944,14 @@ do_docs() {
       [[ -n "$GIT_URL" ]] && GIT_ORGNM=$(basename $(dirname $(git remote -v | echo $GIT_URL | awk -F: '{print $2}')))
       [[ $GIT_ORGNM == "OCA" ]] && orgid="oca"
       [[ $GIT_ORGNM == "zeroincombenze" ]] && orgid="zero"
-      [[ $GIT_ORGNM =~ (axitec|axilor) ]] && orgid="axitec"
+      [[ $GIT_ORGNM =~ (PowERP-cloud|powerp1) ]] && orgid="powerp"
     elif [[ -z "$opt_branch" && -d $PARENTDIR/.git ]]; then
       pushd $PARENTDIR >/dev/null
       GIT_URL=$(git remote get-url --push origin 2>/dev/null)
       [[ -n "$GIT_URL" ]] && GIT_ORGNM=$(basename $(dirname $(git remote -v | echo $GIT_URL | awk -F: '{print $2}')))
       [[ $GIT_ORGNM == "OCA" ]] && orgid="oca"
       [[ $GIT_ORGNM == "zeroincombenze" ]] && orgid="zero"
-      [[ $GIT_ORGNM =~ (axitec|axilor) ]] && orgid="axitec"
+      [[ $GIT_ORGNM =~ (PowERP-cloud|powerp1) ]] && orgid="powerp"
       popd >/dev/null
     fi
     run_traced "gen_readme.py -b$odoo_fver $opts -G$orgid"
@@ -2681,20 +2667,31 @@ do_status() {
   [[ -n "$PKGS" ]] && PKGS="(${PKGS:0:-1})" || PKGS="()"
   [[ -n "$PKGS_V" ]] && PKGS_V="(${PKGS_V:0:-1})" || PKGS_V="()"
   popd >/dev/null
-  for pkg in $PKGS_LIST; do
+  for pkg in $PKGS_LIST tools; do
     x=""
     [[ $opt_force -ne 0 ]] && echo -e "\e[1m[ $pkg ]\e[0m"
     [[ $opt_force -eq 0 ]] && echo -e "[ $pkg ]"
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg="${pkg//-/_}"
-    [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q | grep -v "diff -x"
     if [[ $opt_force -eq 0 ]]; then
-      vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
-      [[ $? -ne 0 ]] && x="R"
+      if [[ $pkg == "tools" ]]; then
+        for fn in templates .travis.yml install_tools.sh odoo_default_tnl.xlsx setup.py; do
+          vfdiff -X diff $HOME/$pkg/$fn $HOME_DEV/pypi/$pkg/$fn -q >/dev/null
+          [[ $? -ne 0 ]] && x="R" && break
+        done
+      else
+        vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
+        [[ $? -ne 0 ]] && x="R"
+      fi
     fi
     [[ $PKGS != "()" && $pkg =~ $PKGS ]] && x="$x G"
     [[ $PKGS_V != "()" && $pkg =~ $PKGS_V ]] && x="$x V"
-    v1=$(grep -E "version" $HOME/tools/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
-    v2=$(grep -E "version" $HOME_DEV/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+    if [[ $pkg == "tools" ]]; then
+      v1=$(grep -E "version" $HOME/tools/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+      v2=$(grep -E "version" $HOME_DEV/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+    else
+      v1=$(grep -E "version" $HOME/tools/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+      v2=$(grep -E "version" $HOME_DEV/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+    fi
     if [[ $x =~ "R" ]]; then
       if [[ $v1 == $v2 && ! $x =~ "V" ]]; then
         v=$(echo $v2 | awk -F. '{if ($NF == 3) {OFS="."; print $1,$2,int($3)+1} else {OFS="."; print $1,$2,$3,int($4)+1}}')
@@ -2827,11 +2824,11 @@ do_config() {
     cfgfn=$($READLINK -m $PKGPATH/conf/.local_dist_pkg.conf)
   elif [ "$sub1" == "current" ]; then
     cfgfn=$DIST_CONF
-  elif [ "$sub1" == "zero" -o "$sub1" == "axitec" ]; then
+  elif [ "$sub1" == "zero" -o "$sub1" == "powerp" ]; then
     cfgfn=
   else
     echo "Missed parameter! use:"
-    echo "\$ please config global|repository|local|current|zero|axitec [def|del]"
+    echo "\$ please config global|repository|local|current|zero|powerp [def|del]"
     sts=$STS_FAILED
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
@@ -2913,9 +2910,8 @@ opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
-[[ $opt_verbose -gt 1 ]] && set -x
 init_travis
-if [ $opt_verbose -gt 2 ]; then set -x; fi
+[[ $opt_verbose -gt 2 ]] && set -x
 prepare_env_travis "$actions" "-r"
 sts=$STS_SUCCESS
 sts_bash=127

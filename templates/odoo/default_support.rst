@@ -2,16 +2,25 @@
 .. $if git_orgid == 'zero'
 |Zeroincombenze| This module is maintained by the `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__
 
-.. $elif git_orgid == 'oia'
-|Odoo Italia Associazione| This module is maintained by the Odoo Italia Associazione and free support is supplied through its `forum <https://odoo-italia.org/index.php/kunena/recente>`__
+.. $elif git_orgid == 'powerp'
+This module is maintained by the / Questo modulo è mantenuto dalla rete di imprese `Powerp <http://www.powerp.it/>`__
+
+Developer companies are / I soci sviluppatoro sono:
+
+* `Didotech s.r.l. <http://www.didotech.com>`__
+* `SHS-AV s.r.l. <https://www.shs-av.com/>`__
 
 .. $fi
 .. $else
 .. $if git_orgid == 'zero'
 |Zeroincombenze| This project is mainly maintained by the `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__
 
-.. $elif git_orgid == 'oia'
-|Odoo Italia Associazione| This project is mainly maintained by the Odoo Italia Associazione and free support is supplied through its `forum <https://odoo-italia.org/index.php/kunena/recente>`__
+.. $elif git_orgid == 'powerp'
+This module is maintained by the / Questo modulo è mantenuto dalla rete di imprese `Powerp <http://www.powerp.it/>`__
 
+Developer companies are / I soci sviluppatoro sono:
+
+* `Didotech s.r.l. <http://www.didotech.com>`__
+* `SHS-AV s.r.l. <https://www.shs-av.com/>`__
 
 .. $fi

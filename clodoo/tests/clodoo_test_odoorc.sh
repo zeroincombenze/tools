@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.30.2
+__version__=0.3.30.3
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca librerp VENV_123- devel"
@@ -80,7 +80,7 @@ test_01() {
         test_result "1d> GIT_ORGID $v" "powerp" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1d> GIT_ORGNM $v" "powerp1" "$RES"
+        test_result "1d> GIT_ORGNM $v" "PowERP-cloud" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in librerp6 librerp odoo6-librerp VENV-librerp6 VENV-librerp VENV_123-librerp6 VENV_123-librerp; do

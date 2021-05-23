@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(/usr/bin/readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.0.16
+__version__=1.0.0.17
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -524,7 +524,7 @@ process_yaml_after_success() {
 process_yaml_run_cmd() {
   #process_yaml_run_cmd (cmd init)
   local xcmd=$(process_yaml_quote_xtl "$1")
-  local ix ix1 ix2 c i x s p pp tk z sts xtlcmd
+  local ix ix1 ix2 c i x s opts p pp tk z sts xtlcmd
   local xlint xtest xtfex xpkg xcd
   if [[ -n "$2" ]]; then
     local line1="$(process_yaml_quote_xtl $2) "
@@ -607,7 +607,7 @@ process_yaml_run_cmd() {
       ((ix++))
       tk=${x[$ix]}
     done
-    if [ "$TRAVIS" != "true" -a "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
+    if [[ "$TRAVIS" != "true" && "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]]; then
       xcmd="$(echo $xcmd | sed -e 's/git clone/git_clone/g')"
     fi
   elif [ "${x[$ix]}" == "pip" -a "${x[$ix1]}" == "install" ]; then
@@ -730,7 +730,8 @@ process_yaml_run_cmd() {
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     if [[ $xcmd =~ "travis_install_env" ]]; then
       ((Z0_STACK=Z0_STACK+2))
-      [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME -p$TRAVIS_PYTHON_VERSION -fq"
+      opts=$(inherits_travis_opts "" "V")
+      [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION -f"
       ((Z0_STACK=Z0_STACK-2))
     fi
     [[ $c != $xcmd && ! $xcmd =~ ^# ]] && ((Z0_STACK=Z0_STACK-2))
@@ -841,7 +842,7 @@ process_yaml() {
           fi
           wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[0m"
           create_virtual_env
-          for p in PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_BRANCH HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
+          for p in PATH HOME TRAVIS TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_SAVED_HOME HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
             X=${!p}
             [[ -n "$X" || $p =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $p=$X\e[0m"
           done

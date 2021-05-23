@@ -237,7 +237,8 @@ bin_install_1() {
 pip_install() {
   #pip_install(pkg opts)
   local pkg d x srcdir fn popts v
-  local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
+  local pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name "python$opt_pyver")
+  [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
   pkg="$(get_actual_pkg $1)"
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
@@ -639,12 +640,6 @@ venv_mgr_check_src_path() {
     PYTHON=""
     PIP=""
     if [[ -n "$opt_pyver" ]]; then
-      if [[ ! -x $opt_pyver && $2 == "create" ]]; then
-        [[ -x /usr/bin/python$opt_pyver ]] && PYTHON=/usr/bin/python$opt_pyver
-        [[ -x /usr/local/bin/python$opt_pyver ]] && PYTHON=/usr/local/bin/python$opt_pyver
-        [[ -z "$PYTHON" ]] && PYTHON=python$opt_pyver
-        PIP="$PYTHON -m pip"
-      fi
       [[ -z "$PYTHON" && -x $opt_pyver ]] && PYTHON=$opt_pyver && opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1) && PIP="$PYTHON -m pip"
       [[ -z "$PYTHON" && -n $opt_pyver ]] && PYTHON=$(which python$opt_pyver 2>/dev/null) && PIP="$PYTHON -m pip"
       [[ -z "$PYTHON" && -n $opt_pyver && $OPT_pyver =~ ^3 ]] && PYTHON=python3
@@ -690,13 +685,15 @@ check_4_needing_pkgs() {
 }
 
 check_installed_pkgs() {
-  local p x
+  local p x popts
   check_4_needing_pkgs
   [[ ! $NEEDING_PKGS =~ clodoo && ( -n "$opt_oepath" || -n "$opt_oever" ) ]] && NEEDING_PKGS="$NEEDING_PKGS clodoo"
+  [[ $PIPVER -eq 19 ]] && popts="--use-feature=2020-resolver" || popts=""
+  [[ $opt_verbose -eq 0 ]] && popts="$potps -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
-    [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install --use-feature=2020-resolver -q $p"
-    [[ -z "${!x}" ]] && $PIP install --use-feature=2020-resolver -q $p
+    [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install popts $p"
+    [[ -z "${!x}" ]] && $PIP install $popts $p
   done
   LIST_REQ="list_requirements.py"
   if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then

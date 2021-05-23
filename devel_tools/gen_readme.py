@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.0.17"
+__version__ = "1.0.0.18"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -331,17 +331,6 @@ def get_template_fn(ctx, template, ignore_ntf=None):
 
 def clean_summary(summary):
     return ' '.join(x.strip() for x in summary.split('\n'))
-#
-#
-# def generate_description_file(ctx):
-#     full_fn = get_full_fn(ctx, 'docs', 'description.rst')
-#     if ctx['opt_verbose']:
-#         print("Writing %s" % full_fn)
-#     if not os.path.isdir(os.path.dirname(full_fn)):
-#         os.makedirs(os.path.dirname(full_fn))
-#     fd = open(full_fn, 'w')
-#     fd.write(os0.b(ctx['description']))
-#     fd.close()
 
 
 def get_default_prerequisites(ctx):
@@ -352,7 +341,7 @@ def get_default_prerequisites(ctx):
 * postgresql 9.5+ (experimental 10.0+)
 .. $fi
 .. $if branch in '11.0'
-* python 3.5+
+* python 3.6+
 * postgresql 9.2+ (best 9.5)
 .. $fi
 .. $if branch in '6.1' '7.0' '8.0' '9.0' '10.0'
@@ -1018,6 +1007,54 @@ def append_line(state, line, nl_bef=None):
     return state, text
 
 
+def tail(source, max_ctr=None, max_days=None, module=None):
+    target = ''
+    max_ctr = max_ctr or 12
+    max_days = max_days or 360
+    left = ''
+    for lno, line in enumerate(source.split('\n')):
+        if left:
+            line = '%s%s' % (left, line)
+            left = ''
+        x = re.match(r'^[0-9]+\.[0-9]+\.[0-9]+', line)
+        if x:
+            max_ctr -= 1
+            if max_ctr < 0:
+                break
+            x = re.search(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', line)
+            if x and (datetime.now() -
+                      datetime.strptime(line[x.start():x.end()],
+                                        '%Y-%m-%d')).days > max_days:
+                break
+            if module:
+                line = '%s: %s' % (module, line)
+                left = '~' * (len(module) + 2)
+        target += line
+        target += '\n'
+    return target
+
+
+def sort_history(source):
+    histories = {}
+    hash = ''
+    histories[hash] = ''
+    for lno, line in enumerate(source.split('\n')):
+        x = re.match(r'^.*: [0-9]+\.[0-9]+\.[0-9]+', line)
+        if x:
+            x = re.search(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', line)
+            dt = line[x.start():x.end()]
+            module = line.split(': ')[0]
+            hash = '%s %s' % (dt, module)
+            histories[hash] = ''
+        histories[hash] += line
+        histories[hash] += '\n'
+    target = ''
+    for item in sorted(histories.keys(), reverse=True):
+        target += histories[item]
+        target += '\n'
+    return target
+
+
 def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
     state = state or _init_state()
     out_fmt = out_fmt or state.get('out_fmt', 'rst')
@@ -1030,16 +1067,6 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
             if is_preproc:
                 if line.startswith('.. $include '):
                     filename = line[12:].strip()
-                    # if filename.endswith('.csv'):
-                    #     full_fn = get_template_fn(ctx, filename)
-                    #     full_fn_rst = '%s.rst' % full_fn[: -4]
-                    #     os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
-                    #         ctx['branch'], full_fn, full_fn_rst))
-                    #     state, text = parse_local_file(ctx,
-                    #                                    full_fn_rst,
-                    #                                    state=state)
-                    #     os.unlink(full_fn_rst)
-                    # else:
                     state, text = parse_local_file(ctx,
                                                    filename,
                                                    state=state)
@@ -1167,6 +1194,8 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         source = parse_acknoledge_list(
             ctx, '\n'.join(set(source1.split('\n')) |
                            set(source2.split('\n'))))
+    if len(source) and filename == 'history.rst':
+        source = tail(source)
     if len(source):
         if ctx['trace_file']:
             mark = '.. !! from "%s"\n\n' % filename
@@ -1219,7 +1248,6 @@ def read_setup(ctx):
         manifest_file = ''
     if manifest_file:
         fd = open(manifest_file, 'rU')
-        # lines = os0.u(fd.read()).split('\n')[1:]
         ctx['manifest'] = eval('\n'.join(
             os0.u(fd.read()).split('\n')[1:]).replace('setup', 'dict'))
         fd.close()
@@ -1269,12 +1297,12 @@ def read_all_manifests(ctx):
         return True
 
     ctx['manifest'] = {}
+    ctx['histories'] = ''
     addons_info = {}
     if ctx['odoo_majver'] >= 10:
         manifest_file = '__manifest__.py'
     else:
         manifest_file = '__openerp__.py'
-    # for root, dirs, files in os.walk('.', topdown=True):
     for root, dirs, files in os.walk('.'):
         dirs[:] = [d for d in dirs if valid_dir(d, ctx['odoo_layer'])]
         if ctx['odoo_layer'] != 'ocb' or root.find('addons') >= 0:
@@ -1300,6 +1328,13 @@ def read_all_manifests(ctx):
                         addons_info[module_name]['installable'] = False
                 except KeyError:
                     pass
+                if os.path.isdir(os.path.join(root, 'egg-info')):
+                    full_fn = os.path.join(root, 'egg-info', 'history.rst')
+                    if os.path.isfile(full_fn):
+                        with open(full_fn, 'r') as fd:
+                            history = tail(os0.u(fd.read()),
+                                           max_days=180, module=module_name)
+                        ctx['histories'] += history
     if ctx['odoo_layer'] == 'ocb':
         oca_root = '%s/oca%d' %  (os.environ['HOME'], ctx['odoo_majver'])
     else:
@@ -1335,6 +1370,7 @@ def read_all_manifests(ctx):
                         'oca_installable'] = oca_manifest.get('installable',
                                                               True)
     ctx['addons_info'] = addons_info
+    ctx['histories'] = sort_history(ctx['histories'])
 
 
 def manifest_item(ctx, item):

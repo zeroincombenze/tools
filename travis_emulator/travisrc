@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.0.16
+#__version__=1.0.0.17
 
 # MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
@@ -71,15 +71,9 @@ opts_travis() {
 
 inherits_travis_opts() {
   # inherits_travis_opts(opts_enables app)
-  # app: After_test,Distribution,Emulator,Nightly,Please,Test,pep8
-  local opts=
-  local opts2=
-  local o
-  if [ -z "$1" ]; then
-    local e=
-  else
-    local e=$1
-  fi
+  # app: After_test,Distribution,Emulator,Nightly,Please,Test,Vem,pep8
+  local e o opts opts2
+  [[ -n "$1" ]] && e=$1
   declare -A A
   A[A]="jnqv"
   A[D]="CcDdFfnOoPqRv"
@@ -87,8 +81,9 @@ inherits_travis_opts() {
   A[N]="CKnOR"
   A[P]="cdfjmnOqruv"
   A[T]="BcKPpqrTv"
+  A[V]="qv"
   A[8]="dnquv"
-  if [ -n "$2" ]; then
+  if [[ -n "$2" ]]; then
     for o in B C c d F f K j m n O o P p q R r T u v; do
       if [[ ${A[$2]} =~ $o ]]; then
         if [ "$o" == "B" -a ${opt_debug:-0} -ne 0 ]; then
@@ -119,8 +114,11 @@ inherits_travis_opts() {
           opts="${opts}$o"
         elif [ "$o" == "u" -a ${opt_uop:-0} -eq 1 ]; then
           opts="${opts}$o"
-        elif [ "$o" == "v" -a ${opt_verbose:-0} -gt 0 ]; then
-          opts="${opts}$o"
+        elif [[ $o == "v" ]]; then
+          [[ ${opt_verbose:-0} -ne 0 || $e =~ $o ]] && opts="${opts}$o"
+          [[ ${opt_verbose:-0} -gt 1 ]] && opts="${opts}$o"
+          [[ ${opt_verbose:-0} -gt 2 ]] && opts="${opts}$o"
+          [[ ${opt_verbose:-0} -gt 3 ]] && opts="${opts}$o"
         elif [[ $e =~ $o ]]; then
           opts="${opts}$o"
         fi
@@ -154,12 +152,8 @@ inherits_travis_opts() {
       fi
     fi
   fi
-  if [ -n "$opts" ]; then
-    opts="-${opts}"
-  fi
-  if [ -n "$opts2" ]; then
-    opts="${opts} ${opts2}"
-  fi
+  [[ -n "$opts" ]] && opts="-${opts}"
+  [[ -n "$opts2" ]] && opts="${opts} ${opts2}"
   echo "$opts"
 }
 
@@ -359,7 +353,7 @@ get_dbuser() {
 }
 
 drop_test_db() {
-  if [ "$PRJNAME" == "Odoo" ]; then
+  if [[ "$PRJNAME" == "Odoo" ]]; then
     [[ -n $PGUSER ]] || PGUSER=$USER
     [[ -n $MQT_TEMPLATE_DB ]] || MQT_TEMPLATE_DB="openerp_template"
     [[ -n $MQT_TEST_DB ]] || MQT_TEST_DB="openerp_test"
@@ -415,58 +409,62 @@ set_osx() {
 }
 
 create_virtual_env() {
-  local f p t x
+  local f opts p t x
   export TRAVIS_BRANCH=$BRANCH
   local sts=0
-  local VER=${VERSION}
-  VENVOPTS=-D
-  [ -z "$VER" ] && VER="${TRAVIS_PYTHON_VERSION:0:1}"
-  drop_test_db
-  export TRAVIS_SAVED_HOME=$HOME
-  export TRAVIS_HOME=$($READLINK -f $HOME/VENV_$$)
-  if [[ $TRAVIS_SAVED_HOME =~ ^/(home|opt)/travis ]]; then
-    export TRAVIS=true
-  elif [ $opt_full -ne 0 -o $opt_cache -eq 0 ]; then
-    export TRAVIS=emulate
-  else
-    export TRAVIS=false
-  fi
-  [[ -d $HOME/devel ]] && Z0DEV_DIR=$HOME/devel
-  [[ -d $HOME/dev && ! -d $HOME/devel ]] && Z0DEV_DIR=$HOME/dev
-  if [[ -z "$Z0DEV_DIR" ]]; then
+  # local VER=${VERSION}
+  [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel
+  [[ -d $HOME/dev && ! -d $HOME/devel ]] && HOME_DEV=$HOME/dev
+  if [[ -z "$HOME_DEV" ]]; then
     echo "Zeroincombenze(R) tools not found!"
     exit 1
   fi
-  TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p /usr/bin/python$TRAVIS_PYTHON_VERSION"
+  VENVOPTS=-D
+  drop_test_db
+  export TRAVIS_SAVED_HOME=$HOME
+  if [[ $HOME =~ ^/(home|opt)/travis && -d $HOME/virtualenv ]]; then
+    export TRAVIS=true
+    export TRAVIS_HOME=$HOME/virtualenv
+    [[ -d $HOME/../odoo/tools ]] && TRAVIS_SAVED_HOME=$($READLINK -f $HOME/../odoo)
+  else
+    [[ $opt_full -ne 0 || $opt_cache -eq 0 ]] && export TRAVIS=emulate || export TRAVIS=false
+    export TRAVIS_HOME=$($READLINK -f $HOME/VENV_$$)
+  fi
+  HOME=$TRAVIS_HOME
+  TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p $(which python$TRAVIS_PYTHON_VERSION)"
   [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
   [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
-  HOME=$TRAVIS_HOME
   hash -r
   if [[ $opt_full -eq 0 && ${opt_cache:-0} -ne 0 && -n "$TRAVIS_PYTHON_VERSION" ]]; then
     [[ -d $TRAVIS_SAVED_HOME ]] || mkdir $TRAVIS_SAVED_HOME
     if [[ "$PRJNAME" == "Odoo" && -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
       opt_keepE=0
       TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$BRANCH
-      run_traced "vem cp $VENVOPTS $TRAVIS_SRC_VME $TRAVIS_HOME -fq"
+      opts=$(inherits_travis_opts "" "V")
+      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME -f"
       sts=$?
     elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
       opt_keepE=0
       TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
-      run_traced "vem cp $VENVOPTS $TRAVIS_SRC_VME $TRAVIS_HOME -fq"
+      opts=$(inherits_travis_opts "" "V")
+      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME -f"
       sts=$?
     else
       if [[ "$PRJNAME" == "Odoo" && -n "$VERSION" ]]; then
         TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$VERSION
-        run_traced "vem create $VENVOPTS $TRAVIS_HOME -p$TRAVIS_PYTHON_VERSION -O$VERSION -fq"
+        opts=$(inherits_travis_opts "" "V")
+        run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION -O$VERSION -f"
         sts=$?
       else
         TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
-        run_traced "vem create $VENVOPTS $TRAVIS_HOME -p$TRAVIS_PYTHON_VERSION -fq"
+        opts=$(inherits_travis_opts "" "V")
+        run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION -fq"
         sts=$?
       fi
-      [ $sts -ne 0 -o $opt_keepE -eq 0 ] || run_traced "vem cp $VENVOPTS $TRAVIS_HOME $TRAVIS_SRC_VME -fq"
+      opts=$(inherits_travis_opts "" "V")
+      [ $sts -ne 0 -o $opt_keepE -eq 0 ] || run_traced "vem cp $VENVOPTS $opts $TRAVIS_HOME $TRAVIS_SRC_VME -fq"
     fi
-  else
+  elif [[ $TRAVIS == "true" ]]; then
     echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
     [ ${opt_dry_run:-0} -ne 0 ] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
     sts=$?
@@ -492,9 +490,9 @@ create_virtual_env() {
     mkdir -p $TRAVIS_BUILD_DIR
     x=$($READLINK -f $TRAVIS_BUILD_DIR/..)
     run_traced "cp -R $TRAVIS_HOME_BRANCH/ $x/"
-    if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
+    if [[ ${opt_dbgmnt:-0} -ne 0 && "$TRAVIS_REPO_SLUG" == "local/tools" ]]; then
       git_clone "https://github.com/zeroincombenze/tools.git"
-      [[ Z0DEV_DIR =~ /devel$ ]] && \
+      [[ HOME_DEV =~ /devel$ ]] && \
         run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o" || \
         run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
     fi
@@ -504,15 +502,17 @@ create_virtual_env() {
 
 drop_virtual_env() {
   [ ${opt_dry_run:-0} -eq 0 -a ${opt_virt:-0} -gt 0 ] && deactivate
-  export HOME=$TRAVIS_SAVED_HOME
+  [[ $TRAVIS == "true" ]] && export HOME=$($READLINK -f $TRAVIS_HOME/..) || export HOME=$TRAVIS_SAVED_HOME
   hash -r
   unset TRAVIS_SAVED_HOME
   cd $HOME
-  if [ ${opt_keep:-0} -eq 0 ]; then
+  if [[ ${opt_keep:-0} -eq 0 ]]; then
     drop_test_db
-    rm -fR $TRAVIS_HOME
-    unset TRAVIS_HOME
-    hash -r
+    if [[ $TRAVIS != "true" ]]; then
+      rm -fR $TRAVIS_HOME
+      unset TRAVIS_HOME
+      hash -r
+    fi
   fi
   TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
 }

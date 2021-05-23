@@ -3,7 +3,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-20 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-21 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -40,7 +40,7 @@ fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-__version__=1.0.0.17
+__version__=1.0.0.18
 
 [[ -f $TDIR/../../clodoo/list_requirements.py ]] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
@@ -610,13 +610,13 @@ OPTHELP=("this help"
   "activate debug statements"
   "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0"
   "change class name to CamelCase"
-  "add developers Copyright (def zero)"
+  "add developers Copyright (comma separated, def zero)"
   "show debug informations"
   "show diff"
   "do not apply enhance update"
   "from odoo branch, value like -b switch"
   "futurize"
-  "Write GPL info into header (agpl,lgpl,gpl)"
+  "Write GPL info into header (agpl,lgpl,gpl,opl,oee)"
   "sort import statements"
   "set file excluded by lint parse"
   "do nothing (dry-run)"
@@ -641,7 +641,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "PEP8 source python file\nfull path name maybe supplied or a single file\n" \
-    "(C) 2015-2020 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "(C) 2015-2021 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -753,7 +753,7 @@ for fl in $LIST; do
             srcfile="$f.tmp"
           fi
         fi
-        if [ $opt_nenh -eq 0 ]; then
+        if [[ $opt_nenh -eq 0 ]]; then
           $TDIR/to_pep8.py $OPTS $srcfile $f.new
         else
           cp $srcfile $f.new

@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.0.16
+__version__=1.0.0.17
 
 
 save_testenv() {
@@ -223,7 +223,7 @@ test_03() {
     opt_conf=
     sts=0
     opts_travis ""
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
       opt_verbose=1
       PRJNAME=
       CFG_init
@@ -238,34 +238,45 @@ test_03() {
     test_result "init_travis.FLOG_ECHO" "echo" "$FLOG_ECHO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     check_4_travis
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
+
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
       opt_verbose=1
       opts=$(inherits_travis_opts "v" "D")
       result_testenv
     fi
     test_result "init_travis opts" "-v" "$opts"
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+      opt_verbose=0
+      opts=$(inherits_travis_opts "" "D")
+      result_testenv
+    fi
+    test_result "init_travis opts" "-q" "$opts"
+
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
       opt_verbose=1
       MQT_VERBOSE_MODE=
       inherits_travis_opts "v" "T" >/dev/null
       result_testenv
     fi
     test_result "init_travis \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
       opt_verbose=1
       opt_dprj=0
       RES=$(inherits_travis_opts "-rjPKT" "T")
       result_testenv
     fi
     test_result "inherit opts T" "-KPrTv" "$RES"
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
+
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
       opt_verbose=-1
       opt_dprj=1
-      RES=$(inherits_travis_opts "-vn" "A")
+      opt_dry_run=1
+      RES=$(inherits_travis_opts "" "A")
       result_testenv
     fi
     test_result "inherit opts A" "-jnv" "$RES"
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
+
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
       opt_verbose=0
       opt_cpush="-C"
       opt_diff=1
@@ -273,7 +284,7 @@ test_03() {
       result_testenv
     fi
     test_result "inherit opts D" "-Cdnq" "$RES"
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
       opt_verbose=0
       opt_cpush="-P"
       opt_diff=0
@@ -282,7 +293,7 @@ test_03() {
       result_testenv
     fi
     test_result "inherit opts D" "-dfnPq" "$RES"
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
       opt_verbose=0
       opt_cpush="-R"
       opt_diff=0
@@ -300,20 +311,21 @@ test_03() {
       result_testenv
     fi
     test_result "inherit opts D" "-Ffnq" "$RES"
+
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       opt_verbose=-1
       opt_r=1
       RES=$(inherits_travis_opts "-nmjb" "E")
       result_testenv
     fi
-    test_result "inherit opts E" "-jmnr" "$RES"
+    test_result "inherit opts E" "-jmnrv" "$RES"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      opt_verbose=-1
+      opt_verbose=-0
       opt_r=0
       RES=$(inherits_travis_opts "-nmjb" "E")
       result_testenv
     fi
-    test_result "inherit opts E" "-jmn" "$RES"
+    test_result "inherit opts E" "-jmnq" "$RES"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       opt_cpush=
       RES=$(inherits_travis_opts "-RnKCO" "N")

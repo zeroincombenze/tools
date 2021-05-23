@@ -45,7 +45,7 @@ test_01() {
 
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
-        # TODo
+        # TODO
         [[ $m =~ (6|7) ]] && continue
         for x in "" $SUB_TO_TEST; do
             [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue

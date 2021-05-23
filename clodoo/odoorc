@@ -55,7 +55,7 @@
 # ODOO_GIT_SHORT -> regex of git organizzations with short name (def /(oca)/)
 #
 
-#__version__=0.3.30.2
+#__version__=0.3.30.3
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
     echo "You must source this script: \$ source $0" >&2
@@ -346,7 +346,7 @@ build_odoo_param() {
         GIT_ORGNM="$GIT_ORGID"
         [[ $GIT_ORGID == "oca" ]] && GIT_ORGNM="OCA"
         [[ $GIT_ORGID =~ (zero|zeroincombenze) ]] && GIT_ORGID="zero" && GIT_ORGNM="zeroincombenze" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
-        [[ $GIT_ORGID == "powerp" ]] && GIT_ORGID="powerp" && GIT_ORGNM="powerp1" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+        [[ $GIT_ORGID == "powerp" ]] && GIT_ORGID="powerp" && GIT_ORGNM="PowERP-cloud" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
         [[ $GIT_ORGID =~ librerp[6]? && "$FULLVER" == "6.1" ]] && GIT_ORGNM="iw3hxn" && GIT_BRANCH="master"
         [[ $GIT_ORGID == "librerp" && "$FULLVER" == "12.0" ]] && GIT_ORGID="librerp" && GIT_ORGNM="librerp" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
         if [[ $GIT_ORGID =~ (odoo|oca) && "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
@@ -356,7 +356,7 @@ build_odoo_param() {
     fi
     [[ $GIT_ORGNM == "OCA" ]] && GIT_ORGID="oca"
     [[ $GIT_ORGNM == "zeroincombenze" ]] && GIT_ORGID="zero"
-    [[ $GIT_ORGNM == "powerp1" ]] && GIT_ORGID="powerp"
+    [[ $GIT_ORGNM =~ (PowERP-cloud|powerp1) ]] && GIT_ORGID="powerp"
     [[ $GIT_ORGID == $ODOO_GIT_ORGID ]] && GIT_PROT="git"
 
     if [[ -z $ROOT ]]; then

@@ -85,12 +85,12 @@ Proposals for enhancement
 
 {{proposals_for_enhancement}}
 .. $fi
-.. $if defined history
+.. $if defined histories
 
 History / Cronologia
 --------------------
 
-{{history}}
+{{histories}}
 .. $fi
 .. $if defined faq
 

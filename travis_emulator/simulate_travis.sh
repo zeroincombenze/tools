@@ -5,8 +5,12 @@ if [ -z "$1" -o "$1" == "-h" ]; then
     echo "$0 -T             # Execute travis test on current package"
     exit 1
 fi
-home_odoo=/home/odoo
-home_travis=/home/travis
+if [[ $USER != "travis" ]]; then
+  echo "This script works just with user travis"
+  exit 1
+fi
+home_odoo=~odoo
+home_travis=~travis
 [[ ! -d $home_travis/bin ]] && mkdir $home_travis/bin
 if [[ -n "$1" && ( "$1" == "-i" || "$1" == "-I" ) ]]; then
     rsync -az --delete $home_odoo/tools/ $home_travis/tools/
@@ -25,6 +29,7 @@ if [[ -n "$1" && ( "$1" == "-i" || "$1" == "-I" ) ]]; then
     fi
     cd $home_travis/tools
     ./install_tools.sh -qfp
+    [[ -f $$home_travis/devel/activate_tools ]] && . $home_travis/devel/activate_tools
     # [[ ! -L $home_travis/bin/travis ]] && ln -s $home_travis/tools/travis_emulator/travis $home_travis/bin
     # [[ ! -L $home_travis/bin/vem ]] && ln -s $home_travis/tools/python_plus/vem $home_travis/bin
 elif [[ -n "$1" && ! "$1" == "-i" && ! "$1" == "-I"  && ! "$1" == "-T" ]]; then

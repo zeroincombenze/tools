@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# Copyright 2018-20 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2018-21 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -75,7 +75,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.0.17"
+__version__ = "1.0.0.18"
 
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',
@@ -109,8 +109,6 @@ class topep8():
             with open(src_filepy, 'rb') as fd:
                 source = fd.read()
         self.lines = source.split('\n')
-        ## for ln in self.lines:   print(ln)   #debug
-        ## sys.exit(1)                         #debug
         self.setup_py_header(ctx)
         if ctx['opt_gpl']:
             self.write_license_info(ctx)
@@ -350,9 +348,15 @@ class topep8():
                         self.lines[lineno])):
                 if re.match('# License .GPL-3.0 or later ',
                         self.lines[lineno]):
-                    ctx['opt_gpl'] = self.lines[lineno][10:14].lower()
+                    if ctx['opt_gpl'] == 'gpl' and 'oca' in req_copyrights:
+                        ctx['opt_gpl'] = self.lines[lineno][10:14].lower()
                 del self.lines[lineno]
                 continue
+            elif re.match('^# *License', self.lines[lineno]):
+                item = self.lines[lineno][10:13].lower()
+                if item in ('opl', 'oee'):
+                    ctx['opt_gpl'] = item
+                del self.lines[lineno]
             elif re.match(rex, self.lines[lineno]):
                 empty_lines = 0
                 found = False
@@ -458,7 +462,12 @@ class topep8():
         if odoo_majver <= 8:
             ctx['opt_gpl'] = 'agpl'
         elif ctx['opt_gpl'].lower() in ('opl', 'oee'):
-            ctx['opt_gpl'] = '%s-1' % ctx['opt_gpl']
+            pass
+        elif ctx['opt_gpl'].lower() =='gpl':
+            if 'powerp' in req_copyrights:
+                ctx['opt_gpl'] = 'opl'
+            else:
+                ctx['opt_gpl'] = 'lgpl'
         elif ctx['opt_gpl'].lower() not in ('agpl', 'lgpl'):
             ctx['opt_gpl'] = 'lgpl'
         if ctx['opt_gpl'].startswith('oee'):
@@ -1769,7 +1778,7 @@ def parse_file(ctx=None):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Topep8",
-                          "(C) 2015-2020 by SHS-AV s.r.l.",
+                          "(C) 2015-2021 by SHS-AV s.r.l.",
                           version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-B', '--recall-debug-statements',

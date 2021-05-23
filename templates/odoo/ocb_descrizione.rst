@@ -7,7 +7,7 @@ I principali moduli ERP sono: gestione Magazzino, gestione Progetti, Contabilit√
 Distributions / Distribuzioni Odoo {{branch}}:
 ==============================================
 
-.. $if branch in '12.0' '11.0' '10.0' '9.0'
+.. $if branch in '14.0' '13.0' '12.0' '11.0' '10.0' '9.0'
 
 +-------------+-------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
 | name / nome | description / descrizione     | Italy / Localizzazione Italiana | Maintainers                                                  | License / Licenza |
