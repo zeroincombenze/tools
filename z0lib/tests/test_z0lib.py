@@ -10,7 +10,7 @@ import os
 from z0lib import z0lib
 
 
-__version__ = "1.0.0.6"
+__version__ = "1.0.1"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1

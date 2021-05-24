@@ -25,9 +25,9 @@ copyright = '2019-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '0.3.30.4'
+version = '0.3.31'
 # The full version, including alpha/beta/rc tags
-release = '0.3.30.4'
+release = '0.3.31'
 
 
 # -- General configuration ---------------------------------------------------

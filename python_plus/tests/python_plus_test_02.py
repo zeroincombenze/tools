@@ -16,7 +16,7 @@ MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "1.0.0.21"
+__version__ = "1.0.1"
 
 
 def version():

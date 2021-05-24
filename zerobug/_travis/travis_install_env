@@ -32,7 +32,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(/usr/bin/readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.0.12
+__version__=1.0.1
 
 conf_default() {
   if [ -z "$PS_TXT_COLOR" ]; then

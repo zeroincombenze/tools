@@ -17,13 +17,13 @@ Odoo shell is a simple line command shell to manager Odoo database using the int
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-05-22
+Last Update / Ultimo aggiornamento: 2021-05-24
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
-    :alt: Production/Stable
+    :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
-    :target: https://travis-ci.org/zeroincombenze/tools
+    :target: https://travis-ci.com/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
