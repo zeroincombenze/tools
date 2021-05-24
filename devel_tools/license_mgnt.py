@@ -8,24 +8,29 @@ COPY = {
         'author': 'SHS-AV s.r.l.',
         'website': 'https://www.zeroincombenze.it',
         'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
+        'github-user': 'zeroincombenze',
     },
     'shs': {
         'author': 'SHS-AV s.r.l.',
         'website': 'https://www.shs-av.com',
         'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
+        'github-user': 'zeroincombenze',
     },
     'oca': {
         'author': 'Odoo Community Association (OCA)',
         'website': 'https://odoo-community.org',
+        'github-user': 'OCA',
     },
     'powerp': {
         'author': 'powERP enterprise network',
         'website': 'https://www.powerp.it',
         'devman': 'powERP enterprise network',
+        'github-user': 'PowERP-cloud',
     },
     'didotech': {
         'author': 'Didotech s.r.l.',
         'website': 'https://www.didotech.com',
+        'github-user': 'iw3hxn',
     },
 }
 ALIAS = {

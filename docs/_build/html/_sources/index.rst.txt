@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ==========================================
-Multi-purpose python & bash tools 1.0.0.29
+Multi-purpose python & bash tools 1.0.0.30
 ==========================================
 
 Overview

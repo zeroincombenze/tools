@@ -110,12 +110,12 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.0.18"
+__version__ = "1.0.0.19"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
     'oca': 'OCA',
-    'powerp': 'powerp',
+    'powerp': 'PowERP-cloud',
     'didotech': 'didotech',
 }
 DEFINED_SECTIONS = ['description', 'descrizione', 'features',
@@ -721,7 +721,7 @@ def expand_macro(ctx, token, default=None):
     elif token == 'maturity-URL':
         value = 'https://odoo-community.org/page/development-status'
     elif token == 'ci-travis-URL':
-        value = 'https://travis-ci.org/%s/%s' % (
+        value = 'https://travis-ci.com/%s/%s' % (
             GIT_USER[ctx['git_orgid']], ctx['repos_name'])
     elif token == 'coverage-URL':
         value = 'https://coveralls.io/github/%s/%s' % (

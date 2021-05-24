@@ -12,7 +12,7 @@
 # import pytest
 from clodoo import transodoo
 
-__version__ = '0.3.30.3'
+__version__ = '0.3.30.4'
 
 
 class TestClass:
