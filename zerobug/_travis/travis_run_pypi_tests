@@ -37,7 +37,7 @@ fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-__version__=1.0.1
+__version__=1.0.1.1
 
 
 travis_test_bash() {

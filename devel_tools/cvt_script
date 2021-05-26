@@ -28,7 +28,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.1
+__version__=1.0.1.2
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -500,7 +500,7 @@ blk_8() {
   cat <<EOF >>$1
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=\$TESTDIR"
-RUNDIR=\$($READLINK -e \$TESTDIR/..)
+RUNDIR=\$(\$READLINK -e \$TESTDIR/..)
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=\$RUNDIR"
 EOF
 }

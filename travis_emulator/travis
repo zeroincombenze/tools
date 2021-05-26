@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(/usr/bin/readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1
+__version__=1.0.1.1
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -731,7 +731,8 @@ process_yaml_run_cmd() {
     if [[ $xcmd =~ "travis_install_env" ]]; then
       ((Z0_STACK=Z0_STACK+2))
       opts=$(inherits_travis_opts "" "V")
-      [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION -f"
+      [[ $TRAVIS == "true" ]] || opts="$opts -f"
+      [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION"
       ((Z0_STACK=Z0_STACK-2))
     fi
     [[ $c != $xcmd && ! $xcmd =~ ^# ]] && ((Z0_STACK=Z0_STACK-2))
@@ -1059,7 +1060,7 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
   if [[ -n $PGUSER ]]; then
     done=0
     all_dbs=1
-    [ $opt_force -ne 0 ] && md=30 || md=1800
+    [[ $opt_force -ne 0 ]] && md=30 || md=1800
     dt=$(date "+%s")
     for d in $HOME/VENV_*; do
       if [ "$d" != "$HOME/VENV_*" ]; then
@@ -1082,7 +1083,7 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
         fi
       fi
     done
-    if [ $all_dbs -ne 0 ]; then
+    if [[ $all_dbs -ne 0 ]]; then
       for db in $(psql -U$PGUSER -Atl | grep -E "(openerp_template|openerp_test)" | awk -F"|" '{print $1}'); do
         echo "\$ dropdb -U$PGUSER $db"
         pg_db_active -wa $db
@@ -1094,12 +1095,12 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
     for d in $LOGDIR/*; do
       dd=$(stat -c "%Y" $d)
       df=$(($dt - $dd))
-      if [ $df -gt $md ]; then
+      if [[ $df -gt $md ]]; then
         echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
         rm -fR $d
       fi
     done
-    [ $done -eq 0 ] && echo "Nothing to wep"
+    [[ $done -eq 0 ]] && echo "Nothing to wep"
     exit $STS_SUCCESS
   else
     exit 2
@@ -1112,7 +1113,7 @@ elif [[ $action == "summary" ]]; then
   fi
   exit 0
 elif [[ $action == "show-log" ]]; then
-  if [ ${opt_dry_run:-0} -gt 0 ]; then
+  if [[ ${opt_dry_run:-0} -gt 0 ]]; then
     echo "> travis > $LOGFILE"
   elif [[ -f $LOGFILE ]]; then
     less -R $LOGFILE
@@ -1138,7 +1139,7 @@ fi
 
 sts=$STS_SUCCESS
 prepare_env_travis "$action"
-if [ $sts -eq $STS_SUCCESS ]; then
+if [[ $sts -eq $STS_SUCCESS ]]; then
   if [[ -n $opt_flog ]]; then
     mkdir -p $(dirname $opt_flog)
     LOGFILE=$opt_flog
@@ -1151,7 +1152,7 @@ if [ $sts -eq $STS_SUCCESS ]; then
     sts=2
   else
     TMP_LOGFILE=${LOGFILE/.log/.tmp}
-    if [ ${opt_dry_run:-0} -gt 0 ]; then
+    if [[ ${opt_dry_run:-0} -gt 0 ]]; then
       echo "> travis > $LOGFILE"
     else
       echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"

@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1"
+__version__ = "1.0.1.2"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -1662,7 +1662,7 @@ def generate_readme(ctx):
         target = parse_local_file(ctx,
                                   ctx['template_name'],
                                   out_fmt='rst')[1]
-    if ctx['rewrite_manifest']:
+    if ctx['rewrite_manifest'] and ctx['odoo_layer'] == 'module':
         target = manifest_contents(ctx)
     tmpfile = '%s.tmp' % ctx['dst_file']
     bakfile = '%s.bak' % ctx['dst_file']
