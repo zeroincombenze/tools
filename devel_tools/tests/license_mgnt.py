@@ -125,7 +125,7 @@ class License:
                             name = item['author']
                             break
                     if not org_id:
-                        org_id = os.path.basename(website).split('.')[-2]
+                        org_id = website
                         org_id = ALIAS.get(org_id, org_id)
                         COPY[org_id] = {
                             'website': 'http://%s' % website,

@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.1.2
+__version__=1.0.1.3
 
 
 test_01() {
@@ -35,25 +35,25 @@ test_01() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       $RUNDIR/pull_from_oca -y -b10.0 $Z0BUG_Z0_ROOT >$TESTDIR/res/test.log
     fi
-    if grep -q "10.0.1.0.1.2" $Z0BUG_BASE_Z0/__manifest__.py; then RES=1; else RES=0; fi
+    if grep -q "10.0.1.0.1.3" $Z0BUG_BASE_Z0/__manifest__.py; then RES=1; else RES=0; fi
     test_result "pull_from_oca -qy -b10.0 $Z0BUG_Z0_ROOT" "1" "$RES"
 }
 
 setup_file_base_oca() {
     cat <<EOF >$Z0BUG_BASE_OCA/__manifest__.py
-{'version': '10.0.1.0.1.2'}
+{'version': '10.0.1.0.1.3'}
 EOF
     cat <<EOF >$Z0BUG_BASE_OCA/__init__.py
-# 10.0.1.0.1.2
+# 10.0.1.0.1.3
 EOF
 }
 
 setup_file_base_z0() {
     cat <<EOF >$Z0BUG_BASE_Z0/__manifest__.py
-{'version': '10.0.1.0.1.2'}
+{'version': '10.0.1.0.1.3'}
 EOF
     cat <<EOF >$Z0BUG_BASE_Z0/__init__.py
-# 10.0.1.0.1.2
+# 10.0.1.0.1.3
 EOF
 }
 

@@ -209,7 +209,7 @@ from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
-__version__ = "0.3.31.1"
+__version__ = "0.3.31.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True

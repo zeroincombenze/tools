@@ -1,14 +1,18 @@
-1.0.1.2 (2021-05-24)
+1.0.1.3 (2021-05-31)
+~~~~~~~~~~~~~~~~~~~~
+[FIX] license managament: other orgs
+
+1.0.1.3 (2021-05-24)
 ~~~~~~~~~~~~~~~~~~~~
 [FIX] cvt_script: wrong RUNDIR
 
-1.0.1.2 (2021-03-15)
+1.0.1.3 (2021-03-15)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: status when git pushed
 [FIX] gen_readme.py: crash if invalid Odoo project
 
-1.0.1.2 (2021-03-05)
+1.0.1.3 (2021-03-05)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: publish pypi
@@ -16,7 +20,7 @@
 [IMP] gen_readme.py: recognizes powerp
 [IMP] gen_readme.py: set website for any organization
 [IMP] please: status more precise
-[IMP] topep8: recognize power organization1.0.1.2 (2021-02-19)
+[IMP] topep8: recognize power organization1.0.1.3 (2021-02-19)
 
 1.0.0.13 (2021-02-28)
 ~~~~~~~~~~~~~~~~~~~~~

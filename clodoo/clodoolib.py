@@ -166,7 +166,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.31.1"
+__version__ = "0.3.31.2"
 
 
 #############################################################################
@@ -954,6 +954,8 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
             git_org)
     out, err = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, shell=True).communicate()
+    if not out:
+        return False
     if item in ('LPPORT', 'MAJVER', 'RPCPORT'):
         return eval(out.split('\n')[0])
     return out.split('\n')[0]
