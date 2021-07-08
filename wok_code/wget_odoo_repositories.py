@@ -20,11 +20,14 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = '0.1.17.1'
+__version__ = '0.1.17.2'
 
 ROOT_URL = 'https://api.github.com/repos/zeroincombenze/'
 USER_URL = 'https://api.github.com/users/'
 TEST_REP = 'OCB'
+DEVEL_REPS = ['OpenUpgrade', 'dotnet', 'interface-github',
+              'odoorpc', 'openupgradelib', 'pylint-odoo',
+              'rest-framework', 'runbot-addons']
 TEST_REP_OCB = {
     'issues_url': '%s%s/issues{/number}' % (ROOT_URL, TEST_REP),
     'deployments_url': '%s%s/deployments' % (ROOT_URL, TEST_REP),
@@ -268,7 +271,6 @@ TEST_REP_ACC_CLO = {
 }
 
 
-
 def get_list_from_url(ctx, git_org):
     baseurl = 'https://api.github.com/users/%s/repos' % git_org
     page = 0
@@ -297,10 +299,32 @@ def get_list_from_url(ctx, git_org):
             print('Analyzing received data ...')
         for repos in data:
             name = os.path.basename(repos['url'])
-            if ctx['opt_verbose']:
-                print(name)
-            if not name.startswith('l10n-') or name == 'l10n-it':
+            if ((not name.startswith('.') and
+                 not name.startswith('connector-') and
+                 not name.startswith('maintainer-') and
+                 not name.startswith('oca-') and
+                 not name.startswith('odoo-') and
+                 not name.startswith('vertical-') and
+                 not name.startswith('l10n-') and
+                 name not in DEVEL_REPS) or
+                    (name.startswith('connector-') and
+                     'connector' in ctx['extra']) or
+                    (name.startswith('maintainer-') and
+                     'maintainer' in ctx['extra']) or
+                    (name.startswith('oca-') and
+                     'oca' in ctx['extra']) or
+                    (name.startswith('odoo-') and
+                     'odoo' in ctx['extra']) or
+                    (name.startswith('vertical-') and
+                     'vertical' in ctx['extra']) or
+                    (name in DEVEL_REPS and
+                     'devel' in ctx['extra']) or
+                    (name.startswith('l10n-') and name in ctx['l10n'])):
+                if ctx['opt_verbose']:
+                    print(name)
                 repository.append(name)
+            elif ctx['opt_verbose']:
+                print('discaded %s' % name)
     return repository
 
 
@@ -311,13 +335,17 @@ if __name__ == "__main__":
     parser.add_argument('-h')
     parser.add_argument(
         '-b', '--odoo-branch',
-        help="may be one of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0",
+        help="may be one of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0",
         action='store',
         dest='odoo_vid')
     parser.add_argument('-G', '--git-org',
                         help="select repository",
                         action='store',
                         dest='git_org')
+    parser.add_argument('-l', '--local-reps',
+                        help="select local repositories",
+                        action='store',
+                        dest='l10n')
     parser.add_argument('-n')
     parser.add_argument('-O', '--oca',
                         help="repository OCA",
@@ -326,6 +354,11 @@ if __name__ == "__main__":
     parser.add_argument('-q')
     parser.add_argument('-V')
     parser.add_argument('-v')
+    parser.add_argument(
+        '-x', '--extra-reps',
+        help="may be: all,none,connector,devel,maintainer,oca,odoo,vertical",
+        action='store',
+        dest='extra')
     parser.add_argument('-Z', '--zeroincombenze',
                         help="repository zeroincombenze",
                         action='store_true',
@@ -341,6 +374,12 @@ if __name__ == "__main__":
             git_orgs.append('zeroincombenze')
         if ctx['oca']:
             git_orgs.append('OCA')
+    if not ctx['l10n']:
+        ctx['l10n'] = 'l10n-italy'
+    ctx['l10n'] = ctx['l10n'].split(',')
+    if not ctx['extra']:
+        ctx['extra'] = 'none'
+    ctx['extra'] = ctx['extra'].split(',')
     for git_org in git_orgs:
         repository = get_list_from_url(ctx, git_org)
         repositories = list(set(repository) | set(repositories))

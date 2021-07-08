@@ -1,7 +1,12 @@
+0.3.31.2 (2021-06-07)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] transodoo: valuetnl return if translabel field
+
 0.3.31.1 (2021-05-25)
 ~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] build_odoo_param: new parama LICENSE and DIRLEVEL
+* [IMP] build_odoo_param: new param LICENSE and DIRLEVEL
 
 0.3.30.4 (2021-05-24)
 ~~~~~~~~~~~~~~~~~~~~~

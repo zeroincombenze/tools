@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.31.2
+__version__=0.3.31.3
 
 
 test_01() {
@@ -195,6 +195,16 @@ test_05() {
       test_result "translate value/name/Asset from 7.0 to $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -m account.account.type -k valuetnl -N name -f 7.0 -b$v)
+      test_result "translate valuetnl/name from 7.0 to $v" "1" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      RES=$($RUNDIR/transodoo.py translate -m account.account.type -k valuetnl -N note -f 7.0 -b$v)
+      test_result "translate valuetnl/note from 7.0 to $v" "0" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
     return $sts
 }
 

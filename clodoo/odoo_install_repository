@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.31.2
+__version__=0.3.31.3
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -60,6 +60,7 @@ rmdir_if_exists() {
             run_traced "mkdir -p $HOME/__to_remove"
             run_traced "mkdir -p $HOME/__to_remove/OCB"
             for fn in $DSTPATH/*; do
+                [[ $fn == "setup" && -d $HOME/__to_remove/setup ]] && run_traced "rm -fR $HOME/__to_remove/setup"
                 if [[ -f "$fn" ]]; then
                     run_traced "mv $fn $HOME/__to_remove/OCB"
                 else
@@ -337,7 +338,7 @@ if [ -z "$new_odoo_vid" ]; then
         git_opts="-b $GIT_BRANCH $GIT_OPTS"
         RPTNAME=$(basename $DSTPATH)
         run_traced "git clone $GIT_URL $RPTNAME/ $git_opts" "$RUN_USER"
-        if [ $? -ne 0 ]; then
+        if [[ $? -ne 0 ]]; then
             echo "Error cloning $GIT_URL into $RPTNAME/"
             exit 1
         fi

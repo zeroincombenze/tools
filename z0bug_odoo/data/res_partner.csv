@@ -5,8 +5,9 @@ z0bug.res_partner_1_1,Prima Alpha SpA,"C. Unità d'Italia, 61",,base.it,20022,Ca
 z0bug.res_partner_10,Notaio Libero Jackson,"Largo Fasuli, 10",,base.it,10121,Torino,base.state_it_to,False,True,True,jacksonlibero@pec.notariato.it,,,IT10242670015,JCKLBR72M24L736R,,z0bug.fiscalpos_it,,,,,,,,,,,,it_IT
 z0bug.res_partner_11,Nebula Caffè S.p.A.,"C. Soricillo, 111",Palazzo NUVOLA,base.it,10151,Torino,base.state_it_to,False,True,True,commercial@nebula-caffe.it,,,IT01250630504,,www.nebula-caffe.it,,,,,,,,,,,,,it_IT
 z0bug.res_partner_12,Freie Universität Berlin,Kaiserswerther Straße 16-18,,base.de,14195,Berlin,,False,True,True,,,,DE123456788,,,z0bug.fiscalpos_eu,,,,,,,,,,,,en_US
-z0bug.res_partner_13,Axelor GmbH,Carl-Bertelsmann-Straße 23,,base.it,33332,Gütersloh,,True,False,True,,,,,,,z0bug.fiscalpos_eu,z0bug.payment_3,,,,,,,,,,,en_US
-z0bug.res_partner_13_1,Axelor Italia,"Corso S. Antonio, 13",,base.it,20100,Milano,base.state_it_mi,True,False,True,,,,,,,z0bug.fiscalpos_it,z0bug.payment_3,z0bug.res_partner_13,invoice,SO,,,,,,,,it_IT
+z0bug.res_partner_13,Axelor GmbH,Carl-Bertelsmann-Straße 13,,base.it,33313,Gütersloh,,True,False,True,,,,DE812526315,,,z0bug.fiscalpos_eu,z0bug.payment_3,,,,,,,,,,,en_US
+z0bug.res_partner_13_1,Axelor Italia,"Corso Colli Euganei, 13",,base.it,20113,Milano,base.state_it_mi,True,False,True,,,,,,,z0bug.fiscalpos_it,z0bug.payment_3,z0bug.res_partner_13,invoice,SO,,,,,,,,it_IT
+z0bug.res_partner_13_2,Magazzino Axelor Italia,"Corso S. Antonio, 13",,base.it,35113,Padova,base.state_it_pd,True,False,True,,,,,,,,,z0bug.res_partner_13,delivery,,,,,,,,,it_IT
 z0bug.res_partner_14,SS Carrefur,"Str. Briaco, 14",,base.it,10121,Torino,base.state_it_to,False,True,True,,,,IT08652300156,,,z0bug.fiscalpos_it,,,,,,,,,,,,it_IT
 z0bug.res_partner_15,Ente Porto,"P.za mano del porto, 5",,base.it,16115,Genova,base.state_it_ge,True,False,True,info@portogenova.it,+39 0101234560,,IT10242670015,,,z0bug.fiscalpos_sp,z0bug.payment_3,,,,,,1,XU1234,l10n_it_ddt.goods_description_CBA,l10n_it_ddt.carriage_condition_PF,l10n_it_ddt.transportation_method_DES,it_IT
 z0bug.res_partner_15_1,Ente Porto (Sestri Levante),"P.za mano del porto, 51",,base.it,16115,Genova,base.state_it_ge,True,False,True,levante@portogenova.it,+39 0101234561,,,,,z0bug.fiscalpos_sp,z0bug.payment_3,z0bug.res_partner_15,invoice,,,,1,XU1241,,,,it_IT

@@ -22,7 +22,7 @@ except BaseException:
     from clodoolib import build_odoo_param
 
 
-__version__ = "0.3.31.2"
+__version__ = "0.3.31.3"
 
 
 MODULE_ID = 'clodoo'

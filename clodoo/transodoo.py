@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://ww.zeroincombenze.it>)
-#
+#f
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 #    All Rights Reserved
@@ -11,12 +11,13 @@
 Structure:
 [pymodel]:       Odoo model name
 [pymodel][ttype]: may be:
-    name:    symbolic name of a field (deprecated)
-    field:   field name to translate
-    action:  action/function to translate
-    module:  module name to translate
-    merge:   module name merged with
-    value:   value of field to translate (name is the field name)
+    name:     symbolic name of a field (deprecated)
+    field:    field name to translate
+    action:   action/function to translate
+    module:   module name to translate
+    merge:    module name merged with
+    value:    value of field to translate (name is the field name)
+    valuetnl: field ha translation ("1")
 
 [pymodel][ttype][hash]           hash entry with name.ver list
 [pymodel][ttype][hash][ver.name] value for specific version
@@ -44,7 +45,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.31.2"
+__version__ = "0.3.31.3"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
 CVT_ACC_TYPE_OLD_NEW = {
     'Bank': 'Bank and Cash',
@@ -91,7 +92,7 @@ def set_hash(ttype, name, ver_names):
     if ttype == 'name':
         return name.upper()
     prior_name = ''
-    key = name if ttype == 'value' else ''
+    key = name if ttype in ('value', 'valuetnl') else ''
     for i, ver in enumerate(VERSIONS):
         if ver_names[i] and ver_names[i] != prior_name:
             if key:
@@ -99,7 +100,7 @@ def set_hash(ttype, name, ver_names):
             else:
                 key = ver_names[i]
             prior_name = ver_names[i]
-    if ttype == 'value':
+    if ttype in ('value', 'valuetnl'):
         return key
     return key.upper()
 
@@ -108,7 +109,7 @@ def build_alias_struct(mindroot, model, ttype, fld_name=False):
     pymodel = get_pymodel(model)
     mindroot[pymodel] = mindroot.get(pymodel, {})
     mindroot[pymodel][ttype] = mindroot[pymodel].get(ttype, {})
-    if ttype == 'value' and fld_name:
+    if ttype in ('value', 'valuetnl') and fld_name:
         mindroot[pymodel][ttype][fld_name] = mindroot[
             pymodel][ttype].get(fld_name, {})
     return mindroot
@@ -118,7 +119,7 @@ def link_versioned_name(mindroot, model, hash, ttype, src_name, ver,
                         fld_name=False):
     pymodel = get_pymodel(model)
     ver_name = get_ver_name(src_name, ver)
-    if ttype == 'value':
+    if ttype in ('value', 'valuetnl'):
         if src_name.startswith('${') and src_name.endswith('}'):
             mindroot[pymodel][ttype][fld_name] = src_name
             item = None
@@ -171,7 +172,7 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                       ttype=False, fld_name=False, type=None):
     """Translate symbol <src_name> from <src_ver> to <tgt_ver> of Odoo.
     If ttype not supplied, translation is applied for 'name' and 'field' ttypes
-    If ttype is 'value', the param <fld_name> must by supplied.
+    If ttype is in ('value', 'valuetnl'), the param <fld_name> must by supplied.
     Param type is deprecated. It used just for compatibility with old version
     """
     if not ttype and type:
@@ -184,9 +185,11 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
     if tgt_ver not in VERSIONS:
         print('Invalid target version!')
         return ''
-    if ttype == 'value' and not fld_name:
+    if ttype in ('value', 'valuetnl') and not fld_name:
         print('Translation of value require field name!')
         return ''
+    if ttype == 'valuetnl' and not src_name:
+        src_name = 'dummy'
     pymodel = get_pymodel(model)
     ver_name = get_ver_name(src_name, src_ver)
     name = src_name
@@ -194,7 +197,13 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
         names = []
         for typ in map(lambda x: x, ('name',
                                      'field')) if not ttype else [ttype]:
-            if ttype == 'value':
+            if ttype =='valuetnl':
+                if fld_name in mindroot[pymodel].get('value', {}):
+                    names = ['1']
+                else:
+                    names = ['0']
+                break
+            elif ttype == 'value':
                 item = mindroot[pymodel].get(typ, {}).get(fld_name, {})
             else:
                 item = mindroot[pymodel].get(typ, {})
@@ -325,12 +334,12 @@ def write_stored_dict(ctx):
         mindroot = ctx['mindroot']
         for model in sorted(mindroot.keys()):
             for ttype in sorted(mindroot[model].keys()):
-                if ttype == 'value':
+                if ttype in ('value', 'valuetnl'):
                     iterate = sorted(mindroot[model][ttype].keys())
                 else:
                     iterate = [None]
                 for name in iterate:
-                    if ttype == 'value':
+                    if ttype in ('value', 'valuetnl'):
                         items = mindroot[model][ttype][name]
                     else:
                         items = mindroot[model][ttype]
@@ -349,7 +358,7 @@ def write_stored_dict(ctx):
                             line['name'] = hash
                         else:
                             line['hash'] = hash
-                            if ttype == 'value':
+                            if ttype in ('value', 'valuetnl'):
                                 line['name'] = name
                         if isinstance(items, basestring):
                             for ver_name in VERSIONS:
