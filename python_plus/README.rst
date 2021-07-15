@@ -1,7 +1,7 @@
 
-===================
-python_plus 1.0.0.2
-===================
+=================
+python_plus 1.0.1
+=================
 
 
 
@@ -23,7 +23,8 @@ It is designed to be used as integration of pypi future to help to port your cod
 vem: virtual environment manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This packge is released with an nice command: **vem** that is an interactive tool with some nice features to manage standard virtual environment.
+This packge is released with an nice command:
+**vem** that is an interactive tool with some nice features to manage standard virtual environment and it is osx/darwin compatible.
 
 
 
@@ -116,26 +117,32 @@ vem: virtual environment manager
 
 ::
 
-    Usage: vem [-h][-a list][-BDfkIn][-O ver][-o dir][-p pyver][-q][-r file][-sVv] p1 p2 p3 p4 p5 p6 p7 p8 p9
+    Usage: vem [-h][-a list][-BCDfkIin][-O version][-o dir][-p pyver][-q][-r file][-sVv] p1 p2 p3 p4 p5 p6 p7 p8 p9
     Manage virtual environment
-    action may be: help amend cp check create exec info install merge mv show update test reset
-     -h              this help
-     -a list         bin packages to install (* means wkhtmltopdf,lessc)
-     -B              debug mode: use local packages
-     -D              create v.environment with development packages
-     -f              force v.environment create, even if exists
-     -k              keep python2 executable
-     -I              run pip in an isolated mode, ignoring environment variables and user configuration
-     -n              do nothing (dry-run)
-     -O ver          install pypi required by odoo ver (amend, create or reset)
-     -o dir          odoo path:used to search odoo requirements and linked in venv
-     -p pyver        python version
-     -q              silent mode
-     -r file         after created v.environment install from the given requirements file
-     -s              create v.environment with access to the global site-packages
-     -V              show version
-     -v              verbose mode
-
+    action may be: help amend cp check create exec info install merge mv python shell rm show update test reset
+     -h --help            this help
+     -a list              bin packages to install (* means wkhtmltopdf,lessc)
+     -B                   debug mode: use unstable packages (testpypi / local tools / local devel)
+     -C                   clear cache before execute pip command
+     -D --devel           create v.environment with development packages
+     -f --force           force v.environment create, even if exists or inside another virtual env
+     -k --keep            keep python2 executable as python
+     -I                   run pip in an isolated mode, set home virtual directory
+     -i --isolated        run pip in an isolated mode, ignoring environment variables and user configuration
+     -n --dry_run         do nothing (dry-run)
+     -O --odoo-ver version
+                          install pypi required by odoo ver (amend, create or reset)
+     -o --odoo-path dir
+                          odoo path:used to search odoo requirements and linked in venv
+     -p --python pyver
+                          python version
+     -q --quiet           silent mode
+     -r --requirement file
+                          after created v.environment install from the given requirements file
+     -s --system-site-pack
+                          create v.environment with access to the global site-packages
+     -V --version         show version
+     -v --verbose         verbose mode
 
 vem is an interactive tool with some nice features to manage standard virtual environment.
 
@@ -151,7 +158,7 @@ Action is one of:
 * install [OPTIONS] [VENV] PKG
 * merge [OPTIONS] SRC_VENV TGT_ENV
 * mv [OPTIONS] SRC_VENV TGT_ENV
-* upgrade [OPTIONS] [VENV] PKG
+* update [OPTIONS] [VENV] PKG
 * uninstall [OPTIONS] [VENV] PKG
 * test [OPTIONS] [VENV]
 * reset [OPTIONS] [VENV]
@@ -190,7 +197,7 @@ show [OPTIONS] [SRC_VENV] PKG
 uninstall [OPTIONS] [SRC_VENV] PKG
       Uninstall pypi package from virtual environment.
 
-upgrade [OPTIONS] [SRC_VENV] PKG
+update [OPTIONS] [SRC_VENV] PKG
       Upgrade pypi package in virtual environment.
 
 
@@ -229,6 +236,53 @@ Current version via Git
     source /opt/odoo/devel/activate_tools
 
 
+History
+-------
+
+1.0.0.14 (2021-04-23)
+~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: errore if pip ad python module "python -m pip"
+
+1.0.0.13 (2021-04-06)
+~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] vem: odoo check values
+
+1.0.0.12 (2021-03-28)
+~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: odoo as package
+[FIX] vem: sometime local package installation error
+[REF] vem refactoring in order to best use inside travis emulator
+[IMP] vem: osx/darwin compatible
+[IMP] vem: new action inspect
+
+1.0.0.11 (2021-03-19)
+~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: sometime error: package not found
+
+1.0.0.10 (2021-03-18)
+~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: version of openupgradelib & prestapyt
+
+1.0.0.9 (2021-03-05)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: odoo link as package
+[FIX] vem: info / show package with version
+
+1.0.0.8 (2021-03-03)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: version of openupgradelib & prestapyt
+[FIX] vem: amend sometimes does not recognize package version
+[IMP] vem: odoo link as package
+
+
+
 |
 |
 
@@ -251,13 +305,13 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2020-10-17
+Last Update / Ultimo aggiornamento: 2021-05-24
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
-    :alt: Production/Stable
+    :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
-    :target: https://travis-ci.org/zeroincombenze/tools
+    :target: https://travis-ci.com/zeroincombenze/tools
     :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
@@ -266,22 +320,22 @@ Last Update / Ultimo aggiornamento: 2020-10-17
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.0.2
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.1
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.2/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.0.2
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.0.2/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.1/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.0.2/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.1/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.0.2/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.0.2
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.1/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.1
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

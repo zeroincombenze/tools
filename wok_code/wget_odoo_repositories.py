@@ -25,9 +25,9 @@ __version__ = '0.1.17.2'
 ROOT_URL = 'https://api.github.com/repos/zeroincombenze/'
 USER_URL = 'https://api.github.com/users/'
 TEST_REP = 'OCB'
-DEVEL_REPS = ['OpenUpgrade', 'dotnet', 'interface-github',
-              'odoorpc', 'openupgradelib', 'pylint-odoo',
-              'rest-framework', 'runbot-addons']
+DEVEL_REPS = ['Odoo-samples', 'VME', 'OpenUpgrade', 'dotnet',
+              'interface-github', 'odoorpc', 'openupgradelib', 'pylint-odoo',
+              'rest-framework', 'runbot-addons', 'grymb']
 TEST_REP_OCB = {
     'issues_url': '%s%s/issues{/number}' % (ROOT_URL, TEST_REP),
     'deployments_url': '%s%s/deployments' % (ROOT_URL, TEST_REP),

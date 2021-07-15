@@ -23,7 +23,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 2
 fi
 
-__version__=1.0.0.8
+__version__=1.0.0.9
 NEEDING_PKGS="future configparser os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python-plus"
@@ -246,21 +246,25 @@ pip_install() {
   [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
-    srcdir=""
-    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
-    [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$fn)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$fn/$fn)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$fn/$fn)
-    if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
-      echo "Missed Odoo version to install (please use -O switch)!"
-      exit 1
+    if [[ ! $pkg =~ $BIN_PKGS ]]; then
+      srcdir=""
+      [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
+      [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$fn)
+      [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$fn/$fn)
+      [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$fn/$fn)
+      if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
+        echo "Missed Odoo version to install (please use -O switch)!"
+        exit 1
+      fi
+      [[ $pkg =~ ^(odoo|openerp)$ && -n $opt_oepath ]] && srcdir=$(odoo_orm_path $opt_oepath)
+      if [[ $pkg =~ ^(odoo|openerp)$ && -z $srcdir ]]; then
+        echo "Odoo path not found! Please supply path with -o switch)!"
+        exit 1
+      fi
     fi
-    [[ $pkg =~ ^(odoo|openerp)$ && -n $opt_oepath ]] && srcdir=$(odoo_orm_path $opt_oepath)
-    if [[ $pkg =~ ^(odoo|openerp)$ && -z $srcdir ]]; then
-      echo "Odoo path not found! Please supply path with -o switch)!"
-      exit 1
-    fi
-    if [[ -n "$srcdir" ]]; then
+    if [[ $pkg =~ $BIN_PKGS ]]; then
+      bin_install "$pkg"
+    elif [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
       pushd $srcdir/.. >/dev/null
       [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $fn)

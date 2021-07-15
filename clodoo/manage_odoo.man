@@ -7,7 +7,7 @@ manage_odoo \- create, upgrade, remove and manage Odoo installation
 manage_odoo [options] actions
 .SH DESCRIPTION
 \fBmanage_odoo\fR is very useful to manage all the packages needed to build a
-complete Odoo installation and to check the actual installation status.
+complete Odoo installation and to check the current installation status.
 
 \fBmanage_odoo\fR retrieves information about package from manifest file and from
 requirements.txt file.
@@ -77,7 +77,7 @@ You can issue more actions separated by plus simbol: i.e. \fBoca+requirements\fR
 
 \fBadd_repository\fR
 .RS
-Download repository from githib to local Odoo installation, upgrade /etc/odoo/ 
+Download repository from github to local Odoo installation, upgrade /etc/odoo/
 configuration file.
 .br
 If repository is already installed, ask for reinstall,
@@ -88,14 +88,14 @@ Repository is selected by -O switch.
 Odoo version is selected by -b switch.
 .br
 Directory of Odoo is depending from Odoo version (-b switch) and mono or multiversion
-Odoo environment (-m switch). You can use -o switch to set you own path
+Odoo environment (-m switch). You can use -o switch to set your own path
 .RE
 .br
 
 .br
 \fBbuild\fR
 .RS
-Build a complete Odoo installation, with repository.
+Build a complete Odoo installation, with repositories.
 .RE
 .br
 
@@ -126,17 +126,17 @@ Upgrade remote info of package
 .br
 
 .br
-\fBoca\fR \fBoia\fR \fBzeroincombenze\fR
+\fBoca\fR \fBzeroincombenze\fR
 .RS
-Set source repository from OCA or Odoo Italia Associazione or Zeroincombenze github.com repository
+Set source repository from OCA or Zeroincombenze github.com repository
 .RE
 .br
 
 .br
 \fBrebuild\fR
 .RS
-Rebuild an Odoo instalation.
-Like build but delete previos installed directory.
+Rebuild an Odoo installation.
+Like build but delete previous installed directory.
 .RE
 .br
 
@@ -222,7 +222,7 @@ assume yes
 .RE
 Install all packages to run Odooo 11.0
 .SH SEE ALSO
-apg-get, yum, pip, lisa
+apt-get, yum, pip, lisa
 .SH BUGS
 No known bugs.
 .SH AUTHOR

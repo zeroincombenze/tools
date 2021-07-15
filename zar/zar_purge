@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.35.1
+__version__=1.3.35.2
 
 
 OPTOPTS=(h        c        e      i      I       K        k          l       m          n            T         U          V           v)
@@ -65,7 +65,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Purge postgres DB"\
-  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 CFG_init

@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=1.3.35.1
+#__version__=1.3.35.2
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -124,7 +124,7 @@ init_vars() {
     if [ ${test_mode:-0} -ne 0 ]; then
       PGDIR=$(findpkg "" "$TESTDIR")
     else
-      PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
+      PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "12.0 11.0 10.0 9.6 9.5 9.4 9.3 9.2 9.1 9.0 8.3 8.2")
       if [ -z "$PGDIR" ]; then
         wlog "No postgres directory found!"
         exit 1

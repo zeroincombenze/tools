@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.31.3
+__version__=0.3.31.4
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -87,7 +87,7 @@ set_remote_info() {
     if [[ -n $(build_odoo_param VCS "$PKGPATH" "$git_repo" "$opt_org" "$opt_deploy") ]]; then
         rval=$(build_odoo_param RUPSTREAM "$PKGPATH" "$git_repo" "$opt_org" "default")
         if [[ -n "$RUPSTREAM" && ! "$rval" == "$RUPSTREAM" ]]; then
-            [[ -n "$rval" ]] && run_traced "git remote remove upstram" "$RUN_USER"
+            [[ -n "$rval" ]] && run_traced "git remote remove upstream" "$RUN_USER"
             run_traced "git remote add upstream $RUPSTREAM" "$RUN_USER"
         fi
         rval=$(build_odoo_param RORIGIN "$PKGPATH" "$git_repo" "$opt_org" "default")
@@ -153,8 +153,8 @@ commit_files() {
     local odoo_fver=$1
     local x=$(build_odoo_param RORIGIN "$1" "$git_repo" "$opt_org" "$opt_deploy")
     if [ "${x:0:15}" == "git@github.com:" ]; then
-        run_traced "git checkout -b $odoo_fver origin/$odoo_fver" "$RUN_USER"
-        run_traced "git format-patch --stdout origin/$odoo_fver -- $PWD | git am -3" "$RUN_USER"
+        run_traced "git checkout $odoo_fver" "$RUN_USER"
+        # run_traced "git format-patch --stdout origin/$odoo_fver -- $PWD | git am -3" "$RUN_USER"
         run_traced "git push origin $odoo_fver" "$RUN_USER"
     fi
 }
@@ -258,15 +258,15 @@ if [ "$opt_version" ]; then
     echo "$__version__"
     exit $STS_SUCCESS
 fi
-if [ -z "$git_repo" ]; then
+if [[ -z "$git_repo" ]]; then
     opt_help=1
-elif [ -z "$odoo_vid" -a -z "$opt_branch" ]; then
-    opt_help=1
-fi
-if [ $opt_noconf -ne 0 -a $opt_ucfg -ne 0 ]; then
+elif [[ -z "$odoo_vid" && -z "$opt_branch" ]]; then
     opt_help=1
 fi
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_noconf -ne 0 && $opt_ucfg -ne 0 ]]; then
+    opt_help=1
+fi
+if [[ $opt_help -gt 0 ]]; then
     print_help "Add or duplicate odoo repository into local filesystem" \
         "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit $STS_SUCCESS
