@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='zar',
-      version='1.3.35.2',
+      version='1.3.35.3',
       description='Zeroincombenze Archive Replica',
       long_description="""
 Backup and restore files and DBs
