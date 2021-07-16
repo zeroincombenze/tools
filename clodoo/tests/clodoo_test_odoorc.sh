@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.31.4
+__version__=0.3.31.5
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca powerp librerp VENV_123- devel"
@@ -807,11 +807,11 @@ test_08() {
     local s sts v w
     sts=0
     export opt_multi=1
-    local TRES="OCB account-closing account-financial-reporting account-financial-tools account-invoicing account-payment account_banking_cscs bank-payment commission connector contract crm cscs_addons knowledge l10n-italy l10n-italy-supplemental management-system partner-contact product-attribute project purchase-workflow python-plus report-print-send reporting-engine sale-workflow server-tools stock-logistics-barcode stock-logistics-tracking stock-logistics-warehouse stock-logistics-workflow web webkit-tools website website-themes z0bug_odoo zerobug zerobug-test zeroincombenze"
+    local TRES="OCB account-closing account-financial-reporting account-financial-tools account-invoicing account-payment account_banking_cscs bank-payment commission connector contract crm cscs_addons knowledge l10n-italy l10n-italy-supplemental management-system partner-contact product-attribute profiles project purchase-workflow report-print-send reporting-engine sale-workflow server-tools stock-logistics-barcode stock-logistics-tracking zeroincombenze"
     local RES=$(module_list "7.0")
     test_result "Module list 7.0" "$TRES" "$RES"
 
-    TRES="OCB account-closing account-financial-reporting account-financial-tools account-invoicing account-payment account_banking_cscs bank-payment commission connector contract crm cscs_addons knowledge l10n-italy l10n-italy-supplemental management-system partner-contact product-attribute project purchase-workflow python-plus report-print-send reporting-engine sale-workflow server-tools stock-logistics-barcode stock-logistics-tracking stock-logistics-warehouse stock-logistics-workflow web webkit-tools website website-themes z0bug_odoo zerobug zerobug-test zeroincombenze"
+    TRES="OCB account-closing account-financial-reporting account-financial-tools account-invoicing account-payment bank-payment commission connector contract crm knowledge l10n-italy l10n-italy-supplemental management-system partner-contact product-attribute project purchase-workflow report-print-send reporting-engine sale-workflow server-tools stock-logistics-barcode stock-logistics-tracking zeroincombenze"
     local RES=$(module_list "8.0")
     test_result "Module list 8.0" "$TRES" "$RES"
 }

@@ -253,7 +253,7 @@ pip_install() {
       [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$fn/$fn)
       [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$fn/$fn)
       if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
-        echo "Missed Odoo version to install (please use -O switch)!"
+        echo "Missed Odoo version to install (please use -O and/or -o switch)!"
         exit 1
       fi
       [[ $pkg =~ ^(odoo|openerp)$ && -n $opt_oepath ]] && srcdir=$(odoo_orm_path $opt_oepath)
@@ -1217,7 +1217,7 @@ elif [[ ! $action =~ (help|create) ]]; then
 fi
 [[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
 if [[ $action != "help" ]]; then
-  [[ -n "$opt_oever" && -z "$opt_oepath" ]] && find_odoo_path $HOME
+  [[ -n "$opt_oever" && -z "$opt_oepath" ]] && find_odoo_path $HOME "-L"
   [[ $opt_verbose -gt 2 ]] && echo "# Odoo dir = '$opt_oepath'"
 fi
 if [[ $action =~ (help|create) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then

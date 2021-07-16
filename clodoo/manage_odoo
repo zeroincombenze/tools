@@ -27,7 +27,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.31.4
+__version__=0.3.31.5
 
 
 explore() {
@@ -51,10 +51,10 @@ do_action() {
     local odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
     local pyver
-    [ $odoo_ver -ge 11 ] && pyver="3" || pyver="2"
-    [ "$opt_pyver" == "2" -o "$opt_pyver" == "3" ] && pyver=$opt_pyver
     local f s
-    if [ -n "$opt_odir" ]; then
+    [[ $odoo_ver -ge 11 ]] && pyver="3" || pyver="2"
+    [[ $opt_pyver =~ ^[23]$ ]] && pyver=$opt_pyver
+    if [[ -n "$opt_odir" ]]; then
       local pkgdir=$opt_odir
       local odoo_root=$(build_odoo_param ROOT $opt_odir search)
     else
@@ -98,7 +98,7 @@ do_action() {
     fi
     if [[ $act =~ ^(build|rebuild|add_repository)$ ]]; then
       GIT_ORG=$(build_odoo_param GIT_ORG $odoo_vid $repo $opt_org)
-      ODOO_URL=$(build_odoo_param GIT_URL $odoo_vid $repo $opt_org)
+      GIT_URL=$(build_odoo_param GIT_URL $odoo_vid $repo $opt_org)
       GIT_OPTS=$(build_odoo_param GIT_OPTS $odoo_vid $repo $opt_org)
       if [[ $act == "build" ]]; then
         for p in FLOG FPID CONFN; do
@@ -281,7 +281,7 @@ do_action() {
     fi
     [[ $sts -ne 0 ]] && return $sts
     if [[ $act =~ ^(build|rebuild|add_repository)$ ]]; then
-      run_traced "$TDIR/odoo_install_repository $ODOO_URL $odoo_vid $opts -O $opt_org $opts_user"
+      run_traced "$TDIR/odoo_install_repository $repo -b$odoo_vid $opts -O $opt_org $opts_user"
     else
       run_traced "cd $pkgdir"
       if [ "$act" == "lint" ]; then
@@ -299,7 +299,7 @@ do_action() {
             fi
             $TDIR/list_requirements.py -vPp $pkgdir -o
           fi
-          run_traced "$TDIR/odoo_install_repository $repo $odoo_vid $opts -O $opt_org -r $opts_user"
+          run_traced "$TDIR/odoo_install_repository $repo -b$odoo_vid $opts -O $opt_org -r $opts_user"
         fi
       elif [ "$act" == "oca" ]; then
         if [ ! -L $pkgdir ]; then
@@ -459,17 +459,17 @@ sts=0
 for repo in $sub_list; do
   for odoo_vid in $opt_branch; do
     for act in $actions; do
-      if [[ (! "$act" == "requirements" && ! "$act" == "check-config") || "$repo" == "OCB" ]]; then
+      if [[ ! $act =~ ^(requirements|check-config)$ || "$repo" == "OCB" ]]; then
         do_action $act $repo $odoo_vid
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
     done
-    if [ $sts -ne 0 ]; then
+    if [[ $sts -ne 0 ]]; then
       exit $sts
-    elif [ $opt_nostop -eq 0 ]; then
-      if [[ (! "$act" == "requirements" && ! "$act" == "check-config") || "$repo" == "OCB" ]]; then
+    elif [[ $opt_nostop -eq 0 ]]; then
+      if [[ ! $act =~ ^(requirements|check-config)$ || "$repo" == "OCB" ]]; then
         read -p "Press RET to continue" a
-        if [ "$a" == "q" ]; then
+        if [[ "$a" == "q" ]]; then
           exit $sts
         fi
       fi

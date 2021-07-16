@@ -20,14 +20,15 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = '0.1.17.2'
+__version__ = '0.1.17.3'
 
 ROOT_URL = 'https://api.github.com/repos/zeroincombenze/'
 USER_URL = 'https://api.github.com/users/'
 TEST_REP = 'OCB'
-DEVEL_REPS = ['Odoo-samples', 'VME', 'OpenUpgrade', 'dotnet',
+DEVEL_REPS = ['Odoo-samples', 'VME', 'OpenUpgrade', 'dotnet', 'grymb',
               'interface-github', 'odoorpc', 'openupgradelib', 'pylint-odoo',
-              'rest-framework', 'runbot-addons', 'grymb']
+              'python-plus', 'rest-framework', 'runbot-addons', 'z0bug_odoo',
+              'zerobug']
 TEST_REP_OCB = {
     'issues_url': '%s%s/issues{/number}' % (ROOT_URL, TEST_REP),
     'deployments_url': '%s%s/deployments' % (ROOT_URL, TEST_REP),
@@ -272,15 +273,49 @@ TEST_REP_ACC_CLO = {
 
 
 def get_list_from_url(ctx, git_org):
-    baseurl = 'https://api.github.com/users/%s/repos' % git_org
-    page = 0
-    if git_org == 'zeroincombenze':
-        repository = ['account_banking_cscs', 'cscs_addons', 'didotech_80',
-                      'l10n-italy-supplemental ', 'profiles', 'uncovered',
-                      'zerobug-test', 'zeroincombenze']
-    else:
-        repository = []
 
+    def name_is_valid(ctx, name):
+        if ((not name.startswith('.') and
+             not name.startswith('connector-') and
+             not name.startswith('maintainer-') and
+             not name.startswith('oca-') and
+             not name.startswith('odoo-') and
+             not name.startswith('vertical-') and
+             not name.startswith('l10n-') and
+             name not in DEVEL_REPS) or
+                (name.startswith('connector-') and
+                 'connector' in ctx['extra']) or
+                (name.startswith('maintainer-') and
+                 'maintainer' in ctx['extra']) or
+                (name.startswith('oca-') and
+                 'oca' in ctx['extra']) or
+                (name.startswith('odoo-') and
+                 'odoo' in ctx['extra']) or
+                (name.startswith('vertical-') and
+                 'vertical' in ctx['extra']) or
+                (name in DEVEL_REPS and
+                 'devel' in ctx['extra']) or
+                (name.startswith('l10n-') and name in ctx['l10n'])):
+            return True
+        return False
+
+    def add_repo(name):
+        if ctx['opt_verbose']:
+            print(name)
+        repository.append(name)
+
+    fn = os.path.join(
+        os.path.dirname(__file__),
+        '.%s.dat' % os.path.basename(__file__)[0:-3])
+    cache = {}
+    if os.path.isfile(fn):
+        with open(fn, 'r') as fd:
+            cache = eval(fd.read())
+    baseurl = 'https://api.github.com/users/%s/repos' % git_org
+    branchurl = 'https://api.github.com/repos/%s' % git_org
+    done_default = False
+    page = 0
+    repository = []
     while 1:
         page += 1
         pageurl = '%s?q=addClass+user:mozilla&page=%d' % (baseurl, page)
@@ -291,40 +326,93 @@ def get_list_from_url(ctx, git_org):
             if page > 1:
                 data = []
         else:
-            response = urllib2.urlopen(pageurl)
-            data = json.loads(response.read())
+            try:
+                response = urllib2.urlopen(pageurl)
+                data = json.loads(response.read())
+            except:
+                data = []
+                if (not done_default and
+                        git_org == 'zeroincombenze' and
+                        ctx['odoo_vid'] in ('7.0', '8.0')):
+                    done_default = True
+                    data = [
+                        {'url': '//account-closing'},
+                        {'url': '//account-financial-reporting'},
+                        {'url': '//account-financial-tools'},
+                        {'url': '//account-invoicing'},
+                        {'url': '//account-payment'},
+                        {'url': '//bank-payment'},
+                        {'url': '//commission'},
+                        {'url': '//connector'},
+                        {'url': '//contract'},
+                        {'url': '//crm'},
+                        {'url': '//grymb'},
+                        {'url': '//knowledge'},
+                        {'url': '//l10n-italy'},
+                        {'url': '//l10n-italy-supplemental'},
+                        {'url': '//maintainer-tools'},
+                        {'url': '//management-system'},
+                        {'url': '//OCB'},
+                        {'url': '//Odoo-samples'},
+                        {'url': '//partner-contact'},
+                        {'url': '//product-attribute'},
+                        {'url': '//project'},
+                        {'url': '//purchase-workflow'},
+                        {'url': '//python-plus'},
+                        {'url': '//report-print-send'},
+                        {'url': '//reporting-engine'},
+                        {'url': '//sale-workflow'},
+                        {'url': '//server-tools'},
+                        {'url': '//stock-logistics-barcode'},
+                        {'url': '//stock-logistics-tracking'}]
+                    if ctx['odoo_vid'] == '7.0':
+                        data.append({'url': '//profiles'})
         if not data:
             break
         if ctx['opt_verbose']:
             print('Analyzing received data ...')
         for repos in data:
             name = os.path.basename(repos['url'])
-            if ((not name.startswith('.') and
-                 not name.startswith('connector-') and
-                 not name.startswith('maintainer-') and
-                 not name.startswith('oca-') and
-                 not name.startswith('odoo-') and
-                 not name.startswith('vertical-') and
-                 not name.startswith('l10n-') and
-                 name not in DEVEL_REPS) or
-                    (name.startswith('connector-') and
-                     'connector' in ctx['extra']) or
-                    (name.startswith('maintainer-') and
-                     'maintainer' in ctx['extra']) or
-                    (name.startswith('oca-') and
-                     'oca' in ctx['extra']) or
-                    (name.startswith('odoo-') and
-                     'odoo' in ctx['extra']) or
-                    (name.startswith('vertical-') and
-                     'vertical' in ctx['extra']) or
-                    (name in DEVEL_REPS and
-                     'devel' in ctx['extra']) or
-                    (name.startswith('l10n-') and name in ctx['l10n'])):
-                if ctx['opt_verbose']:
-                    print(name)
-                repository.append(name)
+            if name_is_valid(ctx, name):
+                if ctx['odoo_vid']:
+                    pageurl = '%s/%s/branches' % (branchurl, name)
+                    try:
+                        branch_response = urllib2.urlopen(pageurl)
+                        branches = json.loads(branch_response.read())
+                    except:
+                        branches = [
+                            {'name': '7.0'},
+                            {'name': '8.0'},
+                            {'name': '9.0'},
+                            {'name': '10.0'},
+                            {'name': '11.0'},
+                            {'name': '12.0'},
+                            {'name': '13.0'},
+                            {'name': '14.0'},
+                        ]
+                    if not branches or not any(
+                            [x for x in branches
+                             if x['name'] == ctx['odoo_vid']]):
+                        continue
+                add_repo(name)
             elif ctx['opt_verbose']:
                 print('discaded %s' % name)
+
+    if repository:
+        if git_org == 'zeroincombenze':
+            for name in ['uncovered', 'zeroincombenze']:
+                if name_is_valid(ctx, name):
+                    add_repo(name)
+        if git_org == 'zeroincombenze' and ctx['odoo_vid'] == '7.0':
+            for name in ['account_banking_cscs', 'cscs_addons']:
+                if name_is_valid(ctx, name):
+                    add_repo(name)
+        cache[git_org] = cache.get(git_org, {})
+        cache[git_org][ctx['odoo_vid']] = repository
+        with open(fn, 'w') as fd:
+            fd.write(str(cache))
+    elif git_org in cache and ctx['odoo_vid'] in cache[git_org]:
+        repository = cache[git_org][ctx['odoo_vid']]
     return repository
 
 
@@ -375,7 +463,7 @@ if __name__ == "__main__":
         if ctx['oca']:
             git_orgs.append('OCA')
     if not ctx['l10n']:
-        ctx['l10n'] = 'l10n-italy'
+        ctx['l10n'] = 'l10n-italy,l10n-italy-supplemental'
     ctx['l10n'] = ctx['l10n'].split(',')
     if not ctx['extra']:
         ctx['extra'] = 'none'

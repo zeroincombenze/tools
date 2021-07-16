@@ -1,7 +1,13 @@
+0.3.31.5 (2021-07-15)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] manage_db: upgrade
+* [FIX] minor fixes
+
 0.3.31.2 (2021-06-07)
 ~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] transodoo: valuetnl return if translabel field
+* [IMP] transodoo: value tnl can return if field is translable
 
 0.3.31.1 (2021-05-25)
 ~~~~~~~~~~~~~~~~~~~~~

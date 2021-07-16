@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.15-Debian
+# version: 0.4.16-Debian
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -73,126 +73,118 @@ fi
 # Specify the user name (Default: odoo).
 USER=${xtl_user}
 USERHOME=$(eval echo ~$USER)
-# search for execution command script
-xtl_org=$(echo $(basename $0)|grep -Eo "(oca|librerp|flectra|zero)"|tail -n1)
-[[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
-mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12|13|14)")
-LL=""
-DAEMON=""
-VENV_DIR=""
-for dr in /usr/local/bin /usr/bin ${USERHOME}; do
-    for dp in "VENV" "${xtl_org}" $ORG ${ORG^^} OCB "v" "V"; do
-        if [[ $dp == "VENV" && ! $dr =~ ^/usr/ ]]; then
-          for dv in ${xtl_fversion} ${xtl_version} ""; do
-            for py in 3.7 3.6 3.5 2.7; do
-              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../odoo-bin"
-              [[ -x $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../odoo-bin ]] && DAEMON="$(readlink -e $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../odoo-bin)" && VENV_DIR=$dr/${dp}-${ORG}$dv && break
-              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../odoo-bin"
-              [[ -x $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../odoo-bin ]] && DAEMON="$(readlink -e $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../odoo-bin)" && VENV_DIR=$dr/${dp}-$dv && break
-              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../openerp-server"
-              [[ -x $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../openerp-server ]] && DAEMON="$(readlink -e $dr/${dp}-${ORG}$dv/lib/python$py/site-packages/odoo/../openerp-server)" && VENV_DIR=$dr/${dp}-${ORG}$dv && break
-              [[ $DRY_RUN -gt 0 ]] && echo "Searching for $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../openerp-server"
-              [[ -x $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../openerp-server ]] && DAEMON="$(readlink -e $dr/${dp}-$dv/lib/python$py/site-packages/odoo/../openerp-server)" && VENV_DIR=$dr/${dp}-$dv && break
-            done
-          done
-        fi
-        [[ -n "$DAEMON" ]] && break
-        for dv in ${xtl_fversion} ${xtl_version} ""; do
-            [[ -z "$dp" && -z "$dv" ]] && continue
-            [[ $dr =~ ^/usr && ( -z "$dp" || $dp =~ ^(v|V|VENV|OCB) ) ]] && continue
-            [[ $dp =~ ^(v|V|OCB)$ && ( -z "$dv" || ! "$ORG" == "odoo" ) ]] && continue
-            [[ "$dp" == "VENV" && -z "$dv" ]] && continue
-            [ $DRY_RUN -gt 0 ] && echo "Searching for $dr/${dp}-${ORG}${xtl_version}/odoo <<<$ORG|${xtl_version}>>>"
-            [[ "$dp" == "VENV" && -d $dr/${dp}-${ORG}${xtl_version}/odoo ]] && LL="$LL $dr/${dp}-${ORG}${xtl_version}/odoo"
-            [[ "$dp" == "VENV" ]] && FD=$dr/$dp$dv/$ORG || FD=$dr/$dp$dv
-            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
-            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
-            [[ -d "$FD" ]] && LL="$LL $FD"
-            [[ -z "$dp" || -z "$dv" ]] && continue
-            [[ "$dp" == "VENV" ]] && FD=$dr/$dp-$dv/$ORG || FD=$dr/$dp-$dv
-            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
-            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
-            [[ -d "$FD" ]] && LL="$LL $FD"
-            [[ "$dp" == "VENV" ]] && FD=$dr/${dp}_$dv/$ORG || FD=$dr/${dp}_$dv
-            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
-            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
-            [[ -d "$FD" ]] && LL="$LL $FD"
-            [[ "$dp" == "VENV" ]] && FD=$dr/$dp-v$dv/$ORG || FD=$dr/$dp-v$dv
-            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
-            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
-            [[ -d "$FD" ]] && LL="$LL $FD"
-            [[ "$dp" == "VENV" ]] && FD=$dr/${dp}_V$dv/$ORG || FD=$dr/${dp}_V$dv
-            [ $DRY_RUN -gt 0 ] && echo "Searching for $FD"
-            if [[ ! -d "$FD" && -x "$FD" ]]; then DAEMON=$FD; break; fi
-            [[ -d "$FD" ]] && LL="$LL $FD"
-        done
-        [[ -n "$DAEMON" ]] && break
-    done
-    [[ -n "$DAEMON" ]] && break
-done
-if [[ -z "$DAEMON" ]]; then
-    for dn in odoo-bin openerp-server odoo-server odoo openerp; do
-        for dp in $LL; do
-            if [[ ! -d "$dp/$dn" && -x "$dp/$dn" ]]; then
-                DAEMON=$dp/$dn
-                break
-            elif [[ -d "$dp/server" && -x "$dp/server/$dn" ]]; then
-                DAEMON=$dp/server/$dn
-                break
-            fi
-        done
-        [[ -n "$DAEMON" ]] && break
-    done
-fi
-[ $DRY_RUN -gt 0 ] && echo "DAEMON=$DAEMON"
-[[ -z "$DAEMON" ]] && exit 2
-
-NAME=${xtl_name}
-DESC="${xtl_Id} Server Daemon ($NAME)"
 # Specify config file (Default: ${xtl_cfgfile}).
-if [ -f ${xtl_cfgfile} ]; then
+if [[ -f ${xtl_cfgfile} ]]; then
   CONFIGFILE="${xtl_cfgfile}"
-elif [ -f ${xtl_altcfgfile} ]; then
+elif [[ -f ${xtl_altcfgfile} ]]; then
   CONFIGFILE="${xtl_altcfgfile}"
 else
   CONFIGFILE=""
 fi
+# search for execution command script
+xtl_org=$(echo $(basename $0)|grep -Eo "(oca|librerp|flectra|zero|powerp)"|tail -n1)
+[[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
+mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12|13|14)")
+[[ $DRY_RUN -gt 0 ]] && echo "mult=${mult}"
+[[ $DRY_RUN -gt 0 ]] && echo "ORG=$ORG"
+DAEMON=""
+VENV_DIR=""
+[[ $DRY_RUN -gt 0 ]] && echo "find /usr/local/bin /usr/bin -maxdepth 1 -type f -executable -name \"${ORG}*${mult}*\" -o -name \"ODOO*${mult}*\" -o -name \"openerp*${mult}*\""
+LL=$(find /usr/local/bin /usr/bin -maxdepth 1 -type f -executable -name "${ORG}*${mult}*" -o -name "ODOO*${mult}*" -o -name "openerp*${mult}*")
+[[ $DRY_RUN -gt 0 ]] && echo "LL=$LL"
+for fn in $LL; do
+  [[ $DRY_RUN -gt 0 ]] && echo "> for $fn in $LL"
+  [[ -n "$mult" && ! $fn =~ [0-9]+ ]] && continue
+  [[ -z "$mult" && $fn =~ [0-9]+ ]] && continue
+  mime=$(file --mime-type -b $fn)
+  [[ "$mime" == "text/x-python" || "${fn: -3}" == ".py" ]] && DAEMON=$fn && break
+done
+if [[ -z "$DAEMON" ]]; then
+  if [[ -n "$CONFIGFILE" ]]; then
+    [[ $DRY_RUN -gt 0 ]] && echo "CONFIGFILE=$CONFIGFILE"
+    LL=""
+    dr=$(grep ^addons_path $CONFIGFILE|awk -F= '{print $2}')
+    for fn in ${dr//,/ }; do
+      [[ $fn =~ /addons ]] && LL="$LL $(dirname $fn)"
+    done
+    if [[ -n "$LL" ]]; then
+      [[ $DRY_RUN -gt 0 ]] && echo "find $LL -maxdepth 1 -type f -executable -name odoo-bin -o -name openerp-server"
+      for fn in $(find $LL -maxdepth 1 -type f -executable -name odoo-bin -o -name openerp-server); do
+        [[ $DRY_RUN -gt 0 ]] && echo "> for $fn in $LL"
+        mime=$(file --mime-type -b $fn)
+        [[ "$mime" == "text/x-python" ]] && DAEMON=$fn && break
+      done
+    fi
+  fi
+fi
+if [[ -z "$DAEMON" ]]; then
+  [[ $DRY_RUN -gt 0 ]] && echo "find ${USERHOME} -maxdepth 1 -type d -not -name \"_*\" -name \"${ORG}*${mult}*\" -o -name \"odoo*${mult}*${ORG}*\" -o -name \"OCB*${mult}*\" -o -name \"*${mult}.0*\""
+  LL=$(find ${USERHOME} -maxdepth 1 -type d -not -name "_*" -name "${ORG}*${mult}*" -o -name "odoo*${mult}*${ORG}*" -o -name "OCB*${mult}*" -o -name "*${mult}.0*")
+  [[ $DRY_RUN -gt 0 ]] && echo "LL=$LL"
+  for dr in $LL; do
+    [[ $DRY_RUN -gt 0 ]] && echo "> for $dr in $LL"
+    [[ -n "$mult" && ! $dr =~ [0-9]+ ]] && continue
+    [[ -z "$mult" && $dr =~ [0-9]+ ]] && continue
+    [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 2 -type f -executable -name odoo-bin -o -name openerp-server"
+    for fn in $(find $dr -maxdepth 2 -type f -executable -name odoo-bin -o -name openerp-server); do
+      [[ $DRY_RUN -gt 0 ]] && echo "> for $fn in ..."
+      mime=$(file --mime-type -b $fn)
+      [[ "$mime" == "text/x-python" ]] && DAEMON=$fn && break
+    done
+    if [[ -n "$DAEMON" ]]; then
+      [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 2 -type d -name venv -o -name \"venv*odoo\"|head -n1"
+      VENV_DIR=$(find $dr -maxdepth 2 -type d -name venv -o -name "venv*odoo"|head -n1)
+      break
+    fi
+  done
+fi
+[[ $DRY_RUN -gt 0 ]] && echo "DAEMON=$DAEMON"
+[[ -z "$DAEMON" ]] && exit 2
+if [[ -z "$VENV_DIR" ]]; then
+  dr=$(readlink -f $(dirname $DAEMON)/..)
+  [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV*${ORG}*${mult}*\"|head -n1"
+  VENV_DIR=$(find $dr -maxdepth 1 -type d -name "VENV*${ORG}*${mult}*"|head -n1)
+  [[ -z "$VENV_DIR" && $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV*${mult}*\"|head -n1"
+  [[ -z "$VENV_DIR" ]] && VENV_DIR=$(find $dr -maxdepth 1 -type d -name "VENV*${mult}*"|head -n1)
+fi
+[[ $DRY_RUN -gt 0 ]] && echo "VENV_DIR=$VENV_DIR"
+NAME=${xtl_name}
+DESC="${xtl_Id} Server Daemon ($NAME)"
 # pidfile
 PIDFILE=${xtl_pidfile}
 LOCKFILE=/var/lock/subsys/${NAME}
 LOGFILE=${xtl_logfile}
 # Additional options that are passed to the Daemon.
-if [ "$FH" == "Debian" ]; then
+if [[ "$FH" == "Debian" ]]; then
   DAEMON_OPTS="--logfile=$LOGFILE"
 else
   DAEMON_OPTS="--pidfile=$PIDFILE --logfile=$LOGFILE"
 fi
 # check if the ${NAME} conf file is present, then use it
-if [ -f $CONFIGFILE ]; then
+if [[ -f $CONFIGFILE ]]; then
   DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
 fi
 DAEMON_OPTS="$DAEMON_OPTS $2 $3 $4 $5 $6 $7 $8 $9"
-[ -x $DAEMON ] || exit 0
-# [ -f $CONFIGFILE ] || exit 0
-
+[[ -x $DAEMON ]] || exit 0
 RETVAL=0
 
 
 set_lessc() {
+    local dt p
     local f=$1
     local minv=$2
-    [ -z "$minv" ] && minv=30000
+    [[ -z "$minv" ]] && minv=30000
     local lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
-    [ -z "$lv" ] && lv=0
-    if [ $lv -ge $minv ]; then
-      local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-      if [ $EUID -eq 0 ]; then
-        [ -x /usr/bin/lessc ] && rm -f /usr/bin/lessc
-        echo "$x $$ DAEMON ? $0: ln -s $f /usr/bin">>$LOGFILE
+    [[ -z "$lv" ]] && lv=0
+    dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+    if [[ $lv -ge $minv ]]; then
+      if [[ $EUID -eq 0 ]]; then
+        [[ -x /usr/bin/lessc ]] && rm -f /usr/bin/lessc
+        echo "$dt $$ DAEMON ? $0: ln -s $f /usr/bin">>$LOGFILE
         ln -s $f /usr/bin
       else
-        local p=$(dirname $f)
-        echo "$x $$ DAEMON ? $0: export PATH=$p:$PATH">>$LOGFILE
+        p=$(dirname $f)
+        echo "$dt $$ DAEMON ? $0: export PATH=$p:$PATH">>$LOGFILE
         export PATH=$p:$PATH
       fi
     fi
@@ -200,24 +192,24 @@ set_lessc() {
 
 
 check_lessc() {
-    local d f
+    local d dt f x
     local lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
-    [ -z "$lv" ] && lv=0
-    if [ $lv -lt 30000 ]; then
-      local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-      echo "$x $$ DAEMON ? $0: lessc --version: $(lessc --version 2>/dev/null)">>$LOGFILE
-      echo "$x $$ DAEMON ? $0: Searching for lessc ...">>$LOGFILE
-      local alt_less=
+    local alt_less=
+    [[ -z "$lv" ]] && lv=0
+    dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+    if [[ $lv -lt 30000 ]]; then
+      echo "$dt $$ DAEMON ? $0: lessc --version: $(lessc --version 2>/dev/null)">>$LOGFILE
+      echo "$dt $$ DAEMON ? $0: Searching for lessc ...">>$LOGFILE
       for d in $HOME/.npm-global $HOME/node_modules /usr/lib/node_modules; do
-        if [ -d $d ]; then
-          if [ -f $d/less/bin/lessc ]; then
+        if [[ -d $d ]]; then
+          if [[ -x $d/less/bin/lessc ]]; then
             f=$d/less/bin/lessc
             lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
-            [ -z "$lv" ] && lv=0
-            if [ $lv -gt 30000 ]; then
+            [[ -z "$lv" ]] && lv=0
+            if [[ $lv -gt 30000 ]]; then
               set_lessc $f 30000
               break
-            elif [ $lv -gt 20000 ]; then
+            elif [[ $lv -gt 20000 ]]; then
               alt_less=$f
             fi
           fi
@@ -225,12 +217,15 @@ check_lessc() {
       done
     fi
     lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
-    [ -z "$lv" ] && lv=0
-    if [ $lv -lt 20000 -a -n "$alt_less" ]; then
+    [[ -z "$lv" ]] && lv=0
+    if [[ $lv -lt 20000 && -n "$alt_less" ]]; then
       set_lessc $alt_less 20000
+    elif [[ $lv -gt 0 ]]; then
+      local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+      echo "$dt $$ DAEMON ? $0: $(which lessc) --version: $(lessc --version 2>/dev/null)">>$LOGFILE
     else
-      local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-      echo "$x $$ DAEMON ? $0: $(which lessc) --version: $(lessc --version 2>/dev/null)">>$LOGFILE
+      local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+      echo "$dt $$ DAEMON-ERROR ? $0: Command lessc not found!">>$LOGFILE
     fi
 }
 
@@ -245,7 +240,7 @@ checkpid() {
 
 check_4_venv() {
     if [[ -z "$VENV_DIR" ]]; then
-      local p=$(dirname ${DAEMON}) dn
+      local dn dt p=$(dirname ${DAEMON})
       [[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
       [[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
       if [[ ! -f $p/bin/activate ]]; then
@@ -255,12 +250,15 @@ check_4_venv() {
       fi
       VENV_DIR=$p
     fi
+    dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     if [[ -f $VENV_DIR/bin/activate ]]; then
-        local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        echo "$x $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate" >> $LOGFILE
+        echo "$dt $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate" >> $LOGFILE
         [[ $DRY_RUN -gt 0 ]] && echo "cd $VENV_DIR" && echo "source ./bin/activate"
         cd $VENV_DIR
         source ./bin/activate
+    else
+        VENV_DIR=""
+        echo "$dt $$ DAEMON ? $0: No virtual environment found for ${DAEMON}!" >> $LOGFILE
     fi
 }
 
