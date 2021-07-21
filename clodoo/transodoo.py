@@ -45,7 +45,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.31.5"
+__version__ = "0.3.31.6"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
 CVT_ACC_TYPE_OLD_NEW = {
     'Bank': 'Bank and Cash',
@@ -201,7 +201,7 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                 if fld_name in mindroot[pymodel].get('value', {}):
                     names = ['1']
                 else:
-                    names = ['0']
+                    names = ['']
                 break
             elif ttype == 'value':
                 item = mindroot[pymodel].get(typ, {}).get(fld_name, {})

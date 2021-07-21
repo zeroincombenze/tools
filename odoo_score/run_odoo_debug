@@ -84,7 +84,7 @@ OPTHELP=("this help"
     "configuration file"
     "db name to test,translate o upgrade (require -m switch)"
     "export it translation (conflict with -i -u -I)"
-    "force update or install modules"
+    "force update or install modules or default parameters"
     "do not create new DB and keep it after run"
     "import it translation (conflict with -e -u -I)"
     "install module (conflict with -e -i -u)"
@@ -148,21 +148,28 @@ if [[ $opt_test -ne 0 ]]; then
     [ -z "$opt_db" ] && opt_db="test_openerp_$odoo_ver"
     create_db=1 drop_db=1
 fi
+RPCPORT=""
 if [[ -n "$opt_rport" ]]; then
     RPCPORT=$opt_rport
-elif [ $opt_web -ne 0 ]; then
-    RPCPORT=$(build_odoo_param RPCPORT $odoo_vid $GIT_ORGNM)
-elif [[ $opt_test -ne 0 ]]; then
-    RPCPORT=$(build_odoo_param RPCPORT $odoo_vid DEBUG)
+elif [[ $opt_force -ne 0 ]]; then
+  if [[ $opt_web -ne 0 ]]; then
+      RPCPORT=$(build_odoo_param RPCPORT $odoo_vid $GIT_ORGNM)
+  elif [[ $opt_test -ne 0 ]]; then
+      RPCPORT=$(build_odoo_param RPCPORT $odoo_vid DEBUG)
+  fi
 else
-    RPCPORT=
+  RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
 fi
 if [[ -n "$opt_dbuser" ]]; then
     DB_USER=$opt_dbuser
-elif [ $opt_web -ne 0 ]; then
-    DB_USER=$(build_odoo_param DB_USER $odoo_vid $GIT_ORGNM)
+elif [[ $opt_force -ne 0 ]]; then
+  if [[ $opt_web -ne 0 ]]; then
+      DB_USER=$(build_odoo_param DB_USER $odoo_vid $GIT_ORGNM)
+  else
+      DB_USER=$(build_odoo_param DB_USER $odoo_vid DEBUG)
+  fi
 else
-    DB_USER=$(build_odoo_param DB_USER $odoo_vid DEBUG)
+  DB_USER=$(grep ^db_user $CONFN | awk -F= '{print $2}' | tr -d " ")
 fi
 if [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
@@ -344,14 +351,14 @@ if [ $opt_touch -eq 0 ]; then
     fi
     if [[ -z "$RPCPORT" || "$RPCPORT" == "0" ]]; then
         run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = False|\" -i $FULL_LCONFN"
-        OPT_CONF="$OPT_CONF --no-xmlrpc"
+        [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --no-xmlrpc"
     else
         run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = $RPCPORT|\" -i $FULL_LCONFN"
-        OPT_CONF="$OPT_CONF --xmlrpc-port=$RPCPORT"
+        [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --xmlrpc-port=$RPCPORT"
     fi
     if [[ -n "$DB_USER" ]]; then
         run_traced_debug "sed -e \"s|^db_user *=.*|db_user = $DB_USER|\" -i $FULL_LCONFN"
-        OPT_CONF="$OPT_CONF --db_user=$DB_USER"
+        [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --db_user=$DB_USER"
     fi
     if [ -n "$opt_llvl" ]; then
         run_traced_debug "sed -e \"s|^log_level *=.*|log_level = $opt_llvl|\" -i $FULL_LCONFN"

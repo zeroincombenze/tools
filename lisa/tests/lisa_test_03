@@ -33,7 +33,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.1.12
+__version__=0.3.1.13
 
 test_run() {
 # test_run(msg,package,disto,cmd)

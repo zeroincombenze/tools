@@ -22,7 +22,7 @@ import csv
 # from zerobug import Z0BUG
 # from os0 import os0
 
-__version__ = "1.0.2.3"
+__version__ = "1.0.3"
 
 
 class Z0bugOdoo(object):
@@ -77,14 +77,14 @@ class Z0bugOdoo(object):
         xids = xref.split('.')
         if len(xids) == 1:
             xids[0], xids[1] = 'z0bug', xids[0]
-        if xids[0] == 'z0bug':
-            pymodel = model.replace('.', '_')
-            if not hasattr(self, pymodel):
-                self.get_data_file(model, '%s.csv' % pymodel)
-            if xref not in getattr(self, pymodel):
+        pymodel = model.replace('.', '_')
+        if not hasattr(self, pymodel):
+            self.get_data_file(model, '%s.csv' % pymodel)
+        if xref not in getattr(self, pymodel):
+            if xids[0] == 'z0bug':
                 raise KeyError('Invalid xref %s for model %s!' % (xref, model))
-            return getattr(self, pymodel)[xref]
-        return {}
+            return {}
+        return getattr(self, pymodel)[xref]
 
     def initialize_model(self, model):
         """Write all record of model with test values"""

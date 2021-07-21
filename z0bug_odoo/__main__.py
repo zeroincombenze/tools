@@ -20,7 +20,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.2.3"
+__version__ = "1.0.3"
 STS_FAILED = 1
 STS_SUCCESS = 0
 

@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='odoo_score',
-      version='1.0.1.2',
+      version='1.0.1.3',
       description='Odoo 10.0 super core',
       long_description="""
 Odoo super core by Zeroincombenze(R) 

@@ -1,3 +1,8 @@
+0.3.31.6 (2021-07-17)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] transodoo: valuetnl return '' if field is not translable
+
 0.3.31.5 (2021-07-15)
 ~~~~~~~~~~~~~~~~~~~~
 

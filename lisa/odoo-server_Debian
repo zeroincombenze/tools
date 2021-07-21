@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.16-Debian
+# version: 0.4.17-Debian
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -144,8 +144,8 @@ if [[ -z "$VENV_DIR" ]]; then
   dr=$(readlink -f $(dirname $DAEMON)/..)
   [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV*${ORG}*${mult}*\"|head -n1"
   VENV_DIR=$(find $dr -maxdepth 1 -type d -name "VENV*${ORG}*${mult}*"|head -n1)
-  [[ -z "$VENV_DIR" && $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV*${mult}*\"|head -n1"
-  [[ -z "$VENV_DIR" ]] && VENV_DIR=$(find $dr -maxdepth 1 -type d -name "VENV*${mult}*"|head -n1)
+  [[ -z "$VENV_DIR" && $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV-${mult}*\"|head -n1"
+  [[ -z "$VENV_DIR" ]] && VENV_DIR=$(find $dr -maxdepth 1 -type d -name "VENV-${mult}*"|head -n1)
 fi
 [[ $DRY_RUN -gt 0 ]] && echo "VENV_DIR=$VENV_DIR"
 NAME=${xtl_name}
