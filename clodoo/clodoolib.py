@@ -166,7 +166,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.31.6"
+__version__ = "0.3.31.7"
 
 
 #############################################################################
@@ -943,15 +943,15 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
             odoorc,
             item,
             odoo_vid,
-            suppl,
-            git_org)
+            suppl or '',
+            git_org or '')
     else:
         cmd = 'source %s; build_odoo_param %s "%s" "%s" "%s"' % (
             odoorc,
             item,
             odoo_vid,
-            suppl,
-            git_org)
+            suppl or '',
+            git_org or '')
     out, err = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, shell=True).communicate()
     if not out:

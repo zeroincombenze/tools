@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.3"
+__version__ = "1.0.1.4"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -692,7 +692,8 @@ def expand_macro(ctx, token, default=None):
         if ctx['product_doc'] == 'pypi':
             value = 'AGPL'
         else:
-            value = build_odoo_param('LICENSE', odoo_vid=ctx['branch'])
+            value = build_odoo_param(
+                'LICENSE', odoo_vid=ctx['branch'], multi=True)
         if value == 'AGPL':
             value = 'licence-%s--3-blue.svg' % value
         else:
@@ -751,7 +752,8 @@ def expand_macro(ctx, token, default=None):
         if ctx['product_doc'] == 'pypi':
             value = 'AGPL'
         else:
-            value = build_odoo_param('LICENSE', odoo_vid=ctx['branch'])
+            value = build_odoo_param(
+                'LICENSE', odoo_vid=ctx['branch'], multi=True)
         if token == 'gpl':
             value = value.lower()
     elif token in ctx:
@@ -1293,23 +1295,29 @@ def adj_version(ctx, version):
 def read_all_manifests(ctx):
 
     def valid_dir(dirname, level):
-        if dirname[0:2] == '__':
+        if (dirname.startswith('.') or
+                dirname.startswith('__')
+                or dirname == 'setup'):
             return False
         return True
 
     ctx['manifest'] = {}
     ctx['histories'] = ''
     addons_info = {}
+    local_modules = 'l10n_%s' % ctx['lang'][0:2]
     if ctx['odoo_majver'] >= 10:
         manifest_file = '__manifest__.py'
     else:
         manifest_file = '__openerp__.py'
     for root, dirs, files in os.walk('.'):
         dirs[:] = [d for d in dirs if valid_dir(d, ctx['odoo_layer'])]
+        # For OCB read just addons
         if ctx['odoo_layer'] != 'ocb' or root.find('addons') >= 0:
             module_name = os.path.basename(root)
-            if ((ctx['odoo_layer'] == 'ocb' and module_name[0:5] == 'l10n_') or
-                    module_name[0:5] == 'test_'):
+            # Ignore local modules
+            if ((module_name.startswith('l10n_') and
+                    not module_name.startswith(local_modules)) or
+                    module_name.startswith('test_')):
                 continue
             if manifest_file in files:
                 full_fn = os.path.join(root, manifest_file)
@@ -1614,11 +1622,17 @@ def generate_readme(ctx):
             read_all_manifests(ctx)
         else:
             if not ctx['module_name']:
-                ctx['module_name'] = build_odoo_param('PKGNAME',
-                    odoo_vid=ctx['branch'])
+                ctx['module_name'] = build_odoo_param(
+                    'PKGNAME', odoo_vid='.', multi=True)
+                if not ctx['module_name']:
+                    ctx['module_name'] = build_odoo_param(
+                        'PKGNAME', odoo_vid=ctx['branch'], multi=True)
             if not ctx['repos_name']:
-                ctx['repos_name'] = build_odoo_param('REPOS',
-                    odoo_vid=ctx['branch'])
+                ctx['repos_name'] = build_odoo_param(
+                    'REPOS', odoo_vid='.', multi=True)
+                if not ctx['repos_name']:
+                    ctx['repos_name'] = build_odoo_param(
+                        'REPOS', odoo_vid=ctx['branch'], multi=True)
             read_manifest(ctx)
         return ctx
 
@@ -1705,6 +1719,11 @@ if __name__ == "__main__":
                         action='store',
                         help='ocb|module|repository',
                         dest='odoo_layer')
+    parser.add_argument('-L', '--lang',
+                        action='store',
+                        help='iso code',
+                        dest='lang',
+                        default='it_IT')
     parser.add_argument('-m', '--module-name',
                         action='store',
                         help='filename',
@@ -1764,7 +1783,7 @@ if __name__ == "__main__":
         ctx['odoo_majver'] = 0
     else:
         ctx['branch'] = build_odoo_param('FULLVER',
-            odoo_vid=ctx['odoo_vid'])
+            odoo_vid=ctx['odoo_vid'], multi=True)
         if ctx['branch'] not in ('14.0', '13.0', '12.0', '11.0', '10.0',
                                  '9.0', '8.0', '7.0', '6.1'):
             ctx['branch'] = '12.0'
@@ -1773,8 +1792,8 @@ if __name__ == "__main__":
                       ctx['branch'])
         ctx['odoo_majver'] = int(ctx['branch'].split('.')[0])
         if not ctx['git_orgid']:
-            ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
-                                                odoo_vid=ctx['odoo_vid'])
+            ctx['git_orgid'] = build_odoo_param(
+                'GIT_ORGID', odoo_vid=ctx['odoo_vid'], multi=True)
     if ctx['git_orgid'] not in ('zero', 'oca', 'powerp', 'didotech'):
         ctx['git_orgid'] = 'zero'
         if not ctx['suppress_warning']:

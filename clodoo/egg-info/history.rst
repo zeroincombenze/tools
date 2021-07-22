@@ -1,3 +1,9 @@
+0.3.31.7 (2021-07-21)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: hide errore message "__openerp_-.py ..."
+* [IMP] odoo_install_repository does not update config file automatically
+
 0.3.31.6 (2021-07-17)
 ~~~~~~~~~~~~~~~~~~~~
 

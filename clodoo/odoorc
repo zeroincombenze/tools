@@ -57,7 +57,7 @@
 # ODOO_GIT_SHORT -> regex of git organizzations with short name (def /(oca)/)
 #
 
-#__version__=0.3.31.6
+#__version__=0.3.31.7
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
     echo "You must source this script: \$ source $0" >&2
@@ -259,7 +259,7 @@ build_odoo_param() {
                 PKGNAME=$(basename $cdir)
                 PARENTDIR=$(dirname $cdir)
                 if [[ -z ""$LICENSE"" ]]; then
-                  [[ -f $1/__manifest__.py ]] && LICENSE=$(grep ["']license['"]: __manifest__.py|awk -F: '{print $2}'|tr -d "',\" \n") || LICENSE=$(grep ["']license['"]: __openerp__.py|awk -F: '{print $2}'|tr -d "',\" \n")
+                  [[ -f $cdir/__manifest__.py ]] && LICENSE=$(grep ["']license['"]: __manifest__.py|awk -F: '{print $2}'|tr -d "',\" \n") || LICENSE=$(grep ["']license['"]: __openerp__.py|awk -F: '{print $2}'|tr -d "',\" \n")
                 fi
             elif $(is_ocb_dir "$cdir"); then
                 [[ -z "$REPOS" ]] && REPOS=OCB

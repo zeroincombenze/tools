@@ -1,0 +1,4 @@
+id,name,digits
+product.decimal_price,Product Price,4
+product.decimal_product_uom,Product Unit of Measure,3
+product.decimal_stock_weight,Stock Weight,3
