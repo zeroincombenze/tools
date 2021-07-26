@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.4
+__version__=1.0.1.5
 
 #
 # General Purpose options:
@@ -1936,7 +1936,7 @@ do_docs() {
   [[ $opt_dbg -ne 0 || $PWD =~ /dev(el)?/pypi/ ]] && opts=-B || opts=
   if [ "$PRJNAME" == "Odoo" ]; then
     [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
-    [[ -z "$opt_branch" ]] && orgid=$(build_odoo_param GIT_ORGID ".") || odoo_fver=$(build_odoo_param GIT_ORGID "$opt_branch")
+    [[ -z "$opt_branch" ]] && orgid=$(build_odoo_param GIT_ORGID ".") || orgid=$(build_odoo_param GIT_ORGID "$opt_branch")
     # TODO: GIT_ORGid of build_odoo_param does not work
     PARENTDIR=$(build_odoo_param PARENTDIR ".")
     if [[ -z "$opt_branch" && -d ./.git && $(git status -s &>/dev/null) ]]; then
@@ -2037,7 +2037,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = '$PRJNAME'
-copyright = '2020, $author'
+copyright = '2021, $author'
 author = '$author'
 
 # The short X.Y version
@@ -2903,7 +2903,7 @@ fi
 HLPCMDLIST="help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|showdoc|status|test|translate|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST" \
-    "© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -2911,6 +2911,7 @@ opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
+[[ $opt_verbose -gt 1 ]] && set -x
 init_travis
 [[ $opt_verbose -gt 2 ]] && set -x
 prepare_env_travis "$actions" "-r"

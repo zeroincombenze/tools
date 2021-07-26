@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.17-RHEL
+# version: 0.4.18-RHEL
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -106,6 +106,7 @@ if [[ -z "$DAEMON" ]]; then
     dr=$(grep ^addons_path $CONFIGFILE|awk -F= '{print $2}')
     for fn in ${dr//,/ }; do
       [[ $fn =~ /addons ]] && LL="$LL $(dirname $fn)"
+      [[ $fn =~ /server/ ]] && LL="$LL $(dirname $(dirname $fn))"
     done
     if [[ -n "$LL" ]]; then
       [[ $DRY_RUN -gt 0 ]] && echo "find $LL -maxdepth 1 -type f -executable -name odoo-bin -o -name openerp-server"
@@ -125,6 +126,7 @@ if [[ -z "$DAEMON" ]]; then
     [[ $DRY_RUN -gt 0 ]] && echo "> for $dr in $LL"
     [[ -n "$mult" && ! $dr =~ [0-9]+ ]] && continue
     [[ -z "$mult" && $dr =~ [0-9]+ ]] && continue
+    [[ $dr =~ /server/ ]] && dr=$(dirname $dr)
     [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 2 -type f -executable -name odoo-bin -o -name openerp-server"
     for fn in $(find $dr -maxdepth 2 -type f -executable -name odoo-bin -o -name openerp-server); do
       [[ $DRY_RUN -gt 0 ]] && echo "> for $fn in ..."
@@ -141,7 +143,7 @@ fi
 [[ $DRY_RUN -gt 0 ]] && echo "DAEMON=$DAEMON"
 [[ -z "$DAEMON" ]] && exit 2
 if [[ -z "$VENV_DIR" ]]; then
-  dr=$(readlink -f $(dirname $DAEMON)/..)
+  [[ $dr =~ /server/ ]] && dr=$(readlink -f $(dirname $DAEMON)/../..) || dr=$(readlink -f $(dirname $DAEMON)/..)
   [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV*${ORG}*${mult}*\"|head -n1"
   VENV_DIR=$(find $dr -maxdepth 1 -type d -name "VENV*${ORG}*${mult}*"|head -n1)
   [[ -z "$VENV_DIR" && $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV-${mult}*\"|head -n1"

@@ -28,7 +28,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.1.4
+__version__=1.0.1.5
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -148,7 +148,11 @@ cvt_file() {
             continue
           fi
         fi
-        if [[ $line =~ ^#[^A-Za-z09_]*Enable.auto.upgrade.code.* ]]; then
+        if [[ $line =~ ^if.*\$opt_help.*gt.*then$ ]]; then
+          echo "if [[ \$opt_help -gt 0 ]]; then" >>$fntmp
+        elif [[ $line =~ ^if.*\$opt_version.*then$ ]]; then
+          echo "if [[ \"\$opt_version\" ]]; then" >>$fntmp
+        elif [[ $line =~ ^#[^A-Za-z09_]*Enable.auto.upgrade.code.* ]]; then
           echo "$line" >>$fntmp
           incl=0
         elif [[ $line =~ ^#[^A-Za-z09_]*Only.human.upgradable.code.* ]]; then

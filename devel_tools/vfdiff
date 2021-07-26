@@ -4,18 +4,16 @@
 # Make diff of file among Odoo versions
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
-export READLINK=readlink
-OS=$(uname -s)
-if [[ $OS == "Darwin" ]]; then
-  READLINK=$(which greadlink 2>/dev/null)
-  [[ -n "$READLINK" ]] && READLINK=$(basename $READLINK) || READLINK="echo 'greadlink not found\!'; exit 125;"
-fi
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -27,20 +25,25 @@ if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR ${PATH//:/ } ${PYPATH//:/ } . .." "clodoo")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
 fi
 . $ODOOLIBDIR
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR ${PATH//:/ } ${PYPATH//:/ } . .." "travis_emulator")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
+TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
 fi
 . $TRAVISLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$($READLINK -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
 __version__=0.2.3.2
 
@@ -96,7 +99,7 @@ simple_diff() {
 
 exec_os() {
   local l r x
-  if [ $opt_reve -gt 0 ]; then
+  if [[ $opt_reve -gt 0 ]]; then
     local left=$2
     local right=$1
   else
@@ -310,17 +313,17 @@ OPTHELP=("this help"\
 OPTARGS=(source target)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
 [[ -z "$odoo_ver" && -z "$source" ]] && opt_help=1
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "Diff file between Odoo versions" \
-    "© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-[ $opt_all -gt 0 ] && opt_iar=0
+[[ $opt_all -gt 0 ]] && opt_iar=0
 opt_para=1
 [[ " 14 13 12 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]] && odoo_ver="$odoo_ver.0"
 if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
@@ -330,7 +333,7 @@ else
 fi
 if [[ -z "$opt_dcmd" ]]; then
   meld --version >/dev/null
-  [ $? -eq 0 ] && opt_dcmd="meld" || opt_dcmd="diff"
+  [[ $? -eq 0 ]] && opt_dcmd="meld" || opt_dcmd="diff"
 fi
 CFG_init
 conf_default
@@ -339,7 +342,7 @@ vf_init
 
 [[ $source =~ /$ ]] && source=${source:0: -1}
 [[ $target =~ /$ ]] && target=${target:0: -1}
-if [ $opt_2nd -eq 0 ]; then
+if [[ $opt_2nd -eq 0 ]]; then
   VF_FN=""
   VF_VER=""
   VF_REPO=""
@@ -351,7 +354,7 @@ else
   left=$source
   right=$target
 fi
-if [ $opt_iar -gt 0 ]; then
+if [[ $opt_iar -gt 0 ]]; then
   exec_iar "$left" "$right"
 else
   exec_os "$left" "$right"

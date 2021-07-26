@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.4"
+__version__ = "1.0.1.5"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -667,7 +667,7 @@ def expand_macro(ctx, token, default=None):
             token[10:] in DEFINED_GRYMB_SYMBOLS:
         value = DEFINED_GRYMB_SYMBOLS[token[10:]][1]
     elif token == 'module_version':
-        value = ctx['manifest']['version']
+        value = ctx['manifest'].get('version', '%s.0.1.0' % ctx['branch'])
     elif token == 'icon':
         value = url_by_doc(ctx, 'icon.png')
     elif token == 'GIT_URL_ROOT':
@@ -1292,15 +1292,16 @@ def adj_version(ctx, version):
     return version
 
 
-def read_all_manifests(ctx):
+def read_all_manifests(ctx, path=None, module2search=None):
 
-    def valid_dir(dirname, level):
+    def valid_dir(dirname):
         if (dirname.startswith('.') or
                 dirname.startswith('__')
                 or dirname == 'setup'):
             return False
         return True
 
+    path = path or '.'
     ctx['manifest'] = {}
     ctx['histories'] = ''
     addons_info = {}
@@ -1309,13 +1310,18 @@ def read_all_manifests(ctx):
         manifest_file = '__manifest__.py'
     else:
         manifest_file = '__openerp__.py'
-    for root, dirs, files in os.walk('.'):
-        dirs[:] = [d for d in dirs if valid_dir(d, ctx['odoo_layer'])]
+    for root, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if valid_dir(d)]
         # For OCB read just addons
-        if ctx['odoo_layer'] != 'ocb' or root.find('addons') >= 0:
+        if (module2search or
+                ctx['odoo_layer'] != 'ocb' or
+                root.find('addons') >= 0):
             module_name = os.path.basename(root)
+            if module2search and module2search != module_name:
+                continue
             # Ignore local modules
-            if ((module_name.startswith('l10n_') and
+            if (not module2search and
+                    (module_name.startswith('l10n_') and
                     not module_name.startswith(local_modules)) or
                     module_name.startswith('test_')):
                 continue
@@ -1335,51 +1341,53 @@ def read_all_manifests(ctx):
                     addons_info[module_name]['oca_version'] = 'N/A'
                     if root.find('__unported__') >= 0:
                         addons_info[module_name]['installable'] = False
+                    if module2search:
+                        break
                 except KeyError:
                     pass
-                if os.path.isdir(os.path.join(root, 'egg-info')):
-                    full_fn = os.path.join(root, 'egg-info', 'history.rst')
-                    if os.path.isfile(full_fn):
-                        with open(full_fn, 'r') as fd:
-                            history = tail(os0.u(fd.read()),
-                                           max_days=180, module=module_name)
-                        ctx['histories'] += history
-    if ctx['odoo_layer'] == 'ocb':
-        oca_root = '%s/oca%d' %  (os.environ['HOME'], ctx['odoo_majver'])
-    else:
-        oca_root = '%s/oca%d/%s' % (os.environ['HOME'],
-                                    ctx['odoo_majver'],
-                                    ctx['repos_name'])
-    for root, dirs, files in os.walk(oca_root):
-        dirs[:] = [d for d in dirs if valid_dir(d, ctx['odoo_layer'])]
-        if ctx['odoo_layer'] != 'ocb' or root.find('addons') >= 0:
-            module_name = os.path.basename(root)
-            if ((ctx['odoo_layer'] == 'ocb' and module_name[0:5] == 'l10n_') or
-                    module_name[0:5] == 'test_'):
-                continue
-            if manifest_file in files:
-                full_fn = os.path.join(root, manifest_file)
-                oca_manifest = read_manifest_file(full_fn)
-                oca_version = adj_version(ctx, oca_manifest.get('version', ''))
-                if module_name not in addons_info:
-                    addons_info[module_name] = {}
-                    if 'summary' in oca_manifest:
-                        addons_info[module_name][
-                            'summary'] = clean_summary(
-                                oca_manifest['summary'])
+                full_fn = os.path.join(root, 'egg-info', 'history.rst')
+                if os.path.isfile(full_fn):
+                    with open(full_fn, 'r') as fd:
+                        history = tail(os0.u(fd.read()),
+                                       max_days=180, module=module_name)
+                    ctx['histories'] += history
+    if not module2search:
+        if ctx['odoo_layer'] == 'ocb':
+            oca_root = '%s/oca%d' %  (os.environ['HOME'], ctx['odoo_majver'])
+        else:
+            oca_root = '%s/oca%d/%s' % (os.environ['HOME'],
+                                        ctx['odoo_majver'],
+                                        ctx['repos_name'])
+        for root, dirs, files in os.walk(oca_root):
+            dirs[:] = [d for d in dirs if valid_dir(d, ctx['odoo_layer'])]
+            if ctx['odoo_layer'] != 'ocb' or root.find('addons') >= 0:
+                module_name = os.path.basename(root)
+                if ((ctx['odoo_layer'] == 'ocb' and module_name[0:5] == 'l10n_') or
+                        module_name[0:5] == 'test_'):
+                    continue
+                if manifest_file in files:
+                    full_fn = os.path.join(root, manifest_file)
+                    oca_manifest = read_manifest_file(full_fn)
+                    oca_version = adj_version(ctx, oca_manifest.get('version', ''))
+                    if module_name not in addons_info:
+                        addons_info[module_name] = {}
+                        if 'summary' in oca_manifest:
+                            addons_info[module_name][
+                                'summary'] = clean_summary(
+                                    oca_manifest['summary'])
+                        else:
+                            addons_info[module_name][
+                                'summary'] = oca_manifest['name'].strip()
+                        addons_info[module_name]['version'] = 'N/A'
+                    addons_info[module_name]['oca_version'] = oca_version
+                    if root.find('__unported__') >= 0:
+                        addons_info[module_name]['oca_installable'] = False
                     else:
                         addons_info[module_name][
-                            'summary'] = oca_manifest['name'].strip()
-                    addons_info[module_name]['version'] = 'N/A'
-                addons_info[module_name]['oca_version'] = oca_version
-                if root.find('__unported__') >= 0:
-                    addons_info[module_name]['oca_installable'] = False
-                else:
-                    addons_info[module_name][
-                        'oca_installable'] = oca_manifest.get('installable',
-                                                              True)
+                            'oca_installable'] = oca_manifest.get('installable',
+                                                                  True)
+        ctx['histories'] = sort_history(ctx['histories'])
     ctx['addons_info'] = addons_info
-    ctx['histories'] = sort_history(ctx['histories'])
 
 
 def manifest_item(ctx, item):
@@ -1426,6 +1434,19 @@ def manifest_item(ctx, item):
         target = "    '%s': %s,\n" % (item, text)
     return target
 
+def read_dependecies_license(ctx):
+    def_license = 'LGPL-3' if ctx['odoo_majver'] > 8 else 'AGPL-3'
+    license = ctx['manifest'].get('license', def_license)
+    if license == 'AGPL-3':
+        return
+    root = build_odoo_param('ROOT', odoo_vid='.', multi=True)
+    for module in ctx['manifest'].get('depends', []):
+        read_all_manifests(ctx, path=root, module2search=module)
+        if ctx['addons_info'][module].get('license', def_license) == 'AGPL-3':
+            print(
+                '*** INVALID LICENSE %s: depending module <%s> is AGPL-3 ***' %
+                (license, module)
+            )
 
 def manifest_contents(ctx):
     full_fn = ctx['manifest_file']
@@ -1640,8 +1661,7 @@ def generate_readme(ctx):
     set_default_values(ctx)
     ctx['license_mgnt'] = license_mgnt.License()
 
-    ctx['license_mgnt'].add_copyright(
-        ctx['git_orgid'], '', '', '', '')
+    ctx['license_mgnt'].add_copyright(ctx['git_orgid'], '', '', '', '')
     # Read predefined section / tags
     for section in DEFINED_TAG:
         out_fmt = None
@@ -1663,6 +1683,8 @@ def generate_readme(ctx):
 
     ctx = set_sommario(ctx)
     ctx = set_values_of_manifest(ctx)
+    if ctx['module_name']:
+        read_dependecies_license(ctx)
     if ctx['write_html']:
         if not ctx['template_name']:
             ctx['template_name'] = 'readme_index.html'

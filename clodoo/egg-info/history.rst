@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] odoorc: hide errore message "__openerp_-.py ..."
+* [FIX] odoorc: recognize librerp form url
 * [IMP] odoo_install_repository does not update config file automatically
 
 0.3.31.6 (2021-07-17)

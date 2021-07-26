@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.31.7
+__version__=0.3.31.8
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca powerp librerp VENV_123- devel"
@@ -585,7 +585,7 @@ test_05() {
                 test_result "$PWD> ROOT '.' [bash]" "$HOME/$w" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param LICENSE ".")
-                [[ $m -lt 8 ]] && r="AGPL" || r="LGPL"
+                [[ $m -le 8 ]] && r="AGPL" || r="LGPL"
                 [[ $w == "powerp12" ]] && r="OPL"
                 test_result "$PWD> LICENSE '.' [bash]" "$r" "$RES"
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param LICENSE "$HOME/$w/crm")
@@ -827,8 +827,8 @@ Z0BUG_build_module_path() {
     echo "{">$m
     echo "    'name': '$b'">>$m
     echo "    'version': '$v.0.1.0'">>$m
-    [[ $b == "crm" && $v =~ (6.1|7.0) ]] && echo "    'license': 'AGPL-3'">>$m
-    [[ $b == "crm" && ! $v =~ (6.1|7.0) ]] && echo "    'license': 'LGPL-3'">>$m
+    [[ $b == "crm" && $v =~ (6.1|7.0|8.0) ]] && echo "    'license': 'AGPL-3'">>$m
+    [[ $b == "crm" && ! $v =~ (6.1|7.0|8.0) ]] && echo "    'license': 'LGPL-3'">>$m
     [[ $b != "crm" ]] && echo "    'license': 'OPL-1'">>$m
     echo "}">>$m
 }

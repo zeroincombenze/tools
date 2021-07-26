@@ -28,7 +28,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.3.31.7
+__version__=0.3.31.8
 
 get_remote_ip() {
 #get_remote_ip(1|net)

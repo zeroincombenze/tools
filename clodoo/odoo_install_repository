@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.31.7
+__version__=0.3.31.8
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -215,7 +215,7 @@ update_confn() {
     local p CONFN DSTPATH=$2
     p=$(dirname $DSTPATH)
     [[ -z "$1" ]] && CONFN=$(build_odoo_param CONFN "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy") || CONFN=$1
-    [[ $opt_noconf -eq -1 && -f "$CONFN" && grep "^addons_path *=.*$p" $CONFN]] && opt_noconf=0
+    [[ $opt_noconf -eq -1 && -f "$CONFN" && $(grep "^addons_path *=.*$p" $CONFN) ]] && opt_noconf=0
     if [[ $opt_noconf -eq 0 ]] && [[ -f "$CONFN" ]]; then
         [[ ! $(grep "^addons_path *=.*$DSTPATH" $CONFN) ]] && run_traced "sed -i -e \"s|^addons_path *=.*|&,$DSTPATH|\" $CONFN"
     fi
@@ -313,27 +313,27 @@ else
     PARENTDIR=$(build_odoo_param PARENTDIR "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy")
 fi
 
-if [ -z "$new_odoo_vid" ]; then
+if [[ -z "$new_odoo_vid" ]]; then
     new_odoo_fver=$odoo_fver
-    if [ $opt_only -ne 0 ]; then
+    if [[ $opt_only -ne 0 ]]; then
         x=$(build_odoo_param GIT_ORGNM "$odoo_vid" "$git_repo" "$opt_org" "default")
         # Repos not of cur org
-        [ "$x" != "$GIT_ORGNM" ] && exit 0
+        [[ "$x" != "$GIT_ORGNM" ]] && exit 0
     fi
-    if [ $opt_upd -gt 0 ]; then
+    if [[ $opt_upd -gt 0 ]]; then
         if [[ ! -d $DSTPATH ]]; then
             echo "Directory $DSTPATH/ not found!"
             exit 1
         fi
         [[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
         git status -s &>/dev/null
-        if [ $? -eq 0 ]; then
+        if [[ $? -eq 0 ]]; then
             run_traced "git stash" "$RUN_USER"
             run_traced "git pull origin $odoo_fver --no-recurse-submodules" "$RUN_USER"
         fi
         update_confn "" $DSTPATH
         exit 0
-    elif [ $opt_updrmt -eq 0 ]; then
+    elif [[ $opt_updrmt -eq 0 ]]; then
         rmdir_if_exists "$DSTPATH" "$REPOS" "$odoo_vid" ""
         [[ ! "$PWD" == "$PARENTDIR" ]] && run_traced "cd $PARENTDIR"
         git_opts="-b $GIT_BRANCH $GIT_OPTS"
@@ -414,7 +414,7 @@ fi
 [[ -z "$new_odoo_vid" ]] && new_odoo_vid=$odoo_vid
 [[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
 set_remote_info "$REPOS" "$new_odoo_vid" "$GIT_URL" "$opt_org"
-if [ $opt_updrmt -eq 0 ]; then
+if [[ $opt_updrmt -eq 0 ]]; then
     auto_add_files "$new_odoo_fver"
     commit_files "$new_odoo_fver"
     wep_other_branches "$new_odoo_fver"
