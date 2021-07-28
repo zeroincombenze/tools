@@ -287,6 +287,11 @@ Current version via Git
 History
 -------
 
+0.3.31.8 (2021-07-27)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] manage_odoo: refactoring
+
 0.3.31.7 (2021-07-21)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -367,7 +372,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-07-26
+Last Update / Ultimo aggiornamento: 2021-07-28
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -5,27 +5,33 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+TDIR=$($READLINK -f $(dirname $0))
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
 fi
 . $ODOOLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
 __version__=0.3.31.8
 
@@ -33,7 +39,7 @@ __version__=0.3.31.8
 explore() {
 # explore(odoo_vid excl_list)
     local res=OCB
-    local pkgdir=$(build_odoo_param HOME $1)
+    local pkgdir=$(build_odoo_param HOME $1 '' $opt_org)
     for fn in $pkgdir/*; do
       if [[ -d $fn ]]; then
         nm=$(basename $fn)
@@ -56,13 +62,13 @@ do_action() {
     [[ $opt_pyver =~ ^[23]$ ]] && pyver=$opt_pyver
     if [[ -n "$opt_odir" ]]; then
       local pkgdir=$opt_odir
-      local odoo_root=$(build_odoo_param ROOT $opt_odir search)
+      local odoo_root=$(build_odoo_param ROOT $opt_odir search $opt_org)
     else
-      local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo")
-      local odoo_root=$(build_odoo_param ROOT $odoo_vid search)
+      local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo" $opt_org)
+      local odoo_root=$(build_odoo_param ROOT $odoo_vid search $opt_org)
     fi
-    local VENV=$(build_odoo_param VENV $odoo_vid)
-    local VDIR=$(build_odoo_param VDIR $odoo_vid)
+    local VENV=$(build_odoo_param VENV $odoo_vid '' $opt_org)
+    local VDIR=$(build_odoo_param VDIR $odoo_vid '' $opt_org)
     if [[ $VENV -ne 0 ]]; then
       [[ $opt_verbose -gt 0 ]] && echo "\$ cd $VDIR; source ./bin/activate"
       cd $VDIR
@@ -84,7 +90,7 @@ do_action() {
     local x
     if [[ ! "$act" == "requirements" && ! "$act" == "check-config" ]]; then
       if [ "$repo" != "$LAST_REPO" -o "$odoo_vid" != "$LAST_VID" ]; then
-        echo -e "${TRAVIS_HDR1_COLOR}=====[$odoo_vid/$repo]=====${TRAVIS_TEXT_COLOR}"
+        echo -e "${TRAVIS_HDR1_COLOR}=====[$opt_org$odoo_vid/$repo]=====${TRAVIS_TEXT_COLOR}"
         LAST_REPO=$repo
         LAST_VID=$odoo_vid
       else
@@ -96,13 +102,13 @@ do_action() {
         fi
       done
     fi
-    if [[ $act =~ ^(build|rebuild|add_repository)$ ]]; then
+    if [[ $act =~ ^(build|rebuild|add_repository|upgrade)$ ]]; then
       GIT_ORG=$(build_odoo_param GIT_ORG $odoo_vid $repo $opt_org)
       GIT_URL=$(build_odoo_param GIT_URL $odoo_vid $repo $opt_org)
       GIT_OPTS=$(build_odoo_param GIT_OPTS $odoo_vid $repo $opt_org)
       if [[ $act == "build" ]]; then
         for p in FLOG FPID CONFN; do
-          d=$(dirname $(build_odoo_param $p "$odoo_vid"))
+          d=$(dirname $(build_odoo_param $p "$odoo_vid" '' $opt_org))
           if [[ ! -d $d ]]; then
             run_traced "mkdir -p $d"
             run_traced "chown $own_user $d"
@@ -245,43 +251,45 @@ do_action() {
       fi
       return $sts
     elif [[ "$act" == "check-config" ]]; then
-      cfgfn=$(build_odoo_param CONFN "$odoo_vid")
+      cfgfn=$(build_odoo_param CONFN "$odoo_vid" '' $opt_org)
       echo "Parsing $cfgfn ..."
-      p=$(build_odoo_param USER "$odoo_vid")
+      p=$(build_odoo_param USER "$odoo_vid" '' $opt_org)
       [[ ! $(grep "^db_user *= *$p$" $cfgfn) ]] && run_traced "sed -i \"s|^db_user *= *.*|db_user = $p|\" $cfgfn"
-      p=$(build_odoo_param FLOG "$odoo_vid")
+      p=$(build_odoo_param FLOG "$odoo_vid" '' $opt_org)
       [[ ! $(grep "^logfile *= $p$" $cfgfn) ]] && run_traced "sed -i \"s|^logfile *= *.*|logfile = $p|\" $cfgfn"
-      p=$(build_odoo_param FPID "$odoo_vid")
+      p=$(build_odoo_param FPID "$odoo_vid" '' $opt_org)
       [[ ! $(grep "^pidfile *= *$p$" $cfgfn) ]] && run_traced "sed -i \"s|^pidfile *= *.*|pidfile = $p|\" $cfgfn"
-      p=$(build_odoo_param RPCPORT "$odoo_vid")
+      p=$(build_odoo_param RPCPORT "$odoo_vid" '' $opt_org)
       [[ ! $(grep "^xmlrpc_port *=.*$p$" $cfgfn) ]] && run_traced "sed -i \"s|^xmlrpc_port *= *.*|xmlrpc_port = $p|\" $cfgfn"
       if [ $odoo_ver -ge 7 ]; then
-        p=$(build_odoo_param DDIR "$odoo_vid")
+        p=$(build_odoo_param DDIR "$odoo_vid" '' $opt_org)
         [[ ! $(grep "^data_dir *= *$p$" $cfgfn 2>/dev/null) ]] && run_traced "sed -i \"s|^data_dir *= *.*|data_dir = $p|\" $cfgfn"
       fi
       return $sts
-    elif [[ "$act" == "rebuild" && -d $pkgdir ]]; then
-      if [[ $opt_yes -eq 0 ]]; then
-        read -p "BRANCH $odoo_vid OF $repo already exist! confirm action (yes,no)?" a
-        if [[ "$a" != "yes" ]]; then
-          sts=1
-          return $sts
-        fi
-      fi
-      run_traced "rm -fR $pkgdir"
+#    elif [[ "$act" == "rebuild" && -d $pkgdir ]]; then
+#      if [[ $opt_yes -eq 0 ]]; then
+#        read -p "BRANCH $odoo_vid OF $repo already exist! confirm action (yes,no)?" a
+#        if [[ "$a" != "yes" ]]; then
+#          sts=1
+#          return $sts
+#        fi
+#      fi
+#      run_traced "rm -fR $pkgdir"
     fi
     if [ "$act" == "add_repository" -a -d $pkgdir ]; then
       return $sts
     elif [[ $act == "build" && -d $pkgdir && $opt_yes -eq 0 ]]; then
       echo "BRANCH $odoo_vid OF $repo ALREADY EXISTS!"
       sts=1
-    elif [[ ! $act =~ ^(build|rebuild|add_repository)$ && ! -d $pkgdir ]]; then
+    elif [[ ! $act =~ ^(rebuild|add_repository|upgrade)$ && ! -d $pkgdir ]]; then
       echo "BRANCH $odoo_vid OF $repo NOT FOUND!"
       sts=1
     fi
     [[ $sts -ne 0 ]] && return $sts
     if [[ $act =~ ^(build|rebuild|add_repository)$ ]]; then
       run_traced "$TDIR/odoo_install_repository $repo -b$odoo_vid $opts -O $opt_org $opts_user"
+    elif [[ "$act" == "upgrade" ]]; then
+      run_traced "$TDIR/odoo_install_repository $repo -b$odoo_vid $opts -U -O $opt_org $opts_user"
     else
       run_traced "cd $pkgdir"
       if [ "$act" == "lint" ]; then
@@ -313,20 +321,12 @@ do_action() {
         fi
       elif [ "$act" == "status" ]; then
         if [ ! -L $pkgdir ]; then
-          if [ "$(build_odoo_param VCS $odoo_vid)" == "git" ]; then
+          if [ "$(build_odoo_param VCS $odoo_vid '' $opt_org)" == "git" ]; then
             local v=$(git branch|grep -Eo [0-9.]+)
             if [ "$v" != "$odoo_fver" ]; then
               echo "INVALID BRANCH VERSION! Expected '$odoo_fver', found '$v'"
               sts=1
             fi
-          fi
-        fi
-      elif [ "$act" == "upgrade" ]; then
-        if [ ! -L $pkgdir ]; then
-          if $(git status -s &>/dev/null); then
-            run_traced "git pull origin $odoo_fver" "$run_user"
-          else
-            echo "No git repository!"
           fi
         fi
       elif [ "$act" == "zeroincombenze" ]; then
@@ -368,22 +368,22 @@ OPTHELP=("this help"\
 OPTARGS=(actions)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
 if [ -z "$actions" ]; then
   opt_help=1
 fi
-if [ $opt_verbose -eq -1 ]; then
+if [[ $opt_verbose -eq -1 ]]; then
   opt_verbose=1
 fi
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "Check for all odoo repositories\nactions may be: add_repository build check-config clean lint list oca rebuild requirements status upgrade zeroincombenze"\
   "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
-if [ "$actions" == "help" ]; then
+if [[ "$actions" == "help" ]]; then
   man $TDIR/$THIS.man
   exit 0
 fi
@@ -421,7 +421,7 @@ fi
 sub_list=
 excl_list=$(build_odoo_param INVALID_MODNAMES_RE ".")
 if [[ -z $opt_excl ]]; then
-  [[ $actions =~ ^(build|rebuild|add_repository)$ ]] && opt_excl="v7/OCB"
+  [[ $actions =~ ^(build|rebuild|add_repository|upgrade)$ ]] && opt_excl="v7/OCB"
 fi
 opt_excl="${opt_excl//,/|}"
 excl_list="${excl_list:0: -1}|$opt_excl)"
@@ -439,8 +439,8 @@ for odoo_vid in $opt_branch; do
     fi
   done
 done
-if [ $opt_verbose -gt 0 ]; then
-  if [ $opt_multi -ne 0 ]; then
+if [[ $opt_verbose -gt 0 ]]; then
+  if [[ $opt_multi -ne 0 ]]; then
     echo -e "${TRAVIS_HDR3_COLOR}Manage Odoo multi-version environment${TRAVIS_TEXT_COLOR}"
   else
     echo -e "${TRAVIS_HDR3_COLOR}Manage single Odoo version environment${TRAVIS_TEXT_COLOR}"
