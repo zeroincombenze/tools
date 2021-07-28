@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.31.8
+__version__=0.3.31.9
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -335,6 +335,7 @@ if [[ -z "$new_odoo_vid" ]]; then
         exit 0
     elif [[ $opt_updrmt -eq 0 ]]; then
         rmdir_if_exists "$DSTPATH" "$REPOS" "$odoo_vid" ""
+        [[ ! -d $PARENTDIR ]] && echo "Directory $PARENTDIR not found!" && exit 1
         [[ ! "$PWD" == "$PARENTDIR" ]] && run_traced "cd $PARENTDIR"
         git_opts="-b $GIT_BRANCH $GIT_OPTS"
         RPTNAME=$(basename $DSTPATH)
@@ -348,6 +349,7 @@ if [[ -z "$new_odoo_vid" ]]; then
         echo "Directory $DSTPATH/ not found!"
         exit 1
     fi
+    [[ ! -d $DSTPATH ]] && echo "Directory $DSTPATH not found!" && exit 1
     [[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
     if [ "$REPOS" == "OCB" ]; then
         for d in  $HOME/__to_remove/*; do
@@ -412,6 +414,7 @@ else
     [ $opt_link -eq 0 ] && run_traced "cp -r $SRCPATH/ $DSTROOT/" || run_traced "ln -s $SRCPATH/ $DSTROOT"
 fi
 [[ -z "$new_odoo_vid" ]] && new_odoo_vid=$odoo_vid
+[[ ! -d $DSTPATH ]] && echo "Directory $DSTPATH not found!" && exit 1
 [[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
 set_remote_info "$REPOS" "$new_odoo_vid" "$GIT_URL" "$opt_org"
 if [[ $opt_updrmt -eq 0 ]]; then
@@ -420,6 +423,7 @@ if [[ $opt_updrmt -eq 0 ]]; then
     wep_other_branches "$new_odoo_fver"
 fi
 [[ ! $REPOS == "OCB" ]] && is_submodule=$(build_odoo_param VCS $new_odoo_vid) || is_submodule=""
+[[ ! -d $ROOT ]] && echo "Directory $ROOT not found!" && exit 1
 [[ "$ROOT" != "$PWD" ]] && run_traced "cd $ROOT"
 if [[ -n "$is_submodule" ]]; then
     if [[ -n "$RORIGIN" ]]; then
