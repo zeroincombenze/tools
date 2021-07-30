@@ -1,3 +1,11 @@
+0.3.31.10 (2021-07-28)
+~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] manage_odoo: action travis and test
+* [IMP] manage_odoo: action amend
+* [IMP] odoorc: disable execution trace
+* [FIX] odoorc: license recognition from manifest
+
 0.3.31.9 (2021-07-28)
 ~~~~~~~~~~~~~~~~~~~~~
 

@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.31.9
+__version__=0.3.31.10
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -297,9 +297,9 @@ done
 [[ $opt_one -gt 0 ]] && GIT_OPTS="--depth 1 --single-branch"
 [[ $git_repo =~ ^https?: ]] && GIT_URL=$git_repo
 [[ "${GIT_URL: -1}" == "/" ]] && GIT_URL=${GIT_URL:0:-1}
-if [ -n "$opt_user" -a "$opt_user" != "$USER" -a $EUID -eq 0 ]; then
+if [[ -n "$opt_user" && "$opt_user" != "$USER" && $EUID -eq 0 ]]; then
     RUN_USER="$opt_user"
-elif [ -z "$opt_user" -a "$USER" != "travis" -a $EUID -eq 0 ]; then
+elif [[ -z "$opt_user" && "$USER" != "travis" && $EUID -eq 0 ]]; then
     RUN_USER="odoo"
 else
     RUN_USER=
@@ -326,12 +326,21 @@ if [[ -z "$new_odoo_vid" ]]; then
             exit 1
         fi
         [[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
-        git status -s &>/dev/null
-        if [[ $? -eq 0 ]]; then
+        rmt_pkg=$(build_odoo_param RORIGIN '.'|xargs basename|cut -d"." -f1)
+        b=$(build_odoo_param REPOS ".")
+        if [[ $b != $rmt_pkg ]]; then
+          echo "Remote package name $rmt_pkg is different from current $b"
+          [[ $opt_yes -gt 0 || $opt_dry_run -gt 0 ]] && dummy="y" || read -p "Do you wish to continue (y/n)? " dummy
+          [[ ! $dummy =~ ^y ]] && exit 1
+        fi
+        if [[ $b = $rmt_pkg ]]; then
+          git status -s &>/dev/null
+          if [[ $? -eq 0 ]]; then
             run_traced "git stash" "$RUN_USER"
             run_traced "git pull origin $odoo_fver --no-recurse-submodules" "$RUN_USER"
+          fi
+          update_confn "" $DSTPATH
         fi
-        update_confn "" $DSTPATH
         exit 0
     elif [[ $opt_updrmt -eq 0 ]]; then
         rmdir_if_exists "$DSTPATH" "$REPOS" "$odoo_vid" ""
@@ -408,7 +417,7 @@ else
     fi
     if [[ -d "$DSTPATH" ]]; then
         [ $opt_yes -gt 0 -o $opt_dry_run -gt 0 ] && a="y" || read -p "Remove $DSTPATH (y/n)?" a
-        [[ ! $a == "y" ]] && exit 1
+        [[ ! $a =~ ^y ]] && exit 1
         run_traced "rm -fR $DSTPATH"
     fi
     [ $opt_link -eq 0 ] && run_traced "cp -r $SRCPATH/ $DSTROOT/" || run_traced "ln -s $SRCPATH/ $DSTROOT"

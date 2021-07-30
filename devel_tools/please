@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.5
+__version__=1.0.1.6
 
 #
 # General Purpose options:
@@ -2411,15 +2411,15 @@ do_translate() {
   pyver="-p 2.7" #debug
   [[ ! -d $HOME/clodoo/venv ]] && \
     run_traced "vem $pyver create $HOME/clodoo/venv" && \
-    run_traced "vem $HOME/clodoo/venv install xlrd" && \
+    run_traced "vem $HOME/clodoo/venv install openpyxl" && \
     run_traced "vem $HOME/clodoo/venv install Babel" && \
     run_traced "vem $HOME/clodoo/venv install clodoo"
-  run_traced "pushd $HOME/clodoo >/dev/null"
+  # run_traced "pushd $HOME/clodoo >/dev/null"
   [ $opt_verbose -ne 0 ] && opts="-v" || opts="-q"
   [ $opt_dbg -ne 0 ] && opts="${opts}B"
-  run_traced "vem $HOME/clodoo/venv exec \"odoo_translation.py $opts -b$odoo_fver -m $module -d $db -c $confn -p $pofile\""
+  run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -d $db -c $confn -p $pofile"
   sts=$?
-  run_traced "popd >/dev/null"
+  # run_traced "popd >/dev/null"
   return $sts
 }
 
@@ -2896,12 +2896,12 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"
 OPTARGS=(actions sub1 sub2 sub3)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
 HLPCMDLIST="help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|showdoc|status|test|translate|version|wep"
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST" \
     "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.5.37
+__version__=1.0.5.38
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -190,7 +190,7 @@ if [[ ! $1 =~ ^-.*n ]]; then
     done
     if [[ $1 =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
         # Please do not change package list order
-        for pkg in configparser odoorpc oerplib babel lxml unidecode xlrd pyyaml z0lib zerobug clodoo; do
+        for pkg in configparser odoorpc oerplib babel lxml unidecode openpyxl pyyaml z0lib zerobug clodoo; do
             [[ ! $1 =~ ^-.*q ]] && echo "Installing $pkg ..."
             [[ -d $HOME_DEV/pypi/$pkg/$pkg ]] && vem $DSTPATH/venv install $pkg -qBB || vem $DSTPATH/venv install $pkg
         done

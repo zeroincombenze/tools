@@ -15,7 +15,8 @@ import time
 import re
 import sys
 import csv
-import xlrd
+# import xlrd
+from openpyxl import load_workbook
 from subprocess import PIPE, Popen
 from babel.messages import pofile
 from os0 import os0
@@ -30,7 +31,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "1.0.1.5"
+__version__ = "1.0.1.6"
 
 MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']
@@ -192,16 +193,28 @@ def load_default_dictionary(ctx, source):
         ctr = 0
         if ctx['opt_verbose']:
             print("\tReading %s into dictionary" % source)
-        wb = xlrd.open_workbook(source)
-        sheet = wb.sheet_by_index(0)
+        # wb = xlrd.open_workbook(source)
+        wb = load_workbook(source)
+        # sheet = wb.sheet_by_index(0)
+        for sheet in wb:
+            break
         colnames = []
-        for ncol in range(sheet.ncols):
-            colnames.append(sheet.cell_value(0, ncol))
+        # for ncol in range(sheet.ncols):
+        for ncol in sheet.columns:
+            # colnames.append(sheet.cell_value(0, ncol))
+            colnames.append(ncol[0].value)
         module_rows = []
-        for nrow in range(1, sheet.nrows):
+        # for nrow in range(1, sheet.nrows):
+        hdr = True
+        for nrow in sheet.rows:
+            if hdr:
+                hdr = False
+                continue
             row = {}
-            for ncol in range(sheet.ncols):
-                row[colnames[ncol]] = sheet.cell_value(nrow, ncol)
+            # for ncol in range(sheet.ncols):
+            for ncol, cell in enumerate(nrow):
+                # row[colnames[ncol]] = sheet.cell_value(nrow, ncol)
+                row[colnames[ncol]] = cell.value
             ctr += process_row(ctx, module_rows, row)
         for row in module_rows:
             ctr += process_row(ctx, None, row)

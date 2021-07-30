@@ -55,9 +55,9 @@ cd_venv() {
 
 pop_cd() {
   [[ $opt_verbose -gt 2 ]] && echo ">>> pop_cd($@)"
-  if [ $DO_POP -ne 0 ]; then
+  if [[ $DO_POP -ne 0 ]]; then
     [[ $1 =~ q || $opt_verbose -eq 0 ]] || echo "$FLAG popd >/dev/null"
-    if [ $DO_POP -gt 0 ]; then
+    if [[ $DO_POP -gt 0 ]]; then
       popd >/dev/null
       ((DO_POP--))
       [[ -n "$FINAL_CMD" ]] && eval $FINAL_CMD && unset FINAL_CMD
@@ -1028,9 +1028,9 @@ do_venv_exec() {
   VENV="$1"
   cd_venv $VENV -f
   do_activate
+  pop_cd
   run_traced "$2 $3 $4 $5 $6 $7 $8 $9"
   do_deactivate
-  pop_cd
 }
 
 do_venv_pip() {

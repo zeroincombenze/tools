@@ -975,6 +975,11 @@ For current version:
 History
 -------
 
+1.0.3 (2021-09-29)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] new test data
+
 1.0.2.3 (2021-07-15)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -1004,7 +1009,6 @@ History
 
 
 
-
 |
 |
 
@@ -1027,7 +1031,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-07-20
+Last Update / Ultimo aggiornamento: 2021-07-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

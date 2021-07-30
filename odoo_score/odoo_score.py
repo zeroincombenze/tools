@@ -52,7 +52,7 @@ else:
         pass
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.1"
 
 MODULE_ID = 'odoo_score'
 TEST_FAILED = 1
@@ -126,12 +126,6 @@ class SingletonCache(object):
             self.STRUCT[dbname][model]['XPIRE'] = self.STRUCT[
                 dbname][model]['XPIRE'] + timedelta(
                 seconds=self.INCR_EXPIRATION_TIME)
-        self.mutex.release()
-
-    def set_struct_attr(self, dbname, attr, value):
-        self.mutex.acquire()
-        self.STRUCT[dbname] = self.STRUCT.get(dbname, {})
-        self.STRUCT[dbname][attr] = value
         self.mutex.release()
 
     def init_struct(self, dbname):
