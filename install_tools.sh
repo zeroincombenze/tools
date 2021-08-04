@@ -69,7 +69,7 @@ fi
 [[ $1 =~ ^-.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
 [[ $1 =~ ^-.*n ]] || find $SRCPATH $DSTPATH -name "*.pyc" -delete
 [[ $1 =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && git checkout devel
-[[ ! $1 =~ ^-.*d ]] && cd $SRCPATH && git checkout master
+[[ ! $1 =~ ^-.*d ]] && cd $SRCPATH && git checkout master -q
 [[ $1 =~ ^-.*o ]] && echo "WARNING! switch -o is deprecated and will be removed early!"
 PLEASE_CMDS=
 for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator wok_code z0lib zar zerobug; do
@@ -217,7 +217,7 @@ if [[ ! $1 =~ ^-.*n && $1 =~ ^-.*P ]]; then
     $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
 fi
 [[ $1 =~ ^-.*T ]] && $DSTPATH/test_tools.sh
-if [[ ! $1 =~ ^-.*g && ! $1 =~ ^-.*t && ]]; then
+if [[ ! $1 =~ ^-.*g && ! $1 =~ ^-.*t ]]; then
   [[ $1 =~ ^-.*v ]] && echo "Searching for git projects ..."
   for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git"|sort); do
     [[ $1 =~ ^-.*v && ! $1 =~ ^-.*G ]] && echo "cp $SRCPATH/devel_tools/pre-commit $d/hooks"
