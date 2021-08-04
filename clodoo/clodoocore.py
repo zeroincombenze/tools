@@ -8,18 +8,28 @@
 #
 """Clodoo core functions
 """
-
+import sys
 import re
 
 import odoorpc
-import oerplib
+try:
+    import oerplib
+except:
+    if sys.version_info[0] == 2:
+        raise ImportError("Package oerplib not found")
 from os0 import os0
-# import datetime
-
-
-from clodoolib import debug_msg_log, msg_log, decrypt
-from transodoo import read_stored_dict, translate_from_sym, translate_from_to
-
+try:
+    from clodoolib import debug_msg_log, msg_log, decrypt
+except:
+    from clodoo.clodoolib import debug_msg_log, msg_log, decrypt
+try:
+    from transodoo import (read_stored_dict,
+                           translate_from_sym,
+                           translate_from_to)
+except:
+    from clodoo.transodoo import (read_stored_dict,
+                                  translate_from_sym,
+                                  translate_from_to)
 try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -32,7 +42,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.31.10"
+__version__ = "0.3.31.12"
 
 
 #############################################################################
@@ -101,7 +111,7 @@ def connectL8(ctx):
     if not odoo:
         if ctx['oe_version'] != '*': 
             return u"!Odoo server %s is not running!" % ctx['oe_version']
-        if ctx['svc_protocol'] == 'jsonrpc':
+        if ctx['svc_protocol'] == 'jsonrpc' and sys.version_info[0] == 2:
             ctx['svc_protocol'] = 'xmlrpc'
         odoo = cnx(ctx)
         if not odoo:
@@ -121,7 +131,7 @@ def connectL8(ctx):
     elif ctx['oe_version'] == '*':
         ctx['oe_version'] = ctx['server_version'][0:x.end()]
     ctx['majver'] = int(ctx['server_version'].split('.')[0])
-    if ctx['majver'] < 10 and ctx['svc_protocol'] == 'jsonrpc':
+    if sys.version_info[0] == 2 and ctx['svc_protocol'] == 'jsonrpc':
         ctx['svc_protocol'] = 'xmlrpc'
         return connectL8(ctx)
     ctx['odoo_session'] = odoo

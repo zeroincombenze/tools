@@ -208,6 +208,13 @@ Current version via Git
 History
 -------
 
+1.0.5.39 (2021-08-03)
+~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] install_tools.sh: now install git hooks (new swithces -g and -G)
+[IMP] install_tools.sh: now can install from devel branch
+[FIX] odoo translation dictionary upgraded
+
 1.0.5.38 (2021-07-29)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -233,7 +240,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-07-30
+Last Update / Ultimo aggiornamento: 2021-08-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

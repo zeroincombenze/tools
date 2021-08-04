@@ -9,16 +9,19 @@ TDIR=$($READLINK -f $(dirname $0))
 if [[ $1 =~ ^-.*h ]]; then
     echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
     echo "  -h  this help"
+    echo "  -d  use development branch not master"
     echo "  -D  create development environment"
-    echo "  -f  force create virtual environment even if exists"
+    echo "  -f  force creation of virtual environment even if exists"
+    echo "  -g  do not install hooks in git projects"
+    echo "  -G  remove hooks from git projects"
     echo "  -n  dry-run"
-    echo "  -o  compatibility old mode (exec dir in $HOME/dev)"
+    echo "  -o  compatibility old mode (exec dir in $HOME/dev, deprecated)"
     echo "  -p  mkdir $HOME/dev[el] if does not exist"
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
     echo "  -s  store sitecustomize.py in python path (you must have privileges)"
     echo "  -S  store sitecustomize.py in python path (you must have privileges)"
-    echo "  -t  execute in travis-ci environment"
+    echo "  -t  this script is executing in travis-ci environment"
     echo "  -T  execute regression tests"
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
@@ -64,8 +67,10 @@ if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
 fi
 [[ $1 =~ ^-.*U ]] && cd $SRCPATH && git pull
 [[ $1 =~ ^-.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
-[[ $1 =~ ^-.*n ]] || find $SRCPATH -name "*.pyc" -delete
-[[ $1 =~ ^-.*n ]] || find $DSTPATH -name "*.pyc" -delete
+[[ $1 =~ ^-.*n ]] || find $SRCPATH $DSTPATH -name "*.pyc" -delete
+[[ $1 =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && git checkout devel
+[[ ! $1 =~ ^-.*d ]] && cd $SRCPATH && git checkout master
+[[ $1 =~ ^-.*o ]] && echo "WARNING! switch -o is deprecated and will be removed early!"
 PLEASE_CMDS=
 for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator wok_code z0lib zar zerobug; do
     l="RFLIST__$pkg"
@@ -212,6 +217,15 @@ if [[ ! $1 =~ ^-.*n && $1 =~ ^-.*P ]]; then
     $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
 fi
 [[ $1 =~ ^-.*T ]] && $DSTPATH/test_tools.sh
+if [[ ! $1 =~ ^-.*g && ! $1 =~ ^-.*t && ]]; then
+  [[ $1 =~ ^-.*v ]] && echo "Searching for git projects ..."
+  for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git"|sort); do
+    [[ $1 =~ ^-.*v && ! $1 =~ ^-.*G ]] && echo "cp $SRCPATH/devel_tools/pre-commit $d/hooks"
+    [[ ! $1 =~ ^-.*n && ! $1 =~ ^-.*G ]] && cp $SRCPATH/devel_tools/pre-commit $d/hooks
+    [[ $1 =~ ^-.*v && $1 =~ ^-.*G && -f $d/hooks/pre-commit ]] && echo "rm -f $d/hooks/pre-commit"
+    [[ ! $1 =~ ^-.*n && $1 =~ ^-.*G && -f $d/hooks/pre-commit ]] && rm -f $d/hooks/pre-commit
+  done
+fi
 if [[ ! $1 =~ ^-.*q && ! $1 =~ ^-.*P ]]; then
     echo "------------------------------------------------------------"
     echo "If you wish to use these tools at the next time,  please add"

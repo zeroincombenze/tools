@@ -1,4 +1,10 @@
-1.0.3 (2021-09-29)
+1.0.3.1 (2021-07-30)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] test data format xlsx (it replaces csv)
+* [IMP] value "\N" in data file for not value
+
+1.0.3 (2021-07-29)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] new test data

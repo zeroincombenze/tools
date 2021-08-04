@@ -2,6 +2,8 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] run_odoo_debug: -T and -k switches togheter
+[FIX] odoo_score.py: crash with python 3 (due clodoo package)
+[IMP] odoo_shell.py: removed old code
 
 1.0.0.10 (2021-06-04)
 ~~~~~~~~~~~~~~~~~~~~~

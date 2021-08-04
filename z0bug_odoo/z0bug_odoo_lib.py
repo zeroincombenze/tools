@@ -19,16 +19,19 @@ import os
 # import sys
 import base64
 import csv
-# from zerobug import Z0BUG
-# from os0 import os0
+from openpyxl import load_workbook
 
-__version__ = "1.0.3"
+__version__ = "1.0.3.1"
 
 
 class Z0bugOdoo(object):
 
     def __init__(self, release=None):
-        self.release = None
+        try:
+            from odoo import release
+            self.release = release
+        except:
+            self.release = None
 
     def get_image_filename(self, xref):
         file_image = os.path.join(
@@ -47,29 +50,61 @@ class Z0bugOdoo(object):
             return base64.b64encode(image)
         return False
 
-    def get_data_file(self, model, csv_fn):
-        full_fn = os.path.join(os.path.dirname(__file__), 'data', csv_fn)
+    def save_row(self, model, row):
+        if 'id' in row:
+            for field in row.copy().keys():
+                if row[field] == r'\N':
+                    del row[field]
+                elif row[field] == r'\\N':
+                    row[field] = r'\N'
+            getattr(self, model)[row['id']] = unicodes(row)
+
+    def get_data_file_xlsx(self, model, full_fn):
+        pymodel = model.replace('.', '_')
+        wb = load_workbook(full_fn)
+        for sheet in wb:
+            break
+        colnames = []
+        for column in sheet.columns:
+            colnames.append(column[0].value)
+        hdr = True
+        for line in sheet.rows:
+            if hdr:
+                hdr = False
+                setattr(self, pymodel, {})
+                continue
+            row = {}
+            for column, cell in enumerate(line):
+                row[colnames[column]] = cell.value
+            self.save_row(pymodel, row)
+
+    def get_data_file_csv(self, model, full_fn):
         pymodel = model.replace('.', '_')
         with open(full_fn, 'r') as fd:
-            hdr = False
+            hdr = True
             csv_obj = csv.DictReader(fd,
                                      fieldnames=[],
                                      restkey='undef_name')
             for row in csv_obj:
-                if not hdr:
-                    hdr = True
+                if hdr:
+                    hdr = False
                     csv_obj.fieldnames = row['undef_name']
                     setattr(self, pymodel, {})
                     continue
-                if 'id' not in row:
-                    continue
-                getattr(self, pymodel)[row['id']] = unicodes(row)
+                self.save_row(pymodel, row)
+
+    def get_data_file(self, model, filename):
+        full_fn = os.path.join(os.path.dirname(__file__), 'data', filename)
+        if os.path.isfile('%s.xlsx' % full_fn):
+            return self.get_data_file_xlsx(model, '%s.xlsx' % full_fn)
+        else:
+            return self.get_data_file_csv(model, '%s.csv' % full_fn)
 
     def get_test_xrefs(self, model):
         """Return model xref list"""
         pymodel = model.replace('.', '_')
         if not hasattr(self, pymodel):
-            self.get_data_file(model, '%s.csv' % pymodel)
+            self.get_data_file(model, pymodel)
         return list(getattr(self, pymodel))
 
     def get_test_values(self, model, xref):
@@ -79,7 +114,7 @@ class Z0bugOdoo(object):
             xids[0], xids[1] = 'z0bug', xids[0]
         pymodel = model.replace('.', '_')
         if not hasattr(self, pymodel):
-            self.get_data_file(model, '%s.csv' % pymodel)
+            self.get_data_file(model, pymodel)
         if xref not in getattr(self, pymodel):
             if xids[0] == 'z0bug':
                 raise KeyError('Invalid xref %s for model %s!' % (xref, model))
@@ -90,6 +125,6 @@ class Z0bugOdoo(object):
         """Write all record of model with test values"""
         pymodel = model.replace('.', '_')
         if not hasattr(self, pymodel):
-            self.get_data_file(model, '%s.csv' % pymodel)
+            self.get_data_file(model, pymodel)
         for xref in getattr(self, pymodel):
             pass

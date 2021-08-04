@@ -204,12 +204,15 @@ except:
         msg_log, parse_args, tounicode,                       # noqa: F401
         read_config, init_logger,                             # noqa: F401
         default_conf, build_odoo_param)                       # noqa: F401
+try:
+    from transodoo import (read_stored_dict, translate_from_to)
+except:
+    from clodoo.transodoo import (read_stored_dict, translate_from_to)
 
-from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
-__version__ = "0.3.31.10"
+__version__ = "0.3.31.12"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True

@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.6"
+__version__ = "1.0.1.7"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -1359,7 +1359,7 @@ def read_all_manifests(ctx, path=None, module2search=None):
                                         ctx['odoo_majver'],
                                         ctx['repos_name'])
         for root, dirs, files in os.walk(oca_root):
-            dirs[:] = [d for d in dirs if valid_dir(d, ctx['odoo_layer'])]
+            dirs[:] = [d for d in dirs if valid_dir(d)]
             if ctx['odoo_layer'] != 'ocb' or root.find('addons') >= 0:
                 module_name = os.path.basename(root)
                 if ((ctx['odoo_layer'] == 'ocb' and module_name[0:5] == 'l10n_') or

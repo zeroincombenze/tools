@@ -1,0 +1,24 @@
+#! /bin/bash
+#
+# git_hook
+#
+if [[ ! -f README.rst ]]; then
+    echo "Missed documentation file README.rst!"
+    echo "Please, type:"
+    echo "> please docs"
+    echo ""
+    echo "To supersede this block use --no-verify switch"
+    exit 1
+fi
+find ./ -type f -not -path "*/.git/*"  -not -path "*/docs/*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -not -name "*.po" -cnewer ./README.rst -print | grep ".*"
+if [[ -$? -eq 0 ]]; then
+    echo ""
+    echo "Detected updates without documentation!"
+    echo "Please see above file list and type the command:"
+    echo "> please docs"
+    echo "at the path of every module no yet documented!"
+    echo ""
+    echo "To supersede this block use --no-verify switch"
+    exit 1
+fi
+exit 0

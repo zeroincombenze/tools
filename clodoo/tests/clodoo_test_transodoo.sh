@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.31.10
+__version__=0.3.31.12
 
 
 test_01() {
@@ -202,6 +202,26 @@ test_05() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       RES=$($RUNDIR/transodoo.py translate -m account.account.type -k valuetnl -N note -f 7.0 -b$v)
       test_result "translate valuetnl/note from 7.0 to $v" "" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    TRES[6.1]="product.product_uom_unit"
+    TRES[7.0]="product.product_uom_unit"
+    TRES[8.0]="product.product_uom_unit"
+    TRES[9.0]="product.product_uom_unit"
+    TRES[10.0]="product.product_uom_unit"
+    TRES[11.0]="product.product_uom_unit"
+    TRES[12.0]="uom.product_uom_unit"
+    TRES[13.0]="uom.product_uom_unit"
+    TRES[14.0]="uom.product_uom_unit"
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -m ir.module.data -k xref -s product.product_uom_unit -f 10.0 -b$v)
+      test_result "translate -m ir.module.data -k xref -s product.product_uom_unit -f 10.0 -b$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      RES=$($RUNDIR/transodoo.py translate -m ir.module.data -k xref -s uom.product_uom_unit -f 12.0 -b$v)
+      test_result "translate -m ir.module.data -k xref -s uom.product_uom_unit -f 12.0 -b$v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #

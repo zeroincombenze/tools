@@ -14,8 +14,9 @@ Structure:
     name:     symbolic name of a field (deprecated)
     field:    field name to translate
     action:   action/function to translate
-    module:   module name to translate
-    merge:    module name merged with
+    xref:     external reference (model is ir.model.data)
+    module:   module name to translate (model is ir.module.module)
+    merge:    module name merged with (model is ir.module.module)
     value:    value of field to translate (name is the field name)
     valuetnl: field ha translation ("1")
 
@@ -29,14 +30,15 @@ the ttype 'value' has a more level for every field name:
 [pymodel]['value'][fldname][ver.name]
 """
 from __future__ import print_function, unicode_literals
-from builtins import input
+# from builtins import input
 from past.builtins import basestring
-from python_plus import _c
+from python_plus import bstrings
 
 import re
-import csv
+# import csv
 import os
 import sys
+from openpyxl import load_workbook
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
@@ -45,7 +47,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.31.10"
+__version__ = "0.3.31.12"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
 CVT_ACC_TYPE_OLD_NEW = {
     'Bank': 'Bank and Cash',
@@ -71,9 +73,12 @@ CVT_ACC_TYPE_NEW_OLD = {
 }
 
 
-def get_pymodel(model):
-    # return model.replace('.', '_').lower()
-    return model
+def get_pymodel(model, ttype=None):
+    return {
+        'xref': 'ir.model.data',
+        'module': 'ir.module.module',
+        'merge': 'ir.module.module',
+    }.get(ttype, model)
 
 
 def get_ver_name(name, ver):
@@ -106,7 +111,7 @@ def set_hash(ttype, name, ver_names):
 
 
 def build_alias_struct(mindroot, model, ttype, fld_name=False):
-    pymodel = get_pymodel(model)
+    pymodel = get_pymodel(model, ttype=ttype)
     mindroot[pymodel] = mindroot.get(pymodel, {})
     mindroot[pymodel][ttype] = mindroot[pymodel].get(ttype, {})
     if ttype in ('value', 'valuetnl') and fld_name:
@@ -117,10 +122,10 @@ def build_alias_struct(mindroot, model, ttype, fld_name=False):
 
 def link_versioned_name(mindroot, model, hash, ttype, src_name, ver,
                         fld_name=False):
-    pymodel = get_pymodel(model)
+    pymodel = get_pymodel(model, ttype=ttype)
     ver_name = get_ver_name(src_name, ver)
     if ttype in ('value', 'valuetnl'):
-        if src_name.startswith('${') and src_name.endswith('}'):
+        if src_name and src_name.startswith('${') and src_name.endswith('}'):
             mindroot[pymodel][ttype][fld_name] = src_name
             item = None
         else:
@@ -190,7 +195,7 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
         return ''
     if ttype == 'valuetnl' and not src_name:
         src_name = 'dummy'
-    pymodel = get_pymodel(model)
+    pymodel = get_pymodel(model, ttype=ttype)
     ver_name = get_ver_name(src_name, src_ver)
     name = src_name
     if ver_name and pymodel in mindroot:
@@ -250,126 +255,113 @@ def translate_from_sym(ctx, model, sym, tgt_ver):
 def read_stored_dict(ctx):
     if 'mindroot' in ctx:
         return
-    csv.register_dialect('transodoo',
-                         delimiter=_c('\t'),
-                         quotechar=_c('\"'),
-                         quoting=csv.QUOTE_MINIMAL)
     if 'dict_fn' not in ctx or not ctx['dict_fn']:
         p = os.path.dirname(__file__) or '.'
-        if os.path.isfile('%s/transodoo.csv' % p):
-            ctx['dict_fn'] = '%s/transodoo.csv' % p
+        if os.path.isfile('%s/transodoo.xlsx' % p):
+            ctx['dict_fn'] = '%s/transodoo.xlsx' % p
         elif os.path.isfile(os.path.join(os.path.expanduser('~'),
-                                         'transodoo.csv')):
+                                         'transodoo.xlsx')):
             ctx['dict_fn'] = os.path.join(os.path.expanduser('~'),
-                                         'transodoo.csv')
+                                         'transodoo.xlsx')
         else:
-            ctx['dict_fn'] = 'transodoo.csv'
-    # ctx['dict_fn'] = './__transodoo.csv'        #debug
+            ctx['dict_fn'] = 'transodoo.xlsx'
     mindroot = {}
-    with open(ctx['dict_fn'], 'rb') as fd:
-        hdr = False
-        reader = csv.DictReader(fd,
-                                fieldnames=[],
-                                restkey='undef_name',
-                                dialect='transodoo')
-        for line in reader:
-            row = line['undef_name']
-            if not hdr:
-                MODEL = row.index('model')
-                NAME = row.index('name')
-                TYPE = row.index('type')
-                # if 'hash' in row:
-                #     HASH = row.index('hash')
-                # else:
-                #     HASH = NAME
-                VER_IX = {}
-                last_ver = False
-                for ver in VERSIONS:
-                    if ver in row:
-                        VER_IX[ver] = row.index(ver)
-                        last_ver = ver
-                    else:
-                        VER_IX[ver] = row.index(last_ver)
-                hdr = True
-                continue
-            mindroot = build_alias_struct(mindroot,
-                                          row[MODEL],
-                                          row[TYPE],
-                                          fld_name=row[NAME])
-            ver_names = []
-            for ver in VERSIONS:
-                ver_names.append(row[VER_IX[ver]])
-
-            hash = set_hash(row[TYPE], row[NAME], ver_names)
-            for ver in VERSIONS:
-                mindroot = link_versioned_name(mindroot,
-                                               row[MODEL],
-                                               hash,
-                                               row[TYPE],
-                                               row[VER_IX[ver]],
-                                               ver,
-                                               fld_name=row[NAME])
+    wb = load_workbook(ctx['dict_fn'])
+    for sheet in wb:
+        break
+    colnames = []
+    for column in sheet.columns:
+        colnames.append(column[0].value)
+    hdr = True
+    for line in sheet.rows:
+        if hdr:
+            hdr = False
+            continue
+        row = {}
+        for column, cell in enumerate(line):
+            row[colnames[column]] = cell.value
+        mindroot = build_alias_struct(mindroot,
+                                      row['model'],
+                                      row['type'],
+                                      fld_name=row['name'])
+        ver_names = []
+        for ver in VERSIONS:
+            if ver in row:
+                ver_names.append(row[ver])
+                last_ver = row[ver]
+            else:
+                ver_names.append(last_ver)
+                row[ver] = last_ver
+        hash = set_hash(row['type'], row['name'], ver_names)
+        for ver in VERSIONS:
+            mindroot = link_versioned_name(mindroot,
+                                           row['model'],
+                                           hash,
+                                           row['type'],
+                                           row[ver],
+                                           ver,
+                                           fld_name=row['name'])
     ctx['mindroot'] = mindroot
 
 
 def write_stored_dict(ctx):
-    csv.register_dialect('transodoo',
-                         delimiter=_c('\t'),
-                         quotechar=_c('\"'),
-                         quoting=csv.QUOTE_MINIMAL)
-    if 'dict_fn' not in ctx or not ctx['dict_fn']:
-        p = os.path.dirname(__file__) or '.'
-        if os.path.isfile('%s/transodoo.csv' % p):
-            ctx['dict_fn'] = '%s/transodoo.csv' % p
-        elif os.path.isfile('~/dev/transodoo.csv'):
-            ctx['dict_fn'] = '~/dev/transodoo.csv'
-        else:
-            ctx['dict_fn'] = 'transodoo.csv'
-    with open(ctx['dict_fn'], 'wb') as fd:
-        writer = csv.DictWriter(
-            fd,
-            fieldnames=('model', 'name', 'type', 'hash') + VERSIONS,
-            dialect='transodoo')
-        writer.writeheader()
-        mindroot = ctx['mindroot']
-        for model in sorted(mindroot.keys()):
-            for ttype in sorted(mindroot[model].keys()):
-                if ttype in ('value', 'valuetnl'):
-                    iterate = sorted(mindroot[model][ttype].keys())
-                else:
-                    iterate = [None]
-                for name in iterate:
-                    if ttype in ('value', 'valuetnl'):
-                        items = mindroot[model][ttype][name]
-                    else:
-                        items = mindroot[model][ttype]
-                    if isinstance(items, basestring):
-                        iterate2 = [items]
-                    else:
-                        iterate2 = sorted(items.keys())
-                    for hash in iterate2:
-                        if not is_hash(hash):
-                            continue
-                        line = {
-                            'model': model,
-                            'type': ttype,
-                        }
-                        if ttype == 'name':
-                            line['name'] = hash
-                        else:
-                            line['hash'] = hash
-                            if ttype in ('value', 'valuetnl'):
-                                line['name'] = name
-                        if isinstance(items, basestring):
-                            for ver_name in VERSIONS:
-                                line[ver_name] = hash
-                        else:
-                            for ver_name in sorted(items[hash].keys()):
-                                if items[hash][ver_name]:
-                                    line[ver_name] = items[hash][ver_name]
-                        if len(line) > 4:
-                            writer.writerow(line)
-
+    # csv.register_dialect('transodoo',
+    #                      delimiter=_c('\t'),
+    #                      quotechar=_c('\"'),
+    #                      quoting=csv.QUOTE_MINIMAL)
+    # if 'dict_fn' not in ctx or not ctx['dict_fn']:
+    #     p = os.path.dirname(__file__) or '.'
+    #     if os.path.isfile('%s/transodoo.csv' % p):
+    #         ctx['dict_fn'] = '%s/transodoo.csv' % p
+    #     elif os.path.isfile('~/dev/transodoo.csv'):
+    #         ctx['dict_fn'] = '~/dev/transodoo.csv'
+    #     else:
+    #         ctx['dict_fn'] = 'transodoo.csv'
+    # with open(ctx['dict_fn'], 'wb') as fd:
+    #     writer = csv.DictWriter(
+    #         fd,
+    #         fieldnames=('model', 'name', 'type', 'hash') + VERSIONS,
+    #         dialect='transodoo')
+    #     writer.writeheader()
+    #     mindroot = ctx['mindroot']
+    #     for model in sorted(mindroot.keys()):
+    #         for ttype in sorted(mindroot[model].keys()):
+    #             if ttype in ('value', 'valuetnl'):
+    #                 iterate = sorted(mindroot[model][ttype].keys())
+    #             else:
+    #                 iterate = [None]
+    #             for name in iterate:
+    #                 if ttype in ('value', 'valuetnl'):
+    #                     items = mindroot[model][ttype][name]
+    #                 else:
+    #                     items = mindroot[model][ttype]
+    #                 if isinstance(items, basestring):
+    #                     iterate2 = [items]
+    #                 else:
+    #                     iterate2 = sorted(items.keys())
+    #                 for hash in iterate2:
+    #                     if not is_hash(hash):
+    #                         continue
+    #                     line = {
+    #                         'model': model,
+    #                         'type': ttype,
+    #                     }
+    #                     if ttype == 'name':
+    #                         line['name'] = hash
+    #                     else:
+    #                         line['hash'] = hash
+    #                         if ttype in ('value', 'valuetnl'):
+    #                             line['name'] = name
+    #                     if isinstance(items, basestring):
+    #                         for ver_name in VERSIONS:
+    #                             line[ver_name] = hash
+    #                     else:
+    #                         for ver_name in sorted(items[hash].keys()):
+    #                             if items[hash][ver_name]:
+    #                                 line[ver_name] = items[hash][ver_name]
+    #                     if len(line) > 4:
+    #                         writer.writerow(line)
+    pass
 
 def transodoo_list(ctx):
 
@@ -409,87 +401,27 @@ def transodoo_list(ctx):
         print(line)
 
 
-def transodoo_edit(ctx):
-    if 'mindroot' not in ctx:
-        mindroot = {}
-    else:
-        mindroot = ctx['mindroot']
-    model = get_pymodel(ctx['model'])
-    while True:
-        while not model:
-            m = input('Model (def=%s, type END to end): ' % model)
-            if m.upper() == 'END':
-                ctx['mindroot'] = mindroot
-                return 0
-            if m:
-                model = get_pymodel(model)
-        name = ctx['sym']
-        while not name:
-            name = input(
-                'Symbolic name (def=%s, type END to end): ' % name).upper()
-        if name == 'END':
-            ctx['mindroot'] = mindroot
-            return 0
-        key = ctx['opt_kind']
-        while not key:
-            key = input(
-                'Name of field (def=%s, type END to end): ' % key).upper()
-        if key == 'END':
-            ctx['mindroot'] = mindroot
-            return 0
-        mindroot = build_alias_struct(mindroot, model, name, key)
-        k1 = get_pymodel(model)
-        def_term = name.lower()
-        print("Model %s, sym=%s, key=%s" % (model, name, key))
-        for ver in VERSIONS:
-            term = ''
-            while not term:
-                if ver in mindroot[k1]:
-                    def_term = mindroot[k1][ver]
-                term = input(
-                    'Term[%s] (def=%s, blank=\\b, END to end): ' % (ver,
-                                                                    def_term))
-                if term == 'END':
-                    ctx['mindroot'] = mindroot
-                    return 0
-                if not term:
-                    term = def_term
-                elif term == r'\b':
-                    term = ''
-                elif term != r'\N':
-                    def_term = term
-            mindroot[k1][ver] = term
-        print(mindroot[k1])
-
-
 def transodoo(ctx=None):
-    if ctx['action'] == 'edit':
-        read_stored_dict(ctx)
-        transodoo_edit(ctx)
-        write_stored_dict(ctx)
-        return 0
-    elif ctx['action'] == 'list':
+    if ctx['action'] == 'list':
         read_stored_dict(ctx)
         transodoo_list(ctx)
     elif ctx['action'] == 'translate':
         read_stored_dict(ctx)
         if ctx['oe_from_ver']:
-            print(translate_from_to(ctx,
-                                    ctx['pymodel'],
-                                    ctx['sym'],
-                                    ctx['oe_from_ver'],
-                                    ctx['odoo_ver'],
-                                    ttype=ctx['opt_kind'],
-                                    fld_name=ctx['field_name']))
+            print(bstrings(translate_from_to(
+                ctx,
+                ctx['pymodel'],
+                ctx['sym'],
+                ctx['oe_from_ver'],
+                ctx['odoo_ver'],
+                ttype=ctx['opt_kind'],
+                fld_name=ctx['field_name'])))
         else:
-            print(translate_from_sym(ctx,
-                                     ctx['pymodel'],
-                                     ctx['sym'],
-                                     ctx['odoo_ver']))
-    elif ctx['action'] == 'write':
-        read_stored_dict(ctx)
-        write_stored_dict(ctx)
-        return 0
+            print(bstrings(translate_from_sym(
+                ctx,
+                ctx['pymodel'],
+                ctx['sym'],
+                ctx['odoo_ver'])))
     else:
         print("Invalid action!")
         return 1

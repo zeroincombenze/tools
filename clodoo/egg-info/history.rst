@@ -1,3 +1,14 @@
+0.3.31.12 (2021-07-03)
+~~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] clodoo.py: first porting with python3
+
+0.3.31.11 (2021-07-30)
+~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] transodoo.py: data file csv replaced by xlsx (by openpyxl)
+[IMP] transodoo.py: removed edit and write actions
+
 0.3.31.10 (2021-07-28)
 ~~~~~~~~~~~~~~~~~~~~~~
 

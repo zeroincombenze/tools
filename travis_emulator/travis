@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.2
+__version__=1.0.1.3
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -1107,7 +1107,8 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
   fi
 elif [[ $action == "summary" ]]; then
   if [[ -f $LOGFILE ]]; then
-    grep -H -E "(\| .*test|TODAY=|PKGNAME=|LOGFILE=)" $LOGFILE
+    echo "$(readlink -f $LOGFILE):\$ VIRTUALENV=$(grep -E "vem .*VENV_" $LOGFILE|grep -Eo "VENV_[0-9]+")"
+    grep -EH "(\| .*test|TODAY=|PKGNAME=|LOGFILE=)" $LOGFILE
   else
     echo "File $LOGFILE not found!"
   fi

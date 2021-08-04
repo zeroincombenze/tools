@@ -157,7 +157,7 @@ notice the symbol %M meaans Odoo major version and %V Odoo version.
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-07-30
+Last Update / Ultimo aggiornamento: 2021-08-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
