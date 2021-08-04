@@ -10,7 +10,7 @@ if [[ ! -f README.rst ]]; then
     echo "To supersede this block use --no-verify switch"
     exit 1
 fi
-find ./ -type f -not -path "*/.git/*"  -not -path "*/docs/*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -not -name "*.po" -cnewer ./README.rst -print | grep ".*"
+find ./ -type f -not -path "*/.git/*"  -not -path "*/docs/*"  -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -not -name "*.po"  -not -name "*.rst"  -not -name "*.html" -cnewer ./README.rst -print | grep ".*"
 if [[ -$? -eq 0 ]]; then
     echo ""
     echo "Detected updates without documentation!"
