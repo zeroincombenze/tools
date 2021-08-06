@@ -383,7 +383,7 @@ pip_uninstall() {
   #pip_uninstall(pkg opts)
   local pkg d x srcdir fn popts v
   local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
-  pkg="$(get_actual_pkg $1)"
+  pkg=$(get_pkg_wo_version $(get_actual_pkg $1))
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     srcdir=""

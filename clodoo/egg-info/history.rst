@@ -1,3 +1,9 @@
+0.3.31.13 (2021-08-05)
+~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] transodoo.py: tranlsation now can return None value
+[IMP] transodoo.xlsx: upgrade translation
+
 0.3.31.12 (2021-07-03)
 ~~~~~~~~~~~~~~~~~~~~~~
 

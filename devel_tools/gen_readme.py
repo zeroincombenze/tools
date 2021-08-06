@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.7"
+__version__ = "1.0.1.8"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -781,7 +781,7 @@ def expand_macro_in_line(ctx, line, state=None):
         tokens = line[i + 2: j].split(':')
         value = expand_macro(ctx, tokens[0])
         if value is False or value is None:
-            print('Invalid macro %s' % tokens[0])
+            print('*** Invalid macro %s!' % tokens[0])
             value = ''
         else:
             if tokens[0] in LIST_TAG:
@@ -1257,7 +1257,7 @@ def read_setup(ctx):
         ctx['manifest_file'] = manifest_file
     else:
         if not ctx['suppress_warning']:
-            print('Warning: manifest file not found')
+            print('*** Warning: manifest file not found!')
         ctx['manifest'] = {}
 
 
@@ -1279,7 +1279,7 @@ def read_manifest(ctx):
         ctx['manifest_file'] = manifest_file
     else:
         if not ctx['suppress_warning']:
-            print('Warning: manifest file not found')
+            print('*** Warning: manifest file not found!')
         ctx['manifest'] = {}
 
 
@@ -1439,14 +1439,24 @@ def read_dependecies_license(ctx):
     license = ctx['manifest'].get('license', def_license)
     if license == 'AGPL-3':
         return
+    saved_manifest = ctx['manifest'].copy()
     root = build_odoo_param('ROOT', odoo_vid='.', multi=True)
     for module in ctx['manifest'].get('depends', []):
         read_all_manifests(ctx, path=root, module2search=module)
-        if ctx['addons_info'][module].get('license', def_license) == 'AGPL-3':
+        if module not in ctx['addons_info']:
+            if not ctx['suppress_warning']:
+                print(
+                    '*** Unknow license of module %s: license may be invalid!' %
+                    module
+                )
+        elif (ctx['addons_info'][module].get('license',
+                                           def_license) == 'AGPL-3' and
+                not ctx['suppress_warning']):
             print(
                 '*** INVALID LICENSE %s: depending module <%s> is AGPL-3 ***' %
                 (license, module)
             )
+    ctx['manifest'] = saved_manifest
 
 def manifest_contents(ctx):
     full_fn = ctx['manifest_file']
@@ -1461,22 +1471,30 @@ def manifest_contents(ctx):
             break
         target += line + '\n'
     target += '{\n'
+    if ctx['opt_gpl'] not in ('agpl', 'lgpl', 'opl', 'oee'):
+        ctx['opt_gpl'] = ctx['license_mgnt'].get_license(
+            odoo_majver=ctx['odoo_majver'])
+    license_code = {
+        'agpl': 'AGPL-3',
+        'lgpl': 'LGPL-3',
+        'opl': 'OPL-1',
+        'oee': 'OEE-1',
+    }[ctx['opt_gpl']]
     for item in MANIFEST_ITEMS:
         if item not in ctx['manifest'] and item in MANIFEST_ITEMS_REQUIRED:
             if item == 'license':
-                if ctx['opt_gpl'] not in ('agpl', 'lgpl', 'opl', 'oee'):
-                    ctx['opt_gpl'] = ctx['license_mgnt'].get_license(
-                        odoo_majver=ctx['odoo_majver'])
-                ctx['manifest'][item] = {
-                    'agpl': 'AGPL-3',
-                    'lgpl': 'LGPL-3',
-                    'opl': 'OPL-1',
-                    'oee': 'OEE-1',
-                }[ctx['opt_gpl']]
+                ctx['manifest'][item] = license_code
             elif item == 'authors':
                 ctx['manifest'][item] = ctx['license_mgnt'].summary_authors()
             elif item in ctx:
                 ctx['manifest'][item] = ctx[item]
+        elif (item == 'license' and
+              ctx['manifest'][item] != license_code and
+                not ctx['suppress_warning']):
+            print(
+                '*** Warning: manifest license %s does not match required %s!' %
+                (ctx['manifest'][item], license_code)
+            )
         if item in ctx['manifest'] or (ctx['set_authinfo'] and
                                        item in MANIFEST_ITEMS_REQUIRED):
             target += manifest_item(ctx, item)
@@ -1713,6 +1731,15 @@ def generate_readme(ctx):
     if os.path.isfile(dst_file):
         os.rename(dst_file, bakfile)
     os.rename(tmpfile, dst_file)
+    if (ctx['rewrite_manifest'] and
+            ctx['odoo_layer'] == 'module' and
+            not ctx['suppress_warning']):
+        print(
+            '\n\nYou should update license info of the files.\n'
+            'Please, type\n'
+            '> topep8 -h\n'
+            'for furthermore information\n'
+        )
 
 
 if __name__ == "__main__":
@@ -1810,7 +1837,7 @@ if __name__ == "__main__":
                                  '9.0', '8.0', '7.0', '6.1'):
             ctx['branch'] = '12.0'
             if not ctx['suppress_warning']:
-                print('Invalid odoo version: please use -b switch (%s)' %
+                print('*** Invalid odoo version: please use -b switch (%s)' %
                       ctx['branch'])
         ctx['odoo_majver'] = int(ctx['branch'].split('.')[0])
         if not ctx['git_orgid']:
@@ -1819,7 +1846,7 @@ if __name__ == "__main__":
     if ctx['git_orgid'] not in ('zero', 'oca', 'powerp', 'didotech'):
         ctx['git_orgid'] = 'zero'
         if not ctx['suppress_warning']:
-            print('Invalid git-org: use -G %s or of zero|oca|didotech' %
+            print('*** Invalid git-org: use -G %s or of zero|oca|didotech' %
                   ctx['git_orgid'])
     if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
         if ctx['product_doc'] == 'odoo':

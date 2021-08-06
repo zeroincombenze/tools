@@ -47,7 +47,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.31.12"
+__version__ = "0.3.31.13"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
 CVT_ACC_TYPE_OLD_NEW = {
     'Bank': 'Bank and Cash',
@@ -232,6 +232,8 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                 name = names[0]
             else:
                 name = names
+        if name == r'\N':
+            name = None
     return name
 
 

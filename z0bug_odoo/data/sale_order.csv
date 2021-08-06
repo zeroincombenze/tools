@@ -1,8 +1,0 @@
-id,partner_id,company_id,client_order_ref,date_order,origin
-z0bug.sale_order_Z0_1,z0bug.res_partner_1,,P1/2020/0001,-11,Test1
-z0bug.sale_order_Z0_2,z0bug.res_partner_2,,210123,-10,Test2
-z0bug.sale_order_Z0_3,z0bug.res_partner_8,,21011214,-10,Test3
-z0bug.sale_order_Z0_4,z0bug.res_partner_13,,IT/21/002,-9,Test4
-z0bug.sale_order_Z0_5,z0bug.res_partner_9,,Telefonico,-8,Test5
-z0bug.sale_order_Z0_6,z0bug.res_partner_6,,mail,-8,Test6
-z0bug.sale_order_Z0_7,z0bug.res_partner_1,,P1/2021/0013,-7,Test7

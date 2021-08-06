@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.31.12
+__version__=0.3.31.13
 
 
 test_01() {
@@ -68,7 +68,7 @@ CSS_facets-border=#F1E2D3
 CSS_sheet-max-width=860px
 EOF
     cat << EOF > $TESTDIR/website-themes/skin1/base.sass
-// V0.3.31.12
+// V0.3.31.13
 // Text def color: dev=#805070 qt=#123456 prod=#2a776d
 //\$zi-def-text: #805070
 \$zi-def-text: #123456
@@ -87,7 +87,7 @@ EOF
 \$sheet-padding: 16px
 EOF
     cat << EOF > $TESTDIR/website-themes/skin1/base.sass
-// V0.3.31.12
+// V0.3.31.13
 // Text def color: dev=#805070 qt=#123456 prod=#2a776d
 //\$zi-def-text: #805070
 //\$zi-def-text: #123456

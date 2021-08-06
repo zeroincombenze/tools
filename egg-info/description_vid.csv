@@ -1,0 +1,9 @@
+Parameter name,standard value,anonymous distro,zeroincombenze distro,oca distro,axitec distro,Note
+ROOT (Odoo root),,~/%V,~/zero%M,~/oca%M,~/odoo_%M,i.e. ~/oca14
+CONFN (configuration file),odoo.conf odoo-server.conf,odoo%M-server.conf,odoo%M-zero.conf,odoo%M-oca.conf,odoo%M-axi.conf,Directory /etc/odoo (see Odoo structure)
+USER (db user),odoo,odoo%M,odoo%M,odoo%M,odoo%M,i.e odoo12
+FLOG (log file),odoo.log odoo-server.log,odoo%M-server.log,odoo%M-zero.log,odoo%M-oca.log,odoo%M-axi.log,Directory /var/log/odoo
+FPID (pid file),odoo.pid odoo-server.pid,odoo%M-server.pid,odoo%M-zero.pid,odoo%M-oca.pid,odoo%M-axi.pid,Directory /var/run/odoo
+RPCPORT (xmlrpc port),8069,8160 + %M,8460 + %M,8260 + %M,8360 + %M,
+LPPORT (longpolling),8072,8130 + %M,8430 + %M,8230 + %M,8330 + %M,
+SVCNAME (service name),odoo odoo-server,odoo%M odoo%M-server,odoo%M-zero,odoo%M-oca,odoo%M-axi,

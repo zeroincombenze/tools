@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.7
+__version__=1.0.1.8
 
 #
 # General Purpose options:
@@ -1931,8 +1931,10 @@ do_distribution() {
 do_docs() {
   wlog "do_docs"
   local docs_dir=./docs
-  local author version theme SETUP b f t x
+  local author version theme SETUP b f l t x
   local opts src_png odoo_fver
+  local HOME_DEV
+  [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
   [[ $opt_dbg -ne 0 || $PWD =~ /dev(el)?/pypi/ ]] && opts=-B || opts=
   if [ "$PRJNAME" == "Odoo" ]; then
     [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
@@ -1953,6 +1955,12 @@ do_docs() {
       [[ $GIT_ORGNM == "zeroincombenze" ]] && orgid="zero"
       [[ $GIT_ORGNM =~ (PowERP-cloud|powerp1) ]] && orgid="powerp"
       popd >/dev/null
+    fi
+    if [[ -f ./__manifest__,py || -f ./__openerp__.py ]]; then
+      l=$(build_odoo_param LICENSE "." "" "" "search")
+      [[ $licence == "AGPL" && -f $HOME_DEV/license_text/agpl-3.0.txt ]] && run_traced "cp -p $HOME_DEV/license_text/agpl-3.0.txt ./LICENSE"
+      [[ $licence == "LGPL" && -f $HOME_DEV/license_text/lgpl-3.0.txt ]] && run_traced "cp -p $HOME_DEV/license_text/lgpl-3.0.txt ./LICENSE"
+      [[ $licence == "OPL" && -f $HOME_DEV/license_text/opl-1.0.txt ]] && run_traced "cp -p $HOME_DEV/license_text/opl-1.0.txt ./LICENSE"
     fi
     run_traced "gen_readme.py -b$odoo_fver $opts -G$orgid"
     version=$(build_odoo_param MAJVER $odoo_fver)

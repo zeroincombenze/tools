@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.5.38
+__version__=1.0.5.39
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -41,7 +41,7 @@ RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
 RFLIST__wok_code=""
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
-RFLIST__tools="odoo_default_tnl.xlsx templates"
+RFLIST__tools="odoo_default_tnl.xlsx templates license_text"
 RFLIST__python_plus="vem vem.man"
 RFLIST__wok_code="wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
@@ -106,7 +106,7 @@ for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator 
             [[ -L "$tgt" && ! $1 =~ ^-.*n ]] && rm -f $tgt
             [[ -d "$tgt" ]] && echo "$PMPT rm -fR $tgt"
             [[ -d "$tgt" && ! $1 =~ ^-.*n ]] && rm -fR $tgt
-            if [[ $fn =~ (kbase|templates) ]]; then
+            if [[ $fn =~ (kbase|templates|license_text) ]]; then
                 [[ ! $1 =~ ^-.*q ]] && echo "$PMPT ln -s $src $tgt"
                 [[ $1 =~ ^-.*n ]] || ln -s $opts $src $tgt
             elif [[ ! -e "$tgt" || $1 =~ ^-.*[fpU] ]]; then
@@ -218,7 +218,7 @@ if [[ ! $1 =~ ^-.*n && $1 =~ ^-.*P ]]; then
 fi
 [[ $1 =~ ^-.*T ]] && $DSTPATH/test_tools.sh
 if [[ ! $1 =~ ^-.*g && ! $1 =~ ^-.*t ]]; then
-  [[ $1 =~ ^-.*v ]] && echo "Searching for git projects ..."
+  [[ ! $1 =~ ^-.*q ]] && echo "Searching for git projects ..."
   for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git"|sort); do
     [[ $1 =~ ^-.*v && ! $1 =~ ^-.*G ]] && echo "cp $SRCPATH/devel_tools/pre-commit $d/hooks"
     [[ ! $1 =~ ^-.*n && ! $1 =~ ^-.*G ]] && cp $SRCPATH/devel_tools/pre-commit $d/hooks

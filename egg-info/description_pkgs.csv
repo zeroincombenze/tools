@@ -1,0 +1,34 @@
+Package,Name,Brief,Area
+clodoo,check_4_seq.sh,Check for postgres database index,maintenance
+,clodoo.py,Massive operations on multiple Odoo DBs in cloud. It is used to create configurated Odoo DBs and to upgrade more DBs at the same time. No (yet) documented,maintenance
+,force_password.sh,Force Odoo DB password,maintenance
+,inv2draft_n_restore.py,Force an invoice to draft state even if is paid and restore original state and payment (Odoo < 9.0),maintenance
+,list_requirements.py,List pypi and bin packages for an Odoo installation,deployment
+,manage_db,"Massive operations to multiple Odoo DBs in cloud, data based on csv files.",maintenance
+,manage_odoo,Manage an Odoo installation,maintenance
+,odoo_install_repository,Install & upgrade odoo repository,Deployment & maintenance
+,set_workers.sh,Evaluate and set Odoo workers for best performance,Deployment & maintenance
+devel_tools,cvt_csv_to_rst.py,Convert a csv file into rst text file with table inside,documentation
+,cvt_csv_to_xml.py,Convert a csv file into xml file for Odoo module data,development
+,cvt_script,Make bash script to standard,development
+,gen_readme.py,"Generate README.rst, index.html and __openerp__.py ,documentation",documentation
+,odoo_dependencies.py,"Show Odoo module tree, ancestors and/or childs",development
+,odoo_translation.py,"Load Odoo translation (deprecated, must be replaced by weblate)",development
+,please,Developer shell,development
+,topep8,Convert python and xml file across Odoo versions,development
+,vfdiff,Make difference between 2 files or directories,development
+lisa,lisa,Linux Installer Simple App. LAMP and odoo server installer from scratch.,deployment
+maintainer-quality-tools,,"Deprecated, replaced by z0bug_odoo",testing
+odoo_score,odoo_score.py,Odoo super core ORM,development
+,odoo_shell.py,Odoo shell for Odoo versions from 6.1 to 13.0,Development & maintenance
+os0,,Simple os interface checked for OpenVMS too,development
+python-plus,python-plus,Various features to python 2 and python 3 programs as integration of pypi future to help to port your code from Python 2 to Python 3,development
+,vem,"Virtual Environment Manager: create, copy, move, merge and many other functions with virtual environments",Deployment & maintenance
+pytok,,Simple python token parser (deprecated),
+travis_emulator,travis,Travis Emulator on local machine. Check your project before release on TravisCi,testing
+wok_code,,Undocumented (deprecated),
+wok_news,,Undocumented (deprecated),
+z0bug_odoo,z0bug_odoo,"Integration of zerobug and Odoo. Initially forked form OCA maintainer quality tools. It works with all Odoo version, from 6.1 to 13.0",testing
+z0lib,,General purpose bash & python library,development
+zar,zar,Zeroincombenze Archive and Replica. Backup your Odoo DBs,maintenance
+zerobug,zerobug,testing & debug library,testing

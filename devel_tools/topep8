@@ -40,7 +40,7 @@ fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-__version__=1.0.1.7
+__version__=1.0.1.8
 
 [[ -f $TDIR/../../clodoo/list_requirements.py ]] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
@@ -635,11 +635,11 @@ OPTHELP=("this help"
 OPTARGS=(fullname)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "PEP8 source python file\nfull path name maybe supplied or a single file\n" \
     "(C) 2015-2021 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
@@ -653,7 +653,7 @@ link_cfg $DIST_CONF $TCONF
 init_travis
 
 optfnd="-type f"
-[ -n "$opt_out" ] && opt_out=$($READLINK -f $opt_out)
+[[ -n "$opt_out" ]] && opt_out=$($READLINK -f $opt_out)
 
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
@@ -675,16 +675,16 @@ OPTS=
 [ -n "$opt_gpl" ] && OPTS="${OPTS} -G$opt_gpl"
 [[ "${fullname: -1}" == "/" ]] && fullname="${fullname:0:-1}"
 if [[ -d $fullname ]]; then
-  LIST="$(find $fullname $optfnd -name '*.py' -or -name '*.xml' -or -name '*.html' -or -name '*.xsd' -or -name '.travis.yml' -not -path '*/\.idea/*' -not -path '*/docs/*' | tr '\n' ' ')"
+  LIST="$(find $fullname $optfnd -not -path '*/.idea/*' -not -path '*/docs/*' \( -name '*.py' -or -name '*.xml' -or -name '*.html' -or -name '*.xsd' -or -name '.travis.yml' \)| tr '\n' ' ')"
   [ -d $fullname/static ] && LIST="$fullname/static $LIST"
 else
   LIST=$($READLINK -e $fullname)
 fi
-if [ -z "$LIST" ]; then
+if [[ -z "$LIST" ]]; then
   echo "No file found!"
   exit 1
 fi
-[ $opt_fut -ne 0 ] && mkdir -p ~/py3
+[[ $opt_fut -ne 0 ]] && mkdir -p ~/py3
 for fl in $LIST; do
   sts=0
   if [[ -d $fl ]]; then
