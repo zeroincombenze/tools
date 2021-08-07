@@ -29,7 +29,7 @@ done
 CMDLIST="dir|docs|info|show|install|update|libdir|travis|travis-summary"
 [[ -z "$cmd" || ! $cmd =~ ($CMDLIST) ]] && cmd="help"
 [[ $cmd == "help" ]] && echo "$0 -h|-B|-f|-I|-l|-n|-U $CMDLIST|help [PYPI_PKG] [-d VENV] [-b BRANCH]" && exit 1
-[[ -z "$pypi" ]] && pypi="clodoo devel_tools odoo_score os0 python_plus z0bug_odoo z0lib zerobug" || pypi="${pypi//,/ }"
+[[ -z "$pypi" ]] && pypi="clodoo odoo_score os0 python_plus wok_code z0bug_odoo z0lib zerobug" || pypi="${pypi//,/ }"
 [[ -z "$tgtdir" ]] && tgtdir="$HOME/VME/*" || tgtdir="$tgtdir*"
 [[ -n "$opts" ]] && opts="-$opts"
 [[ $tgtdir =~ ^[~/.] ]] || tgtdir="$HOME/$tgtdir"
@@ -90,6 +90,7 @@ for d in $tgtdir; do
             srcdir="$HOME/devel/pypi/$pkg/$pkg"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
+            [[ $opts =~ -.*B ]] && OPTS="$OPTS -Z"
             echo "cd $srcdir; travis $OPTS"
             cd $srcdir
             [[ $cmd == "travis" ]] && travis $OPTS || travis $OPTS summary

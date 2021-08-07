@@ -20,7 +20,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'devel_tools'
+project = 'wok_code'
 copyright = '2021, Antonio Maria Vigliotti'
 author = 'Antonio Maria Vigliotti'
 

@@ -420,7 +420,7 @@ else
     TRANSIFEX_CHECK_ENABLED=0;
 fi
 [[ -z "$PYPI_RUN_PYVER" ]] && PYPI_RUN_PYVER="(2.7|3.5|3.6|3.7|3.8)"
-[[ -f ./travis.ini ]] && export $(cat ./travis.ini|tr -d "'"|tr -d '"')
+[[ -f ./travis.ini && $(grep -qv "^#" ./travis.ini) ]] && export $(cat ./travis.ini|grep -v "^#"|tr -d "'"|tr -d '"')
 sts_bash=127
 sts_flake8=127
 sts_pylint=127

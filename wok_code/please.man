@@ -98,7 +98,7 @@ If current dir is a Odoo repository, all modules of current repository are updat
 .br
 If not present, copy LICENSE file in current directory.
 .br
-This action uses gen_readme.py command of devel_tools project.
+This action uses gen_readme.py command of wok_code project.
 .RE
 .P
 \fBdocs\fR

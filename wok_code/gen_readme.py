@@ -133,7 +133,7 @@ DEFINED_TAG = ['__init__', '__manifest__',
                'authors', 'contributors', 'translators', 'acknowledges',
                'maintainer']
 DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
-ZERO_PYPI_PKGS = 'devel_tools'
+ZERO_PYPI_PKGS = 'wok_code'
 ZERO_PYPI_SECTS = 'description usage'
 LIST_TAG = ('authors',
             'contributors',
@@ -1621,6 +1621,8 @@ def set_default_values(ctx):
         ctx['trace_file'] = False
     elif ctx['odoo_layer'] == 'module' and ctx['rewrite_manifest']:
         ctx['dst_file'] = ctx['manifest_file']
+    elif ctx['odoo_layer'] == 'module' and ctx['write_man_page']:
+        ctx['dst_file'] = 'page.man'
     else:
         ctx['dst_file'] = './README.rst'
     if ctx['odoo_layer'] != 'module':
@@ -1751,6 +1753,8 @@ def generate_readme(ctx):
                                   out_fmt='rst')[1]
     if ctx['rewrite_manifest'] and ctx['odoo_layer'] == 'module':
         target = manifest_contents(ctx)
+    elif ctx['rewrite_manifest'] and ctx['odoo_layer'] == 'module':
+        pass
     tmpfile = '%s.tmp' % ctx['dst_file']
     bakfile = '%s.bak' % ctx['dst_file']
     dst_file = ctx['dst_file']
@@ -1852,6 +1856,9 @@ if __name__ == "__main__":
     parser.add_argument('-w', '--suppress-warning',
                         action='store_true',
                         dest='suppress_warning')
+    parser.add_argument('-Y', '--write-man-page',
+                        action='store_true',
+                        dest='write_man_page')
     ctx = unicodes(parser.parseoptargs(sys.argv[1:]))
     ctx['path_name'] = os.path.abspath(ctx['path_name'])
     if not ctx['product_doc']:

@@ -28,7 +28,7 @@ if [[ -n "$1" && ( "$1" == "-i" || "$1" == "-I" ) ]]; then
     rsync -az --delete $home_odoo/tools/ $home_travis/tools/
     sudo chown -R travis:travis $home_travis/tools
     if [[ "$1" == "-I" ]]; then
-        for nm in clodoo devel_tools lisa odoo_score os0 python_plus travis_emulator wok_code z0bug_odoo zerobug; do
+        for nm in clodoo lisa odoo_score os0 python_plus travis_emulator wok_code z0bug_odoo zerobug; do
             [[ -d $home_travis/$nm ]] && rm -fR $home_travis/$nm
             rm -fR $home_travis/tools/$nm
             cp -r $home_odoo/devel/pypi/$nm/$nm/ $home_travis/tools/$nm/

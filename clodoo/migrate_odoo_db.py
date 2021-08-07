@@ -1572,7 +1572,7 @@ def do_tnl_module_list(ctx, module_list, src_fver, tgt_fver, tgt_module_list,
 
 def odoo_dependencies(ctx, action, db_name, lconf, paths, odoo_fver,
                       matches=None, depends_by=None):
-    with pushd('/opt/odoo/dev/pypi/devel_tools/devel_tools'):
+    with pushd('/opt/odoo/dev/pypi/wok_code/wok_code'):
         sys.path.append('')
         import odoo_dependencies
         ctx['branch'] = odoo_fver
@@ -2478,4 +2478,3 @@ if __name__ == "__main__":
         migrate_sel_tables(src_ctx, tgt_ctx)
     else:
         migrate_database(src_ctx, tgt_ctx)
-
