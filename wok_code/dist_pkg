@@ -1,0 +1,468 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Copy package files
+# Tool for internal use
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+# git report to origin
+# git fetch origin , poi, git reset --hard origin/8.0-ddt-based-on-packaging-preparation_fa
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/devel_tools/devel_tools/../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib/z0lib; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [[ -z "$Z0LIBDIR" ]]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR ${PATH//:/ } ${PYPATH//:/ } . .." "travis_emulator")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+
+__version__=1.0.1.10
+
+# main
+OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
+OPTDEST=(opt_help opt_cpush opt_conf opt_push opt_fetch opt_force opt_dry_run  opt_cpush opt_ids  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
+OPTACTI=(1        "*>"      "="      "*>"     "1>"      1         1            "*>"      "=>"     "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
+OPTDEFL=(1        ""        ""       ""       0         0         0            ""        ""       ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
+OPTMETA=("help"   "commit"  "file"   ""       "fetch"   ""        "do nothing" ""        "prj_id" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
+OPTHELP=("this help"\
+ "commit and push to production paths"\
+ "configuration file"\
+ "duplicate odoo to another version"
+ "fetch from local git path"\
+ "force copy (with -C -P)"\
+ "do nothing (dry-run)"\
+ "replace odoo to other dist path"\
+ "push only external project ids (require -P)"\
+ "push to external projects"\
+ "declare local destination path"\
+ "silent mode"\
+ "replace to local git path"\
+ "set development Status"\
+ "do not update newer file (require -C -F -P or -R)"\
+ "show version"\
+ "verbose mode"\
+ "whatis param value?"\
+ "wep directory"\
+ "refresh info for distribution")
+OPTARGS=(InvalidParam InvalidParam2)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit $STS_SUCCESS
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Copy package files"\
+  "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit $STS_SUCCESS
+fi
+
+opts_travis
+CFG_init
+conf_default
+link_cfg $DIST_CONF $TCONF
+if [ $opt_verbose -gt 1 ]; then set -x; fi
+init_travis
+prepare_env_travis ""
+sts=$STS_SUCCESS
+
+if [ "$opt_sts" ]; then
+  if [ "$opt_sts" == "0" ]; then
+    opt_sts=" 0 - WIP"
+  elif [ "$opt_sts" == "1" ]; then
+    opt_sts=" 1 - Planning"
+  elif [ "$opt_sts" == "2" ]; then
+    opt_sts=" 2 - Pre-Alpha"
+  elif [ "$opt_sts" == "3" ]; then
+    opt_sts=" 3 - Alpha"
+  elif [ "$opt_sts" == "4" ]; then
+    opt_sts=" 4 - Beta"
+  elif [ "$opt_sts" == "5" ]; then
+    opt_sts=" 5 - Production/Stable"
+  elif [ "$opt_sts" == "6" ]; then
+    opt_sts=" 6 - Mature"
+  elif [ "$opt_sts" == "7" ]; then
+    opt_sts=" 7 - Inactive"
+  else
+    echo "Invalid status:"
+    echo "use $(basename $0) -n -S n PKGPATH"
+    echo "where n is 0..7 for more info about status"
+    exit $STS_FAILED
+  fi
+fi
+if [ "$opt_sts" ]; then
+  devstatus="$opt_sts"
+else
+  devstatus=""
+fi
+if [ "$opt_whatis" ]; then
+  if [ "$opt_whatis" == "LGITPATH" -o "$opt_whatis" == "PKGPATH" -o "$opt_whatis" == "SETUP" -o "$opt_whatis" == "ODOO_SETUP" -o "$opt_whatis" == "REPOSNAME" ]; then
+    echo "${!opt_whatis}"
+  elif [ "$opt_whatis" == "PRJVERSION" ]; then
+    echo "${prjversion}"
+  else
+    echo "Unknown!!"
+  fi
+  exit $STS_SUCCESS
+fi
+if [ $opt_dry_run -gt 0 ]; then
+  if [ $opt_sync -gt 0 ]; then
+    echo "$(basename $0) -n -- $PKGNAME $PRJNAME"
+  elif [ "$opt_cpush" ]; then
+    echo "$(basename $0) -n $opt_cpush -p \"$LGITPATH\" $PKGNAME $PRJNAME"
+  elif [ $opt_fetch -gt 0 ]; then
+    echo "$(basename $0) -n -f -p \"$LGITPATH\" $PKGNAME $PRJNAME"
+  elif [ "$opt_sts" ]; then
+    echo "$opt_sts"
+  else
+    echo "$(basename $0) -n -p \"$LGITPATH\" $PKGNAME $PRJNAME"
+  fi
+fi
+
+if [ "$PRJNAME" == "Odoo" ]; then
+    valid=0
+    # manifest files count for 2 times
+    for f in __manifest__.py __manifest__.py __openerp__.py __openerp__.py __init__.py README.rst .travis.yml LICENSE oca_dependencies.txt requirements.txt; do
+        [[ -f $f ]] && ((valid++))
+    done
+    for f in tests egg-info; do
+        [[ -d $f ]] && ((valid++))
+    done
+    if [ $valid -lt 5 ]; then
+        echo "Invalid environment"
+        exit 1
+    fi
+else
+    valid=0
+    # ../setup.py count for 2 times!
+    for f in setup.py ../setup.py ../setup.py README.rst; do
+        [[ -f $f ]] && ((valid++))
+    done
+    for f in tests egg-info clodoo devel_tools odoo_score z0bug_odoo z0lib zerobug; do
+        [[ -d $f ]] && ((valid++))
+    done
+    if [ $valid -lt 5 ]; then
+        echo "Invalid environment"
+        exit 1
+    fi
+    LSETUP=$PKGPATH/$PKGNAME/setup.py
+    if [ -f $LSETUP ]; then
+        DEVSSTS0=" 1 - Planning"
+        if [ -z "$devstatus" ]; then
+          devstatus=$(if [ -f $LSETUP ]; then echo ""; else echo "$DEVSSTS0"; fi)
+        fi
+        if [ -z "$devstatus" ]; then
+          devstatus=$(if [ $(find . -executable -type f -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
+        fi
+        if [ -z "$devstatus" ]; then
+          devstatus=$(if [ $(find . -type f -name "*.py" -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
+        fi
+        if [ -z "$devstatus" ]; then
+          devstatus=$(grep " *'Development Status" $LSETUP 2>/dev/null|awk -F":" '{print $3}'|tr -d "\"',\r\n")
+        fi
+    fi
+fi
+
+if [ "$opt_cpush" == "-O" ]; then
+  # Copy files from Odoo package to another Odoo distribution (same version)
+  opts_common=
+  [ $opt_dry_run -ne 0 ] && opts_common="${opts_common}n"
+  [ ${opt_verbose:-0} -ne 0 ] && opts_common="${opts_common}v"
+  [ -n "$opts_common" ] && opts_common="-${opts_common}"
+  srcdir=$(readlink -f .)
+  [ "${srcdir: -1}" == "/" ] && srcdir=${srcdir:0: -1}
+  tgtdir=$LGITPATH
+  [ "${tgtdir: -1}" == "/" ] && tgtdir=${tgtdir:0: -1}
+  if [ ! -d "$srcdir" ]; then
+    echo "Invalid source dir $srcdir!"
+    exit 1
+  fi
+  if [ -z "$tgtdir" -o ! -d "$tgtdir" ]; then
+    echo "Invalid target dir $tgtdir!"
+    exit 1
+  fi
+  if [ "$srcdir" == "$tgtdir" ]; then
+    echo "Same source and target directory"
+    exit
+  fi
+  pkg=$(build_odoo_param REPOS "$srcdir")
+  cd $tgtdir
+  [ -d ./setup ] && rm -fR ./setup
+  if [ "$pkg" == "OCB" ]; then
+    echo "Replicate OCB ..."
+    valid=$(build_odoo_param OCB_SUBDIRS_RE)
+    for d in $srcdir/* $srcdir/.travis.yml; do
+      f=$(basename $d)
+      if [ -d $srcdir/$f ]; then
+        if [[ $f =~ $valid ]]; then
+          [ $opt_verbose -gt 0 ] && echo "rsync $opts_common -abC --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/$f/ $tgtdir/$f/"
+          rsync $opts_common -abC --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/$f/ $tgtdir/$f/
+        fi
+      else
+        [ $opt_verbose -gt 0 ] && echo "rsync $opts_common -abC $srcdir/$f $tgtdir/"
+        rsync $opts_common -abC $srcdir/$f $tgtdir/
+      fi
+    done
+  else
+    echo "Replicate $pkg ..."
+    [ $opt_verbose -gt 0 ] && echo "rsync $opts_common -abC --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdir/"
+    rsync $opts_common -abC --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdir/
+    [ $opt_verbose -gt 0 ] && echo "cp $srcdir/.travis.yml $tgtdir/.travis.yml"
+    cp $srcdir/.travis.yml $tgtdir/.travis.yml
+  fi
+  RORIGIN=$(build_odoo_param RORIGIN ".")
+  gitorg=$(basename $(dirname $(echo $RORIGIN|awk -F: '{print $2}')))
+  if [ "$gitorg" == "Odoo-Italia-Associazione" ]; then
+    odoo_ver=$(build_odoo_param MAJVER ".")
+    [ $opt_verbose -gt 0 ] && echo "odoo_skin.sh oia$odoo_ver oia -v"
+    odoo_skin.sh oia$odoo_ver oia -v
+    [ $opt_verbose -gt 0 ] && echo "$TDIR/please distribution oia $opts_dry_run -f"
+    $TDIR/please distribution oia $opts_dry_run -f
+    for f in $(find $tgtdir/ -type d -name 'egg-info'); do
+      d=$(dirname $f)
+      echo "\$ cd $d"
+      cd $d
+      [ -f README.md ] && rm -fR README.md
+      run_traced "$TDIR/gen_readme.py -Goia"
+      if [ $odoo_ver -ge 8 ]; then
+        if [ -f __openerp__.py -o -f __manifest__.py ]; then
+          [ ! -d ./static ] && mkdir -p ./static
+          [ ! -d ./static/description ] && mkdir -p ./static/description
+          run_traced "$TDIR/gen_readme.py -H -Goia"
+        fi
+      fi
+    done
+  fi
+  exit 0
+fi
+
+if [ "$opt_cpush" == "-D" ]; then
+  # Duplicate files from Odoo package to another Odoo version (same distribution)
+  opts_common=
+  [ $opt_dry_run -ne 0 ] && opts_common="${opts_common}n"
+  [ ${opt_verbose:-0} -ne 0 ] && opts_common="${opts_common}v"
+  [ -n "$opts_common" ] && opts_common="-${opts_common}"
+  srcdir=$(readlink -f .)
+  [ "${srcdir: -1}" == "/" ] && srcdir=${srcdir:0: -1}
+  tgtdir=$LGITPATH
+  [ "${tgtdir: -1}" == "/" ] && tgtdir=${tgtdir:0: -1}
+  if [ ! -d "$srcdir" ]; then
+    echo "Invalid source dir $srcdir!"
+    exit 1
+  fi
+  if [ -z "$tgtdir" ]; then
+    echo "Invalid target dir $tgtdir!"
+    exit 1
+  elif [ ! -d "$tgtdir" ]; then
+    if [ $opt_force -ne 0 ]; then
+      run_traced "mkdir -p $tgtdir"
+    else
+      echo "Target dir $tgtdir does not exit!"
+      exit 1
+    fi
+  fi
+  if [ "$srcdir" == "$tgtdir" ]; then
+    echo "Same source and target directory!"
+    exit
+  fi
+  src_fver=$(build_odoo_param VERSION "$srcdir")
+  src_ver=$(build_odoo_param MAJVER $src_fver)
+  src_mfst=$(build_odoo_param MANIFEST $src_fver)
+  tgtc_fver=$(build_odoo_param VERSION "$tgtdir")
+  tgt_ver=$(build_odoo_param MAJVER $tgt_fver)
+  tgt_mfst=$(build_odoo_param MANIFEST $tgt_fver)
+  repository=$(build_odoo_param REPOS "$srcdir")
+  module=$(build_odoo_param PKGNAME "$srcdir")
+  [ ! -d /opt/odoo/$tgt_fver/__to_remove/ ] && mkdir -p /opt/odoo/$tgt_fver/__to_remove/
+  [ -d /opt/odoo/$tgt_fver/__to_remove/$module/ ] && run_traced "rm -fR /opt/odoo/$tgt_fver/__to_remove/$module/"
+  [ -d /opt/odoo/$tgt_fver/$repository/$module/ ] && run_traced "cp /opt/odoo/$tgt_fver/$repository/$module/ /opt/odoo/$tgt_fver/__to_remove/"
+  run_traced "rsync -abuv /opt/odoo/$src_fver/$repository/$module/ /opt/odoo/$tgt_fver/$repository/$module/"
+  if [ "$src_mfst" != "$tgt_mfst" ]; then
+    run_traced "mv /opt/odoo/$tgt_fver/$repository/$module/$src_mfst /opt/odoo/$tgt_fver/$repository/$module/$tgt_mfst"
+    run_traced "sed -e \"s/$src_ver\./$tgt_ver./\" -i /opt/odoo/$tgt_fver/$repository/$module/$tgt_mfst"
+  fi
+  if [ $src_ver -lt 10 -a $tgt_ver -ge 10 ]; then
+    run_traced "sed -e \"s/AGPL-3/LGPL-3/\" -i /opt/odoo/$tgt_fver/$repository/$module/$tgt_mfst"
+  elif [ $src_ver -ge 10 -a $tgt_ver -lt 10 ]; then
+    run_traced "sed -e \"s/LGPL-3\./AGPL-3/\" -i /opt/odoo/$tgt_fver/$repository/$module/$tgt_mfst"
+  fi
+  for f in $(find /opt/odoo/$tgt_fver/$repository/$module/ -name '*.py'); do
+    run_traced "$TDIR/topep8 -F $src_fver  -b $tgt_fver -ciaG -Coia,zero $f"
+  done
+  for f in $(find /opt/odoo/$tgt_fver/$repository/$module/ -name '*.xml'); do
+    run_traced "$TDIR/topep8 -b $tgt_fver $f"
+  done
+  for f in $(find $tgtdir/ -type d -name 'egg-info'); do
+    d=$(dirname $f)
+    echo "\$ pushd $d"
+    psuhd $d &>/dev/null
+    [ -f README.md ] && rm -fR README.md
+    run_traced "$TDIR/gen_readme.py -Goia"
+    if [ $tgt_ver -ge 8 ]; then
+      if [ -f __openerp__.py -o -f __manifest__.py ]; then
+        [ ! -d ./static ] && mkdir -p ./static
+        [ ! -d ./static/description ] && mkdir -p ./static/description
+        run_traced "$TDIR/gen_readme.py -H -Gzero -lmodule"
+      fi
+    fi
+  done
+  exit 0
+fi
+
+if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
+  robocopy_init "$PRJNAME" "$PKGNAME"
+  f_done=0
+  for ii in {1..9}; do
+    if [[ -n "$opt_ids" ]]; then
+      if [[ ! "$ii" == "$opt_ids" ]]; then
+        continue
+      fi
+    fi
+    declare x=tgt${ii}path
+    declare y=tgt${ii}params
+    declare tgtpath="$(get_cfg_value 0 $x)"
+    declare tgtparm="$(get_cfg_value 0 $y)"
+    if [ -n "$tgtpath" ]; then
+      srcpath=$PKGPATH
+      [[ -n $PKGPATH ]] || tgtpath="${tgtpath/pkgpath/prjpath}"
+      [[ -n $PKGPATH ]] || srcpath="$PRJPATH"
+      tgtpath=$(expand_path $tgtpath)
+      declare z=tgt${ii}enable
+      declare enabled="$(get_cfg_value 0 $z)"
+      if [ ${enabled:-0} -eq 0 ]; then
+        enabled=$opt_force
+      fi
+      if [ ${enabled:-0} -eq 2 -a "$opt_cpush" != "-C" ]; then
+        enabled=0;
+      elif [ ${enabled:-0} -eq 1 -a "$opt_cpush" == "-C" ]; then
+        enabled=0;
+      fi
+      if [ ${enabled:-0} -gt 0 ]; then
+        if [ "$tgtparm" ]; then
+          declare $y="$(echo \"$tgtparm\"|sed 's:\\::g')"
+          [ $opt_verbose -gt 0 ] && echo "$ robocopy \"$srcpath\" \"$tgtpath\" \"ssh $tgtparm\""
+          robocopy "$srcpath" "$tgtpath" "ssh $tgtparm"
+        else
+          [ $opt_verbose -gt 0 ] && echo "$ robocopy \"$srcpath\" \"$tgtpath\" \"ssh\""
+          robocopy "$srcpath" "$tgtpath" "ssh"
+        fi
+        f_done=1
+        if [ "$opt_cpush" == "-C" ]; then
+          break
+        fi
+      fi
+    fi
+  done
+  if [ $f_done -eq 0 ]; then
+    echo "No destination found in configuration file $DIST_CONF"
+    echo "Nothing is done"
+  fi
+  exit $STS_SUCCESS
+fi
+check_4_travis
+install_dev
+if [ "$PRJNAME" != "Odoo" ]; then
+  if [ "$PKGNAME" != "$PRJNAME" ]; then
+    echo "Warning: package name $PKGNAME and project name $PRJNAME are different!"
+  fi
+fi
+if [ "$opt_sts" ]; then
+  exit $STS_SUCCESS
+fi
+if [ $opt_sync -gt 0 ]; then
+  exit $STS_SUCCESS
+fi
+if [ "$opt_cpush" == "-w" ]; then
+  clean_dirs "$PKGPATH"
+  if [ "$PRJNAME" == "Odoo" ]; then
+    cd $PKGPATH
+  else
+    cd $PKGPATH/$PKGNAME
+  fi
+  if [ "$PRJNAME" != "z0lib" ]; then
+    if [ -f ./Makefile -a -f /opt/odoo/dev/Makefile ]; then
+      rm -f ./Makefile
+    fi
+    if [ -f ./z0librc -a -f /etc/z0librc ]; then
+      x=$(_install_z0librc -n)
+      if [ -z "$x" ]; then
+        rm -f ./z0librc
+        ln -s /etc/z0librc ./
+      fi
+    fi
+  elif [ "$PRJNAME" != "travis_emulator" ]; then
+    if [ -d ./_travis -a -d /opt/odoo/dev/_travis ]; then
+      rm -f ./_travis
+    fi
+  fi
+  exit $STS_SUCCESS
+fi
+# update_dev "$PRJNAME"
+if [ "$PRJNAME" == "travis_emulator" ]; then
+  if [ ! -d "$LGITPATH" ]; then
+    exit $STS_SUCCESS
+  fi
+fi
+if [ ! -d "$LGITPATH" ]; then
+  echo "Invalid destination path $LGITPATH"
+  exit $STS_FAILED
+fi
+dpath_parent=$LGITPATH
+dpath_child=$LGITPATH/$PKGNAME
+dpath_prj=$PKGPATH/$PRJNAME
+if [ "$PRJNAME" == "Odoo" ]; then
+  dpath_prj=$PKGPATH
+  LGITLEV=0
+else
+  LGITLEV=1
+fi
+robocopy_init "$PRJNAME" "$PKGNAME"
+if [ $opt_fetch -eq 0 ]; then
+  if [ $LGITLEV -gt 0 ]; then
+    for f in $(dir $PKGPATH); do
+      robocopy "$PKGPATH/$f" "$LGITPATH"
+    done
+  else
+    for f in $(dir $PKGPATH); do
+      robocopy "$PKGPATH/$f" "$LGITPATH/$f"
+    done
+  fi
+  if [ ! -f ~/tools/pytok/Makefile ]; then
+    if [ $opt_verbose -gt 0 ]; then echo "$ cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
+    cp /opt/odoo/dev/Makefile ~/tools/pytok
+  fi
+  cd $LGITPATH/..
+  [ -x install_foreign.sh ] && ./install_foreign.sh
+else
+  if [ $LGITLEV -gt 0 ]; then
+    for f in $(dir $LGITPATH); do
+      if [[ ! $f =~ .*~ ]]; then
+        robocopy "$LGITPATH/$f" "$PKGPATH/$PKGNAME/$f"
+      fi
+    done
+  else
+    for f in $(dir $LGITPATH); do
+      if [[ ! $f =~ .*~ ]]; then
+        robocopy "$LGITPATH/$f" "$PKGPATH/$f"
+      fi
+    done
+  fi
+fi
+exit $STS_SUCCESS

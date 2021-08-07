@@ -297,6 +297,11 @@ Troubleshooting
 History
 -------
 
+1.0.1.4 (2021-08-06)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] devel_tools replaced by wok_code
+
 1.0.1.3 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -382,7 +387,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-04
+Last Update / Ultimo aggiornamento: 2021-08-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

@@ -1,0 +1,633 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=1.0.1.10
+
+
+test_01() {
+    # Test RST files
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_01
+    TESTSRC=$TESTDIR/res/$TESTFN.rst
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/README.rst
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      # Files in module directory (tested branch is 11.0)
+      cat <<EOF >$TESTDIR/res/__manifest__.py
+{
+    'name': 'mtest',
+}
+EOF
+      # Files in egg-info of module directory (tested branch is 11.0)
+      cat <<EOF >$TESTDIR/res/descrizione.rst
+Lorem ipsum
+-----------
+
+Lorem ipsum **dolor** sit amet
+.. \$if branch in '12.0'
+odoo 12.0
+.. \$elif branch in '10.0'
+odoo 10.0
+.. \$elif branch in '8.0'
+odoo 8.0
+.. \$else
+consectetur *adipiscing* elit
+.. \$fi
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
+EOF
+      cat <<EOF >$TESTDIR/res/authors.txt
+.. \$if branch in '12.0'
+* wrong author
+.. \$elif branch in '11.0'
+* SHS-AV s.r.l. <https://www.shs-av.com>
+.. \$elif branch in '10.0'
+* wrong author
+.. \$elif branch in '7.0'
+* SHS-AV s.r.l. <https://www.zeroincombenze.it>
+.. \$else
+* unknown authors
+.. \$fi
+EOF
+      cat <<EOF >$TESTDIR/res/contributors.txt
+.. \$if branch in '12.0'
+* wrong contributor <wrong@example.com>
+.. \$elif branch in '11.0'
+* antonio <antoniov@libero.it>
+.. \$elif branch in '10.0'
+* alberta <alberta@libero.it>
+.. \$elif branch in '9.0'
+* daniela <daniela@libero.it>
+.. \$elif branch in '7.0'
+* antonio <antoniov@shs-av.com>
+.. \$else
+* unknown contributor <unknow@example.com>
+.. \$fi
+EOF
+      # Files in template directory
+      cat <<EOF >$TESTSRC
+===============
+|icon| {{name}}
+===============
+
+Test file
+
+Overview
+========
+
+{{descrizione}}
+
+{{authors}}
+{{contributors}}
+{{acknowledges}}
+.. \$include footer.rst
+EOF
+      cat <<EOF >$TESTDIR/res/footer.rst
+
+----------------------
+
+.. |en| image:: {{grymb_image_en}}
+   :target: {{grymb_url_en}}
+.. |it| image:: {{grymb_image_it}}
+   :target: {{grymb_url_it}}
+EOF
+      cat <<EOF >$TESTDIR/res/header_authors.txt
+
+Authors
+-------
+
+EOF
+      cat <<EOF >$TESTDIR/res/header_contributors.txt
+
+Contributors
+------------
+
+EOF
+      cat <<EOF >$TESTDIR/res/header_acknowledges.txt
+
+Acknoledges to
+--------------
+
+EOF
+      # Files for test match
+      cat <<EOF >$TESTRES
+============
+|icon| mtest
+============
+
+Test file
+
+Overview
+========
+
+Lorem ipsum
+-----------
+
+Lorem ipsum **dolor** sit amet
+consectetur *adipiscing* elit
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: https://raw.githubusercontent.com/zeroincombenze/rtest/11.0/mtest/static/description/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
+
+
+
+Authors
+-------
+
+* \`SHS-AV s.r.l. <https://www.shs-av.com>\`__
+
+
+Contributors
+------------
+
+* antonio <antoniov@libero.it>
+
+
+Acknoledges to
+--------------
+
+* daniela <daniela@libero.it>
+* alberta <alberta@libero.it>
+
+----------------------
+
+.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+
+
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
+}
+
+test_02() {
+    # Test HTML files
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_02
+    TESTSRC=$TESTDIR/res/$TESTFN.html
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/index.html
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      # Files in template directory
+      rm -f $TESTDIR/res/header_authors.txt
+      cat <<EOF >$TESTSRC
+<section class="oe_container">
+
+Test file
+
+<h1>Overview</h1>
+
+{{descrizione}}
+
+{{authors}}
+</section>
+EOF
+      # Files for test match (tested branch is 11.0)
+      cat <<EOF >$TESTRES
+
+<section class="oe_container">
+
+Test file
+
+<h1>Overview</h1>
+
+<h2>mtest / Lorem ipsum</h2>
+<p align="justify">
+Lorem ipsum <b>dolor</b> sit amet
+consectetur <i>adipiscing</i> elit
+</p><p align="justify">
+<ul>
+<li>Feature A</li>
+<li>Feature B</li>
+</ul>
+</p><p align="justify">
+
+<code>
+    &gt;&gt;&gt; doc
+</code>
+<br/>
+</p>
+<img src="logo.png"/>
+<p align="justify">
+<table style="width:100%; padding:2px; border-spacing:2px; text-align:left;"><tr>
+<td>Feature A</td><td><img src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png"/></td>
+</tr><tr>
+<td>Feature B</td><td/>
+</tr></table>
+</p>
+
+<ul>
+<li><a href="https://www.shs-av.com/">SHS-AV s.r.l.</a></li>
+</ul>
+</section>
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -qTH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -qTH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
+}
+
+
+test_03() {
+    # Test manifest
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_03
+    TESTSRC=$TESTDIR/res/readme_manifest.rst
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/__openerp__.py
+    # TESTOUT=$TESTDIR/res/README.rst
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      # Files in module directory
+      cat <<EOF >$TESTDIR/res/__openerp__.py
+# (C) SHS-Av s.r.l.
+{
+    'name': 'test',
+    'depends': ['base', 'account'],
+}
+EOF
+      # Files in template directory
+      cat <<EOF >$TESTSRC
+
+Overview
+========
+
+|it| {{descrizione}}
+
+{{authors}}
+{{contributors}}
+.. \$include footer.rst
+EOF
+      # Files for test match
+      cat <<EOF >$TESTRES
+# (C) SHS-Av s.r.l.
+{
+    'name': 'test',
+    'development_status': 'Alpha',
+    'license': 'AGPL-3',
+    'depends': [
+        'base',
+        'account',
+    ],
+    'description': r'''
+Overview
+========
+
+|it| Lorem ipsum
+----------------
+
+Lorem ipsum **dolor** sit amet
+consectetur *adipiscing* elit
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: /mtest/static/src/img/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
+
+
+
+* \`SHS-AV s.r.l. <https://www.zeroincombenze.it>\`__
+
+
+Contributors
+------------
+
+* antonio <antoniov@shs-av.com>
+
+
+----------------------
+
+.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+
+
+''',
+}
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -qR -b7.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -qR -b7.0  -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
+}
+
+
+test_04() {
+    # Test CSV files
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_04
+    TESTSRC=$TESTDIR/res/$TESTFN.rst
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/README.rst
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      # Files in module directory (tested branch is 11.0)
+      cat <<EOF >$TESTDIR/res/__manifest__.py
+{
+    'name': 'mtest',
+}
+EOF
+      # Files in egg-info of module directory (tested branch is 11.0)
+      cat <<EOF >$TESTDIR/res/descrizione.rst
+Lorem ipsum
+-----------
+
+Lorem ipsum **dolor** sit amet
+.. \$if branch in '12.0'
+odoo 12.0
+.. \$elif branch in '10.0'
+odoo 10.0
+.. \$elif branch in '8.0'
+odoo 8.0
+.. \$else
+consectetur *adipiscing* elit
+.. \$fi
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
+.. \$include features.csv
+EOF
+      cat <<EOF >$TESTDIR/res/features.csv
+Feature A,|check|
+Feature B,
+EOF
+      cat <<EOF >$TESTDIR/res/authors.txt
+.. \$if branch in '12.0'
+* wrong author
+.. \$elif branch in '11.0'
+* SHS-AV s.r.l. <https://www.shs-av.com>
+.. \$elif branch in '10.0'
+* wrong author
+.. \$elif branch in '7.0'
+* SHS-AV s.r.l. <https://www.zeroincombenze.it>
+.. \$else
+* unknown authors
+.. \$fi
+EOF
+      cat <<EOF >$TESTDIR/res/contributors.txt
+.. \$if branch in '12.0'
+* wrong contributor <wrong@example.com>
+.. \$elif branch in '11.0'
+* antonio <antoniov@libero.it>
+.. \$elif branch in '10.0'
+* alberta <alberta@libero.it>
+.. \$elif branch in '9.0'
+* daniela <daniela@libero.it>
+.. \$elif branch in '7.0'
+* antonio <antoniov@shs-av.com>
+.. \$else
+* unknown contributor <unknow@example.com>
+.. \$fi
+EOF
+      # Files in template directory
+      cat <<EOF >$TESTSRC
+===============
+|icon| {{name}}
+===============
+
+Test file
+
+Overview
+========
+
+{{descrizione}}
+
+{{authors}}
+{{contributors}}
+{{acknowledges}}
+.. \$include footer.rst
+EOF
+      cat <<EOF >$TESTDIR/res/footer.rst
+
+----------------------
+
+.. |en| image:: {{grymb_image_en}}
+   :target: {{grymb_url_en}}
+.. |it| image:: {{grymb_image_it}}
+   :target: {{grymb_url_it}}
+EOF
+      cat <<EOF >$TESTDIR/res/header_authors.txt
+
+Authors
+-------
+
+EOF
+      cat <<EOF >$TESTDIR/res/header_contributors.txt
+
+Contributors
+------------
+
+EOF
+      cat <<EOF >$TESTDIR/res/header_acknowledges.txt
+
+Acknoledges to
+--------------
+
+EOF
+      # Files for test match
+      cat <<EOF >$TESTRES
+============
+|icon| mtest
+============
+
+Test file
+
+Overview
+========
+
+Lorem ipsum
+-----------
+
+Lorem ipsum **dolor** sit amet
+consectetur *adipiscing* elit
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: https://raw.githubusercontent.com/zeroincombenze/rtest/11.0/mtest/static/description/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
+
+
+
+
+
+Authors
+-------
+
+* \`SHS-AV s.r.l. <https://www.shs-av.com>\`__
+
+
+Contributors
+------------
+
+* antonio <antoniov@libero.it>
+
+
+Acknoledges to
+--------------
+
+* daniela <daniela@libero.it>
+* alberta <alberta@libero.it>
+
+----------------------
+
+.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+
+
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
+}
+
+
+test_05() {
+    # Test __manifest__.py    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_05
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/__manifest__.py
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      touch $TESTDIR/res/__init__.py
+      cat <<EOF >$TESTDIR/res/__manifest__.py
+{
+    'name': 'mtest',
+    'version': '12.0.1.0',
+}
+EOF
+      # Files for test match
+      cat <<EOF >$TESTRES
+{
+    'name': 'mtest',
+    'version': '12.0.1.0',
+    'author': 'powERP enterprise network',
+    'website': 'https://www.powerp.it',
+    'development_status': 'Alpha',
+    'license': 'OPL-1',
+}
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -q -b12.0 -Gpowerp -WR -w
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -q -b12.0 -Gpowerp -WR -w" "$TESTOUT" "$TESTRES" "diff"
+}
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_devel_tools.log "$@"
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+
+UT1_LIST=""
+UT_LIST=""
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

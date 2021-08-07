@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import input
 # import pdb
 
 
@@ -9,7 +11,7 @@ def eval_GTIN(code, code_len):
         pad_code = '%07d' % code
         range_code = 7
     else:
-        print "Invalid code len %d" % code_len
+        print("Invalid code len %d" % code_len)
         return False
     chkdgt = 0
     for i in range(range_code):
@@ -40,7 +42,7 @@ def test_gtin():
             res = "OK"
         else:
             res = "***Failed***"
-        print "%08d -> %s (%s)" % (code, pad_code, res)
+        print("%08d -> %s (%s)" % (code, pad_code, res))
     code_len = 13
     test_dict = {}
     test_dict[1] = '0000000000017'
@@ -56,16 +58,16 @@ def test_gtin():
             res = "OK"
         else:
             res = "***Failed*** expected:" + test_dict[code]
-        print "%013d -> %s (%s)" % (code, pad_code, res)
+        print("%013d -> %s (%s)" % (code, pad_code, res))
 
 
 test_gtin()
 code_len = '8'
-code = raw_input('GTIN Code: ')
+code = input('GTIN Code: ')
 if code == '':
     code = '00011268'
 code = ('00000000' + code)[-8:]
-nums = raw_input('How many codes? ')
+nums = input('How many codes? ')
 if nums == '':
     nums = '8'
 start_code = int(code)
@@ -74,5 +76,4 @@ nums = int(nums)
 for i in range(nums):
     code = start_code + i
     pad_code = eval_GTIN(code, code_len)
-    # print "%3d) %13d -> %s " % (i + 1, code, pad_code)
-    print "%s " % pad_code
+    print("%s " % pad_code)

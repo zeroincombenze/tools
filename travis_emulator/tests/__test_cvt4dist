@@ -1,0 +1,671 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=1.0.1.3
+
+
+__test_01() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=README
+    TESTSRC=$LCLTEST_TMPDIR/$TESTFN
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$LCLTEST_TMPDIR/$TESTFN.tmp
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $LCLTEST_TMPDIR/*.tmp
+      cat <<EOF >$TESTSRC
+TEST_TRAVIS
+===========
+
+
+EOF
+      cat <<EOF >$TESTRES
+[![Build Status](https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0)](https://travis-ci.org/zeroincombenze/l10n_italy)
+[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+[![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/l10n_italy/badge.svg?branch=9.0)](https://coveralls.io/github/zeroincombenze/l10n_italy?branch=9.0)
+[![codecov](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0)
+[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-9.svg)](https://github.com/OCA/l10n_italy/tree/9.0)
+[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/dev)
+[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/man/FI)
+[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-9.svg)](https://erp9.zeroincombenze.it)
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS
+===========
+
+
+[//]: # (copyright)
+
+----
+
+**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)
+
+**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose
+mission is to support the collaborative development of Odoo features and
+promote its widespread use.
+
+**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
+which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.
+[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)
+is mainly designed for Italian law and markeplace.
+Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server.
+
+[//]: # (end copyright)
+
+
+
+[![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
+EOF
+      pushd $LCLTEST_TMPDIR >/dev/null
+      $RUNDIR/please -qt distribution zero
+      popd >/dev/null
+    fi
+    test_result "please distribution 1" "$TESTOUT" "$TESTRES" "diff"
+}
+
+__test_02() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=README
+    TESTSRC=$LCLTEST_TMPDIR/$TESTFN
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$LCLTEST_TMPDIR/$TESTFN.tmp
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $LCLTEST_TMPDIR/*.tmp
+      cat <<EOF >$TESTSRC
+|license agpl|_
+
+TEST_TRAVIS II
+==============
+
+
+EOF
+      cat <<EOF >$TESTRES
+|build status|_
+|license agpl|_
+|coverage status|_
+|codecov status|_
+|oca project|_
+|technical doc|_
+|help zeroincombenze|_
+|try it|_
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS II
+==============
+
+
+.. [//]: # (copyright)
+
+----
+
+**Odoo** is a trademark of  \`Odoo S.A.
+<https://www.odoo.com/>\`_.
+(formerly OpenERP, formerly TinyERP)
+
+**OCA**, or the  \`Odoo Community Association
+<http://odoo-community.org/>\`_.
+is a nonprofit organization whose
+mission is to support the collaborative development of Odoo features and
+promote its widespread use.
+
+**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.
+<http://www.shs-av.com/>\`_.
+which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.
+[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)
+is mainly designed for Italian law and markeplace.
+Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server.
+
+
+.. [//]: # (end copyright)
+
+
+
+.. |build status| image:: https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0
+.. _build status: https://travis-ci.org/zeroincombenze/l10n_italy
+.. |license agpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
+.. _license agpl: http://www.gnu.org/licenses/agpl-3.0.html
+.. |coverage status| image:: https://coveralls.io/repos/github/zeroincombenze/l10n_italy/badge.svg?branch=9.0
+.. _coverage status: https://coveralls.io/github/zeroincombenze/l10n_italy?branch=9.0
+.. |codecov status| image:: https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg
+.. _codecov status: https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0
+.. |oca project| image::
+.. _oca project:
+.. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-9.svg
+.. _technical doc: http://wiki.zeroincombenze.org/en/Odoo/9.0/dev
+.. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-9.svg
+.. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Odoo/9.0/man/FI
+.. |try it| image::
+.. _try it:
+.. image:: https://www.shs-av.com/wp-content/chat_with_us.gif
+   :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b
+EOF
+      pushd $LCLTEST_TMPDIR >/dev/null
+      $RUNDIR/please -qt distribution zero
+      popd >/dev/null
+    fi
+    test_result "please distribution 2" "$TESTOUT" "$TESTRES" "diff"
+}
+
+__test_03() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=README
+    TESTSRC=$LCLTEST_TMPDIR/$TESTFN
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$LCLTEST_TMPDIR/$TESTFN.tmp
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $LCLTEST_TMPDIR/*.tmp
+      cat <<EOF >$TESTSRC
+[![Build Status](https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0)](https://travis-ci.org/zeroincombenze/l10n_italy/)
+TEST_TRAVIS III
+===============
+
+[//]: # (copyright)
+
+----
+
+Test style Copyright
+[//]: # (end copyright)
+
+[![chat with us](http://www.shs-av.com/wp-content/chat_with_us.png)](https://www.zeroincombenze.it/chi-siamo/contatti/)
+EOF
+      cat <<EOF >$TESTRES
+[![Build Status](https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0)](https://travis-ci.org/zeroincombenze/l10n_italy)
+[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+[![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/l10n_italy/badge.svg?branch=9.0)](https://coveralls.io/github/zeroincombenze/l10n_italy?branch=9.0)
+[![codecov](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0)
+[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-9.svg)](https://github.com/OCA/l10n_italy/tree/9.0)
+[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/dev)
+[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/man/FI)
+[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-9.svg)](https://erp9.zeroincombenze.it)
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS III
+===============
+
+[//]: # (copyright)
+
+----
+
+**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)
+
+**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose
+mission is to support the collaborative development of Odoo features and
+promote its widespread use.
+
+**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
+which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.
+[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)
+is mainly designed for Italian law and markeplace.
+Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server.
+
+[//]: # (end copyright)
+
+
+
+[![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
+EOF
+      pushd $LCLTEST_TMPDIR >/dev/null
+      $RUNDIR/please -qt distribution zero
+      popd >/dev/null
+    fi
+    test_result "please distribution 3" "$TESTOUT" "$TESTRES" "diff"
+}
+
+__test_04() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=README
+    TESTSRC=$LCLTEST_TMPDIR/$TESTFN
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$LCLTEST_TMPDIR/$TESTFN.tmp
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $LCLTEST_TMPDIR/*.tmp
+      cat <<EOF >$TESTSRC
+|build status|_
+|license agpl|_
+
+TEST_TRAVIS IV
+==============
+
+.. |build status| image:: https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0
+.. _build status: https://travis-ci.org/zeroincombenze/l10n_italy
+.. |license agpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
+.. _license agpl: http://www.gnu.org/licenses/agpl-3.0.html
+.. image::  http://www.shs-av.com/wp-content/chat_with_us.png
+   :alt: Join the chat at https://www.zeroincombenze.it/chi-siamo/contatti/
+   :target:  https://www.zeroincombenze.it/chi-siamo/contatti/
+EOF
+      cat <<EOF >$TESTRES
+|build status|_
+|license agpl|_
+|coverage status|_
+|codecov status|_
+|oca project|_
+|technical doc|_
+|help zeroincombenze|_
+|try it|_
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS IV
+==============
+
+.. [//]: # (copyright)
+
+----
+
+**Odoo** is a trademark of  \`Odoo S.A.
+<https://www.odoo.com/>\`_.
+(formerly OpenERP, formerly TinyERP)
+
+**OCA**, or the  \`Odoo Community Association
+<http://odoo-community.org/>\`_.
+is a nonprofit organization whose
+mission is to support the collaborative development of Odoo features and
+promote its widespread use.
+
+**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.
+<http://www.shs-av.com/>\`_.
+which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.
+[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)
+is mainly designed for Italian law and markeplace.
+Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server.
+
+
+.. [//]: # (end copyright)
+
+
+
+.. |build status| image:: https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0
+.. _build status: https://travis-ci.org/zeroincombenze/l10n_italy
+.. |license agpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
+.. _license agpl: http://www.gnu.org/licenses/agpl-3.0.html
+.. |coverage status| image:: https://coveralls.io/repos/github/zeroincombenze/l10n_italy/badge.svg?branch=9.0
+.. _coverage status: https://coveralls.io/github/zeroincombenze/l10n_italy?branch=9.0
+.. |codecov status| image:: https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg
+.. _codecov status: https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0
+.. |oca project| image::
+.. _oca project:
+.. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-9.svg
+.. _technical doc: http://wiki.zeroincombenze.org/en/Odoo/9.0/dev
+.. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-9.svg
+.. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Odoo/9.0/man/FI
+.. |try it| image::
+.. _try it:
+.. image:: https://www.shs-av.com/wp-content/chat_with_us.gif
+   :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b
+EOF
+      pushd $LCLTEST_TMPDIR >/dev/null
+      $RUNDIR/please -qt distribution zero
+      popd >/dev/null
+    fi
+    test_result "please distribution 4" "$TESTOUT" "$TESTRES" "diff"
+}
+
+__test_05() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=README
+    TESTSRC=$LCLTEST_TMPDIR/$TESTFN
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$LCLTEST_TMPDIR/$TESTFN.tmp
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $LCLTEST_TMPDIR/*.tmp
+      cat <<EOF >$TESTSRC
+[![Build Status](https://travis-ci.org/OCA/l10n_italy.svg?branch=9.0)](https://travis-ci.org/OCA/l10n_italy)
+[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+[![Coverage Status](https://coveralls.io/repos/github/OCA/l10n_italy/badge.svg?branch=9.0)](https://coveralls.io/github/OCA/l10n_italy?branch=9.0)
+[![codecov](https://codecov.io/gh/OCA/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n_italy/branch/9.0)
+[![Tech Doc](http://www.odoo.com/button/button-docs-travis_emulator.svg)](http://www.odoo.com/documentation/travis_emulator)
+[![Help](https://www.odoo.com/forum/button/button-help-travis_emulator.svg)](https://www.odoo.com/forum/travis_emulator/help)
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS V
+=============
+
+[//]: # (addons)
+Invalid text
+Should be deleted
+[//]: # (end addons)
+
+
+[![it](http://www.shs-av.com/wp-content/it_IT.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS V
+=============
+Differenze rispetto localizzazione ufficiale Odoo/OCA
+
+Descrizione | Odoo Italia | OCA
+--- | --- | ---
+Coverage | [![codecov](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0) | [![codecov](https://codecov.io/gh/OCA/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n-italy/branch/7.0)
+Test con repository OCA e Odoo | Boh! | Boh!
+
+[//]: # (copyright)
+
+----
+
+Test style Copyright
+[//]: # (end copyright)
+
+[![chat with us](http://www.shs-av.com/wp-content/chat_with_us.png)](https://www.zeroincombenze.it/chi-siamo/contatti/)
+EOF
+      cat <<EOF >$TESTRES
+[![Build Status](https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0)](https://travis-ci.org/zeroincombenze/l10n_italy)
+[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+[![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/l10n_italy/badge.svg?branch=9.0)](https://coveralls.io/github/zeroincombenze/l10n_italy?branch=9.0)
+[![codecov](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0)
+[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-9.svg)](https://github.com/OCA/l10n_italy/tree/9.0)
+[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/dev)
+[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/man/FI)
+[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-9.svg)](https://erp9.zeroincombenze.it)
+
+
+[![en](https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)](https://www.facebook.com/groups/openerp.italia/)
+
+TEST_TRAVIS V
+=============
+
+[//]: # (addons)
+
+[//]: # (end addons)
+
+
+[![it](https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)](https://www.facebook.com/groups/openerp.italia/)
+
+TEST_TRAVIS V
+=============
+Differenze rispetto localizzazione ufficiale Odoo/OCA
+
+Descrizione | Odoo Italia | OCA
+--- | --- | ---
+Coverage |  [![codecov](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0) | [![codecov](https://codecov.io/gh/OCA/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n_italy/branch/9.0)
+Test compatibilità OCA e Odoo | :white_check_mark: | :white_check_mark:
+
+[//]: # (copyright)
+
+----
+
+**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)
+
+**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose
+mission is to support the collaborative development of Odoo features and
+promote its widespread use.
+
+**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
+which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.
+[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)
+is mainly designed for Italian law and markeplace.
+Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server.
+
+[//]: # (end copyright)
+
+
+[![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
+EOF
+      pushd $LCLTEST_TMPDIR >/dev/null
+      $RUNDIR/please -qt distribution zero
+      popd >/dev/null
+    fi
+    test_result "please distribution 5" "$TESTOUT" "$TESTRES" "diff"
+}
+
+__test_06() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=README
+    TESTSRC=$LCLTEST_PRJPATH/$TESTFN
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$LCLTEST_PRJPATH/$TESTFN.tmp
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $LCLTEST_TMPDIR/*.tmp
+      cat <<EOF >$TESTSRC
+[![Build Status](https://travis-ci.org/OCA/l10n_italy.svg?branch=9.0)](https://travis-ci.org/OCA/l10n_italy)
+[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+[![Coverage Status](https://coveralls.io/repos/github/OCA/l10n_italy/badge.svg?branch=9.0)](https://coveralls.io/github/OCA/l10n_italy?branch=9.0)
+[![codecov](https://codecov.io/gh/OCA/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n_italy/branch/9.0)
+[![Tech Doc](http://www.odoo.com/button/button-docs-travis_emulator.svg)](http://www.odoo.com/documentation/travis_emulator)
+[![Help](https://www.odoo.com/forum/button/button-help-travis_emulator.svg)](https://www.odoo.com/forum/travis_emulator/help)
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+[![icon](static/src/img/icon.png)](https://travis-ci.org/zeroincombenze)
+
+TEST_TRAVIS VI
+==============
+
+[//]: # (addons)
+Invalid text
+Should be deleted
+[//]: # (end addons)
+
+
+[![it](http://www.shs-av.com/wp-content/it_IT.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS VI
+==============
+
+Differenze rispetto localizzazione ufficiale Odoo/OCA
+
+Descrizione | Odoo Italia | OCA
+--- | --- | ---
+Coverage | [![codecov](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0) | [![codecov](https://codecov.io/gh/OCA/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n-italy/branch/7.0)
+Test con repository OCA e Odoo | Boh! | Boh!
+
+Installation
+------------
+
+* pip install zerobug
+
+Usage
+-----
+
+For furthermore information, please visit http://wiki.zeroincombenze.org/it/Odoo
+
+Credits
+-------
+
+### Contributors
+
+* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+
+### Funders
+
+This module has been financially supported by
+
+* SHS-AV s.r.l. <https://www.zeroincombenze.it/>
+
+### Maintainer
+
+[//]: # (copyright)
+
+----
+
+Test style Copyright
+[//]: # (end copyright)
+
+[![chat with us](http://www.shs-av.com/wp-content/chat_with_us.png)](https://www.zeroincombenze.it/chi-siamo/contatti/)
+EOF
+      cat <<EOF >$TESTRES
+[![Build Status](https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0)](https://travis-ci.org/zeroincombenze/l10n_italy)
+[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+[![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/l10n_italy/badge.svg?branch=9.0)](https://coveralls.io/github/zeroincombenze/l10n_italy?branch=9.0)
+[![codecov](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0)
+[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-9.svg)](https://github.com/OCA/l10n_italy/tree/9.0)
+[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/dev)
+[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/man/FI)
+[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-9.svg)](https://erp9.zeroincombenze.it)
+
+
+[![en](https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)](https://www.facebook.com/groups/openerp.italia/)
+
+[![icon](static/src/img/icon.png)](https://travis-ci.org/zeroincombenze)
+
+TEST_TRAVIS VI
+==============
+
+[//]: # (addons)
+
+
+Available addons
+----------------
+addon | version | summary
+--- | --- | ---
+[l10n_it_base](l10n_it_base/) |  | TravisEm Test
+
+[//]: # (end addons)
+
+
+[![it](https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)](https://www.facebook.com/groups/openerp.italia/)
+
+TEST_TRAVIS VI
+==============
+
+Differenze rispetto localizzazione ufficiale Odoo/OCA
+
+Descrizione | Odoo Italia | OCA
+--- | --- | ---
+Coverage |  [![codecov](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0) | [![codecov](https://codecov.io/gh/OCA/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n_italy/branch/9.0)
+Test compatibilità OCA e Odoo | :white_check_mark: | :white_check_mark:
+
+Installation
+------------
+
+* pip install zerobug
+
+Configuration
+-------------
+
+Usage
+-----
+
+For furthermore information, please visit http://wiki.zeroincombenze.org/it/Odoo
+
+Known issues / Roadmap
+----------------------
+
+Bug Tracker
+-----------
+
+Credits
+-------
+
+### Contributors
+
+* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+
+### Funders
+
+This module has been financially supported by
+
+* SHS-AV s.r.l. <https://www.zeroincombenze.it/>
+
+### Maintainer
+
+[//]: # (copyright)
+
+----
+
+**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)
+
+**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose
+mission is to support the collaborative development of Odoo features and
+promote its widespread use.
+
+**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
+which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.
+[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)
+is mainly designed for Italian law and markeplace.
+Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server.
+
+[//]: # (end copyright)
+
+
+[![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
+EOF
+      pushd $LCLTEST_PRJPATH >/dev/null
+      $RUNDIR/please -qt distribution zero
+      popd >/dev/null
+    fi
+    test_result "please distribution 6" "$TESTOUT" "$TESTRES" "diff"
+}
+
+
+Z0BUG_setup() {
+    local VERSION=9.0
+    LCLTEST_PRJNAME="Odoo"
+    LCLTEST_REPOSNAME=l10n_italy
+    LCLTEST_PKGNAME=l10n_it_base
+    LCLTEST_TMPDIR0=~/dev/odoo/$VERSION
+    LCLTEST_PRJPATH=$LCLTEST_TMPDIR0/$LCLTEST_REPOSNAME
+    LCLTEST_TMPDIR=$LCLTEST_PRJPATH/$LCLTEST_PKGNAME
+    mkdir -p $LCLTEST_TMPDIR0
+    mkdir -p $LCLTEST_TMPDIR0/openerp
+    touch $LCLTEST_TMPDIR0/openerp-server
+    mkdir -p $LCLTEST_PRJPATH
+    mkdir -p $LCLTEST_TMPDIR
+    cat <<EOF >$LCLTEST_TMPDIR/__openerp__.py
+# Odoo manifest for TravisEm $(date +%Y-%m-%d)
+{
+     'name': 'TravisEm Test',
+     'author': 'SHS-AV s.r.l.',
+     'maintainer': 'Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>',
+}
+EOF
+}
+
+Z0BUG_teardown() {
+    rm -fR $LCLTEST_TMPDIR
+    rm -fR $LCLTEST_PRJPATH
+    rm -fR $LCLTEST_TMPDIR0
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_travis_em.log "$@"
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+
+
+
+UT1_LIST=""
+UT_LIST=""
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

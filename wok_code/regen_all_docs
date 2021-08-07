@@ -1,0 +1,103 @@
+#! /bin/bash
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
+
+__version__=1.0.1.10
+
+
+
+OPTOPTS=(h        b          n           p        R           V           v)
+OPTDEST=(opt_help opt_branch opt_dry_run opt_path opt_recurse opt_version opt_verbose)
+OPTACTI=(1        "="        1           "="      1           "*>"        "+")
+OPTDEFL=(0        ""         0           ""       0           ""          -1)
+OPTMETA=("help"   "branch"   ""          "dir"    ""          ""          "")
+OPTHELP=("this help"\
+ "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
+ "do nothing (dry-run)"\
+ "odoo directory"\
+ "if OCB recurse all repositories"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(odoo_vid git_org)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit $STS_SUCCESS
+fi
+[ -z $odoo_vid ] && opt_help=1
+if [ $opt_verbose -eq -1 ]; then
+  opt_verbose=1
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Regenerate all documentation of specific odoo version of module"\
+  "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit $STS_SUCCESS
+fi
+odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
+odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
+if [ -n "$opt_path" ]; then
+  odoo_dir=$(readlink -f $opt_path)
+else
+  odoo_dir=$(build_odoo_param HOME $odoo_vid)
+fi
+[ -z "$git_org" ] && git_org=$(build_odoo_param GIT_ORGNM $odoo_vid)
+repo=$(build_odoo_param REPOS "$odoo_vid")
+[ "$repo" == "OCB" ] && OCB_SUBDIRS_RE=$(build_odoo_param OCB_SUBDIRS_RE)
+#   tgtdir=$odoo_dir
+#   [ -d $odoo_dir/odoo/addons ] && tgtdir="$odoo_dir/odoo/addons"
+#   [ -d $odoo_dir/openerp/addons ] && tgtdir="$odoo_dir/openerp/addons"
+#   tgtdir="$tgtdir $odoo_dir/addons"
+# else
+  tgtdir=$odoo_dir
+# fi
+# echo "git_org=$git_org"
+# echo "odoo_fver=$odoo_fver"
+# echo "repo=$repo"
+# echo "tgtdir=$tgtdir"
+for f in $(find $tgtdir -maxdepth 2 -type d -name 'egg-info'); do
+  d=$(dirname $f)
+  b=$(basename $d)
+  [ "$b" == "__to_remove" ] && continue
+  if [[ "$d" == "$tgtdir" ]]; then
+    OPTS=-lrepository
+  else
+    [ $opt_recurse -eq 0 ] && [[ "$repo" == "OCB" && ! $b =~ $OCB_SUBDIRS_RE ]] && continue
+    OPTS=-lmodule
+  fi
+  echo "\$ cd $d"
+  cd $d
+  [ -f README.md ] && rm -fR README.md
+  run_traced "gen_readme.py -qG$git_org -b$odoo_fver $OPTS"
+  if [ $odoo_ver -ge 8 ]; then
+    if [ -f __openerp__.py -o -f __manifest__.py ]; then
+      [ ! -d ./static ] && mkdir -p ./static
+      [ ! -d ./static/description ] && mkdir -p ./static/description
+      run_traced "gen_readme.py -b$odoo_fver -qH -G$git_org $OPTS"
+    fi
+  fi
+done

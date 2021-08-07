@@ -10,7 +10,7 @@ XRGI="^(.*\/|)conf\/.*sample$"
 READLINK=readlink
 
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])" | python)
-for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/devel_tools/devel_tools/../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib /home/odoo/devel/pypi/devel_tools/devel_tools/../../z0lib/z0lib; do
+for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/wok_code/wok_code/../z0lib /home/odoo/devel/pypi/wok_code/wok_code/../../z0lib /home/odoo/devel/pypi/wok_code/wok_code/../../z0lib/z0lib; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -703,12 +703,6 @@ conf_default() {
   set_cfg_def "MQT_DBUSER" ""
   set_cfg_def "UNBUFFER" "0"
   set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
-  # set_cfg_def "RFLIST__travis_emulator" "autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff replica.sh topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
-  # set_cfg_def "RDLIST__travis_emulator" "_travis/"
-  # set_cfg_def "RFLIST__z0lib" "Makefile"
-  # set_cfg_def "RFLIST__zerobug" "z0testrc"
-  # set_cfg_def "RFLIST__clodoo" "clodoo.py clodoocore.py clodoolib.py"
-  # set_cfg_def "RFLIST__z0tester" "z0testercode.py"
   set_cfg_def "Environment" "bash"
   set_cfg_def "virtualenv_opts" ""
   set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
@@ -722,7 +716,7 @@ conf_default() {
   set_cfg_def "PS_HDR1_COLOR" "97;42"
   set_cfg_def "PS_HDR2_COLOR" "30;43"
   set_cfg_def "PS_HDR3_COLOR" "30;45"
-  set_cfg_def "PKGS_LIST" "clodoo devel_tools lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
+  set_cfg_def "PKGS_LIST" "clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
   set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
   set_cfg_def "DEV_SVG" "$HOME/devel/svg"
   set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
@@ -762,97 +756,100 @@ set_pkgname() {
   fi
 }
 
-install_dev() {
-  if [ "$USER" == "openerp" -o "$USER" == "odoo" ]; then
-    local yod=$(date +%Y)
-    if [ ! -d ~/devel ]; then
-      mkdir -p ~/devel
-    fi
-  fi
-}
-
-update_dev() {
-  # XDPATH=$(dirname $MAKEF)
-  [[ -d $HOME/devel ]] && XDPATH=$HOME/devel || $HOME/dev
-  ME_BOS=$(get_cfg_value "" "ME_BOS")
-  RFLIST=$(get_cfg_value "" "RFLIST__$1")
-  RDLIST=$(get_cfg_value "" "RDLIST__$1")
-  local xvalid=1
-  local v1= v2= x
-  if [ -n "$RFLIST" ]; then
-    for x in $RFLIST; do
-      if [ ! -f $PKGPATH/$PKGNAME/$x ]; then
-        xvalid=0
-        break
-      fi
-    done
-  fi
-  if [ $xvalid -eq 0 ]; then
-    echo "Invalid package $1: file $x not found!"
-    exit $STS_FAILED
-  fi
-  if [ -z "$opt_sts" -o "$opt_cpush" != "-w" ]; then
-    for x in $RFLIST; do
-      if [ -f $PKGPATH/$PKGNAME/$x ]; then
-        if [ ${opt_diff:-0} -gt 0 ]; then
-          if [ "$(diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x)" ]; then
-            if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x"; fi
-            diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x
-          fi
-        elif [ ${opt_fetch:-0} -gt 0 ]; then
-          if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $XDPATH/$x $PKGPATH/$PKGNAME/$x"; fi
-          ((${opt_dry_run:-0})) || cp $opts_verbose $XDPATH/$x $PKGPATH/$PKGNAME/$x
-        else
-          diff -q $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
-          if [ $? -ne 0 ]; then
-            run_traced "cp $PKGPATH/$PKGNAME/$x $XDPATH/$x"
-            if [ -x $PKGPATH/$PKGNAME/$x ]; then
-              v1=$($PKGPATH/$PKGNAME/$x -V)
-              v2=$($XDPATH/$x -V)
-              if [ "$v1" != "$v2" ]; then
-                echo "!Copy of $x FAILED !!!"
-              fi
-            fi
-          fi
-        fi
-      fi
-      if [ "$x" == "z0librc" ]; then
-        if [ -z "$opt_dpath" ]; then
-          XLGITPATH=$($READLINK -e $LGITPATH/../travis_emulator)
-          run_traced "cp $PKGPATH/$PKGNAME/$x $XLGITPATH/$x"
-        fi
-      fi
-    done
-    if [ -n "$RDLIST" ]; then
-      for x in $RDLIST; do
-        if [ ${opt_diff:-0} -gt 0 ]; then
-          diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x
-        elif [ ${opt_fetch:-0} -eq 0 ]; then
-          diff -rq $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
-          if [ $? -ne 0 ]; then
-            run_traced "cp -R $PKGPATH/$PKGNAME/$x $XDPATH/"
-          fi
-        fi
-      done
-    fi
-    if [ -n "$ME_BOS" ]; then
-      for x in $ME_BOS cronow replica.sh; do
-        if [ -f $PKGPATH/$PKGNAME/$x ]; then
-          if [ ${opt_diff:-0} -gt 0 ]; then
-            if [ "$(diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x)" ]; then
-              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x"; fi
-              diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x
-            fi
-          elif [ ${opt_fetch:-0} -gt 0 ]; then
-            :
-          else
-            run_traced "cp $PKGPATH/$PKGNAME/$x ~/bin/$x"
-          fi
-        fi
-      done
-    fi
-  fi
-}
+#
+# [antoniov: 2021-08-06] TODO: remove early
+#
+#install_dev() {
+#  if [ "$USER" == "openerp" -o "$USER" == "odoo" ]; then
+#    local yod=$(date +%Y)
+#    if [ ! -d ~/devel ]; then
+#      mkdir -p ~/devel
+#    fi
+#  fi
+#}
+#
+#update_dev() {
+#  # XDPATH=$(dirname $MAKEF)
+#  [[ -d $HOME/devel ]] && XDPATH=$HOME/devel || $HOME/dev
+#  ME_BOS=$(get_cfg_value "" "ME_BOS")
+#  RFLIST=$(get_cfg_value "" "RFLIST__$1")
+#  RDLIST=$(get_cfg_value "" "RDLIST__$1")
+#  local xvalid=1
+#  local v1= v2= x
+#  if [ -n "$RFLIST" ]; then
+#    for x in $RFLIST; do
+#      if [ ! -f $PKGPATH/$PKGNAME/$x ]; then
+#        xvalid=0
+#        break
+#      fi
+#    done
+#  fi
+#  if [ $xvalid -eq 0 ]; then
+#    echo "Invalid package $1: file $x not found!"
+#    exit $STS_FAILED
+#  fi
+#  if [ -z "$opt_sts" -o "$opt_cpush" != "-w" ]; then
+#    for x in $RFLIST; do
+#      if [ -f $PKGPATH/$PKGNAME/$x ]; then
+#        if [ ${opt_diff:-0} -gt 0 ]; then
+#          if [ "$(diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x)" ]; then
+#            if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x"; fi
+#            diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x
+#          fi
+#        elif [ ${opt_fetch:-0} -gt 0 ]; then
+#          if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $XDPATH/$x $PKGPATH/$PKGNAME/$x"; fi
+#          ((${opt_dry_run:-0})) || cp $opts_verbose $XDPATH/$x $PKGPATH/$PKGNAME/$x
+#        else
+#          diff -q $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
+#          if [ $? -ne 0 ]; then
+#            run_traced "cp $PKGPATH/$PKGNAME/$x $XDPATH/$x"
+#            if [ -x $PKGPATH/$PKGNAME/$x ]; then
+#              v1=$($PKGPATH/$PKGNAME/$x -V)
+#              v2=$($XDPATH/$x -V)
+#              if [ "$v1" != "$v2" ]; then
+#                echo "!Copy of $x FAILED !!!"
+#              fi
+#            fi
+#          fi
+#        fi
+#      fi
+#      if [ "$x" == "z0librc" ]; then
+#        if [ -z "$opt_dpath" ]; then
+#          XLGITPATH=$($READLINK -e $LGITPATH/../travis_emulator)
+#          run_traced "cp $PKGPATH/$PKGNAME/$x $XLGITPATH/$x"
+#        fi
+#      fi
+#    done
+#    if [ -n "$RDLIST" ]; then
+#      for x in $RDLIST; do
+#        if [ ${opt_diff:-0} -gt 0 ]; then
+#          diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x
+#        elif [ ${opt_fetch:-0} -eq 0 ]; then
+#          diff -rq $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
+#          if [ $? -ne 0 ]; then
+#            run_traced "cp -R $PKGPATH/$PKGNAME/$x $XDPATH/"
+#          fi
+#        fi
+#      done
+#    fi
+#    if [ -n "$ME_BOS" ]; then
+#      for x in $ME_BOS cronow replica.sh; do
+#        if [ -f $PKGPATH/$PKGNAME/$x ]; then
+#          if [ ${opt_diff:-0} -gt 0 ]; then
+#            if [ "$(diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x)" ]; then
+#              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x"; fi
+#              diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x
+#            fi
+#          elif [ ${opt_fetch:-0} -gt 0 ]; then
+#            :
+#          else
+#            run_traced "cp $PKGPATH/$PKGNAME/$x ~/bin/$x"
+#          fi
+#        fi
+#      done
+#    fi
+#  fi
+#}
 
 a_append() {
   # a_append (key, values)::DEFPRM,DEFVAL

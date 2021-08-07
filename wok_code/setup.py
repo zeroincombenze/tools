@@ -1,22 +1,24 @@
 from setuptools import setup
 
-setup(name='wok_code',
-      version='0.1.18',
-      description='Cook news',
+setup(name='devel_tools',
+      version='1.0.1.10',
+      description='Python developers tools',
       long_description="""
-manage new in various ways
+Tool to parse, edit and migrate python source code
 """,
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'License :: OSI Approved :: GNU Affero General Public License v3',
-          'Programming Language :: Python :: 2.6',
+          'Programming Language :: Python :: 2.7',
           'Intended Audience :: Developers',
           'Topic :: Software Development',
+          'Topic :: Software Development :: Build Tools',
+          'Operating System :: OS Independent',
       ],
-      keywords='odoo',
-      url='http://wiki.zeroincombenze.org/en/Python/opt',
+      keywords='linux travis development',
+      url='http://wiki.zeroincombenze.org/',
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
-      packages=['wok_code'],
+      packages=['devel_tools'],
       zip_safe=False)

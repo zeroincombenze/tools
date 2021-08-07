@@ -19,14 +19,14 @@ Overview
    rtd_description_vid
 
 
-Devel tools
-===========
+Wok code
+========
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   pypi_devel_tools/index
+   pypi_wok_code/index
 
 
 Python plus

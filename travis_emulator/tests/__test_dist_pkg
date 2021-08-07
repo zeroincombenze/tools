@@ -1,0 +1,170 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=1.0.1.3
+
+Z0BUG_setup() {
+    if [[ -d /home/odoo ]]; then
+        LCL_ROOT=/home/odoo
+    else
+        LCL_ROOT=/opt/odoo
+    fi
+    if [ ! -d $LCL_ROOT/7.0 ]; then
+      LCLTEST_ODOO7=$LCL_ROOT/7.0
+      mkdir $LCLTEST_ODOO7
+      mkdir $LCLTEST_ODOO7/zeroincombenze
+      mkdir $LCLTEST_ODOO7/server
+      mkdir $LCLTEST_ODOO7/server/openerp
+    fi
+    find $TESTDIR -name __openerp__.py -delete
+    find $TESTDIR -name __manifest__.py -delete
+}
+
+Z0BUG_teardown() {
+    if [ -n "$LCLTEST_ODOO7" ]; then
+      rm -fR $LCLTEST_ODOO7
+    fi
+}
+
+test_01() {
+    TEST_GCONF=$TESTDIR/test_dist_pkg.conf
+    TEST_LCONF=$TESTDIR/test_local_dist_pkg.conf
+    if [ -f $TEST_LCONF ]; then
+      rm -f $TEST_LCONF
+    fi
+    echo "# Sample conf file for test">$TEST_GCONF
+    echo "distpath=$LCL_ROOT/tools/\${prjname}">>$TEST_GCONF
+    echo "openerp_distpath=$LCL_ROOT/8.0">>$TEST_GCONF
+    echo "zeroincombenze_distpath=$LCL_ROOT/7.0/zeroincombenze">>$TEST_GCONF
+    echo "server_distpath=$LCL_ROOT/7.0/server/openerp">>$TEST_GCONF
+    echo "CONFN=$TEST_LCONF">>$TEST_GCONF
+
+    echo "# Sample conf file for test">$TEST_LCONF
+    echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TEST_LCONF
+
+    TRES=$($RUNDIR/dist_pkg -V)
+    test_result "version" "$__version__" "$TRES"
+
+    pushd $RUNDIR >/dev/null
+    TRES=$($RUNDIR/dist_pkg -W PKGPATH)
+    popd >/dev/null
+    test_result "param PKGPATH" "$RUNDIR" "$TRES"
+
+    # TODO: Test does not work in travis env
+    if [[ "${PWD:0:18}" == "$LCL_ROOT/dev/pypi" || "${PWD:0:19}" == "$LCL_ROOT/dev/pypi" ]]; then
+      pushd $RUNDIR/.. >/dev/null
+      TRES=$($RUNDIR/dist_pkg -W PKGPATH)
+      popd >/dev/null
+      test_result "param PKGPATH" "$RUNDIR" "$TRES"
+
+      pushd $TESTDIR >/dev/null
+      TRES=$($RUNDIR/dist_pkg -W PKGPATH)
+      popd >/dev/null
+      test_result "param PKGPATH" "$RUNDIR" "$TRES"
+
+      TRES=$($RUNDIR/dist_pkg -W PKGPATH -p $LCL_ROOT/dev/pypi/travis_emulator/conf)
+      test_result "param PKGPATH" "$LCL_ROOT/dev/pypi/travis_emulator" "$TRES"
+
+      TRES=$($RUNDIR/dist_pkg -W PKGPATH -p $LCL_ROOT/dev/pypi/travis_emulator/travis_emulator/conf)
+      test_result "param PKGPATH" "$LCL_ROOT/dev/pypi/travis_emulator" "$TRES"
+
+      TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
+      test_result "param LGITPATH (travis)" "$LCL_ROOT/tools/travis_emulator" "$TRES"
+    fi
+
+    if [ "$HOSTNAME" == "shsdev14" ]; then
+      pushd $LCL_ROOT/7.0 >/dev/null
+      TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
+      popd >/dev/null
+      test_result "param LGITPATH (odoo8)" "$LCL_ROOT/8.0" "$TRES"
+    else
+      test_result "dummy" "true" "true"
+    fi
+
+    if [ -d "/opt/openerp/7.0/zeroincombenze/l10n_it_bbone" ]; then
+      pushd /opt/openerp/7.0/zeroincombenze/l10n_it_bbone >/dev/null
+      TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
+      popd >/dev/null
+      test_result "param LGITPATH (zeroincombenze)" "$LCL_ROOT/7.0/zeroincombenze" "$TRES"
+    fi
+
+    pushd $TESTDIR >/dev/null
+    TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
+    popd >/dev/null
+    test_result "commit travis_emulator 1" "dist_pkg -n -C -p \"$LCL_ROOT/tools/travis_emulator\" travis_emulator travis_emulator" "$TRES"
+
+    pushd $TESTDIR/.. >/dev/null
+    TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
+    popd >/dev/null
+    test_result "commit travis_emulator 2" "dist_pkg -n -C -p \"$LCL_ROOT/tools/travis_emulator\" travis_emulator travis_emulator" "$TRES"
+
+    if [ "$HOSTNAME" == "shsdev14" ]; then
+      pushd $LCL_ROOT/7.0 >/dev/null
+      TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
+      popd >/dev/null
+      test_result "commit openerp" "dist_pkg -n -C -p \"$LCL_ROOT/8.0\" 7.0 openerp" "$TRES"
+    else
+      test_result "dummy" "true" "true"
+    fi
+    echo "# duplicate name for test">>$TEST_LCONF
+    echo "distpath=$LCL_ROOT">>$TEST_LCONF
+    pushd $TESTDIR >/dev/null
+    TRES=$($RUNDIR/dist_pkg -c $TEST_LCONF -W LGITPATH)
+    popd >/dev/null
+    test_result "param LGITPATH (odoo)" "$LCL_ROOT" "$TRES"
+
+    if [ -d "/opt/openerp/7.0/server/openerp/workflow" ]; then
+      pushd /opt/openerp/7.0/server/openerp/workflow >/dev/null
+      TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
+      popd >/dev/null
+      test_result "param LGITPATH (workflow)" "$LCL_ROOT/7.0/server/openerp" "$TRES"
+    fi
+
+    TRES=$($RUNDIR/dist_pkg -nc $TEST_LCONF -C|head -n1)
+    test_result "commit travis_emulator" "dist_pkg -n -C -p \"$LCL_ROOT\" travis_emulator travis_emulator" "$TRES"
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_travis_em.log "$@"
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+
+
+UT1_LIST=""
+UT_LIST=""
+Z0BUG_setup
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

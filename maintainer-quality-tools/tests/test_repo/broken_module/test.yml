@@ -1,5 +1,0 @@
--
-  Inject a test error
--
-  !assert {model: res.users, id: base.user_demo, string: Generated failure}:
-    - "False"

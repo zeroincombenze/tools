@@ -1,0 +1,151 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=1.0.1.10
+
+
+Z0BUG_setup() {
+# Modules Tree for tests
+#   |---- v7
+#   |      \---- l10n-italy
+#   |                \---- l10n_it_vat_registries
+#   |                               !---- __init__.py
+#   |                               \---- __openerp__.py
+#   |---- 7.0
+#   |      \---- l10n-italy
+#   |                \---- l10n_it_vat_registries
+#   |                               !---- __init__.py
+#   |                               \---- __openerp__.py
+#   |---- ...
+#   \---- 12.0
+#          \---- l10n-italy
+#                    \---- l10n_it_vat_registries
+#                                   !---- __init__.py
+#                                   \---- __manifest__.py
+#
+    local VERSION v
+    ALL_VERSIONS="v7 7.0 8.0 9.0 10.0 11.0 12.0"
+    for VERSION in $ALL_VERSIONS; do
+        v=$(echo $VERSION|grep -Eo "[0-9]+"|head -n1)
+        Z0BUG_build_os_tree "$VERSION/l10n-italy $VERSION/l10n-italy/l10n_it_vat_registries $VERSION/l10n-italy/l10n_it_vat_registries/i18n"
+        touch "$Z0BUG_root/$VERSION/__init__py"
+        [ $v -lt 10 ] && touch "$Z0BUG_root/$VERSION/__openerp__py" || touch "$Z0BUG_root/$VERSION/__manifest__py"
+    done
+}
+
+Z0BUG_teardown() {
+    local VERSION
+    for VERSION in $ALL_VERSIONS; do
+        Z0BUG_remove_os_tree "$VERSION/l10n-italy"
+    done
+}
+
+test_diff() {
+# test_diff(src tgt pkg ver|opts res)
+    local msg1
+    export opt_conf=$TESTDIR/test_travis.conf
+    local cmd="$RUNDIR/vfdiff -c$opt_conf -nv $1 $2"
+    [[ -n "$1" ]] && msg1=$1 || msg1=
+    [[ -n "$2" ]] && msg2=$2 || msg2=.
+    if [ -n "$3" ]; then
+        cmd="$cmd -p $3"
+        msg1=$msg1/$3
+    fi
+    if [ -n "$4" ]; then
+        if [ "${4:0:1}" == "-" ]; then
+            cmd="$cmd $4"
+        else
+            cmd="$cmd -O $4"
+        fi
+    fi
+    TRES=$(eval $cmd)
+    test_result "diff -vbme $msg1 $msg2" "$5" "$TRES"
+}
+
+test_01() {
+    local s t
+    export opt_conf=$TESTDIR/test_travis.conf
+    [[ -f $opt_conf ]] && rm -f $opt_conf
+    touch $opt_conf
+    echo "filedel=.pyc .log .bak  ~">>$opt_conf
+    echo "fileignore=.conf">>$opt_conf
+    echo "filediffignore=.po .pot">>$opt_conf
+    for s in $ALL_VERSIONS; do
+        s="$Z0BUG_root/$s"
+        for t in v7 7.0 10.0 12.0; do
+            t="$Z0BUG_root/$t"
+            test_diff "$s" "$t" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $s $t"
+            ## test_diff "$s" "$t" "l10n-italy" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $s/l10n-italy $t/l10n-italy"
+            ## test_diff "$LCL_ROOT/$s" "$t" "l10n-italy" "l10n_it_vat_registries" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries"
+            ## test_diff "$LCL_ROOT/$s/l10n-italy" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/$s/l10n-italy $LCL_ROOT/$t/l10n-italy"
+            ## test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries"
+            ## test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" "" "> diff -ZBy $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+            ## test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t" "> diff -ZBy $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+            ## test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-O$t" "> diff -ZBy $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+        done
+    done
+    ## for s in v7 10.0; do
+    ##     if [ -d $LCL_ROOT/$s ]; then
+    ##         test_diff "$LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "8.0" "l10n-italy-supplemental" "" "" "> diff -ZBy $LCL_ROOT/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py"
+    ##     fi
+    ## done
+    ## for s in 7 8; do
+    ##     if [ -d $LCL_ROOT/$s.0 ]; then
+    ##         test_diff "/etc/odoo/odoo$s-server.conf" "9.0" "" "" "" "> diff -ZBy /etc/odoo/odoo$s-server.conf /etc/odoo/odoo9-server.conf"
+    ##     fi
+    ## done
+    ## test_diff "$LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/i18n/" "8.0" "" "" "-m" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\" $LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/i18n $LCL_ROOT/8.0/l10n-italy/l10n_it_vat_registries/i18n"
+    ## test_diff "$LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/i18n" "8.0" "" "" "-e" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr $LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/i18n $LCL_ROOT/8.0/l10n-italy/l10n_it_vat_registries/i18n"
+    ## local CWD=$PWD
+    ## cd $LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries
+    ## test_diff "__openerp__.py" "" "" "" "8" "> diff -ZBy $LCL_ROOT/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py $LCL_ROOT/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+    ## cd $CWD
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_travis_em.log "$@"
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+
+UT1_LIST=
+UT_LIST=
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts
