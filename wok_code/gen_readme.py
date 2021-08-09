@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.10"
+__version__ = "1.0.1.11"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -269,7 +269,10 @@ def get_template_fn(ctx, template, ignore_ntf=None):
             if os.path.isfile(full_fn):
                 return True, full_fn
         if full_fn.endswith('.rst'):
-            full_fn = full_fn[0: -4].upper() + '.rst'
+            full_fn = os.path.join(
+                os.path.dirname(full_fn),
+                '%s.rst' % os.path.basename(full_fn)[0: -4].upper()
+            )
             if os.path.isfile(full_fn):
                 return True, full_fn
         return False, full_fn
@@ -958,7 +961,7 @@ def parse_acknoledge_list(ctx, source):
 
 def line_of_list(ctx, state, line):
     """Manage list of people like authors or contributors"""
-    text = line
+    text = line.strip()
     stop = True
     if line:
         if line[0] == '#':
@@ -981,8 +984,8 @@ def line_of_list(ctx, state, line):
             fmt = '* `%s`__'
         else:
             fmt = '* %s'
-        if line[0:2] == '* ':
-            text = fmt % line[2:]
+        if text[0:2] == '* ':
+            text = fmt % text[2:]
         else:
             text = fmt % line
     return text
@@ -1148,7 +1151,7 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
 
 
 def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
-                     in_fmt=None, out_fmt=None):
+                     in_fmt=None, out_fmt=None, section=None):
     state = state or _init_state()
     if out_fmt:
         state['out_fmt'] = out_fmt
@@ -1177,6 +1180,8 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         return state, ''
     if ctx['opt_verbose']:
         print("Reading %s" % full_fn)
+    if section:
+        ctx['%s_filename'] = full_fn
     full_fn_csv = False
     if full_fn.endswith('.csv'):
         full_fn_csv = full_fn
@@ -1244,17 +1249,17 @@ def read_setup(ctx):
     else:
         MANIFEST_LIST = ('./setup.py', )
     for manifest in MANIFEST_LIST:
-        manifest_file = os.path.abspath(
+        manifest_filename = os.path.abspath(
             os.path.join(ctx['path_name'], manifest))
-        if os.path.isfile(manifest_file):
+        if os.path.isfile(manifest_filename):
             break
-        manifest_file = ''
-    if manifest_file:
-        fd = open(manifest_file, 'rU')
+        manifest_filename = ''
+    if manifest_filename:
+        fd = open(manifest_filename, 'rU')
         ctx['manifest'] = eval('\n'.join(
             os0.u(fd.read()).split('\n')[1:]).replace('setup', 'dict'))
         fd.close()
-        ctx['manifest_file'] = manifest_file
+        ctx['manifest_filename'] = manifest_filename
     else:
         if not ctx['suppress_warning']:
             print('*** Warning: manifest file not found!')
@@ -1270,13 +1275,13 @@ def read_manifest(ctx):
     else:
         MANIFEST_LIST = ('__openerp__.py', )
     for manifest in MANIFEST_LIST:
-        manifest_file = os.path.join(ctx['path_name'], manifest)
-        if os.path.isfile(manifest_file):
+        manifest_filename = os.path.join(ctx['path_name'], manifest)
+        if os.path.isfile(manifest_filename):
             break
-        manifest_file = ''
-    if manifest_file:
-        ctx['manifest'] = read_manifest_file(manifest_file)
-        ctx['manifest_file'] = manifest_file
+        manifest_filename = ''
+    if manifest_filename:
+        ctx['manifest'] = read_manifest_file(manifest_filename)
+        ctx['manifest_filename'] = manifest_filename
     else:
         if not ctx['suppress_warning']:
             print('*** Warning: manifest file not found!')
@@ -1408,7 +1413,8 @@ def manifest_item(ctx, item):
         if ctx['set_authinfo']:
             text = ctx['license_mgnt'].summary_authors()
         else:
-            text = ctx['manifest'].get(item, ctx['license_mgnt'].summary_authors())
+            text = ctx['manifest'].get(item,
+                                       ctx['license_mgnt'].summary_authors())
         target = "    '%s': '%s',\n" % (item, text)
     elif isinstance(ctx['manifest'][item], basestring):
         while ctx['manifest'][item].startswith('\n'):
@@ -1477,7 +1483,7 @@ def read_dependecies_license(ctx):
     ctx['manifest'] = saved_manifest
 
 def manifest_contents(ctx):
-    full_fn = ctx['manifest_file']
+    full_fn = ctx['manifest_filename']
     source = ''
     if full_fn:
         fd = open(full_fn, 'rU')
@@ -1518,7 +1524,7 @@ def manifest_contents(ctx):
                 '*** Warning: manifest license %s does not match required %s!' %
                 (ctx['manifest'][item], AUTHINFO[item])
             )
-            print('Update manifest file %s!' % ctx['manifest_file'])
+            print('Update manifest file %s!' % ctx['manifest_filename'])
         elif (item in ('authors', 'website', 'maintainer') and
               ctx['manifest'].get(item) and
               ctx['manifest'][item] != AUTHINFO[item] and
@@ -1620,7 +1626,7 @@ def set_default_values(ctx):
             ctx['dst_file'] = './index.html'
         ctx['trace_file'] = False
     elif ctx['odoo_layer'] == 'module' and ctx['rewrite_manifest']:
-        ctx['dst_file'] = ctx['manifest_file']
+        ctx['dst_file'] = ctx['manifest_filename']
     elif ctx['odoo_layer'] == 'module' and ctx['write_man_page']:
         ctx['dst_file'] = 'page.man'
     else:
@@ -1659,6 +1665,31 @@ def set_default_values(ctx):
 
 
 def generate_readme(ctx):
+
+    def validate_authors_contributors(ctx):
+        contributors = ''
+        for line in ctx['contributors'].split('\n'):
+            if not line:
+                continue
+            (org_id, name, website,
+             email, years) = ctx['license_mgnt'].extract_info_from_line(line)
+            if website and not email:
+                ctx['authors'] = '%s\n%s\n' % (ctx['authors'], line)
+                continue
+            contributors += line + '\n'
+        for item in LIST_TAG:
+            if item == 'contributors':
+                ctx['contributors'] = contributors.replace(
+                    '\n\n', '\n').replace('`__', '').replace('`', '')
+            else:
+                ctx[item] = ctx[item].replace(
+                    '\n\n', '\n').replace('`__', '').replace('`', '')
+            ctx[item] = ctx[item].replace('--\n', '--\n\n')
+            if ctx[item].startswith('\n'):
+                ctx[item] = ctx[item][1:]
+            if not ctx[item].endswith('\n'):
+                ctx[item] = ctx[item] + '\n'
+        return ctx
 
     def set_sommario(ctx):
         if not ctx['sommario']:
@@ -1720,20 +1751,24 @@ def generate_readme(ctx):
         out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.txt' % section,
                                         ignore_ntf=True,
-                                        out_fmt=out_fmt)[1]
+                                        out_fmt=out_fmt,
+                                        section=section)[1]
     for section in DEFINED_SECTIONS:
         out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.rst' % section,
                                         ignore_ntf=True,
-                                        out_fmt=out_fmt)[1]
+                                        out_fmt=out_fmt,
+                                        section=section)[1]
         if section in ZERO_PYPI_SECTS and ctx.get('submodules'):
             for sub in ctx.get('submodules').split(' '):
                 ctx[section] += '\n\n'
                 ctx[section] += parse_local_file(
                     ctx, '%s_%s.rst' % (section, sub),
                     ignore_ntf=True,
-                    out_fmt=out_fmt)[1]
+                    out_fmt=out_fmt,
+                    section='%s_%s' % (section, sub))[1]
 
+    ctx = validate_authors_contributors(ctx)
     ctx = set_sommario(ctx)
     ctx = set_values_of_manifest(ctx)
     if ctx['module_name']:

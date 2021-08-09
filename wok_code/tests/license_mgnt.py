@@ -97,6 +97,7 @@ class License:
                     break
 
     def extract_info_from_line(self, line):
+        """"Return org_id, name, website, email, years from line"""
 
         def from_rst_line(line):
             org_id = False
@@ -104,6 +105,9 @@ class License:
             email = False
             ii = line.find('<')
             jj = line.find('>')
+            if ii == -1 and jj == -1:
+                ii = line.find('(')
+                jj = line.find(')')
             if 0 <= ii < jj and jj >= 0:
                 name = line[0: ii].strip()
                 url = line[ii + 1: jj]
@@ -180,6 +184,7 @@ class License:
                     line[ipos:].strip())
             return org_id, name, website, email, years
 
+        line = line.replace('`__', '').replace('`', '')
         if line.startswith('*'):
             return from_rst_line(line[1:].strip())
         elif line.startswith('#'):

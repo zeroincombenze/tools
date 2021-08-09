@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.1.10
+__version__=1.0.1.11
 
 
 test_01() {
@@ -186,24 +186,22 @@ consectetur *adipiscing* elit
 +-----------+---------+
 
 
-
 Authors
 -------
 
 * \`SHS-AV s.r.l. <https://www.shs-av.com>\`__
-
 
 Contributors
 ------------
 
 * antonio <antoniov@libero.it>
 
-
 Acknoledges to
 --------------
 
 * daniela <daniela@libero.it>
 * alberta <alberta@libero.it>
+
 
 ----------------------
 
@@ -360,9 +358,7 @@ consectetur *adipiscing* elit
 +-----------+---------+
 
 
-
 * \`SHS-AV s.r.l. <https://www.zeroincombenze.it>\`__
-
 
 Contributors
 ------------
@@ -547,24 +543,22 @@ consectetur *adipiscing* elit
 
 
 
-
 Authors
 -------
 
 * \`SHS-AV s.r.l. <https://www.shs-av.com>\`__
-
 
 Contributors
 ------------
 
 * antonio <antoniov@libero.it>
 
-
 Acknoledges to
 --------------
 
 * daniela <daniela@libero.it>
 * alberta <alberta@libero.it>
+
 
 ----------------------
 

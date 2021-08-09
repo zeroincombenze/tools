@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.10
+__version__=1.0.1.11
 
 #
 # General Purpose options:
@@ -1284,7 +1284,7 @@ do_publish() {
   else
     echo "Missing object! Use:"
     echo "> please publish (docs|download|pypi|svg|testpypi)"
-    echo "publish doc      -> publish generate docs to website (require system privileges)"
+    echo "publish docs     -> publish generate docs to website (require system privileges)"
     echo "   type 'please docs' to generate docs files"
     echo "publish download -> publish tarball to download (require system privileges)"
     echo "   type 'please build' to generate tarball file"
@@ -1738,6 +1738,7 @@ do_coverage() {
 }
 
 do_commit() {
+  echo "Deprecated action!"
   opts=$(inherits_travis_opts "C" "D")
   opt_dry_run=0
   run_traced "$TDIR/dist_pkg $opts $1"
@@ -1751,6 +1752,7 @@ do_diff() {
 }
 
 do_distribution_pypi() {
+  echo "Deprecated action!"
   local sts=$STS_SUCCESS
   diff -q ~/agpl.txt ./LICENSE &>/dev/null || run_traced "cp ~/agpl.txt  ./LICENSE"
   if [ -d docs ]; then
@@ -2229,6 +2231,7 @@ EOF
 
 do_download_rep() {
   #do_download_rep(pkg [URL])
+  echo "Deprecated action!"
   wlog "do_download_rep $1 $2"
   local dom full_rep local_rep
   local ORIG="~/original"
@@ -2654,7 +2657,39 @@ do_replica() {
   return $sts
 }
 
+do_show() {
+  #do_show (docs|license)
+  wlog "do_show $2"
+  local cmd="do_show_$2"
+  sts=$STS_SUCCESS
+  if [ "$(type -t $cmd)" == "function" ]; then
+    eval $cmd "$@"
+  else
+    echo "Missing object! Use:"
+    echo "> please show (docs|licence)"
+    echo "show docs        -> show docs using local firefox"
+    echo "show license     -> show licenses of modules of current Odoo repository"
+    echo "show status      -> show component status"
+    sts=$STS_FAILED
+  fi
+  return $sts
+}
+
 do_showdoc() {
+  echo "Deprecated action! Use please show docs"
+  read -p "Press RET to continue ..."
+  do_show_docs "$@"
+  return 0
+}
+
+do_status() {
+  echo "Deprecated action! Use please show status"
+  read -p "Press RET to continue ..."
+  do_show_status "$@"
+  return 0
+}
+
+do_show_docs() {
   if [[ ! "$PRJNAME" == "Odoo" ]]; then
     if [[ -f ./docs/_build/html/index.html ]]; then
       firefox $($READLINK -e ./docs/_build/html/index.html) &
@@ -2665,7 +2700,21 @@ do_showdoc() {
   return 0
 }
 
-do_status() {
+do_show_license() {
+  if [[ "$PRJNAME" == "Odoo" ]]; then
+    local module license FILES
+    FILES=$(find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" \)|sort)
+    for fn in $FILES; do
+      path=$(readlink -f $(dirname $fn))
+      module=$(basename $path)
+      licence=$(grep "[\"']license[\"'] *:" $fn|grep -Eo "(.GPL-3|OPL-1)")
+      printf "Module %-60.60s: $licence\n" $module
+    done
+  fi
+  return 0
+}
+
+do_show_status() {
   local HOME_DEV v1 v2 v x y
   local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
   [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
@@ -2682,7 +2731,7 @@ do_status() {
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg="${pkg//-/_}"
     if [[ $opt_force -eq 0 ]]; then
       if [[ $pkg == "tools" ]]; then
-        for fn in templates .travis.yml install_tools.sh odoo_default_tnl.xlsx setup.py; do
+        for fn in egg-info licence_text templates .travis.yml install_tools.sh odoo_default_tnl.xlsx setup.py; do
           vfdiff -X diff $HOME/$pkg/$fn $HOME_DEV/pypi/$pkg/$fn -q >/dev/null
           [[ $? -ne 0 ]] && x="R" && break
         done
@@ -2703,9 +2752,9 @@ do_status() {
     if [[ $x =~ "R" ]]; then
       if [[ $v1 == $v2 && ! $x =~ "V" ]]; then
         v=$(echo $v2 | awk -F. '{if ($NF == 3) {OFS="."; print $1,$2,int($3)+1} else {OFS="."; print $1,$2,$3,int($4)+1}}')
-        echo -e "\e[1m    Execute: cd $HOME_DEV/pypi/$pkg/$pkg; please version $v2 $v; please replace\e[0m"
+        echo -e "\e[1m    Execute: cd $HOME_DEV/pypi/$pkg/$pkg; please version $v2 $v; travis && please replace\e[0m"
       else
-        echo -e "\e[1m    Execute: cd $HOME_DEV/pypi/$pkg/$pkg; please replace\e[0m"
+        echo -e "\e[1m    Execute: cd $HOME_DEV/pypi/$pkg/$pkg; travis && please replace\e[0m"
       fi
     fi
     [[ $x =~ "G" && $x =~ "V" ]] && echo -e "\e[1m    Package $pkg (new version $v1) have to be pushed on github.com\e[0m"
@@ -2907,7 +2956,7 @@ if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|showdoc|status|test|translate|version|wep"
+HLPCMDLIST="help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|show|status|test|translate|version|wep"
 if [[ $opt_help -gt 0 ]]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST" \
     "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
@@ -2927,21 +2976,21 @@ sts_bash=127
 sts_flake8=127
 sts_pylint=127
 test_sts=127
-if [ "$actions" == "help" ]; then
+if [[ "$actions" == "help" ]]; then
   man $TDIR/$THIS.man
 else
-  [ "$PRJNAME" == "Odoo" ] && odoo_fver=$(build_odoo_param FULLVER ".")
-  [ "$PRJNAME" == "Odoo" ] && odoo_fver=$(build_odoo_param FULLVER ".")
+  [[ "$PRJNAME" == "Odoo" ]] && odoo_fver=$(build_odoo_param FULLVER ".")
+  [[ "$PRJNAME" == "Odoo" ]] && odoo_fver=$(build_odoo_param FULLVER ".")
   actions=${actions//+/ }
   actions=${actions//,/ }
   for action in $actions; do
-    if [ "${action:0:3}" == "if-" ]; then
+    if [[ "${action:0:3}" == "if-" ]]; then
       opt_dry_run=1
       cmd="do_${action:3}"
     else
-      cmd="do_$action"
+      cmd="do_${action/-/_}"
     fi
-    if [ "$(type -t $cmd)" == "function" ]; then
+    if [[ "$(type -t $cmd)" == "function" ]]; then
       eval $cmd "$PKGNAME" "'$sub1'" "'$sub2'" "'$sub3'"
       sts=$?
     else
@@ -2949,9 +2998,7 @@ else
       echo "Use $THIS $HLPCMDLIST"
       sts=$STS_FAILED
     fi
-    if [ $sts -ne $STS_SUCCESS ]; then
-      break
-    fi
+    [[ $sts -ne $STS_SUCCESS ]] && break
   done
 fi
 exit $sts

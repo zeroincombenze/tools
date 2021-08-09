@@ -16,15 +16,15 @@ Action is one of:
 .br
 * chkconfig
 .br
-* commit
+* commit (deprecated)
 .br
 * config
 .br
-* distribution
+* distribution (deprecated)
 .br
 * docs
 .br
-* download_rep
+* download_rep (deprecated)
 .br
 * duplicate
 .br
@@ -46,11 +46,11 @@ Action is one of:
 .br
 * replica
 .br
-* showdoc
+* show
 .br
 * status
 .br
-* synchro
+* synchro (deprecated)
 .br
 * test
 .br
@@ -62,7 +62,7 @@ Action is one of:
 .P
 \fBbuild\fR
 .RS
-Build a tar file of current PYPI project
+Build a tar file for current PYPI project
 .br
 This action is appliable just to PYPI projects. The tar file is created on project root directory (i.e. ~/dev/pypi/my_project).
 Look at \fBplease status\fR to see projects tree.
@@ -79,6 +79,8 @@ If current host is a development host, copy all files of current project to remo
 Development host and production host are recognized by their name.
 Server roles are in \fBDEV_HOST\fR and \fBPRD_HOST\fR parameters of \fBplease config\fR action.
 If null value, server roles are declared by HOSTNAME_DEV and HOSTNAME_PRD shell variables.
+.br
+Deprecated! Use git commands
 .RE
 .P
 \fBconfig global|local\fR
@@ -88,17 +90,7 @@ Set various parameter by edit with vim.
 .P
 \fBdistribution oca|zero\fR
 .RS
-Write document files to prepare current project to distribution.
-.br
-If current project is a PYPI package, prepare documentation if docs dir is present with rst files; then call \fBplease docs\fR action
-.br
-If current project is a Odoo module or repository, write README.rst file and index.htm file of project (Odoo 8.0+) or update __openerp__.py file (odoo 7.0-).
-Directory egg-info must contains all documentation files.
-If current dir is a Odoo repository, all modules of current repository are updated.
-.br
-If not present, copy LICENSE file in current directory.
-.br
-This action uses gen_readme.py command of wok_code project.
+Deprecated
 .RE
 .P
 \fBdocs\fR
@@ -113,6 +105,8 @@ This action has effect just for PYPI projects.
 Download repository from git
 .br
 If Odoo project you have to declare version using \fB-b\fR switch
+.br
+Deprecated
 .RE
 .P
 \fBduplicate\fR
@@ -157,7 +151,7 @@ To declare odoo version use \fB-b\fR switch
 .RS
 Publish documentation or package.
 .br
-* publish doc      -> publish generate docs to website (require system privileges)
+* publish docs     -> publish generate docs to website (require system privileges)
 .br
 * publish download -> publish tarball to download (require system privileges)
 .RS
@@ -195,12 +189,25 @@ Copy the selected directory into all other versions of current Odoo module.
 Use this action mainly for replicate documentation directory.
 .RE
 .P
-\fBshowdoc\fR
+\fBshow docs|license\fR
+.RS
+* show docs        -> publish package to pypi website (from odoo user)
+.br
+* show license     -> publish test result svg file (require system privileges)
+.br
+\fBshow docs\fR
 .RS
 Open local documentation web page (readthdocs) with firefox.
 Documentation must be created by \fBplease docs\fR action and published on the "readthdocs" website using \fBplease publish\fR action.
 .br
 This action has effect just for PYPI projects.
+.RE
+\fBshow license\fR
+.RS
+If current project is an Odoo project and current directory is on a repository
+it shows the licenses of all modules.
+.br
+.RE
 .RE
 .P
 \fBstatus\fR
@@ -220,7 +227,7 @@ root
 .br
 |
 .br
-|-- dev                     # Here runtime command links
+|-- devel                   # Here runtime command links
 .br
 |   |
 .br
@@ -249,6 +256,8 @@ root
 Update documentation (please distribution), execute \fBgit commit\fR an then \fNgit push\fR
 .br
 This action is appliable just to PYPI projects. After this action, current project is pushed on to git repository.
+.br
+Deprecated
 .RE
 .P
 \fBtranslate MODULE DB\fR
@@ -257,6 +266,7 @@ Translate po file of Odoo project.
 In order to access to database a configuratione file must be supplied with \fB-c\fR switch.
 .br
 To declare target version use \fB-b\fR switch
+.RE
 .SH OPTIONS
 .TP
 .BR \-L \fIfilename\fR

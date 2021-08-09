@@ -10,7 +10,7 @@ if [[ ! -f README.rst ]]; then
     echo "To supersede this block use --no-verify switch"
     exit 1
 fi
-find ./ -type f -not -path "*/.git/*"  -not -path "*/docs/*"  -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -not -name "*.po"  -not -name "*.rst"  -not -name "*.html" -cnewer ./README.rst -print | grep ".*"
+find ./ -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -not -name "*.po"  -not -name "*.rst"  -not -name "*.html" -cnewer ./README.rst -print | grep ".*"
 if [[ -$? -eq 0 ]]; then
     echo ""
     echo "Detected updates without documentation!"
@@ -21,4 +21,11 @@ if [[ -$? -eq 0 ]]; then
     echo "To supersede this block use --no-verify switch"
     exit 1
 fi
-exit 0
+FILES=$(find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" \))
+sts=0
+for fn in $FILES; do
+  path=$(readlink -f $(dirname $fn))
+  module=$(basename $path)
+  [[ -f $path/__init__.py && ( -f $path/README.rst || -f $path/README.md ) ]] || echo "Module $module w/o documentation" && sts=1
+done
+exit $sts

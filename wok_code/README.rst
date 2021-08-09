@@ -1,6 +1,6 @@
 
 =================
-wok_code 1.0.1.10
+wok_code 1.0.1.11
 =================
 
 
@@ -410,10 +410,10 @@ In this documentation VAR means the name of the macro while MACRO is the name of
 ::
 
     i.e.  .. $if branch == '12.0'
-          Current branch is 1.0.1.10
+          Current branch is 1.0.1.11
 
 In above example then word branch after statement $if ia the VAR branch.
-The word branch in the second line is a text. The item 1.0.1.10 is the macro, replaced by the value of varaibale branch.
+The word branch in the second line is a text. The item 1.0.1.11 is the macro, replaced by the value of varaibale branch.
 
 CONDITION may be a python condition or one of follow special condition:
 
@@ -719,28 +719,33 @@ Current version via Git
 History
 -------
 
-1.0.1.10 (2021-08-05)
+1.0.1.11 (2021-08-08)
+~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] please: changed the syntax of som actions
+
+1.0.1.11 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [REF] Merged and renamed to wok_code
 
-1.0.1.10 (2021-08-04)
+1.0.1.11 (2021-08-04)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
 
-1.0.1.10 (2021-08-03)
+1.0.1.11 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: parameter error
 
-1.0.1.10 (2021-07-29)
+1.0.1.11 (2021-07-29)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
 
-1.0.1.10 (2021-07-21)
+1.0.1.11 (2021-07-21)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: ignore setup directories
@@ -753,22 +758,22 @@ History
 
 * [FIX] wget_odoo_repositories.py: best debug mode: check for branch
 
-1.0.1.10 (2021-05-31)
+1.0.1.11 (2021-05-31)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] license managament: other orgs
 
-1.0.1.10 (2021-05-24)
+1.0.1.11 (2021-05-24)
 ~~~~~~~~~~~~~~~~~~~~~
 [FIX] cvt_script: wrong RUNDIR
 
-1.0.1.10 (2021-03-15)
+1.0.1.11 (2021-03-15)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: status when git pushed
 [FIX] gen_readme.py: crash if invalid Odoo project
 
-1.0.1.10 (2021-03-05)
+1.0.1.11 (2021-03-05)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: publish pypi
@@ -776,18 +781,13 @@ History
 [IMP] gen_readme.py: recognizes powerp
 [IMP] gen_readme.py: set website for any organization
 [IMP] please: status more precise
-[IMP] topep8: recognize power organization1.0.1.10 (2021-02-19)
+[IMP] topep8: recognize power organization1.0.1.11 (2021-02-19)
 
 1.0.0.13 (2021-02-28)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] cvt_script: best code replacement
 [IMP] topep8: recognize power organization
-
-0.1.17.1 (2021-02-19)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] wget_odoo_repositories.py: best debug mode
 
 
 
@@ -803,16 +803,37 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+|
+
+Authors
+-------
+
+
+
+
 Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 
+
+Acknowledges
+------------
+
+
+
+
+Translations by
+---------------
+
+
+
+
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-07
+Last Update / Ultimo aggiornamento: 2021-08-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
@@ -827,22 +848,22 @@ Last Update / Ultimo aggiornamento: 2021-08-07
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.1.10
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.1.11
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.10/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.10
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.11/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.11
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.1.10/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.1.11/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.1.10/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.1.11/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.1.10/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.1.10
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.1.11/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.1.11
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org
