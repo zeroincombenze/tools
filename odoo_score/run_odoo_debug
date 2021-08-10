@@ -18,18 +18,18 @@ for d in $PYPATH /etc; do
 done
 if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
-if [ -z "$ODOOLIBDIR" ]; then
+if [[ -z "$ODOOLIBDIR" ]]; then
   echo "Library file odoorc not found!"
-  exit 2
+  exit 72
 fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-__version__=0.3.28.11
+__version__=1.0.1.4
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then
@@ -123,7 +123,7 @@ fi
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
-[[ -n "$opt_odir" ]] && odoo_root=$(readlink -f $opt_odir) || odoo_root=$(build_odoo_param ROOT $odoo_vid search)
+[[ -n "$opt_odir" ]] && odoo_root=$($READLINK -f $opt_odir) || odoo_root=$(build_odoo_param ROOT $odoo_vid search)
 [[ -n "$opt_conf" ]] && CONFN=$opt_conf || CONFN=$(build_odoo_param CONFN $odoo_vid search)
 LCONFN=$(build_odoo_param LCONFN $odoo_vid)
 script=$(build_odoo_param BIN $odoo_root search)
@@ -234,7 +234,7 @@ if [[ -n "$opt_modules" ]]; then
         OPTSIU="$OPTI $OPTU"
         alt=
         if [[ $opt_exp -ne 0 && -n "$opt_ofile" ]]; then
-            src=$(readlink -f $opt_ofile)
+            src=$($READLINK -f $opt_ofile)
             OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
         elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
             srcs=$(find -L $odoo_root -not -path '*/__to_remove/*' -type d -name "$opt_modules")
@@ -258,7 +258,7 @@ if [[ -n "$opt_modules" ]]; then
                 [[ -n "$alt" ]] && echo ".. may be $alt ?"
                 exit 1
             fi
-            src=$(readlink -f $src)
+            src=$($READLINK -f $src)
             if [[ $opt_imp -ne 0 ]]; then
                 OPTS="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
             else

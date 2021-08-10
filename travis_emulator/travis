@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.3
+__version__=1.0.1.4
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -454,6 +454,7 @@ process_yaml_before_install() {
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
     for lne in $YML_before_install; do
+      [[ $TRAVIS_DEBUG_MODE -ge 3 ]] && echo "#> $(process_yaml_quote_xtl $lne)"
       process_yaml_run_cmd "$lne"
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
@@ -495,7 +496,7 @@ process_yaml_before_script() {
   local line1 lne
   line1=$(process_yaml_quote $1)
   wlog "\e[${PS_HDR2_COLOR}m===== [Before script $line1] =====\e[0m"
-  if [ -z "$line1" -o "${line1:0:1}" == "#" ]; then
+  if [[ -z "$line1" || "${line1:0:1}" == "#" ]]; then
     sts=127
   else
     for lne in $YML_before_script; do
@@ -950,12 +951,12 @@ OPTHELP=("this help"
 OPTARGS=(action sub sub2)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
 ACTIONS="(help|emulate|force-lint|lint|force-test|test|chkconfig|parseyaml|show-log|show-color|summary|wep-db)"
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "Travis-ci emulator for local developer environment\nAction may be: ${ACTIONS//|/,}" \
   "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
@@ -1106,13 +1107,17 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
     exit 2
   fi
 elif [[ $action == "summary" ]]; then
+  sts=0
   if [[ -f $LOGFILE ]]; then
     echo "$(readlink -f $LOGFILE):\$ VIRTUALENV=$(grep -E "vem .*VENV_" $LOGFILE|grep -Eo "VENV_[0-9]+")"
     grep -EH "(\| .*test|TODAY=|PKGNAME=|LOGFILE=)" $LOGFILE
+    grep -Eq "\| .*test.*FAIL" $LOGFILE
+    [[ $? -eq 0 ]] && sts=1 || sts=0
   else
     echo "File $LOGFILE not found!"
+    sts=1
   fi
-  exit 0
+  exit $sts
 elif [[ $action == "show-log" ]]; then
   if [[ ${opt_dry_run:-0} -gt 0 ]]; then
     echo "> travis > $LOGFILE"

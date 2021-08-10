@@ -24,7 +24,7 @@ for d in $PYPATH /etc; do
 done
 if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
@@ -312,11 +312,11 @@ OPTHELP=("this help"
 OPTARGS=(mode)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "Install packages to run travis tests\n if supplied 'oca' executes travis_install_nightly" \
     "(C) 2016-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0

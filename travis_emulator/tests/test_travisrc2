@@ -2,32 +2,40 @@
 # -*- coding: utf-8 -*-
 # Regression tests on travis emulator
 #
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+TDIR=$($READLINK -f $(dirname $0))
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
-if [ -z "$Z0TLIBDIR" ]; then
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$($READLINK -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
+if [[ -z "$Z0TLIBDIR" ]]; then
   echo "Library file z0testrc not found!"
-  exit 2
+  exit 72
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
-__version__=1.0.1.3
+__version__=1.0.1.4
 
 
 save_testenv() {
@@ -70,17 +78,13 @@ result_testenv() {
 }
 
 Z0BUG_setup() {
-    if [[ -d /home/odoo ]]; then
-        LCL_ROOT=/home/odoo
-    else
-        LCL_ROOT=/opt/odoo
-    fi
+    LCL_ROOT=$(getent passwd $USER|cut -f6 -d:)
     local VERSION=9.0
     local ODOO_REPO=local/odoo
     LCL_OE_PRJNAME="Odoo"
     LCL_OE_REPOS=l10n_italy
     LCL_OE_PKGNAME=l10n_it_base
-    LCL_OE_ROOT=~/dev/odoo/$VERSION
+    LCL_OE_ROOT=~/devel/odoo/$VERSION
     LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OE_REPOS
     LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OE_PKGNAME
     LCL_OE_PKGPATH2=$LCL_OE_PRJPATH/__unported__/$LCL_OE_PKGNAME
@@ -115,22 +119,22 @@ Z0BUG_setup() {
 $ cp /etc/odoo/odoo9-server.conf $LCL_ROOT/.openerp_serverrc
 > mkdir $LCL_ROOT/dependencies
 > export INCLUDE=l10n_it_base
-> ln -s $LCL_ROOT/dev/odoo/9.0/l10n_italy $LCL_ROOT/dependencies/
-> ln -s $LCL_ROOT/dev/odoo/9.0/openerp $LCL_ROOT/dependencies/
-> ln -s $LCL_ROOT/dev/odoo/9.0/openerp $LCL_ROOT/dependencies/
-> ln -s $LCL_ROOT/dev/odoo/9.0 $LCL_ROOT/odoo-9.0
-> ln -s $LCL_ROOT/dev/odoo/9.0/l10n_italy/l10n_it_base $LCL_ROOT/l10n_it_base-9.0
+> ln -s $LCL_ROOT/devel/odoo/9.0/l10n_italy $LCL_ROOT/dependencies/
+> ln -s $LCL_ROOT/devel/odoo/9.0/openerp $LCL_ROOT/dependencies/
+> ln -s $LCL_ROOT/devel/odoo/9.0/openerp $LCL_ROOT/dependencies/
+> ln -s $LCL_ROOT/devel/odoo/9.0 $LCL_ROOT/odoo-9.0
+> ln -s $LCL_ROOT/devel/odoo/9.0/l10n_italy/l10n_it_base $LCL_ROOT/l10n_it_base-9.0
 
 EOF
     LCL_PY_PRJNAME="example"
     LCL_PY_PKGNAME=$LCL_PY_PRJNAME
     LCL_PY_REPOS="pypi"
-    LCL_PY_ROOT=~/dev/test/pypi
+    LCL_PY_ROOT=~/devel/test/pypi
     LCL_PY_SETUP=setup.py
-    mkdir -p ~/dev/test
-    mkdir -p ~/dev/test/pypi
-    mkdir -p ~/dev/test/pypi/$LCL_PY_PRJNAME
-    mkdir -p ~/dev/test/pypi/$LCL_PY_PRJNAME/$LCL_PY_PRJNAME
+    mkdir -p ~/devel/test
+    mkdir -p ~/devel/test/pypi
+    mkdir -p ~/devel/test/pypi/$LCL_PY_PRJNAME
+    mkdir -p ~/devel/test/pypi/$LCL_PY_PRJNAME/$LCL_PY_PRJNAME
     LCL_PY_PKGPATH=$LCL_PY_ROOT/$LCL_PY_PRJNAME
     LCL_PY_PRJPATH=$LCL_PY_PKGPATH/$LCL_PY_PRJNAME
     mkdir -p $LCL_PY_PKGPATH/conf
@@ -139,7 +143,7 @@ EOF
 }
 
 Z0BUG_teardown() {
-    rm -fR ~/dev/test
+    rm -fR ~/devel/test
     rm -f ~/maintainer-quality-tools
     rm -fR $LCL_OE_PKGPATH2
     rm -fR $LCL_OE_PKGPATH
@@ -405,7 +409,7 @@ test_05() {
     # elif [ -d $HOME/build/local/travis_emulator/_travis ]; then
     #   test_result "init_travis \$TOOLS_PATH" "$HOME/build/local/travis_emulator/_travis" "$TOOLS_PATH"
     # else
-    #   test_result "init_travis \$TOOLS_PATH" "$LCL_ROOT/dev/_travis" "$TOOLS_PATH"
+    #   test_result "init_travis \$TOOLS_PATH" "$LCL_ROOT/devel/_travis" "$TOOLS_PATH"
     # fi
     # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     # FIX: temporarly disabled
@@ -527,9 +531,7 @@ test_07() {
 Z0BUG_init
 parseoptest -l$TESTDIR/test_travis_em.log "$@" "-JO"
 sts=$?
-if [ $sts -ne 127 ]; then
-  exit $sts
-fi
+[[ $sts -ne 127 ]] && exit $sts
 if [ ${opt_oeLib:-0} -ne 0 ]; then
   ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
   if [ -z "$ODOOLIBDIR" ]; then
@@ -550,8 +552,8 @@ fi
 UT1_LIST=""
 UT_LIST=""
 Z0BUG_setup
-if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+[[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?
-if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+[[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
 exit $sts

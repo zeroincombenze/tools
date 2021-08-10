@@ -3,10 +3,12 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.1
+#__version__=1.0.1.1
 STS_FAILED=1
 STS_SUCCESS=0
 PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:$HOME/devel::$HOME/dev:.:..').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 
 ##############################################################################
 # Install this lib file in /etc if version is more recent
@@ -430,7 +432,8 @@ export -f print_help
 # Parameter $3:
 #    "echo" means wlog echoes message onto console when write log
 set_tlog_file() {
-    #set -x
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local p=$(dirname "$1")
     local f=$(basename "$1")
     if [ "$p" == "~" ]; then p=$HOME; fi
@@ -442,12 +445,12 @@ set_tlog_file() {
         p=$HOME
       fi
     fi
-    export FLOG=$(readlink -f $p/$f)
+    export FLOG=$($READLINK -f $p/$f)
     if [ "$2" == "new" ]; then
       if [ -f "$FLOG" ]; then rm -f "$FLOG"; fi
     fi
     export FLOG_ECHO=${3:-#}
-    #set +x
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
 }
 
 
@@ -604,6 +607,7 @@ export -f run_traced
 #    Level 5 subdirectory list (space separated) where file could be found (maybe be empty)
 findpkg() {
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local p2 p3 p4 p5 p6
     local r2 r3 r4 r5 r6
     local i2 i3 i4 i5 i6
@@ -615,37 +619,37 @@ findpkg() {
     for p2 in $2; do
       r2=$p2
       if [[ -n "$1" && -e $r2/$1 ]]; then
-        result=$(readlink -e $r2/$1)
+        result=$($READLINK -e $r2/$1)
         break
       fi
       for p3 in $i3; do
         [[ -n "$p3" ]] && r3=/$p3 || r3=""
         if [[ -n "$1" && -e $r2$r3/$1 ]]; then
-          result=$(readlink -e $r2$r3/$1)
+          result=$($READLINK -e $r2$r3/$1)
           break
         fi
         for p4 in $i4; do
           [[ -n "$p4" ]] && r4=/$p4 || r4=""
           if [[ -n "$1" && -e $r2$r3$r4/$1 ]]; then
-            result=$(readlink -e $r2$r3$r4/$1)
+            result=$($READLINK -e $r2$r3$r4/$1)
             break
           fi
           for p5 in $i5; do
             [[ -n "$p5" ]] && r5=/$p5 || r5=""
             if [[ -n "$1" && -e $r2$r3$r4$r5/$1 ]]; then
-              result=$(readlink -e $r2$r3$r4$r5/$1)
+              result=$($READLINK -e $r2$r3$r4$r5/$1)
               break
             fi
             for p6 in $i6; do
               [[ -n "$p6" ]] && r6=/$p6 || r6=""
               if [[ -z "$1" ]]; then
                 if [[ -d $r2$r3$r4$r5$r6 ]]; then
-                  result=$(readlink -e $r2$r3$r4$r5$r6)
+                  result=$($READLINK -e $r2$r3$r4$r5$r6)
                   break
                 fi
               else
                 if [[ -e $r2$r3$r4$r5$r6/$1 ]]; then
-                  result=$(readlink -e $r2$r3$r4$r5$r6/$1)
+                  result=$($READLINK -e $r2$r3$r4$r5$r6/$1)
                   break
                 fi
               fi
@@ -1225,6 +1229,7 @@ export -f link_cfg
 #
 parse_URI() {
 #parse_URI(URI default ALL|±USER|±PROT|±DOMAIN|±HOST|±FULLNAME|±DIRNAME|±BASENAME|±NAMEID|±EXT|±PORT)
+    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local URI_REGEX='^(([^:/?#]+):)?((//)?((([^:/?#]+)@)?([^:/?#]+)))(:([0-9]+))?(/([^?#]*))?(\?([^#]*))?(#(.*))?'
     local IS_URL1='^(([^:/?#]+):)'
     local IS_URL2='^//'
@@ -1249,7 +1254,7 @@ parse_URI() {
     fi
     if [ -n "${V[11]}" ]; then
       if [[ $3 =~ \+ABS ]]; then
-        V[11]=$(readlink -f ${V[11]})
+        V[11]=$($READLINK -f ${V[11]})
         V[12]=${V[11]:1}
       fi
       V[17]=$(dirname ${V[11]}) || V[17]=
@@ -1264,7 +1269,7 @@ parse_URI() {
     fi
     if [ -n "${D[11]}" ]; then
       if [[ $3 =~ \+ABS ]]; then
-        D[11]=$(readlink -f ${D[11]})
+        D[11]=$($READLINK -f ${D[11]})
         D[12]=${D[11]:1}
       fi
       D[17]=$(dirname ${D[11]}) || D[17]=

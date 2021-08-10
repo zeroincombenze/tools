@@ -9,8 +9,10 @@ READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null
 export READLINK
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib $TDIR/../../z0lib/z0lib; do
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -20,8 +22,9 @@ for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc $TDIR/../z0lib $TDIR/../../z0lib
 done
 if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
 __version__=1.0.0.9
 NEEDING_PKGS="future configparser os0 z0lib"
@@ -237,7 +240,7 @@ bin_install_1() {
 pip_install() {
   #pip_install(pkg opts)
   local pkg d x srcdir fn popts v
-  local pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name "python$opt_pyver")
+  local pypath=$(find $($READLINK -f $(dirname $(which $PYTHON))/../lib) -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
   pkg="$(get_actual_pkg $1)"
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
@@ -342,7 +345,7 @@ pip_install() {
 pip_install_1() {
   # pip_install_1(popts)
   local pkg
-  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m (1)"
   for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
     pip_install "$pkg" "$1"
   done
@@ -351,7 +354,7 @@ pip_install_1() {
 pip_install_2() {
   # pip_install_2(popts)
   local pkg
-  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m3 - Analyzing $OEPKGS\e[0m"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m3 - Analyzing $OEPKGS\e[0m (2)"
   for pkg in $OEPKGS; do
     pip_install "$pkg" "$1"
   done
@@ -619,7 +622,6 @@ custom_env() {
   elif [[ -d $PWD/.local/lib/python$2/site-packages ]]; then
     echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\n" >$PWD/lib/python$2/site-packages/sitecustomize.py
   fi
-  # pop_cd
 }
 
 venv_mgr_check_src_path() {
@@ -696,7 +698,7 @@ check_installed_pkgs() {
   [[ $opt_verbose -eq 0 ]] && popts="$potps -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
-    [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install popts $p"
+    [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install $popts $p"
     [[ -z "${!x}" ]] && $PIP install $popts $p
   done
   LIST_REQ="list_requirements.py"
@@ -733,15 +735,6 @@ venv_mgr_check_oever() {
     done
     [[ -z $p ]] && p="$2"
     find_odoo_path "$p2" "-L"
-#    [[ $opt_verbose -gt 2 ]] && echo ">>> find -L $p -not -path \"*/__to_remove/*\" -not -path \"*/lib/*\" -not -path \"*/lib64/*\" -not -path \"*/tests/res/*\" -not -path \"*/include/*\" -not -path \"*/.npm/*\" -not -path \"*/node_modules/*\" -not -path \"*/.cache/*\" -name release.py"
-#    x=$(find -L $p -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py|head -n1)
-#    if [[ -n "$x" ]]; then
-#      p=$(dirname $x)
-#      cd_venv $p -fq
-#      x=$(echo -e "import release\nprint(release.version)\n" | python)
-#      opt_oever="$x"
-#      pop_cd -q
-#    fi
   fi
   if [[ ! $1 =~ (help|create) ]]; then
     [[ -n "$opt_oever" && $opt_verbose -gt 1 ]] && echo "### Odoo version $opt_oever ...  ###"
@@ -1014,8 +1007,8 @@ do_venv_create() {
     [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
   fi
   pip_install_1
-  [ -n "$opt_oever" ] && pip_install_2
-  [ -n "$opt_rfile" ] && pip_install_req
+  [[ -n "$opt_oever" ]] && pip_install_2
+  [[ -n "$opt_rfile" ]] && pip_install_req
   do_deactivate
   [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $($READLINK -f ./odoo)"
   pop_cd
@@ -1128,7 +1121,7 @@ OPTHELP=("this help"
 OPTARGS=(p3 p4 p5 p6 p7 p8 p9)
 # no-global-site-packages.txt
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
@@ -1169,7 +1162,7 @@ fi
 [[ -z "$p5" && -n "$p6" ]] && p5="$p6" && p6=""
 [[ -z "$p4" && -n "$p5" ]] && p4="$p5" && p5=""
 [[ -z "$p3" && -n "$p4" ]] && p3="$p4" && p4=""
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi

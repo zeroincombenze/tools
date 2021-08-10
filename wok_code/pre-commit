@@ -1,31 +1,62 @@
 #! /bin/bash
 #
-# git_hook
+#__version__=1.0.1.11
 #
-if [[ ! -f README.rst ]]; then
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+RDME="README.md"
+[[ -f README.rst ]] && RDME="README.rst"
+if [[ ! -f $RDME ]]; then
     echo "Missed documentation file README.rst!"
     echo "Please, type:"
     echo "> please docs"
     echo ""
-    echo "To supersede this block use --no-verify switch"
+    echo "To supersede this lock use --no-verify switch"
     exit 1
 fi
-find ./ -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -not -name "*.po"  -not -name "*.rst"  -not -name "*.html" -cnewer ./README.rst -print | grep ".*"
-if [[ -$? -eq 0 ]]; then
-    echo ""
-    echo "Detected updates without documentation!"
-    echo "Please see above file list and type the command:"
-    echo "> please docs"
-    echo "at the path of every module no yet documented!"
-    echo ""
-    echo "To supersede this block use --no-verify switch"
-    exit 1
+#find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -not -name "*.po"  -not -name "*.rst"  -not -name "*.html" -cnewer ./$RDME -print | grep ".*"
+#if [[ -$? -eq 0 ]]; then
+#    echo ""
+#    echo "Detected updates without documentation!"
+#    echo "Please see above file list and type the command:"
+#    echo "> please docs"
+#    echo "at the path of every module no yet documented!"
+#    echo ""
+#    echo "To supersede this lock use --no-verify switch"
+#    exit 1
+#fi
+#FILES=$(find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" \))
+#sts=0
+#for fn in $FILES; do
+#  path=$($READLINK -f $(dirname $fn))
+#  module=$(basename $path)
+#  [[ -f $path/__init__.py && ( -f $path/README.rst || -f $path/README.md ) ]] || echo "Module $module w/o documentation" && sts=1
+#done
+
+OCB=0
+[[ -x ./odoo-bin || -x ./odoo/odoo-bin || -x ./openerp-server || -x ./odoo/openerp-server || -x ./server/openerp-server ]] && OCB=1
+if [[ $OCB -ne 0 ]]; then
+	  CMD='find ./addons ./odoo ./openerp -maxdepth 3 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" -o -name "README.rst" -o -name "README.md" \)  2>/dev/null'
+else
+	  CMD='find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" -o -name "README.rst" -o -name "README.md" \)  2>/dev/null'
 fi
-FILES=$(find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" \))
+DIRS=$(eval $CMD|xargs dirname|xargs $READLINK -f|sort|uniq|tr "\n" " ")
+RDME=""
+[[ -f README.md ]] && RDME=README.md
+[[ -f README.rst ]] && RDME=README.rst
 sts=0
-for fn in $FILES; do
-  path=$(readlink -f $(dirname $fn))
-  module=$(basename $path)
-  [[ -f $path/__init__.py && ( -f $path/README.rst || -f $path/README.md ) ]] || echo "Module $module w/o documentation" && sts=1
+for d in $DIRS; do
+    [[ ! -f $d/README.rst && ! -f $d/README.md ]] && echo -e "Module \e[1m$(basename $d)\e[0m without documentation; missed \e[33m$d/README.rst\e[0m" && sts=1 && continue
+    FILES=""
+    [[ -n $RDME ]] && FILES=$(find $d -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -cnewer ./$RDME)
+    [[ -n $FILES ]] && echo -e "Detected undocumented files of module \e[1m$(basename $d)\e[0m; type:\n\e[32mcd $d; please docs;\e[0m" && sts=1
 done
+if [[ -f .travis.yml ]]; then
+    echo -e "\ntravis result:"
+    travis summary
+    [[ $? -ne 0 ]] && sts=1 && echo -e "\n\e[31mRepository not validated by travis\e[0m\nPlease type:\ntravis"
+fi
+if [[ $sts -ne 0 ]]; then
+    echo ""
+    echo "To supersede this lock use --no-verify switch"
+fi
 exit $sts

@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 [IMP] devel_tools replaced by wok_code
+[IMP] travis: summary return 1 if test failed
 
 1.0.1.3 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~

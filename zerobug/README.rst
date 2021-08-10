@@ -326,6 +326,12 @@ Current version via Git
 History
 -------
 
+1.0.1.2 (2021-08-09)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] travis_run_pypi_test: run in osx darwin
+[FIX] z0testrc: run in osx darwin
+
 1.0.1.1 (2021-05-26)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -350,16 +356,37 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+|
+
+Authors
+-------
+
+
+
+
 Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 
+
+Acknowledges
+------------
+
+
+
+
+Translations by
+---------------
+
+
+
+
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-07
+Last Update / Ultimo aggiornamento: 2021-08-10
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

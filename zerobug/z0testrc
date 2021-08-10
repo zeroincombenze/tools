@@ -80,6 +80,7 @@ export STS_FAILED=1
 export STS_SUCCESS=0
 
 Z0BUG_version=$__version__
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 
 
 parseoptest() {
@@ -167,7 +168,7 @@ parseoptest() {
         logfn="$HOME/$THIS.log"
       fi
     fi
-    logfn=$(readlink -m $logfn)
+    logfn=$($READLINK -m $logfn)
     if [ ${Z0BUG_run_autotest:-0} -ne 1 ]; then
       set_tlog_file "$logfn" "$LNEW" "$LECHO"
     fi

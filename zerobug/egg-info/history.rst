@@ -1,3 +1,9 @@
+1.0.1.2 (2021-08-09)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] travis_run_pypi_test: run in osx darwin
+[FIX] z0testrc: run in osx darwin
+
 1.0.1.1 (2021-05-26)
 ~~~~~~~~~~~~~~~~~~~~
 

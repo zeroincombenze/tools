@@ -9,29 +9,37 @@
 # git report to origin
 # git fetch origin , poi, git reset --hard origin/8.0-ddt-based-on-packaging-preparation_fa
 #
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR ${PATH//:/ } ${PYPATH//:/ } /etc /home/odoo/devel/pypi/wok_code/wok_code/../z0lib /home/odoo/devel/pypi/wok_code/wok_code/../../z0lib /home/odoo/devel/pypi/wok_code/wok_code/../../z0lib/z0lib; do
+TDIR=$($READLINK -f $(dirname $0))
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
 if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR ${PATH//:/ } ${PYPATH//:/ } . .." "travis_emulator")
-if [ -z "$TRAVISLIBDIR" ]; then
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
+if [[ -z "$TRAVISLIBDIR" ]]; then
   echo "Library file travisrc not found!"
-  exit 2
+  exit 72
 fi
 . $TRAVISLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$($READLINK -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
 __version__=1.0.1.11
 
@@ -64,11 +72,11 @@ OPTHELP=("this help"\
 OPTARGS=(InvalidParam InvalidParam2)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "Copy package files"\
   "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
@@ -78,7 +86,7 @@ opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
-if [ $opt_verbose -gt 1 ]; then set -x; fi
+[[ $opt_verbose -gt 1 ]] && set -x
 init_travis
 prepare_env_travis ""
 sts=$STS_SUCCESS
@@ -186,7 +194,7 @@ if [ "$opt_cpush" == "-O" ]; then
   [ $opt_dry_run -ne 0 ] && opts_common="${opts_common}n"
   [ ${opt_verbose:-0} -ne 0 ] && opts_common="${opts_common}v"
   [ -n "$opts_common" ] && opts_common="-${opts_common}"
-  srcdir=$(readlink -f .)
+  srcdir=$($READLINK -f .)
   [ "${srcdir: -1}" == "/" ] && srcdir=${srcdir:0: -1}
   tgtdir=$LGITPATH
   [ "${tgtdir: -1}" == "/" ] && tgtdir=${tgtdir:0: -1}
@@ -259,7 +267,7 @@ if [ "$opt_cpush" == "-D" ]; then
   [ $opt_dry_run -ne 0 ] && opts_common="${opts_common}n"
   [ ${opt_verbose:-0} -ne 0 ] && opts_common="${opts_common}v"
   [ -n "$opts_common" ] && opts_common="-${opts_common}"
-  srcdir=$(readlink -f .)
+  srcdir=$($READLINK -f .)
   [ "${srcdir: -1}" == "/" ] && srcdir=${srcdir:0: -1}
   tgtdir=$LGITPATH
   [ "${tgtdir: -1}" == "/" ] && tgtdir=${tgtdir:0: -1}

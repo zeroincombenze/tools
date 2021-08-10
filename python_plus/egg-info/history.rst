@@ -1,7 +1,12 @@
 1.0.1.3 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~
 
-* [FIX] vem: uninstall package with version ">"
+[FIX] vem: run in osx darwin
+
+1.0.1.3 (2021-08-05)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: uninstall package with if package version with ">"
 
 1.0.1.2 (2021-07-29)
 ~~~~~~~~~~~~~~~~~~~

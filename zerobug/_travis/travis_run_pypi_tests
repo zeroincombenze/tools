@@ -26,13 +26,13 @@ for d in $PYPATH /etc; do
 done
 if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
-if [ -z "$TRAVISLIBDIR" ]; then
+if [[ -z "$TRAVISLIBDIR" ]]; then
   echo "Library file travisrc not found!"
-  exit 2
+  exit 72
 fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
@@ -93,8 +93,8 @@ please_test_flake8() {
     echo "======== Testing test_flake8 ========"
     local s sts
     sts=0
-    run_traced "export FLAKE8_CONFIG_DIR=$(readlink -f $TDIR/../_travis/cfg)"
-    [[ -z "$FLAKE8_CONFIG_DIR" ]] && run_traced "export FLAKE8_CONFIG_DIR=$(readlink -f $TDIR/../travis/cfg)"
+    run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../_travis/cfg)"
+    [[ -z "$FLAKE8_CONFIG_DIR" ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../travis/cfg)"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg
@@ -144,8 +144,8 @@ run_regression_test() {
         [[ $TRAVIS_PDB" == "true ]] && opts="${opts}B"
         [[ $TRAVIS_DEBUG_MODE =~ [89] ]] && opts="${opts}n"
         OPTS=$(inherits_travis_opts "$opts" "T")
-        run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"
-        COVERAGE_PROCESS_START=$(readlink -f .coveragerc)
+        run_traced "COVERAGE_PROCESS_START=$($READLINK -f .coveragerc)"
+        COVERAGE_PROCESS_START=$($READLINK -f .coveragerc)
         if [ ! -f $COVERAGE_PROCESS_START ]; then
             cat << EOF > $COVERAGE_PROCESS_START
 # Config file .coveragerc 2019-08-22
@@ -352,11 +352,11 @@ OPTHELP=("this help"\
 OPTARGS=(pkg PRJNAME)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
     echo "$__version__"
     exit 0
 fi
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
     print_help "Run test in travis environment" \
                "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
@@ -371,7 +371,7 @@ opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
-[[ $opt_verbose -gt 1 ]] && set -x
+[[ $TRAVIS_DEBUG_MODE -gt 2 ]] && set -x
 init_travis
 prepare_env_travis
 

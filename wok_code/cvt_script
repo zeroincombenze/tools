@@ -24,7 +24,7 @@ for d in $PYPATH /etc; do
 done
 if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
@@ -228,9 +228,9 @@ cvt_file() {
               parse_blk_8
             fi
             parse_blk_9
-            if [ $opt_UT -eq 0 ]; then
+            if [[ $opt_UT -eq 0 ]]; then
               echo "Warning: found Zerobug library w/o -U switch"
-              ToRepeat="$ToRepeat $opt_UT=1"
+              ToRepeat="$ToRepeat opt_UT=1"
             fi
           elif [[ $line =~ ^__version__.* || $line =~ ^[a-zA_Z0-9_]+[:space:]*\( ]]; then
             if [ $prc -lt 2 ]; then
@@ -309,7 +309,6 @@ cvt_file() {
             echo "$line" >>$fntmp
           fi
         elif [ $prc -eq 13 ]; then
-          # echo "$incl) $line" #debug
           if [[ $line =~ ^Z0BUG_main_file.* ]]; then
             prc=14
             blk_14 "$fntmp"
@@ -410,7 +409,7 @@ for d in \$PYPATH /etc; do
 done
 if [[ -z "\$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=\$Z0LIBDIR"
 EOF
@@ -419,9 +418,9 @@ EOF
 blk_2() {
   cat <<EOF >>$1
 ODOOLIBDIR=\$(findpkg odoorc "\$PYPATH" "clodoo")
-if [ -z "\$ODOOLIBDIR" ]; then
+if [[ -z "\$ODOOLIBDIR" ]]; then
   echo "Library file odoorc not found!"
-  exit 2
+  exit 72
 fi
 . \$ODOOLIBDIR
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=\$ODOOLIBDIR"
@@ -447,9 +446,9 @@ EOF
 blk_3() {
   cat <<EOF >>$1
 TRAVISLIBDIR=\$(findpkg travisrc "\$PYPATH" "travis_emulator")
-if [ -z "\$TRAVISLIBDIR" ]; then
+if [[ -z "\$TRAVISLIBDIR" ]]; then
   echo "Library file travisrc not found!"
-  exit 2
+  exit 72
 fi
 . \$TRAVISLIBDIR
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=\$TRAVISLIBDIR"
@@ -461,9 +460,9 @@ blk_3z() {
     cat <<EOF >>$1
 if [ \${opt_tjLib:-0} -ne 0 ]; then
   TRAVISLIBDIR=\$(findpkg travisrc "\$PYPATH" "travis_emulator")
-  if [ -z "\$TRAVISLIBDIR" ]; then
+  if [[ -z "\$TRAVISLIBDIR" ]]; then
     echo "Library file travisrc not found!"
-    exit 2
+    exit 72
   fi
   . \$TRAVISLIBDIR
   [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=\$TRAVISLIBDIR"
@@ -477,7 +476,7 @@ blk_4() {
 ZARLIB=\$(findpkg zarrc "\$PYPATH")
 if [[ -z "\$ZARLIB" ]]; then
   echo "Library file zarrc not found!"
-  exit 2
+  exit 72
 fi
 . \$ZARLIB
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ZARLIB=\$ZARLIB"
@@ -489,9 +488,9 @@ blk_4z() {
     cat <<EOF >>$1
 if [ \$opt_zLib -ne 0 ]; then
   ZARLIB=\$(findpkg zarrc "\$PYPATH")
-  if [ -z "\$ZARLIB" ]; then
+  if [[ -z "\$ZARLIB" ]]; then
     echo "Library file zarrc not found!"
-    exit 2
+    exit 72
   fi
   . \$ZARLIB
   [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ZARLIB=\$ZARLIB"
@@ -514,7 +513,7 @@ blk_9() {
 Z0TLIBDIR=\$(findpkg z0testrc "\$PYPATH" "zerobug")
 if [[ -z "\$Z0TLIBDIR" ]]; then
   echo "Library file z0testrc not found!"
-  exit 2
+  exit 72
 fi
 . \$Z0TLIBDIR
 Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
@@ -594,11 +593,11 @@ OPTHELP=("this help"
 OPTARGS=(bashscript)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "Update bash script" \
     "© 2016-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
@@ -610,7 +609,7 @@ COPY[z0lib]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.read
 COPY[travis_em]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
 ToRepeat=
 cvt_file $bashscript
-if [ -n "$ToRepeat" ]; then
+if [[ -n "$ToRepeat" ]]; then
   eval $ToRepeat
   echo "Found wrong flags, repeating operation ..."
   ToRepeat=
