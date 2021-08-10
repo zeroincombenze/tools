@@ -1,6 +1,7 @@
 1.0.5.40 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~~
 
+[IMP] install_tools.sh: avoid git --show-current to compatibility old git version
 [IMP] License text directory
 
 1.0.5.39 (2021-08-03)

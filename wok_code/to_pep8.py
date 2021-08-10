@@ -1612,12 +1612,12 @@ class topep8():
                                          tokval,
                                          (srow, scol),
                                          (erow, ecol))
-        if ctx['no_nl_eof']:
-            while (text_tgt[-3:]) == '\n\n\n':
-                text_tgt = text_tgt[0: -1]
-        else:
-            while (text_tgt[-2:]) == '\n\n':
-                text_tgt = text_tgt[0: -1]
+                while (text_tgt.endswith(' \n')):
+                    text_tgt = text_tgt[0: -2] + '\n'
+        while (text_tgt.endswith('\n\n')):
+            text_tgt = text_tgt[0: -1]
+        if ctx['no_nl_eof'] and text_tgt.endswith('\n\n'):
+            text_tgt = text_tgt[0: -1]
         return text_tgt
 
 

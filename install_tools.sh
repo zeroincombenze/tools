@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.5.39
+__version__=1.0.5.40
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -66,7 +66,7 @@ if [[ -z "$SRCPATH" || -z "$DSTPATH" ]]; then
     exit 1
 fi
 if [[ ! $1 =~ ^-.*t ]]; then
-    [[ $1 =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --show-current) != "devel" ]] && git stash -q && git checkout devel -f
+    [[ $1 =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
     [[ ! $1 =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --show-current) != "master" ]] && git stash -q && git checkout master -fq
     [[ $1 =~ ^-.*U ]] && cd $SRCPATH && git pull
 fi
@@ -111,6 +111,8 @@ for pkg in $PKGS_LIST tools; do
             [[ -d "$tgt" ]] && echo "$PMPT rm -fR $tgt"
             [[ -d "$tgt" && ! $1 =~ ^-.*n ]] && rm -fR $tgt
             if [[ $fn =~ (kbase|templates|license_text) ]]; then
+                [[ ! $1 =~ ^-.*q  && ! -d $(dirname "$tgt") ]] && echo "$PMPT mkdir -p $(dirname "$tgt")"
+                [[ ! $1 =~ ^-.*n  && ! -d $(dirname "$tgt") ]] && mkdir -p $(dirname "$tgt")
                 [[ ! $1 =~ ^-.*q ]] && echo "$PMPT ln -s $src $tgt"
                 [[ $1 =~ ^-.*n ]] || ln -s $opts $src $tgt
             elif [[ ! -e "$tgt" || $1 =~ ^-.*[fpU] ]]; then
@@ -224,7 +226,7 @@ fi
 [[ $1 =~ ^-.*T ]] && $DSTPATH/test_tools.sh
 if [[ ! $1 =~ ^-.*g && ! $1 =~ ^-.*t ]]; then
   [[ ! $1 =~ ^-.*q ]] && echo "Searching for git projects ..."
-  for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git"|sort); do
+  for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
     [[ $1 =~ ^-.*v && ! $1 =~ ^-.*G ]] && echo "cp $SRCPATH/wok_code/pre-commit $d/hooks"
     [[ ! $1 =~ ^-.*n && ! $1 =~ ^-.*G ]] && cp $SRCPATH/wok_code/pre-commit $d/hooks
     [[ $1 =~ ^-.*v && $1 =~ ^-.*G && -f $d/hooks/pre-commit ]] && echo "rm -f $d/hooks/pre-commit"

@@ -54,14 +54,15 @@ for d in $tgtdir; do
         fi
     fi
     for pkg in $pypi; do
+        [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
         if [[ $cmd =~ (install|update) && $opts =~ -.*l ]]; then
             if [[ $opts =~ -.*B ]]; then
-                srcdir="$HOME/devel/pypi/$pkg/$pkg"
+                srcdir="$HOME/devel/pypi/$fn/$fn"
             else
-                srcdir="$HOME/tools/$pkg"
+                srcdir="$HOME/tools/$fn"
             fi
             [[ ! -d "$srcdir" ]] && continue
-            if [[ -d $pypath/$pkg && ! -L $pypath/$pkg ]]; then
+            if [[ -d $pypath/$fn && ! -L $pypath/$fn ]]; then
                 echo "vem $d exec \"pip uninstall $pkg\""
                 [[ $opts =~ -.*n ]] || vem $d exec "pip uninstall $pkg"
             fi
@@ -69,9 +70,9 @@ for d in $tgtdir; do
             [[ $opts =~ -.*n ]] || ln -s $srcdir $pypath
         elif [[ $cmd =~ (info|show|install|update) ]]; then
             cmd2=$cmd
-            if [[ -n $pypath && -L $pypath/$pkg ]]; then
-                echo "rm -f $pypath/$pkg"
-                [[ $opts =~ -.*n ]] || rm -f $pypath/$pkg
+            if [[ -n $pypath && -L $pypath/$fn ]]; then
+                echo "rm -f $pypath/$fn"
+                [[ $opts =~ -.*n ]] || rm -f $pypath/$fn
                 [[ $cmd == "update" ]] && cmd2="install"
             fi
             OPTS=""
@@ -82,13 +83,13 @@ for d in $tgtdir; do
             [[ $opts =~ -.*n ]] || vem $d $cmd2 $pkg $OPTS
         elif [[ $cmd == "dir" ]]; then
             srcdir=$(vem $d show $pkg|grep "[Ll]ocation:"|awk -F: '{print " -- " $2}')
-            echo $srcdir/$pkg
-            dir -lh $srcdir/$pkg
+            echo $srcdir/$fn
+            dir -lh $srcdir/$fn
         elif [[ $cmd == "libdir" ]]; then
             echo "libdir=$pypath"
-            dir -lhd $pypath/$pkg
+            dir -lhd $pypath/$fn
 	      elif [[ $cmd =~ (travis|travis-summary) ]]; then
-            srcdir="$HOME/devel/pypi/$pkg/$pkg"
+            srcdir="$HOME/devel/pypi/$fn/$fn"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             [[ $opts =~ -.*B ]] && OPTS="$OPTS -Z"
@@ -97,7 +98,7 @@ for d in $tgtdir; do
             cd $srcdir
             [[ $cmd == "travis" ]] && travis $OPTS || travis $OPTS summary
         elif [[ $cmd == "docs" ]]; then
-            srcdir="$HOME/devel/pypi/$pkg/$pkg"
+            srcdir="$HOME/devel/pypi/$fn/$fn"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             echo "cd $srcdir; please $OPTS docs"
