@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to odoo_score 1.0.1.4 documentation!
+Welcome to odoo_score 1.0.1.5 documentation!
 ===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|

@@ -37,7 +37,7 @@ fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-__version__=1.0.1.2
+__version__=1.0.1.3
 
 
 travis_test_bash() {
@@ -72,8 +72,8 @@ travis_test_bash() {
           s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
           [ $s -eq 0 ] && shellcheck -e $shellcheck_ignore $f
           s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-          if [ $sts -eq 0 ]; then
-            if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
+          if [[ $sts -eq 0 ]]; then
+            if [[ "$(grep ^[[:space:]]*set[[:space:]]+-x $f 2>/dev/null)" ]]; then
               echo "Invalid statement 'set -x' in $f"
               sts=1
             fi

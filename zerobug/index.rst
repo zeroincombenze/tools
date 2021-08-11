@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to zerobug 1.0.1.2 documentation!
+Welcome to zerobug 1.0.1.3 documentation!
 ===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|

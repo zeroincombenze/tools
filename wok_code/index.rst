@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to devel_tools 1.0.1.12 documentation!
+Welcome to devel_tools 1.0.1.13 documentation!
 ===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|

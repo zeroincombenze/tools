@@ -9,7 +9,7 @@ from builtins import object
 
 from zerobug import Z0BUG
 
-__version__ = '1.0.1.2'
+__version__ = '1.0.1.3'
 
 
 def test_version_zerobug(version_to_test):

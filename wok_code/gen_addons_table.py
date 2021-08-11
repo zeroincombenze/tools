@@ -32,7 +32,7 @@ import sys
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'
 MANIFESTS = ('__openerp__.py', '__manifest__.py')
-__version__ = "1.0.1.12"
+__version__ = "1.0.1.13"
 
 
 class UserError(Exception):

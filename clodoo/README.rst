@@ -1,6 +1,6 @@
 
 ================
-clodoo 0.3.31.15
+clodoo 0.3.31.16
 ================
 
 
@@ -287,6 +287,11 @@ Current version via Git
 History
 -------
 
+0.3.31.16 (2021-08-11)
+~~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] odoorc: module list
+
 0.3.31.15 (2021-08-10)
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -350,11 +355,6 @@ History
 * [IMP] manage_db: upgrade
 * [FIX] minor fixes
 
-0.3.31.2 (2021-06-07)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] transodoo: value tnl can return if field is translable
-
 
 
 |
@@ -414,22 +414,22 @@ Last Update / Ultimo aggiornamento: 2021-08-11
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.31.15
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3.31.16
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.31.15/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.31.15
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.31.16/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3.31.16
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-3.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.31.15/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.3.31.16/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-3.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.31.15/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.3.31.16/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-3.svg
     :target: https://erp3.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.31.15/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.3.31.15
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3.31.16/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/0.3.31.16
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

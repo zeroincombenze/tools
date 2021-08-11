@@ -1,6 +1,6 @@
 
 =================
-wok_code 1.0.1.12
+wok_code 1.0.1.13
 =================
 
 
@@ -36,9 +36,95 @@ please: develeper shell
 
 please is an interactive developer shell aim to help development and testing software.
 
-Useage is:
+    Usage: please [-hB][-b branch][-c file][-d diff][-fjk][-L logfile][-mn][-o prj_id][-O][-p path][-qr][-s files][-tuVv] actions sub1 sub2 sub3
+    Developer shell
+    Action may be on of:
+    help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|show|status|test|translate|version|wep
+     -h                   this help, type 'please help' for furthermore info
+     -B                   debug mode
+     -b branch            branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0
+     -c file              configuration file (def .travis.conf)
+     -d diff              date to search in log
+     -f                   force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro) | full (status)
+     -j                   execute tests in project dir rather in test dir/old style synchro
+     -k                   keep coverage statistics in annotate test/keep original repository | tests/ in publish
+     -L logfile           log file name
+     -m                   show missing line in report coverage
+     -n                   do nothing (dry-run)
+     -o prj_id            push only external project ids (of push)
+     -O                   pull original README (and docs) in distribution (deprecated)
+     -p path              declare local destination path
+     -q                   silent mode
+     -r                   run restricted mode (w/o parsing travis.yml file) | recurse distribution OCB
+     -s files             files to include in annotate test
+     -t                   test mode (implies dry-run)
+     -u                   check for unary operator W503 or no OCA/zero module translation
+     -V                   show version end exit
+     -v                   verbose mode
 
-    please [options] action [package]
+Action is one of:
+
+* help
+* build
+* chkconfig
+* config
+* docs
+* duplicate
+* export MODULE DB
+* import
+* list
+* lsearch
+* publish
+* push
+* pythonhosted
+* replace
+* replica
+* show
+* status
+* test
+* translate MODULE DB
+* version
+* wep
+
+*build*
+
+    Build a tar file for current PYPI project
+
+*chkconfig*
+
+    Display various values of current project.
+
+*config global|local*
+
+    Set various parameter by edit with vim.
+
+*docs*
+
+    Prepare documentation to publish on readthedocs website.
+
+*export MODULE DB [-bBRANCH]*
+
+    Export po file of Odoo project.
+    If current directory is a module directory you can use '.' (dot) for module name.
+
+    To declare specific version use -b switch
+
+*import MODULE DB*
+
+    Import po file of Odoo project.
+
+    To declare target version use \fB-b\fR switch
+
+*publish docs|download|pypi|svg|testpypi*
+
+    Publish documentation or package.
+
+    * publish docs     -> publish generate docs to website (require system privileges)
+    * publish download -> publish tarball to download (require system privileges)
+        type \fBplease build\fR to generate tarball file
+    * publish pypi     -> publish package to pypi website (from odoo user)
+    * publish svg      -> publish test result svg file (require system privileges)
+    * publish tar      -> write a tarball with package files
 
 
 gen_readme.py: documentation generator
@@ -410,10 +496,10 @@ In this documentation VAR means the name of the macro while MACRO is the name of
 ::
 
     i.e.  .. $if branch == '12.0'
-          Current branch is 1.0.1.12
+          Current branch is 1.0.1.13
 
 In above example then word branch after statement $if ia the VAR branch.
-The word branch in the second line is a text. The item 1.0.1.12 is the macro, replaced by the value of varaibale branch.
+The word branch in the second line is a text. The item 1.0.1.13 is the macro, replaced by the value of varaibale branch.
 
 CONDITION may be a python condition or one of follow special condition:
 
@@ -719,34 +805,34 @@ Current version via Git
 History
 -------
 
-1.0.1.12 (2021-08-08)
+1.0.1.13 (2021-08-08)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
-1.0.1.12 (2021-08-05)
+1.0.1.13 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [REF] Merged and renamed to wok_code
 
-1.0.1.12 (2021-08-04)
+1.0.1.13 (2021-08-04)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
 
-1.0.1.12 (2021-08-03)
+1.0.1.13 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: parameter error
 
-1.0.1.12 (2021-07-29)
+1.0.1.13 (2021-07-29)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
 
-1.0.1.12 (2021-07-21)
+1.0.1.13 (2021-07-21)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: ignore setup directories
@@ -759,22 +845,22 @@ History
 
 * [FIX] wget_odoo_repositories.py: best debug mode: check for branch
 
-1.0.1.12 (2021-05-31)
+1.0.1.13 (2021-05-31)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] license managament: other orgs
 
-1.0.1.12 (2021-05-24)
+1.0.1.13 (2021-05-24)
 ~~~~~~~~~~~~~~~~~~~~~
 [FIX] cvt_script: wrong RUNDIR
 
-1.0.1.12 (2021-03-15)
+1.0.1.13 (2021-03-15)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: status when git pushed
 [FIX] gen_readme.py: crash if invalid Odoo project
 
-1.0.1.12 (2021-03-05)
+1.0.1.13 (2021-03-05)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: publish pypi
@@ -782,7 +868,7 @@ History
 [IMP] gen_readme.py: recognizes powerp
 [IMP] gen_readme.py: set website for any organization
 [IMP] please: status more precise
-[IMP] topep8: recognize power organization1.0.1.12 (2021-02-19)
+[IMP] topep8: recognize power organization1.0.1.13 (2021-02-19)
 
 1.0.0.13 (2021-02-28)
 ~~~~~~~~~~~~~~~~~~~~~
@@ -849,22 +935,22 @@ Last Update / Ultimo aggiornamento: 2021-08-11
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.1.12
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.1.13
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.12/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.12
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.13/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.13
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.1.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.1.13/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.1.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.1.13/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.1.12/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.1.12
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.1.13/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.1.13
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

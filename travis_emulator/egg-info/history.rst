@@ -1,3 +1,11 @@
+1.0.1.5 (2021-08-11)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: summary return 1 if test failed or is broken
+[IMP] travis: return status like summary
+[IMP] travis: summary & show-log can show old logfile i.e.: travis summary old
+[IMP] travis: osx emulatore return more info when error
+
 1.0.1.4 (2021-08-06)
 ~~~~~~~~~~~~~~~~~~~~
 

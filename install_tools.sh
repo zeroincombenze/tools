@@ -18,6 +18,7 @@ __version__=1.0.5.41
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
+complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
 THIS=$(basename "$0")
 TDIR=$($READLINK -f $(dirname $0))
 if [[ $1 =~ ^-.*h ]]; then
@@ -49,7 +50,7 @@ fi
 
 RFLIST__travis_emulator="travis travis.man travisrc"
 RFLIST__devel_tools=""
-RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.xlsx"
+RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_color.sh set_worker.sh transodoo.py transodoo.xlsx wget_odoo_repositories.py"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
@@ -87,7 +88,8 @@ fi
 [[ $1 =~ ^-.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
 [[ $1 =~ ^-.*n ]] || find $SRCPATH $DSTPATH -name "*.pyc" -delete
 [[ $1 =~ ^-.*o ]] && echo "WARNING! The switch -o is deprecated and will be removed early!"
-PLEASE_CMDS=
+PLEASE_CMDS=""
+TRAVIS_CMDS=""
 PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
 for pkg in $PKGS_LIST tools; do
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg/-/_} || pfn=$pkg
@@ -110,6 +112,10 @@ for pkg in $PKGS_LIST tools; do
             if [[ $fn == "please" ]]; then
                 PLEASE_CMDS=$(grep "^HLPCMDLIST=" $src|awk -F= '{print $2}'|tr -d '"')
                 PLEASE_CMDS="${PLEASE_CMDS//|/ }"
+            elif [[ $fn == "travis" ]]; then
+                TRAVIS_CMDS=$(grep "^ACTIONS=" $src|awk -F= '{print $2}'|tr -d '"')
+                TRAVIS_CMDS=${TRAVIS_CMDS:1: -1}
+                TRAVIS_CMDS="${TRAVIS_CMDS//|/ }"
             fi
         fi
         if $(echo "$src"|grep -Eq "\*"); then
@@ -172,7 +178,8 @@ if [[ ! $1 =~ ^-.*n ]]; then
     echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
     [[ $1 =~ ^-.*t || $TRAVIS =~ (true|emulate) ]] && echo "[[ ! -d $SRCPATH/zerobug/_travis || :\$PATH: =~ :$SRCPATH/zerobug/_travis: ]] || export PATH=$SRCPATH/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
     [[ $1 =~ ^-.*t || $TRAVIS =~ (true|emulate) ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
-    [[ -n $PLEASE_CMDS ]] && echo "complete -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
+    [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
+    [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
     [[ $1 =~ ^-.*t ]] || source $DSTPATH/activate_tools
 fi
 if [[ $1 =~ ^-.*[Ss] ]]; then

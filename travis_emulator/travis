@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.4
+__version__=1.0.1.5
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -915,6 +915,18 @@ load_colors() {
     export PS_HDR3_COLOR=$(get_cfg_value "" "PS_HDR3_COLOR")
 }
 
+travis_status() {
+    local sts=0
+    grep -Eq "\| .*test.*FAIL" $1
+    if [[ $? -eq 0 ]]; then
+      sts=1
+    else
+      grep -Eq "\| .*test.*Success" $1 && sts=0 || sts=1
+    fi
+    return $sts
+}
+
+
 OPTOPTS=(h        B         C         c        D           d     E         F        f         j        k        L          l        M          m       n            O         p        q           r     S            V           v           X       Y             y       Z)
 OPTLONG=(help     debug     no-cache  conf     debug-level osx   no-savenv full     force     ''       keep     lint-level logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose     ""      yaml-file     pyver   zero)
 OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl    osx_d opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl opt_fyaml     opt_pyv opt_dbgmnt)
@@ -980,13 +992,18 @@ link_cfg $DIST_CONF $TCONF
 [[ $opt_verbose -gt 1 ]] && set -x
 init_travis
 
-LOGDIR="$(get_cfg_value "" "LOGDIR")"
+[[ -n $opt_flog ]] && LOGDIR="$(dirname $opt_flog)" || LOGDIR="$(get_cfg_value "" "LOGDIR")"
 [[ -d $LOGDIR ]] || mkdir $LOGDIR
-[[ -n "$REPOSNAME" ]] && LOGFILE="$REPOSNAME" || LOGFILE=""
-[[ -n "$PKGNAME" && ! $PKGNAME == $REPOSNAME ]] && LOGFILE="${LOGFILE}_$PKGNAME"
-[[ "$PRJNAME" == "Odoo" ]] && LOGFILE="${LOGFILE}_$(build_odoo_param GIT_ORGNM '.')"
-[[ -n "$BRANCH" ]] && LOGFILE="${LOGFILE}_$BRANCH"
-LOGFILE="$LOGDIR/${LOGFILE}.log"
+if [[ -n $opt_flog ]]; then
+    LOGFILE="$opt_flog"
+else
+    [[ -n "$REPOSNAME" ]] && LOGFILE="$REPOSNAME" || LOGFILE=""
+    [[ -n "$PKGNAME" && ! $PKGNAME == $REPOSNAME ]] && LOGFILE="${LOGFILE}_$PKGNAME"
+    [[ "$PRJNAME" == "Odoo" ]] && LOGFILE="${LOGFILE}_$(build_odoo_param GIT_ORGNM '.')"
+    [[ -n "$BRANCH" ]] && LOGFILE="${LOGFILE}_$BRANCH"
+    LOGFILE="$LOGDIR/${LOGFILE}.log"
+fi
+OLD_LOGFILE=${LOGFILE/.log/_old.log}
 
 if [[ $action == "help" ]]; then
   man $0.man
@@ -994,9 +1011,9 @@ if [[ $action == "help" ]]; then
 elif [[ $action == "parseyaml" ]]; then
   prepare_env_travis "$action"
   check_4_travis
-  if [ -z "$sub" ]; then
+  if [[ -z "$sub" ]]; then
     sub=$PRJPATH/.travis.yml
-    if [ ! -f $sub ]; then
+    if [[ ! -f $sub ]]; then
       sub=$TOOLS_PATH/travis.yml
     fi
   fi
@@ -1107,26 +1124,31 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
     exit 2
   fi
 elif [[ $action == "summary" ]]; then
+  [[ "$sub" == "old" ]] && logfile=$OLD_LOGFILE || logfile=$LOGFILE
   sts=0
-  if [[ -f $LOGFILE ]]; then
-    echo "$(readlink -f $LOGFILE):\$ VIRTUALENV=$(grep -E "vem .*VENV_" $LOGFILE|grep -Eo "VENV_[0-9]+")"
-    grep -EH "(\| .*test|TODAY=|PKGNAME=|LOGFILE=)" $LOGFILE
-    grep -Eq "\| .*test.*FAIL" $LOGFILE
-    [[ $? -eq 0 ]] && sts=1 || sts=0
+  if [[ -f $logfile ]]; then
+    echo "$(readlink -f $logfile):\$ VIRTUALENV=$(grep -E "vem .*VENV_" $logfile|grep -Eo "VENV_[0-9]+"|head -n1)"
+    grep -EH "(\| .*test|TODAY=|PKGNAME=|LOGFILE=)" $logfile
+    travis_status "$logfile"
+    sts=$?
   else
-    echo "File $LOGFILE not found!"
+    echo "File $logfile not found!"
     sts=1
   fi
   exit $sts
 elif [[ $action == "show-log" ]]; then
+  [[ "$sub" == "old" ]] && logfile=$OLD_LOGFILE || logfile=$LOGFILE
   if [[ ${opt_dry_run:-0} -gt 0 ]]; then
-    echo "> travis > $LOGFILE"
-  elif [[ -f $LOGFILE ]]; then
-    less -R $LOGFILE
+    echo "> travis > $logfile"
+    sts=0
+  elif [[ -f $logfile ]]; then
+    less -R $logfile
+    sts=0
   else
-    echo "File $LOGFILE not found!"
+    echo "File $logfile not found!"
+    sts=1
   fi
-  exit 0
+  exit $sts
 elif [[ $action =~ show-colors? ]]; then
   load_colors
   echo "Colors dump"
@@ -1146,32 +1168,27 @@ fi
 sts=$STS_SUCCESS
 prepare_env_travis "$action"
 if [[ $sts -eq $STS_SUCCESS ]]; then
-  if [[ -n $opt_flog ]]; then
-    mkdir -p $(dirname $opt_flog)
-    LOGFILE=$opt_flog
-  fi
-  # [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
-  # [ $opt_full -ne 0 -a "$PKGNAME" != "OCB" ] && set_executable
-  if [[ $opt_debug -ne 0 ]]; then
-    echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
-    process_yaml
-    sts=2
-  else
-    TMP_LOGFILE=${LOGFILE/.log/.tmp}
-    if [[ ${opt_dry_run:-0} -gt 0 ]]; then
-      echo "> travis > $LOGFILE"
+    if [[ $opt_debug -ne 0 ]]; then
+        echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
+        process_yaml
+        sts=2
     else
-      echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
-      process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $TMP_LOGFILE
-      sts=$?
-      if [[ -f $LOGFILE ]]; then
-        OLD_LOGFILE=${LOGFILE/.log/_old.log}
-        [[ -f $OLD_LOGFILE ]] && rm -f $OLD_LOGFILE
-        mv -f $LOGFILE $OLD_LOGFILE
-      fi
-      mv -f $TMP_LOGFILE $LOGFILE
-      $0 wep-db &>/dev/null
+        TMP_LOGFILE=${LOGFILE/.log/.tmp}
+        if [[ ${opt_dry_run:-0} -gt 0 ]]; then
+            echo "> travis > $LOGFILE"
+        else
+            echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
+            process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $TMP_LOGFILE
+            sts=$?
+            if [[ -f "$LOGFILE" && $LOGFILE != $OLD_LOGFILE ]]; then
+                [[ -f $OLD_LOGFILE ]] && rm -f $OLD_LOGFILE
+                mv -f $LOGFILE $OLD_LOGFILE
+            fi
+            mv -f $TMP_LOGFILE $LOGFILE
+            $0 wep-db &>/dev/null
+            travis_status "$LOGFILE"
+            sts=$?
+        fi
     fi
-  fi
 fi
 exit $sts
