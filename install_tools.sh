@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 #
-__version__=1.0.5.40
+# Do not move above code and follow function to avoid crash
+# after this script is updated when running!
+pull_n_run() {
+    # pull_n_run(path $0 $1)
+    local l o opts x
+    cd $1 && git pull
+    o="$3"; opts=""; l=${#o}
+    while ((l>1)); do
+        ((l--)); x="${o:$l:1}"; [[ $x != "U" ]] && opts="$opts$x"
+    done
+    eval $2 -$opts
+    exit $?
+}
+
+__version__=1.0.5.41
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -47,7 +61,7 @@ RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py run_odoo_debug"
 RFLIST__os0=""
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|vfcp|vfdiff)"
-FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py export_db_model.py odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
+FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py devel_tools export_db_model.py odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
 [[ $1 =~ ^-.*t ]] && HOME=$($READLINK -e $(dirname $0)/..)
@@ -68,7 +82,7 @@ fi
 if [[ ! $1 =~ ^-.*t ]]; then
     [[ $1 =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
     [[ ! $1 =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --show-current) != "master" ]] && git stash -q && git checkout master -fq
-    [[ $1 =~ ^-.*U ]] && cd $SRCPATH && git pull
+    [[ $1 =~ ^-.*U ]] && pull_n_run "$SRCPATH" "$0" "$1"
 fi
 [[ $1 =~ ^-.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
 [[ $1 =~ ^-.*n ]] || find $SRCPATH $DSTPATH -name "*.pyc" -delete
@@ -141,7 +155,10 @@ if [[ -f $HOME/maintainers-tools/env/bin/oca-autopep8 ]]; then
 fi
 for fn in $FILES_2_DELETE; do
     tgt="$DSTPATH/$fn"
-    if [[ -L "$tgt" || -f "$tgt" ]]; then
+    if [[ -d "$tgt" ]]; then
+        [[ ! $1 =~ ^-.*q ]] && echo "$PMPT rm -fR $tgt"
+        [[ $1 =~ ^-.*n ]] || rm -fR $tgt
+    elif [[ -L "$tgt" || -f "$tgt" ]]; then
         [[ ! $1 =~ ^-.*q ]] && echo "$PMPT rm -f $tgt"
         [[ $1 =~ ^-.*n ]] || rm -f $tgt
         [[ ! $1 =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c

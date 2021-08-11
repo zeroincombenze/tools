@@ -1,3 +1,8 @@
+1.0.5.41 (2021-08-10)
+~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] install_tools.sh: avoid crash after update when running
+
 1.0.5.40 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~~
 

@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-#__version__=1.0.1.11
+#__version__=1.0.1.12
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 RDME="README.md"
@@ -32,7 +32,7 @@ fi
 #  [[ -f $path/__init__.py && ( -f $path/README.rst || -f $path/README.md ) ]] || echo "Module $module w/o documentation" && sts=1
 #done
 
-NO_TEST_TRAVIS="^($HOME/tools)\$"
+[[ -z "$GIT_NO_CHECK" ]] && GIT_NO_CHECK="^($HOME/tools)\$"
 OCB=0
 [[ -x ./odoo-bin || -x ./odoo/odoo-bin || -x ./openerp-server || -x ./odoo/openerp-server || -x ./server/openerp-server ]] && OCB=1
 if [[ $OCB -ne 0 ]]; then
@@ -46,12 +46,13 @@ RDME=""
 [[ -f README.rst ]] && RDME=README.rst
 sts=0
 for d in $DIRS; do
+    [[ $d =~ $GIT_NO_CHECK ]] && continue
     [[ ! -f $d/README.rst && ! -f $d/README.md ]] && echo -e "Module \e[1m$(basename $d)\e[0m without documentation; missed \e[33m$d/README.rst\e[0m" && sts=1 && continue
     FILES=""
     [[ -n $RDME ]] && FILES=$(find $d -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -cnewer ./$RDME)
     [[ -n $FILES ]] && echo -e "Detected undocumented files of module \e[1m$(basename $d)\e[0m; type:\n\e[32mcd $d; please docs;\e[0m" && sts=1
 done
-if [[ -f .travis.yml && ! $PWD =~ $NO_TEST_TRAVIS ]]; then
+if [[ -f .travis.yml && ! $PWD =~ $GIT_NO_CHECK ]]; then
     echo -e "\ntravis result:"
     travis summary
     [[ $? -ne 0 ]] && sts=1 && echo -e "\n\e[31mRepository not validated by travis\e[0m\nPlease type:\ntravis"

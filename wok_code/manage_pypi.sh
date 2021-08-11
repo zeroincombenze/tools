@@ -1,6 +1,6 @@
 # set -x
-__version__=1.0.1.11
-cmd=""
+__version__=1.0.1.12
+act=""
 pypi=""
 opts=""
 tgtdir=""
@@ -11,11 +11,11 @@ while [[ -n $1 ]]; do
         eval $prm"=$1"
         prm=""
     elif [[ ! $1 =~ ^- ]]; then
-        [[ -z "$cmd" ]] && cmd=$1 && shift && continue
+        [[ -z "$act" ]] && act=$1 && shift && continue
         [[ -z "$pypi" ]] && pypi=$1 && shift && continue
     else
-        [[ $1 =~ -.*h ]] && cmd="help"
-        [[ $1 =~ -.*U ]] && cmd="update"
+        [[ $1 =~ -.*h ]] && act="help"
+        [[ $1 =~ -.*U ]] && act="update"
         [[ $1 =~ -.*B ]] && opts=${opts}B
         [[ $1 =~ -.*f ]] && opts=${opts}f
         [[ $1 =~ -.*l ]] && opts=${opts}l
@@ -26,19 +26,19 @@ while [[ -n $1 ]]; do
     fi
     shift
 done
-CMDLIST="dir|docs|info|show|install|update|libdir|travis|travis-summary"
+ACTLIST="dir|docs|info|show|install|update|libdir|replace|travis|travis-summary"
 PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
-[[ -z "$cmd" || ! $cmd =~ ($CMDLIST) ]] && cmd="help"
-[[ $cmd == "help" ]] && echo "$0 -h|-B|-f|-I|-l|-n|-U $CMDLIST|help [PYPI_PKG] [-d VENV] [-b BRANCH]" && exit 1
+[[ -z "$act" || ! $act =~ ($ACTLIST) ]] && act="help"
+[[ $act == "help" ]] && echo "$0 -h|-B|-f|-I|-l|-n|-U $ACTLIST|help [PYPI_PKG] [-d VENV] [-b BRANCH]" && exit 1
 [[ -z "$pypi" ]] && pypi="$PKGS_LIST" || pypi="${pypi//,/ }"
 [[ -z "$tgtdir" ]] && tgtdir="$HOME/VME/*" || tgtdir="$tgtdir*"
 [[ -n "$opts" ]] && opts="-$opts"
 [[ $tgtdir =~ ^[~/.] ]] || tgtdir="$HOME/$tgtdir"
-[[ $cmd =~ (docs|travis|travis-summary) ]] && tgtdir=$HOME/devel/pypi/tools
+[[ $act =~ (docs|replace|travis|travis-summary) ]] && tgtdir=$HOME/devel/pypi/tools
 [[ -n $branch ]] && branch="(${branch//,/|})"
-echo "$0 $cmd '$pypi' -d $tgtdir -b $branch $opts"
+echo "$0 $act '$pypi' -d $tgtdir -b $branch $opts"
 for d in $tgtdir; do
-    if [[ ! $cmd =~ (docs|travis|travis-summary) ]]; then
+    if [[ ! $act =~ (docs|replace|travis|travis-summary) ]]; then
         [[ -d "$d" ]] || continue
         [[ -n "$branch" && ! $d =~ $branch ]] && continue
         [[ $d =~ VME(3.5|3.6) ]] && continue
@@ -53,9 +53,10 @@ for d in $tgtdir; do
             exit 1
         fi
     fi
-    for pkg in $pypi; do
+    for pkg in $pypi tools; do
+        [[ $pkg != "tools" || $act =~ (docs|replace) ]] || continue
         [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
-        if [[ $cmd =~ (install|update) && $opts =~ -.*l ]]; then
+        if [[ $act =~ (install|update) && $opts =~ -.*l ]]; then
             if [[ $opts =~ -.*B ]]; then
                 srcdir="$HOME/devel/pypi/$fn/$fn"
             else
@@ -68,42 +69,51 @@ for d in $tgtdir; do
             fi
             echo "ln -s $srcdir $pypath"
             [[ $opts =~ -.*n ]] || ln -s $srcdir $pypath
-        elif [[ $cmd =~ (info|show|install|update) ]]; then
-            cmd2=$cmd
+        elif [[ $act =~ (info|show|install|update) ]]; then
+            act2=$act
             if [[ -n $pypath && -L $pypath/$fn ]]; then
                 echo "rm -f $pypath/$fn"
                 [[ $opts =~ -.*n ]] || rm -f $pypath/$fn
-                [[ $cmd == "update" ]] && cmd2="install"
+                [[ $act == "update" ]] && act2="install"
             fi
             OPTS=""
             [[ $opts =~ -.*f ]] && OPTS="$OPTS -f"
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             [[ $opts =~ -.*I ]] && OPTS="$OPTS -I"
-            echo "vem $d $cmd2 $pkg $OPTS"
-            [[ $opts =~ -.*n ]] || vem $d $cmd2 $pkg $OPTS
-        elif [[ $cmd == "dir" ]]; then
+            echo "vem $d $act2 $pkg $OPTS"
+            [[ $opts =~ -.*n ]] || vem $d $act2 $pkg $OPTS
+        elif [[ $act == "dir" ]]; then
             srcdir=$(vem $d show $pkg|grep "[Ll]ocation:"|awk -F: '{print " -- " $2}')
             echo $srcdir/$fn
             dir -lh $srcdir/$fn
-        elif [[ $cmd == "libdir" ]]; then
+        elif [[ $act == "libdir" ]]; then
             echo "libdir=$pypath"
             dir -lhd $pypath/$fn
-	      elif [[ $cmd =~ (travis|travis-summary) ]]; then
+	      elif [[ $act =~ (travis|travis-summary) ]]; then
             srcdir="$HOME/devel/pypi/$fn/$fn"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             [[ $opts =~ -.*B ]] && OPTS="$OPTS -Z"
-            echo ""
-            [[ $cmd == "travis" ]] && echo "cd $srcdir; travis $OPTS" || echo "cd $srcdir; travis $OPTS summary"
+            echo -e "\n===[$pkg]==="
+            [[ $act == "travis" ]] && echo "cd $srcdir; travis $OPTS" || echo "cd $srcdir; travis $OPTS summary"
             cd $srcdir
-            [[ $cmd == "travis" ]] && travis $OPTS || travis $OPTS summary
-        elif [[ $cmd == "docs" ]]; then
-            srcdir="$HOME/devel/pypi/$fn/$fn"
+            [[ $act == "travis" ]] && travis $OPTS || travis $OPTS summary
+        elif [[ $act == "docs" ]]; then
+            [[ $pkg == "tools" ]] && srcdir="$HOME/devel/pypi/$fn" || srcdir="$HOME/devel/pypi/$fn/$fn"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
+            echo -e "\n===[$pkg]==="
             echo "cd $srcdir; please $OPTS docs"
             cd $srcdir
             please $OPTS docs
+        elif [[ $act == "replace" ]]; then
+            [[ $pkg == "tools" ]] && srcdir="$HOME/devel/pypi/$fn" || srcdir="$HOME/devel/pypi/$fn/$fn"
+            OPTS=""
+            [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
+            echo -e "\n===[$pkg]==="
+            echo "cd $srcdir; please $OPTS replace"
+            cd $srcdir
+            please $OPTS replace
         else
             echo "Invalid command!"
             exit 1

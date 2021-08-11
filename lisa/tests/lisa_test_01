@@ -3,37 +3,40 @@
 # Regression tests on lisa
 # Check for ALIASes
 #
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+TDIR=$($READLINK -f $(dirname $0))
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [ -d $d/z0lib ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
-if [ -z "$Z0TLIBDIR" ]; then
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$($READLINK -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
+if [[ -z "$Z0TLIBDIR" ]]; then
   echo "Library file z0testrc not found!"
-  exit 2
+  exit 72
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
-__version__=0.3.1.14
+__version__=0.3.1.15
 
 test_run() {
 # test_run(msg package disto cmd)
@@ -44,35 +47,41 @@ test_run() {
     local cmd="$4"
     local FH=
     local opt_e="-E$Disto"
-    if [ "$Disto" == "." ]; then
+    if [[ "$Disto" == "." ]]; then
         local FH=$Real_FH
         local Disto=$Real_DISTO
         local opt_e=
-    elif [ "$Disto" == "Ubuntu12" -o "$Disto" == "Ubuntu14" ]; then
-      local FH="Debian"
-    elif [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
-      local FH="RHEL"
+    elif [[ $Disto =~ ^Ubuntu ]]; then
+        local FH="Debian"
+    elif [[ $Disto =~ CentOS ]]; then
+        local FH="RHEL"
     fi
-    if [ "$FH" == "RHEL" ]; then
+    if [[ "$FH" == "RHEL" ]]; then
       TRES=${TEST_RHEL[$Package]}
-    elif [ "$FH" == "Debian" ]; then
+    elif [[ "$FH" == "Debian" ]]; then
       TRES=${TEST_Debian[$Package]}
     else
       TRES=
     fi
-    if [ -z "$TRES" ]; then
-      if [ "$Disto" == "Ubuntu12" ]; then
+    if [[ -z "$TRES" ]]; then
+      if [[ "$Disto" == "Ubuntu12" ]]; then
         TRES=${TEST_Ubuntu12[$Package]}
-      elif [ "$Disto" == "Ubuntu14" ]; then
+      elif [[ "$Disto" == "Ubuntu14" ]]; then
         TRES=${TEST_Ubuntu14[$Package]}
-      elif [ "$Disto" == "CentOS7" ]; then
+      elif [[ "$Disto" == "Ubuntu16" ]]; then
+        TRES=${TEST_Ubuntu16[$Package]}
+      elif [[ "$Disto" == "Ubuntu18" ]]; then
+        TRES=${TEST_Ubuntu18[$Package]}
+      elif [[ "$Disto" == "Ubuntu20" ]]; then
+        TRES=${TEST_Ubuntu20[$Package]}
+      elif [[ "$Disto" == "CentOS7" ]]; then
         TRES=${TEST_CentOS7[$Package]}
-      elif [ "$Disto" == "CentOS6" ]; then
+      elif [[ "$Disto" == "CentOS6" ]]; then
         TRES=${TEST_CentOS6[$Package]}
       fi
     fi
-    if [ "$cmd" == "realname" ]; then
-      if [ -z "$TRES" ]; then
+    if [[ "$cmd" == "realname" ]]; then
+      if [[ -z "$TRES" ]]; then
         TRES=$Package
       elif [[ $TRES =~ = ]]; then
         :
@@ -80,8 +89,8 @@ test_run() {
         TRES="$2=$TRES"
       fi
     fi
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ "$cmd" == "vfycmd" -a -z "$opt_e" ]; then
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+      if [[ "$cmd" == "vfycmd" && -z "$opt_e" ]]; then
         RES=$(eval $RUNDIR/lisa tellme $Package "$cmd")
       else
         RES=$(eval $TPRODUCT $opt_e tellme $2 "$cmd")
@@ -97,7 +106,7 @@ test_01() {
     v=$(echo $x|awk -F. '{print $1}')
     Real_DISTO=$(xuname "-d")$v
 
-    declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
+    declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu20 TEST_Ubuntu18 TEST_Ubuntu16 TEST_Ubuntu14 TEST_Ubuntu12
     TEST_CentOS7[LAMP]="LAMP=(LAMP epel-release yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python)"
     TEST_CentOS6[LAMP]="LAMP=(LAMP epel-release yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python)"
     TEST_Debian[LAMP]="LAMP=(LAMP LAMP_security openssh-server apache2 mysql-server postgresql php5 python vim)"
@@ -127,7 +136,7 @@ test_01() {
      postgres postgresql postgresql-server php php5\
      openssh openssh-server\
      python-libxml2 libxml2-python; do
-      for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+      for Disto in . Ubuntu20 Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
          if [ "$Disto" == "." ]; then
            opt_e=
          else
@@ -137,7 +146,7 @@ test_01() {
       done
     done
 
-    declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
+    declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu20 TEST_Ubuntu18 TEST_Ubuntu16 TEST_Ubuntu14 TEST_Ubuntu12
     TEST_Debian[apache2]="apt-get"
     TEST_Debian[httpd]="apt-get"
     TEST_RHEL[apache2]="yum"
@@ -164,7 +173,7 @@ test_01() {
     TEST_RHEL[odoo]="pip"
     test_run "installer $Package $opt_e" "$Package" "$Disto" "installer"
 
-    declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
+    declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu20 TEST_Ubuntu18 TEST_Ubuntu16 TEST_Ubuntu14 TEST_Ubuntu12
 
     # TODO: adjust test for execution in VENV
     # for Package in lisa; do
@@ -186,9 +195,7 @@ test_01() {
 Z0BUG_init
 parseoptest -l$TESTDIR/test_lisa.log "$@" "-O"
 sts=$?
-if [ $sts -ne 127 ]; then
-  exit $sts
-fi
+[[ $sts -ne 127 ]] && exit $sts
 if [ ${opt_oeLib:-0} -ne 0 ]; then
   ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
   if [ -z "$ODOOLIBDIR" ]; then
@@ -198,11 +205,10 @@ if [ ${opt_oeLib:-0} -ne 0 ]; then
   . $ODOOLIBDIR
 fi
 
-
 UT1_LIST=""
 UT_LIST=""
-if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+[[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?
-if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+[[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
 exit $sts

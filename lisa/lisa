@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 # *** security options ***
@@ -40,25 +40,32 @@
 #[RHEL] chkconfig
 #[Debian] update-rc.d
 
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+TDIR=$($READLINK -f $(dirname $0))
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$($READLINK -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=0.3.1.3
+__version__=0.3.1.4
 
 
 STS_FAILED=1
@@ -161,7 +168,7 @@ conf_default() {
       set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-centos7-amd64.rpm" "0" "CentOS7"
       set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-centos6-amd64.rpm" "0" "CentOS6"
     fi
-    if [ "$DISTO" == "CentOS6" ]; then
+    if [[ "$DISTO" == "CentOS6" ]]; then
       set_cfg_def "python-dateutil_wget_URL" "https://pypi.python.org/packages/source/p/python-dateutil/" "0"
       set_cfg_def "python-dateutil_wget_xname" "python-dateutil-1.5.tar.gz" "0"
       set_cfg_def "python-dateutil_wget_md5" "#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5" "0"
@@ -261,16 +268,16 @@ set_from_conf_pkg() {
 # set_from_conf_pkg (pkgname [confn] [opts]])
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "set_from_conf_pkg($1 \"$2\" $3)">>~/$THIS.his
     local pkg pkgname FCONF FCONFDEF SAMPLE sdir
-    if [ $test_mode -gt 0 ]; then
+    if [[ $test_mode -gt 0 ]]; then
       sdir="$TESTDIR $TDIR $TDIR/kbase"
-    elif [ -n "$2" ]; then
+    elif [[ -n "$2" ]]; then
       sdir="$TDIR $TDIR/kbase /etc/lisa /etc"
     else
       sdir=". $TDIR $TDIR/kbase /etc/lisa /etc"
     fi
     pkgname=$(get_realname $1)
-    if [ -n "$2" ]; then
-      if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+    if [[ -n "$2" ]]; then
+      if [[ -n "$opt_conf" && -f "$opt_conf" ]]; then
         FCONF=$opt_conf
       else
         FCONF=$2
@@ -281,32 +288,32 @@ set_from_conf_pkg() {
     FCONFDEF=$FCONF.sample
     PKG_CONF=$(findpkg "$FCONF" "$sdir")
     SAMPLE=$(findpkg "$FCONFDEF" "$sdir")
-    if [ -z "$PKG_CONF" -a -z "$SAMPLE" ]; then
+    if [[ -z "$PKG_CONF" && -z "$SAMPLE" ]]; then
       FCONF=$pkgname
       FCONFDEF=$pkgname.sample
-      [ -n "$FCONF" ] && PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
-      [ -n "$FCONF" ] && SAMPLE=$(findpkg "$FCONFDEF" "$sdir")
+      [[ -n "$FCONF" ]] && PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
+      [[ -n "$FCONF" ]] && SAMPLE=$(findpkg "$FCONFDEF" "$sdir")
     fi
-    if [ -z "$PKG_CONF" -a -z "$SAMPLE" ]; then
-      if [ "${FCONF: -7}" == "-server" ]; then
+    if [[ -z "$PKG_CONF" && -z "$SAMPLE" ]]; then
+      if [[ "${FCONF: -7}" == "-server" ]]; then
         FCONF=${FCONF:0: -7}
         PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
-      elif [ "${FCONF: -1}" == "d" ]; then
+      elif [[ "${FCONF: -1}" == "d" ]]; then
         FCONF=${FCONF:0: -1}
         PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
-      elif [ "${FCONF: -4}" == "-dev" ]; then
+      elif [[ "${FCONF: -4}" == "-dev" ]]; then
         FCONF=${FCONF:0: -4}
         PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
-      elif [ "${FCONF: -6}" == "-devel" ]; then
+      elif [[ "${FCONF: -6}" == "-devel" ]]; then
         FCONF=${FCONF:0: -6}
         PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
       fi
-      if [ -n "$PKG_CONF" ]; then
+      if [[ -n "$PKG_CONF" ]]; then
         FCONFDEF=${FCONF}.sample
         SAMPLE=$(findpkg "$FCONFDEF" "$sdir")
       fi
     fi
-    if [ -z "$PKG_CONF" -a -z "$SAMPLE" ]; then
+    if [[ -z "$PKG_CONF" && -z "$SAMPLE" ]]; then
       PKG_CONF=$(findpkg "lisa.lish" "$sdir")
       SAMPLE=$(findpkg "lisa.lish.sample" "$sdir")
     fi
@@ -370,9 +377,13 @@ get_prm_value() {
         elif [[ " $NPM_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="npm"
         elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]/] ]] || [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          if [ "$FH" == "RHEL" ]; then
+          if [[ $FH == "RHEL" ]]; then
             p="yum"
-          elif [ "$FH" == "Debian" ]; then
+          elif [[ $DISTO =~ ^Fedora ]]; then
+            p="dnf"
+          elif [[ $DISTO == "Ubuntu20" ]]; then
+            p="apt"
+          elif [[ $FH == "Debian" ]]; then
             p="apt-get"
           else
             p="#"
@@ -599,7 +610,7 @@ get_arch() {
         export DISTO=$(xuname "-d")$v
         LXCORE=$(xuname "-c")
         MACHARCH=$(xuname "-m")
-        if [ -n "$1" ]; then
+        if [[ -n "$1" ]]; then
             echo "!!Invalid $1 architecture: used $DISTO instead!!"
         fi
     fi
@@ -662,7 +673,7 @@ get_realname() {
 # return: realname
     local p pkgname tid specimen
     local pkg lop lreqver rop rreqver branch x xtlcmd
-    if [ "$1" == "." ]; then
+    if [[ "$1" == "." ]]; then
       p="EVERYTHINGS"
     else
       pkgname=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
@@ -678,11 +689,11 @@ get_realname() {
       else
         for tid in 0 1 2 3; do
           p=$(get_cfg_value $tid REAL_$pkgname)
-          if [ -n "$p" ]; then break; fi
+          [[ -n "$p" ]] && break
         done
       fi
     fi
-    if [ -n "$p" ]; then
+    if [[ -n "$p" ]]; then
       pkgname=$p
     elif [ "$2" == "install" -o "$2" == "remove" ] && [[ " $PIP_PYSTD_PKGS " =~ [[:space:]][^/[:space:]]+\/$1[[:space:]] ]]; then
       IFS=/ read l r <<<$BASH_REMATCH
@@ -695,19 +706,20 @@ get_realname() {
         pkgname=$r
       fi
     fi
-    if [ -z "$pkgname" ]; then
-      if [ "$FH" == "RHEL" ]; then
+    if [[ -z "$pkgname" ]]; then
+      if [[ "$FH" == "RHEL" ]]; then
         p=$(get_prm_value REAL_${1}__Debian)
-        if [ "${p: -4}" == "-dev" ]; then
+        if [[ "${p: -4}" == "-dev" ]]; then
           pkgname="${p}el"
         fi
-      elif [ "$FH" == "Debian" ]; then
+      elif [[ "$FH" == "Debian" ]]; then
         p=$(get_prm_value REAL_${1}__RHEL)
-        if [ "${p: -6}" == "-devel" ]; then
+        if [[ "${p: -6}" == "-devel" ]]; then
           pkgname="${p:0: -2}"
         fi
       fi
     fi
+    set +x  #debug
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "  $pkgname=get_realname($1 $2 $3 '$4' '$5')">>~/$THIS.his
     echo $pkgname
 }
@@ -1550,7 +1562,7 @@ create_setup() {
       cat <<EOF >$SETUP
 # lisa setup $__version__ ($datetime)
 THIS=\$(basename "\$0")
-TDIR=\$(readlink -f \$(dirname \$0))
+TDIR=\$(\$READLINK -f \$(dirname \$0))
 pkgname=$pkgname
 if [ -d \$TDIR/\$pkgname ]; then
   SRCDIR=\$TDIR/\$pkgname
@@ -1675,7 +1687,7 @@ create_pkglist() {
       eval $x >./tmp.log
       PKGLIST="$(cat ./tmp.log|tr '\n' ' ')"
       rm -f ./tmp.log
-      popd $PKGPATH > /dev/null
+      popd > /dev/null
     fi
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " ">>> PKGLIST=$PKGLIST $BINLIST $ETCLIST $Z0LIB $OELIB">>~/$THIS.his
     echo "$PKGLIST $Z0LIB $OELIB"
@@ -2212,9 +2224,7 @@ post_config_mysql-server() {
 }
 
 post_config_mariadb-server() {
-    if [ "$FH" == "RHEL" ]; then
-      run_traced "mysql_secure_installation"
-    fi
+    [[ "$FH" == "RHEL" ]] && run_traced "mysql_secure_installation"
     run_traced "chkconfig mariadb on"
 }
 
@@ -2610,9 +2620,7 @@ post_dry_update_service() {
 pre_dry_install_LAMP() {
 # pre_dry_install_LAMP(action pkgname OPTS)
     if [[ $3 =~ D ]]; then
-      if [ "$FH" == "RHEL" ]; then
-        run_traced "yum $opt_yes groupinstall \"Development tools\""
-      fi
+      [[ "$FH" == "RHEL" ]] && run_traced "yum $opt_yes groupinstall \"Development tools\""
     fi
     return $STS_SUCCESS
 }
@@ -3099,7 +3107,7 @@ do_1_info_package() {
 # do_1_info_package(action pkgname OPTS [param] [SPECIMEN])
 # - info receives cmdline pkgname, no realname
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_info_package($1 $2 $3)">>~/$THIS.his
-    if [ "$2" == "." ]; then
+    if [[ "$2" == "." ]]; then
       echo "lisa $__version__ is running on $DISTO ($FH family)"
       [ -n "$MACHARCH" ] && echo "Machine architecture is $MACHARCH"
     else
@@ -3421,7 +3429,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "configuration file (def /etc/lisa/lisa.conf)"\
  "add development package(s)"\
  "max depth level"\
- "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
+ "emulate Linux distribution; may be Ubuntu[12|14|16|18|20],CentOS[6|7]. Use carefully!"\
  "action on parent and dependecies if error: (0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)"\
  "force pip installation with --ignore-installed"\
  "add graphical interface package(s)"\
@@ -3450,13 +3458,13 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
 OPTARGS=(action pkg param1 param2 param3)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
-if [ $opt_help -gt 0 ]; then
-  print_help "Build an Odoo or LAMP server"\
-  "(C) 2015-2020 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+ACTIONS="help build config info install remove status tellme update version whatis"
+if [[ $opt_help -gt 0 ]]; then
+  print_help "Build an Odoo or LAMP server\naction may be: $ACTIONS" "\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then

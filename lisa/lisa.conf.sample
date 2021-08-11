@@ -47,6 +47,7 @@
 # [_Debian10_] -> Parameters for Debian 10.xx
 # [_CentOS6_] -> Parameters for CentOS 6.xx
 # [_CentOS7_] -> Parameters for CentOS 7.xx
+# [_CentOS8_] -> Parameters for CentOS 8.xx
 # Other distribution are not yet tested, but lisa is designed to run with all
 # Linux distributions; syntax for sections running in other Linux distribution
 # is the same you can see above (name + major version)
