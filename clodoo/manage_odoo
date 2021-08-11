@@ -83,7 +83,7 @@ do_action() {
       GIT_OPTS=$(build_odoo_param GIT_OPTS $odoo_vid $repo $git_org)
     fi
     if [[ $act == "prepare" ]]; then
-      u=$(echo own_user|cut -f1 -d:)
+      u=$(echo $own_user|cut -f1 -d:)
       for p in FLOG FPID CONFN; do
         d=$(dirname $(build_odoo_param $p "$odoo_vid" '' $git_org))
         if [[ ! -d $d ]]; then
@@ -208,7 +208,7 @@ else
   run_user=
 fi
 if [[ -n "$opt_user" ]]; then
-  echo $opt_user|grep -q ":" && own_user="$opt_user" || own_user="$opt_user:$opt_user"
+  echo $opt_user|grep -q ":" && own_user="$opt_user" || own_user="$opt_user:$(id $opt_user -gn$)"
 else
   own_user="odoo:odoo"
 fi
