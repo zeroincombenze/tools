@@ -77,19 +77,20 @@ do_action() {
     [[ -n $git_org ]] && opts2="${opts2}O$git_org"
     local sts=0
     local excl="${opt_excl//,/ }"
+    if [[ $act == "prepare" ]]; then
+      for p in FLOG FPID CONFN; do
+        d=$(dirname $(build_odoo_param $p "$odoo_vid" '' $git_org))
+        if [[ ! -d $d ]]; then
+          run_traced "mkdir -p $d"
+          [[ ! -d $d ]] && "Cannot create directory $d!" && exit 1
+          run_traced "chown $own_user $d"
+        fi
+      done
+    fi
     if [[ $act =~ ^(amend|build|rebuild|upgrade)$ ]]; then
       GIT_ORG=$(build_odoo_param GIT_ORG $odoo_vid $repo $git_org)
       GIT_URL=$(build_odoo_param GIT_URL $odoo_vid $repo $git_org)
       GIT_OPTS=$(build_odoo_param GIT_OPTS $odoo_vid $repo $git_org)
-      if [[ $act == "build" ]]; then
-        for p in FLOG FPID CONFN; do
-          d=$(dirname $(build_odoo_param $p "$odoo_vid" '' $git_org))
-          if [[ ! -d $d ]]; then
-            run_traced "mkdir -p $d"
-            run_traced "chown $own_user $d"
-          fi
-        done
-      fi
     fi
     if [[  $act =~ ^(amend|add_repository)$ && -d $pkgdir ]]; then
       run_traced "cd $pkgdir"
@@ -175,7 +176,7 @@ if [[ $opt_verbose -eq -1 ]]; then
   opt_verbose=1
 fi
 if [[ $opt_help -gt 0 ]]; then
-  print_help "Check for all odoo repositories\nactions may be: add_repository amend build clean lint list rebuild test travis upgrade"\
+  print_help "Check for all odoo repositories\nactions may be: add_repository amend build clean lint list prepare rebuild test travis upgrade"\
   "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi

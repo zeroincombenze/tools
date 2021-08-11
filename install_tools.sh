@@ -3,14 +3,16 @@
 # Do not move above code and follow function to avoid crash
 # after this script is updated when running!
 pull_n_run() {
-    # pull_n_run(path $0 $1)
-    local l o opts x
+    # pull_n_run($1=path $2="$0" $3="$1")
+    local l m1 m2 o opts x
+    m1=$(stat -c %Y $2)
     cd $1 && git pull
+    m2=$(stat -c %Y $2)
     o="$3"; opts=""; l=${#o}
     while ((l>1)); do
         ((l--)); x="${o:$l:1}"; [[ $x != "U" ]] && opts="$opts$x"
     done
-    eval $2 -$opts
+    [[ $m1 == $m2 ]] && eval $2 -${opts} || eval $2 -f${opts}
     exit $?
 }
 
