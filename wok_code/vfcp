@@ -42,7 +42,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.0.1.13
+__version__=1.0.1.14
 
 vf_init() {
   VF_IGNORE="$(get_cfg_value 0 filedel)"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=1.3.35.3
+# __version__=1.3.35.4
 THIS=$(basename $0)
 if [ -z "$1" ]; then
   echo "$0 db [user] [-f|-z]"

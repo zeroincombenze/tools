@@ -52,9 +52,11 @@
 #
 # -------------------------------
 # Environment variables
-# ODOO_DB_USER" -> db username (def odoo%(MAJVER)s)
+# ODOO_DB_USER"     -> db username (def odoo%(MAJVER)s)
+# ODOO_GIT_ORGID    -> default git organization
 # ODOO_GIT_HOSTNAME -> git hostname (def github.com)
-# ODOO_GIT_SHORT -> regex of git organizzations with short name (def /(oca)/)
+# ODOO_GIT_PROT     -> default protcocl (git|https) for default git organization
+# ODOO_GIT_SHORT    -> regex of git organizzations with short name (def /(oca)/)
 #
 
 #__version__=0.3.31.13
@@ -378,6 +380,7 @@ build_odoo_param() {
     [[ $GIT_ORGNM == "iw3hxn" ]] && GIT_ORGID="librerp"
     [[ $GIT_ORGNM =~ (PowERP-cloud|powerp1) ]] && GIT_ORGID="powerp"
     [[ $GIT_ORGID == $ODOO_GIT_ORGID ]] && GIT_PROT="git"
+    [[ -n $ODOO_GIT_PROT ]] && GIT_PROT="$ODOO_GIT_PROT"
     if [[ "$ITEM" == "LICENSE" ]]; then
         if [[ -z "$LICENSE" ]]; then
           [[ $GIT_ORGID == "powerp" ]] && LICENSE="OPL"
@@ -454,6 +457,7 @@ build_odoo_param() {
     else
         DB_USER="odoo"
     fi
+    [[ -z "$VDIR" ]] && VDIR="$HOME/VENV-$FULLVER"
     if [[ "$ITEM" =~ ^(DB_USER|FULLVER|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|MAJVER|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RUPSTREAM|URL|URL_BRANCH|VCS|VDIR|VENV)$ ]]; then
         echo "${!ITEM}"
         [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x

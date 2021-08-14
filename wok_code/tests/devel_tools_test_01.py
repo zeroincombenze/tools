@@ -14,7 +14,7 @@ from zerobug import Z0BUG
 from zerobug import Z0testOdoo
 import license_mgnt
 
-__version__ = "1.0.1.13"
+__version__ = "1.0.1.14"
 
 MODULE_ID = 'devel_tool'
 TEST_FAILED = 1

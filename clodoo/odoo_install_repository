@@ -39,7 +39,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=0.3.31.16
+__version__=0.3.31.17
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -108,7 +108,7 @@ wep_other_branches() {
     local sts v x lne PARSE
     git status -s &>/dev/null
     sts=$?
-    if [ $sts -eq 0 ]; then
+    if [[ $sts -eq 0 ]]; then
         x=$(build_odoo_param RORIGIN "$1" "$git_repo" "$opt_org" "$opt_deploy")
         if [ "${x:0:15}" == "git@github.com:" ]; then
             git remote show origin 2>/dev/null >$TMPFILE
@@ -165,20 +165,20 @@ commit_files() {
 update_odoo_conf() {
     # update_odoo_conf(odoo_vid confn)
     local odoo_vid=$1 x
-    local CONFN FLOG FPID RPCPORT odoo_ver
-    if [ -z "$2" ]; then
+    local CONFN FLOG FPID LPPORT RPCPORT odoo_ver
+    if [[ -z "$2" ]]; then
         local confn=$(build_odoo_param CONFN "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy")
     else
         local confn=$1
     fi
-    if [ ! -f $confn ]; then
+    if [[ ! -f $confn ]]; then
         echo "File $confn not found!"
         exit 1
     fi
     local tgt=$confn.tmp
     [[ -f $tgt ]] && rm -f $tgt
     touch $tgt
-    for x in CONFN FLOG FPID RPCPORT; do
+    for x in CONFN FLOG FPID LPPORT RPCPORT; do
         eval ${!x}=$(build_odoo_param $x "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy")
     done
     local odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
@@ -190,16 +190,22 @@ update_odoo_conf() {
         elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.* ]]; then
             line=$(echo "pidfile = $FPID")
         elif [[ $line =~ ^[#[:space:]]*xmlrpc_port[[:space:]]*=[[:space:]]*[0-9]+ ]]; then
-            if [ $odoo_ver -gt 10 ]; then
+            if [[ $odoo_ver -gt 10 ]]; then
                 line=$(echo "# xmlrpc_port = $RPCPORT")
             else
                 line=$(echo "xmlrpc_port = $RPCPORT")
             fi
         elif [[ $line =~ ^[#[:space:]]*http_port[[:space:]]*=[[:space:]]*[0-9]+ ]]; then
-            if [ $odoo_ver -gt 10 ]; then
+            if [[ $odoo_ver -gt 10 ]]; then
                 line=$(echo "http_port = $RPCPORT")
             else
                 line=$(echo "# http_port = $RPCPORT")
+            fi
+        elif [[ $line =~ ^[#[:space:]]*longpolling_port[[:space:]]*=[[:space:]]*[0-9]+ ]]; then
+            if [[ $odoo_ver -ge 10 ]]; then
+                line=$(echo "longpolling_port = $LPPORT")
+            else
+                line=$(echo "# longpolling_port = $LPPORT")
             fi
         fi
         echo "$line" >>$tgt
@@ -207,7 +213,7 @@ update_odoo_conf() {
     if $(diff -q $confn $tgt &>/dev/null); then
         rm -f $tgt
     else
-        [ -f $confn.bak ] && rm -f $confn.bak
+        [[ -f $confn.bak ]] && rm -f $confn.bak
         mv $confn $confn.bak
         mv $tgt $confn
     fi
@@ -218,8 +224,8 @@ update_confn() {
     local p CONFN DSTPATH=$2
     p=$(dirname $DSTPATH)
     [[ -z "$1" ]] && CONFN=$(build_odoo_param CONFN "$odoo_vid" "$git_repo" "$opt_org" "$opt_deploy") || CONFN=$1
-    [[ $opt_noconf -eq -1 && -f "$CONFN" && $(grep "^addons_path *=.*$p" $CONFN) ]] && opt_noconf=0
-    if [[ $opt_noconf -eq 0 ]] && [[ -f "$CONFN" ]]; then
+    [[ $opt_updconf -eq -1 && -f "$CONFN" && $(grep "^addons_path *=.*$p" $CONFN) ]] && opt_updconf=0
+    if [[ $opt_updconf -ne 0 ]] && [[ -f "$CONFN" ]]; then
         [[ ! $(grep "^addons_path *=.*$DSTPATH" $CONFN) ]] && run_traced "sed -i -e \"s|^addons_path *=.*|&,$DSTPATH|\" $CONFN"
     fi
 }
@@ -231,15 +237,15 @@ set_var() {
     [[ $opt_verbose -gt 1 ]] && echo "$1=$x"
 }
 
-OPTOPTS=(h        b          c        C          d          D        j        L        m         n           O       o        q           r          U       u        V           v           y       1)
-OPTDEST=(opt_help opt_branch opt_conf opt_noconf opt_deploy opt_ucfg opt_only opt_link opt_multi opt_dry_run opt_org opt_odir opt_verbose opt_updrmt opt_upd opt_user opt_version opt_verbose opt_yes opt_one)
-OPTACTI=(1        "="        "="      1          "="        1         1       1        1         1           "="     "="      0           1          1       "="      "*>"        "+" 1 1)
-OPTDEFL=(0        ""         ""       -1         ""         0         0       0        0         0           ""      ""       -1          0          0       ""       ""          -1  0 0)
-OPTMETA=("help" "branch" "file" "" "deploy" "" "" "" "" "do nothing" "git-org" "path" "verbose" "" "" "username" "version" "verbose" "" "")
+OPTOPTS=(h        b          c        C           d          D        j        L        m         n            O         o        q           r          U       u        V           v           y       1)
+OPTDEST=(opt_help opt_branch opt_conf opt_updconf opt_deploy opt_ucfg opt_only opt_link opt_multi opt_dry_run  opt_org   opt_odir opt_verbose opt_updrmt opt_upd opt_user opt_version opt_verbose opt_yes opt_one)
+OPTACTI=(1        "="        "="      1           "="        1         1       1        1         1            "="       "="      0           1          1       "="      "*>"        "+"         1       1)
+OPTDEFL=(0        ""         ""       0           ""         0         0       0        0         0            ""        ""       -1          0          0       ""       ""          -1          0       0)
+OPTMETA=("help"   "branch"   "file"   ""          "deploy"   ""        ""      ""       ""        "do nothing" "git-org" "path"   "verbose"   ""         ""      "username" "version" "verbose"   ""      "")
 OPTHELP=("this help"
     "default odoo branch"
     "configuration file (def .travis.conf)"
-    "do not touch configuration file (conflict with -D)"
+    "update addons_path of configuration file (conflict with -D)"
     "deployment option, may be tree,server,odoo"
     "update default values in /etc configuration file before creating script (conflict with -C)"
     "install only repository owned by git organization"
@@ -268,7 +274,7 @@ if [[ -z "$git_repo" ]]; then
 elif [[ -z "$odoo_vid" && -z "$opt_branch" ]]; then
     opt_help=1
 fi
-if [[ $opt_noconf -gt 0 && $opt_ucfg -ne 0 ]]; then
+if [[ $opt_updconf -eq 0 && $opt_ucfg -ne 0 ]]; then
     opt_help=1
 fi
 if [[ $opt_help -gt 0 ]]; then
@@ -294,7 +300,7 @@ odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 [[ -z "$opt_org" ]] && opt_org=$(build_odoo_param GIT_ORGID "$odoo_vid" "$opt_deploy")
 [[ $opt_org == "$ODOO_GIT_ORGID" ]] && opt_org=""
-for x in CONFN DB_USER DDIR FLOG FPID GIT_BRANCH GIT_OPTS GIT_URL GIT_ORGNM PARENTDIR REPOS ROOT RORIGIN RPCPORT; do
+for x in CONFN DB_USER DDIR FLOG FPID GIT_BRANCH GIT_OPTS GIT_URL GIT_ORGNM LPPORT PARENTDIR REPOS ROOT RORIGIN RPCPORT; do
     [[ $x == "DB_USER" ]] && set_var $x USER $odoo_vid || set_var $x $x $odoo_vid
 done
 [[ $opt_one -gt 0 ]] && GIT_OPTS="--depth 1 --single-branch"
@@ -375,17 +381,31 @@ if [[ -z "$new_odoo_vid" ]]; then
             [[ -f ~/.odoorc ]] && run_traced "rm -f  ~/.odoorc" "$RUN_USER"
             [[ -f ~/.openerp_serverrc ]] && run_traced "rm -f  ~/.openerp_serverrc" "$RUN_USER"
             [[ ! -d $DDIR ]] && run_traced "mkdir -p $DDIR" "$RUN_USER"
-            [ $odoo_ver -gt 7 ] && pdir="-D $DDIR" || pdir=""
-            run_traced "$odoo_bin -r $DB_USER --logfile=$FLOG --pidfile=$FPID --xmlrpc-port=$RPCPORT $pdir -s --stop-after-init" "$RUN_USER"
-            if [[ -f $ROOT/.openerp_serverrc ]]; then
-                run_traced "mv $ROOT/.openerp_serverrc $CONFN" "$RUN_USER"
-            elif [[ -f $ROOT/.odoorc ]]; then
-                run_traced "mv $ROOT/.odoorc $CONFN" "$RUN_USER"
-            elif [ $opt_dry_run -ne 0 ]; then
+            [[ $odoo_ver -gt 7 ]] && opts="-D $DDIR" || opts=""
+            [[ $odoo_ver -ge 10 ]] && opts="$opts --longpolling-port=$LPPORT"
+            VDIR=$(build_odoo_param VDIR "$odoo_vid" "$git_repo" "$opt_org" "search")
+            if [[ ! -d $VDIR ]]; then
+              odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
+              odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
+              [[ $odoo_ver -gt 10 ]] && p="-p 3.7" || p="-p2.7"
+              run_traced "vem create $VDIR -O$odoo_fver $p -DI -o$DSTPATH"
+            fi
+            cd $VDIR; . bin/activate
+            run_traced "$odoo_bin -r $DB_USER --logfile=$FLOG --logrotate --pidfile=$FPID --xmlrpc-port=$RPCPORT $opts -s --stop-after-init" "$RUN_USER"
+            deactivate
+            if [[ -f $VDIR/.openerp_serverrc ]]; then
+                run_traced "mv $VDIR/.openerp_serverrc $CONFN" "$RUN_USER"
+            elif [[ -f $VDIR/.odoorc ]]; then
+                run_traced "mv $VDIR/.odoorc $CONFN" "$RUN_USER"
+            elif [[ $opt_dry_run -ne 0 ]]; then
                 echo "> mv $(build_odoo_param LCONFN $odoo_vid) $CONFN"
             fi
+            if [[ ! -f $CONFN ]]; then
+                echo "File $CONFN not found!"
+                exit 1
+            fi
             run_traced "chown odoo:odoo $CONFN"
-            [ $opt_ucfg -ne 0 ] && update_odoo_conf $odoo_vid $opt_cfg
+            [[ $opt_ucfg -ne 0 ]] && update_odoo_conf $odoo_vid $opt_cfg
         fi
     fi
 else
@@ -429,21 +449,21 @@ fi
 [[ ! -d $DSTPATH ]] && echo "Directory $DSTPATH not found!" && exit 1
 [[ ! "$DSTPATH" == "$PWD" ]] && run_traced "cd $DSTPATH"
 set_remote_info "$REPOS" "$new_odoo_vid" "$GIT_URL" "$opt_org"
-if [[ $opt_updrmt -eq 0 ]]; then
-    auto_add_files "$new_odoo_fver"
-    commit_files "$new_odoo_fver"
-    wep_other_branches "$new_odoo_fver"
-fi
+# if [[ $opt_updrmt -eq 0 ]]; then
+    # auto_add_files "$new_odoo_fver"
+    # commit_files "$new_odoo_fver"
+    # wep_other_branches "$new_odoo_fver"
+# fi
 [[ ! $REPOS == "OCB" ]] && is_submodule=$(build_odoo_param VCS $new_odoo_vid) || is_submodule=""
 [[ ! -d $ROOT ]] && echo "Directory $ROOT not found!" && exit 1
 [[ "$ROOT" != "$PWD" ]] && run_traced "cd $ROOT"
-if [[ -n "$is_submodule" ]]; then
-    if [[ -n "$RORIGIN" ]]; then
-        x=$(git submodule status 2>/dev/null | grep $REPOS)
-        [[ -z "$x" ]] && run_traced "git submodule add -f $GIT_URL $REPOS/" "$RUN_USER"
-    fi
-fi
-[[ -z "$(grep "$REPOS/" .gitignore 2>/dev/null)" ]] && run_traced "echo "$REPOS/">>.gitignore"
+#if [[ -n "$is_submodule" ]]; then
+#    if [[ -n "$RORIGIN" ]]; then
+#        x=$(git submodule status 2>/dev/null | grep $REPOS)
+#        [[ -z "$x" ]] && run_traced "git submodule add -f $GIT_URL $REPOS/" "$RUN_USER"
+#    fi
+#fi
+[[ ! $REPOS == "OCB" && -z "$(grep "$REPOS/" .gitignore 2>/dev/null)" ]] && run_traced "echo "$REPOS/">>.gitignore"
 update_confn "$CONFN" $DSTPATH
 [[ "$REPOS" == "OCB" ]] && update_confn "$CONFN" "$DSTPATH/addons"
 rm -f $TMPFILE

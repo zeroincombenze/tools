@@ -33,13 +33,13 @@ fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-__version__=0.3.31.16
+__version__=0.3.31.17
 
 
 explore() {
 # explore(odoo_vid excl_list)
     local res=OCB
-    local pkgdir=$(build_odoo_param HOME $1 '' $git_org)
+    local pkgdir=$(build_odoo_param HOME "$1" "" "$opt_org" "$opt_deploy")
     for fn in $pkgdir/*; do
       if [[ -d $fn ]]; then
         nm=$(basename $fn)
@@ -56,25 +56,25 @@ do_action() {
     local odoo_vid=$3
     local odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
-    local f opts opts1 pyver s u x
+    local f g opts opts1 pyver s u x
     [[ $odoo_ver -ge 11 ]] && pyver="3" || pyver="2"
     [[ $opt_pyver =~ ^[23]$ ]] && pyver=$opt_pyver
     if [[ -n "$opt_odir" ]]; then
       local pkgdir=$opt_odir
       local odoo_root=$(build_odoo_param ROOT $opt_odir search $git_org)
     else
-      local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo" $git_org)
-      local odoo_root=$(build_odoo_param ROOT $odoo_vid search $git_org)
+      local pkgdir=$(build_odoo_param HOME "$odoo_vid" "$repo" "$git_org" "$opt_deploy")
+      local odoo_root=$(build_odoo_param PARENTDIR "$odoo_vid" "$repo" "$git_org" "$opt_deploy")
     fi
-    local VENV=$(build_odoo_param VENV $odoo_vid '' $git_org)
-    local VDIR=$(build_odoo_param VDIR $odoo_vid '' $git_org)
+    local VENV=$(build_odoo_param VENV $odoo_vid '' "$git_org" "$opt_deploy")
+    local VDIR=$(build_odoo_param VDIR $odoo_vid '' "$git_org" "$opt_deploy")
     [[ $opt_verbose -gt 0 ]] && opts="-v" || opts="-q"
     [[ $opt_dry_run -ne 0 ]] && opts="${opts}n"
     opts1=$opts
     [[ $opt_multi -ne 0 ]] && opts="${opts}m"
     [[ $opt_yes -ne 0 ]] && opts="${opts}y"
-    opts2=$opts
-    [[ -n $git_org ]] && opts2="${opts2}O$git_org"
+    opts2=${opts}C
+    [[ -n $git_org ]] && opts2="${opts2} -O$git_org"
     local sts=0
     local excl="${opt_excl//,/ }"
     if [[ $act =~ ^(amend|build|rebuild|upgrade)$ ]]; then
@@ -84,15 +84,52 @@ do_action() {
     fi
     if [[ $act == "prepare" ]]; then
       u=$(echo $own_user|cut -f1 -d:)
+      g=$(echo $own_user|cut -f2 -d:)
       for p in FLOG FPID CONFN; do
-        d=$(dirname $(build_odoo_param $p "$odoo_vid" '' $git_org))
+        d=$(dirname $(build_odoo_param $p "$odoo_vid" "" "$git_org" "$opt_deploy"))
         if [[ ! -d $d ]]; then
           run_traced "mkdir -p $d"
           [[ ! -d $d ]] && "Cannot create directory $d!" && exit 1
-          run_traced "find $d -not -user $u -exec chown -v $own_user '{}' \;"
-          run_traced "find $d -not -perm g+w -exec chmod -v g+rw '{}' \;"
         fi
+        run_traced "find $d -not -user $u -exec chown -v $own_user '{}' \;"
+        [[ -n "$g" ]] && run_traced "find $d -not -group $u -exec chown -v $own_user '{}' \;"
+        run_traced "find $d -not -perm g+w -exec chmod -v g+rw '{}' \;"
       done
+        export FH=$(xuname "-f")
+        x=$(xuname "-v")
+        v=$(echo $x | awk -F. '{print $1}')
+        export DISTO=$(xuname "-d")$v
+        LXCORE=$(xuname "-c")
+        MACHARCH=$(xuname "-m")
+        if [[ $DISTO =~ ^Fedora ]]; then
+          cmd="dnf"
+        elif [[ $FH == "RHEL" ]]; then
+          cmd="yum"
+        elif [[ $DISTO == "Ubuntu20" ]]; then
+          cmd="apt"
+        elif [[ $FH == "Debian" ]]; then
+          cmd="apt-get"
+        else
+          cmd="#"
+        fi
+        run_traced "$cmd update"
+        gcc --version &>/dev/null || run_traced "$cmd install gcc"
+        [[ $FH == "RHEL" ]] && run_traced "$cmd install python-devel python3-devel python3-pip python3-venv"
+        [[ $FH == "Debian" ]] && run_traced "$cmd install python-dev python3-dev python3-pip python3-venv"
+        [[ $FH == "RHEL" ]] && run_traced "$cmd install openssl-devel libffi-devel libsass-devel zlib-devel"
+        [[ $FH == "Debian" ]] && run_traced "$cmd install libssl-dev libffi-dev zlib1g-dev"
+        [[ $FH == "RHEL" ]] && run_traced "$cmd install libxml2-devel libxslt-devel"
+        [[ $FH == "Debian" ]] && run_traced "$cmd install libxml2-dev libxslt1-dev"
+        [[ $FH == "RHEL" ]] && run_traced "$cmd install openldap-devel"
+        [[ $FH == "Debian" ]] && run_traced "$cmd install libsasl2-dev libldap2-dev libssl-dev"
+        [[ $FH == "RHEL" ]] && run_traced "$cmd install -ye1 group info 'Development Tools'"
+        [[ $FH == "Debian" ]] && run_traced "$cmd install build-essential"
+        run_traced "$cmd install libevent-devel"
+        [[ $FH == "RHEL" ]] && run_traced "$cmd install libcups2-devel geos-devel"
+        [[ $FH == "Debian" ]] && run_traced "$cmd install libcups2-dev libgeos-dev"
+        [[ $FH == "Debian" ]] && run_traced "$cmd autoremove"
+        git --version --version &>/dev/null || run_traced "$cmd install git"
+        curl --version --version &>/dev/null || run_traced "$cmd install curl"
     elif [[  $act =~ ^(amend|add_repository)$ && -d $pkgdir ]]; then
       run_traced "cd $pkgdir"
       rmt_pkg=$(build_odoo_param RORIGIN '.'|xargs basename|cut -d"." -f1)
@@ -114,7 +151,7 @@ do_action() {
       run_traced "$TDIR/odoo_install_repository $repo -b$odoo_vid $opts2 $opts_user"
     elif [[ "$act" == "upgrade" ]]; then
       run_traced "$TDIR/odoo_install_repository $repo -b$odoo_vid $opts2 -U $opts_user"
-    else
+    elif [[ $act != "prepare" ]]; then
       run_traced "cd $pkgdir"
       if [[ $act =~ (travis|lint|test) ]]; then
         [[ -L $pkgdir ]] && return $sts
@@ -137,31 +174,33 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        B         b          c        D       d        H           L         m         n            O         o        P        p         q           s          u          V           v           x         y)
-OPTDEST=(opt_help opt_nobin opt_branch opt_conf opt_def opt_deps opt_humdrum opt_noloc opt_multi opt_dry_run  opt_org   opt_odir opt_nopy opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        1         "="        "="      1       "="      1           1         1         1            "="       "="      1        "="       1           1          "="        "*>"        "+"         "="       1)
-OPTDEFL=(0        0         ""         ""       0       ""       0           0         0         0            "zero"    ""       0        ""        -1          0          ""         ""          -1          ""        0)
-OPTMETA=("help"   ""        "branch"   "file"   ""      "dir"    ""          ""        ""        "do nothing" "git-org" "path"   ""       ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
-OPTHELP=("this help"\
- "do not install binary packages in requirements action"\
- "branches to do action; one or more of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 (comma separated)"\
- "configuration file (def .travis.conf)"\
- "default module list"\
- "dependencies directory"\
- "humdrum, display w/o colors"\
- "avoid install pip packages in local"\
- "multi-version odoo environment"\
- "do nothing (dry-run)"\
- "if add_module|[re]build, git organization, one of oca zero[-git|-http] (def zero)"\
- "odoo directory"\
- "do not install python packages in requirements action"\
+OPTOPTS=(h        B         b          c        D                  d        f       H           L         m         n            O         o         P        p         q           s          u          V           v           x         y)
+OPTLONG=(help     ""        branch     config   deploy-mode        ""       ""      humdrum     ""        ""        dry_run      git-org   odoo-path ""       ""        quiet       no-stop    username   version     verbose)
+OPTDEST=(opt_help opt_nobin opt_branch opt_conf opt_deploy         opt_deps opt_def opt_humdrum opt_noloc opt_multi opt_dry_run  opt_org   opt_odir  opt_nopy opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        1         "="        "="      "="                "="      1       1           1         1         1            "="       "="       1        "="       1           1          "="        "*>"        "+"         "="       1)
+OPTDEFL=(0        0         ""         ""       ""                 ""       0       0           0         0         0            "zero"    ""        0        ""        -1          0          ""         ""          -1          ""        0)
+OPTMETA=("help"   ""        "branch"   "file"   "tree|server|odoo" "dirs"   ""      ""          ""        ""        "do nothing" "git-org" "path"    ""       ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
+OPTHELP=("this help"
+ "do not install binary packages in requirements action"
+ "branches to do action; one or more of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 (comma separated)"
+ "configuration file (def .travis.conf)"
+ "deployment option, may be tree,server,odoo"
+ "dependencies directory"
+ "default module list"
+ "humdrum, display w/o colors"
+ "avoid install pip packages in local"
+ "multi-version odoo environment"
+ "do nothing (dry-run)"
+ "if add_module|[re]build, git organization, one of oca zero[-git|-http] (def zero)"
+ "odoo directory"
+ "do not install python packages in requirements action"
  "when installer is pip choice python version: may be 2 or 3 (def auto)"
- "silent mode"\
- "no stop after every module/version"\
- "user"\
- "show version"\
- "verbose mode"\
- "module list to exclude (comma separated)"\
+ "silent mode"
+ "no stop after every module/version"
+ "db username"
+ "show version"
+ "verbose mode"
+ "module list to exclude (comma separated)"
  "assume yes")
 OPTARGS=(actions)
 
@@ -210,7 +249,7 @@ fi
 if [[ -n "$opt_user" ]]; then
   echo $opt_user|grep -q ":" && own_user="$opt_user" || own_user="$opt_user:$(id $opt_user -gn$)"
 else
-  own_user="odoo:odoo"
+  own_user="odoo:$(id odoo -gn$)"
 fi
 [[ -n "$run_user" ]] && opts_user="-u$run_user" || opts_user=
 if [[ -z "$opt_branch" ]]; then
