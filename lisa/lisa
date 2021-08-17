@@ -377,10 +377,10 @@ get_prm_value() {
         elif [[ " $NPM_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="npm"
         elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]/] ]] || [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          if [[ $FH == "RHEL" ]]; then
-            p="yum"
-          elif [[ $DISTO =~ ^Fedora ]]; then
+          if [[ $DISTO =~ ^Fedora ]]; then
             p="dnf"
+          elif [[ $FH == "RHEL" ]]; then
+            p="yum"
           elif [[ $DISTO == "Ubuntu20" ]]; then
             p="apt"
           elif [[ $FH == "Debian" ]]; then

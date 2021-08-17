@@ -1,6 +1,0 @@
-id,name,code,type,default_debit_account_id,default_debit_account_id,display_on_footer,bank_account_id
-z0bug.bank11_journal,Bank IT15A0123412345100000123456,BNK11,bank,z0bug.coa_180011,z0bug.coa_180002,1,z0bug.bank_company_1
-z0bug.bank12_journal,Bank IT74B0246801011000000024680,BNK12,bank,z0bug.coa_180012,z0bug.coa_180003,1,z0bug.bank_company_2
-z0bug.misc,Miscellaneous Operations,None,None,None,None,None,None
-z0bug.sale,Customer Invoices,INV,sale,None,None,None,None
-z0bug.purchase,Vendor Bills,BILL,purchase,None,None,None,None

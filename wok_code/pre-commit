@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-#__version__=1.0.1.14
+#__version__=1.0.1.15
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 RDME="README.md"
@@ -13,25 +13,6 @@ if [[ ! -f $RDME ]]; then
     echo "To supersede this lock use --no-verify switch"
     exit 1
 fi
-#find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -not -name "*.po"  -not -name "*.rst"  -not -name "*.html" -cnewer ./$RDME -print | grep ".*"
-#if [[ -$? -eq 0 ]]; then
-#    echo ""
-#    echo "Detected updates without documentation!"
-#    echo "Please see above file list and type the command:"
-#    echo "> please docs"
-#    echo "at the path of every module no yet documented!"
-#    echo ""
-#    echo "To supersede this lock use --no-verify switch"
-#    exit 1
-#fi
-#FILES=$(find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" \))
-#sts=0
-#for fn in $FILES; do
-#  path=$($READLINK -f $(dirname $fn))
-#  module=$(basename $path)
-#  [[ -f $path/__init__.py && ( -f $path/README.rst || -f $path/README.md ) ]] || echo "Module $module w/o documentation" && sts=1
-#done
-
 [[ -z "$GIT_NO_CHECK" ]] && GIT_NO_CHECK="^($HOME/tools)\$"
 OCB=0
 [[ -x ./odoo-bin || -x ./odoo/odoo-bin || -x ./openerp-server || -x ./odoo/openerp-server || -x ./server/openerp-server ]] && OCB=1
@@ -58,6 +39,10 @@ if [[ -f .travis.yml && ! $PWD =~ $GIT_NO_CHECK ]]; then
     [[ $? -ne 0 ]] && sts=1 && echo -e "\n\e[31mRepository not validated by travis\e[0m\nPlease type:\ntravis"
 fi
 if [[ $sts -ne 0 ]]; then
+    echo ""
+    echo "To exclude this control on this repository,"
+    echo "add current path to GIT_NO_CHECK global variable."
+    echo "i.e. export GIT_NO_CHECK=\"^($PWD)\$\""
     echo ""
     echo "To supersede this lock use --no-verify switch"
 fi

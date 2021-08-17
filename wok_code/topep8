@@ -40,7 +40,7 @@ fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-__version__=1.0.1.14
+__version__=1.0.1.15
 
 [[ -f $TDIR/../../clodoo/list_requirements.py ]] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
@@ -230,7 +230,7 @@ format_yaml() {
   local fn=$1
   if [[ -f $fn ]]; then
     local fntmp=$fn.new
-    if [ $opt_z -ne 0 ]; then
+    if [[ $opt_z -ne 0 ]]; then
       local fntmpl=$YAML_TMPL
     else
       local fntmpl=$fn
@@ -326,7 +326,7 @@ format_yaml() {
         :
       elif [[ $lne =~ -\ ln\ -s\ .*/build/.*ODOO_REPO.*VERSION ]]; then
         :
-      elif [[ $lne =~ -\ source\ \$.HOME./dev/activate_tools ]]; then
+      elif [[ $lne =~ -\ source\ \$.HOME./dev(el)?/activate_tools ]]; then
         :
       elif [[ $lne =~ -\ pov-wkhtmltopdf ]]; then
         :
@@ -362,8 +362,8 @@ format_yaml() {
         :
       elif [[ "$cur_sect" == "python" && "$lne" =~ [23]\.[0-9] ]]; then
         if [[ -z "$cur_sub" ]]; then
-          if [ $odoo_ver -ge 11 ]; then
-            echo "  - \"3.5\"" >>$fntmp
+          if [[ $odoo_ver -ge 11 ]]; then
+            [[ $odoo_ver -eq 11 ]] && echo "  - \"3.5\"" >>$fntmp
             echo "  - \"3.6\"" >>$fntmp
             echo "  - \"3.7\"" >>$fntmp
             # echo "  - \"3.8\"">>$fntmp
@@ -392,11 +392,8 @@ format_yaml() {
           done
         elif [[ $lne =~ sources: ]]; then
           echo "    sources:" >>$fntmp
-          # echo "      - pov-wkhtmltopdf">>$fntmp
         elif [[ $lne =~ apt: ]]; then
           echo "$line" >>$fntmp
-        # elif [[ ! $lne =~ \#?\ *\- ]]; then
-        #     echo "$line">>$fntmp
         fi
       elif [[ $line =~ ^(addons|before_install|cache|env|git|install|python|script|virtualenv): ]]; then
         cur_sect=${line:0:-1}
@@ -410,9 +407,8 @@ format_yaml() {
         elif [[ $cur_sect == "before_install" ]]; then
           echo "  # Use Zeroincombenze(R) tools" >>$fntmp
           echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1" >>$fntmp
-          # echo "  # - export PATH=\${HOME}/tools/maintainer-quality-tools/travis:\${PATH}">>$fntmp
-          echo "  - \${HOME}/tools/install_tools.sh -qp" >>$fntmp
-          echo "  - source \${HOME}/dev/activate_tools" >>$fntmp
+          echo "  - \${HOME}/tools/install_tools.sh -qpt" >>$fntmp
+          echo "  - source ${HOME}/devel/activate_tools" >>$fntmp
           if [[ $PKGNAME == "OCB" ]]; then
             echo "  # - \"export DISPLAY=:99.0\"" >>$fntmp
             echo "  # - \"sh -e /etc/init.d/xvfb start\"" >>$fntmp

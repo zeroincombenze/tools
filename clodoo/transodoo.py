@@ -20,7 +20,7 @@ Structure:
     value:    value of field to translate (name is the field name)
     valuetnl: field ha translation ("1")
 
-[pymodel][ttype][hash]           hash entry with name.ver list
+[pymodel][ttype][hash]           hash entry with ver.name list
 [pymodel][ttype][hash][ver.name] value for specific version
 [pymodel][ttype][ver.name]       specific name entry for name.ver -> hash
 
@@ -35,9 +35,9 @@ from past.builtins import basestring
 from python_plus import bstrings
 
 import re
-# import csv
 import os
 import sys
+# from openpyxl import load_workbook, Workbook
 from openpyxl import load_workbook
 try:
     from z0lib.z0lib import z0lib
@@ -47,8 +47,16 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.31.17"
-VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
+__version__ = "0.3.32"
+VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0']
+ALL_VERSIONS = [x for x in VERSIONS]
+for org in ('zero', 'powerp', 'librerp'):
+    for ver in VERSIONS:
+        if org == 'librerp' and ver != '6.1':
+            continue
+        elif org == 'powerp' and int(ver.split('.')[0]) < 12:
+            continue
+        ALL_VERSIONS.append('%s%s' % (org, ver.split('.')[0]))
 CVT_ACC_TYPE_OLD_NEW = {
     'Bank': 'Bank and Cash',
     'Cash': 'Bank and Cash',
@@ -76,19 +84,19 @@ CVT_ACC_TYPE_NEW_OLD = {
 def get_pymodel(model, ttype=None):
     return {
         'xref': 'ir.model.data',
+        'model': 'ir.model',
         'module': 'ir.module.module',
-        'merge': 'ir.module.module',
     }.get(ttype, model)
 
 
-def get_ver_name(name, ver):
+def get_ver_name(name, cur_ver):
     if name:
-        return '%s__%s' % (ver, name)
+        return '%s~%s' % (cur_ver, name)
     return name
 
 
 def is_hash(name):
-    if re.match(r'^[0-9]+\.[0-9]+__', name):
+    if re.match(r'^[a-zA-Z0-9_]+[a-zA-Z0-9_-]*[0-9]+~', name):
         return False
     return True
 
@@ -96,15 +104,12 @@ def is_hash(name):
 def set_hash(ttype, name, ver_names):
     if ttype == 'name':
         return name.upper()
-    prior_name = ''
     key = name if ttype in ('value', 'valuetnl') else ''
-    for i, ver in enumerate(VERSIONS):
-        if ver_names[i] and ver_names[i] != prior_name:
-            if key:
-                key = '%s|%s' % (key, ver_names[i])
-            else:
-                key = ver_names[i]
-            prior_name = ver_names[i]
+    for item in ver_names:
+        if key:
+            key = '%s|%s' % (key, item)
+        else:
+            key = item
     if ttype in ('value', 'valuetnl'):
         return key
     return key.upper()
@@ -135,6 +140,11 @@ def link_versioned_name(mindroot, model, hash, ttype, src_name, ver,
     if item is not None:
         item[hash] = item.get(hash, {})
         if ver_name:
+            tver = ver_name
+            while tver:
+                tver = previous_ver_name(tver, ver_name)
+                if tver in item and hash not in item[tver]:
+                    item[ver_name] = item[tver]
             if ver_name in item:
                 if not isinstance(item[ver_name], list):
                     item[ver_name] = [item[ver_name]]
@@ -173,6 +183,30 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
     return name
 
 
+def previous_ver_name(ver_name, orig_name):
+    x = re.search('[0-9]+', ver_name)
+    if x:
+        version = int(ver_name[x.start():x.end()]) - 1
+        if version < 6:
+            if re.match(r'[0-9]+\.[0-9]', ver_name):
+                ver_name = ''
+            else:
+                ver_name = orig_name if orig_name else ''
+            x = re.search('[0-9]+', ver_name)
+            if x:
+                version = int(ver_name[x.start():x.end()])
+                ver_name = '%d.0' % version
+            else:
+                ver_name = ''
+        else:
+            ver_name = '%s%d%s' % (ver_name[0: x.start()],
+                                   version,
+                                   ver_name[x.end():])
+        if '6.0' in ver_name:
+            ver_name = ver_name.replace('6.0', '6.1')
+    return ver_name
+
+
 def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                       ttype=False, fld_name=False, type=None):
     """Translate symbol <src_name> from <src_ver> to <tgt_ver> of Odoo.
@@ -184,10 +218,10 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
         ttype = type
     del type
     mindroot = ctx.get('mindroot', {})
-    if src_ver not in VERSIONS:
+    if src_ver not in ALL_VERSIONS:
         print('Invalid source version!')
         return ''
-    if tgt_ver not in VERSIONS:
+    if tgt_ver not in ALL_VERSIONS:
         print('Invalid target version!')
         return ''
     if ttype in ('value', 'valuetnl') and not fld_name:
@@ -219,14 +253,21 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                         names.append(tnl_by_code(ctx, model, src_name,
                                                  src_ver, tgt_ver,
                                                  item))
-            elif ver_name in item:
-                hash = item[ver_name]
-                if not isinstance(hash, list):
-                    hash = [hash]
-                for xx in hash:
-                    if xx in item and tgt_ver in item[xx]:
-                        if item[xx][tgt_ver] not in names:
-                            names.append(item[xx][tgt_ver])
+            else:
+                sver = ver_name
+                while sver and sver not in item:
+                    sver = previous_ver_name(sver, ver_name)
+                if sver:
+                    hash = item[sver]
+                    if not isinstance(hash, list):
+                        hash = [hash]
+                    for hh in hash:
+                        if hh in item:
+                            tver = tgt_ver
+                            while tver and tver not in item[hh]:
+                                tver = previous_ver_name(tver, tgt_ver)
+                            if tver and item[hh][tver] not in names:
+                                names.append(item[hh][tver])
         if names:
             if len(names) == 1:
                 name = names[0]
@@ -239,18 +280,21 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
 
 def translate_from_sym(ctx, model, sym, tgt_ver):
     mindroot = ctx.get('mindroot', {})
-    if tgt_ver not in VERSIONS:
+    if tgt_ver not in ALL_VERSIONS:
         print('Invalid target version!')
         return ''
     pymodel = get_pymodel(model)
     name = ''
     for typ in ('name', 'field'):
-        if pymodel in mindroot and \
-                typ in mindroot[pymodel] and \
-                sym in mindroot[pymodel][typ] and \
-                tgt_ver in mindroot[pymodel][typ][sym]:
-            name = mindroot[pymodel][typ][sym][tgt_ver]
-            break
+        if (pymodel in mindroot and
+                typ in mindroot[pymodel] and
+                sym in mindroot[pymodel][typ]):
+            tver = tgt_ver
+            while tver and tver not in mindroot[pymodel][typ][sym]:
+                tver = previous_ver_name(tver, tgt_ver)
+            if tver:
+                name = mindroot[pymodel][typ][sym][tver]
+                break
     return name
 
 
@@ -287,15 +331,15 @@ def read_stored_dict(ctx):
                                       row['type'],
                                       fld_name=row['name'])
         ver_names = []
-        for ver in VERSIONS:
-            if ver in row:
+        used_versions = []
+        last_ver = ''
+        for ver in ALL_VERSIONS:
+            if ver in row and row[ver] and row[ver] != last_ver:
                 ver_names.append(row[ver])
+                used_versions.append(ver)
                 last_ver = row[ver]
-            else:
-                ver_names.append(last_ver)
-                row[ver] = last_ver
         hash = set_hash(row['type'], row['name'], ver_names)
-        for ver in VERSIONS:
+        for ver in used_versions:
             mindroot = link_versioned_name(mindroot,
                                            row['model'],
                                            hash,
@@ -307,31 +351,18 @@ def read_stored_dict(ctx):
 
 
 def write_stored_dict(ctx):
-    # csv.register_dialect('transodoo',
-    #                      delimiter=_c('\t'),
-    #                      quotechar=_c('\"'),
-    #                      quoting=csv.QUOTE_MINIMAL)
-    # if 'dict_fn' not in ctx or not ctx['dict_fn']:
-    #     p = os.path.dirname(__file__) or '.'
-    #     if os.path.isfile('%s/transodoo.csv' % p):
-    #         ctx['dict_fn'] = '%s/transodoo.csv' % p
-    #     elif os.path.isfile('~/dev/transodoo.csv'):
-    #         ctx['dict_fn'] = '~/dev/transodoo.csv'
-    #     else:
-    #         ctx['dict_fn'] = 'transodoo.csv'
-    # with open(ctx['dict_fn'], 'wb') as fd:
-    #     writer = csv.DictWriter(
-    #         fd,
-    #         fieldnames=('model', 'name', 'type', 'hash') + VERSIONS,
-    #         dialect='transodoo')
-    #     writer.writeheader()
-    #     mindroot = ctx['mindroot']
-    #     for model in sorted(mindroot.keys()):
-    #         for ttype in sorted(mindroot[model].keys()):
-    #             if ttype in ('value', 'valuetnl'):
-    #                 iterate = sorted(mindroot[model][ttype].keys())
-    #             else:
-    #                 iterate = [None]
+    # ctx['dict_fn'] = os.path.join(os.path.expanduser('~/transodoo.xlsx'))
+    # import pdb
+    # pdb.set_trace()
+    # wb = Workbook()
+    # ws1 = wb.create_sheet(title='transodoo')
+    # mindroot = ctx['mindroot']
+    # for model in sorted(mindroot.keys()):
+    #     for ttype in sorted(mindroot[model].keys()):
+    #         if ttype in ('value', 'valuetnl'):
+    #             iterate = sorted(mindroot[model][ttype].keys())
+    #         else:
+    #             iterate = [None]
     #             for name in iterate:
     #                 if ttype in ('value', 'valuetnl'):
     #                     items = mindroot[model][ttype][name]
@@ -351,7 +382,6 @@ def write_stored_dict(ctx):
     #                     if ttype == 'name':
     #                         line['name'] = hash
     #                     else:
-    #                         line['hash'] = hash
     #                         if ttype in ('value', 'valuetnl'):
     #                             line['name'] = name
     #                     if isinstance(items, basestring):
@@ -361,9 +391,8 @@ def write_stored_dict(ctx):
     #                         for ver_name in sorted(items[hash].keys()):
     #                             if items[hash][ver_name]:
     #                                 line[ver_name] = items[hash][ver_name]
-    #                     if len(line) > 4:
-    #                         writer.writerow(line)
     pass
+
 
 def transodoo_list(ctx):
 
@@ -373,7 +402,7 @@ def transodoo_list(ctx):
         line = '\n'
         if typ == 'value':
             line += '  %s\n' % fld_name
-        for ver in VERSIONS:
+        for ver in ALL_VERSIONS:
             if typ == 'value':
                 if ver in mindroot[ctx['pymodel']][typ][fld_name][nm]:
                     line += '    - %4.4s: %s\n' % (
@@ -424,6 +453,9 @@ def transodoo(ctx=None):
                 ctx['pymodel'],
                 ctx['sym'],
                 ctx['odoo_ver'])))
+    elif ctx['action'] == 'rewrite':
+        read_stored_dict(ctx)
+        write_stored_dict(ctx)
     else:
         print("Invalid action!")
         return 1
@@ -460,26 +492,25 @@ if __name__ == "__main__":
                         dest='field_name')
     parser.add_argument('-n')
     parser.add_argument('-q')
-    parser.add_argument('-s', '--symbol',
+    parser.add_argument('-s', '--symbol-value',
                         action='store',
                         dest='sym',
                         default='')
     parser.add_argument('-V')
     parser.add_argument('-v')
     parser.add_argument('action',
-                        help='edit,list,translate,test')
+                        help='list,translate,rewrite')
     ctx = parser.parseoptargs(sys.argv[1:])
-    # ctx['pymodel'] = ctx['model'].replace('.', '_').lower()
     ctx['pymodel'] = ctx['model'].lower()
     if ctx['odoo_ver']:
-        if ctx['odoo_ver'] not in VERSIONS:
+        if ctx['odoo_ver'] not in ALL_VERSIONS:
             print('Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],
-                                                          VERSIONS))
+                                                          ALL_VERSIONS))
             sys.exit(1)
     if ctx['oe_from_ver']:
-        if ctx['oe_from_ver'] not in VERSIONS:
+        if ctx['oe_from_ver'] not in ALL_VERSIONS:
             print('Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],
-                                                          VERSIONS))
+                                                          ALL_VERSIONS))
             sys.exit(1)
     sts = transodoo(ctx=ctx)
     exit(sts)

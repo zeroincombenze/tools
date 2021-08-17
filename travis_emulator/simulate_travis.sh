@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-__version__=1.0.1.5
+__version__=1.0.1.6
 if [[ -z "$1" || "$1" == "-h" ]]; then
     echo "$0 -I|-i     # install travis emulator environment (-i stable version, -I devel version)"
     echo "$0 srcdir    # copy src repository into local venv"
@@ -28,7 +28,7 @@ if [[ -n "$1" && ( "$1" == "-i" || "$1" == "-I" ) ]]; then
     rsync -az --delete $home_odoo/tools/ $home_travis/tools/
     sudo chown -R travis:travis $home_travis/tools
     if [[ "$1" == "-I" ]]; then
-        for nm in clodoo lisa odoo_score os0 python_plus travis_emulator wok_code z0bug_odoo zerobug; do
+        for nm in clodoo lisa odoo_score os0 python_plus travis_emulator wok_code z0bug_odoo zar zerobug; do
             [[ -d $home_travis/$nm ]] && rm -fR $home_travis/$nm
             rm -fR $home_travis/tools/$nm
             cp -r $home_odoo/devel/pypi/$nm/$nm/ $home_travis/tools/$nm/

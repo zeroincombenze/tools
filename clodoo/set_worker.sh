@@ -4,37 +4,43 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../.. $TDIR/../../z0lib $TDIR/../../z0lib/z0lib $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+TDIR=$($READLINK -f $(dirname $0))
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
     break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
-if [ -z "$ODOOLIBDIR" ]; then
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+if [[ -z "$ODOOLIBDIR" ]]; then
   echo "Library file odoorc not found!"
-  exit 2
+  exit 72
 fi
 . $ODOOLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-__version__=0.3.31.17
+__version__=0.3.32
 
 
 evaluate_params() {
     local val prc minconn
     [[ $opt_branch =~ ^1[123456789] ]] && minconn=64 || minconn=32
-    if [ $opt_nopsql -ne 0 ]; then
+    if [[ $opt_nopsql -ne 0 ]]; then
         ((AVAI_MEM=(CUR_MEM*3)/4))
-    elif [ $opt_huge -ne 0 ]; then
+    elif [[ $opt_huge -ne 0 ]]; then
         ((AVAI_MEM=(CUR_MEM+2)/3))
     else
         ((AVAI_MEM=(CUR_MEM+3)/4))
@@ -100,8 +106,8 @@ evaluate_params() {
     [[ $WK_DBCONN -lt $minconn ]] && WK_DBCONN=$minconn
     [[ $WK_WORKERS -lt 2 ]] && WK_WORKERS=0
     [[ $WK_WORKERS -gt 0 ]] && PROXY_MODE="True" || PROXY_MODE="False"
-    [[ $WK_WORKERS -gt 0 ]] && TIME_CPU=1200 || TIME_CPU=300
-    [[ $WK_WORKERS -gt 0 ]] && TIME_REAL=2400 || TIME_REAL=600
+    [[ $WK_WORKERS -le 1 ]] && TIME_CPU=1200 || TIME_CPU=600
+    [[ $WK_WORKERS -le 1 ]] && TIME_REAL=2400 || TIME_REAL=1200
     ((MAX_NUSER=MAX_WRKS*WRKS4CPU))
     if [[ $opt_nopsql -ne 0 ]]; then
         ((RAM=REQ_AVAI_MEM/3*4))
@@ -136,14 +142,12 @@ OPTHELP=("this help"\
 OPTARGS=(NUSER)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
-if [ $opt_verbose -eq -1 ]; then
-  opt_verbose=1
-fi
-if [ $opt_help -gt 0 ]; then
+[[ $opt_verbose -eq -1 ]] && opt_verbose=1
+if [[ $opt_help -gt 0 ]]; then
   print_help "Update Odoo configuration file to best performance"\
   "(C) 2018-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
@@ -153,31 +157,31 @@ odoo_vid=$(echo ""|grep "^addons_path *=.*" $confn|tr -d " "|awk -F= '{print $2}
 b=$(basename $odoo_vid)
 [[ $b == "addons" ]] && odoo_vid=$(dirname $odoo_vid)
 CUR_NUSER=$(echo ""|grep -E "^# .antoniov.*Workers are set for [0-9]+ users" $confn|grep -Eo "[0-9]+"|tail -n1)
-[ -z "$CUR_NUSER" ] && CUR_NUSER=0
+[[ -z "$CUR_NUSER" ]] && CUR_NUSER=0
 if [[ -n "$NUSER" && ! $NUSER =~ ^[0-9]+$ ]]; then
     echo "Invalid # of user supplied. Please issue a valid number or leave empty to get current value!!"
     exit 1
 fi
 # Odoo constants
 MIN_HLIMIT=1792
-if [ $opt_sparse -eq 0 ]; then
-    WRKS4CPU=6
-elif [ $opt_huge -ne 0 ]; then
+if [[ $opt_sparse -ne 0 ]]; then
+    WRKS4CPU=10
+elif [[ $opt_huge -ne 0 ]]; then
     WRKS4CPU=8
 else
-    WRKS4CPU=10
+    WRKS4CPU=6
 fi
 MEM4WRK=640
-if [ $opt_huge -eq 0 ]; then
+if [[ $opt_huge -ne 0 ]]; then
+    ((MEM4HWRK=MEM4WRK*17/7))
+    ((MEM4LWRK=MEM4WRK/2))
+else
     ((MEM4HWRK=MEM4WRK*8/5))
     ((MEM4LWRK=MEM4WRK/4))
-else
-    ((MEM4HWRK=MEM4WRK*15/5))
-    ((MEM4LWRK=MEM4WRK/2))
 fi
-if [ $no_workers -eq 0 ]; then
+if [[ $no_workers -eq 0 ]]; then
     PRC4WRK=64
-elif [ $opt_huge -eq 0 ]; then
+elif [[ $opt_huge -eq 0 ]]; then
     PRC4WRK=8
 else
     PRC4WRK=4
@@ -192,7 +196,7 @@ CUR_LPPORT=$(echo ""|grep "^longpolling_port *=.*" $confn|awk -F= '{print $2}'|g
 [[ $NUSER -lt 2 ]] && NUSER=2
 [[ -n "$opt_cpu" ]] && CUR_NCPU=$opt_cpu || CUR_NCPU="$(lscpu|grep "^CPU.s.:"|awk -F: '{print $2}')"
 CUR_NCPU=${CUR_NCPU// /}
-[ -n "$opt_mem" ] && CUR_MEM=$opt_mem || CUR_MEM=$(free -m|grep "Mem:"|awk '{print $2}')
+[[ -n "$opt_mem" ]] && CUR_MEM=$opt_mem || CUR_MEM=$(free -m|grep "Mem:"|awk '{print $2}')
 CUR_PG_DBCONN=$(pg_db_active -s)
 [[ -z "$CUR_PG_DBCONN" ]] && CUR_PG_DBCONN=100
 [[ $opt_cw -lt 1 ]] && opt_cw=1
@@ -214,10 +218,10 @@ CUR_DBCONN=$(echo ""|grep "^db_maxconn *=.*" $confn|grep -Eo "[0-9]+")
 #
 evaluate_params
 #
-[ $CUR_NCPU -lt $REQ_CPU ] && STS_NCPU="  <-- <CPU>"
-[ $WK_AVAI_MEM -lt $REQ_AVAI_MEM ] && STS_MEM="<-- <RAM>"
-[ $CUR_PG_DBCONN -lt $REQ_PG_DBCONN ] && STS_DBC="   <-- <CONN>"
-[ $WK_HLIMIT -gt $AVAI_MEM ] && STS_HL="<-- <MEM>"
+[[ $CUR_NCPU -lt $REQ_CPU ]] && STS_NCPU="  <-- <CPU>"
+[[ $WK_AVAI_MEM -lt $REQ_AVAI_MEM ]] && STS_MEM="<-- <RAM>"
+[[ $CUR_PG_DBCONN -lt $REQ_PG_DBCONN ]] && STS_DBC="   <-- <CONN>"
+[[ $WK_HLIMIT -gt $AVAI_MEM ]] && STS_HL="<-- <MEM>"
 #
 printf "                      Detected      Max Required  Applied\n"
 printf "# concurrent users.:  %8d %8d %8d\n" $CUR_NUSER $MAX_NUSER $NUSER
@@ -241,7 +245,7 @@ fi
 if [ $CUR_NCPU -lt $REQ_CPU ]; then
     echo "*<CPU>* Warning! You should increase the # of CPU to $REQ_CPU! ***"
 fi
-if [ $WK_AVAI_MEM -lt $REQ_AVAI_MEM ]; then
+if [[ $WK_AVAI_MEM -lt $REQ_AVAI_MEM ]]; then
     echo "*<RAM>* Warning! You should increase the physical memory to $RAM! ***"
 fi
 if [ $WK_HLIMIT -gt $AVAI_MEM ]; then

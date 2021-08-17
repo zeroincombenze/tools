@@ -41,7 +41,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.14
+__version__=1.0.1.15
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
