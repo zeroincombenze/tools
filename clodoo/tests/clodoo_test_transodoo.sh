@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.32
+__version__=0.3.32.1
 
 
 test_01() {
@@ -288,7 +288,7 @@ test_06() {
 }
 
 test_07() {
-    local k v RES
+    local k m v RES
     declare -A TRES
     TRES[6.1]="account_payment"
     TRES[7.0]="account_payment"
@@ -343,6 +343,31 @@ test_07() {
       test_result "translate -m ir.module.module -k merge -s account_financial_report_qweb -f 10.0 -b$v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    #
+    TRES[6.1]="None"
+    TRES[7.0]="None"
+    TRES[8.0]="None"
+    TRES[9.0]="None"
+    TRES[10.0]="None"
+    TRES[11.0]="None"
+    TRES[12.0]="l10n_it_vat_statement_split_payment"
+    TRES[13.0]="l10n_it_vat_statement_split_payment"
+    TRES[14.0]="l10n_it_vat_statement_split_payment"
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      m=$(echo $v|grep -Eo [0-9]+|head -n1)
+      RES=$($RUNDIR/transodoo.py translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -b$v)
+      test_result "translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -b$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      RES=$($RUNDIR/transodoo.py translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -bzero$m)
+      test_result "translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -bzero$m" "None" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      [[ $m -lt 12 ]] && continue
+      RES=$($RUNDIR/transodoo.py translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -bpowerp$m)
+      test_result "translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -bpowerp$m" "None" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
     return $sts
 }
 

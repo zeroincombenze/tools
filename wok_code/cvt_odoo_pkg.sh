@@ -39,7 +39,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.15
+__version__=1.0.1.18
 
 cvt_dir() {
     # echo "cvt_dir ($1,$2)"

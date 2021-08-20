@@ -37,8 +37,10 @@ from python_plus import bstrings
 import re
 import os
 import sys
-# from openpyxl import load_workbook, Workbook
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
+from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font, PatternFill
+# from openpyxl import load_workbook
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
@@ -47,7 +49,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.32"
+__version__ = "0.3.32.1"
 VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0']
 ALL_VERSIONS = [x for x in VERSIONS]
 for org in ('zero', 'powerp', 'librerp'):
@@ -96,7 +98,7 @@ def get_ver_name(name, cur_ver):
 
 
 def is_hash(name):
-    if re.match(r'^[a-zA-Z0-9_]+[a-zA-Z0-9_-]*[0-9]+~', name):
+    if re.match(r'^[a-zA-Z0-9_]+[a-zA-Z0-9_.-]*[0-9]+~', name):
         return False
     return True
 
@@ -156,19 +158,26 @@ def link_versioned_name(mindroot, model, hash, ttype, src_name, ver,
     return mindroot
 
 
-def tnl_acc_type(ctx, model, src_name, src_ver, tgt_ver, name):
-    src_majver = int(src_ver.split('.')[0])
-    tgt_majver = int(tgt_ver.split('.')[0])
-    if src_majver < 9 and tgt_majver >= 9:
-        name = CVT_ACC_TYPE_OLD_NEW.get(name, name)
-    elif src_majver >= 9 and tgt_majver < 9:
-        name = CVT_ACC_TYPE_NEW_OLD.get(name, name)
-    return name
+def get_majver(name):
+    x = re.search(r'[0-9]+', name)
+    if x:
+        return int(name[x.start(): x.end()])
+    return 0
+
+
+# def tnl_acc_type(ctx, model, src_name, src_ver, tgt_ver, name):
+#     src_majver = int(src_ver.split('.')[0])
+#     tgt_majver = int(tgt_ver.split('.')[0])
+#     if src_majver < 9 and tgt_majver >= 9:
+#         name = CVT_ACC_TYPE_OLD_NEW.get(name, name)
+#     elif src_majver >= 9 and tgt_majver < 9:
+#         name = CVT_ACC_TYPE_NEW_OLD.get(name, name)
+#     return name
 
 
 def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
-    src_majver = int(src_ver.split('.')[0])
-    tgt_majver = int(tgt_ver.split('.')[0])
+    src_majver = get_majver(src_ver)
+    tgt_majver = get_majver(tgt_ver)
     if name == '${amount}':
         if isinstance(src_name, basestring):
             src_name = float(src_name)
@@ -333,11 +342,17 @@ def read_stored_dict(ctx):
         ver_names = []
         used_versions = []
         last_ver = ''
+        last_ver_value = ''
         for ver in ALL_VERSIONS:
-            if ver in row and row[ver] and row[ver] != last_ver:
+            if ((ver.startswith('zero') and not last_ver.startswith('zero')) or
+                    (ver.startswith('powerp') and
+                     not last_ver.startswith('powerp'))):
+                last_ver_value = ''
+            if ver in row and row[ver] and row[ver] != last_ver_value:
                 ver_names.append(row[ver])
                 used_versions.append(ver)
-                last_ver = row[ver]
+                last_ver_value = row[ver]
+            last_ver = ver
         hash = set_hash(row['type'], row['name'], ver_names)
         for ver in used_versions:
             mindroot = link_versioned_name(mindroot,
@@ -351,47 +366,165 @@ def read_stored_dict(ctx):
 
 
 def write_stored_dict(ctx):
+
+    def write_row(sheet, line, rowid, header, widths):
+        rowid += 1
+        fill = "FFFFFF" if rowid % 2 else "F0F0F0"
+        if not line:
+            for col, item in enumerate(header):
+                font_color = "000000" if col % 2 else "1F1F1F"
+                cell = sheet.cell(row=rowid, column=col + 1)
+                cell.value = item
+                cell.font = Font(name='arial', size=8, color=font_color)
+                # cell.fill = PatternFill(bgColor=fill, fill_type="solid")
+                cell.fill = PatternFill(bgColor=fill)
+                widths[item] = len(item)
+        else:
+            for col, item in enumerate(header):
+                font_color = "000000" if col % 2 else "1F1F1F"
+                if item in line:
+                    cell = sheet.cell(row=rowid, column=col + 1)
+                    cell.value = line[item]
+                    cell.font = Font(name='arial', size=8, color=font_color)
+                    # cell.fill = PatternFill(bgColor=fill, fill_type="solid")
+                    cell.fill = PatternFill(bgColor=fill)
+                    widths[item] = min(24, max(len(line[item]), widths[item]))
+        return rowid
+
     # ctx['dict_fn'] = os.path.join(os.path.expanduser('~/transodoo.xlsx'))
-    # import pdb
-    # pdb.set_trace()
-    # wb = Workbook()
-    # ws1 = wb.create_sheet(title='transodoo')
-    # mindroot = ctx['mindroot']
-    # for model in sorted(mindroot.keys()):
-    #     for ttype in sorted(mindroot[model].keys()):
-    #         if ttype in ('value', 'valuetnl'):
-    #             iterate = sorted(mindroot[model][ttype].keys())
-    #         else:
-    #             iterate = [None]
-    #             for name in iterate:
-    #                 if ttype in ('value', 'valuetnl'):
-    #                     items = mindroot[model][ttype][name]
-    #                 else:
-    #                     items = mindroot[model][ttype]
-    #                 if isinstance(items, basestring):
-    #                     iterate2 = [items]
-    #                 else:
-    #                     iterate2 = sorted(items.keys())
-    #                 for hash in iterate2:
-    #                     if not is_hash(hash):
-    #                         continue
-    #                     line = {
-    #                         'model': model,
-    #                         'type': ttype,
-    #                     }
-    #                     if ttype == 'name':
-    #                         line['name'] = hash
-    #                     else:
-    #                         if ttype in ('value', 'valuetnl'):
-    #                             line['name'] = name
-    #                     if isinstance(items, basestring):
-    #                         for ver_name in VERSIONS:
-    #                             line[ver_name] = hash
-    #                     else:
-    #                         for ver_name in sorted(items[hash].keys()):
-    #                             if items[hash][ver_name]:
-    #                                 line[ver_name] = items[hash][ver_name]
-    pass
+    wb = Workbook()
+    for sheet in wb:
+        break
+    sheet.font = Font(name='arial', size=8)
+    sheet.title = 'transodoo'
+    mindroot = ctx['mindroot']
+    rowid = 0
+    header = [
+        'model', 'name', 'type',
+    ]
+    for ver in ALL_VERSIONS:
+        header.append(ver)
+    widths = {}
+    rowid = write_row(sheet, None, rowid, header, widths)
+    for model in sorted(mindroot.keys()):
+        for ttype in sorted(mindroot[model].keys()):
+            if ttype in ('value', 'valuetnl'):
+                iterate = sorted(mindroot[model][ttype].keys())
+            else:
+                iterate = [None]
+            for name in iterate:
+                if ttype in ('value', 'valuetnl'):
+                    items = mindroot[model][ttype][name]
+                else:
+                    items = mindroot[model][ttype]
+                if isinstance(items, basestring):
+                    iterate2 = [items]
+                else:
+                    iterate2 = sorted(items.keys())
+                for hash in iterate2:
+                    if not is_hash(hash):
+                        continue
+                    line = {
+                        'model': model,
+                        'type': ttype,
+                    }
+                    if ttype == 'name':
+                        line['name'] = hash
+                    else:
+                        if ttype in ('value', 'valuetnl'):
+                            line['name'] = name
+                    if isinstance(items, basestring):
+                        for ver_name in VERSIONS:
+                            line[ver_name] = hash
+                    else:
+                        for ver_name in sorted(items[hash].keys()):
+                            if items[hash][ver_name]:
+                                line[ver_name] = items[hash][ver_name]
+                    rowid = write_row(sheet, line, rowid, header, widths)
+    for col, item in enumerate(header):
+        sheet.column_dimensions[get_column_letter(col + 1)].width = widths[item]
+    bup_fn = '%s.bak' % ctx['dict_fn']
+    if os.path.isfile(bup_fn):
+        os.unlink(bup_fn)
+    os.rename(ctx['dict_fn'], bup_fn)
+    wb.save(filename=ctx['dict_fn'])
+
+
+def cvt_file(ctx):
+
+    def write_row(sheet, line, rowid, header, widths):
+        rowid += 1
+        if not line:
+            for col, item in enumerate(header):
+                cell = sheet.cell(row=rowid, column=col + 1)
+                cell.value = item
+                cell.font = Font(name='arial', size=9)
+                widths[item] = len(item)
+        else:
+            for col, item in enumerate(header):
+                if item in line:
+                    cell = sheet.cell(row=rowid, column=col + 1)
+                    cell.value = line[item]
+                    cell.font = Font(name='arial', size=9)
+                    if line[item] and isinstance(line[item], basestring):
+                        widths[item] = min(24,
+                                           max(len(line[item]), widths[item]))
+        return rowid
+
+    if not ctx['file_2_cvt']:
+        print('Missed filename!\nuse -F switch')
+        return 1
+    wbi = load_workbook(ctx['file_2_cvt'])
+    for sheeti in wbi:
+        break
+    wbo = Workbook()
+    for sheeto in wbo:
+        break
+    sheeto.font = Font(name='arial', size=9)
+    colnames = []
+    for column in sheeti.columns:
+        colnames.append(column[0].value)
+    hdr = True
+    rowid = 0
+    widths = {}
+    for line in sheeti.rows:
+        if hdr:
+            hdr = False
+            new_colnames = []
+            tnl_colname = {}
+            for column in colnames:
+                tnl_colname[column] = translate_from_to(
+                    ctx,
+                    ctx['pymodel'],
+                    column,
+                    ctx['oe_from_ver'],
+                    ctx['odoo_ver'],
+                    ttype='name')
+                new_colnames.append(tnl_colname[column])
+            rowid = write_row(sheeto, None, rowid, new_colnames, widths)
+            continue
+        row = {}
+        for column, cell in enumerate(line):
+            row[colnames[column]] = cell.value
+        new_row = {}
+        for item in row.keys():
+            new_row[tnl_colname[item]] = translate_from_to(
+                ctx,
+                ctx['pymodel'],
+                row[item],
+                ctx['oe_from_ver'],
+                ctx['odoo_ver'],
+                ttype='value',
+                fld_name=item)
+        rowid = write_row(sheeto, new_row, rowid, new_colnames, widths)
+    for col, item in enumerate(new_colnames):
+        sheeto.column_dimensions[
+            get_column_letter(col + 1)].width = widths[item]
+    bup_fn = '%s.bak' % ctx['file_2_cvt']
+    if os.path.isfile(bup_fn):
+        os.unlink(bup_fn)
+    os.rename(ctx['file_2_cvt'], bup_fn)
+    wbo.save(filename=ctx['file_2_cvt'])
 
 
 def transodoo_list(ctx):
@@ -456,6 +589,9 @@ def transodoo(ctx=None):
     elif ctx['action'] == 'rewrite':
         read_stored_dict(ctx)
         write_stored_dict(ctx)
+    elif ctx['action'] == 'cvt-file':
+        read_stored_dict(ctx)
+        cvt_file(ctx)
     else:
         print("Invalid action!")
         return 1
@@ -470,6 +606,10 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--branch',
                         action='store',
                         dest='odoo_ver',
+                        default='')
+    parser.add_argument('-F', '--filename',
+                        action='store',
+                        dest='file_2_cvt',
                         default='')
     parser.add_argument('-f', '--from-branch',
                         action='store',

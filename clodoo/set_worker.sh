@@ -32,7 +32,7 @@ fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-__version__=0.3.32
+__version__=0.3.32.1
 
 
 evaluate_params() {
@@ -106,8 +106,8 @@ evaluate_params() {
     [[ $WK_DBCONN -lt $minconn ]] && WK_DBCONN=$minconn
     [[ $WK_WORKERS -lt 2 ]] && WK_WORKERS=0
     [[ $WK_WORKERS -gt 0 ]] && PROXY_MODE="True" || PROXY_MODE="False"
-    [[ $WK_WORKERS -le 1 ]] && TIME_CPU=1200 || TIME_CPU=600
-    [[ $WK_WORKERS -le 1 ]] && TIME_REAL=2400 || TIME_REAL=1200
+    [[ $WK_WORKERS -le 1 ]] && TIME_CPU=7200 || TIME_CPU=2400
+    [[ $WK_WORKERS -le 1 ]] && TIME_REAL=14400 || TIME_REAL=4800
     ((MAX_NUSER=MAX_WRKS*WRKS4CPU))
     if [[ $opt_nopsql -ne 0 ]]; then
         ((RAM=REQ_AVAI_MEM/3*4))
