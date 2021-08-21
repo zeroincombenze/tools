@@ -16,7 +16,7 @@ pull_n_run() {
     exit $?
 }
 
-__version__=1.0.5.41
+__version__=1.0.5.42
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -182,7 +182,7 @@ if [[ ! $1 =~ ^-.*n ]]; then
     [[ $1 =~ ^-.*t || $TRAVIS =~ (true|emulate) ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
-    [[ $1 =~ ^-.*t ]] || source $DSTPATH/activate_tools
+    echo "READLINK=$(which greadlink 2>/dev/null) && alias readlink=$READLINK && export READLINK">>$DSTPATH/activate_tools
 fi
 if [[ $1 =~ ^-.*[Ss] ]]; then
     [[ ! $1 =~ ^-.*o ]] && SITECUSTOM=$HOME/devel/sitecustomize.py

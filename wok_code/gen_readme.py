@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.18"
+__version__ = "1.0.1.19"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -1235,11 +1235,13 @@ def setup(**kwargs):
         print(kw)
 
 
-def read_manifest_file(manifest_path):
+def read_manifest_file(ctx, manifest_path, force_version=None):
     try:
         manifest = ast.literal_eval(open(manifest_path).read())
     except (ImportError, IOError, SyntaxError):
         raise Exception('Wrong manifest file %s' % manifest_path)
+    if force_version:
+        manifest['version'] = adj_version(ctx, manifest.get('version', ''))
     return unicodes(manifest)
 
 
@@ -1280,7 +1282,8 @@ def read_manifest(ctx):
             break
         manifest_filename = ''
     if manifest_filename:
-        ctx['manifest'] = read_manifest_file(manifest_filename)
+        ctx['manifest'] = read_manifest_file(
+            ctx, manifest_filename, force_version=True)
         ctx['manifest_filename'] = manifest_filename
     else:
         if not ctx['suppress_warning']:
@@ -1290,9 +1293,9 @@ def read_manifest(ctx):
 
 def adj_version(ctx, version):
     if not version:
-        version = '0.0'
+        version = '0.1.0'
     if version[0].isdigit():
-        if version.find(ctx['branch']) != 0:
+        if not version.startswith(ctx['branch']):
             version = '%s.%s' % (ctx['branch'], version)
     return version
 
@@ -1333,7 +1336,8 @@ def read_all_manifests(ctx, path=None, module2search=None):
             if manifest_file in files:
                 full_fn = os.path.join(root, manifest_file)
                 try:
-                    addons_info[module_name] = read_manifest_file(full_fn)
+                    addons_info[module_name] = read_manifest_file(
+                        ctx, full_fn, force_version=True)
                     if 'summary' not in addons_info[module_name]:
                         addons_info[module_name]['summary'] = addons_info[
                             module_name]['name'].strip()
@@ -1341,8 +1345,8 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         addons_info[module_name][
                             'summary'] = clean_summary(
                                 addons_info[module_name]['summary'])
-                    addons_info[module_name]['version'] = adj_version(
-                        ctx, addons_info[module_name].get('version', ''))
+                    # addons_info[module_name]['version'] = adj_version(
+                    #     ctx, addons_info[module_name].get('version', ''))
                     addons_info[module_name]['oca_version'] = 'N/A'
                     if root.find('__unported__') >= 0:
                         addons_info[module_name]['installable'] = False
@@ -1372,8 +1376,11 @@ def read_all_manifests(ctx, path=None, module2search=None):
                     continue
                 if manifest_file in files:
                     full_fn = os.path.join(root, manifest_file)
-                    oca_manifest = read_manifest_file(full_fn)
-                    oca_version = adj_version(ctx, oca_manifest.get('version', ''))
+                    oca_manifest = read_manifest_file(
+                        ctx, full_fn, force_version=True)
+                    # oca_version = adj_version(
+                    #     ctx, oca_manifest.get('version', ''))
+                    oca_version = oca_manifest['version']
                     if module_name not in addons_info:
                         addons_info[module_name] = {}
                         if 'summary' in oca_manifest:
@@ -1581,14 +1588,14 @@ def set_default_values(ctx):
     ctx['today'] = datetime.strftime(datetime.today(), '%Y-%m-%d')
     ctx['now'] = datetime.strftime(datetime.today(), '%Y-%m-%d %H:%M:%S')
     if ctx['manifest'].get('version', ''):
-        if not ctx.get('branch'):
-            ctx['branch'] = ctx['manifest']['version']
+        # if not ctx.get('branch'):
+        #     ctx['branch'] = ctx['manifest']['version']
         if not ctx.get('odoo_fver'):
             ctx['odoo_fver'] = ctx['manifest']['version']
-    if not ctx.get('branch', ''):
-        ctx['branch'] = '0.1.0'
+    # if not ctx.get('branch', ''):
+    #     ctx['branch'] = '12.0'
     # TODO: to remove early
-    if not ctx.get('odoo_fver') and ctx.get('branch'):
+    if not ctx.get('odoo_fver'):
         ctx['odoo_fver'] = ctx['branch']
     if ctx['product_doc'] == 'odoo':
         ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
@@ -1662,6 +1669,54 @@ def set_default_values(ctx):
         ctx['local_path'] = '%s/%s/%s/' % (os.environ['HOME'],
                                            ctx['branch'],
                                            ctx['repos_name'])
+
+
+def read_purge_description(ctx, source):
+    if source is None:
+        return ''
+    lines = source.split('\n')
+    while lines and not lines[-1].strip():
+        del lines[-1]
+    while lines and not lines[0].strip():
+        del lines[0]
+    ix = 0
+    while ix < len(lines):
+        if not ix:
+            lines[ix] = lines[ix].strip()
+        else:
+            line = lines[ix].lower()
+            for token in ('usage', 'getting started', 'installation',
+                          'upgrade', 'support', 'history', 'credits'):
+                if line.startswith(token):
+                    del lines[ix:]
+                    break
+        ix += 1
+    return '\n'.join(lines)
+
+
+def write_egg_info(ctx):
+
+    def write_file(path, section):
+        if not os.path.isfile(os.path.join(path, '%s.rst' % section)):
+            with open(os.path.join(path, '%s.rst' % section), 'w') as fd:
+                if section == 'history' and not ctx[section]:
+                    header = '%s (%s)' % (
+                        ctx['manifest'].get('version', ''),
+                        ctx['today'])
+                    dash = '-' * len(header)
+                    line = '* [IMP] Created documentation directory'
+                    ctx[section] = '%s\n%s\n\n%s\n' % (header, dash, line)
+                if path == './readme' and section == 'CONTRIBUTORS':
+                    fd.write(ctx['authors'])
+                fd.write(ctx[section.lower()])
+
+    if os.path.isdir('./egg-info'):
+        for section in ('authors', 'contributors',
+                        'description', 'descrizione', 'history'):
+            write_file('./egg-info', section)
+    elif os.path.isdir('./readme'):
+        for section in ('CONTRIBUTORS', 'DESCRIPTION'):
+            write_file('./readme', section)
 
 
 def generate_readme(ctx):
@@ -1767,12 +1822,31 @@ def generate_readme(ctx):
                     ignore_ntf=True,
                     out_fmt=out_fmt,
                     section='%s_%s' % (section, sub))[1]
+    if ctx['odoo_layer']:
+        if not ctx['configuration']:
+            out_fmt = None
+            ctx['configuration'] = parse_local_file(ctx, 'CONFIGURE.rst',
+                                                    ignore_ntf=True,
+                                                    out_fmt=out_fmt,
+                                                    section='configuration')[1]
+        if not ctx['description'] or ctx['description'] == 'N/A':
+            ctx['description'] = read_purge_description(
+                ctx, ctx['manifest'].get('description'))
+        if not ctx['description'] or ctx['description'] == 'N/A':
+            for fn in ('./README.md', './README.rst'):
+                if os.path.isfile(fn):
+                    with open(fn, 'rbU') as fd:
+                        source = fd.read()
+                    ctx['description'] = read_purge_description(ctx, source)
+                    break
 
     ctx = validate_authors_contributors(ctx)
     ctx = set_sommario(ctx)
     ctx = set_values_of_manifest(ctx)
     if ctx['module_name']:
         read_dependecies_license(ctx)
+    if ctx['set_authinfo']:
+        write_egg_info(ctx)
     if ctx['write_html']:
         if not ctx['template_name']:
             ctx['template_name'] = 'readme_index.html'
@@ -1788,16 +1862,13 @@ def generate_readme(ctx):
                                   out_fmt='rst')[1]
     if ctx['rewrite_manifest'] and ctx['odoo_layer'] == 'module':
         target = manifest_contents(ctx)
-    elif ctx['rewrite_manifest'] and ctx['odoo_layer'] == 'module':
-        pass
     tmpfile = '%s.tmp' % ctx['dst_file']
     bakfile = '%s.bak' % ctx['dst_file']
     dst_file = ctx['dst_file']
     if ctx['opt_verbose']:
         print("Writing %s" % dst_file)
-    fd = open(tmpfile, 'w')
-    fd.write(os0.b(target))
-    fd.close()
+    with open(tmpfile, 'w') as fd:
+        fd.write(os0.b(target))
     if os.path.isfile(bakfile):
         os.remove(bakfile)
     if os.path.isfile(dst_file):

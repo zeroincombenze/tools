@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.18
+__version__=1.0.1.19
 
 #
 # General Purpose options:
@@ -1932,6 +1932,7 @@ do_distribution() {
 
 do_docs() {
   wlog "do_docs"
+  wlog "do_docs"
   local docs_dir=./docs
   local author version theme SETUP b f l t x
   local opts src_png odoo_fver
@@ -1966,14 +1967,22 @@ do_docs() {
     fi
     run_traced "gen_readme.py -b$odoo_fver $opts -G$orgid"
     version=$(build_odoo_param MAJVER $odoo_fver)
-    if [[ -d ./static ]]; then
-      [[ $version -gt 7 ]] && run_traced "gen_readme.py -b$odoo_fver $opts -H -G$orgid"
-      [[ $version -le 7 && $opt_force -eq 0 ]] && run_traced "gen_readme.py -b$odoo_fver $opts -R -G$orgid"
+    if [[ ! -d ./static ]]; then
+      run_traced "mkdir ./static"
+      [[ $version -le 7 ]] && run_traced "mkdir ./static/src" && run_traced "mkdir ./static/src/img"
+      [[ $version -gt 7 ]] && run_traced "mkdir ./static/description"
     fi
+    if [[ ! -d ./egg-info && ! -d ./readme ]]; then
+      mkdir ./egg-info
+      opt_force=0
+      run_traced "gen_readme.py -b$odoo_fver $opts -RW -G$orgid"
+    fi
+    [[ $version -gt 7 ]] && run_traced "gen_readme.py -b$odoo_fver $opts -H -G$orgid"
+    [[ $version -le 7 && $opt_force -eq 0 ]] && run_traced "gen_readme.py -b$odoo_fver $opts -R -G$orgid"
     [[ $opt_force -ne 0 ]] && run_traced "gen_readme.py -b$odoo_fver $opts -RW -G$orgid"
     return 0
   fi
-  if [ ! -d $docs_dir ]; then
+  if [[ ! -d $docs_dir ]]; then
     if [ $opt_force -eq 0 ]; then
       echo "Missing docs directory!"
       return 1

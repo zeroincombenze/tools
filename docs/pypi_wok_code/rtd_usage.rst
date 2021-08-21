@@ -198,10 +198,10 @@ In this documentation VAR means the name of the macro while MACRO is the name of
 ::
 
     i.e.  .. $if branch == '12.0'
-          Current branch is 1.0.1.15
+          Current branch is 1.0.1.19
 
 In above example then word branch after statement $if ia the VAR branch.
-The word branch in the second line is a text. The item 1.0.1.15 is the macro, replaced by the value of varaibale branch.
+The word branch in the second line is a text. The item 1.0.1.19 is the macro, replaced by the value of varaibale branch.
 
 CONDITION may be a python condition or one of follow special condition:
 
@@ -476,7 +476,7 @@ topep8 usage
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-17
+Last Update / Ultimo aggiornamento: 2021-08-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
@@ -491,22 +491,22 @@ Last Update / Ultimo aggiornamento: 2021-08-17
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.1.15
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.1.19
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.15/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.15
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.19/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.19
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.1.15/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.1.19/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.1.15/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.1.19/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.1.15/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.1.15
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.1.19/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.1.19
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

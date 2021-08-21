@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-#__version__=1.0.1.18
+#__version__=1.0.1.19
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 RDME="README.md"
@@ -39,6 +39,7 @@ if [[ -f .travis.yml && ! $PWD =~ $GIT_NO_CHECK ]]; then
     [[ $? -ne 0 ]] && sts=1 && echo -e "\n\e[31mRepository not validated by travis\e[0m\nPlease type:\ntravis"
 fi
 if [[ $sts -ne 0 ]]; then
+    echo ""
     echo ""
     echo "To exclude this control on this repository,"
     echo "add current path to GIT_NO_CHECK global variable."

@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.1.18
+__version__=1.0.1.19
 
 
 test_01() {
@@ -324,6 +324,7 @@ EOF
 # (C) SHS-Av s.r.l.
 {
     'name': 'test',
+    'version': '7.0.0.1.0',
     'development_status': 'Alpha',
     'license': 'AGPL-3',
     'depends': [
