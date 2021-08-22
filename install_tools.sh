@@ -57,7 +57,7 @@ RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
-RFLIST__tools="activate_devel_env odoo_default_tnl.xlsx templates license_text"
+RFLIST__tools="activate_devel_env odoo_default_tnl.xlsx templates license_text readlink"
 RFLIST__python_plus="vem vem.man"
 RFLIST__wok_code="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py license_mgnt.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man topep8 to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
@@ -103,6 +103,15 @@ for pkg in $PKGS_LIST tools; do
             src="$SRCPATH/${pfn}"
             tgt="$DSTPATH/${pfn}"
             ftype=d
+        elif [[ $fn == "readlink" ]]; then
+            READLINK=$(which greadlink 2>/dev/null)
+            if [[ -z "$READLINK" ]]; then
+                [[ -L $DSTPATH/readlink ]] && rm -f $DSTPATH/readlink
+                continue
+            fi
+            src=$READLINK
+            tgt="$DSTPATH/${fn}"
+            ftype=f
         elif [[ $pkg == "tools" ]]; then
             src="$SRCPATH/$fn"
             tgt="$DSTPATH/$fn"
@@ -132,7 +141,7 @@ for pkg in $PKGS_LIST tools; do
             [[ -L "$tgt" && ! $1 =~ ^-.*n ]] && rm -f $tgt
             [[ -d "$tgt" ]] && echo "$PMPT rm -fR $tgt"
             [[ -d "$tgt" && ! $1 =~ ^-.*n ]] && rm -fR $tgt
-            if [[ $fn =~ (kbase|templates|license_text) ]]; then
+            if [[ $fn =~ (kbase|templates|license_text|readlink) ]]; then
                 [[ ! $1 =~ ^-.*q  && ! -d $(dirname "$tgt") ]] && echo "$PMPT mkdir -p $(dirname "$tgt")"
                 [[ ! $1 =~ ^-.*n  && ! -d $(dirname "$tgt") ]] && mkdir -p $(dirname "$tgt")
                 [[ ! $1 =~ ^-.*q ]] && echo "$PMPT ln -s $src $tgt"
@@ -182,7 +191,7 @@ if [[ ! $1 =~ ^-.*n ]]; then
     [[ $1 =~ ^-.*t || $TRAVIS =~ (true|emulate) ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
-    echo "READLINK=$(which greadlink 2>/dev/null) && alias readlink=$READLINK && export READLINK">>$DSTPATH/activate_tools
+    # echo "READLINK=$(which greadlink 2>/dev/null) && alias readlink=$READLINK && export READLINK">>$DSTPATH/activate_tools
 fi
 if [[ $1 =~ ^-.*[Ss] ]]; then
     [[ ! $1 =~ ^-.*o ]] && SITECUSTOM=$HOME/devel/sitecustomize.py

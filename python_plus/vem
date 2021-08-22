@@ -744,7 +744,7 @@ venv_mgr_check_oever() {
 do_venv_mgr_test() {
   #do_venv_mgr_test(VENV)
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_mgr_test($@)"
-  local f x VENV
+  local f ssp x VENV
   VENV="$1"
   [[ $opt_verbose -gt 0 ]] && echo "Validation test ..."
   [ $opt_dry_run -ne 0 ] && return
@@ -755,8 +755,16 @@ do_venv_mgr_test() {
       [[ -n "$HOME" && ! "$HOME" == "$SAVED_HOME" ]] && echo "Isolated environment (created with -I switch)."
       [[ "$HOME" == "$SAVED_HOME" ]] && echo "Environment not isolated (created w/o -I switch)."
     fi
-    [[ -z "$HOME" ]] && echo "Wrong environment (No HOME directory declared)."
+  fi
+  [[ -z "$HOME" ]] && echo "Wrong environment (No HOME directory declared)."
+  if [[ $opt_verbose -gt 0 ]]; then
     [[ $opt_dev -eq 0 ]] && echo "Environment w/o devel packages." || echo "Environment with devel packages (created with -D switch)."
+    if [[ -f $V/pyvenv.cfg ]]; then
+      ssp=$(grep -E "^include-system-site-packages" $V/pyvenv.cfg|awk -F= '{print $2}'|tr -d " ")
+    else
+      ssp="false"
+    fi
+    [[ $ssp != true ]] && echo "No system site packages" || echo "System site packages"; x="$x -s"
   fi
   [[ $opt_verbose -gt 1 ]] && echo "VPATH=$PATH"
   [[ $opt_verbose -gt 1 ]] && echo "VPYTHONPATH=$PYTHONPATH"
@@ -923,14 +931,23 @@ do_venv_mgr() {
     [[ -n $opt_pyver ]] && x="$x -p $opt_pyver"
     [[ -z $opt_pyver && -n $PYTHON ]] && x="$x -p $PYTHON"
     echo "PIP command: $PIP"
-    [[ $opt_dev -ne 0 ]] && echo "Devel packages" && x="$x -D"
-    [[ -n "$HOME" && $HOME != $SAVED_HOME ]] && echo "Isolated environment" && x="$x -I"
+    # [[ $opt_dev -ne 0 ]] && echo "Devel packages" && x="$x -D"
+    [[ $opt_dev -ne 0 ]] && x="$x -D"
+    # [[ -n "$HOME" && $HOME != $SAVED_HOME ]] && echo "Isolated environment" && x="$x -I"
+    [[ -n "$HOME" && $HOME != $SAVED_HOME ]] && x="$x -I"
+    if [[ -f $V/pyvenv.cfg ]]; then
+      ssp=$(grep -E "^include-system-site-packages" $V/pyvenv.cfg|awk -F= '{print $2}'|tr -d " ")
+    else
+      ssp="false"
+    fi
+    # [[ $ssp != true ]] && echo "No system site packages" || echo "System site packages"; x="$x -s"
+    [[ $ssp != true ]] || x="$x -s"
     echo "Odoo version: $opt_oever"
     [[ -n $opt_oever ]] && x="$x -O $opt_oever"
     echo "Odoo path: $opt_oepath"
     [[ -n $opt_oepath ]] && x="$x -o $opt_oepath"
-    echo "Created with $x"
-    echo "Internal path: $PATH"
+    echo "Internal sys.path: $PATH"
+    echo -e "Environment created with \e[1m$x\e[0m"
     do_deactivate
     pop_cd
   fi

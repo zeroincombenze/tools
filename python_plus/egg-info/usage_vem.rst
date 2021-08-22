@@ -60,6 +60,9 @@ check [OPTIONS] [SRC_VENV]
 cp [OPTIONS] SRC_VENV TGT_ENV
       Copy SOURCE environment directory to TGT_ENV, like the bash command 'cp' and  set  relative  path  inside  virtual
       environment to aim the new directory name.
+      Copying virtual environments is not well supported.
+      Each virtualenv has path information hard-coded into it, and there may be cases where the copy code does not know it needs to update a particular file.
+      Use with caution.
 
 create -p PYVER [OPTIONS] VENV
       Create  a  new  virtual environment directory VENV like virtualenv command but with some nice features.  Switch -p

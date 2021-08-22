@@ -39,7 +39,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=0.3.32.2
+__version__=0.3.32.3
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -234,7 +234,7 @@ set_var() {
     #set_var(var parm vid)
     local x=$(build_odoo_param "$2" "$3" "$git_repo" "$opt_org" "$opt_deploy")
     [[ -n "$x" ]] && eval $1="'$x'"
-    [[ $opt_verbose -gt 1 ]] && echo "$1=$x"
+    [[ $opt_verbose -gt 1 ]] && echo "$1=$x \$(build_odoo_param \"$2\" \"$3\" \"$git_repo\" \"$opt_org\" \"$opt_deploy\")"
 }
 
 OPTOPTS=(h        b          c        C           d          D        j        L        m         n            O         o        q           r          U       u        V           v           y       1)

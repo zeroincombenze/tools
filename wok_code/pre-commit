@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-#__version__=1.0.1.19
+#__version__=1.0.1.20
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 RDME="README.md"
@@ -36,15 +36,15 @@ done
 if [[ -f .travis.yml && ! $PWD =~ $GIT_NO_CHECK ]]; then
     echo -e "\ntravis result:"
     travis summary
-    [[ $? -ne 0 ]] && sts=1 && echo -e "\n\e[31mRepository not validated by travis\e[0m\nPlease type:\ntravis"
+    [[ $? -ne 0 ]] && sts=1 && echo -e "\n\e[31mRepository not validated by travis\e[0m\nPlease type:\n\e[32mtravis\e[0m\nor try to validate with follow command:\n\e[32mtravis -Lminimal\e[0m"
 fi
 if [[ $sts -ne 0 ]]; then
     echo ""
     echo ""
-    echo "To exclude this control on this repository,"
-    echo "add current path to GIT_NO_CHECK global variable."
-    echo "i.e. export GIT_NO_CHECK=\"^($PWD)\$\""
+    echo -e "\e[35mTo exclude this control from this repository,\e[0m"
+    echo -e "\e[35madd current path to \e[1mGIT_NO_CHECK\e[0m\e[35m global variable.\e[0m"
+    echo -e "\e[35mi.e. \e[36mexport GIT_NO_CHECK=\"^($PWD)\\\$\"\e[0m"
     echo ""
-    echo "To supersede this lock use --no-verify switch"
+    echo -e "\e[35mTo supersede this lock use \e[36m--no-verify\e[35m switch\e[0m"
 fi
 exit $sts

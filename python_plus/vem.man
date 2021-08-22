@@ -58,6 +58,10 @@ May be used after 'create' or 'reset' to check virtual environment consistency.
 .RS
 Copy SOURCE environment directory to TGT_ENV, like the bash command 'cp' and set relative path inside virtual
 environment to aim the new directory name.
+.br
+Copying virtual environments is not well supported.
+Each virtualenv has path information hard-coded into it, and there may be cases where the copy code does not know it needs to update a particular file.
+Use with caution.
 .RE
 .P
 \fBcreate\fR -p PYVER [OPTIONS] VENV

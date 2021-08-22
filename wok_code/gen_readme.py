@@ -110,8 +110,12 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.19"
+__version__ = "1.0.1.20"
 
+RED = "\033[1;31m"
+GREEN = "\033[1;32m"
+YELLOW = "\033[1;33m"
+CLEAR = "\033[0;m"
 GIT_USER = {
     'zero': 'zeroincombenze',
     'oca': 'OCA',
@@ -211,6 +215,8 @@ RST2HTML_GRYMB = {
     '|FatturaPA|': '<span class="fa fa-euro"/>',
 }
 
+def print_red_message(text):
+    print('%s%s%s' % (RED, text, CLEAR))
 
 def get_full_fn(ctx, src_path, filename):
     if src_path.startswith('./'):
@@ -784,7 +790,7 @@ def expand_macro_in_line(ctx, line, state=None):
         tokens = line[i + 2: j].split(':')
         value = expand_macro(ctx, tokens[0])
         if value is False or value is None:
-            print('*** Invalid macro %s!' % tokens[0])
+            print_red_message('*** Invalid macro %s!' % tokens[0])
             value = ''
         else:
             if tokens[0] in LIST_TAG:
@@ -1264,7 +1270,7 @@ def read_setup(ctx):
         ctx['manifest_filename'] = manifest_filename
     else:
         if not ctx['suppress_warning']:
-            print('*** Warning: manifest file not found!')
+            print_red_message('*** Warning: manifest file not found!')
         ctx['manifest'] = {}
 
 
@@ -1287,7 +1293,7 @@ def read_manifest(ctx):
         ctx['manifest_filename'] = manifest_filename
     else:
         if not ctx['suppress_warning']:
-            print('*** Warning: manifest file not found!')
+            print_red_message('*** Warning: manifest file not found!')
         ctx['manifest'] = {}
 
 
@@ -1476,14 +1482,14 @@ def read_dependecies_license(ctx):
         read_all_manifests(ctx, path=root, module2search=module)
         if module not in ctx['addons_info']:
             if not ctx['suppress_warning']:
-                print(
+                print_red_message(
                     '*** Unknow license of module %s: license may be invalid!' %
                     module
                 )
         elif (ctx['addons_info'][module].get('license',
                                            def_license) == 'AGPL-3' and
                 not ctx['suppress_warning']):
-            print(
+            print_red_message(
                 '*** INVALID LICENSE %s: depending module <%s> is AGPL-3 ***' %
                 (license, module)
             )
@@ -1527,7 +1533,7 @@ def manifest_contents(ctx):
         elif (item == 'license' and
               ctx['manifest'][item] != AUTHINFO[item] and
               not ctx['suppress_warning']):
-            print(
+            print_red_message(
                 '*** Warning: manifest license %s does not match required %s!' %
                 (ctx['manifest'][item], AUTHINFO[item])
             )
@@ -1536,7 +1542,7 @@ def manifest_contents(ctx):
               ctx['manifest'].get(item) and
               ctx['manifest'][item] != AUTHINFO[item] and
               not ctx['suppress_warning']):
-            print(
+            print_red_message(
                 '*** Warning: manifest %s %s does not match required %s!' %
                 (item, ctx['manifest'][item], AUTHINFO[item])
             )
@@ -1571,13 +1577,13 @@ def index_html_content(ctx, source):
         try:
             root = etree.XML(section)
         except SyntaxError as e:
-            print('***** Error %s *****' % e)
+            print_red_message('***** Error %s *****' % e)
             root = e
         xml_replace_text(ctx, root, 'h2', title)
         try:
             target += '\n%s' % etree.tostring(root, pretty_print=True)
         except SyntaxError as e:
-            print('***** Error %s *****' % e)
+            print_red_message('***** Error %s *****' % e)
             target += section
     for t in list(RST2HTML.keys()):
         target = target.replace(t, RST2HTML[t])
@@ -1587,13 +1593,13 @@ def index_html_content(ctx, source):
 def set_default_values(ctx):
     ctx['today'] = datetime.strftime(datetime.today(), '%Y-%m-%d')
     ctx['now'] = datetime.strftime(datetime.today(), '%Y-%m-%d %H:%M:%S')
+    if ctx['product_doc'] == 'pypi' and (not ctx['branch'] or
+                                         ctx['branch'] == '.'):
+        ctx['branch'] = '.'.join(ctx['manifest'].get(
+            'version', '').split('.')[0:2])
     if ctx['manifest'].get('version', ''):
-        # if not ctx.get('branch'):
-        #     ctx['branch'] = ctx['manifest']['version']
         if not ctx.get('odoo_fver'):
             ctx['odoo_fver'] = ctx['manifest']['version']
-    # if not ctx.get('branch', ''):
-    #     ctx['branch'] = '12.0'
     # TODO: to remove early
     if not ctx.get('odoo_fver'):
         ctx['odoo_fver'] = ctx['branch']
@@ -1614,16 +1620,9 @@ def set_default_values(ctx):
     else:
         releases = [int(x) for x in ctx['branch'].split('.')]
         if not ctx.get('prior_branch'):
-            if releases[0] > 0:
-                ctx['odoo_majver'] = releases[0]
-                pmv = ctx['odoo_majver'] - 1
-                ctx['prior_branch'] = '%d.%d.%d' % (
-                    pmv, releases[1], releases[2])
-            else:
-                ctx['odoo_majver'] = releases[1]
-                pmv = ctx['odoo_majver'] - 1
-                ctx['prior_branch'] = '%d.%d.%d' % (
-                    releases[0], pmv, releases[2])
+            ctx['odoo_majver'] = releases[0]
+            pmv = ctx['odoo_majver'] - 1
+            ctx['prior_branch'] = '%d.%d' % (pmv, releases[1])
     if ctx['output_file']:
         ctx['dst_file'] = ctx['output_file']
     elif ctx['write_html']:
@@ -1968,7 +1967,7 @@ if __name__ == "__main__":
     ctx = unicodes(parser.parseoptargs(sys.argv[1:]))
     ctx['path_name'] = os.path.abspath(ctx['path_name'])
     if not ctx['product_doc']:
-        if ctx['path_name'].find('/pypi/') >= 0:
+        if '/pypi/' in ctx['path_name']:
             ctx['product_doc'] = 'pypi'
         else:
             ctx['product_doc'] = 'odoo'
@@ -1983,8 +1982,9 @@ if __name__ == "__main__":
                                  '9.0', '8.0', '7.0', '6.1'):
             ctx['branch'] = '12.0'
             if not ctx['suppress_warning']:
-                print('*** Invalid odoo version: please use -b switch (%s)' %
-                      ctx['branch'])
+                print_red_message(
+                    '*** Invalid odoo version: please use -b switch (%s)' %
+                    ctx['branch'])
         ctx['odoo_majver'] = int(ctx['branch'].split('.')[0])
         if not ctx['git_orgid']:
             ctx['git_orgid'] = build_odoo_param(
@@ -1992,8 +1992,9 @@ if __name__ == "__main__":
     if ctx['git_orgid'] not in ('zero', 'oca', 'powerp', 'didotech'):
         ctx['git_orgid'] = 'zero'
         if not ctx['suppress_warning']:
-            print('*** Invalid git-org: use -G %s or of zero|oca|didotech' %
-                  ctx['git_orgid'])
+            print_red_message(
+                '*** Invalid git-org: use -G %s or of zero|oca|didotech' %
+                ctx['git_orgid'])
     if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
         if ctx['product_doc'] == 'odoo':
             if (ctx['odoo_majver'] >= 10 and
