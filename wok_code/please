@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.20
+__version__=1.0.1.21
 
 #
 # General Purpose options:
@@ -2724,7 +2724,7 @@ do_show_license() {
 }
 
 do_show_status() {
-  local HOME_DEV v1 v2 v x y
+  local HOME_DEV s v1 v2 v x y
   local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
   [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
   pushd $HOME/tools >/dev/null
@@ -2759,11 +2759,12 @@ do_show_status() {
       v2=$(grep -E "version" $HOME_DEV/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
     fi
     if [[ $x =~ "R" ]]; then
+      [[ $pkg == "tools" ]] && s="$HOME_DEV/pypi/$pkg" || s="$HOME_DEV/pypi/$pkg/$pkg"
       if [[ $v1 == $v2 && ! $x =~ "V" ]]; then
         v=$(echo $v2 | awk -F. '{if ($NF == 3) {OFS="."; print $1,$2,int($3)+1} else {OFS="."; print $1,$2,$3,int($4)+1}}')
-        echo -e "\e[1m    Execute: cd $HOME_DEV/pypi/$pkg/$pkg; please version $v2 $v; travis && please replace\e[0m"
+        echo -e "\e[1m    Execute: cd $s; please version $v2 $v; travis && please replace\e[0m"
       else
-        echo -e "\e[1m    Execute: cd $HOME_DEV/pypi/$pkg/$pkg; travis && please replace\e[0m"
+        echo -e "\e[1m    Execute: cd $s; travis && please replace\e[0m"
       fi
     fi
     [[ $x =~ "G" && $x =~ "V" ]] && echo -e "\e[1m    Package $pkg (new version $v1) have to be pushed on github.com\e[0m"

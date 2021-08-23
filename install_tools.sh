@@ -16,7 +16,7 @@ pull_n_run() {
     exit $?
 }
 
-__version__=1.0.5.42
+__version__=1.0.5.43
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
