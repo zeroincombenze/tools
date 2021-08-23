@@ -1,6 +1,6 @@
 
 ===============
-clodoo 0.3.32.3
+clodoo 0.3.33.1
 ===============
 
 
@@ -287,6 +287,12 @@ Current version via Git
 History
 -------
 
+0.3.33.1 (2021-08-23)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo.xlsx: wrong translation of l10n_it_reverse_charge
+
+
 0.3.31.16 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -349,12 +355,6 @@ History
 
 * [IMP] transodoo: valuetnl return '' if field is not translable
 
-0.3.31.5 (2021-07-15)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] manage_db: upgrade
-* [FIX] minor fixes
-
 
 
 |
@@ -399,7 +399,7 @@ Translations by
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-22
+Last Update / Ultimo aggiornamento: 2021-08-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

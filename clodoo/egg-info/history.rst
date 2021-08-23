@@ -1,3 +1,9 @@
+0.3.33.1 (2021-08-23)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo.xlsx: wrong translation of l10n_it_reverse_charge
+
+
 0.3.31.16 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~~~
 
