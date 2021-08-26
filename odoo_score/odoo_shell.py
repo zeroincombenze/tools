@@ -33,7 +33,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "1.0.1.5"
+__version__ = "1.0.2"
 
 
 MAX_DEEP = 20
@@ -53,7 +53,7 @@ TECH_FIELDS = [
     'write_uid',
 ]
 parser = z0lib.parseoptargs("Odoo test environment",
-                            "© 2017-2019 by SHS-AV s.r.l.",
+                            "© 2017-2021 by SHS-AV s.r.l.",
                             version=__version__)
 parser.add_argument('-h')
 parser.add_argument("-A", "--action",

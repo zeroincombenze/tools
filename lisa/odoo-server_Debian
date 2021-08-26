@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.18-Debian
+# version: 0.4.19-Debian
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -70,6 +70,7 @@ if [[ "$FH" == "Debian" ]]; then
         exit 1
     fi
 fi
+[[ -f /etc/profile.d/custom.sh ]] && . /etc/profile.d/custom.sh
 # Specify the user name (Default: odoo).
 USER=${xtl_user}
 USERHOME=$(eval echo ~$USER)
@@ -233,9 +234,9 @@ check_lessc() {
 
 
 checkpid() {
-    [ -f $PIDFILE ] || return 1
+    [[ -f $PIDFILE ]] || return 1
     pid=$(cat $PIDFILE)
-    [ -d /proc/$pid ] && return 0
+    [[ -d /proc/$pid ]] && return 0
     return 1
 }
 
@@ -267,36 +268,34 @@ check_4_venv() {
 
 check_privsep_dir() {
     # Create the PrivSep empty dir if necessary
+    local uu x
+    local grp=$(id -g ${USER})
     local PIDDIR=$(dirname $PIDFILE)
-    if [ "$PIDDIR" != "/var/run" -a "$PIDDIR" != "/run" ]; then
-      if [ ! -d $PIDDIR ]; then
+    if [[ "$PIDDIR" != "/var/run" && "$PIDDIR" != "/run" ]]; then
+      if [[ ! -d $PIDDIR ]]; then
         mkdir $PIDDIR
-        chmod 0755 $PIDDIR
-        chown ${USER}:${USER} $PIDDIR
+        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0775 $PIDDIR || chmod 0755 $PIDDIR
+        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chown ${USER}:${grp} $PIDDIR || chown ${USER}:${USER} $PIDDIR
       fi
     fi
-    if [ ! -f "$PIDFILE" ]; then
-      touch $PIDFILE
-      chmod 0774 $PIDFILE
-      chown ${USER}:${USER} $PIDFILE
-    fi
-    if [ "$PIDDIR" != "/var/run" -a "$PIDDIR" != "/run" ]; then
+    [[ ! -f "$PIDFILE" ]] && touch $PIDFILE
+    if [[ "$PIDDIR" != "/var/run" && "$PIDDIR" != "/run" ]]; then
       uu=$(stat -c %U $PIDDIR)
-      if [ "$uu" != "${USER}" ]; then
+      if [[ "$uu" != "${USER}" ]]; then
         local x=$(date +"%Y-%m-%d %H:%M:%S,000")
         echo "$x $$ DAEMON ? $0: Invalid pid directory owner!">>$LOGFILE
-        chmod 0774 $PIDDIR
-        chown ${USER}:${USER} $PIDDIR
+        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0775 $PIDDIR || chmod 0755 $PIDDIR
+        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chown ${USER}:${grp} $PIDDIR || chown ${USER}:${USER} $PIDDIR
       fi
     fi
-    if [ -f "$PIDFILE" ]; then
+    if [[ -f "$PIDFILE" ]]; then
       uu=$(stat -c %U $PIDFILE)
-      if [ "$uu" != "${USER}" ]; then
+      if [[ "$uu" != "${USER}" ]]; then
         local x=$(date +"%Y-%m-%d %H:%M:%S,000")
         echo "$x $$ DAEMON ? $0: Invalid pid directory owner!">>$LOGFILE
-        chmod 0774 $PIDFILE
-        chown ${USER}:${USER} $PIDFILE
       fi
+      [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0664 $PIDFILE || chmod 0644 $PIDFILE
+      [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chown ${USER}:${grp} $PIDFILE || chown ${USER}:${USER} $PIDFILE
     fi
 }
 
@@ -325,9 +324,8 @@ start_RHEL () {
     fi
     RETVAL=$?
     echo
-    if [ $DRY_RUN -eq 0 ]; then
-      [ $RETVAL -eq 0 ] && touch $LOCKFILE
-    fi
+    [[ $DRY_RUN -eq 0 && $RETVAL -eq 0 ]] && touch $LOCKFILE
+    check_privsep_dir
     return $RETVAL
 }
 
@@ -351,7 +349,7 @@ start_Debian () {
       fi
       RETVAL=$?
     fi
-    # echo "${NAME}."
+    check_privsep_dir
     return $RETVAL
 }
 
@@ -378,48 +376,47 @@ start() {
 
 
 stop_RHEL() {
-    if [ -f $PIDFILE ]; then
-        if [ $DRY_RUN -gt 0 ]; then
+    if [[ -f $PIDFILE ]]; then
+        if [[ $DRY_RUN -gt 0 ]]; then
             echo "kill -TERM \$(cat $PIDFILE) > /dev/null 2>&1"
         else
             kill -TERM $(cat $PIDFILE) > /dev/null 2>&1
         fi
     fi
     RETVAL=$?
-    if [ $RETVAL -ne 0 ]; then
+    if [[ $RETVAL -ne 0 ]]; then
         echo "Error during stopping .. try to stop process ..."
-        [ ${xtl_version} -lt 11 ] && py=python || py=python3
+        [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
         local pid=$(ps -ef | grep "$py .*$DAEMON.*\.conf" | grep -v grep | awk '{print $2}')
-        [ -z "$pid" ] || kill $pid
+        [[ -z "$pid" ]] || kill $pid
         RETVAL=$?
     fi
-    if [ $RETVAL -eq 0 ]; then
-        if [ $DRY_RUN -eq 0 ]; then
-            rm -f $LOCKFILE
-        fi
-        echo_success
+    if [[ $RETVAL -eq 0 ]]; then
+        [[ $DRY_RUN -eq 0 ]] && rm -f $LOCKFILE
+        # echo_success
         echo
     else
-        echo_failure
+        # echo_failure
         echo
     fi
-    if [ -d /etc/${xtl_id}/stop.d ]; then
+    if [[ -d /etc/${xtl_id}/stop.d ]]; then
         echo -n "Clearing $DESC: "
         run-parts /etc/${xtl_id}/stop.d
         echo
     fi
+    # [[ $DRY_RUN -eq 0 && -f "$PIDFILE" ]] && rm -f $PIDFILE
     return $RETVAL
 }
 
 
 stop_Debian () {
-    if [ $DRY_RUN -gt 0 ]; then
+    if [[ $DRY_RUN -gt 0 ]]; then
         echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo --remove-pidfile"
     else
         start-stop-daemon --stop --quiet --pidfile ${PIDFILE}  --oknodo --remove-pidfile
     fi
     RETVAL=$?
-    # echo "${NAME}."
+    # [[ $DRY_RUN -eq 0 && -f "$PIDFILE" ]] && rm -f $PIDFILE
     return $RETVAL
 }
 
@@ -456,7 +453,7 @@ condrestart() {
 }
 
 status() {
-    if [ -f $PIDFILE ] ; then
+    if [[ -f $PIDFILE ]] ; then
         checkpid $(cat $PIDFILE)
         RETVAL=$?
         if [ $RETVAL -eq 0 ] ; then

@@ -27,6 +27,7 @@ fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
 __version__=1.0.0.9
+declare -A PY3_PKGS
 NEEDING_PKGS="future configparser os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python-plus"
@@ -41,6 +42,7 @@ FLT_PKGS="(jwt|FOO)"
 ERROR_PKGS=""
 LOCAL_PKGS="(clodoo|odoo_score|os0|python_plus|z0bug_odoo|z0lib|zerobug)"
 XPKGS_RE=""
+PY3_PKGS[jsonlib]="jsonlib-python3"
 
 cd_venv() {
   # cd_venv(VENV -q)
@@ -125,6 +127,7 @@ get_actual_pkg() {
   [[ $pkg == "pychart" ]] && pkg="python-chart"
   [[ $pkg =~ ^(psycopg2).* ]] && pkg="psycopg2-binary>=2.0.0"
   [[ $pkg =~ ^$PYBIN_PKGS([<=>!][0-9.]+)?$ ]] && pkg="python-$pkg"
+  [[ $opt_pyver =~ ^3 && $pkg =~ ^${!PY3_PKGS[*]}$ ]] && pkg=${PY3_PKGS[$pkg]}
   echo $pkg
 }
 
@@ -648,8 +651,8 @@ venv_mgr_check_src_path() {
     if [[ -n "$opt_pyver" ]]; then
       [[ -z "$PYTHON" && -x $opt_pyver ]] && PYTHON=$opt_pyver && opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1) && PIP="$PYTHON -m pip"
       [[ -z "$PYTHON" && -n $opt_pyver ]] && PYTHON=$(which python$opt_pyver 2>/dev/null) && PIP="$PYTHON -m pip"
-      [[ -z "$PYTHON" && -n $opt_pyver && $OPT_pyver =~ ^3 ]] && PYTHON=python3
-      [[ -z "$PYTHON" && -n $opt_pyver && $OPT_pyver =~ ^2 ]] && PYTHON=python
+      [[ -z "$PYTHON" && -n $opt_pyver && $opt_pyver =~ ^3 ]] && PYTHON=python3
+      [[ -z "$PYTHON" && -n $opt_pyver && $opt_pyver =~ ^2 ]] && PYTHON=python
     fi
     if [[ -z "$PYTHON" && $2 != "create" ]]; then
       for f in $VENV/bin/python3.* $VENV/bin/python3* $VENV/bin/python2.* $VENV/bin/python2*; do
@@ -1210,7 +1213,7 @@ SAVED_PYTHONPATH=$PYTHONPATH
 [[ $opt_debug -eq 2 && -d $HOME/odoo/tools && :$PATH: =~ :$HOME/odoo/tools: && -z "$PYTHONPATH" ]] && PYTHONPATH=$HOME/odoo/tools
 [[ $opt_debug -eq 3 ]] && package_debug
 FLAG=">"
-[ $opt_dry_run -eq 0 ] && FLAG="\$"
+[[ $opt_dry_run -eq 0 ]] && FLAG="\$"
 if [[ $action == "rm" ]]; then
   [[ $PWD == $($READLINK -f $p2) ]] && cd
   rm -fR $p2

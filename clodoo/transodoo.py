@@ -42,6 +42,10 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill
 # from openpyxl import load_workbook
 try:
+    import jsonlib
+except ImportError:
+    pass
+try:
     from z0lib.z0lib import z0lib
 except ImportError:
     try:
@@ -49,7 +53,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.33.1"
+__version__ = "0.3.33.2"
 VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0']
 ALL_VERSIONS = [x for x in VERSIONS]
 for org in ('zero', 'powerp', 'librerp'):
@@ -88,7 +92,7 @@ def get_pymodel(model, ttype=None):
         'xref': 'ir.model.data',
         'model': 'ir.model',
         'module': 'ir.module.module',
-    }.get(ttype, model)
+    }.get(ttype, model or 'res.groups').lower()
 
 
 def get_ver_name(name, cur_ver):
@@ -307,27 +311,27 @@ def translate_from_sym(ctx, model, sym, tgt_ver):
     return name
 
 
-def model_info(ctx, model, tgt_ver, ttype=False, fld_name=False):
+def model_info(ctx, pymodel, tgt_ver, ttype=False, fld_name=False):
 
-    def do_line_ver(mindroot, pymodel, nm, typ, fld_name, tgt_ver):
+    def do_line_ver(mindroot, model, name, typ, fld_name, tgt_ver):
         if typ not in info:
-            info[typ] = {}
-        if typ == 'value':
-            info.append(fld_name)
+            info[model][typ] = {}
         for ver in ALL_VERSIONS:
             if tgt_ver and ver != tgt_ver:
                 continue
             if ver not in info:
-                info[typ][ver] = []
+                info[model][typ][ver] = []
             if typ == 'value':
-                if ver in mindroot[pymodel][typ][fld_name][nm]:
-                    info.append(mindroot[pymodel][typ][fld_name][nm][ver])
+                if ver in mindroot[model][typ][fld_name][name]:
+                    info[model][typ][ver].append(
+                        mindroot[model][typ][fld_name][name][ver])
             else:
                 tver = ver
-                while tver and tver not in mindroot[pymodel][typ][nm]:
+                while tver and tver not in mindroot[model][typ][name]:
                     tver = previous_ver_name(tver, ver)
-                if tver in mindroot[pymodel][typ][nm]:
-                    info[typ][ver].append(mindroot[pymodel][typ][nm][tver])
+                if tver in mindroot[model][typ][name]:
+                    info[model][typ][ver].append(
+                        mindroot[model][typ][name][tver])
         return info
 
     mindroot = ctx.get('mindroot', {})
@@ -337,26 +341,32 @@ def model_info(ctx, model, tgt_ver, ttype=False, fld_name=False):
     if ttype in ('value', 'valuetnl') and not fld_name:
         print('Translation of value require field name!')
         return ''
-    pymodel = get_pymodel(model, ttype=ttype)
     info = {}
-    for typ in mindroot[pymodel]:
-        if ttype and typ != ttype:
+    for model in mindroot.keys():
+        if pymodel and model != pymodel:
             continue
-        if typ == 'value':
-            for fld_name in mindroot[pymodel][typ]:
-                for nm in mindroot[pymodel][typ][fld_name]:
-                    if not is_hash(nm):
+        if model not in info:
+            info[model] = {}
+        for typ in mindroot[model]:
+            if ttype and typ != ttype:
+                continue
+            if typ == 'value':
+                for fld_name in mindroot[model][typ]:
+                    for name in mindroot[model][typ][fld_name]:
+                        if not is_hash(name):
+                            continue
+                        do_line_ver(mindroot, model, name, typ, fld_name, tgt_ver)
+            else:
+                for name in mindroot[model][typ]:
+                    if not is_hash(name):
                         continue
-                    do_line_ver(mindroot, pymodel, nm, typ, fld_name, tgt_ver)
-        else:
-            for nm in mindroot[pymodel][typ]:
-                if not is_hash(nm):
-                    continue
-                do_line_ver(mindroot, pymodel, nm, typ, False, tgt_ver)
-    if ttype:
-        info = info.get(ttype, {})
-        if tgt_ver:
-            info = info.get(tgt_ver, [])
+                    do_line_ver(mindroot, model, name, typ, False, tgt_ver)
+    if pymodel:
+        info = info.get(pymodel, {})
+        if ttype:
+            info = info.get(ttype, {})
+            if tgt_ver:
+                info = info.get(tgt_ver, [])
     return info
 
 
@@ -548,7 +558,7 @@ def cvt_file(ctx):
             for column in colnames:
                 tnl_colname[column] = translate_from_to(
                     ctx,
-                    ctx['pymodel'],
+                    ctx['model'],
                     column,
                     ctx['oe_from_ver'],
                     ctx['odoo_ver'],
@@ -563,7 +573,7 @@ def cvt_file(ctx):
         for item in row.keys():
             new_row[tnl_colname[item]] = translate_from_to(
                 ctx,
-                ctx['pymodel'],
+                ctx['model'],
                 row[item],
                 ctx['oe_from_ver'],
                 ctx['odoo_ver'],
@@ -581,26 +591,20 @@ def cvt_file(ctx):
 
 
 def transodoo_list(ctx):
-    info = model_info(ctx, ctx['pymodel'], ctx['odoo_ver'],
+    if ctx['model']:
+        pymodel = get_pymodel(ctx['model'], ttype=ctx['opt_kind'])
+    else:
+        pymodel = ''
+    info = model_info(ctx, pymodel, ctx['odoo_ver'],
                       ttype=ctx['opt_kind'], fld_name=ctx['field_name'])
-    print(info)
-    # if 'mindroot' not in ctx:
-    #     mindroot = {}
-    # else:
-    #     mindroot = ctx['mindroot']
-    # if ctx['pymodel'] not in mindroot:
-    #     return
-    # line = '=====[ %s ]=====\n' % ctx['model']
-    # for typ in mindroot[ctx['pymodel']]:
-    #     line += '\n%s\n' % typ
-    #     if typ == 'value':
-    #         for fld_name in mindroot[ctx['pymodel']][typ]:
-    #             for nm in mindroot[ctx['pymodel']][typ][fld_name]:
-    #                 line += do_line_ver(mindroot, nm, typ, fld_name)
-    #     else:
-    #         for nm in mindroot[ctx['pymodel']][typ]:
-    #             line += do_line_ver(mindroot, nm, typ, False)
-    #     print(line)
+    if ctx['model']:
+        print('Model: %s' % get_pymodel(ctx['model']))
+        if ctx['opt_kind']:
+            print('- Type: %s' % ctx['opt_kind'])
+            if ctx['odoo_ver']:
+                print('  - Odoo version: %s' % ctx['odoo_ver'])
+    if info:
+        print(jsonlib.write(info, indent='    '))
 
 
 def transodoo(ctx=None):
@@ -612,7 +616,7 @@ def transodoo(ctx=None):
         if ctx['oe_from_ver']:
             print(bstrings(translate_from_to(
                 ctx,
-                ctx['pymodel'],
+                ctx['model'],
                 ctx['sym'],
                 ctx['oe_from_ver'],
                 ctx['odoo_ver'],
@@ -621,7 +625,7 @@ def transodoo(ctx=None):
         else:
             print(bstrings(translate_from_sym(
                 ctx,
-                ctx['pymodel'],
+                ctx['model'],
                 ctx['sym'],
                 ctx['odoo_ver'])))
     elif ctx['action'] == 'rewrite':
@@ -663,8 +667,7 @@ if __name__ == "__main__":
                         default='it_IT')
     parser.add_argument('-m', '--model',
                         action='store',
-                        dest='model',
-                        default='res.groups')
+                        dest='model')
     parser.add_argument('-N', '--field-name',
                         action='store',
                         dest='field_name')
@@ -679,7 +682,6 @@ if __name__ == "__main__":
     parser.add_argument('action',
                         help='list,translate,rewrite')
     ctx = parser.parseoptargs(sys.argv[1:])
-    ctx['pymodel'] = ctx['model'].lower()
     if ctx['odoo_ver']:
         if ctx['odoo_ver'] not in ALL_VERSIONS:
             print('Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],

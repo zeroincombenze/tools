@@ -1,6 +1,6 @@
 
 ===================
-python_plus 1.0.1.4
+python_plus 1.0.1.5
 ===================
 
 
@@ -174,6 +174,9 @@ check [OPTIONS] [SRC_VENV]
 cp [OPTIONS] SRC_VENV TGT_ENV
       Copy SOURCE environment directory to TGT_ENV, like the bash command 'cp' and  set  relative  path  inside  virtual
       environment to aim the new directory name.
+      Copying virtual environments is not well supported.
+      Each virtualenv has path information hard-coded into it, and there may be cases where the copy code does not know it needs to update a particular file.
+      Use with caution.
 
 create -p PYVER [OPTIONS] VENV
       Create  a  new  virtual environment directory VENV like virtualenv command but with some nice features.  Switch -p
@@ -345,7 +348,7 @@ Translations by
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-11
+Last Update / Ultimo aggiornamento: 2021-08-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
@@ -360,22 +363,22 @@ Last Update / Ultimo aggiornamento: 2021-08-11
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.1.4
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.4/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.4
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.1.4/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.1.4/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.1.4/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.1.4
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org
