@@ -19,6 +19,10 @@ def colorized(text, color):
         map(lambda line: color + line + CLEAR, text.split('\n')))
 
 
+def reset(text):
+    return colorized(text, CLEAR)
+
+
 def green(text):
     return colorized(text, GREEN)
 

@@ -122,6 +122,17 @@ do_deactivate() {
   fi
 }
 
+run_traced() {
+  local xcmd="$1"
+  local sts=0
+  local PMPT=
+  [[ $opt_dry_run -ne 0 ]] && PMPT="> " || PMPT="\$ "
+  [[ $opt_verbose -eq 0 ]] || echo "$PMPT$xcmd"
+  [[ $opt_dry_run -ne 0 ]] || eval $xcmd
+  sts=$?
+  return $sts
+}
+
 get_actual_pkg() {
   local pkg=$1
   [[ $pkg == "pychart" ]] && pkg="python-chart"
@@ -173,6 +184,17 @@ get_wkhtmltopdf_dwname() {
     wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-${dist}-${MACHARCH}${pkgext}"
   fi
   echo "https://github.com/wkhtmltopdf/${z}/releases/download/${reqver}/${wkhtmltopdf_wget}"
+}
+
+set_python_exe() {
+    #set_python_exe(cmd venv)
+    local cmd d f mime V VENV_TGT
+    cmd="$1"
+    V="$2"
+    d=$(find $V \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
+    for f in $d; do
+      grep -q "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" $f" && chmod +x $f
+    done
 }
 
 bin_install() {
@@ -783,24 +805,24 @@ do_venv_mgr_test() {
 }
 
 do_venv_mgr() {
-  # do_venv_mgr {amend|check|cp|mv|merge|reset|test} VENV NEW_VENV
+  # do_venv_mgr {amend|check|cp|mv|merge|test} VENV NEW_VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_mgr($@)"
   local d f mime VENV V sitecustom x lropts
   local cmd=$1
   VENV="$2"
   [[ -n "$3" ]] && VENV_TGT=$($READLINK -m $3)
-  [[ $cmd =~ (amend|check|reset|test|inspect) ]] && VENV_TGT=$VENV
+  [[ $cmd =~ (amend|check|test|inspect) ]] && VENV_TGT=$VENV
   if [[ -z "$VENV" || -z "$VENV_TGT" ]]; then
     echo "Missed parameters!"
     echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
     exit 1
   fi
-  if [[ "$VENV" == "$VENV_TGT" && ! $cmd =~ (amend|check|reset|test|inspect) ]]; then
+  if [[ "$VENV" == "$VENV_TGT" && ! $cmd =~ (amend|check|test|inspect) ]]; then
     echo "Source and destination directories are the same!"
     echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
     exit 1
   fi
-  if [[ $cmd =~ (amend|reset) ]]; then
+  if [[ $cmd =~ (amend) ]]; then
     grep -q "^ *\[ -x \$f -a ! -d \$f ] " $VENV/bin/activate &>/dev/null
     if [[ $? -eq 0 ]]; then
       echo "Wrong activation script $VENV/bin/activate"
@@ -820,7 +842,7 @@ do_venv_mgr() {
   [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
   do_deactivate "-q"
   pop_cd "-q"
-  if [[ $cmd =~ (amend|check|reset|test|inspect) ]]; then
+  if [[ $cmd =~ (amend|check|test|inspect) ]]; then
     V=$VENV
   elif [[ "$cmd" == "cp" ]]; then
     if [[ -d $VENV_TGT ]]; then
@@ -854,14 +876,16 @@ do_venv_mgr() {
     V=$VENV
   fi
   if [[ ! $cmd =~ (amend|check|test|inspect) ]]; then
-    for f in $V/bin/*; do
-      mime=$(file --mime-type -b $f)
-      if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
-        [[ $opt_verbose -gt 1 ]] && echo "$FLAG sed -i -e \"s|^#\!.*[ /]python|#\!$VENV_TGT/bin/python|\" $f"
-        [ $opt_dry_run -eq 0 ] && sed -i -e "s|^#\!.*[ /]python|#\!$VENV_TGT/bin/python|" $f
-        [ $opt_dry_run -eq 0 -a "$cmd" == "reset" ] && chmod +x $f
-      fi
-    done
+    set_python_exe "$cmd" "$V"
+#    [[ $opt_travis -ne 0 ]] && d="$V/bin/* $V/tools/zerobug/_travis $V/tools/z0bug_odoo/travis" || d="$V/bin/*"
+#    for f in $V/bin/*; do
+#      mime=$(file --mime-type -b $f)
+#      if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
+#        [[ $opt_verbose -gt 1 ]] && echo "$FLAG sed -i -e \"s|^#\!.*[ /]python|#\!$VENV_TGT/bin/python|\" $f"
+#        [[ $opt_dry_run -eq 0 ]] && sed -i -e "s|^#\!.*[ /]python|#\!$VENV_TGT/bin/python|" $f
+#        [[ $opt_dry_run -eq 0 && $cmd == "amend" ]] && chmod +x $f
+#      fi
+#    done
   fi
   if [[ ! $cmd =~ (test|inspect) ]]; then
     cd_venv $V -f
@@ -877,9 +901,9 @@ do_venv_mgr() {
     PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
     [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "--upgrade"
     [[ $cmd =~ (amend|check) ]] && pip_check_1 $cmd
-    [[ -n "$opt_oever" && "$cmd" == "reset" ]] && pip_install_2 "--upgrade"
+    [[ -n "$opt_oever" && "$cmd" == "amend" ]] && pip_install_2 "--upgrade"
     [[ -n "$opt_oever" && $cmd =~ (amend|check) ]] && pip_check_2 $cmd
-    [[ "$cmd" == "reset" && -n "$opt_rfile" ]] && pip_install_req "--upgrade"
+    [[ $cmd == "amend" && -n "$opt_rfile" ]] && pip_install_req "--upgrade"
     [[ $cmd =~ (amend|check) && -n "$opt_rfile" ]] && pip_check_req $cmd
     if [[ ! $cmd == "check" && -z "$VENV_STS" ]]; then
       run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VENV_TGT'\":g' $PWD/bin/activate"
@@ -1031,6 +1055,7 @@ do_venv_create() {
   [[ -n "$opt_rfile" ]] && pip_install_req
   do_deactivate
   [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $($READLINK -f ./odoo)"
+  set_python_exe "create" "$VENV"
   pop_cd
   do_venv_mgr_test $VENV
 }
@@ -1114,12 +1139,12 @@ validate_py_oe_vers() {
 }
 
 
-OPTOPTS=(h        a        B         C      D       f         k        I           i         n           O         o          p         q           r           s                    V           v)
-OPTLONG=(help     ""       ""        ""     devel   force     keep     indipendent isolated  dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages version     verbose)
-OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_force opt_keep opt_alone   opt_alone opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_version opt_verbose)
-OPTACTI=(1        "="      "+"       1      1       1         1        2           1         1           "="       "="        "="       0           "="         1                    "*>"        "+")
-OPTDEFL=(0        ""       0         0      0       0         0        0           0         0           ""        ""         ""        -1          ""          0                    ""          -1)
-OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""          ""        ""          "version" "dir"      "pyver"   ""          "file"      ""                   "version"   "verbose")
+OPTOPTS=(h        a        B         C      D       f         k        I           i         n           O         o          p         q           r           s                    t          V           v)
+OPTLONG=(help     ""       ""        ""     devel   force     keep     indipendent isolated  dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose)
+OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_force opt_keep opt_alone   opt_alone opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose)
+OPTACTI=(1        "="      "+"       1      1       1         1        2           1         1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
+OPTDEFL=(0        ""       0         0      0       0         0        0           0         0           ""        ""         ""        -1          ""          0                    0          ""          -1)
+OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""          ""        ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
   "debug mode: use unstable packages (testpypi / local tools / local devel)"
@@ -1130,12 +1155,13 @@ OPTHELP=("this help"
   "run pip in an isolated mode, set home virtual directory"
   "run pip in an isolated mode, ignoring environment variables and user configuration"
   "do nothing (dry-run)"
-  "install pypi required by odoo ver (amend, create or reset)"
-  "odoo path:used to search odoo requirements and linked in venv"
+  "install pypi required by odoo ver (amend or create)"
+  "odoo path used to search odoo requirements"
   "python version"
   "silent mode"
   "after created v.environment install from the given requirements file"
   "create v.environment with access to the global site-packages"
+  "activate environnment for travis test"
   "show version"
   "verbose mode")
 OPTARGS=(p3 p4 p5 p6 p7 p8 p9)
@@ -1146,7 +1172,7 @@ if [[ "$opt_version" ]]; then
   exit $STS_SUCCESS
 fi
 
-ACTIONS="help amend cp check create exec info inspect install merge mv python shell rm show uninstall update test reset"
+ACTIONS="help amend cp check create exec info inspect install merge mv python shell rm show uninstall update test"
 REXACT="^(${ACTIONS// /|})\$"
 # In old vem version p1 -> action and p2 > venv
 action=""

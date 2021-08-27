@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.1.7
+#__version__=1.0.1.8
 
 # MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
@@ -320,8 +320,8 @@ init_travis() {
     BRANCH=$(build_odoo_param FULLVER ".")
     SETUP=$MANIFEST
   fi
-  if [ -z "$TOOLS_PATH" ]; then
-    if [ -d $HOME/tools/zerobug/_travis ]; then
+  if [[ -z "$TOOLS_PATH" ]]; then
+    if [[ -d $HOME/tools/zerobug/_travis ]]; then
       TOOLS_PATH=$HOME/tools/zerobug/_travis
     else
       TOOLS_PATH=$(find $HOME -type d -name _travis | head -n1)
@@ -420,6 +420,8 @@ set_osx() {
 create_virtual_env() {
   local f opts p t x
   export TRAVIS_BRANCH=$BRANCH
+  [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
+  ((Z0_STACK=Z0_STACK+2))
   local sts=0
   # local VER=${VERSION}
   [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel
@@ -485,20 +487,16 @@ create_virtual_env() {
     [[ ${opt_dry_run:-0} -ne 0 ]] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
     sts=$?
   fi
-  [ $sts -ne 0 ] && return
+  [[ $sts -ne 0 ]] && return
   [[ $TRAVIS_EMULATE_OSX == "true" ]] && set_osx
-  # local SAVE_COLOR=$PS_RUN_COLOR
-  # export PS_RUN_COLOR=$PS_HDR3_COLOR
-  # echo -en "\e[${PS_RUN_COLOR}m"
   cd $TRAVIS_HOME
   source bin/activate
   [[ -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && source $NVM_DIR/nvm.sh
   if [ $opt_cache -ne 0 -a "$TRAVIS" == "false" -a -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]; then
     export PYPI_CACHED=$HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/
   fi
-  # export PS_RUN_COLOR=$SAVE_COLOR
-  [ ${opt_dry_run:-0} -eq 0 ] && mkdir -p $TRAVIS_HOME/build
-  [ ${opt_dry_run:-0} -eq 0 ] && mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
+  [[ ${opt_dry_run:-0} -eq 0 ]] && mkdir -p $TRAVIS_HOME/build
+  [[ ${opt_dry_run:-0} -eq 0 ]] && mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
   export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
   if [ "$PKGNAME" == "OCB" ]; then
     emulate_git_clone_OCB $TRAVIS_HOME_BRANCH $TRAVIS_BUILD_DIR
@@ -513,7 +511,8 @@ create_virtual_env() {
         run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
     fi
   fi
-  [ "$PWD" != "$TRAVIS_BUILD_DIR" ] && run_traced "cd $TRAVIS_BUILD_DIR"
+  [[ $PWD != $TRAVIS_BUILD_DIR ]] && run_traced "cd $TRAVIS_BUILD_DIR"
+  ((Z0_STACK=Z0_STACK-2))
 }
 
 drop_virtual_env() {
@@ -590,8 +589,8 @@ git_clone() {
 prepare_env_travis() {
   local action="$1"
   local v x
-  if [[ $action =~ (force-lint|lint|force-test|test|emulate|test) ]]; then
-    if [ -n "$TOOLS_PATH" ]; then
+  if [[ $action =~ ^(force-lint|lint|force-test|test|force-testdeps|testdeps|force-translate|translate|emulate)$ ]]; then
+    if [[ -n "$TOOLS_PATH" ]]; then
       if [ ${opt_r:-0} -gt 0 ]; then
         if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
           run_traced "export PATH=$TOOLS_PATH:$PATH"
@@ -606,25 +605,39 @@ prepare_env_travis() {
   NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
   export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
   export BRANCH
-  [ -z "$VERSION" ] && export VERSION=$BRANCH
-  if [ "$action" == "force-lint" ]; then
-    export LINT_CHECK=1
-  elif [ "$action" == "force-test" ]; then
-    export LINT_CHECK=0
+  [[ -z "$VERSION" ]] && export VERSION=$BRANCH
+  if [[ $action == "force-lint" ]]; then
+    export LINT_CHECK="1"
+    export TESTS="0"
+    export TEST_DEPENDENCIES="0"
+    export ODOO_TNLBOT="0"
+  elif [[ $action == "force-test" ]]; then
+    export LINT_CHECK="0"
+    export TESTS="1"
+    export TEST_DEPENDENCIES="0"
+    export ODOO_TNLBOT="0"
+  elif [[ $action == "force-testdeps" ]]; then
+    export LINT_CHECK="0"
+    export TESTS="0"
+    export TEST_DEPENDENCIES="1"
+    export ODOO_TNLBOT="0"
+  elif [[ $action == "force-translate" ]]; then
+    export LINT_CHECK="0"
+    export TESTS="0"
+    export TEST_DEPENDENCIES="0"
+    export ODOO_TNLBOT="1"
   fi
-  if [ "$PRJNAME" == "Odoo" ]; then
-    export ODOO_REPO=$REMOTEREPO/${PRJNAME,,}
-  fi
-  if [ -n "$opt_dpath" ]; then
+  [[ "$PRJNAME" == "Odoo" ]] && export ODOO_REPO=$REMOTEREPO/${PRJNAME,,}
+  if [[ -n "$opt_dpath" ]]; then
     LGITPATH="$opt_dpath"
-  elif [ "$PRJNAME" == "Odoo" ]; then
-    if [ -n "$opt_branch" ]; then
+  elif [[ $PRJNAME == "Odoo" ]]; then
+    if [[ -n "$opt_branch" ]]; then
       x=$(build_odoo_param PKGNAME ".")
       LGITPATH=$(build_odoo_param HOME "$opt_branch" "$REPOSNAME")
-      [ -n "$x" ] && LGITPATH="$LGITPATH/$x"
+      [[ -n "$x" ]] && LGITPATH="$LGITPATH/$x"
     fi
   else
-    if [ -n "$REPOSNAME" ]; then
+    if [[ -n "$REPOSNAME" ]]; then
       LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
     else
       LGITPATH=
@@ -721,7 +734,7 @@ conf_default() {
   set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
   set_cfg_def "PS_TXT_COLOR" "0;97;40"
   set_cfg_def "PS_RUN_COLOR" "1;37;44"
-  set_cfg_def "PS_NOP_COLOR" "31;100"
+  set_cfg_def "PS_NOP_COLOR" "34;107"
   set_cfg_def "PS_HDR1_COLOR" "97;42"
   set_cfg_def "PS_HDR2_COLOR" "30;43"
   set_cfg_def "PS_HDR3_COLOR" "30;45"
@@ -1429,47 +1442,3 @@ run_server_test() {
   sts=$STS_FAILED
   return $sts
 }
-
-# please_run_tests() {
-#     sts=$STS_SUCCESS
-#     if [[ $1 =~ [BK] ]]; then
-#       please_test_bash
-#       sts_bash=$?
-#     else
-#       sts_bash=127
-#     fi
-#     if [[ $1 =~ [LK] ]]; then
-#       cd $TOOLS_PATH
-#       please_test_flake8
-#       sts_flake8=$?
-#       please_test_pylint
-#       sts_pylint=$?
-#       if [ $sts_bash -ne 127 ]; then
-#         sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
-#       else
-#         sts=$(($sts_flake8 || $sts_pylint))
-#       fi
-#     else
-#       if [ $sts_bash -ne 127 ]; then
-#         sts=$sts_bash
-#       else
-#         sts=$STS_SUCCESS
-#       fi
-#     fi
-#     if [[ $1 =~ T ]]; then
-#       if [ "$PRJNAME" == "Odoo" ]; then
-#         run_server_test
-#       else
-#         run_regression_test
-#       fi
-#       test_sts=$?
-#       if [ $test_sts -ne $STS_SUCCESS ]; then
-#         sts=$test_sts
-#       fi
-#     fi
-#     do_summary "$sts_bash" "$sts_flake8" "$sts_pylint" "$test_sts"
-#     if [ $sts -eq $STS_SUCCESS ]; then
-#       run_coverage_test
-#     fi
-#     return $sts
-# }

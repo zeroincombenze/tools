@@ -17,6 +17,8 @@ Overview
    rtd_description
    rtd_description_structure
    rtd_description_vid
+   rtd_installation
+   rtd_upgrade
 
 
 Wok code

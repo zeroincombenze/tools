@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to python_plus 1.0.2 documentation!
+Welcome to python_plus 1.0.2.1 documentation!
 ===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|

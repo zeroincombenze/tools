@@ -201,7 +201,7 @@ CONDITION may be a python condition or one of follow special condition:
     i.e.
     .. $if branch in '10.0' '11.0' '12.0'
 
-FILE may be a file name. SUpported file types are .rst and .csv
+FILE may be a file name. Supported file types are .rst and .csv
 
 ::
 

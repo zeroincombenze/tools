@@ -1,3 +1,9 @@
+1.0.1.4 (2021-08-26)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis_install_env: echo indented command
+[IMP] travis_install_env: new travis command testdeps
+
 1.0.1.2 (2021-08-09)
 ~~~~~~~~~~~~~~~~~~~~
 

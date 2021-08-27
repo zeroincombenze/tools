@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.21"
+__version__ = "1.0.1.22"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -217,6 +217,9 @@ RST2HTML_GRYMB = {
 
 def print_red_message(text):
     print('%s%s%s' % (RED, text, CLEAR))
+
+def print_green_message(text):
+    print('%s%s%s' % (GREEN, text, CLEAR))
 
 def get_full_fn(ctx, src_path, filename):
     if src_path.startswith('./'):
@@ -1210,6 +1213,9 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
                            set(source2.split('\n'))))
     if len(source) and filename == 'history.rst':
         source = tail(source)
+        if ctx['odoo_layer'] == 'module':
+            ctx['history-summary'] = tail(
+                source, max_ctr=1, max_days=15)
     if len(source):
         if ctx['trace_file']:
             mark = '.. !! from "%s"\n\n' % filename
@@ -1272,6 +1278,15 @@ def read_setup(ctx):
         if not ctx['suppress_warning']:
             print_red_message('*** Warning: manifest file not found!')
         ctx['manifest'] = {}
+    ctx['history-summary'] = ''
+    full_fn = os.path.join('.', 'egg-info', 'history.rst')
+    if os.path.isfile(full_fn):
+        with open(full_fn, 'r') as fd:
+            with open(full_fn, 'r') as fd:
+                ctx['history-summary'] += tail(
+                    os0.u(fd.read()),
+                    max_ctr=1,
+                    max_days=15)
 
 
 def read_manifest(ctx):
@@ -1318,6 +1333,7 @@ def read_all_manifests(ctx, path=None, module2search=None):
     path = path or '.'
     ctx['manifest'] = {}
     ctx['histories'] = ''
+    ctx['history-summary'] = ''
     addons_info = {}
     local_modules = 'l10n_%s' % ctx['lang'][0:2]
     if ctx['odoo_majver'] >= 10:
@@ -1363,9 +1379,16 @@ def read_all_manifests(ctx, path=None, module2search=None):
                 full_fn = os.path.join(root, 'egg-info', 'history.rst')
                 if os.path.isfile(full_fn):
                     with open(full_fn, 'r') as fd:
-                        history = tail(os0.u(fd.read()),
-                                       max_days=180, module=module_name)
-                    ctx['histories'] += history
+                        ctx['histories'] += tail(
+                            os0.u(fd.read()),
+                            max_days=180, module=module_name)
+
+                        with open(full_fn, 'r') as fd:
+                            ctx['history-summary'] += tail(
+                                os0.u(fd.read()),
+                                max_ctr=1,
+                                max_days=15,
+                                module=module_name)
     if not module2search:
         if ctx['odoo_layer'] == 'ocb':
             oca_root = '%s/oca%d' %  (os.environ['HOME'], ctx['odoo_majver'])
@@ -1384,8 +1407,6 @@ def read_all_manifests(ctx, path=None, module2search=None):
                     full_fn = os.path.join(root, manifest_file)
                     oca_manifest = read_manifest_file(
                         ctx, full_fn, force_version=True)
-                    # oca_version = adj_version(
-                    #     ctx, oca_manifest.get('version', ''))
                     oca_version = oca_manifest['version']
                     if module_name not in addons_info:
                         addons_info[module_name] = {}
@@ -1405,6 +1426,7 @@ def read_all_manifests(ctx, path=None, module2search=None):
                             'oca_installable'] = oca_manifest.get('installable',
                                                                   True)
         ctx['histories'] = sort_history(ctx['histories'])
+        ctx['history-summary'] = sort_history(ctx['history-summary'])
     ctx['addons_info'] = addons_info
 
 
@@ -1859,7 +1881,7 @@ def generate_readme(ctx):
         target = parse_local_file(ctx,
                                   ctx['template_name'],
                                   out_fmt='rst')[1]
-    if ctx['rewrite_manifest'] and ctx['odoo_layer'] == 'module':
+    if ctx['rewrite_manifest'] and 'module' == ctx['odoo_layer']:
         target = manifest_contents(ctx)
     tmpfile = '%s.tmp' % ctx['dst_file']
     bakfile = '%s.bak' % ctx['dst_file']
@@ -1882,6 +1904,17 @@ def generate_readme(ctx):
             '> topep8 -h\n'
             'for furthermore information\n'
         )
+    if ctx['opt_verbose']:
+        if ctx['history-summary']:
+            print('\nRecent History\n~~~~~~~~~~~~~~\n')
+            print_green_message(ctx['history-summary'])
+        else:
+            if ctx['odoo_layer'] == 'module' and ctx['module_name']:
+                item = ctx['module_name']
+            else:
+                item = 'code'
+            print_red_message('Missed documentation for last %s updates!!!' %
+                              item)
 
 
 if __name__ == "__main__":
@@ -1967,7 +2000,7 @@ if __name__ == "__main__":
     ctx = unicodes(parser.parseoptargs(sys.argv[1:]))
     ctx['path_name'] = os.path.abspath(ctx['path_name'])
     if not ctx['product_doc']:
-        if '/pypi/' in ctx['path_name']:
+        if '/pypi/' in ctx['path_name'] or ctx['path_name'].endswith('/tools'):
             ctx['product_doc'] = 'pypi'
         else:
             ctx['product_doc'] = 'odoo'
@@ -1991,7 +2024,7 @@ if __name__ == "__main__":
                 'GIT_ORGID', odoo_vid=ctx['odoo_vid'], multi=True)
     if ctx['git_orgid'] not in ('zero', 'oca', 'powerp', 'didotech'):
         ctx['git_orgid'] = 'zero'
-        if not ctx['suppress_warning']:
+        if not ctx['suppress_warning'] and ctx['product_doc'] != 'pypi':
             print_red_message(
                 '*** Invalid git-org: use -G %s or of zero|oca|didotech' %
                 ctx['git_orgid'])

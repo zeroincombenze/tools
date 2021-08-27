@@ -1,6 +1,6 @@
 
 =================
-wok_code 1.0.1.21
+wok_code 1.0.1.22
 =================
 
 
@@ -31,7 +31,7 @@ The available tools are:
 * wget_odoo_repositories.py: get repository names from github.com
 
 
-please: develeper shell
+please: developer shell
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 please is an interactive developer shell aim to help development and testing software.
@@ -40,27 +40,27 @@ please is an interactive developer shell aim to help development and testing sof
     Developer shell
     Action may be on of:
     help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|show|status|test|translate|version|wep
-     -h                   this help, type 'please help' for furthermore info
-     -B                   debug mode
-     -b branch            branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0
-     -c file              configuration file (def .travis.conf)
-     -d diff              date to search in log
-     -f                   force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro) | full (status)
-     -j                   execute tests in project dir rather in test dir/old style synchro
-     -k                   keep coverage statistics in annotate test/keep original repository | tests/ in publish
-     -L logfile           log file name
-     -m                   show missing line in report coverage
-     -n                   do nothing (dry-run)
-     -o prj_id            push only external project ids (of push)
-     -O                   pull original README (and docs) in distribution (deprecated)
-     -p path              declare local destination path
-     -q                   silent mode
-     -r                   run restricted mode (w/o parsing travis.yml file) | recurse distribution OCB
-     -s files             files to include in annotate test
-     -t                   test mode (implies dry-run)
-     -u                   check for unary operator W503 or no OCA/zero module translation
-     -V                   show version end exit
-     -v                   verbose mode
+    -h                   this help, type 'please help' for furthermore info
+    -B                   debug mode
+    -b branch            branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0
+    -c file              configuration file (def .travis.conf)
+    -d diff              date to search in log
+    -f                   force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro) | full (status)
+    -j                   execute tests in project dir rather in test dir/old style synchro
+    -k                   keep coverage statistics in annotate test/keep original repository | tests/ in publish
+    -L logfile           log file name
+    -m                   show missing line in report coverage
+    -n                   do nothing (dry-run)
+    -o prj_id            push only external project ids (of push)
+    -O                   pull original README (and docs) in distribution (deprecated)
+    -p path              declare local destination path
+    -q                   silent mode
+    -r                   run restricted mode (w/o parsing travis.yml file) | recurse distribution OCB
+    -s files             files to include in annotate test
+    -t                   test mode (implies dry-run)
+    -u                   check for unary operator W503 or no OCA/zero module translation
+    -V                   show version end exit
+    -v                   verbose mode
 
 Action is one of:
 
@@ -510,7 +510,7 @@ CONDITION may be a python condition or one of follow special condition:
     i.e.
     .. $if branch in '10.0' '11.0' '12.0'
 
-FILE may be a file name. SUpported file types are .rst and .csv
+FILE may be a file name. Supported file types are .rst and .csv
 
 ::
 
@@ -782,13 +782,8 @@ Getting started
 Installation
 ------------
 
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    pip install wok_code
-
-|
+Installation
+------------
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -799,40 +794,72 @@ Current version via Git
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
-    source /opt/odoo/dev/activate_tools
+    source /opt/odoo/devel/activate_tools
+
+
+Upgrade
+-------
+
+Upgrade
+-------
+
+Current stable version
+~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -U
+    source /opt/odoo/devel/activate_tools
+
+Current development version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -Ud
+    source /opt/odoo/devel/activate_tools
 
 
 History
 -------
 
-1.0.1.21 (2021-08-08)
+1.0.1.22 (2021-08-26)
+~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] please: action docs shows recent history
+[IMP] gen_readme.py: show recent history
+[FIX] topep8: parse .travis.yml
+
+1.0.1.22 (2021-08-08)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
-1.0.1.21 (2021-08-05)
+1.0.1.22 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [REF] Merged and renamed to wok_code
 
-1.0.1.21 (2021-08-04)
+1.0.1.22 (2021-08-04)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
 
-1.0.1.21 (2021-08-03)
+1.0.1.22 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: parameter error
 
-1.0.1.21 (2021-07-29)
+1.0.1.22 (2021-07-29)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
 
-1.0.1.21 (2021-07-21)
+1.0.1.22 (2021-07-21)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: ignore setup directories
@@ -845,22 +872,22 @@ History
 
 * [FIX] wget_odoo_repositories.py: best debug mode: check for branch
 
-1.0.1.21 (2021-05-31)
+1.0.1.22 (2021-05-31)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] license managament: other orgs
 
-1.0.1.21 (2021-05-24)
+1.0.1.22 (2021-05-24)
 ~~~~~~~~~~~~~~~~~~~~~
 [FIX] cvt_script: wrong RUNDIR
 
-1.0.1.21 (2021-03-15)
+1.0.1.22 (2021-03-15)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: status when git pushed
 [FIX] gen_readme.py: crash if invalid Odoo project
 
-1.0.1.21 (2021-03-05)
+1.0.1.22 (2021-03-05)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: publish pypi
@@ -868,13 +895,7 @@ History
 [IMP] gen_readme.py: recognizes powerp
 [IMP] gen_readme.py: set website for any organization
 [IMP] please: status more precise
-[IMP] topep8: recognize power organization1.0.1.21 (2021-02-19)
-
-1.0.0.13 (2021-02-28)
-~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] cvt_script: best code replacement
-[IMP] topep8: recognize power organization
+[IMP] topep8: recognize power organization1.0.1.22 (2021-02-19)
 
 
 
@@ -920,7 +941,7 @@ Translations by
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-23
+Last Update / Ultimo aggiornamento: 2021-08-27
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

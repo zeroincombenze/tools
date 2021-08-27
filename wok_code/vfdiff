@@ -45,7 +45,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.1.21
+__version__=1.0.1.22
 
 vf_init() {
   VF_IGNORE="$(get_cfg_value 0 filedel)"

@@ -32,8 +32,6 @@ Action is one of:
 .br
 * python [OPTIONS] SRC_VENV
 .br
-* reset [OPTIONS] [VENV]
-.br
 * show [OPTIONS] [VENV] PKG
 .br
 * upgrade [OPTIONS] [VENV] PKG
@@ -45,13 +43,13 @@ Action is one of:
 \fBamend\fR [OPTIONS] [SRC_VENV]
 .RS
 Amend package versions against requirements.
-May used after 'create' or 'reset' when requirements are changed.
+May used after 'create' or 'amend' when requirements are changed.
 .RE
 .P
 \fBcheck\fR [OPTIONS] [SRC_VENV]
 .RS
 Compare package versions against requirements.
-May be used after 'create' or 'reset' to check virtual environment consistency.
+May be used after 'create' or 'amend' to check virtual environment consistency.
 .RE
 .P
 \fBcp\fR [OPTIONS] SRC_VENV TGT_ENV
@@ -127,13 +125,13 @@ lessc
 Any other binary package must be globally installed by os installer (apt-get, dnf, yum, etc.)
 .TP
 .BR \-D
-With create or reset action, install or upgrade development packages.
+With create or amend action, install or upgrade development packages.
 .TP
 .BR \-I
 Run isolated mode, without accessing system packages.
 .TP
 .BR \-O
-install pypi required by odoo ver (create or reset)
+install pypi required by odoo ver (create or amend)
 .TP
 .BR \-o
 declare odoo path used to find odoo requirements and linked inside virtual environment

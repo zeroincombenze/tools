@@ -40,7 +40,7 @@ fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-__version__=1.0.1.21
+__version__=1.0.1.22
 
 [[ -f $TDIR/../../clodoo/list_requirements.py ]] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
@@ -408,7 +408,7 @@ format_yaml() {
           echo "  # Use Zeroincombenze(R) tools" >>$fntmp
           echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1" >>$fntmp
           echo "  - \${HOME}/tools/install_tools.sh -qpt" >>$fntmp
-          echo "  - source ${HOME}/devel/activate_tools" >>$fntmp
+          echo "  - source \${HOME}/devel/activate_tools" >>$fntmp
           if [[ $PKGNAME == "OCB" ]]; then
             echo "  # - \"export DISPLAY=:99.0\"" >>$fntmp
             echo "  # - \"sh -e /etc/init.d/xvfb start\"" >>$fntmp

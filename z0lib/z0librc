@@ -578,7 +578,6 @@ run_traced() {
       [[ $1 =~ ^(cd[[:space:]].*|cd)$ ]] && eval "$xcmd" 2>/dev/null
     fi
     echo -en "\e[0m"
-    # [[ ${opt_humdrum:-0} -eq 0 && -n $PS_TXT_COLOR ]] && echo -en "\e[${PS_TXT_COLOR}m"
     ((Z0_STACK=Z0_STACK-2))
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
     return $sts

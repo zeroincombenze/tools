@@ -212,7 +212,7 @@ CONDITION may be a python condition or one of follow special condition:
     i.e.
     .. $if branch in '10.0' '11.0' '12.0'
 
-FILE may be a file name. SUpported file types are .rst and .csv
+FILE may be a file name. Supported file types are .rst and .csv
 
 ::
 
@@ -476,7 +476,7 @@ topep8 usage
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-23
+Last Update / Ultimo aggiornamento: 2021-08-27
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

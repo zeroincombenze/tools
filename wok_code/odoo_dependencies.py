@@ -42,7 +42,7 @@ optional arguments:
   -x, --external-bin-dependencies
   -1, --no-depth
 
-© 2020 by SHS-AV s.r.l.
+© 2020-21 by SHS-AV s.r.l.
 
 
 This app can execute following actions:
@@ -111,7 +111,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '1.0.1.21'
+__version__ = '1.0.1.22'
 
 
 MANIFEST_FILES = [
@@ -121,7 +121,8 @@ MANIFEST_FILES = [
     '__terp__.py',
 ]
 MAX_DEEP = 20
-UNDEF_DEEP = MAX_DEEP + 10
+UNDEF_DEEP = MAX_DEEP + 5
+MISSED = 99
 
 def get_test_dependencies(addons_path, addons_list, depends_by=None,
                           ao_list=None, external_dependencies=None,
@@ -272,7 +273,7 @@ def get_modules_info(path, depth=1, depends_by=None, ao_list=None):
     path = os.path.dirname(path) if not os.path.basename(path) else path
     modules = {}
     if os.path.isdir(path) and depth > 0:
-        for module in os.listdir(path):
+        for module in sorted(os.listdir(path)):
             module_path = os.path.join(path, module)
             manifest_path = is_module(module_path)
             if manifest_path:
@@ -372,57 +373,83 @@ def get_modules(path, depth=1, depends_by=None, ao_list=None):
 
 def check_tree(path_list, matches=None, depth=None):
     depth = depth or 999
-    # if isinstance(path_list, string_types):
-    #     paths = path_list.split(',')
-    # else:
-    #     paths = path_list
-    modules = {}
+    all_modules = {}
     for path in path_list:
-        modules.update(get_modules_info(path, depth=depth))
-    module_list = matches or get_modules_list(path_list, depth=depth)
-    missed_modules = {}
+        all_modules.update(get_modules_info(path, depth=depth))
+    modules_2_match = matches or get_modules_list(path_list, depth=depth)
+    visit_list = sorted(
+        list(set(all_modules.keys()) | set(modules_2_match)))
     max_iter = 99
-    parsing = True
-    while parsing:
-        parsing = False
+    visit_tree = True
+    cur_level = 0
+    while visit_tree:
+        visit_tree = False
         max_iter -= 1
         if max_iter <= 0:
+            visit_tree = True
             break
-        for module in module_list:
-            if module not in modules:
-                missed_modules[module] = {'level': -1, 'status': 'missed'}
-            elif 'level' not in modules[module]:
-                parsing = True
-                cur_level = 0
-                for sub in modules[module]['depends']:
-                    if sub not in module_list:
-                        if sub not in missed_modules:
-                            # print(
-                            #     'Missed module %s, child of %s' %
-                            #     (sub, module))
-                            missed_modules[sub] = {
-                                'status': 'missed, child of %s' % module}
-                        cur_level = UNDEF_DEEP
-                        break
-                    if 'level' in modules[sub]:
-                        cur_level = max(cur_level, modules[sub]['level'] + 1)
-                        if cur_level > MAX_DEEP:
-                            cur_level = MAX_DEEP
-                            modules[module]['status'] = 'too deep'
-                            break
-                        else:
-                            modules[module]['status'] = 'OK'
+        cur_level += 1
+        for module in visit_list:
+            if module not in all_modules.keys():
+                # Searched module not found
+                all_modules[module] = {
+                    'application': None,
+                    'depends': [],
+                    'external_dependencies': {},
+                    'auto_install': False,
+                    'level': MISSED,
+                    'status': 'not found'
+                }
+                continue
+            elif 'level' not in all_modules[module]:
+                # Module not yet visited
+                visit_tree = True
+                module_level = cur_level
+                valid_status = True
+                for sub in all_modules[module]['depends']:
+                    if sub not in all_modules.keys():
+                        # Dependency not found
+                        all_modules[sub] = {
+                            'application': None,
+                            'depends': [],
+                            'external_dependencies': {},
+                            'auto_install': False,
+                            'level': MISSED,
+                            'status': 'missed dependency of %s' % module
+                        }
+                        module_level = UNDEF_DEEP
+                        valid_status = False
+                        continue
+                    if 'level' not in all_modules[sub]:
+                        # Sub-module not yet visited
+                        valid_status = False
+                        continue
+                    if all_modules[sub]['level'] == MISSED:
+                        all_modules[module]['status'] = 'broken by %s' % sub
+                        module_level = max(module_level, UNDEF_DEEP)
+                        continue
+                    elif all_modules[sub]['level'] >= UNDEF_DEEP:
+                        all_modules[module]['status'] = 'broken by %s' % sub
+                        module_level = max(module_level,
+                                           all_modules[sub]['level'] + 1)
+                        continue
+                    module_level = max(module_level,
+                                       all_modules[sub]['level'] + 1)
+                if valid_status:
+                    if module_level == MISSED:
+                        pass
+                    elif module_level >= UNDEF_DEEP:
+                        all_modules[module]['status'] = 'installation error'
+                    elif module_level > MAX_DEEP:
+                        module_level = MAX_DEEP
+                        all_modules[module]['status'] = 'too deep'
                     else:
-                        cur_level = -1
-                        modules[module]['status'] = 'broken by %s' % sub
-                        break
-                if cur_level >= MAX_DEEP:
-                    modules[module]['level'] = MAX_DEEP
-                elif cur_level >= 0:
-                    modules[module]['level'] = cur_level
-    modules={k:v for k, v in modules.items() if k in module_list}
-    modules.update(missed_modules)
-    return parsing, modules
+                        all_modules[module]['status'] = 'OK'
+                    all_modules[module]['level'] = module_level
+    if 'base' in all_modules.keys():
+        all_modules['base']['level'] = 0
+    # all_modules = {k: v for k, v in all_modules.items() if k in modules_2_match}
+    return visit_tree, all_modules
 
 
 def get_modules_list(path_list, depth=None, matches=None, depends_by=None,
@@ -655,23 +682,32 @@ def main(ctx):
         error, modules = check_tree(ctx['path_list'],
                                     matches=ctx['modules_to_match'],
                                     depth=ctx['depth'])
-        if not ctx['only-missed']:
-            if error:
-                print('Broken tree structure')
-            for level in range(MAX_DEEP):
-                for module in modules:
-                    if modules[module].get('level', -1) == level:
-                        print('%2d %s%s' % (level, ' ' * level, module))
-            for module in modules:
-                if modules[module].get('level', -1) >= MAX_DEEP:
-                    print('%s %s (%s)' % ('-' * MAX_DEEP,
-                                          module,
-                                          modules[module].get('status', '')))
+        if error:
+            print('Broken tree structure')
+
+        rank_modules = {}
         for module in modules:
-            if modules[module].get('level', -1) == -1:
-                print('%s %s %s)' % ('*' * MAX_DEEP,
-                                     module,
-                                     modules[module].get('status', '')))
+            level = modules[module].get('level', MISSED)
+            if level not in rank_modules:
+                rank_modules[level] = []
+            rank_modules[level].append(module)
+
+        for level in rank_modules.keys():
+            if level == MISSED or (level <= MAX_DEEP and
+                                   ctx['only-missed']):
+                continue
+            for module in sorted(rank_modules[level]):
+                if modules[module].get('level', MISSED) >= MAX_DEEP:
+                    print(
+                        '%s %s (%s)' % ('-' * MAX_DEEP,
+                                        module,
+                                        modules[module].get('status', '')))
+                else:
+                    print('%2d %s%s' % (level, ' ' * level, module))
+        for module in sorted(rank_modules[MISSED]):
+            print('%s %s (%s)' % ('*' * MAX_DEEP,
+                                  module,
+                                  modules[module].get('status', '')))
     else:
         print(__doc__)
         return 1
@@ -681,7 +717,7 @@ def main(ctx):
 if __name__ == "__main__":
     ACTIONS = ('dep', 'help', 'jrq', 'mod', 'rev', 'tree')
     parser = z0lib.parseoptargs("Odoo dependencies management",
-                                "© 2020 by SHS-AV s.r.l.",
+                                "© 2020-21 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-A', '--action',
@@ -709,9 +745,6 @@ if __name__ == "__main__":
                         dest="db_name",
                         metavar="file",
                         default=False)
-    # parser.add_argument('-d', '--action-depends',
-    #                     action='store_true',
-    #                     dest='act_depends')
     parser.add_argument('-E', '--only-missed',
                         action='store_true',
                         dest='only-missed')
@@ -722,9 +755,6 @@ if __name__ == "__main__":
     parser.add_argument('-H', '--action-help',
                         action='store_true',
                         dest='act_show_full_help')
-    # parser.add_argument('-j', '--action-just-reverse-modules',
-    #                     action='store_true',
-    #                     dest='act_just_reverse_modules')
     parser.add_argument('-M', '--modules-to-match',
                         action='store',
                         default='',
@@ -746,9 +776,6 @@ if __name__ == "__main__":
     parser.add_argument('-R', '--recurse',
                         action='store_true',
                         dest='recurse')
-    # parser.add_argument('-r', '--action-reverse-modules',
-    #                     action='store_true',
-    #                     dest='act_reverse_modules')
     parser.add_argument('-S', '--sep-list',
                         action='store',
                         default=',',

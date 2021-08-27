@@ -14,7 +14,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.33.2'
+__version__ = '0.3.33.3'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -154,6 +154,9 @@ ALIAS3 = {
     'PyWebDAV': 'PyWebDAV3',
     'python-ldap': 'python3-ldap',
     'pyPdf': 'pyPDF2',
+}
+FORCE_ALIAS = {
+    'docutils==0.12': 'docutils==0.14',
 }
 PIP_TEST_PACKAGES = ['astroid',
                      'Click',
@@ -398,6 +401,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         full_item = full_item[1: -1]
     full_item = full_item.strip().replace(' =', '=').replace('= ', '=').replace(
         ' >', '>').replace('> ', '>')
+    full_item = FORCE_ALIAS.get(full_item, full_item)
     return item, full_item, defver
 
 

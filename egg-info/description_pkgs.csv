@@ -9,13 +9,11 @@ clodoo,check_4_seq.sh,Check for postgres database index,maintenance
 ,odoo_install_repository,Install & upgrade odoo repository,Deployment & maintenance
 ,set_workers.sh,Evaluate and set Odoo workers for best performance,Deployment & maintenance
 lisa,lisa,Linux Installer Simple App. LAMP and odoo server installer from scratch.,deployment
-maintainer-quality-tools,,"Deprecated, replaced by z0bug_odoo",testing
-odoo_score,odoo_score.py,Odoo super core ORM,development
+odoo_score,odoo_score.py,Odoo ORM super core,development
 ,odoo_shell.py,Odoo shell for Odoo versions from 6.1 to 13.0,Development & maintenance
 os0,,Simple os interface checked for OpenVMS too,development
 python-plus,python-plus,Various features to python 2 and python 3 programs as integration of pypi future to help to port your code from Python 2 to Python 3,development
 ,vem,"Virtual Environment Manager: create, copy, move, merge and many other functions with virtual environments",Deployment & maintenance
-pytok,,Simple python token parser (deprecated),
 travis_emulator,travis,Travis Emulator on local machine. Check your project before release on TravisCi,testing
 wok_code,cvt_csv_to_rst.py,Convert a csv file into rst text file with table inside,documentation
 ,cvt_csv_to_xml.py,Convert a csv file into xml file for Odoo module data,development

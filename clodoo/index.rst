@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to clodoo 0.3.33.2 documentation!
+Welcome to clodoo 0.3.33.3 documentation!
 ===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|

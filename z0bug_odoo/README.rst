@@ -1,6 +1,6 @@
 
 ==================
-z0bug_odoo 1.0.4.2
+z0bug_odoo 1.0.4.3
 ==================
 
 
@@ -976,8 +976,45 @@ For current version:
 `./install_tools.sh`
 
 
+Upgrade
+-------
+
+Upgrade
+-------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    pip install z0bug_odoo -U
+
+|
+
+Current stable version
+~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -U
+    source /opt/odoo/devel/activate_tools
+
+Current development version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -Ud
+    source /opt/odoo/devel/activate_tools
+
+
 History
 -------
+
+1.0.4.3 (2021-08-26)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis_run_test: new command testdeps
 
 1.0.3.2 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~
@@ -1066,7 +1103,7 @@ Translations by
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-26
+Last Update / Ultimo aggiornamento: 2021-08-27
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

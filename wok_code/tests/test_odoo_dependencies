@@ -35,7 +35,7 @@ fi
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
-__version__=1.0.1.21
+__version__=1.0.1.22
 
 
 #
@@ -204,17 +204,45 @@ test_04() {
     TRES="wkhtmltox"
     [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     test_result "od $OPTS" "$TRES" "$RES"
+}
+
+test_05() {
+    local TRES RES OPTS
 
     cat<<'EOF' >$TESTDIR/odoo_dependencies.log
  0 base
- 1  web
--------------------- account ()
--------------------- l10n_it_base (too deep)
--------------------- sale ()
-******************** sales_team missed, child of sale)
-******************** base_setup missed, child of account)
+ 2   web
+-------------------- account (installation error)
+-------------------- sale (installation error)
+-------------------- l10n_it_base (installation error)
+******************** analytic (missed dependency of account)
+******************** base_setup (missed dependency of account)
+******************** procurement (missed dependency of sale)
+******************** product (missed dependency of account)
+******************** report (missed dependency of account)
+******************** sales_team (missed dependency of sale)
+******************** web_planner (missed dependency of account)
+******************** web_tour (missed dependency of sale)
 EOF
     OPTS="-A tree $LCL_OE_ROOT -R"
+    TRES=$(cat $TESTDIR/odoo_dependencies.log)
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    cat<<'EOF' >$TESTDIR/odoo_dependencies.log
+-------------------- account (installation error)
+-------------------- sale (installation error)
+-------------------- l10n_it_base (installation error)
+******************** analytic (missed dependency of account)
+******************** base_setup (missed dependency of account)
+******************** procurement (missed dependency of sale)
+******************** product (missed dependency of account)
+******************** report (missed dependency of account)
+******************** sales_team (missed dependency of sale)
+******************** web_planner (missed dependency of account)
+******************** web_tour (missed dependency of sale)
+EOF
+    OPTS="-A tree $LCL_OE_ROOT -RE"
     TRES=$(cat $TESTDIR/odoo_dependencies.log)
     [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     test_result "od $OPTS" "$TRES" "$RES"

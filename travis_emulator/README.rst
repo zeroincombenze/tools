@@ -1,6 +1,6 @@
 
 =======================
-travis_emulator 1.0.1.7
+travis_emulator 1.0.1.8
 =======================
 
 
@@ -256,6 +256,8 @@ Getting started
 Installation
 ------------
 
+Installation
+------------
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -266,7 +268,32 @@ Current version via Git
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
-    source /opt/odoo/dev/activate_tools
+    source /opt/odoo/devel/activate_tools
+
+
+Upgrade
+-------
+
+Upgrade
+-------
+
+Current stable version
+~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -U
+    source /opt/odoo/devel/activate_tools
+
+Current development version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -Ud
+    source /opt/odoo/devel/activate_tools
 
 
 Troubleshooting
@@ -296,6 +323,12 @@ Troubleshooting
 
 History
 -------
+
+1.0.1.8 (2021-08-26)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: new action testdeps
+[FIX] travis: matrix selection
 
 1.0.1.5 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~
@@ -359,14 +392,6 @@ History
 
 [DOC] Documentation upgrade
 
-1.0.0.8 (2021-03-05)
-~~~~~~~~~~~~~~~~~~~~
-
-[IMP] travisrc: Best fileignore list
-[FIX] travisrc: clean_dirs
-[FIX] travisrc: set_executable
-[IMP] travis: local odoo module to not test
-
 
 
 |
@@ -411,7 +436,7 @@ Translations by
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-22
+Last Update / Ultimo aggiornamento: 2021-08-27
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

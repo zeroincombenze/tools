@@ -1,7 +1,13 @@
+1.0.2.1 (2021-08-05)
+~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: create set right python for all ven binaries
+
 1.0.1.3 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~
 
 [FIX] vem: run in osx darwin
+[IMP] vem: virtual environment for travis test
 
 1.0.1.3 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~

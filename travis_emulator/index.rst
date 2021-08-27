@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to travis_emulator 1.0.1.7 documentation!
+Welcome to travis_emulator 1.0.1.8 documentation!
 ===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|

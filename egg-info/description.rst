@@ -13,6 +13,15 @@ These tools help to cover the following areas of software:
 * Documentation
 * Testing
 
+Compatibility
+~~~~~~~~~~~~~
+
+These tools are designed to be used on Linux platforms.
+They are tested on following distros:
+* Ubuntu: from 12.0 to 20.0
+* Debian: from 8.0 to 10.0
+* CentOS: from 7 to 8
+Currently the osx Darwin is in testing.
 
 Components
 ~~~~~~~~~~
@@ -47,8 +56,8 @@ Odoo version is the Odoo specific version; it is one value of: 14.0 13.0 12.0 11
 
 Examples of valid odoo_vid:
 
-* 12.0 -> Odoo 12.0, anonymous distribution
-* oca13 -> Odoo 13.0, distribution oca (short name)
+* 12.0 -> Odoo 12.0, unidentified distribution
+* oca14 -> Odoo 14.0, distribution oca (short name)
 * librerp6 -> Odoo 6.1, distribution librerp (short name)
 * odoo14-oca -> Odoo 14.0, distribution oca (full name)
 * odoo12-devel -> Odoo 12.0, odoo ditribution, user identification "devel"

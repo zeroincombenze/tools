@@ -1,3 +1,9 @@
+1.0.1.8 (2021-08-26)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: new action testdeps
+[FIX] travis: matrix selection
+
 1.0.1.5 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~
 

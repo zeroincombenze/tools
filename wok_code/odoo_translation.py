@@ -15,9 +15,9 @@ import time
 import re
 import sys
 import csv
+from subprocess import PIPE, Popen
 # import xlrd
 from openpyxl import load_workbook
-from subprocess import PIPE, Popen
 from babel.messages import pofile
 from os0 import os0
 from python_plus import _c
@@ -31,7 +31,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "1.0.1.21"
+__version__ = "1.0.1.22"
 
 MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']
