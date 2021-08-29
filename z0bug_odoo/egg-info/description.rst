@@ -1,7 +1,7 @@
 Zeroincombenze® continuous testing for odoo
 -------------------------------------------
 
-This package is an plug-in of **zerobug** and aim to easily create odoo tests.
+This package is an plug-in of **zerobug** package and aim to easily create odoo tests.
 
 It replaces OCA MQT with some nice additional features.
 
@@ -22,7 +22,7 @@ The code was forked from OCA MQT but some improvements were added.
 This package and OCA MQT differ by:
 
 * z0bug_odoo can also test Odoo 6.1 and 7.0 where OCA MQT fails with these versions
-* z0bug_odoo is designed to execute some debug statements, maily in local environment
+* z0bug_odoo is designed to execute some debug statements, mainly in local environment
 * z0bug_odoo has more options to run with reduced set of lint tests
 * OCA MQT is the only component to build environment and test Odoo while z0bug_odoo is part of `Zeroincombenze® tools <https://github.com/zeroincombenze/tools>`_
 * As per prior rule, building test environment is made by `vem <https://github.com/zeroincombenze/tools/tree/master/https://github.com/zeroincombenze/tools/tree/master/python_plus>`_, `clodoo <https://github.com/zeroincombenze/tools/tree/master/https://github.com/zeroincombenze/tools/tree/master/clodoo>`_ and `lisa <https://github.com/zeroincombenze/tools/tree/master/https://github.com/zeroincombenze/tools/tree/master/lisa>`_. These commands can also build a complete Odoo environment out of the box
@@ -79,7 +79,7 @@ You can test against specific Odoo core version with ODOO_BRANCH variable if dif
 OCB / core test
 ~~~~~~~~~~~~~~~
 
-Zeroincombenze® OCB uses submodules. When test in starting, travis-ci upgrade repository and submodules.
+Zeroincombenze® OCB uses submodules. When test is starting, travis-ci upgrades repository and submodules.
 To avoid submodules upgrade use this directive compatible with OCA MQT:
 
 ::
@@ -111,7 +111,7 @@ You can avoid following directive in ODOO_TEST_SELECT="LOCALIZATION":
 Python version
 ~~~~~~~~~~~~~~
 
-Odoo version from 6.1 to 10.0 are teste with python 2.7
+Odoo version from 6.1 to 10.0 are tested with python 2.7
 From Odoo 11.0, python3 is used. You can test against 3.5, 3.6 and 3.7 python versions.
 Currently, python 3.8 is not yet supported.
 This is the declaration:
@@ -123,6 +123,9 @@ This is the declaration:
       - "3.6"
       - "3.7"
 
+Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
+Python 3.8 is no yet support by Odoo (2021), so use python 3.7
+
 
 Deployment and setup environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,8 +136,8 @@ In order to deploy test environment and setup code you have to declare some .tra
 * PYPI packages
 * Odoo repositories dependencies
 
-Linux packages must be declared in `<addons/apt>` section of .travis.yml using Ubuntu semantic.
-If you run test in local environment, travis emulator automatically translate Ubuntu names in your local distro names, if necessary.
+Linux packages must be declared in `<addons/apt>` section of .travis.yml using Ubuntu namespace.
+If you run test in local environment, travis emulator automatically translate Ubuntu names into your local distro names, if necessary.
 See `travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_ guide for furthermore info.
 
 The PYPI packages, installable by PIP are declared in standard PIP way, using **requirements.txt** file.
@@ -148,13 +151,26 @@ During testbed setup, z0bug_odoo will automatically download and place these rep
 Note on addons path ordering: they will be placed after your own repo, but before the odoo core repo.
 
 If missed optional_repository_url, the repository is searched for repository with the same owner of tested project.
-Note on OCA MQT always loads OCA repository while z0bug_odoo searches for current owner. So you will test both with z0bug_ood an both OCA MQT, always insert the full repository URL.
+Please note this behaviour differs from OCA MQT.
+OCA MQT always loads OCA repository while z0bug_odoo searches for current owner repository.
+So you will test both with z0bug_ood and both OCA MQT, always insert the full repository URL.
+
+Test execution
+~~~~~~~~~~~~~~
+
+Tests run by travis_run_test command. The script is deployed in _travis directory of **zerobug** package.
+Command have to be in `<script>` section of .travis.yml file:
+
+::
+
+    script:
+        - travis_run_tests
 
 
 Isolated pylint+flake8 checks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want to make a build exclusive for these checks, you can add a line
+If you want to make a build for these checks, you can add a line
 on the `<env>` section of the .travis.yml file with this content:
 
 ::
@@ -185,6 +201,7 @@ To enable reduced set of check add one of follow lines:
     - LINT_CHECK="1" LINT_CHECK_LEVEL="REDUCED"
     - LINT_CHECK="1" LINT_CHECK_LEVEL="AVERAGE"
     - LINT_CHECK="1" LINT_CHECK_LEVEL="NEARBY"
+    - LINT_CHECK="1" LINT_CHECK_LEVEL="OCA"
 
 Odoo core has internal pylint test that checks for all modules even the dependecies.
 So if some dependecies module does not meet this test, then the full travis test fails without testing the target repository.
@@ -267,6 +284,7 @@ Reduced set of unit test
 Last Odoo packages may fail in Travis CI or in local environment.
 Currently Odoo OCB core tests fail; we are investigating for causes.
 OCA workaround is following example statement:
+
 `export INCLUDE=$(getaddons.py -m --only-applications ${TRAVIS_BUILD_DIR}/odoo/addons ${TRAVIS_BUILD_DIR}/addons)`
 
 You can execute reduced set of tests adding one of follow lines:
@@ -282,6 +300,17 @@ Look at follow table to understand which set of tests are enabled or disabled:
 .. $include test_level.csv
 
 
+Dependencies test
+~~~~~~~~~~~~~~~~~
+
+Since late Summer 2021, z0bug_odoo checks for dependencies.
+This test is a sub test of unit test. This is the directive:
+
+::
+
+    - TESTS="1" TEST_DEPENDENCIES="1"
+
+
 Module unit tests
 ~~~~~~~~~~~~~~~~~
 
@@ -294,6 +323,19 @@ similar to this one:
 ::
 
     - VERSION="12.0" UNIT_TEST="1"
+
+
+Automatic module translation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Since late Summer 2021, z0bug_odoo activate automatic module translation after test ended with success.
+This is the directive:
+
+::
+
+    - VERSION="12.0" ODOO_TNLBOT="1"
+
+This feature is still experimental.
 
 
 Names used for the test databases
@@ -331,8 +373,8 @@ You can highly customize you test: look at below table.
 
 
 
-Debug informations
-~~~~~~~~~~~~~~~~~~
+Debug information
+~~~~~~~~~~~~~~~~~
 
 If you declare the following directive in <env global> section:
 
@@ -374,7 +416,7 @@ While travis is running this is the tree directory:
     |
     |___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
     |    # same behavior of OCA MQT
-    |    # symlnk of ${HOME}/build/{ODOO_REPO}
+    |    # symlink of ${HOME}/build/{ODOO_REPO}
     |    # Odoo or OCA repository to check with
     |
     |___ dependencies (by travis_install_env / travis_install_nightly of .travis.yml)

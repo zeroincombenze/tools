@@ -6,6 +6,7 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
+#
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 THIS=$(basename "$0")
@@ -57,7 +58,7 @@ vf_init() {
   for x in $VF_IGNORE; do
     local x1="${x:0:1}"
     local x9="${x: -1}"
-    if [ "$x9" == "/" ]; then
+    if [[ "$x9" == "/" ]]; then
       XRGX="$XRGX ^(.*\\/|)$x"
       XLFS="$XLFS --exclude=$x"
       XLDF="$XLDF -x '${x:0:-1}'"
@@ -168,8 +169,8 @@ exec_iar() {
     [ $opt_diffe -ne 0 ] && cparv="$cparv --suppress-common-lines"
     param="$param -y"
   fi
-  if [ $opt_md -ne 0 ]; then param="$param -m"; fi
-  if [ -d $left ]; then
+  [[ $opt_md -ne 0 ]] && param="$param -m"
+  if [[ -d $left ]]; then
     for f in $(ls -1 $left); do
       if [ $opt_verbose -gt 1 ]; then
         echo "> $0 $param $left/$f $right/$f"

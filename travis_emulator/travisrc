@@ -191,7 +191,6 @@ build_pypi_param() {
   for ODOO_SETUP in $ODOO_SETUPS; do
     r="$r -o -name $ODOO_SETUP"
   done
-  # [ ${opt_dry_run:-0} -eq 0 ] && echo "find $x -maxdepth 2 -not -path '*tests*' ${r:3}|head -n1"      #debug
   w=$(find $x -maxdepth 2 -not -path '*tests*' ${r:3} | head -n1)
   if [ -n "$w" ]; then
     _PRJNAME="Odoo"
@@ -1060,8 +1059,8 @@ clean_dirs() {
   # clean_dirs (directory)::
   # return:
   local b cmd d excl f gx="" o p w XXXX x yy
-  [[ -n "$1" ]] && d=$1 || d="."
-  # [ ${opt_verbose:-0} -gt 0 ] && p="-print " || p=""
+  [[ -n "$1" ]] && d=$(readlink -e $1) || d="./"
+  [[ $d == $HOME || $d == "/" ]] && echo "Too many file to delete!" && exit 1
   XXXX=$(get_cfg_value "" "filedel")
   [[ $PWD == "$HOME/tools" ]] && XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
   yy=$(get_cfg_value "" "fileignore")
@@ -1073,12 +1072,12 @@ clean_dirs() {
     gx=$(cat .gitmodules | grep "^[[:space:]]*path" | sed -e "s/ =/=/g" -e "s/= /=/g" -e "s/^[[:space:]]*//g" | awk -F= '{print $2}'|tr "\n" "|")
   gx="(${gx}lib|git|__to_remove|tmp|node_modules|.cache)"
   [[ $opt_verbose -gt 1 ]] && echo "gitignore='$gx'"
-  d="."
   cmd="find $d"
-  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp)]] && w=1 || w=0
+  run_traced "$cmd -name '*~' -delete"
+  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp) ]] && w=1 || w=0
   for f in $d/*; do
     b=$(basename $f)
-    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openero) ]] && echo "Warning! Directory $f should be in .gitmodules"
+    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openerp) ]] && echo "Warning! Directory $f should be in .gitmodules"
     [[ -d $f && (-z "$gx" || (-n "$gx" && $b =~ $gx)) ]] && cmd="$cmd -not -path '$f/*'"
   done
   for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done

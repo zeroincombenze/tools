@@ -371,7 +371,47 @@ def get_modules(path, depth=1, depends_by=None, ao_list=None):
                                         ao_list=ao_list).keys()))
 
 
-def check_tree(path_list, matches=None, depth=None):
+def build_module_tree(path_list, matches=None, depth=None, only_missed=None):
+
+    def init_module(level=None):
+        return {
+            'application': None,
+            'depends': [],
+            'external_dependencies': {},
+            'auto_install': False,
+            'level': level or MISSED,
+            'status': '',
+            'dependents': [],
+            'missed_dependents': [],
+            'visited': False,
+            'missed_depends': [],
+            'recurse': False,
+        }
+
+    def walk_module_tree(module):
+        all_modules[module]['visited'] = True
+        module_level = all_modules[module]['level']
+        for subm in all_modules[module]['depends']:
+            if subm not in all_modules.keys():
+                all_modules[subm] = init_module()
+                module_level = UNDEF_DEEP
+            all_modules[subm]['dependents'].append(module)
+            if all_modules[subm]['level'] == MISSED:
+                if module in all_modules[subm]['missed_dependents']:
+                    all_modules[subm]['recurse'] = True
+                else:
+                    all_modules[subm]['missed_dependents'].append(module)
+                if subm in all_modules[module]['missed_depends']:
+                    all_modules[module]['recurse'] = True
+                else:
+                    all_modules[module]['missed_depends'].append(subm)
+            if not all_modules[subm]['visited']:
+                walk_module_tree(subm)
+            if all_modules[subm]['level'] != MISSED:
+                module_level = max(module_level,
+                                   all_modules[subm]['level'] + 1)
+        all_modules[module]['level'] = module_level
+
     depth = depth or 999
     all_modules = {}
     for path in path_list:
@@ -379,77 +419,50 @@ def check_tree(path_list, matches=None, depth=None):
     modules_2_match = matches or get_modules_list(path_list, depth=depth)
     visit_list = sorted(
         list(set(all_modules.keys()) | set(modules_2_match)))
-    max_iter = 99
-    visit_tree = True
-    cur_level = 0
-    while visit_tree:
-        visit_tree = False
-        max_iter -= 1
-        if max_iter <= 0:
-            visit_tree = True
+
+    for module in visit_list:
+        if module not in all_modules.keys():
+            # Searched module not found
+            all_modules[module] = init_module()
+        else:
+            all_modules[module]['dependents'] = []
+            all_modules[module]['missed_dependents'] = []
+            all_modules[module]['missed_depends'] = []
+            all_modules[module]['visited'] = False
+            all_modules[module]['level'] = 0
+            all_modules[module]['recurse'] = False
+    if 'base' in all_modules:
+        walk_module_tree('base')
+    else:
+        walk_module_tree(all_modules.keys()[0])
+    while True:
+        found = False
+        for module in all_modules.keys():
+            if (all_modules[module]['level'] == 0 and
+                    not all_modules[module]['visited']):
+                walk_module_tree(module)
+                found = True
+                break
+        if not found:
             break
-        cur_level += 1
-        for module in visit_list:
-            if module not in all_modules.keys():
-                # Searched module not found
-                all_modules[module] = {
-                    'application': None,
-                    'depends': [],
-                    'external_dependencies': {},
-                    'auto_install': False,
-                    'level': MISSED,
-                    'status': 'not found'
-                }
-                continue
-            elif 'level' not in all_modules[module]:
-                # Module not yet visited
-                visit_tree = True
-                module_level = cur_level
-                valid_status = True
-                for sub in all_modules[module]['depends']:
-                    if sub not in all_modules.keys():
-                        # Dependency not found
-                        all_modules[sub] = {
-                            'application': None,
-                            'depends': [],
-                            'external_dependencies': {},
-                            'auto_install': False,
-                            'level': MISSED,
-                            'status': 'missed dependency of %s' % module
-                        }
-                        module_level = UNDEF_DEEP
-                        valid_status = False
-                        continue
-                    if 'level' not in all_modules[sub]:
-                        # Sub-module not yet visited
-                        valid_status = False
-                        continue
-                    if all_modules[sub]['level'] == MISSED:
-                        all_modules[module]['status'] = 'broken by %s' % sub
-                        module_level = max(module_level, UNDEF_DEEP)
-                        continue
-                    elif all_modules[sub]['level'] >= UNDEF_DEEP:
-                        all_modules[module]['status'] = 'broken by %s' % sub
-                        module_level = max(module_level,
-                                           all_modules[sub]['level'] + 1)
-                        continue
-                    module_level = max(module_level,
-                                       all_modules[sub]['level'] + 1)
-                if valid_status:
-                    if module_level == MISSED:
-                        pass
-                    elif module_level >= UNDEF_DEEP:
-                        all_modules[module]['status'] = 'installation error'
-                    elif module_level > MAX_DEEP:
-                        module_level = MAX_DEEP
-                        all_modules[module]['status'] = 'too deep'
-                    else:
-                        all_modules[module]['status'] = 'OK'
-                    all_modules[module]['level'] = module_level
-    if 'base' in all_modules.keys():
-        all_modules['base']['level'] = 0
-    # all_modules = {k: v for k, v in all_modules.items() if k in modules_2_match}
-    return visit_tree, all_modules
+    for module in all_modules.keys():
+        status = 'Ok'
+        if all_modules[module]['recurse']:
+            status = 'Recursive chain'
+            all_modules[module]['level'] = UNDEF_DEEP + MAX_DEEP
+        elif all_modules[module]['missed_depends']:
+            missed = ','.join(all_modules[module]['missed_depends'])
+            status = 'Not installable, missed %s' % missed
+        elif all_modules[module]['missed_dependents']:
+            missed = ','.join(all_modules[module]['missed_dependents'])
+            status = 'Missed dependency of %s' % missed
+        elif all_modules[module]['level'] == 0:
+            status = 'Root module'
+        elif all_modules[module]['level'] >= UNDEF_DEEP:
+            status = 'Recursive chain'
+        all_modules[module]['status'] = status
+
+    return False, all_modules
 
 
 def get_modules_list(path_list, depth=None, matches=None, depends_by=None,
@@ -679,9 +692,9 @@ def main(ctx):
         else:
             print(ctx['sep_list'].join(res))
     elif ctx['action'] == 'tree':
-        error, modules = check_tree(ctx['path_list'],
-                                    matches=ctx['modules_to_match'],
-                                    depth=ctx['depth'])
+        error, modules = build_module_tree(ctx['path_list'],
+                                           matches=ctx['modules_to_match'],
+                                           depth=ctx['depth'])
         if error:
             print('Broken tree structure')
 
@@ -692,7 +705,7 @@ def main(ctx):
                 rank_modules[level] = []
             rank_modules[level].append(module)
 
-        for level in rank_modules.keys():
+        for level in sorted(rank_modules.keys()):
             if level == MISSED or (level <= MAX_DEEP and
                                    ctx['only-missed']):
                 continue

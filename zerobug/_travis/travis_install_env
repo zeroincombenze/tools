@@ -35,13 +35,13 @@ RUNDIR=$($READLINK -e $TESTDIR/..)
 __version__=1.0.1.4
 
 conf_default() {
-  if [ -z "$PS_TXT_COLOR" ]; then
+  if [[ -z "$PS_TXT_COLOR" ]]; then
     export PS_TXT_COLOR="0;97;40"
-    export PS_RUN_COLOR="1;34;46"
-    export PS_NOP_COLOR="35;40"
-    export PS_HDR1_COLOR="30;42"
+    export PS_RUN_COLOR="1;37;44"
+    export PS_NOP_COLOR="34;107"
+    export PS_HDR1_COLOR="97;42"
     export PS_HDR2_COLOR="30;43"
-    export PS_HDR3_COLOR="30;47"
+    export PS_HDR3_COLOR="30;45"
   fi
 }
 
@@ -302,11 +302,11 @@ cp_coveragerc() {
   run_traced "sed -e \"s|^ *\*.py\$|#&|\" -i ./.coveragerc"
 }
 
-OPTOPTS=(h b j K H n q T t V v)
-OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_humdrum opt_dry_run opt_verbose opt_regr test_mode opt_version opt_verbose)
-OPTACTI=(1 1 1 1 1 1 0 1 1 "*>" "+")
-OPTDEFL=(0 0 0 0 0 0 -1 0 0 "" -1)
-OPTMETA=("help" "dprj" "check" "" "" "do nothing" "qiet" "test" "test" "version" "verbose")
+OPTOPTS=(h        b          j        K        H           n            q           T       t          V           v)
+OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_humdrum opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        1          1        1        1           1            0           1        1         "*>"        "+")
+OPTDEFL=(0        0          0        0        0           0            -1          0        0         ""          -1)
+OPTMETA=("help"   "dprj"     "check"  ""       ""          "do nothing" "qiet"      "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"
   "Odoo version"
   "execute tests in project dir rather in test dir"
@@ -331,39 +331,40 @@ if [[ $opt_help -gt 0 ]]; then
   exit 0
 fi
 
-if [ -z "$TRAVIS_BUILD_DIR" ]; then
+if [[ -z "$TRAVIS_BUILD_DIR" ]]; then
   echo "Invalid environment!"
   exit 1
 fi
 export PYTHONWARNINGS="ignore"
 sts=$STS_SUCCESS
-[ "${MQT_DRY_RUN:-0}" == "1" ] && opt_dry_run=1
-[ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
-[ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
-[ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ] && opt_verbose=1
-if [ ${opt_regr:-0} -gt 0 ]; then
+[[ $MQT_DRY_RUN == "1" ]] && opt_dry_run=1
+[[ $MQT_VERBOSE_MODE == "1" ]] && opt_verbose=1
+[[ $MQT_VERBOSE_MODE == "0" ]] && opt_verbose=0
+[[ $TRAVIS_DEBUG_MODE -ne 0 ]] && opt_verbose=1
+if [[ ${opt_regr:-0} -gt 0 ]]; then
   LINT_CHECK="0"
   TESTS="1"
 fi
-if [ ${opt_lint:-0} -gt 0 ]; then
+if [[ ${opt_lint:-0} -gt 0 ]]; then
   BASH_CHECK="1"
   LINT_CHECK="1"
 fi
+[[ $TEST_DEPENDENCIES == "1" || $ODOO_TNLBOT == "1" ]] && export TEST="1"
 LINT_OR_TEST_CHECK="0"
-[ "${LINT_CHECK:-0}" == "1" ] && LINT_OR_TEST_CHECK="1"
-[ "${LINT_CHECK:-0}" == "0" -a "${TESTS:-0}" == "1" ] && LINT_OR_TEST_CHECK="1"
+[[ ${LINT_CHECK:-0} == "1" ]] && LINT_OR_TEST_CHECK="1"
+[[ ${LINT_CHECK:-0} == "0" && ${TESTS:-0} == "1" ]] && LINT_OR_TEST_CHECK="1"
 conf_default
-[ -z "MQT_TEST_MODE" ] && IFS="/" read MQT_TEST_MODE PKGNAME <<<"${TRAVIS_REPO_SLUG}"
+[[ -z "$MQT_TEST_MODE" ]] && IFS="/" read MQT_TEST_MODE PKGNAME <<<"${TRAVIS_REPO_SLUG}"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ $MQT_TEST_MODE =~ (oca|zero) ]] || MQT_TEST_MODE=zero
-[ -z "$mode" ] && mode=$MQT_TEST_MODE
+[[ -z "$mode" ]] && mode=$MQT_TEST_MODE
 if [[ "$MQT_TEST_MODE" == "oca" ]]; then
   run_traced "$TDIR/travis_install_nightly"
   exit $?
 fi
 
 export MQT_TEST_MODE=$mode
-[ -z "$PKGNAME" ] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
+[[ -z "$PKGNAME" ]] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
 if [[ $TRAVIS_PYTHON_VERSION =~ ^3 ]]; then
   python3 --version &>/dev/null && PYTHON=python3
   [[ $(pip3 --version|grep -Eo "python [23]\.[0-9]"|grep -Eo "[23]"|head -n1) == 3 ]] && PIP=pip3 || PIP="$PYTHON -m pip"
@@ -383,6 +384,7 @@ elif [[ -d $HOME/dev ]]; then
   set_pythonpath "$HOME/tools" "$HOME/dev/sitecustomize.py" $PIP
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+  echo "Do not use ~/dev directory: support will be removed early!"
 else
   echo "!! Error! Directory $HOME/dev[el] not found!"
 fi
@@ -444,7 +446,7 @@ fi
 echo -e "\e[${PS_HDR3_COLOR}m### Build Secure Environment\e[${PS_TXT_COLOR}m"
 for p in build-essential libssl-dev libffi-dev; do
   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
-  [ $? -ne 0 ] && run_traced "$LISA install $p" "nolocal"
+  [[ $? -ne 0 ]] && run_traced "$LISA install $p" "nolocal"
 done
 if [[ $TRAVIS != "false" ]]; then
   for p in urllib3[secure] cryptography pyOpenSSL idna certifi; do
@@ -463,7 +465,7 @@ export BRANCH="${ODOO_BRANCH}"
 [[ $BRANCH == *"/"* ]] && export BRANCH=${BRANCH/\//-}
 export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
 
-if [ "$MQT_TEST_MODE" == "tools" ]; then
+if [[ "$MQT_TEST_MODE" == "tools" ]]; then
   echo -e "\e[${PS_HDR3_COLOR}m### Build Tools Environment\e[${PS_TXT_COLOR}m"
   [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]] && run_traced "$VEM amend -D"
   if [ "${ODOO_REPO}" != "odoo/odoo" ]; then
@@ -502,36 +504,38 @@ else
       run_traced "npm install eslint"
     fi
   fi
-  if [[ $TESTS == "1" || $TEST_DEPENDENCIES == "1" ]]; then
+  if [[ $TESTS == "1" ]]; then
     echo -e "\e[${PS_HDR3_COLOR}m### Install Packages for Base Environment\e[${PS_TXT_COLOR}m"
-    NODE_VER=$(node --version | grep -Eo "[0-9]+" | head -n1)
-    if [ $NODE_VER -lt 6 ]; then
-      x=$(which nodejs 2>/dev/null)
-      [[ -z "$x" ]] && x=$(which node 2>/dev/null)
-      run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/node"
-      [ $opt_verbose -gt 0 ] && echo "3> node version: $(node --version)"
+    if [[ $UNIT_TEST != "0" ]]; then
+      NODE_VER=$(node --version | grep -Eo "[0-9]+" | head -n1)
+      if [[ $NODE_VER -lt 6 ]]; then
+        x=$(which nodejs 2>/dev/null)
+        [[ -z "$x" ]] && x=$(which node 2>/dev/null)
+        run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/node"
+        [[ $opt_verbose -gt 0 ]] && echo "3> node version: $(node --version)"
+      fi
+      if [[ $TRAVIS =~ (true|emulate) ]]; then
+        run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
+        x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
+        [[ -n "$x" ]] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
+      else
+        run_traced "npm install less@3.0.4 less-plugin-clean-css"
+        x=$(find $(npm bin) -name lessc 2>/dev/null)
+        [[ -n "$x" ]] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
+      fi
+      lessc --version
     fi
-    if [[ $TRAVIS =~ (true|emulate) ]]; then
-      run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
-      x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
-      [ -n "$x" ] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
-    else
-      run_traced "npm install less@3.0.4 less-plugin-clean-css"
-      x=$(find $(npm bin) -name lessc 2>/dev/null)
-      [ -n "$x" ] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
-    fi
-    lessc --version
-    [ -z "${WKHTMLTOPDF_VERSION}" ] && export WKHTMLTOPDF_VERSION="0.12.5"
-    [ -n "$(which example.com 2>/dev/null)" ] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep -Eo [0-9.]+ | head -n1) || CUR_WKHTMLTOPDF_VERSION=
+    [[ -z "${WKHTMLTOPDF_VERSION}" ]] && export WKHTMLTOPDF_VERSION="0.12.5"
+    [[ -n "$(which example.com 2>/dev/null)" ]] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep -Eo [0-9.]+ | head -n1) || CUR_WKHTMLTOPDF_VERSION=
     if [[ "$CUR_WKHTMLTOPDF_VERSION" == "$WKHTMLTOPDF_VERSION" ]]; then
       [ $opt_verbose -gt 0 ] && echo "Installed version of wkhtmltopdf is $WKHTMLTOPDF_VERSION"
     else
-      [ $opt_verbose -gt 0 ] && echo "Installing wkhtmltopdf version $WKHTMLTOPDF_VERSION (current is $CUR_WKHTMLTOPDF_VERSION)"
+      [[ $opt_verbose -gt 0 ]] && echo "Installing wkhtmltopdf version $WKHTMLTOPDF_VERSION (current is $CUR_WKHTMLTOPDF_VERSION)"
       vem install "wkhtmltopdf==$WKHTMLTOPDF_VERSION"
       CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep -Eo [0-9.]+ | head -n1)
-      [ $opt_verbose -gt 0 ] && echo "Current version of wkhtmltopdf is $CUR_WKHTMLTOPDF_VERSION"
+      [[ $opt_verbose -gt 0 ]] && echo "Current version of wkhtmltopdf is $CUR_WKHTMLTOPDF_VERSION"
     fi
-    if [ "${WEBSITE_REPO}" == "1" ]; then
+    if [[ "${WEBSITE_REPO}" == "1" ]]; then
       if [ -f $HOME/.rvm/scripts/rvm ]; then
         source $HOME/.rvm/scripts/rvm
       elif [ -f /usr/local/rvm/scripts/rvm ]; then
@@ -546,13 +550,15 @@ else
       run_traced "gem uninstall -aIx bootstrap-sass compass sass"
       run_traced "gem install compass bootstrap-sass"
     fi
-    # Update PhantomJS (v10 compat)
-    if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
-      run_traced "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
-      run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/tools/z0bug_odoo/travis/phantomjs\""
-    fi
-    if [ "${CHROME_TEST}" == "1" ]; then
-      run_traced "google-chrome --version"
+    if [[ $UNIT_TEST != "0" ]]; then
+      # Update PhantomJS (v10 compat)
+      if [[ "${PHANTOMJS_VERSION}" != "OS" ]]; then
+        run_traced "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
+        run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/tools/z0bug_odoo/travis/phantomjs\""
+      fi
+      if [ "${CHROME_TEST}" == "1" ]; then
+        run_traced "google-chrome --version"
+      fi
     fi
     if [[ "$PKGNAME" == "OCB" ]]; then
       echo -e "\e[${PS_HDR3_COLOR}m### Tested repository is OCB\e[${PS_TXT_COLOR}m"
@@ -565,7 +571,7 @@ else
       git_clone_ocb
     fi
   fi
-  if [[ $TESTS != "1" || $TEST_DEPENDENCIES != "1" ]]; then
+  if [[ $TESTS != "1" ]]; then
     [[ "$PKGNAME" == "OCB" ]] && ocb_dir='.' || ocb_dir=${ODOO_PATH}
     if [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]]; then
       reqs=$(find $ocb_dir -name requirements.txt | tr "\n" ",")
@@ -573,7 +579,7 @@ else
     fi
     cp_coveragerc
     if [[ $TRAVIS =~ (true|emulate) ]]; then
-      if [ $opt_verbose -gt 0 ]; then
+      if [[ $opt_verbose -gt 0 ]]; then
         echo "- reqs=\$($LISTREQ -b$VERSION -p$ocb_dir -t python -s ' ' -qBTR)"
         reqs="$($LISTREQ -b$VERSION -p$ocb_dir -t python -s ' ' -qBTR)"
         reqs=$(echo "$reqs" | tr " " "\n" | sort | tr "\n" " ")

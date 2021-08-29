@@ -456,6 +456,9 @@ def copy_attachments(dbtemplate, dbdest, data_dir):
 
 
 def get_environment():
+    test_enable = str2bool(os.environ.get('TEST_ENABLE', True))
+    options = os.environ.get("OPTIONS", "").split()
+    server_options = os.environ.get('SERVER_OPTIONS', "").split()
     odoo_full = os.environ.get("ODOO_REPO", "odoo/odoo")
     travis_base_dir, odoo_version = get_build_dir(odoo_full)
     odoo_exclude = os.environ.get("EXCLUDE")
@@ -464,7 +467,8 @@ def get_environment():
         odoo_exclude = '%s,%s' % (odoo_exclude, gbl_exclude)
     odoo_include = os.environ.get("INCLUDE")
     odoo_unittest = str2bool(os.environ.get("UNIT_TEST"))
-    # odoo_unittest |= str2bool(os.environ.get('ODOO_TNLBOT', '0'))
+    odoo_tnlbot = str2bool(os.environ.get('ODOO_TNLBOT', '0'))
+    odoo_testdeps = str2bool(os.environ.get('TEST_DEPENDENCIES', '1'))
     install_options = os.environ.get("INSTALL_OPTIONS", "").split()
     travis_home = os.environ.get("HOME", os.path.expanduser("~"))
     travis_dependencies_dir = os.path.join(travis_home, 'dependencies')
@@ -497,12 +501,17 @@ def get_environment():
         script_path = ''
         addons_path = ''
     return (
+        test_enable,
+        options,
+        server_options,
         odoo_full,
         odoo_version,
         travis_base_dir,
         odoo_exclude,
         odoo_include,
         odoo_unittest,
+        odoo_tnlbot,
+        odoo_testdeps,
         install_options,
         travis_home,
         travis_dependencies_dir,
@@ -571,14 +580,13 @@ def set_sys_path():
 
 def main(argv=None):
     run_from_env_var('RUN_COMMAND_MQT', os.environ)
-    options = os.environ.get("OPTIONS", "").split()
-    server_options = os.environ.get('SERVER_OPTIONS', "").split()
     expected_errors = int(os.environ.get("SERVER_EXPECTED_ERRORS", "0"))
     instance_alive = str2bool(os.environ.get('INSTANCE_ALIVE'))
-    test_enable = str2bool(os.environ.get('TEST_ENABLE', True))
-    odoo_test_select = os.environ.get('ODOO_TEST_SELECT', 'ALL')
-    (odoo_full, odoo_version, travis_base_dir,
-     odoo_exclude, odoo_include, odoo_unittest,
+    # odoo_test_select = os.environ.get('ODOO_TEST_SELECT', 'ALL')
+    (test_enable, options, server_options,
+     odoo_full, odoo_version, travis_base_dir,
+     odoo_exclude, odoo_include,
+     odoo_unittest, odoo_tnlbot, odoo_testdeps,
      install_options, travis_home,
      travis_dependencies_dir, odoo_branch,
      server_path, script_name, odoo_test_select,
@@ -633,6 +641,10 @@ def main(argv=None):
         cmd_odoo_test += ['--log-handler', test_loghandler]
     cmd_odoo_test += options + ["--init", None]
 
+    if odoo_testdeps:
+        to_test_list = [tested_addons]
+        commands = (('travis_test_dependencies', True),
+                    )
     if odoo_unittest:
         to_test_list = tested_addons_list
         cmd_odoo_install = build_run_cmd_odoo(

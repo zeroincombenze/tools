@@ -327,6 +327,7 @@ History
 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
+[IMP] travis: clor change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
 
@@ -436,7 +437,7 @@ Translations by
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-27
+Last Update / Ultimo aggiornamento: 2021-08-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

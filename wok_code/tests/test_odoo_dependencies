@@ -211,18 +211,18 @@ test_05() {
 
     cat<<'EOF' >$TESTDIR/odoo_dependencies.log
  0 base
- 2   web
--------------------- account (installation error)
--------------------- sale (installation error)
--------------------- l10n_it_base (installation error)
-******************** analytic (missed dependency of account)
-******************** base_setup (missed dependency of account)
-******************** procurement (missed dependency of sale)
-******************** product (missed dependency of account)
-******************** report (missed dependency of account)
-******************** sales_team (missed dependency of sale)
-******************** web_planner (missed dependency of account)
-******************** web_tour (missed dependency of sale)
+ 1  web
+-------------------- account (Not installable, missed base_setup,product,analytic,report,web_planner)
+-------------------- sale (Not installable, missed sales_team,procurement,report,web_tour)
+-------------------- l10n_it_base (Recursive chain)
+******************** analytic (Missed dependency of account)
+******************** base_setup (Missed dependency of account)
+******************** procurement (Missed dependency of sale)
+******************** product (Missed dependency of account)
+******************** report (Missed dependency of account,sale)
+******************** sales_team (Missed dependency of sale)
+******************** web_planner (Missed dependency of account)
+******************** web_tour (Missed dependency of sale)
 EOF
     OPTS="-A tree $LCL_OE_ROOT -R"
     TRES=$(cat $TESTDIR/odoo_dependencies.log)
@@ -230,17 +230,17 @@ EOF
     test_result "od $OPTS" "$TRES" "$RES"
 
     cat<<'EOF' >$TESTDIR/odoo_dependencies.log
--------------------- account (installation error)
--------------------- sale (installation error)
--------------------- l10n_it_base (installation error)
-******************** analytic (missed dependency of account)
-******************** base_setup (missed dependency of account)
-******************** procurement (missed dependency of sale)
-******************** product (missed dependency of account)
-******************** report (missed dependency of account)
-******************** sales_team (missed dependency of sale)
-******************** web_planner (missed dependency of account)
-******************** web_tour (missed dependency of sale)
+-------------------- account (Not installable, missed base_setup,product,analytic,report,web_planner)
+-------------------- sale (Not installable, missed sales_team,procurement,report,web_tour)
+-------------------- l10n_it_base (Recursive chain)
+******************** analytic (Missed dependency of account)
+******************** base_setup (Missed dependency of account)
+******************** procurement (Missed dependency of sale)
+******************** product (Missed dependency of account)
+******************** report (Missed dependency of account,sale)
+******************** sales_team (Missed dependency of sale)
+******************** web_planner (Missed dependency of account)
+******************** web_tour (Missed dependency of sale)
 EOF
     OPTS="-A tree $LCL_OE_ROOT -RE"
     TRES=$(cat $TESTDIR/odoo_dependencies.log)
@@ -248,17 +248,51 @@ EOF
     test_result "od $OPTS" "$TRES" "$RES"
 }
 
+test_06() {
+    local TRES RES OPTS
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+      # Create recursive chain: add module product which depends from sale
+      mkdir -p $LCL_OE_ROOT/addons/product
+      cat<<'EOF' >$LCL_OE_ROOT/addons/product/__manifest__.py
+{
+    'depends': ['sale'],
+}
+EOF
+      cat<<'EOF' >$LCL_OE_ROOT/addons/product/__init__.py
+# File generated just for test
+EOF
+    fi
+    cat<<'EOF' >$TESTDIR/odoo_dependencies.log
+ 0 base
+ 1  web
+-------------------- account (Not installable, missed base_setup,analytic,report,web_planner)
+-------------------- sale (Not installable, missed sales_team,procurement,report,web_tour)
+-------------------- l10n_it_base (Recursive chain)
+-------------------- product (Recursive chain)
+******************** analytic (Missed dependency of account)
+******************** base_setup (Missed dependency of account)
+******************** procurement (Missed dependency of sale)
+******************** report (Missed dependency of sale,account)
+******************** sales_team (Missed dependency of sale)
+******************** web_planner (Missed dependency of account)
+******************** web_tour (Missed dependency of sale)
+EOF
+    OPTS="-A tree $LCL_OE_ROOT -R"
+    TRES=$(cat $TESTDIR/odoo_dependencies.log)
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+}
 
 Z0BUG_setup() {
     local VERSION=10.0
     local ODOO_REPO=local/odoo
     LCL_OE_REPOS=l10n_italy
     LCL_OE_PKGNAME=l10n_it_base
-    LCL_OE_ROOT=~/dev/odoo/$VERSION
+    LCL_OE_ROOT=~/devel/odoo/$VERSION
     LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OE_REPOS
     LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OE_PKGNAME
     LCL_OE_PKGPATH2=$LCL_OE_ROOT/__unported__/deprecated
-    [ -f $LCL_OE_ROOT ] && rm -fR $LCL_OE_ROOT
+    [[ -d $LCL_OE_ROOT ]] && rm -fR $LCL_OE_ROOT
     mkdir -p $LCL_OE_ROOT
     mkdir -p $LCL_OE_ROOT/odoo
     touch $LCL_OE_ROOT/odoo-bin

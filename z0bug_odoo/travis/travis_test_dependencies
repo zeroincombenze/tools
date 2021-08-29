@@ -66,7 +66,8 @@ def main(argv=None, database=None):
                      stderr=PIPE).communicate()
     sts = 0
     if travis_debug_mode > 0:
-        print(cmd)
+        print_flush('')
+        print_flush(' '.join(cmd))
     print_flush(reset(''))
     for ln in os0.u(out).split('\n'):
         tokens = ln.replace('  ', ' ').strip().split(' ')
@@ -85,7 +86,7 @@ def main(argv=None, database=None):
         else:
             continue
         if travis_debug_mode > 0:
-            print(text)
+            print_flush(text)
     return sts
 
 if __name__ == "__main__":

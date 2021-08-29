@@ -1258,6 +1258,21 @@ def read_manifest_file(ctx, manifest_path, force_version=None):
 
 
 def read_setup(ctx):
+
+    def read_history(ctx, full_fn, module=None):
+        if module:
+            with open(full_fn, 'r') as fd:
+                ctx['histories'] += tail(
+                    os0.u(fd.read()),
+                    max_days=60,
+                    module=module)
+        with open(full_fn, 'r') as fd:
+            ctx['history-summary'] += tail(
+                os0.u(fd.read()),
+                max_ctr=1,
+                max_days=15,
+                module=module)
+
     if ctx['product_doc'] == 'pypi':
         MANIFEST_LIST = ('../setup.py', './setup.py')
     else:
@@ -1279,14 +1294,22 @@ def read_setup(ctx):
             print_red_message('*** Warning: manifest file not found!')
         ctx['manifest'] = {}
     ctx['history-summary'] = ''
-    full_fn = os.path.join('.', 'egg-info', 'history.rst')
-    if os.path.isfile(full_fn):
-        with open(full_fn, 'r') as fd:
+    if ctx['odoo_layer'] == 'repository':
+        ctx['histories'] = ''
+        for root, dirs, files in os.walk('../'):
+            for dir in dirs:
+                if dir == 'tools':
+                    continue
+                full_fn = os.path.join(root, dir, 'egg-info', 'history.rst')
+                if os.path.isfile(full_fn):
+                    read_history(ctx, full_fn, module=os.path.basename(dir))
+        ctx['histories'] = sort_history(ctx['histories'])
+        ctx['history-summary'] = sort_history(ctx['history-summary'])
+    else:
+        full_fn = os.path.join('.', 'egg-info', 'history.rst')
+        if os.path.isfile(full_fn):
             with open(full_fn, 'r') as fd:
-                ctx['history-summary'] += tail(
-                    os0.u(fd.read()),
-                    max_ctr=1,
-                    max_days=15)
+                read_history(ctx, full_fn)
 
 
 def read_manifest(ctx):
@@ -1367,8 +1390,6 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         addons_info[module_name][
                             'summary'] = clean_summary(
                                 addons_info[module_name]['summary'])
-                    # addons_info[module_name]['version'] = adj_version(
-                    #     ctx, addons_info[module_name].get('version', ''))
                     addons_info[module_name]['oca_version'] = 'N/A'
                     if root.find('__unported__') >= 0:
                         addons_info[module_name]['installable'] = False
@@ -1382,7 +1403,6 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         ctx['histories'] += tail(
                             os0.u(fd.read()),
                             max_days=180, module=module_name)
-
                         with open(full_fn, 'r') as fd:
                             ctx['history-summary'] += tail(
                                 os0.u(fd.read()),
@@ -1718,7 +1738,14 @@ def read_purge_description(ctx, source):
 def write_egg_info(ctx):
 
     def write_file(path, section):
-        if not os.path.isfile(os.path.join(path, '%s.rst' % section)):
+        force_write = False
+        if (section == 'history' and
+                ctx['odoo_layer'] in ('repository', 'ocb') and
+                ctx['histories']):
+            ctx[section] = ctx['histories']
+            force_write = True
+        if (force_write or
+                not os.path.isfile(os.path.join(path, '%s.rst' % section))):
             with open(os.path.join(path, '%s.rst' % section), 'w') as fd:
                 if section == 'history' and not ctx[section]:
                     header = '%s (%s)' % (

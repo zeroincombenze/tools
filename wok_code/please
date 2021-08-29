@@ -1983,7 +1983,7 @@ do_docs() {
     return 0
   fi
   if [[ ! -d $docs_dir ]]; then
-    if [ $opt_force -eq 0 ]; then
+    if [[ $opt_force -eq 0 ]]; then
       echo "Missing docs directory!"
       return 1
     fi
@@ -2023,7 +2023,8 @@ do_docs() {
       run_traced "rsync -avz --delete $HOME_DEV/pypi/$x/$x/docs/ $docs_dir/$b/"
     fi
   done
-  run_traced "gen_readme.py $opts"
+  # [[ $(basename $PWD) == "tools" && -f egg-info/history.rst ]] && run_traced "rm -f egg-info/history.rst"
+  [[ $(basename $PWD) == "tools" ]] && run_traced "gen_readme.py $opts -W" || run_traced "gen_readme.py $opts"
   [[ $(grep "\.\. include:: MAINPAGE.rst" docs/index.rst) ]] && run_traced "gen_readme.py $opts -t mainpage -o $docs_dir/MAINPAGE.rst"
   run_traced "pushd $docs_dir >/dev/null"
   if [[ ! -f index.rst || ! -f conf.py ]]; then
@@ -2574,18 +2575,19 @@ do_register() {
 }
 
 do_replace() {
-  set_executable
-  if [ "$PRJNAME" == "Odoo" ]; then
-    if [[ $LGITPATH =~ (oca|oia|zero) ]]; then
+  if [[ "$PRJNAME" == "Odoo" ]]; then
+    clean_dirs "$1"
+    set_executable
+    if [[ $LGITPATH =~ (oca|zero) ]]; then
       local odoo_fver=$(build_odoo_param FULLVER ".")
       local p=$(build_odoo_param HOME "." "$PKGNAME" "$LGITPATH")
       LGITPATH=$p
     fi
-    if [ ! -d "$LGITPATH" -a $opt_force -ne 0 ]; then
-      [ $opt_verbose -gt 0 ] && echo "Creating destination directory ..."
+    if [[ ! -d "$LGITPATH" && $opt_force -ne 0 ]]; then
+      [[ $opt_verbose -gt 0 ]] && echo "Creating destination directory ..."
       run_traced "mkdir -p $LGITPATH"
     fi
-    if [ ! -d "$LGITPATH" ]; then
+    if [[ ! -d "$LGITPATH" ]]; then
       echo "Destination directory $LGITPATH not found!"
       sts=$STS_FAILED
     else
@@ -2594,16 +2596,22 @@ do_replace() {
       run_traced "$TDIR/dist_pkg $opts $1 -p$LGITPATH"
       sts=$?
     fi
-  elif [ -f $PRJPATH/replace.sh ]; then
-    do_distribution_pypi "$@"
-    run_traced "$PRJPATH/replace.sh"
-    sts=$?
   else
-    do_distribution_pypi "$@"
-    opts=$(inherits_travis_opts "R" "D")
-    opt_dry_run=0
-    run_traced "$TDIR/dist_pkg $opts $1"
-    sts=$?
+    # do_distribution_pypi "$@"
+    do_docs
+    set_executable
+    if [[ -x $PRJPATH/replace.sh ]]; then
+      clean_dirs "./"
+      run_traced "$PRJPATH/replace.sh"
+      sts=$?
+    else
+      clean_dirs "../"
+      opts=$(inherits_travis_opts "R" "D")
+      # opt_dry_run=0
+      run_traced "$TDIR/dist_pkg $opts $1"
+      sts=$?
+    fi
+    clean_dirs "$HOME/tools"
   fi
   return $sts
 }
@@ -2738,15 +2746,20 @@ do_show_status() {
     [[ $opt_force -ne 0 ]] && echo -e "\e[1m[ $pkg ]\e[0m"
     [[ $opt_force -eq 0 ]] && echo -e "[ $pkg ]"
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg="${pkg//-/_}"
-    if [[ $opt_force -eq 0 ]]; then
-      if [[ $pkg == "tools" ]]; then
-        for fn in egg-info licence_text templates .travis.yml install_tools.sh odoo_default_tnl.xlsx setup.py; do
-          vfdiff -X diff $HOME/$pkg/$fn $HOME_DEV/pypi/$pkg/$fn -q >/dev/null
-          [[ $? -ne 0 ]] && x="R" && break
-        done
-      else
-        vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
-        [[ $? -ne 0 ]] && x="R"
+    if [[ $pkg == "tools" ]]; then
+      for fn in egg-info licence_text templates .travis.yml install_tools.sh odoo_default_tnl.xlsx setup.py; do
+        vfdiff -X diff $HOME/$pkg/$fn $HOME_DEV/pypi/$pkg/$fn -q >/dev/null
+        if [[ $? -ne 0 ]]; then
+          x="R"
+          [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/$pkg/$fn $HOME_DEV/pypi/$pkg/$fn
+          break
+        fi
+      done
+    else
+      vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
+      if [[ $? -ne 0 ]]; then
+        x="R"
+        [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg
       fi
     fi
     [[ $PKGS != "()" && $pkg =~ $PKGS ]] && x="$x G"
@@ -2770,6 +2783,7 @@ do_show_status() {
     [[ $x =~ "G" && $x =~ "V" ]] && echo -e "\e[1m    Package $pkg (new version $v1) have to be pushed on github.com\e[0m"
     [[ $x =~ "G" && ! $x =~ "V" ]] && echo -e "\e[1m    Package $pkg differs from github.com but it has the same version!!\e[0m"
   done
+  [[ -f $HOME/tools/egg-info/history.rst ]] && head $HOME/tools/egg-info/history.rst
 }
 
 do_synchro() {

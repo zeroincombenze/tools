@@ -1,6 +1,7 @@
 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
+[IMP] travis: clor change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
 

@@ -41,6 +41,8 @@ Getting started
 Installation
 ------------
 
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,7 +60,39 @@ Current version via Git
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
-    source /opt/odoo/dev/activate_tools
+    source /opt/odoo/devel/activate_tools
+
+
+Upgrade
+-------
+
+Upgrade
+-------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    pip install lisa -U
+
+|
+
+Current stable version
+~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -U
+    source /opt/odoo/devel/activate_tools
+
+Current development version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -Ud
+    source /opt/odoo/devel/activate_tools
 
 
 History
@@ -113,7 +147,7 @@ Translations by
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-26
+Last Update / Ultimo aggiornamento: 2021-08-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
