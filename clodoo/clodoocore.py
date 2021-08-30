@@ -42,7 +42,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.33.3"
+__version__ = "0.3.33.4"
 
 
 #############################################################################
@@ -131,7 +131,7 @@ def connectL8(ctx):
     elif ctx['oe_version'] == '*':
         ctx['oe_version'] = ctx['server_version'][0:x.end()]
     ctx['majver'] = int(ctx['server_version'].split('.')[0])
-    if sys.version_info[0] == 2 and ctx['svc_protocol'] == 'jsonrpc':
+    if ctx['majver'] < 10 and ctx['svc_protocol'] == 'jsonrpc':
         ctx['svc_protocol'] = 'xmlrpc'
         return connectL8(ctx)
     ctx['odoo_session'] = odoo

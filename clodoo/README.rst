@@ -1,6 +1,6 @@
 
 ===============
-clodoo 0.3.33.3
+clodoo 0.3.33.4
 ===============
 
 
@@ -321,6 +321,11 @@ Current development version
 History
 -------
 
+0.3.33.4 (2021-08-30)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo.py: rcp login
+
 0.3.33.3 (2021-08-25)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -382,13 +387,6 @@ History
 
 * [REF] manage_odoo: refactoring
 
-0.3.31.7 (2021-07-21)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: hide errore message "__openerp_-.py ..."
-* [FIX] odoorc: recognize librerp form url
-* [IMP] odoo_install_repository does not update config file automatically
-
 
 
 |
@@ -403,37 +401,81 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
-Authors
--------
-
-
-
-
 Contributors
 ------------
 
 * Antonio M. Vigliotti <info@shs-av.com>
-
-
 Acknowledges
 ------------
-
-
-
 
 Translations by
 ---------------
 
-
+|
+This module is part of tools project.
+Last Update / Ultimo aggiornamento: 2021-08-30
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
+:target: https://odoo-community.org/page/development-status
+:alt:
+.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
+:target: https://travis-ci.com/zeroincombenze/tools
+:alt: github.com
+.. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
+:target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
+:alt: License: AGPL-3
+.. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
+:target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
+:alt: License: OPL
+.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
+:target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3
+:alt: Coverage
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.3/graph/badge.svg
+:target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3
+:alt: Codecov
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-0.svg
+:target: https://wiki.zeroincombenze.org/en/Odoo/0.3/dev
+:alt: Technical Documentation
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-0.svg
+:target: https://wiki.zeroincombenze.org/it/Odoo/0.3/man
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-0.svg
+:target: https://erp0.zeroincombenze.it
+:alt: Try Me
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.3/graph/badge.svg
+:target: https://codecov.io/gh/OCA/tools/branch/0.3
+.. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
+:target: https://odoo-italia.org
+:alt: Odoo Italia Associazione
+.. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4
+:target: https://www.zeroincombenze.it/
+:alt: Zeroincombenze
+.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
+:target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
+.. |check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png
+.. |no_check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png
+.. |menu| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/menu.png
+.. |right_do| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/right_do.png
+.. |exclamation| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/exclamation.png
+.. |warning| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/warning.png
+.. |same| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/same.png
+.. |late| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/late.png
+.. |halt| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/halt.png
+.. |info| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/info.png
+.. |xml_schema| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/iso/icons/xml-schema.png
+:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
+.. |DesktopTelematico| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/DesktopTelematico.png
+:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
+.. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
+:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
+.. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
+:target: https://t.me/axitec_helpdesk
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-29
+Last Update / Ultimo aggiornamento: 2021-08-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

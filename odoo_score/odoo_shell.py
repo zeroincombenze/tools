@@ -5,13 +5,10 @@ from __future__ import division
 from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()                                 # noqa: E402
-# from builtins import str
-# from past.builtins import basestring
 from builtins import *                                             # noqa
-# from past.utils import old_div
 from builtins import input
 
-from python_plus import unicodes, bstrings, _b
+from python_plus import unicodes, _b
 import os
 import sys
 from datetime import date, datetime, timedelta
@@ -19,13 +16,11 @@ import time
 import re
 import csv
 import getpass
-# from unidecode import unidecode
 from os0 import os0
 try:
     from clodoo import clodoo
 except ImportError:
     import clodoo
-from clodoo import transodoo
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
@@ -33,7 +28,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.2.1"
 
 
 MAX_DEEP = 20
@@ -3799,141 +3794,6 @@ def reconcile_invoice(ctx):
         ctr_read, ctr_upd, ctr_err))
 
 
-def manage_coa(ctx):
-    TNLFLD = {
-        'USER_TYPE': {
-            'old': 'user_type',
-            'new': 'user_type_id',
-        },
-        'TYPE': {
-            'old': 'type',
-            'new': 'internal_type',
-        },
-    }
-
-    def read_csv_file(csv_fn, src_ver, tgt_ver, scope):
-        coa = []
-        group = []
-        tnlctx = {}
-        transodoo.read_stored_dict(tnlctx)
-        majver = eval(src_ver.split('.')[0])
-        # Do not remove 'b' (binary= to avoid utf-8 conflicts!
-        with open(csv_fn, 'rbU') as fd:
-            hdr = False
-            reader = csv.reader(fd)
-            for row in reader:
-                if not hdr:
-                    hdr = True
-                    ix = len(row)
-                    ID = row.index('id')
-                    CODE = row.index('code')
-                    NAME = row.index('name')
-                    if 'user_type_id:id' in row:
-                        USER_TYPE = row.index('user_type_id:id')
-                    elif 'user_type:id' in row:
-                        USER_TYPE = row.index('user_type:id')
-                    else:
-                        USER_TYPE = False
-                    if 'type' in row:
-                        TYPE = row.index('type')
-                    elif 'user_type' in row:
-                        TYPE = row.index('user_type')
-                    else:
-                        TYPE = ix
-                        ix += 1
-                    if 'parent_id:id' in row:
-                        PARENT = row.index('parent_id:id')
-                    else:
-                        PARENT = ix
-                        ix += 1
-                    if 'chart_template_id:id' in row:
-                        CHART = row.index('chart_template_id:id')
-                    else:
-                        CHART = ix
-                        ix += 1
-                    continue
-                line = unicodes(row)
-                while len(line) < ix:
-                    line.append('')
-                row = {}
-                for item in ('ID', 'CODE', 'NAME'):
-                    row[item] = line[locals()[item]]
-                for item in ('TYPE', 'USER_TYPE'):
-                    row[item] = transodoo.translate_from_to(
-                        tnlctx, 'ir.model.data',
-                        line[locals()[item]] or 'other',
-                        src_ver, tgt_ver, ttype='xref',
-                        fld_name=TNLFLD[item][
-                            'old' if majver < 10 else 'new'])
-                item = 'PARENT'
-                if not line[locals()[item]]:
-                    if len(line[locals()[item]]) >= 6:
-                        row[item] = line[CODE][0:3]
-                    elif len(line[locals()[item]]) >= 3:
-                        row[item] = line[CODE][0:2]
-                    elif len(line[locals()[item]]) >= 2:
-                        row[item] = line[CODE][0:1]
-                    else:
-                        row[item] = '0'
-                else:
-                    row[item] = line[locals()[item]]
-                item = 'CHART'
-                row[item] = 'l10n_chart_it_zeroincombenze'
-                if scope == 'comp':
-                    if len(row['CODE']) < 6:
-                        continue
-                    line = (row['CODE'], row['NAME'], row['USER_TYPE'])
-                    print(line)
-                    coa.append(line)
-                    continue
-                if len(row['CODE']) < 6 and majver > 9:
-                    line = (row['ID'], row['CODE'], row['NAME'],
-                            row['PARENT'], row['CHART'])
-                    print('* %s *')
-                    group.append(line)
-                    continue
-                line = (row['ID'], row['CODE'], row['NAME'], row['USER_TYPE'],
-                        row['TYPE'], row['PARENT'], row['CHART'])
-                print(line)
-                coa.append(line)
-        return coa, group
-
-    print('Manage Chart od Account')
-    if ctx['param_1'] == 'help':
-        print('manage_coa export|none SRC_VER TGT_VER CSV_FILE comp|full')
-        return
-    action = ctx['param_1']
-    if action not in ('export',):
-        print('Invalid action!')
-        return 1
-    src_ver = os.path.expanduser(ctx['param_2'])
-    tgt_ver = os.path.expanduser(ctx['param_3'])
-    csv_fn = os.path.expanduser(ctx['param_4'])
-    scope = ctx['param_5'] or 'full'
-    if not os.path.isfile(csv_fn):
-        print('File %s not found!' % csv_fn)
-    coa, group = read_csv_file(csv_fn, src_ver, tgt_ver, scope)
-    majver = eval(tgt_ver.split('.')[0])
-    out_fn = '%s.tmp.csv' % csv_fn[0: -4]
-    if scope == 'comp':
-        header = ['code', 'name',
-                  TNLFLD['USER_TYPE']['old' if majver < 10 else 'new']]
-    else:
-        header = [
-            'id', 'code', 'name',
-            '%s:id' % TNLFLD['USER_TYPE']['old' if majver < 10 else 'new'],
-            '%s:id' % TNLFLD['TYPE']['old' if majver < 10 else 'new'],
-            'parent_id:id', 'chart_template_id:id']
-    with open(out_fn, mode='wb') as fd:
-        csv_obj = csv.writer(fd)
-        csv_obj.writerow(bstrings(header))
-        for line in coa:
-            ln = []
-            for x in line:
-                ln.append(_b(x))
-            csv_obj.writerow(ln)
-    return 0
-
 if ctx['function']:
     function = ctx['function']
     globals()[function](ctx)
@@ -3961,12 +3821,12 @@ print(' - set_ppf_on_partner            - configure_RiBA')
 print(' - deduplicate_partner           - manage_riba')
 print(' - reset_email_admins             OTHER TABLES')
 print(' - solve_unamed                   - set_report_config')
-print(' - solve_flag_einvoice            - manage_coa')
-print(' - simulate_user_profile          - setup_balance_report')
-print(' SYSTEM                           - show_module_group')
+print(' - solve_flag_einvoice            - setup_balance_report')
+print(' - simulate_user_profile          - show_module_group')
+print(' SYSTEM                           - check_rec_links')
 print(' - clean_translations             - display_module')
-print(' - configure_email_template       - check_rec_links')
-print(' - test_synchro_vg7               -')
+print(' - configure_email_template')
+print(' - test_synchro_vg7')
 print(' - set_db_4_test')
 print(' - fix_weburl')
 

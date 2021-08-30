@@ -29,7 +29,7 @@ fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-__version__=1.0.2
+__version__=1.0.2.1
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then

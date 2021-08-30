@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.0.1.22
+__version__=1.0.1.23
 
 
 test_01() {
@@ -186,6 +186,7 @@ consectetur *adipiscing* elit
 +-----------+---------+
 
 
+
 Authors
 -------
 
@@ -195,6 +196,7 @@ Contributors
 ------------
 
 * antonio <antoniov@libero.it>
+
 
 Acknoledges to
 --------------
@@ -296,9 +298,10 @@ test_03() {
     TESTSRC=$TESTDIR/res/readme_manifest.rst
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/__openerp__.py
-    # TESTOUT=$TESTDIR/res/README.rst
+    TESTRDNME=$TESTDIR/res/README.rst
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $TESTOUT
+      [[ -f $TESTRDNME ]] && rm -f $TESTRDNME
       # Files in module directory
       cat <<EOF >$TESTDIR/res/__openerp__.py
 # (C) SHS-Av s.r.l.
@@ -544,6 +547,7 @@ consectetur *adipiscing* elit
 
 
 
+
 Authors
 -------
 
@@ -553,6 +557,7 @@ Contributors
 ------------
 
 * antonio <antoniov@libero.it>
+
 
 Acknoledges to
 --------------

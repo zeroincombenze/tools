@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.22"
+__version__ = "1.0.1.23"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -945,7 +945,7 @@ def is_preproc_line(ctx, line, state):
     return state, is_preproc
 
 
-def parse_acknoledge_list(ctx, source):
+def parse_acknowledge_list(ctx, source):
     lines = source.split('\n')
     lno = 0
     while lno < len(lines):
@@ -959,7 +959,7 @@ def parse_acknoledge_list(ctx, source):
         if names[0] and names[0][0] == '*':
             ctr = 0
             for i in range(3):
-                if ctx['contributors'].find(names[i]) >= 0:
+                if names[i] in ctx['contributors']:
                     ctr += 1
             if ctr >= 2:
                 del lines[lno]
@@ -1208,7 +1208,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         state, source2 = parse_source(ctx,
                                       source.replace('branch', 'prior2_branch'),
                                       state=state)
-        source = parse_acknoledge_list(
+        source = parse_acknowledge_list(
             ctx, '\n'.join(set(source1.split('\n')) |
                            set(source2.split('\n'))))
     if len(source) and filename == 'history.rst':
@@ -1712,27 +1712,82 @@ def set_default_values(ctx):
                                            ctx['repos_name'])
 
 
-def read_purge_description(ctx, source):
+def read_purge_manifest(ctx, source):
     if source is None:
-        return ''
+        return '', '', ''
     lines = source.split('\n')
-    while lines and not lines[-1].strip():
-        del lines[-1]
-    while lines and not lines[0].strip():
-        del lines[0]
+    out_sections = {
+        'description': '',
+        'authors': '',
+        'contributors': '',
+    }
+    cur_sect = 'description'
     ix = 0
     while ix < len(lines):
         if not ix:
-            lines[ix] = lines[ix].strip()
+            line = lines[ix].strip()
         else:
-            line = lines[ix].lower()
-            for token in ('usage', 'getting started', 'installation',
-                          'upgrade', 'support', 'history', 'credits'):
-                if line.startswith(token):
-                    del lines[ix:]
-                    break
+            line = lines[ix]
+            ln = line.lower()
+            if line.startswith('Authors'):
+                if (lines[ix + 1].startswith('~~~~~~~') or
+                        lines[ix + 1].startswith('-------')):
+                    cur_sect = 'authors'
+                    ix += 2
+                    continue
+            elif line.startswith('Contributors'):
+                if (lines[ix + 1].startswith('~~~~~~~~~~~~') or
+                        lines[ix + 1].startswith('------------')):
+                    cur_sect = 'contributors'
+                    ix += 2
+                    continue
+            else:
+                for token in ('usage', 'getting started', 'installation',
+                              'upgrade', 'support', 'history', 'credits',
+                              'maintainer'):
+                    if ln.startswith(token):
+                        cur_sect = ''
+                        break
+        if cur_sect:
+            out_sections[cur_sect] += '%s\n' % line
         ix += 1
-    return '\n'.join(lines)
+    for sect in ('description', 'authors', 'contributors'):
+        while out_sections[sect].startswith('\n'):
+            out_sections[sect] = out_sections[sect][1:]
+        while out_sections[sect].endswith('\n\n'):
+            out_sections[sect] = out_sections[sect][: -1]
+    return (out_sections['description'],
+            out_sections['authors'],
+            out_sections['contributors'])
+
+
+def merge_lists(left, right):
+    left = left.split('\n')
+    right = right.split('\n')
+    for item in right:
+        if item not in left:
+            left.append(item)
+    return '\n'.join(left)
+
+
+def purge_list(source):
+    source = source.replace(
+        '\n\n', '\n').replace(
+        '`__', '').replace(
+        '`', '').replace(
+        '--\n', '--\n\n')
+    lines = source.split('\n')
+    target = []
+    for line in lines:
+        if not line or line not in target:
+            target.append(line)
+    source = '\n'.join(target)
+    while (source != '\n' and source.startswith('\n') and
+           source[1] in ('*', '-', '#', '.')):
+        source = source[1:]
+    if source and not source.endswith('\n'):
+        source = source + '\n'
+    return source
 
 
 def write_egg_info(ctx):
@@ -1780,18 +1835,11 @@ def generate_readme(ctx):
                 ctx['authors'] = '%s\n%s\n' % (ctx['authors'], line)
                 continue
             contributors += line + '\n'
-        for item in LIST_TAG:
-            if item == 'contributors':
-                ctx['contributors'] = contributors.replace(
-                    '\n\n', '\n').replace('`__', '').replace('`', '')
+        for section in LIST_TAG:
+            if section == 'contributors':
+                ctx[section] = purge_list(contributors)
             else:
-                ctx[item] = ctx[item].replace(
-                    '\n\n', '\n').replace('`__', '').replace('`', '')
-            ctx[item] = ctx[item].replace('--\n', '--\n\n')
-            if ctx[item].startswith('\n'):
-                ctx[item] = ctx[item][1:]
-            if not ctx[item].endswith('\n'):
-                ctx[item] = ctx[item] + '\n'
+                ctx[section] = purge_list(ctx[section])
         return ctx
 
     def set_sommario(ctx):
@@ -1850,6 +1898,20 @@ def generate_readme(ctx):
 
     ctx['license_mgnt'].add_copyright(ctx['git_orgid'], '', '', '', '')
     # Read predefined section / tags
+    for section in ('histories', 'history-summary',
+                    'rdme_description', 'rdme_authors', 'rdme_contributors'):
+        ctx[section] = ''
+    if ctx['odoo_layer'] == 'module':
+        for fn in ('./README.md', './README.rst'):
+            if not os.path.isfile(fn):
+                continue
+            with open(fn, 'rbU') as fd:
+                (ctx['rdme_description'],
+                 ctx['rdme_authors'],
+                 ctx['rdme_contributors']) = read_purge_manifest(
+                    ctx, os0.u(fd.read()))
+            break
+
     for section in DEFINED_TAG:
         out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.txt' % section,
@@ -1872,21 +1934,16 @@ def generate_readme(ctx):
                     section='%s_%s' % (section, sub))[1]
     if ctx['odoo_layer']:
         if not ctx['configuration']:
-            out_fmt = None
-            ctx['configuration'] = parse_local_file(ctx, 'CONFIGURE.rst',
-                                                    ignore_ntf=True,
-                                                    out_fmt=out_fmt,
-                                                    section='configuration')[1]
+            ctx['configuration'] = parse_local_file(
+                ctx, 'CONFIGURE.rst',
+                ignore_ntf=True,
+                out_fmt=None,
+                section='configuration')[1]
         if not ctx['description'] or ctx['description'] == 'N/A':
-            ctx['description'] = read_purge_description(
-                ctx, ctx['manifest'].get('description'))
-        if not ctx['description'] or ctx['description'] == 'N/A':
-            for fn in ('./README.md', './README.rst'):
-                if os.path.isfile(fn):
-                    with open(fn, 'rbU') as fd:
-                        source = fd.read()
-                    ctx['description'] = read_purge_description(ctx, source)
-                    break
+            ctx['description'] = ctx['rdme_description']
+        ctx['authors'] = merge_lists(ctx['rdme_authors'], ctx['authors'])
+        ctx['contributors'] = merge_lists(ctx['rdme_contributors'],
+                                          ctx['contributors'])
 
     ctx = validate_authors_contributors(ctx)
     ctx = set_sommario(ctx)
@@ -1908,7 +1965,7 @@ def generate_readme(ctx):
         target = parse_local_file(ctx,
                                   ctx['template_name'],
                                   out_fmt='rst')[1]
-    if ctx['rewrite_manifest'] and 'module' == ctx['odoo_layer']:
+    if ctx['rewrite_manifest'] and ctx['odoo_layer'] == 'module':
         target = manifest_contents(ctx)
     tmpfile = '%s.tmp' % ctx['dst_file']
     bakfile = '%s.bak' % ctx['dst_file']

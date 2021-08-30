@@ -114,7 +114,7 @@ class License:
                 url = url.replace('http:', 'https:')
                 if url.endswith('/'):
                     url = url[0: -1]
-                if '@' in url:
+                if '@' in url or url.startswith('https://github.com/'):
                     email = url
                     if not name:
                         name = ' '.join(

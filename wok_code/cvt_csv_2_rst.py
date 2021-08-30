@@ -34,7 +34,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.1.22"
+__version__ = "1.0.1.23"
 
 msg_time = time.time()
 
@@ -51,7 +51,7 @@ def items_2_unicode(src):
         for x in src.keys():
             src[x] = os0.u(src[x])
     elif isinstance(src, list):
-        for i,x in enumerate(src):
+        for i, x in enumerate(src):
             src[i] = os0.u(x)
     return src
 
