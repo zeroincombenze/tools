@@ -96,6 +96,14 @@ if [[ -z "$SRCPATH" || -z "$DSTPATH" ]]; then
     $0 -h
     exit 1
 fi
+if [[ $opts =~ ^-.*Z ]]; then
+  echo "# Reinstall tools from ZERO!!"
+  run_traced "cd $SRCPATH/.."
+  run_traced "rm -fR $SRCPATH/../tools"
+  run_traced "git clone https://github.com/zeroincombenze/tools.git"
+  [[ ! -d $HOME/tools ]] && echo "ERROR!" && exit 1
+  run_traced "cd $SRCPATH"
+fi
 [[ -f $DSTPATH/activate_tools ]] && m1=$(stat -c %Y $DSTPATH/activate_tools) || m1=0
 m2=$(stat -c %Y $0)
 [[ $m1 -lt $m2 && ! $opts =~ ^-.*f ]] && opts="-f ${opts}"
