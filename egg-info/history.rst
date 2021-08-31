@@ -4,6 +4,12 @@ wok_code: 1.0.2 (2021-08-31)
 [IMP] gen_readme.py: search for authors in current README
 
 
+clodoo: 0.3.31.2 (2021-08-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: it does not use <git branch --show-current>
+
+
 wok_code: 1.0.2 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -207,16 +213,13 @@ python_plus: 1.0.1.2 (2021-07-29)
 * [FIX] vem: exec in current directory
 
 
-clodoo: 0.3.31.9 (2021-07-28)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+clodoo: 0.3.31.10 (2021-07-28)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] odoo_install_repository: check for parent dir
-
-
-clodoo: 0.3.31.8 (2021-07-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] manage_odoo: refactoring
+* [IMP] manage_odoo: action travis and test
+* [IMP] manage_odoo: action amend
+* [IMP] odoorc: disable execution trace
+* [FIX] odoorc: license recognition from manifest
 
 
 

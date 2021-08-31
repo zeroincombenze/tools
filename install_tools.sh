@@ -45,6 +45,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
+    echo "  -Z  reinstall all from zero"
     echo -e "\n(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
@@ -95,9 +96,12 @@ if [[ -z "$SRCPATH" || -z "$DSTPATH" ]]; then
     $0 -h
     exit 1
 fi
+[[ -f $DSTPATH/activate_tools ]] && m1=$(stat -c %Y $DSTPATH/activate_tools) || m1=0
+m2=$(stat -c %Y $0)
+[[ $m1 -lt $m2 && ! $opts =~ ^-.*f ]] && opts="-f ${opts}"
 if [[ ! $opts =~ ^-.*t ]]; then
     [[ $opts =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
-    [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --show-current) != "master" ]] && git stash -q && git checkout master -fq
+    [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
 [[ $opts =~ ^-.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."

@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 #
 # Hi There!
 # You may be wondering what this giant blob of binary data here is, you might

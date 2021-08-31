@@ -308,7 +308,8 @@ build_odoo_param() {
                         GIT_PROT=$(echo $GIT_URL|awk -F: '{print $1}')
                         VCS="git"
                     fi
-                    GIT_BRANCH=$(git branch --show-current)
+                    # <git branch --show-current> does not work with old git version
+                    GIT_BRANCH=$(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+")
                 fi
             fi
             [[ $cdir == $HOME ]] && break
