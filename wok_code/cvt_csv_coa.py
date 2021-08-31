@@ -36,7 +36,7 @@ except ImportError:
 from clodoo import transodoo
 
 
-__version__ = "1.0.1.24"
+__version__ = "1.0.2"
 
 msg_time = time.time()
 

@@ -1,7 +1,7 @@
 
-=======================
-travis_emulator 1.0.1.8
-=======================
+=====================
+travis_emulator 1.0.2
+=====================
 
 
 
@@ -407,37 +407,17 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
-Authors
--------
-
-
-
-
 Contributors
 ------------
 
 * Antonio M. Vigliotti <info@shs-av.com>
 
 
-Acknowledges
-------------
-
-
-
-
-Translations by
----------------
-
-
-
-
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-29
+Last Update / Ultimo aggiornamento: 2021-08-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

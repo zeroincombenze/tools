@@ -1,7 +1,7 @@
 
-=============
-lisa 0.3.1.18
-=============
+==========
+lisa 0.3.2
+==========
 
 
 
@@ -147,7 +147,7 @@ Translations by
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-29
+Last Update / Ultimo aggiornamento: 2021-08-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

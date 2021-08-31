@@ -1,7 +1,7 @@
 
-=================
-wok_code 1.0.1.24
-=================
+==============
+wok_code 1.0.2
+==============
 
 
 
@@ -830,53 +830,53 @@ Current development version
 History
 -------
 
-1.0.1.24 (2021-08-31)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-08-31)
+~~~~~~~~~~~~~~~~~~
 
 [IMP] gen_readme.py: search for authors in current README
 
-1.0.1.24 (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-08-30)
+~~~~~~~~~~~~~~~~~~
 
 [IMP] ct_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
 
-1.0.1.24 (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-08-26)
+~~~~~~~~~~~~~~~~~~
 
 [IMP] please: action docs shows recent history
 [IMP] gen_readme.py: show recent history
 [FIX] topep8: parse .travis.yml
 
-1.0.1.24 (2021-08-08)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-08-08)
+~~~~~~~~~~~~~~~~~~
 
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
-1.0.1.24 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-08-05)
+~~~~~~~~~~~~~~~~~~
 
 [REF] Merged and renamed to wok_code
 
-1.0.1.24 (2021-08-04)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-08-04)
+~~~~~~~~~~~~~~~~~~
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
 
-1.0.1.24 (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-08-03)
+~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: parameter error
 
-1.0.1.24 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-07-29)
+~~~~~~~~~~~~~~~~~~
 
 [FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
 
-1.0.1.24 (2021-07-21)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-07-21)
+~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: ignore setup directories
 [IMP] gen_readme.py: new parameter -L to set local language (def it_IT)
@@ -888,13 +888,13 @@ History
 
 * [FIX] wget_odoo_repositories.py: best debug mode: check for branch
 
-1.0.1.24 (2021-05-31)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-05-31)
+~~~~~~~~~~~~~~~~~~
 
 [FIX] license managament: other orgs
 
-1.0.1.24 (2021-05-24)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2021-05-24)
+~~~~~~~~~~~~~~~~~~
 [FIX] cvt_script: wrong RUNDIR
 
 
@@ -911,30 +911,10 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
-Authors
--------
-
-
-
-
 Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-
-
-Acknowledges
-------------
-
-
-
-
-Translations by
----------------
-
-
 
 
 |

@@ -11,7 +11,7 @@ from __future__ import print_function,unicode_literals
 import sys
 from zerobug import Z0BUG
 
-__version__ = "1.0.1.4"
+__version__ = "1.0.2"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
