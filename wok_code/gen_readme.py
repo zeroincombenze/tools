@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.1.23"
+__version__ = "1.0.1.24"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -350,7 +350,7 @@ def get_default_prerequisites(ctx):
         return ''
     text = '''.. $if branch in '12.0'
 * python 3.7+
-* postgresql 9.5+ (experimental 10.0+)
+* postgresql 9.6+ (experimental 10.0+)
 .. $fi
 .. $if branch in '11.0'
 * python 3.6+
@@ -1712,7 +1712,7 @@ def set_default_values(ctx):
                                            ctx['repos_name'])
 
 
-def read_purge_manifest(ctx, source):
+def read_purge_readme(ctx, source):
     if source is None:
         return '', '', ''
     lines = source.split('\n')
@@ -1744,7 +1744,10 @@ def read_purge_manifest(ctx, source):
             else:
                 for token in ('usage', 'getting started', 'installation',
                               'upgrade', 'support', 'history', 'credits',
-                              'maintainer'):
+                              'maintainer', 'maintenance', 'configuration',
+                              'troubleshooting', 'known_issues', 'faq',
+                              'sponsor', 'copyright',
+                              'translators', 'acknowledges'):
                     if ln.startswith(token):
                         cur_sect = ''
                         break
@@ -1806,7 +1809,7 @@ def write_egg_info(ctx):
                     header = '%s (%s)' % (
                         ctx['manifest'].get('version', ''),
                         ctx['today'])
-                    dash = '-' * len(header)
+                    dash = '~' * len(header)
                     line = '* [IMP] Created documentation directory'
                     ctx[section] = '%s\n%s\n\n%s\n' % (header, dash, line)
                 if path == './readme' and section == 'CONTRIBUTORS':
@@ -1892,15 +1895,10 @@ def generate_readme(ctx):
             read_manifest(ctx)
         return ctx
 
-    ctx = read_manifest_setup(ctx)
-    set_default_values(ctx)
-    ctx['license_mgnt'] = license_mgnt.License()
-
-    ctx['license_mgnt'].add_copyright(ctx['git_orgid'], '', '', '', '')
-    # Read predefined section / tags
     for section in ('histories', 'history-summary',
                     'rdme_description', 'rdme_authors', 'rdme_contributors'):
         ctx[section] = ''
+    # Read predefined section / tags
     if ctx['odoo_layer'] == 'module':
         for fn in ('./README.md', './README.rst'):
             if not os.path.isfile(fn):
@@ -1908,10 +1906,14 @@ def generate_readme(ctx):
             with open(fn, 'rbU') as fd:
                 (ctx['rdme_description'],
                  ctx['rdme_authors'],
-                 ctx['rdme_contributors']) = read_purge_manifest(
+                 ctx['rdme_contributors']) = read_purge_readme(
                     ctx, os0.u(fd.read()))
             break
 
+    ctx = read_manifest_setup(ctx)
+    set_default_values(ctx)
+    ctx['license_mgnt'] = license_mgnt.License()
+    ctx['license_mgnt'].add_copyright(ctx['git_orgid'], '', '', '', '')
     for section in DEFINED_TAG:
         out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.txt' % section,

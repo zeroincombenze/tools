@@ -1,44 +1,49 @@
-1.0.1.23 (2021-08-30)
+1.0.1.24 (2021-08-31)
+~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] gen_readme.py: search for authors in current README
+
+1.0.1.24 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] ct_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
 
-1.0.1.23 (2021-08-26)
+1.0.1.24 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: action docs shows recent history
 [IMP] gen_readme.py: show recent history
 [FIX] topep8: parse .travis.yml
 
-1.0.1.23 (2021-08-08)
+1.0.1.24 (2021-08-08)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
-1.0.1.23 (2021-08-05)
+1.0.1.24 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~~
 
 [REF] Merged and renamed to wok_code
 
-1.0.1.23 (2021-08-04)
+1.0.1.24 (2021-08-04)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
 
-1.0.1.23 (2021-08-03)
+1.0.1.24 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: parameter error
 
-1.0.1.23 (2021-07-29)
+1.0.1.24 (2021-07-29)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
 
-1.0.1.23 (2021-07-21)
+1.0.1.24 (2021-07-21)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: ignore setup directories
@@ -51,22 +56,22 @@
 
 * [FIX] wget_odoo_repositories.py: best debug mode: check for branch
 
-1.0.1.23 (2021-05-31)
+1.0.1.24 (2021-05-31)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] license managament: other orgs
 
-1.0.1.23 (2021-05-24)
+1.0.1.24 (2021-05-24)
 ~~~~~~~~~~~~~~~~~~~~
 [FIX] cvt_script: wrong RUNDIR
 
-1.0.1.23 (2021-03-15)
+1.0.1.24 (2021-03-15)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: status when git pushed
 [FIX] gen_readme.py: crash if invalid Odoo project
 
-1.0.1.23 (2021-03-05)
+1.0.1.24 (2021-03-05)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: publish pypi
@@ -74,7 +79,7 @@
 [IMP] gen_readme.py: recognizes powerp
 [IMP] gen_readme.py: set website for any organization
 [IMP] please: status more precise
-[IMP] topep8: recognize power organization1.0.1.23 (2021-02-19)
+[IMP] topep8: recognize power organization1.0.1.24 (2021-02-19)
 
 1.0.0.13 (2021-02-28)
 ~~~~~~~~~~~~~~~~~~~~~

@@ -67,7 +67,12 @@ Action is one of:
 
 *docs*
 
-    Prepare documentation to publish on readthedocs website.
+    Prepare documentation to publish on readthedocs website (PYPI).
+    Create / update README and index.html of Odoo module.
+    Notice: README of repository history is tailored with last 60 days items;
+    on README and index,html of module, history is tailored with last 180 days items;
+    However max 12 items are added in README / index.html
+    Summary showed to console are tailored with last 15 days.
 
 *export MODULE DB [-bBRANCH]*
 

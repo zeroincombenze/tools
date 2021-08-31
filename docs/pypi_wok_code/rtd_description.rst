@@ -88,7 +88,12 @@ Action is one of:
 
 *docs*
 
-    Prepare documentation to publish on readthedocs website.
+    Prepare documentation to publish on readthedocs website (PYPI).
+    Create / update README and index.html of Odoo module.
+    Notice: README of repository history is tailored with last 60 days items;
+    on README and index,html of module, history is tailored with last 180 days items;
+    However max 12 items are added in README / index.html
+    Summary showed to console are tailored with last 15 days.
 
 *export MODULE DB [-bBRANCH]*
 
@@ -287,7 +292,7 @@ It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-30
+Last Update / Ultimo aggiornamento: 2021-08-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
