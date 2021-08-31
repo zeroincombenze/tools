@@ -1,7 +1,7 @@
 
-=============
-clodoo 0.3.34
-=============
+===============
+clodoo 0.3.34.1
+===============
 
 
 
@@ -321,6 +321,11 @@ Current development version
 History
 -------
 
+0.3.31.1 (2021-08-30)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] transodoo: l10n_it_reverse_charge is powerp module name too
+
 0.3.33.4 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -382,11 +387,6 @@ History
 
 * [FIX] odoo_install_repository: check for parent dir
 
-0.3.31.8 (2021-07-27)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] manage_odoo: refactoring
-
 
 
 |
@@ -401,30 +401,10 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
-Authors
--------
-
-
-
-
 Contributors
 ------------
 
 * Antonio M. Vigliotti <info@shs-av.com>
-
-
-Acknowledges
-------------
-
-
-
-
-Translations by
----------------
-
-
 
 
 |
