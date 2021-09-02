@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.2
+__version__=1.0.2.1
 
 #
 # General Purpose options:
@@ -1932,7 +1932,6 @@ do_distribution() {
 
 do_docs() {
   wlog "do_docs"
-  wlog "do_docs"
   local docs_dir=./docs
   local author version theme SETUP b f l t x
   local opts src_png odoo_fver
@@ -2598,20 +2597,18 @@ do_replace() {
     fi
   else
     # do_distribution_pypi "$@"
+    for f in ./*; do
+      [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python3$|^#\!/usr/bin/env python3|\" $f"
+      [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python2|\" $f"
+      [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python|\" $f"
+    done
     do_docs
     set_executable
-    if [[ -x $PRJPATH/replace.sh ]]; then
-      clean_dirs "./"
-      run_traced "$PRJPATH/replace.sh"
-      sts=$?
-    else
-      clean_dirs "../"
-      opts=$(inherits_travis_opts "R" "D")
-      # opt_dry_run=0
-      run_traced "$TDIR/dist_pkg $opts $1"
-      sts=$?
-    fi
-    clean_dirs "$HOME/tools"
+    [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
+    opts=$(inherits_travis_opts "R" "D")
+    [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg $opts $1"
+    sts=$?
+    [[ $(basename $PWD) != "tools" ]] && clean_dirs "$HOME/tools"
   fi
   return $sts
 }

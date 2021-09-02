@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 #  -*- coding: utf-8 -*-
 """
 usage: cvt_csv_coa.py [-h] -A ACTION -b ODOO_VER -f CSV_ODOO_VER [-n] [-q] [-V]
@@ -36,7 +36,7 @@ except ImportError:
 from clodoo import transodoo
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.2.1"
 
 msg_time = time.time()
 

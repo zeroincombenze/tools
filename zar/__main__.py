@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 """zar
 Zeroincombenze Archive Replica
@@ -21,7 +21,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = '1.3.36'
+__version__ = '1.3.35.4'
 STS_FAILED = 1
 STS_SUCCESS = 0
 

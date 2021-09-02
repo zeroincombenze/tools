@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 #  -*- coding: utf-8 -*-
 """
 Documentation generator
@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.2.1"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 #
 # Copyright 2018-21 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
@@ -75,7 +75,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.2.1"
 
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
@@ -42,7 +42,7 @@ except ImportError:
     import os0
 
 
-__version__ = "1.3.36"
+__version__ = "1.3.35.4"
 
 
 def version():

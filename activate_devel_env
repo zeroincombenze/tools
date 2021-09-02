@@ -6,13 +6,11 @@ PYTHON3=""
 for pkg in clodoo devel_tools lisa odoo_score os0 python_plus travis_emulator wok_code zar z0bug_odoo z0lib zerobug;do
   [[ ! -d $HOME/devel/pypi/$pkg/$pkg || :$PATH: =~ :$HOME/devel/pypi/$pkg/$pkg: ]] || export PATH=$HOME/devel/pypi/$pkg/$pkg:$PATH
   [[ ! -d $HOME/devel/pypi/$pkg/$pkg || :$PYTHONPATH: =~ :$HOME/devel/pypi/$pkg: ]] || export PYTHONPATH=$HOME/devel/pypi/$pkg:$PYTHONPATH
-  if [[ ! $HOSTNAME =~ shs ]]; then
-    for f in $HOME/devel/pypi/$pkg/$pkg/*; do
-      [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python3|#\!$PYTHON3|" $f && echo "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f"
-      [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python2|#\!$PYTHON|" $f && echo "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f"
-      [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python|#\!$PYTHON|" $f && echo "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $f"
-    done
-  fi
+  for f in $HOME/devel/pypi/$pkg/$pkg/*; do
+    [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python3|#\!$PYTHON3|" $f && echo "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f" && sed -i -e "s|^#\!.*/bin.*python3|#\!$PYTHON3|" $f
+    [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python2|#\!$PYTHON|" $f && echo "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && sed -i -e "s|^#\!.*/bin.*python2|#\!$PYTHON|" $f
+    [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/bin.*python$" $f &>/dev/null && sed -i -e "s|^#\!.*/bin.*python|#\!$PYTHON|" $f && echo "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $f" && sed -i -e "s|^#\!.*/bin.*python|#\!$PYTHON|" $f
+  done
 done
 echo "PATH=$PATH"
 echo "PYTHONPATH=$PYTHONPATH"

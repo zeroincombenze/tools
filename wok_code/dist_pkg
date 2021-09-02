@@ -41,7 +41,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.2
+__version__=1.0.2.1
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -144,7 +144,7 @@ if [ $opt_dry_run -gt 0 ]; then
   fi
 fi
 
-if [ "$PRJNAME" == "Odoo" ]; then
+if [[ "$PRJNAME" == "Odoo" ]]; then
     valid=0
     # manifest files count for 2 times
     for f in __manifest__.py __manifest__.py __openerp__.py __openerp__.py __init__.py README.rst .travis.yml LICENSE oca_dependencies.txt requirements.txt; do
@@ -166,12 +166,12 @@ else
     for f in tests egg-info clodoo odoo_score wok_code z0bug_odoo z0lib zerobug; do
         [[ -d $f ]] && ((valid++))
     done
-    if [ $valid -lt 5 ]; then
+    if [[ $valid -lt 5 ]]; then
         echo "Invalid environment"
         exit 1
     fi
     LSETUP=$PKGPATH/$PKGNAME/setup.py
-    if [ -f $LSETUP ]; then
+    if [[ -f $LSETUP ]]; then
         DEVSSTS0=" 1 - Planning"
         if [ -z "$devstatus" ]; then
           devstatus=$(if [ -f $LSETUP ]; then echo ""; else echo "$DEVSSTS0"; fi)
@@ -261,7 +261,7 @@ if [ "$opt_cpush" == "-O" ]; then
   exit 0
 fi
 
-if [ "$opt_cpush" == "-D" ]; then
+if [[ "$opt_cpush" == "-D" ]]; then
   # Duplicate files from Odoo package to another Odoo version (same distribution)
   opts_common=
   [ $opt_dry_run -ne 0 ] && opts_common="${opts_common}n"
@@ -379,7 +379,7 @@ if [[ $opt_cpush =~ ^(-C|-P) ]]; then
   exit $STS_SUCCESS
 fi
 check_4_travis
-install_dev
+# install_dev
 if [ "$PRJNAME" != "Odoo" ]; then
   if [ "$PKGNAME" != "$PRJNAME" ]; then
     echo "Warning: package name $PKGNAME and project name $PRJNAME are different!"
@@ -436,8 +436,8 @@ else
   LGITLEV=1
 fi
 robocopy_init "$PRJNAME" "$PKGNAME"
-if [ $opt_fetch -eq 0 ]; then
-  if [ $LGITLEV -gt 0 ]; then
+if [[ $opt_fetch -eq 0 ]]; then
+  if [[ $LGITLEV -gt 0 ]]; then
     for f in $(dir $PKGPATH); do
       robocopy "$PKGPATH/$f" "$LGITPATH"
     done
@@ -446,10 +446,10 @@ if [ $opt_fetch -eq 0 ]; then
       robocopy "$PKGPATH/$f" "$LGITPATH/$f"
     done
   fi
-  if [ ! -f ~/tools/pytok/Makefile ]; then
-    if [ $opt_verbose -gt 0 ]; then echo "$ cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
-    cp /opt/odoo/dev/Makefile ~/tools/pytok
-  fi
+#  if [ ! -f ~/tools/pytok/Makefile ]; then
+#    if [ $opt_verbose -gt 0 ]; then echo "$ cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
+#    cp /opt/odoo/dev/Makefile ~/tools/pytok
+#  fi
   cd $LGITPATH/..
   [ -x install_foreign.sh ] && ./install_foreign.sh
 else

@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.6.1
+__version__=1.0.6
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -45,7 +45,6 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
-    echo "  -Z  reinstall all from zero"
     echo -e "\n(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
@@ -96,20 +95,9 @@ if [[ -z "$SRCPATH" || -z "$DSTPATH" ]]; then
     $0 -h
     exit 1
 fi
-if [[ $opts =~ ^-.*Z ]]; then
-  echo "# Reinstall tools from ZERO!!"
-  run_traced "cd $SRCPATH/.."
-  run_traced "rm -fR $SRCPATH/../tools"
-  run_traced "git clone https://github.com/zeroincombenze/tools.git"
-  [[ ! -d $HOME/tools ]] && echo "ERROR!" && exit 1
-  run_traced "cd $SRCPATH"
-fi
-[[ -f $DSTPATH/activate_tools ]] && m1=$(stat -c %Y $DSTPATH/activate_tools) || m1=0
-m2=$(stat -c %Y $0)
-[[ $m1 -lt $m2 && ! $opts =~ ^-.*f ]] && opts="-f ${opts}"
 if [[ ! $opts =~ ^-.*t ]]; then
     [[ $opts =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
-    [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
+    [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --show-current) != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
 [[ $opts =~ ^-.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."

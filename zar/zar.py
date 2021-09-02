@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
@@ -60,7 +60,7 @@ except ImportError:
 from . import zarlib_new as zarlib
 
 
-__version__ = "1.3.36"
+__version__ = "1.3.35.4"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)

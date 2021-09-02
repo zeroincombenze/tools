@@ -1097,10 +1097,10 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
     [[ $opt_force -ne 0 ]] && md=30 || md=1800
     dt=$(date "+%s")
     for d in $HOME/VENV_*; do
-      if [ "$d" != "$HOME/VENV_*" ]; then
+      if [[ "$d" != "$HOME/VENV_*" ]]; then
         dd=$(stat -c "%Y" $d)
         df=$(($dt - $dd))
-        if [ $df -gt $md ]; then
+        if [[ $df -gt $md ]]; then
           echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
           rm -fR $d
           sfx=$(echo "$d" | grep -Eo "[0-9]+$")
@@ -1126,14 +1126,16 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
       done
     fi
     ((md = 60 * 60 * 24 * 90))
-    for d in $LOGDIR/*; do
-      dd=$(stat -c "%Y" $d)
-      df=$(($dt - $dd))
-      if [[ $df -gt $md ]]; then
-        echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
-        rm -fR $d
-      fi
-    done
+    if [[ -n "$LOGDIR" && -d $LOGDIR ]]; then
+      for d in $LOGDIR/*; do
+        dd=$(stat -c "%Y" $d)
+        df=$(($dt - $dd))
+        if [[ $df -gt $md ]]; then
+          echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
+          rm -fR $d
+        fi
+      done
+    fi
     [[ $done -eq 0 ]] && echo "Nothing to wep"
     exit $STS_SUCCESS
   else
