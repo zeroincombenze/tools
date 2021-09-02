@@ -68,15 +68,16 @@ Setup for test. It is called after all tests.
 
 `Z0BUG_build_os_tree list_of_paths` (bash)
 
-Build a full os tree from supplied list.
+Build a full os tree to test from supplied list.
 If python, list of paths is a list of strings.
 If bash, list is one string of paths separated by spaces.
+
 Function reads list of paths and then create all directories.
 If directory is an absolute path, it is created with the supplied path.
 If directory is a relative path, the directory is created under "tests/res" directory.
 
 Warning!
-To check is made is parent dir does not exit. Please, supply path from parent
+No check is made is parent dir does not exit. Please, supply path from parent
 to children, if you want to build a nested tree.
 
 ::
@@ -136,7 +137,15 @@ This function remove directory and all sub-directories without any control.
 
 `Z0BUG.build_odoo_env(ctx, version)` (python)
 
-Like build_os_tree but create a specific odoo os tree.
+Build a simplified Odoo directory tree to test
+
+version: 14.0, 13.0, ..., 7.0, 6.1
+
+hierarchy: flat,tree,server (def=flat)
+
+Create a root directory of Odoo with addons, odoo-bin/openerp and
+release.py files.
+
 
 ::
 

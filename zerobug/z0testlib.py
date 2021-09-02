@@ -1403,7 +1403,17 @@ class Z0test(object):
         return sts
 
     def build_os_tree(self, ctx, os_tree):
-        """Create a filesytem tree to test
+        """Build a full os tree to test from supplied list.
+
+        os_tree is a list of strings.
+
+        Function reads list of paths and then create all directories.
+        If directory is an absolute path, it is created with the supplied path.
+        If directory is a relative path, the directory is created under "tests/res" directory.
+
+        Warning!
+        No check is made is parent dir does not exit. Please, supply path from parent
+        to children, if you want to build a nested tree.
         """
         root = os.path.join(
             os.path.dirname(ctx.get('this_fqn', './Z0BUG/tests')), 'res')
@@ -1417,7 +1427,17 @@ class Z0test(object):
         return root
  
     def remove_os_tree(self, ctx, os_tree):
-        """Remove a filesytem tree created to test"""
+        """Remove a full os tree created by `build_os_tree`
+
+        os_tree is a list of strings.
+
+        Function reads list of paths and remove all directories.
+        If directory is an absolute path, the supplied path is dropped.
+        If directory is a relative path, the directory is dropped from tests/res directory.
+
+        Warning!
+        This function remove directory and all sub-directories without any control.
+        """
         root = os.path.join(os.path.dirname(ctx['this_fqn']), 'res')
         if not os.path.isdir(root):
             return
@@ -1432,9 +1452,14 @@ class Z0test(object):
 class Z0testOdoo(object):
 
     def build_odoo_env(self, ctx, version, hierarchy=None):
-        """Build a simplified Odoo directory tree
+        """Build a simplified Odoo directory tree to test
+
         version: 14.0, 13.0, ..., 7.0, 6.1
+
         hierarchy: flat,tree,server (def=flat)
+
+        Create a root directory of Odoo with addons, odoo-bin/openerp and
+        release.py files.
         """
         if version in ('10.0', '11.0', '12.0', '13.0', '14.0'):
             if hierarchy == 'tree':
