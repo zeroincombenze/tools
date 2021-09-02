@@ -321,6 +321,11 @@ Current development version
 History
 -------
 
+0.3.31.3 (2021-09-01)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo.py with python3 due wrong jsoblib dependency
+
 0.3.31.2 (2021-08-31)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -378,14 +383,6 @@ History
 
 [IMP] transodoo.py: data file csv replaced by xlsx (by openpyxl)
 [IMP] transodoo.py: removed edit and write actions
-
-0.3.31.10 (2021-07-28)
-~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] manage_odoo: action travis and test
-* [IMP] manage_odoo: action amend
-* [IMP] odoorc: disable execution trace
-* [FIX] odoorc: license recognition from manifest
 
 
 

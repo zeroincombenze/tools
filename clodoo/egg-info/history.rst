@@ -1,3 +1,8 @@
+0.3.31.3 (2021-09-01)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo.py with python3 due wrong jsoblib dependency
+
 0.3.31.2 (2021-08-31)
 ~~~~~~~~~~~~~~~~~~~~~
 
