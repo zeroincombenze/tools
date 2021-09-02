@@ -1,5 +1,5 @@
 # flake8: noqa
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import csv
 from import_products import (init_n_connect, add_elem)

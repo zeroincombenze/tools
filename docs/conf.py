@@ -25,9 +25,9 @@ copyright = '2021, SHS-AV s.r.l.'
 author = 'SHS-AV s.r.l.'
 
 # The short X.Y version
-version = '1.0.5.45'
+version = '1.0.5.46'
 # The full version, including alpha/beta/rc tags
-release = '1.0.5.45'
+release = '1.0.5.46'
 
 
 # -- General configuration ---------------------------------------------------

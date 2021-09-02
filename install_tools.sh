@@ -234,12 +234,6 @@ PYTHON3=""
 [[ -x $DSTPATH/venv/bin/python3 ]] && PYTHON3=$DSTPATH/venv/bin/python3
 
 path="$DSTPATH/*"
-[[ $opts =~ ^-.*[fU] && -d $DSTPATH/venv ]] && path=$(find $SRCPATH \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
-for f in $path; do
-    grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f" && chmod +x $f
-    grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && chmod +x $f
-    grep -q "^#\!.*/bin.*python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $f" && chmod +x $f
-done
 if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
     # Please do not change package list order
     for pkg in configparser odoorpc oerplib babel jsonlib lxml unidecode openpyxl pyyaml z0lib zerobug clodoo; do
@@ -249,6 +243,12 @@ if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
     x=$(vem $DSTPATH/venv info clodoo|grep -E "Location"|cut -d' ' -f2)/clodoo
     [[ -d $x ]] && run_traced "ln -s $x $DSTPATH/clodoo"
 fi
+[[ $opts =~ ^-.*[fU] && -d $DSTPATH/venv ]] && path=$(find $DSTPATH/venv \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
+for f in $path; do
+    grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f" && chmod +x $f
+    grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && chmod +x $f
+    grep -q "^#\!.*/bin.*python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $f" && chmod +x $f
+done
 
 if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*D ]]; then
     mkdir -p $HOME_DEV/pypi
@@ -263,7 +263,7 @@ if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
 fi
 [[ $opts =~ ^-.*T ]] && $DSTPATH/test_tools.sh
 [[ $opts =~ ^-.*U && -f $DSTPATH/egg-info/history.rst ]] && tail $DSTPATH/egg-info/history.rst
-if [[ ! $opts =~ ^-.*[gt] ]]; then
+if [[ ! $opts =~ ^-.*[gtT] ]]; then
   [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
   for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
     run_traced "cp $SRCPATH/wok_code/pre-commit $d/hooks"

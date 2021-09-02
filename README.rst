@@ -240,6 +240,12 @@ wok_code: 1.0.2.1.1 (2021-09-01)
 
 
 
+clodoo: 0.3.31.3 (2021-09-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo.py with python3 due wrong jsoblib dependency
+
+
 wok_code: 1.0.2.1 (2021-08-31)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
