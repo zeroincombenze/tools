@@ -188,6 +188,21 @@ for fn in $FILES_2_DELETE; do
     fi
 done
 
+PYTHON=""
+PYTHON3=""
+[[ -x $DSTPATH/venv/bin/python ]] && PYTHON=$DSTPATH/venv/bin/python
+[[ -x $DSTPATH/venv/bin/python2 ]] && PYTHON=$DSTPATH/venv/bin/python2
+[[ -x $DSTPATH/venv/bin/python3 ]] && PYTHON3=$DSTPATH/venv/bin/python3
+
+# [[ $opts =~ ^-.*[fU] && -d $DSTPATH ]] && path=$(find $DSTPATH \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
+if [[ $opts =~ ^-.*[fU] && -d $DSTPATH ]]; then
+  for f in $DSTPATH/*; do
+      grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f" && chmod +x $f
+      grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && chmod +x $f
+      grep -q "^#\!.*/bin.*python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $f" && chmod +x $f
+  done
+fi
+
 if [[ ! $opts =~ ^-.*n ]]; then
     echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
     echo "[[ -f $DSTPATH/venv/bin/activate ]] && export PATH=\$PATH:$DSTPATH/venv/bin">$DSTPATH/activate_tools
@@ -227,11 +242,6 @@ if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
     [[ $? -ne 0 ]] && echo "# Error creating Tools virtual environment!" && exit 1
 fi
 [[ $PATH =~ $DSTPATH/venv/bin ]] || export PATH="$DSTPATH/venv/bin:$PATH"
-PYTHON=""
-PYTHON3=""
-[[ -x $DSTPATH/venv/bin/python ]] && PYTHON=$DSTPATH/venv/bin/python
-[[ -x $DSTPATH/venv/bin/python2 ]] && PYTHON=$DSTPATH/venv/bin/python2
-[[ -x $DSTPATH/venv/bin/python3 ]] && PYTHON3=$DSTPATH/venv/bin/python3
 
 path="$DSTPATH/*"
 if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
@@ -243,12 +253,6 @@ if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
     x=$(vem $DSTPATH/venv info clodoo|grep -E "Location"|cut -d' ' -f2)/clodoo
     [[ -d $x ]] && run_traced "ln -s $x $DSTPATH/clodoo"
 fi
-[[ $opts =~ ^-.*[fU] && -d $DSTPATH/venv ]] && path=$(find $DSTPATH/venv \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
-for f in $path; do
-    grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f" && chmod +x $f
-    grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && chmod +x $f
-    grep -q "^#\!.*/bin.*python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $f" && chmod +x $f
-done
 
 if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*D ]]; then
     mkdir -p $HOME_DEV/pypi
