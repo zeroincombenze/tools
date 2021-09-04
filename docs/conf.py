@@ -13,16 +13,16 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
-import sphinx_rtd_theme
+import sys
+# sys.path.insert(0, os.path.abspath('../'))
+# import sphinx_rtd_theme
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'tools'
-copyright = '2021, SHS-AV s.r.l.'
-author = 'SHS-AV s.r.l.'
+copyright = '2019-21, SHS-AV s.r.l.'
+author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
 version = '1.0.5.46'
@@ -43,6 +43,8 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
 ]
 
 
@@ -81,7 +83,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'maturity*', 'module_name*', 'repos_name*',
                     'today*',
                     'authors*', 'contributors*', 'translators*',
-                    'acknowledges*']
+                    'acknowledges*',
+                    'MAINPAGE.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 # pygments_style = None
@@ -96,6 +99,8 @@ pygments_style = 'sphinx'
 # on_rtd is whether we are on readthedocs.org,
 # this line of code grabbed from docs.readthedocs.org
 #     html_theme = 'master'
+# html_theme = 'python_docs_theme'
+html_theme = 'nature'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

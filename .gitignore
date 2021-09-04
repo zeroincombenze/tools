@@ -1,29 +1,55 @@
+# [antoniov: 2021-09-04]
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-
+*.a
+*.obj
+*.exe
 # C extensions
+*.o
 *.so
-
 # Temporay files
 *.log
 *.bak
 *.out
-*.conf
 *~
+.tmp
+.tracehis
+.tracehistory
+test*.pdf
+tmp.*
+# sphinx build directories
+_build/
+_static/
+_template/
+latex/
+html/
+# setup.py egg_info
+*.egg-info
 build/
 dist/
+# dotfiles
+.*
+!.gitignore
+!.mailmap
+# coverage tests
+*.conf
 conf/
 cover/
 **/.coverage
-latex/
-html/
-stdout.log
-oca__*
-z0i__*
-*.oca
-*.z0i
-.gitrepname
+# vcs files
+.orig
+.swp
+__old_*
+status
+.bzr/
+.svn/
+.hg/
+.fslckout
+.osc
+#
+# Specific files
+#
 example_*
 import_partner*
 *_doc.txt

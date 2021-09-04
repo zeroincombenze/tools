@@ -18,7 +18,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.2.1"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -960,14 +960,16 @@ class Z0test(object):
 
     def test_version(self, ctx, testname):
         """testname format is '__version_T_VVVVFILE' where:
-            T: type - May be:
-                   'V' = exec 'testfile -V'
-                   'v' = exec 'testfile -v'
-                   'P' = exec 'testfile --version'
-                   '1' = use VVVV
-                   '0' = use internal value __version__
-            VVVV: version - Version to match (must be {0-9.}+)
-            FILE: pathfile to execute to match version (macro expanded)
+        T: type - May be:
+
+               'V' = exec 'testfile -V'
+               'v' = exec 'testfile -v'
+               'P' = exec 'testfile --version'
+               '1' = use VVVV
+               '0' = use internal value __version__
+
+        VVVV: version - Version to match (must be {0-9.}+)
+        FILE: pathfile to execute to match version (macro expanded)
         """
         if ctx['dry_run']:
             ctx['ctr'] = 1
@@ -1233,11 +1235,13 @@ class Z0test(object):
 
     def main(self, ctx=None, Test=None, UT1=None, UT=None):
         """Default main program for test execution
-        ctx: context
-        Test: test class for internal tests;
-              if supplied only internal tests are executed
-        UT1: protected Unit Test list (w/o log)
-        UT: Unit Test list (if None, search for files)
+
+        Args:
+            ctx (str): context
+            Test (object): test class for internal tests;
+                           if supplied only internal tests are executed
+            UT1 (list): protected Unit Test list (w/o log)
+            UT (list): Unit Test list (if None, search for files)
         """
         if ctx is None:
             ctx = self.ctx
@@ -1452,22 +1456,23 @@ class Z0test(object):
 class Z0testOdoo(object):
 
     def build_odoo_env(self, ctx, version, hierarchy=None):
-        """Build a simplified Odoo directory tree to test
+        """Build a simplified Odoo directory tree to test.
+        The path contains addons, odoo-bin/openerp and release.py files.
 
-        version: 14.0, 13.0, ..., 7.0, 6.1
+        Args:
+            version (str): 14.0, 13.0, ..., 7.0, 6.1
+            hierarchy (str): flat,tree,server, default 'flat'
 
-        hierarchy: flat,tree,server (def=flat)
-
-        Create a root directory of Odoo with addons, odoo-bin/openerp and
-        release.py files.
+        Returns:
+            str: parent path of Odoo filesystem
         """
-        if version in ('10.0', '11.0', '12.0', '13.0', '14.0'):
+        if version in ('14.0', '12.0', '10.0', '13.0', '11.0'):
             if hierarchy == 'tree':
                 odoo_home = os.path.join(version, 'odoo', 'odoo')
             else:
                 odoo_home = os.path.join(version, 'odoo')
             script = 'odoo-bin'
-        elif version in ('6.1', '7.0', '8.0', '9.0'):
+        elif version in ('7.0', '8.0', '6.1', '9.0'):
             if hierarchy == 'server':
                 odoo_home = os.path.join(version, 'server', 'openerp')
             else:
@@ -1497,6 +1502,67 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
         with open(os.path.join(root, version, script), 'w') as fd:
             fd.write('\n')
         return root
+
+    def build_odoo_repos(self, ctx, root, version, repos):
+        """Create a repository directory repos under Odoo root,
+        returned by `build_odoo_env` function with ret_home.
+
+        Args:
+            root (str): root filesystem (returned by `build_odoo_env')
+            version (str): 14.0, 13.0, ..., 7.0, 6.1
+            repos (str): repository name
+
+        Returns:
+            str: path of repository
+        """
+        if not os.path.isdir(root):
+            raise KeyError('Not Odoo root')
+        repos_dir = os.path.join(root, version, repos)
+        if not os.path.isdir(repos_dir):
+            Z0test().build_os_tree(ctx, [repos_dir])
+        readme_file = os.path.join(repos_dir, 'README.rst')
+        with open(readme_file, 'wb') as fd:
+            fd.write('%s\n%s\n' % (repos, '-' * len(repos)))
+        return repos_dir
+
+    def build_odoo_module(self, ctx, repos_dir, module_name, manifest):
+        """Create an Odoo module tree under repos_dir
+        returned by build_odoo_repos.
+        File manifest is filled with data passed.
+        No file are added to Odoo tree.
+
+        Args:
+            repos_dir (str): repository path
+            module_name (str): module name
+            manifest (dict): manifest contents
+
+        Returns:
+            str: Filesystem path of module
+        """
+        if not os.path.isdir(repos_dir):
+            raise KeyError('Not Odoo repository path!')
+        if not isinstance(manifest, dict):
+            raise KeyError('Invalid manifest contents!')
+        for version in ('14.0', '12.0', '10.0', '13.0', '11.0',
+                        '7.0', '8.0', '6.1', '9.0'):
+            if version in repos_dir:
+                break
+        module_dir = os.path.join(repos_dir, module_name)
+        if not os.path.isdir(module_dir):
+            Z0test().build_os_tree(ctx, [module_dir])
+        if version in ('7.0', '8.0', '6.1', '9.0'):
+            manifest_name = '__openerp__.py'
+        else:
+            manifest_name = '__manifest__.py'
+        if 'name' not in manifest:
+            manifest['name'] = module_name
+        manifest_file = os.path.join(module_dir, manifest_name)
+        with open(manifest_file, 'wb') as fd:
+            fd.write(str(manifest))
+        init_file = os.path.join(module_dir, '__init__.py')
+        with open(init_file, 'wb') as fd:
+            fd.write('# Just for module example')
+        return module_dir
 
     def real_git_clone(self, remote, reponame, branch, odoo_path):
         odoo_url = 'https://github.com/%s/%s.git' % (remote, reponame)

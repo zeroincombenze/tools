@@ -1,3 +1,8 @@
+1.0.2.1 (2021-09-04)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] z0testlib.py: new functions to create Odoo repository and module tree
+
 1.0.1.4 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 

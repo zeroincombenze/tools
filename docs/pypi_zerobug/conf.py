@@ -12,22 +12,22 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+# sys.path.insert(0, os.path.abspath('../'))
 # import sphinx_rtd_theme
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'zerobug'
-copyright = '2019-20, SHS-AV s.r.l.'
+copyright = '2019-21, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '1.0.2'
+version = '1.0.2.1'
 # The full version, including alpha/beta/rc tags
-release = '1.0.2'
+release = '1.0.2.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -45,6 +45,7 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.napoleon',
 ]
 
 
@@ -143,6 +144,6 @@ html_logo = 'logozero_180x46.png'
 autosummary_generate = True
 autodoc_default_options = {
     'members': 'Z0test, Z0testOdoo',
-    'undoc-members': True,
+    'undoc-members': True,                      # No function w/o docstring
     'exclude-members': 'Macro, SanityTest'
 }

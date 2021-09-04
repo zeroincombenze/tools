@@ -1,20 +1,96 @@
 .. tools documentation master file, created by
-   sphinx-quickstart on 2021-09-02 15:17:26
+   gen_readme.py on 2020-06-27 18:01:25
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-===========================================
-Welcome to tools 1.0.5.46 documentation!
-===========================================
+==========================================
+Multi-purpose python & bash tools 1.0.5.41
+==========================================
 
-|Maturity| |Build Status| |Coverage Status| |license gpl|
+Overview
+========
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-.. include:: MAINPAGE.rst
+   rtd_description
+   rtd_description_structure
+   rtd_description_vid
+   rtd_installation
+   rtd_upgrade
 
+
+Wok code
+========
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_wok_code/index
+
+
+Python plus
+===========
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_python_plus/index
+
+
+Odoo supercore
+==============
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_odoo_score/index
+
+
+Clodoo
+======
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_clodoo/index
+
+
+Travis Emulator
+===============
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_travis_emulator/index
+
+
+Z0bug_odoo
+==========
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_z0bug_odoo/index
+
+
+Zerobug
+=======
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pypi_zerobug/index
+
+.. include: readme_footer
 
 Indices and tables
 ==================

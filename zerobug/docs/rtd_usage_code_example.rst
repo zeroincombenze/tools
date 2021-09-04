@@ -97,15 +97,15 @@ This function remove directory and all sub-directories without any control.
 
 `Z0BUG.build_odoo_env(ctx, version)` (python)
 
-Build a simplified Odoo directory tree to test
+Build a simplified Odoo directory tree to test.
+The path contains addons, odoo-bin/openerp and release.py files.
 
-version: 14.0, 13.0, ..., 7.0, 6.1
+Args:
+    version (str): 14.0, 13.0, ..., 7.0, 6.1
+    hierarchy (str): flat,tree,server, default 'flat'
 
-hierarchy: flat,tree,server (def=flat)
-
-Create a root directory of Odoo with addons, odoo-bin/openerp and
-release.py files.
-
+Returns:
+    str:  Filesystem root of Odoo
 
 ::
 
@@ -119,6 +119,38 @@ release.py files.
 
         def test_01(self, ctx):
             root = Z0testOdoo.build_odoo_env(ctx, '10.0')
+
+|
+
+`Z0BUG.build_odoo_repos(self, ctx, root, repos)` (python)
+
+Create a repository directory repos under Odoo root,
+returned by `build_odoo_env` function with ret_home.
+
+Args:
+    root (str): root filesystem (returned by `build_odoo_env')
+    version (str): 14.0, 13.0, ..., 7.0, 6.1
+    repos (str): repository name
+
+Returns:
+    str: path of repository
+
+|
+
+`Z0BUG.build_odoo_module(self, ctx, repos_dir, module_name, manifest):` (python)
+
+Create an Odoo module tree under repos_dir
+returned by build_odoo_repos.
+File manifest is filled with data passed.
+No file are added to Odoo tree.
+
+Args:
+    repos_dir (str): repository path
+    module_name (str): module name
+    manifest (dict): manifest contents
+
+Returns:
+    str: parent path of Odoo filesystem
 
 |
 
@@ -152,7 +184,7 @@ Return odoo root directory
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-03
+Last Update / Ultimo aggiornamento: 2021-09-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

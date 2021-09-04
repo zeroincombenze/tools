@@ -63,7 +63,7 @@
 # (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.2
+__version__=1.0.2.1
 
 export opt_dry_run
 export ctr
@@ -684,6 +684,7 @@ Z0BUG_remove_os_tree() {
 
 
 Z0BUG_build_odoo_env() {
+    # build_odoo_env(odoo_vid hierarchy)
     local odoo_home os_tree script h v w x y path
     local odoo_vid=$1
     local hy=$2

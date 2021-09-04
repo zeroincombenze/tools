@@ -28,15 +28,16 @@ Setup for test. It is called after all tests.
 
 `Z0BUG_build_os_tree list_of_paths` (bash)
 
-Build a full os tree from supplied list.
+Build a full os tree to test from supplied list.
 If python, list of paths is a list of strings.
 If bash, list is one string of paths separated by spaces.
+
 Function reads list of paths and then create all directories.
 If directory is an absolute path, it is created with the supplied path.
 If directory is a relative path, the directory is created under "tests/res" directory.
 
 Warning!
-To check is made is parent dir does not exit. Please, supply path from parent
+No check is made is parent dir does not exit. Please, supply path from parent
 to children, if you want to build a nested tree.
 
 ::
@@ -96,7 +97,15 @@ This function remove directory and all sub-directories without any control.
 
 `Z0BUG.build_odoo_env(ctx, version)` (python)
 
-Like build_os_tree but create a specific odoo os tree.
+Build a simplified Odoo directory tree to test.
+The path contains addons, odoo-bin/openerp and release.py files.
+
+Args:
+    version (str): 14.0, 13.0, ..., 7.0, 6.1
+    hierarchy (str): flat,tree,server, default 'flat'
+
+Returns:
+    str:  Filesystem root of Odoo
 
 ::
 
@@ -110,6 +119,38 @@ Like build_os_tree but create a specific odoo os tree.
 
         def test_01(self, ctx):
             root = Z0testOdoo.build_odoo_env(ctx, '10.0')
+
+|
+
+`Z0BUG.build_odoo_repos(self, ctx, root, repos)` (python)
+
+Create a repository directory repos under Odoo root,
+returned by `build_odoo_env` function with ret_home.
+
+Args:
+    root (str): root filesystem (returned by `build_odoo_env')
+    version (str): 14.0, 13.0, ..., 7.0, 6.1
+    repos (str): repository name
+
+Returns:
+    str: path of repository
+
+|
+
+`Z0BUG.build_odoo_module(self, ctx, repos_dir, module_name, manifest):` (python)
+
+Create an Odoo module tree under repos_dir
+returned by build_odoo_repos.
+File manifest is filled with data passed.
+No file are added to Odoo tree.
+
+Args:
+    repos_dir (str): repository path
+    module_name (str): module name
+    manifest (dict): manifest contents
+
+Returns:
+    str: parent path of Odoo filesystem
 
 |
 
@@ -143,7 +184,7 @@ Return odoo root directory
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-31
+Last Update / Ultimo aggiornamento: 2021-09-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

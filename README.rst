@@ -231,10 +231,16 @@ Current development version
 History
 -------
 
+zerobug: 1.0.2.1 (2021-09-04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] z0testlib.py: new functions to create Odoo repository and module tree
+
+
 lisa: 0.3.2.1 (2021-09-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] lisa_bld: value form config file
+[IMP] lisa_bld: value from config file
 
 
 wok_code: 1.0.2.2.2 (2021-09-02)
