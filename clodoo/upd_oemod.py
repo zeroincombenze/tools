@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 
 # import pdb
@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.3.34.4"
+__version__ = "0.3.34.5"
 
 
 def initialize_params(ctx):

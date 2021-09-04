@@ -46,7 +46,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.2.1
+__version__=1.0.2.2
 
 vf_init() {
   VF_IGNORE="$(get_cfg_value 0 filedel)"
@@ -108,25 +108,32 @@ exec_os() {
     local right=$2
   fi
   if [[ -d "$left" ]]; then
-    if [ $opt_all -gt 0 ]; then
+    if [[ $opt_all -gt 0 ]]; then
       opts=" -Zqr"
     else
       opts="$XLDF -ZBqr"
     fi
     [[ $opt_igns -gt 0 ]] && opts="${opts}Eb"
     [[ $opt_ignas -gt 0 ]] && opts="${opts}w"
-    [[ $opt_md -ne 0 ]] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
-    [[ $opt_md -ne 0 ]] && opts="$opts -x '*.po' -x '*.pot'"
+    [[ $opt_md -gt 0 ]] && opts="$opts -I '^#'"
+    [[ -n $opt_ign ]] && opts="$opts -I '$opt_ign'"
+    [[ $opt_md -gt 1 ]] && opts="$opts -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    [[ $opt_md -gt 1 ]] && opts="$opts -I \"^ *[_\\\"']\?_\?release[_\\\"']\?_\? *[:=]\""
+    [[ $opt_md -gt 1 ]] && opts="$opts -x '*.po' -x '*.pot'"
   else
     opts=" -ZB"
     [[ $opt_para -ne 0 ]] && opts="${opts}y"
     [[ $opt_igns -gt 0 ]] && opts="${opts}Eb"
     [[ $opt_ignas -gt 0 ]] && opts="${opts}w"
-    [[ $opt_md -ne 0 ]] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    [[ $opt_md -gt 0 ]] && opts="$opts -I '^#'"
+    [[ -n $opt_ign ]] && opts="$opts -I '$opt_ign'"
+    [[ $opt_md -gt 1 ]] && opts="$opts -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    [[ $opt_md -gt 1 ]] && opts="$opts -I \"^ *[_\\\"']\?_\?release[_\\\"']\?_\? *[:=]\""
     [[ $opt_diffe -ne 0 ]] && opts="$opts  --suppress-common-line"
   fi
   if [[ $opt_dcmd == "meld" ]]; then
     if [[ -d "$left" ]]; then
+      [[ $opt_verbose -gt 1 ]] && echo "# LANG=en_US diff $opts $left $right"
       for ln in $(eval "LANG=en_US diff $opts $left $right" | grep ^Files | awk '{print $2 "|" $4}'); do
         l=$(echo $ln | awk -F"|" '{print $1}')
         r=$(echo $ln | awk -F"|" '{print $2}')
@@ -209,7 +216,7 @@ exec_iar() {
       if [ -f $right ]; then
         if [[ "$left" =~ $opt_sel ]]; then
           local mime=$(file -b --mime-type $left)
-          if [ $opt_md -ne 0 -a "$mime" == "text/x-python" -o "${left: -3}" == ".py" ]; then
+          if [[ $opt_md -ne 0 && "$mime" == "text/x-python" || "${left: -3}" == ".py" ]]; then
             run_traced "diff -ZBI'^#' $cparv $left $right"
           else
             run_traced "diff $cparv $left $right"
@@ -284,19 +291,20 @@ get_path() {
   fi
 }
 
-OPTOPTS=(h        a       b        c        e         i       G        m      n            O         p         q           r            R        V           v           w         X        y        0       1       2)
-OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_org  opt_md opt_dry_run  odoo_ver  opt_pkg   opt_verbose opt_repo     opt_reve opt_version opt_verbose opt_ignas opt_dcmd opt_para opt_sts opt_sts opt_2nd)
-OPTACTI=(1        1       1        "="      1         1       "="      1      1            "="       "="       0           "="          1        "*>"        1           1         "="      1        0       1       1)
-OPTDEFL=(0        0       0        ""       0         0       ""       0      0            ""        ""        -1          ""           0        ""          -1          0         ""       0        0       0       0)
-OPTMETA=("help"   ""      ""       "file"   ""        ""      "gitorg" ""     "do nothing" "version" "package" ""          "repository" ""       "version"   "verbose"   ""        "cmd"    ""       ""      ""      "")
+OPTOPTS=(h        a       b        c        e         i       I       G        m      n            O         p         q           r            R        V           v           w         X        y        0       1       2)
+OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_ign opt_org  opt_md opt_dry_run  odoo_ver  opt_pkg   opt_verbose opt_repo     opt_reve opt_version opt_verbose opt_ignas opt_dcmd opt_para opt_sts opt_sts opt_2nd)
+OPTACTI=(1        1       1        "="      1         1       "="     "="      "+"    1            "="       "="       0           "="          1        "*>"        "+"         1         "="      1        0       1       1)
+OPTDEFL=(0        0       0        ""       0         0       ""      ""       0      0            ""        ""        -1          ""           0        ""          -1          0         ""       0        0       0       0)
+OPTMETA=("help"   ""      ""       "file"   ""        ""      "regex" "gitorg" ""     "do nothing" "version" "package" ""          "repository" ""       "version"   "verbose"   ""        "cmd"    ""       ""      ""      "")
 OPTHELP=("this help"\
   "diff all files (ignore exclusion list)"
   "ignore space differences"
   "configuration file (def ~/dev/.travis.conf)"
   "side by side (only differences)"
   "use internal algorithm (deprecated)"
+  "ignore lines match regex"
   "git organization: may be zero,oca or powerp"
-  "ignore minor difference (i.e. remarks)"
+  "ignore minor diff (-m: hashbang and remark, -mm: version)"
   "do nothing (dry-run)"
   "select target Odoo version (may be 7, 8, 9 o 10)"
   "select package name"

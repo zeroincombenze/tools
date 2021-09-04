@@ -707,9 +707,10 @@ venv_mgr_check_src_path() {
 }
 
 check_4_needing_pkgs() {
-  local p x
+  local p pkg x
   [[ ! $NEEDING_PKGS =~ clodoo && ( -n "$opt_oepath" || -n "$opt_oever" ) ]] && NEEDING_PKGS="$NEEDING_PKGS clodoo"
-  for p in $NEEDING_PKGS; do
+  for pkg in $NEEDING_PKGS; do
+    p="$(get_actual_pkg $pkg)"
     x=${p^^}
     eval $x=$($PIP show $p 2>/dev/null | grep "Version" | grep -Eo "[0-9.]+")
   done

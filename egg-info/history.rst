@@ -1,4 +1,35 @@
-wok_code: 1.0.2.1.1 (2021-09-01)
+lisa: 0.3.2.1 (2021-09-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] lisa_bld: value form config file
+
+
+wok_code: 1.0.2.2.2 (2021-09-02)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] gen_readme.py: setup with more import lines
+
+
+
+python_plus: 1.0.2.1 (2021-09-02)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: create python3 (due jsonlib)
+
+
+odoo_score: 1.0.2.2 (2021-09-02)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] run_odoo_debug: manage http_port instead of xmlrcp_port
+
+
+clodoo: 0.3.31.5 (2021-09-02)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo.py with python3 due wrong jsoblib dependency
+
+
+wok_code: 1.0.2.2.1 (2021-09-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please replace: set generic python in executable files
@@ -7,13 +38,7 @@ wok_code: 1.0.2.1.1 (2021-09-01)
 
 
 
-clodoo: 0.3.31.3 (2021-09-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo.py with python3 due wrong jsoblib dependency
-
-
-wok_code: 1.0.2.1 (2021-08-31)
+wok_code: 1.0.2.2 (2021-08-31)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] gen_readme.py: search for authors in current README
@@ -25,7 +50,7 @@ clodoo: 0.3.31.2 (2021-08-31)
 * [IMP] odoorc: it does not use <git branch --show-current>
 
 
-wok_code: 1.0.2.1 (2021-08-30)
+wok_code: 1.0.2.2 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] cvt_csv_coa.py: new command to manage Odoo CoA
@@ -57,7 +82,7 @@ z0bug_odoo: 1.0.4.3 (2021-08-26)
 * [IMP] travis_run_test: new command testdeps
 
 
-wok_code: 1.0.2.1 (2021-08-26)
+wok_code: 1.0.2.2 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: action docs shows recent history
@@ -138,7 +163,7 @@ clodoo: 0.3.31.14 (2021-08-09)
 [FIX] odoo_install_repository: run in osx darwin
 
 
-wok_code: 1.0.2.1 (2021-08-08)
+wok_code: 1.0.2.2 (2021-08-08)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: changed the syntax of som actions
@@ -158,7 +183,7 @@ z0bug_odoo: 1.0.3.2 (2021-08-05)
 * [IMP] test data update
 
 
-wok_code: 1.0.2.1 (2021-08-05)
+wok_code: 1.0.2.2 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [REF] Merged and renamed to wok_code
@@ -178,14 +203,14 @@ clodoo: 0.3.31.13 (2021-08-05)
 
 
 
-wok_code: 1.0.2.1 (2021-08-04)
+wok_code: 1.0.2.2 (2021-08-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
 
 
-wok_code: 1.0.2.1 (2021-08-03)
+wok_code: 1.0.2.2 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: parameter error
@@ -210,7 +235,7 @@ z0bug_odoo: 1.0.3 (2021-07-29)
 * [IMP] new test data
 
 
-wok_code: 1.0.2.1 (2021-07-29)
+wok_code: 1.0.2.2 (2021-07-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
@@ -230,7 +255,7 @@ odoo_score: 1.0.1.3 (2021-07-23)
 [IMP] odoo_shell.py: removed old code
 
 
-wok_code: 1.0.2.1 (2021-07-21)
+wok_code: 1.0.2.2 (2021-07-21)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: ignore setup directories

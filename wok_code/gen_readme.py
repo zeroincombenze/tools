@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 #  -*- coding: utf-8 -*-
 """
 Documentation generator
@@ -110,7 +110,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.2.1"
+__version__ = "1.0.2.2"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -1242,11 +1242,6 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
     return parse_source(ctx, source, state=state)
 
 
-def setup(**kwargs):
-    for kw in kwargs:
-        print(kw)
-
-
 def read_manifest_file(ctx, manifest_path, force_version=None):
     try:
         manifest = ast.literal_eval(open(manifest_path).read())
@@ -1258,6 +1253,9 @@ def read_manifest_file(ctx, manifest_path, force_version=None):
 
 
 def read_setup(ctx):
+
+    def eval_setup(**kwargs):
+        ctx['manifest'] = kwargs
 
     def read_history(ctx, full_fn, module=None):
         if module:
@@ -1284,10 +1282,11 @@ def read_setup(ctx):
             break
         manifest_filename = ''
     if manifest_filename:
-        fd = open(manifest_filename, 'rU')
-        ctx['manifest'] = eval('\n'.join(
-            os0.u(fd.read()).split('\n')[1:]).replace('setup', 'dict'))
-        fd.close()
+        with open(manifest_filename, 'rU') as fd:
+            exec(fd.read().replace(
+                'setup(', 'eval_setup(').replace(
+                'setup (', 'eval_setup('),
+                 globals(), locals())
         ctx['manifest_filename'] = manifest_filename
     else:
         if not ctx['suppress_warning']:

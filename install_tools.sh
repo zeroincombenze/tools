@@ -196,11 +196,12 @@ PYTHON3=""
 
 # [[ $opts =~ ^-.*[fU] && -d $DSTPATH ]] && path=$(find $DSTPATH \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
 if [[ $opts =~ ^-.*[fU] && -d $DSTPATH ]]; then
-  for f in $DSTPATH/*; do
-      grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f" && chmod +x $f
-      grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && chmod +x $f
-      grep -q "^#\!.*/bin.*python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $f" && chmod +x $f
-  done
+    for f in $DSTPATH/*; do
+        t=$(file -b --mime-type $f)
+        [[ $t != "application/x-sharedlib" ]] && grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f" && chmod +x $f
+        [[ $t != "application/x-sharedlib" ]] && grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && chmod +x $f
+        [[ $t != "application/x-sharedlib" ]] && grep -q "^#\!.*/bin.*python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $f" && chmod +x $f
+    done
 fi
 
 if [[ ! $opts =~ ^-.*n ]]; then

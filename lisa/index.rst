@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to lisa 0.3.2 documentation!
+Welcome to lisa 0.3.2.1 documentation!
 ===========================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|

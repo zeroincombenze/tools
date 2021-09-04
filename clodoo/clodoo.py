@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. (http://www.shs-av.com/)
@@ -212,7 +212,7 @@ except:
 # TMP
 from subprocess import PIPE, Popen
 
-__version__ = "0.3.34.4"
+__version__ = "0.3.34.5"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True

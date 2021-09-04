@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -14,7 +14,7 @@ from zerobug import Z0BUG
 from zerobug import Z0testOdoo
 import license_mgnt
 
-__version__ = "1.0.2.1"
+__version__ = "1.0.2.2"
 
 MODULE_ID = 'devel_tool'
 TEST_FAILED = 1

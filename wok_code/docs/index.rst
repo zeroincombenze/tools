@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to wok_code 1.0.2.1 documentation!
+Welcome to wok_code 1.0.2.2 documentation!
 ===========================================
 
 .. toctree::

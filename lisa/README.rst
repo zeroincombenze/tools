@@ -98,6 +98,11 @@ Current development version
 History
 -------
 
+0.3.2.1 (2021-09-03)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] lisa_bld: value form config file
+
 0.3.1.14 (2021-07-21)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -212,7 +217,7 @@ Last Update / Ultimo aggiornamento: 2021-09-02
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-02
+Last Update / Ultimo aggiornamento: 2021-09-03
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

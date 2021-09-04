@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 #
 # Copyright 2019-2021 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
@@ -20,7 +20,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = '1.0.2.1'
+__version__ = '1.0.2.2'
 
 ROOT_URL = 'https://api.github.com/repos/zeroincombenze/'
 USER_URL = 'https://api.github.com/users/'

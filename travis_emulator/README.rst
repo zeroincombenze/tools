@@ -503,7 +503,7 @@ Last Update / Ultimo aggiornamento: 2021-09-02
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-02
+Last Update / Ultimo aggiornamento: 2021-09-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

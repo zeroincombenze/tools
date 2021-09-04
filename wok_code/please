@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.2.1
+__version__=1.0.2.2
 
 #
 # General Purpose options:
@@ -2576,7 +2576,7 @@ do_register() {
 do_replace() {
   if [[ "$PRJNAME" == "Odoo" ]]; then
     clean_dirs "$1"
-    set_executable
+    [[ $opt_force -ne 0 ]] && set_executable
     if [[ $LGITPATH =~ (oca|zero) ]]; then
       local odoo_fver=$(build_odoo_param FULLVER ".")
       local p=$(build_odoo_param HOME "." "$PKGNAME" "$LGITPATH")
@@ -2598,17 +2598,18 @@ do_replace() {
   else
     # do_distribution_pypi "$@"
     for f in ./*; do
-      [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python3$|^#\!/usr/bin/env python3|\" $f"
-      [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python2|\" $f"
-      [[ ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python|\" $f"
+      t=$(file -b --mime-type $f)
+      [[ $t != "application/x-sharedlib" && ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python3$|^#\!/usr/bin/env python3|\" $f"
+      [[ $t != "application/x-sharedlib" && ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python2|\" $f"
+      [[ $t != "application/x-sharedlib" && ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python|\" $f"
     done
     do_docs
-    set_executable
     [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
     opts=$(inherits_travis_opts "R" "D")
     [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg $opts $1"
     sts=$?
     [[ $(basename $PWD) != "tools" ]] && clean_dirs "$HOME/tools"
+    [[ $opt_force -ne 0 ]] && set_executable
   fi
   return $sts
 }
@@ -2753,10 +2754,10 @@ do_show_status() {
         fi
       done
     else
-      vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
+      vfdiff -m -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
       if [[ $? -ne 0 ]]; then
         x="R"
-        [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg
+        [[ $opt_force -ne 0 ]] && vfdiff -m -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg
       fi
     fi
     [[ $PKGS != "()" && $pkg =~ $PKGS ]] && x="$x G"
@@ -2852,14 +2853,14 @@ do_travis() {
 
 do_version() {
   # do_version(pkg [cur_ver [new_ver]])
-  if [ "$PRJNAME" != "Odoo" ]; then
-    if [ -z "$2" ]; then
+  if [[ "$PRJNAME" != "Odoo" ]]; then
+    if [[ -z "$2" ]]; then
       find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
     else
       local ver_re2=${2//./\\.}
       local ver_re="[^0-9.]$ver_re2($|[^0-9.])"
       local new_ver=$3
-      if [ $opt_dry_run -ne 0 ]; then
+      if [[ $opt_dry_run -ne 0 ]]; then
         echo "find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
       else
         find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;
@@ -2937,10 +2938,11 @@ do_config() {
 
 do_wep() {
   wlog "do_wep '$1' '$2' '$3'"
-  [[ "$PRJNAME" == "Odoo" ]] && PKGPATH=$2 || PKGPATH=$1
-  [[ -z "$PKGPATH" ]] && PKGPATH="."
-  clean_dirs "$PKGPATH"
-  set_executable
+  # [[ "$PRJNAME" == "Odoo" ]] && PKGPATH=$2 || PKGPATH=$1
+  # [[ -z "$PKGPATH" ]] && PKGPATH="."
+  # clean_dirs "$PKGPATH"
+  [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
+  [[ $opt_force -ne 0 ]] && set_executable
   return 0
 }
 
@@ -2954,7 +2956,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"
   "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0"
   "configuration file (def .travis.conf)"
   "date to search in log"
-  "force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro) | full (status)"
+  "force copy (push) | build (publish) | set_exec (wep) | full (status)"
   "execute tests in project dir rather in test dir/old style synchro"
   "keep coverage statistics in annotate test/keep original repository | tests/ in publish"
   "log file name"

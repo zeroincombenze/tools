@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -14,7 +14,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.34.4'
+__version__ = '0.3.34.5'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #

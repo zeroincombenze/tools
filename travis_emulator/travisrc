@@ -4,7 +4,6 @@
 #
 #__version__=1.0.2
 
-# MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -698,6 +697,8 @@ do_chkconfig() {
 }
 
 conf_default() {
+  local file_bckdel file_backup file_meta file_vcs file_bins
+  local file_media file_bindata
   set_cfg_def "loglevel" "-1"
   if [[ -n "$HOSTNAME_DEV" ]]; then
     set_cfg_def "DEV_HOST" "$HOSTNAME_DEV"
@@ -727,8 +728,21 @@ conf_default() {
   set_cfg_def "Environment" "bash"
   set_cfg_def "virtualenv_opts" ""
   set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
-  set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ *~ test*.pdf tmp.* npm-debug.log.* .oca .z0i .oia"
-  set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ html/ .idea/ latex/ .tar .gz .zip __old_* .gitrepname __pycache__/ .local/ .npm/ .gem/ Trash/ VME/ PycharmProjects pycharm*"
+  file_bckdel=".bak *~ .tmp .log .out .tracehis .tracehistory ,cover .coverage test*.pdf tmp.* npm-debug.log.* .oca .z0i .oia .gitrepname"
+  file_backup=".orig .swp .tar .gz .zip __old_*"
+  file_meta=".DS_Store ._* .Spotlight-V100 .Trashes Thumbs.db Desktop.ini .cover/ .coverage/ .conf build/ dist/ conf/ filestore/ html/ .idea/ latex/ __pycache__/ .local/ .npm/ .gem/ Trash/ VME/ PycharmProjects pycharm*"
+  file_vcs="_MTN .bzr/ .svn/ .hg/ .fslckout _FOSSIL_ .fos CVS _darcs .git/ .osc"
+  file_bins=".pyc .a .obj .o .so .la .lib .dll .exe"
+  file_media=".jpg .gif .png .bmp .wav .mp3 .ogg .flac .avi .mpg .xcf .xpm"
+  file_bindata=".xls .xlsx .pickle"
+  set_cfg_def "filedel" "$file_bckdel"
+  set_cfg_def "file_backup" "$file_backup"
+  set_cfg_def "file_meta" "$file_meta"
+  set_cfg_def "file_vcs" "$file_vcs"
+  set_cfg_def "file_bins" "$file_bins"
+  set_cfg_def "file_media" "$file_media"
+  set_cfg_def "file_bindata" "$file_bindata"
+  set_cfg_def "fileignore" "$file_backup $file_meta $file_vcs $file_bins $file_media $file_bindata"
   set_cfg_def "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
   set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
   set_cfg_def "PS_TXT_COLOR" "0;97;40"
@@ -744,6 +758,37 @@ conf_default() {
   set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
   set_cfg_def "PYTHON_MATRIX" "(2.7|3.5|3.6|3.7|3.8)"
   set_cfg_def "LOGDIR" "$HOME/travis_log"
+}
+
+excl_param() {
+  # excl_param(RE|find DEL|DIFF|ALL)
+  local excl fn_ign ft l p x
+  [[ -z "$2" || $2 =~ (ALL) ]] && fn_ign="$fn_ign $(get_cfg_value 0 fileignore)"
+  [[ -z "$2" || $2 =~ (DEL|ALL) ]] && fn_ign="$fn_ign $(get_cfg_value 0 filedel)"
+  [[ -z "$2" || $2 =~ (DIFF|ALL) ]] && fn_ign="$fn_ign $(get_cfg_value 0 filediffignore)"
+  excl=""
+  for x in $fn_ign; do
+    [[ $x =~ .*/$ ]] && ft="d" || ft="f"
+    if [[ $1 == "RE" ]]; then
+      if [[ $ft == "d" ]]; then
+        p="^(.*\\/|)$x"
+      elif [[ $x =~ ^\. ]]; then
+        p="^.*$x\$"
+      else
+        p="${x//*/.*}"
+      fi
+    elif [[ $1 == "find" ]]; then
+      if [[ $ft == "d" ]]; then
+        p="-not -path \"*/$x/*\""
+      elif [[ $x =~ ^\. ]]; then
+        p="-not -name \"*$x\""
+      else
+        p="-not -name \"$x\""
+      fi
+    fi
+    [[ -n "$p" ]] && excl="$excl $p"
+  done
+  echo $excl
 }
 
 expand_path() {
@@ -1441,3 +1486,5 @@ run_server_test() {
   sts=$STS_FAILED
   return $sts
 }
+
+conf_default

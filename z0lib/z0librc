@@ -732,13 +732,9 @@ export -f a_active
 # Parameter $6:
 #    Section (reserved ti future use)
 CFG_set() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
-    # if [[ "$3" =~ "[0123]" ]]; then
+    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local tid=$3
-    # else
-    #   local tid="3"
-    # fi
-    if [ -n "$2" ]; then
+    if [[ -n "$2" ]]; then
       if [ "$4" == "-d" ]; then
         local SFX="__$XU_DISTO"
       elif [ "$4" == "-f" ]; then
@@ -1373,3 +1369,5 @@ parse_URI() {
     echo "$URL"
 }
 export -f parse_URI
+
+CFG_init

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 #  -*- coding: utf-8 -*-
 """usage: cvt_csv_2_xml.py [-h] [-b ODOO_VER] [-i ID_PREFIX] [-j ID_MODE]
                         [-m ODOO_MODEL] [-n] [-q] [-R CVT-RULE] [-V] [-v]
@@ -42,7 +42,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.2.1"
+__version__ = "1.0.2.2"
 
 msg_time = time.time()
 
