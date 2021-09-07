@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='travis_emulator',
-      version='1.0.2',
+      version='1.0.2.1',
       description='Travis CI emulator for local develop environment',
       long_description="""
 Simple emulator to simulate travis-ci operations on local host

@@ -267,6 +267,12 @@ Installation
 Installation
 ------------
 
+Zeroincombenze tools require:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
+* python 2.7, some tools require python 3.6+
+* bash 5.0+
+
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -320,6 +326,11 @@ Current development version
 
 History
 -------
+
+0.3.31.5 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] clodoo.py python2 migration
 
 0.3.31.5 (2021-09-02)
 ~~~~~~~~~~~~~~~~~~~~~
@@ -377,12 +388,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] clodoo.py: first porting with python3
-
-0.3.31.11 (2021-07-30)
-~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] transodoo.py: data file csv replaced by xlsx (by openpyxl)
-[IMP] transodoo.py: removed edit and write actions
 
 
 
@@ -462,6 +467,8 @@ Last Update / Ultimo aggiornamento: 2021-08-31
 :target: https://t.me/axitec_helpdesk
 Last Update / Ultimo aggiornamento: 2021-09-02
 Last Update / Ultimo aggiornamento: 2021-09-03
+Last Update / Ultimo aggiornamento: 2021-09-04
+Last Update / Ultimo aggiornamento: 2021-09-06
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -495,7 +502,7 @@ Last Update / Ultimo aggiornamento: 2021-09-03
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-04
+Last Update / Ultimo aggiornamento: 2021-09-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

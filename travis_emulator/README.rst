@@ -1,6 +1,6 @@
 
 =======================
-travis_emulator 1.0.1.8
+travis_emulator 1.0.2.1
 =======================
 
 
@@ -259,6 +259,12 @@ Installation
 Installation
 ------------
 
+Zeroincombenze tools require:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
+* python 2.7, some tools require python 3.6+
+* bash 5.0+
+
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -324,10 +330,15 @@ Troubleshooting
 History
 -------
 
+1.0.2.1 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: switch -y forces python version
+
 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: clor change
+[IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
 
@@ -387,11 +398,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] travisrc: set_executable
-
-1.0.0.9 (2021-03-15)
-~~~~~~~~~~~~~~~~~~~~
-
-[DOC] Documentation upgrade
 
 
 
@@ -470,6 +476,8 @@ Last Update / Ultimo aggiornamento: 2021-08-31
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
 Last Update / Ultimo aggiornamento: 2021-09-02
+Last Update / Ultimo aggiornamento: 2021-09-04
+Last Update / Ultimo aggiornamento: 2021-09-07
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -503,7 +511,7 @@ Last Update / Ultimo aggiornamento: 2021-09-02
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-04
+Last Update / Ultimo aggiornamento: 2021-09-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

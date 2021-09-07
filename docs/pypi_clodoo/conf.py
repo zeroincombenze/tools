@@ -45,6 +45,7 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.napoleon',
 ]
 
 
@@ -138,3 +139,11 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 html_logo = 'logozero_180x46.png'
+#
+# autodoc_default_flags = ['members']
+# autosummary_generate = True
+# autodoc_default_options = {
+#     'members': 'Z0test, Z0testOdoo',
+#     'undoc-members': True,                      # No function w/o docstring
+#     'exclude-members': 'Macro, SanityTest'
+# }

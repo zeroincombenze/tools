@@ -4,7 +4,10 @@
 Massive operations on Zeroincombenze(R) / Odoo databases
 """
 
-from __future__ import print_function,unicode_literals
+from __future__ import print_function, unicode_literals
+from __future__ import absolute_import
+from __future__ import division
+from python_plus import _u
 import os
 import sys
 import subprocess
@@ -48,7 +51,7 @@ if __name__ == "__main__":
             setup_file = '../setup.py'
         with open(setup_file, 'r') as fd:
             do_copy = False
-            content = unicode(fd.read(), 'utf-8')
+            content = _u(fd.read())
             for line in content.split('\n'):
                 if line.find('version=') >= 0:
                     version = line.split('=')[1].strip()

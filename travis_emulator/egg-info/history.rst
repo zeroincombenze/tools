@@ -1,7 +1,12 @@
+1.0.2.1 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: switch -y forces python version
+
 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: clor change
+[IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
 

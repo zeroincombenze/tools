@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 Usage: get_test_dependencies.py -r|-m|-d|mod|dep -1 path_list [module_list]
 
@@ -19,7 +19,7 @@ from getaddons import (get_modules, get_dependents,
 
 from test_server import get_test_dependencies
 
-__version__ = '1.0.5'
+__version__ = '1.0.5.1'
 
 
 def get_module_list(paths):

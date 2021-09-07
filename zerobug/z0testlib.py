@@ -18,7 +18,7 @@ import glob
 from os0 import os0
 
 
-__version__ = "1.0.2.1"
+__version__ = "1.0.2.2"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1521,7 +1521,7 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
         if not os.path.isdir(repos_dir):
             Z0test().build_os_tree(ctx, [repos_dir])
         readme_file = os.path.join(repos_dir, 'README.rst')
-        with open(readme_file, 'wb') as fd:
+        with open(readme_file, 'w') as fd:
             fd.write('%s\n%s\n' % (repos, '-' * len(repos)))
         return repos_dir
 
@@ -1557,10 +1557,10 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
         if 'name' not in manifest:
             manifest['name'] = module_name
         manifest_file = os.path.join(module_dir, manifest_name)
-        with open(manifest_file, 'wb') as fd:
+        with open(manifest_file, 'w') as fd:
             fd.write(str(manifest))
         init_file = os.path.join(module_dir, '__init__.py')
-        with open(init_file, 'wb') as fd:
+        with open(init_file, 'w') as fd:
             fd.write('# Just for module example')
         return module_dir
 

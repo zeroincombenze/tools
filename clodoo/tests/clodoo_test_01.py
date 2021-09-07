@@ -10,6 +10,7 @@
     Clodoo Regression Test Suite
 """
 from __future__ import print_function, unicode_literals
+from past.builtins import basestring
 
 # import pdb
 # import os.path
@@ -336,7 +337,7 @@ class Oerp():
                            set(self.eval_where(where.pop(0))))
             elif isinstance(cond, (list, tuple)):
                 res = list(set(res) & set(cond))
-            elif isinstance(cond, (int, long, float)):
+            elif isinstance(cond, (int, float)):
                 if id not in res:
                     res.append(cond)
         return res
@@ -664,7 +665,6 @@ class Test():
                     if isinstance(ctx[v], (basestring,
                                            bool,
                                            int,
-                                           long,
                                            float)):
                         sts = self.Z.test_result(z0ctx, msg, ctx[v], res)
 
@@ -672,7 +672,7 @@ class Test():
                     value = "=0-${" + v + "}-9"
                     if isinstance(ctx[v], basestring):
                         tres = "0-" + ctx[v] + "-9"
-                    elif isinstance(ctx[v], (bool, int, long, float)):
+                    elif isinstance(ctx[v], (bool, int, float)):
                         tres = "0-" + str(ctx[v]) + "-9"
                     else:
                         tres = "0--9"

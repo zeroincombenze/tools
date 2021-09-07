@@ -230,6 +230,8 @@ FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)
 +------+------------+------------+---------+--------+------------+----------------------------------------------------------------------------------------------------------------------------------+
 | Test | MINIMAL    | REDUCED    | AVERAGE | NEARBY | OCA        | Note                                                                                                                             |
 +------+------------+------------+---------+--------+------------+----------------------------------------------------------------------------------------------------------------------------------+
+| E117 | |no_check| | |check|    |         |        | |check|    | `expected an indented block (comment) <https://lintlyci.github.io/Flake8Rules/rules/E115.html>`_                                 |
++------+------------+------------+---------+--------+------------+----------------------------------------------------------------------------------------------------------------------------------+
 | E117 | |no_check| | |no_check| |         |        | |no_check| | over-indented                                                                                                                    |
 +------+------------+------------+---------+--------+------------+----------------------------------------------------------------------------------------------------------------------------------+
 | E121 | |no_check| | |no_check| |         |        | |no_check| | `continuation line under-indented for hanging indent <https://lintlyci.github.io/Flake8Rules/rules/E121.html>`_                  |
@@ -1055,6 +1057,11 @@ Current development version
 History
 -------
 
+1.0.4.4 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis level update
+
 1.0.4.3 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -1179,6 +1186,8 @@ Last Update / Ultimo aggiornamento: 2021-09-02
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
+Last Update / Ultimo aggiornamento: 2021-09-04
+Last Update / Ultimo aggiornamento: 2021-09-06
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1212,7 +1221,7 @@ Last Update / Ultimo aggiornamento: 2021-09-02
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-02
+Last Update / Ultimo aggiornamento: 2021-09-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

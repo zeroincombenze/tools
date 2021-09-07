@@ -10,7 +10,16 @@
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 
+from future import standard_library
+standard_library.install_aliases()                                 # noqa: E402
+# from builtins import chr
+# from builtins import str
+# from builtins import *                                           # noqa: F403
+from past.builtins import unicode
 import argparse
 try:
     import ConfigParser
@@ -147,7 +156,7 @@ LX_CFG_B = ('set_passepartout',
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
 LX_OPT_S = ('db_name', 'dbfilter', 'dbg_mode', 'do_sel_action', 'dry_run',
-            'lang',  'with_demo', 'no_fvalidation',  'lgi_user', 'lgi_pwd',
+            'lang', 'with_demo', 'no_fvalidation', 'lgi_user', 'lgi_pwd',
             'logfn', 'quiet_mode', 'xmlrpc_port', 'odoo_vid', 'exit_onerror',
             'data_selection')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
@@ -369,7 +378,8 @@ def default_conf(ctx):
             'ena_inquire': False,
             'no_login': False,
             'TRANSDICT': {}
-    }
+            }
+
 
 def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
     is_bool = is_bool or False
@@ -526,6 +536,7 @@ def fullname_conf(ctx):
         else:
             ctx['conf_fn'] = ','.join(confs)
     return ctx
+
 
 def read_config(ctx):
     """Read both user configuration and local configuration."""

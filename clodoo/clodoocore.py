@@ -8,6 +8,20 @@
 #
 """Clodoo core functions
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+
+from future import standard_library
+standard_library.install_aliases()                                 # noqa: E402
+# from builtins import hex
+# from builtins import str
+from builtins import int
+from past.builtins import basestring
+from builtins import str
+# from builtins import *                                           # noqa: F403
+from past.utils import old_div
 import sys
 import re
 
@@ -109,7 +123,7 @@ def connectL8(ctx):
     """Open connection to Odoo service"""
     odoo = cnx(ctx)
     if not odoo:
-        if ctx['oe_version'] != '*': 
+        if ctx['oe_version'] != '*':
             return u"!Odoo server %s is not running!" % ctx['oe_version']
         if ctx['svc_protocol'] == 'jsonrpc' and sys.version_info[0] == 2:
             ctx['svc_protocol'] = 'xmlrpc'
@@ -124,13 +138,13 @@ def connectL8(ctx):
         except BaseException:
             ctx['server_version'] = odoo.version
     x = re.match(r'[0-9]+\.[0-9]+', ctx['server_version'])
-    if (ctx['oe_version'] != '*' and 
+    if (ctx['oe_version'] != '*' and
             ctx['server_version'][0:x.end()] != ctx['oe_version']):
         return u"!Invalid Odoo Server version: expected %s, found %s!" % \
             (ctx['oe_version'], ctx['server_version'])
     elif ctx['oe_version'] == '*':
         ctx['oe_version'] = ctx['server_version'][0:x.end()]
-    ctx['majver'] = int(ctx['server_version'].split('.')[0])
+    ctx['majver'] = eval(ctx['server_version'].split('.')[0])
     if ctx['majver'] < 10 and ctx['svc_protocol'] == 'jsonrpc':
         ctx['svc_protocol'] = 'xmlrpc'
         return connectL8(ctx)
@@ -212,8 +226,8 @@ def executeL8(ctx, model, action, *args):
                                type='action')
     if ctx['majver'] < 10 and action == 'invoice_open':
         return ctx['odoo_session'].exec_workflow(model,
-                                                action,
-                                                *args)
+                                                 action,
+                                                 *args)
     return ctx['odoo_session'].execute(model,
                                        action,
                                        *args)
@@ -240,7 +254,7 @@ def execute_action_L8(ctx, model, action, ids):
                           ids)
                 ids = ids[0]
         except RuntimeError:
-                    pass
+            pass
     elif (model == 'sale.order'):
         ids = [ids] if isinstance(ids, int) else ids
         try:
@@ -249,7 +263,7 @@ def execute_action_L8(ctx, model, action, ids):
                       'compute_tax_id',
                       ids)
         except RuntimeError:
-                    pass
+            pass
     executeL8(ctx,
               model,
               action,
@@ -288,7 +302,7 @@ def drop_invalid_fields(ctx, model, vals):
         if isinstance(vals, (list, tuple)):
             to_delete = list(set(vals) - set(ctx['STRUCT'][model].keys()))
         else:
-            to_delete = list(set(vals.keys()) - 
+            to_delete = list(set(vals.keys()) -
                              set(ctx['STRUCT'][model].keys()))
         return drop_fields(ctx, model, vals, to_delete)
     return vals
@@ -324,8 +338,8 @@ def tnl_2_ver_acc_type(ctx, model, vals, new_name, name, src_ver, tgt_ver,
         'other': 'none',
     }
     tbl = False
-    src_v = int(src_ver.split('.')[0])
-    tgt_v = int(tgt_ver.split('.')[0])
+    src_v = eval(src_ver.split('.')[0])
+    tgt_v = eval(tgt_ver.split('.')[0])
     if src_v < 10 and tgt_v >= 10:
         tbl = TNL_9_TO_10
     elif src_v >= 10 and tgt_v < 10:
@@ -401,7 +415,7 @@ def tnl_2_ver_type_tax_use(ctx, model, vals, new_name, name, src_ver, tgt_ver,
 def tnl_2_ver_tax_amount(ctx, model, vals, new_name, name, src_ver, tgt_ver,
                          default=None):
     if src_ver == '10.0' and tgt_ver == '8.0':
-        vals[new_name] = vals[new_name] / 100
+        vals[new_name] = old_div(vals[new_name], 100)
     elif src_ver == '8.0' and tgt_ver == '10.0':
         vals[new_name] = vals[new_name] * 100
     if name != new_name:
@@ -437,7 +451,7 @@ def tnl_2_ver_state_id(ctx, model, vals, new_name, name, src_ver, tgt_ver,
 
 def tnl_2_ver_child_id(ctx, model, vals, new_name, name, src_ver, tgt_ver,
                        default=None):
-    if int(tgt_ver.split('.')[0]) >= 10 and vals[name]:
+    if eval(tgt_ver.split('.')[0]) >= 10 and vals[name]:
         vals = {}
     return vals
 
@@ -657,7 +671,7 @@ def get_model_structure(ctx, model, ignore=None):
             'relation': field.relation,
             'required': required,
             'readonly': readonly,
-            }
+        }
     # FIX for Odoo 7.0
     field = 'id'
     if field not in ctx['STRUCT'][model]:
@@ -893,7 +907,7 @@ def get_company_id(ctx):
             value = ids[0]
         else:
             value = 1
-    if 'company_id' not in ctx and isinstance(value, (int, long)):
+    if 'company_id' not in ctx and isinstance(value, int):
         ctx['company_id'] = value
     return value
 
@@ -995,7 +1009,7 @@ def set_some_values(ctx, o_model, name, value, model=None, row=None):
                 return True
             elif name == 'vat':
                 if ctx.get('country_code') == 'IT' and value.isdigit():
-                    value = 'IT%011d' % int(value)
+                    value = 'IT%011d' % eval(value)
             elif name == 'state_id':
                 if row and 'country_id' in row:
                     value = get_state_id(ctx, value,
@@ -1024,24 +1038,30 @@ def eval_value(ctx, o_model, name, value):
         return set_some_values(ctx, o_model, name, value)
     elif isinstance(value, basestring):
         eval_dict = True
-        if value.find('$1$!') == 0:
+        token = '$1$!' if isinstance(value, str) else b'$1$!'
+        if value.startswith(token):
             value = decrypt(value[4:])
         if is_db_alias(ctx, value):
             value = get_db_alias(ctx, value)
         else:
-            if value and value[0] == '=':
+            token = '=' if isinstance(value, str) else b'='
+            tok_left = '${' if isinstance(value, str) else b'${'
+            tok_right = '}' if isinstance(value, str) else b'}'
+            tok_beg = '[(' if isinstance(value, str) else b'[('
+            tok_end = ')]' if isinstance(value, str) else b')]'
+            if value.startswith(token):
                 value = expr(ctx,
                              o_model,
                              name,
                              value[1:])
                 eval_dict = False
-            elif value.find("${") >= 0 and value.find("}") >= 0:
+            elif tok_left in value and tok_right in value:
                 value = expr(ctx,
                              o_model,
                              name,
                              value)
                 eval_dict = False
-            elif value[0:2] == "[(" and value[-2:] == ")]":
+            elif value.startswith(tok_beg) and value.endswith(tok_end):
                 value = expr(ctx,
                              o_model,
                              name,
@@ -1220,7 +1240,7 @@ def get_query_id(ctx, o_model, row):
                            o_skull,
                            'id',
                            row['id'])
-        if isinstance(value, (int, long)):
+        if isinstance(value, int):
             ids = searchL8(ctx, model, [('id', '=', value)])
     if not ids:
         if o_model['code'].find(',') >= 0:
@@ -1362,12 +1382,12 @@ def concat_res(res, value):
     if isinstance(res, basestring) and res:
         if isinstance(value, basestring):
             res = res + value
-        elif isinstance(value, (bool, int, long, float)):
+        elif isinstance(value, (bool, int, float)):
             res = res + str(value)
-    elif isinstance(res, (bool, int, long, float)):
+    elif isinstance(res, (bool, int, float)):
         if isinstance(value, basestring) and value:
             res = str(res) + value
-        elif isinstance(value, (bool, int, long, float)):
+        elif isinstance(value, (bool, int, float)):
             res = str(res) + str(value)
     else:
         res = value

@@ -1,3 +1,27 @@
+zerobug: 1.0.2.2 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis level update
+
+
+z0bug_odoo: 1.0.4.4 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis level update
+
+
+travis_emulator: 1.0.2.1 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: switch -y forces python version
+
+
+clodoo: 0.3.31.5 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] clodoo.py python2 migration
+
+
 zerobug: 1.0.2.1 (2021-09-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -99,7 +123,7 @@ wok_code: 1.0.2.2 (2021-08-26)
 travis_emulator: 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: clor change
+[IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
 

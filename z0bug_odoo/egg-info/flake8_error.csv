@@ -1,4 +1,5 @@
 Test,MINIMAL,REDUCED,AVERAGE,NEARBY,OCA,Note
+E117,|no_check|,|check|,,,|check|,`expected an indented block (comment) <https://lintlyci.github.io/Flake8Rules/rules/E115.html>`_ 
 E117,|no_check|,|no_check|,,,|no_check|,over-indented
 E121,|no_check|,|no_check|,,,|no_check|,`continuation line under-indented for hanging indent <https://lintlyci.github.io/Flake8Rules/rules/E121.html>`_
 E123,|no_check|,|no_check|,,,|no_check|,`Closing bracket does not match indentation of opening bracket's line <https://lintlyci.github.io/Flake8Rules/rules/E123.html>`_
@@ -44,4 +45,3 @@ E701,|no_check|,|no_check|,,,|check|,multiple statements on one line (colon)
 E722,|no_check|,|no_check|,,,|check|,do not use bare except
 F811,|no_check|,|no_check|,,,|no_check|,redefinition of unused name from line N (No __init__.py)
 F841,|no_check|,|no_check|,,,|no_check|,`local variable 'context' is assigned to but never used <https://lintlyci.github.io/Flake8Rules/rules/F841.html>`_
-

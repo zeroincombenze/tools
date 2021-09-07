@@ -194,9 +194,11 @@ PYTHON3=""
 [[ -x $DSTPATH/venv/bin/python2 ]] && PYTHON=$DSTPATH/venv/bin/python2
 [[ -x $DSTPATH/venv/bin/python3 ]] && PYTHON3=$DSTPATH/venv/bin/python3
 
-# [[ $opts =~ ^-.*[fU] && -d $DSTPATH ]] && path=$(find $DSTPATH \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
 if [[ $opts =~ ^-.*[fU] && -d $DSTPATH ]]; then
-    for f in $DSTPATH/*; do
+    # [[ $opts =~ ^-.*t ]] && PYPATH_2_SET=$(find $SRCPATH \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
+    # PYPATH_2_SET="$DSTPATH/* $PYPATH_2_SET"
+    PYPATH_2_SET="$DSTPATH/*"
+    for f in $PYPATH_2_SET; do
         t=$(file -b --mime-type $f)
         [[ $t != "application/x-sharedlib" ]] && grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f" && chmod +x $f
         [[ $t != "application/x-sharedlib" ]] && grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && chmod +x $f
@@ -247,8 +249,9 @@ fi
 path="$DSTPATH/*"
 if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
     # Please do not change package list order
-    for pkg in configparser odoorpc oerplib babel jsonlib lxml unidecode openpyxl pyyaml z0lib zerobug clodoo; do
-        [[ -d $HOME_DEV/pypi/$pkg/$pkg ]] && run_traced "vem $DSTPATH/venv install $pkg -qBB" || run_traced "vem $DSTPATH/venv install $pkg"
+    for pkg in click configparser odoorpc oerplib babel jsonlib lxml unidecode openpyxl pyyaml z0lib zerobug clodoo; do
+        [[ $pkg == "unidecode" ]] && p="$pkg==1.2.0" || p=$pkg
+        [[ -d $HOME_DEV/pypi/$pkg/$pkg ]] && run_traced "vem $DSTPATH/venv install $p -qBB" || run_traced "vem $DSTPATH/venv install $p"
     done
     [[ -d $DSTPATH/clodoo ]] && run_traced "rm -f $DSTPATH/clodoo"
     x=$(vem $DSTPATH/venv info clodoo|grep -E "Location"|cut -d' ' -f2)/clodoo

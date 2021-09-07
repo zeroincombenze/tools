@@ -191,6 +191,12 @@ Installation
 Installation
 ------------
 
+Zeroincombenze tools require:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
+* python 2.7, some tools require python 3.6+
+* bash 5.0+
+
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -230,6 +236,30 @@ Current development version
 
 History
 -------
+
+zerobug: 1.0.2.2 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis level update
+
+
+z0bug_odoo: 1.0.4.4 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis level update
+
+
+travis_emulator: 1.0.2.1 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: switch -y forces python version
+
+
+clodoo: 0.3.31.5 (2021-09-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] clodoo.py python2 migration
+
 
 zerobug: 1.0.2.1 (2021-09-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -332,7 +362,7 @@ wok_code: 1.0.2.2 (2021-08-26)
 travis_emulator: 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: clor change
+[IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
 
@@ -542,7 +572,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-09-04
+Last Update / Ultimo aggiornamento: 2021-09-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

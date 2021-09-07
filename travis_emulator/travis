@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.2
+__version__=1.0.2.1
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -768,7 +768,7 @@ process_yaml() {
     [[ ! -f $YML_FILE ]] && YML_FILE=$PRJPATH/$opt_fyaml
     [[ ! -f $YML_FILE ]] && YML_FILE=$TOOLS_PATH/travis.yml
   fi
-  if [ -f $YML_FILE ]; then
+  if [[ -f $YML_FILE ]]; then
     echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
     wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[0m"
     export TRAVIS_HOME_BRANCH=$PWD
@@ -789,11 +789,11 @@ process_yaml() {
       fi
       [[ -n "$lne1" || $lne =~ PATH ]] && wlog "\e[${PS_NOP_COLOR}m\$ $lne=$lne1\e[0m"
     done
-    if [ $sts -eq $STS_SUCCESS ]; then
+    if [[ $sts -eq $STS_SUCCESS ]]; then
       process_yaml_initialize
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
-    if [ $sts -eq $STS_SUCCESS ]; then
+    if [[ $sts -eq $STS_SUCCESS ]]; then
       [[ -z "$python_ver_req" ]] && python_ver_req=$(python --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
       [[ -z "$opt_pyv" ]] && opt_pyv=$(get_cfg_value "" "PYTHON_MATRIX")
       [[ -z "$opt_pyv" ]] && opt_pyv="(2.7|3.5|3.6|3.7|3.8)"
@@ -804,8 +804,10 @@ process_yaml() {
       for v in $python_ver_req; do
         [[ $v =~ $opt_pyv ]] && python_matrix="$python_matrix $v"
       done
+      [[ -z $python_matrix && $opt_pyv =~ ^\([0-9.]+\) ]] && python_matrix=${opt_pyv:1: -1}
+      [[ -n "$python_matrix" ]] || python_matrix="3.8"
       for TRAVIS_PYTHON_VERSION in $python_matrix; do
-        [ $sts -eq $STS_SUCCESS ] || break
+        [[ $sts -eq $STS_SUCCESS ]] || break
         wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[0m"
         CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo [0-9] | head -n1)
         PYTHON=$(which python$TRAVIS_PYTHON_VERSION)
@@ -1146,7 +1148,7 @@ elif [[ $action == "summary" ]]; then
   sts=0
   if [[ -f $logfile ]]; then
     echo "$(readlink -f $logfile):\$ VIRTUALENV=$(grep -E "vem .*VENV_" $logfile|grep -Eo "VENV_[0-9]+"|head -n1)"
-    grep -EH "(\| .*test|TODAY=|PKGNAME=|LOGFILE=)" $logfile
+    grep -EH "(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])" $logfile
     travis_status "$logfile"
     sts=$?
   else
