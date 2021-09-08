@@ -1407,17 +1407,23 @@ class Z0test(object):
         return sts
 
     def build_os_tree(self, ctx, os_tree):
-        """Build a full os tree to test from supplied list.
+        """Build a full os tree to test.
 
-        os_tree is a list of strings.
-
-        Function reads list of paths and then create all directories.
+        Function reads list of paths and then creates all directories.
         If directory is an absolute path, it is created with the supplied path.
-        If directory is a relative path, the directory is created under "tests/res" directory.
+        If directory is a relative path,
+        the directory is created under "tests/res" directory.
 
         Warning!
-        No check is made is parent dir does not exit. Please, supply path from parent
-        to children, if you want to build a nested tree.
+        No check is made is parent dir does not exit.
+        Please, supply path from parent to children,
+        if you want to build a nested tree.
+
+        Args:
+            os_tree (list): list of directories to create
+
+        Returns:
+            str: parent path of filesystem
         """
         root = os.path.join(
             os.path.dirname(ctx.get('this_fqn', './Z0BUG/tests')), 'res')
@@ -1433,14 +1439,17 @@ class Z0test(object):
     def remove_os_tree(self, ctx, os_tree):
         """Remove a full os tree created by `build_os_tree`
 
-        os_tree is a list of strings.
-
-        Function reads list of paths and remove all directories.
+        Function reads list of paths and removes all directories.
         If directory is an absolute path, the supplied path is dropped.
-        If directory is a relative path, the directory is dropped from tests/res directory.
+        If directory is a relative path,
+        the directory is dropped from tests/res directory.
 
         Warning!
-        This function remove directory and all sub-directories without any control.
+        This function remove directory and
+        all sub-directories without any control.
+
+        Args:
+            os_tree (list): list of directories to remove
         """
         root = os.path.join(os.path.dirname(ctx['this_fqn']), 'res')
         if not os.path.isdir(root):
@@ -1460,7 +1469,7 @@ class Z0testOdoo(object):
         The path contains addons, odoo-bin/openerp and release.py files.
 
         Args:
-            version (str): 14.0, 13.0, ..., 7.0, 6.1
+            version (str): '14.0','13.0',...,'7.0','6.1'
             hierarchy (str): flat,tree,server, default 'flat'
 
         Returns:
@@ -1504,16 +1513,16 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
         return root
 
     def build_odoo_repos(self, ctx, root, version, repos):
-        """Create a repository directory repos under Odoo root,
-        returned by `build_odoo_env` function with ret_home.
+        """Create a repository directory `repos` under the Odoo root
+        returned by `build_odoo_env` function.
 
         Args:
-            root (str): root filesystem (returned by `build_odoo_env')
-            version (str): 14.0, 13.0, ..., 7.0, 6.1
-            repos (str): repository name
+            root (str): root filesystem, returned by `build_odoo_env`
+            version (str): '14.0','13.0',...,'7.0','6.1'
+            repos (str): repository name to create
 
         Returns:
-            str: path of repository
+            str: path to repository
         """
         if not os.path.isdir(root):
             raise KeyError('Not Odoo root')

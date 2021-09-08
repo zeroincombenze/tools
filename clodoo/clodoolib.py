@@ -949,20 +949,29 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
         # return out.split('\n')[0]
 
     odoorc = os.path.join(os.path.dirname(__file__), 'odoorc')
-    if multi:
-        cmd = 'source %s; opt_multi=1; build_odoo_param %s "%s" "%s" "%s"' % (
-            odoorc,
-            item,
-            odoo_vid,
-            suppl or '',
-            git_org or '')
-    else:
-        cmd = 'source %s; build_odoo_param %s "%s" "%s" "%s"' % (
-            odoorc,
-            item,
-            odoo_vid,
-            suppl or '',
-            git_org or '')
+    # if multi:
+    #     cmd = 'SHELL=/bin/bash source %s; opt_multi=1; build_odoo_param %s "%s" "%s" "%s"' % (
+    #         odoorc,
+    #         item,
+    #         odoo_vid,
+    #         suppl or '',
+    #         git_org or '')
+    # else:
+    #     cmd = 'SHELL=/bin/bash source %s; build_odoo_param %s "%s" "%s" "%s"' % (
+    #         odoorc,
+    #         item,
+    #         odoo_vid,
+    #         suppl or '',
+    #         git_org or '')
+    cmd = r'%s -c "%s; %s build_odoo_param %s \"%s\" \"%s\" \"%s\""' % (
+        '/bin/bash',
+        'source %s' % odoorc,
+        'opt_multi=1;' if multi else '',
+        item,
+        odoo_vid,
+        suppl or '',
+        git_org or ''
+    )
     out, err = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, shell=True).communicate()
     if not out:

@@ -30,7 +30,7 @@ class RegressionTest():
         self.Z = z0bug
 
     def test_01(self, z0ctx):
-        sts = TEST_SUCCESS
+        # sts = TEST_SUCCESS
         for ver in ('12.0', '10.0', '7.0', '8.0'):
             if ver in ('7.0', '8.0'):
                 OS_TREE = (ver,
