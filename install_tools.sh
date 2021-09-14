@@ -95,12 +95,13 @@ if [[ -z "$SRCPATH" || -z "$DSTPATH" ]]; then
     $0 -h
     exit 1
 fi
-if [[ ! $opts =~ ^-.*t ]]; then
+if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D ]]; then
     [[ $opts =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
     [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --show-current) != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
-[[ $opts =~ ^-.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
+[[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
+[[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo "# Creating development environment $HOME_DEV/pypi ..."
 [[ $opts =~ ^-.*n ]] || find $SRCPATH $DSTPATH -name "*.pyc" -delete
 [[ $opts =~ ^-.*o ]] && echo "# WARNING! The switch -o is deprecated and will be removed early!"
 
