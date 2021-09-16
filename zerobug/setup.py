@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='zerobug',
-      version='1.0.2.2',
+      version='1.0.2.3',
       description='Zeroincombenze continuous testing framework'
                   ' and tools for python and bash programs',
       long_description="""
@@ -25,7 +25,7 @@ total unit test to execute, that is a sort of advancing test progress.
 * test case -it is a smallest unit test
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 5 - Production/Stable',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Programming Language :: Python :: 2.7',
           'Intended Audience :: Developers',

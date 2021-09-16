@@ -1,7 +1,7 @@
 
-===============
-zerobug 1.0.2.2
-===============
+=============
+zerobug 1.0.2.3
+=============
 
 
 
@@ -113,7 +113,7 @@ Usage
 Code example
 ~~~~~~~~~~~~
 
-*zerobug* makes available following functions to test:
+*zerobug* makes avaiable following functions to test:
 
 |
 
@@ -137,23 +137,16 @@ Setup for test. It is called after all tests.
 
 `Z0BUG_build_os_tree list_of_paths` (bash)
 
-Build a full os tree to test.
-
-Function reads list of paths and then creates all directories.
+Build a full os tree from supplied list.
+If python, list of paths is a list of strings.
+If bash, list is one string of paths separated by spaces.
+Function reads list of paths and then create all directories.
 If directory is an absolute path, it is created with the supplied path.
-If directory is a relative path,
-the directory is created under "tests/res" directory.
+If directory is a relative path, the directory is created under "tests/res" directory.
 
 Warning!
-No check is made is parent dir does not exit.
-Please, supply path from parent to children,
-if you want to build a nested tree.
-
-Args:
-    * os_tree (list): list of directories to create
-
-Returns:
-    str: parent path of filesystem
+To check is made is parent dir does not exit. Please, supply path from parent
+to children, if you want to build a nested tree.
 
 ::
 
@@ -184,18 +177,14 @@ Returns:
 `Z0BUG_remove_os_tree list_of_paths` (bash)
 
 Remove a full os tree created by `build_os_tree`
-
-Function reads list of paths and removes all directories.
+If python, list of paths is a list of strings.
+If bash, list is a string of paths separated by spaces.
+Function reads list of paths and remove all directories.
 If directory is an absolute path, the supplied path is dropped.
-If directory is a relative path,
-the directory is dropped from tests/res directory.
+If directory is a relative path, the directory is dropped from tests/res directory.
 
 Warning!
-This function remove directory and
-all sub-directories without any control.
-
-Args:
-    * os_tree (list): list of directories to remove
+This function remove directory and all sub-directories without any control.
 
 ::
 
@@ -216,15 +205,7 @@ Args:
 
 `Z0BUG.build_odoo_env(ctx, version)` (python)
 
-Build a simplified Odoo directory tree to test.
-The path contains addons, odoo-bin/openerp and release.py files.
-
-Args:
-    * version (str): '14.0','13.0',...,'7.0','6.1'
-    * hierarchy (str): flat,tree,server, default 'flat'
-
-Returns:
-    str:  Filesystem root of Odoo
+Like build_os_tree but create a specific odoo os tree.
 
 ::
 
@@ -237,55 +218,7 @@ Returns:
             self.Z0BUG = Z0BUG
 
         def test_01(self, ctx):
-            # Create the root directory
-            version = '12.0'
-            root = Z0testOdoo.build_odoo_env(ctx, version)
-            # Create the repository l10n-italy
-            repos_dir = Z0testOdoo.build_odoo_repos(
-                    ctx, root, version, 'l10n-italy')
-            # Create the module l10n_it_account
-            module_name = 'l10n_it'
-            manifest = {
-                'version': '0.1.0',
-            }
-            module_dir = Z0testOdoo.build_odoo_module(
-                ctx, repos_dir, module_name, manifest)
-
-|
-
-`Z0BUG.build_odoo_repos(self, ctx, root, repos)` (python)
-
-Create a repository directory `repos` under the Odoo root
-returned by `build_odoo_env` function.
-
-Args:
-    * root (str): root filesystem, returned by `build_odoo_env`
-    * version (str): '14.0','13.0',...,'7.0','6.1'
-    * repos (str): repository name to create
-
-Returns:
-    str: path to repository
-
-See example `Z0BUG.build_odoo_env(ctx, version)`
-
-|
-
-`Z0BUG.build_odoo_module(self, ctx, repos_dir, module_name, manifest):` (python)
-
-Create an Odoo module tree under repos_dir
-returned by build_odoo_repos.
-File manifest is filled with data passed.
-No file are added to Odoo tree.
-
-Args:
-    * repos_dir (str): repository path
-    * module_name (str): module name
-    * manifest (dict): manifest contents
-
-Returns:
-    str: parent path of Odoo filesystem
-
-See example `Z0BUG.build_odoo_env(ctx, version)`
+            root = Z0testOdoo.build_odoo_env(ctx, '10.0')
 
 |
 
@@ -373,12 +306,6 @@ Installation
 Installation
 ------------
 
-Zeroincombenze tools require:
-
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
-* python 2.7, some tools require python 3.6+
-* bash 5.0+
-
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -433,16 +360,6 @@ Current development version
 History
 -------
 
-1.0.2.2 (2021-09-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis level update
-
-1.0.2.1 (2021-09-04)
-~~~~~~~~~~~~~~~~~~~~
-
-[IMP] z0testlib.py: new functions to create Odoo repository and module tree
-
 1.0.1.4 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -483,103 +400,13 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+
+
 |
+
 This module is part of tools project.
+
 Last Update / Ultimo aggiornamento: 2021-08-31
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
-:target: https://odoo-community.org/page/development-status
-:alt:
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
-:target: https://travis-ci.com/zeroincombenze/tools
-:alt: github.com
-.. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
-:target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
-:alt: License: AGPL-3
-.. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
-:target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
-:alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-:target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
-:alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
-:target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
-:alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-:target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
-:alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-:target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
-:target: https://erp1.zeroincombenze.it
-:alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
-:target: https://codecov.io/gh/OCA/tools/branch/1.0
-.. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
-:target: https://odoo-italia.org
-:alt: Odoo Italia Associazione
-.. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4
-:target: https://www.zeroincombenze.it/
-:alt: Zeroincombenze
-.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
-:target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
-.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
-.. |check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png
-.. |no_check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png
-.. |menu| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/menu.png
-.. |right_do| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/right_do.png
-.. |exclamation| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/exclamation.png
-.. |warning| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/warning.png
-.. |same| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/same.png
-.. |late| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/late.png
-.. |halt| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/halt.png
-.. |info| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/info.png
-.. |xml_schema| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/iso/icons/xml-schema.png
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
-.. |DesktopTelematico| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/DesktopTelematico.png
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
-.. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
-.. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-:target: https://t.me/axitec_helpdesk
-Last Update / Ultimo aggiornamento: 2021-09-02
-Last Update / Ultimo aggiornamento: 2021-09-03
-Last Update / Ultimo aggiornamento: 2021-09-04
-Last Update / Ultimo aggiornamento: 2021-09-06
-Last Update / Ultimo aggiornamento: 2021-09-07
-:target: https://odoo-community.org/page/development-status
-:alt:
-:target: https://travis-ci.com/zeroincombenze/tools
-:alt: github.com
-:target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
-:alt: License: AGPL-3
-:target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
-:alt: License: OPL
-:target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
-:alt: Coverage
-:target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
-:alt: Codecov
-:target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
-:alt: Technical Documentation
-:target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
-:target: https://erp1.zeroincombenze.it
-:alt: Try Me
-:target: https://codecov.io/gh/OCA/tools/branch/1.0
-:target: https://odoo-italia.org
-:alt: Odoo Italia Associazione
-:target: https://www.zeroincombenze.it/
-:alt: Zeroincombenze
-:target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
-:target: https://t.me/axitec_helpdesk
-
-
-|
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2021-09-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

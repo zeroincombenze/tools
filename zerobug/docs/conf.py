@@ -14,7 +14,7 @@
 #
 import os
 import sys
-# sys.path.insert(0, os.path.abspath('../'))
+# sys.path.insert(0, os.path.abspath('.'))
 # import sphinx_rtd_theme
 
 
@@ -25,9 +25,9 @@ copyright = '2019-21, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '1.0.2.2'
+version = '1.0.2.3'
 # The full version, including alpha/beta/rc tags
-release = '1.0.2.2'
+release = '1.0.2.3'
 
 
 # -- General configuration ---------------------------------------------------

@@ -4,7 +4,7 @@
 Code example
 ~~~~~~~~~~~~
 
-*zerobug* makes available following functions to test:
+*zerobug* makes avaiable following functions to test:
 
 |
 
@@ -28,23 +28,16 @@ Setup for test. It is called after all tests.
 
 `Z0BUG_build_os_tree list_of_paths` (bash)
 
-Build a full os tree to test.
-
-Function reads list of paths and then creates all directories.
+Build a full os tree from supplied list.
+If python, list of paths is a list of strings.
+If bash, list is one string of paths separated by spaces.
+Function reads list of paths and then create all directories.
 If directory is an absolute path, it is created with the supplied path.
-If directory is a relative path,
-the directory is created under "tests/res" directory.
+If directory is a relative path, the directory is created under "tests/res" directory.
 
 Warning!
-No check is made is parent dir does not exit.
-Please, supply path from parent to children,
-if you want to build a nested tree.
-
-Args:
-    * os_tree (list): list of directories to create
-
-Returns:
-    str: parent path of filesystem
+To check is made is parent dir does not exit. Please, supply path from parent
+to children, if you want to build a nested tree.
 
 ::
 
@@ -75,18 +68,14 @@ Returns:
 `Z0BUG_remove_os_tree list_of_paths` (bash)
 
 Remove a full os tree created by `build_os_tree`
-
-Function reads list of paths and removes all directories.
+If python, list of paths is a list of strings.
+If bash, list is a string of paths separated by spaces.
+Function reads list of paths and remove all directories.
 If directory is an absolute path, the supplied path is dropped.
-If directory is a relative path,
-the directory is dropped from tests/res directory.
+If directory is a relative path, the directory is dropped from tests/res directory.
 
 Warning!
-This function remove directory and
-all sub-directories without any control.
-
-Args:
-    * os_tree (list): list of directories to remove
+This function remove directory and all sub-directories without any control.
 
 ::
 
@@ -107,15 +96,7 @@ Args:
 
 `Z0BUG.build_odoo_env(ctx, version)` (python)
 
-Build a simplified Odoo directory tree to test.
-The path contains addons, odoo-bin/openerp and release.py files.
-
-Args:
-    * version (str): '14.0','13.0',...,'7.0','6.1'
-    * hierarchy (str): flat,tree,server, default 'flat'
-
-Returns:
-    str:  Filesystem root of Odoo
+Like build_os_tree but create a specific odoo os tree.
 
 ::
 
@@ -128,55 +109,7 @@ Returns:
             self.Z0BUG = Z0BUG
 
         def test_01(self, ctx):
-            # Create the root directory
-            version = '12.0'
-            root = Z0testOdoo.build_odoo_env(ctx, version)
-            # Create the repository l10n-italy
-            repos_dir = Z0testOdoo.build_odoo_repos(
-                    ctx, root, version, 'l10n-italy')
-            # Create the module l10n_it_account
-            module_name = 'l10n_it'
-            manifest = {
-                'version': '0.1.0',
-            }
-            module_dir = Z0testOdoo.build_odoo_module(
-                ctx, repos_dir, module_name, manifest)
-
-|
-
-`Z0BUG.build_odoo_repos(self, ctx, root, repos)` (python)
-
-Create a repository directory `repos` under the Odoo root
-returned by `build_odoo_env` function.
-
-Args:
-    * root (str): root filesystem, returned by `build_odoo_env`
-    * version (str): '14.0','13.0',...,'7.0','6.1'
-    * repos (str): repository name to create
-
-Returns:
-    str: path to repository
-
-See example `Z0BUG.build_odoo_env(ctx, version)`
-
-|
-
-`Z0BUG.build_odoo_module(self, ctx, repos_dir, module_name, manifest):` (python)
-
-Create an Odoo module tree under repos_dir
-returned by build_odoo_repos.
-File manifest is filled with data passed.
-No file are added to Odoo tree.
-
-Args:
-    * repos_dir (str): repository path
-    * module_name (str): module name
-    * manifest (dict): manifest contents
-
-Returns:
-    str: parent path of Odoo filesystem
-
-See example `Z0BUG.build_odoo_env(ctx, version)`
+            root = Z0testOdoo.build_odoo_env(ctx, '10.0')
 
 |
 
@@ -210,7 +143,7 @@ Return odoo root directory
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-07
+Last Update / Ultimo aggiornamento: 2021-08-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
