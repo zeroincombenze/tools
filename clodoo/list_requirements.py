@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -14,7 +14,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.34.5'
+__version__ = '0.3.34.8'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -103,7 +103,7 @@ REQVERSION = {
     'suds': {'6.1': '==0.4'},
     'suds-jurko': {'6.1': '==0.6'},
     'unicodecsv': {'6.1': '>=0.14.1'},
-    'unidecode': {'6.1': '==0.4.17'},
+    'unidecode': {'6.1': '==0.4.17', '10.0': '<=1.2.0', '11.0': '>1.2.0'},
     'unittest2': {'6.1': '==0.5.1', '11.0': '>=1.0.0'},
     'validate_email': {'6.1': '>=1.3'},
     'vatnumber': {'6.1': '==1.2'},

@@ -1,23 +1,3 @@
-0.3.31.5 (2021-09-06)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] clodoo.py python2 migration
-
-0.3.31.5 (2021-09-02)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo.py with python3 due wrong jsoblib dependency
-
-0.3.31.2 (2021-08-31)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoorc: it does not use <git branch --show-current>
-
-0.3.31.1 (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] transodoo: l10n_it_reverse_charge is powerp module name too
-
 0.3.33.4 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~
 

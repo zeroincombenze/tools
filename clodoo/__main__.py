@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """clodoo
 Massive operations on Zeroincombenze(R) / Odoo databases
@@ -19,7 +19,7 @@ except ImportError:
     from zerobug import Z0BUG
 
 
-__version__ = "0.3.34.5"
+__version__ = "0.3.34.8"
 STS_FAILED = 1
 STS_SUCCESS = 0
 

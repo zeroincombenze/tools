@@ -1,12 +1,12 @@
 # flake8: noqa
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import csv
 from import_products import (init_n_connect, add_elem)
 # import pdb
 
 
-__version__ = "0.3.34.5"
+__version__ = "0.3.34.8"
 
 MYDICT = {
     'default_code': 0,

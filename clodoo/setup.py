@@ -1,7 +1,17 @@
 from setuptools import setup
-
+import sys
+if sys.version_info >= (3, 0):
+    install_requires = [
+        'future', 'jsonlib-python3', 'openpyxl', 'odoorpc', 'oerplib',
+        'psycopg2-binary', 'python-plus', 'unidecode==1.2.0', 'z0lib'
+    ]
+else:
+    install_requires = [
+        'future', 'jsonlib', 'openpyxl', 'odoorpc', 'oerplib',
+        'psycopg2-binary', 'python-plus', 'unidecode', 'z0lib'
+    ]
 setup(name='clodoo',
-      version='0.3.34.5',
+      version='0.3.34.8',
       description='Do massive operations on Odoo Cloud',
       long_description="""
 Crete consistent DB for test and/or
@@ -20,6 +30,6 @@ do massive operation on multiple Odoo databases.
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       packages=['clodoo'],
-      package_data={'odoorc': ['./odoorc']},
-      install_requires=['future', 'psycopg2-binary', 'odoorpc', 'oerplib', 'unidecode', 'z0lib'],
+      package_data={'': ['./odoorc', './transodoo.xlsx']},
+      install_requires=install_requires,
       zip_safe=False)
