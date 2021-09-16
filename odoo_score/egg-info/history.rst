@@ -1,8 +1,3 @@
-1.0.2.2 (2021-09-02)
-~~~~~~~~~~~~~~~~~~~~
-
-[IMP] run_odoo_debug: manage http_port instead of xmlrcp_port
-
 1.0.2.1 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~
 

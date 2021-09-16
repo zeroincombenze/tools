@@ -345,9 +345,6 @@ if [[ $opt_touch -eq 0 ]]; then
     if [[ -z "$RPCPORT" || "$RPCPORT" == "0" ]]; then
         run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = False|\" -i $FULL_LCONFN"
         [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --no-xmlrpc"
-    elif grep -q "http_port" $FULL_LCONFN; then
-        run_traced_debug "sed -e \"s|^http_port *=.*|http_port = $RPCPORT|\" -i $FULL_LCONFN"
-        [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF -p $RPCPORT"
     else
         run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = $RPCPORT|\" -i $FULL_LCONFN"
         [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --xmlrpc-port=$RPCPORT"
