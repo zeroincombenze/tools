@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """
 Usage: get-addons [-m] path1 [path2 ...][ -e exclude_modules]
           [ --only-applications ][ --exclude-applications]
@@ -14,7 +14,7 @@ import sys
 
 from git_run import GitRun
 
-__version__ = '1.0.5.1'
+__version__ = '1.0.5'
 
 MANIFEST_FILES = [
     '__manifest__.py',

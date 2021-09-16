@@ -123,7 +123,7 @@ This is the declaration:
       - "3.6"
       - "3.7"
 
-Notice: python 3.5 support is ended on 2020 and 3.6 is ended on 2021.
+Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
 Python 3.8 is no yet support by Odoo (2021), so use python 3.7
 
 
@@ -139,8 +139,6 @@ In order to deploy test environment and setup code you have to declare some .tra
 Linux packages must be declared in `<addons/apt>` section of .travis.yml using Ubuntu namespace.
 If you run test in local environment, travis emulator automatically translate Ubuntu names into your local distro names, if necessary.
 See `travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_ guide for furthermore info.
-Warning! In local filesystem, test user could not be able to install system package;
-so travis emulator cannot install system package and stops execution.
 
 The PYPI packages, installable by PIP are declared in standard PIP way, using **requirements.txt** file.
 

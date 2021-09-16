@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -14,7 +14,7 @@ import shutil
 # from z0bug_odoo import test_common
 from zerobug import Z0testOdoo
 
-__version__ = "1.0.5.1"
+__version__ = "1.0.5"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
@@ -88,3 +88,9 @@ class RegressionTest():
             if not z0ctx['dry_run']:
                 shutil.rmtree(odoo_root, True)
         return sts
+
+
+# if __name__ == "__main__":
+#     exit(Z0BUG.main_local(
+#         Z0BUG.parseoptest(sys.argv[1:],
+#                           version=version()), RegressionTest))
