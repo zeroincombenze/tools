@@ -26,7 +26,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.1
+__version__=1.0.3
 declare -A PY3_PKGS
 NEEDING_PKGS="future configparser os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
@@ -265,7 +265,7 @@ bin_install_1() {
 pip_install() {
   #pip_install(pkg opts)
   local pkg d x srcdir fn popts v
-  local pypath=$(find $($READLINK -f $(dirname $(which $PYTHON))/../lib) -type d -name "python$opt_pyver")
+  local pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
   pkg="$(get_actual_pkg $1)"
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
@@ -707,10 +707,9 @@ venv_mgr_check_src_path() {
 }
 
 check_4_needing_pkgs() {
-  local p pkg x
+  local p x
   [[ ! $NEEDING_PKGS =~ clodoo && ( -n "$opt_oepath" || -n "$opt_oever" ) ]] && NEEDING_PKGS="$NEEDING_PKGS clodoo"
-  for pkg in $NEEDING_PKGS; do
-    p="$(get_actual_pkg $pkg)"
+  for p in $NEEDING_PKGS; do
     x=${p^^}
     eval $x=$($PIP show $p 2>/dev/null | grep "Version" | grep -Eo "[0-9.]+")
   done
