@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """z0lib
 
@@ -22,7 +22,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = '1.0.1.2'
+__version__ = '1.0.2'
 STS_FAILED = 1
 STS_SUCCESS = 0
 

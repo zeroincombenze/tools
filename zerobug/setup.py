@@ -1,41 +1,38 @@
 from setuptools import setup
 
-setup(name='zerobug',
-      version='1.0.2.3',
-      description='Zeroincombenze continuous testing framework'
-                  ' and tools for python and bash programs',
+setup(name='z0lib',
+      version='1.0.1.2',
+      description='Bash zeroincombenze lib',
       long_description="""
-This library can run unit test of target package software.
-Supported languages are *python* (through z0testlib.py)
-and *bash* (through z0testrc)
+General purpose bash and python library for zeroincombenze(R) tools
 
-*zerobug* supports test automation, aggregation of tests into collections
-and independence of the tests from the reporting framework.
-The *zerobug* module provides all code that make it easy to support testing
-both for python programs both for bash scripts.
-*zerobug* differs from pytest standard library because show execution test with
-a message like "n/tot message" where *n* is current unit test and *tot* is the
-total unit test to execute, that is a sort of advancing test progress.
+Features:
 
-*zerobug* is built on follow concepts:
+- unix/linux platform recognizer (tested on varioous environments)
 
-* test main - it is a main program to executes all test runners
-* test runner - it is a program to executes one or more test suites
-* test suite - it is a collection of test cases
-* test case -it is a smallest unit test
+- parseopt interface (mainly for basg scripts)
+
+- log management
+
+- local memory simple DB (only for bash scripts)
+
+- configuration file management (only for bash scripts, like python configparser)
 """,
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'License :: OSI Approved :: GNU Affero General Public License v3',
-          'Programming Language :: Python :: 2.7',
+          'Operating System :: POSIX',
+          'Programming Language :: Unix Shell',
           'Intended Audience :: Developers',
-          # 'Topic :: Software Development:: Quality Assurance'
+          'Topic :: Software Development',
+          'Topic :: Software Development :: Libraries',
+          'Topic :: System :: System Shells',
       ],
-      keywords='unit test',
+      keywords='bash, optargs',
       url='http://wiki.zeroincombenze.org/en/Zerobug',
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
-      packages=['zerobug'],
-      package_data={'zerobug': ['./z0testrc']},
+      packages=['z0lib'],
+      package_data={'z0lib': ['./z0librc', './z0lib']},
       zip_safe=False)
