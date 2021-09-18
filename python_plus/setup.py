@@ -30,13 +30,10 @@ Various functions.
       license='Affero GPL',
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-      package_data={
-          '': ['./vem.sh', './vem.man']
-      },
       entry_points={
           'console_scripts': [
               'python-plus = z0lib.scripts.main:main',
-              'vem = python_plus.scripts.vem:main'
+              'vem = python_path.scripts.vem:main'
           ],
       },
       zip_safe=False)

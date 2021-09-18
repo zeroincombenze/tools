@@ -14,7 +14,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.3.34.8"
+__version__ = "0.3.34.99"
 
 
 def initialize_params(ctx):

@@ -223,7 +223,7 @@ except:
 # TMP
 from subprocess import PIPE, Popen
 
-__version__ = "0.3.34.8"
+__version__ = "0.3.34.99"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
