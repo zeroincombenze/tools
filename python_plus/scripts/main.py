@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-General purpose bash and python library for zeroincombenze(R) tools
+Python supplemental features
+----------------------------
 
-Features:
+python_plus adds various features to python 2 and python 3 programs.
+It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
 
-* xuname: unix/linux platform recognizer (tested on various environments)
-* parseoptargs: line command parser; expands python argparse and adds same functionalities to bash scripts
-* tracelog: manage tracelog (only bash)
-* findpkg: find package in file system (only bash)
-* run_traced: execute (or dry_run) shell command (only bash)
-* CFG: local dictionary values from config file like python ConfigParser (only bash)
+
+vem: virtual environment manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This package is released with an nice command:
+**vem** that is an interactive tool with some nice features to manage standard virtual environment and it is osx/darwin compatible.
 """
 import os
 import sys
 
 
-__version__ = '1.0.2.99'
+__version__ = '1.0.3'
 
 
 def fake_setup(**kwargs):

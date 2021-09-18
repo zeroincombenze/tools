@@ -8,5 +8,5 @@ It is designed to be used as integration of pypi future to help to port your cod
 vem: virtual environment manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This packge is released with an nice command:
+This package is released with an nice command:
 **vem** that is an interactive tool with some nice features to manage standard virtual environment and it is osx/darwin compatible.

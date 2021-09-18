@@ -28,7 +28,7 @@ fi
 
 __version__=1.0.3
 declare -A PY3_PKGS
-NEEDING_PKGS="future configparser os0 z0lib"
+NEEDING_PKGS="future clodoo configparser os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python-plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -278,8 +278,10 @@ pip_install() {
       srcdir=""
       [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
       [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/tools/$fn)
-      [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$fn/$fn)
-      [[ $opt_debug -eq 3 && -d $SAVED_HOME/devel/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$fn/$fn)
+      if [[ $opt_debug -ge 3 ]]; then
+        [[ -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/dev/pypi/$fn/$fn)
+        [[ -d $SAVED_HOME/devel/pypi/$fn/$fn ]] && srcdir=$($READLINK -f $SAVED_HOME/devel/pypi/$fn/$fn)
+      fi
       if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
         echo "Missed Odoo version to install (please use -O and/or -o switch)!"
         exit 1
@@ -294,21 +296,27 @@ pip_install() {
       bin_install "$pkg"
     elif [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
-      pushd $srcdir/.. >/dev/null
-      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $fn)
-      v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
-      popd >/dev/null
-      x=$(ls -d $pypath/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
-      [[ -n $x && $x != $pypath/${fn}-${v}.dist-info ]] && run_traced "mv $x $pypath/${fn}-${v}.dist-info"
-      if [[ ! -d $pypath/${fn}-${v}.dist-info ]]; then
-        run_traced "mkdir $pypath/${fn}-${v}.dist-info"
-        for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
-          run_traced "touch $pypath/${fn}-${v}.dist-info/$d"
-        done
-      fi
       [[ -L $pypath/$fn ]] && run_traced "rm -f $pypath/$fn"
-      run_traced "ln -s $srcdir $pypath/$fn"
-      [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      if [[ $opt_debug -eq 3 ]]; then
+        [[ $PIPVER -gt 20 ]] && popts="$popts --use-feature=in-tree-build"
+        run_traced "$PIP install $popts $srcdir/$fn"
+        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      else
+        pushd $srcdir/.. >/dev/null
+        [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $fn)
+        v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
+        popd >/dev/null
+        x=$(ls -d $pypath/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
+        [[ -n $x && $x != $pypath/${fn}-${v}.dist-info ]] && run_traced "mv $x $pypath/${fn}-${v}.dist-info"
+        if [[ ! -d $pypath/${fn}-${v}.dist-info ]]; then
+          run_traced "mkdir $pypath/${fn}-${v}.dist-info"
+          for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
+            run_traced "touch $pypath/${fn}-${v}.dist-info/$d"
+          done
+        fi
+        run_traced "ln -s $srcdir $pypath/$fn"
+        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      fi
     elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install $pkg"
       run_traced "$PIP install $popts --upgrade $pkg"
@@ -600,7 +608,7 @@ package_debug() {
   local pkg pkgdir
   local pkgs="${LOCAL_PKGS//|/ }"
   pkgs="${pkgs:1:-1}"
-  [[ -d $HOME/dev/pypi ]] && pkgdir=$HOME/dev/pypi
+  # [[ -d $HOME/dev/pypi ]] && pkgdir=$HOME/dev/pypi
   [[ -d $HOME/devel/pypi ]] && pkgdir=$HOME/devel/pypi
   if [[ -n "$pkgdir" ]]; then
     for pkg in $pkgs; do
@@ -1160,7 +1168,7 @@ OPTDEFL=(0        ""       0         0      0       0         0        0        
 OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""          ""        ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
-  "debug mode: use unstable packages (testpypi / local tools / local devel)"
+  "use unstable packages: testpypi / ~/tools (link) / local devel (copy) / (link)"
   "clear cache before execute pip command"
   "create v.environment with development packages"
   "force v.environment create, even if exists or inside another virtual env"
@@ -1248,9 +1256,9 @@ SAVED_PYTHONPATH=$PYTHONPATH
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -n "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools:$PYTHONPATH
 [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -z "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools
-[[ $opt_debug -eq 2 && -d $HOME/odoo/tools && :$PATH: =~ :$HOME/odoo/tools: && -n "$PYTHONPATH" ]] && PYTHONPATH=$HOME/odoo/tools:$PYTHONPATH
-[[ $opt_debug -eq 2 && -d $HOME/odoo/tools && :$PATH: =~ :$HOME/odoo/tools: && -z "$PYTHONPATH" ]] && PYTHONPATH=$HOME/odoo/tools
-[[ $opt_debug -eq 3 ]] && package_debug
+# [[ $opt_debug -eq 2 && -d $HOME/odoo/tools && :$PATH: =~ :$HOME/odoo/tools: && -n "$PYTHONPATH" ]] && PYTHONPATH=$HOME/odoo/tools:$PYTHONPATH
+# [[ $opt_debug -eq 2 && -d $HOME/odoo/tools && :$PATH: =~ :$HOME/odoo/tools: && -z "$PYTHONPATH" ]] && PYTHONPATH=$HOME/odoo/tools
+[[ $opt_debug -ge 3 ]] && package_debug
 FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"
 if [[ $action == "rm" ]]; then

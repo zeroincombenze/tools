@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-"""z0lib
 
-bash library for tools
-"""
 
 __version__ = '1.0.2.99'
 

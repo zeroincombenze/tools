@@ -5,67 +5,55 @@ Massive operations on Zeroincombenze(R) / Odoo databases
 """
 
 from __future__ import print_function, unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-from python_plus import _u
+# from __future__ import absolute_import
 import os
 import sys
-import subprocess
-
-try:
-    import z0testlib
-    Z0BUG = z0testlib.Z0test()
-except ImportError:
-    from zerobug import Z0BUG
 
 
 __version__ = "0.3.34.8"
-STS_FAILED = 1
-STS_SUCCESS = 0
+
+
+def fake_setup(**kwargs):
+    globals()['dict_setup'] = kwargs
+
+
+def read_setup():
+    to_copy = False
+    setup_file = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', 'setup.py'))
+    setup_copy = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), 'setup.py'))
+    if not os.path.isfile(setup_file):
+        setup_file = setup_copy
+    elif not os.path(setup_copy):
+        to_copy = True
+    # dict_setup = {}
+    if os.path.isfile(setup_file):
+        with open(setup_file, 'r') as fd:
+            content = fd.read()
+            if to_copy:
+                with open(setup_copy) as fd2:
+                    fd2.write(content)
+            content = content.replace('setup(', 'fake_setup(')
+            exec (content)
+    return globals()['dict_setup']
+
 
 if __name__ == "__main__":
-    action = False
-    if len(sys.argv) > 1:
-        action = sys.argv[1]
+    action = False if len(sys.argv) < 2 else sys.argv[1]
+    dict_setup = read_setup()
     if action == '-h':
-        print('%s [-h] [-H] [-T] [-V]' % Z0BUG.module_id)
-        sys.exit(STS_SUCCESS)
-    test_file = 'zerobug'
-    if (action == '-T' or ('DEV_ENVIRONMENT' in os.environ and
-            os.environ['DEV_ENVIRONMENT'] == Z0BUG.module_id)):
-        if (os.path.isdir('./tests') and
-                os.path.isfile(os.path.join('tests', test_file))):
-            os.chdir('./tests')
-            sts = subprocess.call(test_file)
-        elif os.path.isfile(test_file):
-            sts = subprocess.call(test_file)
+        print('%s [-h] [--help] [-H] [-V]' % dict_setup['name'])
+        sys.exit(0)
+    # import pdb
+    # pdb.set_trace()
+    # bindir = os.path.dirname(__file__)
+    if action not in ('-H', '--help'):
+        if dict_setup['version'] == __version__:
+            print(dict_setup['version'])
         else:
-            sts = STS_FAILED
-        sys.exit(sts)
-
-    if action != '-H':
-        to_copy = False
-        setup_file = './setup.py'
-        if os.path.isfile('../setup.py') and os.path.isfile('./setup.py'):
-            to_copy = True
-            setup_file = '../setup.py'
-        with open(setup_file, 'r') as fd:
-            do_copy = False
-            content = _u(fd.read())
-            for line in content.split('\n'):
-                if line.find('version=') >= 0:
-                    version = line.split('=')[1].strip()
-                    if version[1:-2] == __version__:
-                        print(version[1:-2])
-                        do_copy = True
-                    else:
-                        print('Version mismatch %s/%s' % (version[1:-2],
-                                                          __version__))
-                    break
-            if to_copy and do_copy:
-                fd2 = open('./setup.py', 'w')
-                fd2.write(content)
-                fd2.close()
+            print('Version mismatch %s/%s' % (dict_setup['version'],
+                                              __version__))
     if action != '-V':
         for text in __doc__.split('\n'):
             print(text)
