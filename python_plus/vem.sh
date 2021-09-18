@@ -26,7 +26,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.3
+__version__=1.0.3.99
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
