@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='zar',
-      version='1.3.36',
+      version='1.3.36.99',
       description='Zeroincombenze Archive Replica',
       long_description="""
 ZAR stand for Zeroincombenze® Archive Replica.
