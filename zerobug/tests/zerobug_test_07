@@ -35,7 +35,7 @@ fi
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
-__version__=1.0.2.3
+__version__=1.0.2.99
 
 OS_TREE="10.0 10.0/l10n-italy 10.0/l10n-italy/l10n_it_base /tmp/zerobug"
 
