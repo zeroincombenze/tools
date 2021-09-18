@@ -40,7 +40,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.2
+__version__=1.0.2.99
 
 if [ "$OPTARGS_TEST_1_2" ]; then
   test_1_2=$OPTARGS_TEST_1_2

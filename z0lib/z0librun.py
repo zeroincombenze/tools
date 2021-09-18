@@ -1,39 +1,16 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-#
-#    Copyright (C) SHS-AV s.r.l. (http://www.shs-av.com/)
-#    All Rights Reserved
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-#
-"""@mainpage
-Zeroincombenze® general purpose library
-=======================================
+"""
+General purpose bash and python library for zeroincombenze(R) tools
 
-Library with various functionalities for python and bash programs.
-Area managed:
-- parseoptargs: line command parser; expands python argparse and adds same
-                functionalities to bash scripts
-- xuname:       platform recognition (only bash); return info about host
-- tracelog:     manage tracelog (only bash)
-- run_traced:   execute (or dry_run) shell command (only bash)
-- findpkg:      find package in file system (only bash)
-- CFG:          manage a dictionay value from config file
-               like python ConfigParser (only bash)
+Features:
 
-@author: Antonio M. Vigliotti antoniomaria.vigliotti@gmail.com
+* xuname: unix/linux platform recognizer (tested on various environments)
+* parseoptargs: line command parser; expands python argparse and adds same functionalities to bash scripts
+* tracelog: manage tracelog (only bash)
+* findpkg: find package in file system (only bash)
+* run_traced: execute (or dry_run) shell command (only bash)
+* CFG: local dictionary values from config file like python ConfigParser (only bash)
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -42,7 +19,6 @@ from __future__ import unicode_literals
 
 from future import standard_library
 standard_library.install_aliases()                                 # noqa: E402
-# from builtins import *                                             # noqa: F403
 from builtins import object
 import os
 import argparse
@@ -65,7 +41,7 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "1.0.2"
+__version__ = "1.0.2.99"
 
 
 class CountAction(argparse.Action):
