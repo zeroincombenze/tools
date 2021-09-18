@@ -11,7 +11,7 @@ Zeroincombenze(R) continuous testing framework for Odoo modules.
 Make avaiable test functions indipendent by Odoo version.
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',

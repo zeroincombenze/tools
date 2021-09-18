@@ -40,7 +40,7 @@ in 2 passes. In the first pass it counts the number of test, in second pass exec
 it. This behavior can be overridden by -0 switch.
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',

@@ -20,7 +20,7 @@ This package is released with an nice command:
 **vem** that is an interactive tool with some nice features to manage standard virtual environment and it is osx/darwin compatible.
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',

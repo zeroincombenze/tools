@@ -32,7 +32,7 @@ The PYPI package is a hub to oerplib and odoorpc packages, so generic python cli
 can execute any command to any Odoo version server (from 6.1 to 13.0)
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',

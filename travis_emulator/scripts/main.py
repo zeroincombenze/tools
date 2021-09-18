@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-from setuptools import setup
-from setuptools import find_packages
-
-setup(name='travis_emulator',
-      version='1.0.2.99',
-      description='Travis CI emulator for local develop environment',
-      long_description="""
+"""
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.
 You can test your application before pushing code to github.com web site.
 
@@ -38,36 +32,54 @@ A travis build executes the following steps:
 * Wep from local .travis.conf (not in travis-ci.org)
 
 Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
-""",
-      classifiers=[
-          'Development Status :: 3 - Alpha',
-          'License :: OSI Approved :: GNU Affero General Public License v3',
-          'Operating System :: POSIX',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3.6',
-          'Programming Language :: Python :: 3.7',
-          'Intended Audience :: Developers',
-          'Topic :: Software Development',
-          'Topic :: Software Development :: Build Tools',
-          'Operating System :: OS Independent',
-      ],
-      keywords='linux travis development',
-      project_urls={
-          'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
-          'Source': 'https://github.com/zeroincombenze/tools',
-      },
-      author='Antonio Maria Vigliotti',
-      author_email='antoniomaria.vigliotti@gmail.com',
-      license='Affero GPL',
-      packages=find_packages(
-          exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-      package_data={
-          '': ['./travis.sh', './travisrc', './travis.man']
-      },
-      entry_points={
-          'console_scripts': [
-              'travis_emulator = travis_emulator.scripts.main:main',
-              'travis = travis_emulator.scripts.travis:main',
-          ],
-      },
-      zip_safe=False)
+"""
+import os
+import sys
+
+
+__version__ = '1.0.2.99'
+
+
+def fake_setup(**kwargs):
+    globals()['setup_args'] = kwargs
+
+
+def read_setup():
+    to_copy = False
+    setup_file = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', 'setup.py'))
+    setup_bup = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), 'setup.py'))
+    if not os.path.isfile(setup_file):
+        setup_file = setup_bup
+    elif os.path.isfile((setup_bup)):
+        to_copy = True
+    if os.path.isfile(setup_file):
+        with open(setup_file, 'r') as fd:
+            content = fd.read()
+            if to_copy:
+                with open(setup_bup) as fd2:
+                    fd2.write(content)
+            content = content.replace('setup(', 'fake_setup(')
+            exec(content)
+    return globals()['setup_args']
+
+
+def main(cli_args=None):
+    if not cli_args:
+        cli_args = sys.argv[1:]
+    action = False if not cli_args else cli_args[0]
+    setup_args = read_setup()
+    if action == '-h':
+        print('%s [-h] [--help] [-H] [-V]' % setup_args['name'])
+        return 0
+    if action not in ('-H', '--help'):
+        if setup_args['version'] == __version__:
+            print(setup_args['version'])
+        else:
+            print('Version mismatch %s/%s' % (setup_args['version'],
+                                              __version__))
+    if action != '-V':
+        for text in __doc__.split('\n'):
+            print(text)
+    return 0

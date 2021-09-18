@@ -1,6 +1,6 @@
 
 =======================
-travis_emulator 1.0.2.1
+travis_emulator 1.0.2.99
 =======================
 
 
@@ -330,7 +330,7 @@ Troubleshooting
 History
 -------
 
-1.0.2.1 (2021-09-06)
+1.0.2.99 (2021-09-06)
 ~~~~~~~~~~~~~~~~~~~~
 
 [IMP] travis: switch -y forces python version

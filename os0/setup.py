@@ -23,7 +23,7 @@ ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
 See https://en.wikipedia.org/wiki/Path_(computing)
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',

@@ -11,7 +11,7 @@ Odoo supercore
 odoo_score is a library that extends the odoo orm functionality and makes available a simple odoo shell.
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',
