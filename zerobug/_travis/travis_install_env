@@ -399,12 +399,12 @@ PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
 [ $PIPVER -gt 18 ] && PIP_OPTS="$PIP_OPTS --no-warn-conflicts"
 [ $PIPVER -gt 19 ] && PIP_OPTS="$PIP_OPTS --use-feature=2020-resolver"
 check_installed_pkgs
-LISTREQ=$(which list_requirements.py 2>/dev/null)
+LISTREQ=$(which list_requirements 2>/dev/null)
 if [[ -z "$LISTREQ" ]]; then
   if [ -n "$YML_mgrodoo" ]; then
-    LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
+    LISTREQ=$(dirname $YML_mgrodoo)/list_requirements
   else
-    [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
+    [ -f $HOME/tools/clodoo/list_requirements ] && LISTREQ=$HOME/tools/clodoo/list_requirements || LISTREQ=list_requirements
   fi
 fi
 LISA=$(which lisa 2>/dev/null)
@@ -429,7 +429,7 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias vem=$VEM.$($VEM -V)\e[${PS_HDR3_COLOR}m"
   # echo -e "\e[${PS_TXT_COLOR}m\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)\e[${PS_HDR3_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)\e[${PS_HDR3_COLOR}m"
+  echo -e "\e[${PS_TXT_COLOR}m\$ alias list_requirements=$LISTREQ.$($LISTREQ -V 2>&1)\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ MQT_TEST_MODE=$MQT_TEST_MODE\e[${PS_HDR3_COLOR}m"
   [ "$MQT_TEST_MODE" == "tools" ] && echo -e "\e[${PS_TXT_COLOR}m# PATH=$PATH\e[${PS_HDR3_COLOR}m"

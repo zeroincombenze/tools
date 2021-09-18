@@ -1646,7 +1646,7 @@ def parse_yaml(ctx, src_file, dst_file):
     # yaml = YAML()
     # yaml.indent(mapping=2, sequence=2, offset=2)
     with open(src_file, 'rb') as fd:
-        cmd = ['list_requirements.py', '-b', ctx['to_ver'],
+        cmd = ['list_requirements', '-b', ctx['to_ver'],
                '-t', 'bin', '-PRT', '-s', ',', '-q']
         out, err = Popen(cmd,
             stdin=PIPE,

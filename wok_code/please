@@ -247,14 +247,14 @@ add_install() {
     fi
     echo "    ODOO_DIR=$root  # here your Odoo dir" >>$1
     echo "    BACKUP_DIR=$HOME/backup  # here your backup dir" >>$1
-    pkgs=$(list_requirements.py -p $PWD -s' ' -P -t python)
+    pkgs=$(list_requirements -p $PWD -s' ' -P -t python)
     pkgs="${pkgs:7}"
     if [ -n "$pkgs" ]; then
       echo "    for pkg in $pkgs; do" >>$1
       echo "        pip install \$pkg" >>$1
       echo "    done" >>$1
     fi
-    pkgs=$(list_requirements.py -p $PWD -s' ' -P -t modules)
+    pkgs=$(list_requirements -p $PWD -s' ' -P -t modules)
     pkgs="${pkgs:8}"
     if [ -n "$pkgs" ]; then
       echo "    # Check for <$pkgs> modules" >>$1

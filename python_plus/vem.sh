@@ -734,11 +734,11 @@ check_installed_pkgs() {
     [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install $popts $p"
     [[ -z "${!x}" ]] && $PIP install $popts $p
   done
-  LIST_REQ="list_requirements.py"
+  LIST_REQ="list_requirements"
   if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
-    if [[ -z $(which list_requirements.py 2>/dev/null) ]]; then
+    if [[ -z $(which list_requirements 2>/dev/null) ]]; then
       x=$($PIP show clodoo|grep Location|awk -F: '{print $2}')
-      x=$(echo $x/clodoo/list_requirements.py)
+      x=$(echo $x/clodoo/list_requirements)
       run_traced "chmod +x $x"
       LIST_REQ="$($READLINK -f $x)"
       run_traced "sed -i -e \"s|^#\!.*[ /]python|#\!$PYTHON|\" $x"
@@ -1280,10 +1280,10 @@ if [[ $action != "help" ]]; then
   [[ -n "$opt_oever" && -z "$opt_oepath" ]] && find_odoo_path $HOME "-L"
   [[ $opt_verbose -gt 2 ]] && echo "# Odoo dir = '$opt_oepath'"
 fi
-if [[ $action =~ (help|create) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
+if [[ $action =~ (help|create) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements 2>/dev/null) ]]; then
   DEV_PKGS=""
 else
-  cmd="list_requirements.py -qt python -BP"
+  cmd="list_requirements -qt python -BP"
   [[ $opt_dev -ne 0 ]] && cmd="$cmd -TR"
   [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
   [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
