@@ -47,7 +47,7 @@ The available tools are:
       },
       entry_points={
           'console_scripts': [
-              'wok_code_info = wok_code.scripts.main:main'
+              'wok_code-info = wok_code.scripts.main:main'
           ],
       },
       zip_safe=False)

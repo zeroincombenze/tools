@@ -124,26 +124,29 @@ if [[ -z "$VEM" ]]; then
     exit 1
 fi
 if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/lib || ! -d $DSTPATH/bin ]]; then
+    [[ -d $DSTPATH/tmp ]] && run_traced "rm -fR $DSTPATH/tmp"
+    [[ -d $DSTPATH/venv ]] && run_traced "rm -fR $DSTPATH/venv"
     x="-iDBB"
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && x="${x}t"
     run_traced "$VEM create $DSTPATH -p3.7 $x -f"
     [[ $? -ne 0 || ! -d $DSTPATH/bin || ! -d $DSTPATH/lib ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
-    [[ -d $DSTPATH/venv ]] && run_traced "rm -fR $DSTPATH/venv"
 fi
+echo ""
 run_traced "pushd $DSTPATH &>/dev/null"
 run_traced ". bin/activate"
 run_traced "popd &>/dev/null"
 
+echo "# Moving local PYPI packages into virtual environment"
 PYPATH=$(find $DSTPATH/lib -type d -name site-packages)
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
 PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
 BINPATH="$DSTPATH/bin"
-
 [[ ! -d $DSTPATH/tmp ]] && mkdir -p $DSTPATH/tmp
 for pkg in $PKGS_LIST; do
+    echo -e "# ====[$pkg]===="
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
     if [[ ! -d $SRCPATH/$pfn ]]; then
         echo -e "${RED}# Invalid environment! Source dir $SRCPATH/$pfn not found!${CLR}"
@@ -157,10 +160,16 @@ for pkg in $PKGS_LIST; do
         run_traced "cp -r $SRCPATH/$pfn/ $DSTPATH/tmp/$pfn/"
         run_traced "mv $DSTPATH/tmp/$pfn/$pfn/setup.py $DSTPATH/tmp/$pfn/setup.py"
     fi
-    run_traced "pip install $DSTPATH/tmp/$pfn --use-feature=in-tree-build"
-    run_traced "${pfn}-info --copy-pkg-data"
+    [[ $opts =~ ^-.*q ]] && popts="-q" || popts=""
+    run_traced "pip install $DSTPATH/tmp/$pfn --use-feature=in-tree-build $popts"
+    if [[ -z $(which ${pkg}-info 2>/dev/null) ]]; then
+        echo -e "${RED}# Invalid environment! Command ${pkg}-info not installed!${CLR}"
+        echo ""
+        exit 1
+    fi
+    run_traced "${pkg}-info --copy-pkg-data"
 done
-[[ ! -d $DSTPATH/tmp ]] && run_trace "rm -fR $DSTPATH/tmp"
+[[ -d $DSTPATH/tmp ]] && run_traced "rm -fR $DSTPATH/tmp"
 
 if [[ ! $opts =~ ^-.*n ]]; then
     echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
@@ -192,18 +201,10 @@ if [[ $opts =~ ^-.*[Ss] ]]; then
         fi
     fi
 fi
-
+run_traced "deactivate"
 run_traced "source $DSTPATH/activate_tools"
 [[ $PATH =~ $BINPATH ]] || export PATH="$PATH:$BINPATH"
 
-if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*D ]]; then
-    mkdir -p $DSTPATH/pypi
-    for pkg in $PKGS_LIST tools; do
-        [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg/-/_} || pfn=$pkg
-        mkdir -p $DSTPATH/pypi/$pfn
-        [[ $pkg == "tools" ]] && rsync -avzb $SRCPATH/$pkg/ $DSTPATH/pypi/$pkg/ || rsync -avzb $SRCPATH/$pfn/ $DSTPATH/pypi/$pfn/$pfn/
-    done
-fi
 if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
     $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
 fi
@@ -217,11 +218,14 @@ if [[ ! $opts =~ ^-.*[gtT] ]]; then
   done
 fi
 if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
-    echo -e "${GREEN}------------------------------------------------------------"
-    echo "If you wish to use these tools at the next time,  please add"
-    echo "the following statement in your login file (.bash_profile)"
-    echo "source $DSTPATH/activate_tools"
-    echo "If you prefer, you can re-execute this script with -P switch"
-    echo -e "------------------------------------------------------------${CLR}"
-    echo "For furthermore info visit https://zeroincombenze-tools.readthedocs.io/"
+    echo -e "${GREEN}--------------------------------------------------------------"
+    echo -e "Zeroincombenze(R) tools successfully installed on your system."
+    echo -e "In order to make available the these tools, please type:${CLR}"
+    echo -e "source $DSTPATH/activate_tools\n"
+    echo -e "${GREEN}If you wish to use  these tools  at the next time,  please add"
+    echo -e "the  following statement  in your  login file  (.bash_profile)"
+    echo -e "source $DSTPATH/activate_tools"
+    echo -e "If you prefer, you can re-execute this script using  -P switch"
+    echo -e "--------------------------------------------------------------${CLR}"
+    echo -e "For furthermore info visit https://zeroincombenze-tools.readthedocs.io/"
 fi
