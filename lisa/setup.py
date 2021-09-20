@@ -41,7 +41,8 @@ You can easily write portable script to install packages on every Linux distribu
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['./lisa.sh', 'lisa.man', 'lisa.conf.sample', 'lisa_bld_ods']
+          '': ['scripts/setup.conf', './lisa.sh', 'lisa.man',
+               'lisa.conf.sample', 'lisa_bld_ods']
       },
       entry_points={
           'console_scripts': [

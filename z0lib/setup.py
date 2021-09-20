@@ -40,7 +40,7 @@ Features:
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['./z0librc']
+          '': ['scripts/setup.conf', './z0librc']
       },
       entry_points={
           'console_scripts': [

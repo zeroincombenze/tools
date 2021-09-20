@@ -35,6 +35,7 @@ Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job
 """
 import os
 import sys
+import pkg_resources
 import shutil
 
 
@@ -46,25 +47,27 @@ def fake_setup(**kwargs):
 
 
 def read_setup():
-    to_copy = False
     setup_file = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', 'setup.py'))
-    setup_bup = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), 'setup.py'))
+        os.path.join(os.path.dirname(__file__), 'setup.conf'))
     if not os.path.isfile(setup_file):
-        setup_file = setup_bup
-    elif os.path.isfile((setup_bup)):
-        to_copy = True
+        setup_file = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '..', 'setup.py'))
+    if not os.path.isfile(setup_file):
+        setup_file = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '..', '..', 'setup.py'))
+    setup_args = {}
     if os.path.isfile(setup_file):
         with open(setup_file, 'r') as fd:
-            content = fd.read()
-            if to_copy:
-                with open(setup_bup) as fd2:
-                    fd2.write(content)
-            content = content.replace('setup(', 'fake_setup(')
+            content = fd.read().replace('setup(', 'fake_setup(')
             exec(content)
-        globals()['setup_args']['setup'] = setup_file
-    return globals()['setup_args']
+            setup_args = globals()['setup_args']
+    else:
+        print('Not internal configuration file found!')
+    pkg = pkg_resources.get_distribution(__package__.split('.')[0])
+    setup_args['setup'] = setup_file
+    setup_args['name'] = pkg.key
+    setup_args['version'] = pkg.version
+    return setup_args
 
 
 def copy_pkg_data(setup_args):
@@ -81,11 +84,14 @@ def copy_pkg_data(setup_args):
         if bin_path:
             for pkg in setup_args['package_data'].keys():
                 for fn in setup_args['package_data'][pkg]:
+                    base = os.path.basename(fn)
+                    if base == 'setup.conf':
+                        continue
                     full_fn = os.path.abspath(os.path.join(pkgpath, fn))
                     if os.access(full_fn, os.X_OK):
-                        tgt_fn = os.path.abspath(os.path.join(bin_path, fn))
+                        tgt_fn = os.path.abspath(os.path.join(bin_path, base))
                     else:
-                        tgt_fn = os.path.abspath(os.path.join(lib_path, fn))
+                        tgt_fn = os.path.abspath(os.path.join(lib_path, base))
                     shutil.copy(full_fn, tgt_fn)
 
 

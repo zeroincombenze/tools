@@ -32,9 +32,9 @@ Make avaiable test functions indipendent by Odoo version.
       license='Affero GPL',
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-      # package_data={
-      #     '': ['./z0testrc']
-      # },
+      package_data={
+          '': ['scripts/setup.conf']
+      },
       entry_points={
           'console_scripts': [
               'z0bug-odoo-info = z0bug_odoo.scripts.main:main'

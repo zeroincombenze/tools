@@ -43,7 +43,7 @@ The available tools are:
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['./cvt_script']
+          '': ['scripts/setup.conf', './cvt_script']
       },
       entry_points={
           'console_scripts': [

@@ -44,6 +44,9 @@ See https://en.wikipedia.org/wiki/Path_(computing)
       license='Affero GPL',
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
+      package_data={
+          '': ['scripts/setup.conf'],
+      },
       entry_points={
           'console_scripts': [
               'os0-info = os0.scripts.main:main'

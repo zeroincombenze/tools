@@ -62,7 +62,8 @@ Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['./travis.sh', './travisrc', './travis.man']
+          '': ['scripts/setup.conf', './travis.sh', './travisrc',
+               './travis.man']
       },
       entry_points={
           'console_scripts': [

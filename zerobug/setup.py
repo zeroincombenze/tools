@@ -62,7 +62,7 @@ it. This behavior can be overridden by -0 switch.
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['./z0testrc']
+          '': ['scripts/setup.conf', './z0testrc']
       },
       entry_points={
           'console_scripts': [

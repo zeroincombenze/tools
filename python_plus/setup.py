@@ -42,7 +42,7 @@ This package is released with an nice command:
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['./vem.sh', './vem.man']
+          '': ['scripts/setup.conf', './vem.sh', './vem.man']
       },
       entry_points={
           'console_scripts': [
