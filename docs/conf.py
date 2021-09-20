@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Configuration file for the Sphinx documentation on 2021-09-02 15:17:26
+# Configuration file for the Sphinx documentation on 2019-12-05 08:37:34
 #
 # This file does only contain a selection of the most common options. For a
 # full list see the documentation:
@@ -14,7 +14,7 @@
 #
 import os
 import sys
-# sys.path.insert(0, os.path.abspath('../'))
+# sys.path.insert(0, os.path.abspath('.'))
 # import sphinx_rtd_theme
 
 
@@ -25,9 +25,9 @@ copyright = '2019-21, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '1.0.5.47'
+version = '1.0.6'
 # The full version, including alpha/beta/rc tags
-release = '1.0.5.47'
+release = '1.0.6'
 
 
 # -- General configuration ---------------------------------------------------
@@ -98,7 +98,7 @@ pygments_style = 'sphinx'
 #
 # on_rtd is whether we are on readthedocs.org,
 # this line of code grabbed from docs.readthedocs.org
-#     html_theme = 'master'
+# html_theme = 'sphinx_rtd_theme'
 # html_theme = 'python_docs_theme'
 html_theme = 'nature'
 
@@ -120,7 +120,7 @@ html_theme_options = {
     # 'sticky_navigation': True,
     # 'navigation_depth': 4,
     # 'includehidden': True,
-    # 'titles_only': False
+    # 'titles_only': False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -138,3 +138,11 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 html_logo = 'logozero_180x46.png'
+#
+# autodoc_default_flags = ['members']
+autosummary_generate = True
+autodoc_default_options = {
+    'members': 'Z0test, Z0testOdoo',
+    'undoc-members': True,
+    'exclude-members': 'Macro, SanityTest'
+}

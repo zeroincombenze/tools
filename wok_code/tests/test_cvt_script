@@ -49,7 +49,7 @@ test_01() {
 THIS=\$(basename "\$0")
 TDIR=\$(\$READLINK -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \${PATH//:/ } \${PYPATH//:/ } /etc /home/odoo/devel/pypi/wok_code/wok_code/../z0lib /home/odoo/devel/pypi/wok_code/wok_code/../../z0lib /home/odoo/devel/pypi/wok_code/wok_code/../../z0lib/z0lib; do
+for d in \$TDIR \${PATH//:/ } \${PYPATH//:/ } /etc /home/odoo/pypi/wok_code/wok_code/../z0lib /home/odoo/pypi/wok_code/wok_code/../../z0lib /home/odoo/pypi/wok_code/wok_code/../../z0lib/z0lib; do
   if [[ -e \$d/z0librc ]]; then
     . \$d/z0librc
     Z0LIBDIR=\$d

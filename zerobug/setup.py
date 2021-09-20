@@ -66,7 +66,7 @@ it. This behavior can be overridden by -0 switch.
       },
       entry_points={
           'console_scripts': [
-              'zerobug = zerobug.scripts.main:main'
+              'zerobug-info = zerobug.scripts.main:main'
           ],
       },
       zip_safe=False)

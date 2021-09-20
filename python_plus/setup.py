@@ -46,7 +46,7 @@ This package is released with an nice command:
       },
       entry_points={
           'console_scripts': [
-              'python-plus = z0lib.scripts.main:main',
+              'python-plus-info = z0lib.scripts.main:main',
               'vem = python_plus.scripts.vem:main'
           ],
       },

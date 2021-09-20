@@ -38,7 +38,7 @@ ZAR manages easily backup for Odoo database, keeps last nth copies and purges ol
       },
       entry_points={
           'console_scripts': [
-              'zar = zar.scripts.main:main'
+              'zar-info = zar.scripts.main:main'
           ],
       },
       zip_safe=False)

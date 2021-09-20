@@ -4,12 +4,6 @@
 Installation
 ------------
 
-Zeroincombenze tools require:
-
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
-* python 2.7, some tools require python 3.6+
-* bash 5.0+
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -25,7 +19,7 @@ Current version via Git
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-09-07
+Last Update / Ultimo aggiornamento: 2021-08-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

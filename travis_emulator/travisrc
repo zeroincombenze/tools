@@ -505,7 +505,7 @@ create_virtual_env() {
     if [[ ${opt_dbgmnt:-0} -ne 0 && "$TRAVIS_REPO_SLUG" == "local/tools" ]]; then
       git_clone "https://github.com/zeroincombenze/tools.git"
       [[ HOME_DEV =~ /devel$ ]] && \
-        run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o" || \
+        run_traced "cp $TRAVIS_SAVED_HOME/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o" || \
         run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
     fi
   fi
@@ -570,13 +570,13 @@ git_clone() {
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
         [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ ]] && \
           run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
-        [[ -d $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/ ]] && \
-          run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/ $HOME/tools/$p/"
+        [[ -d $TRAVIS_SAVED_HOME/pypi/$p/$p/ ]] && \
+          run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/pypi/$p/$p/ $HOME/tools/$p/"
         s=$?; [ ${s-1} -eq 0 ] || echo "Internal error $s! Statement rsync $p failed!!"
       done
       for p in install_tools.sh odoo_default_tnl.xlsx; do
-        [[ -d $TRAVIS_SAVED_HOME/devel/pypi/tools/ ]] && \
-          run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/$p $HOME/tools/$p" || \
+        [[ -d $TRAVIS_SAVED_HOME/pypi/tools/ ]] && \
+          run_traced "cp $TRAVIS_SAVED_HOME/pypi/tools/$p $HOME/tools/$p" || \
           run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/$p $HOME/tools/$p"
       done
       true # FIX: return no error

@@ -218,8 +218,6 @@ FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)
 +------+------------+------------+---------+--------+------------+----------------------------------------------------------------------------------------------------------------------------------+
 | Test | MINIMAL    | REDUCED    | AVERAGE | NEARBY | OCA        | Note                                                                                                                             |
 +------+------------+------------+---------+--------+------------+----------------------------------------------------------------------------------------------------------------------------------+
-| E117 | |no_check| | |check|    |         |        | |check|    | `expected an indented block (comment) <https://lintlyci.github.io/Flake8Rules/rules/E115.html>`_                                 |
-+------+------------+------------+---------+--------+------------+----------------------------------------------------------------------------------------------------------------------------------+
 | E117 | |no_check| | |no_check| |         |        | |no_check| | over-indented                                                                                                                    |
 +------+------------+------------+---------+--------+------------+----------------------------------------------------------------------------------------------------------------------------------+
 | E121 | |no_check| | |no_check| |         |        | |no_check| | `continuation line under-indented for hanging indent <https://lintlyci.github.io/Flake8Rules/rules/E121.html>`_                  |
@@ -856,7 +854,7 @@ partner qci
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-06
+Last Update / Ultimo aggiornamento: 2021-08-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

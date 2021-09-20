@@ -45,7 +45,7 @@ You can easily write portable script to install packages on every Linux distribu
       },
       entry_points={
           'console_scripts': [
-              'lisa_info = lisa.scripts.main:main',
+              'lisa-info = lisa.scripts.main:main',
               'lisa = lisa.scripts.lisa:main'
           ],
       },

@@ -226,8 +226,8 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   fi
   odoo_home=$(grep odoo /etc/passwd|awk -F: '{print $6}')
   if [ "$action" == "build_last" ]; then
-    cp $odoo_home/devel/pypi/z0lib/z0lib/z0librc $HOME/tmp
-    cp $odoo_home/devel/pypi/travis_emulator/travis_emulator/cronow $HOME/tmp
+    cp $odoo_home/pypi/z0lib/z0lib/z0librc $HOME/tmp
+    cp $odoo_home/pypi/travis_emulator/travis_emulator/cronow $HOME/tmp
   else
     [[ -f /etc/z0librc ]] && cp /etc/z0librc $HOME/tmp || cp $odoo_home/tools/z0lib/z0librc $HOME/tmp
     if [[ -f $odoo_home/bin/cronow ]]; then

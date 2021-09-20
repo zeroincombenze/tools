@@ -19,7 +19,7 @@ This packge is released with an nice command:
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-04
+Last Update / Ultimo aggiornamento: 2021-08-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

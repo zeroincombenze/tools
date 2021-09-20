@@ -92,10 +92,10 @@ process_yaml_init() {
   [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep PYPI_RUN_PYVER|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
     [[ -d $HOME/devel ]] && \
-      export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || \
+      export YML_lisa=$HOME/pypi/lisa/lisa/lisa || \
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
     [[ -d $HOME/devel ]] && \
-      export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo || \
+      export YML_mgrodoo=$HOME/pypi/clodoo/clodoo/manage_odoo || \
       export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
     (($opt_debug)) && export TRAVIS_PDB="true"
   else

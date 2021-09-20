@@ -206,7 +206,6 @@ export -f xuname
 
 ##############################################################################
 # Parse command line arguments in a professional way
-# __version__="0.1.9"
 # You can define syntax rules declaring some array variables, before calling
 # this function. On exit, variable are set on appropriate way.
 # Global variables to declare

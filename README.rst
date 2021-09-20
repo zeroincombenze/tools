@@ -26,6 +26,8 @@ These tools help to cover the following areas of software:
 * Documentation
 * Testing
 
+You can find more info at https://zeroincombenze-tools.readthedocs.io/
+
 Compatibility
 ~~~~~~~~~~~~~
 
@@ -572,7 +574,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-09-07
+Last Update / Ultimo aggiornamento: 2021-09-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

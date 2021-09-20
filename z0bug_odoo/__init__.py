@@ -15,4 +15,4 @@ try:
 except BaseException:
     pass
 from . import z0bug_odoo_lib
-from zerobug import Z0BUG
+# from zerobug import Z0BUG

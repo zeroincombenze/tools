@@ -46,7 +46,7 @@ See https://en.wikipedia.org/wiki/Path_(computing)
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       entry_points={
           'console_scripts': [
-              'os0 = os0.scripts.main:main'
+              'os0-info = os0.scripts.main:main'
           ],
       },
       zip_safe=False)

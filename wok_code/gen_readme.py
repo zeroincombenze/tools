@@ -244,15 +244,15 @@ def iter_template_path(debug_mode=None, body=None):
                      './docs',
                      './egg-info',
                      './readme',
-                     '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
+                     '%s/pypi/tools/templates/${p}' % os.environ['HOME'],
                      '%s/dev/pypi/tools/templates/${p}' % os.environ['HOME'],
                      '%s/devel/templates/${p}' % os.environ['HOME'],
                      '%s/dev/templates/${p}' % os.environ['HOME'],
-                     '%s/devel/pypi/tools/templates' % os.environ['HOME'],
+                     '%s/pypi/tools/templates' % os.environ['HOME'],
                      '%s/dev/pypi/tools/templates' % os.environ['HOME'],
                      '%s/devel/templates' % os.environ['HOME'],
                      '%s/dev/templates' % os.environ['HOME']):
-        if src_path.find('/devel/pypi/tools/') >= 0 and not debug_mode:
+        if src_path.find('/pypi/tools/') >= 0 and not debug_mode:
             continue
         elif src_path.find('/dev/pypi/tools/') >= 0 and not debug_mode:
                 continue

@@ -1252,7 +1252,7 @@ merge_cfg() {
   #merge_cfg(cfgfn)
   local cfgfn=$1 fbak ftmp f line ln
   local tmpl
-  [[ -d $HOME/devel ]] && tmpl=$HOME/devel/pypi/tools/install_tools.sh || tmpl=$HOME/dev/pypi/tools/install_tools.sh
+  [[ -d $HOME/devel ]] && tmpl=$HOME/pypi/tools/install_tools.sh || tmpl=$HOME/dev/pypi/tools/install_tools.sh
   ftmp=$cfgfn.tmp
   [[ -f $ftmp ]] && rm -f $ftmp
   f=0
@@ -1507,7 +1507,7 @@ do_edit_pofile() {
 do_edit_translation() {
   local xfile
   [[ -f "$HOME/dev/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/dev/pypi/tools/odoo_default_tnl.xlsx"
-  [[ -f "$HOME/devel/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/devel/pypi/tools/odoo_default_tnl.xlsx"
+  [[ -f "$HOME/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/pypi/tools/odoo_default_tnl.xlsx"
   [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
   return $STS_STS_SUCCESS
 }
@@ -1549,7 +1549,7 @@ do_edit_translation_from_pofile() {
   return $sts
 
   [[ -f "$HOME/dev/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/dev/pypi/tools/odoo_default_tnl.xlsx"
-  [[ -f "$HOME/devel/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/devel/pypi/tools/odoo_default_tnl.xlsx"
+  [[ -f "$HOME/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/pypi/tools/odoo_default_tnl.xlsx"
   [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
   return $STS_STS_SUCCESS
 }

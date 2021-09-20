@@ -3,7 +3,7 @@ clodoo,check_4_seq.sh,Check for postgres database index,maintenance
 ,clodoo.py,Massive operations on multiple Odoo DBs in cloud. It is used to create configurated Odoo DBs and to upgrade more DBs at the same time. No (yet) documented,maintenance
 ,force_password.sh,Force Odoo DB password,maintenance
 ,inv2draft_n_restore.py,Force an invoice to draft state even if is paid and restore original state and payment (Odoo < 9.0),maintenance
-,list_requirements.py,List pypi and bin packages for an Odoo installation,deployment
+,list_requirements,List pypi and bin packages for an Odoo installation,deployment
 ,manage_db,"Massive operations to multiple Odoo DBs in cloud, data based on csv files.",maintenance
 ,manage_odoo,Manage an Odoo installation,maintenance
 ,odoo_install_repository,Install & upgrade odoo repository,Deployment & maintenance

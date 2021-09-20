@@ -18,7 +18,7 @@ Features:
 * CFG: local dictionary values from config file like python ConfigParser (only bash)
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',
@@ -44,7 +44,7 @@ Features:
       },
       entry_points={
           'console_scripts': [
-              'z0lib = z0lib.scripts.main:main'
+              'z0lib-info = z0lib.scripts.main:main'
           ],
       },
       zip_safe=False)

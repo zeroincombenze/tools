@@ -66,7 +66,7 @@ Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job
       },
       entry_points={
           'console_scripts': [
-              'travis_emulator = travis_emulator.scripts.main:main',
+              'travis_emulator-info = travis_emulator.scripts.main:main',
               'travis = travis_emulator.scripts.travis:main',
           ],
       },

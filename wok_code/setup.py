@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='wok_code',
-      version='1.0.2.2',
+      version='1.0.2.99',
       description='Python developers tools',
       long_description="""
 Various tools at your fingertips.
@@ -47,7 +47,7 @@ The available tools are:
       },
       entry_points={
           'console_scripts': [
-              'wok_code = wok_code.scripts.main:main'
+              'wok_code_info = wok_code.scripts.main:main'
           ],
       },
       zip_safe=False)
