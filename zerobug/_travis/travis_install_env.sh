@@ -7,18 +7,22 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2016-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-export READLINK
+# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+# export READLINK
 THIS=$(basename "$0")
-TDIR=$($READLINK -f $(dirname $0))
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=""
+for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
+  [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
+  [[ -n $PYPATH ]] && break
+done
+PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and not x.startswith('/usr') and not x.startswith('/sbin') and not x.startswith('/bin')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
 done
@@ -268,8 +272,8 @@ install_n_activate_tools() {
     [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-pt
     [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qpt
     run_traced "./install_tools.sh $x"
-    [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
-    . $HOME/dev/activate_tools
+    [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/venv_tools/activate_tools\e[${PS_TXT_COLOR}m"
+    . $HOME/venv_tools/activate_tools
     popd >/dev/null
     [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
     [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
@@ -376,17 +380,12 @@ fi
 export PYTHON PIP
 [[ ! $TRAVIS =~ (true|emulate) && -d $HOME/.local && ! "$SYSTEM_SITE_PACKAGES" == "true" ]] && PIP_OPTS="--user" || PIP_OPTS=""
 install_n_activate_tools
-if [[ -d $HOME/devel ]]; then
-  set_pythonpath "$HOME/tools" "$HOME/devel/sitecustomize.py" $PIP
+if [[ -d $HOME/venv_tools ]]; then
+  set_pythonpath "$HOME/tools" "$HOME/venv_tools/sitecustomize.py" $PIP
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-elif [[ -d $HOME/dev ]]; then
-  set_pythonpath "$HOME/tools" "$HOME/dev/sitecustomize.py" $PIP
-  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-  echo "Do not use ~/dev directory: support will be removed early!"
 else
-  echo "!! Error! Directory $HOME/dev[el] not found!"
+  echo "!! Error! Directory $HOME/venv_tools not found!"
 fi
 check_pythonpath "$HOME/tools" $PYTHON
 if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
@@ -476,9 +475,9 @@ if [[ "$MQT_TEST_MODE" == "tools" ]]; then
     ls -l ${HOME}
     echo "Content of ${TRAVIS_BUILD_DIR}:"
     ls -l ${TRAVIS_BUILD_DIR}
-    if [[ -d $HOME/devel ]]; then
-      echo "Content of ${HOME}/devel:"
-      ls -l ${HOME}/devel
+    if [[ -d $HOME/venv_tools ]]; then
+      echo "Content of ${HOME}/venv_tools:"
+      ls -l ${HOME}/venv_tools
     else
       echo "Content of ${HOME}/dev:"
       ls -l ${HOME}/dev

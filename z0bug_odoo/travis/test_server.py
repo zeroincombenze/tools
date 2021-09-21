@@ -10,10 +10,10 @@ import shutil
 import subprocess
 import sys
 from six import string_types
-from getaddons import (
+from .getaddons import (
     get_addons, get_modules, get_modules_info, get_dependencies,
     get_applications_with_dependencies, get_localizations_with_dependents)
-from travis_helpers import success_msg, fail_msg, print_flush
+from .travis_helpers import success_msg, fail_msg, print_flush
 try:
     import ConfigParser
 except ImportError:

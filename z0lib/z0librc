@@ -6,9 +6,6 @@
 #__version__=1.0.2.99
 STS_FAILED=1
 STS_SUCCESS=0
-PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:$HOME/devel::$HOME/dev:.:..').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-export READLINK
 
 ##############################################################################
 # Install this lib file in /etc if version is more recent

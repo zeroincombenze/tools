@@ -13,8 +13,8 @@ import click
 import pylint.lint
 
 import travis_helpers
-from getaddons import get_modules_changed, is_module
-from git_run import GitRun
+from .getaddons import get_modules_changed, is_module
+from .git_run import GitRun
 
 try:
     import ConfigParser

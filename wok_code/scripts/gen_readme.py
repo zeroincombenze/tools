@@ -84,10 +84,7 @@ from __future__ import print_function, unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 from future import standard_library
-# from builtins import str
-# from builtins import range
 from past.builtins import basestring
-# from builtins import *
 import ast
 import os
 import re
@@ -95,7 +92,7 @@ import sys
 from datetime import datetime
 from shutil import copyfile
 from lxml import etree
-import license_mgnt
+from wok_code import license_mgnt
 from python_plus import unicodes
 from os0 import os0
 try:
@@ -1295,7 +1292,7 @@ def read_setup(ctx):
     ctx['history-summary'] = ''
     if ctx['odoo_layer'] == 'repository':
         ctx['histories'] = ''
-        for root, dirs, files in os.walk('../'):
+        for root, dirs, files in os.walk('../../'):
             for dir in dirs:
                 if dir == 'tools':
                     continue
@@ -1818,7 +1815,7 @@ def write_egg_info(ctx):
     if os.path.isdir('./egg-info'):
         for section in ('authors', 'contributors',
                         'description', 'descrizione', 'history'):
-            write_file('./egg-info', section)
+            write_file('../egg-info', section)
     elif os.path.isdir('./readme'):
         for section in ('CONTRIBUTORS', 'DESCRIPTION'):
             write_file('./readme', section)
@@ -2002,7 +1999,9 @@ def generate_readme(ctx):
                               item)
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Generate README",
                                 "© 2018-2021 by SHS-AV s.r.l.",
                                 version=__version__)
@@ -2151,5 +2150,4 @@ if __name__ == "__main__":
                 ctx['odoo_layer'] = 'module'
             else:
                 ctx['odoo_layer'] = 'repository'
-    sts = generate_readme(ctx)
-    sys.exit(sts)
+    return generate_readme(ctx)

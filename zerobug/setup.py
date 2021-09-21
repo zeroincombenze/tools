@@ -59,14 +59,20 @@ it. This behavior can be overridden by -0 switch.
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
+      install_requires=['coverage', 'coveralls', 'codecov'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.conf', './z0testrc']
+          '': ['scripts/setup.conf', './z0testrc',
+               '_travis/travis_install_env.sh',
+               '_travis/travis_run_pypi_tests.sh']
       },
       entry_points={
           'console_scripts': [
-              'zerobug-info = zerobug.scripts.main:main'
+              'zerobug-info = zerobug.scripts.main:main',
+              'travis_after_tests_success = zerobug._travis.travis_after_tests_success:main',
+              'travis_install_env = zerobug.scripts.travis_install_env:main',
+              'travis_run_pypi_tests = zerobug.scripts.travis_run_pypi_tests:main',
           ],
       },
       zip_safe=False)

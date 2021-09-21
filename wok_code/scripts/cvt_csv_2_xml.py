@@ -5,7 +5,7 @@
                         src_file [dst_file]
 
 Convert csv file into xml file
-
+r
 positional arguments:
   src_file
   dst_file
@@ -159,9 +159,11 @@ def convert_file(ctx):
                 fd.write(os0.b(target))
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Convert csv file into xml file",
-                                "© 2018-2020 by SHS-AV s.r.l.",
+                                "© 2018-2021 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
@@ -201,4 +203,4 @@ if __name__ == "__main__":
         sts = 1
     else:
         sts = convert_file(ctx)
-    sys.exit(sts)
+    return sts

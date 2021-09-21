@@ -13,8 +13,8 @@ from __future__ import print_function
 
 import sys
 import os
-from getaddons import (get_modules, get_dependents,
-                       get_dependencies, get_modules_info)
+from .getaddons import (get_modules, get_dependents,
+                        get_dependencies, get_modules_info)
 # from six import string_types
 
 from test_server import get_test_dependencies

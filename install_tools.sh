@@ -185,7 +185,7 @@ if [[ ! $opts =~ ^-.*n ]]; then
     # [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
 fi
 if [[ $opts =~ ^-.*[Ss] ]]; then
-    [[ ! $opts =~ ^-.*o ]] && SITECUSTOM=$HOME/devel/sitecustomize.py
+    [[ ! $opts =~ ^-.*o ]] && SITECUSTOM=$HOME/venv_tools/sitecustomize.py
     [[ $opts =~ ^-.*o ]] && SITECUSTOM=$HOME/dev/sitecustomize.py
     PYLIB=$(dirname $(pip --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
     [[ -n "$PYLIB" ]] || PYLIB=$(dirname $(pip3 --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
@@ -206,7 +206,7 @@ run_traced "source $DSTPATH/activate_tools"
 [[ $PATH =~ $BINPATH ]] || export PATH="$PATH:$BINPATH"
 
 if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
-    $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
+    $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/venv_tools/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/venv_tools/activate_tools ]] && . $HOME/venv_tools/activate_tools -q" >>$HOME/.bash_profile
 fi
 [[ $opts =~ ^-.*T ]] && $DSTPATH/test_tools.sh
 [[ $opts =~ ^-.*U && -f $DSTPATH/egg-info/history.rst ]] && tail $DSTPATH/egg-info/history.rst

@@ -28,34 +28,41 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+# export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  if [ -e $d/z0librc ]; then
+PYPATH=""
+for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
+  [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
+  [[ -n $PYPATH ]] && break
+done
+PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and not x.startswith('/usr') and not x.startswith('/sbin') and not x.startswith('/bin')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
-  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
   fi
 done
-if [ -z "$Z0LIBDIR" ]; then
+if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
-if [ -z "$ODOOLIBDIR" ]; then
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+if [[ -z "$ODOOLIBDIR" ]]; then
   echo "Library file odoorc not found!"
-  exit 2
+  exit 72
 fi
 . $ODOOLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$($READLINK -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
 __version__=0.3.34.99
 
@@ -141,7 +148,7 @@ cp_grf_file() {
 # cp_grf_file (path file)
     [ $opt_verbose -gt 0 ] && echo "Check for $2 ..."
     if [ -f "$webdir/static/src/img/$2" ]; then
-      if ! diff -q $1/$2 $webdir/static/src/img/$2 &>/dev/null; then 
+      if ! diff -q $1/$2 $webdir/static/src/img/$2 &>/dev/null; then
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           [ $opt_verbose -gt 0 ] && echo "Copying $1/$2 to $webdir/static/src/img/..."
           mv $webdir/static/src/img/$2 $webdir/static/src/img/$2.bak
@@ -158,7 +165,7 @@ cp_icon_file() {
 # cp_grf_file (path file)
     [ $opt_verbose -gt 0 ] && echo "Check for $2 ..."
     if [ -f "$opt_icond/$2" ]; then
-      if ! diff -q $1/$2 $opt_icond/$2 &>/dev/null; then 
+      if ! diff -q $1/$2 $opt_icond/$2 &>/dev/null; then
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           [ $opt_verbose -gt 0 ] && echo "Copying $1/$2 to $opt_icond/"
           mv $opt_icond/$2 $opt_icond/$2.bak
@@ -175,7 +182,7 @@ cp_demo_grf_file() {
 # cp_demo_grf_file (path file)
     [ $opt_verbose -gt 0 ] && echo "Check for $2 ..."
     if [ -f "$webdir/static/src/img/$2" ]; then
-      if ! diff -q $1/$2 $webdir/static/src/img/$2 &>/dev/null; then 
+      if ! diff -q $1/$2 $webdir/static/src/img/$2 &>/dev/null; then
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           [ $opt_verbose -gt 0 ] && echo "Copying $1/$2 to $webdir/static/src/img/..."
           mv $webdir/static/src/img/$2 $webdir/static/src/img/$2.bak
@@ -190,7 +197,7 @@ cp_demo_grf_file() {
 
 write_def_conf() {
     f=$1/default.def
-    cat << EOF > $f 
+    cat << EOF > $f
 CSS_facets_border=#afafb6
 CSS_section_title_color=#7C7BAD
 CSS_tag_bg_light=#f0f0fa
@@ -324,11 +331,11 @@ OPTHELP=("this help"\
 OPTARGS=(odoo_vid sel_skin)
 
 parseoptargs "$@"
-if [ "$opt_version" ]; then
+if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
-if [ $opt_help -gt 0 ]; then
+if [[ $opt_help -gt 0 ]]; then
   print_help "Manage odoo themes (8.0+) & skin (all versions)"\
   "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0

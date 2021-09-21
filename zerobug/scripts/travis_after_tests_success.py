@@ -9,7 +9,7 @@ def main(cli_args=None):
         cli_args = sys.argv[1:]
     cmd = os.path.abspath(
         os.path.join(os.path.dirname(__file__),
-                     '..',
+                     '..', '_travis',
                      '%s.sh' % os.path.basename(__file__)[0: -3]))
     if not os.path.isfile(cmd):
         print('Internal package error: file %s not found!' % cmd)

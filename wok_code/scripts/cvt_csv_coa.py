@@ -334,7 +334,9 @@ def manage_coa(ctx):
     return 0
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Manage csv file of Odoo CoA",
                                 "© 2020-2021 by SHS-AV s.r.l.",
                                 version=__version__)
@@ -361,4 +363,4 @@ if __name__ == "__main__":
     parser.add_argument('-v')
     parser.add_argument('src_csvfile')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
-    sys.exit(manage_coa(ctx))
+    return manage_coa(ctx)

@@ -3,7 +3,7 @@ import os
 import subprocess
 import sys
 
-from getaddons import get_modules
+from .getaddons import get_modules
 
 
 __version__ = '1.0.5.99'

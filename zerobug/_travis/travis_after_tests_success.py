@@ -28,7 +28,9 @@ def combine_reports():
                 else:
                     os.system("coverage combine -a  %s %s" % (GBLCOVRF, COVRF))
 
-if __name__ == '__main__':
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
     if (os.environ.get('TESTS', '1') == '1' and
             os.environ.get('TEST_ENABLE', '1') == '1' and
@@ -42,7 +44,7 @@ if __name__ == '__main__':
                 print_flush('DEBUG: coverage report')
             coverage_main(["report"])
         print_flush('DEBUG: sending result to coveralls / codecov')
-        if os.environ['TRAVIS'] == "true":
+        if os.environ.get('TRAVIS', '') == "true":
             try:
                 coveralls_cli.main(argv=None)
             except:
@@ -51,3 +53,4 @@ if __name__ == '__main__':
                 codecov_main(argv=None)
             except:
                 pass
+    return 0

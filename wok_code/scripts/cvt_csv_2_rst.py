@@ -24,7 +24,7 @@ optional arguments:
 from __future__ import print_function, unicode_literals
 import os
 import sys
-import StringIO
+from io import StringIO
 import time
 import csv
 from os0 import os0
@@ -151,9 +151,11 @@ def convert_file(ctx):
                 fd.write(os0.b(target))
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Convert csv file into xml file",
-                                "© 2018-2020 by SHS-AV s.r.l.",
+                                "© 2018-2021 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
@@ -171,5 +173,4 @@ if __name__ == "__main__":
     parser.add_argument('dst_file',
                         nargs='?')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
-    sts = convert_file(ctx)
-    sys.exit(sts)
+    return convert_file(ctx)

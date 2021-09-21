@@ -10,7 +10,7 @@ try:
     from clodoo import clodoo
 except ImportError:
     import clodoo
-from travis_helpers import print_flush
+from .travis_helpers import print_flush
 
 
 def main(argv=None, database=None):

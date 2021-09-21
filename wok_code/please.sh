@@ -8,37 +8,41 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-export READLINK
+# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+# export READLINK
 THIS=$(basename "$0")
-TDIR=$($READLINK -f $(dirname $0))
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=""
+for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
+  [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
+  [[ -n $PYPATH ]] && break
+done
+PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and not x.startswith('/usr') and not x.startswith('/sbin') and not x.startswith('/bin')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
 done
 if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
-if [ -z "$ODOOLIBDIR" ]; then
+if [[ -z "$ODOOLIBDIR" ]]; then
   echo "Library file odoorc not found!"
-  exit 2
+  exit 72
 fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
-if [ -z "$TRAVISLIBDIR" ]; then
+if [[ -z "$TRAVISLIBDIR" ]]; then
   echo "Library file travisrc not found!"
-  exit 2
+  exit 72
 fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
@@ -1252,7 +1256,7 @@ merge_cfg() {
   #merge_cfg(cfgfn)
   local cfgfn=$1 fbak ftmp f line ln
   local tmpl
-  [[ -d $HOME/devel ]] && tmpl=$HOME/pypi/tools/install_tools.sh || tmpl=$HOME/dev/pypi/tools/install_tools.sh
+  tmpl=$HOME/pypi/tools/install_tools.sh
   ftmp=$cfgfn.tmp
   [[ -f $ftmp ]] && rm -f $ftmp
   f=0
@@ -1583,7 +1587,7 @@ create_pkglist() {
       fi
       x=$(cat setup.py | grep "# BUILD_WITH_ODOORC=" | awk -F= '{print $2}')
       if [ "$x" == "1" ]; then
-        OELIB=$(findpkg odoorc "/etc $HOME/devel $HOME/dev . ..")
+        OELIB=$(findpkg odoorc "/etc $HOME/venv_tools . ..")
         [ -z "$OELIB" ] && OELIB=odoorc
       fi
     fi
@@ -1936,7 +1940,7 @@ do_docs() {
   local author version theme SETUP b f l t x
   local opts src_png odoo_fver
   local HOME_DEV
-  [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
+  HOME_DEV=$HOME/venv_tools
   [[ $opt_dbg -ne 0 || $PWD =~ /dev(el)?/pypi/ ]] && opts=-B || opts=
   if [ "$PRJNAME" == "Odoo" ]; then
     [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
@@ -2732,7 +2736,7 @@ do_show_license() {
 do_show_status() {
   local HOME_DEV s v1 v2 v x y
   local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
-  [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
+  HOME_DEV=$HOME/venv_tools
   pushd $HOME/tools >/dev/null
   local PKGS=$(git status -s | grep -E "^ M" | awk '{print $2}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
   local PKGS_V=$(git diff -G__version__ --compact-summary | awk '{print $1}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")

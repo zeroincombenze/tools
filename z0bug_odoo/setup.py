@@ -37,7 +37,8 @@ Make avaiable test functions indipendent by Odoo version.
       },
       entry_points={
           'console_scripts': [
-              'z0bug-odoo-info = z0bug_odoo.scripts.main:main'
+              'z0bug-odoo-info = z0bug_odoo.scripts.main:main',
+              'travis_run_tests = z0bug_odoo.travis.travis_run_tests:main',
           ],
       },
       zip_safe=False)

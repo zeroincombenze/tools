@@ -7,12 +7,12 @@ import os
 import subprocess
 # import shutil
 import sys
-from travis_helpers import success_msg, fail_msg
+from .travis_helpers import success_msg, fail_msg
 
 __version__ = '1.0.5.99'
 
 
-def main(test_list):
+def main_tests(test_list):
     """
     Loop through each test and run them, add display results at the end
 
@@ -35,7 +35,7 @@ def main(test_list):
         if test_file.endswith(".py"):
             test_lib = test_file[:-3]
             try:
-                res = __import__(test_lib).main(argv=test_w_args)
+                res = __import__(test_lib).main_tests(argv=test_w_args)
             except Exception as e:
                 print(e)
                 res = 1
@@ -54,7 +54,9 @@ def main(test_list):
     return max(results)
 
 
-if __name__ == '__main__':
+def main(cli_args=None):
+    if not cli_args:
+        cli_args = sys.argv[1:]
     lint_check_disabled = os.environ.get('LINT_CHECK') == '0'
     lint_check_enabled = os.environ.get('LINT_CHECK') == '1'
     tests_enabled = os.environ.get('TESTS') == '1'
@@ -111,4 +113,5 @@ if __name__ == '__main__':
     #     tests.append(['travis_tnlbot.py'])
 
     if tests:
-        exit(main(tests))
+        return main_tests(tests)
+    return 0

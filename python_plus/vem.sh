@@ -5,6 +5,15 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+# -----------------------------------------------------------------------------
+# PIP features truth table depending on pip version (21.0 + only python3):
+# option                                    |  18- | 18.0 | 19.0 | 20.0 | 21.0
+# --use-features=(2020-resolver, fast-deps) |   X  |  OK  |  OK  |  no  |   X
+# --use-features=in-tree-build              |   X  |   X  |   X  |   X  |  OK
+# --no-warn-conflicts                       |   X  |  OK  |  OK  |  OK  |  OK
+# --disable-pip-version-check               |  OK  |  OK  |  OK  |  OK  |  OK
+# -----------------------------------------------------------------------------
+# OK -> Use feature / X -> Feature unavailable / no -> Do use use
 # READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 # export READLINK
 THIS=$(basename "$0")
@@ -270,14 +279,16 @@ bin_install_1() {
 
 pip_install() {
   #pip_install(pkg opts)
-  local pkg d x srcdir fn popts v
-  local pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name "python$opt_pyver")
+  local pkg d x srcdir fn popts pypath v tmpdir
+  pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name "python$opt_pyver")
+  tmpdir=$(dirname $PYTHON)
+  [[ $(basename $tmpdir) == "bin" ]] && tmpdir=$(dirname $tmpdir)/tmp || tmpdir="$tmpdir/tmp"
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
   pkg="$(get_actual_pkg $1)"
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
-  [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+  [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ ! $pkg =~ $BIN_PKGS ]]; then
@@ -285,7 +296,6 @@ pip_install() {
       [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
       [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/tools/$fn)
       if [[ $opt_debug -ge 3 ]]; then
-        [[ -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/dev/pypi/$fn/$fn)
         [[ -d $SAVED_HOME/pypi/$fn/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/pypi/$fn/$fn)
       fi
       if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
@@ -303,9 +313,16 @@ pip_install() {
     elif [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
       [[ -L $pypath/$fn ]] && run_traced "rm -f $pypath/$fn"
-      if [[ $opt_debug -eq 3 ]]; then
-        [[ $PIPVER -gt 20 ]] && popts="$popts --use-feature=in-tree-build"
-        run_traced "$PIP install $popts $srcdir/$fn"
+      if [[ $opt_debug -eq 2 ]]; then
+        [[ ! -d $tmpdir ]] && run_traced "mkdir $tmpdir"
+        run_traced "mkdir -p $tmpdir/$fn"
+        run_traced "cp -r $srcdir $tmpdir/$fn/"
+        run_traced "mv $tmpdir/$fn/$fn/setup.py $tmpdir/$fn/setup.py"
+        [[ $PIPVER -ge 21 ]] && run_traced "pip install $tmpdir/$fn --use-feature=in-tree-build $popts"
+        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+        run_traced "rm -fR $tmpdir/$fn"
+      elif [[ $opt_debug -eq 3 ]]; then
+        [[ $PIPVER -ge 21 ]] && run_traced "pip install $(dirname $srcdir) --use-feature=in-tree-build $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
         pushd $srcdir/.. >/dev/null
@@ -1026,8 +1043,9 @@ do_venv_create() {
   [[ $sts -ne 0 ]] && return
   if [[ -d ${VENV}~ ]]; then
     for f in ${VENV}~/*; do
-      [[ $f =~ (bin|include|lib|node_modules|odoo|package-lock.json|pyvenv.cfg) ]] && continue
-      [[ -d $f ]] && run_traced "mv $f/ $VENV/" || "mv $f $VENV/"
+      b=$(basename $f)
+      [[ $b =~ (bin|include|lib|node_modules|odoo|package-lock.json|pyvenv.cfg|activate_tools) ]] && continue
+      [[ -d $f && ! -e $VENV/$b ]] && run_traced "mv $f/ $VENV/" || run_traced "mv $f $VENV/"
     done
   fi
   SAVED_PATH=$PATH
@@ -1042,7 +1060,8 @@ do_venv_create() {
   cd_venv $VENV -f
   do_activate
   x=$($PIP --version|grep -Eo "python [23]"|grep -Eo [23])
-  [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -U" || run_traced "$PIP install pip -U"
+  [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -Uq" || run_traced "$PIP install pip -Uq"
+  run_traced "$PIP install \"setuptools<58.0\" -Uq"
   PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
   check_installed_pkgs
   if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
@@ -1102,7 +1121,7 @@ do_venv_pip() {
   else
     [[ $opt_alone -ne 0 && ! $pkg =~ ^- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
     [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
-    [[ $PIPVER -eq 19 && ! use-feature =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+    [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
     [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
     if [[ $cmd =~ (info|show) ]]; then
       pkg=$(get_pkg_wo_version $pkg)
@@ -1154,12 +1173,12 @@ OPTDEFL=(0        ""       0         0      0       0         0        0        
 OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""          ""        ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
-  "use unstable packages: testpypi / ~/tools (link) / local devel (copy) / (link)"
-  "clear cache before execute pip command"
+  "use unstable packages: -B testpypi / -BB from ~/tools / -BBB from ~/pypi / -BBBB link to local ~/pypi"
+  "clear cache before executing pip command"
   "create v.environment with development packages"
   "force v.environment create, even if exists or inside another virtual env"
-  "keep python2 executable as python"
-  "run pip in an isolated mode, set home virtual directory"
+  "keep python2 executable as python (deprecated)"
+  "run pip in an isolated mode and set home virtual directory"
   "run pip in an isolated mode, ignoring environment variables and user configuration"
   "do nothing (dry-run)"
   "install pypi required by odoo ver (amend or create)"
@@ -1168,7 +1187,7 @@ OPTHELP=("this help"
   "silent mode"
   "after created v.environment install from the given requirements file"
   "create v.environment with access to the global site-packages"
-  "activate environnment for travis test"
+  "activate environment for travis test"
   "show version"
   "verbose mode")
 OPTARGS=(p3 p4 p5 p6 p7 p8 p9)

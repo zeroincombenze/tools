@@ -88,12 +88,13 @@ def copy_pkg_data(setup_args):
                     if base == 'setup.conf':
                         continue
                     full_fn = os.path.abspath(os.path.join(pkgpath, fn))
-                    if os.access(full_fn, os.X_OK):
-                        tgt_fn = os.path.abspath(os.path.join(bin_path, base))
-                    else:
-                        tgt_fn = os.path.abspath(os.path.join(lib_path, base))
+                    # if os.access(full_fn, os.X_OK):
+                    #     tgt_fn = os.path.abspath(os.path.join(bin_path, base))
+                    # else:
+                    #     tgt_fn = os.path.abspath(os.path.join(lib_path, base))
+                    tgt_fn = os.path.abspath(os.path.join(lib_path, base))
+                    print('$ cp %s %s' % (full_fn, tgt_fn))
                     shutil.copy(full_fn, tgt_fn)
-
 
 def main(cli_args=None):
     if not cli_args:
