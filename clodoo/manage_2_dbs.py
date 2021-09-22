@@ -21,7 +21,8 @@ try:
     from z0lib.z0lib import z0lib
 except ImportError:
     import z0lib
-import transodoo
+from clodoo.clodoo.scripts import transodoo
+
 # import pdb
 
 

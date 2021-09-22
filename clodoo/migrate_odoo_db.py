@@ -9,7 +9,6 @@ from python_plus import _b
 import sys
 import os
 import time
-import inspect
 import getpass
 import contextlib
 import shutil
@@ -32,7 +31,8 @@ except ImportError:
         from z0lib import z0lib
     except ImportError:
         import z0lib
-import transodoo
+from clodoo.clodoo.scripts import transodoo
+
 # import pdb
 
 

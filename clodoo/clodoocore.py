@@ -37,13 +37,13 @@ try:
 except:
     from clodoo.clodoolib import debug_msg_log, msg_log, decrypt
 try:
-    from transodoo import (read_stored_dict,
-                           translate_from_sym,
-                           translate_from_to)
+    from clodoo.clodoo.scripts.transodoo import (read_stored_dict,
+                                                 translate_from_sym,
+                                                 translate_from_to)
 except:
-    from clodoo.transodoo import (read_stored_dict,
-                                  translate_from_sym,
-                                  translate_from_to)
+    from clodoo.scripts.transodoo import (read_stored_dict,
+                                          translate_from_sym,
+                                          translate_from_to)
 try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT

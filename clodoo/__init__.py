@@ -1,5 +1,6 @@
 from . import clodoo as clodoo
-from . import transodoo
+from .scripts import transodoo
+
 try:
     from clodoocore import (extract_vals_from_rec,
                             get_val_from_field,

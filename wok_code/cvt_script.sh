@@ -14,12 +14,17 @@ TDIR=$(readlink -f $(dirname $0))
 PYPATH=""
 for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
   [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
-  [[ -n $PYPATH ]] && break
+  [[ -n $PYPATH ]] && PYPATH=$(dirname $PYPATH) && break
 done
-PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and not x.startswith('/usr') and not x.startswith('/sbin') and not x.startswith('/bin')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
+PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and x.startswith('$HOME')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
-  if [[ -e $d/z0librc ]]; then
+  if [[ -e $d/z0lib/z0librc ]]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -30,7 +35,6 @@ if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 72
 fi
-[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
 __version__=1.0.2.2
 
@@ -300,7 +304,7 @@ cvt_file() {
             :
           fi
         elif [ $prc -eq 12 ]; then
-          if [[ $line =~ ^if.*type.*Z0BUG_setup.*function.* ]]; then
+          if [[ $line =~ ^.*type.*Z0BUG_setup.*function.* ]]; then
             prc=13
             blk_13 "$fntmp"
             empty=0
@@ -403,12 +407,17 @@ TDIR=\$(readlink -f \$(dirname \$0))
 PYPATH=""
 for p in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/venv_tools/bin \$HOME/venv_tools/lib \$HOME/tools; do
   [[ -d \$p ]] && PYPATH=\$(find \$(readlink -f \$p) -maxdepth 3 -name z0librc)
-  [[ -n \$PYPATH ]] && break
+  [[ -n \$PYPATH ]] && PYPATH=\$(dirname \$PYPATH) && break
 done
-PYPATH=\$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '\$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and not x.startswith('/usr') and not x.startswith('/sbin') and not x.startswith('/bin')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
+PYPATH=\$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '\$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and x.startswith('\$HOME')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=\$PYPATH"
 for d in \$PYPATH /etc; do
-  if [[ -e \$d/z0librc ]]; then
+  if [[ -e \$d/z0lib/z0librc ]]; then
+    . \$d/z0lib/z0librc
+    Z0LIBDIR=\$d/z0lib
+    Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
+    break
+  elif [[ -e \$d/z0librc ]]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -419,7 +428,6 @@ if [[ -z "\$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 72
 fi
-[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=\$Z0LIBDIR"
 EOF
 }
 

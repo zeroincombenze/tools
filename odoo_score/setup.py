@@ -33,11 +33,12 @@ odoo_score is a library that extends the odoo orm functionality and makes availa
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.conf'],
+          '': ['scripts/setup.conf', './run_odoo_debug.sh'],
       },
       entry_points={
           'console_scripts': [
-              'odoo_score-info = odoo_score.scripts.main:main'
+              'odoo_score-info = odoo_score.scripts.main:main',
+              'run_odoo_debug = odoo_score.scripts.run_odoo_debug:main'
           ],
       },
       zip_safe=False)

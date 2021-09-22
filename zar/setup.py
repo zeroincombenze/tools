@@ -34,11 +34,12 @@ ZAR manages easily backup for Odoo database, keeps last nth copies and purges ol
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.conf', './zar_bck']
+          '': ['scripts/setup.conf', './pg_db_active.sh', './zar_bck']
       },
       entry_points={
           'console_scripts': [
-              'zar-info = zar.scripts.main:main'
+              'zar-info = zar.scripts.main:main',
+              'pg_db_active = zar.scripts.pg_db_active:main'
           ],
       },
       zip_safe=False)

@@ -370,19 +370,51 @@ def model_info(ctx, pymodel, tgt_ver, ttype=False, fld_name=False):
     return info
 
 
+def get_bin_lib_path():
+    pkgpath = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..'))
+    bin_path = lib_path = ''
+    path = pkgpath
+    while not bin_path and path != '/':
+        path = os.path.dirname(path)
+        if os.path.isdir(path) and os.path.basename(path) == 'lib':
+            bin_path = os.path.join(os.path.dirname(path), 'bin')
+            lib_path = path
+    return bin_path, lib_path
+
+
+def get_full_fn(fn):
+    fn = fn or ''
+    if fn.startswith('.'):
+        # only file type
+        full_fn = '%s%s' % (__file__[: -3], fn)
+    else:
+        full_fn = os.path.expanduser(fn)
+    base = os.path.basename(full_fn)
+    if not os.path.isfile(full_fn):
+        full_fn = os.path.abspath(
+            os.path.join('.', base))
+    if not os.path.isfile(full_fn):
+        full_fn = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         '..',
+                         base))
+    if not os.path.isfile(full_fn):
+        bin_path, lib_path = get_bin_lib_path()
+        full_fn = os.path.abspath(
+            os.path.join(lib_path, base))
+    if not os.path.isfile(full_fn):
+        raise IOError('File %s not found!' % os.path.basename(full_fn))
+    return full_fn
+
+
 def read_stored_dict(ctx):
     if 'mindroot' in ctx:
         return
     if 'dict_fn' not in ctx or not ctx['dict_fn']:
-        p = os.path.dirname(__file__) or '.'
-        if os.path.isfile('%s/transodoo.xlsx' % p):
-            ctx['dict_fn'] = '%s/transodoo.xlsx' % p
-        elif os.path.isfile(os.path.join(os.path.expanduser('~'),
-                                         'transodoo.xlsx')):
-            ctx['dict_fn'] = os.path.join(os.path.expanduser('~'),
-                                         'transodoo.xlsx')
-        else:
-            ctx['dict_fn'] = 'transodoo.xlsx'
+        ctx['dict_fn'] = get_full_fn('.xlsx')
+    else:
+        ctx['dict_fn'] = get_full_fn(ctx['dict_fn'])
     mindroot = {}
     wb = load_workbook(ctx['dict_fn'])
     for sheet in wb:
@@ -640,9 +672,11 @@ def transodoo(ctx=None):
     return 0
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Transodoo",
-                                "© 2017-2019 by SHS-AV s.r.l.",
+                                "© 2017-2021 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--branch',
@@ -692,5 +726,4 @@ if __name__ == "__main__":
             print('Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],
                                                           ALL_VERSIONS))
             sys.exit(1)
-    sts = transodoo(ctx=ctx)
-    exit(sts)
+    return transodoo(ctx=ctx)

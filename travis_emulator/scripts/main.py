@@ -70,17 +70,22 @@ def read_setup():
     return setup_args
 
 
+def get_pypi_paths():
+    pkgpath = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..'))
+    bin_path = lib_path = ''
+    path = pkgpath
+    while not bin_path and path != '/':
+        path = os.path.dirname(path)
+        if os.path.isdir(path) and os.path.basename(path) == 'lib':
+            bin_path = os.path.join(os.path.dirname(path), 'bin')
+            lib_path = path
+    return pkgpath, bin_path, lib_path
+
+
 def copy_pkg_data(setup_args):
     if setup_args.get('package_data'):
-        pkgpath = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '..'))
-        bin_path = lib_path = ''
-        path = pkgpath
-        while not bin_path and path != '/':
-            path = os.path.dirname(path)
-            if os.path.isdir(path) and os.path.basename(path) == 'lib':
-                bin_path = os.path.join(os.path.dirname(path), 'bin')
-                lib_path = path
+        pkgpath, bin_path, lib_path = get_pypi_paths()
         if bin_path:
             for pkg in setup_args['package_data'].keys():
                 for fn in setup_args['package_data'][pkg]:
@@ -88,10 +93,8 @@ def copy_pkg_data(setup_args):
                     if base == 'setup.conf':
                         continue
                     full_fn = os.path.abspath(os.path.join(pkgpath, fn))
-                    if os.access(full_fn, os.X_OK):
-                        tgt_fn = os.path.abspath(os.path.join(bin_path, base))
-                    else:
-                        tgt_fn = os.path.abspath(os.path.join(lib_path, base))
+                    tgt_fn = os.path.abspath(os.path.join(lib_path, base))
+                    print('$ cp %s %s' % (full_fn, tgt_fn))
                     shutil.copy(full_fn, tgt_fn)
 
 
