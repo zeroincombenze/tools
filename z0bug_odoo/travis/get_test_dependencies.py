@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 """
 Usage: get_test_dependencies.py -r|-m|-d|mod|dep -1 path_list [module_list]
 

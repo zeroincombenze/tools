@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 #  -*- coding: utf-8 -*-
 """
 Return module list or dependencies list or depends list of odoo modules.

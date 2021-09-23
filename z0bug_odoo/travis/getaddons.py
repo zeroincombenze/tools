@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 """
 Usage: get-addons [-m] path1 [path2 ...][ -e exclude_modules]
           [ --only-applications ][ --exclude-applications]

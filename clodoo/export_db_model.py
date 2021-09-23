@@ -1,5 +1,5 @@
 # flake8: noqa
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import sys

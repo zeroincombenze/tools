@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python2
 # -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://ww.zeroincombenze.it>)
