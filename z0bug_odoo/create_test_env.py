@@ -127,6 +127,9 @@ def bind_fields(ctx, model, vals, company_id,
     setup_model_structure(ctx, model)
     parent_name = False
     for field in vals.copy():
+        if vals[field] == r'\N':
+            del vals[field]
+            continue
         attrs = ctx['STRUCT'][model].get(field, {})
         if not attrs:
             print_error(ctx, 'Invalid field %s!' % field)
