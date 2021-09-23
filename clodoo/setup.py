@@ -52,14 +52,13 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.conf', './odoorc', './transodoo.xlsx'],
+          '': ['scripts/setup.conf', './odoorc'],
       },
       install_requires=install_requires,
       entry_points={
           'console_scripts': [
               'clodoo-info = clodoo.scripts.main:main',
               'list_requirements = clodoo.scripts.list_requirements:main',
-              'transodoo = clodoo.scripts.transodoo:main'
           ],
       },
       zip_safe=False)

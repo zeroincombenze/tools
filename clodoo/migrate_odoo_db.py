@@ -31,7 +31,7 @@ except ImportError:
         from z0lib import z0lib
     except ImportError:
         import z0lib
-from clodoo.clodoo.scripts import transodoo
+from odoo_score.odoo_score.scripts import transodoo
 
 # import pdb
 

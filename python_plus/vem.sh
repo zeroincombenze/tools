@@ -43,7 +43,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 72
 fi
 
-__version__=1.0.3.100
+__version__=1.0.3.100.17
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
 DEV_PKGS="coveralls codecov flake8 pycodestyle pylint"
@@ -294,6 +294,7 @@ pip_install() {
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
+  [[ $opt_verbose -ne 0 ]] && echo "# $PIP.$PIPVER $popts ..."
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ ! $pkg =~ $BIN_PKGS ]]; then
       srcdir=""
@@ -322,11 +323,11 @@ pip_install() {
         run_traced "mkdir -p $tmpdir/$fn"
         run_traced "cp -r $srcdir $tmpdir/$fn/"
         run_traced "mv $tmpdir/$fn/$fn/setup.py $tmpdir/$fn/setup.py"
-        [[ $PIPVER -ge 21 ]] && run_traced "pip install $tmpdir/$fn --use-feature=in-tree-build $popts"
+        [[ $PIPVER -ge 21 ]] && run_traced "$PIP install $tmpdir/$fn --use-feature=in-tree-build $popts" || run_traced "$PIP install $tmpdir/$fn $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         run_traced "rm -fR $tmpdir/$fn"
       elif [[ $opt_debug -eq 3 ]]; then
-        [[ $PIPVER -ge 21 ]] && run_traced "pip install $(dirname $srcdir) --use-feature=in-tree-build $popts"
+        [[ $PIPVER -ge 21 ]] && run_traced "$PIP install $(dirname $srcdir) --use-feature=in-tree-build $popts" || run_traced "$PIP install $(dirname $srcdir) $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
         pushd $srcdir/.. >/dev/null
@@ -696,9 +697,10 @@ venv_mgr_check_src_path() {
   if [[ -z "$PYTHON" || ! -x $PYTHON ]]; then
     PYTHON=""
     PIP=""
+    PIPVER=""
     if [[ -n "$opt_pyver" ]]; then
       [[ -z "$PYTHON" && -x $opt_pyver ]] && PYTHON=$opt_pyver && opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1) && PIP="$PYTHON -m pip"
-      [[ -z "$PYTHON" && -n $opt_pyver ]] && PYTHON=$(which python$opt_pyver 2>/dev/null) && PIP="$PYTHON -m pip"
+      [[ -z "$PYTHON" && -n $opt_pyver ]] && PYTHON=$(which python$opt_pyver 2>/dev/null) && PIP=$(which pip$opt_pyver 2>/dev/null) && [[ -z $PIP ]] && PIP="$PYTHON -m pip"
       [[ -z "$PYTHON" && -n $opt_pyver && $opt_pyver =~ ^3 ]] && PYTHON=python3
       [[ -z "$PYTHON" && -n $opt_pyver && $opt_pyver =~ ^2 ]] && PYTHON=python
     fi
@@ -729,6 +731,7 @@ venv_mgr_check_src_path() {
   fi
   [[ -z "$PIP" ]] && PIP="$PYTHON -m pip"
   opt_pyver=$($PYTHON --version 2>&1 | grep -Eo "[0-9]\.[0-9]")
+  [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
   [[ $opt_verbose -gt 1 ]] && echo "### Python version $opt_pyver ... ###"
 }
 
@@ -1065,8 +1068,9 @@ do_venv_create() {
   do_activate
   x=$($PIP --version|grep -Eo "python [23]"|grep -Eo [23])
   [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -Uq" || run_traced "$PIP install pip -Uq"
-  run_traced "$PIP install \"setuptools<58.0\" -Uq"
   PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
+  run_traced "$PIP install \"setuptools<58.0\" -Uq"
+  [[ $opt_verbose -ne 0 ]] && echo "# $PIP.$PIPVER ..."
   check_installed_pkgs
   if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
     [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"

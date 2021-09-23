@@ -216,7 +216,7 @@ except:
         read_config, init_logger,                             # noqa: F401
         default_conf, build_odoo_param)                       # noqa: F401
 try:
-    from clodoo.clodoo.scripts.transodoo import (read_stored_dict, translate_from_to)
+    from odoo_score.odoo_score.scripts.transodoo import (read_stored_dict, translate_from_to)
 except:
     from clodoo.transodoo import (read_stored_dict, translate_from_to)
 

@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.6
+__version__=1.0.6.99.17
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -38,13 +38,14 @@ if [[ $opts =~ ^-.*h ]]; then
     # echo "  -p  mkdir $HOME/dev[el] if does not exist"
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
-    echo "  -s  store sitecustomize.py in python path (you must have privileges)"
-    echo "  -S  store sitecustomize.py in python path (you must have privileges)"
+    # echo "  -s  store sitecustomize.py in python path (you must have privileges)"
+    # echo "  -S  store sitecustomize.py in python path (you must have privileges)"
     echo "  -t  this script is executing in travis-ci environment"
     echo "  -T  execute regression tests"
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
+    echo "  -2  create virtual environment with python2"
     echo -e "\n(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
@@ -63,32 +64,6 @@ run_traced() {
     return $sts
 }
 
-set_python_hashbang() {
-    local t=$(file -b --mime-type $1)
-    [[ $t != "application/x-sharedlib" && -n "$PYTHON3" ]] && grep -q "^#\!.*/bin.*python3$" $1 &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $1" && chmod +x $1
-    [[ $t != "application/x-sharedlib" && -n "$PYTHON" ]] && grep -q "^#\!.*/bin.*python2$" $1 &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $1" && chmod +x $1
-    [[ $t != "application/x-sharedlib" && -n "$PYTHON" ]] && grep -q "^#\!.*/bin.*python$" $1 &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $1" && chmod +x $1
-}
-
-pip_install_local() {
-    # pip_install(pkg)
-    local fn pkg v x
-    pkg=$1
-    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
-    [[ -d $PYPATH/$fn && ! -L $PYPATH/$fn ]] && run_traced "rm -fR $PYPATH/$fn"
-    v=$(grep "^ *version *=" $SRCPATH/$fn/setup.py|head -n1|cut -f2 -d=|grep -Eo "[0-9.]+")
-    x=$(ls -d $PYPATH/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
-    [[ -n $x && $x != $PYPATH/${fn}-${v}.dist-info ]] && run_traced "mv $x $PYPATH/${fn}-${v}.dist-info"
-    if [[ ! -d $PYPATH/${fn}-${v}.dist-info ]]; then
-      run_traced "mkdir $PYPATH/${fn}-${v}.dist-info"
-      for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
-        run_traced "touch $PYPATH/${fn}-${v}.dist-info/$d"
-      done
-    fi
-    [[ -L $PYPATH/$fn ]] && run_traced "rm -f $PYPATH/$fn"
-    run_traced "cp -r $SRCPATH/$fn/ $PYPATH/"
-}
-
 SRCPATH=
 DSTPATH=
 RED="\e[31m"
@@ -97,9 +72,9 @@ CLR="\e[0m"
 
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
 [[ -d $TDIR/clodoo && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
-[[ -z "$SRCPATH" && -d $TDIR/../tools ]] && SRCPATH=$(readlink -f $TDIR/..)
+[[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
-[[ ! $opts =~ ^-.*t && -n "$TRAVIS_BUILD_DIR" ]] && SRCPATH=$TRAVIS_BUILD_DIR
+# [[ ! $opts =~ ^-.*t && -n "$TRAVIS_BUILD_DIR" ]] && SRCPATH=$TRAVIS_BUILD_DIR
 if [[ -z "$SRCPATH" ]]; then
     echo -e "${RED}# Invalid environment!${CLR}"
     echo ""
@@ -117,7 +92,7 @@ fi
 [[ $opts =~ ^-.*o ]] && echo -e "${RED}# WARNING! The switch -o is not more supported!${CLR}"
 
 [[ -x $SRCPATH/python_plus/python_plus/vem.sh ]] && VEM="$SRCPATH/python_plus/python_plus/vem.sh"
-[[ -x $SRCPATH/python_plus/vem.sh ]] && VEM="$SRCPATH/python_plus/vem.sh"
+[[ -z "$VEM" && -x $SRCPATH/python_plus/vem.sh ]] && VEM="$SRCPATH/python_plus/vem.sh"
 if [[ -z "$VEM" ]]; then
     echo -e "${RED}# Invalid environment! Command vem not found!${CLR}"
     echo ""
@@ -130,23 +105,27 @@ if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/lib || ! -d $DSTPATH/bin ]]; then
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && x="${x}t"
-    run_traced "$VEM create $DSTPATH -p3.7 $x -f"
+    [[ $opts =~ ^-.*2 ]] && run_traced "$VEM create $DSTPATH -p2.7 $x -f" || run_traced "$VEM create $DSTPATH -p3.7 $x -f"
     [[ $? -ne 0 || ! -d $DSTPATH/bin || ! -d $DSTPATH/lib ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
 fi
-echo ""
-run_traced "pushd $DSTPATH &>/dev/null"
-run_traced ". bin/activate"
-run_traced "popd &>/dev/null"
+
 
 echo "# Moving local PYPI packages into virtual environment"
+run_traced ". $DSTPATH/bin/activate"
 PYPATH=$(find $DSTPATH/lib -type d -name site-packages)
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
 PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
 BINPATH="$DSTPATH/bin"
+PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
+[[ $opts =~ ^-.*q ]] && popts="-q" || popts=""
+[[ $PIPVER -gt 18 ]] && popts="$popts --no-warn-conflicts"
+[[ $PIPVER -eq 19 ]] && popts="$popts --use-feature=2020-resolver"
+[[ $PIPVER -ge 21 ]] && popts="$popts --use-feature=in-tree-build"
+[[ $opts =~ ^-.*v ]] && echo "# $(which pip).$PIPVER $popts ..."
 [[ ! -d $DSTPATH/tmp ]] && mkdir -p $DSTPATH/tmp
 for pkg in $PKGS_LIST; do
-    echo -e "# ====[$pkg]===="
+    [[ $opts =~ ^-.*q ]] || echo -e "# ====[$pkg]===="
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
     if [[ ! -d $SRCPATH/$pfn ]]; then
         echo -e "${RED}# Invalid environment! Source dir $SRCPATH/$pfn not found!${CLR}"
@@ -160,8 +139,7 @@ for pkg in $PKGS_LIST; do
         run_traced "cp -r $SRCPATH/$pfn/ $DSTPATH/tmp/$pfn/"
         run_traced "mv $DSTPATH/tmp/$pfn/$pfn/setup.py $DSTPATH/tmp/$pfn/setup.py"
     fi
-    [[ $opts =~ ^-.*q ]] && popts="-q" || popts=""
-    run_traced "pip install $DSTPATH/tmp/$pfn --use-feature=in-tree-build $popts"
+    run_traced "pip install $DSTPATH/tmp/$pfn $popts"
     if [[ -z $(which ${pkg}-info 2>/dev/null) ]]; then
         echo -e "${RED}# Invalid environment! Command ${pkg}-info not installed!${CLR}"
         echo ""
@@ -172,8 +150,8 @@ done
 [[ -d $DSTPATH/tmp ]] && run_traced "rm -fR $DSTPATH/tmp"
 
 if [[ ! $opts =~ ^-.*n ]]; then
-    echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
-    echo "SRCPATH=$SRCPATH">$DSTPATH/activate_tools
+    # echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
+    echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
     echo "[[ -f \$DSTPATH/bin/activate ]] && export PATH=\$PATH:\$DSTPATH/bin">>$DSTPATH/activate_tools
     # echo "[[ ( ! -d \$SRCPATH || :\$PYTHONPATH: =~ :\$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=\$SRCPATH">>$DSTPATH/activate_tools
@@ -202,8 +180,7 @@ if [[ $opts =~ ^-.*[Ss] ]]; then
     fi
 fi
 run_traced "deactivate"
-run_traced "source $DSTPATH/activate_tools"
-[[ $PATH =~ $BINPATH ]] || export PATH="$PATH:$BINPATH"
+# run_traced "source $DSTPATH/activate_tools"
 
 if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
     $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/venv_tools/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/venv_tools/activate_tools ]] && . $HOME/venv_tools/activate_tools -q" >>$HOME/.bash_profile
