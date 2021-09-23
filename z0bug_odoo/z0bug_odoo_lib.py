@@ -21,7 +21,7 @@ import base64
 import csv
 from openpyxl import load_workbook
 
-__version__ = "1.0.5.99"
+__version__ = "1.0.5.104"
 
 
 class Z0bugOdoo(object):

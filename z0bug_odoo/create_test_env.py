@@ -38,7 +38,7 @@ except ImportError:
     from z0lib import z0lib
 from z0bug_odoo import z0bug_odoo_lib
 
-__version__ = "1.0.5.99"
+__version__ = "1.0.5.104"
 
 
 def env_ref(ctx, xref, retxref_id=None):
@@ -127,6 +127,9 @@ def bind_fields(ctx, model, vals, company_id,
     setup_model_structure(ctx, model)
     parent_name = False
     for field in vals.copy():
+        if vals[field] == r'\N':
+            del vals[field]
+            continue
         attrs = ctx['STRUCT'][model].get(field, {})
         if not attrs:
             print_error(ctx, 'Invalid field %s!' % field)
