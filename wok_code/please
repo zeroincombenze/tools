@@ -25,20 +25,20 @@ for d in $PYPATH /etc; do
 done
 if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
-  exit 2
+  exit 72
 fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
-  exit 2
+  exit 72
 fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.2
+__version__=1.0.2.1
 
 #
 # General Purpose options:
@@ -1414,8 +1414,8 @@ do_publish_pypi() {
       run_traced "cd $PKGPATH"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       [[ -f $PRJPATH/README.rst ]] && run_traced "cp $PRJPATH/README.rst ./"
-      n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep -Eo [a-zA-Z0-9_-]+ | head -n1)
-      v=$(cat setup.py | grep version | grep -Eo [0-9]+[0-9\.]* | head -n1)
+      v=$(python setup.py --version)
+      n=$(python setup.py --name)
       p=$(find dist -name "${n}-${v}.tar.gz")
       if [[ -z "$p" || $opt_force -gt 0 ]]; then
         run_traced "python setup.py build sdist"
@@ -1931,7 +1931,6 @@ do_distribution() {
 }
 
 do_docs() {
-  wlog "do_docs"
   wlog "do_docs"
   local docs_dir=./docs
   local author version theme SETUP b f l t x
@@ -2577,7 +2576,7 @@ do_register() {
 do_replace() {
   if [[ "$PRJNAME" == "Odoo" ]]; then
     clean_dirs "$1"
-    set_executable
+    [[ $opt_force -ne 0 ]] && set_executable
     if [[ $LGITPATH =~ (oca|zero) ]]; then
       local odoo_fver=$(build_odoo_param FULLVER ".")
       local p=$(build_odoo_param HOME "." "$PKGNAME" "$LGITPATH")
@@ -2599,19 +2598,12 @@ do_replace() {
   else
     # do_distribution_pypi "$@"
     do_docs
-    set_executable
-    if [[ -x $PRJPATH/replace.sh ]]; then
-      clean_dirs "./"
-      run_traced "$PRJPATH/replace.sh"
-      sts=$?
-    else
-      clean_dirs "../"
-      opts=$(inherits_travis_opts "R" "D")
-      # opt_dry_run=0
-      run_traced "$TDIR/dist_pkg $opts $1"
-      sts=$?
-    fi
-    clean_dirs "$HOME/tools"
+    [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
+    opts=$(inherits_travis_opts "R" "D")
+    [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg $opts $1"
+    sts=$?
+    [[ $(basename $PWD) != "tools" ]] && clean_dirs "$HOME/tools"
+    [[ $opt_force -ne 0 ]] && set_executable
   fi
   return $sts
 }
@@ -2675,7 +2667,7 @@ do_replica() {
 }
 
 do_show() {
-  #do_show (docs|license)
+  #do_show (docs|license|status)
   wlog "do_show $2"
   local cmd="do_show_$2"
   sts=$STS_SUCCESS
@@ -2940,10 +2932,11 @@ do_config() {
 
 do_wep() {
   wlog "do_wep '$1' '$2' '$3'"
-  [[ "$PRJNAME" == "Odoo" ]] && PKGPATH=$2 || PKGPATH=$1
-  [[ -z "$PKGPATH" ]] && PKGPATH="."
-  clean_dirs "$PKGPATH"
-  set_executable
+  # [[ "$PRJNAME" == "Odoo" ]] && PKGPATH=$2 || PKGPATH=$1
+  # [[ -z "$PKGPATH" ]] && PKGPATH="."
+  # clean_dirs "$PKGPATH"
+  [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
+  [[ $opt_force -ne 0 ]] && set_executable
   return 0
 }
 
@@ -2957,7 +2950,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"
   "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0"
   "configuration file (def .travis.conf)"
   "date to search in log"
-  "force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro) | full (status)"
+  "force copy (push) | build (publish) | set_exec (wep) | full (status)"
   "execute tests in project dir rather in test dir/old style synchro"
   "keep coverage statistics in annotate test/keep original repository | tests/ in publish"
   "log file name"
@@ -3000,6 +2993,11 @@ sts_bash=127
 sts_flake8=127
 sts_pylint=127
 test_sts=127
+if [[ -z $sub1 ]]; then
+  sub1="sub2"
+  sub2="sub3"
+  sub3=""
+fi
 if [[ "$actions" == "help" ]]; then
   man $TDIR/$THIS.man
 else

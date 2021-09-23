@@ -27,7 +27,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=1.0.2
+__version__=1.0.2.1
 
 
 upgrade_oca_repo() {
