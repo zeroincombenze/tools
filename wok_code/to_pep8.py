@@ -75,7 +75,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.2.1"
+__version__ = "1.0.2.2"
 
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',

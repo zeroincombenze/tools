@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.2.1
+__version__=1.0.2.2
 
 #
 # General Purpose options:
@@ -2907,14 +2907,14 @@ do_config() {
   if [ $sts -eq $STS_SUCCESS ]; then
     if [ -n "$cfgfn" ]; then
       cfgdir=$(dirname $cfgfn)
-      if [ "$sub2" == "del" ]; then
+      if [ "$sub3" == "del" ]; then
         [[ -f $cfgfn ]] && run_traced "rm -f $cfgfn"
         [[ ! -d $cfgfn ]] && run_traced "rmdir $cfgdir"
       elif [ $opt_dry_run -ne 0 ]; then
         echo "vim $cfgfn"
       else
         [[ ! -d $cfgfn ]] && run_traced "mkdir -p $cfgdir"
-        [[ "$sub2" == "def" ]] && merge_cfg $cfgfn
+        [[ "$sub3" == "def" ]] && merge_cfg $cfgfn
         run_traced "vim $cfgfn"
       fi
     else
@@ -2966,7 +2966,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"
   "check for unary operator W503 or no OCA/zero module translation"
   "show version end exit"
   "verbose mode")
-OPTARGS=(actions sub1 sub2 sub3)
+OPTARGS=(actions sub1 sub3 sub3)
 
 parseoptargs "$@"
 if [[ "$opt_version" ]]; then
@@ -2994,8 +2994,8 @@ sts_flake8=127
 sts_pylint=127
 test_sts=127
 if [[ -z $sub1 ]]; then
-  sub1="sub2"
-  sub2="sub3"
+  sub1="$sub3"
+  sub3="$sub3"
   sub3=""
 fi
 if [[ "$actions" == "help" ]]; then
@@ -3013,7 +3013,7 @@ else
       cmd="do_${action/-/_}"
     fi
     if [[ "$(type -t $cmd)" == "function" ]]; then
-      eval $cmd "$PKGNAME" "'$sub1'" "'$sub2'" "'$sub3'"
+      eval $cmd "$PKGNAME" "'$sub1'" "'$sub3'" "'$sub3'"
       sts=$?
     else
       echo "Invalid action!"

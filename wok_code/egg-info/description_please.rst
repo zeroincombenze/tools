@@ -5,7 +5,7 @@ please is an interactive developer shell aim to help development and testing sof
 
 ::
 
-    Usage: please [-hB][-b branch][-c file][-d diff][-fjk][-L logfile][-mn][-o prj_id][-O][-p path][-qr][-s files][-tuVv] actions sub1 sub2 sub3
+    Usage: please [-hB][-b branch][-c file][-d diff][-fjk][-L logfile][-mn][-o prj_id][-O][-p path][-qr][-s files][-tuVv] actions sub1 sub3 sub3
     Developer shell
     Action may be on of:
     help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|show|status|test|translate|version|wep
