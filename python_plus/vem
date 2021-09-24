@@ -5,6 +5,15 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+# -----------------------------------------------------------------------------
+# PIP features truth table depending on pip version (21.0 + only python3):
+# option                                    |  18- | 18.0 | 19.0 | 20.0 | 21.0
+# --use-features=(2020-resolver, fast-deps) |   X  |  OK  |  OK  |  no  |   X
+# --use-features=in-tree-build              |   X  |   X  |   X  |   X  |  OK
+# --no-warn-conflicts                       |   X  |  OK  |  OK  |  OK  |  OK
+# --disable-pip-version-check               |  OK  |  OK  |  OK  |  OK  |  OK
+# -----------------------------------------------------------------------------
+# OK -> Use feature / X -> Feature unavailable / no -> Do use use
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 THIS=$(basename "$0")
@@ -26,9 +35,9 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.1
+__version__=1.0.3.1
 declare -A PY3_PKGS
-NEEDING_PKGS="future configparser os0 z0lib"
+NEEDING_PKGS="future clodoo configparser os0 z0lib"
 DEV_PKGS="click coveralls codecov flake8 pycodestyle pylint"
 SUP_PKGS="future python-plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
@@ -43,6 +52,8 @@ ERROR_PKGS=""
 LOCAL_PKGS="(clodoo|odoo_score|os0|python_plus|z0bug_odoo|z0lib|zerobug)"
 XPKGS_RE=""
 PY3_PKGS[jsonlib]="jsonlib-python3"
+RED="\e[31m"
+CLR="\e[0m"
 
 cd_venv() {
   # cd_venv(VENV -q)
@@ -187,10 +198,9 @@ get_wkhtmltopdf_dwname() {
 }
 
 set_python_exe() {
-    #set_python_exe(cmd venv)
+    #set_python_exe(venv)
     local cmd d f mime V VENV_TGT
-    cmd="$1"
-    V="$2"
+    V="$1"
     d=$(find $V \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
     for f in $d; do
       grep -q "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" $f" && chmod +x $f
@@ -876,7 +886,7 @@ do_venv_mgr() {
     V=$VENV
   fi
   if [[ ! $cmd =~ (amend|check|test|inspect) ]]; then
-    set_python_exe "$cmd" "$V"
+    set_python_exe "$V"
 #    [[ $opt_travis -ne 0 ]] && d="$V/bin/* $V/tools/zerobug/_travis $V/tools/z0bug_odoo/travis" || d="$V/bin/*"
 #    for f in $V/bin/*; do
 #      mime=$(file --mime-type -b $f)
@@ -1055,7 +1065,7 @@ do_venv_create() {
   [[ -n "$opt_rfile" ]] && pip_install_req
   do_deactivate
   [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $($READLINK -f ./odoo)"
-  set_python_exe "create" "$VENV"
+  set_python_exe "$VENV"
   pop_cd
   do_venv_mgr_test $VENV
 }
@@ -1260,7 +1270,7 @@ if [[ $action != "help" ]]; then
   [[ $opt_verbose -gt 2 ]] && echo "# Odoo dir = '$opt_oepath'"
 fi
 if [[ $action =~ (help|create) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
-  DEV_PKGS=""
+  [[ $opt_dev -eq 0 ]] && DEV_PKGS=""
 else
   cmd="list_requirements.py -qt python -BP"
   [[ $opt_dev -ne 0 ]] && cmd="$cmd -TR"

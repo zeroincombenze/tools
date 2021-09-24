@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 [FIX] vem: added click package
+[FIX] vem: create with devel packages
 
 1.0.2.1 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~
