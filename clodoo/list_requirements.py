@@ -14,7 +14,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.34'
+__version__ = '0.3.34.1'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -103,7 +103,7 @@ REQVERSION = {
     'suds': {'6.1': '==0.4'},
     'suds-jurko': {'6.1': '==0.6'},
     'unicodecsv': {'6.1': '>=0.14.1'},
-    'unidecode': {'6.1': '==0.4.17'},
+    'unidecode': {'6.1': '==0.4.17', '10.0': '<=1.2.0', '11.0': '>1.2.0'},
     'unittest2': {'6.1': '==0.5.1', '11.0': '>=1.0.0'},
     'validate_email': {'6.1': '>=1.3'},
     'vatnumber': {'6.1': '==1.2'},
@@ -607,7 +607,7 @@ def walk_dir(cdir, manifests, reqfiles):
 
 def main():
     parser = z0lib.parseoptargs("List Odoo requirements",
-                                "© 2017-2020 by SHS-AV s.r.l.",
+                                "© 2017-2021 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',

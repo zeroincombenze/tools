@@ -1,9 +1,0 @@
-db_type,id,name,vat,country_id,street,zip,city,state_id,is_company,customer,supplier,phone,email,property_account_position
-,,"Prima Infanzia s.r.l.",IT01234560017,base.it,"Via I Maggio, 11",20022,Castano Primo,"=${res.country.state(country_id,code):,MI}",True,False,True,023456789,info@primainfanzia.it,"=${account.fiscal.position:Italia}"
-,,"Secondamano s.r.l.",IT01250630504,base.it,"Via II Giugno, 22",10060,S. Secondo Pinerolo,"=${res.country.state(country_id,code):,TO}",True,False,True,011234567,info@secondamano.it,"=${account.fiscal.position:Italia}"
-,,"Ristorante Trifoglio",IT02345670018,base.it,"Centro commerciale 3T",15010,Terzo,"=${res.country.state(country_id,code):,AL}",True,False,True,0161234567,ristorantetrifoglio@libero.it,"=${account.fiscal.position:Italia}"
-,,"Quattro Cantoni s.n.c.",IT06631580013,base.it,"C.so IV Marzo, 444",65122,Pescara,"=${res.country.state(country_id,code):,PE}",True,False,True,081234567,quattro.cantoni@alice.it,"=${account.fiscal.position:Italia}"
-,,"Hotel Cinque Stelle S.p.A.",IT00118439991,base.it,"P.za  del porto, 5",16115,Genova,"=${res.country.state(country_id,code):,GE}",True,False,True,0101234567,genova@hotel5stars.com,"=${account.fiscal.position:Italia}"
-,,"Esagerati s.a.s.",IT12345670017,base.it,"Str. VI Gennaio, 66",20099,Sesto S. Giovanni,"=${res.country.state(country_id,code):,MI}",True,False,True,029876543,esageratisas@gmail.com,"=${account.fiscal.position:Italia}"
-,,"Freie Universität Berlin",DE123456788,base.de,"Kaiserswerther Straße 16-18",14195,Berlin,,True,False,True,,,"=${account.fiscal.position:Regime UE}"
-T,,"Holiday Inn Hotel","NL123456782B90",base.nl,"Hoogoorddreef 66","1101BE",Amsterdam,,True,False,True,,,"=${account.fiscal.position:Regime UE}"
