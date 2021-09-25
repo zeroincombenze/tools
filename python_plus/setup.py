@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='python_plus',
-      version='1.0.3.1',
+      version='1.0.3.2',
       description='python useful function',
       long_description="""
 Various functions.

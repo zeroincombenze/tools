@@ -35,7 +35,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
 DEV_PKGS="click coveralls codecov flake8 pycodestyle pylint"
@@ -887,15 +887,6 @@ do_venv_mgr() {
   fi
   if [[ ! $cmd =~ (amend|check|test|inspect) ]]; then
     set_python_exe "$V"
-#    [[ $opt_travis -ne 0 ]] && d="$V/bin/* $V/tools/zerobug/_travis $V/tools/z0bug_odoo/travis" || d="$V/bin/*"
-#    for f in $V/bin/*; do
-#      mime=$(file --mime-type -b $f)
-#      if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
-#        [[ $opt_verbose -gt 1 ]] && echo "$FLAG sed -i -e \"s|^#\!.*[ /]python|#\!$VENV_TGT/bin/python|\" $f"
-#        [[ $opt_dry_run -eq 0 ]] && sed -i -e "s|^#\!.*[ /]python|#\!$VENV_TGT/bin/python|" $f
-#        [[ $opt_dry_run -eq 0 && $cmd == "amend" ]] && chmod +x $f
-#      fi
-#    done
   fi
   if [[ ! $cmd =~ (test|inspect) ]]; then
     cd_venv $V -f
@@ -1002,7 +993,17 @@ do_venv_create() {
     if [[ $opt_force -eq 0 ]]; then
       echo "Warning: virtual environment $VENV already exists!!"
     else
-      run_traced "rm -fR $VENV"
+      for f in bin include lib node_modules; do
+         [[ -d $VENV/$f ]] && run_traced "rm -fR $VENV/$f"
+      done
+      for f in odoo package-lock.json pyvenv.cfg "=2.0.0"; do
+         [[ -f $VENV/$f ]] && run_traced "rm -f $VENV/$f"
+      done
+      f=$(ls $VENV)
+      if [[ -n "$f" ]]; then
+        [[ -d ${VENV}~ ]] && run_traced "rm -fR ${VENV}~"
+        run_traced "mv $VENV ${VENV}~"
+      fi
     fi
   fi
   validate_py_oe_vers
@@ -1033,6 +1034,13 @@ do_venv_create() {
   run_traced "$venvexe $p $VENV"
   sts=$?
   [[ $sts -ne 0 ]] && return
+  if [[ -d ${VENV}~ ]]; then
+    for f in ${VENV}~/*; do
+      b=$(basename $f)
+      [[ $b =~ (bin|include|lib|node_modules|odoo|package-lock.json|pyvenv.cfg|activate_tools) ]] && continue
+      [[ -d $f && ! -e $VENV/$b ]] && run_traced "mv $f/ $VENV/" || run_traced "mv $f $VENV/"
+    done
+  fi
   SAVED_PATH=$PATH
   [[ -d $VENV/bin ]] && export PATH=$VENV/bin:$PATH
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
@@ -1045,8 +1053,10 @@ do_venv_create() {
   cd_venv $VENV -f
   do_activate
   x=$($PIP --version|grep -Eo "python [23]"|grep -Eo [23])
-  [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -U" || run_traced "$PIP install pip -U"
+  [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -Uq" || run_traced "$PIP install pip -Uq"
   PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
+  run_traced "$PIP install \"setuptools<58.0\" -Uq"
+  [[ $opt_verbose -ne 0 ]] && echo "# $PIP.$PIPVER ..."
   check_installed_pkgs
   if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
     [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
@@ -1058,14 +1068,14 @@ do_venv_create() {
     OEPKGS=$($LIST_REQ -qs' ' $lropts -t python)
     [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
     bin_install_1 $VENV
-    [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
   fi
+  [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
   pip_install_1
   [[ -n "$opt_oever" ]] && pip_install_2
   [[ -n "$opt_rfile" ]] && pip_install_req
   do_deactivate
-  [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $($READLINK -f ./odoo)"
-  set_python_exe "$VENV"
+  # [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $($READLINK -f ./odoo)"
+  [[ $opt_travis -ne 0 ]] && set_python_exe "$VENV"
   pop_cd
   do_venv_mgr_test $VENV
 }
@@ -1158,11 +1168,11 @@ OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""       
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
   "debug mode: use unstable packages (testpypi / local tools / local devel)"
-  "clear cache before execute pip command"
+  "clear cache before executing pip command"
   "create v.environment with development packages"
   "force v.environment create, even if exists or inside another virtual env"
-  "keep python2 executable as python"
-  "run pip in an isolated mode, set home virtual directory"
+  "keep python2 executable as python (deprecated)"
+  "run pip in an isolated mode and set home virtual directory"
   "run pip in an isolated mode, ignoring environment variables and user configuration"
   "do nothing (dry-run)"
   "install pypi required by odoo ver (amend or create)"
@@ -1171,7 +1181,7 @@ OPTHELP=("this help"
   "silent mode"
   "after created v.environment install from the given requirements file"
   "create v.environment with access to the global site-packages"
-  "activate environnment for travis test"
+  "activate environment for travis test"
   "show version"
   "verbose mode")
 OPTARGS=(p3 p4 p5 p6 p7 p8 p9)
