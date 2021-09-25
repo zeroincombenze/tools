@@ -1,7 +1,7 @@
 
-==================
-odoo_score 1.0.1.5
-==================
+================
+odoo_score 1.0.3
+================
 
 
 
@@ -87,6 +87,8 @@ Getting started
 Installation
 ------------
 
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,11 +106,53 @@ Current version via Git
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
-    source /opt/odoo/dev/activate_tools
+    source /opt/odoo/devel/activate_tools
+
+
+Upgrade
+-------
+
+Upgrade
+-------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    pip install odoo_score -U
+
+|
+
+Current stable version
+~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -U
+    source /opt/odoo/devel/activate_tools
+
+Current development version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -Ud
+    source /opt/odoo/devel/activate_tools
 
 
 History
 -------
+
+1.0.2.1 (2021-08-30)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] odoo_shell.py: minor updates
+
+1.0.2 (2021-08-26)
+~~~~~~~~~~~~~~~~~~
+
+[IMP] Stable version
 
 1.0.1.4 (2021-08-09)
 ~~~~~~~~~~~~~~~~~~~~
@@ -162,39 +206,19 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
-Authors
--------
-
-
-
-
 Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 
 
-Acknowledges
-------------
-
-
-
-
-Translations by
----------------
-
-
-
-
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-11
+Last Update / Ultimo aggiornamento: 2021-09-25
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
@@ -207,22 +231,22 @@ Last Update / Ultimo aggiornamento: 2021-08-11
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.1.5
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.5/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.1.5
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
     :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.1.5/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.1.5/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.1.5/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0.1.5
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

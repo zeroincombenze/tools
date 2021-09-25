@@ -25,20 +25,20 @@ for d in $PYPATH /etc; do
 done
 if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
-  exit 2
+  exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
-  exit 2
+  exit 72
 fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
-  exit 2
+  exit 72
 fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
@@ -47,7 +47,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=1.0.2
+__version__=1.0.2.1
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -94,9 +94,6 @@ process_yaml_init() {
     [[ -d $HOME/devel ]] && \
       export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || \
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
-    [[ -d $HOME/devel ]] && \
-      export YML_mgrodoo=$HOME/devel/pypi/clodoo/clodoo/manage_odoo || \
-      export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
     (($opt_debug)) && export TRAVIS_PDB="true"
   else
     export YML_lisa=lisa
@@ -804,8 +801,10 @@ process_yaml() {
       for v in $python_ver_req; do
         [[ $v =~ $opt_pyv ]] && python_matrix="$python_matrix $v"
       done
+      [[ -z $python_matrix && $opt_pyv =~ ^\([0-9.]+\) ]] && python_matrix=${opt_pyv:1: -1}
+      [[ -n "$python_matrix" ]] || python_matrix="3.8"
       for TRAVIS_PYTHON_VERSION in $python_matrix; do
-        [ $sts -eq $STS_SUCCESS ] || break
+        [[ $sts -eq $STS_SUCCESS ]] || break
         wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[0m"
         CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo [0-9] | head -n1)
         PYTHON=$(which python$TRAVIS_PYTHON_VERSION)
@@ -1126,14 +1125,16 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
       done
     fi
     ((md = 60 * 60 * 24 * 90))
-    for d in $LOGDIR/*; do
-      dd=$(stat -c "%Y" $d)
-      df=$(($dt - $dd))
-      if [[ $df -gt $md ]]; then
-        echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
-        rm -fR $d
-      fi
-    done
+    if [[ -n "$LOGDIR" && -d $LOGDIR ]]; then
+      for d in $LOGDIR/*; do
+        dd=$(stat -c "%Y" $d)
+        df=$(($dt - $dd))
+        if [[ $df -gt $md ]]; then
+          echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
+          rm -fR $d
+        fi
+      done
+    fi
     [[ $done -eq 0 ]] && echo "Nothing to wep"
     exit $STS_SUCCESS
   else
@@ -1144,7 +1145,7 @@ elif [[ $action == "summary" ]]; then
   sts=0
   if [[ -f $logfile ]]; then
     echo "$(readlink -f $logfile):\$ VIRTUALENV=$(grep -E "vem .*VENV_" $logfile|grep -Eo "VENV_[0-9]+"|head -n1)"
-    grep -EH "(\| .*test|TODAY=|PKGNAME=|LOGFILE=)" $logfile
+    grep -EH "(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])" $logfile
     travis_status "$logfile"
     sts=$?
   else

@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.2
+#__version__=1.0.2.1
 
 # MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
@@ -445,6 +445,16 @@ create_virtual_env() {
   [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
   [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
   hash -r
+  if [[ "$PRJNAME" == "Odoo" && ( ! -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$BRANCH) -lt 1632550000 ) ]]; then
+    echo -e "\n\nCached virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH not found or expired!"
+    [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
+    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$BRANCH -p$pv -DIf -O$BRANCH"
+    echo -e "\n\n"
+  elif [[ ! -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1632550000 ]]; then
+    echo -e "\n\nCached virtual environment $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!"
+    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIf"
+    echo -e "\n\n"
+  fi
   if [[ $TRAVIS == "true" || -d $TRAVIS_HOME ]]; then
     true
   elif [[ $opt_full -eq 0 && ${opt_cache:-0} -ne 0 && -n "$TRAVIS_PYTHON_VERSION" ]]; then
@@ -698,6 +708,8 @@ do_chkconfig() {
 }
 
 conf_default() {
+  local file_bckdel file_backup file_meta file_vcs file_bins
+  local file_media file_bindata
   set_cfg_def "loglevel" "-1"
   if [[ -n "$HOSTNAME_DEV" ]]; then
     set_cfg_def "DEV_HOST" "$HOSTNAME_DEV"
@@ -1441,3 +1453,5 @@ run_server_test() {
   sts=$STS_FAILED
   return $sts
 }
+
+conf_default

@@ -1,7 +1,17 @@
+1.0.2.1 (2021-09-25)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: check for cached expired VME
+
+1.0.2 (2021-08-27)
+~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: stable version
+
 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: clor change
+[IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
 
