@@ -41,7 +41,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from future import standard_library
-standard_library.install_aliases()                                 # noqa: E402
 # from builtins import *                                             # noqa: F403
 from builtins import object
 import os
@@ -49,6 +48,7 @@ import argparse
 import inspect
 import configparser
 from os0 import os0
+standard_library.install_aliases()                                 # noqa: E402
 
 
 # Apply for configuration file (True/False)
