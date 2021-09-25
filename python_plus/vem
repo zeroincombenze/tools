@@ -59,7 +59,7 @@ cd_venv() {
   # cd_venv(VENV -q)
   [[ $opt_verbose -gt 2 ]] && echo ">>> cd_venv($@)"
   if [[ ! "$1" == "$PWD" || $2 =~ f ]]; then
-    [[ ! -d $1 && $opt_dry_run -ne 0 ]] && mkdir $1 && FINAL_CMD="rm -fR $1"
+    # [[ ! -d $1 && $opt_dry_run -ne 0 ]] && mkdir $1 && FINAL_CMD="rm -fR $1"
     [[ $2 =~ q || $opt_verbose -eq 0 ]] || echo "$FLAG pushd $1 >/dev/null"
     if [[ -d $1 ]]; then
       pushd $1 >/dev/null

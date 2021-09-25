@@ -34,7 +34,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -g  do not install hooks in git projects"
     echo "  -G  remove hooks from git projects"
     echo "  -n  dry-run"
-    echo "  -o  compatibility old mode (exec dir in $HOME/dev, deprecated)"
+    # echo "  -o  compatibility old mode (exec dir in $HOME/dev, deprecated)"
     echo "  -p  mkdir $HOME/dev[el] if does not exist"
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
@@ -53,14 +53,14 @@ elif [[ $opts =~ ^-.*V ]]; then
 fi
 
 run_traced() {
-  local xcmd="$1"
-  local sts=0
-  local PMPT=
-  [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
-  [[ $opts =~ ^-.*q ]] || echo "$PMPT$xcmd"
-  [[ $opts =~ ^-.*n ]] || eval $xcmd
-  sts=$?
-  return $sts
+    local xcmd="$1"
+    local sts=0
+    local PMPT=
+    [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
+    [[ $opts =~ ^-.*q ]] || echo "$PMPT$xcmd"
+    [[ $opts =~ ^-.*n ]] || eval $xcmd
+    sts=$?
+    return $sts
 }
 
 RFLIST__travis_emulator="travis travis.man travisrc"
@@ -80,6 +80,9 @@ MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addon
 FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py devel_tools export_db_model.py odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
+RED="\e[31m"
+GREEN="\e[32m"
+CLR="\e[0m"
 
 [[ $opts =~ ^-.*t ]] && HOME=$($READLINK -e $(dirname $0)/..)
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
@@ -103,8 +106,7 @@ fi
 [[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
 [[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo "# Creating development environment $HOME_DEV/pypi ..."
 [[ $opts =~ ^-.*n ]] || find $SRCPATH $DSTPATH -name "*.pyc" -delete
-[[ $opts =~ ^-.*o ]] && echo "# WARNING! The switch -o is deprecated and will be removed early!"
-
+[[ $opts =~ ^-.*o ]] && echo -e "${RED}# WARNING! The switch -o is not more supported!${CLR}"
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
 PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
@@ -222,7 +224,7 @@ run_traced "source $DSTPATH/activate_tools"
 if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
     x="-iDBB"
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
-    [[ $opts =~ ^-.*v ]] && x="-vvviDBB"
+    [[ $opts =~ ^-.*v ]] && x="-viDBB"
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && x="${x}t"
     run_traced "vem create $DSTPATH/venv -p2.7 $x -f"
     [[ $? -ne 0 ]] && echo "# Error creating Tools virtual environment!" && exit 1
@@ -272,11 +274,14 @@ if [[ ! $opts =~ ^-.*[gt] ]]; then
   done
 fi
 if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
-    echo "------------------------------------------------------------"
-    echo "If you wish to use these tools at the next time,  please add"
-    echo "the following statement in your login file (.bash_profile)"
-    echo "source $DSTPATH/activate_tools"
-    echo "If you prefer, you can re-execute this script with -P switch"
-    echo "------------------------------------------------------------"
-    echo "For furthermore info visit https://zeroincombenze-tools.readthedocs.io/"
+    echo -e "${GREEN}--------------------------------------------------------------"
+    echo -e "Zeroincombenze(R) tools successfully installed on your system."
+    echo -e "In order to make available the these tools, please type:${CLR}"
+    echo -e "source $DSTPATH/activate_tools\n"
+    echo -e "${GREEN}If you wish to use  these tools  at the next time,  please add"
+    echo -e "the  following statement  in your  login file  (.bash_profile)"
+    echo -e "source $DSTPATH/activate_tools"
+    echo -e "If you prefer, you can re-execute this script using  -P switch"
+    echo -e "--------------------------------------------------------------${CLR}"
+    echo -e "For furthermore info visit https://zeroincombenze-tools.readthedocs.io/"
 fi
