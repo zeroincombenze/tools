@@ -17,7 +17,7 @@
 # READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 # export READLINK
 THIS=$(basename "$0")
-TDIR=$($READLINK -f $(dirname $0))
+TDIR=$(readlink -f $(dirname $0))
 [[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
 PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
@@ -25,7 +25,7 @@ for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
-    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
 done
@@ -243,7 +243,7 @@ pip_install() {
   #pip_install(pkg opts)
   local pkg d x srcdir fn popts pypath v tmpdir
   pypath=$(find $VIRTUAL_ENV/lib -type d -name "python$opt_pyver")
-  [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $($READLINK -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
+  [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
   tmpdir=$(dirname $PYTHON)
   [[ $(basename $tmpdir) == "bin" ]] && tmpdir=$(dirname $tmpdir)/tmp || tmpdir="$tmpdir/tmp"
   pkg="$(get_actual_pkg $1)"
@@ -1042,7 +1042,7 @@ do_venv_create() {
   [[ -n "$opt_rfile" ]] && pip_install_req
   # [[ $opt_travis -ne 0 ]] && set_python_exe "$VENV/bin"
   do_deactivate
-  # [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $($READLINK -f ./odoo)"
+  # [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $(readlink -f ./odoo)"
   [[ $opt_travis -ne 0 ]] && set_python_exe "$VENV"
   do_venv_mgr_test $VENV
 }
