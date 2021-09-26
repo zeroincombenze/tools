@@ -104,6 +104,18 @@ Current development version
 History
 -------
 
+python_plus: 1.0.3.3 (2021-09-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: error message "riga 99: deactivate:"
+
+
+clodoo: 0.3.35.3 (2021-09-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo: specific openpyxl for python2
+
+
 travis_emulator: 1.0.2.1 (2021-09-25)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -113,7 +125,8 @@ travis_emulator: 1.0.2.1 (2021-09-25)
 python_plus: 1.0.3.2 (2021-09-25)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: create ven with -I switch
+[FIX] vem: create vem with -I switch
+[REF] vem refactoring
 
 
 wok_code: 1.0.2.2.2 (2021-09-24)
@@ -384,7 +397,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-09-25
+Last Update / Ultimo aggiornamento: 2021-09-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

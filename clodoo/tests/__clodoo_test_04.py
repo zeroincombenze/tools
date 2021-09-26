@@ -28,7 +28,7 @@ except BaseException:
     from clodoolib import crypt
 
 
-__version__ = "0.3.35.2"
+__version__ = "0.3.35.3"
 
 
 MODULE_ID = 'clodoo'
@@ -237,7 +237,7 @@ oe_version=%s
     def test_03(self, z0ctx):
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") in ("shsdef16", "shs17fid"):
-                #  or os.getcwd[0:19] != "/opt/odoo/dev/pypi/"):
+            #  or os.getcwd[0:19] != "/opt/odoo/dev/pypi/"):
             for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
                     cmd = self.bulk_cmd(oe_version)

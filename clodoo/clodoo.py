@@ -153,7 +153,17 @@ oe_versions: select record if matches Odoo version
     i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
 """
 from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 
+from future import standard_library
+# from builtins import input
+# from builtins import str
+# from builtins import range
+from past.builtins import basestring
+# from builtins import *                                           # noqa: F403
+from builtins import object
 import calendar
 import csv
 import os.path
@@ -211,8 +221,9 @@ except:
 
 # TMP
 from subprocess import PIPE, Popen
+standard_library.install_aliases()                                 # noqa: E402
 
-__version__ = "0.3.35.2"
+__version__ = "0.3.35.3"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -229,7 +240,7 @@ db_msg_sp = 0
 db_msg_stack = []
 
 
-class Clodoo():
+class Clodoo(object):
 
     def __init__(self):
         pass
@@ -346,9 +357,8 @@ def do_login(ctx):
             debug_msg_log(ctx, ctx['level'] + 2, msg)
             if ctx['svc_protocol'] == 'jsonrpc':
                 try:
-                    ctx['odoo_session'].login(db=db_name,
-                                          login=username,
-                                          password=decrypt(pwd))
+                    ctx['odoo_session'].login(
+                        db=db_name, login=username, password=decrypt(pwd))
                 except BaseException:
                     continue
                 # Keep out of try / except to catch user error
@@ -481,7 +491,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
             elif p not in ctx and p in DEFLT:
                 ctx[p] = DEFLT[p]
             elif p not in ctx and inquire:
-                ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
+                ctx[p] = input('%s[def=%s]? ' % (p, ctx[p]))
         if os.isatty(0):
             ctx['run_daemon'] = False
         else:
@@ -724,8 +734,8 @@ def do_single_action(ctx, action):
         act = lexec_name(ctx, action)
         if act in list(globals()):
             if (action in ('install_modules',
-                          'upgrade_modules',
-                          'uninstall_modules') and
+                           'upgrade_modules',
+                           'uninstall_modules') and
                     not ctx.get('module_udpated', False)):
                 globals()[lexec_name(ctx, 'update_modules')](ctx)
                 ctx['module_udpated'] = True
@@ -921,7 +931,7 @@ def act_list_actions(ctx):
 def act_show_params(ctx):
     """Show system params; no username required"""
     if ctx['dbg_mode']:
-        pwd = raw_input('password ')
+        pwd = input('password ')
     else:
         pwd = False
     print("- hostname      = %s " % ctx['db_host'])
@@ -1842,11 +1852,11 @@ def act_check_tax(ctx):
     sale_vat_acc = searchL8(ctx, model, [('company_id', '=', company_id),
                                          ('code', '=', '260010')])
     purch_vat_acc = searchL8(ctx, model, [('company_id', '=', company_id),
-                                         ('code', '=', '153010')])
+                                          ('code', '=', '153010')])
     sale_def_acc = searchL8(ctx, model, [('company_id', '=', company_id),
                                          ('code', '=', '260030')])
     purch_def_acc = searchL8(ctx, model, [('company_id', '=', company_id),
-                                         ('code', '=', '153030')])
+                                          ('code', '=', '153030')])
     model = 'account.tax'
     for tax in browseL8(ctx, model, searchL8(
             ctx, model, [('company_id', '=', company_id)])):
@@ -1892,11 +1902,11 @@ def act_check_tax(ctx):
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.4']
             elif re.search(
-                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etr.]*a[- ./]+ter',
+                '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etr.]*a[- ./]+ter',
                     tax.name):
-                    # N6.7: prestazioni comparto edile > Art. 17c6 lett.a-ter
-                    if tax.type_tax_use == 'purchase':
-                        nature_id = tax_nature['N6.7']
+                # N6.7: prestazioni comparto edile > Art. 17c6 lett.a-ter
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.7']
             elif re.search(
                     '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b',
                     tax.name):
@@ -1906,9 +1916,9 @@ def act_check_tax(ctx):
             elif re.search(
                     '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b',
                     tax.name):
-                    # N6.4: cellulari > Art. 17c6 lett.c
-                    if tax.type_tax_use == 'purchase':
-                        nature_id = tax_nature['N6.6']
+                # N6.4: cellulari > Art. 17c6 lett.c
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.6']
             elif re.search(
                     '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*a',
                     tax.name):
@@ -2033,7 +2043,7 @@ def act_check_xid(ctx):
     if not ctx['dry_run']:
         model = 'ir.model.data'
         ids = searchL8(ctx, model, [])
-        for i,id in enumerate(ids):
+        for i, id in enumerate(ids):
             xref = browseL8(ctx, model, id)
             msg_burst(ctx['level'] + 1,
                       'xreference',
@@ -2053,7 +2063,7 @@ def act_check_config(ctx):
     def cvt_rec_2_vals(rec):
         values = {'is_company': True, 'parent_id': False}
         for fld in ('name', 'street', 'zip', 'city', 'vat', 'customer',
-                  'supplier'):
+                    'supplier'):
             values[fld] = rec[fld]
         for fld in ('country_id', 'state_id'):
             values[fld] = rec[fld].id
@@ -2112,8 +2122,8 @@ def act_check_config(ctx):
                 'External id %d renamed l10n_it_base -> base' % xid.id)
     # Rename old state_id entries (Odoo 7.0 l10n_it_bbone)
     for xid in searchL8(ctx, model, [('module', '=', 'l10n_it_bbone'),
-                                    ('model', '=', 'res.county.state'),
-                                    ('name', 'like', r'it\_%')]):
+                                     ('model', '=', 'res.county.state'),
+                                     ('name', 'like', r'it\_%')]):
         if xid.name.startswith('it_') and len(xid.name) == 5:
             unlinkL8(ctx, model, [xid])
             msg_log(
@@ -2272,7 +2282,7 @@ def act_check_config(ctx):
                     ctx, model, searchL8(
                         ctx, model, [('module', '=', 'z0bug'),
                                      ('name', 'in', invoice_xrefs)])):
-                excl.append(xref,id)
+                excl.append(xref, id)
             where.append(('id', 'in', excl))
         invoice_ids = searchL8(ctx, model_invoice, where)
         for inv in browseL8(ctx, model_invoice, invoice_ids):
@@ -2487,14 +2497,14 @@ def act_check_partners(ctx):
             new_fc = partner.fiscalcode.upper()
             if new_fc != partner.fiscalcode.upper():
                 vals['fiscalcode'] = new_fc
-                msg = '%s wrong fiscalcode' % partner.name 
+                msg = '%s wrong fiscalcode' % partner.name
                 msg_log(ctx, ctx['level'], msg)
 
         if partner.zip:
             new_zip = partner.zip.strip()
             if new_zip != partner.zip:
                 vals['zip'] = new_zip
-                msg = '%s wrong zip' % partner.name 
+                msg = '%s wrong zip' % partner.name
                 msg_log(ctx, ctx['level'], msg)
 
         if (not vals['country_id'] or
@@ -2542,7 +2552,7 @@ def act_set_periods(ctx):
                     ctx, model, {
                         'name': 'Annual',
                         'company_id': company_id
-                        })
+                    })
             else:
                 date_type_id = ids[0]
             model = 'date.range'
@@ -3026,7 +3036,7 @@ def act_upgrade_l10n_it_base(ctx):
     l10n_it_bb_state = ''
     l10n_it_base_state = ''
     for id in ids:
-        module_obj = browseL8(ctx,  model, id)
+        module_obj = browseL8(ctx, model, id)
         prior_state[id] = module_obj.state
         if module_obj.name == 'l10n_it_base':
             l10n_it_base_state = module_obj.state
@@ -3063,7 +3073,7 @@ def act_upgrade_l10n_it_base(ctx):
     ctx['upgrade_modules'] = ''
     s = ''
     for id in prior_state:
-        module_obj = browseL8(ctx,  model, id)
+        module_obj = browseL8(ctx, model, id)
         if module_obj.name != 'l10n_it_base' and \
                 module_obj.name != 'l10n_it_bbone' and \
                 module_obj.name != 'zeroincombenze':
@@ -3095,7 +3105,7 @@ def read_last_fiscalyear(company_id, ctx):
         last_name = str(datetime.now().year - 1)
     valid_fiscalyear_id = 0
     for fiscalyear_id in fiscalyear_ids:
-        fiscalyear = browseL8(ctx,  model, fiscalyear_id)
+        fiscalyear = browseL8(ctx, model, fiscalyear_id)
         name = fiscalyear.name
         date_start = fiscalyear.date_start
         if majver < 10:
@@ -3131,7 +3141,7 @@ def add_periods(ctx, company_id, fiscalyear_id,
                                ('date_start', '>=', str(last_start)),
                                ('date_stop', '<=', str(last_stop))])
         for period_id in period_ids:
-            period = browseL8(ctx,  model, period_id)
+            period = browseL8(ctx, model, period_id)
             name = period.name
             date_start = period.date_start
             date_stop = period.date_stop
@@ -3168,7 +3178,7 @@ def add_periods(ctx, company_id, fiscalyear_id,
                 ctx, model, {
                     'name': 'Monthly',
                     'company_id': company_id
-                    })
+                })
         else:
             date_type_id = ids[0]
         model = 'date.range'
