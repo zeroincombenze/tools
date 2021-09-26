@@ -1,7 +1,8 @@
 1.0.3.2 (2021-09-25)
 ~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: create ven with -I switch
+[FIX] vem: create vem with -I switch
+[REF] vem refactoring
 
 1.0.3.1 (2021-09-23)
 ~~~~~~~~~~~~~~~~~~~
