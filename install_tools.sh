@@ -106,7 +106,7 @@ if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
     [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
-[[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
+[[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
 [[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo "# Creating development environment $HOME_DEV/pypi ..."
 [[ $opts =~ ^-.*n ]] || find $SRCPATH $DSTPATH -name "*.pyc" -delete
 [[ $opts =~ ^-.*o ]] && echo -e "${RED}# WARNING! The switch -o is not more supported!${CLR}"
@@ -121,7 +121,7 @@ fi
 
 if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/lib || ! -d $DSTPATH/bin ]]; then
     [[ -d $DSTPATH/tmp ]] && run_traced "rm -fR $DSTPATH/tmp"
-    [[ -d $HOME/.cache/pip ]] && run_traced "rm -fR $HOME/.cache/pip"
+    [[ -d $HOME/.cache/pip && $opts =~ ^-.*p ]] && run_traced "rm -fR $HOME/.cache/pip"
     x="-iDBB"
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
@@ -150,7 +150,7 @@ for pkg in $PKGS_LIST tools; do
     l="RFLIST__$pfn"
     flist=${!l}
     [[ $opts =~ ^-.*q ]] || echo -e "# ====[$pkg=($flist)]===="
-    if [[ ! -d $SRCPATH/$pfn ]]; then
+    if [[ $pkg != "tools" && ! -d $SRCPATH/$pfn ]]; then
         echo -e "${RED}# Invalid environment! Source dir $SRCPATH/$pfn not found!${CLR}"
         echo ""
         exit 1
