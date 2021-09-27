@@ -243,10 +243,10 @@ if [[ ! $opts =~ ^-.*n ]]; then
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
 fi
+PYLIB=$(dirname $(pip --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
 if [[ $opts =~ ^-.*[Ss] ]]; then
     [[ ! $opts =~ ^-.*o ]] && SITECUSTOM=$HOME/devel/sitecustomize.py
     [[ $opts =~ ^-.*o ]] && SITECUSTOM=$HOME/dev/sitecustomize.py
-    PYLIB=$(dirname $(pip --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
     [[ -n "$PYLIB" ]] || PYLIB=$(dirname $(pip3 --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
     if [[ -n "$PYLIB" && -f SITECUSTOM ]]; then
         if [[ -f $PYLIB/sitecustomize.py ]]; then
@@ -270,7 +270,7 @@ PYTHON3=""
 [[ -x $DSTPATH/venv/bin/python2 ]] && PYTHON=$DSTPATH/venv/bin/python2
 [[ -x $DSTPATH/venv/bin/python3 ]] && PYTHON3=$DSTPATH/venv/bin/python3
 path="$DSTPATH/*"
-[[ $opts =~ ^-.*[fU] && -d $DSTPATH/venv ]] && path=$(find $DSTPATH/bin $DSTPATH/venv/lib \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
+[[ $opts =~ ^-.*[fU] && -d $DSTPATH/venv ]] && path=$(find $DSTPATH $PYLIB -maxdepth 1 \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
 for f in $path; do
     grep -q "^#\!.*/bin.*python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python3|#\!$PYTHON3|\" $f" && chmod +x $f
     grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && chmod +x $f
