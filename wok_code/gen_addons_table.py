@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
 This script replaces markers in the README.md files of an Odoo repository
@@ -22,12 +22,12 @@ from __future__ import division
 from __future__ import unicode_literals
 from past.builtins import cmp
 from future import standard_library
-standard_library.install_aliases()                                 # noqa: E402
 # from builtins import *                                             # noqa: F403
 import ast
 import os
 import re
 import sys
+standard_library.install_aliases()                                 # noqa: E402
 
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'

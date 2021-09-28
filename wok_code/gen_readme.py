@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
 Documentation generator
@@ -84,10 +84,7 @@ from __future__ import print_function, unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 from future import standard_library
-# from builtins import str
-# from builtins import range
 from past.builtins import basestring
-# from builtins import *
 import ast
 import os
 import re
@@ -241,9 +238,9 @@ def get_full_fn(ctx, src_path, filename):
 
 def iter_template_path(debug_mode=None, body=None):
     for src_path in ('.',
-                     './docs',
                      './egg-info',
                      './readme',
+                     './docs',
                      '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
                      '%s/dev/pypi/tools/templates/${p}' % os.environ['HOME'],
                      '%s/devel/templates/${p}' % os.environ['HOME'],
@@ -255,7 +252,7 @@ def iter_template_path(debug_mode=None, body=None):
         if src_path.find('/devel/pypi/tools/') >= 0 and not debug_mode:
             continue
         elif src_path.find('/dev/pypi/tools/') >= 0 and not debug_mode:
-                continue
+            continue
         elif src_path.find('/devel/templates') >= 0 and debug_mode:
             continue
         elif src_path.find('/dev/templates') >= 0 and debug_mode:
@@ -1242,11 +1239,6 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
     return parse_source(ctx, source, state=state)
 
 
-def setup(**kwargs):
-    for kw in kwargs:
-        print(kw)
-
-
 def read_manifest_file(ctx, manifest_path, force_version=None):
     try:
         manifest = ast.literal_eval(open(manifest_path).read())
@@ -1258,6 +1250,9 @@ def read_manifest_file(ctx, manifest_path, force_version=None):
 
 
 def read_setup(ctx):
+
+    def eval_setup(**kwargs):
+        ctx['manifest'] = kwargs
 
     def read_history(ctx, full_fn, module=None):
         if module:
@@ -1284,10 +1279,11 @@ def read_setup(ctx):
             break
         manifest_filename = ''
     if manifest_filename:
-        fd = open(manifest_filename, 'rU')
-        ctx['manifest'] = eval('\n'.join(
-            os0.u(fd.read()).split('\n')[1:]).replace('setup', 'dict'))
-        fd.close()
+        with open(manifest_filename, 'rU') as fd:
+            exec(fd.read().replace(
+                'setup(', 'eval_setup(').replace(
+                'setup (', 'eval_setup('),
+                 globals(), locals())
         ctx['manifest_filename'] = manifest_filename
     else:
         if not ctx['suppress_warning']:

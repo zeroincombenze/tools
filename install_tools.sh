@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.6.3
+__version__=1.0.6.4
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -102,7 +102,7 @@ if [[ -z "$SRCPATH" || -z "$DSTPATH" ]]; then
     exit 1
 fi
 if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
-    [[ $opts =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
+    [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
     [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
@@ -130,7 +130,7 @@ if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/lib || ! -d $DSTPATH/bin ]]; then
     [[ $? -ne 0 || ! -d $DSTPATH/venv/bin || ! -d $DSTPATH/venv/lib ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
 fi
 
-echo "# Moving local PYPI packages into virtual environment"
+[[ ! $opts =~ ^-.*q ]] && echo "# Moving local PYPI packages into virtual environment"
 run_traced ". $DSTPATH/venv/bin/activate"
 # PYPATH=$(find $DSTPATH/venv/lib -type d -name site-packages)
 
@@ -155,7 +155,11 @@ for pkg in $PKGS_LIST tools; do
         echo ""
         exit 1
     fi
-    [[ -d $SRCPATH/$pfn/$pfn ]] && srcdir="$SRCPATH/$pfn/$pfn" || srcdir="$SRCPATH/$pfn"
+    if [[ $pkg == "tools" ]]; then
+      [[ -d $SRCPATH/$pfn ]] && srcdir="$SRCPATH/$pfn" || srcdir="$SRCPATH"
+    else
+      [[ -d $SRCPATH/$pfn/$pfn ]] && srcdir="$SRCPATH/$pfn/$pfn" || srcdir="$SRCPATH/$pfn"
+    fi
     for fn in $flist; do
         if [[ $fn == "." ]]; then
             src="$srcdir"
@@ -170,10 +174,6 @@ for pkg in $PKGS_LIST tools; do
             src=$READLINK
             tgt="$DSTPATH/${fn}"
             ftype=f
-        elif [[ $pkg == "tools" ]]; then
-            [[ -d $SRCPATH/tools/$pfn ]] && srcdir="$SRCPATH/tools/$pfn" || srcdir="$SRCPATH/$pfn"
-            tgt="$DSTPATH/$fn"
-            [[ -d "$SRCPATH/$fn" ]] && ftype=d || ftype=f
         else
             src="$srcdir/$fn"
             tgt="$DSTPATH/$fn"
@@ -219,7 +219,7 @@ for pkg in $PKGS_LIST tools; do
     fi
 done
 [[ -d "$DSTPATH/_travis" ]] && run_traced "rm -fR $DSTPATH/_travis"
-run_traced "cp $SRCPATH/tests/test_tools.sh $DSTPATH/test_tools.sh"
+[[ -f $SRCPATH/tools/tests/test_tools.sh ]] && run_traced "cp $SRCPATH/tools/tests/test_tools.sh $DSTPATH/test_tools.sh" || run_traced "cp $SRCPATH/tests/test_tools.sh $DSTPATH/test_tools.sh"
 [[ -d $DSTPATH/tmp ]] && run_traced "rm -fR $DSTPATH/tmp"
 
 for fn in $FILES_2_DELETE; do
@@ -300,7 +300,7 @@ if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
 fi
 [[ $opts =~ ^-.*T ]] && $DSTPATH/test_tools.sh
 [[ $opts =~ ^-.*U && -f $DSTPATH/egg-info/history.rst ]] && tail $DSTPATH/egg-info/history.rst
-if [[ ! $opts =~ ^-.*[gt] ]]; then
+if [[ ! $opts =~ ^-.*[gtT] ]]; then
   [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
   for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
     run_traced "cp $SRCPATH/wok_code/pre-commit $d/hooks"

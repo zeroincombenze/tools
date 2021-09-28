@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright 2017-2019, Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>

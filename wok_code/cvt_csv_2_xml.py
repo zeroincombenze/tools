@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """usage: cvt_csv_2_xml.py [-h] [-b ODOO_VER] [-i ID_PREFIX] [-j ID_MODE]
                         [-m ODOO_MODEL] [-n] [-q] [-R CVT-RULE] [-V] [-v]

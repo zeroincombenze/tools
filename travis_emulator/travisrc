@@ -476,6 +476,7 @@ create_virtual_env() {
       opts=$(inherits_travis_opts "" "V")
       [[ $TRAVIS == "true" ]] || opts="$opts -f"
       run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
+      # run_traced "vem cp $VENVOPTS $opts -vvv $TRAVIS_SRC_VME $TRAVIS_HOME"   #debug
       sts=$?
     else
       if [[ "$PRJNAME" == "Odoo" && -n "$VERSION" ]]; then
@@ -501,7 +502,7 @@ create_virtual_env() {
     sts=$?
   fi
   [[ $sts -ne 0 ]] && return
-  [[ $TRAVIS_EMULATE_OSX == "true" ]] && set_osx
+  # [[ $TRAVIS_EMULATE_OSX == "true" ]] && set_osx
   run_traced "source $TRAVIS_HOME/bin/activate"
   [[ -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && source $NVM_DIR/nvm.sh
   if [ $opt_cache -ne 0 -a "$TRAVIS" == "false" -a -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]; then
@@ -1098,7 +1099,7 @@ clean_dirs() {
   for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
   o="-nowarn \("
   for x in $XXXX; do
-    [[ ! $x =~ (.conf|\*) ]] && cmd="$cmd $o -name '*$x'" && o="-o"
+    [[ ! $x =~ (.conf|\*|/)$ ]] && cmd="$cmd $o -name '*$x'" && o="-o"
     [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
   done
   run_traced "$cmd \) -exec rm -f '{}' \;"

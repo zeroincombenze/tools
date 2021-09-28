@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """z0bug
 """
@@ -10,7 +10,7 @@ import subprocess
 from zerobug import Z0BUG
 
 
-__version__ = "1.0.3.3"
+__version__ = "1.0.3.4"
 STS_FAILED = 1
 STS_SUCCESS = 0
 

@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 """Usage: clone_oca_dependencies [<checkout_dir> <build_dir>]
 
 Arguments:
@@ -32,7 +32,7 @@ import logging
 from travis_helpers import print_flush
 
 _logger = logging.getLogger()
-__version__ = '1.0.5.1'
+__version__ = '1.0.5.2'
 
 
 def parse_depfile(depfile, owner=None):

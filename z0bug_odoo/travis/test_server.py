@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
@@ -19,7 +19,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '1.0.5.1'
+__version__ = '1.0.5.2'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 

@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # flake8: noqa
 # pylint: skip-file

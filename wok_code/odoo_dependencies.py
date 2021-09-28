@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
 Return module list or dependencies list or depends list of odoo modules.
@@ -484,10 +484,10 @@ def get_modules_list(path_list, depth=None, matches=None, depends_by=None,
             if module not in res:
                 res.append(module)
     if matches:
-            if only_missed:
-                res = list((set(matches) - set(res)) | set(modules_unstable))
-            else:
-                res = list(set(res) & set(matches))
+        if only_missed:
+            res = list((set(matches) - set(res)) | set(modules_unstable))
+        else:
+            res = list(set(res) & set(matches))
     return sorted(res)
 
 

@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright 2018-21 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
@@ -562,7 +562,7 @@ class topep8():
                        'remark_eol',
                        # 'fullname',
                        'int',
-                       'name' ]
+                       'name']
         self.SYNTAX_RE = {
             'space': re.compile(r'\s+'),
             # 'space': re.compile(tokenize.Whitespace),
@@ -1141,10 +1141,10 @@ class topep8():
     def compile_1_rule(self, rule):
         """Compile current rule for version <meta> parsing <value>
         """
-        bunch_keywords = []
-        bunch_keyids = []
-        bunch_min_max = []
-        bunch_ix = 0
+        # bunch_keywords = []
+        # bunch_keyids = []
+        # bunch_min_max = []
+        # bunch_ix = 0
         keywords = []
         keyids = []
         min_max_list = []
@@ -1316,10 +1316,10 @@ class topep8():
                 stop_capture = len(self.LEX_RULES[ir]['keyids'])
                 if 'START_CAPTURE' not in self.LEX_RULES[ir]['keyids']:
                     start_capture = -1
-                    del_items = True
+                    # delà_items = True
                 else:
                     start_capture = stop_capture
-                    del_items = False
+                    # del_items = False
                 ix = self.LEX_RULES[ir]['keyids'].index(tokenize.TOKENS)
                 del self.LEX_RULES[ir]['keywords'][ix]
                 del self.LEX_RULES[ir]['keyids'][ix]
@@ -1327,13 +1327,13 @@ class topep8():
                 offset = 0
                 for i in range(len(self.LEX_RULES[ir]['meta'][ver])):
                     if self.LEX_RULES[ir]['meta_ids'][ver][i] == tokenize.START_CAPTURE:
-                         start_capture = i
-                         offset -= 1
-                         continue
+                        start_capture = i
+                        offset -= 1
+                        continue
                     elif self.LEX_RULES[ir]['meta_ids'][ver][i] == tokenize.STOP_CAPTURE:
-                         stop_capture = i
-                         offset -= 1
-                         continue
+                        stop_capture = i
+                        offset -= 1
+                        continue
                     if i > stop_capture:
                         break
                     if i <= start_capture:
@@ -1491,7 +1491,6 @@ class topep8():
                 print(">>> %s(%s)" % (tokid, tokval))
             validated_rule_list = []
             for ir in sorted(self.LEX_RULES.keys()):
-            # for ir in self.LEX_RULES.keys():
                 if ctx['parse_state'] not in self.in_states(ir):
                     continue
                 irx = 0
@@ -1679,15 +1678,15 @@ def parse_yaml(ctx, src_file, dst_file):
         }
         yaml_data['before_install'] = [
             'git clone https://github.com/zeroincombenze/tools.git '
-                '${HOME}/tools --single-branch --depth=1',
+            '${HOME}/tools --single-branch --depth=1',
             'export '
-                'PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}',
+            'PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}',
             'export PYTHONPATH=${HOME}/tools'
         ]
         yaml_data['install'] = [
             'travis_install_env',
             'export EXCLUDE=hw_scanner,hw_escpos,document_ftp,delivery,'
-                'stock_invoice_directly,claim_from_delivery'
+            'stock_invoice_directly,claim_from_delivery'
         ]
         yaml_data['env'] = {
             'global': [

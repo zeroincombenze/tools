@@ -1,3 +1,13 @@
+1.0.6.5 (2021-09-28)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] install_tools.sh: templates dir
+
+1.0.6.4 (2021-09-27)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] install_tools.sh: installation from local development env
+
 1.0.6.3 (2021-09-27)
 ~~~~~~~~~~~~~~~~~~~~
 

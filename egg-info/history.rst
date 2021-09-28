@@ -1,3 +1,11 @@
+z0bug_odoo: 1.0.5.2 (2021-09-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Tax code 2220 & 2280 / Cod.IVA 2220 e 2280
+* [FIX] Tax code for extre-EU invoice / Codice IVA fattura extra-UE
+* [IMP] Account invoices at last month / Fatture a mese precedente
+
+
 python_plus: 1.0.3.3 (2021-09-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -38,7 +46,7 @@ clodoo: 0.3.35.1 (2021-09-24)
 z0bug_odoo: 1.0.5.1 (2021-09-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] New powerp RC configuration
+* [IMP] New Powerp RC configuration / Nuova configurazione RC Powerp
 
 
 wok_code: 1.0.2.2.1 (2021-09-23)
@@ -256,24 +264,6 @@ z0bug_odoo: 1.0.3.1 (2021-07-30)
 
 * [IMP] test data format xlsx (it replaces csv)
 * [IMP] value "\N" in data file for not value
-
-
-z0bug_odoo: 1.0.3 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] new test data
-
-
-wok_code: 1.0.2.2 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
-
-
-python_plus: 1.0.1.2 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: exec in current directory
 
 
 
