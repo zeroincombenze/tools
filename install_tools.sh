@@ -276,7 +276,7 @@ for f in $path; do
     grep -q "^#\!.*/bin.*python2$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python2|#\!$PYTHON|\" $f" && chmod +x $f
     grep -q "^#\!.*/bin.*python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python|#\!$PYTHON|\" $f" && chmod +x $f
 done
-if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
+if [[ $opts =~ ^-.*[fU] || -d $DSTPATH/venv ]]; then
     # Please do not change package list order
     for pkg in psycopg2-binary babel lxml pyyaml; do
         pfn=$(echo "$pkg"|grep -Eo '[^!<=>\\[]*'|head -n1)
