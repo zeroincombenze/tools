@@ -30,7 +30,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=1.0.2.2
+__version__=1.0.2.3
 
 
 do_edit_module() {

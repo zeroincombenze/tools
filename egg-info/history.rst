@@ -1,3 +1,9 @@
+wok_code: 1.0.2.3 (2021-09-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] cvt_script: add bash version check
+
+
 z0bug_odoo: 1.0.5.2 (2021-09-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -31,8 +37,8 @@ python_plus: 1.0.3.2 (2021-09-25)
 [REF] vem refactoring
 
 
-wok_code: 1.0.2.2.2 (2021-09-24)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 1.0.2.3 (2021-09-24)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: error sub2 sub3
 
@@ -49,8 +55,8 @@ z0bug_odoo: 1.0.5.1 (2021-09-23)
 * [IMP] New Powerp RC configuration / Nuova configurazione RC Powerp
 
 
-wok_code: 1.0.2.2.1 (2021-09-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 1.0.2.1 (2021-09-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: replace does not set protection bits; now -f is required
 [IMP] please: wep does not set protection bits; now -f is required
@@ -69,14 +75,14 @@ clodoo: 0.3.35 (2021-09-23)
 * [FIX] python 3
 
 
-wok_code: 1.0.2.2 (2021-08-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 1.0.2h (2021-08-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] gen_readme.py: search for authors in current README
 
 
-wok_code: 1.0.2.2 (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 1.0.2g (2021-08-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] ct_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
@@ -119,8 +125,8 @@ z0bug_odoo: 1.0.4.3 (2021-08-26)
 * [IMP] travis_run_test: new command testdeps
 
 
-wok_code: 1.0.2.2 (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 1.0.2f (2021-08-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: action docs shows recent history
 [IMP] gen_readme.py: show recent history
@@ -200,8 +206,8 @@ clodoo: 0.3.31.14 (2021-08-09)
 [FIX] odoo_install_repository: run in osx darwin
 
 
-wok_code: 1.0.2.2 (2021-08-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 1.0.2e (2021-08-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
@@ -220,8 +226,8 @@ z0bug_odoo: 1.0.3.2 (2021-08-05)
 * [IMP] test data update
 
 
-wok_code: 1.0.2.2 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 1.0.2d (2021-08-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [REF] Merged and renamed to wok_code
 
@@ -240,15 +246,15 @@ clodoo: 0.3.31.13 (2021-08-05)
 
 
 
-wok_code: 1.0.2.2 (2021-08-04)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 1.0.2c (2021-08-04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
 
 
-wok_code: 1.0.2.2 (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 1.0.2b (2021-08-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: parameter error
 

@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.6.5
+__version__=1.0.6.6
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -286,7 +286,6 @@ if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv ]]; then
     x=$($VEM $DSTPATH/venv info clodoo|grep -E "Location"|cut -d' ' -f2)/clodoo
     [[ -d $x ]] && run_traced "ln -s $x $DSTPATH/clodoo"
 fi
-
 if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*D ]]; then
     mkdir -p $HOME_DEV/pypi
     for pkg in $PKGS_LIST tools; do
@@ -298,6 +297,8 @@ fi
 if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
     $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/devel/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/devel/activate_tools ]] && . $HOME/devel/activate_tools -q" >>$HOME/.bash_profile
 fi
+[[ ! -f $DSTPATH/clodoo/odoorc ]] && echo -e "${RED}Incomplete installation! Ask Antonio to install clodoo!!${CLR}" && exit
+[[ ! -d $DSTPATH/templates ]] && echo -e "${RED}Incomplete installation! Ask Antonio to reinstall tools!!${CLR}" && exit
 [[ $opts =~ ^-.*T ]] && $DSTPATH/test_tools.sh
 [[ $opts =~ ^-.*U && -f $DSTPATH/egg-info/history.rst ]] && tail $DSTPATH/egg-info/history.rst
 if [[ ! $opts =~ ^-.*[gtT] ]]; then
