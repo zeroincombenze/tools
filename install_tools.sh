@@ -106,7 +106,7 @@ if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
     [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
-[[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
+[[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo -e "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
 [[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo "# Creating development environment $HOME_DEV/pypi ..."
 [[ $opts =~ ^-.*n ]] || find $SRCPATH $DSTPATH -name "*.pyc" -delete
 [[ $opts =~ ^-.*o ]] && echo -e "${RED}# WARNING! The switch -o is not more supported!${CLR}"
@@ -194,7 +194,8 @@ for pkg in $PKGS_LIST tools; do
         fi
         if [[ ! -e "$src" ]]; then
             echo "# File $src not found!"
-        elif [[ ! -e "$tgt" || -L "$tgt" || $opts =~ ^-.*[fpU] || $fn =~ $MOVED_FILES_RE ]]; then
+        # elif [[ ! -e "$tgt" || -L "$tgt" || $opts =~ ^-.*[fpU] || $fn =~ $MOVED_FILES_RE ]]; then
+        else
             [[ -L "$tgt" ]] && run_traced "rm -f $tgt"
             [[ -d "$tgt" ]] && run_traced "rm -fR $tgt"
             if [[ $fn =~ (kbase|templates|license_text|readlink) ]]; then
