@@ -104,7 +104,7 @@ fi
 if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
     [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
     [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
-    [[ $opts =~ ^-.*U ]] && pull_n_run "$SRCPATH" "$0" "$opts"
+    [[ $opts =~ ^-.*U ]] && git stash -q && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
 [[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo -e "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
 [[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo "# Creating development environment $HOME_DEV/pypi ..."
