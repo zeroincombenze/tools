@@ -1253,22 +1253,22 @@ def eval_setup(**kwargs):
     ctx['manifest'] = kwargs
 
 
-def read_setup(ctx):
-
-    def read_history(ctx, full_fn, module=None):
-        if module:
-            with open(full_fn, 'r') as fd:
-                ctx['histories'] += tail(
-                    os0.u(fd.read()),
-                    max_days=60,
-                    module=module)
+def read_history(ctx, full_fn, module=None):
+    if module:
         with open(full_fn, 'r') as fd:
-            ctx['history-summary'] += tail(
+            ctx['histories'] += tail(
                 os0.u(fd.read()),
-                max_ctr=1,
-                max_days=15,
+                max_days=60,
                 module=module)
+    with open(full_fn, 'r') as fd:
+        ctx['history-summary'] += tail(
+            os0.u(fd.read()),
+            max_ctr=1,
+            max_days=15,
+            module=module)
 
+
+def read_setup(ctx):
     if ctx['product_doc'] == 'pypi':
         MANIFEST_LIST = ('../setup.py', './setup.py')
     else:
