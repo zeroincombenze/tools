@@ -90,6 +90,12 @@ Installation
 Installation
 ------------
 
+Zeroincombenze tools require:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
+* python 2.7, some tools require python 3.6+
+* bash 5.0+
+
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -268,13 +274,41 @@ Last Update / Ultimo aggiornamento: 2021-09-25
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
+Last Update / Ultimo aggiornamento: 2021-09-26
+:target: https://odoo-community.org/page/development-status
+:alt:
+:target: https://travis-ci.com/zeroincombenze/tools
+:alt: github.com
+:target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
+:alt: License: AGPL-3
+:target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
+:alt: License: OPL
+:target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
+:alt: Coverage
+:target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
+:alt: Codecov
+:target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
+:alt: Technical Documentation
+:target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
+:target: https://erp1.zeroincombenze.it
+:alt: Try Me
+:target: https://codecov.io/gh/OCA/tools/branch/1.0
+:target: https://odoo-italia.org
+:alt: Odoo Italia Associazione
+:target: https://www.zeroincombenze.it/
+:alt: Zeroincombenze
+:target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
+:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
+:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
+:target: https://t.me/axitec_helpdesk
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-26
+Last Update / Ultimo aggiornamento: 2021-09-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

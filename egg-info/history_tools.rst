@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] install_tools.sh: templates dir
+[FIX] templates: minor fixes
 
 1.0.6.4 (2021-09-27)
 ~~~~~~~~~~~~~~~~~~~~

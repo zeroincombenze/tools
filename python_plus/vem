@@ -15,8 +15,6 @@
 # --use-features=in-tree-build              |   X  |   X  |   X  |   X  |  OK
 # -----------------------------------------------------------------------------
 # OK -> Use feature / X -> Feature unavailable / no -> Do use use
-# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-# export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
@@ -125,7 +123,8 @@ get_actual_pkg() {
 }
 
 get_local_version() {
-  grep "version" ./setup.py|awk -F= '{print $2}'|tr -d "'"|tr -d ","
+  # grep "version" ./setup.py|awk -F= '{print $2}'|tr -d "'"|tr -d ","
+  python ./setup.py --version
 }
 
 get_pkg_wo_version() {
@@ -261,7 +260,7 @@ pip_install() {
       [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
       [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/tools/$fn)
       if [[ $opt_debug -ge 3 ]]; then
-        [[ -d $SAVED_HOME/pypi/$fn/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/pypi/$fn/$fn)
+        [[ -d $SAVED_HOME/devel/pypi/$fn/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/devel/pypi/$fn/$fn)
       fi
       if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
         echo "Missed Odoo version to install (please use -O and/or -o switch)!"
@@ -1183,7 +1182,6 @@ if [[ -z "$p2" && -n "$VIRTUAL_ENV" && -f $VIRTUAL_ENV/bin/activate ]]; then
 elif [[ -z "$p2" && -f ./bin/activate ]]; then
   p2="$(readlink -e ./)"
 fi
-[[ -z "$p2" || ! -f $p2/bin/activate ]] && echo -e "${RED}Missed or invalid virtual environment!${CLR}" && exit 1
 [[ -z "$p8" && -n "$p9" ]] && p8="$p9" && p9=""
 [[ -z "$p7" && -n "$p8" ]] && p7="$p8" && p8=""
 [[ -z "$p6" && -n "$p7" ]] && p6="$p7" && p7=""
@@ -1194,6 +1192,7 @@ if [[ $opt_help -gt 0 ]]; then
   print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
+[[ -z "$p2" || ! -f $p2/bin/activate ]] && echo -e "${RED}Missed or invalid virtual environment!${CLR}" && exit 1
 # If it is running inside travis test environment
 [[ -z "$opt_pyver" && -n "$TRAVIS_PYTHON_VERSION" ]] && opt_pyver=$TRAVIS_PYTHON_VERSION
 [[ -z $VENV_STACK ]] && declare -A VENV_STACK && export VENV_STACK

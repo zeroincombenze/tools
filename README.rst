@@ -191,6 +191,12 @@ Installation
 Installation
 ------------
 
+Zeroincombenze tools require:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
+* python 2.7, some tools require python 3.6+
+* bash 5.0+
+
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -492,13 +498,6 @@ travis_emulator: 1.0.1.3 (2021-08-03)
 [IMP] Show virtual enviroment name in summary
 
 
-z0bug_odoo: 1.0.3.1 (2021-07-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] test data format xlsx (it replaces csv)
-* [IMP] value "\N" in data file for not value
-
-
 
 
 
@@ -514,7 +513,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-09-28
+Last Update / Ultimo aggiornamento: 2021-09-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

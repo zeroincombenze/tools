@@ -799,6 +799,12 @@ Installation
 Installation
 ------------
 
+Zeroincombenze tools require:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
+* python 2.7, some tools require python 3.6+
+* bash 5.0+
+
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -986,6 +992,8 @@ Last Update / Ultimo aggiornamento: 2021-08-31
 :target: https://t.me/axitec_helpdesk
 Last Update / Ultimo aggiornamento: 2021-09-24
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
+Last Update / Ultimo aggiornamento: 2021-09-28
+Last Update / Ultimo aggiornamento: 2021-09-29
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1019,7 +1027,7 @@ Last Update / Ultimo aggiornamento: 2021-09-24
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-28
+Last Update / Ultimo aggiornamento: 2021-09-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

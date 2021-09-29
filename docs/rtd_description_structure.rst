@@ -117,7 +117,7 @@ This is the hierarchical layout):
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-09-28
+Last Update / Ultimo aggiornamento: 2021-09-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

@@ -259,11 +259,4 @@ travis_emulator: 1.0.1.3 (2021-08-03)
 [IMP] Show virtual enviroment name in summary
 
 
-z0bug_odoo: 1.0.3.1 (2021-07-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] test data format xlsx (it replaces csv)
-* [IMP] value "\N" in data file for not value
-
-
 

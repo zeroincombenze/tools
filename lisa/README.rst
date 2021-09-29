@@ -44,6 +44,12 @@ Installation
 Installation
 ------------
 
+Zeroincombenze tools require:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
+* python 2.7, some tools require python 3.6+
+* bash 5.0+
+
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -117,37 +123,17 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
-Authors
--------
-
-
-
-
 Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 
 
-Acknowledges
-------------
-
-
-
-
-Translations by
----------------
-
-
-
-
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-31
+Last Update / Ultimo aggiornamento: 2021-09-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
