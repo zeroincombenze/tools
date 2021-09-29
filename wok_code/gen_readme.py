@@ -1249,10 +1249,11 @@ def read_manifest_file(ctx, manifest_path, force_version=None):
     return unicodes(manifest)
 
 
-def read_setup(ctx):
+def eval_setup(**kwargs):
+    ctx['manifest'] = kwargs
 
-    def eval_setup(**kwargs):
-        ctx['manifest'] = kwargs
+
+def read_setup(ctx):
 
     def read_history(ctx, full_fn, module=None):
         if module:
