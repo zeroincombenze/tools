@@ -201,7 +201,8 @@ for pkg in $PKGS_LIST tools; do
             if [[ $fn =~ (kbase|templates|license_text|readlink) ]]; then
                 [[ ! -d $(dirname $tgt) ]] && run_traced "mkdir -p $(dirname $tgt)"
                 run_traced "ln -s $src $tgt"
-            elif [[ ! -e "$tgt" || $opts =~ ^-.*[fpU] ]]; then
+            # elif [[ ! -e "$tgt" || $opts =~ ^-.*[fpU] ]]; then
+            else
                 [[ $ftype == f ]] && copts="" || copts="-r"
                 run_traced "cp $copts $src $tgt"
                 [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
