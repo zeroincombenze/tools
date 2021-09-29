@@ -308,7 +308,8 @@ build_odoo_param() {
                         GIT_PROT=$(echo $GIT_URL|awk -F: '{print $1}')
                         VCS="git"
                     fi
-                    GIT_BRANCH=$(git branch --show-current)
+                    # GIT_BRANCH=$(git branch --show-current)
+                    GIT_BRANCH=$(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+"|head -n1|tr -d "\n")
                 fi
             fi
             [[ $cdir == $HOME ]] && break

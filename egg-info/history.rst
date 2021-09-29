@@ -4,6 +4,12 @@ wok_code: 1.0.2.3 (2021-09-29)
 [IMP] cvt_script: add bash version check
 
 
+clodoo: 0.3.35.4 (2021-09-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: do not use git --show-current
+
+
 z0bug_odoo: 1.0.5.2 (2021-09-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
