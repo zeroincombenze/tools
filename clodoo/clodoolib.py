@@ -174,7 +174,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.35.4"
+__version__ = "0.3.36"
 
 
 #############################################################################
@@ -744,14 +744,14 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
                      git_org=None, multi=None):
     odoorc = os.path.join(os.path.dirname(__file__), 'odoorc')
     if multi:
-        cmd = 'source %s; opt_multi=1; build_odoo_param %s "%s" "%s" "%s"' % (
+        cmd = 'opt_multi=1 %s %s "%s" "%s" "%s"' % (
             odoorc,
             item,
             odoo_vid,
             suppl or '',
             git_org or '')
     else:
-        cmd = 'source %s; build_odoo_param %s "%s" "%s" "%s"' % (
+        cmd = '%s %s "%s" "%s" "%s"' % (
             odoorc,
             item,
             odoo_vid,

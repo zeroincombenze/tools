@@ -1,7 +1,13 @@
+0.3.36 (2021-09-29)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
 0.3.35.4 (2021-09-29)
 ~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] odoorc: do not use git --show-current
+* [IMP] odoorc: now it a command too
 
 0.3.35.3 (2021-09-26)
 ~~~~~~~~~~~~~~~~~~~~~

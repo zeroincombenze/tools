@@ -119,15 +119,20 @@ if [[ -z "$VEM" ]]; then
     exit 1
 fi
 
-if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/lib || ! -d $DSTPATH/bin ]]; then
+if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/venv/lib || ! -d $DSTPATH/venv/bin || ! -d $DSTPATH/bin ]]; then
     [[ -d $DSTPATH/tmp ]] && run_traced "rm -fR $DSTPATH/tmp"
     [[ -d $HOME/.cache/pip && $opts =~ ^-.*p ]] && run_traced "rm -fR $HOME/.cache/pip"
     x="-iDBB"
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && x="${x}t"
-    [[ ! $opts =~ ^-.*3 ]] && run_traced "$VEM create $DSTPATH/venv -p2.7 $x -f" || run_traced "$VEM create $DSTPATH/venv -p3.7 $x -f"
-    [[ $? -ne 0 || ! -d $DSTPATH/venv/bin || ! -d $DSTPATH/venv/lib ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
+    if [[ $opts =~ ^-.*3 ]]; then
+        run_traced "$VEM create $DSTPATH/venv -p3.7 $x -f"
+    else
+        run_traced "$VEM create $DSTPATH/venv -p2.7 $x -f"
+    fi
+    [[ $? -ne 0 ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
+    [[ ! -d $DSTPATH/venv/bin || ! -d $DSTPATH/venv/lib ]] && echo -e "${RED}# Incomplete Tools virtual environment!${CLR}" && exit 1
 fi
 
 [[ ! $opts =~ ^-.*q ]] && echo "# Moving local PYPI packages into virtual environment"

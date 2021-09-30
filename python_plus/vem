@@ -865,32 +865,32 @@ do_venv_mgr() {
     [[ $cmd == "amend" && -n "$opt_rfile" ]] && pip_install_req "--upgrade"
     [[ $cmd =~ (amend|check) && -n "$opt_rfile" ]] && pip_check_req $cmd
     if [[ ! $cmd == "check" && -z "$VENV_STS" ]]; then
-      run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VENV_TGT'\":g' $PWD/bin/activate"
-      if $(grep -q "^# export HOME=" $PWD/bin/activate); then
-        [ $opt_alone -le 1 ] && run_traced "sed -e 's|^# export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' -i $PWD/bin/activate"
-        [ $opt_alone -gt 1 ] && run_traced "sed -e 's|^# export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' -i $PWD/bin/activate"
-      elif $(grep -q "^export HOME=" $PWD/bin/activate); then
-        [ $opt_alone -gt 1 ] && run_traced "sed -e 's|^export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' -i $PWD/bin/activate"
-        [ $opt_alone -le 1 ] && run_traced "sed -e 's|^export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' -i $PWD/bin/activate"
+      run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VENV_TGT'\":g' $V/bin/activate"
+      if $(grep -q "^# export HOME=" $V/bin/activate); then
+        [ $opt_alone -le 1 ] && run_traced "sed -e 's|^# export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' -i $V/bin/activate"
+        [ $opt_alone -gt 1 ] && run_traced "sed -e 's|^# export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' -i $V/bin/activate"
+      elif $(grep -q "^export HOME=" $V/bin/activate); then
+        [ $opt_alone -gt 1 ] && run_traced "sed -e 's|^export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' -i $V/bin/activate"
+        [ $opt_alone -le 1 ] && run_traced "sed -e 's|^export HOME=.*|# export HOME=\"\$VIRTUAL_ENV\"|g' -i $V/bin/activate"
       fi
-      if $(grep -q "^ *# export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" $PWD/bin/activate); then
-        [ $opt_alone -le 1 ] && run_traced "sed -e 's|# export HOME=\$(grep|export HOME=\$(grep|' -i $PWD/bin/activate"
-      elif $(grep -q "^ *export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" $PWD/bin/activate); then
-        [ $opt_alone -le 1 ] && run_traced "sed -e 's|export HOME=\$(grep|# export HOME=\$(grep|' -i $PWD/bin/activate"
+      if $(grep -q "^ *# export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" $V/bin/activate); then
+        [ $opt_alone -le 1 ] && run_traced "sed -e 's|# export HOME=\$(grep|export HOME=\$(grep|' -i $V/bin/activate"
+      elif $(grep -q "^ *export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" $V/bin/activate); then
+        [ $opt_alone -le 1 ] && run_traced "sed -e 's|export HOME=\$(grep|# export HOME=\$(grep|' -i $V/bin/activate"
       fi
       if [ $opt_dry_run -eq 0 ]; then
         if [ $opt_spkg -ne 0 ]; then
-          if [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
-            sitecustom=$PWD/.local/lib/python$opt_pyver/site-packages/sitecustomize.py
+          if [[ -d $V/.local/lib/python$opt_pyver/site-packages ]]; then
+            sitecustom=$V/.local/lib/python$opt_pyver/site-packages/sitecustomize.py
             echo "import sys" >$sitecustom
             echo -e "import site\nif '$VENV_TGT/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VENV_TGT/.local/lib/python$opt_pyver/site-packages')\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n" >>$sitecustom
           else
-            sitecustom=$PWD/lib/python$opt_pyver/site-packages/sitecustomize.py
+            sitecustom=$V/lib/python$opt_pyver/site-packages/sitecustomize.py
             echo "import sys" >$sitecustom
             echo -e "import site\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n" >>$sitecustom
           fi
-        elif [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
-          sitecustom=$PWD/.local/lib/python$opt_pyver/site-packages/sitecustomize.py
+        elif [[ -d $V/.local/lib/python$opt_pyver/site-packages ]]; then
+          sitecustom=$V/.local/lib/python$opt_pyver/site-packages/sitecustomize.py
           echo "import sys" >$sitecustom
           echo -e "import site\nif '$VENV_TGT/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VENV_TGT/.local/lib/python$opt_pyver/site-packages')\n" >>$sitecustom
         fi
@@ -1192,7 +1192,7 @@ if [[ $opt_help -gt 0 ]]; then
   print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
-[[ -z "$p2" || ! -f $p2/bin/activate ]] && echo -e "${RED}Missed or invalid virtual environment!${CLR}" && exit 1
+[[ ! $action =~ (help|create) && ( -z "$p2" || ! -f $p2/bin/activate ) ]] && echo -e "${RED}Missed or invalid virtual environment!${CLR}" && exit 1
 # If it is running inside travis test environment
 [[ -z "$opt_pyver" && -n "$TRAVIS_PYTHON_VERSION" ]] && opt_pyver=$TRAVIS_PYTHON_VERSION
 [[ -z $VENV_STACK ]] && declare -A VENV_STACK && export VENV_STACK

@@ -7,7 +7,7 @@ Unknown macro
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-29
+Last Update / Ultimo aggiornamento: 2021-09-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

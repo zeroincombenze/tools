@@ -247,6 +247,7 @@ clodoo: 0.3.35.4 (2021-09-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] odoorc: do not use git --show-current
+* [IMP] odoorc: now it a command too
 
 
 z0bug_odoo: 1.0.5.2 (2021-09-27)
@@ -451,6 +452,7 @@ clodoo: 0.3.31.14 (2021-08-09)
 [FIX] odoo_install_repository: run in osx darwin
 
 
+
 wok_code: 1.0.2e (2021-08-08)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -481,14 +483,6 @@ python_plus: 1.0.1.3 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: uninstall package with if package version with ">"
-
-
-clodoo: 0.3.31.13 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] transodoo.py: tranlsation now can return None value
-[IMP] transodoo.xlsx: upgrade translation
-
 
 
 wok_code: 1.0.2c (2021-08-04)
@@ -525,7 +519,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-09-29
+Last Update / Ultimo aggiornamento: 2021-09-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
