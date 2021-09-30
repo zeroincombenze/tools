@@ -10,7 +10,7 @@ import subprocess
 from zerobug import Z0BUG
 
 
-__version__ = "1.0.3.4"
+__version__ = "1.0.3.5"
 STS_FAILED = 1
 STS_SUCCESS = 0
 

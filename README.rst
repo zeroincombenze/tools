@@ -237,6 +237,12 @@ Current development version
 History
 -------
 
+python_plus: 1.0.3.5 (2021-09-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] vem: 1st installation, z0librc not found
+
+
 wok_code: 1.0.2.3 (2021-09-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
