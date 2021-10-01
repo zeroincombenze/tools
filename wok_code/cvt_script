@@ -29,7 +29,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.2.3
+__version__=1.0.2.4
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -297,7 +297,7 @@ cvt_file() {
             :
           fi
         elif [ $prc -eq 12 ]; then
-          if [[ $line =~ ^if.*type.*Z0BUG_setup.*function.* ]]; then
+          if [[ $line =~ ^.*type.*Z0BUG_setup.*function.* ]]; then
             prc=13
             blk_13 "$fntmp"
             empty=0
@@ -310,7 +310,9 @@ cvt_file() {
             echo "$line" >>$fntmp
           fi
         elif [ $prc -eq 13 ]; then
-          if [[ $line =~ ^Z0BUG_main_file.* ]]; then
+          if [[ $line =~ ^.*type.*Z0BUG_setup.*function.* ]]; then
+            :
+          elif [[ $line =~ ^Z0BUG_main_file.* ]]; then
             prc=14
             blk_14 "$fntmp"
             empty=0
@@ -342,8 +344,8 @@ cvt_file() {
           echo "$line" >>$fntmp
           empty=0
         elif [ -z "$line" ]; then
-          echo "$line" >>$fntmp
-          empty=1
+          [[ $empty -le 2 ]] && echo "$line" >>$fntmp
+          ((empty++))
         else
           echo "$line" >>$fntmp
           empty=0
@@ -575,11 +577,11 @@ EOF
 }
 #//Enable.auto.upgrade.code/
 
-OPTOPTS=(h        J         K        k        m         n           O         q           T        U      V           v           w          y       Z)
-OPTDEST=(opt_help opt_tjLib opt_lev3 opt_keep opt_id    opt_dry_run opt_oeLib opt_verbose opt_Test opt_UT opt_version opt_verbose opt_nowarn opt_yes opt_zLib)
-OPTACTI=(1        1         1        1        "="       1           1         0           1        1      "*"         "+"         1          1       1)
-OPTDEFL=(1        0         0        0        "UNKNOWN" 0           0         -1          0        0      ""          -1          0          0       0)
-OPTMETA=("help"   ""        ""       ""       "name"    "noop"      ""        "quiet"     ""       ""     "version"   "verbose"   ""         ""      "")
+OPTOPTS=(h        J         K        k        m      n           O         q           T        U      V           v           w          y       Z)
+OPTDEST=(opt_help opt_tjLib opt_lev3 opt_keep opt_id opt_dry_run opt_oeLib opt_verbose opt_Test opt_UT opt_version opt_verbose opt_nowarn opt_yes opt_zLib)
+OPTACTI=(1        1         1        1        "="    1           1         0           1        1      "*"         "+"         1          1       1)
+OPTDEFL=(1        0         0        0        ""     0           0         -1          0        0      ""          -1          0          0       0)
+OPTMETA=("help"   ""        ""       ""       "name" "noop"      ""        "quiet"     ""       ""     "version"   "verbose"   ""         ""      "")
 OPTHELP=("this help"
   "load travisrc library"
   "set script version format n.n.n"
@@ -612,6 +614,8 @@ fi
 declare -A COPY
 COPY[z0lib]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
 COPY[travis_em]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+[[ -z "$opt_id" ]] && opt_id=$(basename $(dirname $bashscript))
+[[ $opt_id == "tests" ]]&& opt_id=$(basename $(dirname $(dirname $bashscript)))
 ToRepeat=
 cvt_file $bashscript
 if [[ -n "$ToRepeat" ]]; then

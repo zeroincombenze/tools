@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.6.7
+__version__=1.0.6.8
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -72,7 +72,7 @@ RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="activate_devel_env odoo_default_tnl.xlsx templates license_text readlink"
-RFLIST__python_plus="vem vem.man"
+RFLIST__python_plus=""
 RFLIST__wok_code="cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script dist_pkg generate_all_tnl gen_addons_table.py gen_readme.py license_mgnt.py makepo_it.py odoo_dependencies.py odoo_translation.py please please.man topep8 to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py run_odoo_debug"

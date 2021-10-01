@@ -1,3 +1,15 @@
+python_plus: 1.0.3.6 (2021-10-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] full setuptools integrated + copy-pkg-data
+
+
+wok_code: 1.0.2.4 (2021-09-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] please: new version method
+
+
 python_plus: 1.0.3.5 (2021-09-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

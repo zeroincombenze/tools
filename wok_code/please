@@ -51,7 +51,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.2.3
+__version__=1.0.2.4
 
 #
 # General Purpose options:
@@ -2860,18 +2860,18 @@ do_version() {
   # do_version(pkg [cur_ver [new_ver]])
   if [ "$PRJNAME" != "Odoo" ]; then
     if [ -z "$2" ]; then
-      find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
+      find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
     else
       local ver_re2=${2//./\\.}
       local ver_re="[^0-9.]$ver_re2($|[^0-9.])"
       local new_ver=$3
       if [ $opt_dry_run -ne 0 ]; then
-        echo "find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
+        echo "find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
       else
-        find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;
+        find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;
       fi
       if [ -n "$new_ver" ]; then
-        for fn in $(find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -El "$ver_re" '{}' \;); do
+        for fn in $(find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -El "$ver_re" '{}' \;); do
           if [ $opt_dry_run -ne 0 ]; then
             echo "sed -e \"s/$ver_re2/$new_ver/\" -i $fn"
           else
@@ -2882,15 +2882,14 @@ do_version() {
           if [ $opt_dry_run -ne 0 ]; then
             echo "sed -e \"s/version=.$ver_re2./version='$new_ver'/\" -i $PKGPATH/setup.py"
           else
-            sed -e "s/version=.$ver_re2./version='$new_ver'/" -i $PKGPATH/setup.py
+            sed -e "s/version=[\"']$ver_re2[\"']/version='$new_ver'/" -i $PKGPATH/setup.py
           fi
         fi
       fi
     fi
-    if [ -f $PRJPATH/__main__.py ]; then
-      echo "Project $PRJNAME $prjversion [$PKGNAME] answer:"
-      cd $PKGPATH
-      PYTHONPATH=$PKGPATH:$HOME/tools python $PRJNAME
+    if [ -f $PKGPATH/setup.py ]; then
+      echo -n "Project $PRJNAME $prjversion [$PKGNAME]: "
+      python $PKGPATH/setup.py --version
     fi
   else
     echo "Project $PRJNAME $BRANCH [$PKGNAME $prjversion]"

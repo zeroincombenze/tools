@@ -1,6 +1,6 @@
 
 ===================
-devel_tools 1.0.2.3
+devel_tools 1.0.2.4
 ===================
 
 
@@ -845,6 +845,11 @@ Current development version
 History
 -------
 
+1.0.2.4 (2021-09-30)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] please: new version method
+
 1.0.2.3 (2021-09-29)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -905,14 +910,6 @@ History
 ~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
-
-1.0.2 (2021-07-21)
-~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: ignore setup directories
-[IMP] gen_readme.py: new parameter -L to set local language (def it_IT)
-[IMP] gen_readme.py: check for licenze incompatibility
-
 
 
 
@@ -994,6 +991,7 @@ Last Update / Ultimo aggiornamento: 2021-09-24
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
 Last Update / Ultimo aggiornamento: 2021-09-28
 Last Update / Ultimo aggiornamento: 2021-09-29
+Last Update / Ultimo aggiornamento: 2021-09-30
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1027,7 +1025,7 @@ Last Update / Ultimo aggiornamento: 2021-09-29
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-30
+Last Update / Ultimo aggiornamento: 2021-10-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

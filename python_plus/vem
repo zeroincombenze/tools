@@ -37,7 +37,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.3.5
+__version__=1.0.3.6
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -246,7 +246,7 @@ bin_install_1() {
 
 pip_install() {
   #pip_install(pkg opts)
-  local pkg d x srcdir fn popts pypath v tmpdir
+  local pkg d x srcdir pfn popts pypath v tmpdir
   pypath=$(find $VIRTUAL_ENV/lib -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
   tmpdir=$VIRTUAL_ENV/tmp
@@ -260,10 +260,10 @@ pip_install() {
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ ! $pkg =~ $BIN_PKGS ]]; then
       srcdir=""
-      [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
-      [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/tools/$fn)
+      [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
+      [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/tools/$pfn)
       if [[ $opt_debug -ge 3 ]]; then
-        [[ -d $SAVED_HOME/devel/pypi/$fn/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/devel/pypi/$fn/$fn)
+        [[ -d $SAVED_HOME/devel/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/devel/pypi/$pfn/$pfn)
       fi
       if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
         echo "Missed Odoo version to install (please use -O and/or -o switch)!"
@@ -278,34 +278,37 @@ pip_install() {
     if [[ $pkg =~ $BIN_PKGS ]]; then
       bin_install "$pkg"
     elif [[ -n "$srcdir" ]]; then
-      [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
-      [[ -L $pypath/$fn ]] && run_traced "rm -f $pypath/$fn"
+      [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
+      [[ -L $pypath/$pfn ]] && run_traced "rm -f $pypath/$pfn"
       if [[ $opt_debug -eq 2 ]]; then
         [[ ! -d $tmpdir ]] && run_traced "mkdir $tmpdir"
-        run_traced "mkdir -p $tmpdir/$fn"
-        run_traced "cp -r $srcdir $tmpdir/$fn/"
-        run_traced "mv $tmpdir/$fn/$fn/setup.py $tmpdir/$fn/setup.py"
-        [[ $PIPVER -ge 21 ]] && run_traced "$PIP install $tmpdir/$fn --use-feature=in-tree-build $popts" || run_traced "$PIP install $tmpdir/$fn $popts"
+        run_traced "mkdir -p $tmpdir/$pfn"
+        run_traced "cp -r $srcdir $tmpdir/$pfn/"
+        run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
+        [[ $PIPVER -ge 21 ]] && run_traced "$PIP install $tmpdir/$pfn --use-feature=in-tree-build $popts" || run_traced "$PIP install $tmpdir/$pfn $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-        run_traced "rm -fR $tmpdir/$fn"
+        run_traced "rm -fR $tmpdir/$pfn"
       elif [[ $opt_debug -eq 3 ]]; then
         [[ $PIPVER -ge 21 ]] && run_traced "$PIP install $(dirname $srcdir) --use-feature=in-tree-build $popts" || run_traced "$PIP install $(dirname $srcdir) $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
         pushd $srcdir/.. >/dev/null
-        [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $fn)
+        [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
         v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
         popd >/dev/null
-        x=$(ls -d $pypath/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
-        [[ -n $x && $x != $pypath/${fn}-${v}.dist-info ]] && run_traced "mv $x $pypath/${fn}-${v}.dist-info"
-        if [[ ! -d $pypath/${fn}-${v}.dist-info ]]; then
-          run_traced "mkdir $pypath/${fn}-${v}.dist-info"
+        x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
+        [[ -n $x && $x != $pypath/${pfn}-${v}.dist-info ]] && run_traced "mv $x $pypath/${pfn}-${v}.dist-info"
+        if [[ ! -d $pypath/${pfn}-${v}.dist-info ]]; then
+          run_traced "mkdir $pypath/${pfn}-${v}.dist-info"
           for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
-            run_traced "touch $pypath/${fn}-${v}.dist-info/$d"
+            run_traced "touch $pypath/${pfn}-${v}.dist-info/$d"
           done
         fi
-        run_traced "ln -s $srcdir $pypath/$fn"
+        run_traced "ln -s $srcdir $pypath/$pfn"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      fi
+      if [[ -f $pypath/$pfn/scripts/main.py && -f $pypath/$pfn/scripts/setup.conf ]]; then
+        run_traced "$PYTHON -m $pfn --copy-pkg-data"
       fi
     elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install $pkg"
@@ -385,19 +388,19 @@ pip_install_2() {
 
 pip_install_req() {
   # pip_install_req(popts)
-  local f fn pkg flist cmd
+  local f pfn pkg flist cmd
   for f in ${opt_rfile//,/ }; do
-    fn=$(readlink -f $f)
-    [ -z "$fn" ] && echo "File $f not found!"
-    [ -z "$fn" ] && continue
-    [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
+    pfn=$(readlink -f $f)
+    [ -z "$pfn" ] && echo "File $f not found!"
+    [ -z "$pfn" ] && continue
+    [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $pfn\e[0m"
     cmd="$LIST_REQ -qt python -BP"
     [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
     [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
     [[ -d $HOME/OCA ]] && cmd="$cmd -d${HOME}/OCA"
-    [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $fn -qs\" \""
-    flist=$($cmd -m $fn -qs" ")
+    [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $pfn -qs\" \""
+    flist=$($cmd -m $pfn -qs" ")
     [[ $opt_verbose -gt 2 ]] && echo "flist=$flist"
     for pkg in $flist; do
       pip_install "$pkg" "$1"
@@ -407,24 +410,24 @@ pip_install_req() {
 
 pip_uninstall() {
   #pip_uninstall(pkg opts)
-  local pkg d x srcdir fn popts v
+  local pkg d x srcdir pfn popts v
   local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
   pkg=$(get_pkg_wo_version $(get_actual_pkg $1))
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     srcdir=""
-    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
-    [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/tools/$fn)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$fn/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/dev/pypi/$fn/$fn)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/pypi/$fn/$fn ]] && srcdir=$(readlink -f $SAVED_HOME/pypi/$fn/$fn)
+    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
+    [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/tools/$pfn)
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/dev/pypi/$pfn/$pfn)
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/pypi/$pfn/$pfn)
     if [[ -n "$srcdir" ]]; then
-      [[ -d $pypath/$fn && ! -L $pypath/$fn ]] && run_traced "rm -fR $pypath/$fn"
+      [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
       pushd $srcdir/.. >/dev/null
-      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $fn)
+      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
       v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
       popd >/dev/null
-      x=$(ls -d $pypath/${fn}-*dist-info 2>/dev/null|grep -E "${fn}-[0-9.]*dist-info")
-      [[ -n $x && $x != $pypath/${fn}-${v}.dist-info ]] && run_traced "rm $x"
+      x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
+      [[ -n $x && $x != $pypath/${pfn}-${v}.dist-info ]] && run_traced "rm $x"
     else
       [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
       run_traced "$PIP uninstall $popts $pkg $2"
@@ -572,19 +575,19 @@ pip_check_2() {
 
 pip_check_req() {
   # pip_check_req(cmd)
-  local f fn pkg cmd=$1 flist cmd
+  local f pfn pkg cmd=$1 flist cmd
   for f in ${opt_rfile//,/ }; do
-    fn=$(readlink -f $f)
-    [ -z "$fn" ] && echo "File $f not found!"
-    [ -z "$fn" ] && continue
-    [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $fn\e[0m"
+    pfn=$(readlink -f $f)
+    [ -z "$pfn" ] && echo "File $f not found!"
+    [ -z "$pfn" ] && continue
+    [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $pfn\e[0m"
     cmd="$LIST_REQ -qt python -BP"
     [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
     [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
     [[ -d $HOME/OCA ]] && cmd="$cmd -d${HOME}/OCA"
-    [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $fn -qs\" \""
-    flist=$($cmd -m $fn -qs" ")
+    [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $pfn -qs\" \""
+    flist=$($cmd -m $pfn -qs" ")
     [[ $opt_verbose -gt 1 ]] && echo "--> $flist"
     for pkg in $flist; do
       check_package $pkg $cmd
@@ -814,6 +817,7 @@ do_venv_mgr() {
   if [[ $cmd =~ (amend|check|test|inspect) ]]; then
     V=$VENV
   elif [[ "$cmd" == "cp" ]]; then
+    set -x  #debug
     do_deactivate "-q"
     if [[ -d $VENV_TGT ]]; then
       if [[ $opt_force -eq 0 ]]; then
@@ -825,6 +829,7 @@ do_venv_mgr() {
     fi
     [[ -d $(dirname $VENV_TGT) ]] || run_traced "mkdir -p $(dirname $VENV_TGT)"
     run_traced "cp -r $VENV $VENV_TGT"
+    set +x  #debug
     V=$VENV_TGT
     do_activate "$V" "-q"
   elif [[ "$cmd" == "merge" ]]; then

@@ -237,6 +237,18 @@ Current development version
 History
 -------
 
+python_plus: 1.0.3.6 (2021-10-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] full setuptools integrated + copy-pkg-data
+
+
+wok_code: 1.0.2.4 (2021-09-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] please: new version method
+
+
 python_plus: 1.0.3.5 (2021-09-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -525,7 +537,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-09-30
+Last Update / Ultimo aggiornamento: 2021-10-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
