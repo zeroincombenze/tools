@@ -51,7 +51,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.2.4
+__version__=1.0.2.5
 
 #
 # General Purpose options:
@@ -2609,11 +2609,13 @@ do_replace() {
     done
     do_docs
     [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
+    # [[ -f $PKGPATH/setup.py && -d $PRJPATH/scripts ]] && run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
+    # [[ -f $PRJPATH/setup.py ]] && run_traced "rm -f $PRJPATH/setup.py"
     opts=$(inherits_travis_opts "R" "D")
     [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg $opts $1"
     sts=$?
+    # [[ $(basename $PWD) != "tools" ]] && run_traced "cp $PKGPATH/setup.py $HOME/tools/$PKGNAME/"
     [[ $(basename $PWD) != "tools" ]] && clean_dirs "$HOME/tools"
-    [[ $(basename $PWD) != "tools" ]] && run_traced "cp ../setup.py $HOME/tools/$(basename $PWD)/"
     [[ $opt_force -ne 0 ]] && set_executable
   fi
   return $sts

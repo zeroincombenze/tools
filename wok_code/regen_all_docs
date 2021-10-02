@@ -33,7 +33,7 @@ fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-__version__=1.0.2.4
+__version__=1.0.2.5
 
 
 

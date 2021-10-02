@@ -280,6 +280,7 @@ pip_install() {
     elif [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
       [[ -L $pypath/$pfn ]] && run_traced "rm -f $pypath/$pfn"
+      # [[ $opt_debug -gt 2 && -f $srcdir/../setup.py && -d $srcdir/scripts ]] && run_traced "cp $(readlink -f $srcdir/../setup.py) $srcdir/scripts/setup.info"
       if [[ $opt_debug -eq 2 ]]; then
         [[ ! -d $tmpdir ]] && run_traced "mkdir $tmpdir"
         run_traced "mkdir -p $tmpdir/$pfn"
@@ -307,9 +308,7 @@ pip_install() {
         run_traced "ln -s $srcdir $pypath/$pfn"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       fi
-      if [[ -f $pypath/$pfn/scripts/main.py && -f $pypath/$pfn/scripts/setup.conf ]]; then
-        run_traced "$PYTHON -m $pfn --copy-pkg-data"
-      fi
+      [[ -x $VIRTUAL_ENV/bin/${pkg}-info ]] && run_traced "$VIRTUAL_ENV/bin/${pkg}-info --copy-pkg-data"
     elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install $pkg"
       run_traced "$PIP install $popts --upgrade $pkg"
@@ -370,11 +369,14 @@ pip_install() {
 
 pip_install_1() {
   # pip_install_1(popts)
-  local pkg
+  local pkg popts
+  [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
   [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m (1)"
   for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
-    pip_install "$pkg" "$1"
+    [[ $opt_verbose -lt 2 ]] && echo -n "."
+    pip_install "$pkg" "$popts"
   done
+  [[ $opt_verbose -lt 2 ]] && echo ""
 }
 
 pip_install_2() {
@@ -702,11 +704,12 @@ check_installed_pkgs() {
   local p p2 x popts
   check_4_needing_pkgs
   [[ $PIPVER -eq 19 ]] && popts="--use-feature=2020-resolver" || popts=""
-  [[ $opt_verbose -eq 0 ]] && popts="$potps -q"
+  [[ $opt_verbose -lt 2 ]] && popts="$potps -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
     [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
     [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install $popts$p2 $p"
+    [[ $opt_verbose -lt 2 ]] && echo -n "."
     [[ -z "${!x}" ]] && $PIP install $popts$p2 $p
   done
   LIST_REQ="list_requirements.py"
@@ -716,9 +719,11 @@ check_installed_pkgs() {
       x=$(echo $x/clodoo/list_requirements.py)
       run_traced "chmod +x $x"
       LIST_REQ="$(readlink -f $x)"
+      [[ $opt_verbose -lt 2 ]] && echo -n "."
       run_traced "sed -i -e \"s|^#\!.*[ /]python|#\!$PYTHON|\" $x"
     fi
   fi
+  [[ $opt_verbose -lt 2 ]] && echo ""
   check_4_needing_pkgs
 }
 
@@ -817,7 +822,6 @@ do_venv_mgr() {
   if [[ $cmd =~ (amend|check|test|inspect) ]]; then
     V=$VENV
   elif [[ "$cmd" == "cp" ]]; then
-    set -x  #debug
     do_deactivate "-q"
     if [[ -d $VENV_TGT ]]; then
       if [[ $opt_force -eq 0 ]]; then
@@ -829,7 +833,6 @@ do_venv_mgr() {
     fi
     [[ -d $(dirname $VENV_TGT) ]] || run_traced "mkdir -p $(dirname $VENV_TGT)"
     run_traced "cp -r $VENV $VENV_TGT"
-    set +x  #debug
     V=$VENV_TGT
     do_activate "$V" "-q"
   elif [[ "$cmd" == "merge" ]]; then
@@ -981,8 +984,14 @@ do_venv_create() {
       done
       f=$(ls $VENV)
       if [[ -n "$f" ]]; then
-        [[ -d ${VENV}~ ]] && run_traced "rm -fR ${VENV}~"
-        run_traced "mv $VENV ${VENV}~"
+          [[ -d ${VENV}~ ]] && run_traced "rm -fR ${VENV}~"
+          run_traced "mv $VENV ${VENV}~"
+          for f in $(ls ${VENV}~); do
+              b=$(basename $f)
+              if [[ $b =~ (bin|include|lib|node_modules|odoo|package-lock.json|pyvenv.cfg|activate_tools|tmp) ]]; then
+                  [[ -L $f || ! -d $f ]] && run_traced "rm -f $f" || run_traced "rm -fR $f/"
+              fi
+          done
       fi
     fi
   fi
@@ -1015,11 +1024,12 @@ do_venv_create() {
   sts=$?
   [[ $sts -ne 0 ]] && return
   if [[ -d ${VENV}~ ]]; then
-    for f in $(ls ${VENV}~); do
-      b=$(basename $f)
-      [[ $b =~ (bin|include|lib|node_modules|odoo|package-lock.json|pyvenv.cfg|activate_tools|tmp) ]] && continue
-      [[ ! -e $VENV/$b ]] && run_traced "mv $f $VENV/"
-    done
+      empty=1
+      for f in $(ls ${VENV}~); do
+          [[ ! -e $VENV/$b ]] && run_traced "mv $f $VENV/"
+          empty=0
+      done
+      [[ $empty -ne 0 ]] && run_traced "rm -fR ${VENV}~"
   fi
 
   do_activate "$VENV"
@@ -1200,7 +1210,7 @@ if [[ $opt_help -gt 0 ]]; then
   print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
-[[ ! $action =~ (help|create) && ( -z "$p2" || ! -f $p2/bin/activate ) ]] && echo -e "${RED}Missed or invalid virtual environment!${CLR}" && exit 1
+[[ ! $action =~ (help|create) && ( -z "$p2" || ! -f $p2/bin/activate ) ]] && echo -e "${RED}Virtual environment not issued! Use $0 <VENV> ...${CLR}" && exit 1
 # If it is running inside travis test environment
 [[ -z "$opt_pyver" && -n "$TRAVIS_PYTHON_VERSION" ]] && opt_pyver=$TRAVIS_PYTHON_VERSION
 [[ -z $VENV_STACK ]] && declare -A VENV_STACK && export VENV_STACK

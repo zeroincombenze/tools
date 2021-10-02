@@ -1,6 +1,6 @@
 
 ===================
-devel_tools 1.0.2.4
+devel_tools 1.0.2.5
 ===================
 
 
@@ -845,7 +845,7 @@ Current development version
 History
 -------
 
-1.0.2.4 (2021-09-30)
+1.0.2.5 (2021-09-30)
 ~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: new version method

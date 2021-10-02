@@ -27,25 +27,25 @@ def fake_setup(**kwargs):
 
 
 def read_setup():
-    setup_conf = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), 'setup.conf'))
+    setup_info = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), 'setup.info'))
     setup_file = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', '..', 'setup.py'))
-    if os.path.isfile(setup_file):
-        shutil.copy(setup_file, setup_conf)
-    if not os.path.isfile(setup_conf):
-        setup_conf = os.path.abspath(
+    # if os.path.isfile(setup_file):
+    #     shutil.copy(setup_file, setup_info)
+    if not os.path.isfile(setup_info):
+        setup_info = os.path.abspath(
             os.path.join(os.path.dirname(__file__), '..', 'setup.py'))
     setup_args = {}
-    if os.path.isfile(setup_conf):
-        with open(setup_conf, 'r') as fd:
+    if os.path.isfile(setup_info):
+        with open(setup_info, 'r') as fd:
             content = fd.read().replace('setup(', 'fake_setup(')
             exec(content)
             setup_args = globals()['setup_args']
     else:
         print('Not internal configuration file found!')
     pkg = pkg_resources.get_distribution(__package__.split('.')[0])
-    setup_args['setup'] = setup_conf
+    setup_args['setup'] = setup_info
     setup_args['name'] = pkg.key
     setup_args['version'] = pkg.version
     return setup_args
@@ -72,33 +72,53 @@ def get_pypi_paths():
     return pkgpath, bin_path, lib_path
 
 
-def copy_pkg_data(setup_args):
+def copy_pkg_data(setup_args, verbose):
     if setup_args.get('package_data'):
         pkgpath, bin_path, lib_path = get_pypi_paths()
         if bin_path:
+            # TODO> compatibility mode
+            bin2_path = os.path.join(os.environ['HOME'], 'devel')
+            if not os.path.isdir(bin2_path):
+                bin2_path = ''
             for pkg in setup_args['package_data'].keys():
                 for fn in setup_args['package_data'][pkg]:
                     base = os.path.basename(fn)
-                    if base == 'setup.conf':
+                    if base == 'setup.info':
                         continue
                     full_fn = os.path.abspath(os.path.join(pkgpath, fn))
                     if lib_path:
                         tgt_fn = os.path.join(lib_path, base)
-                        print('$ cp %s %s' % (full_fn, tgt_fn))
+                        if verbose:
+                            print('$ cp %s %s' % (full_fn, tgt_fn))
                         shutil.copy(full_fn, tgt_fn)
                     # TODO> compatibility mode
                     tgt_fn = os.path.join(bin_path, base)
                     if os.path.isfile(tgt_fn):
                         os.unlink(tgt_fn)
                     if not os.path.exists(tgt_fn):
-                        print('$ ln -s %s %s' % (full_fn, tgt_fn))
+                        if verbose:
+                            print('$ ln -s %s %s' % (full_fn, tgt_fn))
                         os.symlink(full_fn, tgt_fn)
+                    if bin2_path:
+                        tgt_fn = os.path.join(bin2_path, base)
+                        if os.path.isfile(tgt_fn):
+                            os.unlink(tgt_fn)
+                        if not os.path.exists(tgt_fn):
+                            if verbose:
+                                print('$ ln -s %s %s' % (full_fn, tgt_fn))
+                            os.symlink(full_fn, tgt_fn)
 
 
 def main(cli_args=None):
     if not cli_args:
         cli_args = sys.argv[1:]
-    action = '-H' if not cli_args else cli_args[0]
+    action = '-H'
+    verbose = False
+    for arg in cli_args:
+        if arg in ('-h', '-H', '--help', '-V', '--version', '--copy-pkg-data'):
+            action = arg
+        elif arg == '-v':
+            verbose = True
     setup_args = read_setup()
     if action == '-h':
         print('%s [-h][-H][--help][-V][--version][-C][--copy-pkg-data]' %
@@ -113,5 +133,5 @@ def main(cli_args=None):
         for text in __doc__.split('\n'):
             print(text)
     elif action in ('-C', '--copy-pkg-data'):
-        copy_pkg_data(setup_args)
+        copy_pkg_data(setup_args, verbose)
     return 0

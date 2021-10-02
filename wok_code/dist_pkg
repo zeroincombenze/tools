@@ -45,7 +45,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.2.4
+__version__=1.0.2.5
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -164,7 +164,7 @@ if [ "$PRJNAME" == "Odoo" ]; then
 else
     valid=0
     # ../setup.py count for 2 times!
-    for f in setup.py ../setup.py ../setup.py README.rst; do
+    for f in ../setup.py ../setup.py README.rst; do
         [[ -f $f ]] && ((valid++))
     done
     for f in tests egg-info clodoo odoo_score wok_code z0bug_odoo z0lib zerobug; do
@@ -174,7 +174,7 @@ else
         echo "Invalid environment"
         exit 1
     fi
-    LSETUP=$PKGPATH/$PKGNAME/setup.py
+    LSETUP=$PKGPATH/setup.py
     if [ -f $LSETUP ]; then
         DEVSSTS0=" 1 - Planning"
         if [ -z "$devstatus" ]; then
@@ -383,7 +383,7 @@ if [[ $opt_cpush =~ ^(-C|-P) ]]; then
   exit $STS_SUCCESS
 fi
 check_4_travis
-install_dev
+# install_dev
 if [ "$PRJNAME" != "Odoo" ]; then
   if [ "$PKGNAME" != "$PRJNAME" ]; then
     echo "Warning: package name $PKGNAME and project name $PRJNAME are different!"
@@ -441,6 +441,8 @@ else
 fi
 robocopy_init "$PRJNAME" "$PKGNAME"
 if [ $opt_fetch -eq 0 ]; then
+  [[ -f $PKGPATH/setup.py && -d $PRJPATH/scripts ]] && cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info
+  [[ -f $PRJPATH/setup.py && -d $PRJPATH/scripts ]] && rm -f $PRJPATH/setup.py
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $PKGPATH); do
       robocopy "$PKGPATH/$f" "$LGITPATH"
@@ -450,12 +452,14 @@ if [ $opt_fetch -eq 0 ]; then
       robocopy "$PKGPATH/$f" "$LGITPATH/$f"
     done
   fi
-  if [ ! -f ~/tools/pytok/Makefile ]; then
-    if [ $opt_verbose -gt 0 ]; then echo "$ cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
-    cp /opt/odoo/dev/Makefile ~/tools/pytok
-  fi
-  cd $LGITPATH/..
-  [ -x install_foreign.sh ] && ./install_foreign.sh
+  [[ $PKGNAME != "tools" && -f $PKGPATH/setup.py ]] && cp $PKGPATH/setup.py $LGITPATH/
+  [[ -f "$PRJPATH/scripts/setup.info" ]] && cp $PRJPATH/scripts/setup.info $LGITPATH/scripts/
+#  if [ ! -f ~/tools/pytok/Makefile ]; then
+#    if [ $opt_verbose -gt 0 ]; then echo "$ cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
+#    cp /opt/odoo/dev/Makefile ~/tools/pytok
+#  fi
+#   cd $LGITPATH/..
+#   [ -x install_foreign.sh ] && ./install_foreign.sh
 else
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $LGITPATH); do

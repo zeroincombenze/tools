@@ -50,7 +50,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.2.4
+__version__=1.0.2.5
 
 vf_init() {
   VF_IGNORE="$(get_cfg_value 0 filedel)"
