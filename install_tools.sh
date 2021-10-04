@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.6.8
+__version__=1.0.6.9
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -63,6 +63,12 @@ run_traced() {
     [[ $opts =~ ^-.*n ]] || eval $xcmd
     sts=$?
     return $sts
+}
+
+set_hashbang() {
+    local f
+    f="$1"
+    grep -Eq "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" -i $f" && chmod +x $f
 }
 
 RFLIST__travis_emulator="travis travis.man travisrc"
@@ -236,6 +242,7 @@ for pkg in $PKGS_LIST tools; do
                 [[ $ftype == f ]] && copts="" || copts="-r"
                 run_traced "cp $copts $src $tgt"
                 [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
+                set_hashbang $tgt
             fi
         fi
     done
