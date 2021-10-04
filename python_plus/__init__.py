@@ -1,6 +1,7 @@
 from __future__ import print_function, unicode_literals
 from past.builtins import basestring
 from future.utils import PY2, PY3, with_metaclass
+from . import scripts
 
 
 __title__ = 'python_plus'
@@ -11,7 +12,7 @@ __ver_major__ = 0
 __ver_minor__ = 1
 __ver_patch__ = 3
 __ver_sub__ = '6'
-__version__ = '1.0.3.6'
+__version__ = '1.0.3.99'
 
 PYCODESET = 'utf-8'
 # PY2 = sys.version_info[0] == 2

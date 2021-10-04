@@ -37,7 +37,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=1.0.3.6
+__version__=1.0.3.7
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -60,20 +60,22 @@ CLR="\e[0m"
 
 push_venv() {
     # push_venv(VENV)
-    [[ $opt_verbose -gt 2 ]] && echo ">>> push_venv($@)"
-    local f=0 i
+    [[ $opt_verbose -gt 2 ]] && echo ">>> push_venv($*)"
+    local i
     ((i=${#VENV_STACK[@]}))
-    [[ $f -eq 0 ]] && VENV_STACK[$i]="$1"
+    VENV_STACK[$i]="$1"
     export VENV_STACK
 }
 
 pop_venv() {
     # pop_venv(VENV)
-    [[ $opt_verbose -gt 2 ]] && echo ">>> pop_venv($@)"
-    ((i=${#VENV_STACK[@]} - 1))
-    if [[ -n "${VENV_STACK[$i]}" ]]; then
+    [[ $opt_verbose -gt 2 ]] && echo ">>> pop_venv($*)"
+    ((i=${#VENV_STACK[@]} - 2))
+    if [[ $i -ge 0 && -n "${VENV_STACK[$i]}" ]]; then
       VIRTUAL_ENV=${VENV_STACK[$i]}
       unset VENV_STACK[$i]
+    else
+      unset VIRTUAL_ENV
     fi
     [[ $opt_verbose -gt 2 ]] && echo ">>> VIRTUAL_ENV=$VIRTUAL_ENV"
     export VENV_STACK
@@ -96,7 +98,7 @@ do_activate() {
 }
 
 do_deactivate() {
-  local i VENV OLD_VENV
+  local i VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_deactivate($@)"
   if [[ -n "$VIRTUAL_ENV" ]]; then
     [[ $opt_verbose -ge 3 || ( ! $1 =~ q && $opt_verbose -ne 0 ) ]] && echo "$FLAG deactivate"
@@ -176,7 +178,7 @@ set_python_exe() {
     V="$1"
     d=$(find $V \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
     for f in $d; do
-      grep -q "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" $f" && chmod +x $f
+      grep -Eq "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" -i $f" && chmod +x $f
     done
 }
 
@@ -631,9 +633,9 @@ custom_env() {
     [[ $opt_alone -le 1 ]] && sed -r "/deactivate *\(\) *\{/a\    # export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" -i $VIRTUAL_ENV/bin/activate
     [[ $opt_alone -gt 1 ]] && echo "export HOME=\"\$VIRTUAL_ENV\"" >>$VIRTUAL_ENV/bin/activate
     [[ $opt_alone -le 1 ]] && echo "# export HOME=\"\$VIRTUAL_ENV\"" >>$VIRTUAL_ENV/bin/activate
-    echo "for f in \$VIRTUAL_ENV/bin/*;do" >>$VIRTUAL_ENV/bin/activate
-    echo "    [[ -x \$f && ! -d \$f ]] && grep -q \"^#\!.*[ /]python\" \$f &>/dev/null && sed -i -e \"s|^#\!.*[ /]python|#\!\$VIRTUAL_ENV/bin/python|\" \$f" >>$VIRTUAL_ENV/bin/activate
-    echo "done" >>$VIRTUAL_ENV/bin/activate
+#    echo "for f in \$VIRTUAL_ENV/bin/*;do" >>$VIRTUAL_ENV/bin/activate
+#    echo "    [[ -x \$f && ! -d \$f ]] && grep -q \"^#\!.*[ /]python\" \$f &>/dev/null && sed -i -e \"s|^#\!.*[ /]python|#\!\$VIRTUAL_ENV/bin/python|\" \$f" >>$VIRTUAL_ENV/bin/activate
+#    echo "done" >>$VIRTUAL_ENV/bin/activate
   fi
   sed -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' -i $VIRTUAL_ENV/bin/activate
   if [[ $opt_spkg -ne 0 ]]; then
@@ -645,6 +647,27 @@ custom_env() {
   elif [[ -d $VIRTUAL_ENV/.local/lib/python$2/site-packages ]]; then
     echo -e "import site\nsite.addsitedir('$VIRTUAL_ENV/.local/lib/python$2/site-packages')\n" >$VIRTUAL_ENV/lib/python$2/site-packages/sitecustomize.py
   fi
+}
+
+find_cur_py() {
+    PYTHON=""
+    PIP=""
+    PIPVER=""
+    if [[ -n "$opt_pyver" ]]; then
+      PYTHON=$(which python$opt_pyver 2>/dev/null)
+      [[ -z "$PYTHON" && $opt_pyver =~ ^3 ]] && PYTHON=python3
+      [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
+      PYTHON=$(which $PYTHON 2>/dev/null)
+      [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
+      opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+      PIP=$(which pip$opt_pyver 2>/dev/null)
+      [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+    else
+      PYTHON=$(which python 2>/dev/null)
+      opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+      PIP=$(which pip 2>/dev/null)
+      [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+    fi
 }
 
 venv_mgr_check_src_path() {
@@ -665,24 +688,7 @@ venv_mgr_check_src_path() {
     echo "Invalid virtual env $VENV!!"
     exit 1
   fi
-  PYTHON=""
-  PIP=""
-  PIPVER=""
-  if [[ -n "$opt_pyver" ]]; then
-    PYTHON=$(which python$opt_pyver 2>/dev/null)
-    [[ -z "$PYTHON" && $opt_pyver =~ ^3 ]] && PYTHON=python3
-    [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
-    PYTHON=$(which $PYTHON 2>/dev/null)
-    [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-    opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
-    PIP=$(which pip$opt_pyver 2>/dev/null)
-    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
-  else
-    PYTHON=$(which python 2>/dev/null)
-    opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
-    PIP=$(which pip 2>/dev/null)
-    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
-  fi
+  find_cur_py
   if [[ -z "$PYTHON" ]]; then
     [[ $2 != "create" ]] && echo "Virtual env $VENV without python!!"
     [[ $2 == "create" ]] && echo "Python executable not found!!"
@@ -787,7 +793,7 @@ do_venv_mgr_test() {
 
 do_venv_mgr() {
   # do_venv_mgr {amend|check|cp|mv|merge|test} VENV NEW_VENV
-  [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_mgr($@)"
+  [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_mgr($*)"
   local d f mime VENV V sitecustom x lropts
   local cmd=$1
   VENV="$2"
@@ -804,8 +810,7 @@ do_venv_mgr() {
     exit 1
   fi
   if [[ $cmd =~ (amend) ]]; then
-    grep -q "^ *\[ -x \$f -a ! -d \$f ] " $VENV/bin/activate &>/dev/null
-    if [[ $? -eq 0 ]]; then
+    if grep -q "^ *\[ -x \$f -a ! -d \$f ] " $VENV/bin/activate &>/dev/null; then
       echo "Wrong activation script $VENV/bin/activate"
       sed -Ee "s|^ *\[ -x \\\$f -a ! -d \\\$f ] |    [[ -x \$f \&\& ! -d \$f ]] \&\& grep -q \"^#\!.*[ /]python\" \$f \&>/dev/null |" -i $VENV/bin/activate
     fi
@@ -823,7 +828,9 @@ do_venv_mgr() {
     V=$VENV
   elif [[ "$cmd" == "cp" ]]; then
     do_deactivate "-q"
-    if [[ -d $VENV_TGT ]]; then
+    if [[ -f $VENV_TGT ]]; then
+      run_traced "rm -f $VENV_TGT"
+    elif [[ -d $VENV_TGT ]]; then
       if [[ $opt_force -eq 0 ]]; then
         echo "Destination v.environment $VENV_TGT already exists!!"
         echo "use: venv_mgr cp -f VENV NEW_VENV"
@@ -833,8 +840,10 @@ do_venv_mgr() {
     fi
     [[ -d $(dirname $VENV_TGT) ]] || run_traced "mkdir -p $(dirname $VENV_TGT)"
     run_traced "cp -r $VENV $VENV_TGT"
+    [[ $opt_dry_run -eq 0 ]] && custom_env $VENV_TGT $opt_pyver
     V=$VENV_TGT
     do_activate "$V" "-q"
+    find_cur_py
   elif [[ "$cmd" == "merge" ]]; then
     do_deactivate "-q"
     if [[ ! -d $VENV_TGT || ! -d $VENV_TGT/bin || ! -f $VENV_TGT/bin/activate ]]; then
@@ -860,9 +869,9 @@ do_venv_mgr() {
     set_python_exe "$V/bin"
   fi
   if [[ ! $cmd =~ (test|inspect) ]]; then
-    if [ $opt_dry_run -eq 0 -a -L ./lib64 ]; then
-      rm -f ./lib64
-      ln -s ./lib ./lib64
+    if [ $opt_dry_run -eq 0 -a -L $V/lib64 ]; then
+      rm -f $V/lib64
+      ln -s $V/lib $V/lib64
     fi
     [[ ! $cmd =~ (amend|check|cp) ]] && bin_install_1 $VENV
     [[ $cmd =~ (amend|check) ]] && bin_check_1 $VENV
@@ -1256,7 +1265,7 @@ if [[ $action != "help" ]]; then
   [[ -n "$opt_oever" && -z "$opt_oepath" ]] && find_odoo_path $HOME "-L"
   [[ $opt_verbose -gt 2 ]] && echo "# Odoo dir = '$opt_oepath'"
 fi
-if [[ $action =~ (help|create) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
+if [[ $action =~ (help|create|exec|python|shell) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
   [[ $opt_dev -eq 0 ]] && DEV_PKGS=""
 else
   cmd="list_requirements.py -qt python -BP"

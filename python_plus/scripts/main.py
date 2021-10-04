@@ -19,7 +19,7 @@ import pkg_resources
 import shutil
 
 
-__version__ = '1.0.3.6'
+__version__ = '1.0.3.7'
 
 
 def fake_setup(**kwargs):
@@ -103,10 +103,10 @@ def copy_pkg_data(setup_args, verbose):
                         tgt_fn = os.path.join(bin2_path, base)
                         if os.path.isfile(tgt_fn):
                             os.unlink(tgt_fn)
-                        if not os.path.exists(tgt_fn):
-                            if verbose:
-                                print('$ ln -s %s %s' % (full_fn, tgt_fn))
-                            os.symlink(full_fn, tgt_fn)
+                        # if not os.path.exists(tgt_fn):
+                        #     if verbose:
+                        #         print('$ ln -s %s %s' % (full_fn, tgt_fn))
+                        #     os.symlink(full_fn, tgt_fn)
 
 
 def main(cli_args=None):

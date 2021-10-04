@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='python_plus',
-      version='1.0.3.6',
+      version='1.0.3.7',
       description='python useful function',
       long_description="""
 Python supplemental features
@@ -51,4 +51,5 @@ This package is released with an nice command:
               # 'vem = python_plus.scripts.vem:main'
           ],
       },
+      # install_requires=['clodoo'],        # circular dependency!!!
       zip_safe=False)
