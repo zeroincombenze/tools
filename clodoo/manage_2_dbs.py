@@ -1,15 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
-from __future__ import absolute_import
-from __future__ import division
 
-from future import standard_library
-standard_library.install_aliases()                                 # noqa: E402
-# from builtins import str
-# from builtins import input
-# from builtins import range
-# from builtins import *                                           # noqa: F403
 import sys
 import time
 # import oerplib
@@ -21,16 +13,11 @@ try:
     from z0lib.z0lib import z0lib
 except ImportError:
     import z0lib
-from odoo_score.odoo_score.scripts import transodoo
-
+import transodoo
 # import pdb
 
 
-<<<<<<< HEAD
-__version__ = '0.3.34.99'
-=======
 __version__ = '0.3.36'
->>>>>>> stash
 
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
@@ -109,7 +96,7 @@ def writelog(msg):
 def manage_error():
     dummy = ''
     while dummy not in ('I', 'i', 'S', 's', 'D', 'd'):
-        dummy = input('(Ignore, Stop, Debug)? ')
+        dummy = raw_input('(Ignore, Stop, Debug)? ')
         if not dummy:
             dummy = 'I'
         if dummy == 'S' or dummy == 's':
@@ -177,6 +164,7 @@ def write_no_dup(ctx, model, ids, vals, rec_id):
         except BaseException:
             writelog('Error writing record %d of %s' % (rec_id, model))
             manage_error()
+            pass
 
 
 def create_with_id(ctx, model, id, vals):
@@ -237,7 +225,7 @@ def create_with_id(ctx, model, id, vals):
     if new_id != id:
         writelog("Cannot create record %d of %s" % (id, model))
         if not ctx['assume_yes']:
-            input('Press RET to continue')
+            raw_input('Press RET to continue')
     if last_id and last_id > 1 and last_id > id:
         sql = 'alter sequence %s restart %d;' % (table, last_id)
         try:
@@ -245,17 +233,16 @@ def create_with_id(ctx, model, id, vals):
         except BaseException:
             pass
 
-
 def install_modules(dst_ctx, src_ctx):
     assume_yes = dst_ctx['assume_yes']
     upgrade = False
     if not dst_ctx['assume_yes']:
-        dummy = input('Install modules (Yes,No,All)? ')
+        dummy = raw_input('Install modules (Yes,No,All)? ')
         if dummy[0] in ('n', 'N'):
             assume_yes = 'N'
         if dummy[0] in ('a', 'A'):
             assume_yes = 'Y'
-        dummy = input('Upgrade installed modules (Yes,No)? ')
+        dummy = raw_input('Upgrade installed modules (Yes,No)? ')
         if dummy[0] in ('y', 'Y'):
             upgrade = True
         if assume_yes == 'N' and not upgrade:
@@ -286,7 +273,7 @@ def install_modules(dst_ctx, src_ctx):
                 dummy = 'Y'
             else:
                 if not assume_yes:
-                    dummy = input(
+                    dummy = raw_input(
                         'Install module %s (Yes,No,All,Quit)? ' % module)
             if dummy[0] in ('n', 'N'):
                 continue
@@ -373,7 +360,7 @@ def cvt_o2m_value(dst_ctx, src_ctx, model, name, value, format=False):
                                     mode=rel_mode)
                     else:
                         writelog('Model %s id %d does not exits!' % (model,
-                                                                     id))
+                                                                    id))
                         src_ctx['_CACHE'][model][id] = False
         value = new_value if new_value else False
     if format == 'cmd' and value:
@@ -421,7 +408,7 @@ def cvt_m2m_value(dst_ctx, src_ctx, model, name, value, format=False):
                                     mode=rel_mode)
                     else:
                         writelog('Model %s id %d does not exits!' % (model,
-                                                                     id))
+                                                                    id))
                         src_ctx['_CACHE'][model][id] = False
         value = new_value if new_value else False
     if format == 'cmd' and value:
@@ -468,7 +455,7 @@ def cvt_m2o_value(dst_ctx, src_ctx, model, name, id, format=False):
                                 mode=rel_mode)
                 else:
                     writelog('Model %s id %d does not exits!' % (model,
-                                                                 id))
+                                                                id))
                     src_ctx['_CACHE'][model][id] = False
         id = new_id
     return id
@@ -479,6 +466,7 @@ def cvt_state_value(dst_ctx, src_ctx, model, name, value):
         value = 'draft'
     elif value == 'paid':
         value = 'draft'
+    pass
 
 
 def load_record(dst_ctx, src_ctx, model, rec, mode=None):
@@ -528,7 +516,7 @@ def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
         ids = clodoo.searchL8(dst_ctx, model,
                               where)
         if not ids and hasattr(rec, 'active'):
-            where.append(('active', '=', False))
+            where.append(('active','=',False))
             ids = clodoo.searchL8(dst_ctx, model,
                                   where)
         if len(ids) > 1:
@@ -542,7 +530,7 @@ def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
             except:
                 writelog('Cannot create %s src id=%d' % (model, rec.id))
                 manage_error()
-
+                pass
 
 def copy_table(dst_ctx, src_ctx, model, mode=None):
     clodoo.get_model_structure(src_ctx, model,
@@ -684,14 +672,11 @@ def build_table_tree(ctx):
             models[model]['level'] = MAX_DEEP + 1
     return models
 
-
 PKEYS = {
     'res.country.state': ['country_id', 'code'],
     'res.partner': ['name', 'vat'],
     'res.company': ['vat'],
 }
-
-
 def primkey_table(ctx, model):
     clodoo.get_model_structure(ctx, model,
                                ignore=IGNORE_FIELDS.get(model, []))
@@ -762,7 +747,7 @@ def get_model_copy_mode(ctx, model):
         mode_selection = {'i': 'image', 's': 'sql', 'n': 'no'}
         dummy = ''
         while not dummy:
-            dummy = input('Copy table %s (Image,Sql,No)? ' % model)
+            dummy = raw_input('Copy table %s (Image,Sql,No)? ' % model)
             if dummy and dummy[0].lower() in mode_selection:
                 mode = mode_selection[dummy[0].lower()]
             else:

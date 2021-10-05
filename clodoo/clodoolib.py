@@ -15,10 +15,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from future import standard_library
-<<<<<<< HEAD
-standard_library.install_aliases()                                 # noqa: E402
-=======
->>>>>>> stash
 # from builtins import chr
 # from builtins import str
 # from builtins import *                                           # noqa: F403
@@ -178,11 +174,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-<<<<<<< HEAD
-__version__ = "0.3.34.99"
-=======
 __version__ = "0.3.36"
->>>>>>> stash
 
 
 #############################################################################
@@ -753,31 +745,6 @@ def get_odoo_full_ver(odoo_vid):
 def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
                      git_org=None, multi=None):
     odoorc = os.path.join(os.path.dirname(__file__), 'odoorc')
-<<<<<<< HEAD
-    # if multi:
-    #     cmd = 'SHELL=/bin/bash source %s; opt_multi=1; build_odoo_param %s "%s" "%s" "%s"' % (
-    #         odoorc,
-    #         item,
-    #         odoo_vid,
-    #         suppl or '',
-    #         git_org or '')
-    # else:
-    #     cmd = 'SHELL=/bin/bash source %s; build_odoo_param %s "%s" "%s" "%s"' % (
-    #         odoorc,
-    #         item,
-    #         odoo_vid,
-    #         suppl or '',
-    #         git_org or '')
-    cmd = r'%s -c "%s; %s build_odoo_param %s \"%s\" \"%s\" \"%s\""' % (
-        '/bin/bash',
-        'source %s' % odoorc,
-        'opt_multi=1;' if multi else '',
-        item,
-        odoo_vid,
-        suppl or '',
-        git_org or ''
-    )
-=======
     if multi:
         cmd = 'opt_multi=1 %s %s "%s" "%s" "%s"' % (
             odoorc,
@@ -792,7 +759,6 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
             odoo_vid,
             suppl or '',
             git_org or '')
->>>>>>> stash
     out, err = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, shell=True).communicate()
     if not out:

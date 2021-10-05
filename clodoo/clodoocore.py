@@ -14,10 +14,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from future import standard_library
-<<<<<<< HEAD
-standard_library.install_aliases()                                 # noqa: E402
-=======
->>>>>>> stash
 # from builtins import hex
 # from builtins import str
 from builtins import int
@@ -40,6 +36,14 @@ try:
 except:
     from clodoo.clodoolib import debug_msg_log, msg_log, decrypt
 try:
+    from transodoo import (read_stored_dict,
+                           translate_from_sym,
+                           translate_from_to)
+except:
+    from clodoo.transodoo import (read_stored_dict,
+                                  translate_from_sym,
+                                  translate_from_to)
+try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
     postgres_drive = True
@@ -52,11 +56,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-<<<<<<< HEAD
-__version__ = "0.3.34.99"
-=======
 __version__ = "0.3.36"
->>>>>>> stash
 
 
 #############################################################################

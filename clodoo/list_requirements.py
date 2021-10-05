@@ -14,11 +14,7 @@ except ImportError:
     import z0lib
 
 
-<<<<<<< HEAD:clodoo/scripts/list_requirements.py
-__version__ = '0.3.34.8'
-=======
 __version__ = '0.3.36'
->>>>>>> stash:clodoo/list_requirements.py
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -610,9 +606,7 @@ def walk_dir(cdir, manifests, reqfiles):
     return manifests, reqfiles
 
 
-def main(cli_args=None):
-    # if not cli_args:
-    #     cli_args = sys.argv[1:]
+def main():
     parser = z0lib.parseoptargs("List Odoo requirements",
                                 "© 2017-2021 by SHS-AV s.r.l.",
                                 version=__version__)
@@ -846,4 +840,7 @@ def main(cli_args=None):
                                 kw, ctx['sep'].join(deps_list[kw]))).decode())
                     else:
                         print(os0.b(ctx['sep'].join(deps_list[kw])).decode())
-    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,8 +1,4 @@
-<<<<<<< HEAD:clodoo/junk/check_4_seq.sh
-# __version__=0.3.34.99
-=======
 # __version__=0.3.36
->>>>>>> stash:clodoo/check_4_seq.sh
 THIS=$(basename $0)
 if [ -z "$1" ]; then
   echo "$0 db [user]"

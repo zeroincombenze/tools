@@ -8,7 +8,6 @@
    :caption: Contents:
 
    rtd_description
-   rtd_automodule
 
 .. include: readme_footer
 

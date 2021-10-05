@@ -9,6 +9,7 @@ from python_plus import _b
 import sys
 import os
 import time
+import inspect
 import getpass
 import contextlib
 import shutil
@@ -31,16 +32,11 @@ except ImportError:
         from z0lib import z0lib
     except ImportError:
         import z0lib
-from odoo_score.odoo_score.scripts import transodoo
-
+import transodoo
 # import pdb
 
 
-<<<<<<< HEAD
-__version__ = "0.3.34.99"
-=======
 __version__ = "0.3.36"
->>>>>>> stash
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',

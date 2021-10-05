@@ -158,10 +158,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from future import standard_library
-<<<<<<< HEAD
-standard_library.install_aliases()                                 # noqa: E402
-=======
->>>>>>> stash
 # from builtins import input
 # from builtins import str
 # from builtins import range
@@ -219,7 +215,7 @@ except:
         read_config, init_logger,                             # noqa: F401
         default_conf, build_odoo_param)                       # noqa: F401
 try:
-    from odoo_score.odoo_score.scripts.transodoo import (read_stored_dict, translate_from_to)
+    from transodoo import (read_stored_dict, translate_from_to)
 except:
     from clodoo.transodoo import (read_stored_dict, translate_from_to)
 
@@ -227,11 +223,7 @@ except:
 from subprocess import PIPE, Popen
 standard_library.install_aliases()                                 # noqa: E402
 
-<<<<<<< HEAD
-__version__ = "0.3.34.99"
-=======
 __version__ = "0.3.36"
->>>>>>> stash
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -3217,7 +3209,7 @@ def add_periods(ctx, company_id, fiscalyear_id,
                 ctx, model, {
                     'name': 'Quarter',
                     'company_id': company_id
-                })
+                    })
         else:
             date_type_id = ids[0]
         model = 'date.range'
@@ -3253,7 +3245,7 @@ def set_journal_per_year(ctx):
         fy_name = ''
         last_date = date(1970, 1, 1)
         for id in fy_ids:
-            if browseL8(ctx, model, id).date_stop > last_date:
+            if browseL8(ctx,  model, id).date_stop > last_date:
                 last_date = browseL8(ctx, model, id).date_stop
                 fy_name = str(last_date.year)
     else:
@@ -3264,7 +3256,7 @@ def set_journal_per_year(ctx):
         fy_name = ''
         date_stop = date(1970, 1, 1)
         for id in fy_ids:
-            if browseL8(ctx, model, id).date_end > date_stop:
+            if browseL8(ctx,  model, id).date_end > date_stop:
                 date_stop = browseL8(ctx, model, id).date_end
                 date_start = browseL8(ctx, model, id).date_start
     model = 'account.journal'
@@ -4163,7 +4155,7 @@ def set_account_type(ctx):
         sts = unreconcile_invoices(reconcile_dict, ctx)
     if sts == STS_SUCCESS:
         sts = upd_movements_2_draft(move_dict, ctx)
-    input('Press RET to continue')
+    raw_input('Press RET to continue')
     if sts == STS_SUCCESS:
         sts = upd_movements_2_posted(move_dict, ctx)
         if sts == STS_SUCCESS:
@@ -5227,10 +5219,10 @@ def remove_company_account_move_records(ctx):
     sts = STS_SUCCESS
     model = 'account.invoice'
     move_name = translate_from_to(ctx,
-                                  model,
-                                  'move_name',
-                                  '10.0',
-                                  ctx['oe_version'])
+                              model,
+                              'move_name',
+                              '10.0',
+                              ctx['oe_version'])
     if not ctx['dry_run']:
         company_id = ctx['company_id']
         if sts == STS_SUCCESS:
@@ -5937,7 +5929,7 @@ def setup_user_config_param(ctx, username, name, value):
     if v is not None:
         value = v
     if isinstance(value, bool):
-        if isinstance(name, int):
+        if isinstance(name, (int, long)):
             group_ids = [name]
         else:
             group_ids = searchL8(ctx, 'res.groups',
@@ -5947,7 +5939,7 @@ def setup_user_config_param(ctx, username, name, value):
         cat_ids = searchL8(ctx, 'ir.module.category',
                            [('name', '=', name)],
                            context=context)
-        if isinstance(value, int):
+        if isinstance(value, (int, long)):
             group_ids = [value]
         else:
             group_ids = searchL8(ctx, 'res.groups',
@@ -6021,7 +6013,7 @@ def setup_global_config_param(ctx, name, value):
     sts = STS_SUCCESS
     items = name.split('.')
     if len(items) > 1:
-        model = '.'.join(items[0:len(items) - 1])
+        model = '.'.join(items[0:len(items)-1])
         name = items[-1]
     else:
         model = 'res.config.settings'
@@ -6044,7 +6036,7 @@ def setup_global_config_param(ctx, name, value):
             except BaseException:
                 pass
         else:
-            model2 = '.'.join(items[0:len(items) - 1])
+            model2 = '.'.join(items[0:len(items)-1])
             value = items[-1]
             id = searchL8(ctx, model2, [('name', '=', value)])
             if not id:

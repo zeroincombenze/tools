@@ -5,15 +5,7 @@
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
-from __future__ import print_function  # , unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()                                 # noqa: E402
-# from builtins import input
-# from builtins import str
-# from builtins import *                                           # noqa: F403
+from __future__ import print_function       #, unicode_literals
 import sys
 try:
     from z0lib.z0lib import z0lib
@@ -25,11 +17,7 @@ except ImportError:
     import clodoo
 
 
-<<<<<<< HEAD
-__version__ = "0.3.34.99"
-=======
 __version__ = "0.3.36"
->>>>>>> stash
 
 
 def get_name_by_ver(ctx, name):
@@ -245,7 +233,6 @@ def get_ids_from_name(model, company_id, target):
         where.append(('name', 'like', target))
     return clodoo.searchL8(ctx, model, where)
 
-
 def set_date_range(model, target):
     datas = target.split(':')
     P1 = P2 = None
@@ -255,10 +242,9 @@ def set_date_range(model, target):
         P2 = ('date_invoice', '<=', datas[1])
     return get_ids_from_params(model, False, P1=P1, P2=P2)
 
-
 def ask4company(company_id):
     msg = "Company ID (0=all, RET=%d)? " % company_id
-    dummy = input(msg)
+    dummy = raw_input(msg)
     if dummy != "":
         company_id = int(dummy)
     return company_id
@@ -266,7 +252,7 @@ def ask4company(company_id):
 
 def ask4period(year):
     msg = "Year (0=all, RET=%d)? " % year
-    dummy = input(msg)
+    dummy = raw_input(msg)
     if dummy != "":
         year = int(dummy)
     if year == 0:
@@ -297,7 +283,7 @@ def ask4target(search_mode, target):
     print("  ':D:yyyy-mm-dd:yyy-mm-dd' date range")
     print("  '123' manage invoice which has ID 123")
     print("Press RET to send %s%s" % (search_mode, target))
-    dummy = input('Please, type [prefix]ID(s)/Number/Account? ')
+    dummy = raw_input('Please, type [prefix]ID(s)/Number/Account? ')
     if dummy == "":
         dummy = search_mode + target
     return dummy
@@ -389,7 +375,7 @@ reference = get_name_by_ver(ctx, 'reference')
 while True:
     msg = "Cancel,Draft,Number,Quit,UnPublish,Replace,Sts,Validate,teXt,RB? "
     msg = msg + "[!?+] "
-    action = input(msg)
+    action = raw_input(msg)
     if action == '':
         action = 'H'
     elif action != 'Q' and len(action) == 1:
@@ -584,7 +570,7 @@ while True:
             print("No invoices(s)/movement(s) found!")
             continue
         if action[0] == 'R' and action != 'RB' and action[1] != '?':
-            target_acc = input('New account ID or :C:code? ')
+            target_acc = raw_input('New account ID or :C:code? ')
             if target_acc[0:3] == ':C:':
                 target_acc = target_acc[3:]
                 new_account_id = get_ids_from_code(MODEL['AC'],
@@ -605,7 +591,7 @@ while True:
                 print_move_info(id)
             else:
                 print_invoice_info(id)
-        res = input('Press RET to process ..')
+        res = raw_input('Press RET to process ..')
         if action[0] == 'V':
             reconcile_dict = rec_ids
             move_dict = {}
@@ -641,7 +627,7 @@ while True:
     elif action[0] == 'N':
         for inv_id in rec_ids:
             print_invoice_info(inv_id)
-            number = input('New invoice number? ')
+            number = raw_input('New invoice number? ')
             clodoo.writeL8(ctx, MODEL['IH'], [inv_id],
                            {move_name: number})
     elif action[0] == 'R' and action != 'RB':
@@ -683,7 +669,7 @@ while True:
     if action[0] == 'X' or (action[0] != 'B' and
                             action != 'RB' and action[1] != '+'):
         continue
-    res = input('Press RET to restore status ..')
+    res = raw_input('Press RET to restore status ..')
     if action[0] == 'P':
         print(">> Draft")
         clodoo.upd_payments_2_draft(rec_ids, ctx)

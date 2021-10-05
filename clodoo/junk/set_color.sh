@@ -2,26 +2,6 @@
 # -*- coding: utf-8 -*-
 # Set web interface colors to customize odoo
 #
-<<<<<<< HEAD:clodoo/set_color.sh
-# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-# export READLINK
-THIS=$(basename "$0")
-TDIR=$(readlink -f $(dirname $0))
-PYPATH=""
-for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
-  [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
-  [[ -n $PYPATH ]] && PYPATH=$(dirname $PYPATH) && break
-done
-PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and x.startswith('$HOME')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
-[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
-for d in $PYPATH /etc; do
-  if [[ -e $d/z0lib/z0librc ]]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [[ -e $d/z0librc ]]; then
-=======
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 THIS=$(basename "$0")
@@ -32,7 +12,6 @@ PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
->>>>>>> stash:clodoo/junk/set_color.sh
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -45,11 +24,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-<<<<<<< HEAD:clodoo/set_color.sh
-__version__=0.3.34.99
-=======
 __version__=0.3.36
->>>>>>> stash:clodoo/junk/set_color.sh
 
 
 OPTOPTS=(h        n            V           v)

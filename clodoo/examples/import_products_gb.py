@@ -6,11 +6,7 @@ from import_products import (init_n_connect, add_elem)
 # import pdb
 
 
-<<<<<<< HEAD
-__version__ = "0.3.34.99"
-=======
 __version__ = "0.3.36"
->>>>>>> stash
 
 MYDICT = {
     'default_code': 0,
