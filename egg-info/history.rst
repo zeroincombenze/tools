@@ -1,7 +1,19 @@
+python_plus: 1.0.3.7 (2021-10-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lost python-plus functions
+
+
+wok_code: 1.0.2.5 (2021-10-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] disk_pkg: manage setup.py & setup.info
+
+
 python_plus: 1.0.3.6 (2021-10-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] full setuptools integrated + copy-pkg-data
+* [IMP] full setuptools integrated + copy-pkg-data
 
 
 wok_code: 1.0.2.4 (2021-09-30)
@@ -13,7 +25,7 @@ wok_code: 1.0.2.4 (2021-09-30)
 python_plus: 1.0.3.5 (2021-09-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: 1st installation, z0librc not found
+* [FIX] vem: 1st installation, z0librc not found
 
 
 wok_code: 1.0.2.3 (2021-09-29)
@@ -40,7 +52,7 @@ z0bug_odoo: 1.0.5.2 (2021-09-27)
 python_plus: 1.0.3.3 (2021-09-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: error message "riga 99: deactivate:"
+* [FIX] vem: error message "riga 99: deactivate:"
 
 
 clodoo: 0.3.35.3 (2021-09-26)
@@ -58,8 +70,8 @@ travis_emulator: 1.0.2.1 (2021-09-25)
 python_plus: 1.0.3.2 (2021-09-25)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: create vem with -I switch
-[REF] vem refactoring
+* [FIX] vem: create vem with -I switch
+* [REF] vem refactoring
 
 
 wok_code: 1.0.2.3 (2021-09-24)
@@ -90,8 +102,8 @@ wok_code: 1.0.2.1 (2021-09-23)
 python_plus: 1.0.3.1 (2021-09-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: added click package
-[FIX] vem: create with devel packages
+* [FIX] vem: added click package
+* [FIX] vem: create with devel packages
 
 
 clodoo: 0.3.35 (2021-09-23)
@@ -244,43 +256,6 @@ travis_emulator: 1.0.1.4 (2021-08-06)
 
 [IMP] devel_tools replaced by wok_code
 [IMP] travis: summary return 1 if test failed
-
-
-z0bug_odoo: 1.0.3.2 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] test data update
-
-
-wok_code: 1.0.2d (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[REF] Merged and renamed to wok_code
-
-
-python_plus: 1.0.1.3 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: uninstall package with if package version with ">"
-
-
-wok_code: 1.0.2c (2021-08-04)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] topep8: file list does not include .idea files
-[IMP] please: action docs now set license file in current directory
-
-
-wok_code: 1.0.2b (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: parameter error
-
-
-travis_emulator: 1.0.1.3 (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] Show virtual enviroment name in summary
 
 
 

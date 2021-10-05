@@ -4,5 +4,5 @@
 Code documentation
 ------------------
 
-.. automodule:: z0bug_odoo.z0bug_odoo_lib
+.. automodule:: z0bug_odoo.scripts
 

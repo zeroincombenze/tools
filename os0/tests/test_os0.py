@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -12,7 +12,7 @@ import sys
 from zerobug import Z0BUG
 
 
-__version__ = "1.0.1"
+__version__ = "1.0.1.99"
 
 MODULE_ID = 'os0'
 

@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -70,7 +70,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "1.0.1"
+__version__ = "1.0.1.99"
 
 if sys.version_info[0] == 3:
     unicode = str               # This just to avoid lint error

@@ -258,7 +258,7 @@ pip_install() {
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
-  [[ $opt_verbose -ne 0 ]] && echo "# $PIP.$PIPVER $popts ..."
+  [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER $popts ..." && PRINTED_PIPVER=1
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ ! $pkg =~ $BIN_PKGS ]]; then
       srcdir=""
@@ -713,7 +713,8 @@ check_installed_pkgs() {
   [[ $opt_verbose -lt 2 ]] && popts="$potps -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
-    [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
+    # [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
+    p2=""
     [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install $popts$p2 $p"
     [[ $opt_verbose -lt 2 ]] && echo -n "."
     [[ -z "${!x}" ]] && $PIP install $popts$p2 $p
@@ -997,7 +998,7 @@ do_venv_create() {
           run_traced "mv $VENV ${VENV}~"
           for f in $(ls ${VENV}~); do
               b=$(basename $f)
-              if [[ $b =~ (bin|include|lib|node_modules|odoo|package-lock.json|pyvenv.cfg|activate_tools|tmp) ]]; then
+              if [[ $b =~ (bin|include|lib|node_modules|odoo|package-lock.json|pyvenv.cfg|activate_tools) ]]; then
                   [[ -L $f || ! -d $f ]] && run_traced "rm -f $f" || run_traced "rm -fR $f/"
               fi
           done
@@ -1048,7 +1049,7 @@ do_venv_create() {
   [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -Uq" || run_traced "$PIP install pip -Uq"
   PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
   run_traced "$PIP install \"setuptools<58.0\" -Uq"
-  [[ $opt_verbose -ne 0 ]] && echo "# $PIP.$PIPVER ..."
+  [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
   check_installed_pkgs
   if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
     [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
@@ -1241,6 +1242,7 @@ if [[ $action != "create" && -f $p2/bin/activate ]]; then
 fi
 SAVED_HOME=$HOME
 SAVED_PYTHONPATH=$PYTHONPATH
+PRINTED_PIPVER=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -n "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools:$PYTHONPATH
 [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -z "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools

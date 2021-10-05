@@ -82,8 +82,8 @@ REQVERSION = {
     'python-dateutil': {'6.1': '==1.5', '7.0': '==2.4.0', '8.0': '==2.5.3'},
     'python-ldap': {'6.1': '==2.4.15',
                     '7.0': '==2.4.19',
-                    '10.0': '==2.4.25',      # warning OCA declare 2.4.27!?
-                    '11.0': '>=0.9.8.4'},
+                    '10.0': '==2.4.27',
+                    '11.0': '==2.5.28'},
     'python-openid': {'6.1': '==2.2.5'},
     'python-stdnum': {'6.1': '>=1.8.1'},
     'pytz': {'6.1': '==2014.10', '10.0': '==2016.7'},
@@ -135,6 +135,7 @@ ALIAS = {
     'pypdf': 'pyPdf',
     'pypdf2': 'pyPDF2',
     'pygments': 'Pygments',
+    'pyldap': 'python-ldap',    # pyldap is a fork!
     'python-chart': 'Python-Chart',
     'python-docutils': 'docutils',
     'python-levenshtein': 'python-Levenshtein',

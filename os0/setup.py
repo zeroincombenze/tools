@@ -1,28 +1,55 @@
+# -*- coding: utf-8 -*-
 from setuptools import setup
+from setuptools import find_packages
 
 setup(name='os0',
-      version='1.0.1',
+      version='1.0.1.99',
       description='OS indipendent interface',
       long_description="""
-OS interface for Linux, OpenVMS and Windows
+This module extends python os module with a few new functionality
+ to interface operating system.
+It recognizes file name structure and manages both URI standard name
+ both local name, as UNC and ODS5.
 
-This module expands standard os.py module.
-os0 is platform independent and can run on Linux, OpenVMS and Linux.
-os0 is the only package that intefaces OpenVMS and can execute OpenVMS command.
+- URI (Uniform Resource Identifier) is standard posix filename.
+- UNC (Uniform Naming Convention) is windows standard
+- ODS5 is used for define OpenVMS standard filenames
+
+An example of URI filename is '/home/myfile'.
+UNC example for the same of previous URI name is '\\home\\myfile'
+ (with single backslash)
+ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
+
+See https://en.wikipedia.org/wiki/Path_(computing)
 """,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: GNU Affero General Public License v3',
-          'Programming Language :: Python :: 2.6',
+          'Operating System :: POSIX',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
           'Intended Audience :: Developers',
           'Topic :: Software Development',
           'Topic :: Software Development :: Build Tools',
           'Operating System :: OS Independent',
       ],
       keywords='os path linux windows openvms',
-      url='http://wiki.zeroincombenze.org/en/Python/opt/os0',
+      project_urls={
+          'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
+          'Source': 'https://github.com/zeroincombenze/tools',
+      },
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
-      license='Affero: GPL',
-      packages=['os0'],
+      license='Affero GPL',
+      packages=find_packages(
+          exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
+      package_data={
+          '': ['scripts/setup.conf'],
+      },
+      entry_points={
+          'console_scripts': [
+              'os0-info = os0.scripts.main:main'
+          ],
+      },
       zip_safe=False)

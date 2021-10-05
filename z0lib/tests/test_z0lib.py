@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -10,7 +10,7 @@ import os
 from z0lib import z0lib
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.2.99"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
