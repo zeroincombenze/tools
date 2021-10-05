@@ -1280,7 +1280,7 @@ merge_cfg() {
 
 do_publish() {
   #do_publish PKGNAME (docs|download|pypi|svg|testpypi)
-  wlog "do_publish $1 $1"
+  wlog "do_publish $1 $2"
   local cmd="do_publish_$1"
   sts=$STS_SUCCESS
   if [ "$(type -t $cmd)" == "function" ]; then
@@ -2978,7 +2978,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"
   "check for unary operator W503 or no OCA/zero module translation"
   "show version end exit"
   "verbose mode")
-OPTARGS=(actions sub1 sub2 sub3)
+OPTARGS=(actions sub1 sub2 sub3 sub4 sub5 sub6 sub7 sub8 sub9)
 
 parseoptargs "$@"
 if [[ "$opt_version" ]]; then
@@ -2992,11 +2992,12 @@ if [[ $opt_help -gt 0 ]]; then
   exit 0
 fi
 
+
 opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
-[[ $opt_verbose -gt 2 ]] && set -x
+# [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 prepare_env_travis "$actions" "-r"
 sts=$STS_SUCCESS
@@ -3004,10 +3005,12 @@ sts_bash=127
 sts_flake8=127
 sts_pylint=127
 test_sts=127
+
 if [[ -z $sub1 ]]; then
   sub1="$sub2"
   sub2="$sub3"
-  sub3=""
+  sub3="$sub4"
+  sub4=""
 fi
 if [[ "$actions" == "help" ]]; then
   man $TDIR/$THIS.man
@@ -3023,7 +3026,7 @@ else
       cmd="do_${action/-/_}"
     fi
     if [[ "$(type -t $cmd)" == "function" ]]; then
-      eval $cmd "$PKGNAME" "'$sub1'" "'$sub2'" "'$sub3'"
+      eval $cmd "'$sub1'" "'$sub2'" "'$sub3'"
       sts=$?
     else
       echo "Invalid action!"
