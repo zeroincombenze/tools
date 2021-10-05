@@ -17,11 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-<<<<<<< HEAD
-__version__=1.0.6.99.17
-=======
 __version__=1.0.6.9
->>>>>>> stash
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -40,11 +36,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -G  remove hooks from git projects"
     echo "  -n  dry-run"
     # echo "  -o  compatibility old mode (exec dir in $HOME/dev, deprecated)"
-<<<<<<< HEAD
-    # echo "  -p  mkdir $HOME/dev[el] if does not exist"
-=======
     echo "  -p  mkdir $HOME/dev[el] if does not exist"
->>>>>>> stash
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
     # echo "  -s  store sitecustomize.py in python path (you must have privileges)"
@@ -54,11 +46,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
-<<<<<<< HEAD
-    echo "  -2  create virtual environment with python2"
-=======
     echo "  -3  create virtual environment with python3"
->>>>>>> stash
     echo -e "\n(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
@@ -77,8 +65,6 @@ run_traced() {
     return $sts
 }
 
-<<<<<<< HEAD
-=======
 set_hashbang() {
     local f
     f="$1"
@@ -101,22 +87,17 @@ RFLIST__os0=""
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|vfcp|vfdiff)"
 FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py devel_tools export_db_model.py kbase odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn test_tools.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
 
->>>>>>> stash
 SRCPATH=
 DSTPATH=
 RED="\e[31m"
 GREEN="\e[32m"
 CLR="\e[0m"
 
+[[ $opts =~ ^-.*t ]] && HOME=$($READLINK -e $(dirname $0)/..)
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
 [[ -d $TDIR/clodoo && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
 [[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
-<<<<<<< HEAD
-# [[ ! $opts =~ ^-.*t && -n "$TRAVIS_BUILD_DIR" ]] && SRCPATH=$TRAVIS_BUILD_DIR
-if [[ -z "$SRCPATH" ]]; then
-    echo -e "${RED}# Invalid environment!${CLR}"
-=======
 [[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
 
 [[ $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"                   # new: SRCPATH/venv_tools
@@ -144,50 +125,9 @@ fi
 [[ -z "$VEM" && -x $SRCPATH/python_plus/vem ]] && VEM="$SRCPATH/python_plus/vem"
 if [[ -z "$VEM" ]]; then
     echo -e "${RED}# Invalid environment! Command vem not found!${CLR}"
->>>>>>> stash
     echo ""
     exit 1
 fi
-<<<<<<< HEAD
-DSTPATH="$(readlink -f $(dirname $SRCPATH)/venv_tools)"
-if [[ ! $opts =~ ^-.*t && -d $SRCPATH/.git ]]; then
-    [[ $opts =~ ^-.*d ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
-    [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --show-current) != "master" ]] && git stash -q && git checkout master -fq
-    [[ $opts =~ ^-.*U ]] && pull_n_run "$SRCPATH" "$0" "$opts"
-fi
-[[ $opts =~ ^-.*v ]] && echo "# Installing tools from $SRCPATH to $DSTPATH ..."
-[[ $opts =~ ^-.*n ]] || find $SRCPATH -name "*.pyc" -delete
-[[ $opts =~ ^-.*o ]] && echo -e "${RED}# WARNING! The switch -o is not more supported!${CLR}"
-
-[[ -x $SRCPATH/python_plus/python_plus/vem.sh ]] && VEM="$SRCPATH/python_plus/python_plus/vem.sh"
-[[ -z "$VEM" && -x $SRCPATH/python_plus/vem.sh ]] && VEM="$SRCPATH/python_plus/vem.sh"
-if [[ -z "$VEM" ]]; then
-    echo -e "${RED}# Invalid environment! Command vem not found!${CLR}"
-    echo ""
-    exit 1
-fi
-if [[ $opts =~ ^-.*[fU] || ! -d $DSTPATH/lib || ! -d $DSTPATH/bin ]]; then
-    [[ -d $DSTPATH/tmp ]] && run_traced "rm -fR $DSTPATH/tmp"
-    [[ -d $DSTPATH/venv ]] && run_traced "rm -fR $DSTPATH/venv"
-    x="-iDBB"
-    [[ $opts =~ ^-.*q ]] && x="-qiDBB"
-    [[ $opts =~ ^-.*v ]] && x="-viDBB"
-    [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && x="${x}t"
-    [[ $opts =~ ^-.*2 ]] && run_traced "$VEM create $DSTPATH -p2.7 $x -f" || run_traced "$VEM create $DSTPATH -p3.7 $x -f"
-    [[ $? -ne 0 || ! -d $DSTPATH/bin || ! -d $DSTPATH/lib ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
-fi
-
-
-echo "# Moving local PYPI packages into virtual environment"
-run_traced ". $DSTPATH/bin/activate"
-PYPATH=$(find $DSTPATH/lib -type d -name site-packages)
-PLEASE_CMDS=""
-TRAVIS_CMDS=""
-PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
-BINPATH="$DSTPATH/bin"
-PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
-[[ $opts =~ ^-.*q ]] && popts="-q" || popts=""
-=======
 
 for p in bin lib include; do
   [[ $DSTPATH != $LOCAL_VENV && -d $DSTPATH/$p ]] && run_traced "rm -fR $DSTPATH/$p"
@@ -224,28 +164,10 @@ PYPI_LIST="babel lxml"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
 [[ $opts =~ ^-.*q ]] && popts="-q --disable-pip-version-check --no-python-version-warning" || popts="--disable-pip-version-check --no-python-version-warning"
->>>>>>> stash
 [[ $PIPVER -gt 18 ]] && popts="$popts --no-warn-conflicts"
 [[ $PIPVER -eq 19 ]] && popts="$popts --use-feature=2020-resolver"
 [[ $PIPVER -ge 21 ]] && popts="$popts --use-feature=in-tree-build"
 [[ $opts =~ ^-.*v ]] && echo "# $(which pip).$PIPVER $popts ..."
-<<<<<<< HEAD
-[[ ! -d $DSTPATH/tmp ]] && mkdir -p $DSTPATH/tmp
-for pkg in $PKGS_LIST; do
-    [[ $opts =~ ^-.*q ]] || echo -e "# ====[$pkg]===="
-    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
-    if [[ ! -d $SRCPATH/$pfn ]]; then
-        echo -e "${RED}# Invalid environment! Source dir $SRCPATH/$pfn not found!${CLR}"
-        echo ""
-        exit 1
-    fi
-    if [[ -d $SRCPATH/$pfn/$pfn ]]; then
-        run_traced "cp -r $SRCPATH/$pfn/ $DSTPATH/tmp/"
-    else
-        run_traced "mkdir $DSTPATH/tmp/$pfn"
-        run_traced "cp -r $SRCPATH/$pfn/ $DSTPATH/tmp/$pfn/"
-        run_traced "mv $DSTPATH/tmp/$pfn/$pfn/setup.py $DSTPATH/tmp/$pfn/setup.py"
-=======
 [[ -d $DSTPATH/tmp ]] && rm -fR $DSTPATH/tmp
 [[ -d $LOCAL_VENV/tmp ]] && rm -fR $LOCAL_VENV/tmp
 [[ ! -d $LOCAL_VENV/tmp ]] && mkdir -p $LOCAL_VENV/tmp
@@ -361,32 +283,12 @@ for fn in $FILES_2_DELETE; do
     elif [[ -L "$tgt" || -f "$tgt" ]]; then
         run_traced "rm -f $tgt"
         [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
->>>>>>> stash
     fi
-    run_traced "pip install $DSTPATH/tmp/$pfn $popts"
-    if [[ -z $(which ${pkg}-info 2>/dev/null) ]]; then
-        echo -e "${RED}# Invalid environment! Command ${pkg}-info not installed!${CLR}"
-        echo ""
-        exit 1
-    fi
-    run_traced "${pkg}-info --copy-pkg-data"
 done
-[[ -d $DSTPATH/tmp ]] && run_traced "rm -fR $DSTPATH/tmp"
 
 if [[ ! $opts =~ ^-.*n ]]; then
     # echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
     echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
-<<<<<<< HEAD
-    echo "DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
-    echo "[[ -f \$DSTPATH/bin/activate ]] && export PATH=\$PATH:\$DSTPATH/bin">>$DSTPATH/activate_tools
-    # echo "[[ ( ! -d \$SRCPATH || :\$PYTHONPATH: =~ :\$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=\$SRCPATH">>$DSTPATH/activate_tools
-    # echo "[[ ( ! -d \$SRCPATH || :\$PYTHONPATH: =~ :\$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=\$SRCPATH:\$PYTHONPATH">>$DSTPATH/activate_tools
-    # echo "[[ ! -d \$DSTPATH || :\$PATH: =~ :\$DSTPATH: ]] || export PATH=\$DSTPATH:\$PATH">>$DSTPATH/activate_tools
-    # [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $SRCPATH/zerobug/_travis || :\$PATH: =~ :$SRCPATH/zerobug/_travis: ]] || export PATH=$SRCPATH/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
-    # [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $SRCPATH/z0bug_odoo/travis || :\$PATH: =~ :$SRCPATH/z0bug_odoo/travis: ]] || export PATH=$SRCPATH/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
-    # [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
-    # [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
-=======
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
     echo "[[ -f $LOCAL_VENV/bin/activate ]] && export PATH=\$PATH:$LOCAL_VENV/bin">>$DSTPATH/activate_tools
     [[ $DSTPATH != $LOCAL_VENV ]] && echo "export PATH=\$PATH:$DSTPATH">>$DSTPATH/activate_tools
@@ -396,18 +298,10 @@ if [[ ! $opts =~ ^-.*n ]]; then
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $PYLIB/z0bug_odoo/travis || :\$PATH: =~ :$PYLIB/z0bug_odoo/travis: ]] || export PATH=$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
->>>>>>> stash
 fi
 
 if [[ $opts =~ ^-.*[Ss] ]]; then
-<<<<<<< HEAD
-    [[ ! $opts =~ ^-.*o ]] && SITECUSTOM=$HOME/venv_tools/sitecustomize.py
-    [[ $opts =~ ^-.*o ]] && SITECUSTOM=$HOME/dev/sitecustomize.py
-    PYLIB=$(dirname $(pip --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
-    [[ -n "$PYLIB" ]] || PYLIB=$(dirname $(pip3 --version 2>/dev/null|grep -Eo "from [^ ]+"|awk '{print $2}') 2>/dev/null)
-=======
     SITECUSTOM=$DSTPATH/sitecustomize.py
->>>>>>> stash
     if [[ -n "$PYLIB" && -f SITECUSTOM ]]; then
         if [[ -f $PYLIB/sitecustomize.py ]]; then
             if grep -q "import sys" $PYLIB/sitecustomize.py; then
@@ -420,16 +314,7 @@ if [[ $opts =~ ^-.*[Ss] ]]; then
         fi
     fi
 fi
-run_traced "deactivate"
-# run_traced "source $DSTPATH/activate_tools"
 
-<<<<<<< HEAD
-if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
-    $(grep -q "\$HOME/dev[el]*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME/dev[el]*/activate_tools|\$HOME/venv_tools/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $HOME/venv_tools/activate_tools ]] && . $HOME/venv_tools/activate_tools -q" >>$HOME/.bash_profile
-fi
-[[ $opts =~ ^-.*T ]] && $DSTPATH/test_tools.sh
-[[ $opts =~ ^-.*U && -f $DSTPATH/egg-info/history.rst ]] && tail $DSTPATH/egg-info/history.rst
-=======
 # Final test to validate environment
 [[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
 for pkg in clodoo/odoorc cvt_csv_2_rst.py cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please to_pep8.py transodoo.py wget_odoo_repositories.py; do
@@ -468,7 +353,6 @@ if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
     $(grep -q "\$HOME.*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME.*/activate_tools|$DSTPATH/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $DSTPATH/activate_tools ]] && . $DSTPATH/activate_tools -q" >>$HOME/.bash_profile
 fi
 
->>>>>>> stash
 if [[ ! $opts =~ ^-.*[gtT] ]]; then
   [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
   for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
@@ -484,11 +368,7 @@ if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
     echo -e "In order to make available the these tools, please type:${CLR}"
     echo -e "source $DSTPATH/activate_tools\n"
     echo -e "${GREEN}If you wish to use  these tools  at the next time,  please add"
-<<<<<<< HEAD
-    echo -e "the  following statement  in your  login file  (.bash_profile)"
-=======
     echo -e "the following statement in your login file (.bash_profile):"
->>>>>>> stash
     echo -e "source $DSTPATH/activate_tools"
     echo -e "If you prefer, you can re-execute this script using  -P switch"
     echo -e "--------------------------------------------------------------${CLR}"
