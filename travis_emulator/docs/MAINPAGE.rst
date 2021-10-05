@@ -1,6 +1,10 @@
 
 =======================
+<<<<<<< HEAD
 travis_emulator 1.0.2.99
+=======
+travis_emulator 1.0.2.1
+>>>>>>> stash
 =======================
 
 
@@ -298,12 +302,20 @@ Troubleshooting
 History
 -------
 
+<<<<<<< HEAD
 1.0.2.99 (2021-08-06)
+=======
+1.0.2.1 (2021-08-06)
+>>>>>>> stash
 ~~~~~~~~~~~~~~~~~~~~
 
 [IMP] devel_tools replaced by wok_code
 
+<<<<<<< HEAD
 1.0.2.99 (2021-08-03)
+=======
+1.0.2.1 (2021-08-03)
+>>>>>>> stash
 ~~~~~~~~~~~~~~~~~~~~
 
 [IMP] Show virtual enviroment name in summary
@@ -403,6 +415,7 @@ Last Update / Ultimo aggiornamento: 2021-08-07
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
+<<<<<<< HEAD
     :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.2.99
     :alt: Coverage
 .. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.2.99/graph/badge.svg
@@ -413,12 +426,29 @@ Last Update / Ultimo aggiornamento: 2021-08-07
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
     :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.2.99/man
+=======
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0.2.1
+    :alt: Coverage
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.2.1/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0.2.1
+    :alt: Codecov
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0.2.1/dev
+    :alt: Technical Documentation
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0.2.1/man
+>>>>>>> stash
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
     :target: https://erp1.zeroincombenze.it
     :alt: Try Me
+<<<<<<< HEAD
 .. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.2.99/graph/badge.svg
     :target: https://codecov.io/gh/OCA/tools/branch/1.0.2.99
+=======
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0.2.1/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0.2.1
+>>>>>>> stash
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

@@ -35,7 +35,11 @@ except ImportError:
 # import pdb
 
 
+<<<<<<< HEAD
 __version__ = "1.0.2.2"
+=======
+__version__ = "1.0.2.5"
+>>>>>>> stash
 
 
 def run_traced(*args):

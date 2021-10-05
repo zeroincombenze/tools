@@ -25,9 +25,15 @@ copyright = '2016-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
+<<<<<<< HEAD
 version = '1.0.2.99'
 # The full version, including alpha/beta/rc tags
 release = '1.0.2.99'
+=======
+version = '1.0.2.1'
+# The full version, including alpha/beta/rc tags
+release = '1.0.2.1'
+>>>>>>> stash
 
 
 # -- General configuration ---------------------------------------------------

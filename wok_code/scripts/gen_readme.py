@@ -1,4 +1,8 @@
+<<<<<<< HEAD:wok_code/scripts/gen_readme.py
 #!/home/odoo/devel/venv/bin/python2
+=======
+#!/usr/bin/env python
+>>>>>>> stash:wok_code/gen_readme.py
 #  -*- coding: utf-8 -*-
 """
 Documentation generator
@@ -107,7 +111,11 @@ except ImportError:
 standard_library.install_aliases()
 
 
+<<<<<<< HEAD:wok_code/scripts/gen_readme.py
 __version__ = "1.0.2.2"
+=======
+__version__ = "1.0.2.5"
+>>>>>>> stash:wok_code/gen_readme.py
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -238,10 +246,14 @@ def get_full_fn(ctx, src_path, filename):
 
 def iter_template_path(debug_mode=None, body=None):
     for src_path in ('.',
-                     './docs',
                      './egg-info',
                      './readme',
+<<<<<<< HEAD:wok_code/scripts/gen_readme.py
                      '%s/pypi/tools/templates/${p}' % os.environ['HOME'],
+=======
+                     './docs',
+                     '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
+>>>>>>> stash:wok_code/gen_readme.py
                      '%s/dev/pypi/tools/templates/${p}' % os.environ['HOME'],
                      '%s/devel/templates/${p}' % os.environ['HOME'],
                      '%s/dev/templates/${p}' % os.environ['HOME'],
@@ -252,7 +264,7 @@ def iter_template_path(debug_mode=None, body=None):
         if src_path.find('/pypi/tools/') >= 0 and not debug_mode:
             continue
         elif src_path.find('/dev/pypi/tools/') >= 0 and not debug_mode:
-                continue
+            continue
         elif src_path.find('/devel/templates') >= 0 and debug_mode:
             continue
         elif src_path.find('/dev/templates') >= 0 and debug_mode:
@@ -1249,8 +1261,10 @@ def read_manifest_file(ctx, manifest_path, force_version=None):
     return unicodes(manifest)
 
 
-def read_setup(ctx):
+def eval_setup(**kwargs):
+    ctx['manifest'] = kwargs
 
+<<<<<<< HEAD:wok_code/scripts/gen_readme.py
     def eval_setup(**kwargs):
         ctx['manifest'] = kwargs
 
@@ -1261,13 +1275,25 @@ def read_setup(ctx):
                     os0.u(fd.read()),
                     max_days=60,
                     module=module)
-        with open(full_fn, 'r') as fd:
-            ctx['history-summary'] += tail(
-                os0.u(fd.read()),
-                max_ctr=1,
-                max_days=15,
-                module=module)
+=======
 
+def read_history(ctx, full_fn, module=None):
+    if module:
+>>>>>>> stash:wok_code/gen_readme.py
+        with open(full_fn, 'r') as fd:
+            ctx['histories'] += tail(
+                os0.u(fd.read()),
+                max_days=60,
+                module=module)
+    with open(full_fn, 'r') as fd:
+        ctx['history-summary'] += tail(
+            os0.u(fd.read()),
+            max_ctr=1,
+            max_days=15,
+            module=module)
+
+
+def read_setup(ctx):
     if ctx['product_doc'] == 'pypi':
         MANIFEST_LIST = ('../setup.py', './setup.py')
     else:

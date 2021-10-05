@@ -14,7 +14,11 @@ import sys
 
 from .git_run import GitRun
 
+<<<<<<< HEAD
 __version__ = '1.0.5.104'
+=======
+__version__ = '1.0.5.2'
+>>>>>>> stash
 
 MANIFEST_FILES = [
     '__manifest__.py',
@@ -241,7 +245,7 @@ def main(argv=None):
     else:
         lists = [get_addons(path) for path in params]
         # return flatten list of lists without duplicates
-        res = dict.fromkeys([x for l in lists for x in l]).keys()
+        res = dict.fromkeys([x for lx in lists for x in lx]).keys()
     if exclude_modules:
         res = [x for x in res if x not in exclude_modules]
     print(','.join(res))

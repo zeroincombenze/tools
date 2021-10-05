@@ -22,17 +22,21 @@ from __future__ import division
 from __future__ import unicode_literals
 from past.builtins import cmp
 from future import standard_library
-standard_library.install_aliases()                                 # noqa: E402
 # from builtins import *                                             # noqa: F403
 import ast
 import os
 import re
 import sys
+standard_library.install_aliases()                                 # noqa: E402
 
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'
 MANIFESTS = ('__openerp__.py', '__manifest__.py')
+<<<<<<< HEAD
 __version__ = "1.0.2.2"
+=======
+__version__ = "1.0.2.5"
+>>>>>>> stash
 
 
 class UserError(Exception):

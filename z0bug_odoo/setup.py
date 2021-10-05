@@ -3,7 +3,11 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='z0bug_odoo',
+<<<<<<< HEAD
       version='1.0.5.104',
+=======
+      version='1.0.5.2',
+>>>>>>> stash
       description='Odoo testing framework',
       long_description="""
 Zeroincombenze(R) continuous testing framework for Odoo modules.
@@ -31,6 +35,7 @@ Make avaiable test functions indipendent by Odoo version.
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
+<<<<<<< HEAD
       # include_package_data=True,
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
@@ -42,5 +47,11 @@ Make avaiable test functions indipendent by Odoo version.
               'z0bug-odoo-info = z0bug_odoo.scripts.main:main',
               'travis_run_tests = z0bug_odoo.travis.travis_run_tests:main',
           ],
+=======
+      packages=find_packages(
+          exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
+      package_data={
+          '': ['scripts/setup.info', 'data/*'],
+>>>>>>> stash
       },
       zip_safe=False)

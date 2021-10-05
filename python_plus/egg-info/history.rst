@@ -1,13 +1,50 @@
+1.0.3.7 (2021-10-03)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lost python-plus functions
+
+1.0.3.6 (2021-10-01)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] full setuptools integrated + copy-pkg-data
+
+1.0.3.5 (2021-09-30)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: 1st installation, z0librc not found
+
+1.0.3.4 (2021-09-26)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: minor fixes
+
+1.0.3.3 (2021-09-26)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: error message "riga 99: deactivate:"
+
+1.0.3.2 (2021-09-25)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: create vem with -I switch
+* [REF] vem refactoring
+
+1.0.3.1 (2021-09-23)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: added click package
+* [FIX] vem: create with devel packages
+
 1.0.2.1 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: create set right python for all ven binaries
+* [FIX] vem: create set right python for all ven binaries
 
 1.0.1.3 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: run in osx darwin
-[IMP] vem: virtual environment for travis test
+* [FIX] vem: run in osx darwin
+* [IMP] vem: virtual environment for travis test
 
 1.0.1.3 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~

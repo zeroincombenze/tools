@@ -7,9 +7,13 @@ Unknown macro
 
 This module is part of tools project.
 
+<<<<<<< HEAD
 Last Update / Ultimo aggiornamento: 2021-09-08
+=======
+Last Update / Ultimo aggiornamento: 2021-10-01
+>>>>>>> stash
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master

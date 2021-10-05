@@ -32,7 +32,11 @@ import logging
 from travis_helpers import print_flush
 
 _logger = logging.getLogger()
+<<<<<<< HEAD
 __version__ = '1.0.5.104'
+=======
+__version__ = '1.0.5.2'
+>>>>>>> stash
 
 
 def parse_depfile(depfile, owner=None):

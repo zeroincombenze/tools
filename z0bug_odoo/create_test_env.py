@@ -38,7 +38,11 @@ except ImportError:
     from z0lib import z0lib
 from z0bug_odoo import z0bug_odoo_lib
 
+<<<<<<< HEAD
 __version__ = "1.0.5.104"
+=======
+__version__ = "1.0.5.2"
+>>>>>>> stash
 
 
 def env_ref(ctx, xref, retxref_id=None):

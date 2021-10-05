@@ -3,7 +3,11 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='python_plus',
+<<<<<<< HEAD
       version='1.0.3.99',
+=======
+      version='1.0.3.7',
+>>>>>>> stash
       description='python useful function',
       long_description="""
 Python supplemental features
@@ -36,18 +40,33 @@ This package is released with an nice command:
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',
       },
+<<<<<<< HEAD
+=======
+      url='https://zeroincombenze-tools.readthedocs.io',
+>>>>>>> stash
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
+<<<<<<< HEAD
           '': ['scripts/setup.conf', './vem.sh', './vem.man']
+=======
+          '': ['scripts/setup.info', './vem', './vem.man']
+>>>>>>> stash
       },
       entry_points={
           'console_scripts': [
               'python-plus-info = python_plus.scripts.main:main',
+<<<<<<< HEAD
               'vem = python_plus.scripts.vem:main'
           ],
       },
+=======
+              # 'vem = python_plus.scripts.vem:main'
+          ],
+      },
+      # install_requires=['clodoo'],        # circular dependency!!!
+>>>>>>> stash
       zip_safe=False)

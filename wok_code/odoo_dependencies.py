@@ -111,7 +111,11 @@ try:
 except ImportError:
     import clodoo
 
+<<<<<<< HEAD
 __version__ = '1.0.2.2'
+=======
+__version__ = '1.0.2.5'
+>>>>>>> stash
 
 
 MANIFEST_FILES = [
@@ -484,10 +488,10 @@ def get_modules_list(path_list, depth=None, matches=None, depends_by=None,
             if module not in res:
                 res.append(module)
     if matches:
-            if only_missed:
-                res = list((set(matches) - set(res)) | set(modules_unstable))
-            else:
-                res = list(set(res) & set(matches))
+        if only_missed:
+            res = list((set(matches) - set(res)) | set(modules_unstable))
+        else:
+            res = list(set(res) & set(matches))
     return sorted(res)
 
 

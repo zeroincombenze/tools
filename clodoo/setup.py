@@ -10,12 +10,20 @@ if sys.version_info >= (3, 0):
     ]
 else:
     install_requires = [
+<<<<<<< HEAD
         'future', 'jsonlib', 'openpyxl', 'odoorpc', 'oerplib',
+=======
+        'future', 'jsonlib', 'openpyxl<=3.0', 'odoorpc', 'oerplib',
+>>>>>>> stash
         'psycopg2-binary', 'python-plus', 'unidecode==1.2.0', 'z0lib'
     ]
 
 setup(name='clodoo',
+<<<<<<< HEAD
       version='0.3.34.99',
+=======
+      version='0.3.36',
+>>>>>>> stash
       description='Do massive operations on Odoo Cloud',
       long_description="""
 Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.
@@ -42,6 +50,10 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
           'Topic :: Software Development',
       ],
       keywords='odoo',
+<<<<<<< HEAD
+=======
+      url='https://zeroincombenze-tools.readthedocs.io',
+>>>>>>> stash
       project_urls={
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',
@@ -52,13 +64,21 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
+<<<<<<< HEAD
           '': ['scripts/setup.conf', './odoorc'],
+=======
+          '': ['scripts/setup.info', './odoorc', './list_requirements.py'],
+>>>>>>> stash
       },
       install_requires=install_requires,
       entry_points={
           'console_scripts': [
               'clodoo-info = clodoo.scripts.main:main',
+<<<<<<< HEAD
               'list_requirements = clodoo.scripts.list_requirements:main',
+=======
+              # 'list_requirements = clodoo.scripts.list_requirements:main',
+>>>>>>> stash
           ],
       },
       zip_safe=False)

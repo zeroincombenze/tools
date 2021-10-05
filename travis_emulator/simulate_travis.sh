@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
+<<<<<<< HEAD
 __version__=1.0.2.99
+=======
+__version__=1.0.2.1
+>>>>>>> stash
 if [[ -z "$1" || "$1" == "-h" ]]; then
     echo "$0 -I|-i     # install travis emulator environment (-i stable version, -I devel version)"
     echo "$0 srcdir    # copy src repository into local venv"

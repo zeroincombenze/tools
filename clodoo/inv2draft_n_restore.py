@@ -25,7 +25,11 @@ except ImportError:
     import clodoo
 
 
+<<<<<<< HEAD
 __version__ = "0.3.34.99"
+=======
+__version__ = "0.3.36"
+>>>>>>> stash
 
 
 def get_name_by_ver(ctx, name):

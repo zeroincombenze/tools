@@ -36,7 +36,11 @@ except BaseException:
 from zerobug import Z0test
 
 
+<<<<<<< HEAD
 __version__ = "0.3.34.99"
+=======
+__version__ = "0.3.36"
+>>>>>>> stash
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1

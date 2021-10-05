@@ -26,7 +26,11 @@ else:
     sys.exit(0)
 
 
+<<<<<<< HEAD
 __version__ = '1.0.5.104'
+=======
+__version__ = '1.0.5.2'
+>>>>>>> stash
 
 
 class Z0bugBaseCase(test_common.BaseCase):

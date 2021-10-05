@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from clodoo import clodoo
 try:
     from clodoocore import (extract_vals_from_rec,
@@ -19,3 +20,6 @@ try:
     from clodoolib import (build_odoo_param,crypt)
 except:
     from clodoo.clodoolib import (build_odoo_param, crypt)
+=======
+from . import scripts
+>>>>>>> stash

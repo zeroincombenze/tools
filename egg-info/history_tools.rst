@@ -1,3 +1,42 @@
+<<<<<<< HEAD
+=======
+1.0.6.8 (2021-10-03)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] install_tools.sh: wrong hashbang for ~/devel
+
+1.0.6.5 (2021-09-29)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] install_tools.sh: check for odoorc installation
+
+1.0.6.5 (2021-09-28)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] install_tools.sh: templates dir
+[FIX] templates: minor fixes
+
+1.0.6.4 (2021-09-27)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] install_tools.sh: installation from local development env
+
+1.0.6.3 (2021-09-27)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] install_tools.sh: invalid env tools
+
+1.0.6.2 (2021-09-26)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] install_tools.sh: specific openpyxl for python2
+
+1.0.6.2 (2021-09-25)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] install_tools.sh: do not uset git show-current
+
+>>>>>>> stash
 1.0.6 (2021-09-09)
 ~~~~~~~~~~~~~~~~~~
 

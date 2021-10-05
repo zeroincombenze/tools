@@ -13,7 +13,11 @@ import sys
 from zerobug import Z0test
 
 
+<<<<<<< HEAD
 __version__ = "1.0.5.104"
+=======
+__version__ = "1.0.5.2"
+>>>>>>> stash
 
 MODULE_ID = 'z0bug_odoo'
 

@@ -85,7 +85,13 @@ Deprecated! Use git commands
 .P
 \fBconfig global|local\fR
 .RS
-Set various parameter by edit with vim.
+Set various parameter editing with vim. Comments inside configuration file can aim to set values.
+.br
+Some variable are:
+.br
+* GBL_EXCLUDE=test_impex -> Module globally escluded by test because can fail locally
+.br
+* PYTHON_MATRIX="2.7 3.7" -> python version to use in tests
 .RE
 .P
 \fBdistribution oca|zero\fR

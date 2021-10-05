@@ -20,7 +20,11 @@ except ImportError:
     except ImportError:
         import z0lib
 
+<<<<<<< HEAD
 __version__ = '1.0.2.2'
+=======
+__version__ = '1.0.2.5'
+>>>>>>> stash
 
 ROOT_URL = 'https://api.github.com/repos/zeroincombenze/'
 USER_URL = 'https://api.github.com/users/'

@@ -5,12 +5,12 @@ from __future__ import unicode_literals
 # content of conftest.py
 
 from future import standard_library
-standard_library.install_aliases()                                 # noqa: E402
 # from builtins import *                                           # noqa: F403
 from python_plus import _u
 
 from subprocess import Popen, PIPE
 import pytest
+standard_library.install_aliases()                                 # noqa: E402
 
 
 def pytest_report_header(config):

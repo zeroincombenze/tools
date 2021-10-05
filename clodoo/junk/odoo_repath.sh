@@ -1,4 +1,8 @@
+<<<<<<< HEAD:clodoo/junk/odoo_repath.sh
 #__version__=0.3.34.99
+=======
+#__version__=0.3.36
+>>>>>>> stash:clodoo/odoo_repath.sh
 # Change os PATH in order to run lessc 2.0+ instead of lessc 1.7
 # Odoo won't work if lessc version is 2.0-
 # Standard ruby set lessc 1.7

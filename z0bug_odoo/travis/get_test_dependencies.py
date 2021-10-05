@@ -19,7 +19,11 @@ from .getaddons import (get_modules, get_dependents,
 
 from test_server import get_test_dependencies
 
+<<<<<<< HEAD
 __version__ = '1.0.5.104'
+=======
+__version__ = '1.0.5.2'
+>>>>>>> stash
 
 
 def get_module_list(paths):

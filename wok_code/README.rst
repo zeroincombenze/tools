@@ -1,7 +1,13 @@
 
+<<<<<<< HEAD
 =================
 wok_code 1.0.1.22
 =================
+=======
+===================
+devel_tools 1.0.2.5
+===================
+>>>>>>> stash
 
 
 
@@ -36,7 +42,9 @@ please: developer shell
 
 please is an interactive developer shell aim to help development and testing software.
 
-    Usage: please [-hB][-b branch][-c file][-d diff][-fjk][-L logfile][-mn][-o prj_id][-O][-p path][-qr][-s files][-tuVv] actions sub1 sub2 sub3
+::
+
+    Usage: please [-hB][-b branch][-c file][-d diff][-fjk][-L logfile][-mn][-o prj_id][-O][-p path][-qr][-s files][-tuVv] actions sub1 sub3 sub3
     Developer shell
     Action may be on of:
     help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|show|status|test|translate|version|wep
@@ -97,6 +105,13 @@ Action is one of:
 *config global|local*
 
     Set various parameter by edit with vim.
+    Set various parameter editing with vim.
+    Comments inside configuration file can aim to set values.
+
+    Some variable are:
+
+    * GBL_EXCLUDE=test_impex -> Module globally escluded by test because can fail locally
+    * PYTHON_MATRIX="2.7 3.7" -> python version to use in tests
 
 *docs*
 
@@ -836,6 +851,7 @@ Current development version
 History
 -------
 
+<<<<<<< HEAD
 1.0.2.2.2 (2021-09-02)
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -857,23 +873,64 @@ History
 
 1.0.2.2 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~
+=======
+1.0.2.5 (2021-09-30)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] please: new version method
+
+1.0.2.3 (2021-09-29)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] cvt_script: add bash version check
+
+1.0.2.3 (2021-09-24)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] please: error sub2 sub3
+
+1.0.2.1 (2021-09-23)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] please: replace does not set protection bits; now -f is required
+[IMP] please: wep does not set protection bits; now -f is required
+
+1.0.2h (2021-08-31)
+~~~~~~~~~~~~~~~~~~~
+
+[IMP] gen_readme.py: search for authors in current README
+
+1.0.2g (2021-08-30)
+~~~~~~~~~~~~~~~~~~~
+>>>>>>> stash
 
 [IMP] cvt_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
 
+<<<<<<< HEAD
 1.0.2.2 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
+=======
+1.0.2f (2021-08-26)
+~~~~~~~~~~~~~~~~~~~
+>>>>>>> stash
 
 [IMP] please: action docs shows recent history
 [IMP] gen_readme.py: show recent history
 [FIX] topep8: parse .travis.yml
 
+<<<<<<< HEAD
 1.0.2.2 (2021-08-08)
 ~~~~~~~~~~~~~~~~~~~~
+=======
+1.0.2e (2021-08-08)
+~~~~~~~~~~~~~~~~~~~
+>>>>>>> stash
 
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
+<<<<<<< HEAD
 1.0.2.2 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -881,10 +938,20 @@ History
 
 1.0.2.2 (2021-08-04)
 ~~~~~~~~~~~~~~~~~~~~
+=======
+1.0.2d (2021-08-05)
+~~~~~~~~~~~~~~~~~~~
+
+[REF] Merged and renamed to wok_code
+
+1.0.2c (2021-08-04)
+~~~~~~~~~~~~~~~~~~~
+>>>>>>> stash
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
 
+<<<<<<< HEAD
 1.0.2.2 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -908,6 +975,18 @@ History
 
 * [FIX] wget_odoo_repositories.py: best debug mode: check for branch
 
+=======
+1.0.2b (2021-08-03)
+~~~~~~~~~~~~~~~~~~~
+
+[FIX] gen_readme.py: parameter error
+
+1.0.2a (2021-07-29)
+~~~~~~~~~~~~~~~~~~~
+
+[FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
+
+>>>>>>> stash
 
 
 |
@@ -984,9 +1063,17 @@ Last Update / Ultimo aggiornamento: 2021-08-31
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
+<<<<<<< HEAD
 Last Update / Ultimo aggiornamento: 2021-09-02
 Last Update / Ultimo aggiornamento: 2021-09-03
 Last Update / Ultimo aggiornamento: 2021-09-04
+=======
+Last Update / Ultimo aggiornamento: 2021-09-24
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
+Last Update / Ultimo aggiornamento: 2021-09-28
+Last Update / Ultimo aggiornamento: 2021-09-29
+Last Update / Ultimo aggiornamento: 2021-09-30
+>>>>>>> stash
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1020,9 +1107,13 @@ Last Update / Ultimo aggiornamento: 2021-09-04
 
 This module is part of tools project.
 
+<<<<<<< HEAD
 Last Update / Ultimo aggiornamento: 2021-09-08
+=======
+Last Update / Ultimo aggiornamento: 2021-10-01
+>>>>>>> stash
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master

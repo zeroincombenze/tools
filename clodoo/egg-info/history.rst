@@ -1,3 +1,34 @@
+0.3.36 (2021-09-29)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+0.3.35.4 (2021-09-29)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: do not use git --show-current
+* [IMP] odoorc: now it a command too
+
+0.3.35.3 (2021-09-26)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo: specific openpyxl for python2
+
+0.3.35.2 (2021-09-24)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo.xlsx
+
+0.3.35.1 (2021-09-24)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] powerp module transaltion
+
+0.3.35 (2021-09-23)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] python 3
+
 0.3.33.4 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~
 

@@ -14,7 +14,11 @@ except ImportError:
     import z0lib
 
 
+<<<<<<< HEAD:clodoo/junk/upd_oemod.py
 __version__ = "0.3.34.99"
+=======
+__version__ = "0.3.36"
+>>>>>>> stash:clodoo/upd_oemod.py
 
 
 def initialize_params(ctx):

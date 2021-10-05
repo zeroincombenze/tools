@@ -9,7 +9,11 @@ import subprocess
 import sys
 from .travis_helpers import success_msg, fail_msg
 
+<<<<<<< HEAD:z0bug_odoo/travis/travis_run_tests.py
 __version__ = '1.0.5.104'
+=======
+__version__ = '1.0.5.2'
+>>>>>>> stash:z0bug_odoo/travis/travis_run_tests
 
 
 def main_tests(test_list):

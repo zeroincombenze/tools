@@ -21,7 +21,11 @@ You can easily write portable script to install packages on every Linux distribu
 
 This module is part of tools project.
 
+<<<<<<< HEAD
 Last Update / Ultimo aggiornamento: 2021-09-03
+=======
+Last Update / Ultimo aggiornamento: 2021-10-05
+>>>>>>> stash
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

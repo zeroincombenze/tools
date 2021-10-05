@@ -14,7 +14,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from future import standard_library
+<<<<<<< HEAD
 standard_library.install_aliases()                                 # noqa: E402
+=======
+>>>>>>> stash
 # from builtins import hex
 # from builtins import str
 from builtins import int
@@ -42,13 +45,18 @@ try:
     postgres_drive = True
 except BaseException:                                        # pragma: no cover
     postgres_drive = False
+standard_library.install_aliases()                                 # noqa: E402
 
 
 STS_FAILED = 1
 STS_SUCCESS = 0
 
 
+<<<<<<< HEAD
 __version__ = "0.3.34.99"
+=======
+__version__ = "0.3.36"
+>>>>>>> stash
 
 
 #############################################################################

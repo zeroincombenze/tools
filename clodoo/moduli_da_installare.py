@@ -19,7 +19,11 @@ except ImportError:
 # import transodoo
 # import pdb
 
+<<<<<<< HEAD
 __version__ = "0.3.34.99"
+=======
+__version__ = "0.3.36"
+>>>>>>> stash
 
 
 VERSIONS = ['vg7', '61', '70', '80', '90', '100', '110', '120']

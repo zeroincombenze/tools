@@ -3,7 +3,11 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='travis_emulator',
+<<<<<<< HEAD
       version='1.0.2.99',
+=======
+      version='1.0.2.1',
+>>>>>>> stash
       description='Travis CI emulator for local develop environment',
       long_description="""
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.
@@ -40,7 +44,11 @@ A travis build executes the following steps:
 Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
 """,
       classifiers=[
+<<<<<<< HEAD
           'Development Status :: 3 - Alpha',
+=======
+          'Development Status :: 4 - Beta',
+>>>>>>> stash
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',
@@ -52,6 +60,10 @@ Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job
           'Operating System :: OS Independent',
       ],
       keywords='linux travis development',
+<<<<<<< HEAD
+=======
+      url='https://zeroincombenze-tools.readthedocs.io',
+>>>>>>> stash
       project_urls={
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',
@@ -62,13 +74,22 @@ Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
+<<<<<<< HEAD
           '': ['scripts/setup.conf', './travis.sh', './travisrc',
                './travis.man']
+=======
+          '': ['scripts/setup.info',
+               './travis', './travisrc', './travis.man']
+>>>>>>> stash
       },
       entry_points={
           'console_scripts': [
               'travis_emulator-info = travis_emulator.scripts.main:main',
+<<<<<<< HEAD
               'travis = travis_emulator.scripts.travis:main',
+=======
+              # 'travis = travis_emulator.scripts.travis:main',
+>>>>>>> stash
           ],
       },
       zip_safe=False)

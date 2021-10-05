@@ -4,7 +4,11 @@
    contain the root `toctree` directive.
 
 ===========================================
+<<<<<<< HEAD
 Welcome to wok_code 1.0.2.2 documentation!
+=======
+Welcome to wok_code 1.0.2.5 documentation!
+>>>>>>> stash
 ===========================================
 
 .. toctree::

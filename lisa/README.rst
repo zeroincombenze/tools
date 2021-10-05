@@ -44,6 +44,12 @@ Installation
 Installation
 ------------
 
+Zeroincombenze tools require:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
+* python 2.7, some tools require python 3.6+
+* bash 5.0+
+
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -128,7 +134,11 @@ Contributors
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 |
 This module is part of tools project.
+<<<<<<< HEAD
 Last Update / Ultimo aggiornamento: 2021-09-02
+=======
+Last Update / Ultimo aggiornamento: 2021-09-29
+>>>>>>> stash
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
 :target: https://odoo-community.org/page/development-status
 :alt:
@@ -184,6 +194,7 @@ Last Update / Ultimo aggiornamento: 2021-09-02
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
+<<<<<<< HEAD
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -211,13 +222,19 @@ Last Update / Ultimo aggiornamento: 2021-09-02
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 :target: https://t.me/axitec_helpdesk
+=======
+>>>>>>> stash
 
 
 |
 
 This module is part of tools project.
 
+<<<<<<< HEAD
 Last Update / Ultimo aggiornamento: 2021-09-03
+=======
+Last Update / Ultimo aggiornamento: 2021-10-05
+>>>>>>> stash
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

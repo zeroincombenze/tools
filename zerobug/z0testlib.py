@@ -1398,7 +1398,7 @@ class Z0test(object):
         sts = self.main(z0ctx, SanityTest)
         if full:
             for p in 'min_test', 'max_test', 'ctr':
-                    full[p] = z0ctx[p]
+                full[p] = z0ctx[p]
         del z0ctx
         return sts
 

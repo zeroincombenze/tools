@@ -14,7 +14,11 @@ import shutil
 # from z0bug_odoo import test_common
 from zerobug import Z0testOdoo
 
+<<<<<<< HEAD
 __version__ = "1.0.5.104"
+=======
+__version__ = "1.0.5.2"
+>>>>>>> stash
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1

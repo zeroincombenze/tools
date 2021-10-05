@@ -1,7 +1,7 @@
 from __future__ import print_function, unicode_literals
 from past.builtins import basestring
 from future.utils import PY2, PY3, with_metaclass
-# import sys
+from . import scripts
 
 
 __title__ = 'python_plus'

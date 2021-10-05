@@ -24,7 +24,9 @@ please: developer shell
 
 please is an interactive developer shell aim to help development and testing software.
 
-    Usage: please [-hB][-b branch][-c file][-d diff][-fjk][-L logfile][-mn][-o prj_id][-O][-p path][-qr][-s files][-tuVv] actions sub1 sub2 sub3
+::
+
+    Usage: please [-hB][-b branch][-c file][-d diff][-fjk][-L logfile][-mn][-o prj_id][-O][-p path][-qr][-s files][-tuVv] actions sub1 sub3 sub3
     Developer shell
     Action may be on of:
     help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|show|status|test|translate|version|wep
@@ -85,6 +87,13 @@ Action is one of:
 *config global|local*
 
     Set various parameter by edit with vim.
+    Set various parameter editing with vim.
+    Comments inside configuration file can aim to set values.
+
+    Some variable are:
+
+    * GBL_EXCLUDE=test_impex -> Module globally escluded by test because can fail locally
+    * PYTHON_MATRIX="2.7 3.7" -> python version to use in tests
 
 *docs*
 
@@ -292,9 +301,13 @@ It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
 
 This module is part of tools project.
 
+<<<<<<< HEAD
 Last Update / Ultimo aggiornamento: 2021-09-08
+=======
+Last Update / Ultimo aggiornamento: 2021-10-01
+>>>>>>> stash
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master

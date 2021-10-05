@@ -15,7 +15,11 @@ except ImportError:
 # import pdb
 
 
+<<<<<<< HEAD
 __version__ = "0.3.34.99"
+=======
+__version__ = "0.3.36"
+>>>>>>> stash
 
 
 msg_time = time.time()

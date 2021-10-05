@@ -12,12 +12,18 @@
 # export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
+<<<<<<< HEAD:wok_code/please.sh
 PYPATH=""
 for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
   [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
   [[ -n $PYPATH ]] && PYPATH=$(dirname $PYPATH) && break
 done
 PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and x.startswith('$HOME')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
+=======
+[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+>>>>>>> stash:wok_code/please
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0lib/z0librc ]]; then
@@ -52,10 +58,17 @@ fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
-RUNDIR=$($READLINK -e $TESTDIR/..)
+RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
 
+<<<<<<< HEAD:wok_code/please.sh
 __version__=1.0.2.2
+=======
+__version__=1.0.2.5
+>>>>>>> stash:wok_code/please
 
 #
 # General Purpose options:
@@ -1285,7 +1298,7 @@ merge_cfg() {
 do_publish() {
   #do_publish PKGNAME (docs|download|pypi|svg|testpypi)
   wlog "do_publish $1 $2"
-  local cmd="do_publish_$2"
+  local cmd="do_publish_$1"
   sts=$STS_SUCCESS
   if [ "$(type -t $cmd)" == "function" ]; then
     eval $cmd "$@"
@@ -1495,7 +1508,7 @@ do_edit() {
   #do_edit PKGNAME (pofile|translation|untranslated)
   local cmd
   wlog "do_edit $1 $2"
-  [[ -n "$2" ]] && cmd="do_edit_$2" || cmd="do_edit_$1"
+  cmd="do_edit_$1"
   sts=$STS_SUCCESS
   if [ "$(type -t $cmd)" == "function" ]; then
     eval $cmd "$@"
@@ -1580,7 +1593,7 @@ create_pkglist() {
   fi
   if [ "$2" == "PkgList" -o "$2" == "binPkgList" -o "$2" == "etcPkgList" ]; then
     PKGLIST=$(cat setup.py | grep "# PKGLIST=" | awk -F= '{print $2}')
-    if [ -n "PKGLIST" ]; then
+    if [ -n "$PKGLIST" ]; then
       PKGLIST="${PKGLIST//,/ }"
     fi
     if [ "$2" == "etcPkgList" ]; then
@@ -1806,13 +1819,13 @@ do_distribution_odoo() {
         sts=$STS_FAILED
       else
         run_traced "git clone $GITPRJ tmp -b $BRANCH --depth 1 --single-branch"
-        ORIG=$($READLINK -e tmp)
+        ORIG=$(readlink -e tmp)
       fi
     else
       if [ -d ~/original ]; then rm -fR -d ~/original; fi
       if [ -n "$GITPRJ" ]; then
         run_traced "git clone $GITPRJ ~/original/$1 -b $BRANCH --depth 1 --single-branch"
-        ORIG=$($READLINK -e ~/original/$1)
+        ORIG=$(readlink -e ~/original/$1)
       fi
     fi
   fi
@@ -1828,7 +1841,7 @@ do_distribution_odoo() {
   fi
   local PKGS= FL= PIGN=
   for f in $(find . -type f \( -name __openerp__.py -o -name __manifest__.py -o -name ".travis.yml" -o -name "README*" -a -not -name "*.bak" -a -not -name "*~" -a -not -name "*.z0i" -a -not -name "*.oca" -a -not -name "*.tmp" \)); do
-    x=$($READLINK -e $f)
+    x=$(readlink -e $f)
     f1=$(dirname $x)
     f2=$(build_odoo_param REPOS $f1)
     b=$(basename $f)
@@ -1857,7 +1870,7 @@ do_distribution_odoo() {
       fi
     fi
   done
-  f2=$($READLINK -e .)
+  f2=$(readlink -e .)
   for f in $(find . -type d -name 'egg-info'); do
     d=$(dirname $f)
     run_traced "pushd $d >/dev/null"
@@ -1998,8 +2011,8 @@ do_docs() {
   fi
   if [[ ! -f $docs_dir/logozero_180x46.png ]]; then
     src_png=
-    [[ -z "$src_png" && -f ../tools/docs/logozero_180x46.png ]] && src_png=$($READLINK -e ../tools/docs/logozero_180x46.png)
-    [[ -z "$src_png" && -f ../../tools/docs/logozero_180x46.png ]] && src_png=$($READLINK -e ../../tools/docs/logozero_180x46.png)
+    [[ -z "$src_png" && -f ../tools/docs/logozero_180x46.png ]] && src_png=$(readlink -e ../tools/docs/logozero_180x46.png)
+    [[ -z "$src_png" && -f ../../tools/docs/logozero_180x46.png ]] && src_png=$(readlink -e ../../tools/docs/logozero_180x46.png)
     [[ -n "$src_png" ]] && run_traced "cp $src_png $docs_dir/logozero_180x46.png"
   fi
   for f in $(grep -E "^ *(rtd_|pypi_)" docs/index.rst | tr "\n" " "); do
@@ -2569,7 +2582,7 @@ EOF
 do_register() {
   #do_register PKGNAME (pypi|testpypi)
   wlog "do_register $1 $2"
-  local cmd="do_register_$2"
+  local cmd="do_register_$1"
   sts=$STS_SUCCESS
   if [ "$(type -t $cmd)" == "function" ]; then
     eval $cmd "$@"
@@ -2613,9 +2626,18 @@ do_replace() {
     done
     do_docs
     [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
+<<<<<<< HEAD:wok_code/please.sh
     opts=$(inherits_travis_opts "R" "D")
     [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg $opts $1"
     sts=$?
+=======
+    # [[ -f $PKGPATH/setup.py && -d $PRJPATH/scripts ]] && run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
+    # [[ -f $PRJPATH/setup.py ]] && run_traced "rm -f $PRJPATH/setup.py"
+    opts=$(inherits_travis_opts "R" "D")
+    [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg $opts $1"
+    sts=$?
+    # [[ $(basename $PWD) != "tools" ]] && run_traced "cp $PKGPATH/setup.py $HOME/tools/$PKGNAME/"
+>>>>>>> stash:wok_code/please
     [[ $(basename $PWD) != "tools" ]] && clean_dirs "$HOME/tools"
     [[ $opt_force -ne 0 ]] && set_executable
   fi
@@ -2645,7 +2667,7 @@ do_replica() {
       echo "File $fn not found"
       exit 1
     fi
-    srcfn=$($READLINK -f $fn)
+    srcfn=$(readlink -f $fn)
     for ver in 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
       if [ "$ver" != "$cur_ver" ]; then
         tgtfn="${srcfn/$cur_ver/$ver}"
@@ -2681,9 +2703,9 @@ do_replica() {
 }
 
 do_show() {
-  #do_show (docs|license)
-  wlog "do_show $2"
-  local cmd="do_show_$2"
+  #do_show (docs|license|status)
+  wlog "do_show $1"
+  local cmd="do_show_$1"
   sts=$STS_SUCCESS
   if [ "$(type -t $cmd)" == "function" ]; then
     eval $cmd "$@"
@@ -2715,7 +2737,7 @@ do_status() {
 do_show_docs() {
   if [[ ! "$PRJNAME" == "Odoo" ]]; then
     if [[ -f ./docs/_build/html/index.html ]]; then
-      firefox $($READLINK -e ./docs/_build/html/index.html) &
+      firefox $(readlink -e ./docs/_build/html/index.html) &
     else
       echo "No documentation found in ./docs!"
     fi
@@ -2861,20 +2883,31 @@ do_travis() {
 
 do_version() {
   # do_version(pkg [cur_ver [new_ver]])
+<<<<<<< HEAD:wok_code/please.sh
   if [[ "$PRJNAME" != "Odoo" ]]; then
     if [[ -z "$2" ]]; then
       find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
+=======
+  if [ "$PRJNAME" != "Odoo" ]; then
+    if [ -z "$2" ]; then
+      find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
+>>>>>>> stash:wok_code/please
     else
       local ver_re2=${2//./\\.}
       local ver_re="[^0-9.]$ver_re2($|[^0-9.])"
       local new_ver=$3
+<<<<<<< HEAD:wok_code/please.sh
       if [[ $opt_dry_run -ne 0 ]]; then
         echo "find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
+=======
+      if [ $opt_dry_run -ne 0 ]; then
+        echo "find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
+>>>>>>> stash:wok_code/please
       else
-        find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;
+        find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;
       fi
       if [ -n "$new_ver" ]; then
-        for fn in $(find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -El "$ver_re" '{}' \;); do
+        for fn in $(find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -El "$ver_re" '{}' \;); do
           if [ $opt_dry_run -ne 0 ]; then
             echo "sed -e \"s/$ver_re2/$new_ver/\" -i $fn"
           else
@@ -2885,15 +2918,14 @@ do_version() {
           if [ $opt_dry_run -ne 0 ]; then
             echo "sed -e \"s/version=.$ver_re2./version='$new_ver'/\" -i $PKGPATH/setup.py"
           else
-            sed -e "s/version=.$ver_re2./version='$new_ver'/" -i $PKGPATH/setup.py
+            sed -e "s/version=[\"']$ver_re2[\"']/version='$new_ver'/" -i $PKGPATH/setup.py
           fi
         fi
       fi
     fi
-    if [ -f $PRJPATH/__main__.py ]; then
-      echo "Project $PRJNAME $prjversion [$PKGNAME] answer:"
-      cd $PKGPATH
-      PYTHONPATH=$PKGPATH:$HOME/tools python $PRJNAME
+    if [ -f $PKGPATH/setup.py ]; then
+      echo -n "Project $PRJNAME $prjversion [$PKGNAME]: "
+      python $PKGPATH/setup.py --version
     fi
   else
     echo "Project $PRJNAME $BRANCH [$PKGNAME $prjversion]"
@@ -2906,9 +2938,9 @@ do_config() {
   if [ "$sub1" == "global" ]; then
     cfgfn=$TCONF
   elif [ "$sub1" == "repository" ]; then
-    cfgfn=$($READLINK -m $PKGPATH/../conf/.local_dist_pkg.conf)
+    cfgfn=$(readlink -m $PKGPATH/../conf/.local_dist_pkg.conf)
   elif [ "$sub1" == "local" ]; then
-    cfgfn=$($READLINK -m $PKGPATH/conf/.local_dist_pkg.conf)
+    cfgfn=$(readlink -m $PKGPATH/conf/.local_dist_pkg.conf)
   elif [ "$sub1" == "current" ]; then
     cfgfn=$DIST_CONF
   elif [ "$sub1" == "zero" -o "$sub1" == "powerp" ]; then
@@ -2980,7 +3012,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"
   "check for unary operator W503 or no OCA/zero module translation"
   "show version end exit"
   "verbose mode")
-OPTARGS=(actions sub1 sub2 sub3)
+OPTARGS=(actions sub1 sub2 sub3 sub4 sub5 sub6 sub7 sub8 sub9)
 
 parseoptargs "$@"
 if [[ "$opt_version" ]]; then
@@ -2994,23 +3026,29 @@ if [[ $opt_help -gt 0 ]]; then
   exit 0
 fi
 
+
 opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
-[[ $opt_verbose -gt 1 ]] && set -x
+# [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
-[[ $opt_verbose -gt 2 ]] && set -x
 prepare_env_travis "$actions" "-r"
 sts=$STS_SUCCESS
 sts_bash=127
 sts_flake8=127
 sts_pylint=127
 test_sts=127
+
+if [[ -z $sub1 ]]; then
+  sub1="$sub2"
+  sub2="$sub3"
+  sub3="$sub4"
+  sub4=""
+fi
 if [[ "$actions" == "help" ]]; then
   man $TDIR/$THIS.man
 else
-  [[ "$PRJNAME" == "Odoo" ]] && odoo_fver=$(build_odoo_param FULLVER ".")
   [[ "$PRJNAME" == "Odoo" ]] && odoo_fver=$(build_odoo_param FULLVER ".")
   actions=${actions//+/ }
   actions=${actions//,/ }
@@ -3022,7 +3060,7 @@ else
       cmd="do_${action/-/_}"
     fi
     if [[ "$(type -t $cmd)" == "function" ]]; then
-      eval $cmd "$PKGNAME" "'$sub1'" "'$sub2'" "'$sub3'"
+      eval $cmd "'$sub1'" "'$sub2'" "'$sub3'"
       sts=$?
     else
       echo "Invalid action!"

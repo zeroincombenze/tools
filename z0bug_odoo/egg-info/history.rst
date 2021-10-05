@@ -1,3 +1,20 @@
+1.0.5.2 (2021-09-27)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Tax code 2220 & 2280 / Cod.IVA 2220 e 2280
+* [FIX] Tax code for extre-EU invoice / Codice IVA fattura extra-UE
+* [IMP] Account invoices at last month / Fatture a mese precedente
+
+1.0.5.1 (2021-09-23)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New Powerp RC configuration / Nuova configurazione RC Powerp
+
+1.0.5 (2021-08-27)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.4.3 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 

@@ -10,7 +10,7 @@ import os
 import os.path
 import sys
 import shutil
-# from zerobug import Z0BUG
+from zerobug import Z0BUG
 
 
 MODULE_ID = 'python_plus'
@@ -25,7 +25,11 @@ parser.add_argument('-V')
 ctx = parser.parseoptargs(['-V'])
 """
 
+<<<<<<< HEAD
 __version__ = "1.0.3.99"
+=======
+__version__ = "1.0.3.7"
+>>>>>>> stash
 
 
 def version():
@@ -37,8 +41,61 @@ class Test():
     def __init__(self, zarlib):
         self.Z = zarlib
         self.venv_dir = '%s/SAMPLE' % self.Z.testdir
+        os.chdir(os.environ['HOME'])
+        self.SAVED_HOME = os.getcwd()
+        self.SAVED_VENV = os.environ['VIRTUAL_ENV']
+
+    def clear_venv(self):
+        if os.path.isdir(self.venv_dir):
+            shutil.rmtree(self.venv_dir)
 
     def test_01(self, z0ctx):
+        self.clear_venv()
+        pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
+        cmd = '%s/vem -qf -p%s create %s' % (
+            self.Z.rundir, pyver, self.venv_dir)
+        if not z0ctx['dry_run']:
+            os.system(cmd)
+        sts = self.Z.test_result(z0ctx,
+                                 "%s" % cmd,
+                                 True,
+                                 os.path.isdir(self.venv_dir))
+        for nm in ('bin', 'lib'):
+            tgtdir = os.path.join(self.venv_dir, nm)
+            sts += self.Z.test_result(z0ctx,
+                                      "- dir %s" % tgtdir,
+                                      True,
+                                      os.path.isdir(tgtdir))
+
+        tgtfile = os.path.join(self.venv_dir, 'bin', 'python%s' % pyver)
+        sts += self.Z.test_result(z0ctx,
+                                  "- file %s" % tgtfile,
+                                  True,
+                                  os.path.isfile(tgtfile))
+
+        outfile = os.path.join(self.Z.testdir, 'home.log')
+        out = ''
+        cmd = r'%s/vem %s -q exec "cd;pwd>%s"' % (
+            self.Z.rundir, self.venv_dir, outfile)
+        if not z0ctx['dry_run']:
+            os.system(cmd)
+            if not os.path.isfile(outfile):
+                self.Z.test_result(z0ctx,
+                                   "- home",
+                                   outfile,
+                                   'File not created')
+                out = ''
+            else:
+                with open(outfile, 'r') as fd:
+                    out = fd.read().split()[0]
+        sts = self.Z.test_result(z0ctx,
+                                 "- home",
+                                 self.SAVED_HOME,
+                                 out)
+        return sts
+
+    def test_02(self, z0ctx):
+        self.clear_venv()
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
         cmd = '%s/vem -qIf -p%s create %s' % (
             self.Z.rundir, pyver, self.venv_dir)
@@ -51,33 +108,78 @@ class Test():
         for nm in ('bin', 'lib'):
             tgtdir = os.path.join(self.venv_dir, nm)
             sts += self.Z.test_result(z0ctx,
-                                      "Check for %s" % tgtdir,
+                                      "- dir %s" % tgtdir,
                                       True,
                                       os.path.isdir(tgtdir))
+
+        tgtfile = os.path.join(self.venv_dir, 'bin', 'python%s' % pyver)
+        sts += self.Z.test_result(z0ctx,
+                                  "- file %s" % tgtfile,
+                                  True,
+                                  os.path.isfile(tgtfile))
+
+        outfile = os.path.join(self.Z.testdir, 'home.log')
+        out = ''
+        cmd = r'%s/vem %s -q exec "cd;pwd>%s"' % (
+            self.Z.rundir, self.venv_dir, outfile)
+        if not z0ctx['dry_run']:
+            os.system(cmd)
+            if not os.path.isfile(outfile):
+                self.Z.test_result(z0ctx,
+                                   "- home",
+                                   outfile,
+                                   'File not created')
+                out = ''
+            else:
+                with open(outfile, 'r') as fd:
+                    out = fd.read().split()[0]
+        sts = self.Z.test_result(z0ctx,
+                                 "- home",
+                                 self.venv_dir,
+                                 out)
         return sts
 
-    def test_02(self, z0ctx):
+    def test_03(self, z0ctx):
+        self.clear_venv()
+        pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
+        cmd = '%s/vem -qDIf -p%s create %s' % (
+            self.Z.rundir, pyver, self.venv_dir)
         if not z0ctx['dry_run']:
-            test_python = os.path.join(self.venv_dir, 'test.py')
+            os.system(cmd)
+        sts = self.Z.test_result(z0ctx,
+                                 "%s" % cmd,
+                                 True,
+                                 os.path.isdir(self.venv_dir))
+
+        outfile = os.path.join(self.Z.testdir, 'home.log')
+        out = ''
+        test_python = os.path.join(self.venv_dir, 'test.py')
+        if not z0ctx['dry_run']:
             with open(test_python, 'w') as fd:
                 fd.write(TEST_PYTHON)
-            cmd = '%s/vem -qf %s install z0lib' % (
-                self.Z.rundir, self.venv_dir)
+        cmd = '%s/vem -qf %s exec "python %s &>%s"' % (
+            self.Z.rundir, self.venv_dir, test_python, outfile)
+        if not z0ctx['dry_run']:
             os.system(cmd)
-            cmd = '%s/vem -qf %s exec "python %s"' % (
-                self.Z.rundir, self.venv_dir, test_python)
-            os.system(cmd)
-        sts = 0
+            if not os.path.isfile(outfile):
+                self.Z.test_result(z0ctx,
+                                   "- exec",
+                                   outfile,
+                                   'File not created')
+                out = ''
+            else:
+                with open(outfile, 'r') as fd:
+                    out = fd.read().split()[0]
+        sts += self.Z.test_result(z0ctx,
+                                  "- exec",
+                                  '1.2.3.4',
+                                  out)
         return sts
 
-    def test_09(self, z0ctx):
-        if os.path.isdir(self.venv_dir):
-            shutil.rmtree(self.venv_dir)
 
-
-# if __name__ == "__main__":
-#     exit(Z0BUG.main_local(
-#         Z0BUG.parseoptest(
-#             sys.argv[1:],
-#             version=version()),
-#         Test))
+if __name__ == "__main__":
+    exit(Z0BUG.main_local(
+        Z0BUG.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        Test))

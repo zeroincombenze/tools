@@ -12,12 +12,18 @@
 # export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
+<<<<<<< HEAD:travis_emulator/travis.sh
 PYPATH=""
 for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
   [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
   [[ -n $PYPATH ]] && PYPATH=$(dirname $PYPATH) && break
 done
 PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and x.startswith('$HOME')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
+=======
+[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+>>>>>>> stash:travis_emulator/travis
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0lib/z0librc ]]; then
@@ -52,10 +58,18 @@ fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
-RUNDIR=$($READLINK -e $TESTDIR/..)
+RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
 
+__version__=1.0.2.1
+
+<<<<<<< HEAD:travis_emulator/travis.sh
 __version__=1.0.2.99
+=======
+>>>>>>> stash:travis_emulator/travis
 
 store_cfg_param_value() {
   #store_cfg_param_value(tid key value [opt] [section])
@@ -99,7 +113,13 @@ process_yaml_init() {
   python_ver_ena=""
   [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep PYPI_RUN_PYVER|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
+<<<<<<< HEAD:travis_emulator/travis.sh
     export YML_lisa=$HOME/pypi/lisa/lisa/lisa
+=======
+    [[ -d $HOME/devel ]] && \
+      export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || \
+      export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
+>>>>>>> stash:travis_emulator/travis
     (($opt_debug)) && export TRAVIS_PDB="true"
   else
     export YML_lisa=lisa
@@ -948,18 +968,17 @@ travis_status() {
 }
 
 
-OPTOPTS=(h        B         C         c        D           d     E         F        f         j        k        L          l        M          m       n            O         p        q           r     S            V           v           X           Y             y       Z)
-OPTLONG=(help     debug     no-cache  conf     debug-level osx   no-savenv full     force     ''       keep     lint-level logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose     translation yaml-file     pyver   zero)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl    osx_d opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl     opt_fyaml     opt_pyv opt_dbgmnt)
-OPTACTI=(1        1         0         "="      "="         1     0         1        1         1        1        "="        "="      1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="         "="           "="     1)
-OPTDEFL=(0        0         1         ""       ""          0     1         0        0         0        0        ""         ""       0          0       0            "local"   0        -1          0     ""           ""          -1          ""          ".travis.yml" ""      0)
-OPTMETA=("help"   "version" ""        "file"   "number"    ""    ""        ""       ""        "dprj"   ""       "number"   "dir"    ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"       "file"        "pyver" "")
+OPTOPTS=(h        B         C         c        D           E         F        f         j        k        L          l        M          m       n            O         p        q           r     S            V           v           X           Y             y       Z)
+OPTLONG=(help     debug     no-cache  conf     debug-level no-savenv full     force     ''       keep     lint-level logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose     translation yaml-file     pyver   zero)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl    opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl     opt_fyaml     opt_pyv opt_dbgmnt)
+OPTACTI=(1        1         0         "="      "="         0         1        1         1        1        "="        "="      1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="         "="           "="     1)
+OPTDEFL=(0        0         1         ""       ""          1         0        0         0        0        ""         ""       0          0       0            "local"   0        -1          0     ""           ""          -1          ""          ".travis.yml" ""      0)
+OPTMETA=("help"   "version" ""        "file"   "number"    ""        ""       ""        "dprj"   ""       "number"   "dir"    ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"       "file"        "pyver" "")
 OPTHELP=("this help"
   "debug mode: do not create log"
   "do not use stored PYPI"
   "configuration file (def .travis.conf)"
   "travis_debug_mode: may be 0,1,2,3,8 or 9 (def yaml dependents)"
-  "emulate osx-darwin"
   "do not save virtual environment into ~/VME/... if does not exist"
   "run final travis with full features"
   "force yaml to run w/o cmd subst"
@@ -1010,7 +1029,7 @@ opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
-[[ $opt_verbose -gt 1 ]] && set -x
+[[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 
 [[ -n $opt_flog ]] && LOGDIR="$(dirname $opt_flog)" || LOGDIR="$(get_cfg_value "" "LOGDIR")"

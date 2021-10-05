@@ -36,7 +36,11 @@ from odoo_score.odoo_score.scripts import transodoo
 # import pdb
 
 
+<<<<<<< HEAD
 __version__ = "0.3.34.99"
+=======
+__version__ = "0.3.36"
+>>>>>>> stash
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',

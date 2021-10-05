@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. (http://www.shs-av.com/)
@@ -158,7 +158,10 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from future import standard_library
+<<<<<<< HEAD
 standard_library.install_aliases()                                 # noqa: E402
+=======
+>>>>>>> stash
 # from builtins import input
 # from builtins import str
 # from builtins import range
@@ -222,8 +225,13 @@ except:
 
 # TMP
 from subprocess import PIPE, Popen
+standard_library.install_aliases()                                 # noqa: E402
 
+<<<<<<< HEAD
 __version__ = "0.3.34.99"
+=======
+__version__ = "0.3.36"
+>>>>>>> stash
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1902,11 +1910,11 @@ def act_check_tax(ctx):
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.4']
             elif re.search(
-                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etr.]*a[- ./]+ter',
+                '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etr.]*a[- ./]+ter',
                     tax.name):
-                    # N6.7: prestazioni comparto edile > Art. 17c6 lett.a-ter
-                    if tax.type_tax_use == 'purchase':
-                        nature_id = tax_nature['N6.7']
+                # N6.7: prestazioni comparto edile > Art. 17c6 lett.a-ter
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.7']
             elif re.search(
                     '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b',
                     tax.name):
@@ -1916,9 +1924,9 @@ def act_check_tax(ctx):
             elif re.search(
                     '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b',
                     tax.name):
-                    # N6.4: cellulari > Art. 17c6 lett.c
-                    if tax.type_tax_use == 'purchase':
-                        nature_id = tax_nature['N6.6']
+                # N6.4: cellulari > Art. 17c6 lett.c
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6.6']
             elif re.search(
                     '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*a',
                     tax.name):

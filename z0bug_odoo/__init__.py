@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 # Copyright (C) 2018-2021 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -16,3 +17,6 @@ except BaseException:
     pass
 from . import z0bug_odoo_lib
 # from zerobug import Z0BUG
+=======
+from . import scripts
+>>>>>>> stash

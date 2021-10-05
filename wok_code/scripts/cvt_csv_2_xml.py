@@ -1,4 +1,8 @@
+<<<<<<< HEAD:wok_code/scripts/cvt_csv_2_xml.py
 #!/home/odoo/devel/venv/bin/python2
+=======
+#!/usr/bin/env python
+>>>>>>> stash:wok_code/cvt_csv_2_xml.py
 #  -*- coding: utf-8 -*-
 """usage: cvt_csv_2_xml.py [-h] [-b ODOO_VER] [-i ID_PREFIX] [-j ID_MODE]
                         [-m ODOO_MODEL] [-n] [-q] [-R CVT-RULE] [-V] [-v]
@@ -42,7 +46,11 @@ except ImportError:
     import z0lib
 
 
+<<<<<<< HEAD:wok_code/scripts/cvt_csv_2_xml.py
 __version__ = "1.0.2.2"
+=======
+__version__ = "1.0.2.5"
+>>>>>>> stash:wok_code/cvt_csv_2_xml.py
 
 msg_time = time.time()
 

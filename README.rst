@@ -239,6 +239,7 @@ Current development version
 History
 -------
 
+<<<<<<< HEAD
 zerobug: 1.0.2.2 (2021-09-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -326,6 +327,153 @@ wok_code: 1.0.2.2 (2021-08-30)
 
 [IMP] cvt_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
+=======
+python_plus: 1.0.3.7 (2021-10-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lost python-plus functions
+
+>>>>>>> stash
+
+wok_code: 1.0.2.5 (2021-10-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] disk_pkg: manage setup.py & setup.info
+
+
+python_plus: 1.0.3.6 (2021-10-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] full setuptools integrated + copy-pkg-data
+
+
+wok_code: 1.0.2.4 (2021-09-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] please: new version method
+
+
+python_plus: 1.0.3.5 (2021-09-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: 1st installation, z0librc not found
+
+
+<<<<<<< HEAD
+wok_code: 1.0.2.2 (2021-08-26)
+=======
+wok_code: 1.0.2.3 (2021-09-29)
+>>>>>>> stash
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] cvt_script: add bash version check
+
+
+clodoo: 0.3.35.4 (2021-09-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+<<<<<<< HEAD
+[IMP] travis: color change
+[IMP] travis: new action testdeps
+[FIX] travis: matrix selection
+=======
+* [FIX] odoorc: do not use git --show-current
+* [IMP] odoorc: now it a command too
+>>>>>>> stash
+
+
+z0bug_odoo: 1.0.5.2 (2021-09-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Tax code 2220 & 2280 / Cod.IVA 2220 e 2280
+* [FIX] Tax code for extre-EU invoice / Codice IVA fattura extra-UE
+* [IMP] Account invoices at last month / Fatture a mese precedente
+
+
+python_plus: 1.0.3.3 (2021-09-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: error message "riga 99: deactivate:"
+
+
+clodoo: 0.3.35.3 (2021-09-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo: specific openpyxl for python2
+
+
+travis_emulator: 1.0.2.1 (2021-09-25)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] travis: check for cached expired VME
+
+
+python_plus: 1.0.3.2 (2021-09-25)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: create vem with -I switch
+* [REF] vem refactoring
+
+
+wok_code: 1.0.2.3 (2021-09-24)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] please: error sub2 sub3
+
+
+clodoo: 0.3.35.1 (2021-09-24)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] powerp module transaltion
+
+
+z0bug_odoo: 1.0.5.1 (2021-09-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New Powerp RC configuration / Nuova configurazione RC Powerp
+
+
+wok_code: 1.0.2.1 (2021-09-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] please: replace does not set protection bits; now -f is required
+[IMP] please: wep does not set protection bits; now -f is required
+
+
+<<<<<<< HEAD
+wok_code: 1.0.2.2 (2021-08-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=======
+python_plus: 1.0.3.1 (2021-09-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>>>>>> stash
+
+* [FIX] vem: added click package
+* [FIX] vem: create with devel packages
+
+
+clodoo: 0.3.35 (2021-09-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] python 3
+
+
+wok_code: 1.0.2h (2021-08-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] gen_readme.py: search for authors in current README
+
+
+<<<<<<< HEAD
+wok_code: 1.0.2.2 (2021-08-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=======
+wok_code: 1.0.2g (2021-08-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>>>>>> stash
+
+[IMP] ct_csv_coa.py: new command to manage Odoo CoA
+[IMP] gen_readme.py: search for authors in current README
 
 
 odoo_score: 1.0.2.1 (2021-08-30)
@@ -338,6 +486,28 @@ clodoo: 0.3.33.4 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] clodoo.py: rcp login
+
+
+<<<<<<< HEAD
+
+wok_code: 1.0.2.2 (2021-08-04)
+=======
+z0bug_odoo: 1.0.5 (2021-08-27)
+>>>>>>> stash
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+
+<<<<<<< HEAD
+wok_code: 1.0.2.2 (2021-08-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=======
+travis_emulator: 1.0.2 (2021-08-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>>>>>> stash
+
+[IMP] travis: stable version
 
 
 zerobug: 1.0.1.4 (2021-08-26)
@@ -353,8 +523,12 @@ z0bug_odoo: 1.0.4.3 (2021-08-26)
 * [IMP] travis_run_test: new command testdeps
 
 
-wok_code: 1.0.2.2 (2021-08-26)
+<<<<<<< HEAD
+z0bug_odoo: 1.0.3 (2021-07-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=======
+wok_code: 1.0.2f (2021-08-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: action docs shows recent history
 [IMP] gen_readme.py: show recent history
@@ -363,13 +537,18 @@ wok_code: 1.0.2.2 (2021-08-26)
 
 travis_emulator: 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>>>>>> stash
 
 [IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
 
 
+<<<<<<< HEAD
+wok_code: 1.0.2.2 (2021-07-29)
+=======
 odoo_score: 1.0.2 (2021-08-26)
+>>>>>>> stash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] Stable version
@@ -381,6 +560,10 @@ clodoo: 0.3.33.3 (2021-08-25)
 * [IMP] transodoo.xlsx: translation update
 
 
+<<<<<<< HEAD
+odoo_score: 1.0.1.3 (2021-07-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=======
 clodoo: 0.3.33.1 (2021-08-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -396,6 +579,7 @@ zar: 1.3.35.3 (2021-08-13)
 
 travis_emulator: 1.0.1.5 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>>>>>> stash
 
 [IMP] travis: summary return 1 if test failed or is broken
 [IMP] travis: return status like summary
@@ -403,7 +587,11 @@ travis_emulator: 1.0.1.5 (2021-08-11)
 [IMP] travis: osx emulatore return more info when error
 
 
+<<<<<<< HEAD
+wok_code: 1.0.2.2 (2021-07-21)
+=======
 clodoo: 0.3.31.16 (2021-08-11)
+>>>>>>> stash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoorc: module list
@@ -434,12 +622,15 @@ clodoo: 0.3.31.14 (2021-08-09)
 [FIX] odoo_install_repository: run in osx darwin
 
 
-wok_code: 1.0.2.2 (2021-08-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+wok_code: 1.0.2e (2021-08-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
+<<<<<<< HEAD
+=======
 
 travis_emulator: 1.0.1.4 (2021-08-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -448,117 +639,7 @@ travis_emulator: 1.0.1.4 (2021-08-06)
 [IMP] travis: summary return 1 if test failed
 
 
-z0bug_odoo: 1.0.3.2 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] test data update
-
-
-wok_code: 1.0.2.2 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[REF] Merged and renamed to wok_code
-
-
-python_plus: 1.0.1.3 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: uninstall package with if package version with ">"
-
-
-clodoo: 0.3.31.13 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] transodoo.py: tranlsation now can return None value
-[IMP] transodoo.xlsx: upgrade translation
-
-
-
-wok_code: 1.0.2.2 (2021-08-04)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] topep8: file list does not include .idea files
-[IMP] please: action docs now set license file in current directory
-
-
-wok_code: 1.0.2.2 (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: parameter error
-
-
-travis_emulator: 1.0.1.3 (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] Show virtual enviroment name in summary
-
-
-z0bug_odoo: 1.0.3.1 (2021-07-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] test data format xlsx (it replaces csv)
-* [IMP] value "\N" in data file for not value
-
-
-z0bug_odoo: 1.0.3 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] new test data
-
-
-wok_code: 1.0.2.2 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
-
-
-python_plus: 1.0.1.2 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: exec in current directory
-
-
-odoo_score: 1.0.1.3 (2021-07-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] run_odoo_debug: -T and -k switches togheter
-[FIX] odoo_score.py: crash with python 3 (due clodoo package)
-[IMP] odoo_shell.py: removed old code
-
-
-wok_code: 1.0.2.2 (2021-07-21)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: ignore setup directories
-[IMP] gen_readme.py: new parameter -L to set local language (def it_IT)
-[IMP] gen_readme.py: check for licenze incompatibility
-
-
-
-lisa: 0.3.1.14 (2021-07-21)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] lisa_bld: error for odoo 6.1 with server directory
-
-
-z0bug_odoo: 1.0.2.3 (2021-07-15)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] test data upgrade
-
-
-wok_code: 0.1.17.3 (2021-07-15)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] wget_odoo_repositories.py: best debug mode: check for branch
-
-
-python_plus: 1.0.1.1 (2021-07-15)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] vem: best odoo path findind
-
-
+>>>>>>> stash
 
 
 
@@ -574,7 +655,11 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
+<<<<<<< HEAD
 Last Update / Ultimo aggiornamento: 2021-09-09
+=======
+Last Update / Ultimo aggiornamento: 2021-10-05
+>>>>>>> stash
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

@@ -1,4 +1,8 @@
+<<<<<<< HEAD:wok_code/scripts/cvt_csv_coa.py
 #!/home/odoo/devel/venv/bin/python2
+=======
+#!/usr/bin/env python
+>>>>>>> stash:wok_code/cvt_csv_coa.py
 #  -*- coding: utf-8 -*-
 """
 usage: cvt_csv_coa.py [-h] -A ACTION -b ODOO_VER -f CSV_ODOO_VER [-n] [-q] [-V]
@@ -36,7 +40,11 @@ except ImportError:
 from clodoo import transodoo
 
 
+<<<<<<< HEAD:wok_code/scripts/cvt_csv_coa.py
 __version__ = "1.0.2.2"
+=======
+__version__ = "1.0.2.5"
+>>>>>>> stash:wok_code/cvt_csv_coa.py
 
 VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')
 msg_time = time.time()

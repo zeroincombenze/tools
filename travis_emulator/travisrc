@@ -2,10 +2,15 @@
 #
 # Common file for travis emulator scripts
 #
+<<<<<<< HEAD
 #__version__=1.0.2.99
+=======
+#__version__=1.0.2.1
+>>>>>>> stash
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
+<<<<<<< HEAD
 # READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 # export READLINK
 THIS=$(basename "$0")
@@ -16,6 +21,15 @@ for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $H
   [[ -n $PYPATH ]] && PYPATH=$(dirname $PYPATH) && break
 done
 PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and x.startswith('$HOME')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
+=======
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+>>>>>>> stash
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0lib/z0librc ]]; then
@@ -452,6 +466,7 @@ create_virtual_env() {
   [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
   [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
   hash -r
+<<<<<<< HEAD
   if [[ "$PRJNAME" == "Odoo" && ( ! -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$BRANCH) -lt 1632251000 ) ]]; then
     echo -e "\n\nCached virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH not found or expired!"
     [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
@@ -461,6 +476,19 @@ create_virtual_env() {
     echo -e "\n\nCached virtual environment $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!"
     run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIf"
     echo -e "\n\n"
+=======
+  if [[ "$PRJNAME" == "Odoo" && ( ! -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$BRANCH) -lt 1632550000 ) ]]; then
+    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH not found or expired!${CLR}"
+    [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
+    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH"
+    echo -e "\n\n"
+    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
+  elif [[ ! -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1632550000 ]]; then
+    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
+    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq"
+    echo -e "\n\n"
+    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
+>>>>>>> stash
   fi
   if [[ $TRAVIS == "true" || -d $TRAVIS_HOME ]]; then
     true
@@ -479,6 +507,7 @@ create_virtual_env() {
       opts=$(inherits_travis_opts "" "V")
       [[ $TRAVIS == "true" ]] || opts="$opts -f"
       run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
+      # run_traced "/home/odoo/devel/pypi/python_plus/python_plus/vem cp $VENVOPTS $opts -vvv $TRAVIS_SRC_VME $TRAVIS_HOME"   #debug
       sts=$?
     else
       if [[ "$PRJNAME" == "Odoo" && -n "$VERSION" ]]; then
@@ -504,9 +533,8 @@ create_virtual_env() {
     sts=$?
   fi
   [[ $sts -ne 0 ]] && return
-  [[ $TRAVIS_EMULATE_OSX == "true" ]] && set_osx
-  cd $TRAVIS_HOME
-  source bin/activate
+
+  run_traced "source $TRAVIS_HOME/bin/activate"
   [[ -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && source $NVM_DIR/nvm.sh
   if [ $opt_cache -ne 0 -a "$TRAVIS" == "false" -a -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]; then
     export PYPI_CACHED=$HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages/
@@ -1144,7 +1172,7 @@ clean_dirs() {
   for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
   o="-nowarn \("
   for x in $XXXX; do
-    [[ ! $x =~ (.conf|\*) ]] && cmd="$cmd $o -name '*$x'" && o="-o"
+    [[ ! $x =~ (.conf|\*|/)$ ]] && cmd="$cmd $o -name '*$x'" && o="-o"
     [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
   done
   run_traced "$cmd \) -exec rm -f '{}' \;"
@@ -1154,10 +1182,10 @@ do_summary() {
   # do_summary(bash,flake8,pylint,test)
   local RED="\e[1;31m"
   local GREEN="\e[1;32m"
-  local CLEAR="\e[${PS_TXT_COLOR}m"
-  echo -e "${CLEAR}+======================================="
-  echo -e "${CLEAR}|  Tests summary:"
-  echo -e "${CLEAR}|---------------------------------------"
+  local CLR="\e[${PS_TXT_COLOR}m"
+  echo -e "${CLR}+======================================="
+  echo -e "${CLR}|  Tests summary:"
+  echo -e "${CLR}|---------------------------------------"
   if [ "$PRJNAME" == "Odoo" ]; then
     local des=("" "test_bash" "test_flake8" "test_pylint" "test_server.py")
   else
@@ -1167,13 +1195,13 @@ do_summary() {
     if [ -n "${!i}" ]; then
       local x=$(printf "%-20.20s" "${des[$i]}")
       if [ ${!i} -eq $STS_SUCCESS ]; then
-        echo -e "${CLEAR}| $x        ${GREEN}Success${CLEAR}"
+        echo -e "${CLR}| $x        ${GREEN}Success${CLR}"
       elif [ ${!i} -ne 127 ]; then
-        echo -e "${CLEAR}| $x        ${RED}FAIL${CLEAR}"
+        echo -e "${CLR}| $x        ${RED}FAIL${CLR}"
       fi
     fi
   done
-  echo -e "${CLEAR}+=======================================\e[0m"
+  echo -e "${CLR}+=======================================\e[0m"
 }
 
 ant_rm_trap() {

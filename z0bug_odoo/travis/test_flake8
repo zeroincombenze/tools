@@ -6,7 +6,11 @@ import sys
 from .getaddons import get_modules
 
 
+<<<<<<< HEAD
 __version__ = '1.0.5.104'
+=======
+__version__ = '1.0.5.2'
+>>>>>>> stash
 
 
 def get_build_dir():
