@@ -76,7 +76,14 @@ Z0BUG_init
 parseoptest -l$TESTDIR/test_clodoo.log "$@"
 sts=$?
 [[ $sts -ne 127 ]] && exit $sts
-
+if [ ${opt_oeLib:-0} -ne 0 ]; then
+  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+  if [ -z "$ODOOLIBDIR" ]; then
+    echo "Library file odoorc not found!"
+    exit 2
+  fi
+  . $ODOOLIBDIR
+fi
 
 
 UT1_LIST=
