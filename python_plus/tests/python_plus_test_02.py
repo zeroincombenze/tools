@@ -16,11 +16,7 @@ MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-<<<<<<< HEAD
-__version__ = "1.0.3.99"
-=======
 __version__ = "1.0.3.7"
->>>>>>> stash
 
 
 def version():

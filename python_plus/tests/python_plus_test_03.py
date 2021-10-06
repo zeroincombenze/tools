@@ -25,11 +25,7 @@ parser.add_argument('-V')
 ctx = parser.parseoptargs(['-V'])
 """
 
-<<<<<<< HEAD
-__version__ = "1.0.3.99"
-=======
 __version__ = "1.0.3.7"
->>>>>>> stash
 
 
 def version():
