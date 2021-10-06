@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Package python_plus &#8212; tools 1.0.6.9 documentation</title>
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="package-python-plus">
+<h1>Package python_plus<a class="headerlink" href="#package-python-plus" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="python-supplemental-features">
+<h2>Python supplemental features<a class="headerlink" href="#python-supplemental-features" title="Permalink to this headline">¶</a></h2>
+<p>python_plus adds various features to python 2 and python 3 programs.
+It is designed to be used as follows:</p>
+<blockquote>
+<div><p><cite>&gt;&gt;&gt; from python_plus import _u, _b, isbytestr</cite></p>
+</div></blockquote>
+</div>
+<div class="section" id="code-examples">
+<h2>Code examples<a class="headerlink" href="#code-examples" title="Permalink to this headline">¶</a></h2>
+<p>Test if a string is unicode.</p>
+<p>On Py2, this gives us:</p>
+<blockquote>
+<div><p><cite>&gt;&gt;&gt; s = u’Hello World’</cite>
+<cite>&gt;&gt;&gt; isinstance(s, unicode)</cite>
+<cite>True</cite></p>
+</div></blockquote>
+<p>On Py3, this gives us:</p>
+<blockquote>
+<div><p><cite>&gt;&gt;&gt; s = ‘Hello World’</cite>
+<cite>&gt;&gt;&gt; isinstance(s, str)</cite>
+<cite>True</cite></p>
+</div></blockquote>
+<p>Then, for example, the following code has the same effect on Py2 as on Py3:</p>
+<blockquote>
+<div><p><cite>&gt;&gt;&gt; from python_plus import isbytestr</cite>
+<cite>&gt;&gt;&gt; s = ‘Hello World’</cite>
+<cite>&gt;&gt;&gt; isbytestr(s)</cite>
+<cite>True</cite></p>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Package python_plus</a><ul>
+<li><a class="reference internal" href="#python-supplemental-features">Python supplemental features</a></li>
+<li><a class="reference internal" href="#code-examples">Code examples</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pypi_python_plus/python_plus.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-20, SHS-AV s.r.l..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.2.
+    </div>
+  </body>
+</html>

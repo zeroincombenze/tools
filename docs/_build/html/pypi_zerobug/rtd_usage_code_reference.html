@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>&lt;no title&gt; &#8212; tools 1.0.6.9 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Code documentation" href="rtd_automodule.html" />
+    <link rel="prev" title="Code example" href="rtd_usage_code_example.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rtd_automodule.html" title="Code documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage_code_example.html" title="Code example"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Indices and tables</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">&lt;no title&gt;</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<p>Unit test can run in package directory or in ./tests directory of package.</p>
+<p>Every test can inquire internal context.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">this_fqn</span>      <span class="n">parent</span> <span class="n">caller</span> <span class="n">full</span> <span class="n">qualified</span> <span class="n">name</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">odoo</span><span class="o">/</span><span class="n">z0bug</span><span class="o">.</span><span class="n">pyc</span><span class="p">)</span>
+<span class="n">this</span>          <span class="n">parent</span> <span class="n">name</span><span class="p">,</span> <span class="n">w</span><span class="o">/</span><span class="n">o</span> <span class="n">extension</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">z0bug</span><span class="p">)</span>
+<span class="n">ctr</span>           <span class="n">test</span> <span class="n">counter</span> <span class="p">[</span><span class="n">both</span> <span class="n">bash</span> <span class="ow">and</span> <span class="n">python</span> <span class="n">tests</span><span class="p">]</span>
+<span class="n">dry_run</span>       <span class="n">dry</span><span class="o">-</span><span class="n">run</span> <span class="p">(</span><span class="n">do</span> <span class="n">nothing</span><span class="p">)</span> <span class="p">[</span><span class="n">opt_dry_run</span> <span class="ow">in</span> <span class="n">bash</span> <span class="n">test</span><span class="p">]</span>          <span class="s2">&quot;-n&quot;</span>
+<span class="n">esanity</span>       <span class="kc">True</span> <span class="k">if</span> <span class="n">required</span> <span class="n">sanity</span> <span class="n">check</span> <span class="k">with</span> <span class="n">echo</span>                  <span class="s2">&quot;-X&quot;</span>
+<span class="n">max_test</span>      <span class="c1"># of tests to execute [both bash and python tests]       &quot;-z&quot;</span>
+<span class="n">min_test</span>      <span class="c1"># of test executed before this one                       &quot;-r&quot;</span>
+<span class="n">on_error</span>      <span class="n">behavior</span> <span class="n">after</span> <span class="n">error</span><span class="p">,</span> <span class="s1">&#39;continue&#39;</span> <span class="ow">or</span> <span class="s1">&#39;raise&#39;</span> <span class="p">(</span><span class="n">default</span><span class="p">)</span>
+<span class="n">opt_echo</span>      <span class="kc">True</span> <span class="k">if</span> <span class="n">echo</span> <span class="n">test</span> <span class="n">result</span> <span class="n">onto</span> <span class="n">std</span> <span class="n">output</span>                 <span class="s2">&quot;-e&quot;</span>
+<span class="n">opt_new</span>       <span class="n">new</span> <span class="n">log</span> <span class="n">file</span> <span class="p">[</span><span class="n">both</span> <span class="n">bash</span> <span class="ow">and</span> <span class="n">python</span> <span class="n">tests</span><span class="p">]</span>                <span class="s2">&quot;-N&quot;</span>
+<span class="n">opt_noctr</span>     <span class="n">do</span> <span class="ow">not</span> <span class="n">count</span> <span class="c1"># tests [both bash and python tests]        &quot;-0&quot;</span>
+<span class="n">opt_verbose</span>   <span class="n">show</span> <span class="n">messages</span> <span class="n">during</span> <span class="n">execution</span>                           <span class="s2">&quot;-v&quot;</span>
+<span class="n">logfn</span>         <span class="n">real</span> <span class="n">trace</span> <span class="n">log</span> <span class="n">file</span> <span class="n">name</span> <span class="kn">from</span> <span class="nn">switch</span>                     <span class="s2">&quot;-l&quot;</span>
+<span class="n">qsanity</span>       <span class="kc">True</span> <span class="k">if</span> <span class="n">required</span> <span class="n">sanity</span> <span class="n">check</span> <span class="n">w</span><span class="o">/</span><span class="n">o</span> <span class="n">echo</span>                   <span class="s2">&quot;-x&quot;</span>
+<span class="n">run4cover</span>     <span class="n">Run</span> <span class="n">tests</span> <span class="k">for</span> <span class="n">coverage</span> <span class="p">(</span><span class="n">use</span> <span class="n">coverage</span> <span class="n">run</span> <span class="n">rather</span> <span class="n">python</span><span class="p">)</span>  <span class="s2">&quot;-C&quot;</span>
+<span class="n">python3</span>       <span class="n">Execute</span> <span class="n">test</span> <span class="ow">in</span> <span class="n">python3</span>                                  <span class="s2">&quot;-3&quot;</span>
+<span class="n">run_daemon</span>    <span class="kc">True</span> <span class="k">if</span> <span class="n">execution</span> <span class="n">w</span><span class="o">/</span><span class="n">o</span> <span class="n">tty</span> <span class="k">as</span> <span class="n">stdio</span>
+<span class="n">run_on_top</span>    <span class="n">Top</span> <span class="n">test</span> <span class="p">(</span><span class="ow">not</span> <span class="n">parent</span><span class="p">)</span>
+<span class="n">run_tty</span>       <span class="n">Opposite</span> <span class="n">of</span> <span class="n">run_daemon</span>
+<span class="n">tlog</span>          <span class="n">default</span> <span class="n">tracelog</span> <span class="n">file</span> <span class="n">name</span>
+<span class="n">_run_autotest</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">running</span> <span class="n">auto</span><span class="o">-</span><span class="n">test</span>
+<span class="n">_parser</span>       <span class="n">cmd</span> <span class="n">line</span> <span class="n">parser</span>
+<span class="n">_opt_obj</span>      <span class="n">parser</span> <span class="n">obj</span><span class="p">,</span> <span class="n">to</span> <span class="n">acquire</span> <span class="n">optional</span> <span class="n">switches</span>
+<span class="n">WLOGCMD</span>       <span class="n">override</span> <span class="n">opt_echo</span><span class="p">;</span> <span class="n">may</span> <span class="n">be</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;echo&#39;</span><span class="p">,</span> <span class="s1">&#39;echo-1&#39;</span><span class="p">,</span> <span class="s1">&#39;echo-0&#39;</span>
+<span class="n">Z0</span>            <span class="n">this</span> <span class="n">library</span> <span class="nb">object</span>
+</pre></div>
+</div>
+<p>Environment read:</p>
+<p>DEV_ENVIRONMENT Name of package; if set test is under travis emulator control</p>
+<dl class="simple">
+<dt>COVERAGE_PROCESS_START</dt><dd><p>Name of coverage conf file; if set test is running for coverage</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2021-10-05</p>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="rtd_usage_code_example.html"
+                        title="previous chapter">Code example</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="rtd_automodule.html"
+                        title="next chapter">Code documentation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pypi_zerobug/rtd_usage_code_reference.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rtd_automodule.html" title="Code documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage_code_example.html" title="Code example"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Indices and tables</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">&lt;no title&gt;</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-20, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

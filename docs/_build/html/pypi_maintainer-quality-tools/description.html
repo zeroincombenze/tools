@@ -1,0 +1,343 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>QA Tools for Odoo maintainers (MQT) &#8212; tools 1.0.6.9 documentation</title>
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="qa-tools-for-odoo-maintainers-mqt">
+<h1>QA Tools for Odoo maintainers (MQT)<a class="headerlink" href="#qa-tools-for-odoo-maintainers-mqt" title="Permalink to this headline">¶</a></h1>
+<p>The goal of Maintainer Quality Tools (MQT) is to provide helpers to ensure the quality of Odoo addons.</p>
+<p>Differences between this Zeroincombenze® MQT and standard OCA version:</p>
+<ul class="simple">
+<li>Zeroincombenze® MQT can also test Odoo 6.1 and 7.0; OCA MQT fails with these versions</li>
+<li>Zeroincombenze® MQT is designed to run in local environment too, using <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></li>
+<li>Zeroincombenze® MQT is designed to execute some debug statements (see below <em>MQT debug informations</em>)</li>
+<li>Zeroincombenze® MQT can run with reduced set of pylint tests (see below <em>LINT_CHECK_LEVEL</em>)</li>
+<li>Zeroincombenze® MQT can run with reduced set of Odoo tests (see below <em>ODOO_TEST_SELECT</em>)</li>
+<li>OCA MQT is the only component to build environment and test Odoo. Zeroincombenze® MQT is part of <a class="reference external" href="https://github.com/zeroincombenze/tools">Zeroincombenze® tools</a></li>
+<li>As per prior rule, building test environment is made by clodoo and lisa tools. These commands can also build a complete Odoo environment out of the box.</li>
+</ul>
+<p>Note you can execute OCA MQT if you prefer, setting follow statement in .travis.yml file:</p>
+<blockquote>
+<div>export MQT_TEST_MODE=oca</div></blockquote>
+<div class="section" id="sample-travis-configuration-file">
+<h2>Sample travis configuration file<a class="headerlink" href="#sample-travis-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>In order to setup TravisCI continuous integration for your project, just copy the
+content of the <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/maintainer-quality-tools/sample_files">sample_files</a>
+to your project’s root directory.</p>
+<p>If your project depends on other OCA or other Github repositories, create a file called <cite>oca_dependencies.txt</cite> at the root of your project and list the dependencies there. One per line like so:</p>
+<blockquote>
+<div>project_name optional_repository_url optional_branch_name</div></blockquote>
+<p>During testbed setup, MQT will automatically download and place these repositories accordingly into the addon path.
+Note on addons path ordering: They will be placed after your own repo, but before the odoo core repo.</p>
+<p>Warning: if missed optional_repository_url, OCA MQT loads OCA repository while Zeroincombenze® MQT searches for repository with the same owner of tested project.</p>
+</div>
+<div class="section" id="check-your-travis-file-for-syntax-issues">
+<h2>Check your .travis file for syntax issues.<a class="headerlink" href="#check-your-travis-file-for-syntax-issues" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="http://lint.travis-ci.org/">lint checker</a> of travis is off-line.</p>
+<p>If you downloaded <a class="reference external" href="https://github.com/zeroincombenze/tools">Zeroincombenze® tools</a>, you can create .travis.yml using <cite>topep8</cite> command.</p>
+</div>
+<div class="section" id="multiple-values-for-environment-variable-version">
+<h2>Multiple values for environment variable VERSION<a class="headerlink" href="#multiple-values-for-environment-variable-version" title="Permalink to this headline">¶</a></h2>
+<p>You can use branch or pull request into environment variable VERSION:</p>
+<blockquote>
+<div><p>Branch 10.0</p>
+<p>- VERSION=”10.0” ODOO_REPO=”odoo/odoo”</p>
+<p>Pull request odoo/odoo#143</p>
+<p>-  VERSION=”pull/143” ODOO_REPO=”odoo/odoo”</p>
+</div></blockquote>
+</div>
+<div class="section" id="using-custom-branch-inside-odoo-repository-using-odoo-branch">
+<h2>Using custom branch inside odoo repository using ODOO_BRANCH<a class="headerlink" href="#using-custom-branch-inside-odoo-repository-using-odoo-branch" title="Permalink to this headline">¶</a></h2>
+<p>You can use the custom branch into the ODOO_REPO using the environment variable ODOO_BRANCH:</p>
+<blockquote>
+<div><p>Branch saas-17</p>
+<p>- ODOO_REPO=”odoo/odoo” ODOO_BRANCH=”saas-17”</p>
+</div></blockquote>
+</div>
+<div class="section" id="module-unit-tests">
+<h2>Module unit tests<a class="headerlink" href="#module-unit-tests" title="Permalink to this headline">¶</a></h2>
+<p>MQT is also capable to test each module individually.
+The intention is to check if all dependencies are correctly defined.
+Activate it through the <cite>UNIT_TEST</cite> directive.
+An additional line should be added to the <cite>env:</cite> section,
+similar to this one:</p>
+<blockquote>
+<div>- VERSION=”8.0” UNIT_TEST=”1”</div></blockquote>
+</div>
+<div class="section" id="coveralls-codecov-configuration-file">
+<h2>Coveralls/Codecov configuration file<a class="headerlink" href="#coveralls-codecov-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://coveralls.io/">Coveralls</a> and <a class="reference external" href="https://codecov.io/">Codecov</a> services provide information on the test coverage of your modules.
+Currently both configurations are automatic (check default configuration <a class="reference external" href="cfg/.coveragerc">here</a>.
+So, as of today, you don’t need to include a <cite>.coveragerc</cite> into the repository,
+If you do it, it will be simply ignored.</p>
+<p><strong>NOTE:</strong> the current configuration automatically ignores <cite>*_example</cite> modules
+from coverage check.
+See <a class="reference external" href="https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md#tests">maintainer-tools CONTRIBUTING doc</a> for further info on tests.</p>
+</div>
+<div class="section" id="names-used-for-the-test-databases">
+<h2>Names used for the test databases<a class="headerlink" href="#names-used-for-the-test-databases" title="Permalink to this headline">¶</a></h2>
+<p>MQT has a nice feature of organizing your testing databases.
+You might want to do that if you want to double them up as
+staging DBs or if you want to work with an advanced set of
+templates in order to speed up your CI pipeline.
+Just specify at will:</p>
+<p><cite>MQT_TEMPLATE_DB=’mqt_odoo_template’ MQT_TEST_DB=’mqt_odoo_test’</cite>.</p>
+<p>Give us feedback on you experiences, and if you could share findings
+from your use case, there might be some grateful people around.</p>
+</div>
+<div class="section" id="isolated-pylint-flake8-checks">
+<h2>Isolated pylint+flake8 checks<a class="headerlink" href="#isolated-pylint-flake8-checks" title="Permalink to this headline">¶</a></h2>
+<p>If you want to make a build exclusive for these checks, you can add a line
+on the <cite>env:</cite> section of the .travis.yml file with this content:</p>
+<blockquote>
+<div>- VERSION=”7.0” LINT_CHECK=”1”</div></blockquote>
+<p>You will get a faster answer about these questions and also a fast view over
+semaphore icons in Travis build view.</p>
+<p>To avoid making again these checks on other builds, you have to add
+LINT_CHECK=”0” variable on the line:</p>
+<blockquote>
+<div>- VERSION=”7.0” ODOO_REPO=”odoo/odoo” LINT_CHECK=”0”</div></blockquote>
+</div>
+<div class="section" id="reduced-set-of-check">
+<h2>Reduced set of check<a class="headerlink" href="#reduced-set-of-check" title="Permalink to this headline">¶</a></h2>
+<p>You can execute reduced set of check, in order to gradually evolve your code quality
+when you meet too many errors.</p>
+<p>To enable reduced set of check add one of follow lines:</p>
+<blockquote>
+<div>- LINT_CHECK=”1” LINT_CHECK_LEVEL=”MINIMAL”
+- LINT_CHECK=”1” LINT_CHECK_LEVEL=”REDUCED”
+- LINT_CHECK=”1” LINT_CHECK_LEVEL=”AVERAGE”
+- LINT_CHECK=”1” LINT_CHECK_LEVEL=”NEARBY”</div></blockquote>
+<p>Look at follow table to understand which tests are disabled at specific level:</p>
+<p>FLAKE8 (see <a class="reference external" href="http://flake8.pycqa.org/en/latest/user/error-codes.html">http://flake8.pycqa.org/en/latest/user/error-codes.html</a> for deatils)</p>
+<p>PYLINT (see <a class="reference external" href="http://pylint-messages.wikidot.com/all-codes">http://pylint-messages.wikidot.com/all-codes</a> for details)</p>
+</div>
+<div class="section" id="reduced-set-of-modules-test">
+<h2>Reduced set of modules test<a class="headerlink" href="#reduced-set-of-modules-test" title="Permalink to this headline">¶</a></h2>
+<p>Last Odoo packages may fail in Travis CI or in local environment.
+Currently Odoo OCB core tests fail; we are investigating for causes.
+OCA workaround is following example statement:
+<cite>export INCLUDE=$(getaddons.py -m –only-applications ${TRAVIS_BUILD_DIR}/odoo/addons ${TRAVIS_BUILD_DIR}/addons)</cite></p>
+<p>You can execute reduced set of tests adding one of follow lines:</p>
+<blockquote>
+<div><ul class="simple">
+<li>TESTS=”1” ODOO_TEST_SELECT=”ALL”</li>
+<li>TESTS=”1” ODOO_TEST_SELECT=”NO-CORE”</li>
+<li>….</li>
+</ul>
+</div></blockquote>
+<p>Look at follow table to understand which set of tests are enabled or disabled:</p>
+</div>
+<div class="section" id="disable-pylint-and-or-flake8-checks">
+<h2>Disable pylint and/or flake8 checks<a class="headerlink" href="#disable-pylint-and-or-flake8-checks" title="Permalink to this headline">¶</a></h2>
+<p>You can disable some specific test or some file from lint checks.</p>
+<p>To disable flake8 checks on specific file you can add following line at the beginning of python file:</p>
+<p><cite># flake8: noqa</cite></p>
+<p>To disable pylint checks on specific file you can add following line at the beginning of python file:</p>
+<p><cite># pylint: skip-file</cite></p>
+<p>To disable both flake8 and pylint checks on specific file you can add following line at the beginning of python file:</p>
+<p><cite># flake8: noqa - pylint: skip-file</cite></p>
+<p>To disable pylint checks on specific XML file you can add following line in XML file after xml declaration:</p>
+<p><cite>&lt;!– pylint:disable=deprecated-data-xml-node –&gt;</cite></p>
+<p>You can also disable specific pylint check in some source part of python file adding a comment at the same statement to disable check. Here an example to disable sql error (notice comment must be at beginning of the statement):</p>
+<p><cite>self._cr.execute(      # pylint: disable=E8103</cite></p>
+</div>
+<div class="section" id="disable-test">
+<h2>Disable test<a class="headerlink" href="#disable-test" title="Permalink to this headline">¶</a></h2>
+<p>If you want to make a build without tests, you can use the following directive:
+<cite>TEST_ENABLE=”0”</cite></p>
+<p>You will simply get the databases with packages installed,
+but without running any tests.</p>
+</div>
+<div class="section" id="other-configurations">
+<h2>Other configurations<a class="headerlink" href="#other-configurations" title="Permalink to this headline">¶</a></h2>
+<p>You can highly customize you test: look at below table.</p>
+</div>
+<div class="section" id="mqt-debug-informations">
+<h2>MQT debug informations<a class="headerlink" href="#mqt-debug-informations" title="Permalink to this headline">¶</a></h2>
+<p>If you declare the following directive in &lt;env global&gt; section:
+<cite>TRAVIS_DEBUG_MODE=”n”</cite></p>
+<p>where “n” means:</p>
+<p>Note this feature does not work with OCA MQT. Local test and TravisCI test have slightly different behavior.</p>
+<p>When MQT is execute in local environment the value
+<cite>TRAVIS_DEBUG_MODE=”9”</cite></p>
+<p>does not execute unit test. It is used to debug MQT itself.</p>
+<p>See <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p>
+</div>
+<div class="section" id="some-differences-between-mqts">
+<h2>Some differences between MQTs<a class="headerlink" href="#some-differences-between-mqts" title="Permalink to this headline">¶</a></h2>
+<p>Zeroincombenze® MQT and standard MQT OCA have some different behaviour;
+see following sections documentation:</p>
+<p>Zeroincombenze® OCB use submodules. When test in starting, submodules should not be upgraded.
+Use this statements:
+<cite>- git:</cite>
+`  submodules: false`</p>
+<p>OCA does not use before_install section. Zeroincombenze® MQT requires before_install section like this:
+<cite>before_install:</cite>
+`  - export TRAVIS_DEBUG_MODE=”1”`</p>
+<p>Zeroincombenze® MQT set security environment. You have not to add security statements
+(with OCA MQT you must remove comment):
+<cite>#  - pip install urllib3[secure] –upgrade; true</cite></p>
+<p>Zeroincombenze® MQT do some code upgrade; using OCA MQT you must do these code by .travis.yml.
+When ODOO_TEST_SELECT=”APPLICATIONS”:
+<cite># sed -i “s/self.url_open(url)/self.url_open(url, timeout=100)/g” ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py;</cite>
+When ODOO_TEST_SELECT=”LOCALIZATION”:
+<cite># sed -i “/’_auto_install_l10n’/d” ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py</cite></p>
+</div>
+<div class="section" id="tree-directory">
+<h2>Tree directory<a class="headerlink" href="#tree-directory" title="Permalink to this headline">¶</a></h2>
+<p>While travis is running this is the tree directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>${HOME}
+|
+\___ build (by TravisCI)
+|    |
+|    \___ ${TRAVIS_BUILD_DIR}  (by TravisCI}
+|    |    # github tested project
+|    |
+|    \___ ${ODOO_REPO} (by travis_install_env / travis_install_nightly of .travis.yml)
+|         # same behavior of OCA MQT (2)
+|         # travis_install_env ignore this value, if OCB tested
+|         # Odoo or OCA/OCB to check compatibility of tested project
+|
+\___ maintainer-quality-tools (by .travis.yml) (1)
+|    # same behavior of OCA MQT
+|    # moved from ${HOME}/tools/maintainer-quality-tools
+|    |
+|    \___ travis (child of maintainer-quality-tools), in PATH
+|
+\___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
+|    # same behavior of OCA MQT
+|    # symlnk of ${HOME}/build/{ODOO_REPO}
+|    # Odoo or OCA repository to check with
+|
+\___ dependencies (by travis_install_env / travis_install_nightly of .travis.yml)
+|    # Odoo dependencies (2)
+|
+\___ tools (by .travis.yml)   # clone of this project
+     |
+     \___ maintainer-quality-tools (child of tools)
+          # moved to ${HOME}/maintainer-quality-tools
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(1) Done by .travis.yml in before install section with following statements:
+    - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
+    - mv ${HOME}/tools/maintainer-quality-tools ${HOME}
+    - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+    Above statements replace OCA statements:
+    - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
+    - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="n">Done</span> <span class="n">by</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">yml</span> <span class="ow">in</span> <span class="n">install</span> <span class="n">section</span> <span class="k">with</span> <span class="n">following</span> <span class="n">statements</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">travis_install_env</span>
+    <span class="n">Above</span> <span class="n">statements</span> <span class="n">replace</span> <span class="n">OCA</span> <span class="n">statements</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">travis_install_nightly</span>
+    <span class="n">You</span> <span class="n">can</span> <span class="n">create</span> <span class="n">OCA</span> <span class="n">environment</span> <span class="n">using</span> <span class="n">travis_install_nightly</span> <span class="k">with</span> <span class="n">follow</span> <span class="n">stattements</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">export</span> <span class="n">MQT_TEST_MODE</span><span class="o">=</span><span class="n">oca</span>
+    <span class="o">-</span> <span class="n">travis_install_env</span>
+    <span class="n">Or</span> <span class="k">else</span>
+    <span class="o">-</span> <span class="n">travis_install_env</span> <span class="n">oca</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">QA Tools for Odoo maintainers (MQT)</a><ul>
+<li><a class="reference internal" href="#sample-travis-configuration-file">Sample travis configuration file</a></li>
+<li><a class="reference internal" href="#check-your-travis-file-for-syntax-issues">Check your .travis file for syntax issues.</a></li>
+<li><a class="reference internal" href="#multiple-values-for-environment-variable-version">Multiple values for environment variable VERSION</a></li>
+<li><a class="reference internal" href="#using-custom-branch-inside-odoo-repository-using-odoo-branch">Using custom branch inside odoo repository using ODOO_BRANCH</a></li>
+<li><a class="reference internal" href="#module-unit-tests">Module unit tests</a></li>
+<li><a class="reference internal" href="#coveralls-codecov-configuration-file">Coveralls/Codecov configuration file</a></li>
+<li><a class="reference internal" href="#names-used-for-the-test-databases">Names used for the test databases</a></li>
+<li><a class="reference internal" href="#isolated-pylint-flake8-checks">Isolated pylint+flake8 checks</a></li>
+<li><a class="reference internal" href="#reduced-set-of-check">Reduced set of check</a></li>
+<li><a class="reference internal" href="#reduced-set-of-modules-test">Reduced set of modules test</a></li>
+<li><a class="reference internal" href="#disable-pylint-and-or-flake8-checks">Disable pylint and/or flake8 checks</a></li>
+<li><a class="reference internal" href="#disable-test">Disable test</a></li>
+<li><a class="reference internal" href="#other-configurations">Other configurations</a></li>
+<li><a class="reference internal" href="#mqt-debug-informations">MQT debug informations</a></li>
+<li><a class="reference internal" href="#some-differences-between-mqts">Some differences between MQTs</a></li>
+<li><a class="reference internal" href="#tree-directory">Tree directory</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pypi_maintainer-quality-tools/description.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-20, SHS-AV s.r.l..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
+    </div>
+  </body>
+</html>

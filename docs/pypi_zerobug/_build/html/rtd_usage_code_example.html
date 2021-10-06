@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code example &#8212; zerobug 1.0.2 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="&lt;no title&gt;" href="rtd_usage_code_reference.html" />
+    <link rel="prev" title="Usage" href="rtd_usage.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rtd_usage_code_reference.html" title="&lt;no title&gt;"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage.html" title="Usage"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">zerobug 1.0.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Code example</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<div class="section" id="code-example">
+<h1>Code example<a class="headerlink" href="#code-example" title="Permalink to this headline">¶</a></h1>
+<p><em>zerobug</em> makes avaiable following functions to test:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.setup(ctx)</cite> (python)</p>
+<p><cite>Z0BUG_setup</cite> (bash)</p>
+<p>Setup for test. It is called before all tests.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.teardown(ctx)</cite> (python)</p>
+<p><cite>Z0BUG_teardown</cite> (bash)</p>
+<p>Setup for test. It is called after all tests.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.build_os_tree(ctx, list_of_paths)</cite> (python)</p>
+<p><cite>Z0BUG_build_os_tree list_of_paths</cite> (bash)</p>
+<p>Build a full os tree from supplied list.
+If python, list of paths is a list of strings.
+If bash, list is one string of paths separated by spaces.
+Function reads list of paths and then create all directories.
+If directory is an absolute path, it is created with the supplied path.
+If directory is a relative path, the directory is created under “tests/res” directory.</p>
+<p>Warning!
+To check is made is parent dir does not exit. Please, supply path from parent
+to children, if you want to build a nested tree.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="k">import</span> <span class="n">Z0BUG</span>
+<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+
+    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;10.0&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;10.0/addons&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;10.0/odoo&#39;</span><span class="p">,]</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span><span class="o">.</span><span class="n">build_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">os_tree</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (bash)</span>
+<span class="n">Z0BUG_setup</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">Z0BUG_build_os_tree</span> <span class="s2">&quot;10.0 10.0/addons 10.0/odoo&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.remove_os_tree(ctx, list_of_paths)</cite> (python)</p>
+<p><cite>Z0BUG_remove_os_tree list_of_paths</cite> (bash)</p>
+<p>Remove a full os tree created by <cite>build_os_tree</cite>
+If python, list of paths is a list of strings.
+If bash, list is a string of paths separated by spaces.
+Function reads list of paths and remove all directories.
+If directory is an absolute path, the supplied path is dropped.
+If directory is a relative path, the directory is dropped from tests/res directory.</p>
+<p>Warning!
+This function remove directory and all sub-directories without any control.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="k">import</span> <span class="n">Z0BUG</span>
+<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+
+    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;10.0&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;10.0/addons&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;10.0/odoo&#39;</span><span class="p">,]</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span><span class="o">.</span><span class="n">remove_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">os_tree</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.build_odoo_env(ctx, version)</cite> (python)</p>
+<p>Like build_os_tree but create a specific odoo os tree.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="k">import</span> <span class="n">Z0BUG</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="k">import</span> <span class="n">Z0testOdoo</span>
+<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+
+    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">Z0testOdoo</span><span class="o">.</span><span class="n">build_odoo_env</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s1">&#39;10.0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.git_clone(remote, reponame, branch, odoo_path, force=None)</cite> (python)</p>
+<p>Execute git clone of <cite>remote:reponame:branch</cite> into local directory <cite>odoo_path</cite>.
+In local travis emulation, if repository uses local repository, if exists.
+Return odoo root directory</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="k">import</span> <span class="n">Z0BUG</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="k">import</span> <span class="n">Z0testOdoo</span>
+
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="k">import</span> <span class="n">Z0BUG</span>
+<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+
+    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="n">remote</span> <span class="o">=</span> <span class="s1">&#39;OCA&#39;</span>
+        <span class="n">reponame</span> <span class="o">=</span> <span class="s1">&#39;OCB&#39;</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="s1">&#39;10.0&#39;</span>
+        <span class="n">odoo_path</span> <span class="o">=</span> <span class="s1">&#39;/opt/odoo/10.0&#39;</span>
+        <span class="n">Z0testOdoo</span><span class="o">.</span><span class="n">git_clone</span><span class="p">(</span><span class="n">remote</span><span class="p">,</span> <span class="n">reponame</span><span class="p">,</span> <span class="n">branch</span><span class="p">,</span> <span class="n">odoo_path</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2021-10-05</p>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="rtd_usage.html"
+                        title="previous chapter">Usage</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="rtd_usage_code_reference.html"
+                        title="next chapter">&lt;no title&gt;</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_usage_code_example.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rtd_usage_code_reference.html" title="&lt;no title&gt;"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage.html" title="Usage"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">zerobug 1.0.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Code example</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-20, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

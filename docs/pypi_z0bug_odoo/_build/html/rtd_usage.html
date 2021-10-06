@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usage &#8212; z0bug_odoo 1.0.5.2 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Code documentation" href="rtd_automodule.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="rtd_installation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_automodule.html" title="Code documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_installation.html" title="&lt;no title&gt;"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 1.0.5.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<p>Code example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2017-19 - SHS-AV s.r.l. &lt;https://www.zeroincombenze.it&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).</span>
+<span class="c1">#</span>
+<span class="kn">from</span> <span class="nn">z0bug_odoo</span> <span class="k">import</span> <span class="n">test_common</span>
+
+<span class="k">class</span> <span class="nc">ExampleTest</span><span class="p">(</span><span class="n">test_common</span><span class="o">.</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ExampleTest</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_test_company</span><span class="p">()</span>
+        <span class="c1"># Assure 2 res.partner records</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_model_data</span><span class="p">(</span><span class="s1">&#39;res.partner&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;base.res_partner_2&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;z0bug.res_partner_2&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">test_example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">partner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">browse_ref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref612</span><span class="p">(</span><span class="s1">&#39;base.res_partner_2&#39;</span><span class="p">))</span>
+        <span class="n">partner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">browse_ref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref612</span><span class="p">(</span><span class="s1">&#39;z0bug.res_partner_2&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Following function are avaiable.</p>
+<p><cite>set_test_company(self)</cite></p>
+<p>Create or update company to test and assign it to current user as default company. This function should be put in setUp().</p>
+<p><cite>create_id(model, values)</cite></p>
+<p>Create a record of the model and return id (like Odoo 7.0- API).</p>
+<p><cite>create_rec(model, values)</cite></p>
+<p>Create a record of the model and return record itself (like Odoo 8.0+ API).</p>
+<p><cite>write_rec(model, id, values)</cite></p>
+<p>Write the record of model with passed id and return record itself.</p>
+<p><cite>browse_rec(model, id)</cite></p>
+<p>Return the record of model with passed id.</p>
+<p><cite>env612(model)</cite></p>
+<p>Return env/pool of model (like pool of Odoo 7.0- API or env of Odoo 8.0+ API)</p>
+<p><cite>ref_value(model, xid)</cite></p>
+<p>Return values of specific xid. If xid is Odoo standard xid, i.e. “base.res_partner_1”,
+return current record values that may be different from original demo data.
+If xid begins with “z0bug.” return default values even if they are update form previous tests.
+See valid xid from this document.</p>
+<p><cite>build_model_data(model, xrefs)</cite></p>
+<p>Assure records of model with reference list xrefs.
+For every item of xrefs, a record is created o updated.
+Function ref_value is used to retrieve values of each record (see above).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2017-19 - SHS-AV s.r.l. &lt;https://www.zeroincombenze.it&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).</span>
+<span class="c1">#</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="k">import</span> <span class="n">Z0testOdoo</span>
+
+<span class="k">class</span> <span class="nc">ExampleTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="nf">test_example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">Z0bugOdoo</span><span class="p">()</span><span class="o">.</span><span class="n">get_test_values</span><span class="p">(</span>
+            <span class="s1">&#39;res.partner&#39;</span><span class="p">,</span><span class="s1">&#39;z0bug.res_partner_1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><cite>get_test_values(self, model, xid)</cite></p>
+<p>Return values of specific xid. If xid is Odoo standard xid, i.e. “base.res_partner_1”,
+return empty dictionary.
+If xid begins with “z0bug.” return default values to use in test.
+This function is used by <cite>ref_value</cite> to get default values.
+Warning: returned values may contain some field of uninstalled module.</p>
+<p><cite>get_data_file(self, model, csv_fn)</cite></p>
+<p>Load data of model from csv_fn. Internal use only.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2021-08-31</p>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="rtd_installation.html"
+                        title="previous chapter">&lt;no title&gt;</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="rtd_automodule.html"
+                        title="next chapter">Code documentation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_automodule.html" title="Code documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_installation.html" title="&lt;no title&gt;"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 1.0.5.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-20, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

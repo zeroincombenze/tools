@@ -112,6 +112,12 @@ clodoo: 0.3.35 (2021-09-23)
 * [FIX] python 3
 
 
+lisa: 0.3.2.1 (2021-09-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] lisa_bld: value from config file
+
+
 wok_code: 1.0.2h (2021-08-31)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -121,7 +127,7 @@ wok_code: 1.0.2h (2021-08-31)
 wok_code: 1.0.2g (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] ct_csv_coa.py: new command to manage Odoo CoA
+[IMP] cvt_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
 
 
@@ -176,6 +182,7 @@ travis_emulator: 1.0.1.8 (2021-08-26)
 [IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
+[IMP] travis: switch -y forces python version
 
 
 odoo_score: 1.0.2 (2021-08-26)
@@ -249,13 +256,6 @@ wok_code: 1.0.2e (2021-08-08)
 
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
-
-
-travis_emulator: 1.0.1.4 (2021-08-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] devel_tools replaced by wok_code
-[IMP] travis: summary return 1 if test failed
 
 
 

@@ -1,0 +1,1297 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>maintainer-quality-tools 0.2.3.7 &#8212; tools 1.0.6.9 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">maintainer-quality-tools 0.2.3.7</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="maintainer-quality-tools-0-2-3-7">
+<h1>maintainer-quality-tools 0.2.3.7<a class="headerlink" href="#maintainer-quality-tools-0-2-3-7" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://odoo-community.org/page/development-status"><img alt="Alpha" src="https://img.shields.io/badge/maturity-Alfa-black.png" /></a> <a class="reference external" href="https://travis-ci.org/zeroincombenze/tools"><img alt="github.com" src="https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.3.7" /></a> <a class="reference external" href="https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.7"><img alt="Coverage" src="https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.7" /></a> <a class="reference external" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.svg" /></a></p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="qa-tools-for-odoo-maintainers-mqt">
+<h2>QA Tools for Odoo maintainers (MQT)<a class="headerlink" href="#qa-tools-for-odoo-maintainers-mqt" title="Permalink to this headline">¶</a></h2>
+<p>The goal of Maintainer Quality Tools (MQT) is to provide helpers to ensure the quality of Odoo addons.</p>
+<p>Differences between this Zeroincombenze® MQT and standard OCA version:</p>
+<ul class="simple">
+<li><p>Zeroincombenze® MQT can also test Odoo 6.1 and 7.0; OCA MQT fails with these versions</p></li>
+<li><p>Zeroincombenze® MQT is designed to run in local environment too, using <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p></li>
+<li><p>Zeroincombenze® MQT is designed to execute some debug statements (see below <em>MQT debug informations</em>)</p></li>
+<li><p>Zeroincombenze® MQT can run with reduced set of pylint tests (see below <em>LINT_CHECK_LEVEL</em>)</p></li>
+<li><p>Zeroincombenze® MQT can run with reduced set of Odoo tests (see below <em>ODOO_TEST_SELECT</em>)</p></li>
+<li><p>OCA MQT is the only component to build environment and test Odoo. Zeroincombenze® MQT is part of <a class="reference external" href="https://github.com/zeroincombenze/tools">Zeroincombenze® tools</a></p></li>
+<li><p>As per prior rule, building test environment is made by clodoo and lisa tools. These commands can also build a complete Odoo environment out of the box.</p></li>
+</ul>
+<p>Note you can execute OCA MQT if you prefer, setting follow statement in .travis.yml file:</p>
+<blockquote>
+<div><p>export MQT_TEST_MODE=oca</p>
+</div></blockquote>
+<div class="section" id="sample-travis-configuration-file">
+<h3>Sample travis configuration file<a class="headerlink" href="#sample-travis-configuration-file" title="Permalink to this headline">¶</a></h3>
+<p>In order to setup TravisCI continuous integration for your project, just copy the
+content of the <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/maintainer-quality-tools/sample_files">sample_files</a>
+to your project’s root directory.</p>
+<p>If your project depends on other OCA or other Github repositories, create a file called <cite>oca_dependencies.txt</cite> at the root of your project and list the dependencies there. One per line like so:</p>
+<blockquote>
+<div><p>project_name optional_repository_url optional_branch_name</p>
+</div></blockquote>
+<p>During testbed setup, MQT will automatically download and place these repositories accordingly into the addon path.
+Note on addons path ordering: They will be placed after your own repo, but before the odoo core repo.</p>
+<p>Warning: if missed optional_repository_url, OCA MQT loads OCA repository while Zeroincombenze® MQT searches for repository with the same owner of tested project.</p>
+</div>
+<div class="section" id="check-your-travis-file-for-syntax-issues">
+<h3>Check your .travis file for syntax issues.<a class="headerlink" href="#check-your-travis-file-for-syntax-issues" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference external" href="http://lint.travis-ci.org/">lint checker</a> of travis is off-line.</p>
+<p>If you downloaded <a class="reference external" href="https://github.com/zeroincombenze/tools">Zeroincombenze® tools</a>, you can create .travis.yml using <cite>topep8</cite> command.</p>
+</div>
+<div class="section" id="multiple-values-for-environment-variable-version">
+<h3>Multiple values for environment variable VERSION<a class="headerlink" href="#multiple-values-for-environment-variable-version" title="Permalink to this headline">¶</a></h3>
+<p>You can use branch or pull request into environment variable VERSION:</p>
+<blockquote>
+<div><p>Branch 10.0</p>
+<p>- VERSION=”10.0” ODOO_REPO=”odoo/odoo”</p>
+<p>Pull request odoo/odoo#143</p>
+<p>-  VERSION=”pull/143” ODOO_REPO=”odoo/odoo”</p>
+</div></blockquote>
+</div>
+<div class="section" id="using-custom-branch-inside-odoo-repository-using-odoo-branch">
+<h3>Using custom branch inside odoo repository using ODOO_BRANCH<a class="headerlink" href="#using-custom-branch-inside-odoo-repository-using-odoo-branch" title="Permalink to this headline">¶</a></h3>
+<p>You can use the custom branch into the ODOO_REPO using the environment variable ODOO_BRANCH:</p>
+<blockquote>
+<div><p>Branch saas-17</p>
+<p>- ODOO_REPO=”odoo/odoo” ODOO_BRANCH=”saas-17”</p>
+</div></blockquote>
+</div>
+<div class="section" id="module-unit-tests">
+<h3>Module unit tests<a class="headerlink" href="#module-unit-tests" title="Permalink to this headline">¶</a></h3>
+<p>MQT is also capable to test each module individually.
+The intention is to check if all dependencies are correctly defined.
+Activate it through the <cite>UNIT_TEST</cite> directive.
+An additional line should be added to the <cite>env:</cite> section,
+similar to this one:</p>
+<blockquote>
+<div><p>- VERSION=”8.0” UNIT_TEST=”1”</p>
+</div></blockquote>
+</div>
+<div class="section" id="coveralls-codecov-configuration-file">
+<h3>Coveralls/Codecov configuration file<a class="headerlink" href="#coveralls-codecov-configuration-file" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://coveralls.io/">Coveralls</a> and <a class="reference external" href="https://codecov.io/">Codecov</a> services provide information on the test coverage of your modules.
+Currently both configurations are automatic (check default configuration <a class="reference external" href="cfg/.coveragerc">here</a>.
+So, as of today, you don’t need to include a <cite>.coveragerc</cite> into the repository,
+If you do it, it will be simply ignored.</p>
+<p><strong>NOTE:</strong> the current configuration automatically ignores <cite>*_example</cite> modules
+from coverage check.
+See <a class="reference external" href="https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md#tests">maintainer-tools CONTRIBUTING doc</a> for further info on tests.</p>
+</div>
+<div class="section" id="names-used-for-the-test-databases">
+<h3>Names used for the test databases<a class="headerlink" href="#names-used-for-the-test-databases" title="Permalink to this headline">¶</a></h3>
+<p>MQT has a nice feature of organizing your testing databases.
+You might want to do that if you want to double them up as
+staging DBs or if you want to work with an advanced set of
+templates in order to speed up your CI pipeline.
+Just specify at will:</p>
+<p><cite>MQT_TEMPLATE_DB=’mqt_odoo_template’ MQT_TEST_DB=’mqt_odoo_test’</cite>.</p>
+<p>Give us feedback on you experiences, and if you could share findings
+from your use case, there might be some grateful people around.</p>
+</div>
+<div class="section" id="isolated-pylint-flake8-checks">
+<h3>Isolated pylint+flake8 checks<a class="headerlink" href="#isolated-pylint-flake8-checks" title="Permalink to this headline">¶</a></h3>
+<p>If you want to make a build exclusive for these checks, you can add a line
+on the <cite>env:</cite> section of the .travis.yml file with this content:</p>
+<blockquote>
+<div><p>- VERSION=”7.0” LINT_CHECK=”1”</p>
+</div></blockquote>
+<p>You will get a faster answer about these questions and also a fast view over
+semaphore icons in Travis build view.</p>
+<p>To avoid making again these checks on other builds, you have to add
+LINT_CHECK=”0” variable on the line:</p>
+<blockquote>
+<div><p>- VERSION=”7.0” ODOO_REPO=”odoo/odoo” LINT_CHECK=”0”</p>
+</div></blockquote>
+</div>
+<div class="section" id="reduced-set-of-check">
+<h3>Reduced set of check<a class="headerlink" href="#reduced-set-of-check" title="Permalink to this headline">¶</a></h3>
+<p>You can execute reduced set of check, in order to gradually evolve your code quality
+when you meet too many errors.</p>
+<p>To enable reduced set of check add one of follow lines:</p>
+<blockquote>
+<div><p>- LINT_CHECK=”1” LINT_CHECK_LEVEL=”MINIMAL”
+- LINT_CHECK=”1” LINT_CHECK_LEVEL=”REDUCED”
+- LINT_CHECK=”1” LINT_CHECK_LEVEL=”AVERAGE”
+- LINT_CHECK=”1” LINT_CHECK_LEVEL=”NEARBY”</p>
+</div></blockquote>
+<p>Look at follow table to understand which tests are disabled at specific level:</p>
+<p>FLAKE8 (see <a class="reference external" href="http://flake8.pycqa.org/en/latest/user/error-codes.html">http://flake8.pycqa.org/en/latest/user/error-codes.html</a> for deatils)</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 3%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 5%" />
+<col style="width: 4%" />
+<col style="width: 6%" />
+<col style="width: 69%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Test</p></td>
+<td><p>MINIMAL</p></td>
+<td><p>REDUCED</p></td>
+<td><p>AVERAGE</p></td>
+<td><p>NEARBY</p></td>
+<td><p>OCA</p></td>
+<td><p>Note</p></td>
+</tr>
+<tr class="row-even"><td><p>E117</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p>over-indented</p></td>
+</tr>
+<tr class="row-odd"><td><p>E121</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E121.html">continuation line under-indented for hanging indent</a></p></td>
+</tr>
+<tr class="row-even"><td><p>E123</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E123.html">Closing bracket does not match indentation of opening bracket’s line</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>E124</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E124.html">Closing bracket does not match visual indentation</a></p></td>
+</tr>
+<tr class="row-even"><td><p>E126</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E126.html">Continuation line over-indented for hanging indent</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>E127</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E127.html">continuation line over-indented for visual indent</a></p></td>
+</tr>
+<tr class="row-even"><td><p>E128</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E128.html">Continuation line under-indented for visual indent</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>E131</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E131.html">continuation line unaligned for hanging indent</a></p></td>
+</tr>
+<tr class="row-even"><td><p>E133</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E133.html">Closing bracket is missing indentation</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>E201</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E201.html">Whitespace after ‘(‘</a></p></td>
+</tr>
+<tr class="row-even"><td><p>E202</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E202.html">Whitespace before ‘)’</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>E203</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E203.html">Whitespace before ‘:’</a></p></td>
+</tr>
+<tr class="row-even"><td><p>E211</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E211.html">whitespace before ‘(‘</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>E221</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E221.html">Multiple spaces before operator</a></p></td>
+</tr>
+<tr class="row-even"><td><p>E222</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>E225</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>E226</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>E231</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>E241</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>E242</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>E251</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>E261</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>E262</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>E265</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>E266</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E266.html">too many leading ‘#’ for block comment</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>E271</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E271.html">multiple spaces after keyword</a></p></td>
+</tr>
+<tr class="row-even"><td><p>E272</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E272.html">multiple spaces before keyword</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>W291</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>W292</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/W292.html">no newline at end of file</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>W293</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>E301</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E301.html">Expected 1 blank line</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>E302</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>No __init__.py</p></td>
+</tr>
+<tr class="row-even"><td><p>E303</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>E305</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>W391</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>blank line at end of file</p></td>
+</tr>
+<tr class="row-odd"><td><p>F401</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p>module imported but unused</p></td>
+</tr>
+<tr class="row-even"><td><p>E501</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>E502</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E502.html">the backslash is redundant between brackets</a></p></td>
+</tr>
+<tr class="row-even"><td><p>W503</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p>No __init__.py</p></td>
+</tr>
+<tr class="row-odd"><td><p>W504</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p>No __init__.py</p></td>
+</tr>
+<tr class="row-even"><td><p>F601</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p>dictionary key name repeated with different values</p></td>
+</tr>
+<tr class="row-odd"><td><p>E701</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>multiple statements on one line (colon)</p></td>
+</tr>
+<tr class="row-even"><td><p>E722</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>do not use bare except</p></td>
+</tr>
+<tr class="row-odd"><td><p>F811</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p>redefinition of unused name from line N (No __init__.py)</p></td>
+</tr>
+<tr class="row-even"><td><p>F841</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/F841.html">local variable ‘context’ is assigned to but never used</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>PYLINT (see <a class="reference external" href="http://pylint-messages.wikidot.com/all-codes">http://pylint-messages.wikidot.com/all-codes</a> for details)</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 9%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 61%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Test</p></td>
+<td><p>MINIMAL</p></td>
+<td><p>REDUCED</p></td>
+<td><p>AVERAGE</p></td>
+<td><p>NEARBY</p></td>
+<td><p>OCA</p></td>
+<td><p>Notes</p></td>
+</tr>
+<tr class="row-even"><td><p>W0101</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="http://pylint-messages.wikidot.com/messages:w0101">unreachable</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>W0312</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="http://pylint-messages.wikidot.com/messages:w0312">wrong-tabs-instead-of-spaces</a></p></td>
+</tr>
+<tr class="row-even"><td><p>W0403</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>relative-import</p></td>
+</tr>
+<tr class="row-odd"><td><p>W1401</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>anomalous-backslash-in-string</p></td>
+</tr>
+<tr class="row-even"><td><p>E7901</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://pypi.org/project/pylint-odoo/1.4.0">rst-syntax-error</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>C7902</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>missing-readme</p></td>
+</tr>
+<tr class="row-even"><td><p>W7903</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>javascript-lint</p></td>
+</tr>
+<tr class="row-odd"><td><p>W7908</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>missing-newline-extrafiles</p></td>
+</tr>
+<tr class="row-even"><td><p>W7909</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>redundant-modulename-xml</p></td>
+</tr>
+<tr class="row-odd"><td><p>W7910</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>wrong-tabs-instead-of-spaces</p></td>
+</tr>
+<tr class="row-even"><td><p>W7930</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://pypi.org/project/pylint-odoo/1.4.0">file-not-used</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>W7935</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>missing-import-error</p></td>
+</tr>
+<tr class="row-even"><td><p>W7940</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>dangerous-view-replace-wo-priority</p></td>
+</tr>
+<tr class="row-odd"><td><p>W7950</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>odoo-addons-relative-import</p></td>
+</tr>
+<tr class="row-even"><td><p>E8102</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>invalid-commit</p></td>
+</tr>
+<tr class="row-odd"><td><p>C8103</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://pypi.org/project/pylint-odoo/1.4.0">manifest-deprecated-key</a></p></td>
+</tr>
+<tr class="row-even"><td><p>W8103</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>translation-field</p></td>
+</tr>
+<tr class="row-odd"><td><p>C8104</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://pypi.org/project/pylint-odoo/1.4.0">class-camelcase</a></p></td>
+</tr>
+<tr class="row-even"><td><p>W8104</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>api-one-deprecated</p></td>
+</tr>
+<tr class="row-odd"><td><p>C8105</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><a class="reference external" href="https://pypi.org/project/pylint-odoo/1.4.0">license-allowed</a></p></td>
+</tr>
+<tr class="row-even"><td><p>C8108</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>method-compute</p></td>
+</tr>
+<tr class="row-odd"><td><p>R8110</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>old-api7-method-defined</p></td>
+</tr>
+<tr class="row-even"><td><p>W8202</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>use-vim-comment</p></td>
+</tr>
+<tr class="row-odd"><td><p>N/A</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>sql-injection</p></td>
+</tr>
+<tr class="row-even"><td><p>N/A</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>duplicate-id-csv</p></td>
+</tr>
+<tr class="row-odd"><td><p>N/A</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>create-user-wo-reset-password</p></td>
+</tr>
+<tr class="row-even"><td><p>N/A</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>dangerous-view-replace-wo-priority</p></td>
+</tr>
+<tr class="row-odd"><td><p>N/A</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>translation-required</p></td>
+</tr>
+<tr class="row-even"><td><p>N/A</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>duplicate-xml-record-id</p></td>
+</tr>
+<tr class="row-odd"><td><p>N/A</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>no-utf8-coding-comment</p></td>
+</tr>
+<tr class="row-even"><td><p>N/A</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>attribute-deprecated</p></td>
+</tr>
+<tr class="row-odd"><td><p>N/A</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>consider-merging-classes-inherited</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reduced-set-of-modules-test">
+<h3>Reduced set of modules test<a class="headerlink" href="#reduced-set-of-modules-test" title="Permalink to this headline">¶</a></h3>
+<p>Last Odoo packages may fail in Travis CI or in local environment.
+Currently Odoo OCB core tests fail; we are investigating for causes.
+OCA workaround is following example statement:
+<cite>export INCLUDE=$(getaddons.py -m –only-applications ${TRAVIS_BUILD_DIR}/odoo/addons ${TRAVIS_BUILD_DIR}/addons)</cite></p>
+<p>You can execute reduced set of tests adding one of follow lines:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>TESTS=”1” ODOO_TEST_SELECT=”ALL”</p></li>
+<li><p>TESTS=”1” ODOO_TEST_SELECT=”NO-CORE”</p></li>
+<li><p>.…</p></li>
+</ul>
+</div></blockquote>
+<p>Look at follow table to understand which set of tests are enabled or disabled:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 16%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+<col style="width: 27%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>statement</p></td>
+<td><p>application</p></td>
+<td><p>module l10n_*</p></td>
+<td><p>odoo/addons</p></td>
+<td><p>addons + dependenci</p></td>
+</tr>
+<tr class="row-even"><td><p>ALL</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>APPLICATIONS</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p>Only if application</p></td>
+</tr>
+<tr class="row-even"><td><p>LOCALIZATION</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p>Only module l10n_*</p></td>
+</tr>
+<tr class="row-odd"><td><p>CORE</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>NO-APPLICATION</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>No if application</p></td>
+</tr>
+<tr class="row-odd"><td><p>NO-LOCALIZATION</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>No if module l10n_*</p></td>
+</tr>
+<tr class="row-even"><td><p>NO-CORE</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="disable-pylint-and-or-flake8-checks">
+<h3>Disable pylint and/or flake8 checks<a class="headerlink" href="#disable-pylint-and-or-flake8-checks" title="Permalink to this headline">¶</a></h3>
+<p>You can disable some specific test or some file from lint checks.</p>
+<p>To disable flake8 checks on specific file you can add following line at the beginning of python file:</p>
+<p><cite># flake8: noqa</cite></p>
+<p>To disable pylint checks on specific file you can add following line at the beginning of python file:</p>
+<p><cite># pylint: skip-file</cite></p>
+<p>To disable both flake8 and pylint checks on specific file you can add following line at the beginning of python file:</p>
+<p><cite># flake8: noqa - pylint: skip-file</cite></p>
+<p>To disable pylint checks on specific XML file you can add following line in XML file after xml declaration:</p>
+<p><cite>&lt;!– pylint:disable=deprecated-data-xml-node –&gt;</cite></p>
+<p>You can also disable specific pylint check in some source part of python file adding a comment at the same statement to disable check. Here an example to disable sql error (notice comment must be at beginning of the statement):</p>
+<p><cite>self._cr.execute(      # pylint: disable=E8103</cite></p>
+</div>
+<div class="section" id="disable-test">
+<h3>Disable test<a class="headerlink" href="#disable-test" title="Permalink to this headline">¶</a></h3>
+<p>If you want to make a build without tests, you can use the following directive:
+<cite>TEST_ENABLE=”0”</cite></p>
+<p>You will simply get the databases with packages installed,
+but without running any tests.</p>
+</div>
+<div class="section" id="other-configurations">
+<h3>Other configurations<a class="headerlink" href="#other-configurations" title="Permalink to this headline">¶</a></h3>
+<p>You can highly customize you test: look at below table.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 21%" />
+<col style="width: 57%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>variable</p></td>
+<td><p>default value</p></td>
+<td><p>meaning</p></td>
+</tr>
+<tr class="row-even"><td><p>DATA_DIR</p></td>
+<td><p>~/data_dir</p></td>
+<td><p>Odoo data directory (data_dir in config file)</p></td>
+</tr>
+<tr class="row-odd"><td><p>EXCLUDE</p></td>
+<td></td>
+<td><p>Modules to exclude from test</p></td>
+</tr>
+<tr class="row-even"><td><p>INCLUDE</p></td>
+<td></td>
+<td><p>Modules to test (all</p></td>
+</tr>
+<tr class="row-odd"><td><p>INSTALL_OPTIONS</p></td>
+<td></td>
+<td><p>Options passed to odoo-bin/openerp-server to install modules</p></td>
+</tr>
+<tr class="row-even"><td><p>MQT_TEMPLATE_DB</p></td>
+<td></td>
+<td><p>Read above</p></td>
+</tr>
+<tr class="row-odd"><td><p>MQT_TEST_DB</p></td>
+<td></td>
+<td><p>Read above</p></td>
+</tr>
+<tr class="row-even"><td><p>ODOO_REPO</p></td>
+<td><p>odoo/odoo</p></td>
+<td><p>OCB repository against test repository</p></td>
+</tr>
+<tr class="row-odd"><td><p>ODOO_TEST_SELECT</p></td>
+<td><p>ALL</p></td>
+<td><p>Read above</p></td>
+</tr>
+<tr class="row-even"><td><p>ODOO_TNLBOT</p></td>
+<td><p>0</p></td>
+<td><p>No yet documented</p></td>
+</tr>
+<tr class="row-odd"><td><p>OPTIONS</p></td>
+<td></td>
+<td><p>Options passed to odoo-bin/openerp-server to execute tests</p></td>
+</tr>
+<tr class="row-even"><td><p>PHANTOMJS_VERSION</p></td>
+<td></td>
+<td><p>Version of PhantomJS</p></td>
+</tr>
+<tr class="row-odd"><td><p>PYPI_RUN_PYVER</p></td>
+<td><p>(2.7|3.5|3.6|3.7|3.8)</p></td>
+<td><p>python versions to run (only PYPI projects)</p></td>
+</tr>
+<tr class="row-even"><td><p>SERVER_EXPECTED_ERRORS</p></td>
+<td></td>
+<td><p># of expected errors after tests</p></td>
+</tr>
+<tr class="row-odd"><td><p>TRAVIS_DEBUG_MODE</p></td>
+<td><p>0</p></td>
+<td><p>Read above</p></td>
+</tr>
+<tr class="row-even"><td><p>TRAVIS_PDB</p></td>
+<td></td>
+<td><p>Activate pdb to local test (experimental)</p></td>
+</tr>
+<tr class="row-odd"><td><p>UNBUFFER</p></td>
+<td><p>True</p></td>
+<td><p>Use unbuffer (colors) to log results</p></td>
+</tr>
+<tr class="row-even"><td><p>UNIT_TEST</p></td>
+<td></td>
+<td><p>Read above</p></td>
+</tr>
+<tr class="row-odd"><td><p>TEST</p></td>
+<td></td>
+<td><p>Read above</p></td>
+</tr>
+<tr class="row-even"><td><p>VERSION</p></td>
+<td></td>
+<td><p>Odoo version to test (see above)</p></td>
+</tr>
+<tr class="row-odd"><td><p>WEBSITE_REPO</p></td>
+<td></td>
+<td><p>Load package for website tests</p></td>
+</tr>
+<tr class="row-even"><td><p>WKHTMLTOPDF_VERSION</p></td>
+<td><p>0.12.4</p></td>
+<td><p>Version of wkhtmltopdf (value are 0.12.1 and 0.12.5)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="mqt-debug-informations">
+<h3>MQT debug informations<a class="headerlink" href="#mqt-debug-informations" title="Permalink to this headline">¶</a></h3>
+<p>If you declare the following directive in &lt;env global&gt; section:
+<cite>TRAVIS_DEBUG_MODE=”n”</cite></p>
+<p>where “n” means:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 11%" />
+<col style="width: 16%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Parameter</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+<td><p>9</p></td>
+</tr>
+<tr class="row-even"><td><p>Informative messages</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>Inspect internal data</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>MQT tests</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>Installation log level</p></td>
+<td><p>ERROR</p></td>
+<td><p>WARN</p></td>
+<td><p>INFO</p></td>
+<td><p>INFO</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>Execution log level</p></td>
+<td><p>INFO</p></td>
+<td><p>TEST</p></td>
+<td><p>TEST</p></td>
+<td><p>TEST</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+</tr>
+</tbody>
+</table>
+<p>Note this feature does not work with OCA MQT. Local test and TravisCI test have slightly different behavior.</p>
+<p>When MQT is execute in local environment the value
+<cite>TRAVIS_DEBUG_MODE=”9”</cite></p>
+<p>does not execute unit test. It is used to debug MQT itself.</p>
+<p>See <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p>
+</div>
+<div class="section" id="some-differences-between-mqts">
+<h3>Some differences between MQTs<a class="headerlink" href="#some-differences-between-mqts" title="Permalink to this headline">¶</a></h3>
+<p>Zeroincombenze® MQT and standard MQT OCA have some different behaviour;
+see following sections documentation:</p>
+<p>Zeroincombenze® OCB use submodules. When test in starting, submodules should not be upgraded.
+Use this statements:
+<cite>- git:</cite>
+`  submodules: false`</p>
+<p>OCA does not use before_install section. Zeroincombenze® MQT requires before_install section like this:
+<cite>before_install:</cite>
+`  - export TRAVIS_DEBUG_MODE=”1”`</p>
+<p>Zeroincombenze® MQT set security environment. You have not to add security statements
+(with OCA MQT you must remove comment):
+<cite>#  - pip install urllib3[secure] –upgrade; true</cite></p>
+<p>Zeroincombenze® MQT do some code upgrade; using OCA MQT you must do these code by .travis.yml.
+When ODOO_TEST_SELECT=”APPLICATIONS”:
+<cite># sed -i “s/self.url_open(url)/self.url_open(url, timeout=100)/g” ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py;</cite>
+When ODOO_TEST_SELECT=”LOCALIZATION”:
+<cite># sed -i “/’_auto_install_l10n’/d” ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py</cite></p>
+</div>
+<div class="section" id="tree-directory">
+<h3>Tree directory<a class="headerlink" href="#tree-directory" title="Permalink to this headline">¶</a></h3>
+<p>While travis is running this is the tree directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>${HOME}
+|
+|___ build (by TravisCI)
+|    |
+|    |___ ${TRAVIS_BUILD_DIR}  (by TravisCI)
+|    |    # testing project repository
+|    |
+|    \___ ${ODOO_REPO} (by travis_install_env / travis_install_nightly of .travis.yml)
+|         # Odoo or OCA/OCB repository to check compatibility of testing project
+|         # same behavior of OCA MQT (2)
+|         # if testing OCB, travis_install_env ignore this directory
+|
+|___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
+|    # same behavior of OCA MQT
+|    # symlnk of ${HOME}/build/{ODOO_REPO}
+|    # Odoo or OCA repository to check with
+|
+|___ dependencies (by travis_install_env / travis_install_nightly of .travis.yml)
+|    # Odoo dependencies (2)
+|
+\___ tools (by .travis.yml)   # clone of this project
+     |
+     \___ maintainer-quality-tools (by .travis.yml) (1)
+          # same behavior of OCA MQT
+          |
+          \___ travis (child of maintainer-quality-tools), in PATH
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(1) Done by .travis.yml in before install section with following statements:
+    - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
+    - mv ${HOME}/tools/maintainer-quality-tools ${HOME}
+    - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+    Above statements replace OCA statements:
+    - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
+    - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="n">Done</span> <span class="n">by</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">yml</span> <span class="ow">in</span> <span class="n">install</span> <span class="n">section</span> <span class="k">with</span> <span class="n">following</span> <span class="n">statements</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">travis_install_env</span>
+    <span class="n">Above</span> <span class="n">statements</span> <span class="n">replace</span> <span class="n">OCA</span> <span class="n">statements</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">travis_install_nightly</span>
+    <span class="n">You</span> <span class="n">can</span> <span class="n">also</span> <span class="n">create</span> <span class="n">OCA</span> <span class="n">environment</span> <span class="n">using</span> <span class="n">travis_install_nightly</span> <span class="k">with</span> <span class="n">follow</span> <span class="n">statements</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">export</span> <span class="n">MQT_TEST_MODE</span><span class="o">=</span><span class="n">oca</span>
+    <span class="o">-</span> <span class="n">travis_install_env</span>
+    <span class="n">Or</span> <span class="k">else</span>
+    <span class="o">-</span> <span class="n">travis_install_env</span> <span class="n">oca</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="getting-started">
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="stable-version-via-python-package">
+<h4>Stable version via Python Package<a class="headerlink" href="#stable-version-via-python-package" title="Permalink to this headline">¶</a></h4>
+<dl class="simple">
+<dt>::</dt><dd><p>pip install maintainer-quality-tools</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="current-version-via-git">
+<h4>Current version via Git<a class="headerlink" href="#current-version-via-git" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $HOME
+git clone https://github.com/zeroincombenze/tools.git
+cd ./tools
+./install_tools.sh -p
+source /opt/odoo/devel/activate_tools
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="credits">
+<h2>Credits<a class="headerlink" href="#credits" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="copyright">
+<h3>Copyright<a class="headerlink" href="#copyright" title="Permalink to this headline">¶</a></h3>
+<p>SHS-AV s.r.l. &lt;<a class="reference external" href="https://www.shs-av.com/">https://www.shs-av.com/</a>&gt;</p>
+</div>
+<div class="section" id="contributors">
+<h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Antonio Maria Vigliotti &lt;<a class="reference external" href="mailto:antoniomaria&#46;vigliotti&#37;&#52;&#48;gmail&#46;com">antoniomaria<span>&#46;</span>vigliotti<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p></li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2020-07-31</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">maintainer-quality-tools 0.2.3.7</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#qa-tools-for-odoo-maintainers-mqt">QA Tools for Odoo maintainers (MQT)</a><ul>
+<li><a class="reference internal" href="#sample-travis-configuration-file">Sample travis configuration file</a></li>
+<li><a class="reference internal" href="#check-your-travis-file-for-syntax-issues">Check your .travis file for syntax issues.</a></li>
+<li><a class="reference internal" href="#multiple-values-for-environment-variable-version">Multiple values for environment variable VERSION</a></li>
+<li><a class="reference internal" href="#using-custom-branch-inside-odoo-repository-using-odoo-branch">Using custom branch inside odoo repository using ODOO_BRANCH</a></li>
+<li><a class="reference internal" href="#module-unit-tests">Module unit tests</a></li>
+<li><a class="reference internal" href="#coveralls-codecov-configuration-file">Coveralls/Codecov configuration file</a></li>
+<li><a class="reference internal" href="#names-used-for-the-test-databases">Names used for the test databases</a></li>
+<li><a class="reference internal" href="#isolated-pylint-flake8-checks">Isolated pylint+flake8 checks</a></li>
+<li><a class="reference internal" href="#reduced-set-of-check">Reduced set of check</a></li>
+<li><a class="reference internal" href="#reduced-set-of-modules-test">Reduced set of modules test</a></li>
+<li><a class="reference internal" href="#disable-pylint-and-or-flake8-checks">Disable pylint and/or flake8 checks</a></li>
+<li><a class="reference internal" href="#disable-test">Disable test</a></li>
+<li><a class="reference internal" href="#other-configurations">Other configurations</a></li>
+<li><a class="reference internal" href="#mqt-debug-informations">MQT debug informations</a></li>
+<li><a class="reference internal" href="#some-differences-between-mqts">Some differences between MQTs</a></li>
+<li><a class="reference internal" href="#tree-directory">Tree directory</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#getting-started">Getting started</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a><ul>
+<li><a class="reference internal" href="#stable-version-via-python-package">Stable version via Python Package</a></li>
+<li><a class="reference internal" href="#current-version-via-git">Current version via Git</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#credits">Credits</a><ul>
+<li><a class="reference internal" href="#copyright">Copyright</a></li>
+<li><a class="reference internal" href="#contributors">Contributors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pypi_maintainer-quality-tools/MAINPAGE.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">maintainer-quality-tools 0.2.3.7</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-20, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

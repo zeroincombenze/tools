@@ -239,101 +239,11 @@ Current development version
 History
 -------
 
-<<<<<<< HEAD
-zerobug: 1.0.2.2 (2021-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis level update
-
-
-z0bug_odoo: 1.0.4.4 (2021-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis level update
-
-
-travis_emulator: 1.0.2.1 (2021-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] travis: switch -y forces python version
-
-
-clodoo: 0.3.31.5 (2021-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] clodoo.py python2 migration
-
-
-zerobug: 1.0.2.1 (2021-09-04)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] z0testlib.py: new functions to create Odoo repository and module tree
-
-
-lisa: 0.3.2.1 (2021-09-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] lisa_bld: value from config file
-
-
-wok_code: 1.0.2.2.2 (2021-09-02)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: setup with more import lines
-
-
-
-python_plus: 1.0.2.1 (2021-09-02)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] vem: create python3 (due jsonlib)
-
-
-odoo_score: 1.0.2.2 (2021-09-02)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] run_odoo_debug: manage http_port instead of xmlrcp_port
-
-
-clodoo: 0.3.31.5 (2021-09-02)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo.py with python3 due wrong jsoblib dependency
-
-
-wok_code: 1.0.2.2.1 (2021-09-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] please replace: set generic python in executable files
-[FIX] dist_pkg: install_dev not found
-
-
-
-
-wok_code: 1.0.2.2 (2021-08-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] gen_readme.py: search for authors in current README
-
-
-clodoo: 0.3.31.2 (2021-08-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoorc: it does not use <git branch --show-current>
-
-
-wok_code: 1.0.2.2 (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] cvt_csv_coa.py: new command to manage Odoo CoA
-[IMP] gen_readme.py: search for authors in current README
-=======
 python_plus: 1.0.3.7 (2021-10-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] lost python-plus functions
 
->>>>>>> stash
 
 wok_code: 1.0.2.5 (2021-10-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -359,11 +269,7 @@ python_plus: 1.0.3.5 (2021-09-30)
 * [FIX] vem: 1st installation, z0librc not found
 
 
-<<<<<<< HEAD
-wok_code: 1.0.2.2 (2021-08-26)
-=======
 wok_code: 1.0.2.3 (2021-09-29)
->>>>>>> stash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] cvt_script: add bash version check
@@ -372,14 +278,8 @@ wok_code: 1.0.2.3 (2021-09-29)
 clodoo: 0.3.35.4 (2021-09-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-<<<<<<< HEAD
-[IMP] travis: color change
-[IMP] travis: new action testdeps
-[FIX] travis: matrix selection
-=======
 * [FIX] odoorc: do not use git --show-current
 * [IMP] odoorc: now it a command too
->>>>>>> stash
 
 
 z0bug_odoo: 1.0.5.2 (2021-09-27)
@@ -440,13 +340,8 @@ wok_code: 1.0.2.1 (2021-09-23)
 [IMP] please: wep does not set protection bits; now -f is required
 
 
-<<<<<<< HEAD
-wok_code: 1.0.2.2 (2021-08-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-=======
 python_plus: 1.0.3.1 (2021-09-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>>>>>> stash
 
 * [FIX] vem: added click package
 * [FIX] vem: create with devel packages
@@ -458,21 +353,22 @@ clodoo: 0.3.35 (2021-09-23)
 * [FIX] python 3
 
 
+lisa: 0.3.2.1 (2021-09-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] lisa_bld: value from config file
+
+
 wok_code: 1.0.2h (2021-08-31)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] gen_readme.py: search for authors in current README
 
 
-<<<<<<< HEAD
-wok_code: 1.0.2.2 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-=======
 wok_code: 1.0.2g (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>>>>>> stash
 
-[IMP] ct_csv_coa.py: new command to manage Odoo CoA
+[IMP] cvt_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
 
 
@@ -488,24 +384,14 @@ clodoo: 0.3.33.4 (2021-08-30)
 * [FIX] clodoo.py: rcp login
 
 
-<<<<<<< HEAD
-
-wok_code: 1.0.2.2 (2021-08-04)
-=======
 z0bug_odoo: 1.0.5 (2021-08-27)
->>>>>>> stash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
 
 
-<<<<<<< HEAD
-wok_code: 1.0.2.2 (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-=======
 travis_emulator: 1.0.2 (2021-08-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>>>>>> stash
 
 [IMP] travis: stable version
 
@@ -523,10 +409,6 @@ z0bug_odoo: 1.0.4.3 (2021-08-26)
 * [IMP] travis_run_test: new command testdeps
 
 
-<<<<<<< HEAD
-z0bug_odoo: 1.0.3 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-=======
 wok_code: 1.0.2f (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -537,18 +419,14 @@ wok_code: 1.0.2f (2021-08-26)
 
 travis_emulator: 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>>>>>> stash
 
 [IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
+[IMP] travis: switch -y forces python version
 
 
-<<<<<<< HEAD
-wok_code: 1.0.2.2 (2021-07-29)
-=======
 odoo_score: 1.0.2 (2021-08-26)
->>>>>>> stash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [IMP] Stable version
@@ -560,10 +438,6 @@ clodoo: 0.3.33.3 (2021-08-25)
 * [IMP] transodoo.xlsx: translation update
 
 
-<<<<<<< HEAD
-odoo_score: 1.0.1.3 (2021-07-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-=======
 clodoo: 0.3.33.1 (2021-08-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -579,7 +453,6 @@ zar: 1.3.35.3 (2021-08-13)
 
 travis_emulator: 1.0.1.5 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>>>>>> stash
 
 [IMP] travis: summary return 1 if test failed or is broken
 [IMP] travis: return status like summary
@@ -587,11 +460,7 @@ travis_emulator: 1.0.1.5 (2021-08-11)
 [IMP] travis: osx emulatore return more info when error
 
 
-<<<<<<< HEAD
-wok_code: 1.0.2.2 (2021-07-21)
-=======
 clodoo: 0.3.31.16 (2021-08-11)
->>>>>>> stash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoorc: module list
@@ -629,17 +498,7 @@ wok_code: 1.0.2e (2021-08-08)
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
-<<<<<<< HEAD
-=======
 
-travis_emulator: 1.0.1.4 (2021-08-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] devel_tools replaced by wok_code
-[IMP] travis: summary return 1 if test failed
-
-
->>>>>>> stash
 
 
 
@@ -655,11 +514,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-<<<<<<< HEAD
-Last Update / Ultimo aggiornamento: 2021-09-09
-=======
-Last Update / Ultimo aggiornamento: 2021-10-05
->>>>>>> stash
+Last Update / Ultimo aggiornamento: 2021-10-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

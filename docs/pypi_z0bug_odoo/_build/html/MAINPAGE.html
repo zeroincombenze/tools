@@ -1,0 +1,472 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>z0bug_odoo 1.0.4.3 &#8212; z0bug_odoo 0.1.1 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 1.0.4.3 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="z0bug-odoo-0-1-1">
+<h1>z0bug_odoo 1.0.4.3<a class="headerlink" href="#z0bug-odoo-0-1-1" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://odoo-community.org/page/development-status"><img alt="Alfa" src="https://img.shields.io/badge/maturity-Alfa-red.png" /></a> <a class="reference external" href="https://travis-ci.org/zeroincombenze/tools"><img alt="github.com" src="https://travis-ci.org/zeroincombenze/tools.svg?branch=." /></a> <a class="reference external" href="https://coveralls.io/github/zeroincombenze/tools?branch=."><img alt="Coverage" src="https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=." /></a> <a class="reference external" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.svg" /></a></p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="zerobug">
+<h2>zerobug<a class="headerlink" href="#zerobug" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="zeroincombenze-continuous-testing-for-odoo">
+<h3>Zeroincombenze® continuous testing for odoo<a class="headerlink" href="#zeroincombenze-continuous-testing-for-odoo" title="Permalink to this headline">¶</a></h3>
+<p>This package aim to easily create odoo tests.</p>
+<p><em>z0bug_odoo</em> is built on follow concepts:</p>
+<ul class="simple">
+<li>Odoo version independent</li>
+<li>Read-made database</li>
+<li>Quality Check Id</li>
+</ul>
+</div>
+<div class="section" id="qci">
+<h3>qci<a class="headerlink" href="#qci" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="89%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>icq</td>
+<td>description</td>
+</tr>
+<tr class="row-even"><td>icq_0001</td>
+<td>Credit Transfer payment / Pagamento bonifico</td>
+</tr>
+<tr class="row-odd"><td>icq_0002</td>
+<td>RiBA payment / Pagamento RiBA (IT)</td>
+</tr>
+<tr class="row-even"><td>icq_0003</td>
+<td>Sepa Direct Debit / Pagamento Sepa DD</td>
+</tr>
+<tr class="row-odd"><td>icq_0006</td>
+<td>Partner with one date payment / Cliente con pagamento in unica soluzione</td>
+</tr>
+<tr class="row-even"><td>icq_0007</td>
+<td>Partner with multiple date payment / Cliente con pagamento di più scadenze</td>
+</tr>
+<tr class="row-odd"><td>icq_pa11</td>
+<td>Local partner (Italy) / Cliente italiano</td>
+</tr>
+<tr class="row-even"><td>icq_pa12</td>
+<td>EU partner / Cliente intraUE</td>
+</tr>
+<tr class="row-odd"><td>icq_pa13</td>
+<td>Extra-EU partner / Cliente extraUE</td>
+</tr>
+<tr class="row-even"><td>icq_pa14</td>
+<td>Reverse Charge</td>
+</tr>
+<tr class="row-odd"><td>icq_pa15</td>
+<td>Split Payment</td>
+</tr>
+<tr class="row-even"><td>icq_pa16</td>
+<td>Partne is PA</td>
+</tr>
+<tr class="row-odd"><td>icq_ac01</td>
+<td>Full Undeductible VAT / IVA totalmente indetraibile</td>
+</tr>
+<tr class="row-even"><td>icq_ac02</td>
+<td>Undeductible VAT / IVA parzialmente indetraibile</td>
+</tr>
+<tr class="row-odd"><td>icq_ac03</td>
+<td>Invoice with asset/Fattura di beni strumentali</td>
+</tr>
+<tr class="row-even"><td>icq_ac04</td>
+<td>Corrispettivi misti</td>
+</tr>
+<tr class="row-odd"><td>icq_ac05</td>
+<td>Corrispettivi ripartiti (ventilazione)</td>
+</tr>
+<tr class="row-even"><td>icq_ac06</td>
+<td>Insoluto RiBA</td>
+</tr>
+<tr class="row-odd"><td>icq_ac11</td>
+<td>Sale invoice with split payment / Fattura di vendita con split-payment</td>
+</tr>
+<tr class="row-even"><td>icq_ac12</td>
+<td>Sale invoice with reverse charge / Fattura di vendita con reverse charge</td>
+</tr>
+<tr class="row-odd"><td>icq_ac13</td>
+<td>Sale invoice to EU partner / Fattura di vendita intraUE</td>
+</tr>
+<tr class="row-even"><td>icq_ac14</td>
+<td>Sale invoice to xEU partner / Fattura di vendita extraUE</td>
+</tr>
+<tr class="row-odd"><td>icq_ac15</td>
+<td>Sale invoice with lettera di intento / Fattura di vendita lettera di intento</td>
+</tr>
+<tr class="row-even"><td>icq_ac16</td>
+<td>Sale invoice with withholding / Fattura di vendita ritenuta d’acconto</td>
+</tr>
+<tr class="row-odd"><td>icq_ac17</td>
+<td>Sale invoice with enasarco / Fattura di vendita con ensarco</td>
+</tr>
+<tr class="row-even"><td>icq_ac21</td>
+<td>Purchase invoice with split payment / Fattura di acquisto con split-payment</td>
+</tr>
+<tr class="row-odd"><td>icq_ac22</td>
+<td>Purchase invoice with reverse charge / Fattura di acquisto con reverse charge</td>
+</tr>
+<tr class="row-even"><td>icq_ac23</td>
+<td>Purchase invoice from EU partner / Fattura di acquisto intraUE</td>
+</tr>
+<tr class="row-odd"><td>icq_ac24</td>
+<td>Purchase invoice fromxEU partner / Fattura di acquisto extraUE</td>
+</tr>
+<tr class="row-even"><td>icq_ac25</td>
+<td>Purchase invoice with lettera di intento / Fattura di acquisto lettera di intento</td>
+</tr>
+<tr class="row-odd"><td>icq_ac26</td>
+<td>Purchase invoice with withholding / Fattura da fornitore con ritenuta d’acconto</td>
+</tr>
+<tr class="row-even"><td>icq_ac27</td>
+<td>Purchase invoice with enasarco / Fattura da fornitore con ensarco</td>
+</tr>
+<tr class="row-odd"><td>icq_ac30</td>
+<td>E-invoice to individual / Fattura elettronica a privato</td>
+</tr>
+<tr class="row-even"><td>icq_ac31</td>
+<td>E-invoice with virtual stamp / Fattura elettronica con bollo virtuale</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="partner-qci">
+<h3>partner qci<a class="headerlink" href="#partner-qci" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="35%" />
+<col width="18%" />
+<col width="26%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>id</td>
+<td>name</td>
+<td>side</td>
+<td>icq</td>
+</tr>
+<tr class="row-even"><td>z0bug.res_partner_1</td>
+<td>Prima Distribuzione S.p.A.</td>
+<td>customer/supplier</td>
+<td>icq_0002 icq_0006 icq_pa11</td>
+</tr>
+<tr class="row-odd"><td>z0bug.res_partner_10</td>
+<td>Notaio Libero Jackson</td>
+<td>supplier</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>z0bug.res_partner_11</td>
+<td>Nebula Caffè S.p.A.</td>
+<td>supplier</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>z0bug.res_partner_12</td>
+<td>Freie Universität Berlin</td>
+<td>supplier</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>z0bug.res_partner_13</td>
+<td>Axelor GmbH</td>
+<td>customer</td>
+<td>icq_pa12</td>
+</tr>
+<tr class="row-odd"><td>z0bug.res_partner_14</td>
+<td>SS Carrefur</td>
+<td>supplier</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>z0bug.res_partner_15</td>
+<td>Ente Porto</td>
+<td>customer</td>
+<td>icq_0002 icq_pa14 icq_pa16</td>
+</tr>
+<tr class="row-odd"><td>z0bug.res_partner_16</td>
+<td>Viking Office Depot Italia s.r.l.</td>
+<td>customer/supplier</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>z0bug.res_partner_17</td>
+<td>Vexor BV</td>
+<td>supplier</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>z0bug.res_partner_2</td>
+<td>Agro Latte Due  s.n.c.</td>
+<td>customer</td>
+<td>icq_0002 icq_0007</td>
+</tr>
+<tr class="row-even"><td>z0bug.res_partner_3</td>
+<td>Import Export Trifoglio s.r.l.</td>
+<td>customer</td>
+<td>icq_0001 icq_0006</td>
+</tr>
+<tr class="row-odd"><td>z0bug.res_partner_4</td>
+<td>Delta 4 s.r.l.</td>
+<td>supplier</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>z0bug.res_partner_5</td>
+<td>Five Stars Hotel</td>
+<td>supplier</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>z0bug.res_partner_6</td>
+<td>Esa Electronic S.p.A</td>
+<td>customer</td>
+<td>icq_0003</td>
+</tr>
+<tr class="row-even"><td>z0bug.res_partner_7</td>
+<td>Università della Svizzera Italiana</td>
+<td>customer</td>
+<td>icq_pa13</td>
+</tr>
+<tr class="row-odd"><td>z0bug.res_partner_8</td>
+<td>Global Solution s.r.l.</td>
+<td>customer</td>
+<td>icq_pa15</td>
+</tr>
+<tr class="row-even"><td>z0bug.res_partner_9</td>
+<td>Mario Rossi</td>
+<td>customer</td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="features">
+<h3>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h3>
+<p>Data to use in tests are store in csv files in data directory.
+File names are tha name of the models (table) with characters ‘.’ (dot) replaced by ‘_’ (underscore)</p>
+<p>Header of file must be the names of table fields.</p>
+<p>Rows can contains value to store or Odoo external reference or macro.</p>
+<p>For type char, text, html, int, float, monetary: value are constants inserted as is.</p>
+<p>For type many2one: value may be an integer (record id) or Odoo external reference (format “module.name”).</p>
+<p>For type data, datetime: value may be a constant or relative date</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>Code example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2017-19 - SHS-AV s.r.l. &lt;https://www.zeroincombenze.it&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).</span>
+<span class="c1">#</span>
+<span class="kn">from</span> <span class="nn">z0bug_odoo</span> <span class="kn">import</span> <span class="n">test_common</span>
+
+<span class="k">class</span> <span class="nc">ExampleTest</span><span class="p">(</span><span class="n">test_common</span><span class="o">.</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ExampleTest</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_test_company</span><span class="p">()</span>
+        <span class="c1"># Assure 2 res.partner records</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_model_data</span><span class="p">(</span><span class="s1">&#39;res.partner&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;base.res_partner_2&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;z0bug.res_partner_2&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">test_example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">partner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">browse_ref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref612</span><span class="p">(</span><span class="s1">&#39;base.res_partner_2&#39;</span><span class="p">))</span>
+        <span class="n">partner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">browse_ref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref612</span><span class="p">(</span><span class="s1">&#39;z0bug.res_partner_2&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Following function are avaiable.</p>
+<p><cite>set_test_company(self)</cite></p>
+<p>Create or update company to test and assign it to current user as default company. This function should be put in setUp().</p>
+<p><cite>create_id(model, values)</cite></p>
+<p>Create a record of the model and return id (like Odoo 7.0- API).</p>
+<p><cite>create_rec(model, values)</cite></p>
+<p>Create a record of the model and return record itself (like Odoo 8.0+ API).</p>
+<p><cite>write_rec(model, id, values)</cite></p>
+<p>Write the record of model with passed id and return record itself.</p>
+<p><cite>browse_rec(model, id)</cite></p>
+<p>Return the record of model with passed id.</p>
+<p><cite>env612(model)</cite></p>
+<p>Return env/pool of model (like pool of Odoo 7.0- API or env of Odoo 8.0+ API)</p>
+<p><cite>ref_value(model, xid)</cite></p>
+<p>Return values of specific xid. If xid is Odoo standard xid, i.e. “base.res_partner_1”,
+return current record values that may be different from original demo data.
+If xid begins with “z0bug.” return default values even if they are update form previous tests.
+See valid xid from this document.</p>
+<p><cite>build_model_data(model, xrefs)</cite></p>
+<p>Assure records of model with reference list xrefs.
+For every item of xrefs, a record is created o updated.
+Function ref_value is used to retrieve values of each record (see above).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2017-19 - SHS-AV s.r.l. &lt;https://www.zeroincombenze.it&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).</span>
+<span class="c1">#</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0testOdoo</span>
+
+<span class="k">class</span> <span class="nc">ExampleTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="nf">test_example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">Z0bugOdoo</span><span class="p">()</span><span class="o">.</span><span class="n">get_test_values</span><span class="p">(</span>
+            <span class="s1">&#39;res.partner&#39;</span><span class="p">,</span><span class="s1">&#39;z0bug.res_partner_1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><cite>get_test_values(self, model, xid)</cite></p>
+<p>Return values of specific xid. If xid is Odoo standard xid, i.e. “base.res_partner_1”,
+return empty dictionary.
+If xid begins with “z0bug.” return default values to use in test.
+This function is used by <cite>ref_value</cite> to get default values.
+Warning: returned values may contain some field of uninstalled module.</p>
+<p><cite>get_data_file(self, model, csv_fn)</cite></p>
+<p>Load data of model from csv_fn. Internal use only.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="getting-started">
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<p>For stable version:</p>
+<p><cite>pip install z0bug_odoo</cite></p>
+<p>For current version:</p>
+<p><cite>cd $HOME</cite>
+<cite>git&#64;github.com:zeroincombenze/tools.git</cite>
+<cite>cd $HOME/tools</cite>
+<cite>./install_tools.sh</cite></p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="credits">
+<h2>Credits<a class="headerlink" href="#credits" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="copyright">
+<h3>Copyright<a class="headerlink" href="#copyright" title="Permalink to this headline">¶</a></h3>
+<p>SHS-AV s.r.l. &lt;<a class="reference external" href="https://www.shs-av.com/">https://www.shs-av.com/</a>&gt;</p>
+</div>
+<div class="section" id="contributors">
+<h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Antonio M. Vigliotti &lt;<a class="reference external" href="mailto:info&#37;&#52;&#48;shs-av&#46;com">info<span>&#64;</span>shs-av<span>&#46;</span>com</a>&gt;</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2020-05-05</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">z0bug_odoo 1.0.4.3</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#zerobug">zerobug</a><ul>
+<li><a class="reference internal" href="#zeroincombenze-continuous-testing-for-odoo">Zeroincombenze® continuous testing for odoo</a></li>
+<li><a class="reference internal" href="#qci">qci</a></li>
+<li><a class="reference internal" href="#partner-qci">partner qci</a></li>
+<li><a class="reference internal" href="#features">Features</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#getting-started">Getting started</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#credits">Credits</a><ul>
+<li><a class="reference internal" href="#copyright">Copyright</a></li>
+<li><a class="reference internal" href="#contributors">Contributors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/MAINPAGE.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 1.0.4.3 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-20, SHS-AV s.r.l..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
+    </div>
+  </body>
+</html>

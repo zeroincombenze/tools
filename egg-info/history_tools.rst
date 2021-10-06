@@ -34,7 +34,6 @@
 
 [FIX] install_tools.sh: do not uset git show-current
 
->>>>>>> stash
 1.0.6 (2021-09-09)
 ~~~~~~~~~~~~~~~~~~
 

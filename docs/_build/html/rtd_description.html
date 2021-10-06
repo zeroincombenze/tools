@@ -1,0 +1,426 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multi-purpose python &amp; bash tools &#8212; tools 1.0.6.9 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Odoo structure" href="rtd_description_structure.html" />
+    <link rel="prev" title="Multi-purpose python &amp; bash tools 1.0.6.9" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rtd_description_structure.html" title="Odoo structure"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Multi-purpose python &amp; bash tools 1.0.6.9"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Multi-purpose python &amp; bash tools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<div class="section" id="multi-purpose-python-bash-tools">
+<h1>Multi-purpose python &amp; bash tools<a class="headerlink" href="#multi-purpose-python-bash-tools" title="Permalink to this headline">¶</a></h1>
+<p>Multi-purpose python and bash source code.</p>
+<p>These tools help to cover the following areas of software:</p>
+<ul class="simple">
+<li><p>Odoo deployment</p></li>
+<li><p>Odoo database maintenance (creation and upgrade, massive)</p></li>
+<li><p>Odoo database profiling (auto)</p></li>
+<li><p>Database check (auto &amp; massive)</p></li>
+<li><p>Development</p></li>
+<li><p>Documentation</p></li>
+<li><p>Testing</p></li>
+</ul>
+<p>You can find more info at <a class="reference external" href="https://zeroincombenze-tools.readthedocs.io/">https://zeroincombenze-tools.readthedocs.io/</a></p>
+<div class="section" id="compatibility">
+<h2>Compatibility<a class="headerlink" href="#compatibility" title="Permalink to this headline">¶</a></h2>
+<p>These tools are designed to be used on Linux platforms.
+They are tested on following distros:
+* Ubuntu: from 12.0 to 20.0
+* Debian: from 8.0 to 10.0
+* CentOS: from 7 to 8
+Currently the osx Darwin is in testing.</p>
+</div>
+<div class="section" id="components">
+<h2>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 11%" />
+<col style="width: 69%" />
+<col style="width: 12%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Package</p></td>
+<td><p>Name</p></td>
+<td><p>Brief</p></td>
+<td><p>Area</p></td>
+</tr>
+<tr class="row-even"><td><p>clodoo</p></td>
+<td><p>check_4_seq.sh</p></td>
+<td><p>Check for postgres database index</p></td>
+<td><p>maintenance</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>clodoo.py</p></td>
+<td><p>Massive operations on multiple Odoo DBs in cloud. It is used to create configurated Odoo DBs and to upgrade more DBs at the same time. No (yet) documented</p></td>
+<td><p>maintenance</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>force_password.sh</p></td>
+<td><p>Force Odoo DB password</p></td>
+<td><p>maintenance</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>inv2draft_n_restore.py</p></td>
+<td><p>Force an invoice to draft state even if is paid and restore original state and payment (Odoo &lt; 9.0)</p></td>
+<td><p>maintenance</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>list_requirements.py</p></td>
+<td><p>List pypi and bin packages for an Odoo installation</p></td>
+<td><p>deployment</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>manage_db</p></td>
+<td><p>Massive operations to multiple Odoo DBs in cloud, data based on csv files.</p></td>
+<td><p>maintenance</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>manage_odoo</p></td>
+<td><p>Manage an Odoo installation</p></td>
+<td><p>maintenance</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>odoo_install_repository</p></td>
+<td><p>Install &amp; upgrade odoo repository</p></td>
+<td><p>Deployment &amp; maintenance</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>set_workers.sh</p></td>
+<td><p>Evaluate and set Odoo workers for best performance</p></td>
+<td><p>Deployment &amp; maintenance</p></td>
+</tr>
+<tr class="row-odd"><td><p>lisa</p></td>
+<td><p>lisa</p></td>
+<td><p>Linux Installer Simple App. LAMP and odoo server installer from scratch.</p></td>
+<td><p>deployment</p></td>
+</tr>
+<tr class="row-even"><td><p>odoo_score</p></td>
+<td><p>odoo_score.py</p></td>
+<td><p>Odoo ORM super core</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>odoo_shell.py</p></td>
+<td><p>Odoo shell for Odoo versions from 6.1 to 13.0</p></td>
+<td><p>Development &amp; maintenance</p></td>
+</tr>
+<tr class="row-even"><td><p>os0</p></td>
+<td></td>
+<td><p>Simple os interface checked for OpenVMS too</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-odd"><td><p>python-plus</p></td>
+<td><p>python-plus</p></td>
+<td><p>Various features to python 2 and python 3 programs as integration of pypi future to help to port your code from Python 2 to Python 3</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>vem</p></td>
+<td><p>Virtual Environment Manager: create, copy, move, merge and many other functions with virtual environments</p></td>
+<td><p>Deployment &amp; maintenance</p></td>
+</tr>
+<tr class="row-odd"><td><p>travis_emulator</p></td>
+<td><p>travis</p></td>
+<td><p>Travis Emulator on local machine. Check your project before release on TravisCi</p></td>
+<td><p>testing</p></td>
+</tr>
+<tr class="row-even"><td><p>wok_code</p></td>
+<td><p>cvt_csv_to_rst.py</p></td>
+<td><p>Convert a csv file into rst text file with table inside</p></td>
+<td><p>documentation</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>cvt_csv_to_xml.py</p></td>
+<td><p>Convert a csv file into xml file for Odoo module data</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>cvt_script</p></td>
+<td><p>Make bash script to standard</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>gen_readme.py</p></td>
+<td><p>Generate README.rst, index.html and __openerp__.py ,documentation</p></td>
+<td><p>documentation</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>odoo_dependencies.py</p></td>
+<td><p>Show Odoo module tree, ancestors and/or childs</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>odoo_translation.py</p></td>
+<td><p>Load Odoo translation (deprecated, must be replaced by weblate)</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>please</p></td>
+<td><p>Developer shell</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>topep8</p></td>
+<td><p>Convert python and xml file across Odoo versions</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>vfdiff</p></td>
+<td><p>Make difference between 2 files or directories</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-odd"><td><p>wok_news</p></td>
+<td></td>
+<td><p>Undocumented (deprecated)</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>z0bug_odoo</p></td>
+<td><p>z0bug_odoo</p></td>
+<td><p>Integration of zerobug and Odoo. Initially forked form OCA maintainer quality tools. It works with all Odoo version, from 6.1 to 13.0</p></td>
+<td><p>testing</p></td>
+</tr>
+<tr class="row-odd"><td><p>z0lib</p></td>
+<td></td>
+<td><p>General purpose bash &amp; python library</p></td>
+<td><p>development</p></td>
+</tr>
+<tr class="row-even"><td><p>zar</p></td>
+<td><p>zar</p></td>
+<td><p>Zeroincombenze Archive and Replica. Backup your Odoo DBs</p></td>
+<td><p>maintenance</p></td>
+</tr>
+<tr class="row-odd"><td><p>zerobug</p></td>
+<td><p>zerobug</p></td>
+<td><p>testing &amp; debug library</p></td>
+<td><p>testing</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="odoo-vid">
+<h2>Odoo vid<a class="headerlink" href="#odoo-vid" title="Permalink to this headline">¶</a></h2>
+<p>The odoo_vid is mainly the directory with a specific Odoo instance in multi instance environment.
+Imagine a scenario with different Odoo instance running on the same host.
+This is the development environment or the test environment.
+Every instance of Odoo must have a own configuration file and packages.
+Based on configuration file, every Odoo instance must have a own xmlrcp port, db user, log file, pid file, etcetera.</p>
+<p>The odoo_vid provides a simple way to manage multiple Odoo instance.
+Supplying odoo_vid you select the specific parameters values just in one item.</p>
+<p>The odoo_vid item is composed by:</p>
+<ul class="simple">
+<li><p>Prefix “VENV” if virtual environment</p></li>
+<li><p>Prefix V to identify main instance</p></li>
+<li><p>Odoo distribution (for organizations with short name)</p></li>
+<li><p>Odoo version (full version or major version)</p></li>
+<li><p>Odoo distribution (all organizzations)</p></li>
+<li><p>User specific identification</p></li>
+</ul>
+<p>Odoo distribution is on of: flectra,librerp,oca,powerp,zero or nothing</p>
+<p>Odoo version is the Odoo specific version; it is one value of: 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1</p>
+<p>Examples of valid odoo_vid:</p>
+<ul class="simple">
+<li><p>12.0 -&gt; Odoo 12.0, unidentified distribution</p></li>
+<li><p>oca14 -&gt; Odoo 14.0, distribution oca (short name)</p></li>
+<li><p>librerp6 -&gt; Odoo 6.1, distribution librerp (short name)</p></li>
+<li><p>odoo14-oca -&gt; Odoo 14.0, distribution oca (full name)</p></li>
+<li><p>odoo12-devel -&gt; Odoo 12.0, odoo ditribution, user identification “devel”</p></li>
+</ul>
+<p>Based on above information, tool software can assume the right value of specific Odoo instance.</p>
+<p>This table shows the Odoo parameter values based on odoo_vid;
+notice the symbol %M meaans Odoo major version and %V Odoo version.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 13%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 24%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Parameter name</p></td>
+<td><p>standard value</p></td>
+<td><p>anonymous distro</p></td>
+<td><p>zeroincombenze d</p></td>
+<td><p>oca distro</p></td>
+<td><p>axitec distro</p></td>
+<td><p>Note</p></td>
+</tr>
+<tr class="row-even"><td><p>ROOT (Odoo root)</p></td>
+<td></td>
+<td><p>~/%V</p></td>
+<td><p>~/zero%M</p></td>
+<td><p>~/oca%M</p></td>
+<td><p>~/odoo_%M</p></td>
+<td><p>i.e. ~/oca14</p></td>
+</tr>
+<tr class="row-odd"><td><p>CONFN (configuration file)</p></td>
+<td><p>odoo.conf odoo-server.conf</p></td>
+<td><p>odoo%M-server.conf</p></td>
+<td><p>odoo%M-zero.conf</p></td>
+<td><p>odoo%M-oca.conf</p></td>
+<td><p>odoo%M-axi.conf</p></td>
+<td><p>Directory /etc/odoo (see Odoo structure)</p></td>
+</tr>
+<tr class="row-even"><td><p>USER (db user)</p></td>
+<td><p>odoo</p></td>
+<td><p>odoo%M</p></td>
+<td><p>odoo%M</p></td>
+<td><p>odoo%M</p></td>
+<td><p>odoo%M</p></td>
+<td><p>i.e odoo12</p></td>
+</tr>
+<tr class="row-odd"><td><p>FLOG (log file)</p></td>
+<td><p>odoo.log odoo-server.log</p></td>
+<td><p>odoo%M-server.log</p></td>
+<td><p>odoo%M-zero.log</p></td>
+<td><p>odoo%M-oca.log</p></td>
+<td><p>odoo%M-axi.log</p></td>
+<td><p>Directory /var/log/odoo</p></td>
+</tr>
+<tr class="row-even"><td><p>FPID (pid file)</p></td>
+<td><p>odoo.pid odoo-server.pid</p></td>
+<td><p>odoo%M-server.pid</p></td>
+<td><p>odoo%M-zero.pid</p></td>
+<td><p>odoo%M-oca.pid</p></td>
+<td><p>odoo%M-axi.pid</p></td>
+<td><p>Directory /var/run/odoo</p></td>
+</tr>
+<tr class="row-odd"><td><p>RPCPORT (xmlrpc port)</p></td>
+<td><p>8069</p></td>
+<td><p>8160 + %M</p></td>
+<td><p>8460 + %M</p></td>
+<td><p>8260 + %M</p></td>
+<td><p>8360 + %M</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>LPPORT (longpolling)</p></td>
+<td><p>8072</p></td>
+<td><p>8130 + %M</p></td>
+<td><p>8430 + %M</p></td>
+<td><p>8230 + %M</p></td>
+<td><p>8330 + %M</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>SVCNAME (service name)</p></td>
+<td><p>odoo odoo-server</p></td>
+<td><p>odoo%M odoo%M-server</p></td>
+<td><p>odoo%M-zero</p></td>
+<td><p>odoo%M-oca</p></td>
+<td><p>odoo%M-axi</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>Last Update / Ultimo aggiornamento: 2021-10-06</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Multi-purpose python &amp; bash tools</a><ul>
+<li><a class="reference internal" href="#compatibility">Compatibility</a></li>
+<li><a class="reference internal" href="#components">Components</a></li>
+<li><a class="reference internal" href="#odoo-vid">Odoo vid</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Multi-purpose python &amp; bash tools 1.0.6.9</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="rtd_description_structure.html"
+                        title="next chapter">Odoo structure</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_description.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rtd_description_structure.html" title="Odoo structure"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Multi-purpose python &amp; bash tools 1.0.6.9"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Multi-purpose python &amp; bash tools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-20, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>
