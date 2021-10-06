@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-<<<<<<< HEAD
-__version__=1.0.2.99
-=======
 __version__=1.0.2.1
->>>>>>> stash
 if [[ -z "$1" || "$1" == "-h" ]]; then
     echo "$0 -I|-i     # install travis emulator environment (-i stable version, -I devel version)"
     echo "$0 srcdir    # copy src repository into local venv"
@@ -35,7 +31,7 @@ if [[ -n "$1" && ( "$1" == "-i" || "$1" == "-I" ) ]]; then
         for nm in clodoo lisa odoo_score os0 python_plus travis_emulator wok_code z0bug_odoo zar zerobug; do
             [[ -d $home_travis/$nm ]] && rm -fR $home_travis/$nm
             rm -fR $home_travis/tools/$nm
-            cp -r $home_odoo/pypi/$nm/$nm/ $home_travis/tools/$nm/
+            cp -r $home_odoo/devel/pypi/$nm/$nm/ $home_travis/tools/$nm/
             sudo chown -R travis:travis $home_travis/tools/$nm
         done
     fi
