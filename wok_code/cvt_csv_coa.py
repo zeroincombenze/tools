@@ -1,8 +1,4 @@
-<<<<<<< HEAD:wok_code/scripts/cvt_csv_coa.py
-#!/home/odoo/devel/venv/bin/python2
-=======
 #!/usr/bin/env python
->>>>>>> stash:wok_code/cvt_csv_coa.py
 #  -*- coding: utf-8 -*-
 """
 usage: cvt_csv_coa.py [-h] -A ACTION -b ODOO_VER -f CSV_ODOO_VER [-n] [-q] [-V]
@@ -40,15 +36,9 @@ except ImportError:
 from clodoo import transodoo
 
 
-<<<<<<< HEAD:wok_code/scripts/cvt_csv_coa.py
-__version__ = "1.0.2.2"
-=======
 __version__ = "1.0.2.5"
->>>>>>> stash:wok_code/cvt_csv_coa.py
 
-VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')
 msg_time = time.time()
-
 
 def msg_burst(text):
     global msg_time
@@ -99,9 +89,9 @@ def manage_coa(ctx):
                     CODE = row.index('code')
                     NAME = row.index('name')
                     RECONCILE = row.index('reconcile')
-                    if 'user_type_id:id' in row or 'user_type_id' in row:
+                    if 'user_type_id:id' in row:
                         USER_TYPE = row.index('user_type_id:id')
-                    elif 'user_type:id' in row or 'user_type':
+                    elif 'user_type:id' in row:
                         USER_TYPE = row.index('user_type:id')
                     else:
                         USER_TYPE = False
@@ -112,7 +102,7 @@ def manage_coa(ctx):
                     else:
                         TYPE = ix
                         ix += 1
-                    if 'parent_id:id' in row or 'parent_id' in row:
+                    if 'parent_id:id' in row:
                         PARENT = row.index('parent_id:id')
                     else:
                         PARENT = ix
@@ -159,7 +149,7 @@ def manage_coa(ctx):
                           row[item] == 'account.data_account_type_expenses'):
                         row[item] = 'account.data_account_type_direct_costs'
                     elif (row['CODE'].startswith('8') and
-                          row[item] == 'account.data_account_type_revenue'):
+                          row[item] == 'account.data_account_type_income'):
                         row[item] = 'account.data_account_type_other_income'
                     elif row['CODE'] == '870230':
                         row[item] = 'account.data_unaffected_earnings'
@@ -169,10 +159,7 @@ def manage_coa(ctx):
                     elif (row[item] == 'account.data_account_type_liability' and
                           '+12 M' in row['NAME']):
                         row[item] = 'account.data_account_type_non_current_liabilities'
-                else:
-                    if row['CODE'] in ('180010', '180030', '180040'):
-                        row[item] = 'account.data_account_type_cash'
-                item = 'PARENT'
+                    item = 'PARENT'
                 if not line[locals()[item]]:
                     if len(row['CODE']) >= 6:
                         row[item] = line[CODE][0:3]
@@ -186,15 +173,8 @@ def manage_coa(ctx):
                     row[item] = line[locals()[item]]
                 if len(row['PARENT']) < 2 and tgt_majver > 9:
                     row['PARENT'] = ''
-                if row[item]:
-                    row[item] = 'l10n_it_fiscal.%s' % row[item]
                 item = 'RECONCILE'
-                # row[item] = line[locals()[item]]
-                if row['USER_TYPE'] in ('account.data_account_type_receivable',
-                                        'account.data_account_type_payable'):
-                    row[item] = 'TRUE'
-                else:
-                    row[item] = 'FALSE'
+                row[item] = line[locals()[item]]
                 item = 'CHART'
                 row[item] = 'l10n_chart_it_zeroincombenze'
                 if action == 'export-comparable':
@@ -265,6 +245,7 @@ def manage_coa(ctx):
     VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0',
                 '11.0', '12.0', '13.0', '14.0']
     # ORGS = ('zero', 'powerp', 'librerp')
+    VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')
     action = ctx['action']
     if action not in VALID_ACTIONS:
         print('Invalid action %s!' % action)
@@ -313,7 +294,7 @@ def manage_coa(ctx):
             header = [
                 'id', 'code', 'name',
                 '%s:id' % TNLFLD['USER_TYPE']['new'],
-                'group_id:id', 'reconcile', 'chart_template_id:id']
+                'parent_id:id', 'reconcile', 'chart_template_id:id']
         else:
             header = [
                 'id', 'code', 'name',
@@ -342,17 +323,14 @@ def manage_coa(ctx):
     return 0
 
 
-def main(cli_args=None):
-    # if not cli_args:
-    #     cli_args = sys.argv[1:]
+if __name__ == "__main__":
     parser = z0lib.parseoptargs("Manage csv file of Odoo CoA",
                                 "© 2020-2021 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-A', '--action',
                         action='store',
-                        dest='action',
-                        help=','.join(VALID_ACTIONS))
+                        dest='action')
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
                         dest='odoo_ver')
@@ -371,4 +349,4 @@ def main(cli_args=None):
     parser.add_argument('-v')
     parser.add_argument('src_csvfile')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
-    return manage_coa(ctx)
+    sys.exit(manage_coa(ctx))

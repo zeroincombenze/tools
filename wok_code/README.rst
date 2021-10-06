@@ -1,13 +1,7 @@
 
-<<<<<<< HEAD
-=================
-wok_code 1.0.1.22
-=================
-=======
-===================
-devel_tools 1.0.2.5
-===================
->>>>>>> stash
+================
+wok_code 1.0.2.5
+================
 
 
 
@@ -851,30 +845,12 @@ Current development version
 History
 -------
 
-<<<<<<< HEAD
-1.0.2.2.2 (2021-09-02)
-~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: setup with more import lines
-
-
-1.0.2.2.1 (2021-09-01)
-~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] please replace: set generic python in executable files
-[FIX] dist_pkg: install_dev not found
-
-
-
-1.0.2.2 (2021-08-31)
+1.0.2.5 (2021-10-01)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] gen_readme.py: search for authors in current README
+[IMP] disk_pkg: manage setup.py & setup.info
 
-1.0.2.2 (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~
-=======
-1.0.2.5 (2021-09-30)
+1.0.2.4 (2021-09-30)
 ~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: new version method
@@ -902,43 +878,23 @@ History
 
 1.0.2g (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~
->>>>>>> stash
 
 [IMP] cvt_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
 
-<<<<<<< HEAD
-1.0.2.2 (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~
-=======
 1.0.2f (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~
->>>>>>> stash
 
 [IMP] please: action docs shows recent history
 [IMP] gen_readme.py: show recent history
 [FIX] topep8: parse .travis.yml
 
-<<<<<<< HEAD
-1.0.2.2 (2021-08-08)
-~~~~~~~~~~~~~~~~~~~~
-=======
 1.0.2e (2021-08-08)
 ~~~~~~~~~~~~~~~~~~~
->>>>>>> stash
 
 [IMP] please: changed the syntax of som actions
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
-<<<<<<< HEAD
-1.0.2.2 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~
-
-[REF] Merged and renamed to wok_code
-
-1.0.2.2 (2021-08-04)
-~~~~~~~~~~~~~~~~~~~~
-=======
 1.0.2d (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -946,47 +902,15 @@ History
 
 1.0.2c (2021-08-04)
 ~~~~~~~~~~~~~~~~~~~
->>>>>>> stash
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
 
-<<<<<<< HEAD
-1.0.2.2 (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: parameter error
-
-1.0.2.2 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
-
-1.0.2.2 (2021-07-21)
-~~~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: ignore setup directories
-[IMP] gen_readme.py: new parameter -L to set local language (def it_IT)
-[IMP] gen_readme.py: check for licenze incompatibility
-
-
-0.1.17.3 (2021-07-15)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] wget_odoo_repositories.py: best debug mode: check for branch
-
-=======
 1.0.2b (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~
 
 [FIX] gen_readme.py: parameter error
 
-1.0.2a (2021-07-29)
-~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
-
->>>>>>> stash
 
 
 |
@@ -1063,17 +987,13 @@ Last Update / Ultimo aggiornamento: 2021-08-31
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
-<<<<<<< HEAD
-Last Update / Ultimo aggiornamento: 2021-09-02
-Last Update / Ultimo aggiornamento: 2021-09-03
-Last Update / Ultimo aggiornamento: 2021-09-04
-=======
 Last Update / Ultimo aggiornamento: 2021-09-24
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
 Last Update / Ultimo aggiornamento: 2021-09-28
 Last Update / Ultimo aggiornamento: 2021-09-29
 Last Update / Ultimo aggiornamento: 2021-09-30
->>>>>>> stash
+Last Update / Ultimo aggiornamento: 2021-10-01
+Last Update / Ultimo aggiornamento: 2021-10-06
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1107,11 +1027,7 @@ Last Update / Ultimo aggiornamento: 2021-09-30
 
 This module is part of tools project.
 
-<<<<<<< HEAD
-Last Update / Ultimo aggiornamento: 2021-09-08
-=======
-Last Update / Ultimo aggiornamento: 2021-10-01
->>>>>>> stash
+Last Update / Ultimo aggiornamento: 2021-10-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

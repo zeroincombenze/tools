@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
 Return module list or dependencies list or depends list of odoo modules.
@@ -111,11 +111,7 @@ try:
 except ImportError:
     import clodoo
 
-<<<<<<< HEAD
-__version__ = '1.0.2.2'
-=======
 __version__ = '1.0.2.5'
->>>>>>> stash
 
 
 MANIFEST_FILES = [

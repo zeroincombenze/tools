@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-#!/home/odoo/devel/venv/bin/python2
-=======
 #!/usr/bin/env python
->>>>>>> stash
 # -*- coding: utf-8 -*-
 #
 # Copyright 2018-21 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
@@ -79,11 +75,7 @@ except ImportError:
     import z0lib
 
 
-<<<<<<< HEAD
-__version__ = "1.0.2.2"
-=======
 __version__ = "1.0.2.5"
->>>>>>> stash
 
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',
@@ -1653,7 +1645,7 @@ def parse_yaml(ctx, src_file, dst_file):
     # yaml = YAML()
     # yaml.indent(mapping=2, sequence=2, offset=2)
     with open(src_file, 'rb') as fd:
-        cmd = ['list_requirements', '-b', ctx['to_ver'],
+        cmd = ['list_requirements.py', '-b', ctx['to_ver'],
                '-t', 'bin', '-PRT', '-s', ',', '-q']
         out, err = Popen(cmd,
             stdin=PIPE,

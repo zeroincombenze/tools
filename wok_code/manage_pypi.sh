@@ -1,9 +1,5 @@
 # set -x
-<<<<<<< HEAD
-__version__=1.0.2.2
-=======
 __version__=1.0.2.5
->>>>>>> stash
 act=""
 pypi=""
 opts=""
@@ -38,7 +34,7 @@ PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug
 [[ -z "$tgtdir" ]] && tgtdir="$HOME/VME/*" || tgtdir="$tgtdir*"
 [[ -n "$opts" ]] && opts="-$opts"
 [[ $tgtdir =~ ^[~/.] ]] || tgtdir="$HOME/$tgtdir"
-[[ $act =~ (docs|replace|travis|travis-summary) ]] && tgtdir=$HOME/pypi/tools
+[[ $act =~ (docs|replace|travis|travis-summary) ]] && tgtdir=$HOME/devel/pypi/tools
 [[ -n $branch ]] && branch="(${branch//,/|})"
 echo "$0 $act '$pypi' -d $tgtdir -b $branch $opts"
 for d in $tgtdir; do
@@ -62,7 +58,7 @@ for d in $tgtdir; do
         [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
         if [[ $act =~ (install|update) && $opts =~ -.*l ]]; then
             if [[ $opts =~ -.*B ]]; then
-                srcdir="$HOME/pypi/$fn/$fn"
+                srcdir="$HOME/devel/pypi/$fn/$fn"
             else
                 srcdir="$HOME/tools/$fn"
             fi
@@ -94,7 +90,7 @@ for d in $tgtdir; do
             echo "libdir=$pypath"
             dir -lhd $pypath/$fn
 	      elif [[ $act =~ (travis|travis-summary) ]]; then
-            srcdir="$HOME/pypi/$fn/$fn"
+            srcdir="$HOME/devel/pypi/$fn/$fn"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             [[ $opts =~ -.*B ]] && OPTS="$OPTS -Z"
@@ -103,7 +99,7 @@ for d in $tgtdir; do
             cd $srcdir
             [[ $act == "travis" ]] && travis $OPTS || travis $OPTS summary
         elif [[ $act == "docs" ]]; then
-            [[ $pkg == "tools" ]] && srcdir="$HOME/pypi/$fn" || srcdir="$HOME/pypi/$fn/$fn"
+            [[ $pkg == "tools" ]] && srcdir="$HOME/devel/pypi/$fn" || srcdir="$HOME/devel/pypi/$fn/$fn"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             echo -e "\n===[$pkg]==="
@@ -111,7 +107,7 @@ for d in $tgtdir; do
             cd $srcdir
             please $OPTS docs
         elif [[ $act == "replace" ]]; then
-            [[ $pkg == "tools" ]] && srcdir="$HOME/pypi/$fn" || srcdir="$HOME/pypi/$fn/$fn"
+            [[ $pkg == "tools" ]] && srcdir="$HOME/devel/pypi/$fn" || srcdir="$HOME/devel/pypi/$fn/$fn"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             echo -e "\n===[$pkg]==="

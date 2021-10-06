@@ -103,6 +103,11 @@ try:
     from clodoo.clodoo import build_odoo_param
 except ImportError:
     from clodoo import build_odoo_param
+
+try:
+    from python_plus.python_plus import _b
+except ImportError:
+    from python_plus import _b
 # import pdb
 standard_library.install_aliases()
 
@@ -1250,7 +1255,7 @@ def read_manifest_file(ctx, manifest_path, force_version=None):
 
 
 def fake_setup(**kwargs):
-    gctx['manifest']= kwargs
+    globals()['setup_args'] = kwargs
 
 
 def read_history(ctx, full_fn, module=None):
@@ -1281,9 +1286,10 @@ def read_setup(ctx):
         manifest_filename = ''
     if manifest_filename:
         with open(manifest_filename, 'r') as fd:
-            content = fd.read().replace('setup(', 'fake_setup(').replace(
-                'setup (', 'fake_setup(')
+            content = _b(fd.read().replace('setup(', 'fake_setup(').replace(
+                'setup (', 'fake_setup('))
             exec(content)
+            ctx['manifest'] = globals()['setup_args']
         ctx['manifest_filename'] = manifest_filename
     else:
         if not ctx['suppress_warning']:

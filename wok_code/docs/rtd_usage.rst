@@ -476,11 +476,7 @@ topep8 usage
 
 This module is part of tools project.
 
-<<<<<<< HEAD
-Last Update / Ultimo aggiornamento: 2021-09-08
-=======
-Last Update / Ultimo aggiornamento: 2021-10-01
->>>>>>> stash
+Last Update / Ultimo aggiornamento: 2021-10-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

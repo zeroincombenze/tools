@@ -7,30 +7,16 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-# export READLINK
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-<<<<<<< HEAD
-PYPATH=""
-for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
-  [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
-  [[ -n $PYPATH ]] && PYPATH=$(dirname $PYPATH) && break
-done
-PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and x.startswith('$HOME')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
-=======
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 [[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
 PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
->>>>>>> stash
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
-  if [[ -e $d/z0lib/z0librc ]]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [[ -e $d/z0librc ]]; then
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -41,6 +27,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 72
 fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 if [[ -z "$ODOOLIBDIR" ]]; then
   echo "Library file odoorc not found!"
@@ -56,11 +43,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-<<<<<<< HEAD
-__version__=1.0.2.2
-=======
 __version__=1.0.2.5
->>>>>>> stash
 
 cvt_dir() {
     # echo "cvt_dir ($1,$2)"

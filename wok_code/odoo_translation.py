@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
 Action may be:
@@ -31,11 +31,7 @@ except ImportError:
     import clodoo
 
 
-<<<<<<< HEAD
-__version__ = "1.0.2.2"
-=======
 __version__ = "1.0.2.5"
->>>>>>> stash
 
 MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']

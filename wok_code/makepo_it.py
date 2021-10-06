@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
 """
@@ -7,11 +7,7 @@ from __future__ import print_function
 import sys
 # import pdb
 
-<<<<<<< HEAD
-__version__ = "1.0.2.2"
-=======
 __version__ = "1.0.2.5"
->>>>>>> stash
 
 params = {'clear_base_tnl': False}
 me = True

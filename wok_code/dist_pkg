@@ -9,30 +9,16 @@
 # git report to origin
 # git fetch origin , poi, git reset --hard origin/8.0-ddt-based-on-packaging-preparation_fa
 #
-# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-# export READLINK
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-<<<<<<< HEAD
-PYPATH=""
-for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
-  [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
-  [[ -n $PYPATH ]] && PYPATH=$(dirname $PYPATH) && break
-done
-PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and x.startswith('$HOME')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
-=======
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 [[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
 PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
->>>>>>> stash
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
-  if [[ -e $d/z0lib/z0librc ]]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [[ -e $d/z0librc ]]; then
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -43,6 +29,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 72
 fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
 if [[ -z "$TRAVISLIBDIR" ]]; then
   echo "Library file travisrc not found!"
@@ -58,11 +45,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-<<<<<<< HEAD
-__version__=1.0.2.2
-=======
 __version__=1.0.2.5
->>>>>>> stash
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -165,7 +148,7 @@ if [ $opt_dry_run -gt 0 ]; then
   fi
 fi
 
-if [[ "$PRJNAME" == "Odoo" ]]; then
+if [ "$PRJNAME" == "Odoo" ]; then
     valid=0
     # manifest files count for 2 times
     for f in __manifest__.py __manifest__.py __openerp__.py __openerp__.py __init__.py README.rst .travis.yml LICENSE oca_dependencies.txt requirements.txt; do
@@ -187,17 +170,12 @@ else
     for f in tests egg-info clodoo odoo_score wok_code z0bug_odoo z0lib zerobug; do
         [[ -d $f ]] && ((valid++))
     done
-    if [[ $valid -lt 5 ]]; then
+    if [ $valid -lt 5 ]; then
         echo "Invalid environment"
         exit 1
     fi
-<<<<<<< HEAD
-    LSETUP=$PKGPATH/$PKGNAME/setup.py
-    if [[ -f $LSETUP ]]; then
-=======
     LSETUP=$PKGPATH/setup.py
     if [ -f $LSETUP ]; then
->>>>>>> stash
         DEVSSTS0=" 1 - Planning"
         if [ -z "$devstatus" ]; then
           devstatus=$(if [ -f $LSETUP ]; then echo ""; else echo "$DEVSSTS0"; fi)
@@ -287,7 +265,7 @@ if [ "$opt_cpush" == "-O" ]; then
   exit 0
 fi
 
-if [[ "$opt_cpush" == "-D" ]]; then
+if [ "$opt_cpush" == "-D" ]; then
   # Duplicate files from Odoo package to another Odoo version (same distribution)
   opts_common=
   [ $opt_dry_run -ne 0 ] && opts_common="${opts_common}n"
@@ -462,15 +440,10 @@ else
   LGITLEV=1
 fi
 robocopy_init "$PRJNAME" "$PKGNAME"
-<<<<<<< HEAD
-if [[ $opt_fetch -eq 0 ]]; then
-  if [[ $LGITLEV -gt 0 ]]; then
-=======
 if [ $opt_fetch -eq 0 ]; then
   [[ -f $PKGPATH/setup.py && -d $PRJPATH/scripts ]] && cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info
   [[ -f $PRJPATH/setup.py && -d $PRJPATH/scripts ]] && rm -f $PRJPATH/setup.py
   if [ $LGITLEV -gt 0 ]; then
->>>>>>> stash
     for f in $(dir $PKGPATH); do
       robocopy "$PKGPATH/$f" "$LGITPATH"
     done
@@ -479,22 +452,14 @@ if [ $opt_fetch -eq 0 ]; then
       robocopy "$PKGPATH/$f" "$LGITPATH/$f"
     done
   fi
-<<<<<<< HEAD
-=======
   [[ $PKGNAME != "tools" && -f $PKGPATH/setup.py ]] && cp $PKGPATH/setup.py $LGITPATH/
   [[ -f "$PRJPATH/scripts/setup.info" ]] && cp $PRJPATH/scripts/setup.info $LGITPATH/scripts/
->>>>>>> stash
 #  if [ ! -f ~/tools/pytok/Makefile ]; then
 #    if [ $opt_verbose -gt 0 ]; then echo "$ cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
 #    cp /opt/odoo/dev/Makefile ~/tools/pytok
 #  fi
-<<<<<<< HEAD
-  cd $LGITPATH/..
-  [ -x install_foreign.sh ] && ./install_foreign.sh
-=======
 #   cd $LGITPATH/..
 #   [ -x install_foreign.sh ] && ./install_foreign.sh
->>>>>>> stash
 else
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $LGITPATH); do

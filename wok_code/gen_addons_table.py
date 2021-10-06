@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
 This script replaces markers in the README.md files of an Odoo repository
@@ -32,11 +32,7 @@ standard_library.install_aliases()                                 # noqa: E402
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'
 MANIFESTS = ('__openerp__.py', '__manifest__.py')
-<<<<<<< HEAD
-__version__ = "1.0.2.2"
-=======
 __version__ = "1.0.2.5"
->>>>>>> stash
 
 
 class UserError(Exception):

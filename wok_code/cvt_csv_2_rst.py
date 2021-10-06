@@ -1,8 +1,4 @@
-<<<<<<< HEAD:wok_code/scripts/cvt_csv_2_rst.py
-#!/home/odoo/devel/venv/bin/python2
-=======
 #!/usr/bin/env python
->>>>>>> stash:wok_code/cvt_csv_2_rst.py
 #  -*- coding: utf-8 -*-
 """
 usage: cvt_csv_2_rst.py [-h] [-b ODOO_VER] [-m MAX_COL_WIDTH] [-n] [-q] [-V]
@@ -28,7 +24,7 @@ optional arguments:
 from __future__ import print_function, unicode_literals
 import os
 import sys
-from io import StringIO
+import StringIO
 import time
 import csv
 from os0 import os0
@@ -38,11 +34,7 @@ except ImportError:
     import z0lib
 
 
-<<<<<<< HEAD:wok_code/scripts/cvt_csv_2_rst.py
-__version__ = "1.0.2.2"
-=======
 __version__ = "1.0.2.5"
->>>>>>> stash:wok_code/cvt_csv_2_rst.py
 
 msg_time = time.time()
 
@@ -159,11 +151,9 @@ def convert_file(ctx):
                 fd.write(os0.b(target))
 
 
-def main(cli_args=None):
-    # if not cli_args:
-    #     cli_args = sys.argv[1:]
+if __name__ == "__main__":
     parser = z0lib.parseoptargs("Convert csv file into xml file",
-                                "© 2018-2021 by SHS-AV s.r.l.",
+                                "© 2018-2020 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
@@ -181,4 +171,5 @@ def main(cli_args=None):
     parser.add_argument('dst_file',
                         nargs='?')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
-    return convert_file(ctx)
+    sts = convert_file(ctx)
+    sys.exit(sts)

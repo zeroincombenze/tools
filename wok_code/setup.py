@@ -3,11 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='wok_code',
-<<<<<<< HEAD
-      version='1.0.2.99',
-=======
       version='1.0.2.5',
->>>>>>> stash
       description='Python developers tools',
       long_description="""
 Various tools at your fingertips.
@@ -25,7 +21,7 @@ The available tools are:
 * wget_odoo_repositories.py: get repository names from github.com
 """,
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',
@@ -37,10 +33,7 @@ The available tools are:
           'Operating System :: OS Independent',
       ],
       keywords='linux travis development',
-<<<<<<< HEAD
-=======
       url='https://zeroincombenze-tools.readthedocs.io',
->>>>>>> stash
       project_urls={
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',
@@ -48,38 +41,21 @@ The available tools are:
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
-<<<<<<< HEAD
-      install_requires=['lxml'],
-      packages=find_packages(
-          exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-      package_data={
-          '': ['scripts/setup.conf', './please.sh', './cvt_script.sh']
-=======
       install_requires=['lxml', 'pyyaml'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
           '': ['scripts/setup.info', './please', './cvt_script']
->>>>>>> stash
       },
       entry_points={
           'console_scripts': [
               'wok_code-info = wok_code.scripts.main:main',
-<<<<<<< HEAD
-              'please = wok_code.scripts.please:main',
-              'gen_readme.py = wok_code.scripts.gen_readme:main',
-              'cvt_script = wok_code.scripts.cvt_script:main',
-              'cvt_csv_2_rst = wok_code.scripts.cvt_csv_2_rst:main',
-              'cvt_csv_2_xml = wok_code.scripts.cvt_csv_2_xml:main',
-              'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',
-=======
               # 'please = wok_code.scripts.please:main',
               # 'gen_readme.py = wok_code.scripts.gen_readme:main',
               # 'cvt_script = wok_code.scripts.cvt_script:main',
               # 'cvt_csv_2_rst = wok_code.scripts.cvt_csv_2_rst:main',
               # 'cvt_csv_2_xml = wok_code.scripts.cvt_csv_2_xml:main',
               # 'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',
->>>>>>> stash
           ],
       },
       zip_safe=False)

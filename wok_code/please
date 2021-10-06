@@ -8,30 +8,16 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-# export READLINK
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-<<<<<<< HEAD:wok_code/please.sh
-PYPATH=""
-for p in $TDIR $TDIR/.. $TDIR/../.. $HOME/venv_tools/bin $HOME/venv_tools/lib $HOME/tools; do
-  [[ -d $p ]] && PYPATH=$(find $(readlink -f $p) -maxdepth 3 -name z0librc)
-  [[ -n $PYPATH ]] && PYPATH=$(dirname $PYPATH) && break
-done
-PYPATH=$(echo -e "import os,sys;p=[os.path.dirname(x) for x in '$PYPATH'.split()];p.extend([x for x in os.environ['PATH'].split(':') if x not in p and x.startswith('$HOME')]);p.extend([x for x in sys.path if x not in p]);print(' '.join(p))"|python)
-=======
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 [[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
 PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
->>>>>>> stash:wok_code/please
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
-  if [[ -e $d/z0lib/z0librc ]]; then
-    . $d/z0lib/z0librc
-    Z0LIBDIR=$d/z0lib
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-    break
-  elif [[ -e $d/z0librc ]]; then
+  if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -42,6 +28,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
   echo "Library file z0librc not found!"
   exit 72
 fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 if [[ -z "$ODOOLIBDIR" ]]; then
   echo "Library file odoorc not found!"
@@ -64,11 +51,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-<<<<<<< HEAD:wok_code/please.sh
-__version__=1.0.2.2
-=======
 __version__=1.0.2.5
->>>>>>> stash:wok_code/please
 
 #
 # General Purpose options:
@@ -105,6 +88,8 @@ __version__=1.0.2.5
 # -W whatis
 # -w wep
 
+FIND_EXCL="-not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*'"
+
 move() {
   # move(src dst)
   if [ -f "$2" ]; then rm -f $2; fi
@@ -120,7 +105,7 @@ move_n_bak() {
 }
 
 search_pofile() {
-  srcs=$(find -L $odoo_root -not -path '*/__to_remove/*' -type d -name "$opt_modules")
+  srcs=$(find -L $odoo_root $FIND_EXCL -type d -name "$opt_modules")
   f=0
   for src in $srcs; do
     if [ -n "$src" ]; then
@@ -268,14 +253,14 @@ add_install() {
     fi
     echo "    ODOO_DIR=$root  # here your Odoo dir" >>$1
     echo "    BACKUP_DIR=$HOME/backup  # here your backup dir" >>$1
-    pkgs=$(list_requirements -p $PWD -s' ' -P -t python)
+    pkgs=$(list_requirements.py -p $PWD -s' ' -P -t python)
     pkgs="${pkgs:7}"
     if [ -n "$pkgs" ]; then
       echo "    for pkg in $pkgs; do" >>$1
       echo "        pip install \$pkg" >>$1
       echo "    done" >>$1
     fi
-    pkgs=$(list_requirements -p $PWD -s' ' -P -t modules)
+    pkgs=$(list_requirements.py -p $PWD -s' ' -P -t modules)
     pkgs="${pkgs:8}"
     if [ -n "$pkgs" ]; then
       echo "    # Check for <$pkgs> modules" >>$1
@@ -1273,7 +1258,7 @@ merge_cfg() {
   #merge_cfg(cfgfn)
   local cfgfn=$1 fbak ftmp f line ln
   local tmpl
-  tmpl=$HOME/pypi/tools/install_tools.sh
+  [[ -d $HOME/devel ]] && tmpl=$HOME/devel/pypi/tools/install_tools.sh || tmpl=$HOME/dev/pypi/tools/install_tools.sh
   ftmp=$cfgfn.tmp
   [[ -f $ftmp ]] && rm -f $ftmp
   f=0
@@ -1296,7 +1281,7 @@ merge_cfg() {
 }
 
 do_publish() {
-  #do_publish PKGNAME (docs|download|pypi|svg|testpypi)
+  #do_publish (docs|download|pypi|svg|testpypi)
   wlog "do_publish $1 $2"
   local cmd="do_publish_$1"
   sts=$STS_SUCCESS
@@ -1319,7 +1304,7 @@ do_publish() {
 }
 
 do_publish_svg() {
-  #do_publish_svg pgkname svg (prd|dev)
+  #do_publish_svg svg (prd|dev)
   local sts=$STS_FAILED
   local HTML_SVG_DIR=$(get_cfg_value 0 "HTML_SVG_DIR")
   local DEV_SVG=$(get_cfg_value 0 "DEV_SVG")
@@ -1353,7 +1338,7 @@ do_publish_svg() {
 }
 
 do_publish_docs() {
-  #do_publish_svg pgkname docs
+  #do_publish_svg docs
   local sts=$STS_FAILED
   if [ $EUID -ne 0 ]; then
     echo "!!Error: no privilege to publish documentation!!"
@@ -1381,7 +1366,7 @@ do_publish_docs() {
 }
 
 do_publish_download() {
-  #do_publish_download pgkname
+  #do_publish_download
   local f n s v
   local sts=$STS_FAILED
   if [ $EUID -ne 0 ]; then
@@ -1456,7 +1441,7 @@ do_publish_pypi() {
 }
 
 do_register_pypi() {
-  #do_register_pypi pgkname
+  #do_register_pypi
   local sts=$STS_SUCCESS
   local rpt=testpypi
   local n p s v
@@ -1478,7 +1463,7 @@ do_register_pypi() {
 }
 
 do_register_testpypi() {
-  #do_register_testpypi pgkname
+  #do_register_testpypi
   local sts=$STS_SUCCESS
   local rpt=testpypi
   local n p s v
@@ -1505,7 +1490,7 @@ do_annotate() {
 }
 
 do_edit() {
-  #do_edit PKGNAME (pofile|translation|untranslated)
+  #do_edit (pofile|translation|untranslated)
   local cmd
   wlog "do_edit $1 $2"
   cmd="do_edit_$1"
@@ -1528,7 +1513,7 @@ do_edit_pofile() {
 do_edit_translation() {
   local xfile
   [[ -f "$HOME/dev/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/dev/pypi/tools/odoo_default_tnl.xlsx"
-  [[ -f "$HOME/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/pypi/tools/odoo_default_tnl.xlsx"
+  [[ -f "$HOME/devel/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/devel/pypi/tools/odoo_default_tnl.xlsx"
   [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
   return $STS_STS_SUCCESS
 }
@@ -1570,7 +1555,7 @@ do_edit_translation_from_pofile() {
   return $sts
 
   [[ -f "$HOME/dev/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/dev/pypi/tools/odoo_default_tnl.xlsx"
-  [[ -f "$HOME/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/pypi/tools/odoo_default_tnl.xlsx"
+  [[ -f "$HOME/devel/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/devel/pypi/tools/odoo_default_tnl.xlsx"
   [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
   return $STS_STS_SUCCESS
 }
@@ -1604,7 +1589,7 @@ create_pkglist() {
       fi
       x=$(cat setup.py | grep "# BUILD_WITH_ODOORC=" | awk -F= '{print $2}')
       if [ "$x" == "1" ]; then
-        OELIB=$(findpkg odoorc "/etc $HOME/venv_tools . ..")
+        OELIB=$(findpkg odoorc "/etc $HOME/devel $HOME/dev . ..")
         [ -z "$OELIB" ] && OELIB=odoorc
       fi
     fi
@@ -1957,7 +1942,7 @@ do_docs() {
   local author version theme SETUP b f l t x
   local opts src_png odoo_fver
   local HOME_DEV
-  HOME_DEV=$HOME/venv_tools
+  [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
   [[ $opt_dbg -ne 0 || $PWD =~ /dev(el)?/pypi/ ]] && opts=-B || opts=
   if [ "$PRJNAME" == "Odoo" ]; then
     [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
@@ -2596,7 +2581,7 @@ do_register() {
 
 do_replace() {
   if [[ "$PRJNAME" == "Odoo" ]]; then
-    clean_dirs "$1"
+    clean_dirs
     [[ $opt_force -ne 0 ]] && set_executable
     if [[ $LGITPATH =~ (oca|zero) ]]; then
       local odoo_fver=$(build_odoo_param FULLVER ".")
@@ -2626,18 +2611,12 @@ do_replace() {
     done
     do_docs
     [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
-<<<<<<< HEAD:wok_code/please.sh
-    opts=$(inherits_travis_opts "R" "D")
-    [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg $opts $1"
-    sts=$?
-=======
     # [[ -f $PKGPATH/setup.py && -d $PRJPATH/scripts ]] && run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
     # [[ -f $PRJPATH/setup.py ]] && run_traced "rm -f $PRJPATH/setup.py"
     opts=$(inherits_travis_opts "R" "D")
     [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg $opts $1"
     sts=$?
     # [[ $(basename $PWD) != "tools" ]] && run_traced "cp $PKGPATH/setup.py $HOME/tools/$PKGNAME/"
->>>>>>> stash:wok_code/please
     [[ $(basename $PWD) != "tools" ]] && clean_dirs "$HOME/tools"
     [[ $opt_force -ne 0 ]] && set_executable
   fi
@@ -2748,7 +2727,7 @@ do_show_docs() {
 do_show_license() {
   if [[ "$PRJNAME" == "Odoo" ]]; then
     local module license FILES
-    FILES=$(find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" \)|sort)
+    FILES=$(find ./ -maxdepth 2 -type f $FIND_EXCL -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" \)|sort)
     for fn in $FILES; do
       path=$(readlink -f $(dirname $fn))
       module=$(basename $path)
@@ -2762,7 +2741,7 @@ do_show_license() {
 do_show_status() {
   local HOME_DEV s v1 v2 v x y
   local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
-  HOME_DEV=$HOME/venv_tools
+  [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
   pushd $HOME/tools >/dev/null
   local PKGS=$(git status -s | grep -E "^ M" | awk '{print $2}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
   local PKGS_V=$(git diff -G__version__ --compact-summary | awk '{print $1}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
@@ -2784,10 +2763,10 @@ do_show_status() {
         fi
       done
     else
-      vfdiff -m -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
+      vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
       if [[ $? -ne 0 ]]; then
         x="R"
-        [[ $opt_force -ne 0 ]] && vfdiff -m -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg
+        [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg
       fi
     fi
     [[ $PKGS != "()" && $pkg =~ $PKGS ]] && x="$x G"
@@ -2882,43 +2861,37 @@ do_travis() {
 }
 
 do_version() {
-  # do_version(pkg [cur_ver [new_ver]])
-<<<<<<< HEAD:wok_code/please.sh
-  if [[ "$PRJNAME" != "Odoo" ]]; then
-    if [[ -z "$2" ]]; then
-      find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
-=======
+  # do_version([cur_ver [new_ver]])
+  local re1 re2 new_ver
+  re1="^#? *__version__ *="
+  [[ -n $1 ]] && re2="${re1} *([\"'])?$1\1?$" || re2=$re1
+  [[ -n $2 ]] && new_ver="$2" || new_ver=""
   if [ "$PRJNAME" != "Odoo" ]; then
-    if [ -z "$2" ]; then
-      find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
->>>>>>> stash:wok_code/please
-    else
-      local ver_re2=${2//./\\.}
-      local ver_re="[^0-9.]$ver_re2($|[^0-9.])"
-      local new_ver=$3
-<<<<<<< HEAD:wok_code/please.sh
-      if [[ $opt_dry_run -ne 0 ]]; then
-        echo "find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
-=======
-      if [ $opt_dry_run -ne 0 ]; then
-        echo "find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
->>>>>>> stash:wok_code/please
+    if [ -z "$1" ]; then
+      if [ $opt_dry_run -eq 0 ]; then
+        find . -type f $FIND_EXCL -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re1" '{}' \;
       else
-        find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;
+        echo find . -type f $FIND_EXCL -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re1" '{}' \;
+      fi
+    else
+      if [ $opt_dry_run -eq 0 ]; then
+        find . -type f $FIND_EXCL -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re2" '{}' \;
+      else
+        echo find . -type f $FIND_EXCL -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re2" '{}' \;
       fi
       if [ -n "$new_ver" ]; then
-        for fn in $(find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -El "$ver_re" '{}' \;); do
+        for fn in $(find . -type f $FIND_EXCL -not -name "*.pyc" -not -name "*.log" -exec grep -El "$re2" '{}' \;); do
           if [ $opt_dry_run -ne 0 ]; then
-            echo "sed -e \"s/$ver_re2/$new_ver/\" -i $fn"
+            echo sed -E "(${re1} *[\"']?)$1/&$new_ver/" -i $fn
           else
-            sed -e "s/$ver_re2/$new_ver/" -i $fn
+            sed -E "(${re1} *[\"']?)$1/&$new_ver/" -i $fn
           fi
         done
         if [ -f $PKGPATH/setup.py ]; then
           if [ $opt_dry_run -ne 0 ]; then
-            echo "sed -e \"s/version=.$ver_re2./version='$new_ver'/\" -i $PKGPATH/setup.py"
+            echo sed -E "${re1} *[\"']?$1/&$new_ver/" -i $PKGPATH/setup.py
           else
-            sed -e "s/version=[\"']$ver_re2[\"']/version='$new_ver'/" -i $PKGPATH/setup.py
+            sed -E "${re1} *[\"']?$1/&$new_ver/" -i $PKGPATH/setup.py
           fi
         fi
       fi

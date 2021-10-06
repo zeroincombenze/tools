@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright 2018-19 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
@@ -35,11 +35,7 @@ except ImportError:
 # import pdb
 
 
-<<<<<<< HEAD
-__version__ = "1.0.2.2"
-=======
 __version__ = "1.0.2.5"
->>>>>>> stash
 
 
 def run_traced(*args):
