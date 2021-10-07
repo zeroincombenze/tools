@@ -71,7 +71,7 @@ set_hashbang() {
     grep -Eq "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" -i $f" && chmod +x $f
 }
 
-RFLIST__travis_emulator="travis travis.man travisrc"
+RFLIST__travis_emulator="travis travis.man travisrc"  # TODO> remove early
 RFLIST__devel_tools=""
 RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_worker.sh transodoo.py transodoo.xlsx"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
@@ -85,7 +85,7 @@ RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py run_odoo_debug"
 RFLIST__os0=""
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|vfcp|vfdiff)"
-FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py devel_tools export_db_model.py odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_odoover_confn topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
+FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py devel_tools export_db_model.py kbase odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn test_tools.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib.py z0librun.py"
 
 SRCPATH=
 DSTPATH=
@@ -146,6 +146,7 @@ if [[ $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! 
     [[ $? -ne 0 ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
     [[ ! -d $LOCAL_VENV/bin || ! -d $LOCAL_VENV/lib ]] && echo -e "${RED}# Incomplete Tools virtual environment!${CLR}" && exit 1
     [[ -d $HOME/.cache/pip && $opts =~ ^-.*p ]] && run_traced "rm -fR $HOME/.cache/pip"
+    [[ ! -d $LOCAL_VENV/bin/man/man8 ]] && run_traced "mkdir -p $LOCAL_VENV/bin/man/man8"
 fi
 
 [[ ! $opts =~ ^-.*q ]] && echo "# Moving local PYPI packages into virtual environment"
@@ -160,8 +161,8 @@ PYTHON3=""
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
 PKGS_LIST="python-plus clodoo lisa odoo_score os0 travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
-PYPI_LIST="psycopg2-binary babel lxml pyyaml"
-BINPATH="$DSTPATH/bin"
+PYPI_LIST="babel lxml"
+BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
 [[ $opts =~ ^-.*q ]] && popts="-q --disable-pip-version-check --no-python-version-warning" || popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PIPVER -gt 18 ]] && popts="$popts --no-warn-conflicts"
@@ -169,9 +170,9 @@ PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
 [[ $PIPVER -ge 21 ]] && popts="$popts --use-feature=in-tree-build"
 [[ $opts =~ ^-.*v ]] && echo "# $(which pip).$PIPVER $popts ..."
 [[ -d $DSTPATH/tmp ]] && rm -fR $DSTPATH/tmp
-[[ -d $DSTPATH/tmp ]] && rm -fR $LOCAL_VENV/tmp
-[[ -d $DSTPATH/tmp ]] && mkdir -p $LOCAL_VENV/tmp
-
+[[ -d $LOCAL_VENV/tmp ]] && rm -fR $LOCAL_VENV/tmp
+[[ ! -d $LOCAL_VENV/tmp ]] && mkdir -p $LOCAL_VENV/tmp
+# TODO> Remove early
 if [[ $opts =~ ^-.*[fU] && $DSTPATH != $LOCAL_VENV ]]; then
     # Please do not change package list order
     for pkg in $PYPI_LIST; do
@@ -201,20 +202,20 @@ for pkg in $PKGS_LIST tools; do
     for fn in $flist; do
         if [[ $fn == "." ]]; then
             src="$srcdir"
-            tgt="$DSTPATH/${pfn}"
+            tgt="$BINPATH/${pfn}"
             ftype=d
         elif [[ $fn == "readlink" ]]; then
             READLINK=$(which greadlink 2>/dev/null)
             if [[ -z "$READLINK" ]]; then
-                [[ -L $DSTPATH/readlink ]] && rm -f $DSTPATH/readlink
+                [[ -L $BINPATH/readlink ]] && rm -f $BINPATH/readlink
                 continue
             fi
             src=$READLINK
-            tgt="$DSTPATH/${fn}"
+            tgt="$BINPATH/${fn}"
             ftype=f
         else
             src="$srcdir/$fn"
-            tgt="$DSTPATH/$fn"
+            tgt="$BINPATH/$fn"
             [[ -d "$src" ]] && ftype=d || ftype=f
             if [[ $fn == "please" ]]; then
                 PLEASE_CMDS=$(grep "^HLPCMDLIST=" $src|awk -F= '{print $2}'|tr -d '"')
@@ -233,6 +234,8 @@ for pkg in $PKGS_LIST tools; do
         if [[ ! -e "$src" ]]; then
             echo "# File $src not found!"
         else
+            [[ -L $DSTPATH/${fn} || -f $DSTPATH/${fn} ]] && run_traced "rm -f $DSTPATH/${fn}"
+            [[ -d $DSTPATH/${fn} ]] && run_traced "rm -fR $DSTPATH/${fn}"
             [[ -L "$tgt" ]] && run_traced "rm -f $tgt"
             [[ -d "$tgt" && ! -L "$tgt" ]] && run_traced "rm -fR $tgt"
             if [[ $fn =~ (kbase|templates|license_text|readlink) ]]; then
@@ -247,7 +250,10 @@ for pkg in $PKGS_LIST tools; do
         fi
     done
     # Tools PYPI installation
-    if [[ $pkg =~ (clodoo|odoo_score|os0|python-plus|z0bug-odoo|z0lib|zar|zerobug) ]]; then
+    [[ $pkg == "tools" ]] && continue
+    x=$(find $SRCPATH/$pfn -maxdepth 3 -name __manifest__.rst 2>/dev/null|head -n 1)
+    [[ -n "$x" ]] && x=$(grep -E "^\.\. .set no_pypi ." $x|grep -Eo "[0-9]")
+    if [[ -z "$x" || $x -eq 0 ]]; then
         if [[ -d $SRCPATH/$pfn/$pfn ]]; then
             run_traced "cp -r $SRCPATH/$pfn/ $LOCAL_VENV/tmp/"
         else
@@ -259,8 +265,8 @@ for pkg in $PKGS_LIST tools; do
         if [[ $pkg == "python-plus" ]]; then
             [[ -x $PYLIB/$pfn/vem ]] && VEM="$PYLIB/$pfn/vem"
         elif [[ $pkg == "clodoo" ]]; then
-            [[ -d $DSTPATH/clodoo ]] && run_traced "rm -f $DSTPATH/clodoo"
-            [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $DSTPATH/clodoo"
+            [[ -d $BINPATH/clodoo ]] && run_traced "rm -f $BINPATH/clodoo"
+            [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $BINPATH/clodoo"
         fi
         if [[ -n $(which ${pkg}-info 2>/dev/null) ]]; then
             run_traced "${pkg}-info --copy-pkg-data"
@@ -268,7 +274,7 @@ for pkg in $PKGS_LIST tools; do
     fi
 done
 [[ -d "$DSTPATH/_travis" ]] && run_traced "rm -fR $DSTPATH/_travis"
-[[ -f $SRCPATH/tools/tests/test_tools.sh ]] && run_traced "cp $SRCPATH/tools/tests/test_tools.sh $DSTPATH/test_tools.sh" || run_traced "cp $SRCPATH/tests/test_tools.sh $DSTPATH/test_tools.sh"
+[[ -f $SRCPATH/tests/test_tools.sh ]] && run_traced "cp $SRCPATH/tests/test_tools.sh $BINPATH/test_tools.sh"
 [[ -d $LOCAL_VENV/tmp ]] && run_traced "rm -fR $LOCAL_VENV/tmp"
 
 for fn in $FILES_2_DELETE; do
@@ -312,13 +318,17 @@ fi
 
 # Final test to validate environment
 [[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
-for pkg in clodoo/odoorc cvt_csv_2_rst.py cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please to_pep8.py transodoo.py vem wget_odoo_repositories.py; do
+for pkg in clodoo/odoorc cvt_csv_2_rst.py cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please to_pep8.py transodoo.py wget_odoo_repositories.py; do
   echo -n "."
-  [[ ! -f $DSTPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $DSTPATH!!${CLR}" && exit
+  [[ ! -f $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
+done
+for pkg in vem; do
+  echo -n "."
+  [[ ! -f $LOCAL_VENV/bin/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $LOCAL_VENV/bin/$pkg!!${CLR}" && exit
 done
 for pkg in kbase templates; do
   echo -n "."
-  [[ ! -d $DSTPATH/$pkg ]] && echo -e "${RED}Incomplete installation! Directory $pkg non found in $DSTPATH!!${CLR}" && exit
+  [[ ! -d $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit
 done
 for pkg in $PYPI_LIST; do
     echo -n "."
@@ -327,9 +337,10 @@ for pkg in $PYPI_LIST; do
     [[ -z "$x" ]] && echo -e "${RED}Incomplete installation! Package $pkg non installed in $LOCAL_VENV!!${CLR}" && exit
 done
 echo ""
-[[ $opts =~ ^-.*T ]] && $DSTPATH/test_tools.sh
+[[ $opts =~ ^-.*T ]] && $BINPATH/test_tools.sh
 
 run_traced "deactivate"
+[[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
 
 if [[ $opts =~ ^-.*D ]]; then
     run_traced "mkdir -p $DEVELPATH"
