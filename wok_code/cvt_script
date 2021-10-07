@@ -11,7 +11,7 @@ READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null
 export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 HOME_DEV="$HOME/devel"
 PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
@@ -27,6 +27,17 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+CFG_init
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
 
 __version__=1.0.2.6
 
@@ -69,9 +80,9 @@ parse_blk_4() {
 }
 
 parse_blk_8() {
-  if [ $prc -lt 8 ]; then
+  if [[ $prc -lt 8 ]]; then
     prc=8
-    if [ $opt_UT -ne 0 -o $opt_Test -ne 0 ]; then
+    if [[ $opt_UT -ne 0 || $opt_Test -ne 0 ]]; then
       blk_8 "$fntmp"
       empty=0
     fi
@@ -85,6 +96,14 @@ parse_blk_9() {
       blk_9 "$fntmp"
       empty=0
     fi
+  fi
+}
+
+parse_blk_10() {
+  if [[ $prc -lt 10 ]]; then
+    prc=10
+    blk_10 "$fntmp"
+    empty=0
   fi
 }
 
@@ -154,14 +173,16 @@ cvt_file() {
         elif [[ $line =~ ^#[^A-Za-z09_]*Only.human.upgradable.code.* ]]; then
           echo "$line" >>$fntmp
           incl=1
+        elif [ $incl -eq 1 ]; then
+          echo "$line" >>$fntmp
         elif [[ $line =~ ^if.*\$opt_help.*gt.*then$ ]]; then
           echo "if [[ \$opt_help -gt 0 ]]; then" >>$fntmp
         elif [[ $line =~ ^if.*\$opt_version.*then$ ]]; then
           echo "if [[ \"\$opt_version\" ]]; then" >>$fntmp
+        elif [[ $line =~ ^[[:space:]]*man[[:space:]]\$TDIR/\$THIS.man ]]; then
+          echo "  man \$(dirname \$0)/man/man8/\$(basename \$0).8.gz" >>$fntmp
         elif [[ $line =~ ^OPTACTI=\(1... ]]; then
           echo "${line/(1  /('+'}" >>$fntmp
-        elif [ $incl -eq 1 ]; then
-          echo "$line" >>$fntmp
         elif [ $prc -eq 0 ]; then
           if [[ $line =~ ^THIS=..basename || $line =~ ^#?.?export.READLINK= || $line =~ ^#?.?READLINK= ]]; then
             prc=1
@@ -217,44 +238,26 @@ cvt_file() {
               ToRepeat="$ToRepeat opt_Test=1"
             fi
           elif [[ $line =~ ^Z0TLIBDIR.*findpkg.*z0testrc.* ]]; then
-            if [ $prc -lt 2 ]; then
-              parse_blk_2
-            fi
-            if [ $prc -lt 3 ]; then
-              parse_blk_3
-            fi
-            if [ $prc -lt 4 ]; then
-              parse_blk_4
-            fi
-            if [ $prc -lt 8 ]; then
-              parse_blk_8
-            fi
-            parse_blk_9
+            [[ $prc -lt 2 ]] && parse_blk_2
+            [[ $prc -lt 3 ]] && parse_blk_3
+            [[ $prc -lt 4 ]] && parse_blk_4
+            [[ $prc -lt 8 ]] && parse_blk_8
+            [[ $prc -lt 9 ]] && parse_blk_9
+            [[ $prc -lt 10 ]] && parse_blk_10
             if [[ $opt_UT -eq 0 ]]; then
               echo "Warning: found Zerobug library w/o -U switch"
               ToRepeat="$ToRepeat opt_UT=1"
             fi
-          elif [[ $line =~ ^__version__.* || $line =~ ^[a-zA_Z0-9_]+[:space:]*\( ]]; then
-            if [ $prc -lt 2 ]; then
-              parse_blk_2
-            fi
-            if [ $prc -lt 3 ]; then
-              parse_blk_3
-            fi
-            if [ $prc -lt 4 ]; then
-              parse_blk_4
-            fi
-            if [ $prc -lt 8 ]; then
-              parse_blk_8
-            fi
-            if [ $prc -lt 9 ]; then
-              parse_blk_9
-            fi
-            if [ $empty -eq 0 ]; then
-              echo "" >>$fntmp
-            fi
+          elif [[ $line =~ ^__version__= || $line =~ ^[a-zA_Z0-9_]+[:space:]*\( ]]; then
+            [[ $prc -lt 2 ]] && parse_blk_2
+            [[ $prc -lt 3 ]] && parse_blk_3
+            [[ $prc -lt 4 ]] && parse_blk_4
+            [[ $prc -lt 8 ]] && parse_blk_8
+            [[ $prc -lt 9 ]] && parse_blk_9
+            [[ $prc -lt 10 ]] && parse_blk_10
+            [[ $empty -eq 0 ]] && echo "" >>$fntmp
             echo "$line_ver" >>$fntmp
-            prc=10
+            # prc=10
             if ! [[ $line =~ ^__version__.* ]]; then
               echo "$line" >>$fntmp
             fi
@@ -400,7 +403,7 @@ READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/nu
 export READLINK
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-[ \$BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
+[ \$BASH_VERSINFO -lt 4 ] && echo "This script \$0 requires bash 4.0+!" && exit 4
 HOME_DEV="\$HOME/devel"
 PYPATH=\$(echo -e "import os,sys;\nTDIR='"\$TDIR"';HOME_DEV='"\$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=\$PYPATH"
@@ -509,9 +512,6 @@ TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=\$TESTDIR"
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=\$RUNDIR"
-RED="\e[1;31m"
-GREEN="\e[1;32m"
-CLR="\e[0m"
 EOF
 }
 
@@ -525,6 +525,22 @@ fi
 . \$Z0TLIBDIR
 Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=\$Z0TLIBDIR"
+EOF
+}
+
+blk_10() {
+  cat <<EOF >>$1
+
+DIST_CONF=\$(findpkg ".z0tools.conf" "\$PYPATH")
+TCONF="\$HOME/.z0tools.conf"
+# CFG_init
+# link_cfg_def
+# link_cfg \$DIST_CONF \$TCONF
+[[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=\$DIST_CONF" && echo "TCONF=\$TCONF"
+# get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
 EOF
 }
 
