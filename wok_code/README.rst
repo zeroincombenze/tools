@@ -1,7 +1,7 @@
 
-===================
-devel_tools 1.0.2.5
-===================
+================
+wok_code 1.0.2.6
+================
 
 
 
@@ -845,7 +845,19 @@ Current development version
 History
 -------
 
-1.0.2.5 (2021-09-30)
+1.0.2.6 (2021-10-06)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] cvt_script: inclusion path improved
+[IMP] cvt_script: man page
+[FIX] gen_readme.py
+
+1.0.2.5 (2021-10-01)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] disk_pkg: manage setup.py & setup.info
+
+1.0.2.4 (2021-09-30)
 ~~~~~~~~~~~~~~~~~~~~
 
 [IMP] please: new version method
@@ -874,7 +886,7 @@ History
 1.0.2g (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~
 
-[IMP] ct_csv_coa.py: new command to manage Odoo CoA
+[IMP] cvt_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
 
 1.0.2f (2021-08-26)
@@ -900,16 +912,6 @@ History
 
 [FIX] topep8: file list does not include .idea files
 [IMP] please: action docs now set license file in current directory
-
-1.0.2b (2021-08-03)
-~~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: parameter error
-
-1.0.2a (2021-07-29)
-~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoo_translation.py: xlrd (no more supported) replaced by openpyxl
 
 
 
@@ -992,6 +994,9 @@ Last Update / Ultimo aggiornamento: 2021-09-24
 Last Update / Ultimo aggiornamento: 2021-09-28
 Last Update / Ultimo aggiornamento: 2021-09-29
 Last Update / Ultimo aggiornamento: 2021-09-30
+Last Update / Ultimo aggiornamento: 2021-10-01
+Last Update / Ultimo aggiornamento: 2021-10-06
+Last Update / Ultimo aggiornamento: 2021-10-07
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1025,7 +1030,7 @@ Last Update / Ultimo aggiornamento: 2021-09-30
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-10-01
+Last Update / Ultimo aggiornamento: 2021-10-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

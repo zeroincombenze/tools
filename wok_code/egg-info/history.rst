@@ -1,3 +1,10 @@
+1.0.2.6 (2021-10-06)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] cvt_script: inclusion path improved
+[IMP] cvt_script: man page
+[FIX] gen_readme.py
+
 1.0.2.5 (2021-10-01)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -32,7 +39,7 @@
 1.0.2g (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~
 
-[IMP] ct_csv_coa.py: new command to manage Odoo CoA
+[IMP] cvt_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
 
 1.0.2f (2021-08-26)
@@ -82,22 +89,22 @@
 
 * [FIX] wget_odoo_repositories.py: best debug mode: check for branch
 
-1.0.2 (2021-05-31)
+1.0.2.2 (2021-05-31)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] license managament: other orgs
 
-1.0.2 (2021-05-24)
+1.0.2.2 (2021-05-24)
 ~~~~~~~~~~~~~~~~~~~~
 [FIX] cvt_script: wrong RUNDIR
 
-1.0.2 (2021-03-15)
+1.0.2.2 (2021-03-15)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: status when git pushed
 [FIX] gen_readme.py: crash if invalid Odoo project
 
-1.0.2 (2021-03-05)
+1.0.2.2 (2021-03-05)
 ~~~~~~~~~~~~~~~~~~~~
 
 [FIX] please: publish pypi

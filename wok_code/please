@@ -51,7 +51,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.2.5
+__version__=1.0.2.6
 
 #
 # General Purpose options:
@@ -86,7 +86,9 @@ __version__=1.0.2.5
 # -V show version
 # -v verbose mode
 # -W whatis
-# -w wep
+# -w wepfremo
+
+FIND_EXCL="-not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*'"
 
 move() {
   # move(src dst)
@@ -103,7 +105,7 @@ move_n_bak() {
 }
 
 search_pofile() {
-  srcs=$(find -L $odoo_root -not -path '*/__to_remove/*' -type d -name "$opt_modules")
+  srcs=$(find -L $odoo_root -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -type d -name "$opt_modules")
   f=0
   for src in $srcs; do
     if [ -n "$src" ]; then
@@ -1279,8 +1281,8 @@ merge_cfg() {
 }
 
 do_publish() {
-  #do_publish PKGNAME (docs|download|pypi|svg|testpypi)
-  wlog "do_publish $1 $1"
+  #do_publish (docs|download|pypi|svg|testpypi)
+  wlog "do_publish $1 $2"
   local cmd="do_publish_$1"
   sts=$STS_SUCCESS
   if [ "$(type -t $cmd)" == "function" ]; then
@@ -1302,7 +1304,7 @@ do_publish() {
 }
 
 do_publish_svg() {
-  #do_publish_svg pgkname svg (prd|dev)
+  #do_publish_svg svg (prd|dev)
   local sts=$STS_FAILED
   local HTML_SVG_DIR=$(get_cfg_value 0 "HTML_SVG_DIR")
   local DEV_SVG=$(get_cfg_value 0 "DEV_SVG")
@@ -1336,7 +1338,7 @@ do_publish_svg() {
 }
 
 do_publish_docs() {
-  #do_publish_svg pgkname docs
+  #do_publish_svg docs
   local sts=$STS_FAILED
   if [ $EUID -ne 0 ]; then
     echo "!!Error: no privilege to publish documentation!!"
@@ -1364,7 +1366,7 @@ do_publish_docs() {
 }
 
 do_publish_download() {
-  #do_publish_download pgkname
+  #do_publish_download
   local f n s v
   local sts=$STS_FAILED
   if [ $EUID -ne 0 ]; then
@@ -1439,7 +1441,7 @@ do_publish_pypi() {
 }
 
 do_register_pypi() {
-  #do_register_pypi pgkname
+  #do_register_pypi
   local sts=$STS_SUCCESS
   local rpt=testpypi
   local n p s v
@@ -1461,7 +1463,7 @@ do_register_pypi() {
 }
 
 do_register_testpypi() {
-  #do_register_testpypi pgkname
+  #do_register_testpypi
   local sts=$STS_SUCCESS
   local rpt=testpypi
   local n p s v
@@ -1488,7 +1490,7 @@ do_annotate() {
 }
 
 do_edit() {
-  #do_edit PKGNAME (pofile|translation|untranslated)
+  #do_edit (pofile|translation|untranslated)
   local cmd
   wlog "do_edit $1 $2"
   cmd="do_edit_$1"
@@ -2579,7 +2581,7 @@ do_register() {
 
 do_replace() {
   if [[ "$PRJNAME" == "Odoo" ]]; then
-    clean_dirs "$1"
+    clean_dirs
     [[ $opt_force -ne 0 ]] && set_executable
     if [[ $LGITPATH =~ (oca|zero) ]]; then
       local odoo_fver=$(build_odoo_param FULLVER ".")
@@ -2725,7 +2727,7 @@ do_show_docs() {
 do_show_license() {
   if [[ "$PRJNAME" == "Odoo" ]]; then
     local module license FILES
-    FILES=$(find ./ -maxdepth 2 -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" \)|sort)
+    FILES=$(find ./ -maxdepth 2 -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -path "*/i18n/*" -not -path "*/static/*" \( -name "__manifest__.py" -o -name "__openerp__.py" \)|sort)
     for fn in $FILES; do
       path=$(readlink -f $(dirname $fn))
       module=$(basename $path)
@@ -2859,32 +2861,37 @@ do_travis() {
 }
 
 do_version() {
-  # do_version(pkg [cur_ver [new_ver]])
+  # do_version([cur_ver [new_ver]])
+  local re1 re2 new_ver
+  re1="^#? *__version__ *="
+  [[ -n $1 ]] && re2="${re1} *([\"'])?$1\1?$" || re2=$re1
+  [[ -n $2 ]] && new_ver="$2" || new_ver=""
   if [ "$PRJNAME" != "Odoo" ]; then
-    if [ -z "$2" ]; then
-      find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
-    else
-      local ver_re2=${2//./\\.}
-      local ver_re="[^0-9.]$ver_re2($|[^0-9.])"
-      local new_ver=$3
-      if [ $opt_dry_run -ne 0 ]; then
-        echo "find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
+    if [ -z "$1" ]; then
+      if [ $opt_dry_run -eq 0 ]; then
+        find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re1" '{}' \;
       else
-        find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;
+        echo find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re1" '{}' \;
+      fi
+    else
+      if [ $opt_dry_run -eq 0 ]; then
+        find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re2" '{}' \;
+      else
+        echo find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re2" '{}' \;
       fi
       if [ -n "$new_ver" ]; then
-        for fn in $(find . -type f -not -path "*/.idea/*" -not -path "*/.docs/*" -not -path "*/.git/*" -not -name "*.pyc" -not -name "*.log" -exec grep -El "$ver_re" '{}' \;); do
+        for fn in $(find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -El "$re2" '{}' \;); do
           if [ $opt_dry_run -ne 0 ]; then
-            echo "sed -e \"s/$ver_re2/$new_ver/\" -i $fn"
+            echo sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $fn
           else
-            sed -e "s/$ver_re2/$new_ver/" -i $fn
+            sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $fn
           fi
         done
         if [ -f $PKGPATH/setup.py ]; then
           if [ $opt_dry_run -ne 0 ]; then
-            echo "sed -e \"s/version=.$ver_re2./version='$new_ver'/\" -i $PKGPATH/setup.py"
+            echo sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $PKGPATH/setup.py
           else
-            sed -e "s/version=[\"']$ver_re2[\"']/version='$new_ver'/" -i $PKGPATH/setup.py
+            sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $PKGPATH/setup.py
           fi
         fi
       fi
@@ -2954,7 +2961,7 @@ do_wep() {
 
 OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O        p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
-OPTACTI=(1        1       "="        "="      "="      1         1        1        "="       1       1           "=>"     1        "="       0           1     "="      1         1       "*"         "+")
+OPTACTI=("+"      1       "="        "="      "="      1         1        1        "="       1       1           "=>"     1        "="       0           1     "="      1         1       "*"         "+")
 OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0        ""        -1          0     ""       0         0       ""          -1)
 OPTMETA=("help"   ""      "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"
@@ -2978,7 +2985,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"
   "check for unary operator W503 or no OCA/zero module translation"
   "show version end exit"
   "verbose mode")
-OPTARGS=(actions sub1 sub2 sub3)
+OPTARGS=(actions sub1 sub2 sub3 sub4 sub5 sub6 sub7 sub8 sub9)
 
 parseoptargs "$@"
 if [[ "$opt_version" ]]; then
@@ -2992,11 +2999,12 @@ if [[ $opt_help -gt 0 ]]; then
   exit 0
 fi
 
+
 opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
-[[ $opt_verbose -gt 2 ]] && set -x
+# [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 prepare_env_travis "$actions" "-r"
 sts=$STS_SUCCESS
@@ -3004,10 +3012,12 @@ sts_bash=127
 sts_flake8=127
 sts_pylint=127
 test_sts=127
+
 if [[ -z $sub1 ]]; then
   sub1="$sub2"
   sub2="$sub3"
-  sub3=""
+  sub3="$sub4"
+  sub4=""
 fi
 if [[ "$actions" == "help" ]]; then
   man $TDIR/$THIS.man
@@ -3023,7 +3033,7 @@ else
       cmd="do_${action/-/_}"
     fi
     if [[ "$(type -t $cmd)" == "function" ]]; then
-      eval $cmd "$PKGNAME" "'$sub1'" "'$sub2'" "'$sub3'"
+      eval $cmd "'$sub1'" "'$sub2'" "'$sub3'"
       sts=$?
     else
       echo "Invalid action!"
