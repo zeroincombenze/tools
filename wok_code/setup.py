@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='wok_code',
-      version='1.0.2.5',
+      version='1.0.2.6',
       description='Python developers tools',
       long_description="""
 Various tools at your fingertips.
@@ -45,7 +45,9 @@ The available tools are:
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.info', './please', './cvt_script']
+          '': ['scripts/setup.info',
+               './please', './please.man',
+               './cvt_script', './cvt_script.man']
       },
       entry_points={
           'console_scripts': [

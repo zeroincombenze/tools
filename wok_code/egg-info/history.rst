@@ -1,3 +1,10 @@
+1.0.2.6 (2021-10-06)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] cvt_script: inclusion path improved
+[IMP] cvt_script: man page
+[FIX] gen_readme.py
+
 1.0.2.5 (2021-10-01)
 ~~~~~~~~~~~~~~~~~~~~
 

@@ -24,9 +24,6 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="rtd_installation.html" title="&lt;no title&gt;"
              accesskey="N">next</a> |</li>
         <li class="right" >
@@ -208,7 +205,7 @@ when you meet too many errors.</p>
 </div>
 <p>Odoo core has internal pylint test that checks for all modules even the dependecies.
 So if some dependecies module does not meet this test, then the full travis test fails without testing the target repository.</p>
-<p>Please, add test_lint to EXCLUDE variable to avoid this fail-over.</p>
+<p>Please, add test_lint to EXCLUDE variable to avoid this fail-over. See below for furthermore informations.</p>
 <p>Look at follow table to understand which tests are disabled at specific level:</p>
 <p>FLAKE8 (see <a class="reference external" href="http://flake8.pycqa.org/en/latest/user/error-codes.html">http://flake8.pycqa.org/en/latest/user/error-codes.html</a> for deatils)</p>
 <table class="docutils align-default">
@@ -912,16 +909,28 @@ but without running any tests.</p>
 </div>
 <div class="section" id="reduced-set-of-unit-test">
 <h2>Reduced set of unit test<a class="headerlink" href="#reduced-set-of-unit-test" title="Permalink to this headline">¶</a></h2>
-<p>Last Odoo packages may fail in Travis CI or in local environment.
-Currently Odoo OCB core tests fail; we are investigating for causes.
-OCA workaround is following example statement:</p>
-<p><cite>export INCLUDE=$(getaddons.py -m –only-applications ${TRAVIS_BUILD_DIR}/odoo/addons ${TRAVIS_BUILD_DIR}/addons)</cite></p>
-<p>You can execute reduced set of tests adding one of follow lines:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">TESTS</span><span class="o">=</span><span class="s2">&quot;1&quot;</span> <span class="n">ODOO_TEST_SELECT</span><span class="o">=</span><span class="s2">&quot;ALL&quot;</span>
+<p>Odoo modules may fail in Travis CI or in local environment.
+Currently Odoo OCB core tests fail; we are investigating for the causes.
+However you can use a simple workaround, disabling some test.
+Currently tests fail are:</p>
+<ul class="simple">
+<li><p>test_impex</p></li>
+<li><p>test_ir_actions</p></li>
+<li><p>test_lint</p></li>
+<li><p>test_main_flows</p></li>
+<li><p>test_search</p></li>
+<li><p>test_user_has_group</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">export</span> <span class="n">EXCLUDE</span><span class="o">=</span><span class="n">test_impex</span><span class="p">,</span><span class="n">test_ir_actions</span><span class="p">,</span><span class="n">test_lint</span><span class="p">,</span><span class="n">test_main_flows</span><span class="p">,</span><span class="n">test_search</span><span class="p">,</span><span class="n">test_user_has_group</span>
+<span class="o">-</span> <span class="n">TESTS</span><span class="o">=</span><span class="s2">&quot;1&quot;</span> <span class="n">ODOO_TEST_SELECT</span><span class="o">=</span><span class="s2">&quot;ALL&quot;</span>
 <span class="o">-</span> <span class="n">TESTS</span><span class="o">=</span><span class="s2">&quot;1&quot;</span> <span class="n">ODOO_TEST_SELECT</span><span class="o">=</span><span class="s2">&quot;NO-CORE&quot;</span>
 <span class="o">-</span> <span class="o">....</span>
 </pre></div>
 </div>
+<p>You can set parameter local GBL_EXCLUDE to disable these test for all repositories.
+You will be warned that local GBL_EXCLUDE has only effect for local emulation.
+To avoid these test on web travis-ci you have to set EXCLUDE value in .travis.yml file.</p>
 <p>Look at follow table to understand which set of tests are enabled or disabled:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1530,7 +1539,7 @@ If you do it, it will be simply ignored.</p>
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2021-08-31</p>
+<p>Last Update / Ultimo aggiornamento: 2021-10-06</p>
 </div>
 
 
@@ -1605,9 +1614,6 @@ If you do it, it will be simply ignored.</p>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
         <li class="right" >
           <a href="rtd_installation.html" title="&lt;no title&gt;"
              >next</a> |</li>

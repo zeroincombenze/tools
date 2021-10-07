@@ -209,7 +209,7 @@ To enable reduced set of check add one of follow lines:
 Odoo core has internal pylint test that checks for all modules even the dependecies.
 So if some dependecies module does not meet this test, then the full travis test fails without testing the target repository.
 
-Please, add test_lint to EXCLUDE variable to avoid this fail-over.
+Please, add test_lint to EXCLUDE variable to avoid this fail-over. See below for furthermore informations.
 
 Look at follow table to understand which tests are disabled at specific level:
 
@@ -446,19 +446,30 @@ but without running any tests.
 Reduced set of unit test
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Last Odoo packages may fail in Travis CI or in local environment.
-Currently Odoo OCB core tests fail; we are investigating for causes.
-OCA workaround is following example statement:
+Odoo modules may fail in Travis CI or in local environment.
+Currently Odoo OCB core tests fail; we are investigating for the causes.
+However you can use a simple workaround, disabling some test.
+Currently tests fail are:
 
-`export INCLUDE=$(getaddons.py -m --only-applications ${TRAVIS_BUILD_DIR}/odoo/addons ${TRAVIS_BUILD_DIR}/addons)`
+* test_impex
+* test_ir_actions
+* test_lint
+* test_main_flows
+* test_search
+* test_user_has_group
 
-You can execute reduced set of tests adding one of follow lines:
+Example:
 
 ::
 
+    - export EXCLUDE=test_impex,test_ir_actions,test_lint,test_main_flows,test_search,test_user_has_group
     - TESTS="1" ODOO_TEST_SELECT="ALL"
     - TESTS="1" ODOO_TEST_SELECT="NO-CORE"
     - ....
+
+You can set parameter local GBL_EXCLUDE to disable these test for all repositories.
+You will be warned that local GBL_EXCLUDE has only effect for local emulation.
+To avoid these test on web travis-ci you have to set EXCLUDE value in .travis.yml file.
 
 Look at follow table to understand which set of tests are enabled or disabled:
 
@@ -854,9 +865,9 @@ partner qci
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-08-31
+Last Update / Ultimo aggiornamento: 2021-10-06
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master

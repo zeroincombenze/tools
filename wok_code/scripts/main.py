@@ -17,6 +17,7 @@ The available tools are:
 import os
 import sys
 import pkg_resources
+import gzip
 import shutil
 
 
@@ -84,12 +85,22 @@ def copy_pkg_data(setup_args, verbose):
             bin2_path = os.path.join(os.environ['HOME'], 'devel')
             if not os.path.isdir(bin2_path):
                 bin2_path = ''
+            man_path = os.path.join(bin_path, 'man', 'man8')
+            if not os.path.isdir(man_path):
+                man_path = ''
             for pkg in setup_args['package_data'].keys():
                 for fn in setup_args['package_data'][pkg]:
                     base = os.path.basename(fn)
                     if base == 'setup.info':
                         continue
                     full_fn = os.path.abspath(os.path.join(pkgpath, fn))
+                    if base.endswith('.man') and man_path:
+                        with open(full_fn, 'r') as fd:
+                            help_text = fd.read()
+                        tgt_fn = os.path.join(man_path, '%s.8.gz' % base[:-4])
+                        with gzip.open(tgt_fn, 'w') as fd:
+                            fd.write(help_text)
+                        continue
                     if lib_path:
                         tgt_fn = os.path.join(lib_path, base)
                         if verbose:
@@ -111,7 +122,7 @@ def copy_pkg_data(setup_args, verbose):
                         #     if verbose:
                         #         print('$ ln -s %s %s' % (full_fn, tgt_fn))
                         #     os.symlink(full_fn, tgt_fn)
-            # TODO> compatibility mode
+            # TODO> compatibility mode to remeve early
             if lib_path and bin2_path:
                 for base in ('z0librc', 'odoorc', 'travisrc'):
                     full_fn = os.path.join(bin2_path, base)
