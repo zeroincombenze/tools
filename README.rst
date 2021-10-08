@@ -1,6 +1,6 @@
 
 ==========================
-|Zeroincombenze| tools 0.1
+|Zeroincombenze| tools 1.0
 ==========================
 
 |Build Status| |Coverage Status| |license gpl|
@@ -25,6 +25,8 @@ These tools help to cover the following areas of software:
 * Development
 * Documentation
 * Testing
+
+You can find more info at https://zeroincombenze-tools.readthedocs.io/
 
 Compatibility
 ~~~~~~~~~~~~~
@@ -237,10 +239,22 @@ Current development version
 History
 -------
 
+python_plus: 1.0.3.7 (2021-10-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lost python-plus functions
+
+
+wok_code: 1.0.2.5 (2021-10-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] disk_pkg: manage setup.py & setup.info
+
+
 python_plus: 1.0.3.6 (2021-10-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] full setuptools integrated + copy-pkg-data
+* [IMP] full setuptools integrated + copy-pkg-data
 
 
 wok_code: 1.0.2.4 (2021-09-30)
@@ -252,7 +266,7 @@ wok_code: 1.0.2.4 (2021-09-30)
 python_plus: 1.0.3.5 (2021-09-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: 1st installation, z0librc not found
+* [FIX] vem: 1st installation, z0librc not found
 
 
 wok_code: 1.0.2.3 (2021-09-29)
@@ -279,7 +293,7 @@ z0bug_odoo: 1.0.5.2 (2021-09-27)
 python_plus: 1.0.3.3 (2021-09-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: error message "riga 99: deactivate:"
+* [FIX] vem: error message "riga 99: deactivate:"
 
 
 clodoo: 0.3.35.3 (2021-09-26)
@@ -297,8 +311,8 @@ travis_emulator: 1.0.2.1 (2021-09-25)
 python_plus: 1.0.3.2 (2021-09-25)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: create vem with -I switch
-[REF] vem refactoring
+* [FIX] vem: create vem with -I switch
+* [REF] vem refactoring
 
 
 wok_code: 1.0.2.3 (2021-09-24)
@@ -329,14 +343,20 @@ wok_code: 1.0.2.1 (2021-09-23)
 python_plus: 1.0.3.1 (2021-09-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] vem: added click package
-[FIX] vem: create with devel packages
+* [FIX] vem: added click package
+* [FIX] vem: create with devel packages
 
 
 clodoo: 0.3.35 (2021-09-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] python 3
+
+
+lisa: 0.3.2.1 (2021-09-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] lisa_bld: value from config file
 
 
 wok_code: 1.0.2h (2021-08-31)
@@ -348,7 +368,7 @@ wok_code: 1.0.2h (2021-08-31)
 wok_code: 1.0.2g (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] ct_csv_coa.py: new command to manage Odoo CoA
+[IMP] cvt_csv_coa.py: new command to manage Odoo CoA
 [IMP] gen_readme.py: search for authors in current README
 
 
@@ -403,6 +423,7 @@ travis_emulator: 1.0.1.8 (2021-08-26)
 [IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
+[IMP] travis: switch -y forces python version
 
 
 odoo_score: 1.0.2 (2021-08-26)
@@ -478,50 +499,6 @@ wok_code: 1.0.2e (2021-08-08)
 [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
 
-travis_emulator: 1.0.1.4 (2021-08-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] devel_tools replaced by wok_code
-[IMP] travis: summary return 1 if test failed
-
-
-z0bug_odoo: 1.0.3.2 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] test data update
-
-
-wok_code: 1.0.2d (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[REF] Merged and renamed to wok_code
-
-
-python_plus: 1.0.1.3 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: uninstall package with if package version with ">"
-
-
-wok_code: 1.0.2c (2021-08-04)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] topep8: file list does not include .idea files
-[IMP] please: action docs now set license file in current directory
-
-
-wok_code: 1.0.2b (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] gen_readme.py: parameter error
-
-
-travis_emulator: 1.0.1.3 (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] Show virtual enviroment name in summary
-
-
 
 
 
@@ -537,7 +514,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-10-01
+Last Update / Ultimo aggiornamento: 2021-10-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
@@ -552,22 +529,22 @@ Last Update / Ultimo aggiornamento: 2021-10-01
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=0.1
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/0.1/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/0.1
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
     :alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-0.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.1/dev
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
+    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
     :alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-0.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.1/man
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
+    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
     :alt: Technical Documentation
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-0.svg
-    :target: https://erp0.zeroincombenze.it
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
+    :target: https://erp1.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/0.1/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/0.1
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/1.0
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

@@ -13,6 +13,8 @@ These tools help to cover the following areas of software:
 * Documentation
 * Testing
 
+You can find more info at https://zeroincombenze-tools.readthedocs.io/
+
 Compatibility
 ~~~~~~~~~~~~~
 
