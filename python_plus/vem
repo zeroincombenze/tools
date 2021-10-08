@@ -19,15 +19,14 @@ READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null
 export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $d)
     break
   fi
 done
@@ -36,6 +35,17 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+# CFG_init
+# link_cfg_def
+# link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+# get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
 
 __version__=1.0.3.7
 
@@ -258,7 +268,7 @@ pip_install() {
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
-  [[ $opt_verbose -ne 0 ]] && echo "# $PIP.$PIPVER $popts ..."
+  [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER $popts ..." && PRINTED_PIPVER=1
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ ! $pkg =~ $BIN_PKGS ]]; then
       srcdir=""
@@ -713,7 +723,8 @@ check_installed_pkgs() {
   [[ $opt_verbose -lt 2 ]] && popts="$potps -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
-    [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
+    # [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
+    p2=""
     [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install $popts$p2 $p"
     [[ $opt_verbose -lt 2 ]] && echo -n "."
     [[ -z "${!x}" ]] && $PIP install $popts$p2 $p
@@ -997,7 +1008,7 @@ do_venv_create() {
           run_traced "mv $VENV ${VENV}~"
           for f in $(ls ${VENV}~); do
               b=$(basename $f)
-              if [[ $b =~ (bin|include|lib|node_modules|odoo|package-lock.json|pyvenv.cfg|activate_tools|tmp) ]]; then
+              if [[ $b =~ (bin|include|lib|node_modules|odoo|package-lock.json|pyvenv.cfg|activate_tools) ]]; then
                   [[ -L $f || ! -d $f ]] && run_traced "rm -f $f" || run_traced "rm -fR $f/"
               fi
           done
@@ -1048,7 +1059,7 @@ do_venv_create() {
   [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -Uq" || run_traced "$PIP install pip -Uq"
   PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
   run_traced "$PIP install \"setuptools<58.0\" -Uq"
-  [[ $opt_verbose -ne 0 ]] && echo "# $PIP.$PIPVER ..."
+  [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
   check_installed_pkgs
   if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
     [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
@@ -1148,8 +1159,8 @@ validate_py_oe_vers() {
 OPTOPTS=(h        a        B         C      D       f         k        I           i         n           O         o          p         q           r           s                    t          V           v)
 OPTLONG=(help     ""       ""        ""     devel   force     keep     indipendent isolated  dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose)
 OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_force opt_keep opt_alone   opt_alone opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose)
-OPTACTI=(1        "="      "+"       1      1       1         1        2           1         1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
-OPTDEFL=(0        ""       0         0      0       0         0        0           0         0           ""        ""         ""        -1          ""          0                    0          ""          -1)
+OPTACTI=('+'      "="      "+"       1      1       1         1        2           1         1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
+OPTDEFL=(1        ""       0         0      0       0         0        0           0         0           ""        ""         ""        -1          ""          0                    0          ""          -1)
 OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""          ""        ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
@@ -1241,6 +1252,7 @@ if [[ $action != "create" && -f $p2/bin/activate ]]; then
 fi
 SAVED_HOME=$HOME
 SAVED_PYTHONPATH=$PYTHONPATH
+PRINTED_PIPVER=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -n "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools:$PYTHONPATH
 [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -z "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools
@@ -1279,7 +1291,7 @@ else
   [[ $opt_verbose -gt 2 ]] && echo "DEV_PKGS=$DEV_PKGS"
 fi
 if [ "$action" == "help" ]; then
-  man $TDIR/$THIS.man
+  man $(dirname $0)/man/man8/$(basename $0).8.gz
 elif [ "$action" == "exec" ]; then
   do_venv_exec "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
   do_deactivate "-q"
