@@ -4,22 +4,20 @@
 #
 #__version__=1.0.2.1
 
-# MAKEF=$HOME/dev/Makefile
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $d)
     break
   fi
 done
@@ -651,31 +649,23 @@ prepare_env_travis() {
       [[ -n "$x" ]] && LGITPATH="$LGITPATH/$x"
     fi
   else
-    if [[ -n "$REPOSNAME" ]]; then
-      LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
-    else
-      LGITPATH=
-    fi
-    if [ -z "$LGITPATH" ]; then
-      LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
-    fi
-    if [ -z "$LGITPATH" ]; then
-      LGITPATH=$(get_cfg_value "" "distpath")
-    fi
+    [[ -n "$REPOSNAME" ]] && LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
+    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
+    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "distpath")
   fi
-  if [ -n "$LGITPATH" ]; then
-    if [ "$PRJNAME" == "Odoo" ]; then
+  if [[ -n "$LGITPATH" ]]; then
+    if [[ "$PRJNAME" == "Odoo" ]]; then
       export LGITPATH=$(expand_path "$LGITPATH")
     else
       local x="$(readlink -e $PWD/..)"
       local y=$(dirname $LGITPATH)
-      if [ "$PWD" == "$y" -o "$x" == "$y" ]; then
+      if [[ "$PWD" == "$y" || "$x" == "$y" ]]; then
         export LGITPATH=$y
       else
         export LGITPATH=$(expand_path "$LGITPATH")
       fi
     fi
-    if [ "$LGITPATH" == "$PWD" ]; then
+    if [[ "$LGITPATH" == "$PWD" ]]; then
       LGITPATH=
     fi
   fi
@@ -699,18 +689,6 @@ check_4_travis() {
   fi
 }
 
-do_chkconfig() {
-  echo "Project name   = \"$PRJNAME\""
-  echo "Tools path     = \"$TOOLS_PATH\""
-  echo "Branch         = \"$BRANCH\""
-  echo "Package name   = \"$PKGNAME\" in \"$REPOSNAME\""
-  echo "Version        = \"$VERSION\""
-  echo "Setup file     = \"$SETUP\""
-  echo "Project path   = \"$PRJPATH\""
-  echo "Package path   = \"$PKGPATH\""
-  echo "Local git path = \"$LGITPATH\""
-  echo "Config file    = \"$TCONF\""
-}
 
 conf_default() {
   local file_bckdel file_backup file_meta file_vcs file_bins
@@ -759,8 +737,10 @@ conf_default() {
   set_cfg_def "DEV_SVG" "$HOME/devel/svg"
   set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
   set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
-  set_cfg_def "PYTHON_MATRIX" "(2.7|3.5|3.6|3.7|3.8)"
+  set_cfg_def "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
   set_cfg_def "LOGDIR" "$HOME/travis_log"
+  set_cfg_def "distpath" "\${HOME}/tools/\${pkgname}"
+  set_cfg_def "GBL_EXCLUDE" "test_impex,test_ir_actions,test_lint,test_main_flows,test_search,test_user_has_group"
 }
 
 expand_path() {
@@ -1075,35 +1055,37 @@ robocopy() {
 clean_dirs() {
   # clean_dirs (directory)::
   # return:
-  local b cmd d excl f gx="" o p w XXXX x yy
-  [[ -n "$1" ]] && d=$(readlink -e $1) || d="./"
-  [[ $d == $HOME || $d == "/" ]] && echo "Too many file to delete!" && exit 1
-  XXXX=$(get_cfg_value "" "filedel")
-  [[ $PWD == "$HOME/tools" ]] && XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
-  yy=$(get_cfg_value "" "fileignore")
-  excl=""
-  for x in $yy; do [[ ${x: -1} == "/" ]] && excl="$excl ${x:0: -1}"; done
-  excl=${excl:1}
-  [[ $opt_verbose -gt 1 ]] && echo "fileignore(conf)='$excl'"
-  [[ -f ".gitmodules" ]] && \
-    gx=$(cat .gitmodules | grep "^[[:space:]]*path" | sed -e "s/ =/=/g" -e "s/= /=/g" -e "s/^[[:space:]]*//g" | awk -F= '{print $2}'|tr "\n" "|")
-  gx="(${gx}lib|git|__to_remove|tmp|node_modules|.cache)"
-  [[ $opt_verbose -gt 1 ]] && echo "gitignore='$gx'"
-  cmd="find $d"
-  run_traced "$cmd -name '*~' -delete"
-  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp) ]] && w=1 || w=0
-  for f in $d/*; do
-    b=$(basename $f)
-    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openerp) ]] && echo "Warning! Directory $f should be in .gitmodules"
-    [[ -d $f && (-z "$gx" || (-n "$gx" && $b =~ $gx)) ]] && cmd="$cmd -not -path '$f/*'"
-  done
-  for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
-  o="-nowarn \("
-  for x in $XXXX; do
-    [[ ! $x =~ (.conf|\*|/)$ ]] && cmd="$cmd $o -name '*$x'" && o="-o"
-    [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
-  done
-  run_traced "$cmd \) -exec rm -f '{}' \;"
+  run_traced "find . -name '*.bak' -delete"
+  run_traced "find . -name '*~' -delete"
+#  local b cmd d excl f gx="" o p w XXXX x yy
+#  [[ -n "$1" ]] && d=$(readlink -e $1) || d="./"
+#  [[ $d == $HOME || $d == "/" ]] && echo "Too many file to delete!" && exit 1
+#  XXXX=$(get_cfg_value "" "filedel")
+#  [[ $PWD == "$HOME/tools" ]] && XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
+#  yy=$(get_cfg_value "" "fileignore")
+#  excl=""
+#  for x in $yy; do [[ ${x: -1} == "/" ]] && excl="$excl ${x:0: -1}"; done
+#  excl=${excl:1}
+#  [[ $opt_verbose -gt 1 ]] && echo "fileignore(conf)='$excl'"
+#  [[ -f ".gitmodules" ]] && \
+#    gx=$(cat .gitmodules | grep "^[[:space:]]*path" | sed -e "s/ =/=/g" -e "s/= /=/g" -e "s/^[[:space:]]*//g" | awk -F= '{print $2}'|tr "\n" "|")
+#  gx="(${gx}lib|git|__to_remove|tmp|node_modules|.cache)"
+#  [[ $opt_verbose -gt 1 ]] && echo "gitignore='$gx'"
+#  cmd="find $d"
+#  run_traced "$cmd -name '*~' -delete"
+#  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp) ]] && w=1 || w=0
+#  for f in $d/*; do
+#    b=$(basename $f)
+#    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openerp) ]] && echo "Warning! Directory $f should be in .gitmodules"
+#    [[ -d $f && (-z "$gx" || (-n "$gx" && $b =~ $gx)) ]] && cmd="$cmd -not -path '$f/*'"
+#  done
+#  for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
+#  o="-nowarn \("
+#  for x in $XXXX; do
+#    [[ ! $x =~ (.conf|\*|/)$ ]] && cmd="$cmd $o -name '*$x'" && o="-o"
+#    [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
+#  done
+#  run_traced "$cmd \) -exec rm -f '{}' \;"
 }
 
 do_summary() {

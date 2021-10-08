@@ -12,15 +12,14 @@ READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null
 export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $d)
     break
   fi
 done
@@ -47,6 +46,14 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+# CFG_init
+# link_cfg_def
+# link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+# get_pypi_param ALL
 RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
@@ -687,7 +694,7 @@ process_yaml_run_cmd() {
     if [ -z "$REPOSNAME" ]; then
       pp=$PKGPATH
     else
-      pp=$($READLINK -e $PRJPATH/../$REPOSNAME/)
+      pp=$(readlink -e $PRJPATH/../$REPOSNAME/)
     fi
     while [ -n "${x[$ix]}" ]; do
       if [[ "${x[$ix]}" =~ cd ]]; then
@@ -770,7 +777,7 @@ process_yaml() {
     [[ ! -f $YML_FILE ]] && YML_FILE=$PRJPATH/$opt_fyaml
     [[ ! -f $YML_FILE ]] && YML_FILE=$TOOLS_PATH/travis.yml
   fi
-  if [ -f $YML_FILE ]; then
+  if [[ -f $YML_FILE ]]; then
     echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
     wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[0m"
     export TRAVIS_HOME_BRANCH=$PWD
@@ -791,11 +798,11 @@ process_yaml() {
       fi
       [[ -n "$lne1" || $lne =~ PATH ]] && wlog "\e[${PS_NOP_COLOR}m\$ $lne=$lne1\e[0m"
     done
-    if [ $sts -eq $STS_SUCCESS ]; then
+    if [[ $sts -eq $STS_SUCCESS ]]; then
       process_yaml_initialize
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
-    if [ $sts -eq $STS_SUCCESS ]; then
+    if [[ $sts -eq $STS_SUCCESS ]]; then
       [[ -z "$python_ver_req" ]] && python_ver_req=$(python --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
       [[ -z "$opt_pyv" ]] && opt_pyv=$(get_cfg_value "" "PYTHON_MATRIX")
       [[ -z "$opt_pyv" ]] && opt_pyv="(2.7|3.5|3.6|3.7|3.8)"
@@ -950,7 +957,7 @@ travis_status() {
 OPTOPTS=(h        B         C         c        D           E         F        f         j        k        L          l        M          m       n            O         p        q           r     S            V           v           X           Y             y       Z)
 OPTLONG=(help     debug     no-cache  conf     debug-level no-savenv full     force     ''       keep     lint-level logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       version     verbose     translation yaml-file     pyver   zero)
 OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl    opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_version opt_verbose opt_tnl     opt_fyaml     opt_pyv opt_dbgmnt)
-OPTACTI=(1        1         0         "="      "="         0         1        1         1        1        "="        "="      1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="         "="           "="     1)
+OPTACTI=('+'      1         0         "="      "="         0         1        1         1        1        "="        "="      1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         "="         "="           "="     1)
 OPTDEFL=(0        0         1         ""       ""          1         0        0         0        0        ""         ""       0          0       0            "local"   0        -1          0     ""           ""          -1          ""          ".travis.yml" ""      0)
 OPTMETA=("help"   "version" ""        "file"   "number"    ""        ""       ""        "dprj"   ""       "number"   "dir"    ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   "0|1"       "file"        "pyver" "")
 OPTHELP=("this help"
@@ -1100,10 +1107,10 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
     [[ $opt_force -ne 0 ]] && md=30 || md=1800
     dt=$(date "+%s")
     for d in $HOME/VENV_*; do
-      if [ "$d" != "$HOME/VENV_*" ]; then
+      if [[ "$d" != "$HOME/VENV_*" ]]; then
         dd=$(stat -c "%Y" $d)
         df=$(($dt - $dd))
-        if [ $df -gt $md ]; then
+        if [[ $df -gt $md ]]; then
           echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
           rm -fR $d
           sfx=$(echo "$d" | grep -Eo "[0-9]+$")

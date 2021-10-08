@@ -14,6 +14,7 @@
 [IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
+[IMP] travis: switch -y forces python version
 
 1.0.1.5 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~

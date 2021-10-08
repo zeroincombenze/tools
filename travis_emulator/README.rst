@@ -346,6 +346,7 @@ History
 [IMP] travis: color change
 [IMP] travis: new action testdeps
 [FIX] travis: matrix selection
+[IMP] travis: switch -y forces python version
 
 1.0.1.5 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~
@@ -478,6 +479,10 @@ Last Update / Ultimo aggiornamento: 2021-08-31
 Last Update / Ultimo aggiornamento: 2021-09-25
 Last Update / Ultimo aggiornamento: 2021-09-26
 Last Update / Ultimo aggiornamento: 2021-09-27
+Last Update / Ultimo aggiornamento: 2021-09-29
+Last Update / Ultimo aggiornamento: 2021-10-06
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
+Last Update / Ultimo aggiornamento: 2021-10-08
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -511,9 +516,9 @@ Last Update / Ultimo aggiornamento: 2021-09-27
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-29
+Last Update / Ultimo aggiornamento: 2021-10-08
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master

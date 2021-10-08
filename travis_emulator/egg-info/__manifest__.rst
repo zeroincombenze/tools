@@ -1,1 +1,1 @@
-.. $set no_pypi 1
+.. $set no_pypi 0
