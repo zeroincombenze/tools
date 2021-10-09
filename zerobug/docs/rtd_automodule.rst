@@ -4,5 +4,7 @@
 Code documentation
 ------------------
 
-.. automodule:: zerobug.z0testlib
+.. automodule:: zerobug.scripts
+
+.. automodule:: zerobug._travis
 

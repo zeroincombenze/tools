@@ -1,7 +1,7 @@
 
-=============
-zerobug 1.0.2
-=============
+===============
+zerobug 1.0.2.1
+===============
 
 
 
@@ -366,27 +366,32 @@ Current development version
 History
 -------
 
+1.0.2.1 (2021-09-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Minor improvements
+
 1.0.1.4 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis_install_env: echo indented command
-[IMP] travis_install_env: new travis command testdeps
+* [IMP] travis_install_env: echo indented command
+* [IMP] travis_install_env: new travis command testdeps
 
 1.0.1.2 (2021-08-09)
 ~~~~~~~~~~~~~~~~~~~~
 
-[FIX] travis_run_pypi_test: run in osx darwin
-[FIX] z0testrc: run in osx darwin
+* [FIX] travis_run_pypi_test: run in osx darwin
+* [FIX] z0testrc: run in osx darwin
 
 1.0.1.1 (2021-05-26)
 ~~~~~~~~~~~~~~~~~~~~
 
-[FIX] travis_install_env: wrong readlink
+* [FIX] travis_install_env: wrong readlink
 
 1.0.0.7 (2021-03-07)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis_install_env: check for upgradable sitecustom.py
+* [IMP] travis_install_env: check for upgradable sitecustom.py
 
 
 
@@ -466,6 +471,10 @@ Last Update / Ultimo aggiornamento: 2021-08-31
 :target: https://t.me/axitec_helpdesk
 Last Update / Ultimo aggiornamento: 2021-09-29
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
+Last Update / Ultimo aggiornamento: 2021-09-30
+Last Update / Ultimo aggiornamento: 2021-10-05
+Last Update / Ultimo aggiornamento: 2021-10-06
+Last Update / Ultimo aggiornamento: 2021-10-09
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -499,7 +508,7 @@ Last Update / Ultimo aggiornamento: 2021-09-29
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-30
+Last Update / Ultimo aggiornamento: 2021-10-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
