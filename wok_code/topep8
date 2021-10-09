@@ -9,15 +9,15 @@ READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null
 export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $d)
     break
   fi
 done
@@ -41,7 +41,18 @@ fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-__version__=1.0.2.6
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+# CFG_init
+# link_cfg_def
+# link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+# get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=1.0.2.7
 
 [[ -f $TDIR/../../clodoo/list_requirements.py ]] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
@@ -598,7 +609,7 @@ FCONF=$TDIR/.$THIS.conf
 # main
 OPTOPTS=(h        a        A         B         b         c         C        D       d        e        F        f       G       i       L         n            N        o       O        R        q           u       V           v           X       x       0     1)
 OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_dbg opt_diff opt_nenh opt_from opt_fut opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_fmt opt_z opt_1)
-OPTACTI=(1        "+"      '+'       1         "="       1         "="      1       1        1        "="      1       "="     1       1         1            1        "="     1        "="      0           1       "*>"        "+"         1       1       1     1)
+OPTACTI=('+'      "+"      '+'       1         "="       1         "="      1       1        1        "="      1       "="     1       1         1            1        "="     1        "="      0           1       "*>"        "+"         1       1       1     1)
 OPTDEFL=(1        0        0         0         ""        0         ""       0       0        0        ""       0       ""      0       0         0            0        ""      0        ""       -1          0       ""          -1          0       0       0     0)
 OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    ""      "diff"   ""       "ver"    ""      "gpl"   ""      ""        "do nothing" ""       "file"  ""       "file"   "silent"   "ut7"   "version"    "verbose"   ""      ""      ""    "")
 OPTHELP=("this help"

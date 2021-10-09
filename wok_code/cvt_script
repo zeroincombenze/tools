@@ -13,7 +13,8 @@ THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -30,16 +31,16 @@ fi
 
 DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
 TCONF="$HOME/.z0tools.conf"
-CFG_init
-link_cfg_def
-link_cfg $DIST_CONF $TCONF
+# CFG_init
+# link_cfg_def
+# link_cfg $DIST_CONF $TCONF
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
-get_pypi_param ALL
+# get_pypi_param ALL
 RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.2.6
+__version__=1.0.2.7
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -182,7 +183,7 @@ cvt_file() {
         elif [[ $line =~ ^[[:space:]]*man[[:space:]]\$TDIR/\$THIS.man ]]; then
           echo "  man \$(dirname \$0)/man/man8/\$(basename \$0).8.gz" >>$fntmp
         elif [[ $line =~ ^OPTACTI=\(1... ]]; then
-          echo "${line/(1  /('+'}" >>$fntmp
+          echo "${line/(1  /(\"+\"}" >>$fntmp
         elif [ $prc -eq 0 ]; then
           if [[ $line =~ ^THIS=..basename || $line =~ ^#?.?export.READLINK= || $line =~ ^#?.?READLINK= ]]; then
             prc=1
@@ -405,7 +406,8 @@ THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 [ \$BASH_VERSINFO -lt 4 ] && echo "This script \$0 requires bash 4.0+!" && exit 4
 HOME_DEV="\$HOME/devel"
-PYPATH=\$(echo -e "import os,sys;\nTDIR='"\$TDIR"';HOME_DEV='"\$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[[ -x \$TDIR/../bin/python ]] && PYTHON=\$(readlink -f \$TDIR/../bin/python) || [[ -x \$TDIR/python ]] && PYTHON="\$TDIR/python" || PYTHON="python"
+PYPATH=\$(echo -e "import os,sys;\nTDIR='"\$TDIR"';HOME_DEV='"\$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|\$PYTHON)
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=\$PYPATH"
 for d in \$PYPATH /etc; do
   if [[ -e \$d/z0librc ]]; then

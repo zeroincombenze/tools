@@ -1,5 +1,5 @@
 # set -x
-__version__=1.0.2.6
+__version__=1.0.2.7
 act=""
 pypi=""
 opts=""

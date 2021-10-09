@@ -37,7 +37,7 @@ fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-__version__=1.0.2.6
+__version__=1.0.2.7
 
 
 do_edit_module() {

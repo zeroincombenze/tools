@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='wok_code',
-      version='1.0.2.6',
+      version='1.0.2.7',
       description='Python developers tools',
       long_description="""
 Various tools at your fingertips.

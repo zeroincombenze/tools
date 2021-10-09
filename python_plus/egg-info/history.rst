@@ -1,30 +1,35 @@
+1.0.3.8 (2021-10-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: run inside virtual environment
+
 1.0.3.7 (2021-10-03)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] lost python-plus functions
 
 1.0.3.6 (2021-10-01)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] full setuptools integrated + copy-pkg-data
 
 1.0.3.5 (2021-09-30)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: 1st installation, z0librc not found
 
 1.0.3.4 (2021-09-26)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: minor fixes
 
 1.0.3.3 (2021-09-26)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: error message "riga 99: deactivate:"
 
 1.0.3.2 (2021-09-25)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: create vem with -I switch
 * [REF] vem refactoring
@@ -36,33 +41,33 @@
 * [FIX] vem: create with devel packages
 
 1.0.2.1 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: create set right python for all ven binaries
 
 1.0.1.3 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: run in osx darwin
 * [IMP] vem: virtual environment for travis test
 
 1.0.1.3 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: uninstall package with if package version with ">"
 
 1.0.1.2 (2021-07-29)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: exec in current directory
 
 1.0.1.1 (2021-07-15)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] vem: best odoo path findind
 
 1.0.0.14 (2021-04-23)
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: errore if pip ad python module "python -m pip"
 

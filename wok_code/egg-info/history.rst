@@ -1,3 +1,11 @@
+1.0.2.6 (2021-10-08)
+~~~~~~~~~~~~~~~~~~~~
+
+[FIX] cvt_script: run inside virtual environment
+[FIX] please: run inside virtual environment
+[FIX] please: version
+[FIX] dist_pkg: run inside virtual environment
+
 1.0.2.6 (2021-10-06)
 ~~~~~~~~~~~~~~~~~~~~
 
