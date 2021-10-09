@@ -848,72 +848,72 @@ History
 1.0.2.6 (2021-10-08)
 ~~~~~~~~~~~~~~~~~~~~
 
-[FIX] cvt_script: run inside virtual environment
-[FIX] please: run inside virtual environment
-[FIX] please: version
-[FIX] dist_pkg: run inside virtual environment
+* [FIX] cvt_scrit: run inside virtual environment
+* [FIX] please: run inside virtual environment
+* [FIX] please: version
+* [FIX] dist_pkg: run inside virtual environment
 
 1.0.2.6 (2021-10-06)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] cvt_script: inclusion path improved
-[IMP] cvt_script: man page
-[FIX] gen_readme.py
+* [IMP] cvt_script: inclusion path improved
+* [IMP] cvt_script: man page
+* [FIX] gen_readme.py
 
 1.0.2.5 (2021-10-01)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] disk_pkg: manage setup.py & setup.info
+* [IMP] disk_pkg: manage setup.py & setup.info
 
 1.0.2.4 (2021-09-30)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] please: new version method
+* [IMP] please: new version method
 
 1.0.2.3 (2021-09-29)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] cvt_script: add bash version check
+* [IMP] cvt_script: add bash version check
 
 1.0.2.3 (2021-09-24)
 ~~~~~~~~~~~~~~~~~~~~
 
-[FIX] please: error sub2 sub3
+* [FIX] please: error sub2 sub3
 
 1.0.2.1 (2021-09-23)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] please: replace does not set protection bits; now -f is required
-[IMP] please: wep does not set protection bits; now -f is required
+* [IMP] please: replace does not set protection bits; now -f is required
+* [IMP] please: wep does not set protection bits; now -f is required
 
 1.0.2h (2021-08-31)
 ~~~~~~~~~~~~~~~~~~~
 
-[IMP] gen_readme.py: search for authors in current README
+* [IMP] gen_readme.py: search for authors in current README
 
 1.0.2g (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~
 
-[IMP] cvt_csv_coa.py: new command to manage Odoo CoA
-[IMP] gen_readme.py: search for authors in current README
+* [IMP] cvt_csv_coa.py: new command to manage Odoo CoA
+* [IMP] gen_readme.py: search for authors in current README
 
 1.0.2f (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~
 
-[IMP] please: action docs shows recent history
-[IMP] gen_readme.py: show recent history
-[FIX] topep8: parse .travis.yml
+* [IMP] please: action docs shows recent history
+* [IMP] gen_readme.py: show recent history
+* [FIX] topep8: parse .travis.yml
 
 1.0.2e (2021-08-08)
 ~~~~~~~~~~~~~~~~~~~
 
-[IMP] please: changed the syntax of som actions
-[IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
+* [IMP] please: changed the syntax of som actions
+* [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
 1.0.2d (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~
 
-[REF] Merged and renamed to wok_code
+* [REF] Merged and renamed to wok_code
 
 
 
@@ -999,6 +999,7 @@ Last Update / Ultimo aggiornamento: 2021-09-30
 Last Update / Ultimo aggiornamento: 2021-10-01
 Last Update / Ultimo aggiornamento: 2021-10-06
 Last Update / Ultimo aggiornamento: 2021-10-07
+Last Update / Ultimo aggiornamento: 2021-10-09
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools

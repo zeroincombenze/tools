@@ -13,7 +13,7 @@ TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 HOME_DEV="$HOME/devel"
 [[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');d=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools');n=os.path.join(HOME,'pypi')\ndef apl(l,p,b):\n p2=os.path.join(p,b,b)\n p1=os.path.join(p,b)\n if os.path.isdir(p2):\n  l.append(p2)\n elif os.path.isdir(p1):\n  l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  v=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n elif TDIR.startswith(t):\n  apl(l,t,b)\n elif v:\n  apl(l,v,b)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\no=os.path\nHOME=os.environ.get('HOME');t=o.join(HOME,'tools')\nn=o.join(HOME,'pypi') if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME,HOME_DEV, 'pypi')\nd=HOME_DEV if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME_DEV,'venv')\ndef apl(l,p,b):\n if p:\n  p2=o.join(p,b,b)\n  p1=o.join(p,b)\n  if o.isdir(p2):\n   l.append(p2)\n  elif o.isdir(p1):\n   l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if not o.isdir(t) and o.isdir(o.join(x,'tools')):\n  t=o.join(x,'tools')\n if not v and o.basename(x)=='site-packages':\n  v=x\nfor x in os.environ['PATH'].split(':'):\n if x.startswith(d):\n  d=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n apl(l,v,b)\n apl(l,t,b)\nl=l+os.environ['PATH'].split(':')\ntdir=o.dirname(TDIR)\np=set()\npa=p.add\np=[x for x in l if x and (x.startswith(HOME) or x.startswith(HOME_DEV) or x.startswith(tdir)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -23,7 +23,7 @@ for d in $PYPATH /etc; do
   fi
 done
 if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found!"
+  echo "Library file z0librc not found in <$PYPATH>!"
   exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
@@ -447,38 +447,40 @@ create_virtual_env() {
   [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
   [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
   hash -r
-  if [[ "$PRJNAME" == "Odoo" && ( ! -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$BRANCH) -lt 1632550000 ) ]]; then
-    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH not found or expired!${CLR}"
-    [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
-    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH"
-    echo -e "\n\n"
-    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
-  elif [[ ! -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1632550000 ]]; then
-    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
-    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq"
-    echo -e "\n\n"
-    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
-  fi
+# TODO> restore after vem cp works
+#  if [[ "$PRJNAME" == "Odoo" && ( ! -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$BRANCH) -lt 1632550000 ) ]]; then
+#    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH not found or expired!${CLR}"
+#    [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
+#    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH"
+#    echo -e "\n\n"
+#    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
+#  elif [[ ! -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1632550000 ]]; then
+#    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
+#    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq"
+#    echo -e "\n\n"
+#    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
+#  fi
   if [[ $TRAVIS == "true" || -d $TRAVIS_HOME ]]; then
     true
   elif [[ $opt_full -eq 0 && ${opt_cache:-0} -ne 0 && -n "$TRAVIS_PYTHON_VERSION" ]]; then
     [[ -d $TRAVIS_SAVED_HOME ]] || mkdir $TRAVIS_SAVED_HOME
-    if [[ "$PRJNAME" == "Odoo" && -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
-      opt_keepE=0
-      TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$BRANCH
-      opts=$(inherits_travis_opts "" "V")
-      [[ $TRAVIS == "true" ]] || opts="$opts -f"
-      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
-      sts=$?
-    elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
-      opt_keepE=0
-      TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
-      opts=$(inherits_travis_opts "" "V")
-      [[ $TRAVIS == "true" ]] || opts="$opts -f"
-      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
-      # run_traced "/home/odoo/devel/pypi/python_plus/python_plus/vem cp $VENVOPTS $opts -vvv $TRAVIS_SRC_VME $TRAVIS_HOME"   #debug
-      sts=$?
-    else
+# TODO> restore after vem cp works
+#     if [[ "$PRJNAME" == "Odoo" && -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
+#      opt_keepE=0
+#      TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$BRANCH
+#      opts=$(inherits_travis_opts "" "V")
+#      [[ $TRAVIS == "true" ]] || opts="$opts -f"
+#      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
+#      sts=$?
+#    elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
+#      opt_keepE=0
+#      TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
+#      opts=$(inherits_travis_opts "" "V")
+#      [[ $TRAVIS == "true" ]] || opts="$opts -f"
+#      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
+#      # run_traced "/home/odoo/devel/pypi/python_plus/python_plus/vem cp $VENVOPTS $opts -vvv $TRAVIS_SRC_VME $TRAVIS_HOME"   #debug
+#      sts=$?
+#    else
       if [[ "$PRJNAME" == "Odoo" && -n "$VERSION" ]]; then
         TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$VERSION
         opts=$(inherits_travis_opts "" "V")
@@ -495,7 +497,7 @@ create_virtual_env() {
       opts=$(inherits_travis_opts "" "V")
       [[ $TRAVIS == "true" ]] || opts="$opts -f"
       [[ $sts -ne 0 || $opt_keepE -eq 0 ]] || run_traced "vem cp $VENVOPTS $opts $TRAVIS_HOME $TRAVIS_SRC_VME"
-    fi
+#    fi
   else
     echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
     [[ ${opt_dry_run:-0} -ne 0 ]] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME

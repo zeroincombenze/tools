@@ -1,0 +1,19 @@
+Description,name,local,travis-ci
+Initialize from .travis.conf,travis.conf,|check|,|no_check|
+Matrix initialization (python version too),matrix,|check|,|check|
+Build job,build,|check|,|check|
+Optional install packages `apt addons` (emulator makes just the check),,|check|,|check|
+Optional install packages `cache`,,|check|,|check|
+Set global values `env global`,,|check|,|check|
+Execute code `before_install`,,|check|,|check|
+Execute build code `install`,,|check|,|check|
+Execute build code `before_script`,,|check|,|check|
+Execute build code `script`,,|check|,|check|
+Execute build `before_cache` (only if cache is effective),,|no_check|,|check|
+Execute build code `after_success`,,|check|,|check|
+Or execute `after_failure`,,|no_check|,|check|
+Optional code `before_deploy` (only if deployment is effective),,|no_check|,|check|
+Optional code `deploy`,,|no_check|,|check|
+Optional code `after_deploy` (only if deployment is effective),,|no_check|,|check|
+Execute code `after_script`,,|no_check|,|check|
+Wep from local .travis.conf,,|check|,|no_check|
