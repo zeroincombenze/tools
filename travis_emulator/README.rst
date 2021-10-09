@@ -1,6 +1,6 @@
 
 =======================
-travis_emulator 1.0.2.1
+travis_emulator 1.0.2.2
 =======================
 
 
@@ -330,75 +330,75 @@ Troubleshooting
 History
 -------
 
+1.0.2.2 (2021-10-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis: crash if invalid Odoo project
+
 1.0.2.1 (2021-09-25)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: check for cached expired VME
+* [IMP] travis: check for cached expired VME
 
 1.0.2 (2021-08-27)
 ~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: stable version
+* [IMP] travis: stable version
 
 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: color change
-[IMP] travis: new action testdeps
-[FIX] travis: matrix selection
-[IMP] travis: switch -y forces python version
+* [IMP] travis: color change
+* [IMP] travis: new action testdeps
+* [FIX] travis: matrix selection
+* [IMP] travis: switch -y forces python version
 
 1.0.1.5 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: summary return 1 if test failed or is broken
-[IMP] travis: return status like summary
-[IMP] travis: summary & show-log can show old logfile i.e.: travis summary old
-[IMP] travis: osx emulatore return more info when error
+* [IMP] travis: summary return 1 if test failed or is broken
+* [IMP] travis: return status like summary
+* [IMP] travis: summary & show-log can show old logfile i.e.: travis summary old
+* [IMP] travis: osx emulatore return more info when error
 
 1.0.1.4 (2021-08-06)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] devel_tools replaced by wok_code
-[IMP] travis: summary return 1 if test failed
+* [IMP] devel_tools replaced by wok_code
+* [IMP] travis: summary return 1 if test failed
 
 1.0.1.3 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] Show virtual enviroment name in summary
+* [IMP] Show virtual enviroment name in summary
 
 1.0.1.2 (2021-05-31)
 ~~~~~~~~~~~~~~~~~~~~
 
-[FIX] readlink error
+* [FIX] readlink error
 
 1.0.1.1 (2021-05-24)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] Local travis full emulator
+* [IMP] Local travis full emulator
 
 1.0.0.14 (2021-04-07)
 ~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] Change message level showing
+* [IMP] Change message level showing
 
 1.0.0.13 (2021-04-06)
 ~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: show stack execution
+* [IMP] travis: show stack execution
 
 1.0.0.12 (2021-03-31)
 ~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] travis: no crash it tools not found
-[IMP] travis: manage nvm
-[REF] travis: new colors output
-[IMP] vem: osx/darwin compatible
-
-1.0.0.11 (2021-03-19)
-~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] travisrc: set_executable
+* [FIX] travis: no crash it tools not found
+* [IMP] travis: manage nvm
+* [REF] travis: new colors output
+* [IMP] vem: osx/darwin compatible
 
 
 
@@ -516,7 +516,7 @@ Last Update / Ultimo aggiornamento: 2021-10-08
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-10-08
+Last Update / Ultimo aggiornamento: 2021-10-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
