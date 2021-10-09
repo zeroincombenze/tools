@@ -1,11 +1,11 @@
-Description,name,local,travis-ci
+Description,name,local,web
 Initialize from .travis.conf,travis.conf,|check|,|no_check|
 Matrix initialization (python version too),matrix,|check|,|check|
 Build job,build,|check|,|check|
-Optional install packages `apt addons` (emulator makes just the check),,|check|,|check|
+Optional install packages `apt addons`,addons.apt.package,simulate,|check|
 Optional install packages `cache`,,|check|,|check|
-Set global values `env global`,,|check|,|check|
-Execute code `before_install`,,|check|,|check|
+Set global values `env global`,env.global,|check|,|check|
+Execute code `before_install`,before_install,|check|,|check|
 Execute build code `install`,,|check|,|check|
 Execute build code `before_script`,,|check|,|check|
 Execute build code `script`,,|check|,|check|

@@ -41,13 +41,14 @@ The available tools are:
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
-      install_requires=['lxml', 'pyyaml'],
+      install_requires=['lxml', 'pyyaml', 'babel'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
           '': ['scripts/setup.info',
                './please', './please.man',
-               './cvt_script', './cvt_script.man']
+               './cvt_script', './cvt_script.man',
+               'dist_pkg']
       },
       entry_points={
           'console_scripts': [

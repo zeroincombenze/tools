@@ -59,7 +59,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.2.2
+__version__=1.0.2.2.59
 
 
 store_cfg_param_value() {
@@ -378,9 +378,6 @@ process_yaml_initialize() {
         s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
   done
-  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[initialize.packages] from .travis.conf] ------\e[0m"
-  fi
   X="${PKGNAME}__"
   line=$(get_cfg_value "" "${X}yaml_init_1")
   if [ -n "$line" ]; then
@@ -430,22 +427,26 @@ process_yaml_global() {
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[env.global] in .travis.yml] ------\e[0m"
   fi
+  [[ -n $opt_trace && "::env.global" =~ $opt_trace ]] && debug_shell
   for lne in $YML_global; do
     line="export $(process_yaml_quote_xtl $lne)"
     run_traced "$line"
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
   done
+  [[ -n $opt_tafter && "::env.global" =~ $opt_trace ]] && debug_shell
   return $sts
 }
 
 process_yaml_before_install() {
   wlog "\e[${PS_HDR2_COLOR}m===== [Before install] =====\e[0m"
+  [[ -n $opt_trace && "::before_install" =~ $opt_trace ]] && debug_shell
   local sts=$STS_SUCCESS
   local i s line lne X CURPYVER
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[addons.packages] in .travis.yml] ------\e[0m"
+    wlog "\e[${PS_HDR3_COLOR}m------ [[addons.apt.packages] in .travis.yml] ------\e[0m"
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
+    [[ -n $opt_trace && "::addons.apt.package" =~ $opt_trace ]] && debug_shell
     CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo [0-9] | head -n1)
     for lne in $YML_packages; do
       if [[ "$lne" == "python-dev" && $CURPYVER == "3" ]]; then
@@ -478,6 +479,7 @@ process_yaml_before_install() {
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
     done
+    [[ -n $opt_tafter && "::addons.apt.package" =~ $opt_trace ]] && debug_shell
   fi
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[before_install] in .travis.yml] ------\e[0m"
@@ -490,9 +492,6 @@ process_yaml_before_install() {
       [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
     done
   fi
-  if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
-    wlog "\e[${PS_HDR3_COLOR}m------ [[env] in .travis.yml] ------\e[0m"
-  fi
   if [ $sts -eq $STS_SUCCESS ]; then
     for lne in $YML_env; do
       line="export $(process_yaml_quote_xtl $lne)"
@@ -500,6 +499,7 @@ process_yaml_before_install() {
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     done
   fi
+  [[ -n $opt_tafter && "::before_install" =~ $opt_trace ]] && debug_shell
   return $sts
 }
 

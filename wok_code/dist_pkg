@@ -58,7 +58,7 @@ __version__=1.0.2.7
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
 OPTDEST=(opt_help opt_cpush opt_conf opt_push opt_fetch opt_force opt_dry_run  opt_cpush opt_ids  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
-OPTACTI=(+      "*>"      "="      "*>"     "1>"      1         1            "*>"      "=>"     "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
+OPTACTI=("+"      "*>"      "="      "*>"     "1>"      1         1            "*>"      "=>"     "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
 OPTDEFL=(1        ""        ""       ""       0         0         0            ""        ""       ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
 OPTMETA=("help"   "commit"  "file"   ""       "fetch"   ""        "do nothing" ""        "prj_id" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
 OPTHELP=("this help"\
@@ -428,7 +428,7 @@ if [ "$opt_cpush" == "-w" ]; then
   fi
   exit $STS_SUCCESS
 fi
-# update_dev "$PRJNAME"
+# update_dev "$PRJNAME" -R
 if [ "$PRJNAME" == "travis_emulator" ]; then
   if [ ! -d "$LGITPATH" ]; then
     exit $STS_SUCCESS

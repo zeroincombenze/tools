@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.2.2
+#__version__=1.0.2.2.59
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -496,7 +496,8 @@ create_virtual_env() {
       fi
       opts=$(inherits_travis_opts "" "V")
       [[ $TRAVIS == "true" ]] || opts="$opts -f"
-      [[ $sts -ne 0 || $opt_keepE -eq 0 ]] || run_traced "vem cp $VENVOPTS $opts $TRAVIS_HOME $TRAVIS_SRC_VME"
+      # TODO> reactivate after validation
+      # [[ $sts -ne 0 || $opt_keepE -eq 0 ]] || run_traced "vem cp $VENVOPTS $opts $TRAVIS_HOME $TRAVIS_SRC_VME"
 #    fi
   else
     echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
@@ -531,7 +532,7 @@ create_virtual_env() {
 }
 
 drop_virtual_env() {
-  [ ${opt_dry_run:-0} -eq 0 -a ${opt_virt:-0} -gt 0 ] && deactivate
+  [[ ${opt_virt:-0} -gt 0 ]] && run_traced "deactivate"
   [[ $TRAVIS == "true" ]] && export HOME=$(readlink -f $TRAVIS_HOME/..) || export HOME=$TRAVIS_SAVED_HOME
   hash -r
   unset TRAVIS_SAVED_HOME
