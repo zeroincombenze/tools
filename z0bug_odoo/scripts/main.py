@@ -117,7 +117,7 @@ def copy_pkg_data(setup_args, verbose):
                         #     if verbose:
                         #         print('$ ln -s %s %s' % (full_fn, tgt_fn))
                         #     os.symlink(full_fn, tgt_fn)
-            # TODO> compatibility mode to remeve early
+            # TODO> compatibility mode to remove early
             if lib_path and bin2_path:
                 for base in ('z0librc', 'odoorc', 'travisrc'):
                     full_fn = os.path.join(bin2_path, base)
