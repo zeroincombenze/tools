@@ -6,3 +6,5 @@ Code documentation
 
 .. automodule:: zerobug.scripts
 
+.. automodule:: zerobug._travis
+

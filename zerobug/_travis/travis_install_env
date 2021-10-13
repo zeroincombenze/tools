@@ -272,8 +272,8 @@ install_n_activate_tools() {
     [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-pt
     [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qpt
     run_traced "./install_tools.sh $x"
-    [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
-    . $HOME/dev/activate_tools
+    [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools -t\e[${PS_TXT_COLOR}m"
+    . $HOME/dev/activate_tools -t
     popd >/dev/null
     [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
     [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"

@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.2
+#__version__=1.0.3
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -45,7 +45,7 @@ export -f _install_z0librc
 
 ##############################################################################
 # Detect and print more OS informations than uname command
-# __version__=0.1.6
+#
 # Print Linux OS system information in same way of uname command
 # but returns more information.
 # Based on Novell article http://www.novell.com/coolsolutions/feature/11251.html
@@ -237,8 +237,6 @@ export -f xuname
 #   OPTARGS  array of destination variables of positional arguments (set OPTARGS=() if no args)
 #
 parseoptargs() {
-# You can find more help about this function on
-# http://wiki.zeroincombenze.org/en/Linux/dev
     local jy=0 f=0 a b v
     while ((jy<${#OPTDEST[*]})); do
       [[ "${OPTDEFL[jy]}" != "#" ]] && export ${OPTDEST[jy]}="${OPTDEFL[jy]}"
@@ -363,7 +361,6 @@ export -f parseoptargs
 
 
 # Print help for parse command line arguments
-# __version__="0.1.9"
 print_help() {
     local txt="Usage: "
     local hlp=""
@@ -589,7 +586,7 @@ export -f run_traced
 
 ##############################################################################
 # Parse directory to search a file
-# __version__="0.1.1"
+#
 # Search a file or directory from a list.
 # This function is used to find an application from path list
 #
@@ -712,7 +709,7 @@ export -f a_active
 # Add key and value to dictionary (associative array)
 # key may be regex to match multiple values
 # It's a ugly solution but currently works
-# __version__="0.1.5"
+#
 # Global variables declared by CFG_init
 #   DEFDICT  global dictionary based on unique key (associative array)
 #   DEFRULE  global dictionary based on regex (associative array)
@@ -788,7 +785,7 @@ a_add() {
 ##############################################################################
 # Find value in associative array
 # It's a ugly solution but currently works
-# __version__="0.1.5"
+#
 # Global variables create by a_append
 #   DEFDICT  global dictionary based on unique key (associative array)
 #   DEFRULE  global dictionary based on regex (associative array)
@@ -944,7 +941,7 @@ a_find() {
 ##############################################################################
 # get value from config file
 # if file does not exist, or parameter does not exist, return default value
-# __version__="0.1.1"
+#
 # Require CFG_find
 #   DEFDICT  global dictionary based on unique key (associative array)
 #   DEFRULE  global dictionary based on regex (associative array)
@@ -983,62 +980,65 @@ export -f get_cfg_value
 
 ##############################################################################
 # Create empty dictionary (based on associative array)
-# __version__="0.2.0"
+#
 # Globals:
 #   DEFDICT  global dictionary based on unique key (associative array)
 #   DEFRULE  global dictionary based on regex (associative array)
 #   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
 #   XU_FH    contains Linux Family id (see xuname)
 # Parameter $1:
-#    Id of table for access
+#    Id of table for access (ALL means all Ids)
 CFG_init() {
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
-    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
-      local tid=$1
+    local tid x v
+    if [[ $1 == "ALL" ]]; then
+      for tid in 0 1 2 3; do
+        CFG_init $tid
+      done
     else
-      local tid="0"
+      [[ $1 =~ ^[0123]$ ]] && tid=$1 || tid="0"
+      unset DEFDICT$tid DEFRULE$tid
+      if [[ ! $XU_FH =~ ^(RHEL|Debian)$ ]]; then
+        XU_FH=$(xuname "-f")
+        x=$(xuname "-v")
+        v=$(echo $x|awk -F. '{print $1}')
+        XU_DISTO=$(xuname "-d")$v
+      elif [[ -z "$XU_DISTO" ]]; then
+        x=$(xuname "-v")
+        XU_DISTO=$(xuname "-d")${x:0:1}
+      fi
+      declare -g XU_FH=$XU_FH XU_DISTO=$XU_DISTO
+      declare -gA DEFDICT$tid DEFRULE$tid
     fi
-    unset DEFDICT$tid DEFRULE$tid
-    if [ "$XU_FH" != "RHEL" -a "$XU_FH" != "Debian" ]; then
-      XU_FH=$(xuname "-f")
-      local x=$(xuname "-v")
-      local v=$(echo $x|awk -F. '{print $1}')
-      XU_DISTO=$(xuname "-d")$v
-    elif [ -z "$XU_DISTO" ]; then
-      local x=$(xuname "-v")
-      XU_DISTO=$(xuname "-d")${x:0:1}
-    fi
-    declare -g XU_FH=$XU_FH XU_DISTO=$XU_DISTO
-    declare -gA DEFDICT$tid DEFRULE$tid
     $SET_X
 }
 export -f CFG_init
 
 
 # Deprecated: use CFG_init
-init_cfg() {
-# Parameter $1: Id of table (may be 0..3)
-    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
-      local tid=$1
-    else
-      local tid="0"
-    fi
-    echo $(a_new "$tid")
-    eval $(a_active "$tid")
-}
-export -f init_cfg
+#init_cfg() {
+## Parameter $1: Id of table (may be 0..3)
+#    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
+#      local tid=$1
+#    else
+#      local tid="0"
+#    fi
+#    echo $(a_new "$tid")
+#    eval $(a_active "$tid")
+#}
+#export -f init_cfg
 
 # Deprecated: use CFG_init
-active_cfg() {
-# Parameter $1: Id of table (may be 0..3)
-    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
-      local tid=$1
-    else
-      local tid="0"
-    fi
-    echo $(a_active "$tid")
-}
-export -f active_cfg
+#active_cfg() {
+## Parameter $1: Id of table (may be 0..3)
+#    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
+#      local tid=$1
+#    else
+#      local tid="0"
+#    fi
+#    echo $(a_active "$tid")
+#}
+#export -f active_cfg
 
 set_cfg_def() {
 # set_cfg_set(key value [id])
@@ -1176,12 +1176,13 @@ link_cfg_def() {
   set_cfg_def "DEV_SVG" "$HOME/devel/svg"
   set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
   set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
-  set_cfg_def "PYTHON_MATRIX" "(2.7|3.5|3.6|3.7|3.8)"
+  set_cfg_def "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
+  set_cfg_def "distpath" "\${HOME}/tools/\${pkgname}"
 }
 
 link_cfg() {
 # link_cfg(file_cfg [file_def] [tid] [section] [-D])  -D means debug
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
       local tid=$3
     else
@@ -1410,6 +1411,69 @@ parse_URI() {
 export -f parse_URI
 
 
+expand_path() {
+  # expand_path (path tkn repl)
+  local p P x=$1
+  for p in pkgpath pkgname prjpath prjname reposname; do
+    P=${p^^}
+    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
+  done
+  for p in version TRAVIS_BUILD_DIR ODOO_REPO odoo_vid HOME PATH; do
+    P=$p
+    [ $p == "version" ] && P="BRANCH"
+    [ $p == "odoo_vid" ] && P="opt_branch"
+    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
+  done
+  [[ -n "$2" ]] && x=${x/$2/$3}
+  echo $x
+}
+
+
+is_ocb_dir() {
+    local x
+    [[ -z $1 ]] && return 1
+    for x in $1/odoo-bin $1/odoo/odoo-bin $1/openerp-server $1/odoo/openerp-server $1/server/openerp-server; do
+        [[ -x $x ]] && return 0
+    done
+    return 1
+}
+
+is_repos() {
+    local x
+    [[ -z $1 ]] && return 1
+    [[ (-f $1/.travis.yml || -f $1/.gitlab-ci.yml) && (-d $1/.git || -f $1/requirements.txt || -f $1/oca_dependencies.txt || -f $1/README.rst || -f $1/README.md) ]] && return 0
+    return 1
+}
+
+is_module() {
+    local x
+    [[ -z $1 ]] && return 1
+    for ODOO_SETUP in $ODOO_SETUPS; do
+      [[ -f $1/$ODOO_SETUP && -f $1/__init__.py ]] && return 0
+    done
+    return 1
+}
+
+get_value_from_setup() {
+  # get_value_from_setup(file value)
+  local n r s x=$(basename $1)
+  if [[ $x == "setup.py" ]]; then
+    if [[ $2 == "name" ]]; then
+      pushd $(dirname "$1") &>/dev/null || return
+      r=$(python $1 --name)
+      popd &>/dev/null || return
+    elif [[ $2 == "version" ]]; then
+      pushd $(dirname "$1") &>/dev/null || return
+      r=$(python $1 --version)
+      popd &>/dev/null || return
+    else
+      r=$(grep -E "^ *[\"']*$2[\"']* *=" $1 2>/dev/null | awk -F"=" '{print $2}' | tr -d "\"'\r\n")
+      [[ ${r: -1} == "," ]] && r="${r:0:-1}"
+    fi
+  fi
+  echo "$r"
+}
+
 get_pypi_param() {
   # build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
   if [[ $1 == "ALL" ]]; then
@@ -1433,83 +1497,139 @@ get_pypi_param() {
   w=$(find $x -maxdepth 2 -not -path '*tests*' ${r:3} | head -n1)
   if [[ -n "$w" ]]; then
     _PRJNAME="Odoo"
-    _REPOS=$(basename $x)
+    _PKGNAME=$(basename $x)
     _PKGPATH=$x
-    _PKGNAME=$_REPOS
+    _REPOS=$(basename $(dirname $x))
+    _SETUP=$w
   fi
   INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|__to_remove|__unported__)"
-  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $HOME ]]; do
+  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $HOME && $x != "/" ]]; do
     r=$(basename $x)
-    if [[ ! $r =~ $INV_MODS ]]; then
+    if $(is_module "$x"); then
+      _PRJNAME="Odoo"
+      _PKGNAME=$(basename $x)
+      _REPOS=$(basename $(dirname $x))
+      break
+    elif $(is_ocb_dir "$x"); then
+      _PRJNAME="Odoo"
+      _PKGNAME="OCB"
+      _REPOS="OCB"
+      break
+    elif $(is_repos "$x"); then
+      [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
+      _REPOS=$(basename $x)
+      _PKGNAME=$_REPOS
+      break
+    elif [[ (-f $x/.travis.yml || -f $x/.gitlab-ci.yml) && (-d $x/.git || -f $x/requirements.txt || -f $x/oca_dependencies.txt || -f $x/README.rst || -f $x/README.md) ]]; then
+      _PRJPATH=$x
+      [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
+      _REPOS=$(basename $x)
+      if [[ -z "$_SETUP" && -f "$x/setup.py" ]]; then
+        _SETUP="$x/setup.py"
+        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
+        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
+      fi
+      break
+    elif [[ ! $r =~ $INV_MODS ]]; then
       [[ -z "$_PRJPATH" ]] && _PRJPATH=$x
       [[ -z "$_PRJNAME" ]] && _PRJNAME=$(basename $x)
-      if [[ -z "$_SETUP" && -f "$x/setup.py" && (! -f "$x/../setup.py" || ! $(basename $(dirname $x)) == $(basename $x)) ]]; then
+      if [[ -z "$_SETUP" && -f "$x/setup.py" && (! -f "$x/../setup.py" || $(basename $(dirname $x)) != $(basename $x)) ]]; then
         _SETUP="$x/setup.py"
-        [ -z "$_PKGPATH" ] && _PKGPATH=$x
-        [ -z "$_PKGNAME" ] && _PKGNAME=$(basename $x)
-        if [[ ! "$_PRJNAME" == "Odoo" ]]; then
-          [ "$x" != "/" ] && _REPOS=$(basename $(dirname $x)) || _REPOS=
+        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
+        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
+        if [[ $_PRJNAME != "Odoo" ]]; then
+          [[ $x != $HOME && $x != "/" ]] && _REPOS=$(basename $(dirname $x)) || _REPOS=
         fi
         break
-      elif [ -d $x/odoo -a -f $x/odoo_bin ]; then
-        _PRJNAME="Odoo"
-        break
-      elif [[ (-d $x/openerp && -f $x/openerp-server) || (-d $x/server && -f $x/server/openerp-server) ]]; then
-        _PRJNAME="Odoo"
-        _PKGNAME="OCB"
-        _REPOS="OCB"
-        break
-      elif [ -z "$_SETUP" ]; then
-        for ODOO_SETUP in $ODOO_SETUPS; do
-          if [ -f $x/$ODOO_SETUP ]; then
-            _PRJNAME="Odoo"
-            _PRJPATH=
-            _SETUP="$x/$ODOO_SETUP"
-            _REPOS=
-            if [ -z "$_PKGPATH" ]; then
-              _PKGPATH=$x
-              _PKGNAME=$(basename $x)
-            fi
-            break
-          fi
-        done
-      elif [ -z "$_REPOS" ]; then
+      elif [[ -z "$_REPOS" ]]; then
         _REPOS=$(basename $x)
       fi
     fi
-    [ "$x" != "/" ] && x=$(readlink -e $x/..) || x=
+    [[ $x != $HOME && $x != "/" ]] && x=$(readlink -e $x/..) || x=
   done
-  if [[ -n "$_SETUP" && -f "$_SETUP" ]]; then
-    r=$(get_value_from_file "$_SETUP" "name")
-    [ -n "$r" ] && _PRJNAME="$r"
+  if [[ -z "$_PRJNAME" && -n "$_SETUP" && -f "$_SETUP" ]]; then
+    r=$(get_value_from_setup "$_SETUP" "name")
+    [[ -n "$r" ]] && _PRJNAME="$r"
   fi
-  if [ "$_PRJNAME" == "odoo" -o "$_PRJNAME" == "openerp" ]; then
-    _PRJNAME=Odoo
-  fi
-  if [[ "$_PRJNAME" == "Odoo" ]]; then
-    if [[ $_PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca)?-?(14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|14|13|12|11|10|9|8|7|6) ]]; then
-      _PKGNAME="OCB"
-      _REPOS="OCB"
+  [[ $_PRJNAME =~ ^(odoo|openerp)$ ]] && _PRJNAME="Odoo"
+  if [[ $_PRJNAME == "Odoo" ]]; then
+    if [[ "$(type -t build_odoo_param)" == "function" ]]; then
+      # _PKGNAME=$(build_odoo_param PKGNAME $PWD)
+      # _PKGPATH=$(build_odoo_param PKGPATH $PWD)
+      _PRJPATH=$(build_odoo_param HOME $PWD)
+      _REPOS=$(build_odoo_param REPOS $PWD)
+    else
+      [[ -z "$_PKGNAME" ]] && _PKGNAME="OCB"
+      [[ -z "$_PKGNAME" ]] && _REPOS="OCB"
+      [[ -z "$_PKGPATH" ]] && _PKGPATH="$_PRJPATH"
     fi
-    [[ -z "$_PKGNAME" ]] && _PKGNAME="OCB"
-    [[ -z "$_PKGNAME" ]] && _REPOS="OCB"
-    [[ -z "$_PKGPATH" ]] && _PKGPATH="$_PRJPATH"
   fi
-  if [ "$1" == "ALL" ]; then
+  if [[ $1 == "ALL" ]]; then
     SETUP=$_SETUP
-    [ -n "$SETUP" ] && MANIFEST=$(basename $SETUP) || MANIFEST=
+    [[ -n "$SETUP" ]] && MANIFEST=$(basename $SETUP) || MANIFEST=
     PKGPATH=$_PKGPATH
     PKGNAME=$_PKGNAME
     PRJPATH=$_PRJPATH
     PRJNAME=$_PRJNAME
     REPOSNAME=$_REPOS
+    [[ -n "$REPOSNAME" ]] && LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
+    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
+    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "distpath")
+    [[ -n "$LGITPATH" ]] && export LGITPATH=$(expand_path "$LGITPATH")
+    [[ $DEV_ENVIRONMENT == $THIS ]] && test_mode=1
+    [[ ${test_mode:-0} -gt 0 ]] && opt_dry_run=1
+    export PS_TXT_COLOR=$(get_cfg_value "" "PS_TXT_COLOR")
+    export PS_RUN_COLOR=$(get_cfg_value "" "PS_RUN_COLOR")
+    export PS_NOP_COLOR=$(get_cfg_value "" "PS_NOP_COLOR")
+    export PS_HDR1_COLOR=$(get_cfg_value "" "PS_HDR1_COLOR")
+    export PS_HDR2_COLOR=$(get_cfg_value "" "PS_HDR2_COLOR")
+    export PS_HDR3_COLOR=$(get_cfg_value "" "PS_HDR3_COLOR")
   else
-    [ "$1" == "VERSION" ] && _VERSION=$(get_value_from_file "$_SETUP" "version")
+    [[ $1 == "VERSION" ]] && _VERSION=$(get_value_from_file "$_SETUP" "version")
     x="_$1"
     echo "${!x}"
   fi
 }
 export -f get_pypi_param
+
+set_pybin() {
+    # set_pybin(pyver)
+    local opt_pyver=$1
+    PYTHON=""
+    PIP=""
+    PIPVER=""
+    if [[ -n "$opt_pyver" ]]; then
+      PYTHON=$(which python$opt_pyver 2>/dev/null)
+      [[ -z "$PYTHON" && $opt_pyver =~ ^3 ]] && PYTHON=python3
+      [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
+      PYTHON=$(which $PYTHON 2>/dev/null)
+      [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
+      opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+      PIP=$(which pip$opt_pyver 2>/dev/null)
+      [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+    else
+      PYTHON=$(which python 2>/dev/null)
+      opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+      PIP=$(which pip 2>/dev/null)
+      [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+    fi
+}
+export -f set_pybin
+
+inherit_opts() {
+    local x opts="$1"
+    if [[ -n $TRAVIS_DEBUG_MODE ]]; then
+      ((x=TRAVIS_DEBUG_MODE-1))
+      [[ $x -ge 0 ]] && opts="${opts}$(printf %-${x}.${x}s 'vvv')"
+    else
+      [[ ${opt_verbose:-0} -gt 0 ]] && opts="${opts}v"
+      [[ ${opt_verbose:-0} -eq 0 ]] && opts="${opts}q"
+    fi
+    [[ ${opt_dry_run:-0} -gt 0 ]] && opts="${opts}n"
+    [[ -n "$opts" && ! $opts =~ \- ]] && opts="-$opts"
+    echo "$opts"
+}
+export -f inherit_opts
 
 
 do_chkconfig() {

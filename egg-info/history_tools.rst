@@ -1,3 +1,8 @@
+1.0.6.9 (2021-10-11)
+~~~~~~~~~~~~~~~~~~~~
+
+[IMP] activate_tools: switch -t to activate in test environment
+
 1.0.6.8 (2021-10-03)
 ~~~~~~~~~~~~~~~~~~~~
 

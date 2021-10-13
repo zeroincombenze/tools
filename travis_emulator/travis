@@ -50,11 +50,11 @@ RUNDIR=$(readlink -e $TESTDIR/..)
 
 DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
 TCONF="$HOME/.z0tools.conf"
-# CFG_init
-# link_cfg_def
-# link_cfg $DIST_CONF $TCONF
+CFG_init
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
-# get_pypi_param ALL
+get_pypi_param ALL
 RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"

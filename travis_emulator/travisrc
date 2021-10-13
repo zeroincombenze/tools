@@ -38,42 +38,42 @@ fi
 
 opts_travis() {
   # opts_travis(git-org/pkgname)
-  local b x
-  REMOTEREPO=
-  PRJNAME=
-  PRJPATH=
-  PKGNAME=
-  PKGPATH=
-  REPOSNAME=
+#  local b x
+#  REMOTEREPO=
+#  PRJNAME=
+#  PRJPATH=
+#  PKGNAME=
+#  PKGPATH=
+#  REPOSNAME=
   [[ -n "$1" ]] && IFS="/" read REMOTEREPO x <<<"$1"
   [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
-  build_pypi_param ALL $1
-  export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
-  if [[ -n "$opt_conf" && -f "$opt_conf" ]]; then
-    TCONF=$opt_conf
-  elif [[ -f $TDIR/.travis.conf ]]; then
-    TCONF=$TDIR/.travis.conf
-  else
-    b=""
-    x=$TDIR
-    while [[ ! "$b" == "pypi" && ! "b" == "tools" && ! "$x" == "$HOME" ]]; do
-      x=$(readlink -e $x/..)
-      [[ $x == / ]] && break
-      b=$(basename $x)
-    done
-    TCONF=$x/travis_emulator/.travis.conf
-    [[ -f $x/travis_emulator/travis_emulator/.travis.conf ]] && TCONF=$x/travis_emulator/travis_emulator/.travis.conf
-  fi
-  DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
-  if [ -z "$DIST_CONF" ]; then
-    DIST_CONF=$(readlink -f $PKGPATH/../conf/system-site-packages_dist_pkg.conf)
-  fi
-  if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
-    test_mode=1
-  fi
-  if [ ${test_mode:-0} -gt 0 ]; then
-    opt_dry_run=1
-  fi
+#  build_pypi_param ALL $1
+#  export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
+#  if [[ -n "$opt_conf" && -f "$opt_conf" ]]; then
+#    TCONF=$opt_conf
+#  elif [[ -f $TDIR/.travis.conf ]]; then
+#    TCONF=$TDIR/.travis.conf
+#  else
+#    b=""
+#    x=$TDIR
+#    while [[ ! "$b" == "pypi" && ! "b" == "tools" && ! "$x" == "$HOME" ]]; do
+#      x=$(readlink -e $x/..)
+#      [[ $x == / ]] && break
+#      b=$(basename $x)
+#    done
+#    TCONF=$x/travis_emulator/.travis.conf
+#    [[ -f $x/travis_emulator/travis_emulator/.travis.conf ]] && TCONF=$x/travis_emulator/travis_emulator/.travis.conf
+#  fi
+#  DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
+#  if [ -z "$DIST_CONF" ]; then
+#    DIST_CONF=$(readlink -f $PKGPATH/../conf/system-site-packages_dist_pkg.conf)
+#  fi
+#  if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
+#    test_mode=1
+#  fi
+#  if [ ${test_mode:-0} -gt 0 ]; then
+#    opt_dry_run=1
+#  fi
 }
 
 inherits_travis_opts() {
@@ -307,9 +307,9 @@ init_travis() {
     opts_verbose=
     export FLOG_ECHO=
   fi
-  if [[ -z "$PKGPATH" || -z "$PRJPATH" ]]; then
-    build_pypi_param ALL
-  fi
+#  if [[ -z "$PKGPATH" || -z "$PRJPATH" ]]; then
+#    build_pypi_param ALL
+#  fi
   if [[ "$PRJNAME" == "Odoo" ]]; then
     local npm_curpfx=$(npm config get prefix)
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
@@ -485,12 +485,14 @@ create_virtual_env() {
         TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$VERSION
         opts=$(inherits_travis_opts "" "V")
         [[ $TRAVIS == "true" ]] || opts="$opts -f"
+        opts="$opts -q"
         run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION -O$VERSION"
         sts=$?
       else
         TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
         opts=$(inherits_travis_opts "" "V")
         [[ $TRAVIS == "true" ]] || opts="$opts -f"
+        opts="$opts -q"
         run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION"
         sts=$?
       fi
@@ -746,23 +748,23 @@ conf_default() {
   set_cfg_def "distpath" "\${HOME}/tools/\${pkgname}"
   set_cfg_def "GBL_EXCLUDE" "test_impex,test_ir_actions,test_lint,test_main_flows,test_search,test_user_has_group"
 }
-
-expand_path() {
-  # expand_path (path tkn repl)
-  local p P x=$1
-  for p in pkgpath pkgname prjpath prjname reposname; do
-    P=${p^^}
-    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
-  done
-  for p in version TRAVIS_BUILD_DIR ODOO_REPO odoo_vid HOME PATH; do
-    P=$p
-    [ $p == "version" ] && P="BRANCH"
-    [ $p == "odoo_vid" ] && P="opt_branch"
-    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
-  done
-  [ -n "$2" ] && x=${x/$2/$3}
-  echo $x
-}
+#
+#expand_path() {
+#  # expand_path (path tkn repl)
+#  local p P x=$1
+#  for p in pkgpath pkgname prjpath prjname reposname; do
+#    P=${p^^}
+#    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
+#  done
+#  for p in version TRAVIS_BUILD_DIR ODOO_REPO odoo_vid HOME PATH; do
+#    P=$p
+#    [ $p == "version" ] && P="BRANCH"
+#    [ $p == "odoo_vid" ] && P="opt_branch"
+#    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
+#  done
+#  [ -n "$2" ] && x=${x/$2/$3}
+#  echo $x
+#}
 
 set_pkgpath() {
   # set_pkgpath (PKGNAME)

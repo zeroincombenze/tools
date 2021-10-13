@@ -71,7 +71,7 @@ set_hashbang() {
     grep -Eq "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" -i $f" && chmod +x $f
 }
 
-RFLIST__travis_emulator="travis travis.man travisrc"  # TODO> remove early
+RFLIST__travis_emulator=""
 RFLIST__devel_tools=""
 RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_worker.sh transodoo.py transodoo.xlsx"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
@@ -84,7 +84,7 @@ RFLIST__wok_code="cvt_csv_2_rst.py cvt_csv_2_xml.py generate_all_tnl gen_addons_
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py run_odoo_debug"
 RFLIST__os0=""
-MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|vfcp|vfdiff)"
+MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|travis|travisrc|vfcp|vfdiff)"
 FILES_2_DELETE="addsubm.sh clodoo clodoocore.py clodoolib.py devel_tools export_db_model.py kbase oca-autopep8 odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn test_tools.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib z0lib.py z0librun.py"
 
 SRCPATH=
@@ -217,14 +217,6 @@ for pkg in $PKGS_LIST tools; do
             src="$srcdir/$fn"
             tgt="$BINPATH/$fn"
             [[ -d "$src" ]] && ftype=d || ftype=f
-            if [[ $fn == "please" ]]; then
-                PLEASE_CMDS=$(grep "^HLPCMDLIST=" $src|awk -F= '{print $2}'|tr -d '"')
-                PLEASE_CMDS="${PLEASE_CMDS//|/ }"
-            elif [[ $fn == "travis" ]]; then
-                TRAVIS_CMDS=$(grep "^ACTIONS=" $src|awk -F= '{print $2}'|tr -d '"')
-                TRAVIS_CMDS=${TRAVIS_CMDS:1: -1}
-                TRAVIS_CMDS="${TRAVIS_CMDS//|/ }"
-            fi
         fi
         if $(echo "$src"|grep -Eq "\*"); then
             src=$(dirname "$src")
@@ -273,6 +265,15 @@ for pkg in $PKGS_LIST tools; do
         fi
     fi
 done
+if [[ -f $BINPATH/please ]]; then
+    PLEASE_CMDS=$(grep "^HLPCMDLIST=" $BINPATH/please|awk -F= '{print $2}'|tr -d '"')
+    PLEASE_CMDS="${PLEASE_CMDS//|/ }"
+fi
+if [[ -f $BINPATH/travis ]]; then
+    TRAVIS_CMDS=$(grep "^ACTIONS=" $BINPATH/travis|awk -F= '{print $2}'|tr -d '"')
+    TRAVIS_CMDS=${TRAVIS_CMDS:1: -1}
+    TRAVIS_CMDS="${TRAVIS_CMDS//|/ }"
+fi
 [[ -d "$DSTPATH/_travis" ]] && run_traced "rm -fR $DSTPATH/_travis"
 [[ -f $SRCPATH/tests/test_tools.sh ]] && run_traced "cp $SRCPATH/tests/test_tools.sh $BINPATH/test_tools.sh"
 [[ -d $LOCAL_VENV/tmp ]] && run_traced "rm -fR $LOCAL_VENV/tmp"
@@ -291,8 +292,9 @@ if [[ ! $opts =~ ^-.*n ]]; then
     # echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
     echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
-    echo "[[ -f $LOCAL_VENV/bin/activate ]] && export PATH=\$PATH:$LOCAL_VENV/bin">>$DSTPATH/activate_tools
-    [[ $DSTPATH != $LOCAL_VENV ]] && echo "export PATH=\$PATH:$DSTPATH">>$DSTPATH/activate_tools
+    echo "[[ -f $LOCAL_VENV/bin/activate && $1 != '-t' ]] && export PATH=\$PATH:$LOCAL_VENV/bin">>$DSTPATH/activate_tools
+    echo "[[ -f $LOCAL_VENV/bin/activate && $1 == '-t' ]] && export PATH=$LOCAL_VENV/bin:\$PATH">>$DSTPATH/activate_tools
+    # [[ $DSTPATH != $LOCAL_VENV ]] && echo "export PATH=\$PATH:$DSTPATH">>$DSTPATH/activate_tools
     # echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">>$DSTPATH/activate_tools
     # echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:\$PYTHONPATH">>$DSTPATH/activate_tools
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $PYLIB/zerobug/_travis || :\$PATH: =~ :$PYLIB/zerobug/_travis: ]] || export PATH=$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools

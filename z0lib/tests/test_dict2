@@ -4,22 +4,23 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
+# Based on template 1.0.2.7
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\no=os.path\nHOME=os.environ.get('HOME');t=o.join(HOME,'tools')\nn=o.join(HOME,'pypi') if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME,HOME_DEV, 'pypi')\nd=HOME_DEV if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME_DEV,'venv')\ndef apl(l,p,b):\n if p:\n  p2=o.join(p,b,b)\n  p1=o.join(p,b)\n  if o.isdir(p2):\n   l.append(p2)\n  elif o.isdir(p1):\n   l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if not o.isdir(t) and o.isdir(o.join(x,'tools')):\n  t=o.join(x,'tools')\n if not v and o.basename(x)=='site-packages':\n  v=x\nfor x in os.environ['PATH'].split(':'):\n if x.startswith(d):\n  d=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n apl(l,v,b)\n apl(l,t,b)\nl=l+os.environ['PATH'].split(':')\ntdir=o.dirname(TDIR)\np=set()\npa=p.add\np=[x for x in l if x and (x.startswith(HOME) or x.startswith(HOME_DEV) or x.startswith(tdir)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $d)
     break
   fi
 done
 if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found!"
+  echo "Library file z0librc not found in <$PYPATH>!"
   exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
@@ -27,9 +28,6 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
-RED="\e[1;31m"
-GREEN="\e[1;32m"
-CLR="\e[0m"
 Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
 if [[ -z "$Z0TLIBDIR" ]]; then
   echo "Library file z0testrc not found!"
@@ -39,7 +37,19 @@ fi
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
-__version__=1.0.2
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+
+__version__=1.0.3
 
 
 base_test () {
@@ -47,53 +57,53 @@ base_test () {
     keys=(k01    k02    k03    k04    K-X    ^K.*)
     vals=("aaaa" "bbbb" "cccc" "dddd" "eeee" "any")
     for i in {0..5}; do
-      a_add "0" "${keys[i]}" "${vals[i]}"
+      CFG_set "0" "${keys[i]}" "${vals[i]}"
     done
     for i in {0..4}; do
-      TRES=$(a_find "0" ${keys[i]})
-      test_result "find ${keys[i]}" "${vals[i]}" "$TRES"
+      TRES=$(CFG_find "0" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "${vals[i]}" "$TRES"
     done
     keys=(k11    k12    k13    k14    K-X    ^K.*)
     vals=("AAAA" "BBBB" "CCCC" "DDDD" "EEEE" "ANY")
     for i in {0..5}; do
-      a_add "1" "${keys[i]}" "${vals[i]}"
+      CFG_set "1" "${keys[i]}" "${vals[i]}"
     done
     for i in {0..4}; do
-      TRES=$(a_find "1" ${keys[i]})
-      test_result "find ${keys[i]}" "${vals[i]}" "$TRES"
+      TRES=$(CFG_find "1" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "${vals[i]}" "$TRES"
     done
     keys=(k01 k02 k03 k04)
     for i in {0..3}; do
-      TRES=$(a_find "1" ${keys[i]})
-      test_result "find ${keys[i]}" "" "$TRES"
+      TRES=$(CFG_find "1" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "" "$TRES"
     done
     keys=(k21 k22 k23 k24 ^K.*)
     vals=("Aaaa" "Bbbb" "Cccc" "Dddd" "Any")
     for i in {0..4}; do
-      a_add "2" "${keys[i]}" "${vals[i]}"
+      CFG_set "2" "${keys[i]}" "${vals[i]}"
     done
     for i in {0..3}; do
-      TRES=$(a_find "2" ${keys[i]})
-      test_result "find ${keys[i]}" "${vals[i]}" "$TRES"
+      TRES=$(CFG_find "2" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "${vals[i]}" "$TRES"
     done
     keys=(k01 k02 k03 k04)
     for i in {0..3}; do
-      TRES=$(a_find "2" ${keys[i]})
-      test_result "find ${keys[i]}" "" "$TRES"
+      TRES=$(CFG_find "2" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "" "$TRES"
     done
     keys=(k11 k12 k13 k14)
     for i in {0..3}; do
-      TRES=$(a_find "2" ${keys[i]})
-      test_result "find ${keys[i]}" "" "$TRES"
+      TRES=$(CFG_find "2" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "" "$TRES"
     done
     keys=(k31 k32 k33 k34 ^K.*)
     vals=("AAaa" "BBbb" "CCcc" "DDdd" "ANy")
     for i in {0..4}; do
-      a_add "3" "${keys[i]}" "${vals[i]}"
+      CFG_set "3" "${keys[i]}" "${vals[i]}"
     done
     for i in {0..3}; do
-      TRES=$(a_find "3" ${keys[i]})
-      test_result "find ${keys[i]}" "${vals[i]}" "$TRES"
+      TRES=$(CFG_find "3" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "${vals[i]}" "$TRES"
     done
 }
 
@@ -120,113 +130,113 @@ test_01() {
 
     keys=(k01 k02 k03 k04)
     for i in {0..3}; do
-      TRES=$(a_find "3" ${keys[i]})
-      test_result "find ${keys[i]}" "" "$TRES"
+      TRES=$(CFG_find "3" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "" "$TRES"
     done
     keys=(k11 k12 k13 k14)
     for i in {0..3}; do
-      TRES=$(a_find "3" ${keys[i]})
-      test_result "find ${keys[i]}" "" "$TRES"
+      TRES=$(CFG_find "3" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "" "$TRES"
     done
     keys=(k21 k22 k23 k24)
     for i in {0..3}; do
-      TRES=$(a_find "3" ${keys[i]})
-      test_result "find ${keys[i]}" "" "$TRES"
+      TRES=$(CFG_find "3" ${keys[i]})
+      test_result "CFG_find ${keys[i]}" "" "$TRES"
     done
 
-    TRES=$(a_find "0" "K9")
-    test_result "find K9" "any" "$TRES"
-    TRES=$(a_find "1" K9)
-    test_result "find K9" "ANY" "$TRES"
+    TRES=$(CFG_find "0" "K9")
+    test_result "CFG_find K9" "any" "$TRES"
+    TRES=$(CFG_find "1" K9)
+    test_result "CFG_find K9" "ANY" "$TRES"
 
     fh=$(xuname "-f")
     x=$(xuname "-v")
     local v=$(echo $x|awk -F. '{print $1}')
     disto=$(xuname "-d")$v
-    a_add "0" "k01" "global_a" "-f"
-    TRES=$(a_find "0" "k01")
-    test_result "find k01" "global_a" "$TRES"
-    a_add "0" "k01" "local_a" "-d"
-    TRES=$(a_find "0" "k01")
-    test_result "find k01" "local_a" "$TRES"
+    CFG_set "0" "k01" "global_a" "-f"
+    TRES=$(CFG_find "0" "k01")
+    test_result "CFG_find k01" "global_a" "$TRES"
+    CFG_set "0" "k01" "local_a" "-d"
+    TRES=$(CFG_find "0" "k01")
+    test_result "CFG_find k01" "local_a" "$TRES"
 
-    a_add "1" "k01" "global_A" "-f"
-    TRES=$(a_find "1" "k01")
-    test_result "find k01" "global_A" "$TRES"
-    a_add "1" "k01" "local_A" "-d"
-    TRES=$(a_find "1" "k01")
-    test_result "find k01" "local_A" "$TRES"
+    CFG_set "1" "k01" "global_A" "-f"
+    TRES=$(CFG_find "1" "k01")
+    test_result "CFG_find k01" "global_A" "$TRES"
+    CFG_set "1" "k01" "local_A" "-d"
+    TRES=$(CFG_find "1" "k01")
+    test_result "CFG_find k01" "local_A" "$TRES"
 
-    a_add "2" "k01" "Global_A" "-f"
-    TRES=$(a_find "2" "k01")
-    test_result "find k01" "Global_A" "$TRES"
-    a_add "2" "k01" "Local_A" "-d"
-    TRES=$(a_find "2" "k01")
-    test_result "find k01" "Local_A" "$TRES"
+    CFG_set "2" "k01" "Global_A" "-f"
+    TRES=$(CFG_find "2" "k01")
+    test_result "CFG_find k01" "Global_A" "$TRES"
+    CFG_set "2" "k01" "Local_A" "-d"
+    TRES=$(CFG_find "2" "k01")
+    test_result "CFG_find k01" "Local_A" "$TRES"
 
-    a_add "3" "k01" "GLobal_A" "-f"
-    TRES=$(a_find "3" "k01")
-    test_result "find k01" "GLobal_A" "$TRES"
-    a_add "3" "k01" "LOcal_A" "-d"
-    TRES=$(a_find "3" "k01")
-    test_result "find k01" "LOcal_A" "$TRES"
+    CFG_set "3" "k01" "GLobal_A" "-f"
+    TRES=$(CFG_find "3" "k01")
+    test_result "CFG_find k01" "GLobal_A" "$TRES"
+    CFG_set "3" "k01" "LOcal_A" "-d"
+    TRES=$(CFG_find "3" "k01")
+    test_result "CFG_find k01" "LOcal_A" "$TRES"
 
-    a_add "0" "^K.*" "global_any" "-f"
-    TRES=$(a_find "0" "K9")
-    test_result "find K9" "global_any" "$TRES"
-    a_add "0" "^K.*" "local_any" "-d"
-    TRES=$(a_find "0" "K9")
-    test_result "find K9" "local_any" "$TRES"
+    CFG_set "0" "^K.*" "global_any" "-f"
+    TRES=$(CFG_find "0" "K9")
+    test_result "CFG_find K9" "global_any" "$TRES"
+    CFG_set "0" "^K.*" "local_any" "-d"
+    TRES=$(CFG_find "0" "K9")
+    test_result "CFG_find K9" "local_any" "$TRES"
 
-    a_add "1" "^K.*" "global_ANY" "-f"
-    TRES=$(a_find "1" "K9")
-    test_result "find K9" "global_ANY" "$TRES"
-    a_add "1" "^K.*" "local_ANY" "-d"
-    TRES=$(a_find "1" "K9")
-    test_result "find K9" "local_ANY" "$TRES"
+    CFG_set "1" "^K.*" "global_ANY" "-f"
+    TRES=$(CFG_find "1" "K9")
+    test_result "CFG_find K9" "global_ANY" "$TRES"
+    CFG_set "1" "^K.*" "local_ANY" "-d"
+    TRES=$(CFG_find "1" "K9")
+    test_result "CFG_find K9" "local_ANY" "$TRES"
 
-    a_add "2" "^K.*" "Global_ANY" "-f"
-    TRES=$(a_find "2" "K9")
-    test_result "find K9" "Global_ANY" "$TRES"
-    a_add "2" "^K.*" "Local_ANY" "-d"
-    TRES=$(a_find "2" "K9")
-    test_result "find K9" "Local_ANY" "$TRES"
+    CFG_set "2" "^K.*" "Global_ANY" "-f"
+    TRES=$(CFG_find "2" "K9")
+    test_result "CFG_find K9" "Global_ANY" "$TRES"
+    CFG_set "2" "^K.*" "Local_ANY" "-d"
+    TRES=$(CFG_find "2" "K9")
+    test_result "CFG_find K9" "Local_ANY" "$TRES"
 
-    a_add "3" "^K.*" "GLobal_ANY" "-f"
-    TRES=$(a_find "3" "K9")
-    test_result "find K9" "GLobal_ANY" "$TRES"
-    a_add "3" "^K.*" "LOcal_ANY" "-d"
-    TRES=$(a_find "3" "K9")
-    test_result "find K9" "LOcal_ANY" "$TRES"
+    CFG_set "3" "^K.*" "GLobal_ANY" "-f"
+    TRES=$(CFG_find "3" "K9")
+    test_result "CFG_find K9" "GLobal_ANY" "$TRES"
+    CFG_set "3" "^K.*" "LOcal_ANY" "-d"
+    TRES=$(CFG_find "3" "K9")
+    test_result "CFG_find K9" "LOcal_ANY" "$TRES"
 
     fh=$(xuname "-f")
     x=$(xuname "-v")
     local v=$(echo $x|awk -F. '{print $1}')
     disto=$(xuname "-d")$v
-    a_add "0" "kx01" "local_ax" "$fh"
-    TRES=$(a_find "0" "kx01")
-    test_result "find kx01" "local_ax" "$TRES"
-    a_add "0" "kx01" "global_ax" "$disto"
-    TRES=$(a_find "0" "kx01")
-    test_result "find kx01" "global_ax" "$TRES"
-    a_add "1" "kx11" "local_ax" "$fh"
-    TRES=$(a_find "1" "kx11")
-    test_result "find kx11" "local_ax" "$TRES"
-    a_add "1" "kx11" "global_ax" "$disto"
-    TRES=$(a_find "1" "kx11")
-    test_result "find kx11" "global_ax" "$TRES"
-    a_add "2" "kx21" "local_ax" "$fh"
-    TRES=$(a_find "2" "kx21")
-    test_result "find kx21" "local_ax" "$TRES"
-    a_add "2" "kx21" "global_ax" "$disto"
-    TRES=$(a_find "2" "kx21")
-    test_result "find kx21" "global_ax" "$TRES"
-    a_add "3" "kx31" "local_ax" "$fh"
-    TRES=$(a_find "3" "kx31")
-    test_result "find kx31" "local_ax" "$TRES"
-    a_add "3" "kx31" "global_ax" "$disto"
-    TRES=$(a_find "3" "kx31")
-    test_result "find kx31" "global_ax" "$TRES"
+    CFG_set "0" "kx01" "local_ax" "$fh"
+    TRES=$(CFG_find "0" "kx01")
+    test_result "CFG_find kx01" "local_ax" "$TRES"
+    CFG_set "0" "kx01" "global_ax" "$disto"
+    TRES=$(CFG_find "0" "kx01")
+    test_result "CFG_find kx01" "global_ax" "$TRES"
+    CFG_set "1" "kx11" "local_ax" "$fh"
+    TRES=$(CFG_find "1" "kx11")
+    test_result "CFG_find kx11" "local_ax" "$TRES"
+    CFG_set "1" "kx11" "global_ax" "$disto"
+    TRES=$(CFG_find "1" "kx11")
+    test_result "CFG_find kx11" "global_ax" "$TRES"
+    CFG_set "2" "kx21" "local_ax" "$fh"
+    TRES=$(CFG_find "2" "kx21")
+    test_result "CFG_find kx21" "local_ax" "$TRES"
+    CFG_set "2" "kx21" "global_ax" "$disto"
+    TRES=$(CFG_find "2" "kx21")
+    test_result "CFG_find kx21" "global_ax" "$TRES"
+    CFG_set "3" "kx31" "local_ax" "$fh"
+    TRES=$(CFG_find "3" "kx31")
+    test_result "CFG_find kx31" "local_ax" "$TRES"
+    CFG_set "3" "kx31" "global_ax" "$disto"
+    TRES=$(CFG_find "3" "kx31")
+    test_result "CFG_find kx31" "global_ax" "$TRES"
 
     for i in {0..3}; do
       eval $(a_new "$i")
@@ -238,26 +248,14 @@ test_01() {
 
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_z0lib.log "$@"
+parseoptest -l$TESTDIR/test_..log "$@"
 sts=$?
 [[ $sts -ne 127 ]] && exit $sts
-
-
-
-
-
-
 
 
 UT1_LIST=
 UT_LIST=
 [[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
-# Follow code must be executed at main level sue bash limitations
-for i in {0..3}; do
-  eval $(a_new $i)
-  eval $(a_active $i)
-done
-# /End Included Block/
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?
 [[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown

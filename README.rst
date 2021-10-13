@@ -388,6 +388,12 @@ clodoo: 0.3.35 (2021-09-23)
 * [FIX] python 3
 
 
+zerobug: 1.0.2.1 (2021-09-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Minor improvements
+
+
 lisa: 0.3.2.1 (2021-09-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -434,8 +440,8 @@ travis_emulator: 1.0.2 (2021-08-27)
 zerobug: 1.0.1.4 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis_install_env: echo indented command
-[IMP] travis_install_env: new travis command testdeps
+* [IMP] travis_install_env: echo indented command
+* [IMP] travis_install_env: new travis command testdeps
 
 
 z0bug_odoo: 1.0.4.3 (2021-08-26)
@@ -480,32 +486,11 @@ clodoo: 0.3.33.1 (2021-08-23)
 
 
 
+
 zar: 1.3.35.3 (2021-08-13)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] pg_db_active: kill process
-
-
-travis_emulator: 1.0.1.5 (2021-08-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: summary return 1 if test failed or is broken
-* [IMP] travis: return status like summary
-* [IMP] travis: summary & show-log can show old logfile i.e.: travis summary old
-* [IMP] travis: osx emulatore return more info when error
-
-
-clodoo: 0.3.31.16 (2021-08-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoorc: module list
-
-
-clodoo: 0.3.31.15 (2021-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoorc: run in osx darwin
-
 
 
 
@@ -523,7 +508,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-10-09
+Last Update / Ultimo aggiornamento: 2021-10-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
