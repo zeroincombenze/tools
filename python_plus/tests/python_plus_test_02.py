@@ -9,14 +9,14 @@ from __future__ import print_function, unicode_literals
 # import os
 # import os.path
 import sys
-from zerobug import Z0BUG
+from zerobug import z0testlib
 # from python_plus import isbytestr, qsplit
 
 MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "1.0.3.8"
+__version__ = "1.0.3.9"
 
 
 def version():
@@ -25,6 +25,7 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
+    Z0BUG = z0testlib.Z0test()
     ctx = Z0BUG.parseoptest(sys.argv[1:],
                         version=version())
     UT_LIST = ["__doctest_${rundir}/egg-info/python_plus.rst"]

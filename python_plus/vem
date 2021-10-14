@@ -17,6 +17,7 @@
 # OK -> Use feature / X -> Feature unavailable / no -> Do use use
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
+# Based on template 1.0.2.7
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -39,16 +40,16 @@ fi
 
 DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
 TCONF="$HOME/.z0tools.conf"
-# CFG_init
-# link_cfg_def
-# link_cfg $DIST_CONF $TCONF
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
-# get_pypi_param ALL
+get_pypi_param ALL
 RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.8
+__version__=1.0.3.9
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -971,28 +972,6 @@ do_venv_create() {
   local f lropts p pkg v VENV xpkgs SAVED_PATH x
   local venvexe pyexe
   VENV="$1"
-  PYTHON=""
-  if [[ -x $opt_pyver ]]; then
-    PYTHON=$opt_pyver
-    opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
-    PIP=$(which pip$opt_pyver 2>/dev/null)
-    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
-  elif [[ -n $opt_pyver ]]; then
-    PYTHON=$(which python$opt_pyver 2>/dev/null)
-    [[ -z "$PYTHON" && $opt_pyver =~ ^3 ]] && PYTHON=python3
-    [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
-    PYTHON=$(which $PYTHON 2>/dev/null)
-    [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-    opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
-    PIP=$(which pip$opt_pyver 2>/dev/null)
-    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
-  else
-    PYTHON=$(which python 2>/dev/null)
-    opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
-    PIP=$(which pip 2>/dev/null)
-    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
-  fi
-  [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
   if [[ -d $VENV ]]; then
     if [[ $opt_force -eq 0 ]]; then
       echo "Warning: virtual environment $VENV already exists!!"
@@ -1016,6 +995,28 @@ do_venv_create() {
       fi
     fi
   fi
+  PYTHON=""
+  if [[ -x $opt_pyver ]]; then
+    PYTHON=$opt_pyver
+    opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+    PIP=$(which pip$opt_pyver 2>/dev/null)
+    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+  elif [[ -n $opt_pyver ]]; then
+    PYTHON=$(which python$opt_pyver 2>/dev/null)
+    [[ -z "$PYTHON" && $opt_pyver =~ ^3 ]] && PYTHON=python3
+    [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
+    PYTHON=$(which $PYTHON 2>/dev/null)
+    [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
+    opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+    PIP=$(which pip$opt_pyver 2>/dev/null)
+    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+  else
+    PYTHON=$(which python 2>/dev/null)
+    opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+    PIP=$(which pip 2>/dev/null)
+    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+  fi
+  [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
   validate_py_oe_vers
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   venvexe=$(which virtualenv 2>/dev/null)
@@ -1352,7 +1353,7 @@ if [[ -n "$ERROR_PKGS" ]]; then
   fi
   if [[ $ERROR_PKGS =~ pycups ]]; then
     PKGLIST=""
-    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libcups2-devel" || PKGLIST="$PKGLIST libcups2-dev"
+    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST cups-devel" || PKGLIST="$PKGLIST libcups2-dev"
     echo "$XTAL install $PKGLIST    # pycups"
   fi
   if [[ $ERROR_PKGS =~ shapely ]]; then

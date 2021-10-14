@@ -10,7 +10,7 @@ import os
 import os.path
 import sys
 import shutil
-from zerobug import Z0BUG
+from zerobug import z0testlib
 
 
 MODULE_ID = 'python_plus'
@@ -25,7 +25,7 @@ parser.add_argument('-V')
 ctx = parser.parseoptargs(['-V'])
 """
 
-__version__ = "1.0.3.8"
+__version__ = "1.0.3.9"
 
 
 def version():
@@ -174,6 +174,7 @@ class Test():
 
 
 if __name__ == "__main__":
+    Z0BUG = z0testlib.Z0test()
     exit(Z0BUG.main_local(
         Z0BUG.parseoptest(
             sys.argv[1:],
