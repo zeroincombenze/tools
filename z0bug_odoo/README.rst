@@ -1,6 +1,6 @@
 
 ==================
-z0bug_odoo 1.0.5.2
+z0bug_odoo 1.0.5.3
 ==================
 
 
@@ -1066,6 +1066,11 @@ Current development version
 History
 -------
 
+1.0.5.3 (2021-10-15)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] python3 failure
+
 1.0.5.2 (2021-09-27)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -1125,11 +1130,6 @@ History
 
 * [FIX] publish pypi with similar version history
 
-
-1.0.0.6 (2021-03-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] test_server.py: GBL_EXCLUDE with module to not test
 
 
 
@@ -1241,7 +1241,7 @@ Last Update / Ultimo aggiornamento: 2021-10-09
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-10-09
+Last Update / Ultimo aggiornamento: 2021-10-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
