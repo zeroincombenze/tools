@@ -6,16 +6,12 @@
     Zeroincombenze® unit test library for python programs Regression Test Suite
     You can use this file as main all_tests.py too
 """
-import os
 import sys
-try:
-    import z0testlib
-    Z0BUG = z0testlib.Z0test()
-except ImportError:
-    from zerobug import Z0BUG
+from zerobug import z0testlib
 
 
-__version__ = "1.0.2.1"
+
+__version__ = "1.0.3"
 
 
 def version():
@@ -23,6 +19,7 @@ def version():
 
 
 if __name__ == "__main__":
+    Z0BUG = z0testlib.Z0test()
     exit(
         Z0BUG.main(
             Z0BUG.parseoptest(

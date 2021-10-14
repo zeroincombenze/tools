@@ -11,20 +11,20 @@ READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null
 export READLINK
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\no=os.path\nHOME=os.environ.get('HOME');t=o.join(HOME,'tools')\nn=o.join(HOME,'pypi') if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME,HOME_DEV, 'pypi')\nd=HOME_DEV if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME_DEV,'venv')\ndef apl(l,p,b):\n if p:\n  p2=o.join(p,b,b)\n  p1=o.join(p,b)\n  if o.isdir(p2):\n   l.append(p2)\n  elif o.isdir(p1):\n   l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if not o.isdir(t) and o.isdir(o.join(x,'tools')):\n  t=o.join(x,'tools')\n if not v and o.basename(x)=='site-packages':\n  v=x\nfor x in os.environ['PATH'].split(':'):\n if x.startswith(d):\n  d=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n apl(l,v,b)\n apl(l,t,b)\nl=l+os.environ['PATH'].split(':')\ntdir=o.dirname(TDIR)\np=set()\npa=p.add\np=[x for x in l if x and (x.startswith(HOME) or x.startswith(HOME_DEV) or x.startswith(tdir)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $d)
     break
   fi
 done
 if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found!"
+  echo "Library file z0librc not found in <$PYPATH>!"
   exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
@@ -32,22 +32,20 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+CFG_init
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
 RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.2.1
+__version__=1.0.2.2
 
-conf_default() {
-  if [[ -z "$PS_TXT_COLOR" ]]; then
-    export PS_TXT_COLOR="0;97;40"
-    export PS_RUN_COLOR="1;37;44"
-    export PS_NOP_COLOR="34;107"
-    export PS_HDR1_COLOR="97;42"
-    export PS_HDR2_COLOR="30;43"
-    export PS_HDR3_COLOR="30;45"
-  fi
-}
 
 run_traced() {
   [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
@@ -266,17 +264,14 @@ check_pythonpath() {
 }
 
 install_n_activate_tools() {
+  local opts
   if [[ -d $HOME/tools && $(which travis_run_tests 2>&1 >/dev/null) ]]; then
-    [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
-    pushd $HOME/tools >/dev/null
-    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-pt
-    [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qpt
-    run_traced "./install_tools.sh $x"
-    [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools -t\e[${PS_TXT_COLOR}m"
-    . $HOME/dev/activate_tools -t
-    popd >/dev/null
-    [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-    [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+    run_traced "pushd $HOME/tools >/dev/null"
+    opts=$(inherit_opts "-pt")
+    run_traced "./install_tools.sh $opts"
+    run_traced ". $HOME/dev/activate_tools -t"
+    run_traced "popd >/dev/null"
+    [[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]] && echo "PATH=$PATH" && echo "PYTHONPATH=$PYTHONPATH"
   fi
 }
 
@@ -308,8 +303,7 @@ cp_coveragerc() {
 
 OPTOPTS=(h        b          j        K        H           n            q           T       t          V           v)
 OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_humdrum opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
-OPTACTI=(1        1          1        1        1           1            0           1        1         "*>"        "+")
-OPTDEFL=(0        0          0        0        0           0            -1          0        0         ""          -1)
+OPTDEFL=('+'      0          0        0        0           0            -1          0        0         ""          -1)
 OPTMETA=("help"   "dprj"     "check"  ""       ""          "do nothing" "qiet"      "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"
   "Odoo version"
@@ -344,7 +338,8 @@ sts=$STS_SUCCESS
 [[ $MQT_DRY_RUN == "1" ]] && opt_dry_run=1
 [[ $MQT_VERBOSE_MODE == "1" ]] && opt_verbose=1
 [[ $MQT_VERBOSE_MODE == "0" ]] && opt_verbose=0
-[[ $TRAVIS_DEBUG_MODE -ne 0 ]] && opt_verbose=1
+#[[ $TRAVIS_DEBUG_MODE -ne 0 ]] && opt_verbose=1
+OPTS=$(inerhit_opts)
 if [[ ${opt_regr:-0} -gt 0 ]]; then
   LINT_CHECK="0"
   TESTS="1"
@@ -357,7 +352,6 @@ fi
 LINT_OR_TEST_CHECK="0"
 [[ ${LINT_CHECK:-0} == "1" ]] && LINT_OR_TEST_CHECK="1"
 [[ ${LINT_CHECK:-0} == "0" && ${TESTS:-0} == "1" ]] && LINT_OR_TEST_CHECK="1"
-conf_default
 [[ -z "$MQT_TEST_MODE" ]] && IFS="/" read MQT_TEST_MODE PKGNAME <<<"${TRAVIS_REPO_SLUG}"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ $MQT_TEST_MODE =~ (oca|zero) ]] || MQT_TEST_MODE=zero
@@ -368,17 +362,9 @@ if [[ "$MQT_TEST_MODE" == "oca" ]]; then
 fi
 
 export MQT_TEST_MODE=$mode
-[[ -z "$PKGNAME" ]] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
-if [[ $TRAVIS_PYTHON_VERSION =~ ^3 ]]; then
-  python3 --version &>/dev/null && PYTHON=python3
-  [[ $(pip3 --version|grep -Eo "python [23]\.[0-9]"|grep -Eo "[23]"|head -n1) == 3 ]] && PIP=pip3 || PIP="$PYTHON -m pip"
-else
-  python2 --version &>/dev/null && PYTHON=python2
-  [[ -z "$PYTHON" ]] && PYTHON=python
-  [[ $(pip2 --version|grep -Eo "python [23]\.[0-9]"|grep -Eo "[23]"|head -n1) == 2 ]] && PIP=pip2 || PIP="$PYTHON -m pip"
-fi
+set_pybin $TRAVIS_PYTHON_VERSION
 export PYTHON PIP
-[[ ! $TRAVIS =~ (true|emulate) && -d $HOME/.local && ! "$SYSTEM_SITE_PACKAGES" == "true" ]] && PIP_OPTS="--user" || PIP_OPTS=""
+# [[ ! $TRAVIS =~ (true|emulate) && -d $HOME/.local && ! "$SYSTEM_SITE_PACKAGES" == "true" ]] && PIP_OPTS="--user" || PIP_OPTS=""
 install_n_activate_tools
 if [[ -d $HOME/devel ]]; then
   set_pythonpath "$HOME/tools" "$HOME/devel/sitecustomize.py" $PIP
@@ -417,15 +403,15 @@ if [[ -z "$LISA" ]]; then
     LISA=$YML_lisa
   else
     LISA=$HOME/tools/lisa/lisa
-    [ -f $TDIR/../../lisa/lisa ] && LISA=$($READLINK -e $TDIR/../../lisa/lisa)
-    [ -f $TDIR/../lisa/lisa ] && LISA=$($READLINK -e $TDIR/../lisa/lisa)
+    [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
+    [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
   fi
 fi
 VEM=$(which vem 2>/dev/null)
 if [[ -z "$VEM" ]]; then
   VEM=$HOME/tools/python_plus/vem
-  [ -f $TDIR/../../python_plus/python_plus ] && VEM=$($READLINK -e $TDIR/../../python_plus/python_plus)
-  [ -f $TDIR/../python_plus/python_plus ] && VEM=$($READLINK -e $TDIR/../python_plus/python_plus)
+  [ -f $TDIR/../../python_plus/python_plus ] && VEM=$(readlink -e $TDIR/../../python_plus/python_plus)
+  [ -f $TDIR/../python_plus/python_plus ] && VEM=$(readlink -e $TDIR/../python_plus/python_plus)
 fi
 if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"

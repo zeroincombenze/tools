@@ -1,7 +1,7 @@
 
-===============
-zerobug 1.0.2.1
-===============
+=============
+zerobug 1.0.3
+=============
 
 
 
@@ -475,6 +475,8 @@ Last Update / Ultimo aggiornamento: 2021-09-30
 Last Update / Ultimo aggiornamento: 2021-10-05
 Last Update / Ultimo aggiornamento: 2021-10-06
 Last Update / Ultimo aggiornamento: 2021-10-09
+Last Update / Ultimo aggiornamento: 2021-10-12
+Last Update / Ultimo aggiornamento: 2021-10-14
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -508,7 +510,7 @@ Last Update / Ultimo aggiornamento: 2021-10-09
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-10-12
+Last Update / Ultimo aggiornamento: 2021-10-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

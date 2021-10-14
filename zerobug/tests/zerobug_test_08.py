@@ -5,15 +5,16 @@
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
-from __future__ import print_function,unicode_literals
+from __future__ import print_function, unicode_literals
 # from past.builtins import basestring
 
 import os
 import sys
-from zerobug import Z0BUG
-from zerobug import Z0testOdoo
+from zerobug import z0testlib
+from zerobug.z0testlib import Z0testOdoo
 
-__version__ = "1.0.2.1"
+
+__version__ = "1.0.3"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -30,8 +31,8 @@ class RegressionTest():
         self.Z = z0bug
 
     def test_01(self, z0ctx):
-        sts = TEST_SUCCESS
-        for ver in ('7.0', '8.0', '10.0', '12.0'):
+        # sts = TEST_SUCCESS
+        for ver in ('12.0', '10.0', '7.0', '8.0'):
             if ver in ('7.0', '8.0'):
                 OS_TREE = (ver,
                            '%s/addons' % ver,
@@ -44,7 +45,7 @@ class RegressionTest():
                            )
             RES = False
             if not z0ctx['dry_run']:
-                self.root = Z0testOdoo.build_odoo_env(z0ctx, ver)
+                self.root = Z0testOdoo().build_odoo_env(z0ctx, ver)
             for path in OS_TREE:
                 if not z0ctx['dry_run']:
                     path = os.path.join(self.root, path)
@@ -71,7 +72,7 @@ class RegressionTest():
 
     def test_02(self, z0ctx):
         sts = TEST_SUCCESS
-        for ver in ('7.0', '8.0', '10.0', '12.0'):
+        for ver in ('12.0', '10.0', '7.0', '8.0'):
             if ver in ('7.0', '8.0'):
                 OS_TREE = (ver,
                            '%s/addons' % ver,
@@ -96,8 +97,8 @@ class RegressionTest():
         return sts
 
     def test_03(self, z0ctx):
-        sts = TEST_SUCCESS
-        for ver in ('7.0', '8.0', '10.0', '12.0'):
+        # sts = TEST_SUCCESS
+        for ver in ('12.0', '10.0', '7.0', '8.0'):
             if ver in ('7.0', '8.0'):
                 OS_TREE = (ver,
                            '%s/addons' % ver,
@@ -112,7 +113,7 @@ class RegressionTest():
                 hy = 'tree'
             RES = False
             if not z0ctx['dry_run']:
-                self.root = Z0testOdoo.build_odoo_env(z0ctx, ver, hierarchy=hy)
+                self.root = Z0testOdoo().build_odoo_env(z0ctx, ver, hierarchy=hy)
             for path in OS_TREE:
                 if not z0ctx['dry_run']:
                     path = os.path.join(self.root, path)
@@ -139,7 +140,7 @@ class RegressionTest():
 
     def test_04(self, z0ctx):
         sts = TEST_SUCCESS
-        for ver in ('7.0', '8.0', '10.0', '12.0'):
+        for ver in ('12.0', '10.0', '7.0', '8.0'):
             if ver in ('7.0', '8.0'):
                 OS_TREE = (ver,
                            '%s/addons' % ver,
@@ -171,7 +172,7 @@ class RegressionTest():
             reponame = 'OCB'
             branch = '10.0'
             odoo_path = os.path.join(self.root, branch)
-            Z0testOdoo.git_clone(remote, reponame, branch, odoo_path)
+            Z0testOdoo().git_clone(remote, reponame, branch, odoo_path)
         for path in self.os_tree:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
@@ -204,6 +205,7 @@ class RegressionTest():
 #
 # Run main if executed as a script
 if __name__ == "__main__":
+    Z0BUG = z0testlib.Z0test()
     exit(Z0BUG.main_local(
         Z0BUG.parseoptest(
             sys.argv[1:],

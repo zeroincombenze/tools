@@ -10,9 +10,10 @@ from __future__ import print_function,unicode_literals
 # import os
 import os.path
 import sys
-from zerobug import Z0BUG
+from zerobug import z0testlib
 
-__version__ = "1.0.2.1"
+
+__version__ = "1.0.3"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -25,6 +26,7 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
+    Z0BUG = z0testlib.Z0test()
     ctx = Z0BUG.parseoptest(sys.argv[1:],
                             version=version())
     z0lib_file = ''

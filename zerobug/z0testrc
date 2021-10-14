@@ -63,7 +63,7 @@
 # (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.2.1
+__version__=1.0.3
 
 export opt_dry_run
 export ctr
@@ -216,7 +216,7 @@ restore_options() {
     done
 }
 
-inherit_opts() {
+_inherit_opts() {
     local args
     if [ "$LECHO" == "echo" ]; then
       args="-e"
@@ -511,7 +511,7 @@ exec_all_tests () {
     for testname in $1; do
       dbgmsg "\$ for $testname in \$1; do # min=$min_test, max=$max_test, ctr=$ctr, sts=$sts, -0=$opt_noctr"
       c=0
-      opt4childs=$(inherit_opts)
+      opt4childs=$(_inherit_opts)
       dirtn=$(dirname $testname)
       basetn=$(basename $testname)
       if [ $sts -eq 0 ]; then
