@@ -73,9 +73,9 @@ CLR="\e[0m"
 push_venv() {
     # push_venv(VENV)
     [[ $opt_verbose -gt 2 ]] && echo ">>> push_venv($*)"
-    local i
+    local f=0 i
     ((i=${#VENV_STACK[@]}))
-    VENV_STACK[$i]="$1"
+    [[ $f -eq 0 ]] && VENV_STACK[$i]="$1"
     export VENV_STACK
 }
 
@@ -387,10 +387,10 @@ pip_install_1() {
   [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
   [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m (1)"
   for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
-    [[ $opt_verbose -lt 2 ]] && echo -n "."
+    [[ $opt_verbose -lt 2 ]] && echo -en "."
     pip_install "$pkg" "$popts"
   done
-  [[ $opt_verbose -lt 2 ]] && echo ""
+  [[ $opt_verbose -lt 2 ]] && echo -en "\r"
 }
 
 pip_install_2() {
@@ -617,7 +617,6 @@ package_debug() {
   local pkg pkgdir
   local pkgs="${LOCAL_PKGS//|/ }"
   pkgs="${pkgs:1:-1}"
-  [[ -d $HOME/dev/pypi ]] && pkgdir=$HOME/dev/pypi
   [[ -d $HOME/devel/pypi ]] && pkgdir=$HOME/devel/pypi
   if [[ -n "$pkgdir" ]]; then
     for pkg in $pkgs; do
@@ -725,10 +724,10 @@ check_installed_pkgs() {
   [[ $opt_verbose -lt 2 ]] && popts="$potps -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
-    # [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
+    [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
     p2=""
     [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install $popts$p2 $p"
-    [[ $opt_verbose -lt 2 ]] && echo -n "."
+    [[ $opt_verbose -lt 2 ]] && echo -en "."
     [[ -z "${!x}" ]] && $PIP install $popts$p2 $p
   done
   LIST_REQ="list_requirements.py"
@@ -738,11 +737,11 @@ check_installed_pkgs() {
       x=$(echo $x/clodoo/list_requirements.py)
       run_traced "chmod +x $x"
       LIST_REQ="$(readlink -f $x)"
-      [[ $opt_verbose -lt 2 ]] && echo -n "."
+      [[ $opt_verbose -lt 2 ]] && echo -en "."
       run_traced "sed -i -e \"s|^#\!.*[ /]python|#\!$PYTHON|\" $x"
     fi
   fi
-  [[ $opt_verbose -lt 2 ]] && echo ""
+  [[ $opt_verbose -lt 2 ]] && echo -en "\r"
   check_4_needing_pkgs
 }
 
@@ -761,6 +760,8 @@ venv_mgr_check_oever() {
   local p x
   if [[ -z "$opt_oever" && ! $1 =~ (help|create) ]]; then
     p=""
+    [[ $2 =~ ^VENV- ]] && p="$p $(echo $HOME/"$2"|grep -Eo "[0-9]+\.[0-9]"|head -n1)"
+    [[ $2 =~ /venv_odoo ]] && p="$p $(dirname $2)"
     for x in lib/python$opt_pyver/site-packages/odoo odoo openerp server; do
       [[ -d $p2/odoo/$x ]] && p="$p $p2/odoo/$x"
       [[ $x != "odoo" && -d $p2/$x ]] && p="$p $p2/$x"
@@ -842,6 +843,7 @@ do_venv_mgr() {
   elif [[ "$cmd" == "cp" ]]; then
     do_deactivate "-q"
     if [[ -f $VENV_TGT ]]; then
+      # Result by strange bug
       run_traced "rm -f $VENV_TGT"
     elif [[ -d $VENV_TGT ]]; then
       if [[ $opt_force -eq 0 ]]; then

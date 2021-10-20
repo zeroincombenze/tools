@@ -141,8 +141,9 @@ if [[ $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! 
     if [[ $opts =~ ^-.*3 ]]; then
         run_traced "$VEM create $LOCAL_VENV -p3.7 $x -f"
     else
-        run_traced "$VEM create $LOCAL_VENV -p2.7 $x -f"
+        run_traced "$VEM create $LOCAL_VENV -p2.7 $x -f -n"
     fi
+    exit 1
     [[ $? -ne 0 ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
     [[ ! -d $LOCAL_VENV/bin || ! -d $LOCAL_VENV/lib ]] && echo -e "${RED}# Incomplete Tools virtual environment!${CLR}" && exit 1
     [[ -d $HOME/.cache/pip && $opts =~ ^-.*p ]] && run_traced "rm -fR $HOME/.cache/pip"

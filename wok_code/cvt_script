@@ -40,6 +40,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
+
 __version__=1.0.2.7
 
 #//Only human upgradable code/
@@ -174,7 +175,7 @@ cvt_file() {
         elif [[ $line =~ ^#[^A-Za-z09_]*Only.human.upgradable.code.* ]]; then
           echo "$line" >>$fntmp
           incl=1
-        elif [ $incl -eq 1 ]; then
+        elif [[ $incl -eq 1 ]]; then
           echo "$line" >>$fntmp
         elif [[ $line =~ ^if.*\$opt_help.*gt.*then$ ]]; then
           echo "if [[ \$opt_help -gt 0 ]]; then" >>$fntmp
@@ -183,8 +184,8 @@ cvt_file() {
         elif [[ $line =~ ^[[:space:]]*man[[:space:]]\$TDIR/\$THIS.man ]]; then
           echo "  man \$(dirname \$0)/man/man8/\$(basename \$0).8.gz" >>$fntmp
         elif [[ $line =~ ^OPTACTI=\(1... ]]; then
-          :
-          # echo "${line/(1  /(\"+\"}" >>$fntmp
+          x="(\"+\""
+          echo "${line/(1  /$x}" >>$fntmp
         elif [ $prc -eq 0 ]; then
           if [[ $line =~ ^THIS=..basename || $line =~ ^#?.?export.READLINK= || $line =~ ^#?.?READLINK= ]]; then
             prc=1
@@ -245,7 +246,6 @@ cvt_file() {
             [[ $prc -lt 4 ]] && parse_blk_4
             [[ $prc -lt 8 ]] && parse_blk_8
             [[ $prc -lt 9 ]] && parse_blk_9
-            [[ $prc -lt 10 ]] && parse_blk_10
             if [[ $opt_UT -eq 0 ]]; then
               echo "Warning: found Zerobug library w/o -U switch"
               ToRepeat="$ToRepeat opt_UT=1"
@@ -403,6 +403,7 @@ blk_1() {
   cat <<EOF >>$1
 READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/null)
 export READLINK
+# Based on template $__version__
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 [ \$BASH_VERSINFO -lt 4 ] && echo "This script \$0 requires bash 4.0+!" && exit 4
@@ -536,7 +537,7 @@ blk_10() {
 
 DIST_CONF=\$(findpkg ".z0tools.conf" "\$PYPATH")
 TCONF="\$HOME/.z0tools.conf"
-CFG_init
+CFG_init "ALL"
 link_cfg_def
 link_cfg \$DIST_CONF \$TCONF
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=\$DIST_CONF" && echo "TCONF=\$TCONF"
@@ -634,8 +635,8 @@ fi
 declare -A COPY
 COPY[z0lib]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
 COPY[travis_em]="© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
-[[ -z "$opt_id" ]] && opt_id=$(basename $(dirname $bashscript))
-[[ $opt_id == "tests" ]]&& opt_id=$(basename $(dirname $(dirname $bashscript)))
+[[ -z "$opt_id" ]] && opt_id=$(basename $(dirname $(readlink -f $bashscript)))
+[[ $opt_id == "tests" ]] && opt_id=$(basename $(dirname $(dirname $(readlink -f $bashscript))))
 ToRepeat=
 cvt_file $bashscript
 if [[ -n "$ToRepeat" ]]; then

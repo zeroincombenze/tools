@@ -247,20 +247,16 @@ def iter_template_path(debug_mode=None, body=None):
                      './readme',
                      './docs',
                      '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
-                     '%s/dev/pypi/tools/templates/${p}' % os.environ['HOME'],
+                     '%s/devel/venv/bin/templates/${p}' % os.environ['HOME'],
                      '%s/devel/templates/${p}' % os.environ['HOME'],
-                     '%s/dev/templates/${p}' % os.environ['HOME'],
                      '%s/devel/pypi/tools/templates' % os.environ['HOME'],
-                     '%s/dev/pypi/tools/templates' % os.environ['HOME'],
-                     '%s/devel/templates' % os.environ['HOME'],
-                     '%s/dev/templates' % os.environ['HOME']):
-        if src_path.find('/devel/pypi/tools/') >= 0 and not debug_mode:
+                     '%s/devel/venv/bin/templates' % os.environ['HOME'],
+                     '%s/devel/templates' % os.environ['HOME']):
+        if '/devel/pypi/tools/'in src_path and not debug_mode:
             continue
-        elif src_path.find('/dev/pypi/tools/') >= 0 and not debug_mode:
+        elif '/devel/venv/bin/templates' in src_path and debug_mode:
             continue
-        elif src_path.find('/devel/templates') >= 0 and debug_mode:
-            continue
-        elif src_path.find('/dev/templates') >= 0 and debug_mode:
+        elif '/devel/templates' in src_path and debug_mode:
             continue
         if not body and (src_path.find('./docs') >= 0 or
                          src_path.find('./egg-info') >= 0 or

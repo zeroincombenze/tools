@@ -5,6 +5,7 @@
 * [FIX] please: run inside virtual environment
 * [FIX] please: version
 * [FIX] dist_pkg: run inside virtual environment
+* [FIX] gen_readme.py: new template layout in devel/venv
 
 1.0.2.6 (2021-10-06)
 ~~~~~~~~~~~~~~~~~~~~
