@@ -7,7 +7,7 @@
     You can use this file as main all_tests.py too
 """
 import sys
-from zerobug import z0testlib
+from . import z0test
 
 __version__ = "1.0.3"
 
@@ -16,12 +16,12 @@ def version():
     return __version__
 
 
+def main(cli_args=None):
+    if not cli_args:
+        cli_args = sys.argv[1:]
+    # Z0BUG = z0testlib.Z0test()
+    return z0test.main(z0test.parseoptest(cli_args, version=version()))
+
+
 if __name__ == "__main__":
-    Z0BUG = z0testlib.Z0test()
-    exit(
-        Z0BUG.main(
-            Z0BUG.parseoptest(
-                sys.argv[1:], version=version()
-            )
-        )
-    )
+    exit(main(sys.argv))

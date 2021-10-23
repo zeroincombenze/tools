@@ -50,7 +50,7 @@ OE_CONF = False
 # List of string parameters in [options] of config file
 LX_CFG_S = ('opt_debug', 'opt_verbose', 'opt_noctr')
 # List of pure boolean parameters in [options] of config file
-LX_CFG_B = ('opt_debug', )
+LX_CFG_B = ('opt_debug', 'python2', 'python3')
 # List of string parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_S = ('opt_echo',     'logfn',
                 'opt_tjlib',    'opt_oelib',
@@ -88,7 +88,7 @@ LX_OPT_ARGS = {'opt_debug': '-B',
                'python3': '-3'}
 
 DEFAULT_COVERARC = r"""# Config file .coveragerc 2019-08-22
-[report]
+[run]
 include =
 #    ${TRAVIS_BUILD_DIR}/*
     *.py
@@ -107,6 +107,7 @@ omit =
     */__init__.py
     */__openerp__.py
     */__manifest__.py
+[report]
 # Regexes for lines to exclude from consideration
 exclude_lines =
     # Have to re-enable the standard pragma
@@ -618,6 +619,8 @@ class Z0test(object):
         -z --end         display total # tests when execute them
         -0 --no-count    no count # unit tests
         -1 --coverage    run test for coverage (obsoslete)
+        -2               python2
+        -3               python3
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
@@ -717,7 +720,7 @@ class Z0test(object):
                             action="store_true",
                             dest="run4cover",
                             default=True)
-        parser.add_argument("-2", "--python3",
+        parser.add_argument("-2", "--python2",
                             help="use python2",
                             action="store_true",
                             dest="python2",
@@ -1080,8 +1083,6 @@ class Z0test(object):
                         test_w_args = ['python2'] + [testname] + opt4childs
                     else:
                         test_w_args = [sys.executable] + [testname] + opt4childs
-                        import pdb
-                        pdb.set_trace()
                 else:
                     test_w_args = [testname] + opt4childs
                 self.dbgmsg(ctx, ">>>  test_w_args=%s" % test_w_args)
@@ -1126,14 +1127,6 @@ class Z0test(object):
         self.dbgmsg(ctx, '- c=%d, ctr_list=%s' % (ctx['ctr'], self.ctr_list))
         if TestCls:
             T = TestCls(self)
-        if (ctx.get('run4cover', False) and
-                not ctx.get('dry_run', False)):
-            try:
-                subprocess.call(['coverage', 'erase'],
-                    stdout=open('/dev/null', 'w'),
-                    stderr=open('/dev/null', 'w'))
-            except OSError:
-                print('Coverage not found!')
         if TestCls and hasattr(TestCls, 'setup'):
             getattr(T, 'setup')(ctx)
         for testname in test_list:
@@ -1177,14 +1170,12 @@ class Z0test(object):
                         else:
                             test_w_args = [sys.executable, '-m', 'pdb', testname
                                            ] + opt4childs
-                        import pdb
-                        pdb.set_trace()
                     elif (ctx.get('run4cover', False) and
                             not ctx.get('dry_run', False)):
                         test_w_args = [
                             'coverage',
                             'run',
-                            # '-a',
+                            '-a',
                             '--rcfile=%s' % ctx['COVERAGE_PROCESS_START'],
                             testname
                         ] + opt4childs
@@ -1195,8 +1186,6 @@ class Z0test(object):
                             test_w_args = ['python2'] + [testname] + opt4childs
                         else:
                             test_w_args = [sys.executable] + [testname] + opt4childs
-                        import pdb
-                        pdb.set_trace()
                     self.dbgmsg(ctx, ">>> subprocess.call(%s)" % test_w_args)
                     try:
                         sts = subprocess.call(test_w_args)
@@ -1276,6 +1265,15 @@ class Z0test(object):
             if sts == TEST_FAILED:                         # pragma: no cover
                 print("Invalid test library!")
                 exit(sts)
+            if (ctx.get('run4cover', False) and
+                    not ctx.get('dry_run', False)):
+                try:
+                    subprocess.call(['coverage', 'erase'],
+                                    stdout=open('/dev/null', 'w'),
+                                    stderr=open('/dev/null', 'w'))
+                except OSError:
+                    print('Coverage not found!')
+                    ctx['run4cover'] = False
         test_list = []
         if UT is not None and isinstance(UT, list):
             self.dbgmsg(ctx, '>>> test_list=%s' % UT)
