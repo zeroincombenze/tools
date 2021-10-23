@@ -1,0 +1,50 @@
+# Python Configuration file for regression test
+# DO not use thi configuration file. It is designed just to regression test
+# antoniomaria.vigliotti@gmail.com
+# Last update: 2017-12-15
+#
+# This file may be deployed in /etc/lisa directory.
+# See /etc/lisa/lisa.conf.sample for example of configuration file
+# Type:
+# > lisa help
+# or visit http://wiki.zeroincombenze.org/en/Lisa webpage
+# for furthermore information
+#
+[_Linux_]
+# SubPkgList=account-closing,account-invoicing,account-payment,bank-payment,knowledge,l10n-italy,partner-contact.web,website
+
+
+[_Debian_]
+ReqPkgList=pip,wheel
+BOP=ghostscript,libart-2.0-2,libcupsfilters1,\
+    python-unittest2,python-utidylib,python-vobject,\
+    python-werkzeug,docutils-common,docutils-doc,wkhtmltopdf
+
+
+[_Debian_DEV_]
+BOP=setuptools,python-virtualenv virtualenv,libreadline6,PYTHON_LIB_XML,\
+    liblzma-dev,python-yaml,mock
+
+
+[_CentOS7_]
+ReqPkgList=pip,wheel
+BOP=setuptools,python-virtualenv,virtualenv readline,\
+    psycopg2,PYTHON_LIB_XML,simplejson,xlwt,PyYAML,\
+    gdata,python-ldap,pytz,python-requests
+
+
+[_CentOS7_DEV_]
+BOP=setuptools,python-virtualenv,virtualenv readline,\
+    psycopg2,PYTHON_LIB_XML,simplejson,xlwt,PyYAML,\
+    libxslt-devel,python-yaml,mock
+
+
+[_CentOS6_]
+ReqPkgList=pip
+BOP=setuptools,python-virtualenv,virtualenv readline,\
+    gdata,python-ldap,pytz,python-requests
+
+
+[_CentOS6_DEV_]
+BOP=setuptools,python-virtualenv,virtualenv readline,\
+    libxslt-devel,python-yaml,mock

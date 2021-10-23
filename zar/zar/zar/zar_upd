@@ -1,0 +1,378 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Update zar package
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [[ -z "$Z0LIBDIR" ]]; then
+  echo "Library file z0librc not found!"
+  exit 72
+fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ZARLIB=$(findpkg zarrc "$PYPATH")
+if [[ -z "$ZARLIB" ]]; then
+  echo "Library file zarrc not found!"
+  exit 72
+fi
+. $ZARLIB
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ZARLIB=$ZARLIB"
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=1.3.36
+
+
+detached_login() {
+# detached_login([path] [path2] [path3])
+    if [ $opt_cron -gt 0 -a "$SHELL" == "/bin/sh" ]; then
+      if [ $opt_dry_run -eq 0 ]; then
+        fqcmd=$(readlink -f $0)
+        wlog "Run $fqcmd in cron mode"
+        SHELL=/bin/bash exec "$fqcmd" "$@"
+      fi
+    elif [ $opt_cron -gt 0 -a -f $HOME/.bash_profile ]; then
+      wlog "Simulate login ($HOME/.bash_profile)"
+      . $HOME/.bash_profile
+    fi
+    if [[ ":$PATH:" =~ /usr/local/bin ]]; then
+      :
+    else
+      export PATH=/usr/local/bin:$PATH
+    fi
+    if [ -n "$1" -a -d $1 ]; then
+      if [[ ":$PATH:" =~ $1 ]]; then
+        :
+      else
+        export PATH=$PATH:$1
+      fi
+    fi
+    if [ -n "$2" -a -d $2 ]; then
+      if [[ ":$PATH:" =~ $2 ]]; then
+        :
+      else
+        export PATH=$PATH:$2
+      fi
+    fi
+    if [ -n "$3" -a -d $3 ]; then
+      if [[ ":$PATH:" =~ $3 ]]; then
+        :
+      else
+        export PATH=$PATH:$3
+      fi
+    fi
+    wlog "PATH=$PATH"
+}
+
+create_conf() {
+    conf_default "bckdb"
+    init_vars ".*"
+    echo "Build configuration"
+    dummy=
+    while [ -z "$dummy" ]; do
+      read -p "Host role (1:Production, 2=Backup, 3=Both): " dummy
+      if [[ $dummy =~ (1|2|3) ]]; then
+        role=$dummy
+      else
+        dummy=
+      fi
+    done
+    if [ "$role" == "1" -o "$role" == "3" ]; then
+      HOST_PRD="$HOSTNAME"
+    elif [ "$role" == "2" ]; then
+      HOST_DEV="$HOSTNAME"
+    fi
+    dummy=
+    if [ "$role" == "2" ]; then
+      while [ -z "$dummy" ]; do
+        read -p "Production host name: " dummy
+        if [ -n "$dummy" ]; then
+          HOST_PRD="$dummy"
+        fi
+      done
+    fi
+    dummy=
+    if [ "$role" == "1" ]; then
+      while [ -z "$dummy" ]; do
+        read -p "Backup host name: " dummy
+        if [ -n "$dummy" ]; then
+          HOST_DEV="$dummy"
+        fi
+      done
+    fi
+    echo "[zar]" > $PGHOME/zar.conf
+    echo "# Host with production role (do backup & purge)" >> $PGHOME/zar.conf
+    echo "production_host=$HOST_PRD" >> $PGHOME/zar.conf
+    echo "# Host with development/backup role (do restore & purge)" >> $PGHOME/zar.conf
+    echo "development_host=$HOST_DEV" >> $PGHOME/zar.conf
+    if [ "$role" != "3" ]; then
+      echo "# Public production host name" >> $PGHOME/zar.conf
+      echo "URL_production_host=$HOST_PRD" >> $PGHOME/zar.conf
+      echo "# Public development/backup host name" >> $PGHOME/zar.conf
+      echo "URL_development_host=$HOST_DEV" >> $PGHOME/zar.conf
+    fi
+    echo "# Backup directory" >> $PGHOME/zar.conf
+    echo "bckdir=$DBCKDIR" >> $PGHOME/zar.conf
+    echo "# Test DBs (exclude from backup/restore)" >> $PGHOME/zar.conf
+    echo "test_db=$TEST_DB" >> $PGHOME/zar.conf
+    echo "# Backup format (0=files 1=tar, z=gzip, j=bzi2, J=xz)" >> $PGHOME/zar.conf
+    echo "bckformat=$BCKFORMAT" >> $PGHOME/zar.conf
+    echo "# tar file extension" >> $PGHOME/zar.conf
+    echo "tar_ext=$TAR_EXT" >> $PGHOME/zar.conf
+    echo "# tar options used with both -x and -c switches" >> $PGHOME/zar.conf
+    echo "tar_opt=$TAR_OPT" >> $PGHOME/zar.conf
+    if [ "$role" != "2" ]; then
+      echo "# enable (1) restore on production host (see <bck_db> for DB name)" >> $PGHOME/zar.conf
+      echo "enable_restore=$REST2" >> $PGHOME/zar.conf
+      echo "# Restored DB on production host (if enabled by <enable_restore>)" >> $PGHOME/zar.conf
+      echo "bck_db=$NEWDBS" >> $PGHOME/zar.conf
+    fi
+    echo "# file owner username:groupname" >> $PGHOME/zar.conf
+    echo "pg_user=$PG_OWN" >> $PGHOME/zar.conf
+    echo "# postgres username" >> $PGHOME/zar.conf
+    echo "db_user=$OE_OWN" >> $PGHOME/zar.conf
+    echo "# restore original postgres username (1=original, 0=<db_user>)" >> $PGHOME/zar.conf
+    echo "set_original_user=1" >> $PGHOME/zar.conf
+    echo "# Excluded DB from restore on DEV host" >> $PGHOME/zar.conf
+    echo "exclusion_list=" >> $PGHOME/zar.conf
+    echo "# Group A of (A-H): regex to search DBs" >> $PGHOME/zar.conf
+    echo "DBA_filter=$DBA" >> $PGHOME/zar.conf
+    echo "# Group A of (A-H): # of recent daily DB to store" >> $PGHOME/zar.conf
+    echo "DBA_keep_recent=$NCA" >> $PGHOME/zar.conf
+    echo "# Group A of (A-H): # of recent monthly DB to store" >> $PGHOME/zar.conf
+    echo "DBA_keep_monthly=$NAA" >> $PGHOME/zar.conf
+    echo "# Group B of (A-H): regex to search DBs" >> $PGHOME/zar.conf
+    echo "DBB_filter=$DBB" >> $PGHOME/zar.conf
+    echo "# Group B of (A-H): # of recent daily DB to store" >> $PGHOME/zar.conf
+    echo "DBB_keep_recent=$NCB" >> $PGHOME/zar.conf
+    echo "# Group B of (A-H): # of recent monthly DB to store" >> $PGHOME/zar.conf
+    echo "DBB_keep_monthly=$NAB" >> $PGHOME/zar.conf
+    chown $PG_OWN $PGHOME/zar.conf
+}
+
+
+OPTOPTS=(h        f       K        l       n            V           v)
+OPTDEST=(opt_help opt_tar opt_cron opt_log opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        "="     1        "="     1            "*>"        1)
+OPTDEFL=(0        ""      0        ""      0            ""          0)
+OPTMETA=("help"   "file"  "cron"   "file"  "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "use specific tar file"\
+ "run in cron environment"\
+ "log filename (def /var/log/bckdb.log)"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(action)
+
+parseoptargs "$@"
+
+if [ "$opt_version" ]
+then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]
+then
+  print_help "Update zar suite\naction if issued, may be build|build_last"\
+  "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ -z "$opt_log" ]; then
+  publog="/var/log/zar/updzar.log"
+else
+  publog=$opt_log
+fi
+CFG_init
+set_tlog_file "$publog"
+if [ $opt_cron -gt 0 ]; then
+  detached_login "$@"
+fi
+
+FLIST="zarrc zar_bck zar_cptbl zar_rest zar_purge zar_upd pg_db_active pg_db_reassign_owner bck_filestore.sh check_4_seq.sh"
+GZFN=zar.tar.gz
+if [ "$action" == "build" -o "$action" == "build_last" ]; then
+  wlog "Build ZAR suite $__version__ by $USER"
+  SRCDIR=$TDIR
+  if [ ! -f $HOME/tmp ]; then
+    mkdir -p $HOME/tmp
+  fi
+  invalid=
+  for f in $FLIST; do
+    if [ -f $SRCDIR/$f ]; then
+      cp $SRCDIR/$f $HOME/tmp
+    else
+      invalid=$f
+    fi
+  done
+  if  [ -n "$invalid" ]; then
+    wlog "File $f not found"
+    echo "File $f not found"
+    exit 1
+  fi
+  if [ -f $GZFN ]; then
+    rm -f $GZFN
+  fi
+  odoo_home=$(grep odoo /etc/passwd|awk -F: '{print $6}')
+  if [ "$action" == "build_last" ]; then
+    cp $odoo_home/devel/pypi/z0lib/z0lib/z0librc $HOME/tmp
+    cp $odoo_home/devel/pypi/travis_emulator/travis_emulator/cronow $HOME/tmp
+  else
+    [[ -f /etc/z0librc ]] && cp /etc/z0librc $HOME/tmp || cp $odoo_home/tools/z0lib/z0librc $HOME/tmp
+    if [[ -f $odoo_home/bin/cronow ]]; then
+      cp $odoo_home/bin/cronow $HOME/tmp
+    elif [[ -f $odoo_home/tools/travis_emulator/cronow ]]; then
+      cp $odoo_home/tools/travis_emulator/cronow $HOME/tmp
+    else
+      x=$(which cronow)
+      [[ -n "$x" ]] && cp $x $HOME/tmp
+    fi
+  fi
+  CWD=$PWD
+  cd $HOME/tmp
+  if [ $EUID -eq 0 ]; then
+    chown root:root ./*
+  fi
+  for f in $FLIST cronow; do
+    if [ "$f" != "zarrc" ]; then
+      v=$($HOME/tmp/$f -V 2>/dev/null)
+      echo "$f $v"
+      wlog "$f $v"
+    fi
+  done
+  x="-cf"
+  tar $x $GZFN $FLIST
+  x=${x/c/r}
+  tar $x $GZFN z0librc
+  tar $x $GZFN cronow
+  if [  -n "$opt_tar" ]; then
+    mv $GZFN $opt_tar
+  elif [ $EUID -eq 0 ]; then
+    if [ -d /var/www/html/mw/download/ ]; then
+      echo "\$ cp $PWD/$GZFN /var/www/html/mw/download/"
+      wlog "\$ cp $GZFN /var/www/html/mw/download/"
+      chown apache:apache $GZFN
+      mv $GZFN /var/www/html/mw/download/
+      rm -fR $HOME/tmp
+    else
+      echo "Missed http download directory!"
+      echo "See $HOME/tmp/$GZFN file ..."
+    fi
+  else
+    for f in $FLIST z0librc cronow; do
+      if [ -f $HOME/tmp/$f ]; then
+        rm -f $HOME/tmp/$f
+      fi
+    done
+    echo "See $HOME/tmp/$GZFN file ..."
+  fi
+  cd $CWD
+  exit 0
+fi
+if [ $EUID -ne 0 ]; then
+  echo "This command must be executed by root privileges"
+  exit 1
+fi
+wlog "Update ZAR suite $__version__ by $USER"
+PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "12.0 11.0 10.0 9.6 9.5 9.4 9.3 9.2 9.1 9.0 8.3 8.2")
+[[ -z $PGDIR ]] && PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql")
+PGHOME=$(grep postgres /etc/passwd|awk -F":" '{print $6}')
+if [ -z "$PGDIR" ]; then
+  wlog "No postgres directory found!"
+  exit 1
+fi
+if [ -z "$PGHOME" ]; then
+  wlog "No postgres directory found!"
+  exit 1
+fi
+wlog "Found $PGHOME directory"
+wlog "Found $PGDIR directory"
+cd /tmp
+if [[ -n "$opt_tar" ]]; then
+  tar -xvf $opt_tar
+else
+  if [[ -f $GZFN ]]; then
+    rm -f $GZFN
+  fi
+  wget http://download.zeroincombenze.org/$GZFN
+  if [ ! -f $GZFN ]; then
+    wlog "No file $GZFN downloaded"
+    echo "No file $GZFN downloaded"
+    exit 1
+  fi
+  tar -xvf $GZFN
+fi
+
+if [ "$0" == "$PGHOME/zar_upd" -a -f ./zar_upd ]; then
+  mv zar_upd $PGHOME/updzar
+  chown postgres:postgres $PGHOME/updzar
+  exec $PGHOME/updzar "$@"
+fi
+TFQN=$(readlink -f $0)
+if [ "$TFQN" == "/tmp/zar_upd" ]; then
+  mv /tmp/zar_upd $PGHOME/updzar
+  exec $PGHOME/updzar "$@"
+fi
+for f in $FLIST cronow; do
+  if [ -f ./$f ]; then
+    if [ "$f" == "pg_db_active" -o "$f" == "cronow" ]; then
+      USRBIN=/usr/local/bin
+      wlog "Installing $f in $USRBIN/"
+      mv ./$f $USRBIN/
+      chown root:root $USRBIN/$f
+      chmod +rx $USRBIN/$f
+      v=$($USRBIN/$f -V)
+      echo "$f $v"
+      wlog "$f $v"
+    else
+      wlog "Installing $f in $PGHOME/"
+      mv ./$f $PGHOME/
+      chown postgres:postgres $PGHOME/$f
+      if [ "$f" != "zarrc" ]; then
+        v=$($PGHOME/$f -V)
+        echo "$f $v"
+        wlog "$f $v"
+      fi
+    fi
+  else
+    wlog "No file $f downloaded"
+    echo "No file $f downloaded"
+  fi
+done
+_install_z0librc
+for f in bckdb-v1 purgedb dup4test restdb-v1; do
+  if [ -f $PGHOME/$f ]; then
+    rm -f $PGHOME/$f
+  fi
+done
+if [ ! -d /var/log/zar ]; then
+  mkdir -p /var/log/zar
+  chown postgres:postgres /var/log/zar
+fi
+if [ -f $PGHOME/zar_bck -a ! -f $PGHOME/zar.conf ]; then
+  create_conf
+fi
+exit 0

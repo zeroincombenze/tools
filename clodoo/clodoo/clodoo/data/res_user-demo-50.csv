@@ -1,0 +1,5 @@
+id,name,login,company_ids,company_id,signature,email,tz,lang
+base.user_demo,demo,demo,=None,=None,"Utente dimostrativo","demo@shs-av.com","Europe/Rome","it_IT"
+base.user_demo,demo,demo,"=[(4,${res.company:La Tua Azienda})]",=None,=None,=None,=None,=None
+base.user_demo,demo,demo,=None,"=${res.company:La Tua Azienda}",=None,=None,=None,=None
+base.user_demo,demo,demo,"=[(3,base.main_company)]",=None,=None,=None,=None,=None

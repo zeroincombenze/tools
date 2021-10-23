@@ -1,0 +1,163 @@
+#
+# topep8 configuration file (last update 2018-12-22)
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2018-20 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+# Every rule starts with RULE_NAME aligned to left margin; all parameters
+# are indented right. RULE_NAME has python syntax name.
+# If RULE_NAME ends with _78, rule may not applied to odoo 8.0 if -u switch
+# is supplied: means convert to odoo 8.0 holding old api.
+#   First parameter is STATEMENTS with python instructions to match rule
+#   Format of indented lines is: <PARAM: VALUE>
+#   Paramaters may be:
+#       [VER] => Statement to replace/evaluate to specific odoo version
+#       [0] => Statement to replace/evaluate to all odoo versions
+#       actions => actions to apply is rule is validated;
+#                  currently may be just replace
+# Example:
+# c:                                    # Rule name is 'c'
+#     class $name($more):               # Python text to match
+#     [0]:    osv.osv_memory            # Default value for replacements
+#     [7.0]:  orm.TransientModel        # Replacements values from 7.0
+#     [10.0]: models.TransientModel     # Replacements values from 10.0
+#
+# In above example reading source code of Odoo 10.0 with statement
+# >>> class myexample(models.TransientModel):
+# when translated into Odoo 7.0 becomes:
+# >>> class myexample(orm.TransientModel):
+# when translated into Odoo 6.1 becomes:
+# >>> class myexample(osv.osv_memory):
+# Notes:
+# - hash symbol # means remark both in this configuration file both in rules
+#   If hash symbol # is at leftmost column means remark like this line
+#   If hash symbol # is after indentation or colon means rule for remark; i.e:
+#   remark: #
+# - If a specific odoo version is not declared, lower version is used (see
+#   example above)
+# - Statement to match rule is a python instructions with some macros:
+#   $any: match any python token
+#         when used in replace string means do not change token
+#   $more: match zero, one or more python tokens until token next to $more matches
+#   $expr: like more but match next token only at the same paren level
+#   $tokens: replace macro with specific odoo version replacements/evaluate
+#   $name: match any python name, i.e. a but not "a"
+#   $string: match any string/unicode, i.e "a" but not a
+#   $?: previous token may be found zero or one time
+#   $*: previous token may be found zero, one or more time
+#   $+: previous token may be found one or more time
+#   $(: start capture replacement tokens
+#   $): stop capture replacement tokens
+#
+# ------------------------------------------------------------------------------
+#
+# Rule import orm
+a1_import_exceptions_user:
+    from odoo.exceptions import UserError
+    [6.1]: from openerp.exceptions import Warning as UserError
+    [10.0]: from odoo.exceptions import UserError
+#
+a1_import_exceptions_user_2:
+    from openerp.exceptions import Warning
+    [6.1]: from openerp.exceptions import Warning as UserError
+    [10.0]: from odoo.exceptions import UserError
+#
+a1_import_exceptions_user_3:
+    from openerp.exceptions import Warning as UserError
+    [6.1]: from openerp.exceptions import Warning as UserError
+    [10.0]: from odoo.exceptions import UserError
+#
+a3_tools_translate:
+    from $tokens.tools.translate import _
+    [6.1]: openerp
+    [8.0]: odoo
+#
+# API V7 -> from openerp.osv import orm, fields, osv
+# API V8 -> from openerp import models, fields
+# API V10 -> from odoo import models, fields, api
+a3_import_orm_1_78:
+    from $tokens import $any
+    [6.1]:  openerp.osv
+    [8.0]:  openerp
+    [9.0]:  openerp
+    [10.0]: odoo
+#
+a2_import_orm_2_78:
+    from $more import $tokens
+    [6.1]: orm
+    [8.0]: models
+    [9.0]: models
+#
+a2_import_orm_3_78:
+    from $more import $tokens
+    [6.1]: osv
+    [8.0]: $NULL
+    [10.0]: api
+#
+# Rule class memory
+a2_class_memory_78:
+    class $name($tokens):
+    [6.1]: osv.osv
+    [7.0]: orm.Model
+    [8.0]: models.Model
+#
+# Rule class transient memory
+a2_class_transient_78:
+    class $name($tokens):
+    [6.1]: osv.osv_memory
+    [7.0]: orm.TransientModel
+    [8.0]: models.TransientModel
+#
+# decimal_precision
+a4_decimal_precision:
+    import $tokens.addons.decimal_precision
+    [6.1]:  openerp
+    [10.0]: odoo
+#
+# Remark openerp
+a8_remark_openerp: # http://openerp.com
+    [0]: http://openerp.com
+    [6.1]: https://odoo.com
+#
+# Remark openerp
+a8_remark_openerp1: # http://openerp-italia.com
+    [0]: http://openerp-italia.com
+    [6.1]: https://odoo-italia.com
+#
+# Remark openerp
+a8_remark_openerp2: # OpenERP
+    [0]: OpenERP
+    [6.1]: Odoo
+#
+# Rule instance basestring
+# a8_instance_basestring:
+#     isinstance($any, basestring)
+#     [0]: basestring
+#     [6.1]: string_types
+#
+# Rule fields
+a6_declare_field_to_7:
+    $name = fields.$any($expr)
+    actions: fields_to_7
+    parse_state: regular,fields_to_7
+    [0]:  type
+#
+# Rule fields
+a6_init_field_to_8:
+    _columns = {
+    actions: init_fields_to_8
+    [0]:  type
+#
+# Rule fields
+a6_declare_field_to_8:
+    $string: fields.$any($expr)
+    actions: fields_to_8
+    parse_state: fields_to_8
+    [0]:  type
+#
+# Rule fields
+a6_reset_field_to_8:
+    }
+    actions: reset_to_8
+    parse_state: fields_to_8
+    [0]:  type

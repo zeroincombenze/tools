@@ -1,0 +1,163 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [[ -z "$Z0LIBDIR" ]]; then
+  echo "Library file z0librc not found!"
+  exit 72
+fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
+if [[ -z "$Z0TLIBDIR" ]]; then
+  echo "Library file z0testrc not found!"
+  exit 72
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
+
+__version__=0.1.23.1
+
+test_01() {
+    CFG_init
+    FCONF="$TESTDIR/test.conf"
+
+    CRONCMD="$RUNDIR/cronow"
+    TESTOUT=$TESTDIR/cronow.out
+    TESTTMP=$TESTDIR/cronow.tmp
+    TESTRES=$TESTDIR/cronow.test
+    TESTSH=$TESTDIR/cronow.test.sh
+    TESTNOP=$TESTDIR/cronow.nop.sh
+    TESTOUCH=$TESTDIR/cron.touch
+    TESTSAVE=$TESTDIR/cronow.saved
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $TESTSAVE ]; then
+        dtf=$(stat $RUNDIR/cronow -c %y|awk '{print $1}')
+        tod=$(date +%Y-%m-%d)
+        if [ "$dtf" != "$tod" ]; then
+          crontab -l>$TESTSAVE
+        fi
+      else
+        crontab -l>$TESTSAVE
+      fi
+      cat <<EOF >$TESTNOP
+# Script to validate unit test of cronow
+true
+EOF
+      cat <<EOF >$TESTSH
+# Script to validate unit test of cronow
+date>$TESTOUCH
+EOF
+      chmod +x $TESTSH
+      if [ -f "$TESTOUCH" ]; then
+        rm -f $TESTOUCH
+      fi
+      echo -e "00 00 * * * $TESTNOP\n10 00 * * * $TESTSH"|crontab
+    fi
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+     cat <<EOF >$TESTRES
+Usage: cronow [-heflnR][-s regex][-Vvw]
+Run now a selected cron statement from crontab
+ -h             this help
+ -e             edit crontab [after selection or crash]
+ -f             force execution after crash
+ -l             list crontab entries
+ -n             do nothing (dry-run)
+ -R             rollbak from cron execution (never use this option!)
+ -s regex       select statement to execute now
+ -V             show version
+ -v             verbose mode
+ -w             wait for job activation
+
+(C) 2015-2016 by zeroincombenze(R)
+http://wiki.zeroincombenze.org/en/Linux/dev
+Author: antoniomaria.vigliotti@gmail.com
+EOF
+      eval $CRONCMD>$TESTOUT
+    fi
+    ci-test "cronow" "$TESTOUT" "$TESTRES" "diff -Ztb"
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      crontab -l>$TESTRES
+      eval $CRONCMD -l>$TESTOUT
+    fi
+    ci-test "cronow -l" "$TESTOUT" "$TESTRES" "diff -Ztb"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      x=$(basename $TESTSH)
+      eval $CRONCMD -s $x
+      cp $TESTRES $TESTTMP
+      echo "****************************************************************************">>$TESTTMP
+      echo "cronow is waiting for cron activation, please do not execute crontab command!">>$TESTTMP
+      eval $CRONCMD -l>$TESTOUT
+    fi
+    ci-test "cronow -s -l" "$TESTOUT" "$TESTTMP" "diff -Ztb"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      eval $CRONCMD -R
+      eval $CRONCMD -l>$TESTOUT
+    fi
+    ci-test "cronow -R" "$TESTOUT" "$TESTRES" "diff -Ztb"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      x=$(basename $TESTSH)
+      eval $CRONCMD -s $x
+      eval $CRONCMD -w
+      # echo "Waiting for execution in 70 seconds: please do not halt the test"
+      # sleep 70
+    fi
+    if [ -f "$TESTOUCH" -o ${opt_dry_run:-0} -ne 0 ]; then
+      RES=True
+    else
+      RES=False
+    fi
+    ci-test "cronow -s" "True" "$RES"
+
+    eval $CRONCMD -l>$TESTOUT
+    ci-test "cronow -l" "$TESTOUT" "$TESTRES" "diff -Ztb"
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      for fn in $TESTOUT $TESTTMP $TESTRES $TESTSH $TESTNOP $TESTOUCH; do
+        if [ -f "$fn" ]; then
+          rm -f $fn
+        fi
+      done
+    fi
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_tests.log "$@"
+sts=$?
+[[ $sts -ne 127 ]] && exit $sts
+
+
+
+UT1_LIST=""
+UT_LIST=""
+[[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+[[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
+exit $sts

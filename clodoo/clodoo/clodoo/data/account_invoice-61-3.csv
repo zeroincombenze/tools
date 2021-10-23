@@ -1,0 +1,2 @@
+id,origin,company_id,type,account_id,partner_id,date_invoice,journal_id,fiscal_position,registration_date,supplier_invoice_number,check_total,currency_id
+z0bug.invoice_PO1801,PO${_current_year}/001,z0bug.mycompany,in_invoice,${account.account(code)::250100},base.res_partner_1,${_current_year}-01-31,${account.journal(type)::purchase},${account.fiscal.position::Italia},${_current_year}-01-31,IT/1234/${_current_year},122.00,base.EUR

@@ -1,0 +1,376 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Version file diff
+# Make diff of file among Odoo versions
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# This free software is released under GNU Affero GPL3
+#
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+# Based on template 1.0.2.7
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\no=os.path\nHOME=os.environ.get('HOME');t=o.join(HOME,'tools')\nn=o.join(HOME,'pypi') if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME,HOME_DEV, 'pypi')\nd=HOME_DEV if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME_DEV,'venv')\ndef apl(l,p,b):\n if p:\n  p2=o.join(p,b,b)\n  p1=o.join(p,b)\n  if o.isdir(p2):\n   l.append(p2)\n  elif o.isdir(p1):\n   l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if not o.isdir(t) and o.isdir(o.join(x,'tools')):\n  t=o.join(x,'tools')\n if not v and o.basename(x)=='site-packages':\n  v=x\nfor x in os.environ['PATH'].split(':'):\n if x.startswith(d):\n  d=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n apl(l,v,b)\n apl(l,t,b)\nl=l+os.environ['PATH'].split(':')\ntdir=o.dirname(TDIR)\np=set()\npa=p.add\np=[x for x in l if x and (x.startswith(HOME) or x.startswith(HOME_DEV) or x.startswith(tdir)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$(readlink -e $d)
+    break
+  fi
+done
+if [[ -z "$Z0LIBDIR" ]]; then
+  echo "Library file z0librc not found in <$PYPATH>!"
+  exit 72
+fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+if [[ -z "$ODOOLIBDIR" ]]; then
+  echo "Library file odoorc not found!"
+  exit 72
+fi
+. $ODOOLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
+TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
+if [[ -z "$TRAVISLIBDIR" ]]; then
+  echo "Library file travisrc not found!"
+  exit 72
+fi
+. $TRAVISLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=1.0.2.7
+
+vf_init() {
+  VF_IGNORE="$(get_cfg_value 0 filedel)"
+  VF_IGNORE="$VF_IGNORE $(get_cfg_value 0 fileignore)"
+  VF_DIGNORE=$(get_cfg_value 0 "filediffignore")
+  XRGX=
+  XLFS=
+  XLDF=
+  for x in $VF_IGNORE; do
+    local x1="${x:0:1}"
+    local x9="${x: -1}"
+    if [[ "$x9" == "/" ]]; then
+      XRGX="$XRGX ^(.*\\/|)$x"
+      XLFS="$XLFS --exclude=$x"
+      XLDF="$XLDF -x '${x:0:-1}'"
+    elif [ "$x1" == "." -o "$x1" == "," -o "$x" == "~" ]; then
+      XRGX="$XRGX ^.*\\$x\$"
+      XLFS="$XLFS --exclude=*$x"
+      XLDF="$XLDF -x '*$x'"
+    else
+      XRGX="$XRGX $x"
+      XLFS="$XLFS --exclude=*$x*"
+      XLDF="$XLDF -x '*$x'"
+    fi
+  done
+  XXDF=
+  for x in $VF_DIGNORE; do
+    local x1="${x:0:1}"
+    local x9="${x: -1}"
+    if [ "$x9" == "/" ]; then
+      XXDF="$XXDF ^(.*\\/|)$x"
+    elif [ "$x1" == "." -o "$x" == "~" ]; then
+      XXDF="$XXDF ^.*\\$x\$"
+    else
+      XXDF="$XXDF $x"
+    fi
+    XLDF="$XLDF -x '*$x'"
+  done
+}
+
+simple_diff() {
+  # simple_diff(opts src tgt)
+  local opts=$1
+  local src=$2
+  local tgt=$3
+  local d n s
+  run_traced "diff$opts $src $tgt"
+  s=$?
+  return $s
+}
+
+exec_os() {
+  local l r x
+  if [[ $opt_reve -gt 0 ]]; then
+    local left=$2
+    local right=$1
+  else
+    local left=$1
+    local right=$2
+  fi
+  if [[ -d "$left" ]]; then
+    if [ $opt_all -gt 0 ]; then
+      opts=" -Zqr"
+    else
+      opts="$XLDF -ZBqr"
+    fi
+    [[ $opt_igns -gt 0 ]] && opts="${opts}Eb"
+    [[ $opt_ignas -gt 0 ]] && opts="${opts}w"
+    [[ $opt_md -ne 0 ]] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    [[ $opt_md -ne 0 ]] && opts="$opts -x '*.po' -x '*.pot'"
+  else
+    opts=" -ZB"
+    [[ $opt_para -ne 0 ]] && opts="${opts}y"
+    [[ $opt_igns -gt 0 ]] && opts="${opts}Eb"
+    [[ $opt_ignas -gt 0 ]] && opts="${opts}w"
+    [[ $opt_md -ne 0 ]] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+    [[ $opt_diffe -ne 0 ]] && opts="$opts  --suppress-common-line"
+  fi
+  if [[ $opt_dcmd == "meld" ]]; then
+    if [[ -d "$left" ]]; then
+      for ln in $(eval "LANG=en_US diff $opts $left $right" | grep ^Files | awk '{print $2 "|" $4}'); do
+        l=$(echo $ln | awk -F"|" '{print $1}')
+        r=$(echo $ln | awk -F"|" '{print $2}')
+        run_traced "$opt_dcmd $l $r"
+      done
+      x=$(eval "diff $opts $left $right" | grep -E "^Only.*__(manifest|openerp)__.py" | awk '{print $3 $4}')
+      l=$(echo $x | awk '{print $1}')
+      r=$(echo $x | awk '{print $2}')
+      if [[ -n "$l" && -n "$r" ]]; then
+        l=${l//:/}
+        r=${r//:/}
+        run_traced "$opt_dcmd $l $r"
+      fi
+      [[ $opt_dry_run -eq 0 ]] && eval "diff $opts $left $right" | grep -v ^Files
+    else
+      run_traced "$opt_dcmd $left $right"
+    fi
+  else
+    run_traced "$opt_dcmd$opts $left $right"
+  fi
+  return $?
+}
+
+exec_iar() {
+  local param=-i
+  local left=$1
+  local right=$2
+  local f
+  local cparq=""
+  local cparv=""
+  local sts=$opt_sts
+  if [ "$opt_sel" ]; then param="$param -s$opt_sel"; fi
+  if [ $opt_verbose -gt 0 ]; then
+    param="$param -v"
+  else
+    cparq="$cparq -q"
+  fi
+  if [ $opt_para -ne 0 ]; then
+    cparv="$cparv -y"
+    [ $opt_diffe -ne 0 ] && cparv="$cparv --suppress-common-lines"
+    param="$param -y"
+  fi
+  [[ $opt_md -ne 0 ]] && param="$param -m"
+  if [[ -d $left ]]; then
+    for f in $(ls -1 $left); do
+      if [ $opt_verbose -gt 1 ]; then
+        echo "> $0 $param $left/$f $right/$f"
+      fi
+      if $(matches1of "$f" "$XRGX"); then
+        :
+      else
+        $0 -$sts $param -2 $left/$f $right/$f
+        if [ $? -gt 0 ]; then
+          sts=$STS_FAILED
+        fi
+      fi
+    done
+    if [ -d $right ]; then
+      for f in $(ls -1 $right); do
+        if $(matches1of "$f" "$XRGX $XXDF"); then
+          :
+        else
+          if [ ! -e $left/$f ]; then
+            echo "Only in $right: $f"
+            sts=$STS_FAILED
+          fi
+        fi
+      done
+    fi
+    if [ $opt_2nd -eq 0 -a $sts -eq $STS_SUCCESS -a $opt_verbose -gt 0 ]; then
+      echo "No diff found"
+    fi
+  else
+    if [ $opt_verbose -gt 1 ]; then
+      echo "> $0 $left $right"
+    fi
+    if $(matches1of "$left" "$XRGX $XXDF"); then
+      :
+    else
+      if [ -f $right ]; then
+        if [[ "$left" =~ $opt_sel ]]; then
+          local mime=$(file -b --mime-type $left)
+          if [ $opt_md -ne 0 -a "$mime" == "text/x-python" -o "${left: -3}" == ".py" ]; then
+            run_traced "diff -ZBI'^#' $cparv $left $right"
+          else
+            run_traced "diff $cparv $left $right"
+          fi
+        else
+          run_traced "diff $cparq $left $right"
+        fi
+        if [ $? -gt 0 ]; then
+          sts=$STS_FAILED
+        fi
+      elif [ ! -f $right ]; then
+        fd=$(dirname $left)
+        fb=$(basename $left)
+        echo "Only in $fd: $fb"
+        sts=$STS_FAILED
+      fi
+    fi
+  fi
+  return $sts
+}
+
+set_oever() {
+  # set_oever(odoo_ver)
+  if [ -z "$VF_FVER" ]; then
+    VF_FVER=$1
+  fi
+}
+
+# PATH examples:
+#   /opt/odoo/${ver}/${repository}/${module}/module_path/file
+#   /etc/odoo/odoo${ver}[-server].conf
+#   /var/run/odoo/odoo${ver}.pid
+#   /etc/init.d/odoo${ver}[-server]
+#   filename
+#   ${ver}
+get_path() {
+  # get_path(path rep pkg)
+  local v x ver repo path name
+  local re="(14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1)"
+  result="$1"
+  if [[ $1 =~ ^$re$ ]]; then
+    [[ -n "$VF_FN" && -n "$VF_VER" ]] && result=${VF_FN/$VF_VER/$1}
+  elif [[ $1 =~ ^[a-zA-Z[0-9]_.]+$ ]]; then
+    v=$(echo $VF_VER|grep -Eo [0-9]+|head -n1)
+    [[ -n "$VF_FN" && -n "$VF_VER" ]] && result=${VF_FN/$VF_VER/${1}${v}}
+    # [[ ! -d $result && ! -f $result ]] && result=${VF_FN/tools/devel\/pypi}
+    # [[ ! -d $result && ! -f $result ]] && result=${VF_FN/devel\/pypi/tools}
+  elif [[ -d $1 ]]; then
+    ver=$(build_odoo_param FULLVER "$1" "$opt_repo" "$opt_org")
+    repo=$(build_odoo_param REPOS "$1" "$opt_repo" "$opt_org")
+    path=$(build_odoo_param PKGPATH "$1" "$opt_repo" "$opt_org")
+    if [[ $(basename $1) == $(basename $(dirname $path)) ]]; then
+      path=$(dirname $path)
+    elif [[ -f $1/__manifest__.py || -f $1/__openerp__.py || ! $(basename $1) == $(basename $path) ]]; then
+      name=$(build_odoo_param PKGNAME "$1" "$opt_repo" "$opt_org")
+    fi
+    [[ -z "$VF_VER" ]] && VF_VER=$ver
+    [[ -z "$VF_REPO" ]] && VF_REPO=$repo
+    [[ -z "$VF_PATH" ]] && VF_PATH=$path
+    [[ -n "$name" && -z "$VF_PKG" ]] && VF_PKG=$name
+    [[ -z "$VF_FN" ]] && VF_FN=$1
+  elif [[ -f $1 ]]; then
+    result=$(build_odoo_param FULLVER "$1" "$opt_repo" "$opt_org")
+    repo=$(build_odoo_param REPOS "$1" "$opt_repo" "$opt_org")
+    path=$(build_odoo_param PKGPATH "$1" "$opt_repo" "$opt_org")
+    name=$(build_odoo_param PKGNAME "$1" "$opt_repo" "$opt_org")
+    [[ -z "$VF_VER" ]] && VF_VER=$ver
+    [[ -z "$VF_REPO" ]] && VF_REPO=$repo
+    [[ -z "$VF_PATH" ]] && VF_PATH=$path
+    [[ -n "$name" && -z "$VF_PKG" ]] && VF_PKG=$name
+    [[ -z "$VF_FN" ]] && VF_FN=$1
+  fi
+}
+
+OPTOPTS=(h        a       b        c        e         i       G        m      n            O         p         q           r            R        V           v           w         X        y        0       1       2)
+OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_org  opt_md opt_dry_run  odoo_ver  opt_pkg   opt_verbose opt_repo     opt_reve opt_version opt_verbose opt_ignas opt_dcmd opt_para opt_sts opt_sts opt_2nd)
+OPTACTI=("+"      1       1        "="      1         1       "="      1      1            "="       "="       0           "="          1        "*>"        1           1         "="      1        0       1       1)
+OPTDEFL=(0        0       0        ""       0         0       ""       0      0            ""        ""        -1          ""           0        ""          -1          0         ""       0        0       0       0)
+OPTMETA=("help"   ""      ""       "file"   ""        ""      "gitorg" ""     "do nothing" "version" "package" ""          "repository" ""       "version"   "verbose"   ""        "cmd"    ""       ""      ""      "")
+OPTHELP=("this help"\
+  "diff all files (ignore exclusion list)"
+  "ignore space differences"
+  "configuration file (def ~/dev/.travis.conf)"
+  "side by side (only differences)"
+  "use internal algorithm (deprecated)"
+  "git organization: may be zero,oca or powerp"
+  "ignore minor difference (i.e. remarks)"
+  "do nothing (dry-run)"
+  "select target Odoo version (may be 7, 8, 9 o 10)"
+  "select package name"
+  "silent mode"
+  "select repository name"
+  "reverse diff from target to source rather source to target"
+  "show version"
+  "verbose mode"
+  "ignore all space differences"
+  "diff command (def meld or diff)"
+  "side by side (all lines)"
+  "initial status is true"
+  "initial status is false"
+  "the 2nd param must be a full path")
+OPTARGS=(source target)
+
+parseoptargs "$@"
+if [[ "$opt_version" ]]; then
+  echo "$__version__"
+  exit 0
+fi
+[[ -z "$odoo_ver" && -z "$source" ]] && opt_help=1
+if [[ $opt_help -gt 0 ]]; then
+  print_help "Diff file between Odoo versions" \
+    "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+[[ $opt_all -gt 0 ]] && opt_iar=0
+opt_para=1
+[[ " 14 13 12 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]] && odoo_ver="$odoo_ver.0"
+if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+  TCONF=$opt_conf
+else
+  TCONF=$TDIR/.travis.conf
+fi
+if [[ -z "$opt_dcmd" ]]; then
+  meld --version >/dev/null
+  [[ $? -eq 0 ]] && opt_dcmd="meld" || opt_dcmd="diff"
+fi
+CFG_init
+conf_default
+link_cfg $TCONF
+vf_init
+
+[[ $source =~ /$ ]] && source=${source:0: -1}
+[[ $target =~ /$ ]] && target=${target:0: -1}
+if [[ $opt_2nd -eq 0 ]]; then
+  VF_FN=""
+  VF_VER=""
+  VF_REPO=""
+  VF_PATH=""
+  VF_PKG=""
+  get_path "$source" "$opt_repo" "$opt_pkg"; left="$result"
+  get_path "$target" "$opt_repo" "$opt_pkg"; right="$result"
+else
+  left=$source
+  right=$target
+fi
+if [[ $opt_iar -gt 0 ]]; then
+  exec_iar "$left" "$right"
+else
+  exec_os "$left" "$right"
+fi
+exit $?

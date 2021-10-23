@@ -1,0 +1,199 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [[ -z "$Z0LIBDIR" ]]; then
+  echo "Library file z0librc not found!"
+  exit 72
+fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+
+__version__=1.3.36
+
+
+conf_default () {
+    set_cfg_def "DEV_HOST" "shsita16"
+    set_cfg_def "PRD_HOST" "shsdef14"
+}
+
+FCONF=./zar.conf
+eval $(init_cfg)
+eval $(active_cfg)
+conf_default
+link_cfg $FCONF
+PRODUCTION_HOST=$(get_cfg_value "" "production_host")
+DEVELOPMENT_HOST=$(get_cfg_value "" "development_host")
+MIRROR_HOST=$(get_cfg_value "" "mirror_host")
+
+# set -x
+publog="/var/log/restwww.log"
+set_tlog_file "$publog"
+opt_quiet=1
+wlog "****** $THIS $__version__ ******"
+# Creare file list
+dblist=""
+excl=""
+hdp="/var/www"
+bd="$hdp/backups/*.bz2"
+flst="$HOME/tmp_www.lst"
+dir -1 $bd>$flst
+sts=$?
+if [ $sts -gt 0 ]; then
+  wlog "???????????????"
+  wlog "No Files found!"
+  exit 1
+fi
+cd $hdp/backups
+exec 3< $flst
+#
+while read -u 3 -r db
+do
+  fqn=$db
+  if [ -e $fqn ]; then
+    db=`echo "$db"|awk -F"/"  '{print $5}'`
+    l=$((${#db}-4))
+    db=${db:0:l}/
+    if [ "${db:0:6}" != "__old_" ]; then
+      uu=`echo "$db"|awk -F"/"  '{print $1}'`
+      if [ "$uu" == "mw" -o "$uu" == "wp-zi" ]; then
+        uu="apache"
+      elif [ "${uu:0:5}" == "eu-zi" -o  "${uu:0:5}" == "wp-zi" ]; then
+        uu=`echo "$uu"|awk -F"."  '{print $2}'`
+        uu="zeroincombenze.$uu"
+      elif [ "${uu:0:4}" == "odoo" -o "${uu:0:3}" == "zi." -o "${uu:0:3}" == "mw-" ]; then
+        uu="zeroincombenze.org"
+      elif [ "${uu:0:3}" == "wp-" -o  "${uu:0:3}" == "mg-" ]; then
+        uu=${uu:3}
+      elif [ "${uu:0:3}" == "aaa" ]
+      then
+        uu="apache"
+      fi
+      uu=$(echo "$uu"|tr -d "~")
+      if [ -e $hdp/html/$db ]
+      then
+        CWD=$PWD
+        wlog "\$ cd $hdp/html"
+        cd $hdp/html
+        fn=__old_$(basename $fqn)
+        wlog "Update tree $db"
+        if [ -e $hdp/html/__old_$db ]
+        then
+          wlog "\$ rm -fR $hdp/html/__old_$db"
+          rm -fR $hdp/html/__old_$db
+        fi
+        wlog "\$ tar -cjf $fn $db"
+        tar -cjf $fn $db
+        wlog "\$ chown $uu:apache $fn"
+        chown -R $uu:apache $fn
+        wlog "$ mv $fn $hdp/backups/"
+        mv $fn $hdp/backups/
+        wlog "\$ rm -fR $hdp/html/$db"
+        rm -fR $hdp/html/$db
+        wlog "\$ mkdir -p $hdp/html/$db"
+        mkdir -p $hdp/html/$db
+        wlog "\$ cd $CWD"
+        cd $CWD
+      else
+        wlog "\$ mkdir $hdp/html/$db"
+        mkdir $hdp/html/$db
+        wlog "New website $db found"
+      fi
+
+      wlog "\$ tar --overwrite -xjf $fqn -C $hdp/html/"
+      tar --overwrite -xjf $fqn -C $hdp/html/
+      # wlog "\$ rm -f $fqn"
+      # rm -f $fqn
+
+      if [ "$HOSTNAME" == "$DEVELOPMENT_HOST" ]; then
+        if [ "$db" == "mw-zi.org/" ]
+        then
+          wlog "Change local data for wiki site .."
+          wlog "\$ mv $hdp/html/${db}lang-it/LocalSettings.php $hdp/html/${db}lang-it/__old_LocalSettings.php"
+          mv $hdp/html/${db}lang-it/LocalSettings.php $hdp/html/${db}lang-it/__old_LocalSettings.php
+          wlog "\$ cat $hdp/html/${db}lang-it/__old_LocalSettings.php|sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g .."
+          cat $hdp/html/${db}lang-it/__old_LocalSettings.php|\
+sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g'>$hdp/html/${db}lang-it/LocalSettings.php
+          wlog "\$ mv $hdp/html/${db}lang-en/LocalSettings.php $hdp/html/${db}lang-en/__old_LocalSettings.php"
+          mv $hdp/html/${db}lang-en/LocalSettings.php $hdp/html/${db}lang-en/__old_LocalSettings.php
+          wlog "\$ cat $hdp/html/${db}lang-en/__old_LocalSettings.php|sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g .."
+          cat $hdp/html/${db}lang-en/__old_LocalSettings.php|\
+sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g'>$hdp/html/${db}lang-en/LocalSettings.php
+          wlog "\$ mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html"
+          mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html
+          wlog "\$ cat $hdp/html/${db}__old_index.html|sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g .."
+          cat $hdp/html/${db}__old_index.html|\
+sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g'>$hdp/html/${db}index.html
+          wlog "Recording robots.txt"
+          echo "User-agent: *">$hdp/html/${db}robots.txt
+          echo "Disallow: /wiki/">>$hdp/html/${db}robots.txt
+        elif [ "$db" == "mw-zi.eu/" ]
+        then
+          wlog "Change local data for wiki site .."
+          wlog "\$ mv $hdp/html/${db}mw/LocalSettings.php $hdp/html/${db}mw/__old_LocalSettings.php"
+          mv $hdp/html/${db}mw/LocalSettings.php $hdp/html/${db}mw/__old_LocalSettings.php
+          wlog "\$ cat $hdp/html/${db}mw/__old_LocalSettings.php|sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g .."
+          cat $hdp/html/${db}mw/__old_LocalSettings.php|\
+sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g'>$hdp/html/${db}mw/LocalSettings.php
+          wlog "\$ cat $hdp/html/${db}__old_index.html|sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g .."
+          wlog "\$ mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html"
+          mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html
+          cat $hdp/html/${db}__old_index.html|\
+sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g'>$hdp/html/${db}index.html
+          wlog "Recording robots.txt"
+          echo "User-agent: *">$hdp/html/${db}robots.txt
+          echo "Disallow: /wiki/">>$hdp/html/${db}robots.txt
+        fi
+      fi
+    fi
+    wlog "\$ chown -R $uu:apache $hdp/html/$db"
+    chown -R $uu:apache $hdp/html/$db
+    if [ "$uu" != "apache" ]; then
+      wlog "\$ setfacl -R -m u:apache:rwx $hdp/html/$db"
+      setfacl -R -m u:apache:rwx $hdp/html/$db
+      setfacl -R -m d:u:apache:rwx $hdp/html/$db
+      chown $uu:apache $fqn
+    else
+      for usx in it biz com eu org; do
+        wlog "\$ setfacl -R -m u:zeroincombenze.$usx:rwx $hdp/html/$db"
+        setfacl -R -m u:zeroincombenze.$usx:rwx $hdp/html/$db
+        setfacl -R -m d:u:zeroincombenze.$usx:rwx $hdp/html/$db
+      done
+      chown $uu:apache $fqn
+    fi
+    wlog "\$ chmod -R u+rxw,g+rwx,o-rwx $hdp/html/$db"
+    chmod -R u+rxw,g+rwx,o-rwx $hdp/html/$db
+    if [ "$db" == "alfaschool.ru/" ]; then
+      wlog "\$ chmod -R o+rwx $hdp/html/${db}wp-content/uploads/wp-google-maps/"
+      chmod -R o+rwx $hdp/html/${db}wp-content/uploads/wp-google-maps/
+    fi
+  fi
+done
+exec 3<&-
+cd
+
+bd=$hdp/backups
+htmd=$hdp/html
+./av_php -sp $htmd
+sts=$?
+if [ $sts -gt 0 ]; then
+  wlog "?????????????????????????????"
+  wlog "Virus found in restored dirs!"
+  wlog "?????????????????????????????"
+  exit 1
+fi
+wlog "All www dirs are restored!"
+exit 0

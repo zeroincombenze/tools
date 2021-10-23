@@ -1,0 +1,3 @@
+name,model_id,domain_force,global,perm_read,perm_write,perm_create,perm_unlink
+Warehouse multi-company,=${ir.model(model):stock.warehouse},"['|','|',('company_id.child_ids','child_of',[user.company_id.id]),('company_id','child_of',[user.company_id.id]),('company_id','=',False)]",True,True,True,True,True
+Location multi-company,=${ir.model(model):stock.location},"['|','|',('company_id.child_ids','child_of',[user.company_id.id]),('company_id','child_of',[user.company_id.id]),('company_id','=',False)]",True,True,True,True,True

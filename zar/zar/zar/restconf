@@ -1,0 +1,4 @@
+#
+#python ${0}.py
+python restconf.py
+exit

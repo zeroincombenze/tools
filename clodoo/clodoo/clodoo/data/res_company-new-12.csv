@@ -1,0 +1,2 @@
+id,name,country_id,parent_id,currency_id,partner_id
+z0bug.mycompany,"La Tua Azienda",base.it,base.main_company,base.EUR,z0bug.partner_mycompany

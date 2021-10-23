@@ -1,0 +1,264 @@
+#!/bin/bash
+# oe_watchdog-server    This shell script takes care of starting and stopping
+#                       Odoo watchdog
+#
+# chkconfig: 345 95 05
+# description: oe_watchdog-server server
+# version: 0.1.27
+# pidfile: /var/run/odoo/oe_watchdog.pid
+# config: /etc/odoo/oe_watchdog.conf
+### BEGIN INIT INFO
+# Provides:             oe_wathdog-server
+# Should-Start:         $network
+# Should-Stop:          $network
+# Default-Start:        3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    Check for Odoo server running
+# Description:          If service crashes or does not respond it restarted
+### END INIT INFO
+DRY_RUN=0
+# Recognize Linux distribution (Ubuntu or CentOS)
+if [ -f /etc/centos-release ]; then
+    DIST="CentOS"
+elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+    DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+    if [ -z "$DIST" ]; then
+       DIST="Ubuntu"
+    fi
+else
+    DIST=""
+fi
+# Source function library (Only CentOS)
+if [ "$DIST" == "CentOS" ]; then
+    if [ -f /etc/init.d/functions ] ; then
+        . /etc/init.d/functions
+    elif [ -f /etc/rc.d/init.d/functions ] ; then
+        . /etc/rc.d/init.d/functions
+    else
+        exit 0
+    fi
+fi
+# Set path (Only Ubuntu)
+if [ "$DIST" == "Ubuntu" ]; then
+    PATH=/bin:/sbin:/usr/bin
+fi
+
+# search for startup script
+DAEMON=
+dp=oe_watchdog
+for dn in /usr/local/bin /usr/bin /opt/odoo/tools/clodoo; do
+    DAEMON=$dn/$dp
+    if [ -x "$DAEMON" ]; then
+        break
+    fi
+done
+
+NAME=oe_watchdog-server
+DESC="Odoo Service watchdog"
+USER=odoo
+# pidfile
+PIDFILE=/var/run/odoo/oe_watchdog.pid
+LOCKFILE=/var/lock/subsys/${NAME}
+LOGFILE=/var/log/odoo/oe_watchdog.log
+# Additional options that are passed to the Daemon.
+if [ "$DIST" == "Ubuntu" ]; then
+    DAEMON_OPTS="-KX"
+else
+    DAEMON_OPTS="-KX"
+fi
+[ -x $DAEMON ] || exit 0
+
+RETVAL=0
+
+
+checkpid() {
+    [ -f $PIDFILE ] || return 1
+    pid=`cat $PIDFILE`
+    [ -d /proc/$pid ] && return 0
+    return 1
+}
+
+
+check_privsep_dir() {
+    # Create the PrivSep empty dir if necessary
+    local PIDDIR=$(dirname $PIDFILE)
+    if [ ! -d $PIDDIR ]; then
+      mkdir $PIDDIR
+    fi
+}
+
+
+start_CentOS () {
+    check_privsep_dir
+    if [ $DRY_RUN -gt 0 ]; then
+      echo "> daemon --user ${USER} --check ${NAME} \"/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &\""
+    else
+      daemon --user ${USER} --check ${NAME} \
+      "/usr/bin/setsid ${DAEMON} \
+      ${DAEMON_OPTS} &"
+    fi
+    RETVAL=$?
+    echo
+    if [ $DRY_RUN -eq 0 ]; then
+      [ $RETVAL -eq 0 ] && touch $LOCKFILE
+    fi
+    return $RETVAL
+}
+
+
+start_Ubuntu () {
+    check_privsep_dir
+    if [ $DRY_RUN -gt 0 ]; then
+      echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
+    else
+      start-stop-daemon --start --quiet --pidfile ${PIDFILE} \
+            --chuid ${USER} --background --make-pidfile \
+            --exec ${DAEMON} -- ${DAEMON_OPTS}
+    fi
+    RETVAL=$?
+    echo "${NAME}."
+    return $RETVAL
+}
+
+
+start() {
+    if [ "$1" != "mute" ]; then
+        echo -n "Starting ${DESC}: "
+    fi
+    if [ "$DIST" == "CentOS" ]; then
+        start_CentOS
+    elif [ "$DIST" == "Ubuntu" ]; then
+        start_Ubuntu
+    else
+        echo "Unrecognized Linux distribution"
+        exit 1
+    fi
+    RETVAL=$?
+    return $RETVAL
+}
+
+
+stop_CentOS () {
+  if [ $DRY_RUN -gt 0 ]; then
+    echo "kill -TERM `cat $PIDFILE` > /dev/null 2>&1"
+  else
+      kill -TERM `cat $PIDFILE` > /dev/null 2>&1
+    fi
+  RETVAL=$?
+    if [ $RETVAL -eq 0 ] ; then
+      if [ $DRY_RUN -eq 0 ]; then
+          rm -f $LOCKFILE
+         fi
+        echo_success
+        echo
+    else
+        echo_failure
+        echo
+    fi
+    if [ -d /etc/${xtl_id}/stop.d ] ; then
+        echo -n $"Clearing $DESC: "
+        run-parts /etc/${xtl_id}/stop.d
+        echo
+    fi
+    return $RETVAL
+}
+
+
+stop_Ubuntu () {
+  if [ $DRY_RUN -gt 0 ]; then
+    echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo"
+  else
+      start-stop-daemon --stop --quiet --pidfile ${PIDFILE} \
+            --oknodo
+    fi
+    RETVAL=$?
+    echo "${NAME}."
+    return $RETVAL
+}
+
+
+stop() {
+    if [ "$1" != "mute" ]; then
+        echo -n "Stopping ${DESC}: "
+    fi
+    if [ "$DIST" == "CentOS" ]; then
+        stop_CentOS
+    elif [ "$DIST" == "Ubuntu" ]; then
+        stop_Ubuntu
+    else
+        echo "Unrecognized Linux distribution"
+        exit 1
+    fi
+    RETVAL=$?
+    if [ -f $PIDFILE ] ; then
+      rm -f $PIDFILE
+    fi
+    return $RETVAL
+}
+
+
+restart() {
+    echo -n "Restarting ${DESC}: "
+    stop
+    sleep 3
+    start
+    RETVAL=$?
+}
+
+condrestart() {
+    [ -e $LOCKFILE ] && restart || :
+}
+
+status() {
+    if [ -f $PIDFILE ] ; then
+        checkpid `cat $PIDFILE`
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ] ; then
+            echo  $"$NAME is running..."
+        else
+            echo  $"$NAME is stopped"
+        fi
+    else
+        echo  $"$NAME is stopped"
+    fi
+    return $RETVAL
+}
+
+case "${1}" in
+    start)
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    restart|reload|force-reload)
+        restart
+        ;;
+
+    condrestart)
+        condrestart
+        ;;
+
+    status)
+        status
+        ;;
+
+    probe)
+        exit 0
+        ;;
+
+    *)
+        if [ "$DIST" == "CentOS" ]; then
+          echo $"Usage: ${NAME} {start|stop|status|restart|condrestart|reload}"
+        elif [ "$DIST" == "Ubuntu" ]; then
+           echo "Usage: ${NAME} {start|stop|status|restart|force-reload}" >&2
+        else
+          echo "Unrecognized Linux distribution"
+        fi
+        exit 1
+        ;;
+esac
+
+exit 0

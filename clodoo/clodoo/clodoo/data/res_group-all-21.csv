@@ -1,0 +1,65 @@
+user,name,value
+zeroadm,Sales,See all Leads
+admin,Sales,See all Leads
+zeroadm,Project,Manager
+admin,Project,Manager
+zeroadm,Knowledge,User
+admin,Knowledge,User
+zeroadm,Warehouse,Manager
+admin,Warehouse,Manager
+zeroadm,Accounting & Finance,Financial Manager
+admin,Accounting & Finance,Accountant
+zeroadm,Purchases,Manager
+admin,Purchases,Manager
+zeroadm,Human Resources,Employee
+admin,Human Resources,Employee
+zeroadm,Sharing,User
+admin,Sharing,User
+zeroadm,Administration,Settings
+admin,Administration,Access Rights
+zeroadm,Analytic Accounting,True
+admin,Analytic Accounting,True
+zeroadm,Sales Pricelists,True
+admin,Sales Pricelists,True
+zeroadm,Purchase Pricelists,True
+admin,Purchase Pricelists,True
+zeroadm,Manage Multiple Units of Measure,True
+admin,Manage Multiple Units of Measure,True
+zeroadm,Manage Secondary Unit of Measure,True
+admin,Manage Secondary Unit of Measure,True
+zeroadm,Manage Product Packaging,True
+admin,Manage Product Packaging,True
+zeroadm,Manage Properties of Product,True
+admin,Manage Properties of Product,True
+zeroadm,Pro-forma Invoices,True
+admin,Pro-forma Invoices,True
+zeroadm,Manage Serial Numbers,True
+admin,Manage Serial Numbers,True
+zeroadm,Manage Logistic Serial Numbers,True
+admin,Manage Logistic Serial Numbers,True
+zeroadm,Manage Inventory valuation,True
+admin,Manage Inventory valuation,True
+zeroadm,Manage Multiple Locations and Warehouses,True
+admin,Manage Multiple Locations and Warehouses,True
+zeroadm,Enable Invoicing Sales order lines,True
+admin,Enable Invoicing Sales order lines,True
+zeroadm,Addresses in Sales Orders,True
+admin,Addresses in Sales Orders,True
+zeroadm,Properties on lines,True
+admin,Properties on lines,True
+zeroadm,Discount on lines,True
+admin,Discount on lines,True
+zeroadm,View Online Payment Options,False
+admin,View Online Payment Options,False
+zeroadm,Enable Invoicing Delivery orders,True
+admin,Enable Invoicing Delivery orders,True
+zeroadm,Analytic Accounting for Sales,True
+admin,Analytic Accounting for Sales,True
+zeroadm,Analytic Accounting for Purchases,True
+admin,Analytic Accounting for Purchases,True
+zeroadm,Task's Work on Tasks,True
+admin,Task's Work on Tasks,True
+zeroadm,Task Delegation,True
+admin,Task Delegation,True
+zeroadm,Check Total on supplier invoices,True
+admin,Check Total on supplier invoices,True

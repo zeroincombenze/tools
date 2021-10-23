@@ -1,0 +1,63 @@
+# Python Configuration file
+# Please, if you update this configuration file, send a copy to
+# antoniomaria.vigliotti@gmail.com
+# so your configuration should be shared with other people.
+# Last update: 2019-05-17
+#
+# This file may be deployed in /etc/lisa directory.
+# See /etc/lisa/lisa.conf.sample for example of configuration file
+# Type:
+# > lisa help
+# or visit http://wiki.zeroincombenze.org/en/Lisa webpage
+# for furthermore information
+#
+[_Linux_]
+
+
+[_Debian_]
+ReqPkgList=pip,wheel
+BOP=setuptools,python-virtualenv virtualenv,libreadline6,PYTHON_LIB_XML,\
+    psycopg2-binary,simplejson,xlwt,PyYAML,gdata,python-ldap,\
+    pytz,requests
+
+
+[_Debian_DEV_]
+BOP=setuptools,python-virtualenv virtualenv,libreadline6,PYTHON_LIB_XML,\
+    psycopg2-binary,simplejson,xlwt,PyYAML,gdata,python-ldap,pytz,requests,\
+    python-dev,libsasl2-dev,libldap2-dev,zlib1g-dev,libssl-dev,\
+    libreadline6-dev,libsqlite3-dev,tk-dev,libgdbm-dev,libpcap-dev,\
+    liblzma-dev,python-yaml,mock
+
+
+[_CentOS7_]
+ReqPkgList=pip,wheel
+BOP=setuptools,python-virtualenv,virtualenv readline,\
+    psycopg2-binary,PYTHON_LIB_XML,simplejson,xlwt,PyYAML,\
+    gdata,python-ldap,pytz,requests
+
+
+[_CentOS7_DEV_]
+BOP=setuptools,python-virtualenv,virtualenv readline,\
+    psycopg2-binary,PYTHON_LIB_XML,simplejson,xlwt,PyYAML,\
+    gdata,python-ldap,pytz,requests,\
+    python-devel,openldap-devel,zlib-devel,bzip2-devel,openssl-devel,\
+    ncurses-devel,readline-devel,sqlite-devel,tk-devel,gdbm-devel,\
+    libpcap-devel,xz-devel,postgresql-devel,libxml2-devel,\
+    libxslt-devel,python-yaml,mock
+
+
+[_CentOS6_]
+ReqPkgList=pip
+BOP=setuptools,python-virtualenv,virtualenv readline,\
+    python-psycopg2,PYTHON_LIB_XML,simplejson,xlwt,PyYAML,\
+    gdata,python-ldap,pytz,requests
+
+
+[_CentOS6_DEV_]
+BOP=setuptools,python-virtualenv,virtualenv readline,\
+    python-psycopg2,PYTHON_LIB_XML,simplejson,xlwt,PyYAML,\
+    gdata,python-ldap,pytz,requests,\
+    python-devel,openldap-devel,zlib-devel,bzip2-devel,openssl-devel,\
+    ncurses-devel,readline-devel,sqlite-devel,tk-devel,gdbm-devel,\
+    libpcap-devel,xz-devel,postgresql-devel,libxml2-devel,\
+    libxslt-devel,python-yaml,mock

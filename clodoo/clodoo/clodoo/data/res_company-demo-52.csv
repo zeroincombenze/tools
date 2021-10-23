@@ -1,0 +1,7 @@
+id,name,country_id,currency_id,vat
+base.main_company,"zeroincombenze®",base.it,base.EUR,
+multi_company.res_company_odoo,"SHS-AV s.r.l.",base.it,base.EUR,
+multi_company.res_company_oerp_be,"Odoo Italia Associazione",base.it,base.EUR,
+multi_company.res_company_oerp_editor,"OCA (Odoo Community Association)",base.it,base.EUR,
+multi_company.res_company_oerp_us,"zeroincombenze® USA",base.us,base.EUR,
+multi_company.res_company_oerp_in,"zeroincombenze® UK",base.uk,base.EUR,

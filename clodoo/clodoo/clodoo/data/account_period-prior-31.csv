@@ -1,0 +1,5 @@
+fiscalyear_id,code,name,date_start,date_stop,company_id,special
+${header_id},1T${_last_year},1.Trim. ${_last_year},${_last_year}-01-01,${_last_year}-03-31,z0bug.mycompany,False
+${header_id},2T${_last_year},2.Trim. ${_last_year},${_last_year}-04-01,${_last_year}-06-30,z0bug.mycompany,False
+${header_id},3T${_last_year},3.Trim. ${_last_year},${_last_year}-07-01,${_last_year}-09-30,z0bug.mycompany,False
+${header_id},4T${_last_year},4.Trim. ${_last_year},${_last_year}-10-01,${_last_year}-12-31,z0bug.mycompany,False

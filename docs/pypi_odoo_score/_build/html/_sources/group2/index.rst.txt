@@ -1,6 +1,0 @@
-Group2
-======
-
-.. toctree::
-
-text group 2

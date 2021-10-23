@@ -1,0 +1,9 @@
+id,name,code,company_id:id,description,type
+product.product_product_1,On Site Monitoring,False,z0bug.mycompany,Questo tipo di servizio include il monitoraggio base dei prodotti.,service
+product.product_product_2,Assistenza On Site,False,z0bug.mycompany,"Questo tipo di servizio include assistenza su questioni di sicurezza, configurazione sistemi, implementazione o esigenze speciali.",service
+product.product_product_35,CD vergine,CD,z0bug.mycompany,False,product
+product.product_product_36,DVD-RW vergine,DVD,z0bug.mycompany,False,product
+product.product_product_39,Toner,TONER,z0bug.mycompany,False,product
+product.product_product_42,Office Suite,OSuite,z0bug.mycompany,False,consu
+product.product_product_43,Zed+ Antivirus,Zplus,z0bug.mycompany,False,consu
+product.product_product_consultant,Servizio,False,z0bug.mycompany,False,service

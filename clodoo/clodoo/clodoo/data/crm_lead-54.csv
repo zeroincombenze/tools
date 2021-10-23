@@ -1,0 +1,6 @@
+id,name,contact_name,country_id,email_from,phone,company_id
+12,Vorrei acquistare 10 PC,Mario Rossi,=${def_country_id},mario.rossi@example.com,+39065551111,=${res.company:La Tua Azienda}
+11,Devo rimodernizzare la rete informatica,Antonio Alessio,=${def_country_id},antonio@agrolait.it,+390115552222,=${res.company:La Tua Azienda}
+6,Vorrei informazioni su Odoo,Tina Bruni,=${def_country_id},t.bruni@odoo-italia.net,+390815553333,=${res.company:La Tua Azienda}
+5,Ho bisogno di sostegno per una VM con Odoo,Carlo Bianchi,=${def_country_id},1234@bianchi-bianchi.it,+39025554444,=${res.company:La Tua Azienda}
+16,Vorrei un nuovo look & feel per il mio sito web,Roberto Verdi,=${def_country_id},info@verdi.com,+39049555123,=${res.company:La Tua Azienda}

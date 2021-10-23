@@ -1,0 +1,2 @@
+ref,company_id,name,date,journal_id,period_id
+=BB ${_last_year}001,=${company_id},=None,=${_last_year}-12-15,=${account.journal(code)::BNK2},=${account.period(code)::12/2017}

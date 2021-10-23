@@ -1,0 +1,2 @@
+origin,invoice_id,company_id,account_id,name,quantity,price_unit,invoice_line_tax_ids
+PO${_last_year}/001.01,${header_id},z0bug.mycompany,${account.account(code)::621210},Cloud,1,200.00,"=[(6,0,[${account.tax(description)::22a}])]"

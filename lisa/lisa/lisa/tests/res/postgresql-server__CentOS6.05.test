@@ -1,0 +1,6 @@
+> yum -y install postgresql-server
+# yum -y install postgresql-client-common
+# yum -y install postgresql-contrib
+> service postgresql initdb
+> service postgresql start
+> chkconfig postgresql on

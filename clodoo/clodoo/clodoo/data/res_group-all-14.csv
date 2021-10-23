@@ -1,0 +1,81 @@
+oe_versions,user,name,value
+,${zeroadm_login},Technical Features,True
+,${oneadm_login},Administration,Access Rights
+,${zeroadm_login},Multi Companies,True
+,${zeroadm_login},Multi Currencies,True
++11.0+12.0,${zeroadm_login},Show Full Accounting Features,True
++11.0+12.0,${oneadm_login},Show Full Accounting Features,True
++10.0,,base.config.settings.group_multi_company,True
++11.0,,res.config.settings.group_multi_company,True
++10.0,,base.config.settings.group_multi_currency,True
++12.0+11.0+10.0,${zeroadm_login},Discount on lines,True
++12.0+11.0+10.0,${oneadm_login},Discount on lines,True
+,${zeroadm_login},res_groups.SALES.0,res_groups.MANAGER.0
+,${oneadm_login},res_groups.SALES.0,res_groups.USER_ALL.0
+,${zeroadm_login},res_groups.POINT_OF_SALE.0,Manager
+,${oneadm_login},res_groups.POINT_OF_SALE.0,User
+,${zeroadm_login},res_groups.PROJECT.0,Manager
+,${oneadm_login},res_groups.PROJECT.0,Manager
+-9.0-11.0-12.0,${zeroadm_login},res_groups.KNOWLEDGE.0,res_groups.KNOWLEDGE_USER.0
+-9.0-11.0-12.0,${oneadm_login},res_groups.KNOWLEDGE.0,res_groups.KNOWLEDGE_USER.0
+-9.0-10.0-11.0-12.0,${zeroadm_login},res_groups.WAREHOUSE.0,Manager
+-9.0-10.0-11.0-12.0,${oneadm_login},res_groups.WAREHOUSE.0,Manager
+-11.0-12.0,${zeroadm_login},Accounting & Finance,res_groups.FINANCIAL_MANAGER.0
+-11.0-12.0,${oneadm_login},Accounting & Finance,Accountant
+,${zeroadm_login},res_groups.PURCHASES.0,Manager
+,${oneadm_login},res_groups.PURCHASES.0,Manager
+-10.0-11.0-12.0,${zeroadm_login},Human Resources,Employee
+-10.0-11.0-12.0,${oneadm_login},Human Resources,Employee
+-9.0-10.0-11.0-12.0,${zeroadm_login},Sharing,User
+-9.0-10.0-11.0-12.0,${oneadm_login},Sharing,User
+,${zeroadm_login},Administration,res_groups.ADMINISTRATION_SETTINGS.0
+,${zeroadm_login},Analytic Accounting,True
+,${oneadm_login},Analytic Accounting,True
+-6.1,${zeroadm_login},Sales Pricelists,True
+-6.1,${oneadm_login},Sales Pricelists,True
+-6.1-9.0-10.0-11.0-12.0,${zeroadm_login},Purchase Pricelists,True
+-6.1-9.0-10.0-11.0-12.0,${oneadm_login},Purchase Pricelists,True
+-6.1,${zeroadm_login},Manage Multiple Units of Measure,True
+-6.1,${oneadm_login},Manage Multiple Units of Measure,True
+-6.1-10.0-11.0-12.0,${zeroadm_login},Manage Secondary Unit of Measure,True
+-6.1-10.0-11.0-12.0,${oneadm_login},Manage Secondary Unit of Measure,True
+-6.1,${zeroadm_login},Manage Product Packaging,True
+-6.1,${oneadm_login},Manage Product Packaging,True
+-6.1-11.0-12.0,${zeroadm_login},Manage Properties of Product,True
+-6.1-11.0-12.0,${oneadm_login},Manage Properties of Product,True
+-6.1,${zeroadm_login},Pro-forma Invoices,True
+-6.1,${oneadm_login},Pro-forma Invoices,True
+-6.1,${zeroadm_login},res_groups.MANAGE_SERIAL_NUMBERS.0,True
+-6.1,${oneadm_login},res_groups.MANAGE_SERIAL_NUMBERS.0,True
+-6.1,${zeroadm_login},res_groups.MANAGE_LOGISTIC_SERIAL_NUMBERS.0,True
+-6.1,${oneadm_login},res_groups.MANAGE_LOGISTIC_SERIAL_NUMBERS.0,True
+-6.1-11.0-12.0,${zeroadm_login},res_groups.MANAGE_INVENTORY_VALUATION.0,True
+-6.1-11.0-12.0,${oneadm_login},res_groups.MANAGE_INVENTORY_VALUATION.0,True
+-6.1-11.0-12.0,${zeroadm_login},res_groups.MANAGE_MULTIPLE_LOCATION.0,True
+-6.1-11.0-12.0,${oneadm_login},res_groups.MANAGE_MULTIPLE_LOCATION.0,True
+-6.1-9.0-10.0-11.0-12.0,${zeroadm_login},Enable Invoicing Sales order lines,True
+-6.1-9.0-10.0-11.0-12.0,${oneadm_login},Enable Invoicing Sales order lines,True
+-6.1,${zeroadm_login},Addresses in Sales Orders,True
+-6.1,${oneadm_login},Addresses in Sales Orders,True
+-6.1-11.0-12.0,${zeroadm_login},Properties on lines,True
+-6.1-11.0-12.0,${oneadm_login},Properties on lines,True
+-6.1,${zeroadm_login},Discount on lines,True
+-6.1,${oneadm_login},Discount on lines,True
++7.0+8.0,${zeroadm_login},View Online Payment Options,False
++7.0+8.0,${oneadm_login},View Online Payment Options,False
++7.0+8.0,${zeroadm_login},Enable Invoicing Delivery orders,True
++7.0+8.0,${oneadm_login},Enable Invoicing Delivery orders,True
+-6.1,${zeroadm_login},Analytic Accounting for Sales,True
+-6.1,${oneadm_login},Analytic Accounting for Sales,True
+-6.1,${zeroadm_login},Analytic Accounting for Purchases,True
+-6.1,${oneadm_login},Analytic Accounting for Purchases,True
+-6.1-10.0-11.0-12.0,${zeroadm_login},Task's Work on Tasks,True
+-6.1-10.0-11.0-12.0,${oneadm_login},Task's Work on Tasks,True
++7.0+8.0,${zeroadm_login},Task Delegation,True
++7.0+8.0,${oneadm_login},Task Delegation,True
++7.0+8.0,${zeroadm_login},Check Total on supplier invoices,True
++7.0+8.0,${oneadm_login},Check Total on supplier invoices,True
++6.1,${zeroadm_login},Extended View,True
++6.1,${oneadm_login},Extended View,True
++6.1,${${zeroadm_login}_login},Purchase Extended View,True
++6.1,${oneadm_login},Purchase Extended View,True

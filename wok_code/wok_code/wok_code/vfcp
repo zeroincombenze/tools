@@ -1,0 +1,337 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Version file copy
+# Make copy of file to another Odoo version
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# This free software is released under GNU Affero GPL3
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+# Based on template 1.0.2.7
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\no=os.path\nHOME=os.environ.get('HOME');t=o.join(HOME,'tools')\nn=o.join(HOME,'pypi') if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME,HOME_DEV, 'pypi')\nd=HOME_DEV if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME_DEV,'venv')\ndef apl(l,p,b):\n if p:\n  p2=o.join(p,b,b)\n  p1=o.join(p,b)\n  if o.isdir(p2):\n   l.append(p2)\n  elif o.isdir(p1):\n   l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if not o.isdir(t) and o.isdir(o.join(x,'tools')):\n  t=o.join(x,'tools')\n if not v and o.basename(x)=='site-packages':\n  v=x\nfor x in os.environ['PATH'].split(':'):\n if x.startswith(d):\n  d=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n apl(l,v,b)\n apl(l,t,b)\nl=l+os.environ['PATH'].split(':')\ntdir=o.dirname(TDIR)\np=set()\npa=p.add\np=[x for x in l if x and (x.startswith(HOME) or x.startswith(HOME_DEV) or x.startswith(tdir)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$(readlink -e $d)
+    break
+  fi
+done
+if [[ -z "$Z0LIBDIR" ]]; then
+  echo "Library file z0librc not found in <$PYPATH>!"
+  exit 72
+fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+if [[ -z "$ODOOLIBDIR" ]]; then
+  echo "Library file odoorc not found!"
+  exit 72
+fi
+. $ODOOLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
+TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
+if [[ -z "$TRAVISLIBDIR" ]]; then
+  echo "Library file travisrc not found!"
+  exit 72
+fi
+. $TRAVISLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=1.0.2.7
+
+vf_init() {
+  VF_IGNORE="$(get_cfg_value 0 filedel)"
+  VF_IGNORE="$VF_IGNORE $(get_cfg_value 0 fileignore)"
+  VF_DIGNORE=$(get_cfg_value 0 "filediffignore")
+  XRGX=
+  XLFS=
+  XLDF=
+  for x in $VF_IGNORE; do
+    local x1="${x:0:1}"
+    local x9="${x: -1}"
+    if [ "$x9" == "/" ]; then
+      XRGX="$XRGX ^(.*\\/|)$x"
+      XLFS="$XLFS --exclude=$x"
+      XLDF="$XLDF -x '${x:0:-1}'"
+    elif [ "$x1" == "." -o "$x1" == "," -o "$x" == "~" ]; then
+      XRGX="$XRGX ^.*\\$x\$"
+      XLFS="$XLFS --exclude=*$x"
+      XLDF="$XLDF -x '*$x'"
+    else
+      XRGX="$XRGX $x"
+      XLFS="$XLFS --exclude=*$x*"
+    XLDF="$XLDF -x '*$x'"
+    fi
+  done
+  XXDF=
+  for x in $VF_DIGNORE; do
+    local x1="${x:0:1}"
+    local x9="${x: -1}"
+    if [ "$x9" == "/" ]; then
+      XXDF="$XXDF ^(.*\\/|)$x"
+    elif [ "$x1" == "." -o "$x" == "~" ]; then
+      XXDF="$XXDF ^.*\\$x\$"
+    else
+      XXDF="$XXDF $x"
+    fi
+    XLDF="$XLDF -x '*$x'"
+  done
+}
+
+simple_cp() {
+  # simple_cp(opts src tgt)
+  local opts=$1
+  local src=$2
+  local tgt=$3
+  local d n s
+  run_traced "cp$opts $src $tgt"
+  s=$?
+  if [ "$VF_OFVER" != "$VFT_VER" ]; then
+    n=$(basename $src)
+    if [ "$n" == "__openerp__.py" ]; then
+      if [ $opt_rest -gt 0 ]; then
+        run_traced "sed -i -e \"s/'version': *'$VFT_VER/'version': '$VF_OFVER/g\" -e \"s/\\\"version\\\": *\\\"$VFT_VER/\\\"version': \\\"$VF_OFVER/g\" $tgt"
+      else
+        run_traced "sed -i -e \"s/'version': *'$VF_OFVER/'version': '$VFT_VER/g\" -e \"s/\\\"version\\\": *\\\"$VF_OFVER/\\\"version': \\\"$VFT_VER/g\" $tgt"
+      fi
+    fi
+  fi
+  return $s
+}
+
+exec_cp() {
+  # exec_cp(left right)
+  if [ $opt_reve -gt 0 ]; then
+    local left=$2
+    local right=$1
+  else
+    local left=$1
+    local right=$2
+  fi
+  if [ -d "$left" ]; then
+    local opts=" -R"
+    right=$(dirname $right)
+  else
+    local opts=
+  fi
+  simple_cp "$opts" "$left" "$right"
+  return $?
+}
+
+localcp() {
+  # localcp(left right)
+  local param=-i
+  if [ $opt_rest -gt 0 ]; then
+    local left=$2
+    local right=$1
+  else
+    local left=$1
+    local right=$2
+  fi
+  local f
+  local cparq=""
+  local cparv=""
+  local sts=$opt_sts
+  if [ "$opt_sel" ]; then param="$param -s$opt_sel"; fi
+  if [ $opt_verbose -gt 0 ]; then param="$param -v"; fi
+  if [ $opt_verbose -gt 0 ]; then cparv="$cparv -v"; fi
+  if [ -d $left ]; then
+    for f in $(ls -1 $left); do
+      if [ $opt_verbose -gt 1 ]; then
+        echo "> $0 $param $left/$f $right/$f"
+      fi
+      if $(matches1of "$f" "$XRGX"); then
+        :
+      else
+        $0 -$sts $param -2 $left/$f $right/$f
+        if [ $? -gt 0 ]; then
+          sts=$STS_FAILED
+        fi
+      fi
+    done
+    # if [ -d $right ]; then
+    #   for f in $(ls -1 $right); do
+    #     if $(matches1of "$f" "$XRGX $XXDF"); then
+    #       :
+    #     else
+    #       if [ ! -e $left/$f ]; then
+    #         echo "Only in $right: $f"
+    #         sts=$STS_FAILED
+    #       fi
+    #     fi
+    #   done
+    # fi
+    # if [ $opt_2nd -eq 0 -a $sts -eq $STS_SUCCESS -a $opt_verbose -gt 0 ]; then
+    #    echo "No diff found"
+    # fi
+  else
+    if [ $opt_verbose -gt 1 ]; then
+      echo "> $0 $left $right"
+    fi
+    if $(matches1of "$left" "$XRGX $XXDF"); then
+      :
+    else
+      # if [ -f $right ]; then
+      simple_cp "$cparv" "$left" "$right"
+      if [ $? -gt 0 ]; then
+        sts=$STS_FAILED
+      fi
+      # elif [ ! -f $right ]; then
+      #   fd=$(dirname $left)
+      #   fb=$(basename $left)
+      #   echo "Only in $fd: $fb"
+      #   sts=$STS_FAILED
+      # fi
+    fi
+  fi
+  return $sts
+}
+
+set_oever() {
+  # set_oever(odoo_ver)
+  if [ -z "$VF_OFVER" ]; then
+    VF_OFVER=$1
+  fi
+  if [ -z "$VFT_VER" ]; then
+    VFT_VER=$1
+  fi
+}
+
+# PATH examples:
+#   /opt/odoo/${ver}/${repository}/${module}/module_path/file
+#   /etc/odoo/odoo${ver}[-server].conf
+#   /var/run/odoo/odoo${ver}.pid
+#   /etc/init.d/odoo${ver}[-server]
+#   filename
+#   ${ver}
+get_path_ver() {
+  # get_path_ver(path rep pkg)
+  VF_MSTS=0
+  local i
+  local p r t v x
+  local re="(13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|v7)"
+  [ -n "$2" ] && i=$(build_odoo_param ALL "$1" "$2") || i=$(build_odoo_param ALL "$1" "$3")
+  IFS="|" read x v r p x <<<"$i"
+  if [[ -n "$v" && -n "$r" && (! "$r" == "OCB" || -z "$VF_REPO") ]]; then
+    [ -n "$2" ] && i=$(build_odoo_param ROOT "$1" "$2") || i=$(build_odoo_param ROOT "$1" "$3")
+    VF_ROOT=$(dirname $i)
+    VF_REPO=$r
+    [ -n "$2" ] && VF_PATH=$(build_odoo_param PKGPATH "$1" "$2") || VF_PATH=$(build_odoo_param PKGPATH "$1" "$3")
+        else
+    VF_PATH=""
+  fi
+  VF_FVER=$v
+  [[ -n "$r" && ! "$r" == "OCB" ]] || [[ -z "$VF_REPO" ]] && VF_REPO=${r}
+  [[ -n "$p" && ! "$p" == "OCB" ]] && VF_PKG=${p}
+  if [[ -z "$VF_PATH" ]]; then
+    VF_PATH=$VF_ROOT/$VF_FVER
+    [[ -n "$VF_REPO" && ! "$VF_REPO" == "OCB" ]] && VF_PATH="$VF_PATH/$VF_REPO"
+    [[ -n "$VF_PKG" && ! "$VF_PKG" == "OCB" ]] && VF_PATH="$VF_PATH/$VF_PKG"
+      fi
+  [[ -f $1 ]] && VF_FN=$(basename $1)
+  if [[ -f $1 ]]; then
+    result=$1
+  elif [[ -d $1 ]]; then
+    [[ -n "$VF_FN" ]] && result=$1/$VF_FN || result=$1
+      else
+    result=$VF_PATH
+    [[ -n "$VF_FN" ]] && result=$result/$VF_FN
+  fi
+}
+
+OPTOPTS=(h        a       c        i       n            O         p         R         r            V           v           0       1       2)
+OPTDEST=(opt_help opt_all opt_conf opt_iar opt_dry_run  odoo_ver  opt_pkg   opt_rest  opt_reve     opt_version opt_verbose opt_sts opt_sts opt_2nd)
+OPTACTI=("+"      1       "="      1       1            "="       "="       1         "="          "*>"        1           0       1       1)
+OPTDEFL=(0        0       ""       0       0            ""        ""        0         ""           ""          0           0       0       0)
+OPTMETA=("help"   ""      "file"   ""      "do nothing" "version" "package" "restore" "repository" "version"   "verbose"   ""      ""      "")
+OPTHELP=("this help"
+  "copy all files (ignore exclusion list)"
+  "configuration file (def ~/dev/.travis.conf)"
+  "use internal algorithm rather than standard recursive cp"
+  "do nothing (dry-run)"
+  "select target Odoo version (may be 7, 8, 9 o 10)"
+  "select package name"
+  "reverse copy from target to source rather source to target"
+  "select repository name"
+  "show version"
+  "verbose mode"
+  "initial status is true"
+  "initial status is false"
+  "undocumented")
+OPTARGS=(source target)
+
+parseoptargs "$@"
+if [[ "$opt_version" ]]; then
+  echo "$__version__"
+  exit 0
+fi
+[[ -z "$odoo_ver" && -z "$source" ]] && opt_help=1
+if [[ $opt_help -gt 0 ]]; then
+  print_help "Copy file between Odoo versions" \
+    "© 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+[ $opt_all -gt 0 ] && opt_iar=0
+opt_para=1
+[[ " 14 13 12 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]] && odoo_ver="$odoo_ver.0"
+if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+  TCONF=$opt_conf
+else
+  TCONF=$TDIR/.travis.conf
+fi
+CFG_init
+conf_default
+link_cfg $TCONF
+vf_init
+
+if [ $opt_2nd -eq 0 ]; then
+  VF_ROOT=$HOME
+  VF_FVER=
+  VF_REPO=
+  VF_PKG=
+  VF_PATH=
+  VF_FN=
+  if [[ "$source" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
+    get_path_ver "$source" "$opt_rep" "$opt_pkg"
+    left=$source
+  else
+    get_path_ver "$source" "$opt_rep" "$opt_pkg"
+  left=$result
+  fi
+  if [[ "$target" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
+    right="$target"
+  else
+    get_path_ver "$target" "$opt_rep" "$opt_pkg"
+  right=$result
+  fi
+else
+  left=$source
+  right=$target
+fi
+if [ $opt_iar -gt 0 ]; then
+  localcp "$left" "$right"
+else
+  exec_cp "$left" "$right"
+fi
+exit $?

@@ -1,0 +1,2 @@
+id,login,company_id,signature
+,admin,"=${res.company:La Tua Azienda}","Amministratore dell'Azienda"

@@ -1,0 +1,3 @@
+id,code,name,company_id,prefix,padding
+,"payment.order","Payment order","=${res.company:La Tua Azienda}","=0${company_id}%(y)s",4
+,"stock.ddt","DDT","=${res.company:La Tua Azienda}","DDT-%(y)s/",0

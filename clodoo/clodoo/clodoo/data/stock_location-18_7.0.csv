@@ -1,0 +1,5 @@
+id,location_id,name,company_id,chained_location_type,chained_auto_packing,chained_journal_id,chained_picking_type
+stock.stock_location_company,=None,Zeroincombenze,=None,,,
+,stock.stock_location_locations,"La Tua Azienda",z0bug.mycompany,none,manual,
+,=${stock.location:La Tua Azienda},"Uscita",z0bug.mycompany,customer,transparent,=${stock.journal::Delivery Orders},out
+,=${stock.location:La Tua Azienda},"Stock",z0bug.mycompany,none,manual,,

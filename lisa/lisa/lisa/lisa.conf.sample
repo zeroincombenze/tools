@@ -1,0 +1,470 @@
+# Please, do not update lisa.conf.sample file because may be replaced;
+# copy this lisa.conf.sample to lisa.conf and edit lisa.conf file.
+# Please, if you update configuratione file, send a copy to
+# antoniomaria.vigliotti@gmail.com
+# in order to share your configuration with other people.
+# Last update: 2020-07-13
+#
+# ---------------------------------------------------------------------
+#
+# This is lisa configuration file, deployed in /etc/lisa directory
+# It contains global and default definitions and values.
+# Values in this file are evaluated in every time of execution
+# but they may be overridden by definitions in specific configuration package
+# file at the time of package process.
+#
+#
+# **Specific configuration file**
+#
+# Every package may have an own configuration file, named PKGNAME.lish where
+# PKGNAME is the name of package; i.e. apache2.lish
+# These files should contains just parameters beginning by package name (see
+# Parameters below)
+# In these files, package name is non mandatory; i.e. parameter
+# apache2_ReqPkgList may be also written ReqPkgList
+# Specific configuration package file are searched in current directory,
+# then in execution directory and then in /etc/lisa.
+# You can use you own configuration package in current directory, without
+# change standard file supplied by lisa installation.
+#
+#
+# **Sections**
+#
+# Sections declare application environment as follow:
+# [_Linux_] -> Parameters applied running under every Linux distribution
+# [_RHEL_] -> Parameters applied running Red Hat Entreprise Linux family,
+#             like Red Hat, CentOS and Fedora
+# [_Debian_] -> Parameters applied running Debian family,
+#               like Debian and Ubuntu
+# [_Ubuntu12_] -> Parameters for Ubuntu 12.xx
+# [_Ubuntu14_] -> Parameters for Ubuntu 14.xx
+# [_Ubuntu16_] -> Parameters for Ubuntu 16.xx
+# [_Ubuntu18_] -> Parameters for Ubuntu 18.xx
+# [_Ubuntu20_] -> Parameters for Ubuntu 20.xx
+# [_Debian7_] -> Parameters for Debian 7.xx
+# [_Debian8_] -> Parameters for Debian 8.xx
+# [_Debian9_] -> Parameters for Debian 9.xx
+# [_Debian10_] -> Parameters for Debian 10.xx
+# [_CentOS6_] -> Parameters for CentOS 6.xx
+# [_CentOS7_] -> Parameters for CentOS 7.xx
+# [_CentOS8_] -> Parameters for CentOS 8.xx
+# Other distribution are not yet tested, but lisa is designed to run with all
+# Linux distributions; syntax for sections running in other Linux distribution
+# is the same you can see above (name + major version)
+# Warning! Order of sections is very important!
+# The first section MUST ALWAYS BE [_Linux_]
+# After that you must insert section of families (RHEL and/or Debian)
+# Section of specific distributions must always be added after.
+#
+#
+# ** Special name python-PKGNAME **
+#
+# Some python packages were designed before pip and they were designed to install
+# with yum/apt-get. These packages have prefixed with "python-", i.e. python-dateutil
+# After pip is became tah standard installer for python packages, these packages
+# have changed in follow modes:
+# a) Some packages can be installed by pip with same name (i.e. python-dateutil)
+# b) Some packages have changed their name and lost "python-" prefix (i.e. babel, formerly python-babel)
+# c) Some packages must be installed by yum/apt-get (python- prefixed) and upgrade by pip (w/o prefixed, i.e. pip/python-pip itself)
+# d) Some packages must be installed by yum/apt-get and upgrade by pip with same name (i.e pychart)
+# For (a) cases:
+#   - could declare REAL_<pkgname> = python-<pkgname>
+#   - declare pip installer for python-<pkgname>
+# For (b) cases:
+#   - declare REAL_python-<pkgname> = <pkgname>
+#   - declare pip installer for <pkgname>
+# For (c) cases:
+#   - declare <pkgname> as migrate package, see PIP_PYSTD_PKGS parameter
+#     i.e. format: python-<pkgname>/<pkgname>
+#          where yum/apt-get is installation cmd of python-<pkgname>
+#                pip is updgrade cmd of <pkgname>
+# For (d) cases:
+#   - declare <pkgname> as migrate package, see PIP_PYSTD_PKGS parameter
+#     i.e. format: <pkgname>/<pkgname>
+#          where yum/apt-get is installation cmd of <pkgname>
+#                pip is updgrade cmd of <pkgname>
+#
+# **Parameters**
+#
+# Every parameter is in format name=value
+# Parameters beginning with package name (i.e. apache2_ReqPkgList) should be
+# insert in specific package configuration file.
+# Parameters ending with package name (REAL_apache2) or without package name
+# must be just in lisa.conf file.
+#
+# Type:
+# > lisa help
+# or visit http://wiki.zeroincombenze.org/en/Lisa webpage
+# for furthermore information
+#
+# *** Parameters list ***
+# build_fileignore
+#     file list (comma separated) to ignore for all packages when build tarball
+# REAL_OSSERVICE
+#     declares OS command to run/stop services. Value are: (service|systemctl)
+# <pkgname>_BOP
+#     subpackage list (comma separated) to install or upgrade after
+#     installation or upgrade <pkgname>
+# <pkgname>_BOP_GRF_ADD
+#     declare graphical supplemental subpackages to install or upgrade after
+#     installation or upgrade <pkgname> if -g switch supplied
+# <pkgname>_binPkgList
+#     file list (comma separated) in /bin or /usr/bin to include when buil tarball
+# <pkgname>_Branch             valid versions when multiversion package
+# <pkgname>_build_fileignore
+#     file list (comma separated) to ignore when build tarball
+#     (parameter ignored if PkgList supplied)
+# <pkgname>_build_PkgList
+#     file list (comma separated) to include when build tarball
+#     (default include all files and directories)
+#     Value /dev/null means no file list
+# <pkgname>_build_PKGPATH
+#     package path where search files to build tarball
+# <pkgname>_build_with_z0libr  build package must include z0libr library
+# <pkgname>_build_with_odoorc  build package must include odoorc library
+# <pkgname>_cmdname            shell cmd to manage <pkgname>
+# <pkgname>_confn              <pkgname> configuration filename
+# <pkgname>_etcPkgList
+#     file list (comma separated) in /etc/<pkgname> or /etc to include
+#     when buil tarball
+# <pkgname>_FINDCFN
+#     paths to find configuration filename, format is "level1;level2;..."
+#     every level contains directory lista (space separed)
+#     example: "/var/lib /etc;postgresql pgsql;9.4 9.3 9.2 9.1 9.0 8.4;data main"
+# <pkgname>_git_LocalDir
+#     directory of <pkgname> (it is under <pkgname>_git_LocalRoot parameter)
+#     may be contain one macro of: $version
+# <pkgname>_git_LocalRoot      path root where execute git clone command
+# <pkgname>_git_LocalUser
+#     user to execute git commands (if not supplied current user is issued)
+#     format must be <user:group>
+# <pkgname>_git_URL            URL from download package file (git installer)
+# <pkgname>_init_svcname
+#     commnad to issue before start service after installation
+# <pkgname>_install_LocalRoot
+#     main directory where package is deployed when wget is installer
+# <pkgname>_install_LocalTmp
+#     local temporary directory during install (default /tmp)
+# <pkgname>_install_LocalUser  if supplied execute install as specific user (format group:user)
+# <pkgname>_install_md5        if supplied, complete URL with md5
+# <pkgname>_install_xname
+#     filename to download from URL (appended to URL before wget download)
+# <pkgname>_ReqPkgList
+#     required package list (comma separated) must be installed
+#     before install <pkgname>
+# <pkgname>_svcname            if present declare name of service of <pkgname>
+# <pkgname>_xtlcmd
+#     actual install/upgrade/remove command, one of yum,apt-get,pip,git,wget
+# <pkgname>_xtlcmd_install
+#     specific install command when different from upgrade utility
+# <pkgname>_xtlcmd_remove
+#     specific remove command when different from upgrade utility
+# <pkgname>_wget_URL           URL from download package file (wget installer)
+# wget_xname
+#
+
+# out-of-date packages:
+# pyvies: https://files.pythonhosted.org/packages/f1/28/79b78b2c531e5f9dac52c45ec41715567eabd3f9a05e86db4dc3e8ac3142/pyvies-0.1.tar.gz
+
+
+[_Linux_]
+# lisa itself needs wget o git
+lisa_ReqPkgList=wget,git
+REAL_OSSERVICE=service
+# REAL_pkgname, where pkgname is specific package name declares the real name
+# of package. I.e. apache name is httpd in RHEL family and apache2 in Debian family
+# This parameter help end user to install package on every distribution, even
+# if it supplies wrong name. Please look at REAL_apache2 and REAL_httpd
+# to understand how this parameter works.
+# # Real name of python-pip and python-setuptools
+# REAL_python-pip=pip
+REAL_python-setuptools=setuptools
+REAL_python-docutils=docutils
+# If user supplies mysql
+REAL_mysql=mysql-server
+# Other packages
+REAL_openssh=openssh-server
+REAL_beautifulsoup=BeautifulSoup
+REAL_dateutil=python-dateutil
+REAL_python-babel=Babel
+REAL_python-psutil=psutil
+REAL_python-requests=requests
+REAL_pyyaml=PyYAML
+REAL_pyYAML=PyYAML
+REAL_pypdf=pyPdf
+REAL_Click=click
+REAL_jinja2=Jinja2
+REAL_mako=Mako
+REAL_markupsafe=MarkupSafe
+REAL_pillow=Pillow
+REAL_werkzeug=Werkzeug
+REAL_python-chart=Python-Chart
+REAL_qunitsuite=QUnitSuite
+REAL_stdnum=python-stdnum
+REAL_xlsxwriter=XlsxWriter
+REAL_ldap=python-ldap
+REAL_ipy=IPy
+REAL_usb=pyusb
+REAL_pyxb=PyXB
+REAL_pypdf2=PyPDF2
+REAL_pywebdav=PyWebDAV
+REAL_python-simplejson=simplejson
+# Commands templates
+VFYUPP=ssh,lisa
+VFYPSX=pip,mysql,psql,python,wkhtmltopdf,wget,gcc
+VFYE2NL=None
+VFYERR=ssh,python
+NOINQ=vsftpd,postgresql-client-common,postgresql95-client-common,postgresql-contrib,postgresql95-contrib,ghostscript,odoo
+NAME_VIRTUAL=LAMP,PYTHON_LIB_XML
+# Packages migrated into pip; format yum_apt-get_name/pip_name
+PIP_PYSTD_PKGS=python-pip/pip,python-wheel/wheel,\
+               python-pyparsing/pyparsing,python-beaker/beaker,\
+               python-psycopg2/psycopg2,python-reportlab/reportlab,\
+               python-decorator/decorator,\
+               python-feedparser/feedparser,python-gevent/gevent,\
+               python-jinja2/Jinja2,python-lxml/lxml,\
+               python-mako/Mako,openssl/pyOpenSSL
+# Packages intalled by pip
+PIP_PKGS=oerplib,virtualenv,future,Babel,python-openid,setuptools,simplejson,\
+    Babel,pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
+    passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
+    python-dateutil,psutil,pychart,python-ldap,requests,\
+    pyserial,pyPdf,cryptography,flake8,pylint,zerobug,coverage,coveralls,\
+    click,pylint-mccabe,pbr,Jinja2,MarkupSafe,Pillow,Werkzeug,argparse,\
+    Python-Chart,greenlet,jcconv,psycogreen,pyusb,qrcode,six,unittest2,vobject,\
+    wsgiref,QUnitSuite,codecov,pycparser,codicefiscale,astroid,pylint,\
+    pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
+    validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev,\
+    configparser,raven,raven_sanitize_openerp,lazy_object_proxy,wrapt,\
+    pylint_odoo,pyflakes,clodoo,os0,z0lib,psycopg2-binary,PyXB,\
+    phonenumbers,ebaysdk,html2text,pyldap,PyPDF2,xlrd,viivakoodi,py3o,fdb,\
+    sqlalchemy,checksumdir,barcode,python-levenshtein,num2words,ofxparse,\
+    suds-jurko,zpl2,idna,certifi,docutils,PyWebDAV
+NPM_PKGS=eslint,node
+NA_PKGS=
+# Packages cloned by git
+GIT_PKGS=odoo,pandoc
+# Packages downloaded by wget
+WGET_PKGS=lisa,wkhtmltopdf
+# Standard packages (intalled by yum or apt-get)
+STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
+         postgresql-server,postgresql95-server,python,mysql-server,postgresql,postgresql95,iptables-services,\
+         php-mysql,php-common,php-xml,bzip2-devel,mod_ssl,mod_proxy_html,\
+         docutils-doc,libart-2.0-2,\
+         libcupsfilters1,libcupsimage2,libgs9,libgs9-common,\
+         ncurses-devel,sqlite-devel,ghostscript,antiword,docutils-common,\
+         libijs-0.35,libjbig2dec0,liblcms2-2,libpaper-utils,libpaper1,\
+         libpoppler44,libtidy-0.99-0,libwebp5,libwebpmux1,poppler-data,\
+         poppler-utils,python-babel,python-babel-localedata,python-decorator,\
+         python-feedparser,python-gevent,python-greenlet,\
+         python-imaging,python-jinja2,python-markupsafe,\
+         python-pil,python-pybabel,\
+         python-pygments,python-pyinotify,python-pyparsing,\
+         python-renderpm,python-reportlab-accel,\
+         python-roman,python-suds,python-unittest2,\
+         python-utidylib,python-vobject,python-werkzeug,wget,git,\
+         libapache2-mod-auth-mysql,\
+         vsftpd,postgresql-client-common,postgresql95-client-common,postgresql-contrib,postgresql95-contrib,\
+         telnet,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi,\
+         python-virtualenv,python3-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
+         dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
+         unixODBC,unixODBC-devel,unixodbc,unixodbc-dev,\
+         python-mysqldb,MYSQL-python,ruby-sass,rubygem-sass,nodejs,npm,java,\
+         python-mako,curl
+build_fileignore=*.log,*.bak,*.out,*.tmp,*.tracehis,*.tracehistory,*cover/,\
+                 .coverage/,*coverage*,*~,test*,*.pdf,tmp/,tmp.*,npm-debug.log.*,\
+                 *.pyc,*.conf,build/,dist/,conf/,filestore/,.git/,docs/,html/,\
+                 latex/,.gz,__old_*,.gitrepname,tests/,__main__.py,__tmp*,*_doc.txt
+openssh-server_cmdname=NULL
+TCP_openssh-server=22
+vsftpd_svcname=vsftpd
+TCP_vsftpd=21
+
+
+[_Debian_]
+# Commands templates
+VFYLOW=apachectl,php5
+# If user supplies wrong name of apache (used in RHEL family)
+REAL_httpd=apache2
+# If user supplies wrong name for postgresql
+REAL_postgres=postgresql
+REAL_postgresql-server=postgresql
+# php name is php5 in Debian
+REAL_php=php5
+REAL_php-mysql=php5-mysql
+REAL_php-common=php5-common
+REAL_php-xml=php5-xml
+REAL_php-cli=php5-cli
+# python
+REAL_python-devel=python-dev
+REAL_python3-devel=python-dev
+# Other packages
+REAL_openssh-clients=openssh-client
+REAL_libxml2-python=python-libxml2
+REAL_libxslt-python=python-libxslt1
+REAL_zlib=zlib1g
+REAL_zlib-devel=zlib1g-dev
+REAL_libreadline6-dev=readline-devel
+REAL_libffi-devel=libffi-dev
+REAL_openssl-devel=libssl-dev
+REAL_redis=redis-server
+REAL_freetype=libfreetype6
+REAL_freetype-dev=libfreetype6-dev
+REAL_cups=libcups2
+REAL_cups-devel=libcups2-dev
+redis-server_svcname=redis-server
+# Standard packages
+APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
+         python-libxslt1,python-dev,libreadline6,zlib1g,readline-devel,\
+         php5-mysql,php5-common,php5-xml,php5-cli,openssh-client,libssl-dev,\
+         libxml2-dev,libxslt-dev,zlib1g-dev,redis-server,libfreetype6,\
+         libfreetype6-dev,libcups2,libcups2-dev,libpq-dev,expect,expect-dev,\
+         libxslt1-dev,vim
+pip_BOP=wheel
+PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
+openssh-server_BOP=openssh-client
+openssh-client_cmdname=ssh
+openssh-server_svcname=ssh
+python_ldap_ReqPkgList=libsasl2-dev python-dev libldap2-dev libssl-dev
+pyldap_ReqPkgList=python-dev,openldap-dev
+psutil_ReqPkgList=python-dev
+npm_ReqPkgList=nodejs
+nodejs_ReqPkgList=curl
+
+
+[_Debian_DEV_]
+openssh-server_BOP=openssh-client,telnet
+
+
+[_RHEL_]
+# Commands templates
+VFYLOW=apachectl,php
+# If user supplies wrong name of apache (used in Debian family)
+REAL_apache2=httpd
+# If user supplies wrong name for postgresql
+REAL_postgres=postgresql-server
+REAL_postgresql=postgresql-server
+REAL_postgres95=postgresql95
+REAL_postgresql95-server=postgresql95
+# If user supplies Debian name for php
+REAL_php5=php
+REAL_php5-mysql=php-mysql
+REAL_php5-common=php-common
+REAL_php5-xml=php-xml
+REAL_php5-cli=php-cli
+# python
+REAL_python-dev=python3-devel
+# Other packages
+REAL_pyopenssl=pyOpenSSL
+REAL_openssh-client=openssh-clients
+REAL_python-libxml2=libxml2-python
+REAL_zlib1g=zlib
+REAL_zlib1g-dev=zlib-devel
+REAL_readline-devel=libreadline6-dev
+REAL_serial=pyserial
+REAL_python-serial=pyserial
+REAL_libcups2=cups
+REAL_libcups2-dev=cups-devel
+REAL_unixodbc=unixODBC
+REAL_unixodbc-dev=unixODBC-devel
+REAL_unixODBC-dev=unixODBC-devel
+REAL_python-mysqldb=MYSQL-python
+REAL_python-yaml=PyYAML
+REAL_python-pypdf=pyPdf
+REAL_ruby-sass=rubygem-sass
+# REAL_python-simplejson=python2-simplejson
+REAL_libffi-dev=libffi-devel
+REAL_libssl-dev=openssl-devel
+REAL_libxslt1=libxslt
+REAL_python-libxslt1=libxslt-python
+REAL_libxslt1-dev=libxslt-devel
+REAL_libxslt-dev=libxslt-devel
+REAL_libxml2-dev=libxml2-devel
+REAL_redis-server=redis
+REAL_libfreetype6=freetype
+REAL_libfreetype6-dev=freetype-devel
+REAL_openid=python-openid
+REAL_expect-dev=expect-devel
+RHEL_libpq-dev=postgresql-devel
+# REAL_python3=python${PY3ID}
+REAL_python3-dev=python${PY3ID}-devel
+
+redis_svcname=redis
+# Standard packages
+YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-essential,\
+         php-cli,libxslt,libxslt-python,python3-devel,readline,zlib,libreadline6-dev,\
+         php-mysql,php-common,php-xml,php-cli,openssh-clients,\
+         bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
+         freetype,freetype-devel,cups,cups-devel,postgresql-devel,postgresql95-devel,expect,expect-devel,\
+         python3,python3-devel,\
+         redhat-rpm-config
+NA_PKGS=antiword
+# [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
+# Another siet is https://fossies.org/linux/privat/old/PyChart-1.39.tar.gz
+pychart_xtlcmd_install=yum
+pychart_yum_URL=ftp://195.220.108.108/linux/epel/7/x86_64/Packages/p/pychart-1.39-17.el7.noarch.rpm
+PYTHON_LIB_XML_BOP=libxslt-python,libxml2,libxml2-python,lxml
+openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils
+openssh-clients_cmdname=ssh
+openssh-server_svcname=sshd
+python_ldap_ReqPkgList=python3-devel,openldap-devel
+pyldap_ReqPkgList=python3-devel,openldap-devel
+psutil_ReqPkgList=python3-devel
+
+
+[_RHEL_DEV_]
+openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet
+
+
+[_Ubuntu12_]
+# mariadb does non exists in Ubuntu12
+REAL_mariadb=mysql-server
+REAL_mariadb-server=mysql-server
+
+
+[_Ubuntu14_]
+# mariadb does non exists in Ubuntu14
+REAL_mariadb=mysql-server
+REAL_mariadb-server=mysql-server
+
+
+[_Ubuntu16_]
+# mariadb does non exists in Ubuntu16?
+REAL_mariadb=mysql-server
+REAL_mariadb-server=mysql-server
+# Ubuntu16 use systemctl instead of service command
+REAL_OSSERVICE=systemctl
+
+
+[_Debian9_]
+# mariadb does non exists in Debian9?
+REAL_mariadb=mysql-server
+REAL_mariadb-server=mysql-server
+# Ubuntu16 use systemctl instead of service command
+REAL_OSSERVICE=systemctl
+
+
+[_Debian10_]
+REAL_expect_dev=expect
+
+
+[_CentOS6_]
+# mariadb does non exists in CentOS6
+REAL_mariadb=mysql-server
+REAL_mariadb-server=mysql-server
+# Packages intalled by pip
+# Packages downloaded by wget
+WGET_PKGS=lisa,wkhtmltopdf,python-dateutil
+
+
+[_CentOS7_]
+# CentOS7 use systemctl instead of service command
+REAL_OSSERVICE=systemctl
+# mysql is replaced by mariadb in CentOS7
+REAL_mysql=mariadb
+REAL_mysql-server=mariadb-server
+epel-release_cmdname=NULL
+python-pip_ReqPkgList=epel-release
+pip_ReqPkgList=epel-release
+python-pip_vfycmd=pip --version
+pip_BOP=wheel

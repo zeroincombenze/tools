@@ -1,0 +1,371 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on lisa
+# Check for commands & info
+#
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
+[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
+PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [[ -z "$Z0LIBDIR" ]]; then
+  echo "Library file z0librc not found!"
+  exit 72
+fi
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
+if [[ -z "$Z0TLIBDIR" ]]; then
+  echo "Library file z0testrc not found!"
+  exit 72
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
+
+__version__=0.3.2
+
+test_run () {
+# test_run(msg,package,disto,cmd)
+    # set -x #debug
+    TPRODUCT="$RUNDIR/lisa -T"
+    local msg="$1"
+    local Package="$2"
+    local Disto="$3"
+    local cmd="$4"
+    local FH=
+    local opt_e="-E$Disto"
+    if [ "$Disto" == "." ]; then
+        local FH=$Real_FH
+        local Disto=$Real_DISTO
+        local opt_e=
+    elif [ "$Disto" == "Ubuntu12" -o "$Disto" == "Ubuntu14" ]; then
+      local FH="Debian"
+    elif [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
+      local FH="RHEL"
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $TESTDIR/res/${Package}__${Disto}.02.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${Disto}.02.test
+      elif [ -f $TESTDIR/res/${Package}__${FH}.02.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${FH}.02.test
+      elif [ -f $TESTDIR/res/${Package}.02.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}.02.test
+      else
+        TESTOUT=
+        echo "File test comparison ${Package}__${Disto} not found!"
+      fi
+      rm -f $TESTDIR/lisa.out
+      eval $TPRODUCT $opt_e info $2 >$TESTDIR/lisa.out
+    fi
+    # set +x #debug
+    ci-test "$msg" "$TESTOUT" "$TESTDIR/lisa.out" "$cmd"
+    return $s
+}
+
+test_01() {
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*.02.test
+      cat <<EOF >$TESTDIR/res/lisa.02.test
+lisa (install by wget)
+EOF
+      echo "  command=$RUNDIR/lisa">>$TESTDIR/res/lisa.02.test
+      echo "  get_ver=$RUNDIR/lisa -V">>$TESTDIR/res/lisa.02.test
+      echo "  requirements=wget,git">>$TESTDIR/res/lisa.02.test
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/lisa.02.test
+      cat <<EOF >$TESTDIR/res/LAMP__Debian.02.test
+LAMP=(LAMP LAMP_security openssh-server apache2 mysql-server postgresql php5 python vim) (install by lisa)
+EOF
+      echo "  requirements=gcc,pip">>$TESTDIR/res/LAMP__Debian.02.test
+      echo "  infn=$RUNDIR/kbase/LAMP.lish">>$TESTDIR/res/LAMP__Debian.02.test
+      cat <<EOF >$TESTDIR/res/LAMP__CentOS6.02.test
+LAMP=(LAMP epel-release yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python) (install by lisa)
+EOF
+      echo "  requirements=gcc,pip">>$TESTDIR/res/LAMP__CentOS6.02.test
+      echo "  infn=$RUNDIR/kbase/LAMP.lish">>$TESTDIR/res/LAMP__CentOS6.02.test
+      cat <<EOF >$TESTDIR/res/LAMP__CentOS7.02.test
+LAMP=(LAMP epel-release yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by lisa)
+EOF
+      echo "  requirements=gcc,pip,iptables">>$TESTDIR/res/LAMP__CentOS7.02.test
+      echo "  infn=$RUNDIR/kbase/LAMP.lish">>$TESTDIR/res/LAMP__CentOS7.02.test
+      cat <<EOF >$TESTDIR/res/httpd__RHEL.02.test
+httpd (install by yum)
+  service=httpd
+  command=apachectl
+  get_ver=apachectl -v
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/httpd__RHEL.02.test
+      cat <<EOF >$TESTDIR/res/apache2__RHEL.02.test
+apache2=httpd (install by yum)
+  service=httpd
+  command=apachectl
+  get_ver=apachectl -v
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/apache2__RHEL.02.test
+      cat <<EOF >$TESTDIR/res/httpd__Debian.02.test
+httpd=apache2 (install by apt-get)
+  service=apache2
+  command=apachectl
+  get_ver=apachectl -v
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/httpd__Debian.02.test
+      cat <<EOF >$TESTDIR/res/apache2__Debian.02.test
+apache2 (install by apt-get)
+  service=apache2
+  command=apachectl
+  get_ver=apachectl -v
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/apache2__Debian.02.test
+      cat <<EOF >$TESTDIR/res/pip__Debian.02.test
+pip (install by apt-get/pip)
+  command=pip
+  get_ver=pip --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/pip__Debian.02.test
+      cat <<EOF >$TESTDIR/res/pip__CentOS7.02.test
+pip (install by yum/pip)
+  command=pip
+  get_ver=pip --version
+  requirements=epel-release
+  infn=$RUNDIR/kbase/lisa.lish
+EOF
+      cat <<EOF >$TESTDIR/res/pip__CentOS6.02.test
+pip (install by yum/pip)
+  command=pip
+  get_ver=pip --version
+  infn=$RUNDIR/kbase/lisa.lish
+EOF
+      cat <<EOF >$TESTDIR/res/python-pip__CentOS7.02.test
+python-pip (install by yum/pip)
+  requirements=epel-release
+  infn=$RUNDIR/kbase/lisa.lish
+EOF
+      cat <<EOF >$TESTDIR/res/python-pip__CentOS6.02.test
+python-pip (install by yum/pip)
+  infn=$RUNDIR/kbase/lisa.lish
+EOF
+      cat <<EOF >$TESTDIR/res/python-pip__Debian.02.test
+python-pip (install by apt-get/pip)
+  infn=$RUNDIR/kbase/lisa.lish
+EOF
+      cat <<EOF >$TESTDIR/res/mysql__Debian.02.test
+mysql=mysql-server (install by apt-get)
+  service=mysql
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mysql__Debian.02.test
+      cat <<EOF >$TESTDIR/res/mysql__CentOS7.02.test
+mysql=mariadb (install by yum)
+  service=mariadb
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mysql__CentOS7.02.test
+      cat <<EOF >$TESTDIR/res/mysql__CentOS6.02.test
+mysql=mysql-server (install by yum)
+  service=mysqld
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mysql__CentOS6.02.test
+      cat <<EOF >$TESTDIR/res/mysql-server__Debian.02.test
+mysql-server (install by apt-get)
+  service=mysql
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mysql-server__Debian.02.test
+      cat <<EOF >$TESTDIR/res/mysql-server__CentOS7.02.test
+mysql-server=mariadb-server (install by yum)
+  service=mariadb
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mysql-server__CentOS7.02.test
+      cat <<EOF >$TESTDIR/res/mysql-server__CentOS6.02.test
+mysql-server (install by yum)
+  service=mysqld
+  command=mysql
+  get_ver=mysql --version
+EOF
+     echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mysql-server__CentOS6.02.test
+     cat <<EOF >$TESTDIR/res/mariadb__Debian.02.test
+mariadb=mysql-server (install by apt-get)
+  service=mysql
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mariadb__Debian.02.test
+      cat <<EOF >$TESTDIR/res/mariadb__CentOS7.02.test
+mariadb (install by yum)
+  service=mariadb
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mariadb__CentOS7.02.test
+      cat <<EOF >$TESTDIR/res/mariadb__CentOS6.02.test
+mariadb=mysql-server (install by yum)
+  service=mysqld
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mariadb__CentOS6.02.test
+      cat <<EOF >$TESTDIR/res/mariadb-server__Debian.02.test
+mariadb-server=mysql-server (install by apt-get)
+  service=mysql
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mariadb-server__Debian.02.test
+      cat <<EOF >$TESTDIR/res/mariadb-server__CentOS7.02.test
+mariadb-server (install by yum)
+  service=mariadb
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mariadb-server__CentOS7.02.test
+      cat <<EOF >$TESTDIR/res/mariadb-server__CentOS6.02.test
+mariadb-server=mysql-server (install by yum)
+  service=mysqld
+  command=mysql
+  get_ver=mysql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/mariadb-server__CentOS6.02.test
+      cat <<EOF >$TESTDIR/res/postgres__RHEL.02.test
+postgres=postgresql-server (install by yum)
+  service=postgresql
+  command=psql
+  get_ver=psql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/postgresql.lish">>$TESTDIR/res/postgres__RHEL.02.test
+      cat <<EOF >$TESTDIR/res/postgres__Debian.02.test
+postgres=postgresql (install by apt-get)
+  service=postgresql
+  command=psql
+  get_ver=psql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/postgresql.lish">>$TESTDIR/res/postgres__Debian.02.test
+      cat <<EOF >$TESTDIR/res/postgresql__RHEL.02.test
+postgresql=postgresql-server (install by yum)
+  service=postgresql
+  command=psql
+  get_ver=psql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/postgresql.lish">>$TESTDIR/res/postgresql__RHEL.02.test
+      cat <<EOF >$TESTDIR/res/postgresql__Debian.02.test
+postgresql (install by apt-get)
+  service=postgresql
+  command=psql
+  get_ver=psql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/postgresql.lish">>$TESTDIR/res/postgresql__Debian.02.test
+      cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.02.test
+postgresql-server (install by yum)
+  service=postgresql
+  command=psql
+  get_ver=psql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/postgresql.lish">>$TESTDIR/res/postgresql-server__RHEL.02.test
+      cat <<EOF >$TESTDIR/res/postgresql-server__Debian.02.test
+postgresql-server=postgresql (install by apt-get)
+  service=postgresql
+  command=psql
+  get_ver=psql --version
+EOF
+      echo "  infn=$RUNDIR/kbase/postgresql.lish">>$TESTDIR/res/postgresql-server__Debian.02.test
+      cat <<EOF >$TESTDIR/res/php__Debian.02.test
+php=php5 (install by apt-get)
+  command=php5
+  get_ver=php5 -v
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/php__Debian.02.test
+      cat <<EOF >$TESTDIR/res/php__RHEL.02.test
+php (install by yum)
+  command=php
+  get_ver=php -v
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/php__RHEL.02.test
+      cat <<EOF >$TESTDIR/res/php5__RHEL.02.test
+php5=php (install by yum)
+  command=php
+  get_ver=php -v
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/php5__RHEL.02.test
+      cat <<EOF >$TESTDIR/res/php5__Debian.02.test
+php5 (install by apt-get)
+  command=php5
+  get_ver=php5 -v
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/php5__Debian.02.test
+      cat <<EOF >$TESTDIR/res/openssh__RHEL.02.test
+openssh=openssh-server (install by yum)
+  service=sshd
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/openssh__RHEL.02.test
+      cat <<EOF >$TESTDIR/res/openssh__Debian.02.test
+openssh=openssh-server (install by apt-get)
+  service=ssh
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/openssh__Debian.02.test
+      cat <<EOF >$TESTDIR/res/openssh-server__RHEL.02.test
+openssh-server (install by yum)
+  service=sshd
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/openssh-server__RHEL.02.test
+      cat <<EOF >$TESTDIR/res/openssh-server__Debian.02.test
+openssh-server (install by apt-get)
+  service=ssh
+EOF
+      echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/openssh-server__Debian.02.test
+    fi
+    Real_FH=$(xuname "-f")
+    x=$(xuname "-v")
+    v=$(echo $x|awk -F. '{print $1}')
+    Real_DISTO=$(xuname "-d")$v
+
+    for Package in lisa LAMP apache2 httpd pip python-pip\
+     mysql mysql-server mariadb mariadb-server\
+     postgres postgresql postgresql-server php php5\
+     openssh openssh-server; do
+      for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+         if [ "$Disto" == "." ]; then
+           opt_e=
+         else
+           opt_e="-E$Disto"
+         fi
+         test_run "info $Package $opt_e" "$Package" "$Disto" "diff -b"
+      done
+    done
+}
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_lisa.log "$@"
+sts=$?
+[[ $sts -ne 127 ]] && exit $sts
+
+
+UT1_LIST=""
+UT_LIST=""
+[[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+[[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
+exit $sts

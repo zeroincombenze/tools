@@ -1,0 +1,2 @@
+name,company_id,payment_default_id,warehouse_id,pricelist_id
+"La Tua Azienda",=${company_id},account.account_payment_term_immediate,stock.wl_mycompany,product.property_product_pricelist

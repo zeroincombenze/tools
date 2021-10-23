@@ -1,0 +1,14 @@
+id,company_id,name,update_posted,code,type,centralisation
+,base.main_company,~Contante,False,BNK1,cash
+,base.main_company,~Banca,False,BNK2,bank
+,base.main_company,~Sezionale Note di Credito Fornitori,False,ECNJ,purchase_refund
+,base.main_company,~Sezionale Acquisti,False,EXJ,purchase
+,base.main_company,~Sezionali vari,False,MISC,general
+,base.main_company,~Sezionale delle voci di apertura,False,OPEJ,situation,True
+,base.main_company,~Sezionale Vendite,False,SAJ,sale
+,base.main_company,~Sezionale Note di Credito,False,SCNJ,sale_refund
+,base.main_company,~Stock Journal,False,STJ,general
+,base.main_company,~Sezionale Utile o Perdita,False,OCLJ,general,True
+,base.main_company,~Sezionale chiusura Profitti & Perdite,False,OLPJ,general,True
+,base.main_company,~Sezionale delle voci di chiusura patrimoniale,True,OPCJ,general,True
+,base.main_company,~Sezionale Autofatture UE,True,SAJ2,sale,
