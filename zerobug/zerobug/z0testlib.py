@@ -84,6 +84,7 @@ LX_OPT_ARGS = {'opt_debug': '-B',
                'max_test': '-z',
                'opt_noctr': '-0',
                'run4cover': '-1',
+               'python2': '-2',
                'python3': '-3'}
 
 DEFAULT_COVERARC = r"""# Config file .coveragerc 2019-08-22
@@ -716,6 +717,11 @@ class Z0test(object):
                             action="store_true",
                             dest="run4cover",
                             default=True)
+        parser.add_argument("-2", "--python3",
+                            help="use python2",
+                            action="store_true",
+                            dest="python2",
+                            default=False)
         parser.add_argument("-3", "--python3",
                             help="use python3",
                             action="store_true",
@@ -1018,26 +1024,15 @@ class Z0test(object):
         file = Macro(testname[10:])
         file = file.safe_substitute(**ctx)
         msg = "doctest %s" % os.path.basename(file)
-        # cmd = 'python -m doctest %s' % file
+        # cmd = 'sys.executable -m doctest %s' % file
         FNULL = open(os.devnull, 'w')
-        res = subprocess.call(['python', '-m', 'doctest', file],
+        res = subprocess.call(['sys.executable', '-m', 'doctest', file],
                               stdout=FNULL,
                               stderr=subprocess.STDOUT)
         return self.test_result(ctx,
                                 msg,
                                 TEST_SUCCESS,
                                 res)
-
-    def set_mime_python_ver(testname, with_python3):
-        fd = open(testname, 'rbU')
-        code = fd.read()
-        fd.close()
-        code.replace('#!/usr/bin/env python',
-                     '#!/usr/bin/env python3',
-                     1)
-        fd = open(testname, 'w')
-        fd.write(code)
-        fd.close()
 
     def _exec_tests_4_count(self, test_list, ctx, TestCls=None):
         if ctx.get('_run_autotest', False):
@@ -1081,8 +1076,12 @@ class Z0test(object):
                 if mime == 'text/x-python':
                     if ctx.get('python3', False):
                         test_w_args = ['python3'] + [testname] + opt4childs
+                    elif ctx.get('python2', False):
+                        test_w_args = ['python2'] + [testname] + opt4childs
                     else:
-                        test_w_args = ['python'] + [testname] + opt4childs
+                        test_w_args = [sys.executable] + [testname] + opt4childs
+                        import pdb
+                        pdb.set_trace()
                 else:
                     test_w_args = [testname] + opt4childs
                 self.dbgmsg(ctx, ">>>  test_w_args=%s" % test_w_args)
@@ -1172,9 +1171,14 @@ class Z0test(object):
                         if ctx.get('python3', False):
                             test_w_args = ['python3', '-m', 'pdb', testname
                                            ] + opt4childs
-                        else:
-                            test_w_args = ['python', '-m', 'pdb', testname
+                        elif ctx.get('python2', False):
+                            test_w_args = ['python2', '-m', 'pdb', testname
                                            ] + opt4childs
+                        else:
+                            test_w_args = [sys.executable, '-m', 'pdb', testname
+                                           ] + opt4childs
+                        import pdb
+                        pdb.set_trace()
                     elif (ctx.get('run4cover', False) and
                             not ctx.get('dry_run', False)):
                         test_w_args = [
@@ -1187,8 +1191,12 @@ class Z0test(object):
                     else:
                         if ctx.get('python3', False):
                             test_w_args = ['python3'] + [testname] + opt4childs
+                        elif ctx.get('python2', False):
+                            test_w_args = ['python2'] + [testname] + opt4childs
                         else:
-                            test_w_args = ['python'] + [testname] + opt4childs
+                            test_w_args = [sys.executable] + [testname] + opt4childs
+                        import pdb
+                        pdb.set_trace()
                     self.dbgmsg(ctx, ">>> subprocess.call(%s)" % test_w_args)
                     try:
                         sts = subprocess.call(test_w_args)
@@ -1286,12 +1294,6 @@ class Z0test(object):
                     # if len(fn) - fn.rfind('.') <= 4:
                     if mime in ('text/x-python', 'text/x-shellscript'):
                         test_list.append(fn)
-                    #     if fn.endswith('.py'):
-                    #         test_list.append(fn)
-                    #     elif os.access(fn, os.X_OK) and fn.endswith('.sh'):
-                    #         test_list.append(fn)
-                    # elif os.access(fn, os.X_OK) and os.name == 'posix':
-                    #     test_list.append(fn)
         if len(test_list) == 0 and Test is not None:
             self.dbgmsg(ctx, '- len(test_list) == 0 ')
             test_num = 0

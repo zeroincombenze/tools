@@ -46,7 +46,7 @@ See https://en.wikipedia.org/wiki/Path_(computing)
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.conf'],
+          '': ['scripts/setup.info'],
       },
       entry_points={
           'console_scripts': [
