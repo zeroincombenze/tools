@@ -1,0 +1,3 @@
+id,name,company_id,partner_id
+stock.warehouse0,"Zeroincombenze",=None
+stock.wh_mycompany,"La Mia Azienda",z0bug.mycompany,z0bug.partner_mycompany

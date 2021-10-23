@@ -1,0 +1,70 @@
+# Odoo yaml template for travis-ci
+# __version__=1.0.3
+# Can used both in local travis emulator both in travis environment
+# Notice: in local travis emulator macroes are substituted at 2 layers:
+# - format: ${macro} are replaced before execution (at travis.yml read)
+# - format: $macro are replace by shell during execution
+
+language: python
+sudo: false
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
+
+python:
+  - "2.7"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+virtualenv:
+  system_site_packages: false
+
+git:
+  submodules: false
+  depth: false
+
+addons:
+  apt:
+    sources:
+      - pov-wkhtmltopdf
+    # Search your sources alias here:
+    # https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+    packages:
+      # - build-essential                 # Pre-installed
+      # - curl                            # Pre-installed
+      - expect-dev
+      # - less-plugin-clean-css           # Pre-installed
+      # - lessc                           # Pre-installed
+      # - libffi-dev
+      # - libssl-dev
+      # - nodejs                          # Pre-installed
+      # - npm                             # Pre-installed
+      - python-dev
+      # - python-setuptools               # Pre-installed
+      # - wkhtmltopdf                     # Pre-installed
+      # - zlib1g
+
+before_install:
+  # Use Zeroincombenze(R) tools
+  - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --single-branch --depth=1
+  - ${HOME}/tools/install_tools.sh -qpt
+  - source ${HOME}/devel/activate_tools
+
+install:
+  - travis_install_env tools
+
+env:
+  global:
+  - TRAVIS_DEBUG_MODE="2"
+  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" LINT_CHECK_LEVEL="REDUCED"
+
+  matrix:
+  - DEV_ENVIRONMENT=${PKGNAME} LINT_CHECK="1" BASH_CHECK="0" TESTS="1"
+
+script:
+  - travis_run_pypi_tests ${OPTS}
+
+after_success:
+  - travis_after_tests_success ${OPTS}

@@ -1,0 +1,5 @@
+> apt-get -y update
+> apt-get -y upgrade postgresql
+> apt-get -y install postgresql-client-common
+> apt-get -y install postgresql-contrib
+> service postgresql restart

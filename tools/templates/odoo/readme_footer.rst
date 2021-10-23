@@ -64,4 +64,4 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |FatturaPA| image:: {{grymb_image_FatturaPA}}
    :target: {{grymb_url_FatturaPA}}
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-   :target: https://t.me/axitec_helpdesk
+   :target: https://t.me/powerp_network

@@ -1,0 +1,3 @@
+postgresql-server (by yum)(psql --version)
+--postgresql-client-common (by yum)
+--postgresql-contrib (by yum)

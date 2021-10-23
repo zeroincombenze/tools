@@ -1,0 +1,2 @@
+id,name,login,signature,email,tz,lang
+base.user_root,Administrator,${zeroadm_login},"Amministratore di zeroincombenze®",${zeroadm_mail},"Europe/Rome",${lang}

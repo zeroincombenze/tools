@@ -1,0 +1,203 @@
+.\" Manpage for travis.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH travis 8
+.SH NAME
+travis \- TracisCi local emulator
+.SH SYNOPSIS
+.SY travis
+.OP \-hBC
+.OP \-c file
+.OP \-D number
+.OP \-d
+.OP \-EFfjk
+.OP \-L number
+.OP \-l dir
+.OP \-Mmn
+.OP \-O git-org
+.OP \-pqr
+.OP \-S false|true
+.OP \-Vv
+.OP \-X 0|1
+.OP \-Y file
+.OP \-y pyver
+.OP \-Z
+.OP action sub sub2
+.YS
+.SH DESCRIPTION
+\fBtravis\fR can emulate TravisCi parsing the \fB.travis.yml\fR file in local Linux machine.
+You can test your application before pushing code to github.com web site.
+.sp 2
+Travis emulator can creates all the builds declared in \fB.travis.yml\fR; all builds are executed in sequential way.
+The directory ~/travis_log (see -l switch) keeps the logs of all created builds.
+Please note that log file is a binary file with escape ANSI screen code.
+.br
+If you want to see the log use one of following command:
+.P
+.RS
+travis show-log
+.RE
+.P
+A travis build executes the following steps:
+.sp 2
+.br
+.RS
+* Initialize from local .travis.conf (not in travis-ci.org)
+.br
+* Optional install packages \fIapt addons\fR (emulator does not install, it makes just the check)
+.br
+* Optional install packages \fIcache\fR
+.br
+* Set global values \fIenv global\fR
+.br
+* Execute code from \fIbefore_install\fR
+.br
+* Execute matrix initialization, included python version
+.br
+* Execute build code from \fIinstall\fR
+.br
+* Execute build code from \fIbefore_script\fR
+.br
+* Execute build code from \fIscript\fR
+.br
+* TravisCi executes build from \fIbefore_cache\fR (only if cache is effective, not emulated)
+.br
+* TravisCi executes build code from \fIafter_success\fR (emulated) or \fIafter_failure\fR (not emulated)
+.br
+* TravisCi execute optional code \fIbefore_deploy\fR (only if deployment is effective, not emulated)
+.br
+* TravisCi execute optional code \fIdeploy\fR (not emulated)
+.br
+* TravisCi executes optional code \fIafter_deploy\fR (only if deployment is effective, not emulated)
+.br
+* TravisCi executes code \fIafter_script\fR (not emulated)
+.br
+* Wep from local .travis.conf (not in travis-ci.org)
+.RE
+.br
+Read furthermore info read
+.UR https://docs.travis-ci.com/user/job-lifecycle/
+travis job lifecycle
+.UE
+.ls
+.P
+Action is one of:
+.RS
+* help
+.br
+* emulate
+.br
+* force-lint
+.br
+* lint
+.br
+* force-test
+.br
+* test
+.br
+* chkconfig
+.br
+* parseyaml
+.br
+* show-color
+.br
+* show-log
+.br
+* summary
+.br
+* wep_db
+.RE
+.P
+\fBemulate\fR
+.RS
+Emulate TravisCi
+.br
+Start TravisCi emulator processing current .travis.yml file. This is the default action.
+.RE
+.P
+\fBforce-lint\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file and setting LINT_CHECK variabile to value "1" and TESTS to value "0".
+In this way the build of linting is always executed.
+.RE
+.P
+\fBforce-test\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file, setting TESTS to value "1" and LINT_CHECK variabile to value "0".
+In this way the build of test is always executed.
+.RE
+.P
+\fBlint\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file and execute just build with LINT_CHECK="1".
+In this way only the build of linting is executed.
+.RE
+.P
+\fBshow-color\fR
+.RS
+Show colored message meaning
+.RE
+.P
+\fBshow-log\fR
+.RS
+Show last log
+.RE
+.P
+\fBsummary\fR
+.RS
+Show last log summary
+.br
+.RE
+.P
+\fBtest\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file and execute just build with TESTS="1".
+In this way only the build of test is executed.
+.RE
+.P
+\fBweb-db\fR
+.RS
+Remove virtual environments and postgres database created by previous travis emulator interupted
+.br
+.RE
+.SH OPTIONS
+.TP
+.BR \-B\ \-\-debug
+Run in debug mode without creating log file and enable pdb for local debug
+.TP
+.BR \-c\ \-\-conf\ \fIfile\fR
+Local travis configuration file (default .travis.conf)
+.TP
+.BR \-D\ \fIdebug-level\fR
+Set travis_debug_mode: may be 0,1,2,8 or 9
+.br
+default value from .travis.yml
+.TP
+.BR \-d\ \-\-osx
+Emulate Darwin osx operating system
+.br
+This mean readlink is replaced by greadlink
+.TP
+.BR \-k\ \-\-keep
+Keep virtual environment and databases after builds are terminated
+.TP
+.BR \-L\ \fIlint-level_level\fR
+Set lint_check_level: may be minimal,reduced,average,nearby,oca
+.br
+default value from .travis.yml
+.TP
+.BR \-S\ \-\-syspkg\ true|false
+use python system packages
+.br
+default value from .travis.yml
+.TP
+.BR \-V
+Show version
+.TP
+.BR \-v
+Verbose mode
+.SH EXAMPLES
+travis
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)

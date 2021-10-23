@@ -1,0 +1,9 @@
+future
+jsonlib
+openpyxl<=3.0
+odoorpc
+oerplib
+psycopg2-binary
+python-plus
+unidecode==1.2.0
+z0lib

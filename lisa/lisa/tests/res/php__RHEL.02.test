@@ -1,0 +1,4 @@
+php (install by yum)
+  command=php
+  get_ver=php -v
+  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/lisa.lish

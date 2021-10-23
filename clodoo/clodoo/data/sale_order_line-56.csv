@@ -1,0 +1,4 @@
+id,order_id:id,company_id:id,name,product_id:id,price_unit,tax_id
+z0bug.sale_order_line_Z0_1_1,z0bug.sale_order_Z0_1,z0bug.mycompany,Office Suite,product.product_product_42,170,"[(6,0,[${account.tax(description)::22v}])]"
+z0bug.sale_order_line_Z0_1_2,z0bug.sale_order_Z0_1,z0bug.mycompany,Antivirus,product.product_product_43,280,"[(6,0,[${account.tax(description)::22v}])]"
+z0bug.sale_order_line_Z0_2_1,z0bug.sale_order_Z0_2,z0bug.mycompany,Antivirus,product.product_product_43,280,"[(6,0,[${account.tax(description)::22v}])]"

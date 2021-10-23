@@ -1,0 +1,10 @@
+db_type,id,name,login,company_ids,company_id,signature,tz,lang,new_password,email,partner_id
+,z0bug.user_admin2,Admin,${oneadm_login},None,None,Amministratore dell'Azienda,Europe/Rome,it_IT,None,${zeroadm_mail},z0bug.partner_admin2
+,z0bug.user_admin2,Admin,${oneadm_login},"[(4,z0bug.mycompany)]",None,None,None,None,None,None,None
+,z0bug.user_admin2,Admin,${oneadm_login},None,z0bug.mycompany,None,None,None,None,None,None
+,z0bug.user_admin2,Admin,${oneadm_login},"[(3,base.main_company)]",None,None,None,None,${oneadm_pwd},None,None
+,base.user_root,Administrator,${zeroadm_login},"[(4,z0bug.mycompany)]",None,None,None,None,None,None,None
+V,z0bug.user_bot,System Bot,${botadm_login},None,None,System Bot – No actual user,Europe/Rome,it_IT,None,${botadm_mail},z0bug.partner_bot
+V,z0bug.user_bot,System Bot,${botadm_login},"[(4,z0bug.mycompany)]",None,None,None,None,None,None,None
+V,z0bug.user_bot,System Bot,${botadm_login},None,z0bug.mycompany,None,None,None,None,None,None
+V,z0bug.user_bot,System Bot,${botadm_login},"[(3,base.main_company)]",None,None,None,None,${botadm_pwd},None,None

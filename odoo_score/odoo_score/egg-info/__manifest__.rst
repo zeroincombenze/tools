@@ -1,0 +1,1 @@
+.. $set submodules odoo_shell

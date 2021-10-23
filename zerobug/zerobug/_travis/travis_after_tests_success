@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import os
+import sys
+
+from coverage.cmdline import main as coverage_main
+from coveralls import cli as coveralls_cli
+from codecov import main as codecov_main
+
+
+def print_flush(msg):
+    if sys.version_info[0] == 3:
+        print(msg, flush=True)
+    else:
+        print(msg)
+        sys.stdout.flush()
+
+def combine_reports():
+    if os.environ.get('MODULE_PATH') and os.environ.get('TRAVIS_BUILD_DIR'):
+        COVRF = os.path.join(os.environ['MODULE_PATH'], '.coverage')
+        GBLCOVRF = os.path.join(os.environ['TRAVIS_BUILD_DIR'], '.coverage')
+        if COVRF != GBLCOVRF:
+            if os.path.isfile(COVRF):
+                if os.path.isfile(GBLCOVRF):
+                    os.sytem("coverage combine %s %s" % (GBLCOVRF, COVRF))
+                else:
+                    os.system("coverage combine -a  %s %s" % (GBLCOVRF, COVRF))
+
+if __name__ == '__main__':
+    travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
+    if (os.environ.get('TESTS', '1') == '1' and
+            os.environ.get('TEST_ENABLE', '1') == '1' and
+            not os.environ.get('LINT_CHECK') == '1'):
+        if eval(os.environ.get('opt_mis', '0')):
+            if travis_debug_mode > 1:
+                print_flush('DEBUG: coverage report --show-missing')
+            coverage_main(["report", "--show-missing"])
+        else:
+            if travis_debug_mode > 1:
+                print_flush('DEBUG: coverage report')
+            coverage_main(["report"])
+        print_flush('DEBUG: sending result to coveralls / codecov')
+        if os.environ['TRAVIS'] == "true":
+            try:
+                coveralls_cli.main(argv=None)
+            except:
+                pass
+            try:
+                codecov_main(argv=None)
+            except:
+                pass

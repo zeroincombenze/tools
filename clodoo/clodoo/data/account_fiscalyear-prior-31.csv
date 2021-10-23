@@ -1,0 +1,2 @@
+code,name,date_start,date_stop,company_id
+${_last_year},${_last_year},${_last_year}-01-01,${_last_year}-12-31,z0bug.mycompany

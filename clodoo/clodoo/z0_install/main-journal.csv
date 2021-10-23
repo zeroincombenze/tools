@@ -1,0 +1,10 @@
+company_id,name
+base.main_company,"~Contante"
+base.main_company,"~Banca"
+base.main_company,"~Sezionale Note di Credito Fornitori"
+base.main_company,"~Sezionale Acquisti"
+base.main_company,"~Sezionali vari"
+base.main_company,"~Sezionale delle voci di apertura"
+base.main_company,"~Sezionale Vendite"
+base.main_company,"~Sezionale Note di Credito"
+

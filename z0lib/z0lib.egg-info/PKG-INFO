@@ -1,0 +1,34 @@
+Metadata-Version: 1.2
+Name: z0lib
+Version: 1.0.3
+Summary: Bash zeroincombenze lib
+Home-page: UNKNOWN
+Author: Antonio Maria Vigliotti
+Author-email: antoniomaria.vigliotti@gmail.com
+License: Affero GPL
+Project-URL: Source, https://github.com/zeroincombenze/tools
+Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
+Description: 
+        General purpose bash and python library for zeroincombenze(R) tools
+        
+        Features:
+        
+        * xuname: unix/linux platform recognizer (tested on various environments)
+        * parseoptargs: line command parser; expands python argparse and adds same functionalities to bash scripts
+        * tracelog: manage tracelog (only bash)
+        * findpkg: find package in file system (only bash)
+        * run_traced: execute (or dry_run) shell command (only bash)
+        * CFG: local dictionary values from config file like python ConfigParser (only bash)
+        
+Keywords: bash,optargs
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: System :: System Shells

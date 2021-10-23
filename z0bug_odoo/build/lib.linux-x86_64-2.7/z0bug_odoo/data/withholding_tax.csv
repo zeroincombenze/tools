@@ -1,0 +1,4 @@
+id,code,name,certification,account_receivable_id,account_payable_id,journal_id,payment_term,causale_pagamento_id,wt_types,active
+z0bug.wt_1040,1040-20%,1040 – 20% su 100% (A),1,z0bug.coa_153110,z0bug.coa_260110,z0bug.misc,account.account_payment_term_15days,,other,1
+z0bug.wt_1038,1040-23%,1040 – 23% su 50% (giù 1038) (R),1,z0bug.coa_153110,z0bug.coa_260110,z0bug.misc,account.account_payment_term_15days,,other,1
+z0bug.wt_enasarco_1,enasarco,Enasarco 17% su 50% (A),1,z0bug.coa_153110,z0bug.coa_260110,z0bug.misc,account.account_payment_term_15days,,enasarco,1

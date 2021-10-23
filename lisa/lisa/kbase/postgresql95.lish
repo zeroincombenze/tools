@@ -1,0 +1,48 @@
+# Postgresql configuration file
+# (C) Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+# http://wiki.zeroincombenze.org/en/Lisa webpage
+# Last update: 2018-08-22
+#
+
+[_Linux_]
+postgresql_FINDCFN="/var/lib /etc;postgresql pgsql;9.6 9.5 9.4 9.3 9.2 9.1 9.0 8.4;data main"
+postgresql_confn=pg_hba.conf
+postgresql_cmdname=psql
+postgresql-server_cmdname=psql
+
+
+[_Debian_]
+postgresql_BOP=postgresql-client-common,postgresql-contrib
+postgresql_BOP_GRF_ADD=pgadmin3
+postgresql_svcname=postgresql
+postgresql_init_svcname=service $2 initdb
+pgadmin3_xtlcmd=apt-get
+
+
+[_Debian_DEV_]
+
+
+[_RHEL_]
+postgresql-server_BOP=postgresql-client-common,postgresql-contrib
+postgresql-server_BOP_GRF_ADD=pgadmin3
+postgresql-server_svcname=postgresql
+pgadmin3_xtlcmd=yum
+postgresql95_FINDCFN="/var/lib /etc;postgresql pgsql;9.6 9.5 9.4 9.3 9.2 9.1 9.0 8.4;data main"
+postgresql95_confn=pg_hba.conf
+postgresql95_cmdname=psql95
+postgresql95-server_cmdname=psql95
+postgresql95-server_BOP=postgresql95,postgresql95-server,postgresql95-libs,postgresql95-contrib,postgresql95-devel
+postgresql95-server_BOP_GRF_ADD=pgadmin3
+postgresql95-server_svcname=postgresql-9.5
+pgadmin3_xtlcmd=yum
+
+
+[_RHEL_DEV_]
+
+
+[_CentOS7_]
+postgresql-server_init_svcname=postgresql-setup initdb
+
+
+[_CentOS6_]
+postgresql-server_init_svcname=service postgresql initdb

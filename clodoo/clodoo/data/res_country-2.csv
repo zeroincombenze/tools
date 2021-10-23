@@ -1,0 +1,3 @@
+code,address_format
+IT,"%(street)s\n%(street2)s\n%(zip)s %(city)s (%(state_code)s)\n%(country_name)s"
+SM,"%(street)s\n%(street2)s\n%(zip)s %(city)s"

@@ -1,0 +1,4 @@
+> rm /usr/bin/lisa
+> rm /usr/bin/lisa.*
+> rm /usr/bin/lisa_*
+> apt-get autoremove

@@ -1,0 +1,5 @@
+id,name,street,zip,city,state_id:id,is_company,customer,supplier,type,parent_id,email,phone,VAT
+base.res_partner_address_1,Bianchi Giuseppe,False,False,False,False,False,False,False,contact,base.res_partner_1,False,False,False
+base.res_partner_address_17,Giacobbo Libero,False,False,False,False,False,False,False,contact,base.res_partner_10,False,False,False
+base.res_partner_address_18,Martini Vittorio,False,False,False,False,False,False,False,contact,base.res_partner_10,False,False,False
+base.res_partner_address_21,Global Solution,"Largo Equinozio, 1",00195,Roma,"${res.country.state(country_id,code):${base.it},RM}",False,True,False,invoice,base.res_partner_21,False,False,IT00118439991

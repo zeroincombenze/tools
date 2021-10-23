@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+#
+# topep8 configuration file (last update 2018-12-26)
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+# Rules to convert Odoo Italia Associazione to OCA source
+l10n_it_fatturapa:
+    $tokens
+    parse_state: regular,xml
+    [0]:    'l10n_it_einvoice_base'
+    [6.1]:  'l10n_it_fatturapa'
+l10n_it_fatturapa_out:
+    $tokens
+    parse_state: regular,xml
+    [0]:    'l10n_it_einvoice_out'
+    [6.1]:  'l10n_it_fatturapa_out'
+fatturapa_document_type:
+    $tokens
+    parse_state: regular,xml
+    [0]:    'italy.ade.invoice.type'
+    [6.1]:  'fiscal.document.type'
+account_tax_kind:
+    $tokens
+    [0]:    'italy.ade.tax.nature'
+    [6.1]:  'account.tax.kind'
+tax_kind_id:
+    $tokens
+    [0]:    nature_id
+    [6.1]:  kind_id
+fatturapa_binding:
+    odoo.addons.$tokens.bindings
+    [0]:    l10n_it_ade
+    [6.1]:  l10n_it_fatturapa
+fatturapa_account:
+    odoo.addons.$tokens.models.account
+    [0]:    l10n_it_einvoice_base
+    [6.1]:  l10n_it_fatturapa
+attach_model:
+    $tokens
+    [0]:    attach_model
+    [6.1]:  attach_obj
+invoice_model:
+    $tokens
+    [0]:    invoice_model
+    [6.1]:  invoice_obj
+getPartnerId:
+    $tokens
+    [0]:    getPartnerCompanyId
+    [6.1]:  getPartnerId
+xml_view_partner_form_fatturapa:
+    parse_state: regular,xml
+    [0]:    'view_partner_form_fatturapa'
+    [6.1]:  'view_partner_form_einvoice'
+xml_partner_form_fatturapa:
+    parse_state: regular,xml
+    [0]:    'partner_form_einvoice'
+    [6.1]:  'partner_form_fatturapa'
+fiscal_document_type_id:
+    [0]:    'invoice_type_id'
+    [6.1]:  'fiscal_document_type_id'

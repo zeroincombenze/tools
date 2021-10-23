@@ -1,0 +1,6 @@
+id,name,login,company_ids,company_id,signature,tz,lang,new_password,email
+z0bug.user_admin2,Admin,admin,=None,=None,"Amministratore dell'Azienda","Europe/Rome","it_IT",=None,${zeroadm_login}
+z0bug.user_admin2,Admin,admin,"=[(4,${res.company:La Tua Azienda})]",=None,=None,=None,=None,=None,=None
+z0bug.user_admin2,Admin,admin,=None,"=${res.company:La Tua Azienda}",=None,=None,=None,=None,=None
+z0bug.user_admin2,Admin,admin,"=[(3,${res.company:zeroincombenze®})]",=None,=None,=None,=None,admin,=None
+base.user_root,Administrator,zeroadm,"=[(4,${res.company:La Tua Azienda})]",=None,=None,=None,=None,=None,=None

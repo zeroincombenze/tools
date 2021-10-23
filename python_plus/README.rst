@@ -245,7 +245,11 @@ History
 1.0.1.3 (2021-08-05)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] vem: run in osx darwin
+[FIX] vem: run in osx darwin
+
+1.0.1.3 (2021-08-05)
+~~~~~~~~~~~~~~~~~~~~
+
 * [FIX] vem: uninstall package with if package version with ">"
 
 1.0.1.2 (2021-07-29)
@@ -261,7 +265,7 @@ History
 1.0.0.14 (2021-04-23)
 ~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] vem: error if pip ad python module "python -m pip"
+* [FIX] vem: errore if pip ad python module "python -m pip"
 
 1.0.0.13 (2021-04-06)
 ~~~~~~~~~~~~~~~~~~~~~
@@ -404,3 +408,5 @@ Last Update / Ultimo aggiornamento: 2021-08-22
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/axitec_helpdesk
+
+

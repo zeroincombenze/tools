@@ -1,0 +1,98 @@
+#
+# topep8 configuration file (last update 2018-12-26)
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+# Rules to convert OCA to Odoo Italia Associazione source
+l10n_it_fatturapa:
+    $tokens
+    parse_state: regular,xml
+    [0]:    'l10n_it_fatturapa'
+    [6.1]:  'l10n_it_einvoice_base'
+l10n_it_fatturapa_out:
+    $tokens
+    parse_state: regular,xml
+    [0]:    'l10n_it_fatturapa_out'
+    [6.1]:  'l10n_it_einvoice_out'
+fatturapa_document_type:
+    $tokens
+    parse_state: regular,xml
+    [0]:    'fiscal.document.type'
+    [6.1]:  'italy.ade.invoice.type'
+fatturapa_document_type_2:
+    $tokens
+    parse_state: regular,xml
+    [0]:    'fatturapa.document_type'
+    [6.1]:  'italy.ade.invoice.type'
+account_tax_kind:
+    $tokens
+    [0]:    'account.tax.kind'
+    [6.1]:  'italy.ade.tax.nature'
+tax_kind_id:
+    $tokens
+    [0]:    kind_id
+    [6.1]:  tax_nature_id
+fatturapa_binding:
+    odoo.addons.$tokens.bindings
+    [0]:    l10n_it_fatturapa
+    [6.1]:  l10n_it_ade
+fatturapa_account:
+    odoo.addons.$tokens.models.account
+    [0]:    l10n_it_fatturapa
+    [6.1]:  l10n_it_einvoice_base
+attach_model:
+    $tokens
+    [0]:    attach_obj
+    [6.1]:  attach_model
+invoice_model:
+    $tokens
+    [0]:    invoice_obj
+    [6.1]:  invoice_model
+getPartnerId:
+    $tokens
+    [0]:    getPartnerId
+    [6.1]:  getPartnerCompanyId
+msg_pa_wo_ipa:
+    $tokens
+    [0]:    'Partner %s is PA but does not have IPA code.'
+    [6.1]:  'Partner %s is PA but has not IPA code.'
+msg_line_wo_tax:
+    $tokens
+    [0]:    'Invoice line %s does not have tax.'
+    [6.1]:  'Invoice line %s has not tax.'
+msg_line_wo_tax2:
+    $tokens
+    [0]:    'Invoice line %s does not have tax'
+    [6.1]:  'Invoice line %s has not tax.'
+msg_no_email:
+    $tokens
+    [0]:    'Email address not set.'
+    [6.1]:  'Company Email not set.'
+msg_no_tin:
+    $tokens
+    [0]:    'TIN not set.'
+    [6.1]:  'Company TIN not set.'
+msg_e_related_DDT:
+    $tokens
+    [0]:    'E-invoice Related DDT'
+    [6.1]:  'E-invoice Related DdT'
+msg_related_DDT:
+    $tokens
+    [0]:    'Related DDT'
+    [6.1]:  'Related DdT'
+msg_line_wo_tax2:
+    $tokens
+    [0]:    "No 'nature' field for tax %s"
+    [6.1]:  "No 'nature' field for tax %s."
+xml_view_partner_form_fatturapa:
+    parse_state: regular,xml
+    [0]:    'view_partner_form_einvoice'
+    [6.1]:  'view_partner_form_fatturapa'
+xml_partner_form_fatturapa:
+    parse_state: regular,xml
+    [0]:    'partner_form_fatturapa'
+    [6.1]:  'partner_form_einvoice'
+fiscal_document_type_id:
+    [0]:    'fiscal_document_type_id'
+    [6.1]:  'invoice_type_id'

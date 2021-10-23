@@ -1,0 +1,37 @@
+user,name,value
+demo,Sales,See all Leads
+demo,Project,Manager
+demo,Knowledge,User
+demo,Warehouse,Manager
+demo,Accounting & Finance,Financial Manager
+demo,Purchases,Manager
+demo,Human Resources,Employee
+demo,Sharing,User
+demo,Administration,Settings
+demo,Technical Features,False
+demo,Multi Companies,True
+demo,Contact Creation,True
+demo,Analytic Accounting,True
+demo,Sales Pricelists,True
+demo,Purchase Pricelists,True
+demo,Manage Multiple Units of Measure,True
+demo,Manage Secondary Unit of Measure,True
+demo,Manage Product Packaging,True
+demo,Manage Properties of Product,True
+demo,Pro-forma Invoices,True
+demo,Manage Serial Numbers,True
+demo,Manage Logistic Serial Numbers,True
+demo,Manage Inventory valuation,True
+demo,Manage Multiple Locations and Warehouses,True
+demo,Enable Invoicing Sales order lines,True
+demo,Addresses in Sales Orders,True
+demo,Properties on lines,True
+demo,Discount on lines,True
+demo,View Online Payment Options,False
+demo,Enable Invoicing Delivery orders,True
+demo,Analytic Accounting for Sales,True
+demo,Analytic Accounting for Purchases,True
+demo,Task's Work on Tasks,True
+demo,Task Delegation,True
+demo,Check Total on supplier invoices,True
+admin,Accounting & Finance,Financial Manager

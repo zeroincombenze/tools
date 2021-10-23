@@ -1,0 +1,4 @@
+id,withholding_tax_id,tax,base
+z0bug.wt_1040_1,z0bug.wt_1040,20,1
+z0bug.wt_1038_1,z0bug.wt_1038,23,0.5
+z0bug.wt_enasarco_1_1,z0bug.wt_enasarco,17,0.5

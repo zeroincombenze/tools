@@ -1,0 +1,189 @@
+.\" Manpage for manage_odoo.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH manage_odoo 8
+.SH NAME
+manage_odoo \- create, upgrade, remove and manage Odoo installation
+.SH SYNOPSIS
+manage_odoo [options] actions
+.SH DESCRIPTION
+\fBmanage_odoo\fR is very useful to manage all the packages needed to build a
+complete Odoo installation and to check the current installation status.
+
+\fBmanage_odoo\fR retrieves information about package from manifest file and from
+requirements.txt file.
+The requirements.txt file is a simple text file with packages required by Odoo
+repository, as pip requirements file (see -r switch of pip).
+.br
+The manifest files are file used by Odoo to recognize packages. They are namaed
+__openerp__.py until Odoo 9.0 and __manifest__.py from Odoo 10.0
+.br
+\fBmanage_odoo\fR can manage both python2 Odoo (from 6.1 to 10.0 version) both
+python3 Odoo (11.0 and more).
+.br
+Notice, you system must made avaiable python and pip command for Odoo until 10.0
+and python3 and pip3 command for Odoo from 11.0. Try follow commands before use
+\fBmanage_odoo\fR:
+.br
+python --version
+.br
+python3 -version
+.br
+pip --version
+.br
+pip3 --version
+.br
+\fBmanage_odoo\fR run on CentOS 7 / 8, Ubuntu 14 / 16 / 18 / 20 and
+Debian 8 / 9 / 10
+.br
+.br
+Action is one of:
+.br
+* help
+.br
+* add_repository REPOSNAME
+.br
+* build
+.br
+* clean
+.br
+* list
+.br
+* rebuild
+.br
+* requirements
+.br
+* upgrade
+.br
+.br
+You can issue more actions separated by plus simbol: i.e. \fBbuild+clean\fR
+.br
+
+\fBadd_repository\fR
+.RS
+Download repository from github to local Odoo installation, upgrade /etc/odoo/
+configuration file.
+.br
+If repository is already installed, ask for reinstall,
+This behaviour  may be changed by -y switch.
+.br
+Git organization is selected by -O switch.
+.br
+Odoo version is selected by -b switch.
+.br
+Directory of Odoo is depending from Odoo version (-b switch) and mono or multiversion
+Odoo environment (-m switch). You can use -o switch to set your own path
+.RE
+.br
+
+.br
+\fBbuild\fR
+.RS
+Build a complete Odoo installation, with all repositories.
+.RE
+.br
+
+.br
+\fBlint\fR
+.RS
+Check requires travis emulator installed.
+.br
+Check run travis lint on local system. It is useful to check package before
+pushing on github.com
+.RE
+.br
+
+.br
+\fBrebuild\fR
+.RS
+Rebuild an Odoo installation.
+Like build but delete previous installed directories.
+.RE
+.br
+
+.br
+\fBrequirements\fR
+.RS
+Check for all Odoo packages requirements and install or upgrade them if needed.
+This action requires system privileges in order to use apt-get or yum or any
+other installation package.
+.br
+Warning: this action requires lisa command. Read above about system commands.
+.br
+This action is activated by travis-ci when validates Zeroincombenze repository.
+See https://github.com/zeroincombenze/tools/tree/master/maintainer-quality-tools
+about this feature.
+.RE
+.br
+
+.br
+\fBstatus\fR
+.RS
+Check for packages installation status. Read above about requirements action
+for more info.
+.RE
+.br
+
+.br
+\fBupgrade\fR
+.RS
+
+.br
+Undocumented.
+.RE
+.SH OPTIONS
+.TP
+.BR \-b
+Declare Odoo version to manage; may be one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 [v]12.0 (comma separated)
+.TP
+.BR \-D
+Use internal default module list.
+.TP
+.BR \-d \fIdependecies_dir\fR
+Used by MQT in travis-ci test.
+.TP
+.BR \-H
+Humdrum, display w/o colors
+.TP
+.BR \-m
+Multi-version odoo environment
+.TP
+.BR \-n
+Do nothing (dry-run)
+.TP
+.BR \-o \fIdirectory\fR
+Odoo directory
+.TP
+.BR \-p \fI2|3\fR
+When installer is pip choice python version: may be 2 or 3 (def auto) 
+.TP
+.BR \-q
+Quiet mode
+.TP
+.BR \-q
+silent mode
+.TP
+.BR \-s
+ no stop after every repository/version
+.TP
+.BR \-V
+Show version
+.TP
+.BR \-v
+Verbose mode
+.TP
+.BR \-x \fIrepository\fR
+Repository list to exclude (comma separated)
+.TP
+.BR \-y
+assume yes
+.SH EXAMPLES
+.RS
+\fBmanage requirements -b11.0\fR
+.RE
+Install all packages to run Odooo 11.0
+.SH SEE ALSO
+apt-get, yum, pip, lisa
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)

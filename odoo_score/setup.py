@@ -1,45 +1,22 @@
-# -*- coding: utf-8 -*-
 from setuptools import setup
-from setuptools import find_packages
 
 setup(name='odoo_score',
-      version='1.0.3',
-      description='Odoo super core',
+      version='1.0.3.6',
+      description='Odoo 10.0 super core',
       long_description="""
-Odoo supercore
-
-odoo_score is a library that extends the odoo orm functionality and makes available a simple odoo shell.
+Odoo super core by Zeroincombenze(R) 
 """,
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'License :: OSI Approved :: GNU Affero General Public License v3',
-          'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3.6',
-          'Programming Language :: Python :: 3.7',
           'Intended Audience :: Developers',
-          'Topic :: Software Development',
-          'Topic :: Software Development :: Libraries',
-          'Topic :: System :: System Shells',
+          # 'Topic :: Software Development:: Quality Assurance'
       ],
       keywords='odoo',
-      project_urls={
-          'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
-          'Source': 'https://github.com/zeroincombenze/tools',
-      },
+      url='http://wiki.zeroincombenze.org/',
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
-      packages=find_packages(
-          exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-      package_data={
-          '': ['scripts/setup.conf', './run_odoo_debug.sh', './transodoo.xlsx'],
-      },
-      entry_points={
-          'console_scripts': [
-              'odoo_score-info = odoo_score.scripts.main:main',
-              'run_odoo_debug = odoo_score.scripts.run_odoo_debug:main'
-              'transodoo = clodoo.scripts.transodoo:main'
-          ],
-      },
+      packages=['odoo_score'],
       zip_safe=False)

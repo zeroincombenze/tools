@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='os0',
-      version='1.0.1.99',
+      version='1.0.1',
       description='OS indipendent interface',
       long_description="""
 This module extends python os module with a few new functionality
@@ -23,7 +23,7 @@ ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
 See https://en.wikipedia.org/wiki/Path_(computing)
 """,
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',
@@ -35,6 +35,7 @@ See https://en.wikipedia.org/wiki/Path_(computing)
           'Operating System :: OS Independent',
       ],
       keywords='os path linux windows openvms',
+      url='https://zeroincombenze-tools.readthedocs.io',
       project_urls={
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',

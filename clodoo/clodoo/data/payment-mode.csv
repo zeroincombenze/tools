@@ -1,0 +1,4 @@
+db_type,company_id,bank_id,name,journal,type,convert_to_ascii
+Z,=${company_id},=${res.partner.bank:CRIFIT2F},"Bonifico Bancario CRF",=${account.journal::Banca},=${payment.mode.type:SEPA Credit Transfer v04},True
+T,=${company_id},=${res.partner.bank:CRFIIT3P},"Bonifico Bancario CRPT",=${account.journal::Banca},=${payment.mode.type:SEPA Credit Transfer v04},True
+T,=${company_id},=${res.partner.bank:UNCRITMM},"Bonifico Bancario Unicredit",=${account.journal::Banca},=${payment.mode.type:SEPA Credit Transfer v04},True

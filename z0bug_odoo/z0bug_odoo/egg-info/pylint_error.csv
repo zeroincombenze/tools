@@ -1,0 +1,33 @@
+Test,MINIMAL,REDUCED,AVERAGE,NEARBY,OCA,Notes
+W0101,|no_check|,|no_check|,,,|check|,`unreachable <http://pylint-messages.wikidot.com/messages:w0101>`_
+W0312,|no_check|,|check|,,,|check|,`wrong-tabs-instead-of-spaces <http://pylint-messages.wikidot.com/messages:w0312>`_
+W0403,|no_check|,|no_check|,,,|check|,relative-import
+W1401,|no_check|,|check|,,,|check|,anomalous-backslash-in-string
+E7901,|no_check|,|no_check|,,,|check|,`rst-syntax-error <https://pypi.org/project/pylint-odoo/1.4.0>`_
+C7902,|no_check|,|check|,,,|check|,missing-readme
+W7903,|no_check|,|no_check|,,,|check|,javascript-lint
+W7908,|no_check|,|no_check|,,,|check|,missing-newline-extrafiles
+W7909,|no_check|,|no_check|,,,|check|,redundant-modulename-xml
+W7910,|no_check|,|check|,,,|check|,wrong-tabs-instead-of-spaces
+W7930,|no_check|,|no_check|,,,|check|,`file-not-used <https://pypi.org/project/pylint-odoo/1.4.0>`_
+W7935,|no_check|,|no_check|,,,|check|,missing-import-error
+W7940,|no_check|,|no_check|,,,|check|,dangerous-view-replace-wo-priority
+W7950,|no_check|,|no_check|,,,|check|,odoo-addons-relative-import
+E8102,|no_check|,|check|,,,|check|,invalid-commit
+C8103,|no_check|,|check|,,,|check|,`manifest-deprecated-key <https://pypi.org/project/pylint-odoo/1.4.0>`_
+W8103,|no_check|,|no_check|,,,|check|,translation-field
+C8104,|no_check|,|no_check|,,,|check|,`class-camelcase <https://pypi.org/project/pylint-odoo/1.4.0>`_
+W8104,|no_check|,|no_check|,,,|check|,api-one-deprecated
+C8105,|no_check|,|check|,,,|check|,`license-allowed <https://pypi.org/project/pylint-odoo/1.4.0>`_
+C8108,|no_check|,|no_check|,,,|check|,method-compute
+R8110,|no_check|,|check|,,,|check|,old-api7-method-defined
+W8202,|no_check|,|check|,,,|check|,use-vim-comment
+N/A,|no_check|,|check|,,,|check|,sql-injection
+N/A,|no_check|,|check|,,,|check|,duplicate-id-csv
+N/A,|no_check|,|no_check|,,,|check|,create-user-wo-reset-password
+N/A,|no_check|,|no_check|,,,|check|,dangerous-view-replace-wo-priority
+N/A,|no_check|,|no_check|,,,|check|,translation-required
+N/A,|no_check|,|check|,,,|check|,duplicate-xml-record-id
+N/A,|no_check|,|no_check|,,,|check|,no-utf8-coding-comment
+N/A,|no_check|,|check|,,,|check|,attribute-deprecated
+N/A,|no_check|,|no_check|,,,|check|,consider-merging-classes-inherited

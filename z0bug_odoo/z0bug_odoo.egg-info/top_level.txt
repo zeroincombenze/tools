@@ -1,2 +1,1 @@
-scripts
-travis
+z0bug_odoo

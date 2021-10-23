@@ -239,6 +239,60 @@ Current development version
 History
 -------
 
+z0bug_odoo: 1.0.5.4 (2021-10-18)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Test data: supplier invoice with 22a / Codice IVA in fattura fornitore dati test
+
+
+clodoo: 0.3.36.1 (2021-10-16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug with no standard db port
+
+
+z0bug_odoo: 1.0.5.3 (2021-10-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] python3 failure
+
+
+python_plus: 1.0.3.9 (2021-10-09)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: create virtualenv again with -f
+
+
+wok_code: 1.0.2.6 (2021-10-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] cvt_scrit: run inside virtual environment
+* [FIX] please: run inside virtual environment
+* [FIX] please: version
+* [FIX] dist_pkg: run inside virtual environment
+* [FIX] gen_readme.py: new template layout in devel/venv
+
+
+travis_emulator: 1.0.2.2 (2021-10-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis: crash if invalid Odoo project
+
+
+python_plus: 1.0.3.8 (2021-10-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: run inside virtual environment
+
+
+wok_code: 1.0.2.6 (2021-10-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] cvt_script: inclusion path improved
+* [IMP] cvt_script: man page
+* [FIX] gen_readme.py
+
+
 python_plus: 1.0.3.7 (2021-10-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -248,7 +302,7 @@ python_plus: 1.0.3.7 (2021-10-03)
 wok_code: 1.0.2.5 (2021-10-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] disk_pkg: manage setup.py & setup.info
+* [IMP] disk_pkg: manage setup.py & setup.info
 
 
 python_plus: 1.0.3.6 (2021-10-01)
@@ -260,7 +314,7 @@ python_plus: 1.0.3.6 (2021-10-01)
 wok_code: 1.0.2.4 (2021-09-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] please: new version method
+* [IMP] please: new version method
 
 
 python_plus: 1.0.3.5 (2021-09-30)
@@ -272,7 +326,7 @@ python_plus: 1.0.3.5 (2021-09-30)
 wok_code: 1.0.2.3 (2021-09-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] cvt_script: add bash version check
+* [IMP] cvt_script: add bash version check
 
 
 clodoo: 0.3.35.4 (2021-09-29)
@@ -305,7 +359,7 @@ clodoo: 0.3.35.3 (2021-09-26)
 travis_emulator: 1.0.2.1 (2021-09-25)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: check for cached expired VME
+* [IMP] travis: check for cached expired VME
 
 
 python_plus: 1.0.3.2 (2021-09-25)
@@ -318,7 +372,7 @@ python_plus: 1.0.3.2 (2021-09-25)
 wok_code: 1.0.2.3 (2021-09-24)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] please: error sub2 sub3
+* [FIX] please: error sub2 sub3
 
 
 clodoo: 0.3.35.1 (2021-09-24)
@@ -336,8 +390,8 @@ z0bug_odoo: 1.0.5.1 (2021-09-23)
 wok_code: 1.0.2.1 (2021-09-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] please: replace does not set protection bits; now -f is required
-[IMP] please: wep does not set protection bits; now -f is required
+* [IMP] please: replace does not set protection bits; now -f is required
+* [IMP] please: wep does not set protection bits; now -f is required
 
 
 python_plus: 1.0.3.1 (2021-09-23)
@@ -353,6 +407,12 @@ clodoo: 0.3.35 (2021-09-23)
 * [FIX] python 3
 
 
+zerobug: 1.0.2.1 (2021-09-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Minor improvements
+
+
 lisa: 0.3.2.1 (2021-09-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -362,14 +422,14 @@ lisa: 0.3.2.1 (2021-09-03)
 wok_code: 1.0.2h (2021-08-31)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] gen_readme.py: search for authors in current README
+* [IMP] gen_readme.py: search for authors in current README
 
 
 wok_code: 1.0.2g (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] cvt_csv_coa.py: new command to manage Odoo CoA
-[IMP] gen_readme.py: search for authors in current README
+* [IMP] cvt_csv_coa.py: new command to manage Odoo CoA
+* [IMP] gen_readme.py: search for authors in current README
 
 
 odoo_score: 1.0.2.1 (2021-08-30)
@@ -393,14 +453,14 @@ z0bug_odoo: 1.0.5 (2021-08-27)
 travis_emulator: 1.0.2 (2021-08-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: stable version
+* [IMP] travis: stable version
 
 
 zerobug: 1.0.1.4 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis_install_env: echo indented command
-[IMP] travis_install_env: new travis command testdeps
+* [IMP] travis_install_env: echo indented command
+* [IMP] travis_install_env: new travis command testdeps
 
 
 z0bug_odoo: 1.0.4.3 (2021-08-26)
@@ -412,18 +472,18 @@ z0bug_odoo: 1.0.4.3 (2021-08-26)
 wok_code: 1.0.2f (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] please: action docs shows recent history
-[IMP] gen_readme.py: show recent history
-[FIX] topep8: parse .travis.yml
+* [IMP] please: action docs shows recent history
+* [IMP] gen_readme.py: show recent history
+* [FIX] topep8: parse .travis.yml
 
 
 travis_emulator: 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: color change
-[IMP] travis: new action testdeps
-[FIX] travis: matrix selection
-[IMP] travis: switch -y forces python version
+* [IMP] travis: color change
+* [IMP] travis: new action testdeps
+* [FIX] travis: matrix selection
+* [IMP] travis: switch -y forces python version
 
 
 odoo_score: 1.0.2 (2021-08-26)
@@ -445,59 +505,6 @@ clodoo: 0.3.33.1 (2021-08-23)
 
 
 
-zar: 1.3.35.3 (2021-08-13)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] pg_db_active: kill process
-
-
-travis_emulator: 1.0.1.5 (2021-08-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] travis: summary return 1 if test failed or is broken
-[IMP] travis: return status like summary
-[IMP] travis: summary & show-log can show old logfile i.e.: travis summary old
-[IMP] travis: osx emulatore return more info when error
-
-
-clodoo: 0.3.31.16 (2021-08-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoorc: module list
-
-
-clodoo: 0.3.31.15 (2021-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoorc: run in osx darwin
-
-
-zerobug: 1.0.1.2 (2021-08-09)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] travis_run_pypi_test: run in osx darwin
-[FIX] z0testrc: run in osx darwin
-
-
-odoo_score: 1.0.1.4 (2021-08-09)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] run_odoo_debug: run in osx darwin
-
-
-clodoo: 0.3.31.14 (2021-08-09)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoo_install_repository: run in osx darwin
-
-
-
-wok_code: 1.0.2e (2021-08-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] please: changed the syntax of som actions
-[IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
-
 
 
 
@@ -514,7 +521,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-10-06
+Last Update / Ultimo aggiornamento: 2021-10-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

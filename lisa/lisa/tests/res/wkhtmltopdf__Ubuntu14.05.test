@@ -1,0 +1,7 @@
+> apt-get -y install xorg-x11-fonts-Type1
+> apt-get -y install xorg-x11-fonts-75dpi
+> apt-get -y install wget
+> cd /tmp
+> wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-trusty-amd64.deb
+> apt-get -y install wkhtmltox-0.12.1_linux-trusty-amd64.deb
+> rm -f wkhtmltox-0.12.1_linux-trusty-amd64.deb

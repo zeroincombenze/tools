@@ -1,0 +1,93 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals
+import os
+import sys
+from subprocess import PIPE, Popen
+import ast
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
+try:
+    from clodoo import clodoo
+except ImportError:
+    import clodoo
+try:
+    from os0 import os0
+except ImportError:
+    import os0
+from travis_helpers import print_flush, reset, yellow, yellow_light, red
+
+
+def main(argv=None, database=None):
+    travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
+    paths = [os.environ.get('TRAVIS_BUILD_DIR')]
+    home = os.environ.get('HOME')
+    odoo_repo = os.environ.get('ODOO_REPO', 'odoo/odoo').split('/')[1]
+    version = os.environ.get('VERSION')
+    if odoo_repo == 'OCB':
+        odoo_repo = '%s-%s' % (odoo_repo, version)
+    modules = []
+    for root, dirs, files in os.walk('./'):
+        if '__to_remove' not in root:
+            for mname in ('__manifest__.py', '__openerp__.py'):
+                manifest = os.path.join(root, mname)
+                if os.path.isfile(manifest):
+                    manifest = ast.literal_eval(open(manifest).read())
+                    if manifest.get('installable', True):
+                        modules.append(os.path.basename(root))
+    modules = sorted(modules)
+    if travis_debug_mode > 0:
+        print_flush('Modules %s' % modules)
+    if home and odoo_repo:
+        for path in ('odoo', 'openerp'):
+            rep_path = os.path.join(home, odoo_repo, path, 'addons')
+            if os.path.isdir(rep_path):
+                paths.append(rep_path)
+        rep_path = os.path.join(home, odoo_repo, 'addons')
+        if os.path.isdir(rep_path):
+            paths.append(rep_path)
+    rep_path = os.path.join(home, 'dependencies')
+    if os.path.isdir(rep_path):
+        paths.append(rep_path)
+    if travis_debug_mode > 0:
+        print_flush('Paths %s' % paths)
+    # TODO> to refactor
+    cmd = [os.path.join(home, 'tools', 'wok_code', 'odoo_dependencies.py'),
+           '-A', 'tree',
+           '-R',
+           '-M', ','.join(modules)]
+    for path in paths:
+        cmd.append(path)
+    out, err = Popen(cmd,
+                     stdin=PIPE,
+                     stdout=PIPE,
+                     stderr=PIPE).communicate()
+    sts = 0
+    if travis_debug_mode > 0:
+        print_flush('')
+        print_flush(' '.join(cmd))
+    print_flush(reset(''))
+    for ln in os0.u(out).split('\n'):
+        tokens = ln.replace('  ', ' ').strip().split(' ')
+        if ln.startswith('**'):
+            if tokens[1] in modules:
+                sts = 1
+                text = red(' '.join(tokens[1:]))
+            else:
+                text = yellow_light(' '.join(tokens[1:]))
+        elif ln.startswith('--'):
+            if tokens[1] in modules:
+                sts = 1
+                text = yellow(' '.join(tokens[1:]))
+            else:
+                text = yellow_light(' '.join(tokens[1:]))
+        else:
+            continue
+        if travis_debug_mode > 0:
+            print_flush(text)
+    return sts
+
+if __name__ == "__main__":
+    exit(main(sys.argv))

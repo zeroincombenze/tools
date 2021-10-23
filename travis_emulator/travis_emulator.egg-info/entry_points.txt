@@ -1,0 +1,3 @@
+[console_scripts]
+travis_emulator-info = travis_emulator.scripts.main:main
+

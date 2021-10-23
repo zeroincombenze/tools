@@ -1,0 +1,4 @@
+php=php5 (install by apt-get)
+  command=php5
+  get_ver=php5 -v
+  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/lisa.lish

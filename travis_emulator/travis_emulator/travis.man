@@ -1,0 +1,266 @@
+.\" Manpage for travis.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH travis 8
+.SH NAME
+travis \- TracisCi local emulator
+.SH SYNOPSIS
+travis [-h][-A regex][-BC][-c file][-D number][-EFfjk][-L number][-l dir][-Mmn][-O git-org][-pqr][-S false|true][-T regex][-Vv][-X 0|1][-Y file][-y pyver][-Z] action sub sub2
+Travis-ci emulator for local developer environment
+.br
+Action may be: (help,emulate,force-lint,lint,force-test,test,force-testdeps,testdeps,force-translate,translate,chkconfig,parseyaml,show-log,show-color,summary,wep-db)
+.SH DESCRIPTION
+\fBtravis\fR can emulate TravisCi parsing the \fB.travis.yml\fR file in local Linux machine.
+You can test your application before pushing code to github.com web site.
+.sp 2
+Travis emulator can creates all the builds declared in \fB.travis.yml\fR; all builds are executed in sequential way.
+The directory ~/travis_log (see -l switch) keeps the logs of all created builds.
+Please note that log file is a binary file with escape ANSI screen code.
+.br
+If you want to see the log use one of following command:
+.P
+.RS
+travis show-log
+.RE
+.P
+A travis build executes the following steps:
+.sp 2
+.br
+.RS
+* Initialize from local .travis.conf (not in travis-ci.org)
+.br
+* Optional install packages \fIapt addons\fR (emulator does not install, it makes just the check)
+.br
+* Optional install packages \fIcache\fR
+.br
+* Set global values \fIenv global\fR
+.br
+* Execute code from \fIbefore_install\fR
+.br
+* Execute matrix initialization, included python version
+.br
+* Execute build code from \fIinstall\fR
+.br
+* Execute build code from \fIbefore_script\fR
+.br
+* Execute build code from \fIscript\fR
+.br
+* TravisCi executes build from \fIbefore_cache\fR (only if cache is effective, not emulated)
+.br
+* TravisCi executes build code from \fIafter_success\fR (emulated) or \fIafter_failure\fR (not emulated)
+.br
+* TravisCi execute optional code \fIbefore_deploy\fR (only if deployment is effective, not emulated)
+.br
+* TravisCi execute optional code \fIdeploy\fR (not emulated)
+.br
+* TravisCi executes optional code \fIafter_deploy\fR (only if deployment is effective, not emulated)
+.br
+* TravisCi executes code \fIafter_script\fR (not emulated)
+.br
+* Wep from local .travis.conf (not in travis-ci.org)
+.RE
+.br
+Read furthermore info read
+.UR https://docs.travis-ci.com/user/job-lifecycle/
+travis job lifecycle
+.UE
+.ls
+.P
+Action is one of:
+.RS
+* help
+.br
+* emulate
+.br
+* force-lint
+.br
+* lint
+.br
+* force-test
+.br
+* test
+.br
+* chkconfig
+.br
+* parseyaml
+.br
+* show-color
+.br
+* show-log
+.br
+* summary
+.br
+* wep_db
+.RE
+.P
+\fBemulate\fR
+.RS
+Emulate TravisCi
+.br
+Start TravisCi emulator processing current .travis.yml file. This is the default action.
+.RE
+.P
+\fBforce-lint\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file and setting LINT_CHECK variabile to value "1" and TESTS to value "0".
+In this way the build of linting is always executed.
+.RE
+.P
+\fBforce-test\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file, setting TESTS to value "1" and LINT_CHECK variabile to value "0".
+In this way the build of test is always executed.
+.RE
+.P
+\fBlint\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file and execute just build with LINT_CHECK="1".
+In this way only the build of linting is executed.
+.RE
+.P
+\fBshow-color\fR
+.RS
+Show colored message meaning
+.RE
+.P
+\fBshow-log\fR
+.RS
+Show last log
+.RE
+.P
+\fBsummary\fR
+.RS
+Show last log summary
+.br
+.RE
+.P
+\fBtest\fR
+.RS
+Start TravisCi emulator processing current .travis.yml file and execute just build with TESTS="1".
+In this way only the build of test is executed.
+.RE
+.P
+\fBweb-db\fR
+.RS
+Remove virtual environments and postgres database created by previous travis emulator interupted
+.br
+.RE
+.SH TRAVIS PHASES
+Travis phase are:
+
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Description                                                     | name               |loc.|web|
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Initialize from .travis.conf                                    | travis.conf        | ✔  | ✗ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Matrix initialization (python version too)                      | matrix             | ✔  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Build job                                                       | build              | ✔  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Optional install packages `apt addons`                          | addons.apt.package |(1) | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Optional install packages `cache`                               |                    | ✔  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Set global values `env global`                                  | env.global         | ✔  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Execute code `before_install`                                   | before_install     | ✔  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Execute build code `install`                                    |                    | ✔  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Execute build code `before_script`                              |                    | ✔  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Execute build code `script`                                     |                    | ✔  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Execute build `before_cache` (only if cache is effective)       |                    | ✗  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Execute build code `after_success`                              |                    | ✔  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Or execute `after_failure`                                      |                    | ✗  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Optional code `before_deploy` (only if deployment is effective) |                    | ✗  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Optional code `deploy`                                          |                    | ✗  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Optional code `after_deploy` (only if deployment is effective)  |                    | ✗  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    | Execute code `after_script`                                     |                    | ✗  | ✔ |
+    +-----------------------------------------------------------------+--------------------+----+---+
+    (1) Emulator checks for installed package, it cannot install
+
+.SH OPTIONS
+.TP
+.BR \-A\ \-\-trace-after\ regex
+set trace after executed yaml statement;
+regex is regular expression to match one or more lines of .travis.yml file.
+If regex starts with :: (double colon) means a trace before specific phase (see TRAVIS PHASES).
+.TP
+.BR \-B\ \-\-debug
+debug mode: do not create log and execution can accept input from keyboard.
+This option is automatically enabled by -A --trace-after -T --trace switches
+.TP
+.BR \-C \-\-no\-cache
+do not use stored PYPI
+.TP
+.BR \-c \-\-conf\ file
+configuration file (def .travis.conf)
+.TP
+.BR \-D \--debug\-level\ number
+travis_debug_mode: may be 0,1,2,3,8 or 9 (def yaml dependents)
+.TP
+.BR \-E \-\-no\-savenv
+do not save virtual environment into ~/VME/... if does not exist
+.TP
+.BR \-F \-\-full
+run final travis with full features
+.TP
+.BR \-f \-\-force
+force to remove recent log (wep-db)
+.TP
+.BR \-k \-\-keep
+keep DB and virtual environment after tests
+.TP
+.BR \-L \-\-lint\-level\ number
+lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml
+.TP
+.BR \-l \-\-logdir\ dir
+log directory (def=/home/odoo/travis_log)
+.TP
+.BR \-m \-\-missing
+show missing line in report coverage
+.TP
+.BR \-n \-\-dry\-run
+do nothing (dry-run)
+.TP
+.BR \-O \-\-org git-org
+git organization, i.e. oca or zeroincombenze
+.TP
+.BR \-q \-\-quiet
+silent mode
+.TP
+.BR \-S \-\-syspkg\ false|true
+use python system packages (def yaml dependents)
+.TP
+.BR \-T \-\-trace\ regex
+set trace before executing yaml statement;
+regex is regular expression to match one or more lines of .travis.yml file.
+If regex starts with :: (double colon) means a trace before specific phase (see TRAVIS PHASES).
+.TP
+.BR \-v \-\-verbose
+verbose mode
+.TP
+.BR \-X \-\-translation\ 0|1
+enable translation test (def yaml dependents)
+.TP
+.BR \-Y \-\-yaml-file\ file
+file yaml to process (def .travis.yml)
+.TP
+.BR \-y \-\-pyver\ pyver
+test with specific python versions (comma separated)
+.TP
+.BR \-Z \-\-zero
+use local zero-tools
+.SH EXAMPLES
+travis
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)

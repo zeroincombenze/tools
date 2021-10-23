@@ -1,0 +1,33 @@
+External name in 12.0
+=====================
+
+
+res.users
+---------
+
+base.default_user: user template
+base.user_root: user with ID=1. Before 12.0 it is administrator user; from 12.0 it is odoobot
+base.user_admin: from 12.0 it is administratror user; before it does not exist
+
+Hint: before 12.0 create external name "base.user_admin" with the same res_id of "base.user_root"
+
+
+res.company
+-----------
+
+base.main_company: main company with ID=1
+
+
+res.partner
+-----------
+
+base.default_user_res_partner: partner of "base.default_user"
+base.partner_root: partner of "base.user_root"; before 12.0 it as partner of administrator user; from 12.0 it is the partner of odooobot
+base.user_admin_res_partner: partner of "base.user_admin"; from 12.0 it is partner of administartor; before 12.0 it does not exist
+base.admin_res_partner: same of base.user_admin_res_partner (partner of "base.user_admin")
+base.user_root_res_partner: same of base.partner_root (partner of "base.user_admin")
+base.main_partner: res.partner of "base.main_company"
+
+Hint: before 12.0 create external name "base.user_admin_res_partner" with the same res_id of "base.partner_root"
+Hint: before 12.0 create external name "base.admin_res_partner" with the same res_id of "base.partner_root"
+Hint: before 12.0 create external name "base.user_root_res_partner" with the same res_id of "base.partner_root"

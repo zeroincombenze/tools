@@ -1,0 +1,5 @@
+> cd /tmp
+> wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-precise-i386.deb
+> apt-get -y update
+> apt-get -y upgrade wkhtmltox-0.12.1_linux-precise-i386.deb
+> rm -f wkhtmltox-0.12.1_linux-precise-i386.deb

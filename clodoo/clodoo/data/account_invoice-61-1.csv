@@ -1,0 +1,2 @@
+id,origin,company_id,type,account_id,partner_id,date_invoice,journal_id,fiscal_position,currency_id
+z0bug.invoice_SO1701,SO${_last_year}/001,z0bug.mycompany,out_invoice,${account.account(code)::152100},base.res_partner_2,${_last_year}-11-30,${account.journal(type)::sale},${account.fiscal.position::Italia},base.EUR

@@ -1,0 +1,10 @@
+company_id,name,update_posted
+=${company_id},"Contante",True
+=${company_id},"Banca",True
+=${company_id},"Sezionale Note di Credito Fornitori",True
+=${company_id},"Sezionale Acquisti",True
+=${company_id},"Sezionali vari",True
+=${company_id},"Sezionale delle voci di apertura",True
+=${company_id},"Sezionale Vendite",True
+=${company_id},"Sezionale Note di Credito",True
+

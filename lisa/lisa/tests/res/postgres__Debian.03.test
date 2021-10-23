@@ -1,0 +1,3 @@
+postgresql (by apt-get)(psql --version)
+--postgresql-client-common (by apt-get)
+--postgresql-contrib (by apt-get)

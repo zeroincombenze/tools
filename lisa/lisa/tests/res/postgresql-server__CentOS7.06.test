@@ -1,0 +1,4 @@
+> yum -y update postgresql-server
+> yum -y install postgresql-client-common
+> yum -y install postgresql-contrib
+> systemctl restart postgresql

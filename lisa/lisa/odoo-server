@@ -1,0 +1,290 @@
+#!/bin/bash
+# odoo-server           This shell script takes care of starting and stopping
+#                       Odoo server V7.0
+#
+# chkconfig: 345 95 05
+# description: Odoo server
+#
+# pidfile: /var/run/odoo/odoo-server.pid
+# config: /etc/odoo-server.conf
+
+### BEGIN INIT INFO
+# Provides:             odoo-server
+# Required-Start:       postgresql
+# Required-Stop:        postgresql
+# Should-Start:         $network
+# Should-Stop:          $network
+# Default-Start:        [2] 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    Complete Business Application software
+# Description:          Odoo is a complete suite of business tools.
+### END INIT INFO
+# version: 0.1.9
+# Warning: this is a customized Odoo script, running both on Ubuntu and CentOS
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# This free software is released under GNU Affero GPL3
+
+# Update follow line to enable dry_run or set real executable script (DRY_RUN=0)
+DRY_RUN=0
+# Recognize Linux distribution (Ubuntu or CentOS)
+if [ -f /etc/centos-release ]; then
+    DIST="CentOS"
+elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+    DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+    if [ -z "$DIST" ]; then
+       DIST="Ubuntu"
+    fi
+else
+    DIST=""
+fi
+# Source function library (Only CentOS)
+if [ "$DIST" == "CentOS" ]; then
+    if [ -f /etc/init.d/functions ] ; then
+        . /etc/init.d/functions
+    elif [ -f /etc/rc.d/init.d/functions ] ; then
+        . /etc/rc.d/init.d/functions
+    else
+        exit 0
+    fi
+fi
+# Set path (Only Ubuntu)
+if [ "$DIST" == "Ubuntu" ]; then
+  PATH=/bin:/sbin:/usr/bin
+fi
+
+DAEMON=/opt/odoo/7.0/openerp-server
+if [ ! -x "$DAEMON" ]; then
+  DAEMON=/usr/bin/openerp-server
+fi
+NAME=odoo-server
+DESC="Odoo Server Daemon ($NAME)"
+# Specify the user name (Default: odoo).
+USER=odoo
+# Specify config file (Default: /etc/odoo/odoo-server.conf).
+if [ -f /etc/odoo/odoo-server.conf ]; then
+  CONFIGFILE="/etc/odoo/odoo-server.conf"
+elif [ -f /etc/odoo-server.conf ]; then
+  CONFIGFILE="/etc/odoo-server.conf"
+else
+  CONFIGFILE=""
+fi
+# pidfile
+PIDFILE=/var/run/odoo/odoo-server.pid
+LOCKFILE=/var/lock/subsys/${NAME}
+LOGFILE=/var/log/odoo/odoo-server.log
+# Additional options that are passed to the Daemon.
+DAEMON_OPTS="--pidfile=$PIDFILE --logfile=$LOGFILE"
+# check if the odoo-server conf file is present, then use it
+if [ -f $CONFIGFILE ]; then
+    DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
+fi
+[ -x $DAEMON ] || exit 0
+# [ -f $CONFIGFILE ] || exit 0
+
+RETVAL=0
+
+
+checkpid() {
+    [ -f $PIDFILE ] || return 1
+    pid=`cat $PIDFILE`
+    [ -d /proc/$pid ] && return 0
+    return 1
+}
+
+
+check_privsep_dir() {
+    # Create the PrivSep empty dir if necessary
+    local PIDDIR=$(dirname PIDFILE)
+    if [ ! -d $PIDDIR ]; then
+      mkdir $PIDDIR
+      chmod 0755 $PIDDIR
+      chown odoo:odoo $PIDDIR
+    fi
+}
+
+
+start_CentOS () {
+    # TODO: CentOS old code, could be removed?
+    if [ -d /etc/odoo/start.d ] ; then
+        echo -n $"Preparing $DESC: "
+        if [ $DRY_RUN -gt 0 ]; then
+          echo "> run-parts --exit-on-error /etc/odoo/start.d"
+        else
+          run-parts --exit-on-error /etc/odoo/start.d
+        fi
+        RETVAL=$?
+        echo
+        [ $RETVAL -ne 0 ] && return $RETVAL
+    fi
+
+    check_privsep_dir
+    if [ $DRY_RUN -gt 0 ]; then
+      echo "> daemon --user ${USER} --check ${NAME} \"/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &\""
+    else
+      daemon --user ${USER} --check ${NAME} \
+      "/usr/bin/setsid ${DAEMON} \
+      ${DAEMON_OPTS} &"
+  fi
+    RETVAL=$?
+    echo
+    if [ $DRY_RUN -eq 0 ]; then
+      [ $RETVAL -eq 0 ] && touch $LOCKFILE
+    fi
+    return $RETVAL
+}
+
+
+start_Ubuntu () {
+    check_privsep_dir
+    if [ $DRY_RUN -gt 0 ]; then
+      echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
+    else
+      start-stop-daemon --start --quiet --pidfile ${PIDFILE} \
+            --chuid ${USER} --background --make-pidfile \
+            --exec ${DAEMON} -- ${DAEMON_OPTS}
+    fi
+    RETVAL=$?
+    echo "${NAME}."
+    return $RETVAL
+}
+
+
+start() {
+    if [ "$1" != "mute" ]; then
+        echo -n "Starting ${DESC}: "
+    fi
+    if [ "$DIST" == "CentOS" ]; then
+        start_CentOS
+    elif [ "$DIST" == "Ubuntu" ]; then
+        start_Ubuntu
+    else
+        echo "Unrecognized Linux distribution"
+        exit 1
+    fi
+    RETVAL=$?
+    return $RETVAL
+}
+
+
+stop_CentOS () {
+  if [ $DRY_RUN -gt 0 ]; then
+    echo "kill -TERM `cat $PIDFILE` > /dev/null 2>&1"
+  else
+      kill -TERM `cat $PIDFILE` > /dev/null 2>&1
+    fi
+  RETVAL=$?
+    if [ $RETVAL -eq 0 ] ; then
+      if [ $DRY_RUN -eq 0 ]; then
+          rm -f $LOCKFILE
+         fi
+        echo_success
+        echo
+    else
+        echo_failure
+        echo
+    fi
+    if [ -d /etc/odoo/stop.d ] ; then
+        echo -n $"Clearing $DESC: "
+        run-parts /etc/odoo/stop.d
+        echo
+    fi
+    return $RETVAL
+}
+
+
+stop_Ubuntu () {
+  if [ $DRY_RUN -gt 0 ]; then
+    echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo"
+  else
+      start-stop-daemon --stop --quiet --pidfile ${PIDFILE} \
+            --oknodo
+    fi
+    RETVAL=$?
+    echo "${NAME}."
+    return $RETVAL
+}
+
+
+stop() {
+    if [ "$1" != "mute" ]; then
+        echo -n "Stopping ${DESC}: "
+    fi
+    if [ "$DIST" == "CentOS" ]; then
+        stop_CentOS
+    elif [ "$DIST" == "Ubuntu" ]; then
+        stop_Ubuntu
+    else
+        echo "Unrecognized Linux distribution"
+        exit 1
+    fi
+    RETVAL=$?
+    return $RETVAL
+}
+
+
+restart() {
+    echo -n "Restarting ${DESC}: "
+    stop "mute"
+    sleep 3
+    start "mute"
+    RETVAL=$?
+}
+
+condrestart() {
+    [ -e $LOCKFILE ] && restart || :
+}
+
+status() {
+    if [ -f $PIDFILE ] ; then
+        checkpid `cat $PIDFILE`
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ] ; then
+            echo  $"$NAME is running..."
+        else
+            echo  $"$NAME is stopped"
+        fi
+    else
+        echo  $"$NAME is stopped"
+    fi
+    return $RETVAL
+}
+
+case "${1}" in
+    start)
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    restart|reload|force-reload)
+        restart
+        ;;
+
+    condrestart)
+        condrestart
+        ;;
+
+    status)
+        status
+        ;;
+
+    probe)
+        exit 0
+        ;;
+
+    *)
+        if [ "$DIST" == "CentOS" ]; then
+          echo $"Usage: ${NAME} {start|stop|status|restart|condrestart|reload}"
+        elif [ "$DIST" == "Ubuntu" ]; then
+           echo "Usage: ${NAME} {start|stop|status|restart|force-reload}" >&2
+        else
+          echo "Unrecognized Linux distribution"
+        fi
+        exit 1
+        ;;
+esac
+
+exit 0

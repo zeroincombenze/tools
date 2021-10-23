@@ -1,10 +1,6 @@
 
 =======================
-<<<<<<< HEAD
-travis_emulator 1.0.2.99
-=======
 travis_emulator 1.0.2.1
->>>>>>> stash
 =======================
 
 
@@ -334,12 +330,6 @@ Troubleshooting
 History
 -------
 
-<<<<<<< HEAD
-1.0.2.99 (2021-09-06)
-~~~~~~~~~~~~~~~~~~~~
-
-[IMP] travis: switch -y forces python version
-=======
 1.0.2.1 (2021-09-25)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -349,7 +339,6 @@ History
 ~~~~~~~~~~~~~~~~~~
 
 [IMP] travis: stable version
->>>>>>> stash
 
 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
@@ -410,14 +399,6 @@ History
 
 [FIX] travisrc: set_executable
 
-<<<<<<< HEAD
-1.0.0.10 (2021-03-15)
-~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] travisrc: set_executable
-
-=======
->>>>>>> stash
 
 
 |
@@ -494,15 +475,9 @@ Last Update / Ultimo aggiornamento: 2021-08-31
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
-<<<<<<< HEAD
-Last Update / Ultimo aggiornamento: 2021-09-02
-Last Update / Ultimo aggiornamento: 2021-09-04
-Last Update / Ultimo aggiornamento: 2021-09-07
-=======
 Last Update / Ultimo aggiornamento: 2021-09-25
 Last Update / Ultimo aggiornamento: 2021-09-26
 Last Update / Ultimo aggiornamento: 2021-09-27
->>>>>>> stash
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -536,11 +511,7 @@ Last Update / Ultimo aggiornamento: 2021-09-27
 
 This module is part of tools project.
 
-<<<<<<< HEAD
-Last Update / Ultimo aggiornamento: 2021-09-07
-=======
 Last Update / Ultimo aggiornamento: 2021-09-29
->>>>>>> stash
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
