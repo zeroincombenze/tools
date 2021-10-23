@@ -1,5 +1,0 @@
-> service ssh stop
-> apt-get -y remove openssh-server
-# apt-get -y remove openssh-client
-# iptables -D INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
-> apt-get autoremove

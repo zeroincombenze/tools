@@ -1,7 +1,0 @@
-openssh-server (by yum)
-- TCP port 22
---openssh-clients (by yum)(ssh -V)
---mod_ssl (by yum)
---mod_proxy_html (by yum)
---iptables-services (by yum)
---bind-utils (by yum)

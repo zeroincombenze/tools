@@ -1,3 +1,0 @@
-name,company_id,location_id
-"La Tua Azienda / Uscita",z0bug.mycompany,=${stock.warehouse::WH}
-"La Tua Azienda / Stock",z0bug.mycompany,=${stock.warehouse::WH}

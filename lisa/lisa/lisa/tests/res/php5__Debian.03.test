@@ -1,5 +1,0 @@
-php5 (by apt-get)(php5 -v)
---php5-mysql (by apt-get)
---php5-common (by apt-get)
---php5-xml (by apt-get)
---php5-cli (by apt-get)

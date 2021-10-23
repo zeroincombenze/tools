@@ -1,3 +1,0 @@
-openssh-server (by apt-get)
-- TCP port 22
---openssh-client (by apt-get)(ssh -V)

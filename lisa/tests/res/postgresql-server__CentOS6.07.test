@@ -1,4 +1,0 @@
-> service postgresql stop
-> yum -y remove postgresql-server
-# yum -y remove postgresql-client-common
-# yum -y remove postgresql-contrib

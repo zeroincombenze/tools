@@ -1,3 +1,0 @@
-LAMP=(LAMP epel-release yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by lisa)
-  requirements=gcc,pip,iptables
-  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/LAMP.lish

@@ -1,4 +1,0 @@
-{{Template:Language_Toolbar}}
-
-Empty Example
-

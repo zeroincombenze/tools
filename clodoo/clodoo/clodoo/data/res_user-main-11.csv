@@ -1,2 +1,0 @@
-id,name,login,signature,tz,lang
-base.user_root,Administrator,${zeroadm_login},"Amministratore di zeroincombenze®","Europe/Rome",${lang}

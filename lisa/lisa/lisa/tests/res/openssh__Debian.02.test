@@ -1,3 +1,0 @@
-openssh=openssh-server (install by apt-get)
-  service=ssh
-  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/lisa.lish

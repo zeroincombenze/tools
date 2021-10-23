@@ -1,2 +1,0 @@
-> pip install 'pip' --upgrade
-> pip install 'wheel' --upgrade --no-warn-conflicts --disable-pip-version-check

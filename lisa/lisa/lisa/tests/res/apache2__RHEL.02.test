@@ -1,5 +1,0 @@
-apache2=httpd (install by yum)
-  service=httpd
-  command=apachectl
-  get_ver=apachectl -v
-  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/lisa.lish

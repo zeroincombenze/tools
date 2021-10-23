@@ -1,5 +1,0 @@
-mysql=mysql-server (install by yum)
-  service=mysqld
-  command=mysql
-  get_ver=mysql --version
-  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/lisa.lish

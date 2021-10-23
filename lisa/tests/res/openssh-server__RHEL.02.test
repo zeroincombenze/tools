@@ -1,3 +1,0 @@
-openssh-server (install by yum)
-  service=sshd
-  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/lisa.lish

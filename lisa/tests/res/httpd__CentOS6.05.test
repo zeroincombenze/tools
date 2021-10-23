@@ -1,5 +1,0 @@
-> yum -y install httpd
-> service httpd start
-> chkconfig httpd on
-> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
-> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
