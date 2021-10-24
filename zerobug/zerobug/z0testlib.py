@@ -140,13 +140,13 @@ class Macro(Template):
 
     def substitute(self, **kwargs):
         nk = {}
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             nk[k + '}'] = v
         return super(Macro, self).substitute(**nk)
 
     def safe_substitute(self, **kwargs):
         nk = {}
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             nk[k + '}'] = v
         return super(Macro, self).safe_substitute(**nk)
 
@@ -851,6 +851,7 @@ class Z0test(object):
         i = 1
         valid = False
         auto_this = False
+        this_fqn = False
         while not valid and i < len(inspect.stack()):
             this_fqn = os.path.abspath(inspect.stack()[i][1])
             this = os0.nakedname(os.path.basename(this_fqn))
@@ -1048,8 +1049,8 @@ class Z0test(object):
         testctr = 0
         if TestCls:
             T = TestCls(self)
-        if TestCls and hasattr(TestCls, 'setup'):
-            getattr(T, 'setup')(ctx)
+            if hasattr(TestCls, 'setup'):
+                getattr(T, 'setup')(ctx)
         for testname in test_list:
             self.dbgmsg(ctx,
                         '- min=%d, max=%d, ctr=%d, -0=%s, Cover=%s' %
@@ -1071,6 +1072,8 @@ class Z0test(object):
             elif TestCls and hasattr(TestCls, testname):
                 getattr(T, testname)(ctx)
             elif os0.nakedname(basetn) != ctx['this']:
+                import pdb
+                pdb.set_trace()
                 mime = magic.Magic(
                     mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
@@ -1157,7 +1160,6 @@ class Z0test(object):
                     mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
-                # if basetn.endswith('.py') or basetn.endswith('.pyc'):
                 if mime == 'text/x-python':
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
                     if os.environ.get('TRAVIS_PDB') == 'true':
@@ -1230,10 +1232,10 @@ class Z0test(object):
                                   echo=ctx.get('opt_echo', False))
             sts = self._exec_all_tests(test_list, ctx, Test)
         return sts
-
-    def main_file(self, ctx=None, Test=None, UT1=None, UT=None):
-        print('Deprecatede method: use main(..)')
-        self.main(ctx=ctx, Test=Test, UT1=UT1, UT=UT)
+    #
+    # def main_file(self, ctx=None, Test=None, UT1=None, UT=None):
+    #     print('Deprecatede method: use main(..)')
+    #     self.main(ctx=ctx, Test=Test, UT1=UT1, UT=UT)
 
     def main(self, ctx=None, Test=None, UT1=None, UT=None):
         """Default main program for test execution

@@ -10,7 +10,7 @@ import os
 import os.path
 import sys
 import shutil
-from zerobug import z0testlib
+from zerobug import z0test
 
 
 MODULE_ID = 'python_plus'
@@ -173,10 +173,8 @@ class Test():
         return sts
 
 
+# Run main if executed as a script
 if __name__ == "__main__":
-    Z0BUG = z0testlib.Z0test()
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(
-            sys.argv[1:],
-            version=version()),
-        Test))
+    ctx = z0test.parseoptest(sys.argv[1:],
+                             version=version())
+    exit(z0test.main(ctx))

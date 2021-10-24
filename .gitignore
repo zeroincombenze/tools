@@ -1,5 +1,5 @@
 # sphinx build directories
-_build/
+/_build/
 
 # dotfiles
 .*
@@ -8,7 +8,7 @@ _build/
 !.mailmap
 # compiled python files__pycache__/
 *.py[co]
-__pycache__/
+/__pycache__/
 
 # emacs backup files & Temporay files
 *~

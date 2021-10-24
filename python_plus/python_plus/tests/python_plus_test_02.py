@@ -6,10 +6,8 @@
 """
 from __future__ import print_function, unicode_literals
 
-# import os
-# import os.path
 import sys
-from zerobug import z0testlib
+from zerobug import z0test
 # from python_plus import isbytestr, qsplit
 
 MODULE_ID = 'python_plus'
@@ -25,8 +23,6 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    Z0BUG = z0testlib.Z0test()
-    ctx = Z0BUG.parseoptest(sys.argv[1:],
-                        version=version())
-    UT_LIST = ["__doctest_${rundir}/egg-info/python_plus.rst"]
-    exit(Z0BUG.main(ctx, UT=UT_LIST))
+    ctx = z0test.parseoptest(sys.argv[1:],
+                             version=version())
+    exit(z0test.main(ctx))

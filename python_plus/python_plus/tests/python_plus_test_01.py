@@ -12,7 +12,7 @@ from python_plus import (text_type, bytestr_type,
                          unicodes, bstrings,
                          _u, _b,
                          qsplit)
-
+from zerobug import z0test
 
 MODULE_ID = 'python_plus'
 TEST_FAILED = 1
@@ -206,9 +206,9 @@ class Test():
                                   res)
         return sts
 
-# if __name__ == "__main__":
-#     exit(Z0BUG.main_local(
-#         Z0BUG.parseoptest(
-#             sys.argv[1:],
-#             version=version()),
-#         Test))
+
+# Run main if executed as a script
+if __name__ == "__main__":
+    ctx = z0test.parseoptest(sys.argv[1:],
+                             version=version())
+    exit(z0test.main(ctx))
