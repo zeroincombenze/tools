@@ -1,18 +1,45 @@
-# Byte-compiled / optimized / DLL files
+# sphinx build directories
+_build/
+
+# dotfiles
+.*
+!.gitignore
+!.github
+!.mailmap
+# compiled python files__pycache__/
+*.py[co]
 __pycache__/
-*.py[cod]
 
-# C extensions
-*.so
-
-# Temporay files
+# emacs backup files & Temporay files
+*~
 *.log
 *.bak
 *.out
 *.conf
-*~
-build/
-dist/
+# hg stuff
+*.orig
+status
+# odoo filestore
+odoo/filestore
+
+# generated for windows installer?
+install/win32/*.bat
+install/win32/meta.py# needed only when building for win32
+setup/win32/static/less/
+setup/win32/static/wkhtmltopdf/
+setup/win32/static/postgresql*.exe
+
+# various virtualenv
+venv_odoo/
+/bin/
+/build/
+/dist/
+/include/
+/lib/
+/man/
+/share/
+/src/
+OCB/
 conf/
 cover/
 **/.coverage

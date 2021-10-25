@@ -123,7 +123,7 @@ parseoptest() {
       exit 0
     elif [ $opt_help -gt 0 ]; then
       print_help "Regression test on $module_id"\
-      "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Zerobug\nAuthor: antoniomaria.vigliotti@gmail.com"
+      "(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io\nAuthor: antoniomaria.vigliotti@gmail.com"
       exit 0
     fi
     if [ ${opt_echo:-1} -eq 0 ]; then
@@ -168,7 +168,7 @@ parseoptest() {
         logfn="$HOME/$THIS.log"
       fi
     fi
-    logfn=$($READLINK -m $logfn)
+    logfn=$(readlink -m $logfn)
     if [ ${Z0BUG_run_autotest:-0} -ne 1 ]; then
       set_tlog_file "$logfn" "$LNEW" "$LECHO"
     fi

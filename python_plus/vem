@@ -1050,7 +1050,8 @@ do_venv_create() {
   if [[ -d ${VENV}~ ]]; then
       empty=1
       for f in $(ls ${VENV}~); do
-          [[ ! -e $VENV/$b ]] && run_traced "mv $f $VENV/"
+          b=$(basename $f)
+          [[ ! -e $VENV/$b ]] && run_traced "mv ${VENV}~/$f $VENV/"
           empty=0
       done
       [[ $empty -ne 0 ]] && run_traced "rm -fR ${VENV}~"

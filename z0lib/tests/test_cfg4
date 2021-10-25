@@ -62,8 +62,7 @@ store_cfg_param_value() {
 
 test_01() {
     for tid in 0 1 2 3; do
-      eval $(init_cfg $tid)
-      eval $(active_cfg $tid)
+      CFG_init $tid
       FCONF="$TESTDIR/test.conf"
       if [[ ${opt_dry_run:-0} -eq 0 ]]; then
         [[ -f $FCONF ]] && rm -f $FCONF
@@ -104,12 +103,6 @@ sts=$?
 UT1_LIST=
 UT_LIST=
 [[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
-# Follow code must be executed at main level due bash limitations
-#for tid in 0 1 2 3; do
-#  eval $(init_cfg $tid)
-#  eval $(active_cfg $tid)
-#done
-# /End Included Block/
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?
 [[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown

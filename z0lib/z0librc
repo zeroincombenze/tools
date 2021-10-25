@@ -431,7 +431,7 @@ export -f print_help
 #    "echo" means wlog echoes message onto console when write log
 set_tlog_file() {
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
-    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+    # READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local p=$(dirname "$1")
     local f=$(basename "$1")
     if [ "$p" == "~" ]; then p=$HOME; fi

@@ -16,6 +16,7 @@ import argparse
 import inspect
 import glob
 from os0 import os0
+import magic
 
 
 __version__ = "1.0.3"
@@ -1072,9 +1073,12 @@ class Z0test(object):
             elif TestCls and hasattr(TestCls, testname):
                 getattr(T, testname)(ctx)
             elif os0.nakedname(basetn) != ctx['this']:
+                mime = magic.Magic(
+                    mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
-                if basetn.endswith('.py'):
+                # if basetn.endswith('.py'):
+                if mime == 'text/x-python':
                     if ctx.get('python3', False):
                         test_w_args = ['python3'] + [testname] + opt4childs
                     else:
@@ -1157,9 +1161,12 @@ class Z0test(object):
                     self.dbgmsg(ctx, ">>> %s()" % testname)
                 sts = getattr(T, testname)(ctx)
             elif os0.nakedname(basetn) != ctx['this']:
+                mime = magic.Magic(
+                    mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
-                if basetn.endswith('.py') or basetn.endswith('.pyc'):
+                # if basetn.endswith('.py') or basetn.endswith('.pyc'):
+                if mime == 'text/x-python':
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
                     if os.environ.get('TRAVIS_PDB') == 'true':
                         if ctx.get('python3', False):
@@ -1274,13 +1281,17 @@ class Z0test(object):
                 test_files = os.path.abspath(
                     os.path.join(self.testdir, pattern))
                 for fn in sorted(glob.glob(test_files)):
-                    if len(fn) - fn.rfind('.') <= 4:
-                        if fn.endswith('.py'):
-                            test_list.append(fn)
-                        elif os.access(fn, os.X_OK) and fn.endswith('.sh'):
-                            test_list.append(fn)
-                    elif os.access(fn, os.X_OK) and os.name == 'posix':
+                    mime = magic.Magic(
+                        mime=True).from_file(os.path.realpath(testname))
+                    # if len(fn) - fn.rfind('.') <= 4:
+                    if mime in ('text/x-python', 'text/x-shellscript'):
                         test_list.append(fn)
+                    #     if fn.endswith('.py'):
+                    #         test_list.append(fn)
+                    #     elif os.access(fn, os.X_OK) and fn.endswith('.sh'):
+                    #         test_list.append(fn)
+                    # elif os.access(fn, os.X_OK) and os.name == 'posix':
+                    #     test_list.append(fn)
         if len(test_list) == 0 and Test is not None:
             self.dbgmsg(ctx, '- len(test_list) == 0 ')
             test_num = 0
