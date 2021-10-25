@@ -4,13 +4,10 @@
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
-from __future__ import print_function,unicode_literals
-# from past.builtins import basestring
+from __future__ import print_function, unicode_literals
 
-# import os
 import os.path
 import sys
-# from zerobug import z0testlib
 from zerobug import z0test
 
 
@@ -27,7 +24,6 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    # z0test = z0testlib.Z0test()
     ctx = z0test.parseoptest(sys.argv[1:],
                             version=version())
     z0lib_file = ''

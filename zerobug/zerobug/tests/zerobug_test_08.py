@@ -6,12 +6,9 @@
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 from __future__ import print_function, unicode_literals
-# from past.builtins import basestring
-
 import os
 import sys
-from zerobug import z0testlib
-from zerobug.z0testlib import Z0testOdoo
+from zerobug import z0test, z0testodoo
 
 
 __version__ = "1.0.3"
@@ -45,7 +42,7 @@ class RegressionTest():
                            )
             RES = False
             if not z0ctx['dry_run']:
-                self.root = Z0testOdoo().build_odoo_env(z0ctx, ver)
+                self.root = z0testodoo.build_odoo_env(z0ctx, ver)
             for path in OS_TREE:
                 if not z0ctx['dry_run']:
                     path = os.path.join(self.root, path)
@@ -113,7 +110,7 @@ class RegressionTest():
                 hy = 'tree'
             RES = False
             if not z0ctx['dry_run']:
-                self.root = Z0testOdoo().build_odoo_env(z0ctx, ver, hierarchy=hy)
+                self.root = z0testodoo.build_odoo_env(z0ctx, ver, hierarchy=hy)
             for path in OS_TREE:
                 if not z0ctx['dry_run']:
                     path = os.path.join(self.root, path)
@@ -172,7 +169,7 @@ class RegressionTest():
             reponame = 'OCB'
             branch = '10.0'
             odoo_path = os.path.join(self.root, branch)
-            Z0testOdoo().git_clone(remote, reponame, branch, odoo_path)
+            z0testodoo.git_clone(remote, reponame, branch, odoo_path)
         for path in self.os_tree:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
@@ -205,9 +202,8 @@ class RegressionTest():
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    Z0BUG = z0testlib.Z0test()
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(
+    exit(z0test.main_local(
+        z0test.parseoptest(
             sys.argv[1:],
             version=version()),
         RegressionTest))

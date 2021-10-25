@@ -25,7 +25,7 @@ def version():
     return __version__
 
 
-class Test():
+class RegressionTest():
 
     def __init__(self, zarlib):
         self.Z = zarlib
@@ -209,6 +209,8 @@ class Test():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    ctx = z0test.parseoptest(sys.argv[1:],
-                             version=version())
-    exit(z0test.main(ctx))
+    exit(z0test.main_local(
+        z0test.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        RegressionTest))

@@ -5,11 +5,9 @@
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
-from __future__ import print_function,unicode_literals
-# from past.builtins import basestring
-
+from __future__ import print_function, unicode_literals
 import sys
-from zerobug import z0testlib
+from zerobug import z0test
 
 
 __version__ = "1.0.3"
@@ -40,9 +38,8 @@ class RegressionTest():
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    Z0BUG = z0testlib.Z0test()
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(
+    exit(z0test.main_local(
+        z0test.parseoptest(
             sys.argv[1:],
             version=version()),
         RegressionTest))

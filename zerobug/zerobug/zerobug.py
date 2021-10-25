@@ -19,7 +19,6 @@ def version():
 def main(cli_args=None):
     if not cli_args:
         cli_args = sys.argv[1:]
-    # Z0BUG = z0testlib.Z0test()
     return z0test.main(z0test.parseoptest(cli_args, version=version()))
 
 

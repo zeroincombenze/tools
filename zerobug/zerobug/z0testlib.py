@@ -58,7 +58,9 @@ LX_OPT_CFG_S = ('opt_echo',     'logfn',
                 'opt_verbose',  'opt_debug',
                 'opt_noctr',    'run4cover',
                 'max_test',     'min_test',
-                'opt_pattern')
+                'opt_pattern',  'no_run_on_top',
+                'qsanity',      'esanity',
+                'python2',      'python3')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_B = ('qsanity', 'esanity', 'opt_debug', 'opt_tjlib', 'opt_oelib')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -69,7 +71,8 @@ LX_SB = ('dry_run',)
 #
 DEFDCT = {'run4cover': False,
           'opt_debug': False,
-          'opt_new': False}
+          'opt_new': False
+          }
 #
 LX_OPT_ARGS = {'opt_debug': '-B',
                'opt_echo': '-e',
@@ -79,11 +82,12 @@ LX_OPT_ARGS = {'opt_debug': '-B',
                'opt_new': '-N',
                'opt_oelib': '-O',
                'opt_pattern': '-p',
+               'run_on_top': '-R',
                'min_test': '-r',
                'opt_verbose': '-v',
                'max_test': '-z',
                'opt_noctr': '-0',
-               'run4cover': '-1',
+               'run4cover': '-C',
                'python2': '-2',
                'python3': '-3'}
 
@@ -586,14 +590,16 @@ class Z0test(object):
         else:
             self.autorun = True
         self.module_id = id
-        self.pattern = [self.module_id + '_test*', 'test_*']
+        if this == 'zerobug':
+            self.pattern = [self.module_id + '_test*', 'test_*']
+        else:
+            self.pattern = this
         # If auto regression test is executing
         self.def_tlog_fn = os.path.join(self.testdir,
                                         self.module_id + "_test.log")
         self.ctr_list = []
         if self.autorun:
-            self.ctx = self.parseoptest(argv,
-                                        version=version)
+            self.ctx = self.parseoptest(argv, version=version)
             sys.exit(self.main())
 
     def _create_parser(self, version, ctx):
@@ -610,6 +616,7 @@ class Z0test(object):
         -n --dry-run     count and display # unit tests
         -O               load odoorc library (only in bash scripts)
         -q --quiet       run tests without output (quiet mode)
+        -R --run-inner   run test inner mode (no final result)
         -r --restart     restart count next to number
         -s --start       count 1st test next to number (deprecated, use -r)
         -V --version     show version
@@ -680,6 +687,10 @@ class Z0test(object):
                             action="store_false",
                             dest="opt_echo_q",
                             default=True)
+        parser.add_argument("-R", "--run-inner",
+                            help="inner mode w/o final messages",
+                            action="store_true",
+                            dest="no_run_on_top")
         parser.add_argument("-r", "--restart",
                             help="set to counted tests, 1st one next to this",
                             dest="min_test",
@@ -739,9 +750,8 @@ class Z0test(object):
                 ctx.get('min_test', None) is None) and \
                 ('max_test' not in ctx or
                  ctx.get('max_test', None) is None):
-            ctx['run_on_top'] = True
-            # del ctx['min_test']
-            # del ctx['max_test']
+            if 'run_on_top' not in ctx:
+                ctx['run_on_top'] = True
             ctx['min_test'] = 0
             ctx['max_test'] = 0
         else:
@@ -835,6 +845,8 @@ class Z0test(object):
                         ctx[p] = int(getattr(opt_obj, 'min_test2'))
                     else:
                         ctx[p] = None
+                elif p == 'no_run_on_top' and hasattr(opt_obj, p):
+                        ctx['run_on_top'] = not getattr(opt_obj, p)
                 elif hasattr(opt_obj, p):
                     ctx[p] = getattr(opt_obj, p)
             for p in LX_OPT_CFG_B:
@@ -848,26 +860,27 @@ class Z0test(object):
         return ctx
 
     def _get_this_fqn(self):
-        i = 1
-        valid = False
-        auto_this = False
-        this_fqn = False
-        while not valid and i < len(inspect.stack()):
-            this_fqn = os.path.abspath(inspect.stack()[i][1])
-            this = os0.nakedname(os.path.basename(this_fqn))
-            if this[0] == '<' and this[-1] == '>':
-                i += 1
-            elif this in ("__init__", "pdb", "cmd", "z0testlib"):
-                i += 1
-                if this == "__init__":
-                    auto_this = this_fqn
-            else:
-                valid = True
-                if this in ('pkgutil', 'runpy'):
-                    this_fqn = os.path.dirname(auto_this)
-                    id = 'test_%s.py' % os.path.basename(this_fqn)
-                    this_fqn = os.path.join(this_fqn, id)
-        return this_fqn
+        # i = 1
+        # valid = False
+        # auto_this = False
+        # this_fqn = False
+        # while not valid and i < len(inspect.stack()):
+        #     this_fqn = os.path.abspath(inspect.stack()[i][1])
+        #     this = os0.nakedname(os.path.basename(this_fqn))
+        #     if this[0] == '<' and this[-1] == '>':
+        #         i += 1
+        #     elif this in ("__init__", "pdb", "cmd", "z0testlib"):
+        #         i += 1
+        #         if this == "__init__":
+        #             auto_this = this_fqn
+        #     else:
+        #         valid = True
+        #         if this in ('pkgutil', 'runpy'):
+        #             this_fqn = os.path.dirname(auto_this)
+        #             id = 'test_%s.py' % os.path.basename(this_fqn)
+        #             this_fqn = os.path.join(this_fqn, id)
+        # return this_fqn
+        return os.path.abspath(sys.argv[0])
 
     def parseoptest(self, arguments, version=None, tlog=None):
         ctx = {}
@@ -905,7 +918,7 @@ class Z0test(object):
         return DEFDCT
 
     def _inherit_opts(self, ctx):
-        args = []
+        args = ['-R']
         for p in LX_OPT_CFG_S:
             if p == 'opt_echo':
                 if p in ctx and ctx[p]:
@@ -919,7 +932,7 @@ class Z0test(object):
                 if p in ctx and ctx[p]:
                     args.append(LX_OPT_ARGS[p] + ctx[p])
             elif p == 'run4cover':
-                if p in ctx and ctx[p]:
+                if p in ctx and not ctx[p]:
                     args.append(LX_OPT_ARGS[p])
             elif p == 'min_test':
                 args.append(LX_OPT_ARGS[p] + str(ctx['ctr']))
@@ -968,6 +981,22 @@ class Z0test(object):
         for p in ('dry_run', 'min_test', 'ctr'):
             ctx = self._restore_opt(ctx, p)
         return ctx
+
+    def set_shabang(self, ctx, testfile):
+        if (not ctx.get('python3', False) and
+                not ctx.get('python2', False) and
+                os.path.isfile(testfile)):
+            do_rewrite = False
+            with open(testfile, 'rb') as fd:
+                source = fd.read().decode('utf-8')
+                if source.startswith('#!'):
+                    do_rewrite = True
+                    new_source = '#!%s\n' % sys.executable
+                    for ln in source.split('\n')[1:]:
+                        new_source += '%s\n' % ln
+            if do_rewrite:
+                with open(testfile, 'wb') as fd:
+                    fd.write(new_source.encode('utf-8'))
 
     def test_version(self, ctx, testname):
         """testname format is '__version_T_VVVVFILE' where:
@@ -1043,7 +1072,7 @@ class Z0test(object):
             self.dbgmsg(ctx, '>>> exec_tests_4_count(autotest)')
         else:
             self.dbgmsg(ctx, '>>> exec_tests_4_count(%s)' % test_list)
-        opt4childs = ['-n']
+        opt4childs = ['-n', '-R']
         ctx = self._ready_opts(ctx)
         ctx = self._save_options(ctx)
         testctr = 0
@@ -1063,7 +1092,6 @@ class Z0test(object):
             basetn = os.path.basename(testname)
             ctx['ctr'] = 0
             if testname.startswith('__test'):
-                # ctx['dry_run'] = True
                 ctx['ctr'] = int(testname[7:9])
             elif testname.startswith('__version'):
                 self.test_version(ctx, testname)
@@ -1072,13 +1100,10 @@ class Z0test(object):
             elif TestCls and hasattr(TestCls, testname):
                 getattr(T, testname)(ctx)
             elif os0.nakedname(basetn) != ctx['this']:
-                import pdb
-                pdb.set_trace()
                 mime = magic.Magic(
                     mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
-                # if basetn.endswith('.py'):
                 if mime == 'text/x-python':
                     if ctx.get('python3', False):
                         test_w_args = ['python3'] + [testname] + opt4childs
@@ -1174,6 +1199,7 @@ class Z0test(object):
                                            ] + opt4childs
                     elif (ctx.get('run4cover', False) and
                             not ctx.get('dry_run', False)):
+                        self.set_shabang(ctx, testname)
                         test_w_args = [
                             'coverage',
                             'run',
@@ -1262,11 +1288,6 @@ class Z0test(object):
         if (ctx['this'] != 'test_zerobug' and
                 ctx.get('run_on_top', False) and
                 not ctx.get('_run_autotest', False)):
-            # sts = self.sanity_check('-q')
-            sts = 0  #debug
-            if sts == TEST_FAILED:                         # pragma: no cover
-                print("Invalid test library!")
-                exit(sts)
             if (ctx.get('run4cover', False) and
                     not ctx.get('dry_run', False)):
                 try:
@@ -1291,7 +1312,6 @@ class Z0test(object):
                 for fn in sorted(glob.glob(test_files)):
                     mime = magic.Magic(
                         mime=True).from_file(os.path.realpath(fn))
-                    # if len(fn) - fn.rfind('.') <= 4:
                     if mime in ('text/x-python', 'text/x-shellscript'):
                         test_list.append(fn)
         if len(test_list) == 0 and Test is not None:
