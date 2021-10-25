@@ -8,3 +8,5 @@ Code documentation
 
 .. automodule:: zerobug._travis
 
+.. automodule:: zerobug.z0testlib
+
