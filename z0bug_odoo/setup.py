@@ -31,10 +31,12 @@ Make avaiable test functions indipendent by Odoo version.
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
+      install_requires=['zerobug'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.info', 'data/*', 'travis/*'],
+          # '': ['scripts/setup.info', 'data/*', 'travis/*'],
+          '': ['scripts/setup.info', 'data/*'],
       },
       entry_points={
           'console_scripts': [

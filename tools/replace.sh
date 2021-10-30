@@ -9,4 +9,4 @@ for item in egg-info docs tests templates license_text; do
 done
 [[ -f ~/tools/install_foreign.sh ]] && rm -f ~/tools/install_foreign.sh
 cd ~/tools
-./install_tools.sh -dfgq
+# ./install_tools.sh -dfgq

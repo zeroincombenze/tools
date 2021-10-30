@@ -1,3 +1,15 @@
+z0lib: 1.0.3.1 (2021-10-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[REF] CFG_set
+
+
+zerobug: 1.0.3.2 (2021-10-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] git_clone: use relative path
+
+
 z0bug_odoo: 1.0.5.4 (2021-10-18)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -166,6 +178,7 @@ clodoo: 0.3.35 (2021-09-23)
 * [FIX] python 3
 
 
+
 zerobug: 1.0.2.1 (2021-09-08)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -182,87 +195,6 @@ wok_code: 1.0.2h (2021-08-31)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] gen_readme.py: search for authors in current README
-
-
-wok_code: 1.0.2g (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] cvt_csv_coa.py: new command to manage Odoo CoA
-* [IMP] gen_readme.py: search for authors in current README
-
-
-odoo_score: 1.0.2.1 (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] odoo_shell.py: minor updates
-
-
-clodoo: 0.3.33.4 (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo.py: rcp login
-
-
-z0bug_odoo: 1.0.5 (2021-08-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-travis_emulator: 1.0.2 (2021-08-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: stable version
-
-
-zerobug: 1.0.1.4 (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis_install_env: echo indented command
-* [IMP] travis_install_env: new travis command testdeps
-
-
-z0bug_odoo: 1.0.4.3 (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis_run_test: new command testdeps
-
-
-wok_code: 1.0.2f (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] please: action docs shows recent history
-* [IMP] gen_readme.py: show recent history
-* [FIX] topep8: parse .travis.yml
-
-
-travis_emulator: 1.0.1.8 (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: color change
-* [IMP] travis: new action testdeps
-* [FIX] travis: matrix selection
-* [IMP] travis: switch -y forces python version
-
-
-odoo_score: 1.0.2 (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] Stable version
-
-
-clodoo: 0.3.33.3 (2021-08-25)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] transodoo.xlsx: translation update
-
-
-clodoo: 0.3.33.1 (2021-08-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] transodoo.xlsx: wrong translation of l10n_it_reverse_charge
-
-
 
 
 
