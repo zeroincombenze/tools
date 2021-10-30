@@ -57,7 +57,7 @@ base_test () {
     keys=(k01    k02    k03    k04    K-X    ^K.*)
     vals=("aaaa" "bbbb" "cccc" "dddd" "eeee" "any")
     for i in {0..5}; do
-      CFG_set "0" "${keys[i]}" "${vals[i]}"
+      CFG_set "${keys[i]}" "${vals[i]}" "0"
     done
     for i in {0..4}; do
       TRES=$(CFG_find "0" ${keys[i]})
@@ -66,7 +66,7 @@ base_test () {
     keys=(k11    k12    k13    k14    K-X    ^K.*)
     vals=("AAAA" "BBBB" "CCCC" "DDDD" "EEEE" "ANY")
     for i in {0..5}; do
-      CFG_set "1" "${keys[i]}" "${vals[i]}"
+      CFG_set "${keys[i]}" "${vals[i]}" "1"
     done
     for i in {0..4}; do
       TRES=$(CFG_find "1" ${keys[i]})
@@ -80,7 +80,7 @@ base_test () {
     keys=(k21 k22 k23 k24 ^K.*)
     vals=("Aaaa" "Bbbb" "Cccc" "Dddd" "Any")
     for i in {0..4}; do
-      CFG_set "2" "${keys[i]}" "${vals[i]}"
+      CFG_set "${keys[i]}" "${vals[i]}" "2"
     done
     for i in {0..3}; do
       TRES=$(CFG_find "2" ${keys[i]})
@@ -99,7 +99,7 @@ base_test () {
     keys=(k31 k32 k33 k34 ^K.*)
     vals=("AAaa" "BBbb" "CCcc" "DDdd" "ANy")
     for i in {0..4}; do
-      CFG_set "3" "${keys[i]}" "${vals[i]}"
+      CFG_set "${keys[i]}" "${vals[i]}" "3"
     done
     for i in {0..3}; do
       TRES=$(CFG_find "3" ${keys[i]})
@@ -152,59 +152,59 @@ test_01() {
     x=$(xuname "-v")
     local v=$(echo $x|awk -F. '{print $1}')
     disto=$(xuname "-d")$v
-    CFG_set "0" "k01" "global_a" "-f"
+    CFG_set "k01" "global_a" "0" "-f"
     TRES=$(CFG_find "0" "k01")
     test_result "CFG_find 0 k01" "global_a" "$TRES"
-    CFG_set "0" "k01" "local_a" "-d"
+    CFG_set "k01" "local_a" "0" "-d"
     TRES=$(CFG_find "0" "k01")
     test_result "CFG_find 0 k01" "local_a" "$TRES"
 
-    CFG_set "1" "k01" "global_A" "-f"
+    CFG_set "k01" "global_A" "1" "-f"
     TRES=$(CFG_find "1" "k01")
     test_result "CFG_find 1 k01" "global_A" "$TRES"
-    CFG_set "1" "k01" "local_A" "-d"
+    CFG_set "k01" "local_A" "1" "-d"
     TRES=$(CFG_find "1" "k01")
     test_result "CFG_find 1 k01" "local_A" "$TRES"
 
-    CFG_set "2" "k01" "Global_A" "-f"
+    CFG_set "k01" "Global_A" "2" "-f"
     TRES=$(CFG_find "2" "k01")
     test_result "CFG_find 2 k01" "Global_A" "$TRES"
-    CFG_set "2" "k01" "Local_A" "-d"
+    CFG_set "k01" "Local_A" "2" "-d"
     TRES=$(CFG_find "2" "k01")
     test_result "CFG_find 2 k01" "Local_A" "$TRES"
 
-    CFG_set "3" "k01" "GLobal_A" "-f"
+    CFG_set "k01" "GLobal_A" "3" "-f"
     TRES=$(CFG_find "3" "k01")
     test_result "CFG_find 3 k01" "GLobal_A" "$TRES"
-    CFG_set "3" "k01" "LOcal_A" "-d"
+    CFG_set "k01" "LOcal_A" "3" "-d"
     TRES=$(CFG_find "3" "k01")
     test_result "CFG_find 3 k01" "LOcal_A" "$TRES"
 
-    CFG_set "0" "^K.*" "global_any" "-f"
+    CFG_set "^K.*" "global_any" "0" "-f"
     TRES=$(CFG_find "0" "K9")
     test_result "CFG_find 0 K9" "global_any" "$TRES"
-    CFG_set "0" "^K.*" "local_any" "-d"
+    CFG_set "^K.*" "local_any" "0" "-d"
     TRES=$(CFG_find "0" "K9")
     test_result "CFG_find 0 K9" "local_any" "$TRES"
 
-    CFG_set "1" "^K.*" "global_ANY" "-f"
+    CFG_set "^K.*" "global_ANY" "1" "-f"
     TRES=$(CFG_find "1" "K9")
     test_result "CFG_find 1 K9" "global_ANY" "$TRES"
-    CFG_set "1" "^K.*" "local_ANY" "-d"
+    CFG_set "^K.*" "local_ANY" "1" "-d"
     TRES=$(CFG_find "1" "K9")
     test_result "CFG_find 1 K9" "local_ANY" "$TRES"
 
-    CFG_set "2" "^K.*" "Global_ANY" "-f"
+    CFG_set "^K.*" "Global_ANY" "2" "-f"
     TRES=$(CFG_find "2" "K9")
     test_result "CFG_find 2 K9" "Global_ANY" "$TRES"
-    CFG_set "2" "^K.*" "Local_ANY" "-d"
+    CFG_set "^K.*" "Local_ANY" "2" "-d"
     TRES=$(CFG_find "2" "K9")
     test_result "CFG_find 2 K9" "Local_ANY" "$TRES"
 
-    CFG_set "3" "^K.*" "GLobal_ANY" "-f"
+    CFG_set "^K.*" "GLobal_ANY" "3" "-f"
     TRES=$(CFG_find "3" "K9")
     test_result "CFG_find 3 K9" "GLobal_ANY" "$TRES"
-    CFG_set "3" "^K.*" "LOcal_ANY" "-d"
+    CFG_set "^K.*" "LOcal_ANY" "3" "-d"
     TRES=$(CFG_find "3" "K9")
     test_result "CFG_find 3 K9" "LOcal_ANY" "$TRES"
 
@@ -212,28 +212,28 @@ test_01() {
     x=$(xuname "-v")
     local v=$(echo $x|awk -F. '{print $1}')
     disto=$(xuname "-d")$v
-    CFG_set "0" "kx01" "local_ax" "$fh"
+    CFG_set "kx01" "local_ax" "0" "$fh"
     TRES=$(CFG_find "0" "kx01")
     test_result "CFG_find 0 kx01" "local_ax" "$TRES"
-    CFG_set "0" "kx01" "global_ax" "$disto"
+    CFG_set "kx01" "global_ax" "0" "$disto"
     TRES=$(CFG_find "0" "kx01")
     test_result "CFG_find 0 kx01" "global_ax" "$TRES"
-    CFG_set "1" "kx11" "local_ax" "$fh"
+    CFG_set "kx11" "local_ax" "1" "$fh"
     TRES=$(CFG_find "1" "kx11")
     test_result "CFG_find 1 kx11" "local_ax" "$TRES"
-    CFG_set "1" "kx11" "global_ax" "$disto"
+    CFG_set "kx11" "global_ax" "1" "$disto"
     TRES=$(CFG_find "1" "kx11")
     test_result "CFG_find 1 kx11" "global_ax" "$TRES"
-    CFG_set "2" "kx21" "local_ax" "$fh"
+    CFG_set "kx21" "local_ax" "2" "$fh"
     TRES=$(CFG_find "2" "kx21")
     test_result "CFG_find 2 kx21" "local_ax" "$TRES"
-    CFG_set "2" "kx21" "global_ax" "$disto"
+    CFG_set "kx21" "global_ax" "2" "$disto"
     TRES=$(CFG_find "2" "kx21")
     test_result "CFG_find 2 kx21" "global_ax" "$TRES"
-    CFG_set "3" "kx31" "local_ax" "$fh"
+    CFG_set "kx31" "local_ax" "3" "$fh"
     TRES=$(CFG_find "3" "kx31")
     test_result "CFG_find 3 kx31" "local_ax" "$TRES"
-    CFG_set "3" "kx31" "global_ax" "$disto"
+    CFG_set "kx31" "global_ax" "3" "$disto"
     TRES=$(CFG_find "3" "kx31")
     test_result "CFG_find 3 kx31" "global_ax" "$TRES"
 

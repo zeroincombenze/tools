@@ -72,7 +72,8 @@ store_cfg_param_value() {
     p=${2:12}
     PIPPKGVER[$p]=$3
   fi
-  a_add "$1" "$2" "$3" "$4"
+  # a_add "$1" "$2" "$3" "$4"
+  CFG_set "$2" "$3" "$1" "$4" "$5"
 }
 
 debug_shell() {

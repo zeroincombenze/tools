@@ -28,7 +28,7 @@ import pdb      # pylint: disable=deprecated-module
 standard_library.install_aliases()                                 # noqa: E402
 
 
-__version__ = 1.0.3.6
+__version__ = '1.0.3.6'
 
 
 MAX_DEEP = 20
@@ -3677,7 +3677,6 @@ def export_csv(ctx):
 
 
 def fix_weburl(ctx):
-    pdb.set_trace()
     print('Fix web url to avoid print trouble ...')
     if ctx['param_1'] == 'help':
         print('fix_weburl URL|.')
@@ -3832,175 +3831,5 @@ print(' - fix_weburl')
 
 pdb.set_trace()
 print('\n\n')
-inv_model = 'account.invoice'
-ddt_model = 'stock.picking.package.preparation'
-so_model = 'sale.order'
-ddt_id = 7
-ddt = clodoo.browseL8(ctx, ddt_model, ddt_id)
-print('DdT -> id=%d, number=%s state=%s' % (ddt.id, ddt.ddt_number, ddt.state))
-for ddt_line in ddt.line_ids:
-    print('  - %s/%s prod_id=%s state=%s move.prod_id=%d pick=%s pick_prod_id=%d' % (
-        ddt_line.name, ddt_line.move_id.name, ddt_line.product_id.id,
-        ddt_line.move_id.state, ddt_line.move_id.product_id,
-        ddt_line.move_id.picking_id.name, ddt_line.move_id.picking_id.product_id))
 pdb.set_trace()
-
-
-def read_csv_file(csv_fn):
-    model = 'account.account'
-    with open(csv_fn, 'rb') as f:
-        hdr = False
-        reader = csv.reader(f)
-        for row in reader:
-            if not hdr:
-                hdr = True
-                CODE = row.index('code')
-                NAME = row.index('description')
-                UTYPE = row.index('tipo')
-                continue
-            row = unicodes(row)
-            ids = clodoo.searchL8(ctx, model, [('code', '=', row[CODE])])
-            vals = {
-                'code': row[CODE],
-                'name': row[NAME],
-                'user_type_id': env_ref(ctx, row[UTYPE]),
-            }
-            if ids:
-                clodoo.writeL8(ctx, model, ids[0], vals)
-            else:
-                vals['reconcile'] = True
-                clodoo.createL8(ctx, model, vals)
-    return
-
-model = 'account.account'
-# read_csv_file('/opt/odoo/clodoo/pentagraf/account.account.csv')
-company_id = eval(input('company_id)? '))
-db = input('database)? ')
-CVT = {}
-for id in clodoo.searchL8(ctx, model, []):
-    try:
-        clodoo.unlinkL8(ctx, model, id)
-        print('deleted id=%d' % id)
-    except:
-        print('error deleting id=%d' % id)
-        acc = clodoo.browseL8(ctx, model, id)
-        if acc.company_id.id != company_id:
-            continue
-        print('code=%s' % acc.code)
-        if acc.code in CVT:
-            new_code = CVT[acc.code]
-            query = 'update account_account set code=\'%s\' domain id=%d;' % (
-                new_code, id)
-            os.system('psql -Uodoo10 -c "%s" %s' % (query, db))
-
-# read_csv_file('/opt/odoo/clodoo/pentagraf/account.account.csv')
-
-
-def build_table_tree():
-    def new_empty_model(models, model):
-        if model not in models:
-            models[model] = {}
-            models[model]['depends'] = []
-            models[model]['maydepends'] = []
-            models[model]['m2m'] = []
-            models[model]['crossdep'] = []
-    model_list = []
-    models = {}
-    for model_rec in clodoo.browseL8(
-        ctx, 'ir.model', clodoo.searchL8(
-            ctx, 'ir.model', [])):
-        model = model_rec.model
-        msg_burst('%s ...' % model)
-        model_list.append(model)
-        new_empty_model(models, model)
-        level = 0
-        for field in clodoo.browseL8(
-            ctx, 'ir.model.fields', clodoo.searchL8(
-                ctx, 'ir.model.fields', [('model', '=', model)])):
-            if field.ttype == 'many2one' and field.relation != model:
-                if field.relation not in models:
-                    new_empty_model(models, field.relation)
-                if (field.required and
-                        field.relation not in models[model]['depends']):
-                    models[model]['depends'].append(field.relation)
-                    level = -1
-                if (not field.required and
-                        field.relation not in models[model]['maydepends']):
-                    models[model]['maydepends'].append(field.relation)
-            elif field.ttype == 'one2many' and field.relation != model:
-                if field.relation not in models:
-                    new_empty_model(models, field.relation)
-                if (field.required and
-                        model not in models[field.relation]['depends']):
-                    models[field.relation]['depends'].append(model)
-                    level = -1
-                if (not field.required and
-                        model not in models[field.relation]['maydepends']):
-                    models[field.relation]['maydepends'].append(model)
-            elif field.ttype in 'many2many' and field.relation != model:
-                if field.relation not in models:
-                    new_empty_model(models, field.relation)
-                if field.relation not in models[model]['m2m']:
-                    models[model]['m2m'].append(field.relation)
-                if model not in models[field.relation]['m2m']:
-                    models[field.relation]['m2m'].append(model)
-        if level == 0:
-            models[model]['level'] = level
-    for model in model_list:
-        msg_burst('%s ...' % model)
-        for sub in models[model]['depends']:
-            if model in models[sub]['depends']:
-                models[model]['crossdep'] = sub
-                models[sub]['crossdep'] = model
-    for model in model_list:
-        msg_burst('%s ...' % model)
-        models[model]['depends'] = list(set(models[model]['depends']) -
-                                        set(models[model]['crossdep']))
-    # missed_models = {}
-    max_iter = 99
-    parsing = True
-    while parsing:
-        parsing = False
-        max_iter -= 1
-        if max_iter <= 0:
-            break
-        for model in model_list:
-            msg_burst('%s ...' % model)
-            if 'level' not in models[model]:
-                parsing = True
-                cur_level = 0
-                for sub in models[model]['depends']:
-                    if 'level' in models[sub]:
-                        cur_level = max(cur_level, models[sub]['level'] + 1)
-                        if cur_level > MAX_DEEP:
-                            cur_level = MAX_DEEP
-                            models[model]['status'] = 'too deep'
-                            break
-                        else:
-                            models[model]['status'] = 'OK'
-                    elif model in models[sub]['depends']:
-                        models[model]['status'] = 'cross dep. with %s' % sub
-                        models[sub]['status'] = 'cross dep. with %s' % model
-                    else:
-                        cur_level = -1
-                        models[model]['status'] = 'broken by %s' % sub
-                        break
-                if cur_level >= MAX_DEEP:
-                    models[model]['level'] = MAX_DEEP
-                elif cur_level >= 0:
-                    models[model]['level'] = cur_level
-    for model in model_list:
-        if 'level' not in models[model]:
-            models[model]['level'] = MAX_DEEP + 1
-    return models
-
-
-def display_modules(ctx):
-    model = 'ir.module.module'
-    mlist = []
-    for i,app in enumerate(clodoo.browseL8(
-        ctx,model,clodoo.searchL8(
-            ctx,model,[('state','=','installed')], order='name'))):
-        print('%3d %-40.40s %s' % (i+1, app.name, app.author))
-        mlist.append(app.name)
-    print(mlist)
+pass

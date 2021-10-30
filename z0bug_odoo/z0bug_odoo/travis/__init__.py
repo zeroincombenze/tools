@@ -1,2 +1,2 @@
 # from . import getaddons
-# from . import test_server
+from . import test_server

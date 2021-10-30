@@ -48,6 +48,7 @@ from future import standard_library
 # from builtins import *                                             # noqa: F403
 import sys
 import time
+import csv
 try:
     from python_plus import python_plus
 except:
@@ -274,8 +275,34 @@ def set_header(
     ctx['HDR_SUPPLIER'] = HDR_SUPPLIER
     ctx['TNL'] = tnl
     ctx['SKEYS'] = skeys
-    ctx['STRUCT'] = clodoo.executeL8(ctx, ctx['model']
-                                     , 'fields_get')
+    ctx['STRUCT'] = clodoo.executeL8(ctx, ctx['model'], 'fields_get')
+
+
+def copy_db(ctx, src_ctx, MYDICT_C, MYDICT_S, TNL, skeys):
+    ctr = 0
+    for rec in clodoo.browseL8(
+            src_ctx, ctx['model'], clodoo.searchL8(
+                src_ctx, ctx['model'], [], order='id')):
+        msg_burst('%d, %s' % (rec.id, rec.name))
+        row = clodoo.extract_vals_from_rec(
+            src_ctx, ctx['model'], rec, format='str')
+        add_item(ctx, row)
+        ctr += 1
+
+
+def import_from_csv(ctx, MYDICT_C, MYDICT_S, TNL, skeys):
+    ctr = 0
+    with open(ctx['csv_fn'], 'rbU') as fd:
+        hdr = False
+        reader = csv.reader(fd, dialect='excel')
+        for row in reader:
+            if not hdr:
+                set_header(
+                    ctx, row, ctx['model'], MYDICT_C, MYDICT_S, TNL, skeys)
+                hdr = True
+                continue
+            add_item(ctx, row)
+            ctr += 1
 
 
 def init_n_connect(flavour=None):
@@ -316,15 +343,29 @@ def init_n_connect(flavour=None):
                         default=False)
     parser.add_argument('-V')
     parser.add_argument('-v')
+    parser.add_argument("-w", "--src-config",
+                        help="Source DB configuration file",
+                        dest="src_conf_fn",
+                        metavar="file")
+    parser.add_argument("-x", "--src-db_name",
+                        help="Source database name",
+                        dest="src_db_name",
+                        metavar="name",
+                        default='demo')
     # Connect to DB
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+    if not ctx.get('csv_fn') and (ctx.get('src_conf_fn') or
+                                  ctx.get('src_db_name')):
+        src_ctx = ctx.copy
+    else:
+        src_uid = src_ctx = None
     ctx['flavour'] = flavour
     if not ctx['model']:
         print('Missed model: use -m switch')
         exit(1)
     if not ctx['customers'] and not ctx['suppliers']:
         ctx['customers'] = ctx['suppliers'] = True
-    if not ctx['csv_fn']:
+    if not src_ctx and not ctx['csv_fn']:
         if flavour:
             sfx = '_'
         else:
@@ -334,6 +375,10 @@ def init_n_connect(flavour=None):
     uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
                                    db=ctx['db_name'],
                                    ctx=ctx)
+    if src_ctx:
+        src_uid, src_ctx = clodoo.oerp_set_env(confn=src_ctx['src_conf_fn'],
+                                               db=src_ctx['src_db_name'],
+                                               ctx=src_ctx)
     ctx['default_country_id'] = get_country_id(ctx, 'Italia')
     ctx['default_is_company'] = True
-    return uid, ctx
+    return uid, ctx, src_uid, src_ctx

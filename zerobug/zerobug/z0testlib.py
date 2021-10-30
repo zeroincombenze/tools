@@ -3,7 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
-# from past.builtins import basestring
+from past.builtins import basestring
 
 import os
 import os.path
@@ -1226,7 +1226,8 @@ class Z0test(object):
                         sts = subprocess.call(test_w_args)
                     except OSError:
                         sts = 127
-                ctx['ctr'] += self.ctr_list[ix]
+                if not ctx.get('opt_noctr', False):
+                    ctx['ctr'] += self.ctr_list[ix]
                 ix += 1
             if sts or ctx.get('teststs', TEST_SUCCESS):      # pragma: no cover
                 sts = TEST_FAILED
@@ -1246,7 +1247,8 @@ class Z0test(object):
             if hasattr(Test, tname):
                 test_list.append(tname)
             test_num += 1
-        self._exec_tests_4_count(test_list, ctx, Test)
+        if not ctx.get('opt_noctr', False):
+            self._exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['max_test'])
@@ -1442,6 +1444,8 @@ class Z0test(object):
             os.path.dirname(ctx.get('this_fqn', './Z0BUG/tests')), 'res')
         if not os.path.isdir(root):
             os.mkdir(root)
+        if not isinstance(os_tree, (list, tuple)):
+            os_tree = [os_tree]
         for path in os_tree:
             if path[0] not in ('~', '/') and not path.startswith('./'):
                 path = os.path.join(root, path)
@@ -1454,6 +1458,8 @@ class Z0test(object):
         root = os.path.join(os.path.dirname(ctx['this_fqn']), 'res')
         if not os.path.isdir(root):
             return
+        if not isinstance(os_tree, (list, tuple)):
+            os_tree = [os_tree]
         for path in os_tree:
             if path[0] not in ('.', '/'):
                 path = os.path.join(root, path)
@@ -1463,6 +1469,67 @@ class Z0test(object):
 
 
 class Z0testOdoo(object):
+
+    def __init__(self, argv=None):
+        this_fqn = None
+        if not argv and len(sys.argv) and not sys.argv[0].startswith('-'):
+            this_fqn = sys.argv[0]
+            this_fqn = os.path.abspath(this_fqn)
+        this_dir = os.getcwd()
+        if (not os.path.basename(this_dir) == 'tests' and
+                not os.path.isdir('./tests')):
+            this_dir = os.path.dirname(this_fqn)
+        self.this_dir = this_dir
+        if os.path.basename(this_dir) == 'tests':
+            self.testdir = self.this_dir
+            self.rundir = os.path.abspath(os.path.join(self.this_dir, '..'))
+        else:                                               # pragma: no cover
+            if os.path.isdir('./tests'):
+                self.testdir = os.path.join(self.this_dir,
+                                            'tests')
+            else:
+                self.testdir = self.this_dir
+            self.rundir = self.this_dir
+
+    def get_outer_dir(self):
+        """Get dir out of current virtual environment
+        In local tests it serves to find local Odoo repositories to avoid
+        git clone or wget from web.
+        """
+        outer_dir = os.environ.get('TRAVIS_BUILD_DIR', os.getcwd())
+        if os.path.basename(outer_dir) == 'tests':
+            outer_dir = os.path.abspath(
+                os.path.join(outer_dir, '..', '..', '..', '..'))
+        else:
+            outer_dir = os.path.abspath(
+                os.path.join(outer_dir, '..', '..', '..'))
+        return outer_dir
+
+    def get_local_odoo_path(self, git_org, reponame, branch, home=None):
+        outer_dir = home or self.get_outer_dir()
+        majver = branch.split('.')[0]
+        # Local OCA dir is like '~/oca12'
+        src_repo_path = os.path.join(outer_dir,
+                                     '%s%s' % (git_org.lower(), majver))
+        if not os.path.isdir(src_repo_path):
+            src_repo_path = os.path.join(outer_dir,
+                                         '%s%s' % (git_org.lower(), branch))
+        if not os.path.isdir(src_repo_path):
+            src_repo_path = os.path.join(outer_dir,
+                                         '%s-%s' % (git_org, branch))
+        if not os.path.isdir(src_repo_path):
+            # Local dir of current project is like '~/12.0'
+            src_repo_path = os.path.join(outer_dir, branch)
+        if os.path.isdir(src_repo_path) and reponame != 'OCB':
+            for nm in ('', 'extra', 'private-addons', 'powerp'):
+                if nm:
+                    path = os.path.join(outer_dir, branch, nm, reponame)
+                else:
+                    path = os.path.join(outer_dir, branch, reponame)
+                if os.path.isdir(path):
+                    src_repo_path = path
+                    break
+        return src_repo_path
 
     def build_odoo_env(self, ctx, version, hierarchy=None):
         """Build a simplified Odoo directory tree
@@ -1518,30 +1585,26 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
         if force or os.environ.get('TRAVIS') == 'true':
             self.real_git_clone(remote, reponame, branch, odoo_path)
         elif not os.path.isdir(odoo_path):
-            majver = branch.split('.')[0]
-            if remote == 'OCA':
-                src_rep_path = os.path.join(
-                    os.environ.get('TRAVIS_SAVED_HOME', os.environ['HOME']),
-                    '%s%s' % (remote.lower(), majver))
-                if not os.path.isdir(src_rep_path):
-                    self.real_git_clone(remote, reponame, branch, odoo_path)
-                    os.rename(odoo_path, src_rep_path)
-                if not os.path.isdir(src_rep_path):
-                    src_rep_path = None
-            else:
-                src_rep_path = os.path.join(
-                    os.environ.get('TRAVIS_SAVED_HOME', os.environ['HOME']),
-                    branch)
-            if reponame == 'OCB':
+            src_repo_path = self.get_local_odoo_path(remote, reponame, branch)
+            if not os.path.isdir(src_repo_path):
+                self.real_git_clone(remote, reponame, branch, odoo_path)
+            elif reponame == 'OCB':
                 for nm in ('addons', 'odoo', 'openerp'):
-                    src_path = os.path.join(src_rep_path, nm)
+                    src_path = os.path.join(src_repo_path, nm)
                     dst_path = os.path.join(odoo_path, nm)
                     if os.path.isdir(src_path):
-                        shutil.copytree(src_path, dst_path)
+                        shutil.copytree(
+                            src_path, dst_path,
+                            symlinks=True,
+                            ignore=shutil.ignore_patterns(
+                                '*.pyc', '.idea/', 'setup/'))
                 for nm in ('.travis.yml', 'odoo-bin', 'openerp-server',
                            'openerp-wsgi.py', 'requirements.txt'):
-                    src_path = os.path.join(src_rep_path, nm)
+                    src_path = os.path.join(src_repo_path, nm)
                     if os.path.isfile(src_path):
                         shutil.copy(src_path, odoo_path)
             else:
-                shutil.copytree(src_rep_path, odoo_path)
+                shutil.copytree(
+                    src_repo_path, os.path.join(odoo_path, reponame),
+                    symlinks=True,
+                    ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'))

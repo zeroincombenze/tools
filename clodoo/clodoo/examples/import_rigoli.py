@@ -7,7 +7,7 @@ from __future__ import print_function, unicode_literals
 from future import standard_library
 from builtins import *                                             # noqa: F403
 import csv
-from import_records import (init_n_connect, set_header, add_item)
+from import_records import (init_n_connect, import_from_csv, copy_db)
 standard_library.install_aliases()                                 # noqa: E402
 
 
@@ -38,20 +38,16 @@ SKEYS = {
 
 
 if __name__ == "__main__":
-    uid, ctx = init_n_connect(flavour='rigoli')
-    print("Import data from %s on DB %s" % (ctx['model'],
-                                            ctx['db_name']))
+    uid, ctx, src_uid, src_ctx = init_n_connect(flavour='rigoli')
     skeys = SKEYS[ctx['model']]
-    ctr = 0
-    with open(ctx['csv_fn'], 'rbU') as fd:
-        hdr = False
-        reader = csv.reader(fd, dialect='excel')
-        for row in reader:
-            if not hdr:
-                set_header(
-                    ctx, row, ctx['model'], MYDICT_C, MYDICT_S, TNL, skeys)
-                hdr = True
-                continue
-            add_item(ctx, row)
-            ctr += 1
+    if src_ctx:
+        print("Copy data %s from DB %s to DB %s" % (ctx['model'],
+                                                    src_ctx['src_db_name'],
+                                                    ctx['db_name']))
+        ctr = copy_db(ctx, MYDICT_C, MYDICT_S, TNL, skeys)
+    else:
+        print("Import data %s from %s into DB %s" % (ctx['model'],
+                                                     ctx['csv_fn'],
+                                                     ctx['db_name']))
+        ctr = import_from_csv(ctx, MYDICT_C, MYDICT_S, TNL, skeys)
     print('%d record added ...' % ctr)

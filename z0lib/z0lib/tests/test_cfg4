@@ -57,7 +57,7 @@ PASSED=0
 store_cfg_param_value() {
 #store_cfg_param_value(tid key value [opt] [section])
     PASSED=1
-    a_add "$1" "$2" "$3" "$4"
+    CFG_set "$1" "$2" "$3" "$4"
 }
 
 test_01() {

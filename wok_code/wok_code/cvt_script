@@ -183,6 +183,8 @@ cvt_file() {
           echo "if [[ \"\$opt_version\" ]]; then" >>$fntmp
         elif [[ $line =~ ^[[:space:]]*man[[:space:]]\$TDIR/\$THIS.man ]]; then
           echo "  man \$(dirname \$0)/man/man8/\$(basename \$0).8.gz" >>$fntmp
+        elif [[ $line =~ ^[[:space:]]*set_cfg_def ]]; then
+          echo "${line/set_cfg_def/CFG_set}" >>$fntmp
         elif [[ $line =~ ^OPTACTI=\(1... ]]; then
           x="(\"+\""
           echo "${line/(1  /$x}" >>$fntmp
