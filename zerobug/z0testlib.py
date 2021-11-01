@@ -19,7 +19,7 @@ from os0 import os0
 import magic
 
 
-__version__ = "1.0.3.1"
+__version__ = "1.0.3.2"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1505,17 +1505,18 @@ class Z0testOdoo(object):
                 os.path.join(outer_dir, '..', '..', '..'))
         return outer_dir
 
-    def get_local_odoo_path(self, git_org, reponame, branch):
-        outer_dir = self.get_outer_dir()
+    def get_local_odoo_path(self, git_org, reponame, branch, home=None):
+        outer_dir = home or self.get_outer_dir()
         majver = branch.split('.')[0]
-        src_repo_path = ''
-        if git_org != 'local':
-            # Local OCA dir is like '~/oca12'
-            src_repo_path = os.path.join(outer_dir,
-                                         '%s%s' % (git_org.lower(), majver))
-        if git_org != 'local' and not os.path.isdir(src_repo_path):
+        # Local OCA dir is like '~/oca12'
+        src_repo_path = os.path.join(outer_dir,
+                                     '%s%s' % (git_org.lower(), majver))
+        if not os.path.isdir(src_repo_path):
             src_repo_path = os.path.join(outer_dir,
                                          '%s%s' % (git_org.lower(), branch))
+        if not os.path.isdir(src_repo_path):
+            src_repo_path = os.path.join(outer_dir,
+                                         '%s-%s' % (git_org, branch))
         if not os.path.isdir(src_repo_path):
             # Local dir of current project is like '~/12.0'
             src_repo_path = os.path.join(outer_dir, branch)
