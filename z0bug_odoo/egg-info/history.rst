@@ -1,3 +1,8 @@
+1.0.5.4 (2021-10-18)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Test data: supplier invoice with 22a / Codice IVA in fattura fornitore dati test
+
 1.0.5.3 (2021-10-15)
 ~~~~~~~~~~~~~~~~~~~~
 

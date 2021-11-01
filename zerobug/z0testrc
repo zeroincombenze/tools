@@ -63,7 +63,7 @@
 # (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.3
+__version__=1.0.3.1
 
 export opt_dry_run
 export ctr
@@ -91,11 +91,11 @@ parseoptest() {
       export LECHO=
       local Z0=1
     fi
-    OPTOPTS=(h        B         C         e        f        k       J         l      N       n           O         q        r        s        V           v           z        Z        0         1)
-    OPTDEST=(opt_help opt_debug run4cover opt_echo opt_fail opt_new opt_tjLib logfn  opt_new opt_dry_run opt_oeLib opt_echo min_test min_test opt_version opt_verbose max_test opt_zLib opt_noctr run4cover)
-    OPTACTI=(1        1         0         1        1        0       1         "="    1       1           1         0        "=>"     "=>"     "*>"        1           "=>"     1        1         1)
-    OPTDEFL=(0        0         -1        -1       0        -1      0         ""     -1      0           0         -1       ""       ""       ""          0           ""       0        $Z0       -1)
-    OPTMETA=("help"   "debug"   ""        "echo"   ""       "keep"  ""        "file" "new"   "count"     ""        "quiet"  "number" "number" "version"   "verbose"   "number" ""       "no"      "")
+    OPTOPTS=(h        B         C         e        f        k       J         l      N       n           O         q        R   r        s        V           v           z        Z        0         1)
+    OPTDEST=(opt_help opt_debug run4cover opt_echo opt_fail opt_new opt_tjLib logfn  opt_new opt_dry_run opt_oeLib opt_echo nrt min_test min_test opt_version opt_verbose max_test opt_zLib opt_noctr run4cover)
+    OPTACTI=(1        1         0         1        1        0       1         "="    1       1           1         0        1   "=>"     "=>"     "*>"        1           "=>"     1        1         1)
+    OPTDEFL=(0        0         -1        -1       0        -1      0         ""     -1      0           0         -1       0   ""       ""       ""          0           ""       0        $Z0       -1)
+    OPTMETA=("help"   "debug"   ""        "echo"   ""       "keep"  ""        "file" "new"   "count"     ""        "quiet"  ""  "number" "number" "version"   "verbose"   "number" ""       "no"      "")
     OPTHELP=("show this help message and exit"\
      "run tests in debug mode"\
      "run tests w/o coverage"\
@@ -108,6 +108,7 @@ parseoptest() {
      "count and display # unit tests"\
      "load odoorc library"\
      "run tests without output (quiet mode)"\
+     "ignored"\
      "restart count next to number"\
      "see -r (deprecated)"\
      "show version and exit"\
@@ -219,9 +220,9 @@ restore_options() {
 _inherit_opts() {
     local args
     if [ "$LECHO" == "echo" ]; then
-      args="-e"
+      args="-eR"
     else
-      args="-q"
+      args="-qR"
     fi
     [ ${opt_noctr:-0} -eq 0 ] || args="${args}0"
     if [ ${opt_verbose:-0} -gt 0 ]; then
@@ -457,7 +458,7 @@ exec_tests_4_count() {
     for testname in $1; do
       dbgmsg ".$testname - min=$min_test, max=$max_test, c=$ctr, -0=$opt_noctr"
       opt_dry_run=1
-      opt4childs=-n
+      opt4childs="-n -R"
       dirtn=$(dirname $testname)
       basetn=$(basename $testname)
       ctr=0

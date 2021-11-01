@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='zerobug',
-      version='1.0.3',
+      version='1.0.3.1',
       description='Zeroincombenze continuous testing framework'
                   ' and tools for python and bash programs',
       long_description="""
@@ -75,6 +75,7 @@ it. This behavior can be overridden by -0 switch.
               # 'travis_after_tests_success = zerobug._travis.travis_after_tests_success:main',
               # 'travis_install_env = zerobug.scripts.travis_install_env:main',
               'travis_run_pypi_tests = zerobug.scripts.travis_run_pypi_tests:main',
+              'zerobug = zerobug.zerobug:main',
           ],
       },
       zip_safe=False)

@@ -1066,6 +1066,11 @@ Current development version
 History
 -------
 
+1.0.5.4 (2021-10-18)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Test data: supplier invoice with 22a / Codice IVA in fattura fornitore dati test
+
 1.0.5.3 (2021-10-15)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -1123,12 +1128,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] data: res_partner_bank reclassification to avoid conflict with demo data
-
-
-1.0.1.1 (2021-03-10)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] publish pypi with similar version history
 
 
 
@@ -1208,6 +1207,10 @@ Last Update / Ultimo aggiornamento: 2021-10-06
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
 Last Update / Ultimo aggiornamento: 2021-10-09
+Last Update / Ultimo aggiornamento: 2021-10-14
+Last Update / Ultimo aggiornamento: 2021-10-27
+:target: https://t.me/Assitenza_clienti_powERP
+Last Update / Ultimo aggiornamento: 2021-10-30
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1234,14 +1237,14 @@ Last Update / Ultimo aggiornamento: 2021-10-09
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
-:target: https://t.me/axitec_helpdesk
+:target: https://t.me/Assitenza_clienti_powERP
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-10-14
+Last Update / Ultimo aggiornamento: 2021-10-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -1300,6 +1303,6 @@ Last Update / Ultimo aggiornamento: 2021-10-14
 .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-   :target: https://t.me/axitec_helpdesk
+   :target: https://t.me/Assitenza_clienti_powERP
 
 

@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2021 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
-
-# import pdb
-import os
+# import os
 import sys
-from zerobug import Z0BUG
-# from z0bug_odoo import test_common
-from zerobug import Z0testOdoo
+from zerobug import z0test
+from z0bug_odoo import z0bugodoo
 
 __version__ = "1.0.5.3"
 
@@ -33,16 +30,7 @@ class RegressionTest():
         # sts = TEST_SUCCESS
         res = {}
         if not z0ctx['dry_run']:
-            # Build Odoo enviroment
-            self.root = Z0BUG.build_os_tree(z0ctx, [])
-            remote = 'OCA'
-            reponame = 'OCB'
-            branch = '10.0'
-            odoo_path = os.path.join(self.root, branch)
-            Z0testOdoo.git_clone(remote, reponame, branch, odoo_path)
-            sys.path.append(odoo_path)
-            from z0bug_odoo import z0bug_odoo_lib
-            res = z0bug_odoo_lib.Z0bugOdoo().get_test_values(
+            res = z0bugodoo.get_test_values(
                 'res.partner', 'z0bug.res_partner_1')
         sts = self.Z.test_result(z0ctx,
                                  'get_test_values()',
@@ -50,11 +38,11 @@ class RegressionTest():
                                  True)
         TEST = {'customer': 'True',
                 'name': 'Prima Alpha S.p.A.',
-                'street': 'Via I Maggio, 11',
+                'street': 'Via I Maggio, 101',
                 'zip': '20022', 
                 'city': 'Castano Primo',
                 'email': 'info@prima-alpha.it',
-                'website': 'www.prima-alpha.it',
+                'website': 'http://www.prima-alpha.it',
                 'phone': '+39 0255582285',
                 'vat': 'IT00115719999'}
         for nm in TEST:
@@ -65,7 +53,10 @@ class RegressionTest():
         return sts
 
 
-# if __name__ == "__main__":
-#     exit(Z0BUG.main_local(
-#         Z0BUG.parseoptest(sys.argv[1:],
-#                           version=version()), RegressionTest))
+# Run main if executed as a script
+if __name__ == "__main__":
+    exit(z0test.main_local(
+        z0test.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        RegressionTest))

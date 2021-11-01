@@ -15,6 +15,13 @@ I soci fondatori sono:
 * `Didotech s.r.l. <http://www.didotech.com>`__
 * `SHS-AV s.r.l. <https://www.shs-av.com/>`__
 * `Xplain s.r.l. <http://x-plain.it//>`__
+.. $elif git_orgid == 'didotech'
+
+|en| **librerp** is a trademark of `Didotech s.r.l. <http://www.didotech.com>`__
+which distributes and promotes ready-to-use **Odoo** on own cloud infrastructure.
+
+|it| **librerp** è un marchio registrato da ``Didotech s.r.l. <http://www.didotech.com>`__
+che distribuisce e promuove **Odoo** pronto all'uso sulla propria infrastuttura.
 .. $else
 
 |en| **zeroincombenze®** is a trademark of `SHS-AV s.r.l. <https://www.shs-av.com/>`__

@@ -160,8 +160,9 @@ PYTHON3=""
 [[ -x $LOCAL_VENV/bin/python3 ]] && PYTHON3=$LOCAL_VENV/bin/python3
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
-PKGS_LIST="python-plus clodoo lisa odoo_score os0 travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
-PYPI_LIST="babel lxml"
+PKGS_LIST="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
+# PYPI_LIST="babel lxml python-magic pyyaml"
+PYPI_LIST=""
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
 [[ $opts =~ ^-.*q ]] && popts="-q --disable-pip-version-check --no-python-version-warning" || popts="--disable-pip-version-check --no-python-version-warning"
@@ -246,7 +247,7 @@ for pkg in $PKGS_LIST tools; do
     x=$(find $SRCPATH/$pfn -maxdepth 3 -name __manifest__.rst 2>/dev/null|head -n 1)
     [[ -n "$x" ]] && x=$(grep -E "^\.\. .set no_pypi ." $x|grep -Eo "[0-9]")
     if [[ -z "$x" || $x -eq 0 ]]; then
-        if [[ -d $SRCPATH/$pfn/$pfn ]]; then
+        if [[ -d $SRCPATH/$pfn/$pfn && -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then
             run_traced "cp -r $SRCPATH/$pfn/ $LOCAL_VENV/tmp/"
         else
             run_traced "mkdir $LOCAL_VENV/tmp/$pfn"

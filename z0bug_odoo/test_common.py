@@ -3,8 +3,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 from __future__ import print_function
 from builtins import str
-
 import sys
+
 from .z0bug_odoo_lib import Z0bugOdoo
 try:
     import odoo.release as release
@@ -24,7 +24,6 @@ if release:
 else:
     print('No Odoo environment found!')
     sys.exit(0)
-
 
 __version__ = '1.0.5.3'
 

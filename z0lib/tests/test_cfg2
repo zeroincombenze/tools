@@ -49,23 +49,24 @@ GREEN="\e[1;32m"
 CLR="\e[0m"
 
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 
 PASSED=0
 
 store_cfg_param_value() {
-#store_cfg_param_value(tid key value [-f|-d] [-D|1] [section] )
-    if [ ${5:-0} -gt 0 -o "$5" == "-D" ] ; then
+#store_cfg_param_value(key value tid [-f|-d] [-D|1] [section] )
+    if [[ $5 =~ (-D|1) ]] ; then
       PASSED=2
     else
       PASSED=1
     fi
-    CFG_set "$1" "$2" "$3" "$4" "$6"
+    CFG_set "$1" "$2" "$3" "$4" "$5" "$6"
 }
 
 test_01() {
     for tid in 0 1 2 3; do
+      # Test w/o debug
       CFG_init $tid
       FCONF="$TESTDIR/test.conf"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -73,7 +74,7 @@ test_01() {
       fi
       TRES=$(get_cfg_value $tid "param1")
       test_result "get_cfg_value $tid param1" "Right" "$TRES"
-      test_result "ext function called" "1" "$PASSED"
+      test_result "ext function called ($tid)" "1" "$PASSED"
       PASSED=0
       TRES=$(get_cfg_value $tid "param2")
       test_result "get_cfg_value $tid param2" "NoDebug" "$TRES"
@@ -82,28 +83,30 @@ test_01() {
 
 test_02() {
     for tid in 0; do
+      # Test with debug (1)
       CFG_init $tid
       FCONF="$TESTDIR/test.conf"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         link_cfg $FCONF "" $tid "" "1"
       fi
       TRES=$(get_cfg_value $tid "param1")
-      test_result "get_cfg_value $tid param1" "Right" "$TRES"
+      test_result "get_cfg_value $tid param1 1" "Right" "$TRES"
       TRES=$(get_cfg_value $tid "param2")
-      test_result "get_cfg_value $tid param2" "Debug" "$TRES"
+      test_result "get_cfg_value $tid param2 1" "Debug" "$TRES"
       test_result "ext function called" "2" "$PASSED"
       PASSED=0
     done
     for tid in 0; do
+      # Test with debug (-D)
       CFG_init $tid
       FCONF="$TESTDIR/test.conf"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         link_cfg $FCONF "" $tid "" "-D"
       fi
       TRES=$(get_cfg_value $tid "param1")
-      test_result "get_cfg_value $tid param1" "Right" "$TRES"
+      test_result "get_cfg_value $tid param1 -D" "Right" "$TRES"
       TRES=$(get_cfg_value $tid "param2")
-      test_result "get_cfg_value $tid param2" "Debug" "$TRES"
+      test_result "get_cfg_value $tid param2 -D" "Debug" "$TRES"
       test_result "ext function called" "2" "$PASSED"
       PASSED=0
     done

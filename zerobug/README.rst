@@ -1,7 +1,7 @@
 
-=============
-zerobug 1.0.3
-=============
+===============
+zerobug 1.0.3.1
+===============
 
 
 
@@ -366,6 +366,11 @@ Current development version
 History
 -------
 
+1.0.3.2 (2021-10-27)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] git_clone: use relative path
+
 1.0.2.1 (2021-09-08)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -478,6 +483,9 @@ Last Update / Ultimo aggiornamento: 2021-10-09
 Last Update / Ultimo aggiornamento: 2021-10-12
 Last Update / Ultimo aggiornamento: 2021-10-14
 Last Update / Ultimo aggiornamento: 2021-10-20
+Last Update / Ultimo aggiornamento: 2021-10-25
+Last Update / Ultimo aggiornamento: 2021-10-27
+:target: https://t.me/Assitenza_clienti_powERP
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -504,14 +512,14 @@ Last Update / Ultimo aggiornamento: 2021-10-20
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
-:target: https://t.me/axitec_helpdesk
+:target: https://t.me/Assitenza_clienti_powERP
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-10-20
+Last Update / Ultimo aggiornamento: 2021-10-27
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -570,6 +578,6 @@ Last Update / Ultimo aggiornamento: 2021-10-20
 .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-   :target: https://t.me/axitec_helpdesk
+   :target: https://t.me/Assitenza_clienti_powERP
 
 

@@ -49,15 +49,15 @@ GREEN="\e[1;32m"
 CLR="\e[0m"
 
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 
 test_01() {
     CFG_init
     FCONF="$TESTDIR/test.conf"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ -f $FCONF ]; then rm -f $FCONF; fi
-      if [ -f $FCONF.sample ]; then rm -f $FCONF.sample; fi
+      [[ -f $FCONF ]] && rm -f $FCONF
+      [[ -f $FCONF.sample ]] && rm -f $FCONF.sample
       link_cfg $FCONF
       set_cfg_def "param1" "Value1"
       set_cfg_def "param2" "Value2"
@@ -70,9 +70,11 @@ test_01() {
     done
 
     if [ ${opt_dry_run:-0} -eq 0 ]; then
+      # set -x  #debug
       echo "param1= VALUE1 ">$FCONF
       echo "param3=VALUE3">>$FCONF
       link_cfg $FCONF
+      # set +x  #debug
     fi
     for i in 1 2 3 4; do
       TRES=$(get_cfg_value "" "param$i")
@@ -177,8 +179,6 @@ Z0BUG_init
 parseoptest -l$TESTDIR/test_..log "$@"
 sts=$?
 [[ $sts -ne 127 ]] && exit $sts
-
-
 
 UT1_LIST=
 UT_LIST=

@@ -3,7 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
-# from past.builtins import basestring
+from past.builtins import basestring
 
 import os
 import os.path
@@ -19,7 +19,7 @@ from os0 import os0
 import magic
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.3.1"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -50,7 +50,7 @@ OE_CONF = False
 # List of string parameters in [options] of config file
 LX_CFG_S = ('opt_debug', 'opt_verbose', 'opt_noctr')
 # List of pure boolean parameters in [options] of config file
-LX_CFG_B = ('opt_debug', )
+LX_CFG_B = ('opt_debug', 'python2', 'python3')
 # List of string parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_S = ('opt_echo',     'logfn',
                 'opt_tjlib',    'opt_oelib',
@@ -58,7 +58,9 @@ LX_OPT_CFG_S = ('opt_echo',     'logfn',
                 'opt_verbose',  'opt_debug',
                 'opt_noctr',    'run4cover',
                 'max_test',     'min_test',
-                'opt_pattern')
+                'opt_pattern',  'no_run_on_top',
+                'qsanity',      'esanity',
+                'python2',      'python3')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_B = ('qsanity', 'esanity', 'opt_debug', 'opt_tjlib', 'opt_oelib')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -69,7 +71,8 @@ LX_SB = ('dry_run',)
 #
 DEFDCT = {'run4cover': False,
           'opt_debug': False,
-          'opt_new': False}
+          'opt_new': False
+          }
 #
 LX_OPT_ARGS = {'opt_debug': '-B',
                'opt_echo': '-e',
@@ -79,15 +82,17 @@ LX_OPT_ARGS = {'opt_debug': '-B',
                'opt_new': '-N',
                'opt_oelib': '-O',
                'opt_pattern': '-p',
+               'run_on_top': '-R',
                'min_test': '-r',
                'opt_verbose': '-v',
                'max_test': '-z',
                'opt_noctr': '-0',
-               'run4cover': '-1',
+               'run4cover': '-C',
+               'python2': '-2',
                'python3': '-3'}
 
 DEFAULT_COVERARC = r"""# Config file .coveragerc 2019-08-22
-[report]
+[run]
 include =
 #    ${TRAVIS_BUILD_DIR}/*
     *.py
@@ -106,6 +111,7 @@ omit =
     */__init__.py
     */__openerp__.py
     */__manifest__.py
+[report]
 # Regexes for lines to exclude from consideration
 exclude_lines =
     # Have to re-enable the standard pragma
@@ -138,13 +144,13 @@ class Macro(Template):
 
     def substitute(self, **kwargs):
         nk = {}
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             nk[k + '}'] = v
         return super(Macro, self).substitute(**nk)
 
     def safe_substitute(self, **kwargs):
         nk = {}
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             nk[k + '}'] = v
         return super(Macro, self).safe_substitute(**nk)
 
@@ -584,14 +590,16 @@ class Z0test(object):
         else:
             self.autorun = True
         self.module_id = id
-        self.pattern = [self.module_id + '_test*', 'test_*']
+        if this == 'zerobug':
+            self.pattern = [self.module_id + '_test*', 'test_*']
+        else:
+            self.pattern = this
         # If auto regression test is executing
         self.def_tlog_fn = os.path.join(self.testdir,
                                         self.module_id + "_test.log")
         self.ctr_list = []
         if self.autorun:
-            self.ctx = self.parseoptest(argv,
-                                        version=version)
+            self.ctx = self.parseoptest(argv, version=version)
             sys.exit(self.main())
 
     def _create_parser(self, version, ctx):
@@ -608,6 +616,7 @@ class Z0test(object):
         -n --dry-run     count and display # unit tests
         -O               load odoorc library (only in bash scripts)
         -q --quiet       run tests without output (quiet mode)
+        -R --run-inner   run test inner mode (no final result)
         -r --restart     restart count next to number
         -s --start       count 1st test next to number (deprecated, use -r)
         -V --version     show version
@@ -617,6 +626,8 @@ class Z0test(object):
         -z --end         display total # tests when execute them
         -0 --no-count    no count # unit tests
         -1 --coverage    run test for coverage (obsoslete)
+        -2               python2
+        -3               python3
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
@@ -676,6 +687,10 @@ class Z0test(object):
                             action="store_false",
                             dest="opt_echo_q",
                             default=True)
+        parser.add_argument("-R", "--run-inner",
+                            help="inner mode w/o final messages",
+                            action="store_true",
+                            dest="no_run_on_top")
         parser.add_argument("-r", "--restart",
                             help="set to counted tests, 1st one next to this",
                             dest="min_test",
@@ -716,6 +731,11 @@ class Z0test(object):
                             action="store_true",
                             dest="run4cover",
                             default=True)
+        parser.add_argument("-2", "--python2",
+                            help="use python2",
+                            action="store_true",
+                            dest="python2",
+                            default=False)
         parser.add_argument("-3", "--python3",
                             help="use python3",
                             action="store_true",
@@ -730,9 +750,8 @@ class Z0test(object):
                 ctx.get('min_test', None) is None) and \
                 ('max_test' not in ctx or
                  ctx.get('max_test', None) is None):
-            ctx['run_on_top'] = True
-            # del ctx['min_test']
-            # del ctx['max_test']
+            if 'run_on_top' not in ctx:
+                ctx['run_on_top'] = True
             ctx['min_test'] = 0
             ctx['max_test'] = 0
         else:
@@ -826,6 +845,8 @@ class Z0test(object):
                         ctx[p] = int(getattr(opt_obj, 'min_test2'))
                     else:
                         ctx[p] = None
+                elif p == 'no_run_on_top' and hasattr(opt_obj, p):
+                        ctx['run_on_top'] = not getattr(opt_obj, p)
                 elif hasattr(opt_obj, p):
                     ctx[p] = getattr(opt_obj, p)
             for p in LX_OPT_CFG_B:
@@ -839,25 +860,27 @@ class Z0test(object):
         return ctx
 
     def _get_this_fqn(self):
-        i = 1
-        valid = False
-        auto_this = False
-        while not valid and i < len(inspect.stack()):
-            this_fqn = os.path.abspath(inspect.stack()[i][1])
-            this = os0.nakedname(os.path.basename(this_fqn))
-            if this[0] == '<' and this[-1] == '>':
-                i += 1
-            elif this in ("__init__", "pdb", "cmd", "z0testlib"):
-                i += 1
-                if this == "__init__":
-                    auto_this = this_fqn
-            else:
-                valid = True
-                if this in ('pkgutil', 'runpy'):
-                    this_fqn = os.path.dirname(auto_this)
-                    id = 'test_%s.py' % os.path.basename(this_fqn)
-                    this_fqn = os.path.join(this_fqn, id)
-        return this_fqn
+        # i = 1
+        # valid = False
+        # auto_this = False
+        # this_fqn = False
+        # while not valid and i < len(inspect.stack()):
+        #     this_fqn = os.path.abspath(inspect.stack()[i][1])
+        #     this = os0.nakedname(os.path.basename(this_fqn))
+        #     if this[0] == '<' and this[-1] == '>':
+        #         i += 1
+        #     elif this in ("__init__", "pdb", "cmd", "z0testlib"):
+        #         i += 1
+        #         if this == "__init__":
+        #             auto_this = this_fqn
+        #     else:
+        #         valid = True
+        #         if this in ('pkgutil', 'runpy'):
+        #             this_fqn = os.path.dirname(auto_this)
+        #             id = 'test_%s.py' % os.path.basename(this_fqn)
+        #             this_fqn = os.path.join(this_fqn, id)
+        # return this_fqn
+        return os.path.abspath(sys.argv[0])
 
     def parseoptest(self, arguments, version=None, tlog=None):
         ctx = {}
@@ -895,7 +918,7 @@ class Z0test(object):
         return DEFDCT
 
     def _inherit_opts(self, ctx):
-        args = []
+        args = ['-R']
         for p in LX_OPT_CFG_S:
             if p == 'opt_echo':
                 if p in ctx and ctx[p]:
@@ -909,7 +932,7 @@ class Z0test(object):
                 if p in ctx and ctx[p]:
                     args.append(LX_OPT_ARGS[p] + ctx[p])
             elif p == 'run4cover':
-                if p in ctx and ctx[p]:
+                if p in ctx and not ctx[p]:
                     args.append(LX_OPT_ARGS[p])
             elif p == 'min_test':
                 args.append(LX_OPT_ARGS[p] + str(ctx['ctr']))
@@ -958,6 +981,22 @@ class Z0test(object):
         for p in ('dry_run', 'min_test', 'ctr'):
             ctx = self._restore_opt(ctx, p)
         return ctx
+
+    def set_shabang(self, ctx, testfile):
+        if (not ctx.get('python3', False) and
+                not ctx.get('python2', False) and
+                os.path.isfile(testfile)):
+            do_rewrite = False
+            with open(testfile, 'rb') as fd:
+                source = fd.read().decode('utf-8')
+                if source.startswith('#!'):
+                    do_rewrite = True
+                    new_source = '#!%s\n' % sys.executable
+                    for ln in source.split('\n')[1:]:
+                        new_source += '%s\n' % ln
+            if do_rewrite:
+                with open(testfile, 'wb') as fd:
+                    fd.write(new_source.encode('utf-8'))
 
     def test_version(self, ctx, testname):
         """testname format is '__version_T_VVVVFILE' where:
@@ -1018,9 +1057,9 @@ class Z0test(object):
         file = Macro(testname[10:])
         file = file.safe_substitute(**ctx)
         msg = "doctest %s" % os.path.basename(file)
-        # cmd = 'python -m doctest %s' % file
+        # cmd = 'sys.executable -m doctest %s' % file
         FNULL = open(os.devnull, 'w')
-        res = subprocess.call(['python', '-m', 'doctest', file],
+        res = subprocess.call(['sys.executable', '-m', 'doctest', file],
                               stdout=FNULL,
                               stderr=subprocess.STDOUT)
         return self.test_result(ctx,
@@ -1028,30 +1067,19 @@ class Z0test(object):
                                 TEST_SUCCESS,
                                 res)
 
-    def set_mime_python_ver(testname, with_python3):
-        fd = open(testname, 'rbU')
-        code = fd.read()
-        fd.close()
-        code.replace('#!/usr/bin/env python',
-                     '#!/usr/bin/env python3',
-                     1)
-        fd = open(testname, 'w')
-        fd.write(code)
-        fd.close()
-
     def _exec_tests_4_count(self, test_list, ctx, TestCls=None):
         if ctx.get('_run_autotest', False):
             self.dbgmsg(ctx, '>>> exec_tests_4_count(autotest)')
         else:
             self.dbgmsg(ctx, '>>> exec_tests_4_count(%s)' % test_list)
-        opt4childs = ['-n']
+        opt4childs = ['-n', '-R']
         ctx = self._ready_opts(ctx)
         ctx = self._save_options(ctx)
         testctr = 0
         if TestCls:
             T = TestCls(self)
-        if TestCls and hasattr(TestCls, 'setup'):
-            getattr(T, 'setup')(ctx)
+            if hasattr(TestCls, 'setup'):
+                getattr(T, 'setup')(ctx)
         for testname in test_list:
             self.dbgmsg(ctx,
                         '- min=%d, max=%d, ctr=%d, -0=%s, Cover=%s' %
@@ -1064,7 +1092,6 @@ class Z0test(object):
             basetn = os.path.basename(testname)
             ctx['ctr'] = 0
             if testname.startswith('__test'):
-                # ctx['dry_run'] = True
                 ctx['ctr'] = int(testname[7:9])
             elif testname.startswith('__version'):
                 self.test_version(ctx, testname)
@@ -1077,12 +1104,13 @@ class Z0test(object):
                     mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
-                # if basetn.endswith('.py'):
                 if mime == 'text/x-python':
                     if ctx.get('python3', False):
                         test_w_args = ['python3'] + [testname] + opt4childs
+                    elif ctx.get('python2', False):
+                        test_w_args = ['python2'] + [testname] + opt4childs
                     else:
-                        test_w_args = ['python'] + [testname] + opt4childs
+                        test_w_args = [sys.executable] + [testname] + opt4childs
                 else:
                     test_w_args = [testname] + opt4childs
                 self.dbgmsg(ctx, ">>>  test_w_args=%s" % test_w_args)
@@ -1127,14 +1155,6 @@ class Z0test(object):
         self.dbgmsg(ctx, '- c=%d, ctr_list=%s' % (ctx['ctr'], self.ctr_list))
         if TestCls:
             T = TestCls(self)
-        if (ctx.get('run4cover', False) and
-                not ctx.get('dry_run', False)):
-            try:
-                subprocess.call(['coverage', 'erase'],
-                    stdout=open('/dev/null', 'w'),
-                    stderr=open('/dev/null', 'w'))
-            except OSError:
-                print('Coverage not found!')
         if TestCls and hasattr(TestCls, 'setup'):
             getattr(T, 'setup')(ctx)
         for testname in test_list:
@@ -1165,30 +1185,35 @@ class Z0test(object):
                     mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
-                # if basetn.endswith('.py') or basetn.endswith('.pyc'):
                 if mime == 'text/x-python':
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
                     if os.environ.get('TRAVIS_PDB') == 'true':
                         if ctx.get('python3', False):
                             test_w_args = ['python3', '-m', 'pdb', testname
                                            ] + opt4childs
+                        elif ctx.get('python2', False):
+                            test_w_args = ['python2', '-m', 'pdb', testname
+                                           ] + opt4childs
                         else:
-                            test_w_args = ['python', '-m', 'pdb', testname
+                            test_w_args = [sys.executable, '-m', 'pdb', testname
                                            ] + opt4childs
                     elif (ctx.get('run4cover', False) and
                             not ctx.get('dry_run', False)):
+                        self.set_shabang(ctx, testname)
                         test_w_args = [
                             'coverage',
                             'run',
-                            # '-a',
+                            '-a',
                             '--rcfile=%s' % ctx['COVERAGE_PROCESS_START'],
                             testname
                         ] + opt4childs
                     else:
                         if ctx.get('python3', False):
                             test_w_args = ['python3'] + [testname] + opt4childs
+                        elif ctx.get('python2', False):
+                            test_w_args = ['python2'] + [testname] + opt4childs
                         else:
-                            test_w_args = ['python'] + [testname] + opt4childs
+                            test_w_args = [sys.executable] + [testname] + opt4childs
                     self.dbgmsg(ctx, ">>> subprocess.call(%s)" % test_w_args)
                     try:
                         sts = subprocess.call(test_w_args)
@@ -1201,7 +1226,8 @@ class Z0test(object):
                         sts = subprocess.call(test_w_args)
                     except OSError:
                         sts = 127
-                ctx['ctr'] += self.ctr_list[ix]
+                if not ctx.get('opt_noctr', False):
+                    ctx['ctr'] += self.ctr_list[ix]
                 ix += 1
             if sts or ctx.get('teststs', TEST_SUCCESS):      # pragma: no cover
                 sts = TEST_FAILED
@@ -1221,7 +1247,8 @@ class Z0test(object):
             if hasattr(Test, tname):
                 test_list.append(tname)
             test_num += 1
-        self._exec_tests_4_count(test_list, ctx, Test)
+        if not ctx.get('opt_noctr', False):
+            self._exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['max_test'])
@@ -1233,10 +1260,10 @@ class Z0test(object):
                                   echo=ctx.get('opt_echo', False))
             sts = self._exec_all_tests(test_list, ctx, Test)
         return sts
-
-    def main_file(self, ctx=None, Test=None, UT1=None, UT=None):
-        print('Deprecatede method: use main(..)')
-        self.main(ctx=ctx, Test=Test, UT1=UT1, UT=UT)
+    #
+    # def main_file(self, ctx=None, Test=None, UT1=None, UT=None):
+    #     print('Deprecatede method: use main(..)')
+    #     self.main(ctx=ctx, Test=Test, UT1=UT1, UT=UT)
 
     def main(self, ctx=None, Test=None, UT1=None, UT=None):
         """Default main program for test execution
@@ -1263,11 +1290,15 @@ class Z0test(object):
         if (ctx['this'] != 'test_zerobug' and
                 ctx.get('run_on_top', False) and
                 not ctx.get('_run_autotest', False)):
-            # sts = self.sanity_check('-q')
-            sts = 0  #debug
-            if sts == TEST_FAILED:                         # pragma: no cover
-                print("Invalid test library!")
-                exit(sts)
+            if (ctx.get('run4cover', False) and
+                    not ctx.get('dry_run', False)):
+                try:
+                    subprocess.call(['coverage', 'erase'],
+                                    stdout=open('/dev/null', 'w'),
+                                    stderr=open('/dev/null', 'w'))
+                except OSError:
+                    print('Coverage not found!')
+                    ctx['run4cover'] = False
         test_list = []
         if UT is not None and isinstance(UT, list):
             self.dbgmsg(ctx, '>>> test_list=%s' % UT)
@@ -1282,16 +1313,9 @@ class Z0test(object):
                     os.path.join(self.testdir, pattern))
                 for fn in sorted(glob.glob(test_files)):
                     mime = magic.Magic(
-                        mime=True).from_file(os.path.realpath(testname))
-                    # if len(fn) - fn.rfind('.') <= 4:
+                        mime=True).from_file(os.path.realpath(fn))
                     if mime in ('text/x-python', 'text/x-shellscript'):
                         test_list.append(fn)
-                    #     if fn.endswith('.py'):
-                    #         test_list.append(fn)
-                    #     elif os.access(fn, os.X_OK) and fn.endswith('.sh'):
-                    #         test_list.append(fn)
-                    # elif os.access(fn, os.X_OK) and os.name == 'posix':
-                    #     test_list.append(fn)
         if len(test_list) == 0 and Test is not None:
             self.dbgmsg(ctx, '- len(test_list) == 0 ')
             test_num = 0
@@ -1420,6 +1444,8 @@ class Z0test(object):
             os.path.dirname(ctx.get('this_fqn', './Z0BUG/tests')), 'res')
         if not os.path.isdir(root):
             os.mkdir(root)
+        if not isinstance(os_tree, (list, tuple)):
+            os_tree = [os_tree]
         for path in os_tree:
             if path[0] not in ('~', '/') and not path.startswith('./'):
                 path = os.path.join(root, path)
@@ -1432,6 +1458,8 @@ class Z0test(object):
         root = os.path.join(os.path.dirname(ctx['this_fqn']), 'res')
         if not os.path.isdir(root):
             return
+        if not isinstance(os_tree, (list, tuple)):
+            os_tree = [os_tree]
         for path in os_tree:
             if path[0] not in ('.', '/'):
                 path = os.path.join(root, path)
@@ -1441,6 +1469,66 @@ class Z0test(object):
 
 
 class Z0testOdoo(object):
+
+    def __init__(self, argv=None):
+        this_fqn = None
+        if not argv and len(sys.argv) and not sys.argv[0].startswith('-'):
+            this_fqn = sys.argv[0]
+            this_fqn = os.path.abspath(this_fqn)
+        this_dir = os.getcwd()
+        if (not os.path.basename(this_dir) == 'tests' and
+                not os.path.isdir('./tests')):
+            this_dir = os.path.dirname(this_fqn)
+        self.this_dir = this_dir
+        if os.path.basename(this_dir) == 'tests':
+            self.testdir = self.this_dir
+            self.rundir = os.path.abspath(os.path.join(self.this_dir, '..'))
+        else:                                               # pragma: no cover
+            if os.path.isdir('./tests'):
+                self.testdir = os.path.join(self.this_dir,
+                                            'tests')
+            else:
+                self.testdir = self.this_dir
+            self.rundir = self.this_dir
+
+    def get_outer_dir(self):
+        """Get dir out of current virtual environment
+        In local tests it serves to find local Odoo repositories to avoid
+        git clone or wget from web.
+        """
+        outer_dir = os.environ.get('TRAVIS_BUILD_DIR', os.getcwd())
+        if os.path.basename(outer_dir) == 'tests':
+            outer_dir = os.path.abspath(
+                os.path.join(outer_dir, '..', '..', '..', '..'))
+        else:
+            outer_dir = os.path.abspath(
+                os.path.join(outer_dir, '..', '..', '..'))
+        return outer_dir
+
+    def get_local_odoo_path(self, git_org, reponame, branch):
+        outer_dir = self.get_outer_dir()
+        majver = branch.split('.')[0]
+        src_repo_path = ''
+        if git_org != 'local':
+            # Local OCA dir is like '~/oca12'
+            src_repo_path = os.path.join(outer_dir,
+                                         '%s%s' % (git_org.lower(), majver))
+        if git_org != 'local' and not os.path.isdir(src_repo_path):
+            src_repo_path = os.path.join(outer_dir,
+                                         '%s%s' % (git_org.lower(), branch))
+        if not os.path.isdir(src_repo_path):
+            # Local dir of current project is like '~/12.0'
+            src_repo_path = os.path.join(outer_dir, branch)
+        if os.path.isdir(src_repo_path) and reponame != 'OCB':
+            for nm in ('', 'extra', 'private-addons', 'powerp'):
+                if nm:
+                    path = os.path.join(outer_dir, branch, nm, reponame)
+                else:
+                    path = os.path.join(outer_dir, branch, reponame)
+                if os.path.isdir(path):
+                    src_repo_path = path
+                    break
+        return src_repo_path
 
     def build_odoo_env(self, ctx, version, hierarchy=None):
         """Build a simplified Odoo directory tree
@@ -1496,30 +1584,26 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
         if force or os.environ.get('TRAVIS') == 'true':
             self.real_git_clone(remote, reponame, branch, odoo_path)
         elif not os.path.isdir(odoo_path):
-            majver = branch.split('.')[0]
-            if remote == 'OCA':
-                src_rep_path = os.path.join(
-                    os.environ.get('TRAVIS_SAVED_HOME', os.environ['HOME']),
-                    '%s%s' % (remote.lower(), majver))
-                if not os.path.isdir(src_rep_path):
-                    self.real_git_clone(remote, reponame, branch, odoo_path)
-                    os.rename(odoo_path, src_rep_path)
-                if not os.path.isdir(src_rep_path):
-                    src_rep_path = None
-            else:
-                src_rep_path = os.path.join(
-                    os.environ.get('TRAVIS_SAVED_HOME', os.environ['HOME']),
-                    branch)
-            if reponame == 'OCB':
+            src_repo_path = self.get_local_odoo_path(remote, reponame, branch)
+            if not os.path.isdir(src_repo_path):
+                self.real_git_clone(remote, reponame, branch, odoo_path)
+            elif reponame == 'OCB':
                 for nm in ('addons', 'odoo', 'openerp'):
-                    src_path = os.path.join(src_rep_path, nm)
+                    src_path = os.path.join(src_repo_path, nm)
                     dst_path = os.path.join(odoo_path, nm)
                     if os.path.isdir(src_path):
-                        shutil.copytree(src_path, dst_path)
+                        shutil.copytree(
+                            src_path, dst_path,
+                            symlinks=True,
+                            ignore=shutil.ignore_patterns(
+                                '*.pyc', '.idea/', 'setup/'))
                 for nm in ('.travis.yml', 'odoo-bin', 'openerp-server',
                            'openerp-wsgi.py', 'requirements.txt'):
-                    src_path = os.path.join(src_rep_path, nm)
+                    src_path = os.path.join(src_repo_path, nm)
                     if os.path.isfile(src_path):
                         shutil.copy(src_path, odoo_path)
             else:
-                shutil.copytree(src_rep_path, odoo_path)
+                shutil.copytree(
+                    src_repo_path, os.path.join(odoo_path, reponame),
+                    symlinks=True,
+                    ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'))

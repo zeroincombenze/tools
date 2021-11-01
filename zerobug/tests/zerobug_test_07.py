@@ -6,15 +6,12 @@
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 from __future__ import print_function, unicode_literals
-# from past.builtins import basestring
-
 import os
 import sys
-from zerobug import z0testlib
-from zerobug.z0testlib import Z0testOdoo
+from zerobug import z0test, z0testodoo
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.3.1"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -45,7 +42,7 @@ class RegressionTest():
                            )
             RES = False
             if not z0ctx['dry_run']:
-                self.root = Z0testOdoo().build_odoo_env(z0ctx, ver)
+                self.root = z0testodoo.build_odoo_env(z0ctx, ver)
             for path in OS_TREE:
                 if not z0ctx['dry_run']:
                     path = os.path.join(self.root, path)
@@ -113,7 +110,7 @@ class RegressionTest():
                 hy = 'tree'
             RES = False
             if not z0ctx['dry_run']:
-                self.root = Z0testOdoo().build_odoo_env(z0ctx, ver, hierarchy=hy)
+                self.root = z0testodoo.build_odoo_env(z0ctx, ver, hierarchy=hy)
             for path in OS_TREE:
                 if not z0ctx['dry_run']:
                     path = os.path.join(self.root, path)
@@ -172,42 +169,65 @@ class RegressionTest():
             reponame = 'OCB'
             branch = '10.0'
             odoo_path = os.path.join(self.root, branch)
-            Z0testOdoo().git_clone(remote, reponame, branch, odoo_path)
+            z0testodoo.git_clone(remote, reponame, branch, odoo_path)
         for path in self.os_tree:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
                 RES = os.path.isdir(path)
-            sts = self.Z.test_result(z0ctx,
-                                     'mkdir %s' % path,
-                                     True,
-                                     RES)
+            sts += self.Z.test_result(z0ctx,
+                                      'mkdir %s' % path,
+                                      True,
+                                      RES)
         if not z0ctx['dry_run']:
             path = os.path.join(self.root, self.os_tree[2], 'release.py')
-        sts = self.Z.test_result(z0ctx,
-                                 'odoo %s' % path,
-                                 True,
-                                 os.path.isfile(path))
+        sts += self.Z.test_result(z0ctx,
+                                  'git clone OCA/OCB/10.0 -> %s' % path,
+                                  True,
+                                  os.path.isfile(path))
         if not z0ctx['dry_run']:
             path = os.path.join(self.root, self.os_tree[0], 'odoo-bin')
-        sts = self.Z.test_result(z0ctx,
-                                 'odoo %s' % path,
-                                 True,
-                                 os.path.isfile(path))
+        sts += self.Z.test_result(z0ctx,
+                                  'git clone OCA/OCB/10.0 -> %s' % path,
+                                  True,
+                                  os.path.isfile(path))
+
+        RES = False
+        if not z0ctx['dry_run']:
+            remote = 'local'
+            reponame = 'l10n-italy'
+            branch = '12.0'
+            odoo_path = os.path.join(self.root, branch)
+            z0testodoo.git_clone(remote, reponame, branch, odoo_path)
+        if not z0ctx['dry_run']:
+            path = os.path.join(self.root, '12.0')
+            RES = os.path.isdir(path)
+        sts += self.Z.test_result(z0ctx,
+                                  'mkdir %s' % path,
+                                  True,
+                                  RES)
+        sts += self.Z.test_result(z0ctx,
+                                  'odoo %s' % path,
+                                  True,
+                                  os.path.isdir(path))
         return sts
 
     def setup(self, z0ctx):
         self.os_tree = ['10.0',
                         '10.0/addons',
-                        '10.0/odoo',]
+                        '10.0/odoo',
+                        ]
         self.Z.remove_os_tree(z0ctx, self.os_tree)
+        self.Z.remove_os_tree(z0ctx, '12.0')
+
+    def tearoff(self, z0ctx):
+        self.setup(z0ctx)
 
 
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    Z0BUG = z0testlib.Z0test()
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(
+    exit(z0test.main_local(
+        z0test.parseoptest(
             sys.argv[1:],
             version=version()),
         RegressionTest))

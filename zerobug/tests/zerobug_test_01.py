@@ -4,16 +4,14 @@
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
-from __future__ import print_function,unicode_literals
-# from past.builtins import basestring
+from __future__ import print_function, unicode_literals
 
-# import os
 import os.path
 import sys
-from zerobug import z0testlib
+from zerobug import z0test
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.3.1"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -26,8 +24,7 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    Z0BUG = z0testlib.Z0test()
-    ctx = Z0BUG.parseoptest(sys.argv[1:],
+    ctx = z0test.parseoptest(sys.argv[1:],
                             version=version())
     z0lib_file = ''
     for fn in ('../../z0lib/z0lib/z0librc',
@@ -42,4 +39,4 @@ if __name__ == "__main__":
     UT_LIST.append("__version_V_0.2.0${testdir}/dummy_01.py")
     UT_LIST.append("__version_v_0.2.1${testdir}/dummy_01.py")
     UT_LIST.append("__version_P_0.2.2${testdir}/dummy_01.py")
-    exit(Z0BUG.main(ctx, UT=UT_LIST))
+    exit(z0test.main(ctx, UT=UT_LIST))

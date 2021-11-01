@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.3.1
+#__version__=1.0.3.2
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -716,11 +716,11 @@ export -f a_active
 #   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
 #   XU_FH    contains Linux Family id (see xuname)
 # Parameter $1:
-#    Id of table (may be 0..3)
-# Parameter $2:
 #    Dictionary key; if begin with "^" is a regex, otherwise is unique key
-# Parameter $3:
+# Parameter $2:
 #    Dictionary value
+# Parameter $3:
+#    Id of table (may be 0..3)
 # Parameter $4:
 #    "-d"   key is specific of Linux distribution
 #    "-f"   key is specific of Linux family
@@ -730,46 +730,44 @@ export -f a_active
 # Parameter $6:
 #    Section (reserved ti future use)
 CFG_set() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local key tid SFX
-    [[ $1 =~ [0123] ]] && tid=$1 || tid="3"
-    if [[ -n "$2" ]]; then
+    [[ $3 =~ [0123] ]] && tid=$3 || tid="0"
+    if [[ -n "$1" ]]; then
       if [[ $4 == "-d" ]]; then
-        local SFX="__$XU_DISTO"
+        SFX="__$XU_DISTO"
       elif [[ $4 == "-f" ]]; then
-        local SFX="__$XU_FH"
+        SFX="__$XU_FH"
       elif [[ -n $4 ]]; then
-        local SFX="__$4"
+        SFX="__$4"
       else
-        local SFX=
+        SFX=
       fi
-      key=${2//-/_}
-      if [[ $5 =~ (D|1) ]]; then
-        SFX="${SFX}__DEV"
-      fi
+      key=${1//-/_}
+      [[ $5 =~ (-D|-d|1) ]] && SFX="${SFX}__DEV"
       if [[ "$tid" == "0" ]]; then
         if [ "${key:0:1}" == "^" ]; then
-          DEFRULE0[$key$SFX]="$3"
+          DEFRULE0[$key$SFX]="$2"
         else
-          DEFDICT0[$key$SFX]="$3"
+          DEFDICT0[$key$SFX]="$2"
         fi
       elif [[ $tid == "1" ]]; then
         if [ "${key:0:1}" == "^" ]; then
-          DEFRULE1[$key$SFX]="$3"
+          DEFRULE1[$key$SFX]="$2"
         else
-          DEFDICT1[$key$SFX]="$3"
+          DEFDICT1[$key$SFX]="$2"
         fi
       elif [[ $tid == "2" ]]; then
         if [ "${key:0:1}" == "^" ]; then
-          DEFRULE2[$key$SFX]="$3"
+          DEFRULE2[$key$SFX]="$2"
         else
-          DEFDICT2[$key$SFX]="$3"
+          DEFDICT2[$key$SFX]="$2"
         fi
       elif [[ $tid == "3" ]]; then
         if [ "${key:0:1}" == "^" ]; then
-          DEFRULE3[$key$SFX]="$3"
+          DEFRULE3[$key$SFX]="$2"
         else
-          DEFDICT3[$key$SFX]="$3"
+          DEFDICT3[$key$SFX]="$2"
         fi
       fi
     fi
@@ -779,7 +777,8 @@ export -f CFG_set
 
 # Deprecated: use CFG_set
 a_add() {
-    CFG_set "$@"
+    echo "Deprecated function a_add: use CFG_set"
+    exit 17
 }
 
 ##############################################################################
@@ -799,7 +798,7 @@ a_add() {
 #    dictionary value to stdout
 #    status
 CFG_find() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p=""
     local sts=1
     local x SFX key KK
@@ -954,7 +953,7 @@ a_find() {
 # Return:
 #    parameter value
 get_cfg_value() {
-    local p
+    local p tid t
     if [ -z "$2" ]; then
       p=
       echo $p
@@ -962,17 +961,12 @@ get_cfg_value() {
     else
       p=
     fi
-    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
-      local tid=$1
-    else
-      local tid="0"
-    fi
-    if [ -z "$p" -o "$p" == "False" ]; then
-      p=$(CFG_find "$tid" "$2")
-    fi
-    if [ "$p" == "None" ]; then
-      p=
-    fi
+    [[ $3 =~ [0123] ]] && tid=$3 || tid="0 1 2 3"
+    for t in $tid; do
+      p=$(CFG_find "$t" "$2")
+      [[ -n "$p" && $p != "False" ]] && break
+    done
+    [[ $p == "None" ]] && p=""
     echo "$p"
 }
 export -f get_cfg_value
@@ -1041,25 +1035,18 @@ export -f CFG_init
 #export -f active_cfg
 
 set_cfg_def() {
-# set_cfg_set(key value [id])
-# Deprecated: use CFG_set
-    if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
-      local tid=$3
-    else
-      local tid="0"
-    fi
-    CFG_set "$tid" "$1" "$2" "$4" "$5" "$6"
+    # set_cfg_set(key value [id])
+    # Deprecated: use CFG_set
+    CFG_set "$1" "$2" "$3" "$4" "$5" "$6"
 }
 export -f set_cfg_def
 
 
 _read_cfg_file() {
-#read_cfg_file(file $tid [section] [-D])    -D means debug
-    if [[ ! -n "$1"  || ! -f "$1" ]]; then
-      return
-    fi
+#read_cfg_file(file $tid [section] [-D|-d])    -D or -d means debug
+    [[ ! -n "$1"  || ! -f "$1" ]] && return
     local key val lne x r t s d b dev
-    if [ "$(type -t store_cfg_param_value)" == "function" ]; then
+    if [[ "$(type -t store_cfg_param_value)" == "function" ]]; then
       store_param=store_cfg_param_value
     else
       store_param=CFG_set
@@ -1073,7 +1060,7 @@ _read_cfg_file() {
     s=
     d=
     b=
-    while IFS="#" read -r lne r || [ -n "$lne" ]; do
+    while IFS="#" read -r lne r || [[ -n "$lne" ]]; do
       if [ -n "$lne" -a -n "$r" ] && [ "${lne: -1}" != " " ]; then
         lne="$lne#$r"
         r=
@@ -1132,7 +1119,7 @@ _read_cfg_file() {
               x=$(echo $x)
               val="${val:0:-1}$x"
             done
-            $store_param $2 "$kk" "$val" "$d" "$b" "$s"
+            $store_param "$kk" "$val" "$2" "$d" "$b" "$s"
             if [ "$kk" == "CONFN" ]; then
               CONFN="$val"
             fi
@@ -1147,8 +1134,8 @@ link_cfg_def() {
   local file_media file_bindata
   [[ -n "$HOSTNAME_DEV" ]] && set_cfg_def "DEV_HOST" "$HOSTNAME_DEV" || set_cfg_def "DEV_HOST" "(pc[0-9]+)?shsde([a-z][0-9]+)?"
   [[ -n "$HOSTNAME_PRD" ]] && set_cfg_def "PRD_HOST" "$HOSTNAME_PRD" || set_cfg_def "PRD_HOST" "(shsp([a-z][0-9]+)?"
-  set_cfg_def "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
-  set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py __odoo__.py __terp__.py"
+  CFG_set "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
+  CFG_set "ODOO_SETUPS" "__manifest__.py __openerp__.py __odoo__.py __terp__.py"
   file_bckdel=".bak *~ .tmp .log .out .tracehis .tracehistory ,cover .coverage test*.pdf tmp.* npm-debug.log.* .oca .z0i .oia .gitrepname"
   file_backup=".orig .swp .tar .gz .zip __old_*"
   file_meta=".DS_Store ._* .Spotlight-V100 .Trashes Thumbs.db Desktop.ini .cover/ .coverage/ .conf build/ dist/ conf/ filestore/ html/ .idea/ latex/ __pycache__/ .local/ .npm/ .gem/ Trash/ VME/ PycharmProjects pycharm*"
@@ -1156,56 +1143,57 @@ link_cfg_def() {
   file_bins=".pyc .a .obj .o .so .la .lib .dll .exe"
   file_media=".jpg .gif .png .bmp .wav .mp3 .ogg .flac .avi .mpg .xcf .xpm"
   file_bindata=".xls .xlsx .pickle"
-  set_cfg_def "filedel" "$file_bckdel"
-  set_cfg_def "file_backup" "$file_backup"
-  set_cfg_def "file_meta" "$file_meta"
-  set_cfg_def "file_vcs" "$file_vcs"
-  set_cfg_def "file_bins" "$file_bins"
-  set_cfg_def "file_media" "$file_media"
-  set_cfg_def "file_bindata" "$file_bindata"
-  set_cfg_def "fileignore" "$file_backup $file_meta $file_vcs $file_bins $file_media $file_bindata"
-  set_cfg_def "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
-  set_cfg_def "PS_TXT_COLOR" "0;97;40"
-  set_cfg_def "PS_RUN_COLOR" "1;37;44"
-  set_cfg_def "PS_NOP_COLOR" "34;107"
-  set_cfg_def "PS_HDR1_COLOR" "97;42"
-  set_cfg_def "PS_HDR2_COLOR" "30;43"
-  set_cfg_def "PS_HDR3_COLOR" "30;45"
-  set_cfg_def "PKGS_LIST" "clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
-  set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
-  set_cfg_def "DEV_SVG" "$HOME/devel/svg"
-  set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
-  set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
-  set_cfg_def "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
-  set_cfg_def "distpath" "\${HOME}/tools/\${pkgname}"
+  CFG_set "filedel" "$file_bckdel"
+  CFG_set "file_backup" "$file_backup"
+  CFG_set "file_meta" "$file_meta"
+  CFG_set "file_vcs" "$file_vcs"
+  CFG_set "file_bins" "$file_bins"
+  CFG_set "file_media" "$file_media"
+  CFG_set "file_bindata" "$file_bindata"
+  CFG_set "fileignore" "$file_backup $file_meta $file_vcs $file_bins $file_media $file_bindata"
+  CFG_set "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
+  CFG_set "PS_TXT_COLOR" "0;97;40"
+  CFG_set "PS_RUN_COLOR" "1;37;44"
+  CFG_set "PS_NOP_COLOR" "34;107"
+  CFG_set "PS_HDR1_COLOR" "97;42"
+  CFG_set "PS_HDR2_COLOR" "30;43"
+  CFG_set "PS_HDR3_COLOR" "30;45"
+  CFG_set "PKGS_LIST" "clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
+  CFG_set "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
+  CFG_set "DEV_SVG" "$HOME/devel/svg"
+  CFG_set "HTML_DOCS_DIR" "/var/www/html/mw/html"
+  CFG_set "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
+  CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
+  CFG_set "distpath" "\${HOME}/tools/\${pkgname}"
 }
 
 link_cfg() {
-# link_cfg(file_cfg [file_def] [tid] [section] [-D])  -D means debug
+# link_cfg(file_cfg [file_def] [tid] [section] [-D|1])  -D means debug
     # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
-    if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
-      local tid=$3
-    else
-      local tid="0"
-    fi
-    if [ -n "$2" ]; then
-      if [ -f $2.sample ]; then
-        CFG_set "$tid" "CONFND" "$2.sample"
+#    if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
+#      local tid=$3
+#    else
+#      local tid="0"
+#    fi
+    local tid=""
+    if [[ -n "$2" ]]; then
+      if [[ -f $2.sample ]]; then
+        CFG_set "CONFND" "$2.sample" "$tid"
         _read_cfg_file "$2.sample" "$tid" "$4" "$5"
       fi
-      if [ -f $2 ]; then
-        CFG_set "$tid" "CONFND" "$2"
+      if [[ -f $2 ]]; then
+        CFG_set "CONFND" "$2" "$tid"
         _read_cfg_file "$2" "$tid" "$4" "$5"
       fi
     fi
-    if [ -n "$1" ]; then
-      CFG_set "$tid" "CONFN" "$1"
+    if [[ -n "$1" ]]; then
+      CFG_set "CONFN" "$1" "$tid"
       CONFN="$1"
-      if [ -f $1.sample ]; then
-        CFG_set "$tid" "CONFND" "$1.sample"
+      if [[ -f $1.sample ]]; then
+        CFG_set "CONFND" "$1.sample" "$tid"
         _read_cfg_file "$1.sample" "$tid" "$4" "$5"
       fi
-      if [ -f "$CONFN" ]; then
+      if [[ -f "$CONFN" ]]; then
         _read_cfg_file "$CONFN" "$tid" "$4" "$5"
       fi
     fi
