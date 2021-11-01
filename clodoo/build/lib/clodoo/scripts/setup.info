@@ -53,8 +53,7 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.info', './odoorc', './list_requirements.py',
-               './transodoo.xlsx'],
+          '': ['scripts/setup.info', './odoorc', './list_requirements.py'],
       },
       install_requires=install_requires,
       entry_points={
