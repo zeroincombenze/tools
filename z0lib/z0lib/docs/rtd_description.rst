@@ -20,7 +20,7 @@ http://docs.zeroincombenze.org/z0lib/
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-10-30
+Last Update / Ultimo aggiornamento: 2021-11-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

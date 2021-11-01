@@ -49,7 +49,7 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "1.0.3.2"
+__version__ = "1.0.3.1"
 
 
 class CountAction(argparse.Action):

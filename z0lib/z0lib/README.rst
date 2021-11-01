@@ -1,6 +1,6 @@
 
 =============
-z0lib 1.0.3.1
+z0lib 1.0.3.2
 =============
 
 
@@ -239,7 +239,7 @@ Last Update / Ultimo aggiornamento: 2021-10-30
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-10-30
+Last Update / Ultimo aggiornamento: 2021-11-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
