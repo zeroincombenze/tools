@@ -3,7 +3,6 @@ setup.py
 z0bug_odoo/__init__.py
 z0bug_odoo/__main__.py
 z0bug_odoo/conf.py
-z0bug_odoo/create_test_env.py
 z0bug_odoo/test_common.py
 z0bug_odoo/z0bug_odoo_lib.py
 z0bug_odoo.egg-info/PKG-INFO

@@ -82,8 +82,6 @@ class RegressionTest():
                 'get_build_dir(\'%s\')' % odoo_full,
                 version,
                 odoo_version)
-            # if not z0ctx['dry_run']:
-            #     shutil.rmtree(odoo_root, True)
         return sts
 
 

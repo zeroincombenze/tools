@@ -39,7 +39,7 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
 DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
 TCONF="$HOME/.z0tools.conf"
-CFG_init "ALL"f
+CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=0.3.36
+__version__=0.3.36.1
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca powerp librerp VENV_123- devel"
@@ -929,8 +929,13 @@ fi
 
 UT1_LIST=
 UT_LIST=""
-[[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
-Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
-sts=$?
-[[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
+if [[ ${opt_dry_run:-0} -ne 0 ]]; then
+  echo 6175
+  sts=0
+else
+  [[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
+  Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+  sts=$?
+  [[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
+fi
 exit $sts

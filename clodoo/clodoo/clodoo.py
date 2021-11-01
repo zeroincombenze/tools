@@ -223,7 +223,7 @@ except:
 from subprocess import PIPE, Popen
 standard_library.install_aliases()                                 # noqa: E402
 
-__version__ = "0.3.36"
+__version__ = "0.3.36.1"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True

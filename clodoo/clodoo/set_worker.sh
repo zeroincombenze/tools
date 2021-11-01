@@ -45,7 +45,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=0.3.36
+__version__=0.3.36.1
 
 
 evaluate_params() {

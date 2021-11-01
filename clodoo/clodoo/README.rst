@@ -1,7 +1,7 @@
 
-=============
-clodoo 0.3.36
-=============
+===============
+clodoo 0.3.36.1
+===============
 
 
 
@@ -327,6 +327,11 @@ Current development version
 History
 -------
 
+0.3.36.1 (2021-10-16)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug with no standard db port
+
 0.3.36 (2021-09-29)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -383,11 +388,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoorc: run in osx darwin
-
-0.3.31.14 (2021-08-09)
-~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoo_install_repository: run in osx darwin
 
 
 
@@ -465,13 +465,40 @@ Last Update / Ultimo aggiornamento: 2021-10-06
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
+:target: https://odoo-community.org/page/development-status
+:alt:
+:target: https://travis-ci.com/zeroincombenze/tools
+:alt: github.com
+:target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
+:alt: License: AGPL-3
+:target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
+:alt: License: OPL
+:target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3
+:alt: Coverage
+:target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3
+:alt: Codecov
+:target: https://wiki.zeroincombenze.org/en/Odoo/0.3/dev
+:alt: Technical Documentation
+:target: https://wiki.zeroincombenze.org/it/Odoo/0.3/man
+:target: https://erp0.zeroincombenze.it
+:alt: Try Me
+:target: https://codecov.io/gh/OCA/tools/branch/0.3
+:target: https://odoo-italia.org
+:alt: Odoo Italia Associazione
+:target: https://www.zeroincombenze.it/
+:alt: Zeroincombenze
+:target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
+:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
+:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
+:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
+:target: https://t.me/axitec_helpdesk
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-10-06
+Last Update / Ultimo aggiornamento: 2021-11-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -530,6 +557,6 @@ Last Update / Ultimo aggiornamento: 2021-10-06
 .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-   :target: https://t.me/axitec_helpdesk
+   :target: https://t.me/Assitenza_clienti_powERP
 
 

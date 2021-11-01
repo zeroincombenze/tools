@@ -56,7 +56,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.36"
+__version__ = "0.3.36.1"
 
 
 #############################################################################
@@ -1026,13 +1026,15 @@ def set_some_values(ctx, o_model, name, value, model=None, row=None):
 
 
 def eval_value(ctx, o_model, name, value):
-    """Evaluate value read form csv file: may be a function or macro
+    """Evaluate value read from csv file: may be a function or macro
     @ ctx:         global parameters
     @ o_model:     special names
     @ name:        field name
     @ value:       field value (constant, macro or expression)
     """
-    msg = u"eval_value(name=%s, value=%s)" % (os0.u(name), os0.u(value))
+    name = os0.u(name)
+    value = os0.u(value)
+    msg = u"eval_value(name=%s, value=%s)" % (name, value)
     debug_msg_log(ctx, 6, msg)
     if not value and o_model:
         return set_some_values(ctx, o_model, name, value)
