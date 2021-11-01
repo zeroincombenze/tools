@@ -3,17 +3,18 @@
 
 from __future__ import print_function
 
-# import ast
+import importlib
 import re
 import os
 import shutil
 import subprocess
 import sys
 from six import string_types
-from getaddons import (
+from zerobug import z0testodoo
+from .getaddons import (
     get_addons, get_modules, get_modules_info, get_dependencies,
     get_applications_with_dependencies, get_localizations_with_dependents)
-from travis_helpers import success_msg, fail_msg, print_flush
+from .travis_helpers import success_msg, fail_msg, print_flush
 try:
     import ConfigParser
 except ImportError:
@@ -160,41 +161,53 @@ def get_addons_path(travis_dependencies_dir, travis_base_dir, server_path,
 
 
 # Discover automatically Odoo dir and version
-# Recognizes old 6.1 tree, 7.0/8.0/9.0 tree and new 10.0/11.0/12.0 tree
+# Recognizes old 6.1 tree, 7.0/8.0/9.0 tree and new 10.0/../15.0 tree
 def get_build_dir(odoo_full, version=None):
-    odoo_version = version or os.environ.get("VERSION")
-    travis_base_dir = os.path.abspath(
-        os.environ.get("TRAVIS_BUILD_DIR", "./"))
-    if os.path.basename(travis_base_dir) == 'tests':
-        travis_base_dir = os.path.abspath(
-            os.path.join(travis_base_dir, "../../../.."))
-    else:
-        travis_base_dir = os.path.abspath(
-            os.path.join(travis_base_dir, "../../.."))
-    lroot = False
-    for ldir in LDIR:
-        if os.path.isdir(ldir) and os.path.isfile('%s/release.py' % ldir):
-            lroot = ldir
-            break
-    if not lroot:
-        for home in os.listdir(travis_base_dir):
-            for ldir in LDIR:
-                ldir = os.path.join(travis_base_dir, home, ldir)
-                if (os.path.isdir(ldir) and
-                        os.path.isfile('%s/release.py' % ldir)):
-                    lroot = ldir
-                    break
-            if lroot:
+
+    def check_4_release(travis_base_dir):
+        lpath = False
+        for ldir in LDIR:
+            ldir = os.path.join(travis_base_dir, ldir)
+            if (os.path.isdir(ldir) and
+                    os.path.isfile('%s/release.py' % ldir)):
+                lpath = ldir
                 break
-    if lroot:
-        sys.path.append(lroot)
+        return lpath
+
+    items = odoo_full.split('/')
+    odoo_version = items[1] or version or os.environ.get("VERSION")
+    git_org = items[0]
+    if not odoo_version or odoo_version == "auto":
+        for version in ('15.0', '14.0', '13.0', '12.0', '11.0',
+                        '10.0', '9.0', '8.0', '7.0', '6.1'):
+            travis_base_dir = z0testodoo.get_local_odoo_path(
+                git_org, 'OCB', version, home=os.environ['HOME'])
+            if travis_base_dir:
+                lpath = check_4_release(travis_base_dir)
+                if lpath:
+                    break
+    else:
+        travis_base_dir = z0testodoo.get_local_odoo_path(
+            git_org, 'OCB', odoo_version, home=os.environ['HOME'])
+        if travis_base_dir:
+            lpath = check_4_release(travis_base_dir)
+    if lpath:
+        sys.path.append(lpath)
         import release
+        # This function may be called more with different odoo versions
+        if sys.version_info[0] == 2:
+            reload(release)
+        else:
+            importlib.reload(release)
         tested_version = release.version
         del release
+        del sys.path[-1]
         if not odoo_version or odoo_version == "auto":
             odoo_version = tested_version
-        travis_base_dir = os.path.abspath('%s/addons' % lroot)
-        del sys.path[-1]
+        elif odoo_version != tested_version:
+            print_flush(
+                "ERROR: invalid odoo %s version detected!" % tested_version)
+        travis_base_dir = os.path.abspath('%s/addons' % lpath)
     else:
         print_flush("ERROR: no travis build dir detected!")
     if not odoo_version:

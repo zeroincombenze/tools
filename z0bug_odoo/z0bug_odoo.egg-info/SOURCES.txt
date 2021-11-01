@@ -11,6 +11,7 @@ z0bug_odoo.egg-info/SOURCES.txt
 z0bug_odoo.egg-info/dependency_links.txt
 z0bug_odoo.egg-info/entry_points.txt
 z0bug_odoo.egg-info/not-zip-safe
+z0bug_odoo.egg-info/requires.txt
 z0bug_odoo.egg-info/top_level.txt
 z0bug_odoo/data/account_account.xlsx
 z0bug_odoo/data/account_fiscal_position.xlsx

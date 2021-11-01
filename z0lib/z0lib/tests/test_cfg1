@@ -180,8 +180,6 @@ parseoptest -l$TESTDIR/test_..log "$@"
 sts=$?
 [[ $sts -ne 127 ]] && exit $sts
 
-
-
 UT1_LIST=
 UT_LIST=
 [[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup

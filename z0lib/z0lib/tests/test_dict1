@@ -122,8 +122,8 @@ test_01() {
     disto=$(xuname "-d")$v
     for i in {0..3}; do
       CFG_init $i
-      test_result "FH     #$i" "$fh" "$XU_FH"
-      test_result "DISTO  #$i" "$disto" "$XU_DISTO"
+      test_result "FH=$XU_FH  #$i" "$fh" "$XU_FH"
+      test_result "DISTO=$XU_DISTO  #$i" "$disto" "$XU_DISTO"
     done
     base_test
 
@@ -250,16 +250,9 @@ parseoptest -l$TESTDIR/test_..log "$@"
 sts=$?
 [[ $sts -ne 127 ]] && exit $sts
 
-
-
 UT1_LIST=
 UT_LIST=
 [[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
-# Follow code must be executed at main level sue bash limitations
-for i in {0..3}; do
-  CFG_init $i
-done
-# /End Included Block/
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?
 [[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown

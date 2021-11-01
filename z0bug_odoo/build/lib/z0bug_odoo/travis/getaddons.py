@@ -12,7 +12,7 @@ import ast
 import os
 import sys
 
-from git_run import GitRun
+from .git_run import GitRun
 
 __version__ = '1.0.5.3'
 

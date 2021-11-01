@@ -28,10 +28,14 @@ class Z0bugOdoo(object):
 
     def __init__(self, release=None):
         try:
-            from odoo import release
+            import odoo.release as release
             self.release = release
-        except:
-            self.release = None
+        except ImportError:
+            try:
+                import openerp.release as release
+                self.release = release
+            except ImportError:
+                self.release = None
 
     def get_image_filename(self, xref):
         file_image = os.path.join(

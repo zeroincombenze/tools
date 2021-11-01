@@ -38,7 +38,7 @@ def read_setup():
     setup_args = {}
     if os.path.isfile(setup_info):
         with open(setup_info, 'r') as fd:
-            exec fd.read().replace('setup(', 'fake_setup(')
+            exec(fd.read().replace('setup(', 'fake_setup('))
             setup_args = globals()['setup_args']
     else:
         print('Not internal configuration file found!')

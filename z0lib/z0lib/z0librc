@@ -730,7 +730,7 @@ export -f a_active
 # Parameter $6:
 #    Section (reserved ti future use)
 CFG_set() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local key tid SFX
     [[ $3 =~ [0123] ]] && tid=$3 || tid="0"
     if [[ -n "$1" ]]; then
@@ -798,7 +798,7 @@ a_add() {
 #    dictionary value to stdout
 #    status
 CFG_find() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p=""
     local sts=1
     local x SFX key KK
