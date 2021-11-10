@@ -12,20 +12,20 @@ from python_plus import (text_type, bytestr_type,
                          unicodes, bstrings,
                          _u, _b,
                          qsplit)
-
+from zerobug import z0test
 
 MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "1.0.3.9"
+__version__ = "1.0.3.10"
 
 
 def version():
     return __version__
 
 
-class Test():
+class RegressionTest():
 
     def __init__(self, zarlib):
         self.Z = zarlib
@@ -206,9 +206,11 @@ class Test():
                                   res)
         return sts
 
-# if __name__ == "__main__":
-#     exit(Z0BUG.main_local(
-#         Z0BUG.parseoptest(
-#             sys.argv[1:],
-#             version=version()),
-#         Test))
+
+# Run main if executed as a script
+if __name__ == "__main__":
+    exit(z0test.main_local(
+        z0test.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        RegressionTest))

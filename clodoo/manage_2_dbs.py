@@ -17,7 +17,7 @@ import transodoo
 # import pdb
 
 
-__version__ = '0.3.36'
+__version__ = '0.3.36.1'
 
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [

@@ -10,7 +10,7 @@ from __future__ import print_function,unicode_literals
 # import os
 # import os.path
 import sys
-from zerobug import Z0BUG
+from zerobug import z0test
 
 
 __version__ = "1.0.1"
@@ -24,9 +24,11 @@ def version():
     return __version__
 
 
+#
 # Run main if executed as a script
 if __name__ == "__main__":
-    ctx = Z0BUG.parseoptest(sys.argv[1:],
-                        version=version())
-    UT_LIST = ["__doctest_${rundir}/egg-info/os0_${os_name}.rst"]
-    exit(Z0BUG.main_file(ctx, UT=UT_LIST))
+    exit(z0test.main(
+        z0test.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        UT=['__doctest_${rundir}/egg-info/os0_${os_name}.rst']))

@@ -158,7 +158,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from future import standard_library
-# from builtins import input
+from builtins import input
 # from builtins import str
 # from builtins import range
 from past.builtins import basestring
@@ -223,7 +223,7 @@ except:
 from subprocess import PIPE, Popen
 standard_library.install_aliases()                                 # noqa: E402
 
-__version__ = "0.3.36"
+__version__ = "0.3.36.1"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -930,6 +930,8 @@ def act_list_actions(ctx):
 
 def act_show_params(ctx):
     """Show system params; no username required"""
+    import pdb
+    pdb.set_trace()
     if ctx['dbg_mode']:
         pwd = input('password ')
     else:

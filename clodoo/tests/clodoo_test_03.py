@@ -15,14 +15,14 @@ import os
 import sys
 import re
 
-from zerobug import Z0test
+from zerobug import z0test
 try:
     from clodoo.clodoolib import build_odoo_param
 except BaseException:
     from clodoolib import build_odoo_param
 
 
-__version__ = "0.3.36"
+__version__ = "0.3.36.1"
 
 
 MODULE_ID = 'clodoo'
@@ -38,7 +38,7 @@ def version():
     return __version__
 
 
-class Test():
+class RegressionTest():
 
     def __init__(self, testlib):
         self.Z = testlib
@@ -754,7 +754,11 @@ class Test():
         return sts
 
 
+#
+# Run main if executed as a script
 if __name__ == "__main__":
-    exit(Z0test.main_local(
-        Z0test.parseoptest(
-            sys.argv[1:], version=version()), Test))
+    exit(z0test.main_local(
+        z0test.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        RegressionTest))

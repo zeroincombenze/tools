@@ -1,3 +1,5 @@
+from . import scripts
+
 from . import clodoo as clodoo
 from . import transodoo
 try:

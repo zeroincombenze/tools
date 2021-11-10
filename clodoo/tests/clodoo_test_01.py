@@ -10,9 +10,7 @@
     Clodoo Regression Test Suite
 """
 from __future__ import print_function, unicode_literals
-
-# import pdb
-# import os.path
+from past.builtins import basestring
 import sys
 from datetime import date
 
@@ -33,10 +31,10 @@ except BaseException:
                             eval_value, get_query_id,
                             import_file_get_hdr)
 
-from zerobug import Z0test
+from zerobug import z0test
 
 
-__version__ = "0.3.36"
+__version__ = "0.3.36.1"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -336,7 +334,7 @@ class Oerp():
                            set(self.eval_where(where.pop(0))))
             elif isinstance(cond, (list, tuple)):
                 res = list(set(res) & set(cond))
-            elif isinstance(cond, (int, long, float)):
+            elif isinstance(cond, (int, float)):
                 if id not in res:
                     res.append(cond)
         return res
@@ -404,7 +402,7 @@ class Conf():
 Conf()
 
 
-class Test():
+class RegressionTest():
 
     def __init__(self, zarlib):
         self.Z = zarlib
@@ -652,7 +650,10 @@ class Test():
                                      o_model,
                                      name,
                                      value)
-                    sts = self.Z.test_result(z0ctx, msg, value, res)
+                    if value == b'abc':
+                        sts = self.Z.test_result(z0ctx, msg, u'abc', res)
+                    else:
+                        sts = self.Z.test_result(z0ctx, msg, value, res)
 
             for v in ctx:
                 if sts == TEST_SUCCESS:
@@ -664,7 +665,6 @@ class Test():
                     if isinstance(ctx[v], (basestring,
                                            bool,
                                            int,
-                                           long,
                                            float)):
                         sts = self.Z.test_result(z0ctx, msg, ctx[v], res)
 
@@ -672,7 +672,7 @@ class Test():
                     value = "=0-${" + v + "}-9"
                     if isinstance(ctx[v], basestring):
                         tres = "0-" + ctx[v] + "-9"
-                    elif isinstance(ctx[v], (bool, int, long, float)):
+                    elif isinstance(ctx[v], (bool, int, float)):
                         tres = "0-" + str(ctx[v]) + "-9"
                     else:
                         tres = "0--9"
@@ -1014,9 +1014,10 @@ class Test():
 
 
 #
+# Run main if executed as a script
 if __name__ == "__main__":
-    Z = Z0test
-    ctx = Z.parseoptest(sys.argv[1:],
-                        version=version())
-    sts = Z.main_local(ctx, Test)
-    exit(sts)
+    exit(z0test.main_local(
+        z0test.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        RegressionTest))

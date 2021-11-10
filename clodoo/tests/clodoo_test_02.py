@@ -9,10 +9,7 @@
 """
     Clodoo Regression Test Suite
 """
-
-# import pdb
 import os
-# import os.path
 import sys
 import ast
 from datetime import datetime
@@ -21,15 +18,14 @@ from subprocess import PIPE, Popen
 from multiprocessing import Process
 from configparser import ConfigParser
 
-from zerobug import Z0test
-# import oerplib
+from zerobug import z0test
 try:
     from clodoo import clodoo
 except ImportError:
     import clodoo
 
 
-__version__ = "0.3.36"
+__version__ = "0.3.36.1"
 
 
 MODULE_ID = 'clodoo'
@@ -257,7 +253,7 @@ def version():
     return __version__
 
 
-class Test():
+class RegressionTest():
 
     def __init__(self, zarlib):
         self.Z = zarlib
@@ -563,9 +559,11 @@ class Test():
         return sts
 
 
+#
+# Run main if executed as a script
 if __name__ == "__main__":
-    Z = Z0test
-    ctx = Z.parseoptest(sys.argv[1:],
-                        version=version())
-    sts = Z.main_local(ctx, Test)
-    exit(sts)
+    exit(z0test.main_local(
+        z0test.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        RegressionTest))

@@ -24,7 +24,7 @@ import os.path
 from os0 import os0
 from sys import platform as _platform
 import sys
-from zerobug import Z0BUG
+from zerobug import z0test
 
 MODULE_ID = 'os0'
 TEST_FAILED = 1
@@ -593,10 +593,11 @@ class RegressionTest:
             raise Exception("Test failed: muteshell did not work!!!")
 
 
+#
+# Run main if executed as a script
 if __name__ == "__main__":
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(
+    exit(z0test.main_local(
+        z0test.parseoptest(
             sys.argv[1:],
             version=version()),
-        RegressionTest)
-    )
+        RegressionTest))

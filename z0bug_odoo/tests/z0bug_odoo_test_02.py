@@ -11,7 +11,7 @@ import shutil
 from zerobug import z0test, z0testodoo
 from z0bug_odoo.travis.test_server import get_build_dir
 
-__version__ = "1.0.5.3"
+__version__ = "1.0.5.4"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
@@ -82,8 +82,6 @@ class RegressionTest():
                 'get_build_dir(\'%s\')' % odoo_full,
                 version,
                 odoo_version)
-            # if not z0ctx['dry_run']:
-            #     shutil.rmtree(odoo_root, True)
         return sts
 
 

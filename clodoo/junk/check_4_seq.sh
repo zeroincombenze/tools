@@ -1,4 +1,4 @@
-# __version__=0.3.36
+# __version__=0.3.36.1
 THIS=$(basename $0)
 if [ -z "$1" ]; then
   echo "$0 db [user]"
