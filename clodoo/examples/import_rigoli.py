@@ -44,7 +44,9 @@ if __name__ == "__main__":
         print("Copy data %s from DB %s to DB %s" % (ctx['model'],
                                                     src_ctx['src_db_name'],
                                                     ctx['db_name']))
-        ctr = copy_db(ctx, MYDICT_C, MYDICT_S, TNL, skeys)
+        import pdb
+        pdb.set_trace()
+        ctr = copy_db(ctx, src_ctx, MYDICT_C, MYDICT_S, TNL, skeys)
     else:
         print("Import data %s from %s into DB %s" % (ctx['model'],
                                                      ctx['csv_fn'],

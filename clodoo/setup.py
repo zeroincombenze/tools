@@ -15,7 +15,7 @@ else:
     ]
 
 setup(name='clodoo',
-      version='0.3.36.1',
+      version='0.3.36.2',
       description='Do massive operations on Odoo Cloud',
       long_description="""
 Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.
@@ -53,7 +53,8 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.info', './odoorc', './list_requirements.py'],
+          '': ['scripts/setup.info', './odoorc', './list_requirements.py',
+               './transodoo.xlsx'],
       },
       install_requires=install_requires,
       entry_points={

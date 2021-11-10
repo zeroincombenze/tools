@@ -1,6 +1,6 @@
 
 ==================
-z0bug_odoo 1.0.5.4
+z0bug_odoo 1.0.5.5
 ==================
 
 
@@ -1211,6 +1211,7 @@ Last Update / Ultimo aggiornamento: 2021-10-14
 Last Update / Ultimo aggiornamento: 2021-10-27
 :target: https://t.me/Assitenza_clienti_powERP
 Last Update / Ultimo aggiornamento: 2021-10-30
+Last Update / Ultimo aggiornamento: 2021-11-10
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
