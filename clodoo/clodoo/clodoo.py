@@ -175,6 +175,7 @@ import platform
 from datetime import date, datetime, timedelta
 # from passlib.context import CryptContext
 from os0 import os0
+from python_plus import _c
 
 try:
     from clodoo.clodoocore import (                           # noqa: F401
@@ -223,7 +224,7 @@ except:
 from subprocess import PIPE, Popen
 standard_library.install_aliases()                                 # noqa: E402
 
-__version__ = "0.3.36.1"
+__version__ = "0.3.36.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -454,7 +455,8 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                  user=None, pwd=None, lang=None, ctx=None):
     D_LIST = ('ena_inquire', 'caller', 'level', 'dry_run', 'multi_user',
               'set_passepartout', 'no_login')
-    P_LIST = ('db_host', 'db_name', 'db_user', 'db_password', 'admin_passwd',
+    P_LIST = ('db_host', 'db_port', 'db_name', 'db_user', 'db_password',
+              'admin_passwd',
               'login_user', 'login_password', 'crypt_password',
               'login2_user', 'login2_password', 'crypt2_password',
               'svc_protocol', 'oe_version', 'xmlrpc_port',
@@ -477,6 +479,11 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                     ctx[p] = int(xmlrpc_port)
                 else:
                     ctx[p] = xmlrpc_port
+            # elif p == 'db_port' and xmlrpc_port:
+            #     if isinstance(xmlrpc_port, basestring):
+            #         ctx[p] = int(xmlrpc_port)
+            #     else:
+            #         ctx[p] = xmlrpc_port
             elif p == 'oe_version' and oe_version and oe_version != '*':
                 ctx[p] = oe_version
                 if not ctx.get('odoo_vid'):
@@ -499,6 +506,10 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
         return ctx
 
     ctx = ctx or {}
+    if confn:
+        ctx['conf_fn'] = confn
+        if 'conf_fns' in ctx:
+            del ctx['conf_fns']
     ctx = read_config(ctx)
     ctx = oerp_env_fill(db=db,
                         xmlrpc_port=xmlrpc_port,
@@ -930,15 +941,13 @@ def act_list_actions(ctx):
 
 def act_show_params(ctx):
     """Show system params; no username required"""
-    import pdb
-    pdb.set_trace()
     if ctx['dbg_mode']:
         pwd = input('password ')
     else:
         pwd = False
-    print("- hostname      = %s " % ctx['db_host'])
+    print("- hostname/port = %s:%s " % (ctx['db_host'], ctx['db_port']))
     print("- protocol      = %s " % ctx['svc_protocol'])
-    print("- port          = %s " % ctx['xmlrpc_port'])
+    print("- xmlrpc_port   = %s " % ctx['xmlrpc_port'])
     print("- odoo version  = %s " % ctx['oe_version'])
     if pwd:
         print("- password      = %s " % crypt(pwd))
@@ -5656,8 +5665,8 @@ def import_file(ctx, o_model, csv_fn):
     if ctx.get('full_model'):
         ctx['MANDATORY'] = extr_table_generic(ctx, model)
     csv.register_dialect('odoo',
-                         delimiter=',',
-                         quotechar='\"',
+                         delimiter=_c(','),
+                         quotechar=_c('\"'),
                          quoting=csv.QUOTE_MINIMAL)
     csv_ffn = os.path.join(ctx['data_path'], csv_fn)
     if csv_ffn[-4:] == '.csv':

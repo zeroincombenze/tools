@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright 2017-2019, Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
@@ -17,7 +17,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.3.35.3"
+__version__ = "0.3.36.2"
 
 
 def get_name_by_ver(ctx, name):

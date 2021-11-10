@@ -61,6 +61,7 @@ LX_CFG_S = ('db_name',
             'login2_password',
             'admin_passwd',
             'db_host',
+            'db_port',
             'data_dir',
             'xmlrpc_port',
             'oe_version',
@@ -174,7 +175,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.35.3"
+__version__ = "0.3.36.2"
 
 
 #############################################################################
@@ -494,10 +495,10 @@ def create_params_dict(ctx):
     else:
         ctx['oe_version'] = build_odoo_param('FULLVER', ctx['odoo_vid'])
     if not ctx['svc_protocol']:
-        if ctx['oe_version'] in ('10.0', '11.0', '12.0', '13.0', '14.0'):
-            ctx['svc_protocol'] = 'jsonrpc'
-        else:
+        if ctx['oe_version'] in ('9.0', '8.0', '7.0', '6.1'):
             ctx['svc_protocol'] = 'xmlrpc'
+        else:
+            ctx['svc_protocol'] = 'jsonrpc'
     if ctx.get('do_sel_action', False):
         ctx['actions'] = ctx['do_sel_action']
     elif ctx.get('actions_db', None):
@@ -562,6 +563,8 @@ def read_config(ctx):
     ctx, version_is_set = set_confs(ctx)
     ctx['_conf_obj'] = ConfigParser.RawConfigParser(default_conf(ctx))
     ctx['conf_fns'] = ctx['_conf_obj'].read(ctx['conf_fns'])
+    if not ctx['conf_fns']:
+       raise IOError('No configuration file found!')
     ctx = create_params_dict(ctx)
     if not version_is_set:
         ctx, version_is_set = set_confs(ctx)
@@ -584,7 +587,7 @@ def create_parser(version, doc, ctx):
     """
     parser = argparse.ArgumentParser(
         description=docstring_summary(doc),
-        epilog="© 2015-2020 by SHS-AV s.r.l."
+        epilog="© 2015-2021 by SHS-AV s.r.l."
                " - http://www.zeroincombenze.org")
     parser.add_argument("-A", "--action-to-do",
                         help="action to do (use list_actions to dir)",
@@ -744,14 +747,14 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
                      git_org=None, multi=None):
     odoorc = os.path.join(os.path.dirname(__file__), 'odoorc')
     if multi:
-        cmd = 'source %s; opt_multi=1; build_odoo_param %s "%s" "%s" "%s"' % (
+        cmd = 'opt_multi=1 %s %s "%s" "%s" "%s"' % (
             odoorc,
             item,
             odoo_vid,
             suppl or '',
             git_org or '')
     else:
-        cmd = 'source %s; build_odoo_param %s "%s" "%s" "%s"' % (
+        cmd = '%s %s "%s" "%s" "%s"' % (
             odoorc,
             item,
             odoo_vid,

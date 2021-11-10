@@ -1,3 +1,4 @@
+README.rst
 setup.py
 zerobug/__init__.py
 zerobug/__main__.py

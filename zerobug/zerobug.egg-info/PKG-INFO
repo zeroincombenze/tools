@@ -2,7 +2,7 @@ Metadata-Version: 2.1
 Name: zerobug
 Version: 1.0.3.2
 Summary: Zeroincombenze continuous testing framework and tools for python and bash programs
-Home-page: UNKNOWN
+Home-page: https://zeroincombenze-tools.readthedocs.io
 Author: Antonio Maria Vigliotti
 Author-email: antoniomaria.vigliotti@gmail.com
 License: Affero GPL

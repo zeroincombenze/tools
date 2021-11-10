@@ -1,5 +1,5 @@
 # flake8: noqa
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import sys
@@ -22,7 +22,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.3.35.3"
+__version__ = "0.3.36.2"
 
 
 CACHE = {}

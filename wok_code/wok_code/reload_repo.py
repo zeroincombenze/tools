@@ -26,6 +26,46 @@ except ImportError:
 __version__ = "1.0.2.7"
 
 DATA = {
+    'zero6': {
+        'dirname': '~/6.1',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo6-server.conf',
+    },
+    'zero7': {
+        'dirname': '~/7.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo7-server.conf',
+    },
+    'zero8': {
+        'dirname': '~/8.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo8-server.conf',
+    },
+    'zero8': {
+        'dirname': '~/8.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo8-server.conf',
+    },
+    'zero8': {
+        'dirname': '~/8.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo8-server.conf',
+    },
+    'zero9': {
+        'dirname': '~/9.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo9-server.conf',
+    },
+    'zero10': {
+        'dirname': '~/10.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo10.conf',
+    },
+    'zero11': {
+        'dirname': '~/11.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo11.conf',
+    },
     'powerp12': {
         'dirname': '~/12.0',
         'git_org': 'https://github.com/OCA',
@@ -41,7 +81,72 @@ DATA = {
         'profiles': '',
         'zerobug-test': 'git@github.com:zeroincombenze',
         'warehouse-logistics-stock': 'git@gitlab.com:/powerp1',
-    }
+    },
+    'zero13': {
+        'dirname': '~/13.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo13.conf',
+    },
+    'zero14': {
+        'dirname': '~/14.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo14.conf',
+    },
+    'zero15': {
+        'dirname': '~/15.0',
+        'git_org': 'git@github.com:zeroincombenze',
+        'conf': 'odoo15.conf',
+    },
+    'librerp6': {
+        'dirname': '~/librerp6',
+        'git_org': 'https://github.com/iw3hxn',
+        'conf': 'odoo6-librerp.conf',
+    },
+    'oca7': {
+        'dirname': '~/oca7',
+        'git_org': 'https://github.com/OCA',
+        'conf': 'odoo7-oca.conf',
+    },
+    'oca8': {
+        'dirname': '~/oca8',
+        'git_org': 'https://github.com/OCA',
+        'conf': 'odoo8-oca.conf',
+    },
+    'oca9': {
+        'dirname': '~/oca9',
+        'git_org': 'https://github.com/OCA',
+        'conf': 'odoo9-oca.conf',
+    },
+    'oca10': {
+        'dirname': '~/oca10',
+        'git_org': 'https://github.com/OCA',
+        'conf': 'odoo10-oca.conf',
+    },
+    'oca11': {
+        'dirname': '~/oca11',
+        'git_org': 'https://github.com/OCA',
+        'conf': 'odoo11-oca.conf',
+    },
+    'oca12': {
+        'dirname': '~/oca12',
+        'git_org': 'https://github.com/OCA',
+        'conf': 'odoo12-oca.conf',
+    },
+    'oca13': {
+        'dirname': '~/oca13',
+        'git_org': 'https://github.com/OCA',
+        'conf': 'odoo13-oca.conf',
+    },
+    'oca14': {
+        'dirname': '~/oca14',
+        'git_org': 'https://github.com/OCA',
+        'conf': 'odoo14-oca.conf',
+    },
+    'oca15': {
+        'dirname': '~/oca15',
+        'git_org': 'https://github.com/OCA',
+        'conf': 'odoo15-oca.conf',
+    },
 }
 INVALID_NAMES = ['addons', 'uncovered']
 
@@ -118,11 +223,12 @@ if __name__ == "__main__":
         git_url = '%s/%s.git' % (git_url, repo)
         tgtdir = os.path.join(root, repo)
         if os.path.isdir(repo):
-            if not ctx['update'] and not ctx['assume_yes']:
-                print('Repo %s already exists!' % repo)
-                dummy = input('Delete (y/n)? ')
-                if not dummy.lower().startswith('y'):
-                    continue
+            if not ctx['update']:
+                if not ctx['assume_yes']:
+                    print('Repo %s already exists!' % repo)
+                    dummy = input('Delete (y/n)? ')
+                    if not dummy.lower().startswith('y'):
+                        continue
                 print('rm -fR %s' % repo)
                 shutil.rmtree(repo)
         if os.path.isdir(repo):
@@ -132,13 +238,13 @@ if __name__ == "__main__":
             print('$ %s' % cmd)
             os.system(cmd)
             #TODO
-            cmd = 'git checkout 12.0-devel'
-            print('$ %s' % cmd)
-            sts = os.system(cmd)
-            if sts:
-                cmd = 'git checkout 12.0_devel'
-                print('$ %s' % cmd)
-                sts = os.system(cmd)
+            # cmd = 'git checkout 12.0-devel'
+            # print('$ %s' % cmd)
+            # sts = os.system(cmd)
+            # if sts:
+            #     cmd = 'git checkout 12.0_devel'
+            #     print('$ %s' % cmd)
+            #     sts = os.system(cmd)
             cmd = 'git pull'
         else:
             if git_url.startswith('git'):

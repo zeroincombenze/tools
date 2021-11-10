@@ -9,7 +9,7 @@
 # import pdb
 # import os
 import sys
-from zerobug import Z0BUG
+from zerobug import z0test
 
 __version__ = '1.0.3.6'
 
@@ -32,11 +32,10 @@ class RegressionTest():
         return sts
 
 
-#
 # Run main if executed as a script
 if __name__ == "__main__":
-    exit(Z0BUG.main(
-        Z0BUG.parseoptest(
+    exit(z0test.main_local(
+        z0test.parseoptest(
             sys.argv[1:],
             version=version()),
         RegressionTest))

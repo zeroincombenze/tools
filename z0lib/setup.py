@@ -30,6 +30,7 @@ Features:
           'Topic :: System :: System Shells',
       ],
       keywords='bash, optargs',
+      url='https://zeroincombenze-tools.readthedocs.io',
       project_urls={
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',

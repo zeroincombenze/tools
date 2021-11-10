@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='z0bug_odoo',
-      version='1.0.5.3',
+      version='1.0.5.5',
       description='Odoo testing framework',
       long_description="""
 Zeroincombenze(R) continuous testing framework for Odoo modules.
@@ -23,11 +23,11 @@ Make avaiable test functions indipendent by Odoo version.
           'Topic :: System :: System Shells',
       ],
       keywords='unit test debug',
+      url='https://zeroincombenze-tools.readthedocs.io',
       project_urls={
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',
       },
-      url='https://zeroincombenze-tools.readthedocs.io',
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',

@@ -61,6 +61,7 @@ LX_CFG_S = ('db_name',
             'login2_password',
             'admin_passwd',
             'db_host',
+            'db_port',
             'data_dir',
             'xmlrpc_port',
             'oe_version',
@@ -174,7 +175,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.36.1"
+__version__ = "0.3.36.2"
 
 
 #############################################################################

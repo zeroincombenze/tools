@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 import sys
@@ -19,7 +19,7 @@ except ImportError:
 # import transodoo
 # import pdb
 
-__version__ = "0.3.35.3"
+__version__ = "0.3.36.2"
 
 
 VERSIONS = ['vg7', '61', '70', '80', '90', '100', '110', '120']

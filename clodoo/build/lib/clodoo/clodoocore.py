@@ -56,7 +56,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.36.1"
+__version__ = "0.3.36.2"
 
 
 #############################################################################
@@ -68,7 +68,9 @@ def psql_connect(ctx):
         dbname = ctx['db_name']
         dbuser = ctx['db_user']
         pwd = ctx.get('db_password')
-        cnx = psycopg2.connect(dbname=dbname, user=dbuser, password=pwd)
+        port = ctx.get('db_port') or 5432
+        cnx = psycopg2.connect(
+            dbname=dbname, user=dbuser, password=pwd, port=port)
         cnx.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cr = cnx.cursor()
     return cr

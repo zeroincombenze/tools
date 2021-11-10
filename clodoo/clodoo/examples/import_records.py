@@ -113,7 +113,19 @@ def get_company_id(ctx):
 
 
 def get_many2one(ctx, value, model, parent_name=None, parent_value=None):
-    rec_id = env_ref(ctx, value)
+    if isinstance(value, basestring):
+        rec_id = env_ref(ctx, value)
+    elif isinstance(value, int):
+        if model not in ctx['BIND']:
+            ctx['BIND'][model] = {}
+        src_ctx = {}    # TODO
+        if not ctx['BIND'][model].get(value):
+            rec = clodoo.browseL8(src_ctx, ctx['model'], value)
+            row = clodoo.extract_vals_from_rec(
+                src_ctx, ctx['model'], rec, format='str')
+        return ctx['BIND'][model].get(value)
+    else:
+        return None
     if not rec_id and value:
         if parent_name:
             domain = [(parent_name, '=', parent_value),
@@ -172,7 +184,8 @@ def get_uom_id(ctx, value):
     return rec_id
 
 
-def get_value(ctx, name, value, ttype):
+def get_value(ctx, name, value):
+    ttype = ctx['STRUCT'][name]['type']
     if value is None:
         def_field_name = 'default_%s' % name
         if def_field_name in ctx:
@@ -228,9 +241,17 @@ def add_item(ctx, row):
     is_supplier = get_value_by_name(ctx, row, 'is_supplier')
     supplier = is_supplier if not is_customer else False
     for ix, field in enumerate(ctx['STRUCT']):
-        value = get_value_by_name(ctx, row, field, supplier=supplier)
+        if isinstance(row, (tuple, list)):
+            value = get_value_by_name(ctx, row, field, supplier=supplier)
+        else:
+            value = row.get(field)
+        vals[field] = get_value(ctx, field, value)
         ttype = ctx['STRUCT'][field]['type']
-        vals[field] = get_value(ctx, field, value, ttype)
+        if ttype in ('one2many', 'many2many', 'many2one'):
+            if vals[field]:
+                ctx['BIND'][ctx['model']][value] = vals[field]
+            else:
+                pass
     for item in list(vals.copy().keys()):
         if vals[item] is None:
             del vals[item]
@@ -276,9 +297,13 @@ def set_header(
     ctx['TNL'] = tnl
     ctx['SKEYS'] = skeys
     ctx['STRUCT'] = clodoo.executeL8(ctx, ctx['model'], 'fields_get')
+    if 'BIND' not in ctx:
+        ctx['BIND'] = {}
 
 
 def copy_db(ctx, src_ctx, MYDICT_C, MYDICT_S, TNL, skeys):
+    set_header(
+        ctx, [], ctx['model'], MYDICT_C, MYDICT_S, TNL, skeys)
     ctr = 0
     for rec in clodoo.browseL8(
             src_ctx, ctx['model'], clodoo.searchL8(
@@ -356,7 +381,7 @@ def init_n_connect(flavour=None):
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
     if not ctx.get('csv_fn') and (ctx.get('src_conf_fn') or
                                   ctx.get('src_db_name')):
-        src_ctx = ctx.copy
+        src_ctx = ctx.copy()
     else:
         src_uid = src_ctx = None
     ctx['flavour'] = flavour

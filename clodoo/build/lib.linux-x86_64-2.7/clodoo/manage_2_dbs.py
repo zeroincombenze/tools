@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 
@@ -17,7 +17,7 @@ import transodoo
 # import pdb
 
 
-__version__ = '0.3.35.3'
+__version__ = '0.3.36.2'
 
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
