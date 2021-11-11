@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='zerobug',
-      version='1.0.3.2',
+      version='1.0.4',
       description='Zeroincombenze continuous testing framework'
                   ' and tools for python and bash programs',
       long_description="""
@@ -53,6 +53,7 @@ it. This behavior can be overridden by -0 switch.
           'Topic :: System :: System Shells',
       ],
       keywords='bash, optargs',
+      url='https://zeroincombenze-tools.readthedocs.io',
       project_urls={
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',
