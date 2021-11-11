@@ -34,7 +34,7 @@ except BaseException:
 from zerobug import z0test
 
 
-__version__ = "0.3.36.2"
+__version__ = "0.3.53.1"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
