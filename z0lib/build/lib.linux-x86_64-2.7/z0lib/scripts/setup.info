@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='z0lib',
-      version='1.0.3.2',
+      version='1.0.4',
       description='Bash zeroincombenze lib',
       long_description="""
 General purpose bash and python library for zeroincombenze(R) tools
@@ -30,6 +30,7 @@ Features:
           'Topic :: System :: System Shells',
       ],
       keywords='bash, optargs',
+      url='https://zeroincombenze-tools.readthedocs.io',
       project_urls={
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',
