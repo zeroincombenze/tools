@@ -2262,9 +2262,9 @@ def parse_ctx(src_ctx):
  
     if src_ctx['final_dbname'] and not src_ctx['from_dbname']:
         src_ctx['from_dbname'], src_ctx['final_dbname'] = \
-            src_ctx['final_dbname'], '%s_2020' % src_ctx['final_dbname']
+            src_ctx['final_dbname'], '%s_2021' % src_ctx['final_dbname']
     elif not src_ctx['final_dbname'] and src_ctx['from_dbname']:
-        src_ctx['final_dbname'] = '%s_2020' % src_ctx['from_dbname']
+        src_ctx['final_dbname'] = '%s_2021' % src_ctx['from_dbname']
     elif not src_ctx['final_dbname'] and not src_ctx['from_dbname']:
         raise KeyError('Missed database to upgrade! Please use -d switch')
 
@@ -2341,7 +2341,7 @@ _DEPRECATED_MODULES = [
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Migrate Odoo DB",
-                                "© 2019-20 by SHS-AV s.r.l.",
+                                "© 2019-21 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument("-B", "--openupgrade-branch-path",

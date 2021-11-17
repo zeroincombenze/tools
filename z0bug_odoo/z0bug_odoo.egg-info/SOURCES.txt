@@ -50,6 +50,8 @@ z0bug_odoo/data/res_partner.xlsx
 z0bug_odoo/data/res_partner_bank.xlsx
 z0bug_odoo/data/sale_order.xlsx
 z0bug_odoo/data/sale_order_line.xlsx
+z0bug_odoo/data/stock_inventory.xlsx
+z0bug_odoo/data/stock_inventory_line.xlsx
 z0bug_odoo/data/withholding_tax.csv
 z0bug_odoo/data/withholding_tax_rate.csv
 z0bug_odoo/data/z0bug.partner_mycompany.png

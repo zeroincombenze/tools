@@ -1,7 +1,7 @@
 
-================
-z0bug_odoo 1.0.6
-================
+==================
+z0bug_odoo 1.0.6.2
+==================
 
 
 
@@ -1066,10 +1066,16 @@ Current development version
 History
 -------
 
+1.0.6.2 (2021-11-16)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Test data: inventory data
+* [IMP] Test data: inventory data
+
 1.0.5.4 (2021-10-18)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] Test data: supplier invoice with 22a / Codice IVA in fattura fornitore dati test
+* [IMP] Test data: supplier invoice with 22a / Codice IVA in fattura fornitore dati test
 
 1.0.5.3 (2021-10-15)
 ~~~~~~~~~~~~~~~~~~~~
@@ -1123,12 +1129,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] data: res.partner Alpha error
-
-1.0.1.2 (2021-04-02)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] data: res_partner_bank reclassification to avoid conflict with demo data
-
 
 
 
@@ -1213,6 +1213,8 @@ Last Update / Ultimo aggiornamento: 2021-10-27
 Last Update / Ultimo aggiornamento: 2021-10-30
 Last Update / Ultimo aggiornamento: 2021-11-10
 Last Update / Ultimo aggiornamento: 2021-11-11
+Last Update / Ultimo aggiornamento: 2021-11-13
+Last Update / Ultimo aggiornamento: 2021-11-17
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1246,7 +1248,7 @@ Last Update / Ultimo aggiornamento: 2021-11-11
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-11-11
+Last Update / Ultimo aggiornamento: 2021-11-17
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
