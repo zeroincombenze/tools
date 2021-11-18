@@ -61,7 +61,7 @@ test_01() {
 
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
-        # TODO> cannot teset 6.1
+        # TODO> cannot test 6.1
         [[ $v == "6.1" ]] && continue
         for x in "" $SUB_TO_TEST; do
             [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue
@@ -78,7 +78,7 @@ test_01() {
             b=$(basename $TRES)
             [[ $x =~ ^VENV ]] && TRES="$HOME/$w/odoo/$b"
             [[ $x =~ ^VENV && $v == "6.1" ]] && TRES="$HOME/$w/odoo/server/openerp-server"
-            [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(run_odoo_debug -b $w -n)
+            [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(run_odoo_debug -b $w -n 2>&1 | grep -vE "File .*no.*(exist|esistente)")
             echo $RES | grep "$TRES.*--config" > /dev/null
             [ $? -eq 0 ] &&  s=0 || s=1
             test_result "$opt_multi>$TRES -b $w" "$s" "0"
@@ -94,7 +94,7 @@ test_01() {
             if [[ $v == "6.1" ]]; then
                 [[ $x =~ ^VENV ]] && TRES="$HOME/$w/odoo/server/openerp-server" || TRES="$HOME/$w/server/openerp-server"
             fi
-            [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(run_odoo_debug -b $w -n)
+            [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(run_odoo_debug -b $w -n 2>&1 | grep -vE "File .*no.*(exist|esistente)")
             echo $RES | grep "$TRES.*--config" > /dev/null
             [ $? -eq 0 ] &&  s=0 || s=1
             test_result "$opt_multi>$TRES -b $w" "$s" "0"

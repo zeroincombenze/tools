@@ -278,6 +278,7 @@ Last Update / Ultimo aggiornamento: 2021-09-26
 Last Update / Ultimo aggiornamento: 2021-09-29
 Last Update / Ultimo aggiornamento: 2021-10-05
 Last Update / Ultimo aggiornamento: 2021-10-06
+Last Update / Ultimo aggiornamento: 2021-11-01
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -304,14 +305,14 @@ Last Update / Ultimo aggiornamento: 2021-10-06
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
-:target: https://t.me/axitec_helpdesk
+:target: https://t.me/Assitenza_clienti_powERP
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-11-01
+Last Update / Ultimo aggiornamento: 2021-11-18
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
