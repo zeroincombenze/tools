@@ -10,6 +10,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
+# Based on template 1.0.2.7
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -50,7 +51,7 @@ RUNDIR=$(readlink -e $TESTDIR/..)
 
 DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
 TCONF="$HOME/.z0tools.conf"
-CFG_init
+CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
@@ -72,17 +73,16 @@ store_cfg_param_value() {
     p=${2:12}
     PIPPKGVER[$p]=$3
   fi
-  a_add "$1" "$2" "$3" "$4"
+  # a_add "$1" "$2" "$3" "$4"
+  CFG_set "$2" "$3" "$1" "$4" "$5"
 }
 
 debug_shell() {
-    local BU_PS1
-    BU_PS1="$PS1"
-    PS1="debug> "
-    echo "type ctrl+d to resume travis ..."
-    $SHELL --noprofile --norc
-    PS1="$BU_PS1"
+    echo "PS1='ctrl+d to exit> '">/tmp/$$.sh
+    [[ -n "$1" ]] && echo "TODO>$1"
+    eval $SHELL --noprofile --rcfile -s/tmp/$$.sh -s
 }
+
 process_yaml_init() {
   local u
   YML_sect=
@@ -368,7 +368,7 @@ process_yaml_initialize() {
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [Initialize from .travis.conf] ------\e[0m"
   fi
-  [[ -n $opt_trace && "::travis.conf" =~ $opt_trace ]] && debug_shell
+  [[ -n $opt_trace && ::travis.conf =~ $opt_trace ]] && debug_shell "::travis.conf"
   line=$(get_cfg_value "" "GBL_EXCLUDE")
   [[ -n "$line" ]] && run_traced "export GBL_EXCLUDE=$line"
   for i in {1..9}; do
@@ -389,7 +389,7 @@ process_yaml_initialize() {
       fi
     done
   fi
-  [[ -n $opt_tafter && "::travis.conf" =~ $opt_trace ]] && debug_shell
+  [[ -n $opt_tafter && ::travis.conf =~ $opt_tafter ]] && debug_shell
   return $sts
 }
 
@@ -427,26 +427,26 @@ process_yaml_global() {
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[env.global] in .travis.yml] ------\e[0m"
   fi
-  [[ -n $opt_trace && "::env.global" =~ $opt_trace ]] && debug_shell
+  [[ -n $opt_trace && ::env.global =~ $opt_trace ]] && debug_shell "::env.global"
   for lne in $YML_global; do
     line="export $(process_yaml_quote_xtl $lne)"
     run_traced "$line"
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
   done
-  [[ -n $opt_tafter && "::env.global" =~ $opt_trace ]] && debug_shell
+  [[ -n $opt_tafter && ::env.global =~ $opt_tafter ]] && debug_shell
   return $sts
 }
 
 process_yaml_before_install() {
   wlog "\e[${PS_HDR2_COLOR}m===== [Before install] =====\e[0m"
-  [[ -n $opt_trace && "::before_install" =~ $opt_trace ]] && debug_shell
+  [[ -n $opt_trace && ::before_install =~ $opt_trace ]] && debug_shell "::before_install"
   local sts=$STS_SUCCESS
   local i s line lne X CURPYVER
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[addons.apt.packages] in .travis.yml] ------\e[0m"
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
-    [[ -n $opt_trace && "::addons.apt.package" =~ $opt_trace ]] && debug_shell
+    [[ -n $opt_trace && ::addons.apt.package =~ $opt_trace ]] && debug_shell "::addons.apt.package"
     CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo [0-9] | head -n1)
     for lne in $YML_packages; do
       if [[ "$lne" == "python-dev" && $CURPYVER == "3" ]]; then
@@ -479,7 +479,7 @@ process_yaml_before_install() {
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       [ $s -ne 0 ] && echo "Internal error! Statement failed! <<<"
     done
-    [[ -n $opt_tafter && "::addons.apt.package" =~ $opt_trace ]] && debug_shell
+    [[ -n $opt_tafter && ::addons.apt.package =~ $opt_tafter ]] && debug_shell
   fi
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[before_install] in .travis.yml] ------\e[0m"
@@ -499,7 +499,7 @@ process_yaml_before_install() {
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     done
   fi
-  [[ -n $opt_tafter && "::before_install" =~ $opt_trace ]] && debug_shell
+  [[ -n $opt_tafter && ::before_install =~ $opt_tafter ]] && debug_shell
   return $sts
 }
 
@@ -562,7 +562,7 @@ process_yaml_run_cmd() {
   else
     local line1
   fi
-  [[ -n $opt_trace && $xcmd =~ $opt_trace ]] && debug_shell
+  [[ -n $opt_trace && $xcmd =~ $opt_trace ]] && debug_shell "$xcmd"
   c=$xcmd
   if [ "$FH" == "RHEL" ]; then
     if [[ $xcmd =~ which[[:space:]]nodejs ]]; then
@@ -816,7 +816,7 @@ process_yaml() {
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
     if [[ $sts -eq $STS_SUCCESS ]]; then
-      [[ -n $opt_trace && "::matrix" =~ $opt_trace ]] && debug_shell
+      [[ -n $opt_trace && ::matrix =~ $opt_trace ]] && debug_shell "::matrix"
       [[ -z "$python_ver_req" ]] && python_ver_req=$(python --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
       [[ -z "$opt_pyv" ]] && opt_pyv=$(get_cfg_value "" "PYTHON_MATRIX")
       [[ -z "$opt_pyv" ]] && opt_pyv="(2.7|3.5|3.6|3.7|3.8)"
@@ -865,7 +865,7 @@ process_yaml() {
             line1="$lne"
             lne1=$(process_yaml_quote "$lne")
           fi
-          [[ -n $opt_tafter && "::matrix" =~ $opt_trace ]] && debug_shell
+          [[ -n $opt_tafter && ::matrix =~ $opt_tafter ]] && debug_shell
           if [[ $lne1 =~ ODOO_REPO=.[A-Za-z]+ && ! $lne1 =~ ODOO_REPO=.$YML_repo. ]]; then
             wlog "\e[${PS_HDR3_COLOR}mMatrix [$lne1] skipped due invalid repo\e[${PS_TXT_COLOR}m"
             continue
@@ -884,14 +884,14 @@ process_yaml() {
             continue
           fi
           wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[0m"
-          [[ -n $opt_trace && "::build" =~ $opt_trace ]] && debug_shell
+          [[ -n $opt_trace && ::build =~ $opt_trace ]] && debug_shell "::build"
           create_virtual_env
           wlog "\e[${PS_HDR2_COLOR}m----- [System informations] -----\e[0m"
           for p in PATH HOME TRAVIS TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_SAVED_HOME HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
             X=${!p}
             [[ -n "$X" || $p =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $p=$X\e[0m"
           done
-          [[ -n $opt_tafter && "::build" =~ $opt_trace ]] && debug_shell
+          [[ -n $opt_tafter && ::build =~ $opt_tafter ]] && debug_shell
           process_yaml_global
           if [ $sts -eq $STS_SUCCESS ]; then
             process_yaml_before_install

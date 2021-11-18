@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# template 17
 """
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.
 You can test your application before pushing code to github.com web site.
@@ -50,18 +51,13 @@ def fake_setup(**kwargs):
 def read_setup():
     setup_info = os.path.abspath(
         os.path.join(os.path.dirname(__file__), 'setup.info'))
-    # setup_file = os.path.abspath(
-    #     os.path.join(os.path.dirname(__file__), '..', '..', 'setup.py'))
-    # if os.path.isfile(setup_file):
-    #     shutil.copy(setup_file, setup_info)
     if not os.path.isfile(setup_info):
         setup_info = os.path.abspath(
             os.path.join(os.path.dirname(__file__), '..', 'setup.py'))
     setup_args = {}
     if os.path.isfile(setup_info):
         with open(setup_info, 'r') as fd:
-            content = fd.read().replace('setup(', 'fake_setup(')
-            exec(content)
+            exec(fd.read().replace('setup(', 'fake_setup('))
             setup_args = globals()['setup_args']
     else:
         print('Not internal configuration file found!')
@@ -110,7 +106,7 @@ def copy_pkg_data(setup_args, verbose):
             for pkg in setup_args['package_data'].keys():
                 for fn in setup_args['package_data'][pkg]:
                     base = os.path.basename(fn)
-                    if base == 'setup.info':
+                    if base in ('setup.info', '*'):
                         continue
                     full_fn = os.path.abspath(os.path.join(pkgpath, fn))
                     if base.endswith('.man') and man_path:
@@ -141,7 +137,7 @@ def copy_pkg_data(setup_args, verbose):
                         #     if verbose:
                         #         print('$ ln -s %s %s' % (full_fn, tgt_fn))
                         #     os.symlink(full_fn, tgt_fn)
-            # TODO> compatibility mode to remeve early
+            # TODO> compatibility mode to remove early
             if lib_path and bin2_path:
                 for base in ('z0librc', 'odoorc', 'travisrc'):
                     full_fn = os.path.join(bin2_path, base)
