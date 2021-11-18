@@ -28,12 +28,14 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+set -x
 Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
 if [[ -z "$Z0TLIBDIR" ]]; then
   echo "Library file z0testrc not found!"
   exit 72
 fi
 . $Z0TLIBDIR
+set +x
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
