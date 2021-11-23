@@ -25,7 +25,7 @@ else:
     print('No Odoo environment found!')
     sys.exit(0)
 
-__version__ = '1.0.6.1'
+__version__ = '1.0.6.3'
 
 
 class Z0bugBaseCase(test_common.BaseCase):

@@ -14,7 +14,7 @@ import sys
 
 from .git_run import GitRun
 
-__version__ = '1.0.6.1'
+__version__ = '1.0.6.3'
 
 MANIFEST_FILES = [
     '__manifest__.py',
