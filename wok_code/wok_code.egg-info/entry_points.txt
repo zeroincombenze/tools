@@ -1,0 +1,3 @@
+[console_scripts]
+wok_code-info = wok_code.scripts.main:main
+

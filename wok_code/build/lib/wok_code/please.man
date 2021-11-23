@@ -1,0 +1,301 @@
+.\" Manpage for please.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH please 8
+.SH NAME
+please \- develeoper shell
+.SH SYNOPSIS
+please [options] action [package]
+.SH DESCRIPTION
+\fBplease\fR is an interactive developer shell aim to help development and testing software.
+.P
+Action is one of:
+.br
+* help
+.br
+* build
+.br
+* chkconfig
+.br
+* commit (deprecated)
+.br
+* config
+.br
+* distribution (deprecated)
+.br
+* docs
+.br
+* download_rep (deprecated)
+.br
+* duplicate
+.br
+* export MODULE DB
+.br
+* import
+.br
+* list
+.br
+* lsearch
+.br
+* publish
+.br
+* push
+.br
+* pythonhosted
+.br
+* replace
+.br
+* replica
+.br
+* show
+.br
+* status
+.br
+* synchro (deprecated)
+.br
+* test
+.br
+* translate MODULE DB
+.br
+* version
+.br
+* wep
+.P
+\fBbuild\fR
+.RS
+Build a tar file for current PYPI project
+.br
+This action is appliable just to PYPI projects. The tar file is created on project root directory (i.e. ~/dev/pypi/my_project).
+Look at \fBplease status\fR to see projects tree.
+.RE
+.P
+\fBchkconfig\fR
+.RS
+Display various values of current project.
+.RE
+.P
+\fBcommit\fR
+.RS
+If current host is a development host, copy all files of current project to remote production host.
+Development host and production host are recognized by their name.
+Server roles are in \fBDEV_HOST\fR and \fBPRD_HOST\fR parameters of \fBplease config\fR action.
+If null value, server roles are declared by HOSTNAME_DEV and HOSTNAME_PRD shell variables.
+.br
+Deprecated! Use git commands
+.RE
+.P
+\fBconfig global|local\fR
+.RS
+Set various parameter editing with vim. Comments inside configuration file can aim to set values.
+.br
+Some variable are:
+.br
+* GBL_EXCLUDE=test_impex -> Module globally escluded by test because can fail locally
+.br
+* PYTHON_MATRIX="2.7 3.7" -> python version to use in tests
+.RE
+.P
+\fBdistribution oca|zero\fR
+.RS
+Deprecated
+.RE
+.P
+\fBdocs\fR
+.RS
+Prepare documentation to publish on readthedocs website.
+.br
+This action has effect just for PYPI projects.
+.RE
+.P
+\fBdownload_rep PKGNAME\fR
+.RS
+Download repository from git
+.br
+If Odoo project you have to declare version using \fB-b\fR switch
+.br
+Deprecated
+.RE
+.P
+\fBduplicate\fR
+.RS
+Duplicate current Odoo module into another version.
+.br
+To declare target version use \fB-b\fR switch
+.RE
+.P
+\fBexport MODULE DB [-bBRANCH]\fR
+.RS
+Export po file of Odoo project.
+If current directory is a module directory you can use '.' (dot) for module name.
+.br
+To declare specific version use \fB-b\fR switch
+.br
+Example: please export . demo
+.RE
+.P
+\fBimport MODULE DB\fR
+.RS
+Import po file of Odoo project.
+.br
+To declare target version use \fB-b\fR switch
+.RE
+.P
+\fBlist\fR
+.RS
+List host where to push project.
+.RE
+.P
+\fBlsearch DB TOKEN [-d date][-b odoo_ver]\fR
+.RS
+Search regex token in all odoo logs.
+.br
+If supplied, date may be: YYYY-MM[-DD hh[:mm[:ss]]]
+.br
+To declare odoo version use \fB-b\fR switch
+.RE
+.P
+\fBpublish docs|download|pypi|svg|testpypi\fR
+.RS
+Publish documentation or package.
+.br
+* publish docs     -> publish generate docs to website (require system privileges)
+.br
+* publish download -> publish tarball to download (require system privileges)
+.RS
+type \fBplease build\fR to generate tarball file
+.RE
+* publish pypi     -> publish package to pypi website (from odoo user)
+.br
+* publish svg      -> publish test result svg file (require system privileges)
+.br
+* publish tar      -> write a tarball with package files
+.RE
+.P
+\fBpush\fR
+.RS
+Copy all files of current project to a remote host.
+.br
+Remote hosts are numerated from 1 to 9 and selected by \fB-o\fR switch.
+.br
+This action uses disk_pkg command of travis_emulator pypi project.
+.br
+Remote hosts are in \fBtgtNpath\fR parameter of \fBplease config\fR action (where N is a number 1-9).
+.RE
+.P
+\fBreplace\fR
+.RS
+Copy all files of current PYPI project into tools directory.
+.br
+Current project must be one of included projects of tools repository. The project names to manage are in \fBPKGS_LIST\fR parameter of \fBplease config\fR action.
+.RE
+.P
+\fBreplica DIRECTORY\fR
+.RS
+Copy the selected directory into all other versions of current Odoo module.
+.br
+Use this action mainly for replicate documentation directory.
+.RE
+.P
+\fBshow docs|license\fR
+.RS
+* show docs        -> publish package to pypi website (from odoo user)
+.br
+* show license     -> publish test result svg file (require system privileges)
+.br
+\fBshow docs\fR
+.RS
+Open local documentation web page (readthdocs) with firefox.
+Documentation must be created by \fBplease docs\fR action and published on the "readthdocs" website using \fBplease publish\fR action.
+.br
+This action has effect just for PYPI projects.
+.RE
+\fBshow license\fR
+.RS
+If current project is an Odoo project and current directory is on a repository
+it shows the licenses of all modules.
+.br
+.RE
+.RE
+.P
+\fBstatus\fR
+.RS
+Show replace status
+.br
+For each project in ~/dev/pypi show differences between replaced copy and show replacing status in ~/tools (see replace action)
+.br
+
+.br
+    Projects tree
+.br
+
+.br
+.RS
+root
+.br
+|
+.br
+|-- devel                   # Here runtime command links
+.br
+|   |
+.br
+|   \\--- pypi               # Here PYPI projects in development state
+.br
+|        |
+.br
+|        |--- PYPI PROJECT  # Here the nth project
+.br
+|        \\--- ...
+.br
+|
+.br
+\\--- tools                  # Here gitted or ready to git projects copy
+.br
+     |
+.br
+     |--- PYPI PROJECT      # Here nth project
+.br
+     \\--- ...
+.RE
+.RE
+.P
+\fBsynchro oca|zero COMMIT-MESSAGE\fR
+.RS
+Update documentation (please distribution), execute \fBgit commit\fR an then \fNgit push\fR
+.br
+This action is appliable just to PYPI projects. After this action, current project is pushed on to git repository.
+.br
+Deprecated
+.RE
+.P
+\fBtranslate MODULE DB\fR
+.RS
+Translate po file of Odoo project.
+In order to access to database a configuratione file must be supplied with \fB-c\fR switch.
+.br
+To declare target version use \fB-b\fR switch
+.RE
+.SH OPTIONS
+.TP
+.BR \-L \fIfilename\fR
+Trace file name. Default is /var/log/product.log if user is root, otherwise is ~/product.log
+.TP
+.BR \-n
+Do nothing (dry-run)
+.TP
+.TP
+.BR \-q
+Quiet mode
+.TP
+.BR \-V
+Show version
+.TP
+.BR \-v
+Verbose mode
+.TP
+.BR \-y
+assume yes
+.SH EXAMPLES
+please docs
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)

@@ -1,0 +1,35 @@
+.\" Manpage for cvt_script.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH cvt_script 8
+.SH NAME
+cvt_script \- Update bash script
+.SH SYNOPSIS
+Usage: cvt_script [-hJKk][-m name][-nOqTUVvwyZ] bashscript
+Update bash script
+ -h --help            this help
+ -J                   load travisrc library
+ -K                   set script version format n.n.n
+ -k --keep            Keep script version
+ -m --mod-name name
+                      module name
+ -n --dry-run         do nothing (dry-run)
+ -O                   load odoorc library
+ -q --quiet           silent mode
+ -T                   script with test_mode switch
+ -U                   unit test script with z0testrc library
+ -V --version         show version end exit
+ -v --verbos          verbose mode
+ -w --no-warn         suppress warning messages
+ -y --yes             assume yes
+ -Z                   load zar library
+.SH DESCRIPTION
+cvt_script update bash scripts in order to make them more standard with
+zeroincombenze(R) tools.
+.SH OPTIONS
+See above
+.SH EXAMPLES
+
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)

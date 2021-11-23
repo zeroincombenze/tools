@@ -865,7 +865,7 @@ partner qci
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-11-17
+Last Update / Ultimo aggiornamento: 2021-11-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
