@@ -39,6 +39,8 @@ from clodoo import transodoo
 __version__ = "1.0.2.7"
 
 msg_time = time.time()
+VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')
+
 
 def msg_burst(text):
     global msg_time
@@ -245,7 +247,6 @@ def manage_coa(ctx):
     VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0',
                 '11.0', '12.0', '13.0', '14.0']
     # ORGS = ('zero', 'powerp', 'librerp')
-    VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')
     action = ctx['action']
     if action not in VALID_ACTIONS:
         print('Invalid action %s!' % action)
@@ -330,7 +331,8 @@ if __name__ == "__main__":
     parser.add_argument('-h')
     parser.add_argument('-A', '--action',
                         action='store',
-                        dest='action')
+                        dest='action',
+                        help='Actions are %s' % ','.join(VALID_ACTIONS))
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
                         dest='odoo_ver')

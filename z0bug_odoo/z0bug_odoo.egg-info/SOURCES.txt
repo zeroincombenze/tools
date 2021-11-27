@@ -37,6 +37,7 @@ z0bug_odoo/data/date_range_type.xlsx
 z0bug_odoo/data/decimal_precision.xlsx
 z0bug_odoo/data/dichiarazione_intento.xlsx
 z0bug_odoo/data/dichiarazione_intento_yearly_limit.xlsx
+z0bug_odoo/data/italy_profile_account.xlsx
 z0bug_odoo/data/miscellaneous.xlsx
 z0bug_odoo/data/module.xlsx
 z0bug_odoo/data/product_product.xlsx

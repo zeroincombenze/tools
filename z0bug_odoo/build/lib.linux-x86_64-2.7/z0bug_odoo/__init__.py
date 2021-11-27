@@ -5,7 +5,7 @@ import os
 import sys
 
 if eval(os.environ.get('TRAVIS_DEBUG_MODE', '0')) > 2:
-    __version__ = '1.0.6.2'
+    __version__ = '1.0.6.4'
     print('DEBUG: z0bug_odoo %s' % __version__)
     print('DEBUG: z0bug_odoo.sys.path=%s' % sys.path)
 

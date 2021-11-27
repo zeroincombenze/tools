@@ -61,7 +61,8 @@ it. This behavior can be overridden by -0 switch.
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
-      install_requires=['coverage', 'coveralls', 'codecov', 'python-magic'],
+      install_requires=['coverage', 'coveralls', 'codecov', 'python-magic',
+                        'os0'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
