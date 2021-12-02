@@ -30,7 +30,7 @@ MODULE_ID = 'os0'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "1.0.1"
+__version__ = "1.0.1.1"
 
 TITLE = "os0 regression test. Version: " + __version__
 FLOGTMP = "os0_test.log"
@@ -217,8 +217,12 @@ class RegressionTest:
                                  'myfile',
                                  res)
         if not ctx.get('dry_run', False):
-            bstr = 'text àèìòù'
-            ustr = u"text àèìòù"
+            if sys.version_info[0] == 2:
+                bstr = 'text àèìòù'
+                ustr = u"text àèìòù"
+            else:
+                bstr = 'text àèìòù'.encode('utf-8')
+                ustr = "text àèìòù"
             res = os0.u(bstr)
         sts = self.Z.test_result(ctx,
                                  "unicode(string)",
@@ -229,11 +233,12 @@ class RegressionTest:
                                  ustr,
                                  os0.u(ustr))
         if not ctx.get('dry_run', False):
-            if sys.version[0] == 2:
+            if sys.version_info[0] == 2:
                 bstr = 'text àèìòù'
+                ustr = u"text àèìòù"
             else:
                 bstr = b'text \xc3\xa0\xc3\xa8\xc3\xac\xc3\xb2\xc3\xb9'
-            ustr = u"text àèìòù"
+                ustr = "text àèìòù"
             res = os0.b(ustr)
         sts = self.Z.test_result(ctx,
                                  "bstring(string)",

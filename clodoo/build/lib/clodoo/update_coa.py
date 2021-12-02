@@ -15,7 +15,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.3.53.2"
+__version__ = "0.3.53.4"
 
 
 msg_time = time.time()

@@ -24,7 +24,7 @@ if [[ -z "$Z0LIBDIR" ]]; then
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-__version__=0.3.53.3
+__version__=0.3.53.4
 
 
 OPTOPTS=(h        n            V           v)

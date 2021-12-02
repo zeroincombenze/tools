@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=0.3.53.3
+__version__=0.3.53.4
 
 
 test_01() {
@@ -344,15 +344,15 @@ test_07() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
-    TRES[6.1]="['account_financial_report_webkit_xls', 'account_journal_report']"
-    TRES[7.0]="['account_financial_report_webkit_xls', 'account_journal_report']"
-    TRES[8.0]="['account_financial_report_webkit_xls', 'account_journal_report']"
-    TRES[9.0]="['account_financial_report_qweb', 'account_journal_report']"
+    TRES[6.1]="account_journal_report"
+    TRES[7.0]="account_journal_report"
+    TRES[8.0]="account_journal_report"
+    TRES[9.0]="account_journal_report"
     TRES[10.0]="account_financial_report_qweb"
     TRES[11.0]="account_financial_report_qweb"
-    TRES[12.0]="['account_financial_report', 'account_financial_report_qweb']"
-    TRES[13.0]="['account_financial_report', 'account_financial_report_qweb']"
-    TRES[14.0]="['account_financial_report', 'account_financial_report_qweb']"
+    TRES[12.0]="account_financial_report_qweb"
+    TRES[13.0]="account_financial_report_qweb"
+    TRES[14.0]="account_financial_report_qweb"
     #
     for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m ir.module.module -k merge -s account_financial_report_qweb -f 10.0 -b$v)

@@ -2,3 +2,4 @@ coverage
 coveralls
 codecov
 python-magic
+os0

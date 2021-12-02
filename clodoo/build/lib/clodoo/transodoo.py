@@ -32,7 +32,7 @@ the ttype 'value' has a more level for every field name:
 from __future__ import print_function, unicode_literals
 # from builtins import input
 from past.builtins import basestring
-from python_plus import bstrings
+from python_plus import bstrings, unicodes
 
 import re
 import os
@@ -53,7 +53,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "0.3.53.2"
+__version__ = "0.3.53.4"
 VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0']
 ALL_VERSIONS = [x for x in VERSIONS]
 for org in ('zero', 'powerp', 'librerp'):
@@ -85,6 +85,12 @@ CVT_ACC_TYPE_NEW_OLD = {
     'Prepayments': 'Expense',
     'Current Year Earnings': 'Expense',
 }
+
+
+def natstr(s):
+    if sys.version_info[0] == 2:
+        return bstrings(s)
+    return unicodes(s)
 
 
 def get_pymodel(model, ttype=None):
@@ -249,7 +255,7 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
         names = []
         for typ in map(lambda x: x, ('name',
                                      'field')) if not ttype else [ttype]:
-            if ttype =='valuetnl':
+            if ttype == 'valuetnl':
                 if fld_name in mindroot[pymodel].get('value', {}):
                     names = ['1']
                 else:
@@ -614,7 +620,7 @@ def transodoo(ctx=None):
     elif ctx['action'] == 'translate':
         read_stored_dict(ctx)
         if ctx['oe_from_ver']:
-            print(bstrings(translate_from_to(
+            print(natstr(translate_from_to(
                 ctx,
                 ctx['model'],
                 ctx['sym'],
@@ -623,7 +629,7 @@ def transodoo(ctx=None):
                 ttype=ctx['opt_kind'],
                 fld_name=ctx['field_name'])))
         else:
-            print(bstrings(translate_from_sym(
+            print(natstr(translate_from_sym(
                 ctx,
                 ctx['model'],
                 ctx['sym'],

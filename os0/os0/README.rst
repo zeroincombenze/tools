@@ -1,7 +1,7 @@
 
-=========
-os0 1.0.1
-=========
+===========
+os0 1.0.1.1
+===========
 
 
 
@@ -180,6 +180,8 @@ Last Update / Ultimo aggiornamento: 2021-10-06
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/axitec_helpdesk
 Last Update / Ultimo aggiornamento: 2021-11-01
+:target: https://t.me/Assitenza_clienti_powERP
+Last Update / Ultimo aggiornamento: 2021-11-18
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -213,7 +215,7 @@ Last Update / Ultimo aggiornamento: 2021-11-01
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-11-18
+Last Update / Ultimo aggiornamento: 2021-12-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

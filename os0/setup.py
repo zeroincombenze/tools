@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='os0',
-      version='1.0.1',
+      version='1.0.1.1',
       description='OS indipendent interface',
       long_description="""
 This module extends python os module with a few new functionality
