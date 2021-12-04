@@ -119,7 +119,7 @@ fi
 [[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo -e "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
 [[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo -e "${GREEN}# Creating development environment $DEVELPATH ...${CLR}"
 [[ $opts =~ ^-.*v ]] && echo "# Virtual environment is $LOCAL_VENV ..."
-[[ $opts =~ ^-.*n ]] || find $SRCPATH $DSTPATH -name "*.pyc" -delete
+[[ $opts =~ ^-.*n ]] || find $SRCPATH -name "*.pyc" -delete
 [[ $opts =~ ^-.*o ]] && echo -e "${RED}# WARNING! The switch -o is not more supported!${CLR}"
 [[ -x $SRCPATH/python_plus/python_plus/vem ]] && VEM="$SRCPATH/python_plus/python_plus/vem"
 [[ -z "$VEM" && -x $SRCPATH/python_plus/vem ]] && VEM="$SRCPATH/python_plus/vem"
@@ -149,6 +149,7 @@ if [[ $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! 
     [[ ! -d $LOCAL_VENV/bin/man/man8 ]] && run_traced "mkdir -p $LOCAL_VENV/bin/man/man8"
 fi
 
+[[ $opts =~ ^-.*n ]] || find $DSTPATH -name "*.pyc" -delete
 [[ ! $opts =~ ^-.*q ]] && echo "# Moving local PYPI packages into virtual environment"
 run_traced ". $LOCAL_VENV/bin/activate"
 

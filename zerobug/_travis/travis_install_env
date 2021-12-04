@@ -339,7 +339,7 @@ sts=$STS_SUCCESS
 [[ $MQT_VERBOSE_MODE == "1" ]] && opt_verbose=1
 [[ $MQT_VERBOSE_MODE == "0" ]] && opt_verbose=0
 #[[ $TRAVIS_DEBUG_MODE -ne 0 ]] && opt_verbose=1
-OPTS=$(inerhit_opts)
+OPTS=$(inherit_opts)
 if [[ ${opt_regr:-0} -gt 0 ]]; then
   LINT_CHECK="0"
   TESTS="1"
@@ -416,7 +416,7 @@ fi
 if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$(which $PIP).$($PIP --version)\e[${PS_HDR3_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
+  # echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias vem=$VEM.$($VEM -V)\e[${PS_HDR3_COLOR}m"
   # echo -e "\e[${PS_TXT_COLOR}m\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)\e[${PS_HDR3_COLOR}m"
