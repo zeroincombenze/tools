@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='z0lib',
-      version='1.0.4',
+      version='1.0.4.1',
       description='Bash zeroincombenze lib',
       long_description="""
 General purpose bash and python library for zeroincombenze(R) tools
@@ -38,6 +38,7 @@ Features:
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
+      install_requires=['future'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={

@@ -28,10 +28,7 @@ import os
 import argparse
 import inspect
 import configparser
-try:
-    from os0 import os0
-except:
-    import os0
+
 standard_library.install_aliases()                                 # noqa: E402
 
 
@@ -49,7 +46,11 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "1.0.4"
+__version__ = "1.0.4.1"
+
+
+def nakedname(path):
+    return os.path.splitext(os.path.basename(path))[0]
 
 
 class CountAction(argparse.Action):
@@ -150,7 +151,7 @@ class parseoptargs(object):
         valid = False
         while not valid:
             this_fqn = os.path.abspath(inspect.stack()[i][1])
-            this = os0.nakedname(os.path.basename(this_fqn))
+            this = nakedname(this_fqn)
             if this in ("__init__", "pdb", "cmd", "z0testlib", "z0lib"):
                 i += 1
             else:
@@ -227,7 +228,7 @@ class parseoptargs(object):
         ctx = {}
         this_fqn = self.get_this_fqn()
         ctx['this_fqn'] = this_fqn
-        this = os0.nakedname(os.path.basename(this_fqn))
+        this = nakedname(this_fqn)
         ctx['this'] = this
         if os.isatty(0):
             ctx['run_daemon'] = False

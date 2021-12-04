@@ -43,6 +43,8 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
 ]
 
 
@@ -81,7 +83,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
                     'maturity*', 'module_name*', 'repos_name*',
                     'today*',
                     'authors*', 'contributors*', 'translators*',
-                    'acknowledges*']
+                    'acknowledges*',
+                    'MAINPAGE.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 # pygments_style = None
@@ -95,7 +98,9 @@ pygments_style = 'sphinx'
 #
 # on_rtd is whether we are on readthedocs.org,
 # this line of code grabbed from docs.readthedocs.org
-#     html_theme = 'master'
+# html_theme = 'sphinx_rtd_theme'
+# html_theme = 'python_docs_theme'
+html_theme = 'nature'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -133,3 +138,11 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 html_logo = 'logozero_180x46.png'
+#
+# autodoc_default_flags = ['members']
+autosummary_generate = True
+autodoc_default_options = {
+    'members': 'Z0test, Z0testOdoo',
+    'undoc-members': True,
+    'exclude-members': 'Macro, SanityTest'
+}

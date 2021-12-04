@@ -28,12 +28,14 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+set -x
 Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
 if [[ -z "$Z0TLIBDIR" ]]; then
   echo "Library file z0testrc not found!"
   exit 72
 fi
 . $Z0TLIBDIR
+set +x
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
@@ -49,7 +51,7 @@ GREEN="\e[1;32m"
 CLR="\e[0m"
 
 
-__version__=1.0.4
+__version__=1.0.4.1
 
 
 test_01() {
@@ -59,11 +61,13 @@ test_01() {
       [[ -f $FCONF ]] && rm -f $FCONF
       [[ -f $FCONF.sample ]] && rm -f $FCONF.sample
       link_cfg $FCONF
+      set_cfg_def "param0" "1;2;3"
       set_cfg_def "param1" "Value1"
       set_cfg_def "param2" "Value2"
       set_cfg_def "param3" "Value3"
       set_cfg_def "param4" "Value4"
     fi
+    export XPRM0=$(get_cfg_value "" "param$i")
     for i in 1 2 3 4; do
       TRES=$(get_cfg_value "" "param$i")
       test_result "get_cfg_value '' param$i" "Value$i" "$TRES"
