@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.6.9
+__version__=1.0.7
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -109,7 +109,7 @@ if [[ $DSTPATH != $LOCAL_VENV && ! -d $DSTPATH && ! $opts =~ ^-.*p ]]; then
     [[ -d $HOME/devel ]] && DSTPATH=$HOME/devel
 fi
 [[ -z "$DSTPATH" ]] && echo "# Environment not found! Please use -p switch" && exit 1
-DEVELPATH="$(readlink DSTPATH/pypi)"   # new DSTPATH/../pypi
+DEVELPATH="$(readlink $DSTPATH/pypi)"   # new DSTPATH/../pypi
 
 if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
     [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
