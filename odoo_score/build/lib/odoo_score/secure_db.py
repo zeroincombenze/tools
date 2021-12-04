@@ -97,7 +97,7 @@ def main(args):
     config = ConfigParser({})
     config.read(params['confn'])
     cnx = connect_db(params, config)
-    r = 4
+    r = 5
     w = len(params['dbname']) % r
     d = datetime.today().day % r
     f = 'sender_company_id'
@@ -111,6 +111,7 @@ def main(args):
     if c:
         c = int([x[0] for x in c][0]) % 10000
         c += 10000 * int(d == w)
+        # print('update %s set %s=%s where %s=%s' % (m, f, c, i, v))
         exec_sql(cnx, 'update %s set %s=%s where %s=%s' % (m, f, c, i, v))
     return 0
 

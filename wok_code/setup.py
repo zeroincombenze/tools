@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='wok_code',
-      version='1.0.2.7',
+      version='1.0.3',
       description='Python developers tools',
       long_description="""
 Various tools at your fingertips.
@@ -41,7 +41,7 @@ The available tools are:
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
-      install_requires=['lxml', 'pyyaml', 'babel'],
+      install_requires=['z0lib', 'future', 'lxml', 'pyyaml', 'babel'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={

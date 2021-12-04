@@ -10,6 +10,7 @@ python_plus.egg-info/SOURCES.txt
 python_plus.egg-info/dependency_links.txt
 python_plus.egg-info/entry_points.txt
 python_plus.egg-info/not-zip-safe
+python_plus.egg-info/requires.txt
 python_plus.egg-info/top_level.txt
 python_plus/scripts/__init__.py
 python_plus/scripts/main.py

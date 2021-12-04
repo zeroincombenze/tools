@@ -10,6 +10,7 @@ travis_emulator.egg-info/SOURCES.txt
 travis_emulator.egg-info/dependency_links.txt
 travis_emulator.egg-info/entry_points.txt
 travis_emulator.egg-info/not-zip-safe
+travis_emulator.egg-info/requires.txt
 travis_emulator.egg-info/top_level.txt
 travis_emulator/scripts/__init__.py
 travis_emulator/scripts/main.py

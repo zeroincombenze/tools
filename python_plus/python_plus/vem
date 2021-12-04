@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.10
+__version__=1.0.4
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -294,12 +294,13 @@ pip_install() {
     elif [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
       [[ -L $pypath/$pfn ]] && run_traced "rm -f $pypath/$pfn"
-      # [[ $opt_debug -gt 2 && -f $srcdir/../setup.py && -d $srcdir/scripts ]] && run_traced "cp $(readlink -f $srcdir/../setup.py) $srcdir/scripts/setup.info"
       if [[ $opt_debug -eq 2 ]]; then
         [[ ! -d $tmpdir ]] && run_traced "mkdir $tmpdir"
         run_traced "mkdir -p $tmpdir/$pfn"
         run_traced "cp -r $srcdir $tmpdir/$pfn/"
         run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
+        x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep -Eo "\./README.rst")
+        [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
         [[ $PIPVER -ge 21 ]] && run_traced "$PIP install $tmpdir/$pfn --use-feature=in-tree-build $popts" || run_traced "$PIP install $tmpdir/$pfn $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         run_traced "rm -fR $tmpdir/$pfn"

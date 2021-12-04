@@ -1,7 +1,7 @@
 
-===============
-clodoo 0.3.53.3
-===============
+=============
+clodoo 0.3.54
+=============
 
 
 
@@ -327,6 +327,11 @@ Current development version
 History
 -------
 
+0.3.53.4 (2021-11-30)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo: full python3 functionality
+
 0.3.36.1 (2021-10-16)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -383,11 +388,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] odoorc: module list
-
-0.3.31.15 (2021-08-10)
-~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoorc: run in osx darwin
 
 
 
@@ -469,6 +469,8 @@ Last Update / Ultimo aggiornamento: 2021-11-01
 :target: https://t.me/Assitenza_clienti_powERP
 Last Update / Ultimo aggiornamento: 2021-11-10
 Last Update / Ultimo aggiornamento: 2021-11-11
+Last Update / Ultimo aggiornamento: 2021-11-13
+Last Update / Ultimo aggiornamento: 2021-12-02
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -502,7 +504,7 @@ Last Update / Ultimo aggiornamento: 2021-11-11
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-11-13
+Last Update / Ultimo aggiornamento: 2021-12-03
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -39,7 +39,7 @@ fi
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
-__version__=0.3.53.4
+__version__=0.3.54
 
 
 test_01() {

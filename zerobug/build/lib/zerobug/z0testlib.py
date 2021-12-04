@@ -19,7 +19,7 @@ from os0 import os0
 import magic
 
 
-__version__ = "1.0.4"
+__version__ = "1.0.4.1"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -538,7 +538,7 @@ class Z0test(object):
         else:
             self.autorun = True
         this_fqn = os.path.abspath(this_fqn or self._get_this_fqn())
-        this = os0.nakedname(os.path.basename(this_fqn))
+        this = os.path.splitext(os.path.basename(this_fqn))[0]
         this_dir = os.getcwd()
         if (not os.path.basename(this_dir) == 'tests' and 
                 not os.path.isdir('./tests')):
@@ -866,7 +866,7 @@ class Z0test(object):
         # this_fqn = False
         # while not valid and i < len(inspect.stack()):
         #     this_fqn = os.path.abspath(inspect.stack()[i][1])
-        #     this = os0.nakedname(os.path.basename(this_fqn))
+        #     this = os.path.splitext(os.path.basename(this_fqn))[0]
         #     if this[0] == '<' and this[-1] == '>':
         #         i += 1
         #     elif this in ("__init__", "pdb", "cmd", "z0testlib"):
@@ -889,7 +889,7 @@ class Z0test(object):
         ctx['testdir'] = self.testdir
         this_fqn = self._get_this_fqn()
         ctx['this_fqn'] = this_fqn
-        this = os0.nakedname(os.path.basename(this_fqn))
+        this = os.path.splitext(os.path.basename(this_fqn))[0]
         ctx['this'] = this
         if os.isatty(0):
             ctx['run_daemon'] = False
@@ -1099,7 +1099,7 @@ class Z0test(object):
                 self.doctest(ctx, testname)
             elif TestCls and hasattr(TestCls, testname):
                 getattr(T, testname)(ctx)
-            elif os0.nakedname(basetn) != ctx['this']:
+            elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(
                     mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
@@ -1180,7 +1180,7 @@ class Z0test(object):
                 if ctx.get('opt_debug', False):
                     self.dbgmsg(ctx, ">>> %s()" % testname)
                 sts = getattr(T, testname)(ctx)
-            elif os0.nakedname(basetn) != ctx['this']:
+            elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(
                     mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":

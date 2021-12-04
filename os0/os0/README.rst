@@ -1,6 +1,6 @@
 
 ===========
-os0 1.0.1.1
+os0 1.0.2.1
 ===========
 
 
@@ -17,17 +17,20 @@ Operating System indipendent interface
 --------------------------------------
 
 This module extends python os module with a few new functionality
- to interface operating system.
+to interface operating system.
+
 It recognizes file name structure and manages both URI standard name
- both local name, as UNC and ODS5.
+both local name, as UNC and ODS5.
 
 - URI (Uniform Resource Identifier) is standard posix filename.
 - UNC (Uniform Naming Convention) is windows standard
 - ODS5 is used for define OpenVMS standard filenames
 
 An example of URI filename is '/home/myfile'.
+
 UNC example for the same of previous URI name is '\\home\\myfile'
- (with single backslash)
+(with single backslash).
+
 ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
 
 See https://en.wikipedia.org/wiki/Path_(computing)
@@ -123,7 +126,7 @@ Contributors
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 |
 This module is part of tools project.
-Last Update / Ultimo aggiornamento: 2021-10-06
+Last Update / Ultimo aggiornamento: 2021-12-03
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
 :target: https://odoo-community.org/page/development-status
 :alt:
@@ -178,10 +181,8 @@ Last Update / Ultimo aggiornamento: 2021-10-06
 .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-:target: https://t.me/axitec_helpdesk
-Last Update / Ultimo aggiornamento: 2021-11-01
 :target: https://t.me/Assitenza_clienti_powERP
-Last Update / Ultimo aggiornamento: 2021-11-18
+Last Update / Ultimo aggiornamento: 2021-12-04
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -215,7 +216,7 @@ Last Update / Ultimo aggiornamento: 2021-11-18
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-02
+Last Update / Ultimo aggiornamento: 2021-12-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

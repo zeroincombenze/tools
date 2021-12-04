@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='python_plus',
-      version='1.0.3.10',
+      version='1.0.4',
       description='python useful function',
       long_description="""
 Python supplemental features
@@ -40,6 +40,7 @@ This package is released with an nice command:
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
+      install_requires=['z0lib'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={

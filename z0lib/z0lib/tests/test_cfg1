@@ -51,7 +51,7 @@ GREEN="\e[1;32m"
 CLR="\e[0m"
 
 
-__version__=1.0.4
+__version__=1.0.4.1
 
 
 test_01() {
@@ -61,11 +61,13 @@ test_01() {
       [[ -f $FCONF ]] && rm -f $FCONF
       [[ -f $FCONF.sample ]] && rm -f $FCONF.sample
       link_cfg $FCONF
+      set_cfg_def "param0" "1;2;3"
       set_cfg_def "param1" "Value1"
       set_cfg_def "param2" "Value2"
       set_cfg_def "param3" "Value3"
       set_cfg_def "param4" "Value4"
     fi
+    export XPRM0=$(get_cfg_value "" "param$i")
     for i in 1 2 3 4; do
       TRES=$(get_cfg_value "" "param$i")
       test_result "get_cfg_value '' param$i" "Value$i" "$TRES"

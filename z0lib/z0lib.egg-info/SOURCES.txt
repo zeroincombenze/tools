@@ -10,6 +10,7 @@ z0lib.egg-info/SOURCES.txt
 z0lib.egg-info/dependency_links.txt
 z0lib.egg-info/entry_points.txt
 z0lib.egg-info/not-zip-safe
+z0lib.egg-info/requires.txt
 z0lib.egg-info/top_level.txt
 z0lib/scripts/__init__.py
 z0lib/scripts/main.py

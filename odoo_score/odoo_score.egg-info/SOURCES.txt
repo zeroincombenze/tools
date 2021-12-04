@@ -1,3 +1,4 @@
+README.rst
 setup.py
 odoo_score/__init__.py
 odoo_score/__main__.py
@@ -20,6 +21,7 @@ odoo_score.egg-info/SOURCES.txt
 odoo_score.egg-info/dependency_links.txt
 odoo_score.egg-info/entry_points.txt
 odoo_score.egg-info/not-zip-safe
+odoo_score.egg-info/requires.txt
 odoo_score.egg-info/top_level.txt
 odoo_score/scripts/__init__.py
 odoo_score/scripts/main.py

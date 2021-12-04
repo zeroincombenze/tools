@@ -3,3 +3,4 @@ coveralls
 codecov
 python-magic
 os0
+z0lib

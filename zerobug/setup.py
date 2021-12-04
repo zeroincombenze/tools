@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='zerobug',
-      version='1.0.4',
+      version='1.0.4.1',
       description='Zeroincombenze continuous testing framework'
                   ' and tools for python and bash programs',
       long_description="""
@@ -62,7 +62,7 @@ it. This behavior can be overridden by -0 switch.
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       install_requires=['coverage', 'coveralls', 'codecov', 'python-magic',
-                        'os0'],
+                        'os0', 'z0lib'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={

@@ -31,7 +31,7 @@ def msg_burst(text):
 
 
 parser = z0lib.parseoptargs("Odoo test environment",
-                            "© 2017-2018 by SHS-AV s.r.l.",
+                            "© 2017-2021 by SHS-AV s.r.l.",
                             version=__version__)
 parser.add_argument('-h')
 parser.add_argument("-c", "--config",
