@@ -76,7 +76,7 @@ it. This behavior can be overridden by -0 switch.
               'zerobug-info = zerobug.scripts.main:main',
               # 'travis_after_tests_success = zerobug._travis.travis_after_tests_success:main',
               # 'travis_install_env = zerobug.scripts.travis_install_env:main',
-              'travis_run_pypi_tests = zerobug.scripts.travis_run_pypi_tests:main',
+              # 'travis_run_pypi_tests = zerobug.scripts.travis_run_pypi_tests:main',
               'zerobug = zerobug.zerobug:main',
           ],
       },

@@ -1,5 +1,4 @@
 [console_scripts]
-travis_run_pypi_tests = zerobug.scripts.travis_run_pypi_tests:main
 zerobug = zerobug.zerobug:main
 zerobug-info = zerobug.scripts.main:main
 
