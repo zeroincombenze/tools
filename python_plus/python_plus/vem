@@ -351,7 +351,7 @@ pip_install() {
         DISTO=$(xuname -d)
         FH=$(xuname -f)
         [[ $DISTO == "Fedora" ]] && echo "dnf install bzr"
-        [[ $DISTO != "Fedora" && $FH = "RHEL" ]] && echo "yum install bzr"
+        [[ $DISTO != "Fedora" && $FH == "RHEL" ]] && echo "yum install bzr"
         [[ $DISTO == "Debian" ]] && echo "apt -t lenny-backports install bzr"
         [[ $DISTO == "Ubuntu" ]] && echo "add-apt-repository ppa:bzr/ppa"
         [[ $FH == "Debian" ]] && echo "apt update"
@@ -1054,7 +1054,7 @@ do_venv_create() {
       if [[ -z $(find ${VENV}~ -maxdepth 0 -empty) ]]; then
           for f in ${VENV}~/*; do
               b=$(basename $f)
-              [[ ! -e $VENV/$b ]] && run_traced "mv ${VENV}~/$f $VENV/"
+              [[ ! -e $VENV/$b ]] && run_traced "mv $f $VENV/"
               empty=0
           done
       fi
@@ -1330,42 +1330,42 @@ if [[ -n "$ERROR_PKGS" ]]; then
   echo "************************************************************"
   DISTO=$(xuname -d)
   FH=$(xuname -f)
-  [[ $FH = "RHEL" ]] && XTAL="yum" || XTAL="apt"
+  [[ $FH == "RHEL" ]] && XTAL="yum" || XTAL="apt"
   [[ $DISTO == "Fedora" ]] && XTAL="dnf"
   echo "Perhaps you should install ..."
-  [[ $FH = "RHEL" ]] && PKGLIST="python-devel" || PKGLIST="python-dev"
+  [[ $FH == "RHEL" ]] && PKGLIST="python-devel" || PKGLIST="python-dev"
   [[ $DISTO == "Fedora" ]] && PKGLIST=""
-  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST python3-devel" || PKGLIST="$PKGLIST python3-dev"
-  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST python3-pip" || PKGLIST="$PKGLIST python3-pip"
-  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST python3-venv" || PKGLIST="$PKGLIST python3-venv"
-  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libsass-devel"
-  [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST zlib-devel" || PKGLIST="$PKGLIST zlib1g-dev"
+  [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST python3-devel" || PKGLIST="$PKGLIST python3-dev"
+  [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST python3-pip" || PKGLIST="$PKGLIST python3-pip"
+  [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST python3-venv" || PKGLIST="$PKGLIST python3-venv"
+  [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST libsass-devel"
+  [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST zlib-devel" || PKGLIST="$PKGLIST zlib1g-dev"
   echo "$XTAL install $PKGLIST"
   if [[ $ERROR_PKGS =~ lxml ]]; then
     PKGLIST=""
     [[ $DISTO == "Fedora" ]] && PKGLIST="redhat-rpm-config"
-    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libxml2-devel" || PKGLIST="$PKGLIST libxml2-dev"
-    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libxslt-devel" || PKGLIST="$PKGLIST libxslt-dev"
+    [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST libxml2-devel" || PKGLIST="$PKGLIST libxml2-dev"
+    [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST libxslt-devel" || PKGLIST="$PKGLIST libxslt-dev"
     echo "$XTAL install $PKGLIST    # lxml"
   fi
   if [[ $ERROR_PKGS =~ ldap ]]; then
     PKGLIST=""
-    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST openldap-devel" || PKGLIST="$PKGLIST libsasl2-dev libldap2-dev libssl-dev"
+    [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST openldap-devel" || PKGLIST="$PKGLIST libsasl2-dev libldap2-dev libssl-dev"
     echo "$XTAL install $PKGLIST    # ldap"
   fi
   if [[ $ERROR_PKGS =~ gevent ]]; then
     PKGLIST=""
-    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST libevent-devel" || PKGLIST="$PKGLIST libevent-dev"
+    [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST libevent-devel" || PKGLIST="$PKGLIST libevent-dev"
     echo "$XTAL install $PKGLIST    # gevent"
   fi
   if [[ $ERROR_PKGS =~ pycups ]]; then
     PKGLIST=""
-    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST cups-devel" || PKGLIST="$PKGLIST libcups2-dev"
+    [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST cups-devel" || PKGLIST="$PKGLIST libcups2-dev"
     echo "$XTAL install $PKGLIST    # pycups"
   fi
   if [[ $ERROR_PKGS =~ shapely ]]; then
     PKGLIST=""
-    [[ $FH = "RHEL" ]] && PKGLIST="$PKGLIST geos-devel" || PKGLIST="$PKGLIST libgeos-dev"
+    [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST geos-devel" || PKGLIST="$PKGLIST libgeos-dev"
     echo "$XTAL install $PKGLIST    # shapely"
   fi
 fi

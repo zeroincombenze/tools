@@ -41,6 +41,7 @@ This package is released with an nice command:
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       install_requires=['z0lib'],
+      # install_requires=['clodoo'],        # circular dependency!!!
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
@@ -52,5 +53,4 @@ This package is released with an nice command:
               # 'vem = python_plus.scripts.vem:main'
           ],
       },
-      # install_requires=['clodoo'],        # circular dependency!!!
       zip_safe=False)
