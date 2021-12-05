@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='python_plus',
-      version='1.0.4',
+      version='1.0.4.1',
       description='python useful function',
       long_description="""
 Python supplemental features

@@ -2,26 +2,14 @@
 from setuptools import setup
 from setuptools import find_packages
 
+with open('./README.rst', 'r') as fd:
+    readme = fd.read()
+
 setup(name='os0',
-      version='1.0.2',
+      version='1.0.2.1',
       description='OS indipendent interface',
-      long_description="""
-This module extends python os module with a few new functionality
- to interface operating system.
-It recognizes file name structure and manages both URI standard name
- both local name, as UNC and ODS5.
-
-- URI (Uniform Resource Identifier) is standard posix filename.
-- UNC (Uniform Naming Convention) is windows standard
-- ODS5 is used for define OpenVMS standard filenames
-
-An example of URI filename is '/home/myfile'.
-UNC example for the same of previous URI name is '\\home\\myfile'
- (with single backslash)
-ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
-
-See https://en.wikipedia.org/wiki/Path_(computing)
-""",
+      long_description_content_type='text/x-rst',
+      long_description=readme,
       classifiers=[
           'Development Status :: 4 - Beta',
           'License :: OSI Approved :: GNU Affero General Public License v3',
@@ -43,10 +31,11 @@ See https://en.wikipedia.org/wiki/Path_(computing)
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
+      install_requires=['z0lib', 'future'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.info'],
+          '': ['./README.rst', 'scripts/setup.info'],
       },
       entry_points={
           'console_scripts': [

@@ -76,7 +76,7 @@ RFLIST__devel_tools=""
 RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_worker.sh transodoo.py transodoo.xlsx"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=""
-RFLIST__zerobug="zerobug z0testrc"
+RFLIST__zerobug=""
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="activate_devel_env odoo_default_tnl.xlsx templates license_text readlink"
 RFLIST__python_plus=""
@@ -190,6 +190,7 @@ for pkg in $PKGS_LIST tools; do
     l="RFLIST__$pfn"
     flist=${!l}
     [[ $opts =~ ^-.*q ]] || echo -e "# ====[$pkg=($flist)]===="
+    [[ $flist == "os0" ]] && read -p "Press RET to continue"  #debug
     if [[ $pkg != "tools" && ! -d $SRCPATH/$pfn ]]; then
         echo -e "${RED}# Invalid environment! Source dir $SRCPATH/$pfn not found!${CLR}"
         echo ""
@@ -199,7 +200,7 @@ for pkg in $PKGS_LIST tools; do
     if [[ $pkg == "tools" ]]; then
       [[ -d $SRCPATH/$pfn ]] && srcdir="$SRCPATH/$pfn" || srcdir="$SRCPATH"
     else
-      [[ -d $SRCPATH/$pfn/$pfn ]] && srcdir="$SRCPATH/$pfn/$pfn" || srcdir="$SRCPATH/$pfn"
+      [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info ]] && srcdir="$SRCPATH/$pfn/$pfn" || srcdir="$SRCPATH/$pfn"
     fi
     for fn in $flist; do
         if [[ $fn == "." ]]; then
@@ -248,7 +249,7 @@ for pkg in $PKGS_LIST tools; do
     x=$(find $SRCPATH/$pfn -maxdepth 3 -name __manifest__.rst 2>/dev/null|head -n 1)
     [[ -n "$x" ]] && x=$(grep -E "^\.\. .set no_pypi ." $x|grep -Eo "[0-9]")
     if [[ -z "$x" || $x -eq 0 ]]; then
-        if [[ -d $SRCPATH/$pfn/$pfn && -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then
+        if [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info && -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then
             run_traced "cp -r $SRCPATH/$pfn/ $LOCAL_VENV/tmp/"
         else
             run_traced "mkdir $LOCAL_VENV/tmp/$pfn"
@@ -266,6 +267,7 @@ for pkg in $PKGS_LIST tools; do
             run_traced "${pkg}-info --copy-pkg-data"
         fi
     fi
+    [[ $flist == "os0" ]] && read -p "Press RET to continue"  #debug
 done
 if [[ -f $BINPATH/please ]]; then
     PLEASE_CMDS=$(grep "^HLPCMDLIST=" $BINPATH/please|awk -F= '{print $2}'|tr -d '"')

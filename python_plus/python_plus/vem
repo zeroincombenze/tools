@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.4
+__version__=1.0.4.1
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -300,7 +300,7 @@ pip_install() {
         run_traced "cp -r $srcdir $tmpdir/$pfn/"
         run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
         x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep -Eo "\./README.rst")
-        [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
+        # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
         [[ $PIPVER -ge 21 ]] && run_traced "$PIP install $tmpdir/$pfn --use-feature=in-tree-build $popts" || run_traced "$PIP install $tmpdir/$pfn $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         run_traced "rm -fR $tmpdir/$pfn"
@@ -718,7 +718,7 @@ check_4_needing_pkgs() {
 
 check_installed_pkgs() {
   [[ $opt_verbose -gt 2 ]] && echo ">>> check_installed_pkgs()"
-  local p p2 x popts
+  local mime p p2 popts x
   check_4_needing_pkgs
   [[ $PIPVER -eq 19 ]] && popts="--use-feature=2020-resolver" || popts=""
   [[ $opt_verbose -lt 2 ]] && popts="-q"
@@ -737,8 +737,11 @@ check_installed_pkgs() {
       x=$(echo $x/clodoo/list_requirements.py)
       run_traced "chmod +x $x"
       LIST_REQ="$(readlink -f $x)"
-      [[ $opt_verbose -lt 2 ]] && echo -en "."
-      run_traced "sed -i -e \"s|^#\!.*[ /]python|#\!$PYTHON|\" $x"
+      mime=$(file -b --mime-type $f)
+      if [[ $mime =~ (text/x-python|text/plain) || $f =~ \.py$ ]]; then
+        [[ $opt_verbose -lt 2 ]] && echo -en "."
+        run_traced "sed -i -e \"s|^#\!.*[ /]python|#\!$PYTHON|\" $x"
+      fi
     fi
   fi
   [[ $opt_verbose -lt 2 ]] && echo -en "\r"

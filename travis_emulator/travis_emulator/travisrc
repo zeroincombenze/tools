@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.3
+#__version__=1.0.3.1
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -525,9 +525,7 @@ create_virtual_env() {
     run_traced "cp -R $TRAVIS_HOME_BRANCH/ $x/"
     if [[ ${opt_dbgmnt:-0} -ne 0 && "$TRAVIS_REPO_SLUG" == "local/tools" ]]; then
       git_clone "https://github.com/zeroincombenze/tools.git"
-      [[ HOME_DEV =~ /devel$ ]] && \
-        run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o" || \
-        run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
+      [[ HOME_DEV =~ /devel$ ]] && run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
     fi
   fi
   [[ $PWD != $TRAVIS_BUILD_DIR ]] && run_traced "cd $TRAVIS_BUILD_DIR"
@@ -589,16 +587,14 @@ git_clone() {
       for p in $(get_cfg_value 0 "PKGS_LIST"); do
         # Use unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
-        [[ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ ]] && \
-          run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/"
-        [[ -d $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/ ]] && \
-          run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/ $HOME/tools/$p/"
+        [[ -f $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/scripts/setup.info ]] && \
+          run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/ $HOME/tools/$p/" && \
+          run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/$p/setup.py $HOME/tools/$p/"
         s=$?; [ ${s-1} -eq 0 ] || echo "Internal error $s! Statement rsync $p failed!!"
       done
       for p in install_tools.sh odoo_default_tnl.xlsx; do
         [[ -d $TRAVIS_SAVED_HOME/devel/pypi/tools/ ]] && \
-          run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/$p $HOME/tools/$p" || \
-          run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/$p $HOME/tools/$p"
+          run_traced "cp $TRAVIS_SAVED_HOME/devel/pypi/tools/$p $HOME/tools/$p"
       done
       true # FIX: return no error
     fi
