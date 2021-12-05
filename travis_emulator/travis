@@ -60,7 +60,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3
+__version__=1.0.3.1
 
 
 store_cfg_param_value() {
@@ -113,8 +113,7 @@ process_yaml_init() {
   [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep PYPI_RUN_PYVER|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
     [[ -d $HOME/devel ]] && \
-      export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa || \
-      export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
+      export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa
     (($opt_debug)) && export TRAVIS_PDB="true"
   else
     export YML_lisa=lisa

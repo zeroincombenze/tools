@@ -35,8 +35,11 @@ Make avaiable test functions indipendent by Odoo version.
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          # '': ['scripts/setup.info', 'data/*', 'travis/*'],
-          '': ['scripts/setup.info', 'data/*'],
+          '': ['scripts/setup.info', 'data/*', 'travis/cfg/*',
+               'travis/pylint_deprecated_modules/*',
+               'travis/pylint_deprecated_modules/openerp/*',
+               'travis/pylint_deprecated_modules/openerp/osv/*'],
+          # '': ['scripts/setup.info', 'data/*'],
       },
       entry_points={
           'console_scripts': [

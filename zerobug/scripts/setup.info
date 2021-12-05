@@ -66,7 +66,7 @@ it. This behavior can be overridden by -0 switch.
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
-          '': ['scripts/setup.info', './z0testrc', '_travis/*',
+          '': ['scripts/setup.info', './z0testrc', '_travis/*', '_travis/cfg/*',
                # '_travis/travis_install_env.sh',
                # '_travis/travis_run_pypi_tests.sh'
           ]

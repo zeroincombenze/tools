@@ -9,6 +9,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
+# Based on template 1.0.2.7
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -31,7 +32,7 @@ fi
 
 DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
 TCONF="$HOME/.z0tools.conf"
-CFG_init
+CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
@@ -40,8 +41,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-
-__version__=1.0.2.7
+__version__=1.0.3
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -183,6 +183,8 @@ cvt_file() {
           echo "if [[ \"\$opt_version\" ]]; then" >>$fntmp
         elif [[ $line =~ ^[[:space:]]*man[[:space:]]\$TDIR/\$THIS.man ]]; then
           echo "  man \$(dirname \$0)/man/man8/\$(basename \$0).8.gz" >>$fntmp
+        elif [[ $line =~ ^[[:space:]]*set_cfg_def ]]; then
+          echo "${line/set_cfg_def/CFG_set}" >>$fntmp
         elif [[ $line =~ ^OPTACTI=\(1... ]]; then
           x="(\"+\""
           echo "${line/(1  /$x}" >>$fntmp

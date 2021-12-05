@@ -112,7 +112,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.2.7"
+__version__ = "1.0.3"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -2133,15 +2133,13 @@ if __name__ == "__main__":
                         'odoo-bin'))):
                 ctx['odoo_layer'] = 'ocb'
             elif (ctx['odoo_majver'] < 10 and
-                    os.path.isdir(os.path.join(ctx['path_name'],
-                        'openerp')) and
+                  os.path.isdir(os.path.join(ctx['path_name'],
+                                             'openerp')) and
                   (os.path.isfile(os.path.join(ctx['path_name'],
-                      'openerp-server'))) or
-                    os.path.isdir(os.path.join(ctx['path_name'],
-                        'openerp', 'server'))):
+                                               'openerp-server'))) or
+                  os.path.isfile(os.path.join(ctx['path_name'],
+                                              'server', 'openerp-server'))):
                 ctx['odoo_layer'] = 'ocb'
-            # elif os.path.basename(ctx['path_name']) == ctx['odoo_fver']:
-            #     ctx['odoo_layer'] = 'ocb'
             else:
                 ctx['odoo_layer'] = 'repository'
         else:
