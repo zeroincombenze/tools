@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.4.1
+__version__=1.0.4.2
 
 
 run_traced() {
@@ -281,7 +281,7 @@ check_4_needing_pkgs() {
   for p in $NEEDING_PKGS; do
     x=${p^^}
     eval $x=$(pip show $p 2>/dev/null | grep "Version" | grep -Eo "[0-9.]+")
-    [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "Inner package $p=${!x}"
+    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "Inner package $p=${!x}"
   done
 }
 

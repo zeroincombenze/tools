@@ -19,7 +19,7 @@ from os0 import os0
 import magic
 
 
-__version__ = "1.0.4.1"
+__version__ = "1.0.4.2"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
