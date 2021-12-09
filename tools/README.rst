@@ -283,42 +283,6 @@ z0bug_odoo: 1.0.5.3 (2021-10-15)
 * [FIX] python3 failure
 
 
-python_plus: 1.0.3.9 (2021-10-09)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: create virtualenv again with -f
-
-
-wok_code: 1.0.2.6 (2021-10-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] cvt_scrit: run inside virtual environment
-* [FIX] please: run inside virtual environment
-* [FIX] please: version
-* [FIX] dist_pkg: run inside virtual environment
-* [FIX] gen_readme.py: new template layout in devel/venv
-
-
-travis_emulator: 1.0.2.2 (2021-10-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis: crash if invalid Odoo project
-
-
-python_plus: 1.0.3.8 (2021-10-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: run inside virtual environment
-
-
-wok_code: 1.0.2.6 (2021-10-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] cvt_script: inclusion path improved
-* [IMP] cvt_script: man page
-* [FIX] gen_readme.py
-
-
 
 
 
@@ -334,7 +298,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2021-12-04
+Last Update / Ultimo aggiornamento: 2021-12-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
