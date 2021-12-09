@@ -60,7 +60,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 
 store_cfg_param_value() {
@@ -133,6 +133,7 @@ process_yaml_init() {
     declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
   done
   FH=$(xuname -f)
+  TRAVIS_VERBOSE=$opt_verbose
 }
 
 process_yaml_unquote() {
@@ -363,6 +364,7 @@ process_yaml_file() {
 process_yaml_initialize() {
   local sts=$STS_SUCCESS
   local i s line lne X
+  opt_verbose=$TRAVIS_VERBOSE
   wlog "\e[${PS_HDR2_COLOR}m===== [Initialize] =====\e[0m"
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [Initialize from .travis.conf] ------\e[0m"
