@@ -1,7 +1,7 @@
 
-==========
-lisa 0.3.2
-==========
+============
+lisa 0.3.2.1
+============
 
 
 
@@ -193,6 +193,9 @@ Last Update / Ultimo aggiornamento: 2021-09-29
 Last Update / Ultimo aggiornamento: 2021-10-05
 Last Update / Ultimo aggiornamento: 2021-10-06
 Last Update / Ultimo aggiornamento: 2021-10-30
+:target: https://t.me/Assitenza_clienti_powERP
+Last Update / Ultimo aggiornamento: 2021-12-05
+Last Update / Ultimo aggiornamento: 2021-12-09
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -226,7 +229,7 @@ Last Update / Ultimo aggiornamento: 2021-10-30
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-05
+Last Update / Ultimo aggiornamento: 2021-12-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
