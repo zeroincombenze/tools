@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.7
+__version__=1.0.7.1
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -66,9 +66,11 @@ run_traced() {
 }
 
 set_hashbang() {
-    local f
-    f="$1"
-    grep -Eq "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" -i $f" && chmod +x $f
+    local d f
+    d=$(find $1 \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
+    for f in $d; do
+      grep -Eq "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" -i $f" && chmod +x $f
+    done
 }
 
 RFLIST__travis_emulator=""
@@ -80,9 +82,9 @@ RFLIST__zerobug=""
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="activate_devel_env odoo_default_tnl.xlsx templates license_text readlink"
 RFLIST__python_plus=""
-RFLIST__wok_code="cvt_csv_2_rst.py cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py gen_readme.py license_mgnt.py makepo_it.py odoo_dependencies.py odoo_translation.py topep8 to_oca.2p8 to_zero.2p8 to_pep8.2p8 to_pep8.py vfcp vfdiff wget_odoo_repositories.py"
+RFLIST__wok_code="cvt_csv_2_rst.py cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py gen_readme.py license_mgnt.py makepo_it.py odoo_dependencies.py odoo_translation.py to_pep8.py vfcp vfdiff wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
-RFLIST__odoo_score="odoo_shell.py run_odoo_debug"
+RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|travis|travisrc|vfcp|vfdiff)"
 FILES_2_DELETE="addsubm.sh clodoo clodoocore.py clodoolib.py devel_tools export_db_model.py kbase oca-autopep8 odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn test_tools.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib z0lib.py z0librun.py"
@@ -190,7 +192,6 @@ for pkg in $PKGS_LIST tools; do
     l="RFLIST__$pfn"
     flist=${!l}
     [[ $opts =~ ^-.*q ]] || echo -e "# ====[$pkg=($flist)]===="
-    [[ $flist == "os0" ]] && read -p "Press RET to continue"  #debug
     if [[ $pkg != "tools" && ! -d $SRCPATH/$pfn ]]; then
         echo -e "${RED}# Invalid environment! Source dir $SRCPATH/$pfn not found!${CLR}"
         echo ""
@@ -262,12 +263,15 @@ for pkg in $PKGS_LIST tools; do
         elif [[ $pkg == "clodoo" ]]; then
             [[ -d $BINPATH/clodoo ]] && run_traced "rm -f $BINPATH/clodoo"
             [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $BINPATH/clodoo"
+        elif [[ $pkg == "zerobug" ]]; then
+          set_hashbang $PYLIB/$pfn/_travis
+        elif [[ $pkg == "z0bug_odoo" ]]; then
+          set_hashbang $PYLIB/$pfn/travis
         fi
         if [[ -n $(which ${pkg}-info 2>/dev/null) ]]; then
             run_traced "${pkg}-info --copy-pkg-data"
         fi
     fi
-    [[ $flist == "os0" ]] && read -p "Press RET to continue"  #debug
 done
 if [[ -f $BINPATH/please ]]; then
     PLEASE_CMDS=$(grep "^HLPCMDLIST=" $BINPATH/please|awk -F= '{print $2}'|tr -d '"')
