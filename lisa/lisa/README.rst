@@ -195,6 +195,7 @@ Last Update / Ultimo aggiornamento: 2021-10-06
 Last Update / Ultimo aggiornamento: 2021-10-30
 :target: https://t.me/Assitenza_clienti_powERP
 Last Update / Ultimo aggiornamento: 2021-12-05
+Last Update / Ultimo aggiornamento: 2021-12-09
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
