@@ -54,7 +54,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3
+__version__=1.0.3.1
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -179,7 +179,7 @@ else
       for f in tests egg-info ../clodoo ../odoo_score ../wok_code ../z0bug_odoo ../z0lib ../zerobug; do
           [[ -d $f ]] && ((valid++))
       done
-    ele
+    else
       for f in ../setup.py README.rst; do
           [[ -f $f ]] && ((valid++))
       done
@@ -192,7 +192,7 @@ else
         exit 1
     fi
     LSETUP=$PKGPATH/setup.py
-    if [ -f $LSETUP ]; then
+    if [[ -f $LSETUP ]]; then
         DEVSSTS0=" 1 - Planning"
         if [ -z "$devstatus" ]; then
           devstatus=$(if [ -f $LSETUP ]; then echo ""; else echo "$DEVSSTS0"; fi)
