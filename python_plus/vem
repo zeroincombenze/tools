@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.4.1
+__version__=1.0.4.2
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -124,7 +124,7 @@ run_traced() {
   local sts=0
   local PMPT=
   [[ $opt_dry_run -ne 0 ]] && PMPT="> " || PMPT="\$ "
-  [[ $opt_verbose -eq 0 ]] || echo "$PMPT$xcmd"
+  [[ $opt_verbose -gt 1 ]] || echo "$PMPT$xcmd"
   [[ $opt_dry_run -ne 0 ]] || eval $xcmd
   sts=$?
   return $sts
@@ -184,8 +184,8 @@ get_wkhtmltopdf_dwname() {
   echo "https://github.com/wkhtmltopdf/${z}/releases/download/${reqver}/${wkhtmltopdf_wget}"
 }
 
-set_python_exe() {
-    #set_python_exe(venv)
+set_hashbang() {
+    #set_hashbang(venv)
     local cmd d f mime V VENV_TGT
     V="$1"
     d=$(find $V \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
@@ -269,7 +269,7 @@ pip_install() {
   [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
-  [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
+  [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER $popts ..." && PRINTED_PIPVER=1
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ ! $pkg =~ $BIN_PKGS ]]; then
@@ -323,6 +323,8 @@ pip_install() {
         run_traced "ln -s $srcdir $pypath/$pfn"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       fi
+      # TODO> ?
+      # set_hashbang "$pypath/${pfn}"
       [[ -x $VIRTUAL_ENV/bin/${pkg}-info ]] && run_traced "$VIRTUAL_ENV/bin/${pkg}-info --copy-pkg-data"
     elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install $pkg"
@@ -883,9 +885,7 @@ do_venv_mgr() {
     fi
     V=$VENV
   fi
-  if [[ ! $cmd =~ (amend|check|test|inspect) ]]; then
-    set_python_exe "$V/bin"
-  fi
+  [[ ! $cmd =~ (amend|check|test|inspect) ]] && set_hashbang "$V/bin"
   if [[ ! $cmd =~ (test|inspect) ]]; then
     if [ $opt_dry_run -eq 0 -a -L $V/lib64 ]; then
       rm -f $V/lib64
@@ -1088,7 +1088,7 @@ do_venv_create() {
   pip_install_1
   [[ -n "$opt_oever" ]] && pip_install_2
   [[ -n "$opt_rfile" ]] && pip_install_req
-  [[ $opt_travis -ne 0 ]] && set_python_exe "$VENV/bin"
+  # [[ $opt_travis -ne 0 ]] && set_hashbang "$VENV/bin"
   # do_deactivate
   # [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $(readlink -f ./odoo)"
   do_venv_mgr_test $VENV
