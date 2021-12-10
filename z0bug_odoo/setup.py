@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='z0bug_odoo',
-      version='1.0.7.2',
+      version='1.0.7.3',
       description='Odoo testing framework',
       long_description="""
 Zeroincombenze(R) continuous testing framework for Odoo modules.
@@ -45,7 +45,7 @@ Make avaiable test functions indipendent by Odoo version.
                'travis/travis_makepot',
                'travis/travis_run_flake8',
                'travis/travis_run_tests',
-               'travis/travis_run_dependencies',
+               'travis/travis_test_dependencies',
                ],
       },
       entry_points={
