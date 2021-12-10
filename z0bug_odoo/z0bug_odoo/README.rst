@@ -1,6 +1,6 @@
 
 ==================
-z0bug_odoo 1.0.7.2
+z0bug_odoo 1.0.7.3
 ==================
 
 
@@ -1254,7 +1254,7 @@ Last Update / Ultimo aggiornamento: 2021-12-09
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-09
+Last Update / Ultimo aggiornamento: 2021-12-10
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

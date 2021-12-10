@@ -761,13 +761,13 @@ process_yaml_run_cmd() {
     [[ $c != $xcmd && ! $xcmd =~ ^# ]] && wlog "\e[${PS_NOP_COLOR}m> $c\e[${PS_TXT_COLOR}m" && ((Z0_STACK=Z0_STACK+2))
     run_traced "$line1$xcmd"
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-    if [[ $xcmd =~ "travis_install_env" ]]; then
-      ((Z0_STACK=Z0_STACK+2))
-      opts=$(inherits_travis_opts "" "V")
-      [[ $TRAVIS == "true" ]] || opts="$opts -f"
-      [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION"
-      ((Z0_STACK=Z0_STACK-2))
-    fi
+#    if [[ $xcmd =~ "travis_install_env" ]]; then
+#      ((Z0_STACK=Z0_STACK+2))
+#      opts=$(inherits_travis_opts "" "V")
+#      [[ $TRAVIS == "true" ]] || opts="$opts -f"
+#      [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION"
+#      ((Z0_STACK=Z0_STACK-2))
+#    fi
     [[ $c != $xcmd && ! $xcmd =~ ^# ]] && ((Z0_STACK=Z0_STACK-2))
   fi
   [[ -n $opt_tafter && $xcmd =~ $opt_tafter ]] && debug_shell

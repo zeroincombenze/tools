@@ -19,7 +19,7 @@ from os0 import os0
 import magic
 
 
-__version__ = "1.0.4.1"
+__version__ = "1.0.4.2"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1508,27 +1508,39 @@ class Z0testOdoo(object):
     def get_local_odoo_path(self, git_org, reponame, branch, home=None):
         outer_dir = home or self.get_outer_dir()
         majver = branch.split('.')[0]
-        # Local OCA dir is like '~/oca12'
-        src_repo_path = os.path.join(outer_dir,
-                                     '%s%s' % (git_org.lower(), majver))
-        if not os.path.isdir(src_repo_path):
-            src_repo_path = os.path.join(outer_dir,
-                                         '%s%s' % (git_org.lower(), branch))
-        if not os.path.isdir(src_repo_path):
-            src_repo_path = os.path.join(outer_dir,
-                                         '%s-%s' % (git_org, branch))
-        if not os.path.isdir(src_repo_path):
+        found_path = False
+        for reporg in (reponame, reponame.lower(), git_org, git_org.lower()):
+            if found_path:
+                break
+            for odoo_ver in (branch, majver):
+                if found_path:
+                    break
+                src_repo_path = os.path.join(
+                    outer_dir, '%s%s' % (reporg, odoo_ver))
+                if os.path.isdir(src_repo_path):
+                    found_path = True
+                    break
+                src_repo_path = os.path.join(
+                    outer_dir, '%s-%s' % (reporg, odoo_ver))
+                if os.path.isdir(src_repo_path):
+                    found_path = True
+                    break
+                if reponame == 'OCB':
+                    continue
+                for nm in ('', 'extra', 'private-addons', 'powerp'):
+                    if nm:
+                        src_repo_path = os.path.join(
+                            outer_dir, odoo_ver, nm, reporg)
+                    else:
+                        src_repo_path = os.path.join(outer_dir, odoo_ver, reporg)
+                    if os.path.isdir(src_repo_path):
+                        found_path = True
+                        break
+        if not found_path:
             # Local dir of current project is like '~/12.0'
             src_repo_path = os.path.join(outer_dir, branch)
-        if os.path.isdir(src_repo_path) and reponame != 'OCB':
-            for nm in ('', 'extra', 'private-addons', 'powerp'):
-                if nm:
-                    path = os.path.join(outer_dir, branch, nm, reponame)
-                else:
-                    path = os.path.join(outer_dir, branch, reponame)
-                if os.path.isdir(path):
-                    src_repo_path = path
-                    break
+            if not os.path.isdir(src_repo_path):
+                src_repo_path = False
         return src_repo_path
 
     def build_odoo_env(self, ctx, version, hierarchy=None):

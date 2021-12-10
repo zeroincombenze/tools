@@ -296,7 +296,7 @@ check_installed_pkgs() {
 }
 
 cp_coveragerc() {
-  run_traced "cp ${HOME}/tools/z0bug_odoo/travis/cfg/.coveragerc ."
+  run_traced "cp ${HOME}/tools/zerobug/_travis/cfg/coveragerc ./.coveragerc"
   run_traced "sed -Ee \"s|^#? *..TRAVIS_BUILD_DIR./|    $TRAVIS_BUILD_DIR/|\" -i ./.coveragerc"
   run_traced "sed -e \"s|^ *\*.py\$|#&|\" -i ./.coveragerc"
 }

@@ -258,14 +258,14 @@ for pkg in $PKGS_LIST tools; do
             run_traced "mv $LOCAL_VENV/tmp/$pfn/$pfn/setup.py $LOCAL_VENV/tmp/$pfn/setup.py"
         fi
         run_traced "pip install $LOCAL_VENV/tmp/$pfn $popts"
-        if [[ $pkg == "python-plus" ]]; then
+        if [[ $pkg =~ (python-plus|python_plus) ]]; then
             [[ -x $PYLIB/$pfn/vem ]] && VEM="$PYLIB/$pfn/vem"
         elif [[ $pkg == "clodoo" ]]; then
             [[ -d $BINPATH/clodoo ]] && run_traced "rm -f $BINPATH/clodoo"
             [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $BINPATH/clodoo"
         elif [[ $pkg == "zerobug" ]]; then
           set_hashbang $PYLIB/$pfn/_travis
-        elif [[ $pkg == "z0bug_odoo" ]]; then
+        elif [[ $pkg =~ (z0bug-odoo|z0bug_odoo) ]]; then
           set_hashbang $PYLIB/$pfn/travis
         fi
         if [[ -n $(which ${pkg}-info 2>/dev/null) ]]; then

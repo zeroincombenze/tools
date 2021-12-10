@@ -1,3 +1,4 @@
+future
 coverage
 coveralls
 codecov
