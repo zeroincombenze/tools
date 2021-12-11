@@ -11,6 +11,12 @@ z0bug_odoo: 1.0.6.2 (2021-11-16)
 * [IMP] Test data: inventory data
 
 
+travis_emulator: 1.0.3.3 (2021-11-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis: match python version limited to 2 levels
+
+
 z0lib: 1.0.3.1 (2021-10-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

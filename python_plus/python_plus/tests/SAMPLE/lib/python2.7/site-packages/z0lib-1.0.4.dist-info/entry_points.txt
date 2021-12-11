@@ -1,0 +1,3 @@
+[console_scripts]
+z0lib-info = z0lib.scripts.main:main
+

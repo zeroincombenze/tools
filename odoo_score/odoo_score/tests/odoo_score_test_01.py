@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/VENV_1605804/devel/venv/bin/python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -39,3 +39,6 @@ if __name__ == "__main__":
             sys.argv[1:],
             version=version()),
         RegressionTest))
+
+
+

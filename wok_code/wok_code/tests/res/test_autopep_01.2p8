@@ -1,0 +1,10 @@
+#
+a:
+    $name =
+    [0]:   A
+    [6.1]: a
+c:
+    class $name
+    [0]:    my_class
+    [8.0]:  MyClass
+    [10.0]: MyClass
