@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python
 # -*- coding: utf-8 -*-
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -139,3 +139,12 @@ class RegressionTest():
 #     ctx = Z.parseoptest(sys.argv[1:],
 #                         version=version())
 #     exit(Z.main(ctx, RegressionTest))
+
+
+
+
+
+
+
+
+

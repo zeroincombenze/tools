@@ -430,7 +430,7 @@ export -f print_help
 # Parameter $3:
 #    "echo" means wlog echoes message onto console when write log
 set_tlog_file() {
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p=$(dirname "$1")
     local f=$(basename "$1")
     if [ "$p" == "~" ]; then p=$HOME; fi
@@ -447,7 +447,7 @@ set_tlog_file() {
       if [ -f "$FLOG" ]; then rm -f "$FLOG"; fi
     fi
     export FLOG_ECHO="${3:-#}"
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+    $SET_X
 }
 
 
@@ -527,7 +527,7 @@ elog_debug() {
 # Parameter $3:
 #    1 = do login, if execute as user
 run_traced() {
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
     local xcmd="$1" lm="                    "
     local sts=$STS_SUCCESS verbose=${opt_verbose:-0}
@@ -576,7 +576,7 @@ run_traced() {
     fi
     echo -en "\e[0m"
     ((Z0_STACK=Z0_STACK-2))
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+    $SET_X
     return $sts
 }
 
@@ -602,7 +602,7 @@ export -f run_traced
 # Parameter $6:
 #    Level 5 subdirectory list (space separated) where file could be found (maybe be empty)
 findpkg() {
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local p2 p3 p4 p5 p6
     local r2 r3 r4 r5 r6
@@ -659,7 +659,7 @@ findpkg() {
       [[ -n "$result" ]] && break
     done
     echo "$result"
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+    $SET_X
 }
 export -f findpkg
 
@@ -797,7 +797,7 @@ a_add() {
 #    dictionary value to stdout
 #    status
 CFG_find() {
-    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p=""
     local sts=1
     local x SFX key KK
@@ -1168,7 +1168,7 @@ link_cfg_def() {
 
 link_cfg() {
 # link_cfg(file_cfg [file_def] [tid] [section] [-D|1])  -D means debug
-    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
 #    if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
 #      local tid=$3
 #    else
