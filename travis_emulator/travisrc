@@ -40,16 +40,10 @@ fi
 opts_travis() {
   # opts_travis(git-org/pkgname)
 #  local b x
-#  REMOTEREPO=
-#  PRJNAME=
-#  PRJPATH=
-#  PKGNAME=
-#  PKGPATH=
-#  REPOSNAME=
   [[ -n "$1" ]] && IFS="/" read REMOTEREPO x <<<"$1"
   [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
 #  build_pypi_param ALL $1
-#  export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
+  export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
 #  if [[ -n "$opt_conf" && -f "$opt_conf" ]]; then
 #    TCONF=$opt_conf
 #  elif [[ -f $TDIR/.travis.conf ]]; then
