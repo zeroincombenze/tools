@@ -1,6 +1,6 @@
 
 ============
-lisa 0.3.2.1
+lisa 0.3.2.2
 ============
 
 
@@ -229,7 +229,7 @@ Last Update / Ultimo aggiornamento: 2021-12-09
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-09
+Last Update / Ultimo aggiornamento: 2021-12-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

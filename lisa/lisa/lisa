@@ -65,7 +65,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$($READLINK -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-__version__=0.3.2.1
+__version__=0.3.2.2
 
 
 STS_FAILED=1
@@ -3422,7 +3422,7 @@ please() {
 OPTOPTS=(h        b       c        D       d         E       e         f         g       H        I        i      J        L         l          m        N        n           o       p         P          q           r       s         T         u       V           v           X          y       1)
 OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_force opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_req opt_sub   test_mode use2xtl opt_version opt_verbose opt_nodeps opt_yes opt_1st)
 OPTACTI=(1        1       "="      "*"     "="       "="     "="       1         1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="     "="       1         "="     "*"         "+"         1          1       1)
-OPTDEFL=(1        0       ""       ""      ""        ""      ""        0         0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""      ""        0         ""      ""          -1          0          0       0)
+OPTDEFL=(1        0       ""       ""      ""        ""      ""        0         0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         0           ""      ""        0         ""      ""          -1          0          0       0)
 OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" ""        "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "file"  "modules" "teste"   "file"  "version"   "verbose"   ""         "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "trace to build configuration"\
