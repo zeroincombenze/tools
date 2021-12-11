@@ -60,7 +60,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.2
+__version__=1.0.3.3
 
 
 store_cfg_param_value() {
@@ -833,13 +833,19 @@ process_yaml() {
       for TRAVIS_PYTHON_VERSION in $python_matrix; do
         [[ $sts -eq $STS_SUCCESS ]] || break
         wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[0m"
-        CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo [0-9] | head -n1)
+        CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo "[0-9]" | head -n1)
+        CURPYVER2=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo "[0-9]\.[0-9]" | head -n1)
         PYTHON=$(which python$TRAVIS_PYTHON_VERSION)
+        [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER2)
         [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER)
         PYTHON_VERSION=$($PYTHON --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
-        if [[ $PYTHON_VERSION != $TRAVIS_PYTHON_VERSION ]]; then
-          wlog "\e[${PS_HDR1_COLOR}mError: Required version $TRAVIS_PYTHON_VERSION of python is not availale. Replace by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
-          continue
+        if [[ $($PYTHON --version 2>&1 | grep -Eo "[0-9.]+") != $TRAVIS_PYTHON_VERSION ]]; then
+          if [[ $PYTHON_VERSION != $CURPYVER2 ]]; then
+            wlog "\e[${PS_HDR1_COLOR}mError: Required version $TRAVIS_PYTHON_VERSION of python is not availale. Replace by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
+            continue
+          fi
+          wlog "\e[${PS_HDR1_COLOR}mWarning: Required version $TRAVIS_PYTHON_VERSION of python is replaced by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
+          TRAVIS_PYTHON_VERSION=$CURPYVER2
         fi
         alias python=$PYTHON
         export TRAVIS_PYTHON_VERSION
@@ -976,7 +982,7 @@ OPTOPTS=(h        A           B         C         c        D           E        
 OPTLONG=(help     trace-after debug     no-cache  conf     debug-level no-savenv full     force     ''       keep     lint-level logdir   ''         missing dry-run      org       pytest   quiet       ''    syspkg       trace     version     verbose     translation yaml-file     pyver   zero)
 OPTDEST=(opt_help opt_tafter  opt_debug opt_cache opt_conf opt_dlvl    opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg  opt_trace opt_version opt_verbose opt_tnl     opt_fyaml     opt_pyv opt_dbgmnt)
 OPTACTI=('+'      "="         1         0         "="      "="         0         1        1         1        1        "="        "="      1          1       "1>"         "="       1        0           1     "="          "="       "*>"        "+"         "="         "="           "="     1)
-OPTDEFL=(0        ""          0         1         ""       ""          1         0        0         0        0        ""         ""       0          0       0            "local"   0        -1          0     ""           ""        ""          -1          ""          ".travis.yml" ""      0)
+OPTDEFL=(0        ""          0         1         ""       ""          1         0        0         0        0        ""         ""       0          0       0            "local"   0        0           0     ""           ""        ""          -1          ""          ".travis.yml" ""      0)
 OPTMETA=("help"   "regex"     "version" ""        "file"   "number"    ""        ""       ""        "dprj"   ""       "number"   "dir"    ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "regex"   "version"   "verbose"   "0|1"       "file"        "pyver" "")
 OPTHELP=("this help"
   "set trace after executed yaml statement"

@@ -1,6 +1,6 @@
 
 =======================
-travis_emulator 1.0.3.2
+travis_emulator 1.0.3.3
 =======================
 
 
@@ -315,6 +315,11 @@ Troubleshooting
 History
 -------
 
+1.0.3.3 (2021-11-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis: match python version limited to 2 levels
+
 1.0.2.2 (2021-10-08)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -376,14 +381,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] travis: show stack execution
-
-1.0.0.12 (2021-03-31)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis: no crash it tools not found
-* [IMP] travis: manage nvm
-* [REF] travis: new colors output
-* [IMP] vem: osx/darwin compatible
 
 
 
@@ -475,6 +472,8 @@ Last Update / Ultimo aggiornamento: 2021-11-18
 Last Update / Ultimo aggiornamento: 2021-12-04
 Last Update / Ultimo aggiornamento: 2021-12-05
 Last Update / Ultimo aggiornamento: 2021-12-09
+Last Update / Ultimo aggiornamento: 2021-12-10
+Last Update / Ultimo aggiornamento: 2021-12-11
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -508,7 +507,7 @@ Last Update / Ultimo aggiornamento: 2021-12-09
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-10
+Last Update / Ultimo aggiornamento: 2021-12-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
