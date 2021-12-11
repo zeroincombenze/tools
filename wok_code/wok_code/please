@@ -60,7 +60,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 #
 # General Purpose options:
@@ -2973,7 +2973,7 @@ do_wep() {
 OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O        p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=("+"      1       "="        "="      "="      1         1        1        "="       1       1           "=>"     1        "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0        ""        -1          0     ""       0         0       ""          -1)
+OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0        ""        0           0     ""       0         0       ""          -1)
 OPTMETA=("help"   ""      "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"
   "debug mode"

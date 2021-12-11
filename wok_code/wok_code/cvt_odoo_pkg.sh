@@ -43,7 +43,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 cvt_dir() {
     # echo "cvt_dir ($1,$2)"
@@ -74,7 +74,7 @@ cvt_dir() {
 OPTOPTS=(h        b          d       F        n            q           R        V           v)
 OPTDEST=(opt_help opt_branch opt_dst opt_from opt_dry_run  opt_verbose opt_rule opt_version opt_verbose)
 OPTACTI=(1        "="        "="      "="     1            0           "="      "*>"        "+")
-OPTDEFL=(0        "10.0"     ""       "6.1"   0            -1          ""       ""          1)
+OPTDEFL=(0        "10.0"     ""       "6.1"   0            0           ""       ""          1)
 OPTMETA=("help"   "branch"   "l|r"   "branch" "do nothing" "verbose"   "file"   "version"   "verbose")
 OPTHELP=("this help"\
  "target odoo version"\

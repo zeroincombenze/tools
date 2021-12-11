@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 [[ -f $TDIR/../../clodoo/list_requirements.py ]] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
@@ -611,7 +611,7 @@ FCONF=$TDIR/.$THIS.conf
 OPTOPTS=(h        a        A         B         b         c         C        D       d        e        F        f       G       i       L         n            N        o       O        R        q           u       V           v           X       x       0     1)
 OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_dbg opt_diff opt_nenh opt_from opt_fut opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_fmt opt_z opt_1)
 OPTACTI=('+'      "+"      '+'       1         "="       1         "="      1       1        1        "="      1       "="     1       1         1            1        "="     1        "="      0           1       "*>"        "+"         1       1       1     1)
-OPTDEFL=(1        0        0         0         ""        0         ""       0       0        0        ""       0       ""      0       0         0            0        ""      0        ""       -1          0       ""          -1          0       0       0     0)
+OPTDEFL=(1        0        0         0         ""        0         ""       0       0        0        ""       0       ""      0       0         0            0        ""      0        ""       0           0       ""          -1          0       0       0     0)
 OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    ""      "diff"   ""       "ver"    ""      "gpl"   ""      ""        "do nothing" ""       "file"  ""       "file"   "silent"   "ut7"   "version"    "verbose"   ""      ""      ""    "")
 OPTHELP=("this help"
   "enable non-whitespace changes (may issue multiple -a)"
