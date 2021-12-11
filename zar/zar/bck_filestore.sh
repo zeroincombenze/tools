@@ -42,13 +42,13 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.3.36.1
+__version__=1.3.36.2
 
 
 OPTOPTS=(h        b          n            q           t       V           v)
 OPTDEST=(opt_help opt_branch opt_dry_run  opt_verbose opt_tgt opt_version opt_verbose)
 OPTACTI=(1        "="        "1"          0           "=>"    "*>"        "+" )
-OPTDEFL=(1        ""         0            -1          ""      ""          -1)
+OPTDEFL=(1        ""         0            0          ""      ""           -1)
 OPTMETA=("help"   "vid"      "do nothing" "verbose"   "host"  "version"   "silent")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 or 10.0 11.0 or 12.0 (def all)"\

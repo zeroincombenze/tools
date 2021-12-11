@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.3.36.1
+__version__=1.3.36.2
 
 
 db_act_list() {
@@ -124,8 +124,8 @@ db_act_list() {
 
 OPTOPTS=(h        a           C        c       G         k        L        n           p        s        U        V           v           w       z)
 OPTDEST=(opt_help act_kill4db act_ctra act_ctr opt_grant act_kill opt_lock opt_dry_run pool     opt_show opt_user opt_version opt_verbose wait_db opt_last)
-OPTACTI=("+"      "1>"        "1>"     "1>"    1         "1>"     1        1           "="      1        "="      "*"          1           1       1)
-OPTDEFL=(0        0           0        0       0         0        0        0           -1       0        ""       ""           0           0       0)
+OPTACTI=("+"      "1>"        "1>"     "1>"    1         "1>"     1        1           "="      1        "="      "*"         1           1       1)
+OPTDEFL=(0        0           0        0       0         0        0        0           -1       0        ""       ""          0           0       0)
 OPTMETA=("help"   "kill_all" "count"   "count" ""        "kill"   ""       ""          "number" ""       "dbuser" "version"   "verbose"   "wait"  "")
 OPTHELP=("this help"\
  "kill all sessions of DB!"\
