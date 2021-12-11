@@ -1464,13 +1464,12 @@ get_value_from_setup() {
 get_pypi_param() {
   # build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
   if [[ $1 == "ALL" ]]; then
-    REMOTEREPO=""
+    REMOTEREPO="local"
     PRJNAME=""
     PRJPATH=""
     PKGNAME=""
     PKGPATH=""
     REPOSNAME=""
-    [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
   fi
   local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
   local r w x="$PWD"
