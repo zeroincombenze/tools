@@ -51,7 +51,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=0.3.54
+__version__=0.3.54.1
 
 
 up_oemod() {
@@ -177,7 +177,7 @@ set_opt_conf() {
 OPTOPTS=(h        B       b         c        D       d      m         n           o             q           r           t         U          V           v           w       x)
 OPTDEST=(opt_help opt_dbg odoo_vids opt_conf opt_del opt_DB opt_multi opt_dry_run opt_with_demo opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose opt_way opt_exit)
 OPTACTI=("+"      1       "="       "="      1       "="    1         1           "*"           0           "="         1         "="        "*"         "+"         "="     1)
-OPTDEFL=(1        0       "10.0"    ""       0       ""     -1        0           ""            -1          ""          0         ""         ""          -1          ""      0)
+OPTDEFL=(1        0       "10.0"    ""       0       ""     -1        0           ""            0           ""          0         ""         ""          -1          ""      0)
 OPTMETA=("help"   ""      "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "A|E"   "")
 OPTHELP=("this help"\
  "execute clodoo in debug mode"\

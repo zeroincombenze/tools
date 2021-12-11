@@ -52,7 +52,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=0.3.54
+__version__=0.3.54.1
 
 rmdir_if_exists() {
     #rmdir_if_exists (DSTPATH REPOS odoo_vid new_vid)
@@ -253,7 +253,7 @@ set_var() {
 OPTOPTS=(h        b          c        C           d          D        j        L        m         n            O         o        q           r          U       u        V           v           y       1)
 OPTDEST=(opt_help opt_branch opt_conf opt_updconf opt_deploy opt_ucfg opt_only opt_link opt_multi opt_dry_run  opt_org   opt_odir opt_verbose opt_updrmt opt_upd opt_user opt_version opt_verbose opt_yes opt_one)
 OPTACTI=("+"      "="        "="      1           "="        1         1       1        1         1            "="       "="      0           1          1       "="      "*>"        "+"         1       1)
-OPTDEFL=(0        ""         ""       0           ""         0         0       0        0         0            ""        ""       -1          0          0       ""       ""          -1          0       0)
+OPTDEFL=(0        ""         ""       0           ""         0         0       0        0         0            ""        ""       0           0          0       ""       ""          -1          0       0)
 OPTMETA=("help"   "branch"   "file"   ""          "deploy"   ""        ""      ""       ""        "do nothing" "git-org" "path"   "verbose"   ""         ""      "username" "version" "verbose"   ""      "")
 OPTHELP=("this help"
     "default odoo branch"
