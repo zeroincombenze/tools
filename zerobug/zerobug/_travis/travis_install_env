@@ -371,13 +371,8 @@ if [[ -d $HOME/devel ]]; then
   set_pythonpath "$HOME/tools" "$HOME/devel/sitecustomize.py" $PIP
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-elif [[ -d $HOME/dev ]]; then
-  set_pythonpath "$HOME/tools" "$HOME/dev/sitecustomize.py" $PIP
-  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-  echo "Do not use ~/dev directory: support will be removed early!"
 else
-  echo "!! Error! Directory $HOME/dev[el] not found!"
+  echo "!! Error! Directory $HOME/devel not found!"
 fi
 check_pythonpath "$HOME/tools" $PYTHON
 if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then

@@ -300,8 +300,8 @@ if [[ ! $opts =~ ^-.*n ]]; then
     # echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
     echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
-    echo "[[ -f $LOCAL_VENV/bin/activate && \$1 != '-t' && ! $opts =~ ^-.*t ]] && export PATH=\$PATH:$LOCAL_VENV/bin">>$DSTPATH/activate_tools
-    echo "[[ -f $LOCAL_VENV/bin/activate && ( \$1 == '-t' || $opts =~ ^-.*t ) ]] && export PATH=$LOCAL_VENV/bin:\$PATH">>$DSTPATH/activate_tools
+    echo "[[ -f $LOCAL_VENV/bin/activate && ! :$PATH: =~ :$LOCAL_VENV/bin: && \$1 != '-t' ]] && export PATH=\$PATH:$LOCAL_VENV/bin">>$DSTPATH/activate_tools
+    echo "[[ -f $LOCAL_VENV/bin/activate && ! :$PATH: =~ :$LOCAL_VENV/bin:  && \$1 == '-t' ]] && export PATH=$LOCAL_VENV/bin:\$PATH">>$DSTPATH/activate_tools
     # [[ $DSTPATH != $LOCAL_VENV ]] && echo "export PATH=\$PATH:$DSTPATH">>$DSTPATH/activate_tools
     # echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">>$DSTPATH/activate_tools
     # echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:\$PYTHONPATH">>$DSTPATH/activate_tools
