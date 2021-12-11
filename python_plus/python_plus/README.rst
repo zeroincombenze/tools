@@ -425,6 +425,7 @@ Last Update / Ultimo aggiornamento: 2021-11-27
 Last Update / Ultimo aggiornamento: 2021-12-04
 Last Update / Ultimo aggiornamento: 2021-12-05
 Last Update / Ultimo aggiornamento: 2021-12-09
+Last Update / Ultimo aggiornamento: 2021-12-11
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools

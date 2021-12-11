@@ -124,7 +124,7 @@ run_traced() {
   local sts=0
   local PMPT=
   [[ $opt_dry_run -ne 0 ]] && PMPT="> " || PMPT="\$ "
-  [[ $opt_verbose -gt 1 ]] || echo "$PMPT$xcmd"
+  [[ $opt_verbose -lt 2 ]] || echo "$PMPT$xcmd"
   [[ $opt_dry_run -ne 0 ]] || eval $xcmd
   sts=$?
   return $sts
@@ -689,7 +689,7 @@ venv_mgr_check_src_path() {
   local f VENV
   VENV="$1"
   if [[ -z "$VENV" ]]; then
-    for f in $(find . -max-depth 2 -type f -name activate); do
+    for f in $(find . -max-depth 2 -type f -not -path "*/.*/*" -not -name ".*" -name activate); do
       [[ -d $f/../lib && -d $f/../bin ]] && VENV=$(readlink -e $f/../..) && break
     done
   fi
@@ -1145,8 +1145,8 @@ do_venv_pip() {
 find_odoo_path() {
 # find_odoo_path(path opts)
     local p v x
-    [[ $opt_verbose -gt 2 ]] && echo ">>> find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py"
-    for f in $(find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.npm/*" -not -path "*/node_modules/*" -not -path "*/.cache/*" -name release.py 2>/dev/null|sort); do
+    [[ $opt_verbose -gt 2 ]] && echo ">>> find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.*/*" -not -path "*/node_modules/*" -name release.py"
+    for f in $(find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.*/*" -not -path "*/node_modules/*" -name release.py 2>/dev/null|sort); do
         v=$(grep "^version_info" $f|cut -d= -f2|tr -d "("|tr -d ")"|tr -d " "|awk -F, '{print $1 "." $2}')
         [[ -n "$opt_oever" && $v == $opt_oever ]] && opt_oepath="$(readlink -e $(dirname $f)/..)" && break
         [[ -z "$opt_oever" ]] && opt_oever="$v" && break
