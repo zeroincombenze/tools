@@ -9,7 +9,10 @@
 #
 import os
 import sys
-import urllib2
+if sys.version_info[0] == 2:
+    import urllib2 as urllib3
+else:
+    import urllib3
 import json
 
 try:
@@ -327,7 +330,7 @@ def get_list_from_url(ctx, git_org):
                 data = []
         else:
             try:
-                response = urllib2.urlopen(pageurl)
+                response = urllib3.urlopen(pageurl)
                 data = json.loads(response.read())
             except:
                 data = []
@@ -377,7 +380,7 @@ def get_list_from_url(ctx, git_org):
                 if ctx['odoo_vid']:
                     pageurl = '%s/%s/branches' % (branchurl, name)
                     try:
-                        branch_response = urllib2.urlopen(pageurl)
+                        branch_response = urllib3.urlopen(pageurl)
                         branches = json.loads(branch_response.read())
                     except:
                         branches = [
