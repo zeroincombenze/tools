@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='odoo_score',
-      version='1.0.4.1',
+      version='1.0.4.2',
       description='Odoo super core',
       long_description="""
 Odoo supercore
