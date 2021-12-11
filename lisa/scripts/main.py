@@ -15,7 +15,7 @@ import pkg_resources
 import shutil
 
 
-__version__ = '0.3.2.1'
+__version__ = '0.3.2.2'
 
 
 def fake_setup(**kwargs):
