@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 
 do_edit_module() {
@@ -246,7 +246,7 @@ sync_tmp_2_tgt() {
 OPTOPTS=(h        b          D        G       H           n           q           s        V           v           y)
 OPTDEST=(opt_help opt_branch opt_drop opt_git opt_humdrum opt_dry_run opt_verbose opt_xtgy opt_version opt_verbose opt_yes)
 OPTACTI=("+"      "="        1        1       1           1           0           "="      "*>"        "+"         1)
-OPTDEFL=(0        ""         0        0       0           0           -1          "zero"   ""          -1          0)
+OPTDEFL=(0        ""         0        0       0           0           0           "zero"   ""          -1          0)
 OPTMETA=("help"   "branch"   ""       ""      ""          ""          ""          "name"   ""          ""          "")
 OPTHELP=("this help"\
  "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\

@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 
 test_01() {
@@ -77,7 +77,7 @@ if [[ -z "\$Z0LIBDIR" ]]; then
   exit 72
 fi
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 main
 EOF
@@ -105,7 +105,7 @@ if [[ -z "\$Z0LIBDIR" ]]; then
 fi
 [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=\$Z0LIBDIR"
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 main
 EOF

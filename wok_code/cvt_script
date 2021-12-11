@@ -41,7 +41,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.1
+__version__=1.0.3.2
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -603,7 +603,7 @@ OPTOPTS=(h        J         K        k        m        n           O         q  
 OPTLONG=(help     ""        ""       keep     mod-name dry-run     ""        quiet       ""       ""     version     verbos      no-warn    yes     "")
 OPTDEST=(opt_help opt_tjLib opt_lev3 opt_keep opt_id   opt_dry_run opt_oeLib opt_verbose opt_Test opt_UT opt_version opt_verbose opt_nowarn opt_yes opt_zLib)
 OPTACTI=("+"      1         1        1        "="      1           1         0           1        1      "*"         "+"         1          1       1)
-OPTDEFL=(1        0         0        0        ""       0           0         -1          0        0      ""          -1          0          0       0)
+OPTDEFL=(1        0         0        0        ""       0           0         0           0        0      ""          -1          0          0       0)
 OPTMETA=("help"   ""        ""       ""       "name"   "noop"      ""        "quiet"     ""       ""     "version"   "verbose"   ""         ""      "")
 OPTHELP=("this help"
   "load travisrc library"
