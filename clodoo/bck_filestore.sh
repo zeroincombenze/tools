@@ -51,7 +51,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=0.3.54
+__version__=0.3.54.1
 
 
 OPTOPTS=(h        b          n            q           t       V           v)

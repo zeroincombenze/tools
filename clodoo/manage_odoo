@@ -46,7 +46,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=0.3.54
+__version__=0.3.54.1
 
 
 explore() {
@@ -191,7 +191,7 @@ OPTOPTS=(h        B         b          c        D                  d        f   
 OPTLONG=(help     ""        branch     config   deploy-mode        ""       ""      humdrum     ""        ""        dry_run      git-org   odoo-path ""       ""        quiet       no-stop    username   version     verbose)
 OPTDEST=(opt_help opt_nobin opt_branch opt_conf opt_deploy         opt_deps opt_def opt_humdrum opt_noloc opt_multi opt_dry_run  opt_org   opt_odir  opt_nopy opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
 OPTACTI=("+"      1         "="        "="      "="                "="      1       1           1         1         1            "="       "="       1        "="       1           1          "="        "*>"        "+"         "="       1)
-OPTDEFL=(0        0         ""         ""       ""                 ""       0       0           0         0         0            "zero"    ""        0        ""        -1          0          ""         ""          -1          ""        0)
+OPTDEFL=(0        0         ""         ""       ""                 ""       0       0           0         0         0            "zero"    ""        0        ""        0           0          ""         ""          -1          ""        0)
 OPTMETA=("help"   ""        "branch"   "file"   "tree|server|odoo" "dirs"   ""      ""          ""        ""        "do nothing" "git-org" "path"    ""       ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
 OPTHELP=("this help"
  "do not install binary packages in requirements action"
