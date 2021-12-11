@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.4.2
+__version__=1.0.4.3
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -1172,7 +1172,7 @@ OPTOPTS=(h        a        B         C      D       f         k        I        
 OPTLONG=(help     ""       ""        ""     devel   force     keep     indipendent isolated  dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose)
 OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_force opt_keep opt_alone   opt_alone opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose)
 OPTACTI=('+'      "="      "+"       1      1       1         1        2           1         1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
-OPTDEFL=(1        ""       0         0      0       0         0        0           0         0           ""        ""         ""        -1          ""          0                    0          ""          -1)
+OPTDEFL=(1        ""       0         0      0       0         0        0           0         0           ""        ""         ""        0           ""          0                    0          ""          -1)
 OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""          ""        ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
