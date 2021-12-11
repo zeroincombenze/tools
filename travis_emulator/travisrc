@@ -448,39 +448,40 @@ create_virtual_env() {
   [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
   hash -r
 # TODO> restore after vem cp works
-#  if [[ "$PRJNAME" == "Odoo" && ( ! -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$BRANCH) -lt 1632550000 ) ]]; then
-#    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH not found or expired!${CLR}"
-#    [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
-#    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH"
-#    echo -e "\n\n"
-#    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
-#  elif [[ ! -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1632550000 ]]; then
-#    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
-#    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq"
-#    echo -e "\n\n"
-#    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
-#  fi
+  if [[ "$PRJNAME" == "Odoo" && ( ! -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$BRANCH) -lt 1639237000 ) ]]; then
+    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH not found or expired!${CLR}"
+    echo -e "Now virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH will be (re)created."
+    [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
+    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH"
+    echo -e "\n\n"
+    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
+  elif [[ ! -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1639237000 ]]; then
+    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
+    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq"
+    echo -e "\n\n"
+    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
+  fi
   if [[ $TRAVIS == "true" || -d $TRAVIS_HOME ]]; then
     true
   elif [[ $opt_full -eq 0 && ${opt_cache:-0} -ne 0 && -n "$TRAVIS_PYTHON_VERSION" ]]; then
     [[ -d $TRAVIS_SAVED_HOME ]] || mkdir $TRAVIS_SAVED_HOME
 # TODO> restore after vem cp works
-#     if [[ "$PRJNAME" == "Odoo" && -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
-#      opt_keepE=0
-#      TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$BRANCH
-#      opts=$(inherits_travis_opts "" "V")
-#      [[ $TRAVIS == "true" ]] || opts="$opts -f"
-#      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
-#      sts=$?
-#    elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
-#      opt_keepE=0
-#      TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
-#      opts=$(inherits_travis_opts "" "V")
-#      [[ $TRAVIS == "true" ]] || opts="$opts -f"
-#      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
-#      # run_traced "/home/odoo/devel/pypi/python_plus/python_plus/vem cp $VENVOPTS $opts -vvv $TRAVIS_SRC_VME $TRAVIS_HOME"   #debug
-#      sts=$?
-#    else
+     if [[ "$PRJNAME" == "Odoo" && -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
+      opt_keepE=0
+      TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$BRANCH
+      opts=$(inherits_travis_opts "" "V")
+      [[ $TRAVIS == "true" ]] || opts="$opts -f"
+      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
+      sts=$?
+    elif [[ -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
+      opt_keepE=0
+      TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION
+      opts=$(inherits_travis_opts "" "V")
+      [[ $TRAVIS == "true" ]] || opts="$opts -f"
+      run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
+      # run_traced "/home/odoo/devel/pypi/python_plus/python_plus/vem cp $VENVOPTS $opts -vvv $TRAVIS_SRC_VME $TRAVIS_HOME"   #debug
+      sts=$?
+    else
       if [[ "$PRJNAME" == "Odoo" && -n "$VERSION" ]]; then
         TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$VERSION
         opts=$(inherits_travis_opts "" "V")
@@ -499,8 +500,8 @@ create_virtual_env() {
       opts=$(inherits_travis_opts "" "V")
       [[ $TRAVIS == "true" ]] || opts="$opts -f"
       # TODO> reactivate after validation
-      # [[ $sts -ne 0 || $opt_keepE -eq 0 ]] || run_traced "vem cp $VENVOPTS $opts $TRAVIS_HOME $TRAVIS_SRC_VME"
-#    fi
+      [[ $sts -ne 0 || $opt_keepE -eq 0 ]] || run_traced "vem cp $VENVOPTS $opts $TRAVIS_HOME $TRAVIS_SRC_VME"
+    fi
   else
     echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
     [[ ${opt_dry_run:-0} -ne 0 ]] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
@@ -781,97 +782,6 @@ set_pkgname() {
 #
 # [antoniov: 2021-08-06] TODO: remove early
 #
-#install_dev() {
-#  if [ "$USER" == "openerp" -o "$USER" == "odoo" ]; then
-#    local yod=$(date +%Y)
-#    if [ ! -d ~/devel ]; then
-#      mkdir -p ~/devel
-#    fi
-#  fi
-#}
-#
-#update_dev() {
-#  # XDPATH=$(dirname $MAKEF)
-#  [[ -d $HOME/devel ]] && XDPATH=$HOME/devel || $HOME/dev
-#  ME_BOS=$(get_cfg_value "" "ME_BOS")
-#  RFLIST=$(get_cfg_value "" "RFLIST__$1")
-#  RDLIST=$(get_cfg_value "" "RDLIST__$1")
-#  local xvalid=1
-#  local v1= v2= x
-#  if [ -n "$RFLIST" ]; then
-#    for x in $RFLIST; do
-#      if [ ! -f $PKGPATH/$PKGNAME/$x ]; then
-#        xvalid=0
-#        break
-#      fi
-#    done
-#  fi
-#  if [ $xvalid -eq 0 ]; then
-#    echo "Invalid package $1: file $x not found!"
-#    exit $STS_FAILED
-#  fi
-#  if [ -z "$opt_sts" -o "$opt_cpush" != "-w" ]; then
-#    for x in $RFLIST; do
-#      if [ -f $PKGPATH/$PKGNAME/$x ]; then
-#        if [ ${opt_diff:-0} -gt 0 ]; then
-#          if [ "$(diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x)" ]; then
-#            if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x"; fi
-#            diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x
-#          fi
-#        elif [ ${opt_fetch:-0} -gt 0 ]; then
-#          if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $XDPATH/$x $PKGPATH/$PKGNAME/$x"; fi
-#          ((${opt_dry_run:-0})) || cp $opts_verbose $XDPATH/$x $PKGPATH/$PKGNAME/$x
-#        else
-#          diff -q $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
-#          if [ $? -ne 0 ]; then
-#            run_traced "cp $PKGPATH/$PKGNAME/$x $XDPATH/$x"
-#            if [ -x $PKGPATH/$PKGNAME/$x ]; then
-#              v1=$($PKGPATH/$PKGNAME/$x -V)
-#              v2=$($XDPATH/$x -V)
-#              if [ "$v1" != "$v2" ]; then
-#                echo "!Copy of $x FAILED !!!"
-#              fi
-#            fi
-#          fi
-#        fi
-#      fi
-#      if [ "$x" == "z0librc" ]; then
-#        if [ -z "$opt_dpath" ]; then
-#          XLGITPATH=$(readlink -e $LGITPATH/../travis_emulator)
-#          run_traced "cp $PKGPATH/$PKGNAME/$x $XLGITPATH/$x"
-#        fi
-#      fi
-#    done
-#    if [ -n "$RDLIST" ]; then
-#      for x in $RDLIST; do
-#        if [ ${opt_diff:-0} -gt 0 ]; then
-#          diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x
-#        elif [ ${opt_fetch:-0} -eq 0 ]; then
-#          diff -rq $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
-#          if [ $? -ne 0 ]; then
-#            run_traced "cp -R $PKGPATH/$PKGNAME/$x $XDPATH/"
-#          fi
-#        fi
-#      done
-#    fi
-#    if [ -n "$ME_BOS" ]; then
-#      for x in $ME_BOS cronow replica.sh; do
-#        if [ -f $PKGPATH/$PKGNAME/$x ]; then
-#          if [ ${opt_diff:-0} -gt 0 ]; then
-#            if [ "$(diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x)" ]; then
-#              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x"; fi
-#              diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x
-#            fi
-#          elif [ ${opt_fetch:-0} -gt 0 ]; then
-#            :
-#          else
-#            run_traced "cp $PKGPATH/$PKGNAME/$x ~/bin/$x"
-#          fi
-#        fi
-#      done
-#    fi
-#  fi
-#}
 
 a_append() {
   # a_append (key, values)::DEFPRM,DEFVAL
