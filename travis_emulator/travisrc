@@ -427,7 +427,6 @@ create_virtual_env() {
   local sts=0
   # local VER=${VERSION}
   [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel
-  [[ -d $HOME/dev && ! -d $HOME/devel ]] && HOME_DEV=$HOME/dev
   if [[ -z "$HOME_DEV" ]]; then
     echo "Zeroincombenze(R) tools not found!"
     exit 1
@@ -516,6 +515,8 @@ create_virtual_env() {
   fi
   [[ ${opt_dry_run:-0} -eq 0 ]] && mkdir -p $TRAVIS_HOME/build
   [[ ${opt_dry_run:-0} -eq 0 ]] && mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
+  # Compatibility with OCA test
+  [[ -d $TRAVIS_HOME/maintainer-quality-tools ]] && rm -fR -d $TRAVIS_HOME/maintainer-quality-tools
   export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
   if [ "$PKGNAME" == "OCB" ]; then
     emulate_git_clone_OCB $TRAVIS_HOME_BRANCH $TRAVIS_BUILD_DIR
