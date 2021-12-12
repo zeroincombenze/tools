@@ -23,7 +23,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = '1.0.3.2'
+__version__ = '1.0.3.3'
 
 ROOT_URL = 'https://api.github.com/repos/zeroincombenze/'
 USER_URL = 'https://api.github.com/users/'
