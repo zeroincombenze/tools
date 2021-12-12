@@ -24,7 +24,7 @@ optional arguments:
 from __future__ import print_function, unicode_literals
 import os
 import sys
-import StringIO
+from io import StringIO
 import time
 import csv
 from os0 import os0
@@ -34,7 +34,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.3.2"
+__version__ = "1.0.3.3"
 
 msg_time = time.time()
 
@@ -86,7 +86,7 @@ def convert_text(src_string):
     ctr = 0
     col_size = {}
     text = ''
-    csv_fd = StringIO.StringIO(src_string)
+    csv_fd = StringIO(src_string)
     hdr_read = False
     csv_obj = csv.DictReader(csv_fd,
                              fieldnames=[],
@@ -105,7 +105,7 @@ def convert_text(src_string):
             for p in csv_obj.fieldnames:
                 col_size[p] = max(col_size[p], min(len(row[p]), max_col_width))
     csv_fd.close()
-    csv_fd = StringIO.StringIO(src_string)
+    csv_fd = StringIO(src_string)
     hdr_read = False
     csv_obj = csv.DictReader(csv_fd,
                              fieldnames=[],
