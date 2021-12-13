@@ -1,6 +1,6 @@
 
 ===============
-zerobug 1.0.4.3
+zerobug 1.0.4.4
 ===============
 
 
@@ -366,6 +366,11 @@ Current development version
 History
 -------
 
+1.0.4.4 (2021-12-13)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] zerobug: dependency pylint-odoo
+
 1.0.3.2 (2021-10-27)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -526,7 +531,7 @@ Last Update / Ultimo aggiornamento: 2021-12-11
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-11
+Last Update / Ultimo aggiornamento: 2021-12-13
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
