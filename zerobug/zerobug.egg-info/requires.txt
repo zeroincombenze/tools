@@ -2,6 +2,7 @@ future
 coverage
 coveralls
 codecov
+pylint-odoo
 python-magic
 os0
 z0lib

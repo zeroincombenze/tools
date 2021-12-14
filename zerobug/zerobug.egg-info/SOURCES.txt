@@ -13,10 +13,12 @@ zerobug.egg-info/not-zip-safe
 zerobug.egg-info/requires.txt
 zerobug.egg-info/top_level.txt
 zerobug/_travis/__init__.py
+zerobug/_travis/__init__.pyc
 zerobug/_travis/travis.yml
 zerobug/_travis/travis_after_tests_success
 zerobug/_travis/travis_install_env
 zerobug/_travis/travis_run_pypi_tests
+zerobug/_travis/cfg/coveragerc
 zerobug/_travis/cfg/travis_run_flake8.cfg
 zerobug/_travis/cfg/travis_run_flake8_AVERAGE.cfg
 zerobug/_travis/cfg/travis_run_flake8_MINIMAL.cfg

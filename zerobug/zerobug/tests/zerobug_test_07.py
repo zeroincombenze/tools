@@ -1,4 +1,4 @@
-#!/home/odoo/VENV_3214255/devel/venv/bin/python
+#!/home/odoo/VENV_2076504/devel/venv/bin/python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -28,43 +28,53 @@ class RegressionTest():
         self.Z = z0bug
 
     def test_01(self, z0ctx):
-        # sts = TEST_SUCCESS
-        for ver in ('12.0', '10.0', '7.0', '8.0'):
+
+        def test_version(ver, name=None):
+            sts = TEST_SUCCESS
+            odoo_root = name if name else ver
             if ver in ('7.0', '8.0'):
-                OS_TREE = (ver,
-                           '%s/addons' % ver,
-                           '%s/openerp' % ver,
+                OS_TREE = (odoo_root,
+                           '%s/addons' % odoo_root,
+                           '%s/openerp' % odoo_root,
+                           '%s/.git' % odoo_root,
                            )
             else:
-                OS_TREE = (ver,
-                           '%s/addons' % ver,
-                           '%s/odoo' % ver,
+                OS_TREE = (odoo_root,
+                           '%s/addons' % odoo_root,
+                           '%s/odoo' % odoo_root,
+                           '%s/.git' % odoo_root,
                            )
-            RES = False
+            res = False
             if not z0ctx['dry_run']:
-                self.root = z0testodoo.build_odoo_env(z0ctx, ver)
+                self.root = z0testodoo.build_odoo_env(z0ctx, ver, name=name)
             for path in OS_TREE:
                 if not z0ctx['dry_run']:
                     path = os.path.join(self.root, path)
-                    RES = os.path.isdir(path)
-                sts = self.Z.test_result(z0ctx,
-                                         'odoo %s' % path,
-                                         True,
-                                         RES)
+                    res = os.path.isdir(path)
+                sts += self.Z.test_result(z0ctx,
+                                          'odoo %s' % path,
+                                          True,
+                                          res)
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, OS_TREE[2], 'release.py')
-            sts = self.Z.test_result(z0ctx,
-                                     'odoo %s' % path,
-                                     True,
-                                     os.path.isfile(path))
+            sts += self.Z.test_result(z0ctx,
+                                      'odoo %s' % path,
+                                      True,
+                                      os.path.isfile(path))
             if not z0ctx['dry_run']:
                 base = "openerp-server" if ver in ('7.0',
                                                    '8.0') else 'odoo-bin'
                 path = os.path.join(self.root, OS_TREE[0], base)
-            sts = self.Z.test_result(z0ctx,
-                                     'odoo %s' % path,
-                                     True,
-                                     os.path.isfile(path))
+            sts += self.Z.test_result(z0ctx,
+                                      'odoo %s' % path,
+                                      True,
+                                      os.path.isfile(path))
+            return sts
+
+        sts = TEST_SUCCESS
+        for ver in ('12.0', '10.0', '7.0', '8.0'):
+            sts += test_version(ver)
+            sts += test_version(ver, name='OCB-%s' % ver)
         return sts
 
     def test_02(self, z0ctx):
@@ -231,15 +241,5 @@ if __name__ == "__main__":
             sys.argv[1:],
             version=version()),
         RegressionTest))
-
-
-
-
-
-
-
-
-
-
 
 

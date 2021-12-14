@@ -38,7 +38,7 @@ fi
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-__version__=1.0.4.2
+__version__=1.0.4.4
 
 
 travis_test_bash() {
@@ -119,10 +119,10 @@ please_test_pylint() {
     echo "======== Testing test_pylint ========"
     local s sts
     sts=0
+    run_traced "export PYLINT_CONFIG_DIR=$($READLINK -f $TDIR/../_travis/cfg)"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       TRAVIS_BUILD_DIR=$PKGPATH
       MODULES_TO_TEST=$TRAVIS_BUILD_DIR
-      PYLINT_CONFIG_DIR="$FLAKE8_CONFIG_DIR"
       if [ "$PRJNAME" == "Odoo" ]; then
         pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
       else
@@ -146,7 +146,7 @@ run_regression_test() {
         [[ $TRAVIS_DEBUG_MODE =~ [89] ]] && opts="${opts}n"
         OPTS=$(inherits_travis_opts "$opts" "T")
         run_traced "COVERAGE_PROCESS_START=$($READLINK -f .coveragerc)"
-        COVERAGE_PROCESS_START=$($READLINK -f .coveragerc)
+        # COVERAGE_PROCESS_START=$($READLINK -f .coveragerc)
         if [ ! -f $COVERAGE_PROCESS_START ]; then
             cat << EOF > $COVERAGE_PROCESS_START
 # Config file .coveragerc 2019-08-22
@@ -196,30 +196,30 @@ EOF
         fi
         if [ -f ./tests/all_tests.py ]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
-                run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py $OPTS"
+                run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py $OPTS"
             else
-                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py $OPTS"
+                run_traced "cd $PRJPATH/tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py $OPTS"
             fi
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         elif [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 ]]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
-                run_traced "./tests/all_tests $OPTS"
+                run_traced "$PRJPATH/tests/all_tests $OPTS"
             else
-                run_traced "cd ./tests; ./all_tests $OPTS"
+                run_traced "cd $PRJPATH/tests; ./all_tests $OPTS"
             fi
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         elif [ -f ./tests/test_$PRJNAME.py ]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
-                run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py $OPTS"
+                run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py $OPTS"
             else
-                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py $OPTS"
+                run_traced "cd $PRJPATH/tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py $OPTS"
             fi
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         else
             if [ ${opt_dprj:-0} -gt 0 ]; then
-                run_traced "DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
+                run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
             else
-                run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
+                run_traced "cd $PRJPATH/tests; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
             fi
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
@@ -336,8 +336,8 @@ install_n_activate_tools() {
 OPTOPTS=(h        c        j        K         n            p        q           r     T        t         V           v)
 OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_pyth opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
 OPTACTI=(1        "="      1        1         1            1        0           1     1        1         "*>"        "+")
-OPTDEFL=(0        ""       0        0         0            0        -1          0     0        0         ""          -1)
-OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" ""       "qiet"     "rxt"  "test"   "test"    "version"   "verbose")
+OPTDEFL=(0        ""       0        0         0            0        0           0     0        0         ""          -1)
+OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" ""       "quiet"     "rxt" "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
  "execute tests in project dir rather in test dir"\

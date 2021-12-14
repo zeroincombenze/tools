@@ -3,8 +3,6 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
-from past.builtins import basestring
-
 import os
 import os.path
 import sys
@@ -13,13 +11,12 @@ from string import Template
 from subprocess import Popen, PIPE
 import shutil
 import argparse
-import inspect
 import glob
 from os0 import os0
 import magic
 
 
-__version__ = "1.0.4.2"
+__version__ = "1.0.4.4"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -846,7 +843,7 @@ class Z0test(object):
                     else:
                         ctx[p] = None
                 elif p == 'no_run_on_top' and hasattr(opt_obj, p):
-                        ctx['run_on_top'] = not getattr(opt_obj, p)
+                    ctx['run_on_top'] = not getattr(opt_obj, p)
                 elif hasattr(opt_obj, p):
                     ctx[p] = getattr(opt_obj, p)
             for p in LX_OPT_CFG_B:
