@@ -1,4 +1,4 @@
-#!/home/odoo/VENV_2076504/devel/venv/bin/python
+#!/home/odoo/VENV_1466025/devel/venv/bin/python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -28,38 +28,38 @@ class RegressionTest():
 
     def test_01(self, z0ctx):
         sts = TEST_SUCCESS
-        RES = False
+        res = False
         if not z0ctx['dry_run']:
             self.root = self.Z.build_os_tree(z0ctx, self.os_tree)
         for path in self.os_tree:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
-                RES = os.path.isdir(path)
-            sts = self.Z.test_result(z0ctx,
-                                     'mkdir %s' % path,
-                                     True,
-                                     RES)
+                res = os.path.isdir(path)
+            sts += self.Z.test_result(z0ctx,
+                                      'mkdir %s' % path,
+                                      True,
+                                      res)
         return sts
 
     def test_09(self, z0ctx):
         sts = TEST_SUCCESS
-        RES = False
+        res = False
         if not z0ctx['dry_run']:
             self.Z.remove_os_tree(z0ctx, self.os_tree)
         for path in self.os_tree:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
-                RES = os.path.isdir(path)
-            sts = self.Z.test_result(z0ctx,
-                                     'rmdir %s' % path,
-                                     False,
-                                     RES)
+                res = os.path.isdir(path)
+            sts += self.Z.test_result(z0ctx,
+                                      'rmdir %s' % path,
+                                      False,
+                                      res)
         return sts
 
     def setup(self, z0ctx):
-        self.os_tree = ['10.0',
-                        '10.0/l10n-italy',
-                        '10.0/l10n-italy/l10n_it_base',
+        self.os_tree = ['14.0',
+                        '14.0/l10n-italy',
+                        '14.0/l10n-italy/l10n_it_base',
                         '/tmp/zerobug']
 
 #
@@ -70,18 +70,6 @@ if __name__ == "__main__":
             sys.argv[1:],
             version=version()),
         RegressionTest))
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

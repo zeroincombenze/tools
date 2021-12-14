@@ -1544,6 +1544,7 @@ class Z0testOdoo(object):
                        hierarchy=None, name=None, retodoodir=None):
         """Build a simplified Odoo directory tree
         version: 15.0, 14.0, 13.0, ..., 7.0, 6.1
+        name: name of odoo dir (default equal to version)
         hierarchy: flat,tree,server (def=flat)
         """
         name = name or version
@@ -1577,16 +1578,53 @@ RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
 version_info = (%s, %s, 0, 'final', 0, '')
 version = '.'.join(map(str, version_info[:2])) + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
 series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
-        with open(os.path.join(root, odoo_home, 'release.py'), 'w') as fd:
+        if name[0] not in ('~', '/') and not name.startswith('./'):
+            odoo_root = os.path.join(root, name)
+        else:
+            odoo_root = name
+        odoo_home = os.path.join(os.path.dirname(odoo_root), odoo_home)
+        with open(os.path.join(odoo_home, 'release.py'), 'w') as fd:
             versions = version.split('.')
             fd.write(RELEASE_PY % (versions[0], versions[1]))
-        with open(os.path.join(root, odoo_home, '__init__.py'), 'w') as fd:
+        with open(os.path.join(odoo_home, '__init__.py'), 'w') as fd:
             fd.write('import release\n')
-        with open(os.path.join(root, name, script), 'w') as fd:
+        with open(os.path.join(odoo_root, script), 'w') as fd:
+            fd.write('\n')
+        with open(os.path.join(odoo_root, '.travis.yml'), 'w') as fd:
+            fd.write('\n')
+        with open(os.path.join(odoo_root, 'README.rst'), 'w') as fd:
             fd.write('\n')
         if retodoodir:
-            return os.path.join(root, name)
+            return odoo_root
         return root
+
+    def create_repo(self, ctx, root, reponame, version,
+                    hierarchy=None, name=None, repotype=None):
+        REPOTYPES = {
+            'oca': {
+                'd': ['.git',],
+                'f': ['README.md', '.travis.yml'],
+            },
+            'zero': {
+                'd': ['egg-info', '.git'],
+                'f': ['README.rst', '.travis.yml'],
+            },
+        }
+        name = name or version
+        repotype = repotype or 'oca'
+        odoo_root = os.path.join(root, name)
+        repodir = os.path.join(odoo_root, reponame)
+        if not os.path.isdir(repodir):
+            os.mkdir(repodir)
+        for ldir in REPOTYPES.get(repotype, {}).get('d', []):
+            path = os.path.join(repodir, ldir)
+            if not os.path.isdir(path):
+                os.mkdir(path)
+        for fn in REPOTYPES.get(repotype, {}).get('f', []):
+            path = os.path.join(repodir, fn)
+            if not os.path.isfile(path):
+                open(path, 'w').close()
+        return repodir
 
     def real_git_clone(self, remote, reponame, branch, odoo_path):
         odoo_url = 'https://github.com/%s/%s.git' % (remote, reponame)
