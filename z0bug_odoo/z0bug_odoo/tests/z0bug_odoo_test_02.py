@@ -1,4 +1,4 @@
-#!/home/odoo/VENV_1420777/devel/venv/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -9,6 +9,7 @@ import os
 import sys
 import shutil
 from zerobug import z0test, z0testodoo
+from z0bug_odoo.travis.getaddons import is_module
 from z0bug_odoo.travis.test_server import get_build_dir
 
 __version__ = "1.0.7.3"
@@ -17,7 +18,7 @@ MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 ODOO_VERSIONS = ('7.0', '10.0', '12.0')
-# ODOO_VERSIONS = ('10.0',)
+
 
 def version():
     return __version__
@@ -29,11 +30,11 @@ class RegressionTest():
         if os.path.basename(os.getcwd()) == 'tests':
             travis_addons = os.path.abspath(
                 os.path.join(os.environ.get("TRAVIS_BUILD_DIR", ".."),
-                    'travis'))
+                             'travis'))
         else:
             travis_addons = os.path.abspath(
                 os.path.join(os.environ.get("TRAVIS_BUILD_DIR", "."),
-                    'travis'))
+                             'travis'))
         if travis_addons not in sys.path:
             sys.path.append(travis_addons)
         self.Z = z0bug
@@ -43,21 +44,49 @@ class RegressionTest():
         home = os.path.expanduser('~')
         gitorg = 'odoo'
         for odoo_version in ODOO_VERSIONS:
+            majver = int(odoo_version.split('.')[0])
             travis_base_dir = odoo_addons = version = False
             odoo_full = '%s/%s' % (gitorg, odoo_version)
+            odoo_addons = repodir = moduledir = ''
             if not z0ctx['dry_run']:
                 # Test with explicit version passed
                 self.root = z0testodoo.build_odoo_env(z0ctx, odoo_version)
-                odoo_root = os.path.join(home, '%s-%s' % (gitorg, odoo_version))
+                odoo_root = os.path.join(
+                    home, '%s-%s' % (gitorg, odoo_version))
                 if eval(odoo_version.split('.')[0]) < 10:
                     odoo_addons = os.path.join(odoo_root, 'openerp', 'addons')
                 else:
                     odoo_addons = os.path.join(odoo_root, 'odoo', 'addons')
+            if not z0ctx['dry_run']:
                 if os.path.isdir(odoo_root):
                     shutil.rmtree(odoo_root, True)
                 shutil.move(os.path.join(self.root, odoo_version), odoo_root)
                 travis_base_dir, version = get_build_dir(
                     odoo_full, version=odoo_version)
+            sts += self.Z.test_result(
+                    z0ctx,
+                    'is_module(\'%s\')' % odoo_addons,
+                    False,
+                    is_module(odoo_addons))
+            if not z0ctx['dry_run']:
+                repodir = z0testodoo.create_repo(
+                    z0ctx, odoo_root, 'test_repo', version)
+            sts += self.Z.test_result(
+                    z0ctx,
+                    'is_module(\'%s\')' % repodir,
+                    False,
+                    is_module(repodir))
+            if not z0ctx['dry_run']:
+                moduledir = z0testodoo.create_module(
+                    z0ctx, repodir, 'test_module', '%s.0.1.0' % odoo_version)
+            sts += self.Z.test_result(
+                    z0ctx,
+                    'is_module(\'%s\')' % moduledir,
+                    os.path.join(
+                        moduledir, '__openerp__.py') if majver < 10
+                    else os.path.join(
+                        moduledir, '__manifest__.py'),
+                    is_module(moduledir))
             sts += self.Z.test_result(
                 z0ctx,
                 'get_build_dir(\'%s\', version=\'%s\')' % (odoo_full,
@@ -84,6 +113,10 @@ class RegressionTest():
                 odoo_version)
         return sts
 
+    def test_02(self, z0ctx):
+        for odoo_version in ODOO_VERSIONS:
+            pass
+
 
 # Run main if executed as a script
 if __name__ == "__main__":
@@ -92,6 +125,3 @@ if __name__ == "__main__":
             sys.argv[1:],
             version=version()),
         RegressionTest))
-
-
-

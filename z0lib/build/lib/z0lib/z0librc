@@ -797,7 +797,7 @@ a_add() {
 #    dictionary value to stdout
 #    status
 CFG_find() {
-    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p=""
     local sts=1
     local x SFX key KK
@@ -1168,7 +1168,7 @@ link_cfg_def() {
 
 link_cfg() {
 # link_cfg(file_cfg [file_def] [tid] [section] [-D|1])  -D means debug
-    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
 #    if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
 #      local tid=$3
 #    else
@@ -1464,13 +1464,12 @@ get_value_from_setup() {
 get_pypi_param() {
   # build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
   if [[ $1 == "ALL" ]]; then
-    REMOTEREPO=""
+    REMOTEREPO="local"
     PRJNAME=""
     PRJPATH=""
     PKGNAME=""
     PKGPATH=""
     REPOSNAME=""
-    [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
   fi
   local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
   local r w x="$PWD"

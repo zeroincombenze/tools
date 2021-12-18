@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 import os
+import sys
 try:
     import ConfigParser
 except ImportError:
@@ -10,7 +11,10 @@ try:
     from clodoo import clodoo
 except ImportError:
     import clodoo
-from travis_helpers import print_flush
+if sys.version_info[0] == 2:
+    from travis_helpers import print_flush
+else:
+    from .travis_helpers import print_flush
 
 
 def main(argv=None, database=None):

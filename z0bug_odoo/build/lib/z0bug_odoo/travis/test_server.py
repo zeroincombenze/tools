@@ -11,10 +11,16 @@ import subprocess
 import sys
 from six import string_types
 from zerobug import z0testodoo
-from getaddons import (
-    get_addons, get_modules, get_modules_info, get_dependencies,
-    get_applications_with_dependencies, get_localizations_with_dependents)
-from travis_helpers import success_msg, fail_msg, print_flush
+if sys.version_info[0] == 2:
+    from getaddons import (
+        get_addons, get_modules, get_modules_info, get_dependencies,
+        get_applications_with_dependencies, get_localizations_with_dependents)
+    from travis_helpers import success_msg, fail_msg, print_flush
+else:
+    from .getaddons import (
+        get_addons, get_modules, get_modules_info, get_dependencies,
+        get_applications_with_dependencies, get_localizations_with_dependents)
+    from .travis_helpers import success_msg, fail_msg, print_flush
 try:
     import ConfigParser
 except ImportError:

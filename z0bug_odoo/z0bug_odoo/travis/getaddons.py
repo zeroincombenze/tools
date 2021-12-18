@@ -12,7 +12,10 @@ import ast
 import os
 import sys
 
-from git_run import GitRun
+if sys.version_info[0] == 2:
+    from git_run import GitRun
+else:
+    from .git_run import GitRun
 
 __version__ = '1.0.7.3'
 
