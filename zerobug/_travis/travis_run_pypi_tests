@@ -375,7 +375,6 @@ if [[ $opt_help -gt 0 ]]; then
     exit 0
 fi
 
-echo "???$PWD???"   #debug
 [ "${MQT_DRY_RUN:-0}" == "1" ] && opt_dry_run=1
 [ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
 [ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
