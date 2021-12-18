@@ -1,15 +1,41 @@
 # -*- coding: utf-8 -*-
+# import os
 from setuptools import setup
 from setuptools import find_packages
 
-with open('./README.rst', 'r') as fd:
-    readme = fd.read()
+name = 'os0'
+# fn = './%s/README.rst' % name
+# README = ''
+# if not os.path.exists(fn):
+#     fn = './README.rst'
+# try:
+#     with open(fn, 'r') as fd:
+#         README = fd.read()
+# except IOError:
+#     print('Module %s without long description' % name)
 
-setup(name='os0',
+setup(name=name,
       version='1.0.2.1',
       description='OS indipendent interface',
       long_description_content_type='text/x-rst',
-      long_description=readme,
+      long_description="""
+This module extends python os module with a few new functionality
+to interface operating system.
+
+It recognizes file name structure and manages both URI standard name
+both local name, as UNC and ODS5.
+
+- URI (Uniform Resource Identifier) is standard posix filename.
+- UNC (Uniform Naming Convention) is windows standard
+- ODS5 is used for define OpenVMS standard filenames
+
+An example of URI filename is '/home/myfile'.
+
+UNC example for the same of previous URI name is '\\home\\myfile'
+(with single backslash).
+
+ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
+""",
       classifiers=[
           'Development Status :: 4 - Beta',
           'License :: OSI Approved :: GNU Affero General Public License v3',

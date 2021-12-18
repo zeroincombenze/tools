@@ -1039,9 +1039,6 @@ else
   exit $STS_FAILED
 fi
 opts_travis
-CFG_init
-conf_default
-link_cfg $DIST_CONF $TCONF
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 
