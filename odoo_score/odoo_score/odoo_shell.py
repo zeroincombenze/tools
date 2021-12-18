@@ -7,8 +7,8 @@ from future import standard_library
 from builtins import *                                             # noqa
 from builtins import input
 
-from python_plus import unicodes, _b
-import os
+from python_plus import _b
+# import os
 import sys
 from datetime import date, datetime, timedelta
 import time
