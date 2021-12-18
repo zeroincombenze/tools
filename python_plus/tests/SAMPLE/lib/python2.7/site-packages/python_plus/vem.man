@@ -1,0 +1,145 @@
+.\" Manpage for please.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH vem 8
+.SH NAME
+vem \- virtual environment management
+.SH SYNOPSIS
+vem [options] action [directory]
+.SH DESCRIPTION
+\fBvem\fR is an interactive tool with some nice features to manage standard virtual environment.
+.P
+Action is one of:
+.br
+* help
+.br
+* amend [OPTIONS] [SRC_VENV]
+.br
+* check [OPTIONS] [SRC_VENV]
+.br
+* cp [OPTIONS] SRC_VENV TGT_ENV
+.br
+* create -p PYVER [OPTIONS] [VENV]
+.br
+* exec [OPTIONS] [VENV] CMD
+.br
+* info [OPTIONS] [VENV] PKG
+.br
+* install [OPTIONS] [VENV] PKG
+.br
+* merge [OPTIONS] SRC_VENV TGT_ENV
+.br
+* mv [OPTIONS] SRC_VENV TGT_ENV
+.br
+* python [OPTIONS] SRC_VENV
+.br
+* show [OPTIONS] [VENV] PKG
+.br
+* upgrade [OPTIONS] [VENV] PKG
+.br
+* uninstall [OPTIONS] [VENV] PKG
+.br
+* test [OPTIONS] [VENV]
+.P
+\fBamend\fR [OPTIONS] [SRC_VENV]
+.RS
+Amend package versions against requirements.
+May used after 'create' or 'amend' when requirements are changed.
+.RE
+.P
+\fBcheck\fR [OPTIONS] [SRC_VENV]
+.RS
+Compare package versions against requirements.
+May be used after 'create' or 'amend' to check virtual environment consistency.
+.RE
+.P
+\fBcp\fR [OPTIONS] SRC_VENV TGT_ENV
+.RS
+Copy SOURCE environment directory to TGT_ENV, like the bash command 'cp' and set relative path inside virtual
+environment to aim the new directory name.
+.br
+Copying virtual environments is not well supported.
+Each virtualenv has path information hard-coded into it, and there may be cases where the copy code does not know it needs to update a particular file.
+Use with caution.
+.RE
+.P
+\fBcreate\fR -p PYVER [OPTIONS] VENV
+.RS
+Create a new virtual environment directory VENV like virtualenv command but with some nice features.
+Switch -p declare which python version will be used to create new environment.
+.br
+This action can install various python packages to create a ready to use environment directory.
+.br
+See -I -D -O -o -r switches to furthermore information.
+.RE
+.P
+\fBexec\fR [OPTIONS] [SRC_VENV] CMD ...
+.RS
+Execute a command in virtual environment. Enclose command by quotes.
+.RE
+.P
+\fBinfo\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Show information about pypi package if installed in virtual environment (alias of show)
+.RE
+.P
+\fBinstall\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Install pypi package or bin package into virtual environment.
+.br
+Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc
+.RE
+.P
+\fBpython\fR [OPTIONS] [SRC_VENV] CMD ...
+.RS
+Run python in virtual environment
+.RE
+.P
+\fBshell\fR [OPTIONS] [SRC_VENV] CMD ...
+.RS
+Run current shell in virtual environment. Logout returns to current environment
+.RE
+.P
+\fBshow\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Show information about pypi package if installed in virtual environment (alias of info)
+.RE
+.P
+\fBuninstall\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Uninstall pypi package from virtual environment.
+.RE
+.P
+\fBupgrade\fR [OPTIONS] [SRC_VENV] PKG
+.RS
+Upgrade pypi package in virtual environment.
+.RE
+.SH OPTIONS
+.TP
+.BR \-a
+Declare binary packages to install into virtual environment. Currently just 2 packages can be installed:
+.br
+wkhtmltopdf
+.br
+lessc
+.br
+Any other binary package must be globally installed by os installer (apt-get, dnf, yum, etc.)
+.TP
+.BR \-D
+With create or amend action, install or upgrade development packages.
+.TP
+.BR \-I
+Run isolated mode, without accessing system packages.
+.TP
+.BR \-O
+install pypi required by odoo ver (create or amend)
+.TP
+.BR \-o
+declare odoo path used to find odoo requirements and linked inside virtual environment
+.TP
+.TP
+.SH EXAMPLES
+vem create -DI -p 3.6 my_venv -O 12.0 -o ~/odoo-12.0
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)

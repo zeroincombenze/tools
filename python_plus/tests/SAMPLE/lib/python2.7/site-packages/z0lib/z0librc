@@ -1,0 +1,1673 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# This software is free software under GNU Affero GPL3
+# Bash general purpose library
+#__version__=1.0.4
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+[ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
+STS_FAILED=1
+STS_SUCCESS=0
+
+##############################################################################
+# Install this lib file in /etc if version is more recent
+# This must be in the same directory of caller script
+_install_z0librc() {
+    local tgt=/etc/z0librc
+    local src=./z0librc
+    local xtl=0
+    if [ -f $src ]; then
+      if [ -f $tgt ]; then
+        if [ "$1" == "-n" ]; then
+          local xtlver=$(echo "#__version__=0.1.1"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+        else
+          local xtlver=$(grep "#__version__" $tgt|head -n1|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+          if [ -z "$xtver" ]; then xtlver="0"; fi
+        fi
+        local newver=$(grep "#__version__" $src|head -n1|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+        if [ -z "$newver" ]; then newver="0"; fi
+        if [ $newver -gt $xtlver ]; then
+          xtl=1
+        fi
+      else
+        xtl=1
+      fi
+      if [ $xtl -gt 0 ]; then
+        if [ "$1" == "-n" ]; then
+          echo "cp $src $tgt"
+        elif [ $EUID -eq 0 ]; then
+          cp $src $tgt
+        fi
+      fi
+    fi
+}
+export -f _install_z0librc
+
+##############################################################################
+# Detect and print more OS informations than uname command
+#
+# Print Linux OS system information in same way of uname command
+# but returns more information.
+# Based on Novell article http://www.novell.com/coolsolutions/feature/11251.html
+# Credits:
+# - Arun Singh (Novell Senior Software Engineer)
+# - antoniomaria.vigliotti@gmail.com (zeroincombenze® Senior Software Engineer)
+# - giuliano69 (https://github.com/Giuliano69/odoo_install/blob/master/odoo8_install.sh)
+#
+# Check history
+#    Date        Author      Result of xname -a -> xname -f
+#    2015-08-27  antoniov    Linux CentOS 6.7(Final 2.6.32-504.16.2.el6.x86_64 x86_64) -> RHEL
+#    2015-08-27  antoniov    Linux CentOS 7.1.1503(Core 3.10.0-229.1.2.el7.x86_64 x86_64) -> RHEL
+#    2015-08-27  antoniov    Linux Ubuntu 12.04( 3.13.0-32-generic i686) -> Debian
+#    2015-09-15  antoniov    Linux Ubuntu 14.04(trusty 3.13.0-66-generic x86_64) -> Debian
+#    2015-10-28  antoniov    Linux VMWare VMware(VMware ESX Server 3 2.4.21-57.ELvmnix i686) -> VMWare
+#    2017-12-07  antoniov    Linux 3.2.0-4-amd64 #1 SMP Debian 3.2.96-2 x86_64 GNU/Linux -> Debian
+#    2017-12-07  antoniov    Linux 3.10.0-693.5.2.el7.x86_64 #1 x86_64 x86_64 x86_64 GNU/Linux -> Debian
+#    2017-12-07  antoniov    Linux 3.16.0-4-amd64 #1 SMP Debian 3.16.7-ckt9-3~deb8u1 (2015-04-24) x86_64 GNU/Linux -> Debian
+#
+# Parameter $1:
+#   -a  print all
+#   -d  print Linux distribution name (empty on Unix)
+#   -f  print Linux family (RHEL or Debian, empty on Unix)
+#   -k  print Linux kernel release (on Unix same as -r)
+#   -m  print machine hardware name
+#   -p  print processor architecture
+#   -r  print kernel release
+#   -v  print distribution version (only on Linux)
+xuname() {
+# You can find more help about this function on
+# http://wiki.zeroincombenze.org/en/Linux/dev
+  if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+  OS=$(uname -s)
+  REV=$(uname -r)
+  MACH=$(uname -m)
+  KERNEL="$REV"
+  VER=""
+  DIST=""
+  ARCH=$(uname -p)
+  FAMILY=""
+  XDES=""
+
+  if [ "${OS}" = "SunOS" ]; then
+    OS=Solaris
+    ARCH=$(uname -p)
+    VER=$(uname -v)
+    OSSTR="${OS} ${REV}(${ARCH} $(uname -v))"
+  elif [ "${OS}" = "AIX" ]; then
+    OSSTR="${OS} $(oslevel) ($(oslevel -r))"
+  elif [ "${OS}" = "Darwin" ]; then
+    DIST=$OS
+    FAMILY="osx"
+    OSSTR="${OS} ${VER}(${CODENAME} ${KERNEL} ${MACH})"
+  elif [ "${OS}" = "Linux" ]; then
+    KERNEL=$(uname -r)
+    CODENAME=""
+    if [ -f /etc/vmware-release ]; then
+      DIST='VMWare'
+      CODENAME=$(cat /etc/vmware-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/vmware-release | sed s/.*release\ // | sed s/\ .*//)
+    elif [ -f /etc/centos-release ]; then
+      DIST='CentOS'
+      XDES=$(cat /etc/centos-release|tr -d " \n")
+      CODENAME=$(cat /etc/centos-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/centos-release | sed s/.*release\ // | sed s/\ .*//)
+      FAMILY="RHEL"
+    elif [ -f /etc/gentoo-release ]; then
+      DIST='Gentoo'
+      CODENAME=$(cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/gentoo-release | sed s/.*release\ // | sed s/\ .*//)
+    elif [ -f /etc/SUSE-release ]; then
+      DIST="SuSE"
+      CODENAME=$(cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//)
+      VER=$(cat /etc/SUSE-release | tr "\n" ' ' | sed s/.*=\ //)
+      FAMILY="RHEL"
+    elif [ -f /etc/SuSE-release ]; then
+      DIST="SuSE"
+      CODENAME=$(cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//)
+      VER=$(cat /etc/SuSE-release | tr "\n" ' ' | sed s/.*=\ //)
+      FAMILY="RHEL"
+    elif [ -f /etc/mandriva-release ]; then
+      DIST='Mandriva'
+      CODENAME=$(cat /etc/mandriva-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/mandriva-release | sed s/.*release\ // | sed s/\ .*//)
+      FAMILY="RHEL"
+    elif [ -f /etc/mandrake-release ]; then
+      DIST='Mandrake'
+      CODENAME=$(cat /etc/mandrake-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/mandrake-release | sed s/.*release\ // | sed s/\ .*//)
+    elif [ -f /etc/fedora-release ]; then
+      DIST="Fedora"
+      CODENAME=$(cat /etc/fedora-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/fedora-release | sed s/.*release\ // | sed s/\ .*//)
+      FAMILY="RHEL"
+    elif [ -f /etc/slackware-version ]; then
+      DIST="Slackware"
+      VER=""
+    elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+      DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+      if [ -z "$DIST" ]; then
+        DIST="Ubuntu"
+      fi
+      VER=$(grep "DISTRIB_RELEASE" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+      CODENAME=$(grep "DISTRIB_CODENAME" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+      XDES=$(grep "DISTRIB_DESCRIPTION" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+      FAMILY="Debian"
+    elif [ -f /etc/debian_version ]; then
+      DIST="Debian"
+      ls_relase &>/dev/null
+      [ $? -ne 127 ] && VER=$(lsb_release --release --short) || VER=$(cat /etc/debian_version)
+      FAMILY="Debian"
+    elif [ -f /etc/redhat-release ]; then
+      DIST='RedHat'
+      CODENAME=$(cat /etc/redhat-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//)
+      FAMILY="RHEL"
+    elif [ -f /etc/os-release ]; then
+      DIST="Debian"
+      ls_relase &>/dev/null
+      [ $? -ne 127 ] && VER=$(lsb_release --release --short) || VER=$(cat /etc/os-release)
+      FAMILY="Debian"
+    fi
+    if [ -f /etc/UnitedLinux-release ]; then
+      DIST="${DIST}[$(cat /etc/UnitedLinux-release | tr "\n" ' ' | sed s/VERSION.*//)]"
+    fi
+    OSSTR="${OS} ${DIST} ${VER}(${CODENAME} ${KERNEL} ${MACH})"
+  fi
+  if [ "$1" == "-c" ]; then
+    echo ${CODENAME}
+  elif [ "$1" == "-d" ]; then
+    echo ${DIST}
+  elif [ "$1" == "-f" ]; then
+    echo ${FAMILY}
+  elif [ "$1" == "-k" ]; then
+    echo ${KERNEL}
+  elif [ "$1" == "-m" -o  "$1" == "-i" ]; then
+    echo ${MACH}
+  elif [ "$1" == "-p" ]; then
+    echo ${ARCH}
+  elif [ "$1" == "-s" ]; then
+    echo ${OS}
+  elif [ "$1" == "-r" ]; then
+    echo ${REV}
+  elif [ "$1" == "-v" ]; then
+    echo ${VER}
+  elif [ "$1" == "-x" ]; then
+    echo ${XDES}
+  else
+    echo ${OSSTR}
+  fi
+  $SET_X
+}
+export -f xuname
+
+
+
+
+##############################################################################
+# Parse command line arguments in a professional way
+# You can define syntax rules declaring some array variables, before calling
+# this function. On exit, variable are set on appropriate way.
+# Global variables to declare
+#   OPTOPTS  array with option switch characters (do not forget h for help)
+#      Common option (without -, description and default variable):
+#      h help       Show help               opt_help
+#      n no         Do nothing (only test)  opt_dry_run
+#      V version    Show app version        opt_version
+#   OPTLONG  array with long option (with double dash)
+#      Common option (description and default variable):
+#      --help       Show help               opt_help
+#      --dry-run    Do nothing (only test)  opt_dry_run
+#      --version    Show app version        opt_version
+#   OPTDEST  array of destination variables (matches one to one OPTOPTS)
+#      Recommend variables:
+#      opt_help     show help (int)
+#      opt_version  show app version (string)
+#      opt_dry_run  do nothing (int)
+#   OPTACTI  array of action (matches one to one OPTOPTS)
+#      1.st character:
+#      0-9  Set variable to numeric value
+#      +    Increase variable value (like -vv for more verbose)
+#      *    Set variable with option switch name itself (i.e. -h)
+#      =    Set variable to following option value
+#      2.nd character:
+#      >    executive command (disable help and version)
+#   OPTDEFL  array with default values, '#' means no default value (matches one to one OPTOPTS)
+#   OPTMETA  array with meta help to build help (matches one to one OPTOPTS)
+#   OPTHELP  array with parameters description to build help (matches one to one OPTOPTS)
+#   OPTARGS  array of destination variables of positional arguments (set OPTARGS=() if no args)
+#
+parseoptargs() {
+    local jy=0 f=0 a b v
+    while ((jy<${#OPTDEST[*]})); do
+      [[ "${OPTDEFL[jy]}" != "#" ]] && export ${OPTDEST[jy]}="${OPTDEFL[jy]}"
+      ((++jy))
+    done
+    local jy=0
+    while ((jy<${#OPTARGS[*]})); do
+      export ${OPTARGS[jy]}=""
+      ((++jy))
+    done
+    local kk=0
+    local ii=1
+    local failed=0
+    while ((ii<=$#)); do
+      local oo="${!ii}"
+      if [[ $oo =~ ^-- && $oo != "--" ]]; then
+        IFS="=" read a v <<<$oo
+        jy=0
+        f=0
+        while ((jy<${#OPTLONG[*]})); do
+          if [[ ${a:2} == ${OPTLONG[jy]} ]]; then
+            f=1
+            a=${OPTACTI[jy]}
+            b=${a:1:1}
+            if [[ $b == ">" ]]; then
+               export opt_help=0
+               export opt_version=""
+            fi
+            a=${a:0:1}
+            if [[ $a =~ ^[0123456789] ]]; then
+              export ${OPTDEST[jy]}=$a
+            elif [[ $a =~ ^\* ]]; then
+                export ${OPTDEST[jy]}="-${oo:jj:1}"
+            elif [[ $a =~ ^\+ ]]; then
+              if [ ${!OPTDEST[jy]} -lt 0 ]; then export ${OPTDEST[jy]}=0; fi
+              ((${OPTDEST[jy]}++))
+              export ${OPTDEST[jy]}
+            elif [[ $a =~ ^= ]]; then
+              if [[ -n "$v" ]]; then
+                export ${OPTDEST[jy]}="$v"
+              else
+                ((++ii))
+                export ${OPTDEST[jy]}="${!ii}"
+              fi
+            fi
+            jy=${#OPTOPTS[*]}
+          else
+            ((++jy))
+          fi
+        done
+        if [ $f -eq 0 ]; then
+          local failed=1
+        fi
+      elif [[ $oo =~ ^- ]]; then
+        local jj=1
+        while ((jj<${#oo})); do
+          jy=0
+          f=0
+          while ((jy<${#OPTOPTS[*]})); do
+            if [[ ${oo:jj:1} == ${OPTOPTS[jy]} ]]; then
+              # set -x
+              f=1
+              a=${OPTACTI[jy]}
+              b=${a:1:1}
+              if [ "$b" == ">" ]; then
+                 export opt_help=0
+                 export opt_version=""
+              fi
+              a=${a:0:1}
+              if [[ $a =~ ^[0123456789] ]]; then
+                export ${OPTDEST[jy]}=$a
+              elif [[ $a =~ ^\* ]]; then
+                export ${OPTDEST[jy]}="-${oo:jj:1}"
+              elif [[ $a =~ ^\+ ]]; then
+                if [ ${!OPTDEST[jy]} -lt 0 ]; then export ${OPTDEST[jy]}=0; fi
+                ((${OPTDEST[jy]}++))
+                export ${OPTDEST[jy]}
+              elif [[ $a =~ ^= ]]; then
+                ((++jj))
+                export ${OPTDEST[jy]}="${oo:jj}"
+                a="${!OPTDEST[jy]}"
+                if [[ -n "$a" ]]; then
+                  jj=${#oo}
+                else
+                  ((++ii))
+                  export ${OPTDEST[jy]}="${!ii}"
+                fi
+              fi
+              jy=${#OPTOPTS[*]}
+            else
+              ((++jy))
+            fi
+          done
+          if [[ $f -eq 0 ]]; then
+            local failed=1
+            break
+          fi
+          ((++jj))
+        done
+      elif [[ -n "$oo" ]]; then
+        export ${OPTARGS[kk]}="$oo"
+        export opt_help=0
+        export opt_version=""
+        ((++kk))
+      fi
+      ((++ii))
+    done
+    if [[ $failed -gt 0 ]]; then
+      export opt_help=1
+    fi
+    if [ ${opt_verbose:-0} -eq -1 ]; then
+      if [[ $VERBOSE_MODE =~ ^[0123]$ ]]; then
+        opt_verbose=$VERBOSE_MODE
+      elif [[ -t 0 || -p /dev/stdin ]]; then
+        opt_verbose=0
+      else
+        opt_verbose=1
+      fi
+    fi
+}
+export -f parseoptargs
+
+
+# Print help for parse command line arguments
+print_help() {
+    local txt="Usage: "
+    local hlp=""
+    txt+="$(basename $0) "
+    local xx="[-"
+    local jy=0
+    while ((jy<${#OPTOPTS[*]})); do
+      local a=${OPTACTI[jy]}
+      a=${a:0:1}
+      if [[ $a =~ ^[0123456789+*] ]]; then
+        if [ "$xx" == "]" ]; then
+          xx="][-"
+        fi
+        txt+="$xx${OPTOPTS[jy]}"
+        xx=""
+        if [[ -n ${OPTLONG[jy]} ]]; then
+            (((${#OPTLONG[jy]}+${#OPTLONG[jy]})<=22)) && \
+                        hlp+=$(printf ' -%s --%-16.16s%s%s' "${OPTOPTS[jy]}" "${OPTLONG[jy]}" "${OPTHELP[jy]}" '\n') || \
+                        hlp+=$(printf ' -%s --%-16.16s\n%22.22s%s%s' "${OPTOPTS[jy]}" "${OPTLONG[jy]}" " " "${OPTHELP[jy]}" '\n')
+        else
+            hlp+=$(printf ' -%-20.20s%s%s' "${OPTOPTS[jy]}" "${OPTHELP[jy]}" '\n')
+        fi
+      elif [ "$a" == "=" ]; then
+        if [ -z "$xx" -o "$xx" == "]" ]; then
+          xx="][-"
+        fi
+        txt+="$xx${OPTOPTS[jy]} ${OPTMETA[jy]}"
+        xx="]"
+        if [[ -n ${OPTLONG[jy]} ]]; then
+            hlp+=$(printf ' -%s --%s %s\n%22.22s%s%s' "${OPTOPTS[jy]}" "${OPTLONG[jy]}" "${OPTMETA[jy]}" " " "${OPTHELP[jy]}" '\n')
+        else
+            hlp+=$(printf ' -%s %-17.17s %s %s' "${OPTOPTS[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
+        fi
+      fi
+      ((++jy))
+    done
+    if [ -z "$xx" ]; then
+      xx="]"
+    fi
+    txt+="$xx"
+    jy=0
+    while ((jy<${#OPTARGS[*]})); do
+      txt+=" ${OPTARGS[jy]}"
+      ((++jy))
+    done
+    echo -e "$txt"
+    echo -e "$1"
+    echo -e "$hlp"
+    echo -e "$2"
+    xx="$(dirname $0)/man/man8/$(basename $0).8.gz"
+    [[ ! -f $xx ]] && xx=$0.man
+    [[ $opt_help -gt 2 && -f $xx ]] && man $xx
+}
+export -f print_help
+
+
+
+##############################################################################
+# Set tracelog filename for wlog function
+# Log message may be echoed onto console ($3=echo)
+# log filename may be /dev/null
+#
+# Parameter $1:
+#    Filename to write (may be full pathname or just basename)
+# Parameter $2:
+#    "new" means create a new file log, otherwise append to existent file
+# Parameter $3:
+#    "echo" means wlog echoes message onto console when write log
+set_tlog_file() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    # READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+    local p=$(dirname "$1")
+    local f=$(basename "$1")
+    if [ "$p" == "~" ]; then p=$HOME; fi
+    if [ "$p" == "." -a "${1:0:2}" != "./" ]; then p=""; fi
+    if [ -z "$p" ]; then
+      if [ $EUID -eq 0 ]; then
+        p=/var/log
+      else
+        p=$HOME
+      fi
+    fi
+    export FLOG=$(readlink -f $p/$f)
+    if [ "$2" == "new" ]; then
+      if [ -f "$FLOG" ]; then rm -f "$FLOG"; fi
+    fi
+    export FLOG_ECHO=${3:-#}
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+}
+
+
+##############################################################################
+# Write log on file $FLOG: see set_tlog_file function
+wlog() {
+    local dt=$(date +"%F %H:%M:%S")
+    [[ -n "$FLOG" ]] && echo $dt "$@">>$FLOG
+    [[ $FLOG_ECHO == "echo" ]] && $FLOG_ECHO -e "$@"
+}
+export -f wlog
+
+##############################################################################
+# Write log on file $FLOG without echo
+slog() {
+    local dt=$(date +"%F %H:%M:%S")
+    [[ -n "$FLOG" ]] && echo $dt "$@">>$FLOG
+}
+export -f wlog
+
+##############################################################################
+# Echo meassage and write log on file $FLOG: see set_tlog_file function
+elog() {
+    wlog "$@"
+    [[ $FLOG_ECHO != "echo" ]] && echo -e "$@"
+}
+export -f elog
+
+##############################################################################
+# Log message if error level (opt_verbose=2)
+wlog_error() {
+    [[ ${opt_verbose:-0} -ge 2 ]] && wlog "$@"
+}
+elog_error() {
+    [[ ${opt_verbose:-0} -ge 2 ]] && elog "$@"
+}
+
+# Log message if warning level (opt_verbose=3)
+wlog_warning() {
+    [[ ${opt_verbose:-0} -ge 3 ]] && wlog "$@"
+}
+elog_warning() {
+    [[ ${opt_verbose:-0} -ge 3 ]] && elog "$@"
+}
+
+# Log message if info level (opt_verbose=4)
+wlog_info() {
+    [[ ${opt_verbose:-0} -ge 4 ]] && wlog "$@"
+}
+elog_info() {
+    [[ ${opt_verbose:-0} -ge 4 ]] && elog "$@"
+}
+
+# Log message if debug level (opt_verbose=5)
+wlog_debug() {
+    [[ ${opt_verbose:-0} -ge 5 ]] && wlog "$@"
+}
+elog_debug() {
+    [[ ${opt_verbose:-0} -ge 5 ]] && elog "$@"
+}
+
+
+##############################################################################
+# Execute line commad and trace in tracelog
+#
+# Global variables to declare (base on parseoptargs):
+# - opt_dry_run (-n): if > 0 do not execute command, just log
+# - opt_verbose (-v): echo command line before execution
+# Parameter $1:
+#    command line with parameters; command may be a comment (beginning with '#')
+#    command 'cd ' is always executed, also if dry_run
+# Parameter $2:
+#    execute as user; caller must be sudoer
+#    -q disable verbose mode
+#    -i sudo switch
+#    -u sudo switch
+# Parameter $3:
+#    1 = do login, if execute as user
+run_traced() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
+    local xcmd="$1" lm="                    "
+    local sts=$STS_SUCCESS verbose=${opt_verbose:-0}
+    local opts=""
+    if [[ $2 =~ ^-* ]]; then
+      [[ $2 =~ ^-*q ]] && verbose=0
+      [[ $2 =~ ^-*i ]] && opts="${opts}i"
+      [[ $2 =~ ^-*u ]] && opts="${opts}u$3"
+      [[ -n "$opts" ]] && opts="-$opts"
+    elif [[ -n "$2" && $2 != "$USER" ]]; then
+      if [[ ${3:-0} -gt 0 ]]; then
+        opts="-iu$2"
+      else
+        opts="-u$2"
+      fi
+    fi
+    [[ -n "$opts" ]] && xcmd="sudo $opts"
+    local pfx=
+    if [[ $1 =~ ^# ]]; then
+      pfx="${lm:0:$Z0_STACK}"
+    elif [[ ${opt_dry_run:-0} -eq 0 ]]; then
+      pfx="${lm:0:$Z0_STACK}\$ "
+    else
+      pfx="${lm:0:$Z0_STACK}> "
+    fi
+    ((Z0_STACK=Z0_STACK+2))
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+      if [[ ! $1 =~ ^wlog[[:space:]] ]];then
+        if [[ $verbose -gt 0 ]]; then
+          [[ ${opt_humdrum:-0} -eq 0 && -n "$PS_RUN_COLOR" ]] && echo -en "\e[${PS_RUN_COLOR}m"
+          elog "$pfx$xcmd"
+          [[ ${opt_humdrum:-0} -eq 0 && -n $PS_NOP_COLOR ]] && echo -en "\e[${PS_NOP_COLOR}m"
+        else
+          [[ ${opt_humdrum:-0} -eq 0 && -n "$PS_RUN_COLOR" ]] && echo -en "\e[${PS_RUN_COLOR}m"
+          wlog "$pfx$xcmd"
+          [[ ${opt_humdrum:-0} -eq 0 && -n $PS_NOP_COLOR ]] && echo -en "\e[${PS_NOP_COLOR}m"
+        fi
+      fi
+      if [[ ! $1 =~ ^# ]]; then
+        eval "$xcmd"
+        sts=$?
+      fi
+    elif [[ ! $1 =~ ^sleep[[:space:]] ]]; then
+      [[ $verbose -gt 0 ]] && echo "$pfx$xcmd"
+      [[ $1 =~ ^(cd[[:space:]].*|cd)$ ]] && eval "$xcmd" 2>/dev/null
+    fi
+    echo -en "\e[0m"
+    ((Z0_STACK=Z0_STACK-2))
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+    return $sts
+}
+
+export -f run_traced
+
+
+##############################################################################
+# Parse directory to search a file
+#
+# Search a file or directory from a list.
+# This function is used to find an application from path list
+#
+# Parameter $1:
+#    File to search (if null is searched just for directory of $2 ...)
+# Parameter $2:
+#    Directory list (space separated) where file could be found (required)
+# Parameter $3:
+#    Level 2 subdirectory list (space separated) where file could be found (maybe be empty)
+# Parameter $4:
+#    Level 3 subdirectory list (space separated) where file could be found (maybe be empty)
+# Parameter $5:
+#    Level 4 subdirectory list (space separated) where file could be found (maybe be empty)
+# Parameter $6:
+#    Level 5 subdirectory list (space separated) where file could be found (maybe be empty)
+findpkg() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+    local p2 p3 p4 p5 p6
+    local r2 r3 r4 r5 r6
+    local i2 i3 i4 i5 i6
+    local result
+    [[ -n "$3" ]] && i3="$3" || i3="."
+    [[ -n "$4" ]] && i4="$4" || i4="."
+    [[ -n "$5" ]] && i5="$5" || i5="."
+    [[ -n "$6" ]] && i6="$6" || i6="."
+    for p2 in $2; do
+      r2=$p2
+      if [[ -n "$1" && -e $r2/$1 ]]; then
+        result=$(readlink -e $r2/$1)
+        break
+      fi
+      for p3 in $i3; do
+        [[ -n "$p3" ]] && r3=/$p3 || r3=""
+        if [[ -n "$1" && -e $r2$r3/$1 ]]; then
+          result=$(readlink -e $r2$r3/$1)
+          break
+        fi
+        for p4 in $i4; do
+          [[ -n "$p4" ]] && r4=/$p4 || r4=""
+          if [[ -n "$1" && -e $r2$r3$r4/$1 ]]; then
+            result=$(readlink -e $r2$r3$r4/$1)
+            break
+          fi
+          for p5 in $i5; do
+            [[ -n "$p5" ]] && r5=/$p5 || r5=""
+            if [[ -n "$1" && -e $r2$r3$r4$r5/$1 ]]; then
+              result=$(readlink -e $r2$r3$r4$r5/$1)
+              break
+            fi
+            for p6 in $i6; do
+              [[ -n "$p6" ]] && r6=/$p6 || r6=""
+              if [[ -z "$1" ]]; then
+                if [[ -d $r2$r3$r4$r5$r6 ]]; then
+                  result=$(readlink -e $r2$r3$r4$r5$r6)
+                  break
+                fi
+              else
+                if [[ -e $r2$r3$r4$r5$r6/$1 ]]; then
+                  result=$(readlink -e $r2$r3$r4$r5$r6/$1)
+                  break
+                fi
+              fi
+            done
+            [[ -n "$result" ]] && break
+          done
+          [[ -n "$result" ]] && break
+        done
+        [[ -n "$result" ]] && break
+      done
+      [[ -n "$result" ]] && break
+    done
+    echo "$result"
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+}
+export -f findpkg
+
+
+# Deprecated: use CFG_init
+a_new() {
+    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
+      local tid=$1
+    else
+      local tid="0"
+    fi
+    cmd="unset DEFDICT$tid DEFRULE$tid"
+    echo $cmd
+}
+export -f a_new
+
+
+
+# Deprecated: use CFG_init
+a_active() {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
+      local tid=$1
+    else
+      local tid="0"
+    fi
+    if [ "$XU_FH" != "RHEL" -a "$XU_FH" != "Debian" ]; then
+      XU_FH=$(xuname "-f")
+      local x=$(xuname "-v")
+      local v=$(echo $x|awk -F. '{print $1}')
+      XU_DISTO=$(xuname "-d")$v
+    elif [ -z "$XU_DISTO" ]; then
+      local x=$(xuname "-v")
+      XU_DISTO=$(xuname "-d")${x:0:1}
+    fi
+    # declare -g XU_FH=$XU_FH XU_DISTO=$XU_DISTO
+    # declare -gA DEFDICT$tid DEFRULE$tid
+    cmd="XU_FH=$XU_FH XU_DISTO=$XU_DISTO; declare -gA DEFDICT$tid DEFRULE$tid"
+    echo $cmd
+    $SET_X
+}
+export -f a_active
+
+
+##############################################################################
+# Add key and value to dictionary (associative array)
+# key may be regex to match multiple values
+# It's a ugly solution but currently works
+#
+# Global variables declared by CFG_init
+#   DEFDICT  global dictionary based on unique key (associative array)
+#   DEFRULE  global dictionary based on regex (associative array)
+#   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
+#   XU_FH    contains Linux Family id (see xuname)
+# Parameter $1:
+#    Dictionary key; if begin with "^" is a regex, otherwise is unique key
+# Parameter $2:
+#    Dictionary value
+# Parameter $3:
+#    Id of table (may be 0..3)
+# Parameter $4:
+#    "-d"   key is specific of Linux distribution
+#    "-f"   key is specific of Linux family
+#    not "" specific Linux distribution or family
+# Parameter $5:
+#    "-D|1"   key is specific for development environment
+# Parameter $6:
+#    Section (reserved ti future use)
+CFG_set() {
+    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    local key tid SFX
+    [[ $3 =~ [0123] ]] && tid=$3 || tid="0"
+    if [[ -n "$1" ]]; then
+      if [[ $4 == "-d" ]]; then
+        SFX="__$XU_DISTO"
+      elif [[ $4 == "-f" ]]; then
+        SFX="__$XU_FH"
+      elif [[ -n $4 ]]; then
+        SFX="__$4"
+      else
+        SFX=
+      fi
+      key=${1//-/_}
+      [[ $5 =~ (-D|-d|1) ]] && SFX="${SFX}__DEV"
+      if [[ "$tid" == "0" ]]; then
+        if [ "${key:0:1}" == "^" ]; then
+          DEFRULE0[$key$SFX]="$2"
+        else
+          DEFDICT0[$key$SFX]="$2"
+        fi
+      elif [[ $tid == "1" ]]; then
+        if [ "${key:0:1}" == "^" ]; then
+          DEFRULE1[$key$SFX]="$2"
+        else
+          DEFDICT1[$key$SFX]="$2"
+        fi
+      elif [[ $tid == "2" ]]; then
+        if [ "${key:0:1}" == "^" ]; then
+          DEFRULE2[$key$SFX]="$2"
+        else
+          DEFDICT2[$key$SFX]="$2"
+        fi
+      elif [[ $tid == "3" ]]; then
+        if [ "${key:0:1}" == "^" ]; then
+          DEFRULE3[$key$SFX]="$2"
+        else
+          DEFDICT3[$key$SFX]="$2"
+        fi
+      fi
+    fi
+    $SET_X
+}
+export -f CFG_set
+
+# Deprecated: use CFG_set
+a_add() {
+    echo "Deprecated function a_add: use CFG_set"
+    exit 17
+}
+
+##############################################################################
+# Find value in associative array
+# It's a ugly solution but currently works
+#
+# Global variables create by a_append
+#   DEFDICT  global dictionary based on unique key (associative array)
+#   DEFRULE  global dictionary based on regex (associative array)
+#   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
+#   XU_FH    contains Linux Family id (see xuname)
+# Parameter $1:
+#    Id of table (may be 0..3)
+# Parameter $2:
+#    Dictionary key to search
+# Return:
+#    dictionary value to stdout
+#    status
+CFG_find() {
+    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    local p=""
+    local sts=1
+    local x SFX key KK
+    if [ -n "$2" ]; then
+      SFX=
+      key=${2//-/_}
+      if [ "$1" == "0" ]; then
+        for SFX in __${XU_DISTO}__DEV __${XU_FH}__DEV __$XU_DISTO __$XU_FH ""; do
+          KK=$key$SFX
+          p=${DEFDICT0[$KK]}
+          if [ -n "$p" ]; then break; fi
+        done
+        if [ -z "$p" ]; then
+          local KK=(${!DEFRULE0[@]})
+          local SFX=
+          for SFX in __${XU_DISTO}__DEV __${XU_FH}__DEV __$XU_DISTO __$XU_FH ""; do
+            local jy=0
+            while ((jy<${#DEFRULE0[@]})); do
+              local K=${KK[$jy]}
+              if [[ "$K" =~ ^.*$SFX ]]; then
+                if [[ "${key}__$XU_DISTO" =~ $K ]]; then
+                  p=${DEFRULE0[$K]}
+                  local sts=0
+                  break
+                elif [[ "${key}__$XU_FH" =~ $K ]]; then
+                  p=${DEFRULE0[$K]}
+                  local sts=0
+                  break
+                fi
+              fi
+              ((jy++))
+            done
+            if [ $sts -eq $STS_SUCCESS ]; then break; fi
+          done
+        fi
+      elif [ "$1" == "1" ]; then
+        for SFX in __${XU_DISTO}__DEV __${XU_FH}__DEV __$XU_DISTO __$XU_FH ""; do
+          KK=$key$SFX
+          p=${DEFDICT1[$KK]}
+          if [ -n "$p" ]; then break; fi
+        done
+        if [ -z "$p" ]; then
+          local KK=(${!DEFRULE1[@]})
+          local SFX=
+          for SFX in __${XU_DISTO}__DEV __${XU_FH}__DEV __$XU_DISTO __$XU_FH ""; do
+            local jy=0
+            while ((jy<${#DEFRULE1[@]})); do
+              local K=${KK[$jy]}
+              if [[ "$K" =~ ^.*$SFX ]]; then
+                if [[ "${key}__$XU_DISTO" =~ $K ]]; then
+                  p=${DEFRULE1[$K]}
+                  local sts=0
+                  break
+                elif [[ "${key}__$XU_FH" =~ $K ]]; then
+                  p=${DEFRULE1[$K]}
+                  local sts=0
+                  break
+                fi
+              fi
+              ((jy++))
+            done
+            if [ $sts -eq $STS_SUCCESS ]; then break; fi
+          done
+        fi
+      elif [ "$1" == "2" ]; then
+        for SFX in __${XU_DISTO}__DEV __${XU_FH}__DEV __$XU_DISTO __$XU_FH ""; do
+          KK=$key$SFX
+          p=${DEFDICT2[$KK]}
+          if [ -n "$p" ]; then break; fi
+        done
+        if [ -z "$p" ]; then
+          local KK=(${!DEFRULE2[@]})
+          local SFX=
+          for SFX in __${XU_DISTO}__DEV __${XU_FH}__DEV __$XU_DISTO __$XU_FH ""; do
+            local jy=0
+            while ((jy<${#DEFRULE2[@]})); do
+              local K=${KK[$jy]}
+              if [[ "$K" =~ ^.*$SFX ]]; then
+                if [[ "${key}__$XU_DISTO" =~ $K ]]; then
+                  p=${DEFRULE2[$K]}
+                  local sts=0
+                  break
+                elif [[ "${key}__$XU_FH" =~ $K ]]; then
+                  p=${DEFRULE2[$K]}
+                  local sts=0
+                  break
+                fi
+              fi
+              ((jy++))
+            done
+            if [ $sts -eq $STS_SUCCESS ]; then break; fi
+          done
+        fi
+      elif [ "$1" == "3" ]; then
+        for SFX in __${XU_DISTO}__DEV __${XU_FH}__DEV __$XU_DISTO __$XU_FH ""; do
+          KK=$key$SFX
+          p=${DEFDICT3[$KK]}
+          if [ -n "$p" ]; then break; fi
+        done
+        if [ -z "$p" ]; then
+          local KK=(${!DEFRULE3[@]})
+          local SFX=
+          for SFX in __${XU_DISTO}__DEV __${XU_FH}__DEV __$XU_DISTO __$XU_FH ""; do
+            local jy=0
+            while ((jy<${#DEFRULE3[@]})); do
+              local K=${KK[$jy]}
+              if [[ "$K" =~ ^.*$SFX ]]; then
+                if [[ "${key}__$XU_DISTO" =~ $K ]]; then
+                  p=${DEFRULE3[$K]}
+                  local sts=0
+                  break
+                elif [[ "${key}__$XU_FH" =~ $K ]]; then
+                  p=${DEFRULE3[$K]}
+                  local sts=0
+                  break
+                fi
+              fi
+              ((jy++))
+            done
+            if [ $sts -eq $STS_SUCCESS ]; then break; fi
+          done
+        fi
+      fi
+      if [ -n "$p" ]; then
+        local sts=0
+      fi
+    fi
+    echo "$p"
+    $SET_X
+    return $sts
+}
+export -f CFG_find
+
+# Deprecated: use CFG_find
+a_find() {
+    CFG_find "$@"
+}
+
+##############################################################################
+# get value from config file
+# if file does not exist, or parameter does not exist, return default value
+#
+# Require CFG_find
+#   DEFDICT  global dictionary based on unique key (associative array)
+#   DEFRULE  global dictionary based on regex (associative array)
+#   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
+#   XU_FH    contains Linux Family id (see xuname)
+# Parameter $1:
+#    Id of table (may be 0..3)
+# Parameter $2:
+#    Parameter key to search
+# Return:
+#    parameter value
+get_cfg_value() {
+    local p tid t
+    if [ -z "$2" ]; then
+      p=
+      echo $p
+      return
+    else
+      p=
+    fi
+    [[ $3 =~ [0123] ]] && tid=$3 || tid="0 1 2 3"
+    for t in $tid; do
+      p=$(CFG_find "$t" "$2")
+      [[ -n "$p" && $p != "False" ]] && break
+    done
+    [[ $p == "None" ]] && p=""
+    echo "$p"
+}
+export -f get_cfg_value
+
+
+##############################################################################
+# Create empty dictionary (based on associative array)
+#
+# Globals:
+#   DEFDICT  global dictionary based on unique key (associative array)
+#   DEFRULE  global dictionary based on regex (associative array)
+#   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
+#   XU_FH    contains Linux Family id (see xuname)
+# Parameter $1:
+#    Id of table for access (ALL means all Ids)
+CFG_init() {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    local tid x v
+    if [[ $1 == "ALL" ]]; then
+      for tid in 0 1 2 3; do
+        CFG_init $tid
+      done
+    else
+      [[ $1 =~ ^[0123]$ ]] && tid=$1 || tid="0"
+      unset DEFDICT$tid DEFRULE$tid
+      if [[ ! $XU_FH =~ ^(RHEL|Debian)$ ]]; then
+        XU_FH=$(xuname "-f")
+        x=$(xuname "-v")
+        v=$(echo $x|awk -F. '{print $1}')
+        XU_DISTO=$(xuname "-d")$v
+      elif [[ -z "$XU_DISTO" ]]; then
+        x=$(xuname "-v")
+        XU_DISTO=$(xuname "-d")${x:0:1}
+      fi
+      declare -g XU_FH=$XU_FH XU_DISTO=$XU_DISTO
+      declare -gA DEFDICT$tid DEFRULE$tid
+    fi
+    $SET_X
+}
+export -f CFG_init
+
+
+# Deprecated: use CFG_init
+#init_cfg() {
+## Parameter $1: Id of table (may be 0..3)
+#    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
+#      local tid=$1
+#    else
+#      local tid="0"
+#    fi
+#    echo $(a_new "$tid")
+#    eval $(a_active "$tid")
+#}
+#export -f init_cfg
+
+# Deprecated: use CFG_init
+#active_cfg() {
+## Parameter $1: Id of table (may be 0..3)
+#    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
+#      local tid=$1
+#    else
+#      local tid="0"
+#    fi
+#    echo $(a_active "$tid")
+#}
+#export -f active_cfg
+
+set_cfg_def() {
+    # set_cfg_set(key value [id])
+    # Deprecated: use CFG_set
+    CFG_set "$1" "$2" "$3" "$4" "$5" "$6"
+}
+export -f set_cfg_def
+
+
+_read_cfg_file() {
+#read_cfg_file(file $tid [section] [-D|-d])    -D or -d means debug
+    [[ ! -n "$1"  || ! -f "$1" ]] && return
+    local key val lne x r t s d b dev
+    if [[ "$(type -t store_cfg_param_value)" == "function" ]]; then
+      store_param=store_cfg_param_value
+    else
+      store_param=CFG_set
+    fi
+    if [[ $4 =~ (D|1) ]]; then
+      dev="_DEV"
+    else
+      dev=" "
+    fi
+    t=1
+    s=
+    d=
+    b=
+    while IFS="#" read -r lne r || [[ -n "$lne" ]]; do
+      if [ -n "$lne" -a -n "$r" ] && [ "${lne: -1}" != " " ]; then
+        lne="$lne#$r"
+        r=
+      fi
+      if [ -n "$lne" ]; then
+        if [ "${lne:0:1}" == "[" ]; then
+          s="${lne:1: -1}"
+          t=0
+          if [ "$s" == "_Linux_" ]; then
+            t=1
+            s="$3"
+            d=
+          elif [ "$s" == "_${XU_DISTO}_" ]; then
+            t=1
+            s="$3"
+            d=-d
+          elif [ "$s" == "_${XU_FH}_" ]; then
+            t=1
+            s="$3"
+            d=-f
+          elif [ "$s" == "$3" ]; then
+            t=1
+            s="$3"
+            d=
+          elif [ -z "$3" -a "${s:0:1}" != "_" -a "${s:0: -1}" != "_" ]; then
+            t=1
+            d=
+          elif [ "$s" == "_Linux${dev}_" ]; then
+            t=1
+            s="$3"
+            d=
+            b=1
+          elif [ "$s" == "_${XU_DISTO}${dev}_" ]; then
+            t=1
+            s="$3"
+            d=-d
+            b=1
+          elif [ "$s" == "_${XU_FH}${dev}_" ]; then
+            t=1
+            s="$3"
+            d=-f
+            b=1
+          elif [ "$s" == "$3${dev}" ]; then
+            t=1
+            s="$3"
+            d=
+            b=1
+          fi
+        elif [ $t -gt 0 ]; then
+          IFS="=" read -r kk val <<<"$lne"
+          kk=$(echo $kk|tr -d "\"' ")
+          if [ -n "$kk" ]; then
+            val=$(echo $val|tr -d "\"'")
+            while [ "${val: -1}" == "\\" ]; do
+              IFS=~ read -r x
+              x=$(echo $x)
+              val="${val:0:-1}$x"
+            done
+            $store_param "$kk" "$val" "$2" "$d" "$b" "$s"
+            if [ "$kk" == "CONFN" ]; then
+              CONFN="$val"
+            fi
+          fi
+        fi
+      fi
+    done < "$1"
+}
+
+link_cfg_def() {
+  local file_bckdel file_backup file_meta file_vcs file_bins
+  local file_media file_bindata
+  [[ -n "$HOSTNAME_DEV" ]] && set_cfg_def "DEV_HOST" "$HOSTNAME_DEV" || set_cfg_def "DEV_HOST" "(pc[0-9]+)?shsde([a-z][0-9]+)?"
+  [[ -n "$HOSTNAME_PRD" ]] && set_cfg_def "PRD_HOST" "$HOSTNAME_PRD" || set_cfg_def "PRD_HOST" "(shsp([a-z][0-9]+)?"
+  CFG_set "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
+  CFG_set "ODOO_SETUPS" "__manifest__.py __openerp__.py __odoo__.py __terp__.py"
+  file_bckdel=".bak *~ .tmp .log .out .tracehis .tracehistory ,cover .coverage test*.pdf tmp.* npm-debug.log.* .oca .z0i .oia .gitrepname"
+  file_backup=".orig .swp .tar .gz .zip __old_*"
+  file_meta=".DS_Store ._* .Spotlight-V100 .Trashes Thumbs.db Desktop.ini .cover/ .coverage/ .conf build/ dist/ conf/ filestore/ html/ .idea/ latex/ __pycache__/ .local/ .npm/ .gem/ Trash/ VME/ PycharmProjects pycharm*"
+  file_vcs="_MTN .bzr/ .svn/ .hg/ .fslckout _FOSSIL_ .fos CVS _darcs .git/ .osc"
+  file_bins=".pyc .a .obj .o .so .la .lib .dll .exe"
+  file_media=".jpg .gif .png .bmp .wav .mp3 .ogg .flac .avi .mpg .xcf .xpm"
+  file_bindata=".xls .xlsx .pickle"
+  CFG_set "filedel" "$file_bckdel"
+  CFG_set "file_backup" "$file_backup"
+  CFG_set "file_meta" "$file_meta"
+  CFG_set "file_vcs" "$file_vcs"
+  CFG_set "file_bins" "$file_bins"
+  CFG_set "file_media" "$file_media"
+  CFG_set "file_bindata" "$file_bindata"
+  CFG_set "fileignore" "$file_backup $file_meta $file_vcs $file_bins $file_media $file_bindata"
+  CFG_set "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
+  CFG_set "PS_TXT_COLOR" "0;97;40"
+  CFG_set "PS_RUN_COLOR" "1;37;44"
+  CFG_set "PS_NOP_COLOR" "34;107"
+  CFG_set "PS_HDR1_COLOR" "97;42"
+  CFG_set "PS_HDR2_COLOR" "30;43"
+  CFG_set "PS_HDR3_COLOR" "30;45"
+  CFG_set "PKGS_LIST" "clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
+  CFG_set "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
+  CFG_set "DEV_SVG" "$HOME/devel/svg"
+  CFG_set "HTML_DOCS_DIR" "/var/www/html/mw/html"
+  CFG_set "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
+  CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
+  CFG_set "distpath" "\${HOME}/tools/\${pkgname}"
+}
+
+link_cfg() {
+# link_cfg(file_cfg [file_def] [tid] [section] [-D|1])  -D means debug
+    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+#    if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
+#      local tid=$3
+#    else
+#      local tid="0"
+#    fi
+    local tid=""
+    if [[ -n "$2" ]]; then
+      if [[ -f $2.sample ]]; then
+        CFG_set "CONFND" "$2.sample" "$tid"
+        _read_cfg_file "$2.sample" "$tid" "$4" "$5"
+      fi
+      if [[ -f $2 ]]; then
+        CFG_set "CONFND" "$2" "$tid"
+        _read_cfg_file "$2" "$tid" "$4" "$5"
+      fi
+    fi
+    if [[ -n "$1" ]]; then
+      CFG_set "CONFN" "$1" "$tid"
+      CONFN="$1"
+      if [[ -f $1.sample ]]; then
+        CFG_set "CONFND" "$1.sample" "$tid"
+        _read_cfg_file "$1.sample" "$tid" "$4" "$5"
+      fi
+      if [[ -f "$CONFN" ]]; then
+        _read_cfg_file "$CONFN" "$tid" "$4" "$5"
+      fi
+    fi
+    $SET_X
+}
+export -f link_cfg
+
+
+##############################################################################
+# Parse and manage URI(s) and/or filename
+# Parse an URI o filename, default values and return part of URL
+# Based on Adam Ryczkowski's solution. BASH_REMATCH contains:
+#  0: full value
+#  1: prot:
+#  2: prot
+#  3: //domain
+#  4: //
+#  5: domain (userinfo+host)
+#  6: userinfo@
+#  7: userinfo
+#  8: host
+#  9: : (port introducer)
+# 10: port
+# 11: /fullpath
+# 12: fullpath
+# 13: ? (query introducer)
+# 14: query
+# 15: # (fragment introducer)
+# 16: fragment
+# 17: dirname (no from regex)
+# 18: basename (no from regex)
+# 19: name (no from regex)
+# 20: ext (no from regex)
+#
+# Parameter $1:
+#    URI or filename to parse
+# Parameter $2:
+#    URI or filename with default values
+# Parameter $3:
+#    List of one or more ±KEYWORDS to select or ignore part of URL
+#    +ALL      parse all items; must be followed by -KEYWORDS to exclude part of URI
+#    ±PROT     include/esclude protocol; i.e. protocol of "http://u@example.com:8080/a/b.c" is "http:"
+#    ±DOMAIN   include/esclude domain; i.e. domain of "http://u@example.com:8080/a/b.c" is "u@example.com"
+#    ±USER     include/esclude user; i.e. user of "http://u@example.com:8080/a/b.c" is "u"
+#    ±HOST     include/esclude host; i.e. host of "http://u@example.com:8080/a/b.c" is "example.com"
+#    ±FULLNAME include/esclude fullname; i.e. fullname of "http://u@example.com:8080/a/b.c" is "/a/b"
+#    ±DIRNAME  include/esclude dirname; i.e. dirname of "http://u@example.com:8080/a/b.c" is "/a"
+#    ±BASENAME include/esclude basename; i.e. basename of "http://u@example.com:8080/a/b.c" is "b.c"
+#    ±NAMEID   include/esclude simple nameid; i.e. nameid of "http://u@example.com:8080/a/b.c" is "b"
+#    ±EXT      include/esclude extension name; i.e. extension of "http://u@example.com:8080/a/b.c" is ".c"
+#    ±PORT     include/esclude port; i.e. port of "http://u@example.com:8080/a/b.c" is "8080"
+#    if DOMAIN selected, USER and HOST are ignored
+#    if FULLNAME is selected, DIRNAME and BASENAME, NAMEID and EXT are ignored
+#    if BASENAME is selected, NAMEID and EXT are ignored
+#    +ABS      convert relative FULLNAME to absolute fullname
+#    +LOCAL    when URI may be hostname or local filesystem return local filesystem
+#
+parse_URI() {
+#parse_URI(URI default ALL|±USER|±PROT|±DOMAIN|±HOST|±FULLNAME|±DIRNAME|±BASENAME|±NAMEID|±EXT|±PORT)
+    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+    local URI_REGEX='^(([^:/?#]+):)?((//)?((([^:/?#]+)@)?([^:/?#]+)))(:([0-9]+))?(/([^?#]*))?(\?([^#]*))?(#(.*))?'
+    local IS_URL1='^(([^:/?#]+):)'
+    local IS_URL2='^//'
+    local IS_MAIL='(([^:/?#]+)@([^:/?#]+))'
+    declare -a D V
+    if [[ $3 =~ \+LOCAL ]]; then
+      if [[ $1 =~ $IS_URL1 || $1 =~ $IS_URL2 ]]; then
+        [[ $1 =~ $URI_REGEX ]]; V=("${BASH_REMATCH[@]}")
+      else
+        V[11]=$1
+        [[ "${1:0:1}" == "/" ]] && V[12]=${1:1} || V[12]=$1
+      fi
+      if [[ $2 =~ $IS_URL1 || $2 =~ $IS_URL2 ]]; then
+        [[ $2 =~ $URI_REGEX ]]; D=("${BASH_REMATCH[@]}")
+      else
+        D[11]=$2
+        [[ "${2:0:1}" == "/" ]] && D[12]=${2:1} || D[12]=$2
+      fi
+    else
+      [[ $1 =~ $URI_REGEX ]]; V=("${BASH_REMATCH[@]}")
+      [[ $2 =~ $URI_REGEX ]]; D=("${BASH_REMATCH[@]}")
+    fi
+    if [ -n "${V[11]}" ]; then
+      if [[ $3 =~ \+ABS ]]; then
+        V[11]=$(readlink -f ${V[11]})
+        V[12]=${V[11]:1}
+      fi
+      V[17]=$(dirname ${V[11]}) || V[17]=
+      [[ "${V[17]}" == "." ]] && V[17]=
+      V[18]=$(basename ${V[11]}) || V[18]=
+      if [ -n "${V[18]}" ]; then
+        V[19]="${V[18]%%.*}"
+        V[20]="${V[18]#*.}"
+        [ "${V[19]}" == "${V[20]}" ] && V[20]=
+        [ -n "${V[20]}"  ] && V[20]=".${V[20]}"
+      fi
+    fi
+    if [ -n "${D[11]}" ]; then
+      if [[ $3 =~ \+ABS ]]; then
+        D[11]=$(readlink -f ${D[11]})
+        D[12]=${D[11]:1}
+      fi
+      D[17]=$(dirname ${D[11]}) || D[17]=
+      [[ "${D[17]}" == "." ]] && D[17]=
+      D[18]=$(basename ${D[11]}) || D[18]=
+      if [ -n "${D[18]}" ]; then
+        D[19]="${D[18]%%.*}"
+        D[20]="${D[18]#*.}"
+        [ "${D[19]}" == "${D[20]}" ] && D[20]=
+        [ -n "${D[20]}"  ] && D[20]=".${D[20]}"
+      fi
+    fi
+    if [[ $3 =~ \+DEBUG ]]; then
+      echo "<<<$1||$2>>>"
+      echo "value        \"${V[0]}\" \"${D[0]}\" \"${BASH_REMATCH[0]}\""
+      echo "prot:        \"${V[1]}\" \"${D[1]}\" \"${BASH_REMATCH[1]}\""
+      echo "prot         \"${V[2]}\" \"${D[2]}\" \"${BASH_REMATCH[2]}\""
+      echo "//domain     \"${V[3]}\" \"${D[3]}\" \"${BASH_REMATCH[3]}\""
+      echo "//           \"${V[4]}\" \"${D[4]}\" \"${BASH_REMATCH[4]}\""
+      echo "domain       \"${V[5]}\" \"${D[5]}\" \"${BASH_REMATCH[5]}\""
+      echo "userinfo@    \"${V[6]}\" \"${D[6]}\" \"${BASH_REMATCH[6]}\""
+      echo "userinfo     \"${V[7]}\" \"${D[7]}\" \"${BASH_REMATCH[7]}\""
+      echo "host         \"${V[8]}\" \"${D[8]}\" \"${BASH_REMATCH[8]}\""
+      echo ":            \"${V[9]}\" \"${D[9]}\" \"${BASH_REMATCH[9]}\""
+      echo "port         \"${V[10]}\" \"${D[10]}\" \"${BASH_REMATCH[10]}\""
+      echo "path         \"${V[11]}\" \"${D[11]}\" \"${BASH_REMATCH[11]}\""
+      echo "rpath        \"${V[12]}\" \"${D[12]}\" \"${BASH_REMATCH[12]}\""
+      echo "?            \"${V[13]}\" \"${D[13]}\" \"${BASH_REMATCH[13]}\""
+      echo "query        \"${V[14]}\" \"${D[14]}\" \"${BASH_REMATCH[14]}\""
+      echo "#            \"${V[15]}\" \"${D[15]}\" \"${BASH_REMATCH[15]}\""
+      echo "fragment     \"${V[16]}\" \"${D[16]}\" \"${BASH_REMATCH[16]}\""
+      echo "dirname      \"${V[17]}\" \"${D[17]}\" \"${BASH_REMATCH[17]}\""
+      echo "basename     \"${V[18]}\" \"${D[18]}\" \"${BASH_REMATCH[18]}\""
+      echo "nameid       \"${V[19]}\" \"${D[19]}\" \"${BASH_REMATCH[19]}\""
+      echo "ext          \"${V[20]}\" \"${D[20]}\" \"${BASH_REMATCH[20]}\""
+    fi
+    URL=
+    if [[ ! $3 =~ -PROT && $3 =~ (\+ALL|\+PROT) ]]; then
+      if [[ -n "${V[1]}" ]]; then URL="$URL${V[1]}"; else URL="$URL${D[1]}"; fi
+    fi
+    if [[ ! $3 =~ -DOMAIN ]] && [[ $3 =~ \+DOMAIN ]];then
+      if [[ -n "$URL" ]]; then
+        if [[ -n "${V[5]}" ]]; then URL="$URL${V[4]}${V[5]}"; else URL="$URL${D[4]}${D[5]}"; fi
+      else
+        if [[ -n "${V[5]}" ]]; then URL="$URL${V[5]}"; else URL="$URL${D[5]}"; fi
+      fi
+    else
+      if [[ ! $3 =~ -USER ]] && [[ $3 =~ (\+ALL|\+USER) ]];then
+        if [[ ! $3 =~ -HOST ]] && [[ $3 =~ (\+ALL|\+HOST) ]];then
+          if [[ -n "$URL" ]]; then
+            if [[ -n "${V[6]}" ]]; then URL="$URL${V[4]}${V[6]}"; else URL="$URL${D[4]}${D[6]}"; fi
+          else
+            if [[ -n "${V[6]}" ]]; then URL="$URL${V[6]}"; else URL="$URL${D[6]}"; fi
+          fi
+          if [[ -n "${V[8]}" ]]; then URL="$URL${V[8]}"; else URL="$URL${D[8]}"; fi
+        else
+          if [[ -n "$URL" ]]; then
+            if [[ -n "${V[7]}" ]]; then URL="$URL${V[4]}${V[7]}"; else URL="$URL${V[4]}${D[7]}"; fi
+          else
+            if [[ -n "${V[7]}" ]]; then URL="$URL${V[7]}"; else URL="$URL${D[7]}"; fi
+          fi
+        fi
+      elif [[ ! $3 =~ -HOST ]] && [[ $3 =~ \+HOST ]];then
+        if [[ -n "$URL" ]]; then
+          if [[ -n "${V[8]}" ]]; then URL="$URL${V[4]}${V[8]}"; else URL="$URL${D[4]}${D[8]}"; fi
+        else
+          if [[ -n "${V[8]}" ]]; then URL="$URL${V[8]}"; else URL="$URL${D[8]}"; fi
+        fi
+      fi
+    fi
+    if [[ ! $3 =~ -PORT && $3 =~ (\+ALL|\+PORT) ]]; then
+      if [[ -n "$URL" ]]; then
+        if [[ -n "${V[9]}" ]]; then URL="$URL${V[9]}"; else URL="$URL${D[9]}"; fi
+      else
+        if [[ -n "${V[10]}" ]]; then URL="$URL${V[10]}"; else URL="$URL${D[10]}"; fi
+      fi
+    fi
+    if [[ ! $3 =~ -FULLNAME && $3 =~ \+FULLNAME ]]; then
+      if [[ -n "${V[17]}" ]]; then URL="$URL${V[17]}"; else URL="$URL${D[17]}"; fi
+      [[ -n "$URL" && "${URL: -1}" != "/" ]] && URL="$URL/"
+      if [[ -n "${V[19]}" ]]; then URL="$URL${V[19]}"; else URL="$URL${D[19]}"; fi
+      if [[ -n "${V[20]}" ]]; then URL="$URL${V[20]}"; else URL="$URL${D[20]}"; fi
+    else
+      if [[ ! $3 =~ -DIRNAME && $3 =~ (\+ALL|\+DIRNAME) ]]; then
+        if [[ -n "${V[17]}" ]]; then URL="$URL${V[17]}"; else URL="$URL${D[17]}"; fi
+      fi
+      if [[ ! $3 =~ -BASENAME && $3 =~ \+BASENAME ]]; then
+        [[ -n "$URL" && "${URL: -1}" != "/" ]] && URL="$URL/"
+        if [[ -n "${V[19]}" ]]; then URL="$URL${V[19]}"; else URL="$URL${D[19]}"; fi
+        if [[ -n "${V[20]}" ]]; then URL="$URL${V[20]}"; else URL="$URL${D[20]}"; fi
+      else
+        if [[ ! $3 =~ -NAME && $3 =~ (\+ALL|\+NAME) ]]; then
+          [[ -n "$URL" && "${URL: -1}" != "/" ]] && URL="$URL/"
+          if [[ -n "${V[19]}" ]]; then URL="$URL${V[19]}"; else URL="$URL${D[19]}"; fi
+        fi
+        if ! [[ $3 =~ -EXT ]] &&  [[ $3 =~ (\+ALL|\+EXT) ]]; then
+          if [[ -n "${V[20]}" ]]; then URL="$URL${V[20]}"; else URL="$URL${D[20]}"; fi
+        fi
+      fi
+    fi
+    echo "$URL"
+}
+export -f parse_URI
+
+
+expand_path() {
+  # expand_path (path tkn repl)
+  local p P x=$1
+  for p in pkgpath pkgname prjpath prjname reposname; do
+    P=${p^^}
+    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
+  done
+  for p in version TRAVIS_BUILD_DIR ODOO_REPO odoo_vid HOME PATH; do
+    P=$p
+    [ $p == "version" ] && P="BRANCH"
+    [ $p == "odoo_vid" ] && P="opt_branch"
+    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
+  done
+  [[ -n "$2" ]] && x=${x/$2/$3}
+  echo $x
+}
+
+
+is_ocb_dir() {
+    local x
+    [[ -z $1 ]] && return 1
+    for x in $1/odoo-bin $1/odoo/odoo-bin $1/openerp-server $1/odoo/openerp-server $1/server/openerp-server; do
+        [[ -x $x ]] && return 0
+    done
+    return 1
+}
+
+is_repos() {
+    local x
+    [[ -z $1 ]] && return 1
+    [[ (-f $1/.travis.yml || -f $1/.gitlab-ci.yml) && (-d $1/.git || -f $1/requirements.txt || -f $1/oca_dependencies.txt || -f $1/README.rst || -f $1/README.md) ]] && return 0
+    return 1
+}
+
+is_module() {
+    local x
+    [[ -z $1 ]] && return 1
+    for ODOO_SETUP in $ODOO_SETUPS; do
+      [[ -f $1/$ODOO_SETUP && -f $1/__init__.py ]] && return 0
+    done
+    return 1
+}
+
+get_value_from_setup() {
+  # get_value_from_setup(file value)
+  local n r s x=$(basename $1)
+  if [[ $x == "setup.py" ]]; then
+    if [[ $2 == "name" ]]; then
+      pushd $(dirname "$1") &>/dev/null || return
+      r=$(python $1 --name)
+      popd &>/dev/null || return
+    elif [[ $2 == "version" ]]; then
+      pushd $(dirname "$1") &>/dev/null || return
+      r=$(python $1 --version)
+      popd &>/dev/null || return
+    else
+      r=$(grep -E "^ *[\"']*$2[\"']* *=" $1 2>/dev/null | awk -F"=" '{print $2}' | tr -d "\"'\r\n")
+      [[ ${r: -1} == "," ]] && r="${r:0:-1}"
+    fi
+  fi
+  echo "$r"
+}
+
+get_pypi_param() {
+  # build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
+  if [[ $1 == "ALL" ]]; then
+    REMOTEREPO=""
+    PRJNAME=""
+    PRJPATH=""
+    PKGNAME=""
+    PKGPATH=""
+    REPOSNAME=""
+    [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
+  fi
+  local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
+  local r w x="$PWD"
+  local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
+  ODOO_SETUPS=${ODOO_SETUPS//,/ }
+  x=$PWD
+  r=
+  for ODOO_SETUP in $ODOO_SETUPS; do
+    r="$r -o -name $ODOO_SETUP"
+  done
+  w=$(find $x -maxdepth 2 -not -path '*tests*' ${r:3} | head -n1)
+  if [[ -n "$w" ]]; then
+    _PRJNAME="Odoo"
+    _PKGNAME=$(basename $x)
+    _PKGPATH=$x
+    _REPOS=$(basename $(dirname $x))
+    _SETUP=$w
+  fi
+  INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|__to_remove|__unported__)"
+  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $HOME && $x != "/" ]]; do
+    r=$(basename $x)
+    if $(is_module "$x"); then
+      _PRJNAME="Odoo"
+      _PKGNAME=$(basename $x)
+      _REPOS=$(basename $(dirname $x))
+      break
+    elif $(is_ocb_dir "$x"); then
+      _PRJNAME="Odoo"
+      _PKGNAME="OCB"
+      _REPOS="OCB"
+      break
+    elif $(is_repos "$x"); then
+      [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
+      _REPOS=$(basename $x)
+      _PKGNAME=$_REPOS
+      break
+    elif [[ (-f $x/.travis.yml || -f $x/.gitlab-ci.yml) && (-d $x/.git || -f $x/requirements.txt || -f $x/oca_dependencies.txt || -f $x/README.rst || -f $x/README.md) ]]; then
+      _PRJPATH=$x
+      [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
+      _REPOS=$(basename $x)
+      if [[ -z "$_SETUP" && -f "$x/setup.py" ]]; then
+        _SETUP="$x/setup.py"
+        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
+        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
+      fi
+      break
+    elif [[ ! $r =~ $INV_MODS ]]; then
+      [[ -z "$_PRJPATH" ]] && _PRJPATH=$x
+      [[ -z "$_PRJNAME" ]] && _PRJNAME=$(basename $x)
+      if [[ -z "$_SETUP" && -f "$x/setup.py" && (! -f "$x/../setup.py" || $(basename $(dirname $x)) != $(basename $x)) ]]; then
+        _SETUP="$x/setup.py"
+        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
+        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
+        if [[ $_PRJNAME != "Odoo" ]]; then
+          [[ $x != $HOME && $x != "/" ]] && _REPOS=$(basename $(dirname $x)) || _REPOS=
+        fi
+        break
+      elif [[ -z "$_REPOS" ]]; then
+        _REPOS=$(basename $x)
+      fi
+    fi
+    [[ $x != $HOME && $x != "/" ]] && x=$(readlink -e $x/..) || x=
+  done
+  if [[ -z "$_PRJNAME" && -n "$_SETUP" && -f "$_SETUP" ]]; then
+    r=$(get_value_from_setup "$_SETUP" "name")
+    [[ -n "$r" ]] && _PRJNAME="$r"
+  fi
+  [[ $_PRJNAME =~ ^(odoo|openerp)$ ]] && _PRJNAME="Odoo"
+  if [[ $_PRJNAME == "Odoo" ]]; then
+    if [[ "$(type -t build_odoo_param)" == "function" ]]; then
+      # _PKGNAME=$(build_odoo_param PKGNAME $PWD)
+      # _PKGPATH=$(build_odoo_param PKGPATH $PWD)
+      _PRJPATH=$(build_odoo_param HOME $PWD)
+      _REPOS=$(build_odoo_param REPOS $PWD)
+    else
+      [[ -z "$_PKGNAME" ]] && _PKGNAME="OCB"
+      [[ -z "$_PKGNAME" ]] && _REPOS="OCB"
+      [[ -z "$_PKGPATH" ]] && _PKGPATH="$_PRJPATH"
+    fi
+  fi
+  if [[ $1 == "ALL" ]]; then
+    SETUP=$_SETUP
+    [[ -n "$SETUP" ]] && MANIFEST=$(basename $SETUP) || MANIFEST=
+    PKGPATH=$_PKGPATH
+    PKGNAME=$_PKGNAME
+    PRJPATH=$_PRJPATH
+    PRJNAME=$_PRJNAME
+    REPOSNAME=$_REPOS
+    [[ -n "$REPOSNAME" ]] && LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
+    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
+    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "distpath")
+    [[ -n "$LGITPATH" ]] && export LGITPATH=$(expand_path "$LGITPATH")
+    [[ $DEV_ENVIRONMENT == $THIS ]] && test_mode=1
+    [[ ${test_mode:-0} -gt 0 ]] && opt_dry_run=1
+    export PS_TXT_COLOR=$(get_cfg_value "" "PS_TXT_COLOR")
+    export PS_RUN_COLOR=$(get_cfg_value "" "PS_RUN_COLOR")
+    export PS_NOP_COLOR=$(get_cfg_value "" "PS_NOP_COLOR")
+    export PS_HDR1_COLOR=$(get_cfg_value "" "PS_HDR1_COLOR")
+    export PS_HDR2_COLOR=$(get_cfg_value "" "PS_HDR2_COLOR")
+    export PS_HDR3_COLOR=$(get_cfg_value "" "PS_HDR3_COLOR")
+  else
+    [[ $1 == "VERSION" ]] && _VERSION=$(get_value_from_file "$_SETUP" "version")
+    x="_$1"
+    echo "${!x}"
+  fi
+}
+export -f get_pypi_param
+
+set_pybin() {
+    # set_pybin(pyver)
+    local opt_pyver=$1
+    PYTHON=""
+    PIP=""
+    PIPVER=""
+    if [[ -n "$opt_pyver" ]]; then
+      PYTHON=$(which python$opt_pyver 2>/dev/null)
+      [[ -z "$PYTHON" && $opt_pyver =~ ^3 ]] && PYTHON=python3
+      [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
+      PYTHON=$(which $PYTHON 2>/dev/null)
+      [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
+      opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+      PIP=$(which pip$opt_pyver 2>/dev/null)
+      [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+    else
+      PYTHON=$(which python 2>/dev/null)
+      opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+      PIP=$(which pip 2>/dev/null)
+      [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+    fi
+}
+export -f set_pybin
+
+inherit_opts() {
+    local x opts="$1"
+    if [[ -n $TRAVIS_DEBUG_MODE ]]; then
+      ((x=TRAVIS_DEBUG_MODE-1))
+      [[ $x -ge 0 ]] && opts="${opts}$(printf %-${x}.${x}s 'vvv')"
+    else
+      [[ ${opt_verbose:-0} -gt 0 ]] && opts="${opts}v"
+      [[ ${opt_verbose:-0} -eq 0 ]] && opts="${opts}q"
+    fi
+    [[ ${opt_dry_run:-0} -gt 0 ]] && opts="${opts}n"
+    [[ -n "$opts" && ! $opts =~ \- ]] && opts="-$opts"
+    echo "$opts"
+}
+export -f inherit_opts
+
+
+do_chkconfig() {
+  echo "Project name   = \"$PRJNAME\""
+  echo "Tools path     = \"$TOOLS_PATH\""
+  echo "Branch         = \"$BRANCH\""
+  echo "Package name   = \"$PKGNAME\" in \"$REPOSNAME\""
+  echo "Version        = \"$VERSION\""
+  echo "Setup file     = \"$SETUP\""
+  echo "Project path   = \"$PRJPATH\""
+  echo "Package path   = \"$PKGPATH\""
+  echo "Local git path = \"$LGITPATH\""
+  echo "Config file    = \"$TCONF\""
+}
+export -f do_chkconfig
+
+
+clean_dirs() {
+  # clean_dirs (directory)::
+  # return:
+  run_traced "find . -name '*.bak' -delete"
+  run_traced "find . -name '*~' -delete"
+#  local b cmd d excl f gx="" o p w XXXX x yy
+#  [[ -n "$1" ]] && d=$(readlink -e $1) || d="./"
+#  [[ $d == $HOME || $d == "/" ]] && echo "Too many file to delete!" && exit 1
+#  XXXX=$(get_cfg_value "" "filedel")
+#  [[ $PWD == "$HOME/tools" ]] && XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
+#  yy=$(get_cfg_value "" "fileignore")
+#  excl=""
+#  for x in $yy; do [[ ${x: -1} == "/" ]] && excl="$excl ${x:0: -1}"; done
+#  excl=${excl:1}
+#  [[ $opt_verbose -gt 1 ]] && echo "fileignore(conf)='$excl'"
+#  [[ -f ".gitmodules" ]] && \
+#    gx=$(cat .gitmodules | grep "^[[:space:]]*path" | sed -e "s/ =/=/g" -e "s/= /=/g" -e "s/^[[:space:]]*//g" | awk -F= '{print $2}'|tr "\n" "|")
+#  gx="(${gx}lib|git|__to_remove|tmp|node_modules|.cache)"
+#  [[ $opt_verbose -gt 1 ]] && echo "gitignore='$gx'"
+#  cmd="find $d"
+#  run_traced "$cmd -name '*~' -delete"
+#  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp) ]] && w=1 || w=0
+#  for f in $d/*; do
+#    b=$(basename $f)
+#    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openerp) ]] && echo "Warning! Directory $f should be in .gitmodules"
+#    [[ -d $f && (-z "$gx" || (-n "$gx" && $b =~ $gx)) ]] && cmd="$cmd -not -path '$f/*'"
+#  done
+#  for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
+#  o="-nowarn \("
+#  for x in $XXXX; do
+#    [[ ! $x =~ (.conf|\*|/)$ ]] && cmd="$cmd $o -name '*$x'" && o="-o"
+#    [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
+#  done
+#  run_traced "$cmd \) -exec rm -f '{}' \;"
+}
+export -f clean_dirs
