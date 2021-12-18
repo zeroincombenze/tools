@@ -13,11 +13,15 @@ from __future__ import print_function
 
 import sys
 import os
-from getaddons import (get_modules, get_dependents,
-                       get_dependencies, get_modules_info)
-# from six import string_types
+if sys.version_info[0] == 2:
+    from getaddons import (get_modules, get_dependents,
+                           get_dependencies, get_modules_info)
+    from test_server import get_test_dependencies
+else:
+    from .getaddons import (get_modules, get_dependents,
+                            get_dependencies, get_modules_info)
+    from .test_server import get_test_dependencies
 
-from test_server import get_test_dependencies
 
 __version__ = '1.0.7.3'
 

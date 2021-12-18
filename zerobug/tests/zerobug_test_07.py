@@ -1,4 +1,4 @@
-#!/home/odoo/VENV_1466025/devel/venv/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -94,6 +94,16 @@ class RegressionTest():
             '%s/test_repo' % ocb_name,
             repodir,
             os.path.join(self.root, ocb_name, 'test_repo'))
+
+        moduledir = ''
+        if not z0ctx['dry_run']:
+            moduledir = z0testodoo.create_module(
+                z0ctx, repodir, 'test_module', ver)
+        sts += self.Z.test_result(
+            z0ctx,
+            '%s/test_repo/test_module' % ocb_name,
+            moduledir,
+            os.path.join(self.root, ocb_name, 'test_repo', 'test_module'))
         return sts
 
     def do_remove_tree(self, z0ctx, ver, name=None, hy=None):
@@ -195,7 +205,6 @@ class RegressionTest():
         if not z0ctx['dry_run']:
             name = os.path.join(
                 os.path.expanduser('~/'), 'oca%s' % branch.split('.')[0])
-            # repodir = z0testodoo.create_repo(
             z0testodoo.create_repo(
                 z0ctx, os.path.expanduser('~/'), reponame, branch, name=name)
             odoo_path = os.path.join(
@@ -231,5 +240,4 @@ if __name__ == "__main__":
             sys.argv[1:],
             version=version()),
         RegressionTest))
-
 

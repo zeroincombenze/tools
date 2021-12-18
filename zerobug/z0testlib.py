@@ -1613,6 +1613,8 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
         name = name or version
         repotype = repotype or 'oca'
         odoo_root = os.path.join(root, name)
+        if not os.path.isdir(odoo_root):
+            odoo_root = root
         repodir = os.path.join(odoo_root, reponame)
         if not os.path.isdir(repodir):
             os.mkdir(repodir)
@@ -1625,6 +1627,38 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
             if not os.path.isfile(path):
                 open(path, 'w').close()
         return repodir
+
+    def create_module(self, ctx, repo_root, name, version, moduletype=None):
+        MODULETYPES = {
+            'simple': {
+                'd': [],
+                'f': ['__init__.py'],
+            },
+        }
+        moduletype = moduletype or 'simple'
+        moduledir = os.path.join(repo_root, name)
+        if not os.path.isdir(moduledir):
+            os.mkdir(moduledir)
+        majver = int(version.split('.')[0])
+        if majver < 10:
+            ffn = os.path.join(moduledir, '__openerp__.py')
+        else:
+            ffn = os.path.join(moduledir, '__manifest__.py')
+        with open(ffn, 'w') as fd:
+            fd.write(str({
+                'name': name,
+                'version': version,
+                'summary': 'This module is a fake, just for test!',
+            }))
+        for ldir in MODULETYPES.get(moduletype, {}).get('d', []):
+            path = os.path.join(moduledir, ldir)
+            if not os.path.isdir(path):
+                os.mkdir(path)
+        for fn in MODULETYPES.get(moduletype, {}).get('f', []):
+            path = os.path.join(moduledir, fn)
+            if not os.path.isfile(path):
+                open(path, 'w').close()
+        return moduledir
 
     def real_git_clone(self, remote, reponame, branch, odoo_path):
         odoo_url = 'https://github.com/%s/%s.git' % (remote, reponame)

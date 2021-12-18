@@ -39,7 +39,7 @@ class RegressionTest():
         TEST = {'customer': 'True',
                 'name': 'Prima Alpha S.p.A.',
                 'street': 'Via I Maggio, 101',
-                'zip': '20022', 
+                'zip': '20022',
                 'city': 'Castano Primo',
                 'email': 'info@prima-alpha.it',
                 'website': 'http://www.prima-alpha.it',

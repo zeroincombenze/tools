@@ -1441,6 +1441,13 @@ is_module() {
     return 1
 }
 
+is_pypi() {
+    local x
+    [[ -z $1 ]] && return 1
+    [[ -f $1/__main__.py && -f $1/__init__.py && -d $1/scripts && -d $1/egg-info ]] && return 0
+    return 1
+}
+
 get_value_from_setup() {
   # get_value_from_setup(file value)
   local n r s x=$(basename $1)
@@ -1464,13 +1471,12 @@ get_value_from_setup() {
 get_pypi_param() {
   # build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
   if [[ $1 == "ALL" ]]; then
-    REMOTEREPO=""
+    REMOTEREPO="local"
     PRJNAME=""
     PRJPATH=""
     PKGNAME=""
     PKGPATH=""
     REPOSNAME=""
-    [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
   fi
   local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
   local r w x="$PWD"
@@ -1492,7 +1498,12 @@ get_pypi_param() {
   INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|__to_remove|__unported__)"
   while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $HOME && $x != "/" ]]; do
     r=$(basename $x)
-    if $(is_module "$x"); then
+    if $(is_pypi "$x"); then
+      _PRJNAME=$(basename $x)
+      _PKGNAME=$(basename $x)
+      _PRJPATH=$x
+      _REPOS="tools"
+    elif $(is_module "$x"); then
       _PRJNAME="Odoo"
       _PKGNAME=$(basename $x)
       _REPOS=$(basename $(dirname $x))
@@ -1516,6 +1527,9 @@ get_pypi_param() {
         [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
         [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
       fi
+      break
+    elif [[ $_REPOS = "tools" ]]; then
+      [[ -z "$_PKGPATH" && -n "$_PRJPATH" ]] && _PKGPATH=$_PRJPATH
       break
     elif [[ ! $r =~ $INV_MODS ]]; then
       [[ -z "$_PRJPATH" ]] && _PRJPATH=$x

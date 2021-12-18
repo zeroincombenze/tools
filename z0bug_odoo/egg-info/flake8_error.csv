@@ -33,7 +33,7 @@ E301,|no_check|,|no_check|,,,|check|,`Expected 1 blank line <https://lintlyci.gi
 E302,|no_check|,|no_check|,,,|check|,No __init__.py
 E303,|no_check|,|no_check|,,,|check|,
 E305,|no_check|,|no_check|,,,|check|,
-W391,|no_check|,|check|,,,|check|,blank line at end of file
+W391,|no_check|,|no_check|,,,|check|,blank line at end of file
 F401,|no_check|,|check|,,,|no_check|,module imported but unused
 E501,|no_check|,|no_check|,,,|check|,
 E502,|no_check|,|no_check|,,,|check|,`the backslash is redundant between brackets <https://lintlyci.github.io/Flake8Rules/rules/E502.html>`_
@@ -44,4 +44,3 @@ E701,|no_check|,|no_check|,,,|check|,multiple statements on one line (colon)
 E722,|no_check|,|no_check|,,,|check|,do not use bare except
 F811,|no_check|,|no_check|,,,|no_check|,redefinition of unused name from line N (No __init__.py)
 F841,|no_check|,|no_check|,,,|no_check|,`local variable 'context' is assigned to but never used <https://lintlyci.github.io/Flake8Rules/rules/F841.html>`_
-

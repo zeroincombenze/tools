@@ -1,5 +1,0 @@
-php (by yum)(php -v)
---php-mysql (by yum)
---php-common (by yum)
---php-xml (by yum)
---php-cli (by yum)

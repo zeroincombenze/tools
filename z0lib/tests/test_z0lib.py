@@ -1,4 +1,4 @@
-#!/home/odoo/devel/venv/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -131,20 +131,9 @@ class RegressionTest():
                                   ctx['opt_verbose'])
         return sts
 
-
-#
 # Run main if executed as a script
 # if __name__ == "__main__":
 #     Z = Z0test
 #     ctx = Z.parseoptest(sys.argv[1:],
 #                         version=version())
 #     exit(Z.main(ctx, RegressionTest))
-
-
-
-
-
-
-
-
-
