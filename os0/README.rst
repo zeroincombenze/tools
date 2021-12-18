@@ -183,6 +183,8 @@ Last Update / Ultimo aggiornamento: 2021-12-03
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
 :target: https://t.me/Assitenza_clienti_powERP
 Last Update / Ultimo aggiornamento: 2021-12-04
+Last Update / Ultimo aggiornamento: 2021-12-05
+Last Update / Ultimo aggiornamento: 2021-12-17
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -216,7 +218,7 @@ Last Update / Ultimo aggiornamento: 2021-12-04
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-04
+Last Update / Ultimo aggiornamento: 2021-12-18
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
