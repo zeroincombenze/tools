@@ -38,7 +38,7 @@ def test_file_po(args):
                     catalog = pofile.read_po(fd)
                 except BaseException as e:
                     print('*** File %s is unreadable\n%s' % (po_fn, e))
-                    dummy = input('Press RET to continue ...')
+                    input('Press RET to continue ...')
                     continue
                 for message in catalog:
                     if not message.id or not message.string:
@@ -49,7 +49,7 @@ def test_file_po(args):
                         print('Wrong translation of "%s"->"%s"' % (
                             message.id, message.string
                         ))
-                        dummy = input('Press RET to continue ...')
+                        input('Press RET to continue ...')
     return 0
 
 

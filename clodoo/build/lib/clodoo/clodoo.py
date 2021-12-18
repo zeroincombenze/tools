@@ -224,7 +224,7 @@ except:
 from subprocess import PIPE, Popen
 standard_library.install_aliases()                                 # noqa: E402
 
-__version__ = "0.3.53.4"
+__version__ = "0.3.54.1"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -479,6 +479,11 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                     ctx[p] = int(xmlrpc_port)
                 else:
                     ctx[p] = xmlrpc_port
+            # elif p == 'db_port' and xmlrpc_port:
+            #     if isinstance(xmlrpc_port, basestring):
+            #         ctx[p] = int(xmlrpc_port)
+            #     else:
+            #         ctx[p] = xmlrpc_port
             elif p == 'oe_version' and oe_version and oe_version != '*':
                 ctx[p] = oe_version
                 if not ctx.get('odoo_vid'):

@@ -1,9 +1,10 @@
 future
-jsonlib
-openpyxl<=3.0
+jsonlib-python3
+openpyxl
 odoorpc
 oerplib
+os0
 psycopg2-binary
 python-plus
-unidecode==1.2.0
+unidecode
 z0lib

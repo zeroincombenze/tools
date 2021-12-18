@@ -13,4 +13,3 @@ Lint level,|check|,"With zerobug, see -L switch"
 Build selection,|check|,See -O switch
 System packages,|check| |no_check|,See -S switch
 Use specific python version,|check|,See -y switch
-

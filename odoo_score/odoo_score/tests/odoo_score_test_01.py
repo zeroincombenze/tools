@@ -39,6 +39,3 @@ if __name__ == "__main__":
             sys.argv[1:],
             version=version()),
         RegressionTest))
-
-
-

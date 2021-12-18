@@ -7,4 +7,3 @@ company_id,name,update_posted
 =${company_id},"Sezionale delle voci di apertura",True
 =${company_id},"Sezionale Vendite",True
 =${company_id},"Sezionale Note di Credito",True
-

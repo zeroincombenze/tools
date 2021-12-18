@@ -28,6 +28,7 @@ from io import StringIO
 import time
 import csv
 from os0 import os0
+from python_plus import _c, _u
 try:
     from z0lib import z0lib
 except ImportError:
@@ -80,8 +81,8 @@ def format_line(col_size, row, sep=None, flist=None):
 def convert_text(src_string):
     max_col_width = int(ctx['max_col_width'])
     csv.register_dialect('odoo',
-                         delimiter=b',',
-                         quotechar=b'\"',
+                         delimiter=_c(','),
+                         quotechar=_c('\"'),
                          quoting=csv.QUOTE_MINIMAL)
     ctr = 0
     col_size = {}
@@ -137,8 +138,8 @@ def convert_file(ctx):
     if os.path.isfile(ctx['src_file']):
         if ctx['opt_verbose']:
             print("Reading %s" % ctx['src_file'])
-        with open(ctx['src_file'], 'rb') as fd:
-            src_string = fd.read()
+        with open(ctx['src_file'], 'r') as fd:
+            src_string = _u(fd.read())
             target = convert_text(src_string)
         if not ctx['dst_file']:
             ctx['dst_file'] = ctx['src_file'][0: -4] + '.rst'
@@ -148,7 +149,7 @@ def convert_file(ctx):
             if ctx['opt_verbose']:
                 print("Writing %s" % ctx['dst_file'])
             with open(ctx['dst_file'], 'w') as fd:
-                fd.write(os0.b(target))
+                fd.write(_c(target))
 
 
 if __name__ == "__main__":
