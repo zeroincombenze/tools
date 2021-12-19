@@ -1193,7 +1193,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
     if full_fn.endswith('.csv'):
         full_fn_csv = full_fn
         full_fn = '%s.rst' % full_fn_csv[: -4]
-        os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
+        os.system('cvt_csv_2_rst -b %s -q %s %s' % (
             ctx['branch'], full_fn_csv, full_fn))
     with open(full_fn, 'rU') as fd:
         source = fd.read().decode('utf-8')

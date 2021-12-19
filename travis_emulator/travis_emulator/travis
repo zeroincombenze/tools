@@ -110,7 +110,7 @@ process_yaml_init() {
   [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
   python_ver_req=""
   python_ver_ena=""
-  [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep PYPI_RUN_PYVER|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
+  [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep "^PYPI_RUN_PYVER"|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
     [[ -d $HOME/devel ]] && \
       export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa

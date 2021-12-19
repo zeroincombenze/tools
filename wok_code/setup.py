@@ -57,7 +57,7 @@ The available tools are:
               # 'please = wok_code.scripts.please:main',
               # 'gen_readme.py = wok_code.scripts.gen_readme:main',
               # 'cvt_script = wok_code.scripts.cvt_script:main',
-              # 'cvt_csv_2_rst = wok_code.scripts.cvt_csv_2_rst:main',
+              'cvt_csv_2_rst = wok_code.scripts.cvt_csv_2_rst:main',
               # 'cvt_csv_2_xml = wok_code.scripts.cvt_csv_2_xml:main',
               # 'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',
           ],

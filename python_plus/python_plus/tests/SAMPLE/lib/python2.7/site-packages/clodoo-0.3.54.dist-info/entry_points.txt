@@ -1,3 +1,0 @@
-[console_scripts]
-clodoo-info = clodoo.scripts.main:main
-

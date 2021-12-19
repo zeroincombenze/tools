@@ -1,5 +1,0 @@
-z0lib
-future
-lxml
-pyyaml
-babel

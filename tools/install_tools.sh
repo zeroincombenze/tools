@@ -82,7 +82,7 @@ RFLIST__zerobug=""
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="activate_devel_env odoo_default_tnl.xlsx templates license_text readlink"
 RFLIST__python_plus=""
-RFLIST__wok_code="cvt_csv_2_rst.py cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py gen_readme.py license_mgnt.py makepo_it.py odoo_dependencies.py odoo_translation.py to_pep8.py vfcp vfdiff wget_odoo_repositories.py"
+RFLIST__wok_code="cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py gen_readme.py license_mgnt.py makepo_it.py odoo_dependencies.py odoo_translation.py to_pep8.py vfcp vfdiff wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""
@@ -328,7 +328,7 @@ fi
 
 # Final test to validate environment
 [[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
-for pkg in clodoo/odoorc cvt_csv_2_rst.py cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please to_pep8.py transodoo.py wget_odoo_repositories.py; do
+for pkg in clodoo/odoorc cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please to_pep8.py transodoo.py wget_odoo_repositories.py; do
   echo -n "."
   [[ ! -f $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
 done

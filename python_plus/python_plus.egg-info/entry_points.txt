@@ -1,3 +1,0 @@
-[console_scripts]
-python-plus-info = python_plus.scripts.main:main
-
