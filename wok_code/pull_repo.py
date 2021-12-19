@@ -41,16 +41,6 @@ DATA = {
         'git_org': 'git@github.com:zeroincombenze',
         'conf': 'odoo8-server.conf',
     },
-    'zero8': {
-        'dirname': '~/8.0',
-        'git_org': 'git@github.com:zeroincombenze',
-        'conf': 'odoo8-server.conf',
-    },
-    'zero8': {
-        'dirname': '~/8.0',
-        'git_org': 'git@github.com:zeroincombenze',
-        'conf': 'odoo8-server.conf',
-    },
     'zero9': {
         'dirname': '~/9.0',
         'git_org': 'git@github.com:zeroincombenze',

@@ -28,6 +28,7 @@ from io import StringIO
 import time
 import csv
 from os0 import os0
+from python_plus import _c, _u
 try:
     from z0lib import z0lib
 except ImportError:
@@ -77,11 +78,11 @@ def format_line(col_size, row, sep=None, flist=None):
     return line
 
 
-def convert_text(src_string):
+def convert_text(ctx, src_string):
     max_col_width = int(ctx['max_col_width'])
     csv.register_dialect('odoo',
-                         delimiter=b',',
-                         quotechar=b'\"',
+                         delimiter=_c(','),
+                         quotechar=_c('\"'),
                          quoting=csv.QUOTE_MINIMAL)
     ctr = 0
     col_size = {}
@@ -137,9 +138,9 @@ def convert_file(ctx):
     if os.path.isfile(ctx['src_file']):
         if ctx['opt_verbose']:
             print("Reading %s" % ctx['src_file'])
-        with open(ctx['src_file'], 'rb') as fd:
-            src_string = fd.read()
-            target = convert_text(src_string)
+        with open(ctx['src_file'], 'r') as fd:
+            src_string = _u(fd.read())
+            target = convert_text(ctx, src_string)
         if not ctx['dst_file']:
             ctx['dst_file'] = ctx['src_file'][0: -4] + '.rst'
         if ctx['dst_file'] == '/dev/tty':
@@ -148,12 +149,14 @@ def convert_file(ctx):
             if ctx['opt_verbose']:
                 print("Writing %s" % ctx['dst_file'])
             with open(ctx['dst_file'], 'w') as fd:
-                fd.write(os0.b(target))
+                fd.write(_c(target))
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Convert csv file into xml file",
-                                "© 2018-2020 by SHS-AV s.r.l.",
+                                "© 2018-2021 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
@@ -171,5 +174,4 @@ if __name__ == "__main__":
     parser.add_argument('dst_file',
                         nargs='?')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
-    sts = convert_file(ctx)
-    sys.exit(sts)
+    return convert_file(ctx)
