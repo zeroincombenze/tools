@@ -16,4 +16,3 @@ msgstr ""
 "X-Generator: Poedit 3.0\n"
 "Last-Translator: \n"
 "Language: it_IT\n"
-
