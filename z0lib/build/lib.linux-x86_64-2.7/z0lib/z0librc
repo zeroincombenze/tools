@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.4
+#__version__=1.0.4.1
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -267,7 +267,7 @@ parseoptargs() {
             fi
             a=${a:0:1}
             if [[ $a =~ ^[0123456789] ]]; then
-              export ${OPTDEST[jy]}=$a
+              export ${OPTDEST[jy]}="$a"
             elif [[ $a =~ ^\* ]]; then
                 export ${OPTDEST[jy]}="-${oo:jj:1}"
             elif [[ $a =~ ^\+ ]]; then
@@ -307,7 +307,7 @@ parseoptargs() {
               fi
               a=${a:0:1}
               if [[ $a =~ ^[0123456789] ]]; then
-                export ${OPTDEST[jy]}=$a
+                export ${OPTDEST[jy]}="$a"
               elif [[ $a =~ ^\* ]]; then
                 export ${OPTDEST[jy]}="-${oo:jj:1}"
               elif [[ $a =~ ^\+ ]]; then
@@ -430,8 +430,7 @@ export -f print_help
 # Parameter $3:
 #    "echo" means wlog echoes message onto console when write log
 set_tlog_file() {
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
-    # READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p=$(dirname "$1")
     local f=$(basename "$1")
     if [ "$p" == "~" ]; then p=$HOME; fi
@@ -443,12 +442,12 @@ set_tlog_file() {
         p=$HOME
       fi
     fi
-    export FLOG=$(readlink -f $p/$f)
+    export FLOG="$(readlink -f $p/$f)"
     if [ "$2" == "new" ]; then
       if [ -f "$FLOG" ]; then rm -f "$FLOG"; fi
     fi
-    export FLOG_ECHO=${3:-#}
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+    export FLOG_ECHO="${3:-#}"
+    $SET_X
 }
 
 
@@ -528,7 +527,7 @@ elog_debug() {
 # Parameter $3:
 #    1 = do login, if execute as user
 run_traced() {
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
     local xcmd="$1" lm="                    "
     local sts=$STS_SUCCESS verbose=${opt_verbose:-0}
@@ -577,7 +576,7 @@ run_traced() {
     fi
     echo -en "\e[0m"
     ((Z0_STACK=Z0_STACK-2))
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+    $SET_X
     return $sts
 }
 
@@ -603,7 +602,7 @@ export -f run_traced
 # Parameter $6:
 #    Level 5 subdirectory list (space separated) where file could be found (maybe be empty)
 findpkg() {
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local p2 p3 p4 p5 p6
     local r2 r3 r4 r5 r6
@@ -660,7 +659,7 @@ findpkg() {
       [[ -n "$result" ]] && break
     done
     echo "$result"
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+    $SET_X
 }
 export -f findpkg
 
@@ -730,7 +729,7 @@ export -f a_active
 # Parameter $6:
 #    Section (reserved ti future use)
 CFG_set() {
-    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local key tid SFX
     [[ $3 =~ [0123] ]] && tid=$3 || tid="0"
     if [[ -n "$1" ]]; then
@@ -744,7 +743,7 @@ CFG_set() {
         SFX=
       fi
       key=${1//-/_}
-      [[ $5 =~ (-D|-d|1) ]] && SFX="${SFX}__DEV"
+      [[ $5 =~ (-D|1) ]] && SFX="${SFX}__DEV"
       if [[ "$tid" == "0" ]]; then
         if [ "${key:0:1}" == "^" ]; then
           DEFRULE0[$key$SFX]="$2"
@@ -776,10 +775,10 @@ CFG_set() {
 export -f CFG_set
 
 # Deprecated: use CFG_set
-a_add() {
-    echo "Deprecated function a_add: use CFG_set"
-    exit 17
-}
+#a_add() {
+#    echo "Deprecated function a_add: use CFG_set"
+#    exit 17
+#}
 
 ##############################################################################
 # Find value in associative array
@@ -798,7 +797,7 @@ a_add() {
 #    dictionary value to stdout
 #    status
 CFG_find() {
-    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p=""
     local sts=1
     local x SFX key KK
@@ -933,9 +932,9 @@ CFG_find() {
 export -f CFG_find
 
 # Deprecated: use CFG_find
-a_find() {
-    CFG_find "$@"
-}
+#a_find() {
+#    CFG_find "$@"
+#}
 
 ##############################################################################
 # get value from config file
@@ -1169,12 +1168,7 @@ link_cfg_def() {
 
 link_cfg() {
 # link_cfg(file_cfg [file_def] [tid] [section] [-D|1])  -D means debug
-    # if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
-#    if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
-#      local tid=$3
-#    else
-#      local tid="0"
-#    fi
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local tid=""
     if [[ -n "$2" ]]; then
       if [[ -f $2.sample ]]; then
@@ -1437,8 +1431,15 @@ is_module() {
     local x
     [[ -z $1 ]] && return 1
     for ODOO_SETUP in $ODOO_SETUPS; do
-      [[ -f $1/$ODOO_SETUP && -f $1/__init__.py ]] && return 0
+        [[ -f $1/$ODOO_SETUP && -f $1/__init__.py ]] && return 0
     done
+    return 1
+}
+
+is_pypi() {
+    local x
+    [[ -z $1 ]] && return 1
+    [[ -f $1/__main__.py && -f $1/__init__.py && -d $1/scripts && -d $1/egg-info ]] && return 0
     return 1
 }
 
@@ -1463,20 +1464,20 @@ get_value_from_setup() {
 }
 
 get_pypi_param() {
-  # build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
+  # get_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
   if [[ $1 == "ALL" ]]; then
-    REMOTEREPO=""
+    REMOTEREPO="local"
     PRJNAME=""
     PRJPATH=""
     PKGNAME=""
     PKGPATH=""
     REPOSNAME=""
-    [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
   fi
   local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
   local r w x="$PWD"
   local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
   ODOO_SETUPS=${ODOO_SETUPS//,/ }
+  [[ -z $ODOO_SETUPS ]] && ODOO_SETUPS="__manifest__.py"
   x=$PWD
   r=
   for ODOO_SETUP in $ODOO_SETUPS; do
@@ -1493,7 +1494,12 @@ get_pypi_param() {
   INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|__to_remove|__unported__)"
   while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $HOME && $x != "/" ]]; do
     r=$(basename $x)
-    if $(is_module "$x"); then
+    if $(is_pypi "$x"); then
+      _PRJNAME=$(basename $x)
+      _PKGNAME=$(basename $x)
+      _PRJPATH=$x
+      _REPOS="tools"
+    elif $(is_module "$x"); then
       _PRJNAME="Odoo"
       _PKGNAME=$(basename $x)
       _REPOS=$(basename $(dirname $x))
@@ -1517,6 +1523,14 @@ get_pypi_param() {
         [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
         [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
       fi
+      break
+    elif [[ $_REPOS = "tools" ]]; then
+      if [[ -z "$_SETUP" && -f "$x/setup.py" ]]; then
+        _SETUP="$x/setup.py"
+        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
+        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
+      fi
+      [[ -z "$_PKGPATH" && -n "$_PRJPATH" ]] && _PKGPATH=$_PRJPATH
       break
     elif [[ ! $r =~ $INV_MODS ]]; then
       [[ -z "$_PRJPATH" ]] && _PRJPATH=$x
@@ -1563,15 +1577,16 @@ get_pypi_param() {
     [[ -n "$REPOSNAME" ]] && LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
     [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
     [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "distpath")
-    [[ -n "$LGITPATH" ]] && export LGITPATH=$(expand_path "$LGITPATH")
+    [[ -n "$LGITPATH" ]] && export LGITPATH="$(expand_path \"$LGITPATH\")"
     [[ $DEV_ENVIRONMENT == $THIS ]] && test_mode=1
     [[ ${test_mode:-0} -gt 0 ]] && opt_dry_run=1
-    export PS_TXT_COLOR=$(get_cfg_value "" "PS_TXT_COLOR")
-    export PS_RUN_COLOR=$(get_cfg_value "" "PS_RUN_COLOR")
-    export PS_NOP_COLOR=$(get_cfg_value "" "PS_NOP_COLOR")
-    export PS_HDR1_COLOR=$(get_cfg_value "" "PS_HDR1_COLOR")
-    export PS_HDR2_COLOR=$(get_cfg_value "" "PS_HDR2_COLOR")
-    export PS_HDR3_COLOR=$(get_cfg_value "" "PS_HDR3_COLOR")
+    PS_TXT_COLOR=$(get_cfg_value "" "PS_TXT_COLOR")
+    PS_RUN_COLOR=$(get_cfg_value "" "PS_RUN_COLOR")
+    PS_NOP_COLOR=$(get_cfg_value "" "PS_NOP_COLOR")
+    PS_HDR1_COLOR=$(get_cfg_value "" "PS_HDR1_COLOR")
+    PS_HDR2_COLOR=$(get_cfg_value "" "PS_HDR2_COLOR")
+    PS_HDR3_COLOR=$(get_cfg_value "" "PS_HDR3_COLOR")
+    export PS_TXT_COLOR PS_RUN_COLOR PS_NOP_COLOR PS_HDR1_COLOR PS_HDR2_COLOR PS_HDR3_COLOR
   else
     [[ $1 == "VERSION" ]] && _VERSION=$(get_value_from_file "$_SETUP" "version")
     x="_$1"
