@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.4
+__version__=1.0.5
 
 
 run_traced() {
@@ -281,7 +281,7 @@ check_4_needing_pkgs() {
   for p in $NEEDING_PKGS; do
     x=${p^^}
     eval $x=$(pip show $p 2>/dev/null | grep "Version" | grep -Eo "[0-9.]+")
-    [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "Inner package $p=${!x}"
+    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "Inner package $p=${!x}"
   done
 }
 
@@ -296,15 +296,16 @@ check_installed_pkgs() {
 }
 
 cp_coveragerc() {
-  run_traced "cp ${HOME}/tools/z0bug_odoo/travis/cfg/.coveragerc ."
+  run_traced "cp ${HOME}/tools/zerobug/_travis/cfg/coveragerc ./.coveragerc"
   run_traced "sed -Ee \"s|^#? *..TRAVIS_BUILD_DIR./|    $TRAVIS_BUILD_DIR/|\" -i ./.coveragerc"
   run_traced "sed -e \"s|^ *\*.py\$|#&|\" -i ./.coveragerc"
 }
 
 OPTOPTS=(h        b          j        K        H           n            q           T       t          V           v)
 OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_humdrum opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
-OPTDEFL=('+'      0          0        0        0           0            -1          0        0         ""          -1)
-OPTMETA=("help"   "dprj"     "check"  ""       ""          "do nothing" "qiet"      "test"   "test"    "version"   "verbose")
+OPTACTI=('+'      1          1        1        1           1            0           1        1         "*>"        "+")
+OPTDEFL=(0        0          0        0        0           0            0           0        0         ""          -1)
+OPTMETA=("help"   "dprj"     "check"  ""       ""          "do nothing" "quiet"     "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"
   "Odoo version"
   "execute tests in project dir rather in test dir"
@@ -339,7 +340,7 @@ sts=$STS_SUCCESS
 [[ $MQT_VERBOSE_MODE == "1" ]] && opt_verbose=1
 [[ $MQT_VERBOSE_MODE == "0" ]] && opt_verbose=0
 #[[ $TRAVIS_DEBUG_MODE -ne 0 ]] && opt_verbose=1
-OPTS=$(inerhit_opts)
+OPTS=$(inherit_opts)
 if [[ ${opt_regr:-0} -gt 0 ]]; then
   LINT_CHECK="0"
   TESTS="1"
@@ -370,13 +371,8 @@ if [[ -d $HOME/devel ]]; then
   set_pythonpath "$HOME/tools" "$HOME/devel/sitecustomize.py" $PIP
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-elif [[ -d $HOME/dev ]]; then
-  set_pythonpath "$HOME/tools" "$HOME/dev/sitecustomize.py" $PIP
-  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-  echo "Do not use ~/dev directory: support will be removed early!"
 else
-  echo "!! Error! Directory $HOME/dev[el] not found!"
+  echo "!! Error! Directory $HOME/devel not found!"
 fi
 check_pythonpath "$HOME/tools" $PYTHON
 if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
@@ -416,7 +412,7 @@ fi
 if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$(which $PIP).$($PIP --version)\e[${PS_HDR3_COLOR}m"
-  echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
+  # echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias vem=$VEM.$($VEM -V)\e[${PS_HDR3_COLOR}m"
   # echo -e "\e[${PS_TXT_COLOR}m\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)\e[${PS_HDR3_COLOR}m"

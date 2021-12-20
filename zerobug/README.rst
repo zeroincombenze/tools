@@ -1,6 +1,6 @@
 
 =============
-zerobug 1.0.4
+zerobug 1.0.5
 =============
 
 
@@ -366,6 +366,11 @@ Current development version
 History
 -------
 
+1.0.4.4 (2021-12-13)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] zerobug: dependency pylint-odoo
+
 1.0.3.2 (2021-10-27)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -487,6 +492,17 @@ Last Update / Ultimo aggiornamento: 2021-10-25
 Last Update / Ultimo aggiornamento: 2021-10-27
 :target: https://t.me/Assitenza_clienti_powERP
 Last Update / Ultimo aggiornamento: 2021-11-01
+Last Update / Ultimo aggiornamento: 2021-11-11
+Last Update / Ultimo aggiornamento: 2021-12-04
+Last Update / Ultimo aggiornamento: 2021-12-05
+Last Update / Ultimo aggiornamento: 2021-12-09
+Last Update / Ultimo aggiornamento: 2021-12-10
+Last Update / Ultimo aggiornamento: 2021-12-11
+Last Update / Ultimo aggiornamento: 2021-12-13
+Last Update / Ultimo aggiornamento: 2021-12-14
+Last Update / Ultimo aggiornamento: 2021-12-16
+Last Update / Ultimo aggiornamento: 2021-12-17
+Last Update / Ultimo aggiornamento: 2021-12-18
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -520,7 +536,7 @@ Last Update / Ultimo aggiornamento: 2021-11-01
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-11-11
+Last Update / Ultimo aggiornamento: 2021-12-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

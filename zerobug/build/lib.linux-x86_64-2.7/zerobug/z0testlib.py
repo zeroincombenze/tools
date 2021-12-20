@@ -3,8 +3,6 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
-from past.builtins import basestring
-
 import os
 import os.path
 import sys
@@ -13,13 +11,12 @@ from string import Template
 from subprocess import Popen, PIPE
 import shutil
 import argparse
-import inspect
 import glob
 from os0 import os0
 import magic
 
 
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -538,7 +535,7 @@ class Z0test(object):
         else:
             self.autorun = True
         this_fqn = os.path.abspath(this_fqn or self._get_this_fqn())
-        this = os0.nakedname(os.path.basename(this_fqn))
+        this = os.path.splitext(os.path.basename(this_fqn))[0]
         this_dir = os.getcwd()
         if (not os.path.basename(this_dir) == 'tests' and 
                 not os.path.isdir('./tests')):
@@ -846,7 +843,7 @@ class Z0test(object):
                     else:
                         ctx[p] = None
                 elif p == 'no_run_on_top' and hasattr(opt_obj, p):
-                        ctx['run_on_top'] = not getattr(opt_obj, p)
+                    ctx['run_on_top'] = not getattr(opt_obj, p)
                 elif hasattr(opt_obj, p):
                     ctx[p] = getattr(opt_obj, p)
             for p in LX_OPT_CFG_B:
@@ -866,7 +863,7 @@ class Z0test(object):
         # this_fqn = False
         # while not valid and i < len(inspect.stack()):
         #     this_fqn = os.path.abspath(inspect.stack()[i][1])
-        #     this = os0.nakedname(os.path.basename(this_fqn))
+        #     this = os.path.splitext(os.path.basename(this_fqn))[0]
         #     if this[0] == '<' and this[-1] == '>':
         #         i += 1
         #     elif this in ("__init__", "pdb", "cmd", "z0testlib"):
@@ -889,7 +886,7 @@ class Z0test(object):
         ctx['testdir'] = self.testdir
         this_fqn = self._get_this_fqn()
         ctx['this_fqn'] = this_fqn
-        this = os0.nakedname(os.path.basename(this_fqn))
+        this = os.path.splitext(os.path.basename(this_fqn))[0]
         ctx['this'] = this
         if os.isatty(0):
             ctx['run_daemon'] = False
@@ -1099,7 +1096,7 @@ class Z0test(object):
                 self.doctest(ctx, testname)
             elif TestCls and hasattr(TestCls, testname):
                 getattr(T, testname)(ctx)
-            elif os0.nakedname(basetn) != ctx['this']:
+            elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(
                     mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
@@ -1180,7 +1177,7 @@ class Z0test(object):
                 if ctx.get('opt_debug', False):
                     self.dbgmsg(ctx, ">>> %s()" % testname)
                 sts = getattr(T, testname)(ctx)
-            elif os0.nakedname(basetn) != ctx['this']:
+            elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(
                     mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
@@ -1508,52 +1505,69 @@ class Z0testOdoo(object):
     def get_local_odoo_path(self, git_org, reponame, branch, home=None):
         outer_dir = home or self.get_outer_dir()
         majver = branch.split('.')[0]
-        # Local OCA dir is like '~/oca12'
-        src_repo_path = os.path.join(outer_dir,
-                                     '%s%s' % (git_org.lower(), majver))
-        if not os.path.isdir(src_repo_path):
-            src_repo_path = os.path.join(outer_dir,
-                                         '%s%s' % (git_org.lower(), branch))
-        if not os.path.isdir(src_repo_path):
-            src_repo_path = os.path.join(outer_dir,
-                                         '%s-%s' % (git_org, branch))
-        if not os.path.isdir(src_repo_path):
+        found_path = False
+        for reporg in (reponame, reponame.lower(), git_org, git_org.lower()):
+            if found_path:
+                break
+            for odoo_ver in (branch, majver):
+                if found_path:
+                    break
+                src_repo_path = os.path.join(
+                    outer_dir, '%s%s' % (reporg, odoo_ver))
+                if os.path.isdir(src_repo_path):
+                    found_path = True
+                    break
+                src_repo_path = os.path.join(
+                    outer_dir, '%s-%s' % (reporg, odoo_ver))
+                if os.path.isdir(src_repo_path):
+                    found_path = True
+                    break
+                if reponame == 'OCB':
+                    continue
+                for nm in ('', 'extra', 'private-addons', 'powerp'):
+                    if nm:
+                        src_repo_path = os.path.join(
+                            outer_dir, odoo_ver, nm, reporg)
+                    else:
+                        src_repo_path = os.path.join(outer_dir, odoo_ver, reporg)
+                    if os.path.isdir(src_repo_path):
+                        found_path = True
+                        break
+        if not found_path:
             # Local dir of current project is like '~/12.0'
             src_repo_path = os.path.join(outer_dir, branch)
-        if os.path.isdir(src_repo_path) and reponame != 'OCB':
-            for nm in ('', 'extra', 'private-addons', 'powerp'):
-                if nm:
-                    path = os.path.join(outer_dir, branch, nm, reponame)
-                else:
-                    path = os.path.join(outer_dir, branch, reponame)
-                if os.path.isdir(path):
-                    src_repo_path = path
-                    break
+            if not os.path.isdir(src_repo_path):
+                src_repo_path = False
         return src_repo_path
 
-    def build_odoo_env(self, ctx, version, hierarchy=None):
+    def build_odoo_env(self, ctx, version,
+                       hierarchy=None, name=None, retodoodir=None):
         """Build a simplified Odoo directory tree
-        version: 14.0, 13.0, ..., 7.0, 6.1
+        version: 15.0, 14.0, 13.0, ..., 7.0, 6.1
+        name: name of odoo dir (default equal to version)
         hierarchy: flat,tree,server (def=flat)
         """
-        if version in ('10.0', '11.0', '12.0', '13.0', '14.0'):
+        name = name or version
+        if version in ('10.0', '11.0', '12.0', '13.0', '14.0', '15.0'):
             if hierarchy == 'tree':
-                odoo_home = os.path.join(version, 'odoo', 'odoo')
+                odoo_home = os.path.join(name, 'odoo', 'odoo')
             else:
-                odoo_home = os.path.join(version, 'odoo')
+                odoo_home = os.path.join(name, 'odoo')
             script = 'odoo-bin'
         elif version in ('6.1', '7.0', '8.0', '9.0'):
             if hierarchy == 'server':
-                odoo_home = os.path.join(version, 'server', 'openerp')
+                odoo_home = os.path.join(name, 'server', 'openerp')
             else:
-                odoo_home = os.path.join(version, 'openerp')
+                odoo_home = os.path.join(name, 'openerp')
             script = 'openerp-server'
         else:
             raise KeyError('Invalid Odoo version')
-        os_tree = [version,
-                   os.path.join(version, 'addons'),
+        os_tree = [name,
+                   os.path.join(name, 'addons'),
                    odoo_home,
-                   os.path.join(odoo_home, 'addons')]
+                   os.path.join(odoo_home, 'addons'),
+                   os.path.join(name, '.git'),
+                   ]
         root = Z0test().build_os_tree(ctx, os_tree)
         RELEASE_PY = '''
 RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
@@ -1564,14 +1578,87 @@ RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
 version_info = (%s, %s, 0, 'final', 0, '')
 version = '.'.join(map(str, version_info[:2])) + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
 series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
-        with open(os.path.join(root, odoo_home, 'release.py'), 'w') as fd:
+        if name[0] not in ('~', '/') and not name.startswith('./'):
+            odoo_root = os.path.join(root, name)
+        else:
+            odoo_root = name
+        odoo_home = os.path.join(os.path.dirname(odoo_root), odoo_home)
+        with open(os.path.join(odoo_home, 'release.py'), 'w') as fd:
             versions = version.split('.')
             fd.write(RELEASE_PY % (versions[0], versions[1]))
-        with open(os.path.join(root, odoo_home, '__init__.py'), 'w') as fd:
+        with open(os.path.join(odoo_home, '__init__.py'), 'w') as fd:
             fd.write('import release\n')
-        with open(os.path.join(root, version, script), 'w') as fd:
+        with open(os.path.join(odoo_root, script), 'w') as fd:
             fd.write('\n')
+        with open(os.path.join(odoo_root, '.travis.yml'), 'w') as fd:
+            fd.write('\n')
+        with open(os.path.join(odoo_root, 'README.rst'), 'w') as fd:
+            fd.write('\n')
+        if retodoodir:
+            return odoo_root
         return root
+
+    def create_repo(self, ctx, root, reponame, version,
+                    hierarchy=None, name=None, repotype=None):
+        REPOTYPES = {
+            'oca': {
+                'd': ['.git',],
+                'f': ['README.md', '.travis.yml'],
+            },
+            'zero': {
+                'd': ['egg-info', '.git'],
+                'f': ['README.rst', '.travis.yml'],
+            },
+        }
+        name = name or version
+        repotype = repotype or 'oca'
+        odoo_root = os.path.join(root, name)
+        if not os.path.isdir(odoo_root):
+            odoo_root = root
+        repodir = os.path.join(odoo_root, reponame)
+        if not os.path.isdir(repodir):
+            os.mkdir(repodir)
+        for ldir in REPOTYPES.get(repotype, {}).get('d', []):
+            path = os.path.join(repodir, ldir)
+            if not os.path.isdir(path):
+                os.mkdir(path)
+        for fn in REPOTYPES.get(repotype, {}).get('f', []):
+            path = os.path.join(repodir, fn)
+            if not os.path.isfile(path):
+                open(path, 'w').close()
+        return repodir
+
+    def create_module(self, ctx, repo_root, name, version, moduletype=None):
+        MODULETYPES = {
+            'simple': {
+                'd': [],
+                'f': ['__init__.py'],
+            },
+        }
+        moduletype = moduletype or 'simple'
+        moduledir = os.path.join(repo_root, name)
+        if not os.path.isdir(moduledir):
+            os.mkdir(moduledir)
+        majver = int(version.split('.')[0])
+        if majver < 10:
+            ffn = os.path.join(moduledir, '__openerp__.py')
+        else:
+            ffn = os.path.join(moduledir, '__manifest__.py')
+        with open(ffn, 'w') as fd:
+            fd.write(str({
+                'name': name,
+                'version': version,
+                'summary': 'This module is a fake, just for test!',
+            }))
+        for ldir in MODULETYPES.get(moduletype, {}).get('d', []):
+            path = os.path.join(moduledir, ldir)
+            if not os.path.isdir(path):
+                os.mkdir(path)
+        for fn in MODULETYPES.get(moduletype, {}).get('f', []):
+            path = os.path.join(moduledir, fn)
+            if not os.path.isfile(path):
+                open(path, 'w').close()
+        return moduledir
 
     def real_git_clone(self, remote, reponame, branch, odoo_path):
         odoo_url = 'https://github.com/%s/%s.git' % (remote, reponame)

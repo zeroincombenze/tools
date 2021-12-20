@@ -1,0 +1,4 @@
+[console_scripts]
+zerobug = zerobug.zerobug:main
+zerobug-info = zerobug.scripts.main:main
+
