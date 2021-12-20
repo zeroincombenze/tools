@@ -1,11 +1,7 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
-# xuname: enhanced uname
-# Detect and print more OS informations than uname command
-# Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
-# This free software is released under GNU Affero GPL3
+# Regression tests on z0lib
 #
-
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 # Based on template 1.0.2.7
@@ -28,6 +24,18 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
+if [[ -z "$Z0TLIBDIR" ]]; then
+  echo "Library file z0testrc not found!"
+  exit 72
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
 DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
 TCONF="$HOME/.z0tools.conf"
@@ -40,42 +48,44 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
+
 __version__=1.0.5
 
 
-# Main program
-OPTOPTS=(h        a       c       d       f        i       k       m       p       r       s       v       V           x)
-OPTDEST=(opt_help opt_prm opt_prm opt_prm opt_prm  opt_prm opt_prm opt_prm opt_prm opt_prm opt_prm opt_prm opt_version opt_prm)
-OPTACTI=("+"      "*>"    "*>"    "*>"    "*>"     "*>"    "*>"    "*>"    "*>"    "*>"    "*>"    "*>"    "*>"        "*>")
-OPTDEFL=(1        ""      ""      ""      ""       ""      ""      ""      ""      ""      ""      ""      ""          "")
-OPTMETA=("help"   "all"   "code"  "dist"  "family" "arch"  "kver"  "mach"  "arch"  "ver"   "kname" "ver"   "version"   "xdes")
-OPTHELP=("this help"\
- "print all"\
- "print Linux distribution codename (empty on Unix)"\
- "print Linux distribution name (empty on Unix)"\
- "print Linux family (RHEL or Debian, empty on Unix)"\
- "print architecture"\
- "print Linux kernel release (on Unix same as -r)"\
- "print machine hardware name"\
- "print processor architecture"\
- "print kernel release"\
- "print kernel name"\
- "print distribution version (only on Linux)"\
- "show xuname version"\
- "print Linux distribution description (empty on Unix)")
-OPTARGS=(src tgt)
-parseoptargs "$@"
+test_01() {
+    local res
+    cd $TESTDIR
+    res=$($TESTDIR/simulate_cmd PKGNAME)
+    test_result "$TESTDIR/simulate_cmd PKGNAME" "$res" "z0lib"
+    res=$($TESTDIR/simulate_cmd PKGPATH)
+    # test_result "$TESTDIR/simulate_cmd PKGPATH" "$res" "$TRAVIS_BUILD_DIR/z0lib"
+    res=$($TESTDIR/simulate_cmd PRJNAME)
+    test_result "$TESTDIR/simulate_cmd PRJNAME" "$res" "z0lib"
+    res=$($TESTDIR/simulate_cmd PRJPATH)
+    # test_result "$TESTDIR/simulate_cmd PRJPATH" "$res" "$TRAVIS_BUILD_DIR/z0lib"
+}
 
-if [ "$opt_version" ]
-then
-  echo "$__version__"
-  exit 0
-fi
-if [ $opt_help -gt 0 ]
-then
-  print_help "Print system information"\
-  "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
-  exit 0
-fi
-xuname $opt_prm
-exit 0
+Z0BUG_setup() {
+    rm -f $TESTDIR/simulate_cmd
+    # echo "set -x" >>$TESTDIR/simulate_cmd
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      echo "$line" >>$TESTDIR/simulate_cmd
+      [[ $line =~ ^__version__= ]] && break
+    done <$0
+    echo "" >>$TESTDIR/simulate_cmd
+    echo "echo \${!1}" >>$TESTDIR/simulate_cmd
+    chmod +x $TESTDIR/simulate_cmd
+}
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_..log "$@"
+sts=$?
+[[ $sts -ne 127 ]] && exit $sts
+
+UT1_LIST=
+UT_LIST=
+[[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+[[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
+exit $sts

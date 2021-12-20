@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.4.1
+#__version__=1.0.5
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -775,10 +775,10 @@ CFG_set() {
 export -f CFG_set
 
 # Deprecated: use CFG_set
-a_add() {
-    echo "Deprecated function a_add: use CFG_set"
-    exit 17
-}
+#a_add() {
+#    echo "Deprecated function a_add: use CFG_set"
+#    exit 17
+#}
 
 ##############################################################################
 # Find value in associative array
@@ -932,9 +932,9 @@ CFG_find() {
 export -f CFG_find
 
 # Deprecated: use CFG_find
-a_find() {
-    CFG_find "$@"
-}
+#a_find() {
+#    CFG_find "$@"
+#}
 
 ##############################################################################
 # get value from config file
@@ -1169,11 +1169,6 @@ link_cfg_def() {
 link_cfg() {
 # link_cfg(file_cfg [file_def] [tid] [section] [-D|1])  -D means debug
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
-#    if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
-#      local tid=$3
-#    else
-#      local tid="0"
-#    fi
     local tid=""
     if [[ -n "$2" ]]; then
       if [[ -f $2.sample ]]; then
@@ -1436,7 +1431,7 @@ is_module() {
     local x
     [[ -z $1 ]] && return 1
     for ODOO_SETUP in $ODOO_SETUPS; do
-      [[ -f $1/$ODOO_SETUP && -f $1/__init__.py ]] && return 0
+        [[ -f $1/$ODOO_SETUP && -f $1/__init__.py ]] && return 0
     done
     return 1
 }
@@ -1469,7 +1464,7 @@ get_value_from_setup() {
 }
 
 get_pypi_param() {
-  # build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
+  # get_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
   if [[ $1 == "ALL" ]]; then
     REMOTEREPO="local"
     PRJNAME=""
@@ -1482,6 +1477,7 @@ get_pypi_param() {
   local r w x="$PWD"
   local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
   ODOO_SETUPS=${ODOO_SETUPS//,/ }
+  [[ -z $ODOO_SETUPS ]] && ODOO_SETUPS="__manifest__.py"
   x=$PWD
   r=
   for ODOO_SETUP in $ODOO_SETUPS; do
@@ -1529,6 +1525,11 @@ get_pypi_param() {
       fi
       break
     elif [[ $_REPOS = "tools" ]]; then
+      if [[ -z "$_SETUP" && -f "$x/setup.py" ]]; then
+        _SETUP="$x/setup.py"
+        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
+        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
+      fi
       [[ -z "$_PKGPATH" && -n "$_PRJPATH" ]] && _PKGPATH=$_PRJPATH
       break
     elif [[ ! $r =~ $INV_MODS ]]; then
