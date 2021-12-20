@@ -9,7 +9,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.2.7
+# Based on template 1.0.3.3
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -289,6 +289,7 @@ cvt_file() {
           elif [[ $line =~ ^opts_travis ]]; then
             prc=21
             blk_21 "$fntmp"
+            # susp=2
           elif [[ $line =~ ^TCONF=.* ]]; then
             :
           else
@@ -337,7 +338,9 @@ cvt_file() {
           :
         elif [ $prc -eq 21 ]; then
           if [[ $line =~ ^init_travis ]]; then
-            echo "$line" >>$fntmp
+            # echo "$line" >>$fntmp
+            prc=22
+          elif [[ $line =~ ^prepare_env_travis ]]; then
             prc=22
           elif [[ $line =~ ^#[^A-Za-z09_]End.Include.Block.* ]]; then
             echo "$line" >>$fntmp
@@ -591,10 +594,10 @@ EOF
 blk_21() {
   cat <<EOF >>$1
 opts_travis
-CFG_init
 conf_default
-link_cfg \$DIST_CONF \$TCONF
 [[ \$opt_verbose -gt 2 ]] && set -x
+init_travis
+# prepare_env_travis
 EOF
 }
 #//Enable.auto.upgrade.code/

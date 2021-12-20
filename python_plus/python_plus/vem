@@ -280,7 +280,7 @@ pip_install() {
         [[ -d $SAVED_HOME/devel/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/devel/pypi/$pfn/$pfn)
       fi
       if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
-        echo "Missed Odoo version to install (please use -o switch)!"
+        echo "Missed Odoo version to install (please use -O and -o switches)!"
         exit 1
       fi
       [[ $pkg =~ ^(odoo|openerp)$ && -n $opt_oepath ]] && srcdir=$(odoo_orm_path $opt_oepath)

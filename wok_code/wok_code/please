@@ -10,7 +10,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.2.7
+# Based on template 1.0.3.3
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -2042,7 +2042,7 @@ do_docs() {
   [[ $(grep "\.\. include:: MAINPAGE.rst" docs/index.rst) ]] && run_traced "gen_readme.py $opts -t mainpage -o $docs_dir/MAINPAGE.rst"
   run_traced "pushd $docs_dir >/dev/null"
   if [[ ! -f index.rst || ! -f conf.py ]]; then
-    SETUP=$(build_pypi_param SETUP)
+    # SETUP=$(build_pypi_param SETUP)
     version=$(get_value_from_file "$SETUP" "version")
     author=$(get_value_from_file "$SETUP" "author")
     run_traced "sphinx-quickstart -p '$PRJNAME' -a '$author' -v '$version' -r '$version' -l en --no-batchfile --makefile --master index --suffix .rst ./"
@@ -3012,9 +3012,7 @@ fi
 
 
 opts_travis
-CFG_init
 conf_default
-link_cfg $DIST_CONF $TCONF
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 prepare_env_travis "$actions" "-r"

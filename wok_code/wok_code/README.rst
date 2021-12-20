@@ -1,6 +1,6 @@
 
 ================
-wok_code 1.0.3.2
+wok_code 1.0.3.3
 ================
 
 
@@ -845,6 +845,11 @@ Current development version
 History
 -------
 
+1.0.3.3 (2021-12-1)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] cvt_csv_2_rst.py: python 3
+
 1.0.2.6 (2021-10-08)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -910,11 +915,6 @@ History
 
 * [IMP] please: changed the syntax of som actions
 * [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
-
-1.0.2d (2021-08-05)
-~~~~~~~~~~~~~~~~~~~
-
-* [REF] Merged and renamed to wok_code
 
 
 
@@ -1006,6 +1006,7 @@ Last Update / Ultimo aggiornamento: 2021-10-16
 Last Update / Ultimo aggiornamento: 2021-12-05
 :target: https://t.me/Assitenza_clienti_powERP
 Last Update / Ultimo aggiornamento: 2021-12-09
+Last Update / Ultimo aggiornamento: 2021-12-11
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1039,7 +1040,7 @@ Last Update / Ultimo aggiornamento: 2021-12-09
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-11
+Last Update / Ultimo aggiornamento: 2021-12-19
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

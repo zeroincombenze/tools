@@ -151,7 +151,7 @@ if [[ $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! 
     [[ ! -d $LOCAL_VENV/bin/man/man8 ]] && run_traced "mkdir -p $LOCAL_VENV/bin/man/man8"
 fi
 
-[[ $opts =~ ^-.*n ]] || find $DSTPATH -name "*.pyc" -delete
+[[ $opts =~ ^-.*n ]] || find $DSTPATH -not -path "*/.*/*" -name "*.pyc" -delete
 [[ ! $opts =~ ^-.*q ]] && echo "# Moving local PYPI packages into virtual environment"
 run_traced ". $LOCAL_VENV/bin/activate"
 
@@ -165,7 +165,7 @@ PLEASE_CMDS=""
 TRAVIS_CMDS=""
 PKGS_LIST="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
 # PYPI_LIST="babel lxml python-magic pyyaml"
-PYPI_LIST=""
+PYPI_LIST="pyyaml"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
 [[ $opts =~ ^-.*q ]] && popts="-q --disable-pip-version-check --no-python-version-warning" || popts="--disable-pip-version-check --no-python-version-warning"
@@ -340,7 +340,7 @@ for pkg in kbase templates; do
   echo -n "."
   [[ ! -d $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit
 done
-for pkg in $PYPI_LIST; do
+for pkg in babel lxml python-magic pyyaml python-plus z0lib z0bug-odoo zerobug; do
     echo -n "."
     pfn=$(echo "$pkg"|grep -Eo '[^!<=>\\[]*'|head -n1)
     x=$($VEM $LOCAL_VENV info $pkg 2>/dev/null|grep -E "^Location: .*")
