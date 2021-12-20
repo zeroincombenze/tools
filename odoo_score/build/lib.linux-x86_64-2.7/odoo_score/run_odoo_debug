@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.4
+__version__=1.0.5
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then
@@ -86,22 +86,23 @@ check_for_modules() {
 }
 
 
-OPTOPTS=(h        B       b          c        d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         s        T        t         U          u       V           v           w       W        x)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_db   opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
-OPTACTI=("+"      1       "=>"       "="      "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       1        1        1         "="        1       "*>"        "+"         1       1        "=")
-OPTDEFL=(1        0       ""         ""       ""       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0        0        0         ""         0       ""          -1          0       0        "")
-OPTMETA=("help"   ""      "branch"   "fname"  "dbname" ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
+OPTOPTS=(h        B       b          c        d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           s        T        t         U          u       V           v           w       W        x)
+OPTLONG=(help     debug   branch     conf     database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_db   opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
+OPTACTI=("+"      1       "=>"       "="      "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1         "="        1       "*>"        "+"         1       1        "=")
+OPTDEFL=(1        0       ""         ""       ""       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0         ""         0       ""          -1          0       0        "")
+OPTMETA=("help"   ""      "version"  "fname"  "name"   ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""          ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
 OPTHELP=("this help"
     "debug mode"
     "odoo branch (version id)"
     "configuration file"
     "db name to test,translate o upgrade (require -m switch)"
-    "export it translation (conflict with -i -u -I)"
+    "export translation (conflict with -i -u -I)"
     "force update or install modules or default parameters"
     "do not create new DB and keep it after run"
-    "import it translation (conflict with -e -u -I)"
+    "import translation (conflict with -e -u -I)"
     "install module (conflict with -e -i -u)"
-    "load it language"
+    "load language"
     "set log level: may be info or debug"
     "modules to test, translate or upgrade"
     "multi-version odoo environment"
@@ -110,6 +111,7 @@ OPTHELP=("this help"
     "use openupgrade, if avaiable"
     "odoo root path"
     "psql port"
+    "silent mode"
     "stop after init"
     "execute odoo test on module"
     "touch config file, do not run odoo"
@@ -129,7 +131,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Run odoo for debug mode" \
-        "(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2022 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
 [[ -n "$opt_branch" && -z "$odoo_vid" ]] && odoo_vid=$opt_branch

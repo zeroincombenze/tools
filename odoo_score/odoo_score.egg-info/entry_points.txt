@@ -1,0 +1,3 @@
+[console_scripts]
+odoo_score-info = odoo_score.scripts.main:main
+

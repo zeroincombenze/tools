@@ -11,7 +11,7 @@
 import sys
 from zerobug import z0test
 
-__version__ = '1.0.4.2'
+__version__ = '1.0.5'
 
 MODULE_ID = 'odoo_score'
 TEST_FAILED = 1

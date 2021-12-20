@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.4.2
+__version__=1.0.5
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca librerp VENV_123- devel"
@@ -78,7 +78,7 @@ test_01() {
             b=$(basename $TRES)
             [[ $x =~ ^VENV ]] && TRES="$HOME/$w/odoo/$b"
             [[ $x =~ ^VENV && $v == "6.1" ]] && TRES="$HOME/$w/odoo/server/openerp-server"
-            [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(run_odoo_debug -b $w -n 2>&1 | grep -vE "File .*no.*(exist|esistente)")
+            [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$($TRAVIS_BUILD_DIR/run_odoo_debug -b $w -n 2>&1 | grep -vE "File .*no.*(exist|esistente)")
             echo $RES | grep "$TRES.*--config" > /dev/null
             [ $? -eq 0 ] &&  s=0 || s=1
             test_result "$opt_multi>$TRES -b $w" "$s" "0"
@@ -94,7 +94,7 @@ test_01() {
             if [[ $v == "6.1" ]]; then
                 [[ $x =~ ^VENV ]] && TRES="$HOME/$w/odoo/server/openerp-server" || TRES="$HOME/$w/server/openerp-server"
             fi
-            [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(run_odoo_debug -b $w -n 2>&1 | grep -vE "File .*no.*(exist|esistente)")
+            [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$($TRAVIS_BUILD_DIR/run_odoo_debug -b $w -n 2>&1 | grep -vE "File .*no.*(exist|esistente)")
             echo $RES | grep "$TRES.*--config" > /dev/null
             [ $? -eq 0 ] &&  s=0 || s=1
             test_result "$opt_multi>$TRES -b $w" "$s" "0"

@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='odoo_score',
-      version='1.0.4',
+      version='1.0.4.2',
       description='Odoo super core',
       long_description="""
 Odoo supercore
@@ -31,6 +31,7 @@ odoo_score is a library that extends the odoo orm functionality and makes availa
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
+      install_requires=['z0lib', 'future'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={

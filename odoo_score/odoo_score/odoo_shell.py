@@ -28,7 +28,7 @@ import pdb      # pylint: disable=deprecated-module
 standard_library.install_aliases()                                 # noqa: E402
 
 
-__version__ = '1.0.4.2'
+__version__ = '1.0.5'
 
 
 MAX_DEEP = 20
