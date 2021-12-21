@@ -15,7 +15,7 @@ else:
     ]
 
 setup(name='clodoo',
-      version='0.3.54.1',
+      version='0.3.55',
       description='Do massive operations on Odoo Cloud',
       long_description="""
 Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.

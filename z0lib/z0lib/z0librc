@@ -1164,6 +1164,8 @@ link_cfg_def() {
   CFG_set "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
   CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
   CFG_set "distpath" "\${HOME}/tools/\${pkgname}"
+  [[ -z $DIST_CONF ]] && DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+  [[ -z $TCONF ]] && TCONF="$HOME/.z0tools.conf"
 }
 
 link_cfg() {

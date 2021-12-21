@@ -1,0 +1,4 @@
+[console_scripts]
+cvt_csv_2_rst = wok_code.scripts.cvt_csv_2_rst:main
+wok_code-info = wok_code.scripts.main:main
+

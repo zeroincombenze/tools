@@ -1,0 +1,37 @@
+Metadata-Version: 1.2
+Name: wok-code
+Version: 1.0.4
+Summary: Python developers tools
+Home-page: https://zeroincombenze-tools.readthedocs.io
+Author: Antonio Maria Vigliotti
+Author-email: antoniomaria.vigliotti@gmail.com
+License: Affero GPL
+Project-URL: Source, https://github.com/zeroincombenze/tools
+Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
+Description: 
+        Various tools at your fingertips.
+        
+        The available tools are:
+        
+        * cvt_csv_2_rst.py: convert csv file into rst file
+        * cvt_csv_2_xml.py: convert csv file into xml file
+        * cvt_script: parse bash script and convert to meet company standard
+        * gen_readme.py: generate documentation files, mainly README.rst
+        * odoo_dependency.py: show odoo depencies and/or Odoo module tree
+        * odoo_translation.py: manage Odoo translation
+        * pep8: parse source .py file to meet pep8 and convert across Odoo versions
+        * please: developer shell
+        * wget_odoo_repositories.py: get repository names from github.com
+        
+Keywords: linux travis development
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: Operating System :: OS Independent

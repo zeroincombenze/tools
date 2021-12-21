@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='travis_emulator',
-      version='1.0.2.1',
+      version='1.0.4',
       description='Travis CI emulator for local develop environment',
       long_description="""
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.
@@ -40,7 +40,7 @@ A travis build executes the following steps:
 Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
 """,
       classifiers=[
-          'Development Status :: 5 - Production/Stable',
+          'Development Status :: 4 - Beta',
           'License :: OSI Approved :: GNU Affero General Public License v3',
           'Operating System :: POSIX',
           'Programming Language :: Python :: 2.7',
@@ -52,7 +52,7 @@ Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job
           'Operating System :: OS Independent',
       ],
       keywords='linux travis development',
-      url='http://wiki.zeroincombenze.org/',
+      url='https://zeroincombenze-tools.readthedocs.io',
       project_urls={
           'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
           'Source': 'https://github.com/zeroincombenze/tools',
@@ -60,6 +60,7 @@ Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
+      install_requires=['z0lib', 'future'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={

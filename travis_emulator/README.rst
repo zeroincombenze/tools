@@ -1,7 +1,7 @@
 
-=======================
-travis_emulator 1.0.2.1
-=======================
+=====================
+travis_emulator 1.0.4
+=====================
 
 
 
@@ -30,22 +30,7 @@ If you want to see the log use one of following command:
 
 A travis build executes the following steps:
 
-* Initialize from local .travis.conf (not in travis-ci.org)
-* Optional install packages `apt addons` (emulatore makes just the check)
-* Optional install packages `cache`
-* Set global values `env global`
-* Execute code `before_install`
-* Execute matrix initialization, included python version
-* Execute build code `install`
-* Execute build code `before_script`
-* Execute build code `script`
-* Execute build `before_cache` (only if cache is effective, not emulated)
-* Execute build code `after_success` (emulated) or `after_failure` (not emulated)
-* Optional code `before_deploy` (only if deployment is effective, not emulated)
-* Optional code `deploy` (not emulated)
-* Optional code `after_deploy` (only if deployment is effective, not emulated)
-* Execute code `after_script` (not emulated)
-* Wep from local .travis.conf (not in travis-ci.org)
+$include travis_phases.csv
 
 Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
 
@@ -330,74 +315,72 @@ Troubleshooting
 History
 -------
 
+1.0.3.3 (2021-11-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis: match python version limited to 2 levels
+
+1.0.2.2 (2021-10-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis: crash if invalid Odoo project
+
 1.0.2.1 (2021-09-25)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: check for cached expired VME
+* [IMP] travis: check for cached expired VME
 
 1.0.2 (2021-08-27)
 ~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: stable version
+* [IMP] travis: stable version
 
 1.0.1.8 (2021-08-26)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: color change
-[IMP] travis: new action testdeps
-[FIX] travis: matrix selection
+* [IMP] travis: color change
+* [IMP] travis: new action testdeps
+* [FIX] travis: matrix selection
+* [IMP] travis: switch -y forces python version
 
 1.0.1.5 (2021-08-11)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: summary return 1 if test failed or is broken
-[IMP] travis: return status like summary
-[IMP] travis: summary & show-log can show old logfile i.e.: travis summary old
-[IMP] travis: osx emulatore return more info when error
+* [IMP] travis: summary return 1 if test failed or is broken
+* [IMP] travis: return status like summary
+* [IMP] travis: summary & show-log can show old logfile i.e.: travis summary old
+* [IMP] travis: osx emulatore return more info when error
 
 1.0.1.4 (2021-08-06)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] devel_tools replaced by wok_code
-[IMP] travis: summary return 1 if test failed
+* [IMP] devel_tools replaced by wok_code
+* [IMP] travis: summary return 1 if test failed
 
 1.0.1.3 (2021-08-03)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] Show virtual enviroment name in summary
+* [IMP] Show virtual enviroment name in summary
 
 1.0.1.2 (2021-05-31)
 ~~~~~~~~~~~~~~~~~~~~
 
-[FIX] readlink error
+* [FIX] readlink error
 
 1.0.1.1 (2021-05-24)
 ~~~~~~~~~~~~~~~~~~~~
 
-[IMP] Local travis full emulator
+* [IMP] Local travis full emulator
 
 1.0.0.14 (2021-04-07)
 ~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] Change message level showing
+* [IMP] Change message level showing
 
 1.0.0.13 (2021-04-06)
 ~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] travis: show stack execution
-
-1.0.0.12 (2021-03-31)
-~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] travis: no crash it tools not found
-[IMP] travis: manage nvm
-[REF] travis: new colors output
-[IMP] vem: osx/darwin compatible
-
-1.0.0.11 (2021-03-19)
-~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] travisrc: set_executable
+* [IMP] travis: show stack execution
 
 
 
@@ -478,6 +461,20 @@ Last Update / Ultimo aggiornamento: 2021-08-31
 Last Update / Ultimo aggiornamento: 2021-09-25
 Last Update / Ultimo aggiornamento: 2021-09-26
 Last Update / Ultimo aggiornamento: 2021-09-27
+Last Update / Ultimo aggiornamento: 2021-09-29
+Last Update / Ultimo aggiornamento: 2021-10-06
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
+Last Update / Ultimo aggiornamento: 2021-10-08
+Last Update / Ultimo aggiornamento: 2021-10-09
+Last Update / Ultimo aggiornamento: 2021-10-12
+Last Update / Ultimo aggiornamento: 2021-11-18
+:target: https://t.me/Assitenza_clienti_powERP
+Last Update / Ultimo aggiornamento: 2021-12-04
+Last Update / Ultimo aggiornamento: 2021-12-05
+Last Update / Ultimo aggiornamento: 2021-12-09
+Last Update / Ultimo aggiornamento: 2021-12-10
+Last Update / Ultimo aggiornamento: 2021-12-11
+Last Update / Ultimo aggiornamento: 2021-12-19
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -504,16 +501,16 @@ Last Update / Ultimo aggiornamento: 2021-09-27
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
 :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
-:target: https://t.me/axitec_helpdesk
+:target: https://t.me/Assitenza_clienti_powERP
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-09-29
+Last Update / Ultimo aggiornamento: 2021-12-21
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
@@ -570,6 +567,6 @@ Last Update / Ultimo aggiornamento: 2021-09-29
 .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-   :target: https://t.me/axitec_helpdesk
+   :target: https://t.me/Assitenza_clienti_powERP
 
 

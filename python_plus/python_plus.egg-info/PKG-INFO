@@ -1,0 +1,36 @@
+Metadata-Version: 1.2
+Name: python-plus
+Version: 1.0.5
+Summary: python useful function
+Home-page: https://zeroincombenze-tools.readthedocs.io
+Author: Antonio Maria Vigliotti
+Author-email: antoniomaria.vigliotti@gmail.com
+License: Affero GPL
+Project-URL: Source, https://github.com/zeroincombenze/tools
+Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
+Description: 
+        Python supplemental features
+        ----------------------------
+        
+        python_plus adds various features to python 2 and python 3 programs.
+        It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
+        
+        
+        vem: virtual environment manager
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        This package is released with an nice command:
+        **vem** that is an interactive tool with some nice features to manage standard virtual environment and it is osx/darwin compatible.
+        
+Keywords: unit test virtual environment venv
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: System :: System Shells

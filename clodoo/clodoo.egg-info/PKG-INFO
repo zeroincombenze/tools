@@ -1,0 +1,34 @@
+Metadata-Version: 1.2
+Name: clodoo
+Version: 0.3.55
+Summary: Do massive operations on Odoo Cloud
+Home-page: https://zeroincombenze-tools.readthedocs.io
+Author: Antonio Maria Vigliotti
+Author-email: antoniomaria.vigliotti@gmail.com
+License: Affero GPL
+Project-URL: Source, https://github.com/zeroincombenze/tools
+Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
+Description: 
+        Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.
+        
+        With clodoo you can do massive operations on 1 or more Odoo databases based on
+        different Odoo versions. Main operation are:
+        
+        * create consistent database to run tests
+        * repeat consistent action on many db with same or different Odoo version
+        * repeat above actions on every new database
+        
+        clodoo is also a PYPI package to simplify RPC connection to Odoo.
+        The PYPI package is a hub to oerplib and odoorpc packages, so generic python client
+        can execute any command to any Odoo version server (from 6.1 to 13.0)
+        
+Keywords: odoo
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development
