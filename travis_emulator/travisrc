@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.3.3
+#__version__=1.0.4
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -39,36 +39,9 @@ fi
 
 opts_travis() {
   # opts_travis(git-org/pkgname)
-#  local b x
   [[ -n "$1" ]] && IFS="/" read REMOTEREPO x <<<"$1"
   [[ -z "$REMOTEREPO" ]] && REMOTEREPO="local"
-#  build_pypi_param ALL $1
   export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
-#  if [[ -n "$opt_conf" && -f "$opt_conf" ]]; then
-#    TCONF=$opt_conf
-#  elif [[ -f $TDIR/.travis.conf ]]; then
-#    TCONF=$TDIR/.travis.conf
-#  else
-#    b=""
-#    x=$TDIR
-#    while [[ ! "$b" == "pypi" && ! "b" == "tools" && ! "$x" == "$HOME" ]]; do
-#      x=$(readlink -e $x/..)
-#      [[ $x == / ]] && break
-#      b=$(basename $x)
-#    done
-#    TCONF=$x/travis_emulator/.travis.conf
-#    [[ -f $x/travis_emulator/travis_emulator/.travis.conf ]] && TCONF=$x/travis_emulator/travis_emulator/.travis.conf
-#  fi
-#  DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
-#  if [ -z "$DIST_CONF" ]; then
-#    DIST_CONF=$(readlink -f $PKGPATH/../conf/system-site-packages_dist_pkg.conf)
-#  fi
-#  if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
-#    test_mode=1
-#  fi
-#  if [ ${test_mode:-0} -gt 0 ]; then
-#    opt_dry_run=1
-#  fi
 }
 
 inherits_travis_opts() {
@@ -175,99 +148,6 @@ get_value_from_file() {
   echo $r
 }
 
-build_pypi_param() {
-  # build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
-  local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
-  [[ -z "$ODOO_SETUPS" ]] && ODOO_SETUPS="__openerp__.py,__manifest__.py"
-  local ODOO_SETUPS=${ODOO_SETUPS//,/ }
-  local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
-  local r w x="$PWD"
-  [ -n "$2" -a "$2" != "local" ] && x=$2
-  [[ "$x" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]] || x=$(readlink -e $HOME/pypi/$2/$2)
-  r=
-  for ODOO_SETUP in $ODOO_SETUPS; do
-    r="$r -o -name $ODOO_SETUP"
-  done
-  w=$(find $x -maxdepth 2 -not -path '*tests*' ${r:3} | head -n1)
-  if [ -n "$w" ]; then
-    _PRJNAME="Odoo"
-    _REPOS=$(basename $x)
-    _PKGPATH=$x
-    _PKGNAME=$_REPOS
-  fi
-  INV_MODS="$(build_odoo_param INVALID_MODNAMES_RE)"
-  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" ]]; do
-    r=$(basename $x)
-    if [[ ! $r =~ $INV_MODS ]]; then
-      [ -z "$_PRJPATH" ] && _PRJPATH=$x
-      [ -z "$_PRJNAME" ] && _PRJNAME=$(basename $x)
-      if [[ -z "$_SETUP" && -f "$x/setup.py" && (! -f "$x/../setup.py" || ! $(basename $(dirname $x)) == $(basename $x)) ]]; then
-        _SETUP="$x/setup.py"
-        [ -z "$_PKGPATH" ] && _PKGPATH=$x
-        [ -z "$_PKGNAME" ] && _PKGNAME=$(basename $x)
-        if [[ ! "$_PRJNAME" == "Odoo" ]]; then
-          [ "$x" != "/" ] && _REPOS=$(basename $(dirname $x)) || _REPOS=
-        fi
-        break
-      elif [ -d $x/odoo -a -f $x/odoo_bin ]; then
-        _PRJNAME="Odoo"
-        break
-      elif [[ (-d $x/openerp && -f $x/openerp-server) || (-d $x/server && -f $x/server/openerp-server) ]]; then
-        _PRJNAME="Odoo"
-        _PKGNAME="OCB"
-        _REPOS="OCB"
-        break
-      elif [ -z "$_SETUP" ]; then
-        for ODOO_SETUP in $ODOO_SETUPS; do
-          if [ -f $x/$ODOO_SETUP ]; then
-            _PRJNAME="Odoo"
-            _PRJPATH=
-            _SETUP="$x/$ODOO_SETUP"
-            _REPOS=
-            if [ -z "$_PKGPATH" ]; then
-              _PKGPATH=$x
-              _PKGNAME=$(basename $x)
-            fi
-            break
-          fi
-        done
-      elif [ -z "$_REPOS" ]; then
-        _REPOS=$(basename $x)
-      fi
-    fi
-    [ "$x" != "/" ] && x=$(readlink -e $x/..) || x=
-  done
-  if [ -n "$_SETUP" -a -f "$_SETUP" ]; then
-    r=$(get_value_from_file "$_SETUP" "name")
-    [ -n "$r" ] && _PRJNAME="$r"
-  fi
-  if [ "$_PRJNAME" == "odoo" -o "$_PRJNAME" == "openerp" ]; then
-    _PRJNAME=Odoo
-  fi
-  if [[ "$_PRJNAME" == "Odoo" ]]; then
-    if [[ $_PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca)?-?(14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|14|13|12|11|10|9|8|7|6) ]]; then
-      _PKGNAME="OCB"
-      _REPOS="OCB"
-    fi
-    [[ -z "$_PKGNAME" ]] && _PKGNAME="OCB"
-    [[ -z "$_PKGNAME" ]] && _REPOS="OCB"
-    [[ -z "$_PKGPATH" ]] && _PKGPATH="$_PRJPATH"
-  fi
-  if [ "$1" == "ALL" ]; then
-    SETUP=$_SETUP
-    [ -n "$SETUP" ] && MANIFEST=$(basename $SETUP) || MANIFEST=
-    PKGPATH=$_PKGPATH
-    PKGNAME=$_PKGNAME
-    PRJPATH=$_PRJPATH
-    PRJNAME=$_PRJNAME
-    REPOSNAME=$_REPOS
-  else
-    [ "$1" == "VERSION" ] && _VERSION=$(get_value_from_file "$_SETUP" "version")
-    x="_$1"
-    echo "${!x}"
-  fi
-}
-
 init_travis() {
   local r x
   TRAVIS_ENV=virtualenv
@@ -302,9 +182,6 @@ init_travis() {
     opts_verbose=
     export FLOG_ECHO=
   fi
-#  if [[ -z "$PKGPATH" || -z "$PRJPATH" ]]; then
-#    build_pypi_param ALL
-#  fi
   if [[ "$PRJNAME" == "Odoo" ]]; then
     local npm_curpfx=$(npm config get prefix)
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
@@ -688,59 +565,24 @@ check_4_travis() {
   fi
 }
 
-
 conf_default() {
-  local file_bckdel file_backup file_meta file_vcs file_bins
-  local file_media file_bindata
-  set_cfg_def "loglevel" "-1"
-  if [[ -n "$HOSTNAME_DEV" ]]; then
-    set_cfg_def "DEV_HOST" "$HOSTNAME_DEV"
-  else
-    set_cfg_def "DEV_HOST" "shsde[a-z][0-9]*"
-  fi
-  if [ -n "$HOSTNAME_PRD" ]; then
-    set_cfg_def "DEV_HOST" "$HOSTNAME_PRD"
-  else
-    set_cfg_def "PRD_HOST" "shsprd[0-9]*"
-  fi
-  if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-    set_cfg_def "upgrade_dow" "3"
-  else
-    set_cfg_def "upgrade_dow" "4"
-  fi
-  set_cfg_def "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
-  set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py __odoo__.py __terp__.py"
-  set_cfg_def "RUN_travis_install_nightly" "travis_install_nightly"
-  set_cfg_def "RUN_travis_run_tests" "travis_run_tests"
-  set_cfg_def "RUN_travis_after_tests_success" "travis_after_tests_success"
-  set_cfg_def "MQT_TEMPLATE_DB" "openerp_template"
-  set_cfg_def "MQT_TEST_DB" "openerp_test"
-  set_cfg_def "MQT_DBUSER" ""
-  set_cfg_def "UNBUFFER" "0"
-  set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
-  set_cfg_def "Environment" "bash"
-  set_cfg_def "virtualenv_opts" ""
-  set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
-  set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ *~ test*.pdf tmp.* npm-debug.log.* .oca .z0i .oia"
-  set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ html/ .idea/ latex/ .tar .gz .zip __old_* .gitrepname __pycache__/ .local/ .npm/ .gem/ Trash/ VME/ PycharmProjects pycharm*"
-  set_cfg_def "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
-  set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
-  set_cfg_def "PS_TXT_COLOR" "0;97;40"
-  set_cfg_def "PS_RUN_COLOR" "1;37;44"
-  set_cfg_def "PS_NOP_COLOR" "34;107"
-  set_cfg_def "PS_HDR1_COLOR" "97;42"
-  set_cfg_def "PS_HDR2_COLOR" "30;43"
-  set_cfg_def "PS_HDR3_COLOR" "30;45"
-  set_cfg_def "PKGS_LIST" "clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
-  set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
-  set_cfg_def "DEV_SVG" "$HOME/devel/svg"
-  set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
-  set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
-  set_cfg_def "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
-  set_cfg_def "LOGDIR" "$HOME/travis_log"
-  set_cfg_def "distpath" "\${HOME}/tools/\${pkgname}"
-  set_cfg_def "GBL_EXCLUDE" "test_impex,test_ir_actions,test_lint,test_main_flows,test_search,test_user_has_group"
+  [[ -z $(get_cfg_value 0 "loglevel") ]] && CFG_set "loglevel" "-1"
+  [[ -z $(get_cfg_value 0 "RUN_travis_install_nightly") ]] && CFG_set "RUN_travis_install_nightly" "travis_install_nightly"
+  [[ -z $(get_cfg_value 0 "RUN_travis_run_tests") ]] && CFG_set "RUN_travis_run_tests" "travis_run_tests"
+  [[ -z $(get_cfg_value 0 "RUN_travis_after_tests_success") ]] && CFG_set "RUN_travis_after_tests_success" "travis_after_tests_success"
+  [[ -z $(get_cfg_value 0 "MQT_TEMPLATE_DB") ]] && CFG_set "MQT_TEMPLATE_DB" "openerp_template"
+  [[ -z $(get_cfg_value 0 "MQT_TEST_DB") ]] && CFG_set "MQT_TEST_DB" "openerp_test"
+  [[ -z $(get_cfg_value 0 "MQT_DBUSER") ]] && CFG_set "MQT_DBUSER" ""
+  [[ -z $(get_cfg_value 0 "UNBUFFER") ]] && CFG_set "UNBUFFER" "0"
+  [[ -z $(get_cfg_value 0 "ME_BOS") ]] && CFG_set "ME_BOS" "test_nightly .test_nightly.conf.sample"
+  [[ -z $(get_cfg_value 0 "Environment") ]] && CFG_set "Environment" "bash"
+  [[ -z $(get_cfg_value 0 "virtualenv_opts") ]] && CFG_set "virtualenv_opts" ""
+  [[ -z $(get_cfg_value 0 "NPM_CONFIG_PREFIX") ]] && CFG_set "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
+  [[ -z $(get_cfg_value 0 "PYTHON_MATRIX") ]] && CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
+  [[ -z $(get_cfg_value 0 "LOGDIR") ]] && CFG_set "LOGDIR" "$HOME/travis_log"
+  [[ -z $(get_cfg_value 0 "GBL_EXCLUDE") ]] && CFG_set "GBL_EXCLUDE" "test_impex,test_ir_actions,test_lint,test_main_flows,test_search,test_user_has_group"
 }
+
 #
 #expand_path() {
 #  # expand_path (path tkn repl)
@@ -758,12 +600,6 @@ conf_default() {
 #  [ -n "$2" ] && x=${x/$2/$3}
 #  echo $x
 #}
-
-set_pkgpath() {
-  # set_pkgpath (PKGNAME)
-  # return:pkgpath
-  echo $(build_pypi_param PKGPATH $1)
-}
 
 set_pkgname() {
   #set_pkgname(PKGPATH)

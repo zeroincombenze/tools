@@ -30,4 +30,3 @@ for f in wkhtmltoimage wkhtmltopdf; do
     echo "\$ ln -s /usr/local/bin/${f} /usr/bin/${f}.${ver}"
     ln -s /usr/local/bin/${f} /usr/bin/${f}.${ver}
 done
-

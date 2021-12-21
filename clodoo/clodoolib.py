@@ -175,7 +175,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.54.1"
+__version__ = "0.3.55"
 
 
 #############################################################################
@@ -564,7 +564,7 @@ def read_config(ctx):
     ctx['_conf_obj'] = ConfigParser.RawConfigParser(default_conf(ctx))
     ctx['conf_fns'] = ctx['_conf_obj'].read(ctx['conf_fns'])
     if not ctx['conf_fns']:
-       raise IOError('No configuration file found!')
+        raise IOError('No configuration file found!')
     ctx = create_params_dict(ctx)
     if not version_is_set:
         ctx, version_is_set = set_confs(ctx)

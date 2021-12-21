@@ -1,7 +1,7 @@
 
-===============
-clodoo 0.3.54.1
-===============
+=============
+clodoo 0.3.54
+=============
 
 
 
@@ -471,9 +471,6 @@ Last Update / Ultimo aggiornamento: 2021-11-10
 Last Update / Ultimo aggiornamento: 2021-11-11
 Last Update / Ultimo aggiornamento: 2021-11-13
 Last Update / Ultimo aggiornamento: 2021-12-02
-Last Update / Ultimo aggiornamento: 2021-12-03
-Last Update / Ultimo aggiornamento: 2021-12-04
-Last Update / Ultimo aggiornamento: 2021-12-05
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -507,7 +504,7 @@ Last Update / Ultimo aggiornamento: 2021-12-05
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-11
+Last Update / Ultimo aggiornamento: 2021-12-03
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

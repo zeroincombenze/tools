@@ -1,0 +1,8 @@
+env:
+  - LCLTESTS="0" LCLCHECK="0"
+
+  global:
+  - GBLTESTS="1" GBLCHECK="1"
+
+  matrix:
+  - GBLTESTS="0" GBLCHECK="1"

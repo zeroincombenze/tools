@@ -10,7 +10,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.2.7
+# Based on template 1.0.3.3
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -60,7 +60,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3.3
+__version__=1.0.4
 
 
 store_cfg_param_value() {
@@ -110,7 +110,7 @@ process_yaml_init() {
   [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
   python_ver_req=""
   python_ver_ena=""
-  [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep PYPI_RUN_PYVER|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
+  [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep "^PYPI_RUN_PYVER"|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
     [[ -d $HOME/devel ]] && \
       export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa
@@ -1039,11 +1039,10 @@ else
   exit $STS_FAILED
 fi
 opts_travis
-CFG_init
 conf_default
-link_cfg $DIST_CONF $TCONF
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
+# prepare_env_travis
 
 [[ -n $opt_flog ]] && LOGDIR="$(dirname $opt_flog)" || LOGDIR="$(get_cfg_value "" "LOGDIR")"
 [[ -d $LOGDIR ]] || mkdir $LOGDIR

@@ -12,4 +12,3 @@ $ cp /etc/odoo/odoo9-server.conf $LCL_ROOT/.openerp_serverrc
 > ln -s $LCL_ROOT/dev/odoo/9.0/openerp $LCL_ROOT/dependencies/
 > ln -s $LCL_ROOT/dev/odoo/9.0 $LCL_ROOT/odoo-9.0
 > ln -s $LCL_ROOT/dev/odoo/9.0/l10n_italy/l10n_it_base $LCL_ROOT/l10n_it_base-9.0
-

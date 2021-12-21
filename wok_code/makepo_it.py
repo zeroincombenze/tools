@@ -7,7 +7,7 @@ from __future__ import print_function
 import sys
 # import pdb
 
-__version__ = "1.0.3.3"
+__version__ = "1.0.4"
 
 params = {'clear_base_tnl': False}
 me = True
