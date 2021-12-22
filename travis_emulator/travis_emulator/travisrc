@@ -8,7 +8,7 @@
 XRGI="^(.*\/|)conf\/.*sample$"
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.2.7
+# Based on template 1.0.4
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -318,7 +318,6 @@ create_virtual_env() {
   [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
   [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
   hash -r
-# TODO> restore after vem cp works
   if [[ "$PRJNAME" == "Odoo" && ( ! -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$BRANCH) -lt 1639237000 ) ]]; then
     echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH not found or expired!${CLR}"
     echo -e "Now virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH will be (re)created."
@@ -336,7 +335,6 @@ create_virtual_env() {
     true
   elif [[ $opt_full -eq 0 && ${opt_cache:-0} -ne 0 && -n "$TRAVIS_PYTHON_VERSION" ]]; then
     [[ -d $TRAVIS_SAVED_HOME ]] || mkdir $TRAVIS_SAVED_HOME
-# TODO> restore after vem cp works
      if [[ "$PRJNAME" == "Odoo" && -d $TRAVIS_SAVED_HOME/VME/VME$BRANCH ]]; then
       opt_keepE=0
       TRAVIS_SRC_VME=$TRAVIS_SAVED_HOME/VME/VME$BRANCH
@@ -370,7 +368,6 @@ create_virtual_env() {
       fi
       opts=$(inherits_travis_opts "" "V")
       [[ $TRAVIS == "true" ]] || opts="$opts -f"
-      # TODO> reactivate after validation
       [[ $sts -ne 0 || $opt_keepE -eq 0 ]] || run_traced "vem cp $VENVOPTS $opts $TRAVIS_HOME $TRAVIS_SRC_VME"
     fi
   else
@@ -402,6 +399,24 @@ create_virtual_env() {
     fi
   fi
   [[ $PWD != $TRAVIS_BUILD_DIR ]] && run_traced "cd $TRAVIS_BUILD_DIR"
+  if [[ -n "$opt_pybrk" ]]; then
+    IFS=":" read f t <<<"$opt_pybrk"
+    [[ $f =~ ^\. ]] && x=$(readlink -f $TRAVIS_BUILD_DIR/$f) || x=$(find $TRAVIS_BUILD_DIR -name $f)
+    [[ -z "$x" ]] && echo "File $f not found!" && exit 1
+    cp $x $x.bak
+    cat <<EOF | python
+with open('$x', 'r') as fd:
+    lines = fd.read().split('\n')
+    line = lines[$t - 1]
+    i = 0
+    while i < len(line) and line[i] == ' ':
+        i += 1
+    line = '%s%s' % (line[:i], 'import pdb; pdb.set_trace(); ')
+    lines.insert($t - 1, line)
+with open('$x', 'w') as fd:
+    fd.write('\n'.join(lines))
+EOF
+  fi
   ((Z0_STACK=Z0_STACK-2))
 }
 
@@ -457,7 +472,7 @@ git_clone() {
     run_traced "cp -R $TRAVIS_SAVED_HOME/tools $d"
     if [ $opt_dbgmnt -ne 0 ]; then
       x=${TRAVIS_REPO_SLUG#*/}
-      for p in $(get_cfg_value 0 "PKGS_LIST"); do
+      for p in $(get_cfg_value "" "PKGS_LIST"); do
         # Use unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
         [[ -f $TRAVIS_SAVED_HOME/devel/pypi/$p/$p/scripts/setup.info ]] && \
@@ -566,21 +581,21 @@ check_4_travis() {
 }
 
 conf_default() {
-  [[ -z $(get_cfg_value 0 "loglevel") ]] && CFG_set "loglevel" "-1"
-  [[ -z $(get_cfg_value 0 "RUN_travis_install_nightly") ]] && CFG_set "RUN_travis_install_nightly" "travis_install_nightly"
-  [[ -z $(get_cfg_value 0 "RUN_travis_run_tests") ]] && CFG_set "RUN_travis_run_tests" "travis_run_tests"
-  [[ -z $(get_cfg_value 0 "RUN_travis_after_tests_success") ]] && CFG_set "RUN_travis_after_tests_success" "travis_after_tests_success"
-  [[ -z $(get_cfg_value 0 "MQT_TEMPLATE_DB") ]] && CFG_set "MQT_TEMPLATE_DB" "openerp_template"
-  [[ -z $(get_cfg_value 0 "MQT_TEST_DB") ]] && CFG_set "MQT_TEST_DB" "openerp_test"
-  [[ -z $(get_cfg_value 0 "MQT_DBUSER") ]] && CFG_set "MQT_DBUSER" ""
-  [[ -z $(get_cfg_value 0 "UNBUFFER") ]] && CFG_set "UNBUFFER" "0"
-  [[ -z $(get_cfg_value 0 "ME_BOS") ]] && CFG_set "ME_BOS" "test_nightly .test_nightly.conf.sample"
-  [[ -z $(get_cfg_value 0 "Environment") ]] && CFG_set "Environment" "bash"
-  [[ -z $(get_cfg_value 0 "virtualenv_opts") ]] && CFG_set "virtualenv_opts" ""
-  [[ -z $(get_cfg_value 0 "NPM_CONFIG_PREFIX") ]] && CFG_set "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
-  [[ -z $(get_cfg_value 0 "PYTHON_MATRIX") ]] && CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
-  [[ -z $(get_cfg_value 0 "LOGDIR") ]] && CFG_set "LOGDIR" "$HOME/travis_log"
-  [[ -z $(get_cfg_value 0 "GBL_EXCLUDE") ]] && CFG_set "GBL_EXCLUDE" "test_impex,test_ir_actions,test_lint,test_main_flows,test_search,test_user_has_group"
+  [[ -z $(get_cfg_value "" "loglevel") ]] && CFG_set "loglevel" "-1"
+  [[ -z $(get_cfg_value "" "RUN_travis_install_nightly") ]] && CFG_set "RUN_travis_install_nightly" "travis_install_nightly"
+  [[ -z $(get_cfg_value "" "RUN_travis_run_tests") ]] && CFG_set "RUN_travis_run_tests" "travis_run_tests"
+  [[ -z $(get_cfg_value "" "RUN_travis_after_tests_success") ]] && CFG_set "RUN_travis_after_tests_success" "travis_after_tests_success"
+  [[ -z $(get_cfg_value "" "MQT_TEMPLATE_DB") ]] && CFG_set "MQT_TEMPLATE_DB" "openerp_template"
+  [[ -z $(get_cfg_value "" "MQT_TEST_DB") ]] && CFG_set "MQT_TEST_DB" "openerp_test"
+  [[ -z $(get_cfg_value "" "MQT_DBUSER") ]] && CFG_set "MQT_DBUSER" ""
+  [[ -z $(get_cfg_value "" "UNBUFFER") ]] && CFG_set "UNBUFFER" "0"
+  [[ -z $(get_cfg_value "" "ME_BOS") ]] && CFG_set "ME_BOS" "test_nightly .test_nightly.conf.sample"
+  [[ -z $(get_cfg_value "" "Environment") ]] && CFG_set "Environment" "bash"
+  [[ -z $(get_cfg_value "" "virtualenv_opts") ]] && CFG_set "virtualenv_opts" ""
+  [[ -z $(get_cfg_value "" "NPM_CONFIG_PREFIX") ]] && CFG_set "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
+  [[ -z $(get_cfg_value "" "PYTHON_MATRIX") ]] && CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
+  [[ -z $(get_cfg_value "" "LOGDIR") ]] && CFG_set "LOGDIR" "$HOME/travis_log"
+  [[ -z $(get_cfg_value "" "GBL_EXCLUDE") ]] && CFG_set "GBL_EXCLUDE" "test_impex,test_ir_actions,test_lint,test_main_flows,test_search,test_user_has_group,test_mimetypes"
 }
 
 #
@@ -657,13 +672,10 @@ a_search() {
 matches1of() {
   # matches1of (filename, exclist)
   # return:true/false
-  local x=
+  local x sts
   sts=1
   for x in $2; do
-    if [[ "$1" =~ $x ]]; then
-      sts=0
-      break
-    fi
+    [[ $1 =~ $x ]] && sts=0 && break
   done
   return $sts
 }
@@ -692,16 +704,16 @@ robocopy_init() {
     fi
     a_append "^.*" ""
   fi
-  local xx="$(get_cfg_value 0 ignore)"
-  local yy="$(get_cfg_value 0 ignorediff)"
+  local xx="$(get_cfg_value "" ignore)"
+  local yy="$(get_cfg_value "" ignorediff)"
   if [ -z "$xx" ]; then
     # TODO: addons
     # local xx=".pyc .log .bak .out .tmp .conf .tracehis .tracehistory ,cover .coverage build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~"
     # local yy=".po .pot"
-    local xx="$(get_cfg_value 0 filedel)"
-    local yy="$(get_cfg_value 0 fileignore)"
+    local xx="$(get_cfg_value "" filedel)"
+    local yy="$(get_cfg_value "" fileignore)"
     local xx="$xx $yy"
-    local yy="$(get_cfg_value 0 filediffignore)"
+    local yy="$(get_cfg_value "" filediffignore)"
   fi
   XRGX=
   XLFS=

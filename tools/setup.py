@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='tools',
-      version='1.0.7.1',
+      version='1.0.8',
       author="SHS-AV s.r.l.",
       description='Sparse python source code',
       license = 'Affero GPL',

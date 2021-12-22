@@ -74,11 +74,14 @@ test_result_cp () {
 }
 
 test_01() {
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      CFG_init
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+      CFG_init "ALL"
+      set -x  #debug
       conf_default
+      set +x  #debug
     fi
     robocopy_init
+    [[ ${opt_dry_run:-0} -eq 0 ]] && echo "XRGI=$XRGI | XRGX=$XRGX"
     a_append "--new"
     a_append "KEY_A" "aaa"
     a_append "KEY_B" "bbb"
@@ -114,9 +117,7 @@ test_01() {
       TRES=$(a_search "$f")
       test_result_x "$f" "$f" "$TRES"
       sts=$?
-      if [ $sts -gt 0 ]; then
-        break
-      fi
+      [[ $sts -gt 0 ]] && break
     done
 
     MAKEF=$HOME/tools/pypi/travis_emulator/travis_emulator/Makefile
