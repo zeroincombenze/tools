@@ -1,7 +1,7 @@
 
-==============
-wok_code 1.0.4
-==============
+================
+wok_code 1.0.4.1
+================
 
 
 
@@ -845,8 +845,18 @@ Current development version
 History
 -------
 
-1.0.3.3 (2021-12-1)
-~~~~~~~~~~~~~~~~~~~
+1.0.4.1 (2021-12-22)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] cvt_script: new PYPATH algoritm
+
+1.0.4 (2021-12-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+1.0.3.3 (2021-12-01)
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] cvt_csv_2_rst.py: python 3
 
@@ -902,19 +912,6 @@ History
 
 * [IMP] cvt_csv_coa.py: new command to manage Odoo CoA
 * [IMP] gen_readme.py: search for authors in current README
-
-1.0.2f (2021-08-26)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] please: action docs shows recent history
-* [IMP] gen_readme.py: show recent history
-* [FIX] topep8: parse .travis.yml
-
-1.0.2e (2021-08-08)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] please: changed the syntax of som actions
-* [IMP] pre-commit: regex var GIT_NO_CHECK with path to no check
 
 
 
@@ -1008,6 +1005,7 @@ Last Update / Ultimo aggiornamento: 2021-12-05
 Last Update / Ultimo aggiornamento: 2021-12-09
 Last Update / Ultimo aggiornamento: 2021-12-11
 Last Update / Ultimo aggiornamento: 2021-12-19
+Last Update / Ultimo aggiornamento: 2021-12-21
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1041,7 +1039,7 @@ Last Update / Ultimo aggiornamento: 2021-12-19
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-21
+Last Update / Ultimo aggiornamento: 2021-12-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
