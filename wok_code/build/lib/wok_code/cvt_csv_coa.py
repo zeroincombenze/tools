@@ -36,7 +36,7 @@ except ImportError:
 from clodoo import transodoo
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.4.1"
 
 msg_time = time.time()
 VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')

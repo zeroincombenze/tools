@@ -1,3 +1,4 @@
+# flake8: noqa - pylint: skip-file
 # H=HOME
 # C=cwd()
 # T=~/tools

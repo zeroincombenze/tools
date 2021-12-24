@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
+# template 18
 """
 Odoo super core by Zeroincombenze(R)
 """
 import os
 import sys
 import pkg_resources
+import gzip
 import shutil
 
 
-__version__ = '1.0.5'
+__version__ = '1.0.5.1'
 
 
 def fake_setup(**kwargs):
@@ -18,18 +20,13 @@ def fake_setup(**kwargs):
 def read_setup():
     setup_info = os.path.abspath(
         os.path.join(os.path.dirname(__file__), 'setup.info'))
-    # setup_file = os.path.abspath(
-    #     os.path.join(os.path.dirname(__file__), '..', '..', 'setup.py'))
-    # if os.path.isfile(setup_file):
-    #     shutil.copy(setup_file, setup_info)
     if not os.path.isfile(setup_info):
         setup_info = os.path.abspath(
             os.path.join(os.path.dirname(__file__), '..', 'setup.py'))
     setup_args = {}
     if os.path.isfile(setup_info):
         with open(setup_info, 'r') as fd:
-            content = fd.read().replace('setup(', 'fake_setup(')
-            exec(content)
+            exec(fd.read().replace('setup(', 'fake_setup('))
             setup_args = globals()['setup_args']
     else:
         print('Not internal configuration file found!')
@@ -72,12 +69,25 @@ def copy_pkg_data(setup_args, verbose):
             bin2_path = os.path.join(os.environ['HOME'], 'devel')
             if not os.path.isdir(bin2_path):
                 bin2_path = ''
+            man_path = os.path.join(bin_path, 'man', 'man8')
+            if not os.path.isdir(man_path):
+                man_path = ''
             for pkg in setup_args['package_data'].keys():
                 for fn in setup_args['package_data'][pkg]:
                     base = os.path.basename(fn)
-                    if base == 'setup.info':
+                    if base in ('setup.info', '*'):
                         continue
                     full_fn = os.path.abspath(os.path.join(pkgpath, fn))
+                    if base.endswith('.man') and man_path:
+                        with open(full_fn, 'r') as fd:
+                            help_text = fd.read()
+                        tgt_fn = os.path.join(man_path, '%s.8.gz' % base[:-4])
+                        with gzip.open(tgt_fn, 'w') as fd:
+                            if sys.version_info[0] == 3:
+                                fd.write(help_text.encode('utf-8'))
+                            else:
+                                fd.write(help_text)
+                        continue
                     if lib_path:
                         tgt_fn = os.path.join(lib_path, base)
                         if verbose:
@@ -99,7 +109,7 @@ def copy_pkg_data(setup_args, verbose):
                         #     if verbose:
                         #         print('$ ln -s %s %s' % (full_fn, tgt_fn))
                         #     os.symlink(full_fn, tgt_fn)
-            # TODO> compatibility mode
+            # TODO> compatibility mode to remove early
             if lib_path and bin2_path:
                 for base in ('z0librc', 'odoorc', 'travisrc'):
                     full_fn = os.path.join(bin2_path, base)

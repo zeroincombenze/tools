@@ -23,7 +23,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.4.1"
 
 DATA = {
     'zero6': {
@@ -35,16 +35,6 @@ DATA = {
         'dirname': '~/7.0',
         'git_org': 'git@github.com:zeroincombenze',
         'conf': 'odoo7-server.conf',
-    },
-    'zero8': {
-        'dirname': '~/8.0',
-        'git_org': 'git@github.com:zeroincombenze',
-        'conf': 'odoo8-server.conf',
-    },
-    'zero8': {
-        'dirname': '~/8.0',
-        'git_org': 'git@github.com:zeroincombenze',
-        'conf': 'odoo8-server.conf',
     },
     'zero8': {
         'dirname': '~/8.0',

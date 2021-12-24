@@ -22,7 +22,7 @@ import gzip
 import shutil
 
 
-__version__ = '1.0.3'
+__version__ = '1.0.4.1'
 
 
 def fake_setup(**kwargs):
@@ -95,7 +95,10 @@ def copy_pkg_data(setup_args, verbose):
                             help_text = fd.read()
                         tgt_fn = os.path.join(man_path, '%s.8.gz' % base[:-4])
                         with gzip.open(tgt_fn, 'w') as fd:
-                            fd.write(help_text)
+                            if sys.version_info[0] == 3:
+                                fd.write(help_text.encode('utf-8'))
+                            else:
+                                fd.write(help_text)
                         continue
                     if lib_path:
                         tgt_fn = os.path.join(lib_path, base)

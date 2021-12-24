@@ -513,6 +513,7 @@ Last Update / Ultimo aggiornamento: 2021-12-16
 Last Update / Ultimo aggiornamento: 2021-12-17
 Last Update / Ultimo aggiornamento: 2021-12-18
 Last Update / Ultimo aggiornamento: 2021-12-20
+Last Update / Ultimo aggiornamento: 2021-12-21
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -546,7 +547,7 @@ Last Update / Ultimo aggiornamento: 2021-12-20
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-21
+Last Update / Ultimo aggiornamento: 2021-12-24
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -10,7 +10,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.2.7
+# Based on template 1.0.3.3
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -60,7 +60,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.3
+__version__=1.0.4.1
 
 #
 # General Purpose options:
@@ -2042,7 +2042,7 @@ do_docs() {
   [[ $(grep "\.\. include:: MAINPAGE.rst" docs/index.rst) ]] && run_traced "gen_readme.py $opts -t mainpage -o $docs_dir/MAINPAGE.rst"
   run_traced "pushd $docs_dir >/dev/null"
   if [[ ! -f index.rst || ! -f conf.py ]]; then
-    SETUP=$(build_pypi_param SETUP)
+    # SETUP=$(build_pypi_param SETUP)
     version=$(get_value_from_file "$SETUP" "version")
     author=$(get_value_from_file "$SETUP" "author")
     run_traced "sphinx-quickstart -p '$PRJNAME' -a '$author' -v '$version' -r '$version' -l en --no-batchfile --makefile --master index --suffix .rst ./"
@@ -2973,7 +2973,7 @@ do_wep() {
 OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O        p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=("+"      1       "="        "="      "="      1         1        1        "="       1       1           "=>"     1        "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0        ""        -1          0     ""       0         0       ""          -1)
+OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0        ""        0           0     ""       0         0       ""          -1)
 OPTMETA=("help"   ""      "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"
   "debug mode"
@@ -3012,9 +3012,7 @@ fi
 
 
 opts_travis
-CFG_init
 conf_default
-link_cfg $DIST_CONF $TCONF
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 prepare_env_travis "$actions" "-r"

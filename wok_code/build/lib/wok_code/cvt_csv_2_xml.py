@@ -36,13 +36,14 @@ import sys
 import time
 import csv
 from os0 import os0
+from python_plus import _c
 try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.4.1"
 
 msg_time = time.time()
 
@@ -60,7 +61,7 @@ def items_2_unicode(src):
         for x in src.keys():
             src[x] = os0.u(src[x])
     elif isinstance(src, list):
-        for i,x in enumerate(src):
+        for i, x in enumerate(src):
             src[i] = os0.u(x)
     return src
 
@@ -78,8 +79,8 @@ def convert_file(ctx):
         if ctx['opt_verbose']:
             print("Reading %s" % ctx['src_file'])
         csv.register_dialect('odoo',
-                             delimiter=b',',
-                             quotechar=b'\"',
+                             delimiter=_c(','),
+                             quotechar=_c('\"'),
                              quoting=csv.QUOTE_MINIMAL)
         majver = int(ctx['odoo_ver'].split('.')[0])
         ctr = 0
@@ -89,7 +90,7 @@ def convert_file(ctx):
             target += '<odoo noupdate="%s">\n' % value
         else:
             target += '<openerp>\n<data noupdate="%s">\n' % value
-        with open(ctx['src_file'], 'rb') as csv_fd:
+        with open(ctx['src_file'], 'r') as csv_fd:
             hdr_read = False
             csv_obj = csv.DictReader(csv_fd,
                                      fieldnames=[],
@@ -156,7 +157,7 @@ def convert_file(ctx):
             with open(ctx['dst_file'], 'w') as fd:
                 if ctx['opt_verbose']:
                     print("Writing %s" % ctx['dst_file'])
-                fd.write(os0.b(target))
+                fd.write(_c(target))
 
 
 if __name__ == "__main__":
