@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.7.1
+__version__=1.0.8.1
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -151,7 +151,7 @@ if [[ $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! 
     [[ ! -d $LOCAL_VENV/bin/man/man8 ]] && run_traced "mkdir -p $LOCAL_VENV/bin/man/man8"
 fi
 
-[[ $opts =~ ^-.*n ]] || find $DSTPATH -name "*.pyc" -delete
+[[ $opts =~ ^-.*n ]] || find $DSTPATH -not -path "*/.*/*" -name "*.pyc" -delete
 [[ ! $opts =~ ^-.*q ]] && echo "# Moving local PYPI packages into virtual environment"
 run_traced ". $LOCAL_VENV/bin/activate"
 
