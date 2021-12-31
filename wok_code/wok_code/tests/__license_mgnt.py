@@ -180,7 +180,7 @@ class License:
                             years = '%s-%s' % (
                                 years,
                                 str(self.cur_year)[-2:])
-                org_id, name, website, email, dummy = from_rst_line(
+                org_id, name, website, email = from_rst_line(
                     line[ipos:].strip())
             return org_id, name, website, email, years
 

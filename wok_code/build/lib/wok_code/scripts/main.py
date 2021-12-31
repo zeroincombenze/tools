@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# template 17
+# template 18
 """
 Various tools at your fingertips.
 
@@ -22,7 +22,7 @@ import gzip
 import shutil
 
 
-__version__ = '1.0.4.1'
+__version__ = '1.0.5'
 
 
 def fake_setup(**kwargs):

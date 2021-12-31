@@ -1,0 +1,3 @@
+future
+python-magic
+zerobug

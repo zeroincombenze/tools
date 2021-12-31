@@ -63,7 +63,7 @@
 # (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.4.4
+__version__=1.0.5.1
 
 export opt_dry_run
 export ctr
@@ -323,8 +323,8 @@ test_result () {
           fi
         elif [[ $5 == "str-n" ]]; then
           if [[ -z "$($4 $2 $3)" ]]; then
-            echo "$THIS> Test failed: $4 '$2' '$3'"
-            dbgmsg "\$ echo(Test failed: $4 '$2' '$3')"
+            echo "$THIS> Test failed: $4 '$3' '$2'"
+            dbgmsg "\$ echo(Test failed: $4 '$3' '$2')"
             teststs=$STS_FAILED
             if [[ $Z0BUG_on_error == "continue" ]]; then
               return $STS_FAILED
@@ -334,8 +334,8 @@ test_result () {
           fi
         fi
       else
-        echo "$THIS> Test failed: $4 '$2' '$3'"
-        dbgmsg "\$ echo(Test failed: $4 '$2' '$3')"
+        echo "$THIS> Test failed: $4 '$3' '$2'"
+        dbgmsg "\$ echo(Test failed: $4 '$3' '$2')"
         teststs=$STS_FAILED
         if [[ $Z0BUG_on_error == "continue" ]]; then
           return $STS_FAILED
@@ -344,9 +344,9 @@ test_result () {
         fi
       fi
     else
-      if [ "$2" != "$3" ]; then
-        echo "$THIS> Test '$1' failed: expected '$2', found '$3'"
-        dbgmsg "\$ echo(Test '$1' failed: expected '$2', found '$3')"
+      if [[ $2 != $3 ]]; then
+        echo "$THIS> Test '$1' failed: expected '$3', found '$2'"
+        dbgmsg "\$ echo(Test '$1' failed: expected '$3', found '$2')"
         teststs=$STS_FAILED
         if [[ $Z0BUG_on_error == "continue" ]]; then
           return $STS_FAILED

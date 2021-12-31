@@ -1465,6 +1465,14 @@ get_value_from_setup() {
   echo "$r"
 }
 
+repos_tools_params() {
+    if [[ -z "$_SETUP" && -f "$1/setup.py" ]]; then
+      _SETUP="$1/setup.py"
+      [[ -z "$_PKGPATH" ]] && _PKGPATH=$1
+      [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $1)
+    fi
+}
+
 get_pypi_param() {
   # get_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
   if [[ $1 == "ALL" ]]; then
@@ -1515,23 +1523,23 @@ get_pypi_param() {
       [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
       _REPOS=$(basename $x)
       _PKGNAME=$_REPOS
+#      if [[ $(basename $x) == "tools" ]]; then
+#        repos_tools_params "$x"
+#        [[ -z "$_PKGPATH" && -n "$_PRJPATH" ]] && _PKGPATH=$_PRJPATH
+#      else
+#        [[ $_PRJNAME == "tools" ]] && _PRJNAME=$(basename $x)
+#        _REPOS=$(basename $x)
+#        _PKGNAME=$_REPOS
+#      fi
       break
     elif [[ (-f $x/.travis.yml || -f $x/.gitlab-ci.yml) && (-d $x/.git || -f $x/requirements.txt || -f $x/oca_dependencies.txt || -f $x/README.rst || -f $x/README.md) ]]; then
       _PRJPATH=$x
       [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
       _REPOS=$(basename $x)
-      if [[ -z "$_SETUP" && -f "$x/setup.py" ]]; then
-        _SETUP="$x/setup.py"
-        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
-        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
-      fi
+      repos_tools_params "$x"
       break
     elif [[ $_REPOS = "tools" ]]; then
-      if [[ -z "$_SETUP" && -f "$x/setup.py" ]]; then
-        _SETUP="$x/setup.py"
-        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
-        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
-      fi
+      repos_tools_params "$x"
       [[ -z "$_PKGPATH" && -n "$_PRJPATH" ]] && _PKGPATH=$_PRJPATH
       break
     elif [[ ! $r =~ $INV_MODS ]]; then

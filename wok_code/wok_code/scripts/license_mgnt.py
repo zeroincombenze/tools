@@ -47,17 +47,17 @@ class License:
         self.contributors = {}
         self.cur_year = datetime.today().year
         path = path or '.'
-        author_file = os.path.join(path, 'egg-info', 'authors.txt')
+        author_file = os.path.join(path, '../egg-info', 'authors.txt')
         if not os.path.isfile(author_file):
             author_file = os.path.join(path, 'readme', 'AUTHORS.rst')
         if os.path.isfile(author_file):
             self.parse_file(author_file)
-        author_file = os.path.join(path, 'egg-info', 'contributors.txt')
+        author_file = os.path.join(path, '../egg-info', 'contributors.txt')
         if not os.path.isfile(author_file):
             author_file = os.path.join(path, 'readme', 'CONTRIBUTORS.rst')
         if os.path.isfile(author_file):
             self.parse_file(author_file)
-        author_file = os.path.join(path, 'egg-info', 'acknowledges.txt')
+        author_file = os.path.join(path, '../egg-info', 'acknowledges.txt')
         if os.path.isfile(author_file):
             self.parse_file(author_file)
 
@@ -180,7 +180,7 @@ class License:
                             years = '%s-%s' % (
                                 years,
                                 str(self.cur_year)[-2:])
-                org_id, name, website, email = from_rst_line(
+                org_id, name, website, email, dummy = from_rst_line(
                     line[ipos:].strip())
             return org_id, name, website, email, years
 

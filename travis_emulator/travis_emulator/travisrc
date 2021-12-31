@@ -617,13 +617,13 @@ conf_default() {
 #  echo $x
 #}
 
-set_pkgname() {
-  #set_pkgname(PKGPATH)
-  PKGNAME=$(basename $1)
-  if [[ $PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|14|13|12|11|10|9|8|7|6) ]]; then
-    PKGNAME=OCB
-  fi
-}
+#set_pkgname() {
+#  #set_pkgname(PKGPATH)
+#  PKGNAME=$(basename $1)
+#  if [[ $PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|14|13|12|11|10|9|8|7|6) ]]; then
+#    PKGNAME=OCB
+#  fi
+#}
 
 #
 # [antoniov: 2021-08-06] TODO: remove early
@@ -962,56 +962,56 @@ coverage() {
   fi
   return $?
 }
-
-run_annotate_test() {
-  cd $PRJPATH
-  if [ ${opt_dry_run:-0} -eq 0 ]; then
-    if [ "$PRJNAME" != "Odoo" ]; then
-      if [ ${opt_verbose:-0} -gt 0 ]; then
-        echo "export COVERAGE_FILE=$(readlink -f ./.coverage)"
-      fi
-      export COVERAGE_FILE=$(readlink -f ./.coverage)
-      if [ -f ./__main__.py ]; then
-        coverage erase
-        if [ ${opt_verbose:-0} -gt 0 ]; then
-          echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./*.py"
-        fi
-        DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./*.py
-        dir $PRJPATH/cover/
-        # coverage report
-        sts=$STS_SUCCESS
-      elif [ -f ./tests/test_$PRJNAME.py ]; then
-        coverage erase
-        if [ ${opt_verbose:-0} -gt 0 ]; then
-          echo "export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)"
-        fi
-        export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)
-        if [ ${opt_dprj:-0} -gt 0 ]; then
-          if [ ${opt_verbose:-0} -gt 0 ]; then
-            echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./tests/test_$PRJNAME.py"
-          fi
-          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./tests/test_$PRJNAME.py
-        else
-          if [ ${opt_verbose:-0} -gt 0 ]; then
-            echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover --rcfile=$COVERAGE_PROCESS_START --rcfile=$COVERAGE_PROCESS_START test_$PRJNAME.py"
-          fi
-          cd ./tests
-          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover test_$PRJNAME.py
-        fi
-        dir $PRJPATH/cover/
-        # coverage report
-        sts=$STS_SUCCESS
-      else
-        sts=$STS_FAILED
-      fi
-    else
-      sts=$STS_SUCCESS
-    fi
-  else
-    sts=$STS_SUCCESS
-  fi
-  return $sts
-}
+#
+#run_annotate_test() {
+#  cd $PRJPATH
+#  if [ ${opt_dry_run:-0} -eq 0 ]; then
+#    if [ "$PRJNAME" != "Odoo" ]; then
+#      if [ ${opt_verbose:-0} -gt 0 ]; then
+#        echo "export COVERAGE_FILE=$(readlink -f ./.coverage)"
+#      fi
+#      export COVERAGE_FILE=$(readlink -f ./.coverage)
+#      if [ -f ./__main__.py ]; then
+#        coverage erase
+#        if [ ${opt_verbose:-0} -gt 0 ]; then
+#          echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./*.py"
+#        fi
+#        DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./*.py
+#        dir $PRJPATH/cover/
+#        # coverage report
+#        sts=$STS_SUCCESS
+#      elif [ -f ./tests/test_$PRJNAME.py ]; then
+#        coverage erase
+#        if [ ${opt_verbose:-0} -gt 0 ]; then
+#          echo "export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)"
+#        fi
+#        export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)
+#        if [ ${opt_dprj:-0} -gt 0 ]; then
+#          if [ ${opt_verbose:-0} -gt 0 ]; then
+#            echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./tests/test_$PRJNAME.py"
+#          fi
+#          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./tests/test_$PRJNAME.py
+#        else
+#          if [ ${opt_verbose:-0} -gt 0 ]; then
+#            echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover --rcfile=$COVERAGE_PROCESS_START --rcfile=$COVERAGE_PROCESS_START test_$PRJNAME.py"
+#          fi
+#          cd ./tests
+#          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover test_$PRJNAME.py
+#        fi
+#        dir $PRJPATH/cover/
+#        # coverage report
+#        sts=$STS_SUCCESS
+#      else
+#        sts=$STS_FAILED
+#      fi
+#    else
+#      sts=$STS_SUCCESS
+#    fi
+#  else
+#    sts=$STS_SUCCESS
+#  fi
+#  return $sts
+#}
 
 emulate_install_nightly() {
   run_traced "# pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"

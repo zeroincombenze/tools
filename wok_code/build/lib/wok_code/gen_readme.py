@@ -112,7 +112,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.4.1"
+__version__ = "1.0.4.2"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -1901,7 +1901,7 @@ def generate_readme(ctx):
         for fn in ('./README.md', './README.rst'):
             if not os.path.isfile(fn):
                 continue
-            with open(fn, 'rbU') as fd:
+            with open(fn, 'rU') as fd:
                 (ctx['rdme_description'],
                  ctx['rdme_authors'],
                  ctx['rdme_contributors']) = read_purge_readme(

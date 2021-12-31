@@ -4,13 +4,13 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.4.1
+# Based on template 1.0.4.2
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 HOME_DEV="$HOME/devel"
 [[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEV"'\nimport os,sys\no=os.path\na=o.abspath\nj=os.path.join\nd=os.path.dirname\nb=os.path.basename\nf=os.path.isfile\np=os.path.isdir\nH=o.expanduser('~')\nT=j(H,'tools')\nR=j(H,'pypi') if o.basename(D)=='venv_tools' else j(H,D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C)=='tests':\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==d(C) and f(j(C,'..','setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+P\np=set()\npa=p.add\np=[x for x in L if x and (x.startswith(H) or x.startswith(D) or x.startswith(C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEV"'\nimport os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nH=o.expanduser('~')\nT=j(H,'tools')\nR=j(H,'pypi') if b(D)=='venv_tools' else j(H,D,'pypi')\nW=D if b(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'scripts')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('scripts','tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==d(C) and f(j(C,'..','setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+[os.getcwd()]+P\np=set()\npa=p.add\np=[x for x in L if x and x.startswith((H,D,C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -61,46 +61,59 @@ CLR="\e[0m"
 __version__=1.0.5.1
 
 test_common() {
-    local res pypath
+    local res pypath tag tres
+    tag="RUNDIR"
+    [[ $1 =~ ^$HOME/devel/venv/bin ]] && tag="VENV"
+    [[ $1 =~ ^$HOME/devel/pypi/z0lib/z0lib ]] && tag="DEVEL"
+    [[ $1 =~ ^$TESTDIR ]] && tag="TESTDIR"
     [[ -f ./travisrc ]] && rm -f ./travisrc
     res=$($1 PYPATH|cut -f1 -d" ")
-    test_result "$PWD/simulate_cmd PYPATH" "$res" "$(dirname $1)"
+    test_result "$PWD> $tag/simulate_cmd PYPATH" "$res" "$(dirname $1)"
     res=$($1 Z0LIBDIR)
-    test_result "$PWD/simulate_cmd Z0LIBDIR" "$res" "$RUNDIR"
+    tres="$RUNDIR"
+    [[ $tag == "DEVEL" ]] && tres="$HOME/devel/pypi/z0lib/z0lib"
+    [[ $tag == "VENV" ]] && tres="$HOME/devel/venv/bin"
+    test_result "$PWD> $tag/simulate_cmd Z0LIBDIR" "$res" "$tres"
     # travisrc is found in python site packages
     pypath=$(echo "import sys;print([x for x in sys.path if 'site-packages' in x][0])"|python)
     res=$($1 PYPATH|grep -Eo $pypath/travis_emulator)
-    test_result "$PWD/simulate_cmd PYPATH/travis_emulator" "$res" "$pypath/travis_emulator"
+    test_result "$PWD> $tag/simulate_cmd PYPATH/travis_emulator" "$res" "$pypath/travis_emulator"
     res=$($1 TRAVISLIBDIR)
-    test_result "$PWD/simulate_cmd TRAVISLIBDIR" "$res" "$pypath/travis_emulator/travisrc"
+    test_result "$PWD> $tag/simulate_cmd TRAVISLIBDIR" "$res" "$pypath/travis_emulator/travisrc"
     # Now travisrc should be found in current directory
     cp $HOME/tools/travis_emulator/travisrc ./
     res=$($1 TRAVISLIBDIR)
     if [[ $2 != "N" ]]; then
-      test_result "$PWD/simulate_cmd TRAVISLIBDIR (2)" "$res" "$PWD/travisrc"
+      test_result "$PWD> $tag/simulate_cmd TRAVISLIBDIR (2)" "$res" "$PWD/travisrc"
     else
-      test_result "$PWD/simulate_cmd TRAVISLIBDIR (2)" "$res" "$pypath/travis_emulator/travisrc"
+      test_result "$PWD> $tag/simulate_cmd TRAVISLIBDIR (2)" "$res" "$pypath/travis_emulator/travisrc"
     fi
     rm -f ./travisrc
     res=$($1 PKGNAME)
-    test_result "$PWD/simulate_cmd PKGNAME" "$res" "z0lib"
+    test_result "$PWD> $tag/simulate_cmd PKGNAME" "$res" "z0lib"
     res=$($1 PKGPATH)
-    test_result "$PWD/simulate_cmd PKGPATH" "$res" "$TRAVIS_BUILD_DIR"
+    tres="$TRAVIS_BUILD_DIR"
+    [[ $tag == "DEVEL" ]] && tres="$HOME/devel/pypi/z0lib"
+    [[ $tag == "VENV" ]] && tres="$HOME/devel/pypi/z0lib"
+    test_result "$PWD> $tag/simulate_cmd PKGPATH" "$res" "$tres"
     res=$($1 PRJNAME)
-    test_result "$PWD/simulate_cmd PRJNAME" "$res" "z0lib"
+    test_result "$PWD> $tag/simulate_cmd PRJNAME" "$res" "z0lib"
     res=$($1 PRJPATH)
-    test_result "$PWD/simulate_cmd PRJPATH" "$res" "$TRAVIS_BUILD_DIR"
+    tres="$TRAVIS_BUILD_DIR"
+    [[ $tag == "DEVEL" ]] && tres="$HOME/devel/pypi/z0lib/z0lib"
+    [[ $tag == "VENV" ]] && tres="$HOME/devel/pypi/z0lib/z0lib"
+    test_result "$PWD> $tag/simulate_cmd PRJPATH" "$res" "$tres"
 }
 
 test_01() {
-    local res pypath
+    local res
     cd $TESTDIR
     res=$($TESTDIR/simulate_cmd THIS)
-    test_result "$PWD/simulate_cmd THIS" "$res" "simulate_cmd"
+    test_result "$PWD> TESTDIR/simulate_cmd THIS" "$res" "simulate_cmd"
     res=$($TESTDIR/simulate_cmd TDIR)
-    test_result "$PWD/simulate_cmd TDIR" "$res" "$TESTDIR"
+    test_result "$PWD> TESTDIR/simulate_cmd TDIR" "$res" "$TESTDIR"
     res=$($TESTDIR/simulate_cmd HOME_DEV)
-    test_result "$PWD/simulate_cmd HOME_DEV" "$res" "$HOME/devel"
+    test_result "$PWD> TESTDIR/simulate_cmd HOME_DEV" "$res" "$HOME/devel"
     test_common $TESTDIR/simulate_cmd
     cd $RUNDIR
     test_common $TESTDIR/simulate_cmd
@@ -109,17 +122,55 @@ test_01() {
     test_common $RUNDIR/simulate_cmd "N"
     cd $RUNDIR
     test_common $RUNDIR/simulate_cmd
-    # mv $RUNDIR/simulate_cmd $HOME/tools/z0lib
-    # res=$($HOME/tools/z0lib/simulate_cmd TDIR)
-    # test_result "$HOME/tools/z0lib/simulate_cmd TDIR" "$res" "$HOME/tools/z0lib"
-    # mv $HOME/tools/z0lib $TESTDIR/simulate_cmd
+    mv $RUNDIR/simulate_cmd $HOME/tools/z0lib/simulate_cmd
+    cd $HOME/tools/z0lib
+    res=$($HOME/tools/z0lib/simulate_cmd TDIR)
+    test_result "$PWD> TOOLS/z0lib/simulate_cmd TDIR" "$res" "$HOME/tools/z0lib"
+    res=$($HOME/tools/z0lib/simulate_cmd PRJNAME)
+    # TODO> error
+    # test_result "$PWD> TOOLS/z0lib/simulate_cmd PRJNAME" "$res" "z0lib"
+    res=$($HOME/tools/z0lib/simulate_cmd PKGNAME)
+    # TODO> error
+    # test_result "$PWD> TOOLS/z0lib/simulate_cmd PKGNAME" "$res" "z0lib"
+    res=$($HOME/tools/z0lib/simulate_cmd PRJPATH)
+    test_result "$PWD> TOOLS/z0lib/simulate_cmd PRJPATH" "$res" "$HOME/tools/z0lib"
+    # TODO> error
+    res=$($HOME/tools/z0lib/simulate_cmd PKGPATH)
+    # test_result "$PWD> TOOLS/z0lib/simulate_cmd PKGPATH" "$res" "$HOME/tools"
+    mkdir -p $HOME/devel/pypi/z0lib
+    cp -R $HOME/build/local/z0lib/ $HOME/devel/pypi/z0lib/
+    mv $HOME/devel/pypi/z0lib/z0lib/scripts/setup.info $HOME/devel/pypi/z0lib/setup.py
+    mkdir -p $HOME/devel/pypi/travis_emulator/
+    cp -R $HOME/tools/travis_emulator/ $HOME/devel/pypi/travis_emulator/
+    mv $HOME/devel/pypi/travis_emulator/travis_emulator/setup.py $HOME/devel/pypi/travis_emulator/setup.py
+    cd $HOME/devel/pypi/z0lib/z0lib
+    mv $HOME/tools/z0lib/simulate_cmd $HOME/devel/pypi/z0lib/z0lib/simulate_cmd
+    # [[ -f $HOME/devel/pypi/z0lib/z0lib/travisrc ]] && rm -f $HOME/devel/pypi/z0lib/z0lib/travisrc
+    test_common $HOME/devel/pypi/z0lib/z0lib/simulate_cmd
+    mv $HOME/devel/pypi/z0lib/z0lib/simulate_cmd $HOME/devel/venv/bin/simulate_cmd
+    test_common $HOME/devel/venv/bin/simulate_cmd "N"
+    mv $HOME/devel/venv/bin/simulate_cmd $TESTDIR/simulate_cmd
 }
 
 Z0BUG_setup() {
-    rm -f $TESTDIR/simulate_cmd
+    local f
+    [[ -f $TESTDIR/simulate_cmd ]] && rm -f $TESTDIR/simulate_cmd
+    [[ -f $HOME/devel/venv/bin/simulate_cmd ]] && rm -f $HOME/devel/venv/bin/simulate_cmd
+    [[ -d $HOME/devel/pypi/z0lib ]] && rm -fR $HOME/devel/pypi/z0lib
+    [[ -d $HOME/devel/pypi/travis_emulator ]] && rm -fR $HOME/devel/pypi/travis_emulator
     # echo "set -x" >>$TESTDIR/simulate_cmd
     while IFS= read -r line || [[ -n "$line" ]]; do
+      [[ $line =~ ^DIST_CONF= ]] && break
       echo "$line" >>$TESTDIR/simulate_cmd
+    done <$0
+    echo "#############################" >>$TESTDIR/simulate_cmd
+    f=0
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      [[ $line =~ ^\[\[\ -x\ \$TDIR/../bin/python ]] && f=1
+      [[ $line =~ ^DIST_CONF= ]] && f=1
+      [[ $f -ne 0 && $line =~ ^\[\[\ -z\ \$PYPATH ]] && line="${line:20}"
+      [[ $f -ne 0 ]] && echo "$line" >>$TESTDIR/simulate_cmd
+      [[ $f -ne 0 && $line =~ ^done ]] && echo -e "#############################\n" >>$TESTDIR/simulate_cmd && f=0
       [[ $line =~ ^__version__= ]] && break
     done <$0
     echo "" >>$TESTDIR/simulate_cmd

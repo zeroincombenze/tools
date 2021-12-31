@@ -1,0 +1,43 @@
+Metadata-Version: 2.1
+Name: os0
+Version: 1.0.3
+Summary: OS indipendent interface
+Home-page: https://zeroincombenze-tools.readthedocs.io
+Author: Antonio Maria Vigliotti
+Author-email: antoniomaria.vigliotti@gmail.com
+License: Affero GPL
+Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
+Project-URL: Source, https://github.com/zeroincombenze/tools
+Keywords: os path linux windows openvms
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/x-rst
+
+
+This module extends python os module with a few new functionality
+to interface operating system.
+
+It recognizes file name structure and manages both URI standard name
+both local name, as UNC and ODS5.
+
+- URI (Uniform Resource Identifier) is standard posix filename.
+- UNC (Uniform Naming Convention) is windows standard
+- ODS5 is used for define OpenVMS standard filenames
+
+An example of URI filename is '/home/myfile'.
+
+UNC example for the same of previous URI name is '\home\myfile'
+(with single backslash).
+
+ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
+
+

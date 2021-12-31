@@ -7,8 +7,8 @@ from future import standard_library
 from builtins import *                                             # noqa
 from builtins import input
 
-from python_plus import unicodes, _b
-import os
+from python_plus import _b
+# import os
 import sys
 from datetime import date, datetime, timedelta
 import time
@@ -28,7 +28,7 @@ import pdb      # pylint: disable=deprecated-module
 standard_library.install_aliases()                                 # noqa: E402
 
 
-__version__ = '1.0.4.2'
+__version__ = '1.0.5.1'
 
 
 MAX_DEEP = 20

@@ -1,0 +1,3 @@
+[console_scripts]
+z0bug-odoo-info = z0bug_odoo.scripts.main:main
+

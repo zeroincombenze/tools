@@ -92,7 +92,7 @@ import sys
 from datetime import datetime
 from shutil import copyfile
 from lxml import etree
-import license_mgnt
+from . import license_mgnt
 from python_plus import unicodes
 from os0 import os0
 try:
@@ -103,16 +103,15 @@ try:
     from clodoo.clodoo import build_odoo_param
 except ImportError:
     from clodoo import build_odoo_param
-
 try:
-    from python_plus.python_plus import _b
+    from python_plus.python_plus import _b, _c, _u
 except ImportError:
-    from python_plus import _b
+    from python_plus import _b, _c, _u
 # import pdb
 standard_library.install_aliases()
 
 
-__version__ = "1.0.4.1"
+__version__ = "1.0.5"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -236,7 +235,7 @@ def get_full_fn(ctx, src_path, filename):
     if (os.path.basename(os.path.dirname(full_fn)) == 'docs' and
             not os.path.isdir(os.path.dirname(full_fn))):
         full_fn = os.path.join(os.path.dirname(os.path.dirname(full_fn)),
-                               'egg-info',
+                               '../egg-info',
                                filename)
     return full_fn
 
@@ -361,7 +360,7 @@ def get_default_prerequisites(ctx):
 '''
     if os.path.isfile(os.path.join(ctx['path_name'], 'requirements.txt')):
         fd = open(os.path.join(ctx['path_name'], 'requirements.txt'), 'rU')
-        for pkg in fd.read().split('\n'):
+        for pkg in _u(fd.read()).split('\n'):
             if pkg and pkg[0] != '#':
                 text += '* %s\n' % pkg.strip()
         fd.close()
@@ -459,7 +458,7 @@ def totroff(text, state=None):
     return state, text
 
 
-def tohtml(text, state=None):
+def tohtml(ctx, text, state=None):
     if not text:
         return state, text
     state = state or {}
@@ -1103,18 +1102,18 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                     for module in ctx['pypi_modules'].split(' '):
                         # Up to global pypi root
                         module_dir = os.path.abspath(
-                            os.path.join(os.getcwd(), '..', '..'))
+                            os.path.join(os.getcwd(), '../..', '..'))
                         while os.path.isdir(os.path.join(module_dir, module)):
                             # down to module root
                             module_dir = os.path.join(module_dir, module)
-                        if os.path.isdir(os.path.join(module_dir, 'docs')):
+                        if os.path.isdir(os.path.join(module_dir, '../docs')):
                             for name in ctx['pypi_sects'].split(' '):
                                 name = 'rtd_%s' % name
                                 src = os.path.join(
-                                    module_dir, 'docs', '%s.rst' % name)
+                                    module_dir, '../docs', '%s.rst' % name)
                                 if os.path.isfile(src):
                                     tgt = os.path.join(
-                                        '.', 'pypi_%s_%s.rst' % (module, name))
+                                        '..', 'pypi_%s_%s.rst' % (module, name))
                                     copyfile(src, tgt)
                                     target += '\n   pypi_%s_%s' % (module,
                                                                    name)
@@ -1149,7 +1148,7 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
     if in_fmt == 'rst' and out_fmt == 'html':
-        state, target = tohtml(target, state=state)
+        state, target = tohtml(ctx, target, state=state)
     elif in_fmt == 'rst' and out_fmt == 'troff':
         state, target = totroff(target, state=state)
     else:
@@ -1193,10 +1192,10 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
     if full_fn.endswith('.csv'):
         full_fn_csv = full_fn
         full_fn = '%s.rst' % full_fn_csv[: -4]
-        os.system('cvt_csv_2_rst -b %s -q %s %s' % (
+        os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
             ctx['branch'], full_fn_csv, full_fn))
     with open(full_fn, 'rU') as fd:
-        source = fd.read().decode('utf-8')
+        source = _u(fd.read())
     if full_fn_csv:
         os.unlink(full_fn)
     if len(source) and filename == 'acknowledges.txt':
@@ -1222,7 +1221,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         header = ''
         if full_hfn:
             fd = open(full_hfn, 'rU')
-            header = os0.u(fd.read())
+            header = _u(fd.read())
             fd.close()
             if len(header) and ctx['trace_file']:
                 mark = '.. !! from "%s"\n\n' % full_hfn
@@ -1231,7 +1230,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         footer = ''
         if full_ffn:
             fd = open(full_ffn, 'rU')
-            footer = os0.u(fd.read())
+            footer = _u(fd.read())
             fd.close()
             if len(footer) and ctx['trace_file']:
                 mark = '.. !! from "%s"\n\n' % full_ffn
@@ -1258,12 +1257,12 @@ def read_history(ctx, full_fn, module=None):
     if module:
         with open(full_fn, 'r') as fd:
             ctx['histories'] += tail(
-                os0.u(fd.read()),
+                _u(fd.read()),
                 max_days=60,
                 module=module)
     with open(full_fn, 'r') as fd:
         ctx['history-summary'] += tail(
-            os0.u(fd.read()),
+            _u(fd.read()),
             max_ctr=1,
             max_days=15,
             module=module)
@@ -1294,17 +1293,17 @@ def read_setup(ctx):
     ctx['history-summary'] = ''
     if ctx['odoo_layer'] == 'repository':
         ctx['histories'] = ''
-        for root, dirs, files in os.walk('../'):
+        for root, dirs, files in os.walk('../../'):
             for dir in dirs:
                 if dir == 'tools':
                     continue
-                full_fn = os.path.join(root, dir, 'egg-info', 'history.rst')
+                full_fn = os.path.join(root, dir, '../egg-info', 'history.rst')
                 if os.path.isfile(full_fn):
                     read_history(ctx, full_fn, module=os.path.basename(dir))
         ctx['histories'] = sort_history(ctx['histories'])
         ctx['history-summary'] = sort_history(ctx['history-summary'])
     else:
-        full_fn = os.path.join('.', 'egg-info', 'history.rst')
+        full_fn = os.path.join('..', 'egg-info', 'history.rst')
         if os.path.isfile(full_fn):
             with open(full_fn, 'r') as fd:
                 read_history(ctx, full_fn)
@@ -1395,15 +1394,15 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         break
                 except KeyError:
                     pass
-                full_fn = os.path.join(root, 'egg-info', 'history.rst')
+                full_fn = os.path.join(root, '../egg-info', 'history.rst')
                 if os.path.isfile(full_fn):
                     with open(full_fn, 'r') as fd:
                         ctx['histories'] += tail(
-                            os0.u(fd.read()),
+                            _u(fd.read()),
                             max_days=180, module=module_name)
                         with open(full_fn, 'r') as fd:
                             ctx['history-summary'] += tail(
-                                os0.u(fd.read()),
+                                _u(fd.read()),
                                 max_ctr=1,
                                 max_days=15,
                                 module=module_name)
@@ -1540,7 +1539,7 @@ def manifest_contents(ctx):
     source = ''
     if full_fn:
         fd = open(full_fn, 'rU')
-        source = os0.u(fd.read())
+        source = _u(fd.read())
         fd.close()
     target = ''
     for line in source.split('\n'):
@@ -1811,13 +1810,13 @@ def write_egg_info(ctx):
                     line = '* [IMP] Created documentation directory'
                     ctx[section] = '%s\n%s\n\n%s\n' % (header, dash, line)
                 if path == './readme' and section == 'CONTRIBUTORS':
-                    fd.write(ctx['authors'])
-                fd.write(ctx[section.lower()])
+                    fd.write(_c(ctx['authors']))
+                fd.write(_c(ctx[section.lower()]))
 
-    if os.path.isdir('./egg-info'):
+    if os.path.isdir('../egg-info'):
         for section in ('authors', 'contributors',
                         'description', 'descrizione', 'history'):
-            write_file('./egg-info', section)
+            write_file('../egg-info', section)
     elif os.path.isdir('./readme'):
         for section in ('CONTRIBUTORS', 'DESCRIPTION'):
             write_file('./readme', section)
@@ -1901,11 +1900,11 @@ def generate_readme(ctx):
         for fn in ('./README.md', './README.rst'):
             if not os.path.isfile(fn):
                 continue
-            with open(fn, 'rbU') as fd:
+            with open(fn, 'rU') as fd:
                 (ctx['rdme_description'],
                  ctx['rdme_authors'],
                  ctx['rdme_contributors']) = read_purge_readme(
-                    ctx, os0.u(fd.read()))
+                    ctx, _u(fd.read()))
             break
 
     ctx = read_manifest_setup(ctx)
@@ -1973,7 +1972,7 @@ def generate_readme(ctx):
     if ctx['opt_verbose']:
         print("Writing %s" % dst_file)
     with open(tmpfile, 'w') as fd:
-        fd.write(os0.b(target))
+        fd.write(_c(target))
     if os.path.isfile(bakfile):
         os.remove(bakfile)
     if os.path.isfile(dst_file):
@@ -2001,7 +2000,9 @@ def generate_readme(ctx):
                               item)
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Generate README",
                                 "© 2018-2021 by SHS-AV s.r.l.",
                                 version=__version__)
@@ -2118,13 +2119,13 @@ if __name__ == "__main__":
                     os.path.isfile(os.path.join(ctx['path_name'],
                                                 '__manifest__.py')) and
                     os.path.isfile(os.path.join(ctx['path_name'],
-                                                '__init__.py'))):
+                                                '../__init__.py'))):
                 ctx['odoo_layer'] = 'module'
             elif (ctx['odoo_majver'] < 10 and
                     os.path.isfile(os.path.join(ctx['path_name'],
                                                 '__openerp__.py')) and
                     os.path.isfile(os.path.join(ctx['path_name'],
-                                                '__init__.py'))):
+                                                '../__init__.py'))):
                 ctx['odoo_layer'] = 'module'
             elif (ctx['odoo_majver'] >= 10 and
                     os.path.isdir(os.path.join(ctx['path_name'],
@@ -2144,9 +2145,8 @@ if __name__ == "__main__":
                 ctx['odoo_layer'] = 'repository'
         else:
             if os.path.isfile(os.path.join(ctx['path_name'],
-                                           '../setup.py')):
+                                           '../../setup.py')):
                 ctx['odoo_layer'] = 'module'
             else:
                 ctx['odoo_layer'] = 'repository'
-    sts = generate_readme(ctx)
-    sys.exit(sts)
+    return generate_readme(ctx)

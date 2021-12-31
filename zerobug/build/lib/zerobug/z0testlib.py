@@ -16,7 +16,7 @@ from os0 import os0
 import magic
 
 
-__version__ = "1.0.4.4"
+__version__ = "1.0.5.1"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1540,29 +1540,34 @@ class Z0testOdoo(object):
                 src_repo_path = False
         return src_repo_path
 
-    def build_odoo_env(self, ctx, version, hierarchy=None):
+    def build_odoo_env(self, ctx, version,
+                       hierarchy=None, name=None, retodoodir=None):
         """Build a simplified Odoo directory tree
-        version: 14.0, 13.0, ..., 7.0, 6.1
+        version: 15.0, 14.0, 13.0, ..., 7.0, 6.1
+        name: name of odoo dir (default equal to version)
         hierarchy: flat,tree,server (def=flat)
         """
-        if version in ('10.0', '11.0', '12.0', '13.0', '14.0'):
+        name = name or version
+        if version in ('10.0', '11.0', '12.0', '13.0', '14.0', '15.0'):
             if hierarchy == 'tree':
-                odoo_home = os.path.join(version, 'odoo', 'odoo')
+                odoo_home = os.path.join(name, 'odoo', 'odoo')
             else:
-                odoo_home = os.path.join(version, 'odoo')
+                odoo_home = os.path.join(name, 'odoo')
             script = 'odoo-bin'
         elif version in ('6.1', '7.0', '8.0', '9.0'):
             if hierarchy == 'server':
-                odoo_home = os.path.join(version, 'server', 'openerp')
+                odoo_home = os.path.join(name, 'server', 'openerp')
             else:
-                odoo_home = os.path.join(version, 'openerp')
+                odoo_home = os.path.join(name, 'openerp')
             script = 'openerp-server'
         else:
             raise KeyError('Invalid Odoo version')
-        os_tree = [version,
-                   os.path.join(version, 'addons'),
+        os_tree = [name,
+                   os.path.join(name, 'addons'),
                    odoo_home,
-                   os.path.join(odoo_home, 'addons')]
+                   os.path.join(odoo_home, 'addons'),
+                   os.path.join(name, '.git'),
+                   ]
         root = Z0test().build_os_tree(ctx, os_tree)
         RELEASE_PY = '''
 RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
@@ -1573,14 +1578,87 @@ RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
 version_info = (%s, %s, 0, 'final', 0, '')
 version = '.'.join(map(str, version_info[:2])) + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
 series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
-        with open(os.path.join(root, odoo_home, 'release.py'), 'w') as fd:
+        if name[0] not in ('~', '/') and not name.startswith('./'):
+            odoo_root = os.path.join(root, name)
+        else:
+            odoo_root = name
+        odoo_home = os.path.join(os.path.dirname(odoo_root), odoo_home)
+        with open(os.path.join(odoo_home, 'release.py'), 'w') as fd:
             versions = version.split('.')
             fd.write(RELEASE_PY % (versions[0], versions[1]))
-        with open(os.path.join(root, odoo_home, '__init__.py'), 'w') as fd:
+        with open(os.path.join(odoo_home, '__init__.py'), 'w') as fd:
             fd.write('import release\n')
-        with open(os.path.join(root, version, script), 'w') as fd:
+        with open(os.path.join(odoo_root, script), 'w') as fd:
             fd.write('\n')
+        with open(os.path.join(odoo_root, '.travis.yml'), 'w') as fd:
+            fd.write('\n')
+        with open(os.path.join(odoo_root, 'README.rst'), 'w') as fd:
+            fd.write('\n')
+        if retodoodir:
+            return odoo_root
         return root
+
+    def create_repo(self, ctx, root, reponame, version,
+                    hierarchy=None, name=None, repotype=None):
+        REPOTYPES = {
+            'oca': {
+                'd': ['.git',],
+                'f': ['README.md', '.travis.yml'],
+            },
+            'zero': {
+                'd': ['egg-info', '.git'],
+                'f': ['README.rst', '.travis.yml'],
+            },
+        }
+        name = name or version
+        repotype = repotype or 'oca'
+        odoo_root = os.path.join(root, name)
+        if not os.path.isdir(odoo_root):
+            odoo_root = root
+        repodir = os.path.join(odoo_root, reponame)
+        if not os.path.isdir(repodir):
+            os.mkdir(repodir)
+        for ldir in REPOTYPES.get(repotype, {}).get('d', []):
+            path = os.path.join(repodir, ldir)
+            if not os.path.isdir(path):
+                os.mkdir(path)
+        for fn in REPOTYPES.get(repotype, {}).get('f', []):
+            path = os.path.join(repodir, fn)
+            if not os.path.isfile(path):
+                open(path, 'w').close()
+        return repodir
+
+    def create_module(self, ctx, repo_root, name, version, moduletype=None):
+        MODULETYPES = {
+            'simple': {
+                'd': [],
+                'f': ['__init__.py'],
+            },
+        }
+        moduletype = moduletype or 'simple'
+        moduledir = os.path.join(repo_root, name)
+        if not os.path.isdir(moduledir):
+            os.mkdir(moduledir)
+        majver = int(version.split('.')[0])
+        if majver < 10:
+            ffn = os.path.join(moduledir, '__openerp__.py')
+        else:
+            ffn = os.path.join(moduledir, '__manifest__.py')
+        with open(ffn, 'w') as fd:
+            fd.write(str({
+                'name': name,
+                'version': version,
+                'summary': 'This module is a fake, just for test!',
+            }))
+        for ldir in MODULETYPES.get(moduletype, {}).get('d', []):
+            path = os.path.join(moduledir, ldir)
+            if not os.path.isdir(path):
+                os.mkdir(path)
+        for fn in MODULETYPES.get(moduletype, {}).get('f', []):
+            path = os.path.join(moduledir, fn)
+            if not os.path.isfile(path):
+                open(path, 'w').close()
+        return moduledir
 
     def real_git_clone(self, remote, reponame, branch, odoo_path):
         odoo_url = 'https://github.com/%s/%s.git' % (remote, reponame)

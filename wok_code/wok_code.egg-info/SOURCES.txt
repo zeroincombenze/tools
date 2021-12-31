@@ -9,8 +9,6 @@ wok_code/cvt_script.man
 wok_code/dist_pkg
 wok_code/eval_gtin.py
 wok_code/gen_addons_table.py
-wok_code/gen_readme.py
-wok_code/license_mgnt.py
 wok_code/makepo_it.py
 wok_code/odoo_dependencies.py
 wok_code/odoo_translation.py
@@ -20,7 +18,6 @@ wok_code/pull_repo.py
 wok_code/test_filepo.py
 wok_code/to_oca.2p8
 wok_code/to_pep8.2p8
-wok_code/to_pep8.py
 wok_code/to_zero.2p8
 wok_code/topep8
 wok_code/wget_odoo_repositories.py
@@ -33,5 +30,8 @@ wok_code.egg-info/requires.txt
 wok_code.egg-info/top_level.txt
 wok_code/scripts/__init__.py
 wok_code/scripts/cvt_csv_2_rst.py
+wok_code/scripts/gen_readme.py
+wok_code/scripts/license_mgnt.py
 wok_code/scripts/main.py
 wok_code/scripts/setup.info
+wok_code/scripts/to_pep8.py

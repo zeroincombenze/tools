@@ -24,18 +24,18 @@ optional arguments:
 from __future__ import print_function, unicode_literals
 import os
 import sys
-from io import StringIO
+from io import BytesIO
 import time
 import csv
 from os0 import os0
-from python_plus import _c, _u
+from python_plus import _b, _c, _u
 try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
 
 
-__version__ = "1.0.4.1"
+__version__ = "1.0.5"
 
 msg_time = time.time()
 
@@ -87,7 +87,7 @@ def convert_text(ctx, src_string):
     ctr = 0
     col_size = {}
     text = ''
-    csv_fd = StringIO(src_string)
+    csv_fd = BytesIO(_b(src_string))
     hdr_read = False
     csv_obj = csv.DictReader(csv_fd,
                              fieldnames=[],
@@ -106,7 +106,7 @@ def convert_text(ctx, src_string):
             for p in csv_obj.fieldnames:
                 col_size[p] = max(col_size[p], min(len(row[p]), max_col_width))
     csv_fd.close()
-    csv_fd = StringIO(src_string)
+    csv_fd = BytesIO(_b(src_string))
     hdr_read = False
     csv_obj = csv.DictReader(csv_fd,
                              fieldnames=[],

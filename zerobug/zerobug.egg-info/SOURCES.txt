@@ -16,6 +16,7 @@ zerobug/_travis/__init__.py
 zerobug/_travis/travis.yml
 zerobug/_travis/travis_after_tests_success
 zerobug/_travis/travis_install_env
+zerobug/_travis/travis_install_env.bak
 zerobug/_travis/travis_run_pypi_tests
 zerobug/_travis/cfg/coveragerc
 zerobug/_travis/cfg/travis_run_flake8.cfg
