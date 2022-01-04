@@ -11,7 +11,7 @@ search or browse.
 Functions with sql call are in test_common.py file.
 """
 
-from __future__ import print_function,unicode_literals
+from __future__ import print_function, unicode_literals
 # from past.builtins import basestring
 from python_plus import unicodes
 
@@ -21,7 +21,7 @@ import base64
 import csv
 from openpyxl import load_workbook
 
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 
 
 class Z0bugOdoo(object):

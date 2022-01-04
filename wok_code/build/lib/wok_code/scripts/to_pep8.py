@@ -68,12 +68,14 @@ import yaml
 from subprocess import PIPE, Popen
 
 import license_mgnt
-from os0 import os0
 try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
-
+try:
+    from python_plus.python_plus import _c, _u
+except ImportError:
+    from python_plus import _c, _u
 
 __version__ = "1.0.5"
 
@@ -106,8 +108,8 @@ class topep8():
         if ctx['fmt_line']:
             source = self.hard_format(src_filepy)
         else:
-            with open(src_filepy, 'rb') as fd:
-                source = fd.read()
+            with open(src_filepy, 'r') as fd:
+                source = _u(fd.read())
         self.lines = source.split('\n')
         self.setup_py_header(ctx)
         if ctx['opt_gpl']:
@@ -180,7 +182,7 @@ class topep8():
             pass
 
         with open(src_filepy, 'r') as fd:
-            lines = fd.read()
+            lines = _u(fd.read())
             text_tgt = ''
             for line in lines.split('\n'):
                 while len(line) > 79:
@@ -275,8 +277,8 @@ class topep8():
         else:
             req_copyrights = []
         if os.path.isfile('./egg-info/authors.txt'):
-            with open('./egg-info/authors.txt', 'rb') as fd:
-                for line in fd.read().split('\n'):
+            with open('./egg-info/authors.txt', 'r') as fd:
+                for line in _u(fd.read()).split('\n'):
                     copy_found, auth, website = self.extract_website_from_line(
                         line)
                     if auth and auth not in req_copyrights:
@@ -289,8 +291,8 @@ class topep8():
             elif org == 'powerp':
                 info_fn = './egg-info/authors.txt'
                 if os.path.isfile(info_fn):
-                    with open(info_fn, 'rb') as fd:
-                        authors = fd.read()
+                    with open(info_fn, 'r') as fd:
+                        authors = _u(fd.read())
                         do_rewrite = False
                         for line in AUTHORS_TEMPLATE.split('\n'):
                             copy_found, auth, website = \
@@ -302,12 +304,12 @@ class topep8():
                                 authors += '\n'
                                 do_rewrite = True
                     if do_rewrite:
-                        with open(info_fn, 'wb') as fd:
-                            fd.write(authors)
+                        with open(info_fn, 'w') as fd:
+                            fd.write(_c(authors))
                 info_fn = './egg-info/contributors.txt'
                 if os.path.isfile(info_fn):
                     with open(info_fn) as fd:
-                        authors = fd.read()
+                        authors = _u(fd.read())
                         do_rewrite = False
                         for line in CONTRIBUTORS_TEMPLATE.split('\n'):
                             email = False
@@ -320,8 +322,8 @@ class topep8():
                                 authors += '\n'
                                 do_rewrite = True
                     if do_rewrite:
-                        with open(info_fn, 'wb') as fd:
-                            fd.write(authors)
+                        with open(info_fn, 'w') as fd:
+                            fd.write(_c(authors))
 
         copy_found = []
         lineno = 0
@@ -573,7 +575,7 @@ class topep8():
             'rbrace': re.compile(r'\]'),
             'lbracket': re.compile(r'\{'),
             'rbracket': re.compile(r'\}'),
-            'dot': re.compile(r'..'),
+            'dot': re.compile(r'\.'),
             'comma': re.compile(r','),
             'colon': re.compile(r':'),
             'assign': re.compile(r'='),
@@ -1703,8 +1705,8 @@ def parse_yaml(ctx, src_file, dst_file):
         }
         yaml_data['script'] = ['travis_run_tests']
         yaml_data['after_success'] = ['travis_after_tests_success']
-    with open(src_file, 'rb') as fd:
-        lines = fd.read().split('\n')
+    with open(src_file, 'r') as fd:
+        lines = _u(fd.read()).split('\n')
         cont = 0
         for line in lines:
             if not line or line.startswith('#'):
@@ -1738,12 +1740,12 @@ def save_file(ctx, src_file, dst_file, text_tgt):
             print("Writing %s" % dst_file)
         if dst_file != src_file:
             with open(dst_file, 'w') as fd:
-                fd.write(os0.b(text_tgt))
+                fd.write(_c(text_tgt))
         else:
             tmpfile = '%s.tmp' % dst_file
             bakfile = '%s.bak' % dst_file
             with open(tmpfile, 'w') as fd:
-                fd.write(os0.b(text_tgt))
+                fd.write(_c(text_tgt))
             if os.path.isfile(bakfile):
                 os.remove(bakfile)
             os.rename(src_file, bakfile)

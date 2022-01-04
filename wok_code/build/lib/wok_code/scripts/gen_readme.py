@@ -103,7 +103,6 @@ try:
     from clodoo.clodoo import build_odoo_param
 except ImportError:
     from clodoo import build_odoo_param
-
 try:
     from python_plus.python_plus import _b, _c, _u
 except ImportError:
@@ -217,11 +216,14 @@ RST2HTML_GRYMB = {
     '|FatturaPA|': '<span class="fa fa-euro"/>',
 }
 
+
 def print_red_message(text):
     print('%s%s%s' % (RED, text, CLEAR))
 
+
 def print_green_message(text):
     print('%s%s%s' % (GREEN, text, CLEAR))
+
 
 def get_full_fn(ctx, src_path, filename):
     if src_path.startswith('./'):
@@ -236,7 +238,7 @@ def get_full_fn(ctx, src_path, filename):
     if (os.path.basename(os.path.dirname(full_fn)) == 'docs' and
             not os.path.isdir(os.path.dirname(full_fn))):
         full_fn = os.path.join(os.path.dirname(os.path.dirname(full_fn)),
-                               '../egg-info',
+                               'egg-info',
                                filename)
     return full_fn
 
@@ -252,7 +254,7 @@ def iter_template_path(debug_mode=None, body=None):
                      '%s/devel/pypi/tools/templates' % os.environ['HOME'],
                      '%s/devel/venv/bin/templates' % os.environ['HOME'],
                      '%s/devel/templates' % os.environ['HOME']):
-        if '/devel/pypi/tools/'in src_path and not debug_mode:
+        if '/devel/pypi/tools/' in src_path and not debug_mode:
             continue
         elif '/devel/venv/bin/templates' in src_path and debug_mode:
             continue
@@ -1103,18 +1105,18 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                     for module in ctx['pypi_modules'].split(' '):
                         # Up to global pypi root
                         module_dir = os.path.abspath(
-                            os.path.join(os.getcwd(), '../..', '..'))
+                            os.path.join(os.getcwd(), '..', '..'))
                         while os.path.isdir(os.path.join(module_dir, module)):
                             # down to module root
                             module_dir = os.path.join(module_dir, module)
-                        if os.path.isdir(os.path.join(module_dir, '../docs')):
+                        if os.path.isdir(os.path.join(module_dir, 'docs')):
                             for name in ctx['pypi_sects'].split(' '):
                                 name = 'rtd_%s' % name
                                 src = os.path.join(
-                                    module_dir, '../docs', '%s.rst' % name)
+                                    module_dir, 'docs', '%s.rst' % name)
                                 if os.path.isfile(src):
                                     tgt = os.path.join(
-                                        '..', 'pypi_%s_%s.rst' % (module, name))
+                                        '.', 'pypi_%s_%s.rst' % (module, name))
                                     copyfile(src, tgt)
                                     target += '\n   pypi_%s_%s' % (module,
                                                                    name)
@@ -1294,17 +1296,17 @@ def read_setup(ctx):
     ctx['history-summary'] = ''
     if ctx['odoo_layer'] == 'repository':
         ctx['histories'] = ''
-        for root, dirs, files in os.walk('../../'):
+        for root, dirs, files in os.walk('../'):
             for dir in dirs:
                 if dir == 'tools':
                     continue
-                full_fn = os.path.join(root, dir, '../egg-info', 'history.rst')
+                full_fn = os.path.join(root, dir, 'egg-info', 'history.rst')
                 if os.path.isfile(full_fn):
                     read_history(ctx, full_fn, module=os.path.basename(dir))
         ctx['histories'] = sort_history(ctx['histories'])
         ctx['history-summary'] = sort_history(ctx['history-summary'])
     else:
-        full_fn = os.path.join('..', 'egg-info', 'history.rst')
+        full_fn = os.path.join('.', 'egg-info', 'history.rst')
         if os.path.isfile(full_fn):
             with open(full_fn, 'r') as fd:
                 read_history(ctx, full_fn)
@@ -1395,7 +1397,7 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         break
                 except KeyError:
                     pass
-                full_fn = os.path.join(root, '../egg-info', 'history.rst')
+                full_fn = os.path.join(root, 'egg-info', 'history.rst')
                 if os.path.isfile(full_fn):
                     with open(full_fn, 'r') as fd:
                         ctx['histories'] += tail(
@@ -1511,6 +1513,7 @@ def manifest_item(ctx, item):
         target = "    '%s': %s,\n" % (item, text)
     return target
 
+
 def read_dependecies_license(ctx):
     def_license = 'LGPL-3' if ctx['odoo_majver'] > 8 else 'AGPL-3'
     license = ctx['manifest'].get('license', def_license)
@@ -1534,6 +1537,7 @@ def read_dependecies_license(ctx):
                 (license, module)
             )
     ctx['manifest'] = saved_manifest
+
 
 def manifest_contents(ctx):
     full_fn = ctx['manifest_filename']
@@ -1814,10 +1818,10 @@ def write_egg_info(ctx):
                     fd.write(_c(ctx['authors']))
                 fd.write(_c(ctx[section.lower()]))
 
-    if os.path.isdir('../egg-info'):
+    if os.path.isdir('./egg-info'):
         for section in ('authors', 'contributors',
                         'description', 'descrizione', 'history'):
-            write_file('../egg-info', section)
+            write_file('./egg-info', section)
     elif os.path.isdir('./readme'):
         for section in ('CONTRIBUTORS', 'DESCRIPTION'):
             write_file('./readme', section)
@@ -2120,13 +2124,13 @@ def main(cli_args=None):
                     os.path.isfile(os.path.join(ctx['path_name'],
                                                 '__manifest__.py')) and
                     os.path.isfile(os.path.join(ctx['path_name'],
-                                                '../__init__.py'))):
+                                                '__init__.py'))):
                 ctx['odoo_layer'] = 'module'
             elif (ctx['odoo_majver'] < 10 and
                     os.path.isfile(os.path.join(ctx['path_name'],
                                                 '__openerp__.py')) and
                     os.path.isfile(os.path.join(ctx['path_name'],
-                                                '../__init__.py'))):
+                                                '__init__.py'))):
                 ctx['odoo_layer'] = 'module'
             elif (ctx['odoo_majver'] >= 10 and
                     os.path.isdir(os.path.join(ctx['path_name'],
@@ -2146,7 +2150,7 @@ def main(cli_args=None):
                 ctx['odoo_layer'] = 'repository'
         else:
             if os.path.isfile(os.path.join(ctx['path_name'],
-                                           '../../setup.py')):
+                                           '../setup.py')):
                 ctx['odoo_layer'] = 'module'
             else:
                 ctx['odoo_layer'] = 'repository'

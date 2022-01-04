@@ -25,7 +25,7 @@ else:
     print('No Odoo environment found!')
     sys.exit(0)
 
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 
 
 class Z0bugBaseCase(test_common.BaseCase):
@@ -76,7 +76,7 @@ class Z0bugBaseCase(test_common.BaseCase):
         if int(release.major_version.split('.')[0]) < 8:
             ir_model = self.registry(model)
             return ir_model.browse(self.cr, self.uid,
-                ir_model.search(self.cr, self.uid, args))
+                                   ir_model.search(self.cr, self.uid, args))
         return self.env[model].search(args)
 
     def ref_id(self, xref):
@@ -207,7 +207,7 @@ class Z0bugBaseCase(test_common.BaseCase):
         return xref_id
 
     def bind_fields(self, model, vals, company_id,
-                parent_id=None, parent_model=None):
+                    parent_id=None, parent_model=None):
         """TODO: write implementation"""
         return vals
 

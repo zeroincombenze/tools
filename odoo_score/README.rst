@@ -1,6 +1,6 @@
 
 ================
-odoo_score 1.0.5
+odoo_score 1.0.6
 ================
 
 
@@ -150,6 +150,16 @@ Current development version
 History
 -------
 
+1.0.5.1 (2021-12-23)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] python3 compatibility
+
+1.0.5 (2021-12-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.2.1 (2021-08-30)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -197,7 +207,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~
 
 [IMP] odoo_shell.py: new unlink_ddt_from_invoice function
-
 
 
 |
@@ -287,6 +296,8 @@ Last Update / Ultimo aggiornamento: 2021-12-05
 Last Update / Ultimo aggiornamento: 2021-12-11
 Last Update / Ultimo aggiornamento: 2021-12-18
 Last Update / Ultimo aggiornamento: 2021-12-19
+Last Update / Ultimo aggiornamento: 2021-12-20
+Last Update / Ultimo aggiornamento: 2021-12-24
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -320,7 +331,7 @@ Last Update / Ultimo aggiornamento: 2021-12-19
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-20
+Last Update / Ultimo aggiornamento: 2022-01-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

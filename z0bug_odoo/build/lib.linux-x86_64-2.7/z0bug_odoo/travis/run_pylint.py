@@ -12,9 +12,14 @@ import inspect
 import click
 import pylint.lint
 
-import travis_helpers
-from getaddons import get_modules_changed, is_module
-from git_run import GitRun
+if sys.version_info[0] == 2:
+    import travis_helpers
+    from getaddons import get_modules_changed, is_module
+    from git_run import GitRun
+else:
+    from . import travis_helpers
+    from .getaddons import get_modules_changed, is_module
+    from .git_run import GitRun
 
 try:
     import ConfigParser

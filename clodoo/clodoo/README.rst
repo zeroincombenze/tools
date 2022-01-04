@@ -477,6 +477,7 @@ Last Update / Ultimo aggiornamento: 2021-12-05
 Last Update / Ultimo aggiornamento: 2021-12-11
 Last Update / Ultimo aggiornamento: 2021-12-19
 Last Update / Ultimo aggiornamento: 2021-12-21
+Last Update / Ultimo aggiornamento: 2021-12-24
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -485,16 +486,21 @@ Last Update / Ultimo aggiornamento: 2021-12-21
 :alt: License: AGPL-3
 :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
 :alt: License: OPL
-:target: https://coveralls.io/github/zeroincombenze/tools?branch=0.3
+:target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
 :alt: Coverage
-:target: https://codecov.io/gh/zeroincombenze/tools/branch/0.3
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
+:target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
 :alt: Codecov
-:target: https://wiki.zeroincombenze.org/en/Odoo/0.3/dev
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
+:target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
 :alt: Technical Documentation
-:target: https://wiki.zeroincombenze.org/it/Odoo/0.3/man
-:target: https://erp0.zeroincombenze.it
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
+:target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
+:target: https://erp1.zeroincombenze.it
 :alt: Try Me
-:target: https://codecov.io/gh/OCA/tools/branch/0.3
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
+:target: https://codecov.io/gh/OCA/tools/branch/1.0
 :target: https://odoo-italia.org
 :alt: Odoo Italia Associazione
 :target: https://www.zeroincombenze.it/
@@ -510,7 +516,7 @@ Last Update / Ultimo aggiornamento: 2021-12-21
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-24
+Last Update / Ultimo aggiornamento: 2022-01-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -12,12 +12,11 @@ The available tools are:
 * cvt_csv_2_xml.py: convert csv file into xml file
 * cvt_script: parse bash script and convert to meet company standard
 * gen_readme.py: generate documentation files, mainly README.rst
-* odoo_dependency.py: show odoo depencies and/or Odoo module tree
+* odoo_dependency.py: show odoo dependencies and/or Odoo module tree
 * odoo_translation.py: manage Odoo translation
 * pep8: parse source .py file to meet pep8 and convert across Odoo versions
 * please: developer shell
 * wget_odoo_repositories.py: get repository names from github.com
-
 
 please: developer shell
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -301,7 +300,7 @@ It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-23
+Last Update / Ultimo aggiornamento: 2022-01-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

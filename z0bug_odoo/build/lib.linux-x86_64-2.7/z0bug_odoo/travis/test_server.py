@@ -11,16 +11,22 @@ import subprocess
 import sys
 from six import string_types
 from zerobug import z0testodoo
-from .getaddons import (
-    get_addons, get_modules, get_modules_info, get_dependencies,
-    get_applications_with_dependencies, get_localizations_with_dependents)
-from .travis_helpers import success_msg, fail_msg, print_flush
+if sys.version_info[0] == 2:
+    from getaddons import (
+        get_addons, get_modules, get_modules_info, get_dependencies,
+        get_applications_with_dependencies, get_localizations_with_dependents)
+    from travis_helpers import success_msg, fail_msg, print_flush
+else:
+    from .getaddons import (
+        get_addons, get_modules, get_modules_info, get_dependencies,
+        get_applications_with_dependencies, get_localizations_with_dependents)
+    from .travis_helpers import success_msg, fail_msg, print_flush
 try:
     import ConfigParser
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -174,12 +180,17 @@ def get_build_dir(odoo_full, version=None):
                 break
         return lpath
 
+    VERSIONS = ('15.0', '14.0', '13.0', '12.0', '11.0',
+                '10.0', '9.0', '8.0', '7.0', '6.1')
     items = odoo_full.split('/')
-    odoo_version = items[1] or version or os.environ.get("VERSION")
+    if items[1] in VERSIONS:
+        odoo_version = items[1]
+    else:
+        odoo_version = version or os.environ.get("VERSION")
     git_org = items[0]
+    lpath = False
     if not odoo_version or odoo_version == "auto":
-        for version in ('15.0', '14.0', '13.0', '12.0', '11.0',
-                        '10.0', '9.0', '8.0', '7.0', '6.1'):
+        for version in VERSIONS:
             travis_base_dir = z0testodoo.get_local_odoo_path(
                 git_org, 'OCB', version, home=os.environ['HOME'])
             if travis_base_dir:

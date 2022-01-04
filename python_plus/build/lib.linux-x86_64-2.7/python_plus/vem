@@ -7,12 +7,13 @@
 #
 # -----------------------------------------------------------------------------
 # PIP features truth table depending on pip version (21.0 + only python3):
-# option                                    |  18- | 18.0 | 19.0 | 20.0 | 21.0
-# --disable-pip-version-check               |  OK  |  OK  |  OK  |  OK  |  OK
-# --no-python-version-warning               |  OK  |  OK  |  OK  |  OK  |  OK
-# --no-warn-conflicts                       |   X  |  OK  |  OK  |  OK  |  OK
-# --use-features=(2020-resolver, fast-deps) |   X  |  OK  |  OK  |  no  |   X
-# --use-features=in-tree-build              |   X  |   X  |   X  |   X  |  OK
+# option                        |  18- | 18.0 | 19.0 | 20.0 | 21.0 | 22.0
+# --disable-pip-version-check   |  OK  |  OK  |  OK  |  OK  |  OK  |  OK
+# --no-python-version-warning   |  OK  |  OK  |  OK  |  OK  |  OK  |  OK
+# --no-warn-conflicts           |   X  |  OK  |  OK  |  OK  |  OK  |  OK
+# --use-features=2020-resolver  |   X  |  OK  |  OK  |  no  |   X  |   X
+# --use-features=fast-deps      |   X  |  OK  |  OK  |  no  |   X  |   X
+# --use-features=in-tree-build  |   X  |   X  |   X  |   X  |  OK  |   X
 # -----------------------------------------------------------------------------
 # OK -> Use feature / X -> Feature unavailable / no -> Do use use
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -49,7 +50,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.5
+__version__=1.0.6
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -269,6 +270,7 @@ pip_install() {
   [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+  [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
   [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER $popts ..." && PRINTED_PIPVER=1
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
@@ -301,11 +303,11 @@ pip_install() {
         run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
         x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep -Eo "\./README.rst")
         # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
-        [[ $PIPVER -ge 21 ]] && run_traced "$PIP install $tmpdir/$pfn --use-feature=in-tree-build $popts" || run_traced "$PIP install $tmpdir/$pfn $popts"
+        run_traced "$PIP install $tmpdir/$pfn $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         run_traced "rm -fR $tmpdir/$pfn"
       elif [[ $opt_debug -eq 3 ]]; then
-        [[ $PIPVER -ge 21 ]] && run_traced "$PIP install $(dirname $srcdir) --use-feature=in-tree-build $popts" || run_traced "$PIP install $(dirname $srcdir) $popts"
+        run_traced "$PIP install $(dirname $srcdir) $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
         pushd $srcdir/.. >/dev/null
@@ -722,8 +724,11 @@ check_installed_pkgs() {
   [[ $opt_verbose -gt 2 ]] && echo ">>> check_installed_pkgs()"
   local mime p p2 popts x
   check_4_needing_pkgs
-  [[ $PIPVER -eq 19 ]] && popts="--use-feature=2020-resolver" || popts=""
-  [[ $opt_verbose -lt 2 ]] && popts="-q"
+  [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
+  [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
+  [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+  [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
+  [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
     [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
@@ -1123,10 +1128,11 @@ do_venv_pip() {
   if [[ $cmd == "uninstall" ]]; then
     pip_uninstall "$pkg"
   else
-    [[ $opt_alone -ne 0 && ! $pkg =~ ^- ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
+    [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
     [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
     [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
-    [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
+    [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
+    [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
     if [[ $cmd =~ (info|show) ]]; then
       pkg=$(get_pkg_wo_version $pkg)
       run_traced "$PIP show $pkg"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=1.3.36.2
+# __version__=1.3.37
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 THIS=$(basename "$0")
