@@ -42,45 +42,6 @@ Travis emulator usage
                           test with specific python versions (comma separated)
      -Z --zero            use local zero-tools
 
-
-Tree directory
-~~~~~~~~~~~~~~
-
-While travis is running this is the tree directory:
-
-::
-
-    ${HOME}
-    ┣━━ build                       # build root (by TravisCI)
-    ┃    ┣━━ ${TRAVIS_BUILD_DIR}    # testing project repository (by TravisCI)
-    ┃    ┗━━ ${ODOO_REPO}           # Odoo or OCA/OCB repository to check with    (1) (2)
-    ┃
-    ┣━━ ${ODOO_REPO}-${VERSION}     # symlnk of ${HOME}/build/{ODOO_REPO}         (1)
-    ┃
-    ┣━━ dependencies                # Odoo dependencies                           (3)
-    ┃
-    ┗━━ tools                       # clone of Zeroincombenze tools               (3) (4)
-         ┃
-         ┣━━ zerobug                # testing library
-         ┃       ┗━━ _travis        # testing commands
-         ┗━━ z0bug_odoo             # Odoo testing library
-                 ┗━━ _travis        # testing commands
-
-    (1) Directory with Odoo or OCA/OCB repository to check compatibility of testing project
-    (2) If testing project is OCB, travis_install_env ignore this directory
-    (3) Done by then following statements in .travis.yml:
-        - travis_install_env
-        Above statements replace the OCA statements:
-        - travis_install_nightly
-    (4) Done by following statements in .travis.yml::
-        - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
-        - \${HOME}/tools/install_tools.sh -qp
-        - source ${HOME}/dev/activate_tools
-        Above statements replace OCA following statements:
-        - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
-        - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-
-
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 

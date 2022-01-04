@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='wok_code',
-      version='1.0.4',
+      version='1.0.5',
       description='Python developers tools',
       long_description="""
 Various tools at your fingertips.
@@ -14,7 +14,7 @@ The available tools are:
 * cvt_csv_2_xml.py: convert csv file into xml file
 * cvt_script: parse bash script and convert to meet company standard
 * gen_readme.py: generate documentation files, mainly README.rst
-* odoo_dependency.py: show odoo depencies and/or Odoo module tree
+* odoo_dependency.py: show odoo dependencies and/or Odoo module tree
 * odoo_translation.py: manage Odoo translation
 * pep8: parse source .py file to meet pep8 and convert across Odoo versions
 * please: developer shell
@@ -55,11 +55,12 @@ The available tools are:
           'console_scripts': [
               'wok_code-info = wok_code.scripts.main:main',
               # 'please = wok_code.scripts.please:main',
-              # 'gen_readme.py = wok_code.scripts.gen_readme:main',
+              'gen_readme.py = wok_code.scripts.gen_readme:main',
               # 'cvt_script = wok_code.scripts.cvt_script:main',
-              'cvt_csv_2_rst = wok_code.scripts.cvt_csv_2_rst:main',
+              'cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main',
               # 'cvt_csv_2_xml = wok_code.scripts.cvt_csv_2_xml:main',
               # 'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',
+              'to_pep8.py = wok_code.scripts.to_pep8:main',
           ],
       },
       zip_safe=False)

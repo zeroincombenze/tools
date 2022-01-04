@@ -2,7 +2,7 @@ qci,description
 acc.uRB,Insoluto RiBA
 acc.VAT_rc,Reverse Charge / Inversione contabile
 acc.VAT_sp,Split Payment / Scissione pagamenti
-acc.VAT_wt,Withholding tax / Rietnuita d’acconto
+acc.VAT_wt,Withholding tax / Ritenuta d’acconto
 acc.VATpu,Undeductible VAT / IVA parzialmente indetraibile
 acc.VATu,Full Undeductible VAT / IVA totalmente indetraibile
 einvo.ind,E-invoice to individual / Fattura elettronica a privato

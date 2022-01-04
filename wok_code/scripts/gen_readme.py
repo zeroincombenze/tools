@@ -92,7 +92,7 @@ import sys
 from datetime import datetime
 from shutil import copyfile
 from lxml import etree
-import license_mgnt
+from . import license_mgnt
 from python_plus import unicodes
 from os0 import os0
 try:
@@ -103,16 +103,15 @@ try:
     from clodoo.clodoo import build_odoo_param
 except ImportError:
     from clodoo import build_odoo_param
-
 try:
-    from python_plus.python_plus import _b
+    from python_plus.python_plus import _b, _c, _u
 except ImportError:
-    from python_plus import _b
+    from python_plus import _b, _c, _u
 # import pdb
 standard_library.install_aliases()
 
 
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -217,11 +216,14 @@ RST2HTML_GRYMB = {
     '|FatturaPA|': '<span class="fa fa-euro"/>',
 }
 
+
 def print_red_message(text):
     print('%s%s%s' % (RED, text, CLEAR))
 
+
 def print_green_message(text):
     print('%s%s%s' % (GREEN, text, CLEAR))
+
 
 def get_full_fn(ctx, src_path, filename):
     if src_path.startswith('./'):
@@ -247,12 +249,12 @@ def iter_template_path(debug_mode=None, body=None):
                      './readme',
                      './docs',
                      '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
-                     '%s/devel/venv/bin/templates/${p}' % os.environ['HOME'],
                      '%s/devel/templates/${p}' % os.environ['HOME'],
                      '%s/devel/pypi/tools/templates' % os.environ['HOME'],
-                     '%s/devel/venv/bin/templates' % os.environ['HOME'],
-                     '%s/devel/templates' % os.environ['HOME']):
-        if '/devel/pypi/tools/'in src_path and not debug_mode:
+                     '%s/devel/templates' % os.environ['HOME'],
+                     '%s/devel/venv/bin/templates/${p}' % os.environ['HOME'],
+                     '%s/devel/venv/bin/templates' % os.environ['HOME']):
+        if '/devel/pypi/tools/' in src_path and not debug_mode:
             continue
         elif '/devel/venv/bin/templates' in src_path and debug_mode:
             continue
@@ -361,7 +363,7 @@ def get_default_prerequisites(ctx):
 '''
     if os.path.isfile(os.path.join(ctx['path_name'], 'requirements.txt')):
         fd = open(os.path.join(ctx['path_name'], 'requirements.txt'), 'rU')
-        for pkg in fd.read().split('\n'):
+        for pkg in _u(fd.read()).split('\n'):
             if pkg and pkg[0] != '#':
                 text += '* %s\n' % pkg.strip()
         fd.close()
@@ -459,7 +461,7 @@ def totroff(text, state=None):
     return state, text
 
 
-def tohtml(text, state=None):
+def tohtml(ctx, text, state=None):
     if not text:
         return state, text
     state = state or {}
@@ -1149,7 +1151,7 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
     if in_fmt == 'rst' and out_fmt == 'html':
-        state, target = tohtml(target, state=state)
+        state, target = tohtml(ctx, target, state=state)
     elif in_fmt == 'rst' and out_fmt == 'troff':
         state, target = totroff(target, state=state)
     else:
@@ -1193,10 +1195,10 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
     if full_fn.endswith('.csv'):
         full_fn_csv = full_fn
         full_fn = '%s.rst' % full_fn_csv[: -4]
-        os.system('cvt_csv_2_rst -b %s -q %s %s' % (
+        os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
             ctx['branch'], full_fn_csv, full_fn))
     with open(full_fn, 'rU') as fd:
-        source = fd.read().decode('utf-8')
+        source = _u(fd.read())
     if full_fn_csv:
         os.unlink(full_fn)
     if len(source) and filename == 'acknowledges.txt':
@@ -1222,7 +1224,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         header = ''
         if full_hfn:
             fd = open(full_hfn, 'rU')
-            header = os0.u(fd.read())
+            header = _u(fd.read())
             fd.close()
             if len(header) and ctx['trace_file']:
                 mark = '.. !! from "%s"\n\n' % full_hfn
@@ -1231,7 +1233,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         footer = ''
         if full_ffn:
             fd = open(full_ffn, 'rU')
-            footer = os0.u(fd.read())
+            footer = _u(fd.read())
             fd.close()
             if len(footer) and ctx['trace_file']:
                 mark = '.. !! from "%s"\n\n' % full_ffn
@@ -1258,12 +1260,12 @@ def read_history(ctx, full_fn, module=None):
     if module:
         with open(full_fn, 'r') as fd:
             ctx['histories'] += tail(
-                os0.u(fd.read()),
+                _u(fd.read()),
                 max_days=60,
                 module=module)
     with open(full_fn, 'r') as fd:
         ctx['history-summary'] += tail(
-            os0.u(fd.read()),
+            _u(fd.read()),
             max_ctr=1,
             max_days=15,
             module=module)
@@ -1399,11 +1401,11 @@ def read_all_manifests(ctx, path=None, module2search=None):
                 if os.path.isfile(full_fn):
                     with open(full_fn, 'r') as fd:
                         ctx['histories'] += tail(
-                            os0.u(fd.read()),
+                            _u(fd.read()),
                             max_days=180, module=module_name)
                         with open(full_fn, 'r') as fd:
                             ctx['history-summary'] += tail(
-                                os0.u(fd.read()),
+                                _u(fd.read()),
                                 max_ctr=1,
                                 max_days=15,
                                 module=module_name)
@@ -1511,6 +1513,7 @@ def manifest_item(ctx, item):
         target = "    '%s': %s,\n" % (item, text)
     return target
 
+
 def read_dependecies_license(ctx):
     def_license = 'LGPL-3' if ctx['odoo_majver'] > 8 else 'AGPL-3'
     license = ctx['manifest'].get('license', def_license)
@@ -1535,12 +1538,13 @@ def read_dependecies_license(ctx):
             )
     ctx['manifest'] = saved_manifest
 
+
 def manifest_contents(ctx):
     full_fn = ctx['manifest_filename']
     source = ''
     if full_fn:
         fd = open(full_fn, 'rU')
-        source = os0.u(fd.read())
+        source = _u(fd.read())
         fd.close()
     target = ''
     for line in source.split('\n'):
@@ -1811,8 +1815,8 @@ def write_egg_info(ctx):
                     line = '* [IMP] Created documentation directory'
                     ctx[section] = '%s\n%s\n\n%s\n' % (header, dash, line)
                 if path == './readme' and section == 'CONTRIBUTORS':
-                    fd.write(ctx['authors'])
-                fd.write(ctx[section.lower()])
+                    fd.write(_c(ctx['authors']))
+                fd.write(_c(ctx[section.lower()]))
 
     if os.path.isdir('./egg-info'):
         for section in ('authors', 'contributors',
@@ -1901,11 +1905,11 @@ def generate_readme(ctx):
         for fn in ('./README.md', './README.rst'):
             if not os.path.isfile(fn):
                 continue
-            with open(fn, 'rbU') as fd:
+            with open(fn, 'rU') as fd:
                 (ctx['rdme_description'],
                  ctx['rdme_authors'],
                  ctx['rdme_contributors']) = read_purge_readme(
-                    ctx, os0.u(fd.read()))
+                    ctx, _u(fd.read()))
             break
 
     ctx = read_manifest_setup(ctx)
@@ -1973,7 +1977,7 @@ def generate_readme(ctx):
     if ctx['opt_verbose']:
         print("Writing %s" % dst_file)
     with open(tmpfile, 'w') as fd:
-        fd.write(os0.b(target))
+        fd.write(_c(target))
     if os.path.isfile(bakfile):
         os.remove(bakfile)
     if os.path.isfile(dst_file):
@@ -2001,7 +2005,9 @@ def generate_readme(ctx):
                               item)
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Generate README",
                                 "© 2018-2021 by SHS-AV s.r.l.",
                                 version=__version__)
@@ -2148,5 +2154,4 @@ if __name__ == "__main__":
                 ctx['odoo_layer'] = 'module'
             else:
                 ctx['odoo_layer'] = 'repository'
-    sts = generate_readme(ctx)
-    sys.exit(sts)
+    return generate_readme(ctx)

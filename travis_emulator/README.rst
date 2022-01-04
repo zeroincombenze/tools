@@ -1,6 +1,6 @@
 
 =====================
-travis_emulator 1.0.4
+travis_emulator 1.0.5
 =====================
 
 
@@ -146,45 +146,6 @@ Travis emulator usage
                           test with specific python versions (comma separated)
      -Z --zero            use local zero-tools
 
-
-Tree directory
-~~~~~~~~~~~~~~
-
-While travis is running this is the tree directory:
-
-::
-
-    ${HOME}
-    ┣━━ build                       # build root (by TravisCI)
-    ┃    ┣━━ ${TRAVIS_BUILD_DIR}    # testing project repository (by TravisCI)
-    ┃    ┗━━ ${ODOO_REPO}           # Odoo or OCA/OCB repository to check with    (1) (2)
-    ┃
-    ┣━━ ${ODOO_REPO}-${VERSION}     # symlnk of ${HOME}/build/{ODOO_REPO}         (1)
-    ┃
-    ┣━━ dependencies                # Odoo dependencies                           (3)
-    ┃
-    ┗━━ tools                       # clone of Zeroincombenze tools               (3) (4)
-         ┃
-         ┣━━ zerobug                # testing library
-         ┃       ┗━━ _travis        # testing commands
-         ┗━━ z0bug_odoo             # Odoo testing library
-                 ┗━━ _travis        # testing commands
-
-    (1) Directory with Odoo or OCA/OCB repository to check compatibility of testing project
-    (2) If testing project is OCB, travis_install_env ignore this directory
-    (3) Done by then following statements in .travis.yml:
-        - travis_install_env
-        Above statements replace the OCA statements:
-        - travis_install_nightly
-    (4) Done by following statements in .travis.yml::
-        - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
-        - \${HOME}/tools/install_tools.sh -qp
-        - source ${HOME}/dev/activate_tools
-        Above statements replace OCA following statements:
-        - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
-        - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-
-
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
@@ -225,7 +186,6 @@ Values in configuration file are:
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
 | PYTHON_MATRIX     | Python version available to test (space separated) |                                                                                              |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
-
 
 
 
@@ -315,6 +275,11 @@ Troubleshooting
 History
 -------
 
+1.0.4.1 (2021-12-22)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] new PYPATH algoritm
+
 1.0.3.3 (2021-11-10)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -376,11 +341,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Change message level showing
-
-1.0.0.13 (2021-04-06)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: show stack execution
 
 
 
@@ -475,6 +435,10 @@ Last Update / Ultimo aggiornamento: 2021-12-09
 Last Update / Ultimo aggiornamento: 2021-12-10
 Last Update / Ultimo aggiornamento: 2021-12-11
 Last Update / Ultimo aggiornamento: 2021-12-19
+Last Update / Ultimo aggiornamento: 2021-12-21
+Last Update / Ultimo aggiornamento: 2021-12-23
+Last Update / Ultimo aggiornamento: 2021-12-24
+Last Update / Ultimo aggiornamento: 2021-12-26
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -508,7 +472,7 @@ Last Update / Ultimo aggiornamento: 2021-12-19
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-21
+Last Update / Ultimo aggiornamento: 2022-01-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -17,7 +17,7 @@ if sys.version_info[0] == 2:
 else:
     from .git_run import GitRun
 
-__version__ = '1.0.7.3'
+__version__ = '1.0.8'
 
 MANIFEST_FILES = [
     '__manifest__.py',

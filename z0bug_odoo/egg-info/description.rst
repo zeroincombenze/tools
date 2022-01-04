@@ -413,56 +413,39 @@ While travis is running this is the tree directory:
 
 ::
 
-    ${HOME}
-    |
-    |___ build (by TravisCI)
-    |    |
-    |    |___ ${TRAVIS_BUILD_DIR}  (by TravisCI)
-    |    |    # testing project repository
-    |    |
-    |    \___ ${ODOO_REPO} (by travis_install_env / travis_install_nightly of .travis.yml)
-    |         # Odoo or OCA/OCB repository to check compatibility of testing project
-    |         # same behavior of OCA MQT (2)
-    |         # if testing OCB, travis_install_env ignore this directory
-    |
-    |___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
-    |    # same behavior of OCA MQT
-    |    # symlink of ${HOME}/build/{ODOO_REPO}
-    |    # Odoo or OCA repository to check with
-    |
-    |___ dependencies (by travis_install_env / travis_install_nightly of .travis.yml)
-    |    # Odoo dependencies (2)
-    |
-    \___ tools (by .travis.yml)   # clone of this project
-         |
-         \___ maintainer-quality-tools (by .travis.yml) (1)
-              # same behavior of OCA MQT
-              |
-              \___ travis (child of maintainer-quality-tools), in PATH
+    ${HOME}                         # home of virtual environment (by TravisCI)
+    ┣━━ build                       # build root (by TravisCI)
+    ┃    ┣━━ ${TRAVIS_BUILD_DIR}    # testing repository (by TravisCI)
+    ┃    ┗━━ ${ODOO_REPO}           # odoo or OCB repository to check with       (0) (1) (2)
+    ┃
+    ┣━━ ${ODOO_REPO}-${VERSION}     # symlink of ${HOME}/build/{ODOO_REPO}       (0) (1)
+    ┃
+    ┣━━ dependencies                # Odoo dependencies of repository            (0) (3)
+    ┃
+    ┣━━ tools                       # clone of Zeroincombenze tools              (3) (4)
+    ┃    ┃
+    ┃    ┣━━ zerobug                # z0bug testing library
+    ┃    ┃       ┗━━ _travis        # testing commands
+    ┃    ┗━━ z0bug_odoo             # Odoo testing library
+    ┃            ┗━━ travis         # testing commands
+    ┃
+    ┗━━ maintainer-quality-tools    # OCA testing library
+         ┗━━ travis                 # testing commands
 
-::
-
-    (1) Done by .travis.yml in before install section with following statements:
+    (0) Same behavior of OCA MQT
+    (1) Cloned odoo/odoo or OCA/OCB repository to check compatibility of testing modules
+    (2) If the testing project is OCB, travis_install_env ignore this directory
+    (3) Done by then following statements in .travis.yml:
+        - travis_install_env
+        Above statements replace the OCA statements:
+        - travis_install_nightly
+    (4) Done by following statements in .travis.yml::
         - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
-        - mv ${HOME}/tools/maintainer-quality-tools ${HOME}
-        - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-        Above statements replace OCA statements:
+        - \${HOME}/tools/install_tools.sh -qpt
+        - source ${HOME}/devel/activate_tools -t
+        Above statements replace OCA following statements:
         - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
         - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-
-::
-
-    (2) Done by .travis.yml in install section with following statements:
-        - travis_install_env
-        Above statements replace OCA statements:
-        - travis_install_nightly
-        You can also create OCA environment using travis_install_nightly with follow statements:
-        - export MQT_TEST_MODE=oca
-        - travis_install_env
-        Or else
-        - travis_install_env oca
-
-
 
 qci
 ---
