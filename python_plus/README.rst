@@ -1,7 +1,7 @@
 
-=================
-python_plus 1.0.5
-=================
+===================
+python_plus 1.0.6.1
+===================
 
 
 
@@ -274,6 +274,26 @@ Current development version
 History
 -------
 
+1.0.6.1 (2022-01-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New function compute_date
+
+1.0.6 (2022-01-04)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+1.0.5.1 (2021-12-23)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] vem: new option base on pip version
+
+1.0.5 (2021-12-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable versione
+
 1.0.3.9 (2021-10-09)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -314,28 +334,6 @@ History
 
 * [FIX] vem: create vem with -I switch
 * [REF] vem refactoring
-
-1.0.3.1 (2021-09-23)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: added click package
-* [FIX] vem: create with devel packages
-
-1.0.2.1 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: create set right python for all ven binaries
-
-1.0.1.3 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: run in osx darwin
-* [IMP] vem: virtual environment for travis test
-
-1.0.1.3 (2021-08-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: uninstall package with if package version with ">"
 
 
 
@@ -428,6 +426,10 @@ Last Update / Ultimo aggiornamento: 2021-12-09
 Last Update / Ultimo aggiornamento: 2021-12-11
 Last Update / Ultimo aggiornamento: 2021-12-18
 Last Update / Ultimo aggiornamento: 2021-12-19
+Last Update / Ultimo aggiornamento: 2021-12-21
+Last Update / Ultimo aggiornamento: 2021-12-24
+Last Update / Ultimo aggiornamento: 2022-01-04
+Last Update / Ultimo aggiornamento: 2022-01-06
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -461,7 +463,7 @@ Last Update / Ultimo aggiornamento: 2021-12-19
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-21
+Last Update / Ultimo aggiornamento: 2022-01-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

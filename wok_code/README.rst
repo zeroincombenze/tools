@@ -1,7 +1,7 @@
 
-==============
-wok_code 1.0.5
-==============
+================
+wok_code 1.0.5.1
+================
 
 
 
@@ -844,6 +844,16 @@ Current development version
 History
 -------
 
+1.0.5.1 (2022-01-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] cvt_csv_coa: executable command
+
+1.0.5 (2022-01-05)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
 1.0.4.1 (2021-12-22)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -900,17 +910,6 @@ History
 
 * [IMP] please: replace does not set protection bits; now -f is required
 * [IMP] please: wep does not set protection bits; now -f is required
-
-1.0.2h (2021-08-31)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] gen_readme.py: search for authors in current README
-
-1.0.2g (2021-08-30)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] cvt_csv_coa.py: new command to manage Odoo CoA
-* [IMP] gen_readme.py: search for authors in current README
 
 
 
@@ -1006,6 +1005,8 @@ Last Update / Ultimo aggiornamento: 2021-12-11
 Last Update / Ultimo aggiornamento: 2021-12-19
 Last Update / Ultimo aggiornamento: 2021-12-21
 Last Update / Ultimo aggiornamento: 2021-12-23
+Last Update / Ultimo aggiornamento: 2022-01-04
+Last Update / Ultimo aggiornamento: 2022-01-07
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1039,7 +1040,7 @@ Last Update / Ultimo aggiornamento: 2021-12-23
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-01-04
+Last Update / Ultimo aggiornamento: 2022-01-08
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='wok_code',
-      version='1.0.5',
+      version='1.0.5.1',
       description='Python developers tools',
       long_description="""
 Various tools at your fingertips.
@@ -59,7 +59,7 @@ The available tools are:
               # 'cvt_script = wok_code.scripts.cvt_script:main',
               'cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main',
               # 'cvt_csv_2_xml = wok_code.scripts.cvt_csv_2_xml:main',
-              # 'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',
+              'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',
               'to_pep8.py = wok_code.scripts.to_pep8:main',
           ],
       },

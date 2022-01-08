@@ -239,6 +239,42 @@ Current development version
 History
 -------
 
+z0bug_odoo: 1.0.8.1 (2022-01-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New test data
+
+
+wok_code: 1.0.5.1 (2022-01-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] cvt_csv_coa: executable command
+
+
+python_plus: 1.0.6.2 (2022-01-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New function compute_date
+
+
+z0bug_odoo: 1.0.8 (2022-01-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+
+wok_code: 1.0.5 (2022-01-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+
+python_plus: 1.0.6 (2022-01-04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+
 python_plus: 1.0.5.1 (2021-12-23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -376,7 +412,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-01-04
+Last Update / Ultimo aggiornamento: 2022-01-08
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
