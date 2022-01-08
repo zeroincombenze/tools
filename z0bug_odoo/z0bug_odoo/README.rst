@@ -1,7 +1,7 @@
 
-================
-z0bug_odoo 1.0.8
-================
+==================
+z0bug_odoo 1.0.8.1
+==================
 
 
 
@@ -1048,6 +1048,16 @@ Current development version
 History
 -------
 
+1.0.8.1 (2022-01-07)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New test data
+
+1.0.8 (2022-01-05)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.6.2 (2021-11-16)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -1101,16 +1111,6 @@ History
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] new test data
-
-1.0.2.3 (2021-07-15)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] test data upgrade
-
-1.0.2.1 (2021-05-31)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] data: res.partner Alpha error
 
 
 
@@ -1204,6 +1204,7 @@ Last Update / Ultimo aggiornamento: 2021-12-04
 Last Update / Ultimo aggiornamento: 2021-12-05
 Last Update / Ultimo aggiornamento: 2021-12-09
 Last Update / Ultimo aggiornamento: 2021-12-10
+Last Update / Ultimo aggiornamento: 2022-01-04
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1237,7 +1238,7 @@ Last Update / Ultimo aggiornamento: 2021-12-10
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-01-04
+Last Update / Ultimo aggiornamento: 2022-01-08
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

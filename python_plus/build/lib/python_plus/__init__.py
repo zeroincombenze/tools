@@ -1,6 +1,8 @@
 from __future__ import print_function, unicode_literals
 from past.builtins import basestring
 from future.utils import PY2, PY3, with_metaclass
+from datetime import date, timedelta
+import calendar
 # import sys
 
 
@@ -12,7 +14,7 @@ __ver_major__ = 0
 __ver_minor__ = 1
 __ver_patch__ = 3
 __ver_sub__ = '6'
-__version__ = '1.0.5.1'
+__version__ = '1.0.6.1'
 
 PYCODESET = 'utf-8'
 # PY2 = sys.version_info[0] == 2
@@ -151,6 +153,106 @@ def qsplit(*args, **kwargs):
 # if PY2:
 #     def qsplit(*args, **kwargs):
 #         return __qsplit__(*args, **kwargs)
+
+
+def compute_date(value, refdate=None):
+    """Evaluate an encoded date string against reference date or today().
+    This function applies for some standard python date[time] functions;
+    it is useful for test environment.
+    String format is like ISO, with 3 groups separated by '-' (dash).
+    Every group may be an integer or a special notation:
+    - starting with '<' meas subtract; i.e. '<2' means minus 2
+    - ending with '>' meas add; i.e. '2>' means plus 2
+    - '#' with '<' or '>' means 1; i.e. '<###' means minus 1
+    - all '#' means same value of reference date
+    A special notation '+N' and '-N', where N is an integer means add N days
+    or subtract N day from reference date.
+    Here, in following examples, are used python iso date convention:
+    '+N': return date + N days to refdate (python timedelta)
+    '-N': return date - N days from refdate (python timedelta)
+    '%Y-%m-%d': strftime of issued value
+    '%Y-%m-%dT%H:%M:%S': same datetime
+    '%Y-%m-%d %H:%M:%S': same datetime
+    '####-%m-%d': year from refdate (or today), month '%m', day '%d'
+    '####-##-%d': year and month from refdate (or today), day '%d'
+    '2022-##-##': year 2022, month and day from refdate (or today)
+    '<###-%m-%d': year -1  from refdate (or today), month '%m', day '%d'
+    '<001-%m-%d': year -1  from refdate (or today), month '%m', day '%d'
+    '<###-#>-%d': year -1  from refdate, month +1 from refdate, day '%d'
+    '<005-2>-##': year -5, month +2 and day from refdate
+    Notes:
+        Returned date is always a ISO string of date or datetime
+        Returned date is always a valid date; i.e. '####-#>-31',
+        with ref month January result '####-02-31' becomes '####-03-03'
+        To force last day of month, set '99': i.e. '####-<#-99' becomes the
+        last day of previous month of refdate
+    """
+
+    def cur_prior_month(items):
+        while items[1] < 1:
+            items[0] -= 1
+            items[1] += 12
+        return items
+
+    def cur_next_month(items):
+        while items[1] > 12:
+            items[0] += 1
+            items[1] -= 12
+        return items
+
+    if not value or not isinstance(value, (basestring, int)):
+        return value
+    refdate = refdate or date.today()
+    sep = tm = None
+    if isinstance(value, basestring):
+        if 'T' in value:
+            sep = 'T'
+        elif ' ' in value:
+            sep = ' '
+        if sep:
+            value, tm = value.split(sep)
+    if isinstance(value, int):
+        value = (refdate + timedelta(value)).strftime('%Y-%m-%d')
+    elif value.startswith('+'):
+        value = (refdate + timedelta(int(value[1:]))).strftime('%Y-%m-%d')
+    elif value.startswith('-'):
+        value = (refdate - timedelta(int(value[1:]))).strftime('%Y-%m-%d')
+    else:
+        items = value.split('-')
+        refs = [refdate.year, refdate.month, refdate.day]
+        for i, item in enumerate(items):
+            if item.startswith('<'):
+                v = int(item[1:]) if item[1:].isdigit() else 1
+                items[i] = refs[i] - v
+            elif item.endswith('>'):
+                v = int(item[:-1]) if item[0].isdigit() else 1
+                items[i] = refs[i] + v
+            elif item in ('#', '##', '####', '00', '0000'):
+                items[i] = refs[i]
+            else:
+                items[i] = int(items[i]) or refs[i]
+        while items[2] < 1:
+            items[1] -= 1
+            items = cur_prior_month(items)
+            dd = calendar.monthrange(items[0],
+                                     items[1])[1]
+            items[2] += dd
+        items = cur_prior_month(items)
+        items = cur_next_month(items)
+        if items[2] == 99:
+            items[2] = calendar.monthrange(items[0],
+                                           items[1])[1]
+        while items[2] > calendar.monthrange(items[0],
+                                             items[1])[1]:
+            items[2] -= calendar.monthrange(items[0],
+                                            items[1])[1]
+            items[1] += 1
+            items = cur_next_month(items)
+        value = '%04d-%02d-%02d' % (
+            items[0], items[1], items[2])
+    if tm:
+        value = '%s%s%s' % (value, sep, tm)
+    return value
 
 
 class Base__(type):

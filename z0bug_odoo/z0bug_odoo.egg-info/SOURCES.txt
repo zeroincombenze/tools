@@ -40,6 +40,7 @@ z0bug_odoo/data/italy_profile_account.xlsx
 z0bug_odoo/data/miscellaneous.xlsx
 z0bug_odoo/data/module.xlsx
 z0bug_odoo/data/product_product.xlsx
+z0bug_odoo/data/product_supplierinfo.xlsx
 z0bug_odoo/data/product_template.xlsx
 z0bug_odoo/data/purchase_order.xlsx
 z0bug_odoo/data/purchase_order_line.xlsx

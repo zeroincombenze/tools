@@ -3,7 +3,6 @@ setup.py
 wok_code/__init__.py
 wok_code/__main__.py
 wok_code/cvt_csv_2_xml.py
-wok_code/cvt_csv_coa.py
 wok_code/cvt_script
 wok_code/cvt_script.man
 wok_code/dist_pkg
@@ -30,6 +29,7 @@ wok_code.egg-info/requires.txt
 wok_code.egg-info/top_level.txt
 wok_code/scripts/__init__.py
 wok_code/scripts/cvt_csv_2_rst.py
+wok_code/scripts/cvt_csv_coa.py
 wok_code/scripts/gen_readme.py
 wok_code/scripts/license_mgnt.py
 wok_code/scripts/main.py
