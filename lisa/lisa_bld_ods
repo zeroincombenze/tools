@@ -4,27 +4,28 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
+# Based on template 1.0.5.1
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\nHOME=os.environ.get('HOME');y=os.path.join(HOME_DEV,'pypi');t=os.path.join(HOME,'tools')\ndef apl(l,p,x):\n  d2=os.path.join(p,x,x)\n  d1=os.path.join(p,x)\n  if os.path.isdir(d2):\n   l.append(d2)\n  elif os.path.isdir(d1):\n   l.append(d1)\nl=[TDIR]\nfor x in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(y):\n  apl(l,y,x)\n elif TDIR.startswith(t):\n  apl(l,t,x)\nl=l+os.environ['PATH'].split(':')\np=set()\npa=p.add\np=[x for x in l if x and x.startswith(HOME) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|python)
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEV"'\nimport os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nH=o.expanduser('~')\nT=j(H,'tools')\nR=j(H,'pypi') if b(D)=='venv_tools' else j(H,D,'pypi')\nW=D if b(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'scripts')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('scripts','tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==d(C) and f(j(C,'..','setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+[os.getcwd()]+P\np=set()\npa=p.add\np=[x for x in L if x and x.startswith((H,D,C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $d)
     break
   fi
 done
 if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found!"
+  echo "Library file z0librc not found in <$PYPATH>!"
   exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
@@ -36,7 +37,18 @@ fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-__version__=0.3.2.2
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=1.0.0
 
 
 get_arch () {
@@ -138,7 +150,7 @@ update_odoo_conf() {
 
 OPTOPTS=(h        b         C       D        E        I         G       L        m         N        n            P       S        T        t        U        V           v)
 OPTDEST=(opt_help odoo_vid  opt_cfg opt_ucfg opt_osf  opt_id    opt_org opt_flog opt_multi opt_name opt_dry_run  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
-OPTACTI=(1        "=>"      "=>"    1        "=>"     "=>"      "="     "=>"     1         "=>"     1            "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
+OPTACTI=("+"      "=>"      "=>"    1        "=>"     "=>"      "="     "=>"     1         "=>"     1            "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
 OPTDEFL=(1        "10"      ""      0        ""        ""        ""      ""       0         ""       0            ""      0        ""       ""       "odoo"   ""          0)
 OPTMETA=("help"   "vid"     "file"  ""       "linux"   "id-name" "id"    "file"   "mult"    "name"   "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
@@ -168,7 +180,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Build Odoo daemon script (default name is odoo-server)"\
-  "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 discover_multi

@@ -1,0 +1,5 @@
+pip (install by yum/pip)
+  command=pip
+  get_ver=pip --version
+  requirements=epel-release
+  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/lisa.lish

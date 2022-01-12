@@ -1,0 +1,43 @@
+> yum install gcc
+> yum install epel-release
+> yum install python-pip
+> pip install 'pip' --upgrade
+> yum install iptables
+> systemctl start iptables
+> systemctl enable iptables
+> yum -y install epel-release
+> yum -y install yum-utils
+> yum -y install redhat-rpm-config
+> yum -y install libffi-devel
+# yum -y install openssl-devel
+> yum -y install epel-release
+> yum -y install python-pip
+> pip install 'pip' --upgrade
+> yum -y install python-wheel
+> pip install 'wheel' --upgrade --no-warn-conflicts --disable-pip-version-check
+> yum -y install python-devel
+> pip install 'pyasn1' --no-warn-conflicts --disable-pip-version-check
+> pip install 'ndg-httpsclient' --no-warn-conflicts --disable-pip-version-check
+# pip install 'urllib3[secure]' --no-warn-conflicts --disable-pip-version-check
+> pip install 'cryptography' --no-warn-conflicts --disable-pip-version-check
+> yum -y install openssl
+> pip install 'pyOpenSSL' --upgrade --no-warn-conflicts --disable-pip-version-check
+> pip install 'idna' --no-warn-conflicts --disable-pip-version-check
+> pip install 'certifi' --no-warn-conflicts --disable-pip-version-check
+# yum -y install openssh-server
+# systemctl start sshd
+> systemctl enable sshd
+> yum -y install httpd
+> systemctl start httpd
+> systemctl enable httpd
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+> yum -y install mariadb
+> systemctl start mariadb
+> systemctl enable mariadb
+> yum -y install postgresql-server
+> postgresql-setup initdb
+> systemctl start postgresql
+> systemctl enable postgresql
+# yum -y install php
+# yum -y install python

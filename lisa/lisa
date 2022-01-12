@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 # *** security options ***
@@ -42,28 +42,41 @@
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
+# Based on template 1.0.5.1
 THIS=$(basename "$0")
-TDIR=$($READLINK -f $(dirname $0))
-[[ -d "$HOME/dev" ]] && HOME_DEV="$HOME/dev" || HOME_DEV="$HOME/devel"
-PYPATH=$(echo -e "import os,sys\np=[x for x in (os.environ['PATH']+':$TDIR:..:$HOME_DEV').split(':') if x not in sys.path];p.extend(sys.path);print(' '.join(p))"|python)
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+HOME_DEV="$HOME/devel"
+[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEV"'\nimport os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nH=o.expanduser('~')\nT=j(H,'tools')\nR=j(H,'pypi') if b(D)=='venv_tools' else j(H,D,'pypi')\nW=D if b(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'scripts')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('scripts','tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==d(C) and f(j(C,'..','setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+[os.getcwd()]+P\np=set()\npa=p.add\np=[x for x in L if x and x.startswith((H,D,C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
-    Z0LIBDIR=$d
-    Z0LIBDIR=$($READLINK -e $Z0LIBDIR)
+    Z0LIBDIR=$(readlink -e $d)
     break
   fi
 done
 if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found!"
+  echo "Library file z0librc not found in <$PYPATH>!"
   exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
-RUNDIR=$($READLINK -e $TESTDIR/..)
+RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+
+DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
 
 __version__=0.3.2.2
 
@@ -75,7 +88,7 @@ STS_SUCCESS=0
 conf_default() {
     # ALIAS
     local p x
-    set_cfg_def "wkhtmltopdf_ReqPkgList" "xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi" "0"
+    CFG_set "wkhtmltopdf_ReqPkgList" "xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi" "0"
     # Bill of packages
     # set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
     # set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
@@ -95,7 +108,7 @@ conf_default() {
     if [ -n "$opt_dev" ]; then
       p="$p oerplib erppeek os0 pytok"
     fi
-    set_cfg_def "odoo_BOP" "$p" "0" "Debian"
+    CFG_set "odoo_BOP" "$p" "0" "Debian"
     p="Babel==1.3 dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
     p="$p libjpeg-turbo libtiff libyaml passlib==1.6.2"
     p="$p pyOpenSSL pyparsing beaker python-dateutil docutils==0.12 feedparser==5.1.3 jinja2==2.7.3"
@@ -105,7 +118,7 @@ conf_default() {
     if [ -n "$opt_dev" ]; then
       p="$p libjpeg-turbo-devel oerplib erppeek os0 pytok"
     fi
-    set_cfg_def "odoo_BOP" "$p" "0" "CentOS7"
+    CFG_set "odoo_BOP" "$p" "0" "CentOS7"
     p="python-babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
     p="$p libjpeg-turbo libtiff libyaml passlib"
     p="$p pyOpenSSL pyparsing beaker python-dateutil python-docutils python-feedparser python-jinja2"
@@ -115,76 +128,76 @@ conf_default() {
     if [ -n "$opt_dev" ]; then
       p="$p libjpeg-turbo-devel oerplib erppeek os0 pytok"
     fi
-    set_cfg_def "odoo_BOP" "$p" "0" "CentOS6"
+    CFG_set "odoo_BOP" "$p" "0" "CentOS6"
     if [ "$opt_oed" == "odoo" ]; then
       gitrep="odoo/odoo"
-      set_cfg_def "odoo_Branch" "6.1 7.0 8.0 9.0 10.0" "0"
+      CFG_set "odoo_Branch" "6.1 7.0 8.0 9.0 10.0" "0"
     elif [ "$opt_oed" == "oca" ]; then
       gitrep="OCA/OCB"
-      set_cfg_def "odoo_Branch" "7.0 8.0 9.0 10.0" "0"
+      CFG_set "odoo_Branch" "7.0 8.0 9.0 10.0" "0"
       p="account-closing account-financial-reporting account-financial-tools account-invoicing account-payment bank-payment connector knowledge l10n-italy partner-contact product-attribute reporting-engine report-print-send server-tools stock-logistics-barcode stock-logistics-tracking stock-logistics-warehouse stock-logistics-workflow web webkit-tools website"
-      set_cfg_def "odoo_SubPkgList" "$p" "0"
+      CFG_set "odoo_SubPkgList" "$p" "0"
     else
       gitrep="zeroincombenze/OCB"
-      set_cfg_def "odoo_Branch" "6.1 7.0 8.0" "0"
+      CFG_set "odoo_Branch" "6.1 7.0 8.0" "0"
       p="account-closing account-financial-reporting account-financial-tools account-invoicing account-payment bank-payment connector knowledge l10n-italy l10n-italy-supplemental partner-contact product-attribute reporting-engine report-print-send server-tools stock-logistics-barcode stock-logistics-tracking stock-logistics-warehouse stock-logistics-workflow web webkit-tools website"
-      set_cfg_def "odoo_SubPkgList" "$p" "0"
-      set_cfg_def "odoo_upstream" "https://github.com/OCA/$addons.git"
+      CFG_set "odoo_SubPkgList" "$p" "0"
+      CFG_set "odoo_upstream" "https://github.com/OCA/$addons.git"
     fi
-    set_cfg_def "odoo_cmdname" "NULL" "0"
-    set_cfg_def "odoo_git_URL" "https://github.com/$gitrep.git" "0"
-    set_cfg_def "odoo_confdirs" "/etc/odoo,/var/log/odoo,/var/run/odoo" "0"
+    CFG_set "odoo_cmdname" "NULL" "0"
+    CFG_set "odoo_git_URL" "https://github.com/$gitrep.git" "0"
+    CFG_set "odoo_confdirs" "/etc/odoo,/var/log/odoo,/var/run/odoo" "0"
     # odoo locale
     p=${gitrep%/*}
     if [ "$p" != "odoo" ]; then
-      set_cfg_def "odoo__it_git_URL" "https://github.com/$p/l10n-italy.git" "0"
-      set_cfg_def "odoo__be_git_URL" "https://github.com/OCA/l10n-belgium.git" "0"
-      set_cfg_def "odoo__ch_git_URL" "https://github.com/OCA/l10n-switzerland.git" "0"
-      set_cfg_def "odoo__es_git_URL" "https://github.com/OCA/l10n-spain.git" "0"
-      set_cfg_def "odoo__fr_git_URL" "https://github.com/OCA/l10n-france.git" "0"
-      set_cfg_def "odoo__nl_git_URL" "https://github.com/OCA/l10n-netherlands.git" "0"
+      CFG_set "odoo__it_git_URL" "https://github.com/$p/l10n-italy.git" "0"
+      CFG_set "odoo__be_git_URL" "https://github.com/OCA/l10n-belgium.git" "0"
+      CFG_set "odoo__ch_git_URL" "https://github.com/OCA/l10n-switzerland.git" "0"
+      CFG_set "odoo__es_git_URL" "https://github.com/OCA/l10n-spain.git" "0"
+      CFG_set "odoo__fr_git_URL" "https://github.com/OCA/l10n-france.git" "0"
+      CFG_set "odoo__nl_git_URL" "https://github.com/OCA/l10n-netherlands.git" "0"
     fi
     # Packages options
     if [ $test_mode -eq 0 ]; then
-      set_cfg_def "${THIS}_vfycmd" "/usr/bin/$THIS -V" "0"
+      CFG_set "${THIS}_vfycmd" "/usr/bin/$THIS -V" "0"
     else
-      set_cfg_def "${THIS}_cmdname" "$0" "0"
-      set_cfg_def "${THIS}_vfycmd" "$0 -V" "0"
+      CFG_set "${THIS}_cmdname" "$0" "0"
+      CFG_set "${THIS}_vfycmd" "$0 -V" "0"
     fi
-    set_cfg_def "apache2_LocalRoot" "/var/www/html" "0" "Debian"
-    set_cfg_def "httpd_LocalRoot" "/var/www/html" "0" "RHEL"
-    set_cfg_def "mysql-server_cmdname" "mysql" "0"
-    set_cfg_def "mariadb-server_cmdname" "mysql" "0" "CentOS7"
-    set_cfg_def "mysql_cmdname" "mysql" "0"
-    set_cfg_def "mariadb_cmdname" "mysql" "0" "CentOS7"
-    set_cfg_def "wkhtmltopdf_wget_URL" "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1"
+    CFG_set "apache2_LocalRoot" "/var/www/html" "0" "Debian"
+    CFG_set "httpd_LocalRoot" "/var/www/html" "0" "RHEL"
+    CFG_set "mysql-server_cmdname" "mysql" "0"
+    CFG_set "mariadb-server_cmdname" "mysql" "0" "CentOS7"
+    CFG_set "mysql_cmdname" "mysql" "0"
+    CFG_set "mariadb_cmdname" "mysql" "0" "CentOS7"
+    CFG_set "wkhtmltopdf_wget_URL" "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1"
     if [ "$MACHARCH" != "x86_64" ]; then
-      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-trusty-i386.deb" "0" "Ubuntu14"
-      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-precise-i386.deb" "0" "Ubuntu12"
-      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-centos6-i386.rpm" "0" "CentOS6"
+      CFG_set "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-trusty-i386.deb" "0" "Ubuntu14"
+      CFG_set "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-precise-i386.deb" "0" "Ubuntu12"
+      CFG_set "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-centos6-i386.rpm" "0" "CentOS6"
     else
-      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-trusty-amd64.deb" "0" "Ubuntu14"
-      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-precise-amd64.deb" "0" "Ubuntu12"
-      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-centos7-amd64.rpm" "0" "CentOS7"
-      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-centos6-amd64.rpm" "0" "CentOS6"
+      CFG_set "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-trusty-amd64.deb" "0" "Ubuntu14"
+      CFG_set "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-precise-amd64.deb" "0" "Ubuntu12"
+      CFG_set "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-centos7-amd64.rpm" "0" "CentOS7"
+      CFG_set "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-centos6-amd64.rpm" "0" "CentOS6"
     fi
     if [[ "$DISTO" == "CentOS6" ]]; then
-      set_cfg_def "python-dateutil_wget_URL" "https://pypi.python.org/packages/source/p/python-dateutil/" "0"
-      set_cfg_def "python-dateutil_wget_xname" "python-dateutil-1.5.tar.gz" "0"
-      set_cfg_def "python-dateutil_wget_md5" "#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5" "0"
+      CFG_set "python-dateutil_wget_URL" "https://pypi.python.org/packages/source/p/python-dateutil/" "0"
+      CFG_set "python-dateutil_wget_xname" "python-dateutil-1.5.tar.gz" "0"
+      CFG_set "python-dateutil_wget_md5" "#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5" "0"
     fi
-    set_cfg_def "pandoc_git_URL" "https://github.com/jgm/pandoc.git" "0"
-    set_cfg_def "pandoc_git_LocalRoot" "/opt/pandoc" "0"
-    set_cfg_def "pandoc_SubPkgList" "." "0"
+    CFG_set "pandoc_git_URL" "https://github.com/jgm/pandoc.git" "0"
+    CFG_set "pandoc_git_LocalRoot" "/opt/pandoc" "0"
+    CFG_set "pandoc_SubPkgList" "." "0"
     # Service names
-    set_cfg_def "iptables_svcname" "iptables" "0"
-    set_cfg_def "mysql_svcname" "mysql" "0" "Debian"
-    set_cfg_def "mariadb_svcname" "mariadb" "0" "CentOS7"
-    set_cfg_def "mariadb-server_svcname" "mariadb" "0" "CentOS7"
-    set_cfg_def "mysql_svcname" "mysqld" "0" "CentOS6"
-    set_cfg_def "odoo_svcname" "odoo-server" "0"
+    CFG_set "iptables_svcname" "iptables" "0"
+    CFG_set "mysql_svcname" "mysql" "0" "Debian"
+    CFG_set "mariadb_svcname" "mariadb" "0" "CentOS7"
+    CFG_set "mariadb-server_svcname" "mariadb" "0" "CentOS7"
+    CFG_set "mysql_svcname" "mysqld" "0" "CentOS6"
+    CFG_set "odoo_svcname" "odoo-server" "0"
     # TCP & UDP Ports
-    set_cfg_def "TCP_odoo" "8069" "0"
+    CFG_set "TCP_odoo" "8069" "0"
     # Configuration files
     # p="/etc/httpd /etc/apache2; conf"
     # p="/var/lib /etc/postgres;postgresql pgsql;9.4 9.3 9.2 9.1 9.0 8.4;data main"
@@ -193,8 +206,8 @@ conf_default() {
     # set_cfg_def "postgresql-server_FINDCFN" "$p" "0" "RHEL"
     # set_cfg_def "postgresql-server_confn" "pg_hba.conf" "0" "RHEL"
     p="/etc/odoo /etc/openerp;"
-    set_cfg_def "odoo_FINDCFN" "$p" "0"
-    set_cfg_def "odoo_confn" "odoo-server.conf" "0"
+    CFG_set "odoo_FINDCFN" "$p" "0"
+    CFG_set "odoo_confn" "odoo-server.conf" "0"
 }
 
 
@@ -3421,7 +3434,7 @@ please() {
 # main
 OPTOPTS=(h        b       c        D       d         E       e         f         g       H        I        i      J        L         l          m        N        n           o       p         P          q           r       s         T         u       V           v           X          y       1)
 OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_force opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_req opt_sub   test_mode use2xtl opt_version opt_verbose opt_nodeps opt_yes opt_1st)
-OPTACTI=(1        1       "="      "*"     "="       "="     "="       1         1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="     "="       1         "="     "*"         "+"         1          1       1)
+OPTACTI=("+"      1       "="      "*"     "="       "="     "="       1         1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="     "="       1         "="     "*"         "+"         1          1       1)
 OPTDEFL=(1        0       ""       ""      ""        ""      ""        0         0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         0           ""      ""        0         ""      ""          -1          0          0       0)
 OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" ""        "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "file"  "modules" "teste"   "file"  "version"   "verbose"   ""         "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
@@ -3494,7 +3507,7 @@ if [ $? -ne 127 ]; then
   PY3ID=$(python3 --version 2>&1 |head -n1|grep -Eo [0-9]+\.[0-9]+|tr -d ".")
   # x=$(yum search python$PY3ID 2>/dev/null|grep -Eo "python$PY3ID[a-z]*\."|grep -Eo ".*[^.]"|head -n1)
   # PY3ID=${x:6}
-  set_cfg_def "REAL_python3-dev" "python${PY3ID}-devel" "0" "CentOS7"
+  CFG_set "REAL_python3-dev" "python${PY3ID}-devel" "0" "CentOS7"
 fi
 [ -z "$PY3ID" ] && PY3ID=3
 export PYTHONWARNINGS="ignore"
@@ -3514,9 +3527,9 @@ if [ ${opt_nopip:-0} -gt 0 ]; then OPTS="${OPTS}p"; fi
 OPTS=${OPTS//--/-}
 set_from_conf_pkg "lisa" "lisa.conf" $OPTS
 if [ -n "$PY3ID" -a "$PY3ID" != "3" ]; then
-  set_cfg_def "REAL_python3-dev" "python${PY3ID}-devel" "0" "CentOS7"
+  CFG_set "REAL_python3-dev" "python${PY3ID}-devel" "0" "CentOS7"
   YUM_PKGS="$(get_prm_value YUM_PKGS list)"
-  set_cfg_def "YUM_PKGS" "$YUM_PKGS python${PY3ID}-devel" "1" "CentOS7"
+  CFG_set "YUM_PKGS" "$YUM_PKGS python${PY3ID}-devel" "1" "CentOS7"
 fi
 if [ -n "$opt_xtly" ]; then
   SIMULATE_YES=" ${opt_xtly//,/ } "
@@ -3583,7 +3596,7 @@ wlog "# $THIS $__version__ running on $(xuname -a)"
 wlog "# Setup for $FH family"
 
 if [ "$action" == "help" ]; then
-  man $TDIR/$THIS.man
+  man $(dirname $0)/man/man8/$(basename $0).8.gz
 elif [ "$action" == "prepare" ]; then
   # if [ $EUID -ne 0 ]; then
   #   elog "This command must be executed by root"

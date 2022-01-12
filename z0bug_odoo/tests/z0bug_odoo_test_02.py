@@ -12,7 +12,7 @@ from zerobug import z0test, z0testodoo
 from z0bug_odoo.travis.getaddons import is_module
 from z0bug_odoo.travis.test_server import get_build_dir
 
-__version__ = "1.0.8.1"
+__version__ = "1.0.9.1"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1

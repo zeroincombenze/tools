@@ -1,0 +1,8 @@
+> yum -y update openssh-server
+> yum -y update openssh-clients
+> yum -y update mod_ssl
+> yum -y update mod_proxy_html
+> yum -y update iptables-services
+> yum -y update bind-utils
+> systemctl restart sshd
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
