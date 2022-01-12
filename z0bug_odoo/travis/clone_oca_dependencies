@@ -32,7 +32,7 @@ import logging
 from travis_helpers import print_flush
 
 _logger = logging.getLogger()
-__version__ = '1.0.9.1'
+__version__ = '1.0.10'
 
 
 def parse_depfile(depfile, owner=None):
