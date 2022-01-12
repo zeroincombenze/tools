@@ -1,6 +1,6 @@
 
 ============
-clodoo 1.0.0
+clodoo 1.0.1
 ============
 
 
@@ -327,6 +327,11 @@ Current development version
 History
 -------
 
+1.0.0.1 (2022-01-11)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo.xlsx
+
 1.0.0 (2021-12-23)
 ~~~~~~~~~~~~~~~~~~
 
@@ -382,12 +387,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] transodoo.xlsx: translation update
-
-0.3.33.1 (2021-08-23)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] transodoo.xlsx: wrong translation of l10n_it_reverse_charge
-
 
 
 
@@ -478,6 +477,18 @@ Last Update / Ultimo aggiornamento: 2021-12-11
 Last Update / Ultimo aggiornamento: 2021-12-19
 Last Update / Ultimo aggiornamento: 2021-12-21
 Last Update / Ultimo aggiornamento: 2021-12-24
+:target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
+:target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
+:target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
+:target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
+:target: https://erp1.zeroincombenze.it
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
+:target: https://codecov.io/gh/OCA/tools/branch/1.0
+Last Update / Ultimo aggiornamento: 2022-01-04
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -488,18 +499,13 @@ Last Update / Ultimo aggiornamento: 2021-12-24
 :alt: License: OPL
 :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
 :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
 :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
 :alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
 :target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
 :alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
 :target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
 :target: https://erp1.zeroincombenze.it
 :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
 :target: https://codecov.io/gh/OCA/tools/branch/1.0
 :target: https://odoo-italia.org
 :alt: Odoo Italia Associazione
@@ -516,7 +522,7 @@ Last Update / Ultimo aggiornamento: 2021-12-24
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-01-04
+Last Update / Ultimo aggiornamento: 2022-01-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

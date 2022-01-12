@@ -17,7 +17,7 @@ except ImportError:
     except ImportError:
         release = ''
 
-__version__ = '1.0.8.1'
+__version__ = '1.0.10'
 if eval(os.environ.get('TRAVIS_DEBUG_MODE', '0')) > 2:
     print('DEBUG: z0bug_odoo %s' % __version__)
     print('DEBUG: z0bug_odoo.sys.path=%s' % sys.path)

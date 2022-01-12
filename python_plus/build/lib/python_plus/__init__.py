@@ -1,5 +1,5 @@
 from __future__ import print_function, unicode_literals
-from past.builtins import basestring
+from past.builtins import basestring, long
 from future.utils import PY2, PY3, with_metaclass
 from datetime import date, timedelta
 import calendar
@@ -200,7 +200,7 @@ def compute_date(value, refdate=None):
             items[1] -= 12
         return items
 
-    if not value or not isinstance(value, (basestring, int)):
+    if not value or not isinstance(value, (basestring, int, long)):
         return value
     refdate = refdate or date.today()
     sep = tm = None
@@ -211,7 +211,7 @@ def compute_date(value, refdate=None):
             sep = ' '
         if sep:
             value, tm = value.split(sep)
-    if isinstance(value, int):
+    if isinstance(value, (int, long)):
         value = (refdate + timedelta(value)).strftime('%Y-%m-%d')
     elif value.startswith('+'):
         value = (refdate + timedelta(int(value[1:]))).strftime('%Y-%m-%d')

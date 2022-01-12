@@ -1,7 +1,7 @@
 
-===================
-python_plus 1.0.6.1
-===================
+=================
+python_plus 1.0.7
+=================
 
 
 
@@ -430,6 +430,8 @@ Last Update / Ultimo aggiornamento: 2021-12-21
 Last Update / Ultimo aggiornamento: 2021-12-24
 Last Update / Ultimo aggiornamento: 2022-01-04
 Last Update / Ultimo aggiornamento: 2022-01-06
+Last Update / Ultimo aggiornamento: 2022-01-08
+Last Update / Ultimo aggiornamento: 2022-01-11
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -463,7 +465,7 @@ Last Update / Ultimo aggiornamento: 2022-01-06
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-01-08
+Last Update / Ultimo aggiornamento: 2022-01-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
