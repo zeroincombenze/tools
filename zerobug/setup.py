@@ -62,7 +62,8 @@ it. This behavior can be overridden by -0 switch.
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       install_requires=['future', 'coverage', 'coveralls', 'codecov',
-                        'pylint-odoo', 'python-magic', 'os0', 'z0lib'],
+                        'pylint-odoo', 'python-magic', 'python-plus',
+                        'os0', 'z0lib'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
@@ -78,6 +79,7 @@ it. This behavior can be overridden by -0 switch.
               # 'travis_after_tests_success = zerobug._travis.travis_after_tests_success:main',
               # 'travis_install_env = zerobug.scripts.travis_install_env:main',
               # 'travis_run_pypi_tests = zerobug.scripts.travis_run_pypi_tests:main',
+              # 'zerobug = zerobug.scripts:main',
               'zerobug = zerobug.zerobug:main',
           ],
       },

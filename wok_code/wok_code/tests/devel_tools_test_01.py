@@ -9,10 +9,8 @@
 # import pdb
 import os
 import sys
-from zerobug import Z0BUG
-# from z0bug_odoo import test_common
-from zerobug import Z0testOdoo
-import license_mgnt
+from zerobug import z0test, z0testodoo
+from wok_code import license_mgnt
 
 __version__ = "1.0.5.1"
 
@@ -79,7 +77,7 @@ class RegressionTest():
         step = step or 1
         if not odoo_ver:
             raise(ValueError, 'No odoo version supplied')
-        odoo_root = Z0testOdoo.build_odoo_env(z0ctx, odoo_ver)
+        odoo_root = z0testodoo.build_odoo_env(z0ctx, odoo_ver)
         odoo_root = os.path.join(odoo_root, odoo_ver)
         for ldir in (['egg-info'],
                      ['test_repository'],
@@ -155,7 +153,11 @@ class RegressionTest():
         return sts
 
 
+#
+# Run main if executed as a script
 if __name__ == "__main__":
-    exit(Z0BUG.main_local(
-        Z0BUG.parseoptest(sys.argv[1:],
-                          version=version()), RegressionTest))
+    exit(z0test.main_local(
+        z0test.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        RegressionTest))

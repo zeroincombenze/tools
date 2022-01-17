@@ -7,6 +7,7 @@
 """
 import os
 import sys
+import stat
 from zerobug import z0test, z0testodoo
 # from z0bug_odoo.travis.getaddons import is_module
 # from z0bug_odoo.travis.test_server import get_build_dir
@@ -149,6 +150,28 @@ Acknoledges to
 {{description}}
 """))
         self.Z = z0bug
+        self.simulate_install_pypi('gen_readme.py')
+
+    def simulate_install_pypi(self, cmd):
+        PYCODE = """#!%(exec)s
+# -*- coding: utf-8 -*-
+import re
+import sys
+from %(pypi)s.scripts.%(cmd)s import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())"""
+        params = {
+            'exec': sys.executable,
+            'cmd': os.path.splitext(cmd)[0],
+            'pypi': os.path.basename(self.Z.rundir),
+        }
+        with open(os.path.join(self.Z.rundir, cmd), 'w') as fd:
+            fd.write(_c(PYCODE % params))
+            mode = os.fstat(fd.fileno()).st_mode
+            mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+            os.fchmod(fd.fileno(), stat.S_IMODE(mode))
+
 
     def get_doc_path(self, odoo_path, gitorg):
         if gitorg == 'zero':
@@ -187,6 +210,7 @@ Acknoledges to
     def test_01(self, z0ctx):
         # sts = 0
         # home = os.path.expanduser('~')
+        cmd = os.path.join(self.Z.rundir, 'gen_readme.py')
         gitorg = 'zero'
         for odoo_version in ODOO_VERSIONS:
             if not z0ctx['dry_run']:
@@ -200,7 +224,7 @@ Acknoledges to
                 self.create_authors_file(moduledir, odoo_version, gitorg)
                 self.create_contributors_file(moduledir, odoo_version, gitorg)
                 os.chdir(moduledir)
-                os.system('gen_readme.py -B')
+                os.system('%s -B' % cmd)
 
 
 # Run main if executed as a script
