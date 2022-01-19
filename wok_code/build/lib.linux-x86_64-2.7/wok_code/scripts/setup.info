@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup
 from setuptools import find_packages
+import sys
+
+if sys.version_info >= (3, 0):
+    install_requires = ['z0lib', 'future', 'lxml', 'pyyaml', 'babel', 'twine'],
+else:
+    install_requires = ['z0lib', 'future', 'lxml', 'pyyaml', 'babel',
+                        'twine==1.15.0'],
 
 setup(name='wok_code',
-      version='1.0.5.1',
+      version='1.0.6',
       description='Python developers tools',
       long_description="""
 Various tools at your fingertips.
@@ -41,7 +48,7 @@ The available tools are:
       author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
-      install_requires=['z0lib', 'future', 'lxml', 'pyyaml', 'babel', 'twine'],
+      install_requires=install_requires,
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={

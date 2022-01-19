@@ -3,4 +3,4 @@ future
 lxml
 pyyaml
 babel
-twine
+twine==1.15.0

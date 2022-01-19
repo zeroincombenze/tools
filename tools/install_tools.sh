@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.10
+__version__=1.0.10.1
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -86,7 +86,7 @@ RFLIST__wok_code="cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py makepo_i
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""
-MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|travis|travisrc|vfcp|vfdiff)"
+MOVED_FILES_RE="(cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|gen_readme.py|makepo_it.py|odoo_translation.py|please|please.man|please.py|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|travis|travisrc|vfcp|vfdiff)"
 FILES_2_DELETE="addsubm.sh clodoo clodoocore.py clodoolib.py devel_tools export_db_model.py kbase oca-autopep8 odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn test_tools.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib z0lib.py z0librun.py"
 
 SRCPATH=
@@ -323,6 +323,21 @@ if [[ $opts =~ ^-.*[Ss] ]]; then
         else
             run_traced "cp $SITECUSTOM $PYLIB"
         fi
+    fi
+fi
+
+# OCA tools
+if [[ $opts =~ ^-.*3 ]]; then
+    clear  #debug
+    run_traced "cd $DSTPATH"
+    [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
+    run_traced "git clone git@github.com:OCA/maintainer-tools.git"
+    if [[ -d $DSTPATH/maintainer-tools ]]; then
+        run_traced "cd $DSTPATH/maintainer-tools"
+        run_traced ". $DSTPATH/venv/bin/activate"
+        run_traced "python setup.py install"
+        run_traced "pip install black"
+        run_traced "deactivate"
     fi
 fi
 

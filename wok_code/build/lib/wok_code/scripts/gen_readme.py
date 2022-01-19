@@ -111,7 +111,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.5"
+__version__ = "1.0.5.2"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -249,11 +249,11 @@ def iter_template_path(debug_mode=None, body=None):
                      './readme',
                      './docs',
                      '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
-                     '%s/devel/venv/bin/templates/${p}' % os.environ['HOME'],
                      '%s/devel/templates/${p}' % os.environ['HOME'],
                      '%s/devel/pypi/tools/templates' % os.environ['HOME'],
-                     '%s/devel/venv/bin/templates' % os.environ['HOME'],
-                     '%s/devel/templates' % os.environ['HOME']):
+                     '%s/devel/templates' % os.environ['HOME'],
+                     '%s/devel/venv/bin/templates/${p}' % os.environ['HOME'],
+                     '%s/devel/venv/bin/templates' % os.environ['HOME']):
         if '/devel/pypi/tools/' in src_path and not debug_mode:
             continue
         elif '/devel/venv/bin/templates' in src_path and debug_mode:

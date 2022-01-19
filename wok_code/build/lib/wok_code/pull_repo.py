@@ -23,7 +23,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "1.0.5"
+__version__ = "1.0.5.2"
 
 DATA = {
     'zero6': {
@@ -141,7 +141,7 @@ DATA = {
 INVALID_NAMES = ['addons', 'uncovered']
 
 
-def get_repos(ctx):
+def get_repos(hash):
     repos = []
     with open('/etc/odoo/%s' % DATA[hash]['conf'], 'r') as fd:
         content = fd.read()
@@ -158,7 +158,7 @@ def get_repos(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Pull repository from OCA",
-                                "© 2020 by SHS-AV s.r.l.",
+                                "© 2022 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument(
@@ -198,9 +198,9 @@ if __name__ == "__main__":
     if hash not in DATA:
         print('Invalid version %s or git-org %s' % (ctx['odoo_vid'],
                                                     ctx['git_org']))
-    repos = get_repos(ctx)
+    repos = get_repos(hash)
     root = os.path.expanduser(DATA[hash]['dirname'])
-    for repo in repos:
+    for repo in [root] + sorted(repos):
         if os.getcwd() != root:
             os.chdir(root)
             print('$ cd %s' % os.getcwd())
@@ -226,7 +226,8 @@ if __name__ == "__main__":
             os.chdir(tgtdir)
             cmd = 'git stash'
             print('$ %s' % cmd)
-            os.system(cmd)
+            if not ctx['dry_run']:
+                os.system(cmd)
             #TODO
             # cmd = 'git checkout 12.0-devel'
             # print('$ %s' % cmd)
@@ -248,4 +249,5 @@ if __name__ == "__main__":
             else:
                 cmd = 'git clone %s %s/' % (git_url, repo)
         print('$ %s' % cmd)
-        os.system(cmd)
+        if not ctx['dry_run']:
+            os.system(cmd)

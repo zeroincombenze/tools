@@ -4,7 +4,7 @@
 # Make diff of file among Odoo versions
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -59,7 +59,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.5.1
+__version__=1.0.6
 
 vf_init() {
   VF_IGNORE="$(get_cfg_value 0 filedel)"
@@ -334,7 +334,7 @@ fi
 [[ -z "$odoo_ver" && -z "$source" ]] && opt_help=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Diff file between Odoo versions" \
-    "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "© 2015-2022 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 [[ $opt_all -gt 0 ]] && opt_iar=0

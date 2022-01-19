@@ -67,7 +67,10 @@ import tokenize
 import yaml
 from subprocess import PIPE, Popen
 
-import license_mgnt
+if sys.version_info[0] == 2:
+    import license_mgnt
+else:
+    from wok_code.scripts import license_mgnt
 try:
     from z0lib import z0lib
 except ImportError:
@@ -77,7 +80,7 @@ try:
 except ImportError:
     from python_plus import _c, _u
 
-__version__ = "1.0.5"
+__version__ = "1.0.5.2"
 
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',

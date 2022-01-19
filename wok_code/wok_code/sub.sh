@@ -1,4 +1,4 @@
-# Sub script 2021-10-09 15:41:09
+# Sub script 2022-10-09 15:41:09
 # set -x
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -35,7 +35,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.5.1
+__version__=1.0.6
 
 set +x
 
