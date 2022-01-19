@@ -32,7 +32,7 @@ standard_library.install_aliases()                                 # noqa: E402
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'
 MANIFESTS = ('__openerp__.py', '__manifest__.py')
-__version__ = "1.0.5.1"
+__version__ = "1.0.5.2"
 
 
 class UserError(Exception):

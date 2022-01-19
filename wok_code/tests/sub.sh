@@ -35,7 +35,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.5.1
+__version__=1.0.5.2
 
 set +x
 
