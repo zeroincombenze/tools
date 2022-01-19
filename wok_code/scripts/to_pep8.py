@@ -67,7 +67,10 @@ import tokenize
 import yaml
 from subprocess import PIPE, Popen
 
-import license_mgnt
+if sys.version_info[0] == 2:
+    import license_mgnt
+else:
+    from . import license_mgnt
 try:
     from z0lib import z0lib
 except ImportError:

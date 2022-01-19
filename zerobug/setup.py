@@ -3,7 +3,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(name='zerobug',
-      version='1.0.6',
+      version='1.0.6.1',
       description='Zeroincombenze continuous testing framework'
                   ' and tools for python and bash programs',
       long_description="""
@@ -62,7 +62,9 @@ it. This behavior can be overridden by -0 switch.
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       install_requires=['future', 'coverage', 'coveralls', 'codecov',
-                        'pylint-odoo', 'python-magic', 'os0', 'z0lib'],
+                        'pygments==2.0.2',
+                        'pylint-odoo<=5.0.0', 'python-magic', 'python-plus',
+                        'os0', 'z0lib'],
       packages=find_packages(
           exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
       package_data={
@@ -78,6 +80,7 @@ it. This behavior can be overridden by -0 switch.
               # 'travis_after_tests_success = zerobug._travis.travis_after_tests_success:main',
               # 'travis_install_env = zerobug.scripts.travis_install_env:main',
               # 'travis_run_pypi_tests = zerobug.scripts.travis_run_pypi_tests:main',
+              # 'zerobug = zerobug.scripts:main',
               'zerobug = zerobug.zerobug:main',
           ],
       },
