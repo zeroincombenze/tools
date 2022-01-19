@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.10.1
+__version__=1.0.11
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -328,7 +328,6 @@ fi
 
 # OCA tools
 if [[ $opts =~ ^-.*3 ]]; then
-    clear  #debug
     run_traced "cd $DSTPATH"
     [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
     run_traced "git clone git@github.com:OCA/maintainer-tools.git"

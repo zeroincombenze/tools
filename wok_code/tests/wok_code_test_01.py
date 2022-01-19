@@ -13,7 +13,7 @@ from zerobug import z0test, z0testodoo
 # from z0bug_odoo.travis.test_server import get_build_dir
 from python_plus import _c
 
-__version__ = "1.0.5.2"
+__version__ = "1.0.6"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
@@ -153,7 +153,7 @@ Acknoledges to
         self.simulate_install_pypi('gen_readme.py')
 
     def simulate_install_pypi(self, cmd):
-        PYCODE = """#!%(exec)s
+        PYCODE = r"""#!%(exec)s
 # -*- coding: utf-8 -*-
 import re
 import sys

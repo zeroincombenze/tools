@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2018-21 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2018-22 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -67,10 +67,7 @@ import tokenize
 import yaml
 from subprocess import PIPE, Popen
 
-if sys.version_info[0] == 2:
-    import license_mgnt
-else:
-    from . import license_mgnt
+from wok_code.scripts import license_mgnt
 try:
     from z0lib import z0lib
 except ImportError:
@@ -80,7 +77,7 @@ try:
 except ImportError:
     from python_plus import _c, _u
 
-__version__ = "1.0.5.2"
+__version__ = "1.0.6"
 
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',
@@ -1784,7 +1781,7 @@ def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Topep8",
-                          "(C) 2015-2021 by SHS-AV s.r.l.",
+                          "(C) 2015-2022 by SHS-AV s.r.l.",
                           version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-B', '--recall-debug-statements',
