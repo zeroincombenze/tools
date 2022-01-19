@@ -62,7 +62,7 @@ it. This behavior can be overridden by -0 switch.
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       install_requires=['future', 'coverage', 'coveralls', 'codecov',
-                        'pygments==2.0.2',
+                        'pygments==2.7.4',
                         'pylint-odoo<=5.0.0', 'python-magic', 'python-plus',
                         'os0', 'z0lib'],
       packages=find_packages(
