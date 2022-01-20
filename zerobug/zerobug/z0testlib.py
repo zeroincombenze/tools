@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2021 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2022 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
@@ -18,7 +18,7 @@ import magic
 from python_plus import _c
 
 
-__version__ = "1.0.6.1"
+__version__ = "1.0.7"
 
 # return code
 TEST_FAILED = 1
@@ -628,7 +628,7 @@ class Z0test(object):
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
-            epilog="© 2015-2021 by SHS-AV s.r.l."
+            epilog="© 2015-2022 by SHS-AV s.r.l."
                    " - http://wiki.zeroincombenze.org/en/Zerobug")
         parser.add_argument("-B", "--debug",
                             help="trace msgs in zerobug.tracehis",

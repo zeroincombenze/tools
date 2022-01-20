@@ -328,7 +328,6 @@ fi
 
 # OCA tools
 if [[ $opts =~ ^-.*3 ]]; then
-    clear  #debug
     run_traced "cd $DSTPATH"
     [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
     run_traced "git clone git@github.com:OCA/maintainer-tools.git"

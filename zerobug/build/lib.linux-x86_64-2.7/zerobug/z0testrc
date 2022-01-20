@@ -60,10 +60,10 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.6.1
+__version__=1.0.7
 
 export opt_dry_run
 export ctr
@@ -79,8 +79,7 @@ export _prior_msg=""
 export STS_FAILED=1
 export STS_SUCCESS=0
 
-Z0BUG_version=$__version__
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+Z0BUG_version=$__version_
 
 
 parseoptest() {
@@ -126,7 +125,7 @@ parseoptest() {
       exit 0
     elif [ $opt_help -gt 0 ]; then
       print_help "Regression test on $module_id"\
-      "(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io\nAuthor: antoniomaria.vigliotti@gmail.com"
+      "(C) 2015-2022 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io\nAuthor: antoniomaria.vigliotti@gmail.com"
       exit 0
     fi
     if [ ${opt_echo:-1} -eq 0 ]; then
@@ -588,15 +587,6 @@ Z0BUG_main_file() {
     else
       dbgmsg "- Search for files $Z0BUG_pattern"
       for fn in $TESTDIR/$Z0BUG_pattern; do
-#        if [[ $fn =~ \.[a-zA-Z0-9_]{1,3}$ ]]; then
-#          if [ "${fn: -3}" == ".py" ]; then
-#            ut_list="$ut_list $fn"
-#          elif [ -x $fn -a "${fn: -3}" == ".sh" ]; then
-#            ut_list="$ut_list $fn"
-#          fi
-#        elif [ -x $fn ]; then
-#          ut_list="$ut_list $fn"
-#        fi
         t=$(file -b --mime-type $fn)
         if [[ $t =~ (text/x-python|text/x-shellscript) || $fn =~ .py$ ]]; then
           ut_list="$ut_list $fn"
@@ -687,6 +677,29 @@ Z0BUG_remove_os_tree() {
       [ ! -d $path ] && continue
       rm -fR $path
     done
+}
+
+
+Z0BUG_simulate_install_pypi() {
+    local cmd PYTHON PYVER BASE
+    PYTHON=$(which python)
+    PYVER=$(python --version 2>&1 | grep -Eo "[0-9]" | head -n1)
+    BASE=$(basename $1)
+    [[ $BASE =~ .py$ ]] && BASE=${BASE:0: -3}
+    cmd=$(readlink -f $1)
+    echo "#!$PYTHON">$cmd
+    echo "# -*- coding: utf-8 -*-">>$cmd
+    echo "import re">>$cmd
+    echo "import sys">>$cmd
+    if [[ $PYVER == "2" ]]; then
+      echo "from scripts.$BASE import main">>$cmd
+    else
+      echo "from .scripts.$BASE import main">>$cmd
+    fi
+    echo "if __name__ == '__main__':">>$cmd
+    echo "    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])">>$cmd
+    echo "    sys.exit(main())">>$cmd
+    chmod +x $cmd
 }
 
 

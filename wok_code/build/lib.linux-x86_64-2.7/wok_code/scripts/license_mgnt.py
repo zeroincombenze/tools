@@ -2,6 +2,10 @@
 import os
 from datetime import datetime
 import re
+try:
+    from python_plus.python_plus import _u
+except ImportError:
+    from python_plus import _u
 
 COPY = {
     'zero': {
@@ -76,8 +80,8 @@ class License:
         self.purge_duplicate()
 
     def parse_file(self, author_file):
-        with open(author_file, 'rb') as fd:
-            for line in fd.read().split('\n'):
+        with open(author_file, 'r') as fd:
+            for line in _u(fd.read().split('\n')):
                 self.add_copyright(*self.extract_info_from_line(line))
 
     def purge_duplicate(self):

@@ -1,7 +1,7 @@
 
-================
-wok_code 1.0.5.1
-================
+==============
+wok_code 1.0.7
+==============
 
 
 
@@ -844,6 +844,17 @@ Current development version
 History
 -------
 
+1.0.7 (2022-01-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] vct_csv_2_rst.py (python3)
+
+1.0.6 (2022-01-19)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] gen_readme.py (python3)
+* [FIX] to_pep8.py (python3)
+
 1.0.5.1 (2022-01-06)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -899,17 +910,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] cvt_script: add bash version check
-
-1.0.2.3 (2021-09-24)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] please: error sub2 sub3
-
-1.0.2.1 (2021-09-23)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] please: replace does not set protection bits; now -f is required
-* [IMP] please: wep does not set protection bits; now -f is required
 
 
 
@@ -1007,6 +1007,8 @@ Last Update / Ultimo aggiornamento: 2021-12-21
 Last Update / Ultimo aggiornamento: 2021-12-23
 Last Update / Ultimo aggiornamento: 2022-01-04
 Last Update / Ultimo aggiornamento: 2022-01-07
+Last Update / Ultimo aggiornamento: 2022-01-08
+Last Update / Ultimo aggiornamento: 2022-01-20
 :target: https://odoo-community.org/page/development-status
 :alt:
 :target: https://travis-ci.com/zeroincombenze/tools
@@ -1040,7 +1042,7 @@ Last Update / Ultimo aggiornamento: 2022-01-07
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-01-08
+Last Update / Ultimo aggiornamento: 2022-01-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

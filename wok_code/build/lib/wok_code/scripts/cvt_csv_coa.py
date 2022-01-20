@@ -25,7 +25,6 @@ from __future__ import print_function, unicode_literals
 from python_plus import unicodes, bstrings, _b
 import os
 import sys
-# import StringIO
 import time
 import csv
 from os0 import os0
@@ -36,7 +35,7 @@ except ImportError:
 from clodoo import transodoo
 
 
-__version__ = "1.0.5.2"
+__version__ = "1.0.6"
 
 msg_time = time.time()
 VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')
@@ -328,7 +327,7 @@ def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Manage csv file of Odoo CoA",
-                                "© 2020-2021 by SHS-AV s.r.l.",
+                                "© 2020-2022 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-A', '--action',

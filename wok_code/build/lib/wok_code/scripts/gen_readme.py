@@ -92,7 +92,8 @@ import sys
 from datetime import datetime
 from shutil import copyfile
 from lxml import etree
-from . import license_mgnt
+
+from wok_code.scripts import license_mgnt
 from python_plus import unicodes
 from os0 import os0
 try:
@@ -111,7 +112,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.5.2"
+__version__ = "1.0.6"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -2009,7 +2010,7 @@ def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs("Generate README",
-                                "© 2018-2021 by SHS-AV s.r.l.",
+                                "© 2018-2022 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
