@@ -77,7 +77,7 @@ try:
 except ImportError:
     from python_plus import _c, _u
 
-__version__ = "1.0.7"
+__version__ = "1.0.7.1"
 
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',

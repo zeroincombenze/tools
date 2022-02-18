@@ -46,8 +46,8 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
-    echo "  -3  create virtual environment with python3"
-    echo -e "\n(C) 2015-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    echo "  -2  create virtual environment with python2"
+    echo -e "\n(C) 2015-2022 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
     echo $__version__
@@ -140,10 +140,11 @@ if [[ $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! 
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && x="${x}t"
-    if [[ $opts =~ ^-.*3 ]]; then
-        run_traced "$VEM create $LOCAL_VENV -p3.7 $x -f"
-    else
+    if [[ $opts =~ ^-.*2 ]]; then
         run_traced "$VEM create $LOCAL_VENV -p2.7 $x -f"
+    else
+        # run_traced "$VEM create $LOCAL_VENV -p3.7 $x -f"
+        run_traced "$VEM create $LOCAL_VENV $x -f"
     fi
     [[ $? -ne 0 ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
     [[ ! -d $LOCAL_VENV/bin || ! -d $LOCAL_VENV/lib ]] && echo -e "${RED}# Incomplete Tools virtual environment!${CLR}" && exit 1

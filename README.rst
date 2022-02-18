@@ -239,6 +239,25 @@ Current development version
 History
 -------
 
+wok_code: 1.0.7.1 (2022-02-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] gen_readme.py (python3)
+
+
+wok_code: 1.0.7 (2022-01-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vct_csv_2_rst.py (python3)
+
+
+wok_code: 1.0.6 (2022-01-19)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] gen_readme.py (python3)
+* [FIX] to_pep8.py (python3)
+
+
 zerobug: 1.0.6.1 (2022-01-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -341,6 +360,7 @@ clodoo: 1.0.0 (2021-12-23)
 * [IMP] Stable version
 
 
+
 z0lib: 1.0.5.1 (2021-12-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -401,25 +421,6 @@ odoo_score: 1.0.5 (2021-12-20)
 * [IMP] Stable version
 
 
-zerobug: 1.0.4.4 (2021-12-13)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] zerobug: dependency pylint-odoo
-
-
-wok_code: 1.0.3.3 (2021-12-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] cvt_csv_2_rst.py: python 3
-
-
-clodoo: 0.3.53.4 (2021-11-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo: full python3 functionality
-
-
-
 
 
 
@@ -435,7 +436,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-01-19
+Last Update / Ultimo aggiornamento: 2022-02-18
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
