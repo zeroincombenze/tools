@@ -31,11 +31,11 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.19-Debian
+# version: 0.4.20-Debian
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2021 by zeroincombenze(R) <http://wiki.zeroincombenze.org/en/Odoo>
+# (C) 2015-2022 by zeroincombenze(R) <http://wiki.zeroincombenze.org/en/Odoo>
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}
@@ -136,13 +136,23 @@ if [[ -z "$DAEMON" ]]; then
     done
     if [[ -n "$DAEMON" ]]; then
       [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 2 -type d -name venv -o -name \"venv*odoo\"|head -n1"
-      VENV_DIR=$(find $dr -maxdepth 2 -type d -name venv -o -name "venv*odoo"|head -n1)
+      # VENV_DIR=$(find $dr -maxdepth 2 -type d -name venv -o -name "venv*odoo"|head -n1)
       break
     fi
   done
 fi
 [[ $DRY_RUN -gt 0 ]] && echo "DAEMON=$DAEMON"
 [[ -z "$DAEMON" ]] && exit 2
+p=$(dirname ${DAEMON})
+[[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
+[[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
+if [[ -f $p/bin/activate ]]; then
+  VENV_DIR=$p
+else
+  for dn in venv_odoo venv; do
+    [[ -f $p/$dn/bin/activate ]] && VENV_DIR=$p/$dn && break
+  done
+fi
 if [[ -z "$VENV_DIR" ]]; then
   [[ $dr =~ /server/ ]] && dr=$(readlink -f $(dirname $DAEMON)/../..) || dr=$(readlink -f $(dirname $DAEMON)/..)
   [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV*${ORG}*${mult}*\"|head -n1"
@@ -242,19 +252,9 @@ checkpid() {
 
 
 check_4_venv() {
-    if [[ -z "$VENV_DIR" ]]; then
-      local dn dt p=$(dirname ${DAEMON})
-      [[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
-      [[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
-      if [[ ! -f $p/bin/activate ]]; then
-          for dn in venv_odoo venv; do
-              [[ -f $p/$dn/bin/activate ]] && p=$p/$dn
-          done
-      fi
-      VENV_DIR=$p
-    fi
+    local dt
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-    if [[ -f $VENV_DIR/bin/activate ]]; then
+    if [[ -n "$VENV_DIR" && -f $VENV_DIR/bin/activate ]]; then
         echo "$dt $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate" >> $LOGFILE
         [[ $DRY_RUN -gt 0 ]] && echo "cd $VENV_DIR" && echo "source ./bin/activate"
         cd $VENV_DIR
@@ -448,9 +448,6 @@ restart() {
     RETVAL=$?
 }
 
-condrestart() {
-    [ -e $LOCKFILE ] && restart || :
-}
 
 status() {
     if [[ -f $PIDFILE ]] ; then
@@ -467,6 +464,7 @@ status() {
     return $RETVAL
 }
 
+
 case "${1}" in
     start)
         start
@@ -480,10 +478,6 @@ case "${1}" in
         restart
         ;;
 
-    condrestart)
-        condrestart
-        ;;
-
     status)
         status
         ;;
@@ -494,7 +488,7 @@ case "${1}" in
 
     *)
         if [ "$FH" == "RHEL" ]; then
-          echo "Usage: ${NAME} {start|stop|status|restart|condrestart|reload}"
+          echo "Usage: ${NAME} {start|stop|status|restart|reload}"
         elif [ "$FH" == "Debian" ]; then
            echo "Usage: ${NAME} {start|stop|status|restart|force-reload}" >&2
         else

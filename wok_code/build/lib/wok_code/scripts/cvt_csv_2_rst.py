@@ -24,7 +24,10 @@ optional arguments:
 from __future__ import print_function, unicode_literals
 import os
 import sys
-from io import StringIO
+if sys.version_info[0] == 2:
+    from io import BytesIO
+else:
+    from io import StringIO
 import time
 import csv
 from os0 import os0
@@ -35,7 +38,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 
 msg_time = time.time()
 
@@ -87,7 +90,10 @@ def convert_text(ctx, src_string):
     ctr = 0
     col_size = {}
     text = ''
-    csv_fd = StringIO(_u(src_string))
+    if sys.version_info[0] == 2:
+        csv_fd = BytesIO(_b(src_string))
+    else:
+        csv_fd = StringIO(_u(src_string))
     hdr_read = False
     csv_obj = csv.DictReader(csv_fd,
                              fieldnames=[],
@@ -106,7 +112,10 @@ def convert_text(ctx, src_string):
             for p in csv_obj.fieldnames:
                 col_size[p] = max(col_size[p], min(len(row[p]), max_col_width))
     csv_fd.close()
-    csv_fd = StringIO(_u(src_string))
+    if sys.version_info[0] == 2:
+        csv_fd = BytesIO(_b(src_string))
+    else:
+        csv_fd = StringIO(_u(src_string))
     hdr_read = False
     csv_obj = csv.DictReader(csv_fd,
                              fieldnames=[],

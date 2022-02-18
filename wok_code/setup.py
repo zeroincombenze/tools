@@ -10,7 +10,7 @@ else:
                         'twine==1.15.0'],
 
 setup(name='wok_code',
-      version='1.0.7',
+      version='1.0.7.1',
       description='Python developers tools',
       long_description="""
 Various tools at your fingertips.

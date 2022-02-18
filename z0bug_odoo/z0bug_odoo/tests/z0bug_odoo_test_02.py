@@ -10,7 +10,7 @@ import sys
 import shutil
 from zerobug import z0test, z0testodoo
 from z0bug_odoo.travis.getaddons import is_module
-from z0bug_odoo.travis.test_server import get_build_dir
+from z0bug_odoo.travis.test_server import get_build_dir, get_server_script
 
 __version__ = "1.0.10"
 
@@ -37,6 +37,7 @@ class RegressionTest():
                              'travis'))
         if travis_addons not in sys.path:
             sys.path.append(travis_addons)
+        self.root = ''
         self.Z = z0bug
 
     def test_01(self, z0ctx):
@@ -57,7 +58,6 @@ class RegressionTest():
                     odoo_addons = os.path.join(odoo_root, 'openerp', 'addons')
                 else:
                     odoo_addons = os.path.join(odoo_root, 'odoo', 'addons')
-            if not z0ctx['dry_run']:
                 if os.path.isdir(odoo_root):
                     shutil.rmtree(odoo_root, True)
                 shutil.move(os.path.join(self.root, odoo_version), odoo_root)
@@ -111,6 +111,14 @@ class RegressionTest():
                 'get_build_dir(\'%s\')' % odoo_full,
                 version,
                 odoo_version)
+            if not z0ctx['dry_run']:
+                pass
+            sts += self.Z.test_result(
+                z0ctx,
+                'get_server_script(\'%s\')' % self.root,
+                os.path.join(self.root,
+                             'odoo-bin' if majver > 9 else 'openerp-server'),
+                get_server_script(self.root))
         return sts
 
     def test_02(self, z0ctx):
