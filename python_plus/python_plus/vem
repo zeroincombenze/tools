@@ -50,7 +50,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.7
+__version__=1.0.7.1
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -648,9 +648,6 @@ custom_env() {
     [[ $opt_alone -le 1 ]] && sed -r "/deactivate *\(\) *\{/a\    # export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" -i $VIRTUAL_ENV/bin/activate
     [[ $opt_alone -gt 1 ]] && echo "export HOME=\"\$VIRTUAL_ENV\"" >>$VIRTUAL_ENV/bin/activate
     [[ $opt_alone -le 1 ]] && echo "# export HOME=\"\$VIRTUAL_ENV\"" >>$VIRTUAL_ENV/bin/activate
-#    echo "for f in \$VIRTUAL_ENV/bin/*;do" >>$VIRTUAL_ENV/bin/activate
-#    echo "    [[ -x \$f && ! -d \$f ]] && grep -q \"^#\!.*[ /]python\" \$f &>/dev/null && sed -i -e \"s|^#\!.*[ /]python|#\!\$VIRTUAL_ENV/bin/python|\" \$f" >>$VIRTUAL_ENV/bin/activate
-#    echo "done" >>$VIRTUAL_ENV/bin/activate
   fi
   sed -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' -i $VIRTUAL_ENV/bin/activate
   if [[ $opt_spkg -ne 0 ]]; then
@@ -661,6 +658,15 @@ custom_env() {
     fi
   elif [[ -d $VIRTUAL_ENV/.local/lib/python$2/site-packages ]]; then
     echo -e "import site\nsite.addsitedir('$VIRTUAL_ENV/.local/lib/python$2/site-packages')\n" >$VIRTUAL_ENV/lib/python$2/site-packages/sitecustomize.py
+  fi
+  if [[ -n $opt_lang ]]; then
+    if $(grep -q "^export LANG=" $VIRTUAL_ENV/bin/activate); then
+      sed -e 's|^export LANG=.*|export LANG="$opt_lang"|g' -i $VIRTUAL_ENV/bin/activate
+    elif $(grep -q "^# export LANG=" $VIRTUAL_ENV/bin/activate); then
+      sed -e 's|^# export LANG=.*|export LANG="$opt_lang"|g' -i $VIRTUAL_ENV/bin/activate
+    else
+      sed -r "/deactivate *\(\) *\{/i\export LANG="$opt_lang"\n" -i $VIRTUAL_ENV/bin/activate
+    fi
   fi
 }
 
@@ -1174,12 +1180,12 @@ validate_py_oe_vers() {
 }
 
 
-OPTOPTS=(h        a        B         C      D       f         k        I           i         n           O         o          p         q           r           s                    t          V           v)
-OPTLONG=(help     ""       ""        ""     devel   force     keep     indipendent isolated  dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose)
-OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_force opt_keep opt_alone   opt_alone opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose)
-OPTACTI=('+'      "="      "+"       1      1       1         1        2           1         1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
-OPTDEFL=(1        ""       0         0      0       0         0        0           0         0           ""        ""         ""        0           ""          0                    0          ""          -1)
-OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""          ""        ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
+OPTOPTS=(h        a        B         C      D       f         k        I           i         l        n           O         o          p         q           r           s                    t          V           v)
+OPTLONG=(help     ""       ""        ""     devel   force     keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose)
+OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_force opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose)
+OPTACTI=('+'      "="      "+"       1      1       1         1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
+OPTDEFL=(1        ""       0         0      0       0         0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1)
+OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
   "use unstable packages: -B testpypi / -BB from ~/tools / -BBB from ~/pypi / -BBBB link to local ~/pypi"
@@ -1189,6 +1195,7 @@ OPTHELP=("this help"
   "keep python2 executable as python (deprecated)"
   "run pip in an isolated mode and set home virtual directory"
   "run pip in an isolated mode, ignoring environment variables and user configuration"
+  "set default language"
   "do nothing (dry-run)"
   "install pypi required by odoo ver (amend or create)"
   "odoo path used to search odoo requirements"
@@ -1272,9 +1279,6 @@ SAVED_HOME=$HOME
 SAVED_PYTHONPATH=$PYTHONPATH
 PRINTED_PIPVER=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
-# [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -n "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools:$PYTHONPATH
-# [[ $opt_debug -eq 2 && -d $HOME/tools && :$PATH: =~ :$HOME/tools: && -z "$PYTHONPATH" ]] && PYTHONPATH=$HOME/tools
-# [[ $opt_debug -ge 3 ]] && package_debug
 FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"
 if [[ $action == "rm" ]]; then

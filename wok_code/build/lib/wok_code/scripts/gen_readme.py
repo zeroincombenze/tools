@@ -112,7 +112,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.7"
+__version__ = "1.0.7.1"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -1198,7 +1198,7 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
         full_fn = '%s.rst' % full_fn_csv[: -4]
         os.system('cvt_csv_2_rst.py -b %s -q %s %s' % (
             ctx['branch'], full_fn_csv, full_fn))
-    with open(full_fn, 'rU') as fd:
+    with open(full_fn, 'r') as fd:
         source = _u(fd.read())
     if full_fn_csv:
         os.unlink(full_fn)
@@ -1623,10 +1623,10 @@ def index_html_content(ctx, source):
             root = etree.XML(section)
         except SyntaxError as e:
             print_red_message('***** Error %s *****' % e)
-            root = e
+            continue
         xml_replace_text(ctx, root, 'h2', title)
         try:
-            target += '\n%s' % etree.tostring(root, pretty_print=True)
+            target += '\n%s' % _u(etree.tostring(root, pretty_print=True))
         except SyntaxError as e:
             print_red_message('***** Error %s *****' % e)
             target += section
@@ -1750,12 +1750,17 @@ def read_purge_readme(ctx, source):
                               'maintainer', 'maintenance', 'configuration',
                               'troubleshooting', 'known_issues', 'faq',
                               'sponsor', 'copyright',
-                              'translators', 'acknowledges'):
+                              'translators', 'acknowledges',):
                     if ln.startswith(token):
                         cur_sect = ''
                         break
-        if cur_sect:
+        if cur_sect == 'description':
             out_sections[cur_sect] += '%s\n' % line
+        elif cur_sect:
+            if line.strip().startswith('*'):
+                out_sections[cur_sect] += '%s\n' % line
+            elif line:
+                cur_sect = ''
         ix += 1
     for sect in ('description', 'authors', 'contributors'):
         while out_sections[sect].startswith('\n'):

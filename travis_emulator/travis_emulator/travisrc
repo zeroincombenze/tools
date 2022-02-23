@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.5
+#__version__=1.0.5.1
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -302,7 +302,7 @@ create_virtual_env() {
     echo "Zeroincombenze(R) tools not found!"
     exit 1
   fi
-  VENVOPTS=-D
+  VENVOPTS="-Dlen_US"
   drop_test_db
   export TRAVIS_SAVED_HOME=$HOME
   if [[ $HOME =~ ^/(home|opt)/travis && -d $HOME/virtualenv ]]; then
@@ -322,12 +322,12 @@ create_virtual_env() {
     echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH not found or expired!${CLR}"
     echo -e "Now virtual environment $TRAVIS_SAVED_HOME/VME/VME$BRANCH will be (re)created."
     [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
-    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH"
+    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH -len_US"
     echo -e "\n\n"
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
   elif [[ ! -d "$TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1639237000 ]]; then
     echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
-    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq"
+    run_traced "vem create $TRAVIS_SAVED_HOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq -len_US"
     echo -e "\n\n"
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
   fi
