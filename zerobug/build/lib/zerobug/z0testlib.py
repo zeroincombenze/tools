@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2021 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2022 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
 import os
-import os.path
+# import os.path
 import sys
+import stat
 import subprocess
 from string import Template
 from subprocess import Popen, PIPE
@@ -14,11 +15,10 @@ import argparse
 import glob
 from os0 import os0
 import magic
+from python_plus import _c
 
 
-__version__ = "1.0.5.1"
-# Module to test version (if supplied version test is executed)
-# REQ_TEST_VERSION = "0.1.4"
+__version__ = "1.0.7"
 
 # return code
 TEST_FAILED = 1
@@ -628,7 +628,7 @@ class Z0test(object):
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
-            epilog="© 2015-2021 by SHS-AV s.r.l."
+            epilog="© 2015-2022 by SHS-AV s.r.l."
                    " - http://wiki.zeroincombenze.org/en/Zerobug")
         parser.add_argument("-B", "--debug",
                             help="trace msgs in zerobug.tracehis",
@@ -1487,6 +1487,30 @@ class Z0testOdoo(object):
             else:
                 self.testdir = self.this_dir
             self.rundir = self.this_dir
+
+    def simulate_install_pypi(self, cmd):
+        """Simulate pip post installation for """
+        PYCODE = r"""#!%(exec)s
+# -*- coding: utf-8 -*-
+import re
+import sys
+if sys.version_info[0] == 2:
+    from %(pypi)s.scripts.%(cmd)s import main
+else:
+    from .%(pypi)s.scripts.%(cmd)s import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())"""
+        params = {
+            'exec': sys.executable,
+            'cmd': os.path.splitext(cmd)[0],
+            'pypi': os.path.basename(self.Z.rundir),
+        }
+        with open(os.path.join(self.Z.rundir, cmd), 'w') as fd:
+            fd.write(_c(PYCODE % params))
+            mode = os.fstat(fd.fileno()).st_mode
+            mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+            os.fchmod(fd.fileno(), stat.S_IMODE(mode))
 
     def get_outer_dir(self):
         """Get dir out of current virtual environment

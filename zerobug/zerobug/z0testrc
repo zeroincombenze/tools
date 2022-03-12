@@ -294,8 +294,9 @@ msg_test() {
 
 
 test_result () {
-# test_result (msg, testval, resval, cmd, [ttype])::ctr,max_test
-# if supplied, ttype means cmd test type; may be (str-z, str-n)
+  # test_result (msg, testval, resval, cmd, [ttype])::ctr,max_test
+  # if supplied, ttype means cmd test type; may be (str-z, str-n)
+  local
   dbgmsg "\$ test_result($@)  # min=$min_test, max=$max_test, ctr=$ctr"
   ready_opts
   ((ctr++))
