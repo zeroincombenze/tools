@@ -1501,7 +1501,7 @@ get_pypi_param() {
     _REPOS=$(basename $(dirname $x))
     _SETUP=$w
   fi
-  INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|__to_remove|__unported__)"
+  INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|travis|_travis|__to_remove|__unported__)"
   while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $HOME && $x != "/" ]]; do
     r=$(basename $x)
     if $(is_pypi "$x"); then
@@ -1523,14 +1523,6 @@ get_pypi_param() {
       [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
       _REPOS=$(basename $x)
       _PKGNAME=$_REPOS
-#      if [[ $(basename $x) == "tools" ]]; then
-#        repos_tools_params "$x"
-#        [[ -z "$_PKGPATH" && -n "$_PRJPATH" ]] && _PKGPATH=$_PRJPATH
-#      else
-#        [[ $_PRJNAME == "tools" ]] && _PRJNAME=$(basename $x)
-#        _REPOS=$(basename $x)
-#        _PKGNAME=$_REPOS
-#      fi
       break
     elif [[ (-f $x/.travis.yml || -f $x/.gitlab-ci.yml) && (-d $x/.git || -f $x/requirements.txt || -f $x/oca_dependencies.txt || -f $x/README.rst || -f $x/README.md) ]]; then
       _PRJPATH=$x
@@ -1566,8 +1558,6 @@ get_pypi_param() {
   [[ $_PRJNAME =~ ^(odoo|openerp)$ ]] && _PRJNAME="Odoo"
   if [[ $_PRJNAME == "Odoo" ]]; then
     if [[ "$(type -t build_odoo_param)" == "function" ]]; then
-      # _PKGNAME=$(build_odoo_param PKGNAME $PWD)
-      # _PKGPATH=$(build_odoo_param PKGPATH $PWD)
       _PRJPATH=$(build_odoo_param HOME $PWD)
       _REPOS=$(build_odoo_param REPOS $PWD)
     else

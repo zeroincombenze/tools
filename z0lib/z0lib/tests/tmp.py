@@ -6,7 +6,7 @@
 # V=~/venv
 # R=~/pypi
 # L=[...]
-# D=~/devel
+# D='/home/odoo/devel'
 ##############
 import pdb
 pdb.set_trace()
@@ -20,15 +20,15 @@ f=o.isfile
 p=o.isdir
 ###############
 C=os.path.dirname(__file__)
-D=''
+D='/home/odoo/devel'
 ###############
 H=o.expanduser('~')
-T=j(H,'tools')
-R=j(H,'pypi') if b(D)=='venv_tools' else j(H,D,'pypi')
+T=j(d(D), 'tools')
+R=j(d(D),'pypi') if b(D)=='venv_tools' else j(D,'pypi')
 W=D if b(D)=='venv_tools' else j(D,'venv')
 def apl(L,P,B):
  if P:
-  if p(j(P,B,B)) and p(j(P,B,B,'scripts')) and f(j(P,B,B,'__init__')):
+  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):
    L.append(j(P,B,B))
    return 1
   elif j(P,B):
@@ -39,7 +39,9 @@ L=[C]
 if b(C) in ('scripts','tests','travis','_travis'):
  C=a(j(C,'..'))
  L.append(C)
-if b(C)==d(C) and f(j(C,'..','setup.py')):
+if b(C)==b(d(C)) and f(j(C,'..','setup.py')):
+ C=a(j(C,'..','..'))
+elif b(d(C))=='tools' and f(j(C,'setup.py')):
  C=a(j(C,'..'))
 P=os.environ['PATH'].split(':')
 V= ''
@@ -49,7 +51,7 @@ for X in sys.path:
  if not V and b(X)=='site-packages':
   V=X
 for B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):
- if p(j(C,B)):
+ if p(j(C,B)) or p(j(C,b(C),B)):
   F=apl(L,C,B)
  else:
   F=0

@@ -1,5 +1,7 @@
-with open('./tmp.py', 'r') as fd:
-    tgt = 'C=\'"$TDIR"\'\\nD=\'"$HOME_DEV"\'\\n'
+import os
+fn = os.path.join(os.path.dirname(__file__), 'tmp.py')
+with open(fn, 'r') as fd:
+    tgt = 'C=\'"$TDIR"\'\\nD=\'"$HOME_DEVEL"\'\\n'
     sts = 0
     for ln in fd.read().split('\n'):
         if ln and ln.startswith('##'):
