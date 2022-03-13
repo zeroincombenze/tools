@@ -1,3 +1,14 @@
+1.0.7.1 (2022-03-12)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New bash template
+* [IMP] create_module: new param dependencies
+
+1.0.7 (2022-02-23)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.6.1 (2022-01-16)
 ~~~~~~~~~~~~~~~~~~~~
 

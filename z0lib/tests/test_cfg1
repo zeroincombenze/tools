@@ -50,7 +50,7 @@ GREEN="\e[1;32m"
 CLR="\e[0m"
 
 
-__version__=1.0.6
+__version__=1.0.6.1
 
 
 test_01() {
@@ -69,7 +69,7 @@ test_01() {
     export XPRM0=$(get_cfg_value "" "param$i")
     for i in 1 2 3 4; do
       TRES=$(get_cfg_value "" "param$i")
-      test_result "get_cfg_value '' param$i" "Value$i" "$TRES"
+      test_result "get_cfg_value '' param$i" "$TRES" "Value$i"
     done
 
     if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -80,11 +80,11 @@ test_01() {
     for i in 1 2 3 4; do
       TRES=$(get_cfg_value "" "param$i")
       if [ $i -eq 1 ]; then
-        test_result "get_cfg_value '' param$i" "VALUE$i" "$TRES"
+        test_result "get_cfg_value '' param$i" "$TRES" "VALUE$i"
       elif [ $i -eq 3 ]; then
-        test_result "get_cfg_value '' param$i" "VALUE$i" "$TRES"
+        test_result "get_cfg_value '' param$i" "$TRES" "VALUE$i"
       else
-        test_result "get_cfg_value '' param$i" "Value$i" "$TRES"
+        test_result "get_cfg_value '' param$i" "$TRES" "Value$i"
       fi
     done
     if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -92,7 +92,7 @@ test_01() {
       link_cfg $FCONF
     fi
     TRES=$(get_cfg_value "" "param4")
-    test_result "get_cfg_value '' param4" " VALUE4 " "$TRES"
+    test_result "get_cfg_value '' param4" "$TRES" " VALUE4 "
 
     CFG_init
     FCONF="$TESTDIR/test.conf"
@@ -107,7 +107,7 @@ test_01() {
     fi
     for i in 1 2 3 4; do
       TRES=$(get_cfg_value "" "param$i")
-      test_result "get_cfg_value '' param$i" "value$i" "$TRES"
+      test_result "get_cfg_value '' param$i" "$TRES" "value$i"
     done
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       echo "param1= VALUE1 ">$FCONF
@@ -117,11 +117,11 @@ test_01() {
     for i in 1 2 3 4; do
       TRES=$(get_cfg_value "" "param$i")
       if [ $i -eq 1 ]; then
-        test_result "get_cfg_value '' param$i  #upd" "VALUE$i" "$TRES"
+        test_result "get_cfg_value '' param$i  #upd" "$TRES" "VALUE$i"
       elif [ $i -eq 3 ]; then
-        test_result "get_cfg_value '' param$i  #upd" "VALUE$i" "$TRES"
+        test_result "get_cfg_value '' param$i  #upd" "$TRES" "VALUE$i"
       else
-        test_result "get_cfg_value '' param$i" "value$i" "$TRES"
+        test_result "get_cfg_value '' param$i" "$TRES" "value$i"
       fi
     done
 
@@ -144,15 +144,15 @@ test_01() {
       link_cfg $FCONF $FCONF.sample
     fi
     TRES=$(get_cfg_value "" "param1")
-    test_result "get_cfg_value '' param1  #default" "defval1" "$TRES"
+    test_result "get_cfg_value '' param1  #default" "$TRES" "defval1"
     TRES=$(get_cfg_value "" "param2")
-    test_result "get_cfg_value '' param2" "value2" "$TRES"
+    test_result "get_cfg_value '' param2" "$TRES" "value2"
     TRES=$(get_cfg_value "" "param3")
-    test_result "get_cfg_value '' param3" "VALUE3" "$TRES"
+    test_result "get_cfg_value '' param3" "$TRES" "VALUE3"
     TRES=$(get_cfg_value "" "param4")
-    test_result "get_cfg_value '' param4" "" "$TRES"
+    test_result "get_cfg_value '' param4" "$TRES" ""
     TRES=$(get_cfg_value "" "param9")
-    test_result "get_cfg_value '' param9" "Long long value parameter" "$TRES"
+    test_result "get_cfg_value '' param9" "$TRES" "Long long value parameter"
 
     CFG_init
     FCONF="$TESTDIR/test.conf"
@@ -172,7 +172,7 @@ test_01() {
       link_cfg $FCONF
     fi
     TRES=$(get_cfg_value "" "param1")
-    test_result "get_cfg_value '' param1 #[$FH]" "Right" "$TRES"
+    test_result "get_cfg_value '' param1 #[$FH]" "$TRES" "Right"
 }
 
 

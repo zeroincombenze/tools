@@ -9,10 +9,11 @@ import os
 import sys
 import shutil
 from zerobug import z0test, z0testodoo
-from z0bug_odoo.travis.getaddons import is_module
-from z0bug_odoo.travis.test_server import get_build_dir
+from z0bug_odoo.travis.getaddons import (
+    is_module, is_addons, get_modules_info, get_modules, get_addons)
+# from z0bug_odoo.travis.test_server import get_build_dir, get_server_script
 
-__version__ = "1.0.10"
+__version__ = "1.0.11.1"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
@@ -37,85 +38,122 @@ class RegressionTest():
                              'travis'))
         if travis_addons not in sys.path:
             sys.path.append(travis_addons)
+        self.root = {}
         self.Z = z0bug
 
     def test_01(self, z0ctx):
         sts = 0
-        home = os.path.expanduser('~')
-        gitorg = 'odoo'
         for odoo_version in ODOO_VERSIONS:
-            majver = int(odoo_version.split('.')[0])
-            travis_base_dir = odoo_addons = version = False
-            odoo_full = '%s/%s' % (gitorg, odoo_version)
-            odoo_addons = repodir = moduledir = ''
+            odoo_addons = moduledir = ''
             if not z0ctx['dry_run']:
-                # Test with explicit version passed
-                self.root = z0testodoo.build_odoo_env(z0ctx, odoo_version)
-                odoo_root = os.path.join(
-                    home, '%s-%s' % (gitorg, odoo_version))
+                self.root[odoo_version] = z0testodoo.build_odoo_env(
+                    z0ctx, odoo_version)
                 if eval(odoo_version.split('.')[0]) < 10:
-                    odoo_addons = os.path.join(odoo_root, 'openerp', 'addons')
+                    odoo_addons = os.path.join(
+                        self.root[odoo_version],
+                        odoo_version,
+                        'openerp',
+                        'addons')
                 else:
-                    odoo_addons = os.path.join(odoo_root, 'odoo', 'addons')
-            if not z0ctx['dry_run']:
-                if os.path.isdir(odoo_root):
-                    shutil.rmtree(odoo_root, True)
-                shutil.move(os.path.join(self.root, odoo_version), odoo_root)
-                travis_base_dir, version = get_build_dir(
-                    odoo_full, version=odoo_version)
+                    odoo_addons = os.path.join(
+                        self.root[odoo_version],
+                        odoo_version,
+                        'odoo',
+                        'addons')
             sts += self.Z.test_result(
-                    z0ctx,
-                    'is_module(\'%s\')' % odoo_addons,
-                    False,
-                    is_module(odoo_addons))
-            if not z0ctx['dry_run']:
-                repodir = z0testodoo.create_repo(
-                    z0ctx, odoo_root, 'test_repo', version)
-            sts += self.Z.test_result(
-                    z0ctx,
-                    'is_module(\'%s\')' % repodir,
-                    False,
-                    is_module(repodir))
+                z0ctx,
+                'is_module(\'%s\')' % odoo_addons,
+                False,
+                is_module(odoo_addons))
             if not z0ctx['dry_run']:
                 moduledir = z0testodoo.create_module(
-                    z0ctx, repodir, 'test_module', '%s.0.1.0' % odoo_version)
-            sts += self.Z.test_result(
-                    z0ctx,
-                    'is_module(\'%s\')' % moduledir,
-                    os.path.join(
-                        moduledir, '__openerp__.py') if majver < 10
-                    else os.path.join(
-                        moduledir, '__manifest__.py'),
-                    is_module(moduledir))
+                    z0ctx, odoo_addons, 'test_module',
+                    '%s.0.1.0' % odoo_version)
             sts += self.Z.test_result(
                 z0ctx,
-                'get_build_dir(\'%s\', version=\'%s\')' % (odoo_full,
-                                                           odoo_version),
-                travis_base_dir,
-                odoo_addons)
+                'is_module(\'%s\')' % moduledir,
+                True,
+                bool(is_module(moduledir)))
             sts += self.Z.test_result(
                 z0ctx,
-                'get_build_dir(\'%s\', version=\'%s\')' % (odoo_full, version),
-                version,
-                odoo_version)
-            if not z0ctx['dry_run']:
-                # Test w/o explicit version passed
-                travis_base_dir, version = get_build_dir(odoo_full)
+                'is_addons(\'%s\')' % moduledir,
+                False,
+                is_addons(moduledir))
             sts += self.Z.test_result(
                 z0ctx,
-                'get_build_dir(\'%s\')' % odoo_full,
-                travis_base_dir,
-                odoo_addons)
-            sts += self.Z.test_result(
-                z0ctx,
-                'get_build_dir(\'%s\')' % odoo_full,
-                version,
-                odoo_version)
+                'is_addons(\'%s\')' % odoo_addons,
+                True,
+                is_addons(odoo_addons))
         return sts
 
     def test_02(self, z0ctx):
+        sts = 0
+        home = os.path.expanduser('~')
+        gitorg = 'odoo'
+        module_name = 'test_module'
+        module2_name = 'web'
         for odoo_version in ODOO_VERSIONS:
-            pass
+            modules = []
+            odoo_root = os.path.join(
+                home, '%s-%s' % (gitorg, odoo_version))
+            if eval(odoo_version.split('.')[0]) < 10:
+                odoo_addons = os.path.join(odoo_root, 'openerp', 'addons')
+            else:
+                odoo_addons = os.path.join(odoo_root, 'odoo', 'addons')
+            odoo_addons2 = os.path.join(
+                odoo_root,
+                'addons')
+            if not z0ctx['dry_run']:
+                if os.path.isdir(odoo_root):
+                    shutil.rmtree(odoo_root, True)
+                shutil.move(os.path.join(
+                    self.root[odoo_version], odoo_version), odoo_root)
+                modules = get_modules_info(odoo_addons)
+            sts += self.Z.test_result(
+                z0ctx,
+                'get_modules_info(\'%s\')' % odoo_addons,
+                True,
+                module_name in modules)
+            if not z0ctx['dry_run']:
+                modules = get_modules_info(odoo_root, depth=99)
+            sts += self.Z.test_result(
+                z0ctx,
+                'get_modules_info(\'%s\', depth=99)' % odoo_root,
+                True,
+                module_name in modules)
+            if not z0ctx['dry_run']:
+                z0testodoo.create_module(
+                    z0ctx, odoo_addons2, module2_name,
+                    '%s.0.1.0' % odoo_version)
+            if not z0ctx['dry_run']:
+                modules = get_modules_info(odoo_root, depth=99)
+            sts += self.Z.test_result(
+                z0ctx,
+                'get_modules_info(\'%s\', depth=99)' % odoo_root,
+                True,
+                module2_name in modules)
+            sts += self.Z.test_result(
+                z0ctx,
+                '# modules',
+                2,
+                len(modules))
+            #
+            if not z0ctx['dry_run']:
+                modules = get_modules(odoo_root, depth=99)
+            sts += self.Z.test_result(
+                z0ctx,
+                'get_modules(\'%s\', depth=99))' % odoo_root,
+                [module_name, module2_name],
+                modules)
+            #
+            addons = []
+            if not z0ctx['dry_run']:
+                addons = get_addons(odoo_root, depth=99)
+            sts += self.Z.test_result(
+                z0ctx,
+                'get_addons(\'%s\', depth=99))' % odoo_root,
+                set([odoo_addons, odoo_addons2]),
+                set(addons))
 
 
 # Run main if executed as a script

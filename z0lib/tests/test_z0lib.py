@@ -10,7 +10,7 @@ import os
 from z0lib import z0lib
 
 
-__version__ = "1.0.6"
+__version__ = "1.0.6.1"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
@@ -33,7 +33,7 @@ class RegressionTest():
                                  __version__)
         #
         parser = z0lib.parseoptargs("Unit Test",
-                                    "© 2015-2021 by SHS-AV s.r.l.",
+                                    "© 2015-2022 by SHS-AV s.r.l.",
                                     version=__version__)
         parser.add_argument('-h')
         parser.add_argument('-n')
@@ -53,7 +53,7 @@ class RegressionTest():
     def test_02(self, z0ctx):
         # sts = TEST_SUCCESS
         parser = z0lib.parseoptargs("Unit Test",
-                                    "© 2015-2021 by SHS-AV s.r.l.",
+                                    "© 2015-2022 by SHS-AV s.r.l.",
                                     version=__version__)
         parser.add_argument('-h')
         parser.add_argument('-n')
@@ -91,7 +91,7 @@ class RegressionTest():
                                   ctx['mytarget'])
 
         parser = z0lib.parseoptargs("Unit Test",
-                                    "© 2015-2021 by SHS-AV s.r.l.",
+                                    "© 2015-2022 by SHS-AV s.r.l.",
                                     version=__version__)
         parser.add_argument('-h')
         parser.add_argument('-n')
@@ -111,7 +111,7 @@ class RegressionTest():
                                   ctx['opt_verbose'])
 
         parser = z0lib.parseoptargs("Unit Test",
-                                    "© 2015-2021 by SHS-AV s.r.l.",
+                                    "© 2015-2022 by SHS-AV s.r.l.",
                                     version=__version__)
         parser.add_argument('-h')
         parser.add_argument('-n')

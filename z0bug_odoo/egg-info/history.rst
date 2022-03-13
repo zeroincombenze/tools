@@ -1,3 +1,16 @@
+1.0.11.1 (2022-03-12)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New file account_banking_manadate.xlsx
+* [IMP] New file product_supplierinfo.xlsx
+* [IMP] New test data
+* [IMP] New tests
+
+1.0.11 (2022-02-23)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.9.1 (2022-01-11)
 ~~~~~~~~~~~~~~~~~~~~
 

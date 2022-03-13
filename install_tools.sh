@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.11
+__version__=1.0.11.2
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -99,19 +99,18 @@ CLR="\e[0m"
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
 [[ -d $TDIR/clodoo && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
 [[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
+[[ -z "$SRCPATH" && -d $HOME/odoo/tools ]] && SRCPATH=$HOME/odoo/tools
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
 [[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
 
-[[ $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"                   # new: SRCPATH/venv_tools
-[[ $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"  # new: SRCPATH/venv_tools
-LOCAL_VENV="$DSTPATH/venv"                                                                                         # new: DSTPATH
-if [[ $DSTPATH != $LOCAL_VENV && ! -d $DSTPATH && ! $opts =~ ^-.*p ]]; then
-    [[ -d "$HOME/dev" && ! -d $HOME/devel ]] && run_traced "mv $HOME/dev $HOME/devel"
-    [[ ! -d $HOME/devel && -n "$SRCPATH" && $opts =~ ^-.*p ]] && run_traced "mkdir -p $HOME/devel"
-    [[ -d $HOME/devel ]] && DSTPATH=$HOME/devel
-fi
+[[ $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
+[[ $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
+[[ -z "$DSTPATH" && -d $HOME/odoo/devel ]] && DSTPATH="$HOME/odoo/devel"
+[[ -z "$DSTPATH" && -d $HOME/devel ]] && DSTPATH="$HOME/devel"
+LOCAL_VENV="$DSTPATH/venv"
+[[ $DSTPATH != $LOCAL_VENV && ! -d $DSTPATH && ! $opts =~ ^-.*p ]] && run_traced "mkdir -p $DSTPATH"
 [[ -z "$DSTPATH" ]] && echo "# Environment not found! Please use -p switch" && exit 1
-DEVELPATH="$(readlink $DSTPATH/pypi)"   # new DSTPATH/../pypi
+DEVELPATH="$(readlink $DSTPATH/pypi)"
 
 if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
     [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
@@ -135,6 +134,10 @@ for p in bin lib include; do
   [[ $DSTPATH != $LOCAL_VENV && -d $DSTPATH/$p ]] && run_traced "rm -fR $DSTPATH/$p"
 done
 
+[[ -x $LOCAL_VENV/python ]] && PYVER=$($LOCAL_VENV/python --version 2>&1 | grep -o "[0-9]" | head -n1) || PYVER=$(python --version 2>&1 | grep -o "[0-9]" | head -n1)
+[[ $opts =~ ^-.*t ]] && opts="${opts} -$(echo ${TRAVIS_PYTHON_VERSION}3 | grep -Eo [0-9] | head -n1)"
+[[ ! $opts =~ ^-.*2 && PYVER -eq 2 ]] && opts="${opts} -f"
+[[ $opts =~ ^-.*2 && PYVER -ne 2 ]] && opts="${opts} -f"
 if [[ $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! -d $DSTPATH/venv/bin || ! -d $DSTPATH/bin ]]; then
     x="-iDBB"
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
@@ -143,8 +146,9 @@ if [[ $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! 
     if [[ $opts =~ ^-.*2 ]]; then
         run_traced "$VEM create $LOCAL_VENV -p2.7 $x -f"
     else
-        # run_traced "$VEM create $LOCAL_VENV -p3.7 $x -f"
-        run_traced "$VEM create $LOCAL_VENV $x -f"
+        PYVER=$(python3 --version 2>&1 | grep -o "[0-9]\.[0-9]" | head -n1)
+        [[ -z $PYVER ]] && PYVER="3.7"
+        run_traced "$VEM create $LOCAL_VENV -p$PYVER $x -f"
     fi
     [[ $? -ne 0 ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
     [[ ! -d $LOCAL_VENV/bin || ! -d $LOCAL_VENV/lib ]] && echo -e "${RED}# Incomplete Tools virtual environment!${CLR}" && exit 1
@@ -169,6 +173,7 @@ PKGS_LIST="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code
 PYPI_LIST="pyyaml"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
+PYVER=$($PYTHON --version 2>&1 | grep -o "[0-9]" | head -n1)
 [[ $opts =~ ^-.*q ]] && popts="-q --disable-pip-version-check --no-python-version-warning" || popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PIPVER -gt 18 ]] && popts="$popts --no-warn-conflicts"
 [[ $PIPVER -eq 19 ]] && popts="$popts --use-feature=2020-resolver"
@@ -328,14 +333,14 @@ if [[ $opts =~ ^-.*[Ss] ]]; then
 fi
 
 # OCA tools
-if [[ $opts =~ ^-.*3 ]]; then
+if [[ $PYVER -eq 3 ]]; then
     run_traced "cd $DSTPATH"
     [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
     run_traced "git clone git@github.com:OCA/maintainer-tools.git"
     if [[ -d $DSTPATH/maintainer-tools ]]; then
         run_traced "cd $DSTPATH/maintainer-tools"
         run_traced ". $DSTPATH/venv/bin/activate"
-        run_traced "python setup.py install"
+        [[ $opts =~ ^-.*v ]] && run_traced "python setup.py install" || run_traced "python setup.py --quiet install"
         run_traced "pip install black"
         run_traced "deactivate"
     fi
