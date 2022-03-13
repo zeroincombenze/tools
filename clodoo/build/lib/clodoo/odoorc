@@ -59,7 +59,7 @@
 # ODOO_GIT_SHORT    -> regex of git organizzations with short name (def /(oca)/)
 #
 
-#__version__=1.0.0.1
+#__version__=1.0.1
 
 
 ODOO_FVERS="14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
@@ -87,7 +87,7 @@ DEFMLIST="OCB account-analytic account-budgeting account-closing
  webkit-tools website website-cms website-themes wms zerobug-test"
 OCB_SUBDIRS="addons build debian dist doc docs egg-info _extensions filestore history howtos images odoo openerp redhat reference scripts server _static win32"
 OCB_SUBDIRS_RE="^(${OCB_SUBDIRS// /|})$"
-INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html .idea latex node_modules openupgrade setup _static tests themes __to_remove __unported__"
+INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html .idea latex node_modules openupgrade setup _static tests themes travis _travis __to_remove __unported__"
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPS_EXTRA="^(didotech_80|grymb|maintainer-quality-tools|maintainer-tools|tools|uncovered|VME|OpenUpgrade|Odoo-samples|dotnet|interface-github|odoorpc|openupgradelib|pylint-odoo|rest-framework|runbot-addons)$"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\

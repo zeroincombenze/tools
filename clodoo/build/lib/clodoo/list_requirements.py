@@ -14,7 +14,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '1.0.0.1'
+__version__ = '1.0.1'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -205,6 +205,7 @@ PIP_TEST_PACKAGES = ['astroid',
 BIN_TEST_PACKAGES = ['build-essential',
                      'expect-dev',
                      'libffi-dev',
+                     'libpq-dev',
                      'libssl-dev',
                      'python-dev',
                      'python-setuptools',

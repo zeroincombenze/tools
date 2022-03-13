@@ -245,6 +245,12 @@ travis_emulator: 1.0.5.1 (2022-02-22)
 * [IMP] Set language en_US
 
 
+clodoo: 1.0.0.2 (2022-02-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo.xlsx: account.invoice-move
+
+
 wok_code: 1.0.7.1 (2022-02-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

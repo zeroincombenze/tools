@@ -49,7 +49,7 @@ test_01() {
     else
       RES=
     fi
-    test_result "zar_bck -T (found log)" "$OUTF" "$RES"
+    test_result "zar_bck -T (found log)" "$RES" "$OUTF"
     return $?
 }
 
@@ -61,7 +61,7 @@ test_02() {
     else
       RES=1
     fi
-    test_result "zar_bck -T (backup copy ignored)" "0" "$RES"
+    test_result "zar_bck -T (backup copy ignored)" "$RES" "0"
     return $?
 }
 
@@ -73,7 +73,7 @@ test_03() {
     else
       RES=1
     fi
-    test_result "zar_bck -T (db not classified)" "0" "$RES"
+    test_result "zar_bck -T (db not classified)" "$RES" "0"
     return $?
 }
 

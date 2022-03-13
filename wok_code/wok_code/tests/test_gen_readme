@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.7.1
+__version__=1.0.8
 
 
 test_01() {
@@ -243,7 +243,7 @@ EOF
       $RUNDIR/gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTRES" "$TESTOUT" "diff"
 }
 
 test_02() {
@@ -314,7 +314,7 @@ EOF
       $RUNDIR/gen_readme.py -qTH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -qTH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -qTH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTRES" "$TESTOUT" "diff"
 }
 
 
@@ -414,7 +414,7 @@ EOF
       $RUNDIR/gen_readme.py -qR -b7.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -qR -b7.0  -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -qR -b7.0  -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTRES" "$TESTOUT" "diff"
 }
 
 
@@ -611,7 +611,7 @@ EOF
       $RUNDIR/gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTRES" "$TESTOUT" "diff"
 }
 
 
@@ -645,7 +645,7 @@ EOF
       $RUNDIR/gen_readme.py -q -b12.0 -Gpowerp -WR -w
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -q -b12.0 -Gpowerp -WR -w" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -q -b12.0 -Gpowerp -WR -w" "$TESTRES" "$TESTOUT" "diff"
 }
 
 Z0BUG_setup() {

@@ -3802,7 +3802,6 @@ def store_einvoices_stats(ctx):
     for column in sheet.columns:
         colnames.append(column[0].value)
     hdr = True
-    import pdb; pdb.set_trace()
     for line in sheet.rows:
         if hdr:
             hdr = False

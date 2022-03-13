@@ -1,7 +1,7 @@
 
-=============
-zerobug 1.0.7
-=============
+===============
+zerobug 1.0.7.1
+===============
 
 
 
@@ -366,6 +366,17 @@ Current development version
 History
 -------
 
+1.0.7.1 (2022-03-12)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New bash template
+* [IMP] create_module: new param dependencies
+
+1.0.7 (2022-02-23)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.6.1 (2022-01-16)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -442,7 +453,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-12
+Last Update / Ultimo aggiornamento: 2022-03-13
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -26,7 +26,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '1.0.10'
+__version__ = '1.0.11'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -335,7 +335,7 @@ def get_script_path(server_path, script_name):
 def build_run_cmd_odoo(server_path, script_name, db, modules=None,
                        install_options=None, server_options=None,
                        unbuffer=None, scope=None, test_loglevel=None,
-                       coveragerc=None):
+                       coveragerc=None, port=None):
     # scope=('init','test')
     script_path = get_script_path(server_path, script_name)
     test_loglevel = test_loglevel or 'info'
@@ -364,6 +364,9 @@ def build_run_cmd_odoo(server_path, script_name, db, modules=None,
                  "--log-level=%s" % test_loglevel,
                  "--stop-after-init",
                  ]
+    if port:
+        #TODO> PORT
+        pass
     if install_options:
         cmd_odoo.append(install_options)
     if server_options:
@@ -659,7 +662,8 @@ def main(argv=None):
         unbuffer, server_options, travis_debug_mode)
     cmd_odoo_test = build_run_cmd_odoo(
         server_path, script_name, database, unbuffer=unbuffer,
-        scope='test', test_loglevel=test_loglevel, coveragerc=coveragerc)
+        scope='test', test_loglevel=test_loglevel, coveragerc=coveragerc,
+        port=conf_data.get('xmlrpc_port'))
 
     if test_loghandler is not None:
         cmd_odoo_test += ['--log-handler', test_loghandler]

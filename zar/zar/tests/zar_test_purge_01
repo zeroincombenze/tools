@@ -49,7 +49,7 @@ test_01() {
     else
       RES=
     fi
-    test_result "zar_purge -T (found log)" "$OUTF" "$RES"
+    test_result "zar_purge -T (found log)" "$RES" "$OUTF"
     return $?
 }
 

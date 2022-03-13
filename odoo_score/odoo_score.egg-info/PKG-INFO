@@ -1,4 +1,4 @@
-Metadata-Version: 1.2
+Metadata-Version: 2.1
 Name: odoo-score
 Version: 1.0.6
 Summary: Odoo super core
@@ -6,13 +6,8 @@ Home-page: https://zeroincombenze-tools.readthedocs.io
 Author: Antonio Maria Vigliotti
 Author-email: antoniomaria.vigliotti@gmail.com
 License: Affero GPL
-Project-URL: Source, https://github.com/zeroincombenze/tools
 Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
-Description: 
-        Odoo supercore
-        
-        odoo_score is a library that extends the odoo orm functionality and makes available a simple odoo shell.
-        
+Project-URL: Source, https://github.com/zeroincombenze/tools
 Keywords: odoo
 Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
@@ -25,3 +20,10 @@ Classifier: Intended Audience :: Developers
 Classifier: Topic :: Software Development
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: System :: System Shells
+
+
+Odoo supercore
+
+odoo_score is a library that extends the odoo orm functionality and makes available a simple odoo shell.
+
+

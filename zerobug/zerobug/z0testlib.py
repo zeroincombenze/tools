@@ -18,7 +18,7 @@ import magic
 from python_plus import _c
 
 
-__version__ = "1.0.7"
+__version__ = "1.0.7.1"
 
 # return code
 TEST_FAILED = 1
@@ -1572,7 +1572,7 @@ if __name__ == '__main__':
         hierarchy: flat,tree,server (def=flat)
         """
         name = name or version
-        if version in ('10.0', '11.0', '12.0', '13.0', '14.0', '15.0'):
+        if version in ('10.0', '11.0', '12.0', '13.0', '14.0', '15.0', '16.0'):
             if hierarchy == 'tree':
                 odoo_home = os.path.join(name, 'odoo', 'odoo')
             else:
@@ -1613,11 +1613,11 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
         with open(os.path.join(odoo_home, '__init__.py'), 'w') as fd:
             fd.write('import release\n')
         with open(os.path.join(odoo_root, script), 'w') as fd:
-            fd.write('\n')
+            fd.write('print("Fake Odoo")\n')
         with open(os.path.join(odoo_root, '.travis.yml'), 'w') as fd:
             fd.write('\n')
         with open(os.path.join(odoo_root, 'README.rst'), 'w') as fd:
-            fd.write('\n')
+            fd.write('This directory is a fake, just for test!\n')
         if retodoodir:
             return odoo_root
         return root
@@ -1626,7 +1626,7 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
                     hierarchy=None, name=None, repotype=None):
         REPOTYPES = {
             'oca': {
-                'd': ['.git',],
+                'd': ['.git'],
                 'f': ['README.md', '.travis.yml'],
             },
             'zero': {
@@ -1652,7 +1652,8 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
                 open(path, 'w').close()
         return repodir
 
-    def create_module(self, ctx, repo_root, name, version, moduletype=None):
+    def create_module(self, ctx, repo_root, name, version,
+                      moduletype=None, dependencies=None):
         MODULETYPES = {
             'simple': {
                 'd': [],
@@ -1666,14 +1667,19 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
         majver = int(version.split('.')[0])
         if majver < 10:
             ffn = os.path.join(moduledir, '__openerp__.py')
+            ffn_del = os.path.join(moduledir, '__manifest__.py')
         else:
             ffn = os.path.join(moduledir, '__manifest__.py')
+            ffn_del = os.path.join(moduledir, '__openerp__.py')
         with open(ffn, 'w') as fd:
             fd.write(str({
                 'name': name,
                 'version': version,
                 'summary': 'This module is a fake, just for test!',
+                'depends': dependencies if dependencies else [],
             }))
+        if os.path.isfile(ffn_del):
+            os.unlink(ffn_del)
         for ldir in MODULETYPES.get(moduletype, {}).get('d', []):
             path = os.path.join(moduledir, ldir)
             if not os.path.isdir(path):

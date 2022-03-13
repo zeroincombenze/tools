@@ -17,7 +17,7 @@ if sys.version_info[0] == 2:
 else:
     from .git_run import GitRun
 
-__version__ = '1.0.10'
+__version__ = '1.0.11'
 
 MANIFEST_FILES = [
     '__manifest__.py',
@@ -25,6 +25,7 @@ MANIFEST_FILES = [
     '__openerp__.py',
     '__terp__.py',
 ]
+
 
 
 def is_module(path):
@@ -78,6 +79,7 @@ def get_modules_info(path, depth=1):
 
 
 def is_addons(path):
+    """return if the path does contain one or more odoo modules"""
     res = get_modules(path) != []
     return res
 
@@ -185,8 +187,8 @@ def get_localizations_with_dependents(modules):
 def main(argv=None):
     if argv is None:
         argv = sys.argv
-    argv = argv[1:]
-    if not argv:
+    params = argv[1:]
+    if not params:
         print(__doc__)
         return 1
 
@@ -195,32 +197,28 @@ def main(argv=None):
     localization = None
     exclude_modules = []
 
-    params = []
-    while argv:
-        if argv[0].startswith('-'):
-            param = argv.pop(0)
-            if param == '-h' or param == '--help':
-                print(__doc__)
-                return 1
-            elif param == '-V' or param == '--version':
-                print(__version__)
-                return 1
-            elif param == '-m':
-                list_modules = True
-            elif param == '-e':
-                exclude_modules = [x for x in argv.pop(0).split(',')]
-            elif param == '--only-applications':
-                application = True
-            elif param == '--exclude-applications':
-                application = False
-            elif param == '--only-localization':
-                localization = True
-            elif param == '--exclude-localization':
-                localization = False
-            else:
-                raise Exception('Unknown parameter: %s' % param)
-        else:
-            params.append(argv.pop(0))
+    while params and params[0].startswith('-'):
+        param = params.pop(0)
+        if param == '-h' or param == '--help':
+            print(__doc__)
+            return 1
+        elif param == '-V' or param == '--version':
+            print(__version__)
+            return 1
+        elif param == '-m':
+            list_modules = True
+        elif param == '-e':
+            exclude_modules = [x for x in params.pop(0).split(',')]
+        elif param == '--only-applications':
+            application = True
+        elif param == '--exclude-applications':
+            application = False
+        elif param == '--only-localization':
+            localization = True
+        elif param == '--exclude-localization':
+            localization = False
+        elif param.startswith('-'):
+            raise Exception('Unknown parameter: %s' % param)
 
     if list_modules:
         modules = {}
@@ -248,7 +246,7 @@ def main(argv=None):
     if exclude_modules:
         res = [x for x in res if x not in exclude_modules]
     print(','.join(res))
-    return 0
+    return res
 
 
 if __name__ == "__main__":

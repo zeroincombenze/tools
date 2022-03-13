@@ -10,7 +10,7 @@ from zerobug import Z0BUG
 standard_library.install_aliases()                                 # noqa: E402
 
 
-__version__ = '1.0.7'
+__version__ = '1.0.7.1'
 
 
 def test_version_zerobug(version_to_test):

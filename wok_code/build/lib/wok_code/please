@@ -10,13 +10,15 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.5
+# Based on template 1.0.8
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-HOME_DEV="$HOME/devel"
+if [[ -z $HOME_DEVEL ]]; then
+  [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
+fi
 [[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEV"'\nimport os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nH=o.expanduser('~')\nT=j(H,'tools')\nR=j(H,'pypi') if b(D)=='venv_tools' else j(H,D,'pypi')\nW=D if b(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'scripts')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('scripts','tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==d(C) and f(j(C,'..','setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+[os.getcwd()]+P\np=set()\npa=p.add\np=[x for x in L if x and x.startswith((H,D,C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEVEL"'\nimport os,sys\no=os.path\na=o.abspath\nj=os.path.join\nd=os.path.dirname\nb=os.path.basename\nf=os.path.isfile\np=os.path.isdir\nH=o.expanduser('~')\nT=j(d(D), 'tools')\nR=j(d(D),'pypi') if o.basename(D)=='venv_tools' else j(D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==b(d(C)) and f(j(C,'..','setup.py')):\n C=a(j(C,'..','..'))\nelif b(d(C))=='tools' and f(j(C,'setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)) or p(j(C,b(C),B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+P\np=set()\npa=p.add\np=[x for x in L if x and (x.startswith(H) or x.startswith(D) or x.startswith(C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -60,7 +62,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.7.1
+__version__=1.0.8
 
 #
 # General Purpose options:
@@ -1156,10 +1158,10 @@ cvt_file() {
         run_traced "cp -p $f1 $f1_cur"
         do_proc=1
       fi
-      if [ $opt_orig -gt 0 -a -f ./tmp/$ft ]; then
-        run_traced "mv -f $f1 ${f1}.bak"
-        run_traced "cp -p ./tmp/$ft $f1"
-      fi
+#      if [ $opt_orig -gt 0 -a -f ./tmp/$ft ]; then
+#        run_traced "mv -f $f1 ${f1}.bak"
+#        run_traced "cp -p ./tmp/$ft $f1"
+#      fi
       if [ "$3" == "travis" ]; then
         cvt_travis $f1 "$2" "$4" "$5"
       elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
@@ -1267,7 +1269,7 @@ merge_cfg() {
   #merge_cfg(cfgfn)
   local cfgfn=$1 fbak ftmp f line ln
   local tmpl
-  [[ -d $HOME/devel ]] && tmpl=$HOME/devel/pypi/tools/install_tools.sh || tmpl=$HOME/dev/pypi/tools/install_tools.sh
+  [[ -d $HOME_DEVEL ]] && tmpl=$HOME_DEVEL/pypi/tools/install_tools.sh
   ftmp=$cfgfn.tmp
   [[ -f $ftmp ]] && rm -f $ftmp
   f=0
@@ -1521,8 +1523,7 @@ do_edit_pofile() {
 
 do_edit_translation() {
   local xfile
-  [[ -f "$HOME/dev/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/dev/pypi/tools/odoo_default_tnl.xlsx"
-  [[ -f "$HOME/devel/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/devel/pypi/tools/odoo_default_tnl.xlsx"
+  [[ -f "$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx"
   [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
   return $STS_STS_SUCCESS
 }
@@ -1563,8 +1564,7 @@ do_edit_translation_from_pofile() {
   run_traced "popd >/dev/null"
   return $sts
 
-  [[ -f "$HOME/dev/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/dev/pypi/tools/odoo_default_tnl.xlsx"
-  [[ -f "$HOME/devel/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME/devel/pypi/tools/odoo_default_tnl.xlsx"
+  [[ -f "$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx"
   [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
   return $STS_STS_SUCCESS
 }
@@ -1598,7 +1598,7 @@ create_pkglist() {
       fi
       x=$(cat setup.py | grep "# BUILD_WITH_ODOORC=" | awk -F= '{print $2}')
       if [ "$x" == "1" ]; then
-        OELIB=$(findpkg odoorc "/etc $HOME/devel $HOME/dev . ..")
+        OELIB=$(findpkg odoorc "/etc $HOME_DEVEL . ..")
         [ -z "$OELIB" ] && OELIB=odoorc
       fi
     fi
@@ -1807,21 +1807,21 @@ do_distribution_odoo() {
     local GITPRJ=$(build_odoo_param RORIGIN '.' "$tmod" $GIT_ORG)
   fi
   if [ $travis_passed -eq 0 ]; then
-    if [ $opt_orig -gt 0 ]; then
-      if [ -z "$GITPRJ" ]; then
-        echo "git project not found!"
-        sts=$STS_FAILED
-      else
-        run_traced "git clone $GITPRJ tmp -b $BRANCH --depth 1 --single-branch"
-        ORIG=$(readlink -e tmp)
-      fi
-    else
+#    if [ $opt_orig -gt 0 ]; then
+#      if [ -z "$GITPRJ" ]; then
+#        echo "git project not found!"
+#        sts=$STS_FAILED
+#      else
+#        run_traced "git clone $GITPRJ tmp -b $BRANCH --depth 1 --single-branch"
+#        ORIG=$(readlink -e tmp)
+#      fi
+#    else
       if [ -d ~/original ]; then rm -fR -d ~/original; fi
       if [ -n "$GITPRJ" ]; then
         run_traced "git clone $GITPRJ ~/original/$1 -b $BRANCH --depth 1 --single-branch"
         ORIG=$(readlink -e ~/original/$1)
       fi
-    fi
+#    fi
   fi
   if [ $travis_passed -eq 0 ]; then
     cvt_gitmodule "$GIT_ORG" "$currpt"
@@ -1949,13 +1949,12 @@ do_docs() {
   wlog "do_docs"
   local docs_dir=./docs
   local author version theme SETUP b f l t x
-  local opts src_png odoo_fver
-  local HOME_DEV
-  [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
-  [[ $opt_dbg -ne 0 || $PWD =~ /dev(el)?/pypi/ ]] && opts=-B || opts=
+  local opts src_png odoo_fver REPO
+  [[ $opt_dbg -ne 0 || $PWD =~ /devel/pypi/ ]] && opts=-B || opts=
   if [ "$PRJNAME" == "Odoo" ]; then
     [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
     [[ -z "$opt_branch" ]] && orgid=$(build_odoo_param GIT_ORGID ".") || orgid=$(build_odoo_param GIT_ORGID "$opt_branch")
+    REPO=$(build_odoo_param REPOS ".")
     # TODO: GIT_ORGid of build_odoo_param does not work
     PARENTDIR=$(build_odoo_param PARENTDIR ".")
     if [[ -z "$opt_branch" && -d ./.git && $(git status -s &>/dev/null) ]]; then
@@ -1975,11 +1974,15 @@ do_docs() {
     fi
     if [[ -f ./__manifest__,py || -f ./__openerp__.py ]]; then
       l=$(build_odoo_param LICENSE "." "" "" "search")
-      [[ $licence == "AGPL" && -f $HOME_DEV/license_text/agpl-3.0.txt ]] && run_traced "cp -p $HOME_DEV/license_text/agpl-3.0.txt ./LICENSE"
-      [[ $licence == "LGPL" && -f $HOME_DEV/license_text/lgpl-3.0.txt ]] && run_traced "cp -p $HOME_DEV/license_text/lgpl-3.0.txt ./LICENSE"
-      [[ $licence == "OPL" && -f $HOME_DEV/license_text/opl-1.0.txt ]] && run_traced "cp -p $HOME_DEV/license_text/opl-1.0.txt ./LICENSE"
+      [[ $licence == "AGPL" && -f $HOME_DEVEL/license_text/agpl-3.0.txt ]] && run_traced "cp -p $HOME_DEVEL/license_text/agpl-3.0.txt ./LICENSE"
+      [[ $licence == "LGPL" && -f $HOME_DEVEL/license_text/lgpl-3.0.txt ]] && run_traced "cp -p $HOME_DEVEL/license_text/lgpl-3.0.txt ./LICENSE"
+      [[ $licence == "OPL" && -f $HOME_DEVEL/license_text/opl-1.0.txt ]] && run_traced "cp -p $HOME_DEVEL/license_text/opl-1.0.txt ./LICENSE"
     fi
-    run_traced "gen_readme.py -b$odoo_fver $opts -G$orgid"
+    if [[ $opt_oca -ne 0 ]]; then
+      run_traced "oca-gen-addon-readme --gen-html --branch 12.0 $odoo_fver --repo-name $REPO"
+    else
+      run_traced "gen_readme.py -b$odoo_fver $opts -G$orgid"
+    fi
     version=$(build_odoo_param MAJVER $odoo_fver)
     if [[ ! -d ./static ]]; then
       run_traced "mkdir ./static"
@@ -2034,7 +2037,7 @@ do_docs() {
       b=${x:0:-6}
       x=${x:5:-6}
       [[ -d $docs_dir/$b ]] || run_traced "mkdir -p $docs_dir/$b"
-      run_traced "rsync -avz --delete $HOME_DEV/pypi/$x/$x/docs/ $docs_dir/$b/"
+      run_traced "rsync -avz --delete $HOME_DEVEL/pypi/$x/$x/docs/ $docs_dir/$b/"
     fi
   done
   # [[ $(basename $PWD) == "tools" && -f egg-info/history.rst ]] && run_traced "rm -f egg-info/history.rst"
@@ -2748,9 +2751,8 @@ do_show_license() {
 }
 
 do_show_status() {
-  local HOME_DEV s v1 v2 v x y
+  local s v1 v2 v x y
   local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
-  [[ -d $HOME/devel ]] && HOME_DEV=$HOME/devel || HOME_DEV=$HOME/dev
   pushd $HOME/tools >/dev/null
   local PKGS=$(git status -s | grep -E "^ M" | awk '{print $2}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
   local PKGS_V=$(git diff -G__version__ --compact-summary | awk '{print $1}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
@@ -2764,31 +2766,31 @@ do_show_status() {
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg="${pkg//-/_}"
     if [[ $pkg == "tools" ]]; then
       for fn in egg-info licence_text templates .travis.yml install_tools.sh odoo_default_tnl.xlsx setup.py; do
-        vfdiff -X diff $HOME/$pkg/$fn $HOME_DEV/pypi/$pkg/$fn -q >/dev/null
+        vfdiff -X diff $HOME/$pkg/$fn $HOME_DEVEL/pypi/$pkg/$fn -q >/dev/null
         if [[ $? -ne 0 ]]; then
           x="R"
-          [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/$pkg/$fn $HOME_DEV/pypi/$pkg/$fn
+          [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/$pkg/$fn $HOME_DEVEL/pypi/$pkg/$fn
           break
         fi
       done
     else
-      vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg -q >/dev/null
+      vfdiff -X diff $HOME/tools/$pkg $HOME_DEVEL/pypi/$pkg/$pkg -q >/dev/null
       if [[ $? -ne 0 ]]; then
         x="R"
-        [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/tools/$pkg $HOME_DEV/pypi/$pkg/$pkg
+        [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/tools/$pkg $HOME_DEVEL/pypi/$pkg/$pkg
       fi
     fi
     [[ $PKGS != "()" && $pkg =~ $PKGS ]] && x="$x G"
     [[ $PKGS_V != "()" && $pkg =~ $PKGS_V ]] && x="$x V"
     if [[ $pkg == "tools" ]]; then
       v1=$(grep -E "version" $HOME/tools/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
-      v2=$(grep -E "version" $HOME_DEV/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
     else
       v1=$(grep -E "version" $HOME/tools/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
-      v2=$(grep -E "version" $HOME_DEV/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
     fi
     if [[ $x =~ "R" ]]; then
-      [[ $pkg == "tools" ]] && s="$HOME_DEV/pypi/$pkg" || s="$HOME_DEV/pypi/$pkg/$pkg"
+      [[ $pkg == "tools" ]] && s="$HOME_DEVEL/pypi/$pkg" || s="$HOME_DEVEL/pypi/$pkg/$pkg"
       if [[ $v1 == $v2 && ! $x =~ "V" ]]; then
         v=$(echo $v2 | awk -F. '{if ($NF == 3) {OFS="."; print $1,$2,int($3)+1} else {OFS="."; print $1,$2,$3,int($4)+1}}')
         echo -e "\e[1m    Execute: cd $s; please version $v2 $v; travis && please replace\e[0m"
@@ -2970,11 +2972,11 @@ do_wep() {
   return 0
 }
 
-OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O        p         q           r     s        t         u       V           v)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
-OPTACTI=("+"      1       "="        "="      "="      1         1        1        "="       1       1           "=>"     1        "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0        ""        0           0     ""       0         0       ""          -1)
-OPTMETA=("help"   ""      "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
+OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O       p         q           r     s        t         u       V           v)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
+OPTACTI=("+"      1       "="        "="      "="      1         1        1        "="       1       1           "=>"     1       "="       0           1     "="      1         1       "*"         "+")
+OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0       ""        0           0     ""       0         0       ""          -1)
+OPTMETA=("help"   ""      "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"
   "debug mode"
   "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0"
@@ -2987,7 +2989,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"
   "show missing line in report coverage"
   "do nothing (dry-run)"
   "push only external project ids (of push)"
-  "pull original README (and docs) in distribution (deprecated)"
+  "prefer OCA version of action, if available"
   "declare local destination path"
   "silent mode"
   "run restricted mode (w/o parsing travis.yml file) | recurse distribution OCB"
@@ -3015,6 +3017,7 @@ opts_travis
 conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
+# prepare_env_travis
 prepare_env_travis "$actions" "-r"
 sts=$STS_SUCCESS
 sts_bash=127
