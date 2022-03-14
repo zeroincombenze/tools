@@ -473,6 +473,7 @@ if [[ "$MQT_TEST_MODE" == "tools" ]]; then
   fi
   exit $sts
 else
+  # Odoo
   if [[ "${LINT_CHECK:-1}" != "0" ]]; then
     NODE_VER=$(node --version | grep -Eo "[0-9]+" | head -n1)
     if [ $NODE_VER -lt 6 -a -f "${HOME}/.nvm/nvm.sh" ]; then
@@ -592,9 +593,7 @@ else
       ocb_dir=${ODOO_PATH}
       dependencies_dir="$TRAVIS_BUILD_DIR ${HOME}/dependencies"
     fi
-    if [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]]; then
-      run_traced "$VEM amend -DO $ODOO_BRANCH -d $dependencies_dir"
-    fi
+    run_traced "$VEM amend -DO $ODOO_BRANCH -d $dependencies_dir"
     cp_coveragerc
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
