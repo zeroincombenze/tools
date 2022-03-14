@@ -1,7 +1,7 @@
 
-================
-wok_code 1.0.7.1
-================
+==============
+wok_code 1.0.8
+==============
 
 
 
@@ -844,6 +844,12 @@ Current development version
 History
 -------
 
+1.0.8 (2022-02-23)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] please docs with -O option to use OCA command
+* [FIX] please in no odoo user
+
 1.0.7.1 (2022-02-17)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -906,11 +912,6 @@ History
 
 * [IMP] disk_pkg: manage setup.py & setup.info
 
-1.0.2.4 (2021-09-30)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] please: new version method
-
 
 
 |
@@ -935,7 +936,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-02-18
+Last Update / Ultimo aggiornamento: 2022-03-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -593,7 +593,8 @@ else
       ocb_dir=${ODOO_PATH}
       dependencies_dir="$TRAVIS_BUILD_DIR ${HOME}/dependencies"
     fi
-    run_traced "$VEM amend -DO $ODOO_BRANCH -d $dependencies_dir"
+    # run_traced "find $ocb_dir $dependencies_dir -name requirements.txt -exec cat '{}' \;|sort -u > $TRAVIS_BUILD_DIR/requirements.txt"
+    # run_traced "$VEM amend -DO $ODOO_BRANCH -o $TRAVIS_BUILD_DIR"
     cp_coveragerc
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
