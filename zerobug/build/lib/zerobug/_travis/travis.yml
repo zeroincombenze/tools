@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=1.0.7
+# __version__=1.0.7.1
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -49,7 +49,7 @@ addons:
 before_install:
   # Use Zeroincombenze(R) tools
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --single-branch --depth=1
-  - ${HOME}/tools/install_tools.sh -pt
+  - ${HOME}/tools/install_tools.sh -qpt
   - source ${HOME}/devel/activate_tools
 
 install:

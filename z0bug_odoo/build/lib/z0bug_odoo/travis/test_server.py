@@ -26,7 +26,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '1.0.11'
+__version__ = '1.0.11.1'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -207,7 +207,7 @@ def get_build_dir(odoo_full, version=None):
         import release
         # This function may be called more with different odoo versions
         if sys.version_info[0] == 2:
-            reload(release)
+            reload(release)                                        # noqa: F821
         else:
             importlib.reload(release)
         tested_version = release.version
@@ -589,8 +589,7 @@ def main(argv=None):
         # script_path = get_script_path(server_path, script_name)
         addons_path = get_addons_path(travis_dependencies_dir,
                                       travis_build_dir,
-                                      server_path,
-                                      odoo_test_select)
+                                      server_path)   # odoo_test_select)
     else:
         # script_path = ''
         addons_path = ''

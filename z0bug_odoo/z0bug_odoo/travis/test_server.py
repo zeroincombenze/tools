@@ -589,8 +589,7 @@ def main(argv=None):
         # script_path = get_script_path(server_path, script_name)
         addons_path = get_addons_path(travis_dependencies_dir,
                                       travis_build_dir,
-                                      server_path,
-                                      odoo_test_select)
+                                      server_path)   # odoo_test_select)
     else:
         # script_path = ''
         addons_path = ''

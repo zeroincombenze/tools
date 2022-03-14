@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.6
+#__version__=1.0.6.1
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -1425,11 +1425,11 @@ is_ocb_dir() {
 is_repos() {
     local x
     [[ -z $1 ]] && return 1
-    [[ (-f $1/.travis.yml || -f $1/.gitlab-ci.yml) && (-d $1/.git || -f $1/requirements.txt || -f $1/oca_dependencies.txt || -f $1/README.rst || -f $1/README.md) ]] && return 0
+    [[ (-f $1/.travis.yml || -f $1/.gitlab-ci.yml) && (-d $1/.git || (-f $1/requirements.txt || -f $1/oca_dependencies.txt) && (-f $1/README.rst || -f $1/README.md)) ]] && return 0
     return 1
 }
 
-is_module() {
+is_odoo_module() {
     local x
     [[ -z $1 ]] && return 1
     for ODOO_SETUP in $ODOO_SETUPS; do
@@ -1509,7 +1509,7 @@ get_pypi_param() {
       _PKGNAME=$(basename $x)
       _PRJPATH=$x
       _REPOS="tools"
-    elif $(is_module "$x"); then
+    elif $(is_odoo_module "$x"); then
       _PRJNAME="Odoo"
       _PKGNAME=$(basename $x)
       _REPOS=$(basename $(dirname $x))
@@ -1522,13 +1522,8 @@ get_pypi_param() {
     elif $(is_repos "$x"); then
       [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
       _REPOS=$(basename $x)
-      _PKGNAME=$_REPOS
-      break
-    elif [[ (-f $x/.travis.yml || -f $x/.gitlab-ci.yml) && (-d $x/.git || -f $x/requirements.txt || -f $x/oca_dependencies.txt || -f $x/README.rst || -f $x/README.md) ]]; then
-      _PRJPATH=$x
-      [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
-      _REPOS=$(basename $x)
       repos_tools_params "$x"
+      _PKGNAME=$_REPOS
       break
     elif [[ $_REPOS = "tools" ]]; then
       repos_tools_params "$x"
