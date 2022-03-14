@@ -1,7 +1,7 @@
 
-===============
-zerobug 1.0.7.1
-===============
+=============
+zerobug 1.0.8
+=============
 
 
 
@@ -366,6 +366,11 @@ Current development version
 History
 -------
 
+1.0.8 (2022-03-14)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.7.1 (2022-03-12)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -423,11 +428,6 @@ History
 
 * [FIX] travis_run_pypi_test: run in osx darwin
 * [FIX] z0testrc: run in osx darwin
-
-1.0.1.1 (2021-05-26)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis_install_env: wrong readlink
 
 
 

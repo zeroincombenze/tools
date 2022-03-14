@@ -1,7 +1,7 @@
 
-=======================
-travis_emulator 1.0.5.2
-=======================
+=====================
+travis_emulator 1.0.6
+=====================
 
 
 
@@ -275,6 +275,11 @@ Troubleshooting
 History
 -------
 
+1.0.6 (2022-03-14)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.5.2 (2022-03-12)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -336,11 +341,6 @@ History
 
 * [IMP] devel_tools replaced by wok_code
 * [IMP] travis: summary return 1 if test failed
-
-1.0.1.3 (2021-08-03)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Show virtual enviroment name in summary
 
 
 
