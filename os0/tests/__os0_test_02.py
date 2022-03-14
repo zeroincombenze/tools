@@ -13,7 +13,7 @@ import sys
 from zerobug import z0test
 
 
-__version__ = "1.0.2.1"
+__version__ = "1.0.3"
 
 MODULE_ID = 'os0'
 TEST_FAILED = 1

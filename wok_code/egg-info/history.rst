@@ -1,3 +1,9 @@
+1.0.8 (2022-02-23)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] please docs with -O option to use OCA command
+* [FIX] please in no odoo user
+
 1.0.7.1 (2022-02-17)
 ~~~~~~~~~~~~~~~~~~~~
 

@@ -15,6 +15,7 @@ import time
 import re
 import csv
 import getpass
+from openpyxl import load_workbook
 from os0 import os0
 try:
     from clodoo import clodoo
@@ -3791,6 +3792,45 @@ def reconcile_invoice(ctx):
                 pass
     print('%d records read, %d records updated, %d wrong records' % (
         ctr_read, ctr_upd, ctr_err))
+
+
+def store_einvoices_stats(ctx):
+    wb = load_workbook('./Riepilogo-consumo-clienti.xlsx', data_only=True)
+    for sheet in wb:
+        break
+    colnames = []
+    for column in sheet.columns:
+        colnames.append(column[0].value)
+    hdr = True
+    for line in sheet.rows:
+        if hdr:
+            hdr = False
+            continue
+        row = {}
+        for column, cell in enumerate(line):
+            row[colnames[column]] = cell.value
+        db = {
+            'Vampigroup s.r.l.': 'vampigroup10',
+        }.get(row['Cliente'],
+              row['Cliente'].replace(' ', '').replace('s.r.l.', '').lower())
+        if db == 'totale':
+            break
+        inv_tot = row['Totale Fatture']
+        inv_used = row['Tot.Consumo']
+        inv_avail = row['Residuo']
+        print('DB=%s, T=%s, U=%s, A=%s' % (db, inv_tot, inv_used, inv_avail))
+        if inv_avail != (inv_tot - inv_used):
+            print('Wrong counter!')
+        uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
+                                       db=db,
+                                       ctx=ctx)
+        channel = clodoo.browseL8(
+            ctx, 'res.users', uid).company_id.einvoice_sender_id
+        clodoo.writeL8(ctx, 'italy.ade.sender', channel.id, {
+            'max_invoices_ctr': inv_tot,
+            'used_invoices_ctr': inv_used,
+            'avail_invoices_ctr': inv_avail,
+        })
 
 
 if ctx['function']:

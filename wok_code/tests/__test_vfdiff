@@ -39,7 +39,7 @@ fi
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
-__version__=1.0.7.1
+__version__=1.0.8
 
 
 Z0BUG_setup() {
@@ -97,7 +97,7 @@ test_diff() {
         fi
     fi
     TRES=$(eval $cmd)
-    test_result "diff -vbme $msg1 $msg2" "$5" "$TRES"
+    test_result "diff -vbme $msg1 $msg2" "$TRES" "$5"
 }
 
 test_01() {

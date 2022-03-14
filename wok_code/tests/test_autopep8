@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.7.1
+__version__=1.0.8
 
 
 test_01() {
@@ -93,7 +93,7 @@ class my_class(osv.osv):
 EOF
         $RUNDIR/topep8 -qAAN -F6.1 -b6.1 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -F6.1 -b6.1 $TESTSRC -o $TESTOUT" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b6.1 $TESTSRC -o $TESTOUT" "$TESTRES" "$TESTOUT" "diff"
     # Validate against Odoo 7.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
         cat <<EOF >$TESTRES
@@ -106,7 +106,7 @@ class my_class(orm.Model):
 EOF
         $RUNDIR/topep8 -qAAN -F6.1 -b7.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -F6.1 -b7.0 $TESTSRC -o $TESTOUT" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b7.0 $TESTSRC -o $TESTOUT" "$TESTRES" "$TESTOUT" "diff"
     # Validate against Odoo 8.0 -u
     if [ ${opt_dry_run:-0} -eq 0 ]; then
         cat <<EOF >$TESTRES
@@ -119,7 +119,7 @@ class MyClass(orm.Model):
 EOF
         $RUNDIR/topep8 -qAANu -F6.1 -b8.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AANu -F6.1 -b8.0 $TESTSRC -o $TESTOUT" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AANu -F6.1 -b8.0 $TESTSRC -o $TESTOUT" "$TESTRES" "$TESTOUT" "diff"
     # Validate against Odoo 8.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
         cat <<EOF >$TESTRES
@@ -132,7 +132,7 @@ class MyClass(models.Model):
 EOF
         $RUNDIR/topep8 -qAAN -F6.1 -b8.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -F6.1 -b8.0 $TESTSRC -o $TESTOUT" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b8.0 $TESTSRC -o $TESTOUT" "$TESTRES" "$TESTOUT" "diff"
     # Validate against Odoo 9.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
         cat <<EOF >$TESTRES
@@ -145,7 +145,7 @@ class MyClass(models.Model):
 EOF
         $RUNDIR/topep8 -qAAN -F6.1 -b9.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -F6.1 -b9.0 $TESTSRC -o $TESTOUT" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b9.0 $TESTSRC -o $TESTOUT"" "$TESTRES" "$TESTOUT "diff"
     # Validate against Odoo 10.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
         cat <<EOF >$TESTRES
