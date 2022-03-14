@@ -1,7 +1,7 @@
 
-===================
-z0bug_odoo 1.0.11.1
-===================
+=================
+z0bug_odoo 1.0.12
+=================
 
 
 
@@ -1048,6 +1048,11 @@ Current development version
 History
 -------
 
+1.0.12 (2022-03-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.11.1 (2022-03-12)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -1108,11 +1113,6 @@ History
 * [FIX] Tax code 2220 & 2280 / Cod.IVA 2220 e 2280
 * [FIX] Tax code for extre-EU invoice / Codice IVA fattura extra-UE
 * [IMP] Account invoices at last month / Fatture a mese precedente
-
-1.0.5.1 (2021-09-23)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New Powerp RC configuration / Nuova configurazione RC Powerp
 
 
 

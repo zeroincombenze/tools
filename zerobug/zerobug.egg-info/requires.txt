@@ -2,7 +2,7 @@ future
 coverage
 coveralls
 codecov
-pylint-odoo
+pylint-odoo<=5.0.0
 python-magic
 python-plus
 os0

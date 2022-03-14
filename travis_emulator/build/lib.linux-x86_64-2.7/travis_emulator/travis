@@ -6,17 +6,19 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.4.1
+# Based on template 1.0.8
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-HOME_DEV="$HOME/devel"
+if [[ -z $HOME_DEVEL ]]; then
+  [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
+fi
 [[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEV"'\nimport os,sys\no=os.path\na=o.abspath\nj=os.path.join\nd=os.path.dirname\nb=os.path.basename\nf=os.path.isfile\np=os.path.isdir\nH=o.expanduser('~')\nT=j(H,'tools')\nR=j(H,'pypi') if o.basename(D)=='venv_tools' else j(H,D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C)=='tests':\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==d(C) and f(j(C,'..','setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+P\np=set()\npa=p.add\np=[x for x in L if x and (x.startswith(H) or x.startswith(D) or x.startswith(C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEVEL"'\nimport os,sys\no=os.path\na=o.abspath\nj=os.path.join\nd=os.path.dirname\nb=os.path.basename\nf=os.path.isfile\np=os.path.isdir\nH=o.expanduser('~')\nT=j(d(D), 'tools')\nR=j(d(D),'pypi') if o.basename(D)=='venv_tools' else j(D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==b(d(C)) and f(j(C,'..','setup.py')):\n C=a(j(C,'..','..'))\nelif b(d(C))=='tools' and f(j(C,'setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)) or p(j(C,b(C),B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+P\np=set()\npa=p.add\np=[x for x in L if x and (x.startswith(H) or x.startswith(D) or x.startswith(C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -30,14 +32,14 @@ if [[ -z "$Z0LIBDIR" ]]; then
   exit 72
 fi
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
-ODOOLIBDIR=$(findpkg odoorc "$PYPATH ." "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 if [[ -z "$ODOOLIBDIR" ]]; then
   echo "Library file odoorc not found!"
   exit 72
 fi
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
-TRAVISLIBDIR=$(findpkg travisrc "$PYPATH ." "travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
 if [[ -z "$TRAVISLIBDIR" ]]; then
   echo "Library file travisrc not found!"
   exit 72
@@ -60,7 +62,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.5
+__version__=1.0.6
 
 
 store_cfg_param_value() {
@@ -73,7 +75,6 @@ store_cfg_param_value() {
     p=${2:12}
     PIPPKGVER[$p]=$3
   fi
-  # a_add "$1" "$2" "$3" "$4"
   CFG_set "$2" "$3" "$1" "$4" "$5"
 }
 
@@ -112,8 +113,7 @@ process_yaml_init() {
   python_ver_ena=""
   [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep "^PYPI_RUN_PYVER"|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
-    [[ -d $HOME/devel ]] && \
-      export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa
+    [[ -d $HOME_DEVEL/pypi ]] && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa
     (($opt_debug)) && export TRAVIS_PDB="true"
   else
     export YML_lisa=lisa
@@ -894,10 +894,13 @@ process_yaml() {
           [[ -n $opt_trace && ::build =~ $opt_trace ]] && debug_shell "::build"
           create_virtual_env
           wlog "\e[${PS_HDR2_COLOR}m----- [System informations] -----\e[0m"
-          for p in PATH HOME TRAVIS TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_SAVED_HOME HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
+          for p in PATH HOME HOME_BRANCH PIP PYTHON PYTHONPATH PYPI_CACHED TRAVIS SYSTEM_SITE_PACKAGES TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_SAVED_HOME; do
             X=${!p}
             [[ -n "$X" || $p =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $p=$X\e[0m"
           done
+#          for p in pip python; do
+#            eval $p --version
+#          done
           [[ -n $opt_tafter && ::build =~ $opt_tafter ]] && debug_shell
           process_yaml_global
           if [ $sts -eq $STS_SUCCESS ]; then
@@ -1023,7 +1026,7 @@ fi
 ACTIONS="(help|emulate|force-lint|lint|force-test|test|force-testdeps|testdeps|force-translate|translate|chkconfig|parseyaml|show-log|show-color|summary|wep-db)"
 if [[ $opt_help -gt 0 ]]; then
   print_help "Travis-ci emulator for local developer environment\nAction may be: ${ACTIONS//|/,}" \
-  "© 2015-2021 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "© 2015-2022 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 

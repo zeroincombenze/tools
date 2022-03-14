@@ -9,7 +9,7 @@
 import sys
 from . import z0test
 
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 
 
 def version():
