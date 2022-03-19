@@ -63,7 +63,7 @@
 # (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.7.1
+__version__=1.0.8
 
 export opt_dry_run
 export ctr
@@ -345,8 +345,8 @@ test_result () {
       fi
     else
       if [[ $2 != $3 ]]; then
-        echo "$THIS> Test '$1' failed: expected '$3', found '$2'"
-        dbgmsg "\$ echo(Test '$1' failed: expected '$3', found '$2')"
+        echo "$THIS> Test '$1' failed: expected '$2', found '$3'"
+        dbgmsg "\$ echo(Test '$1' failed: expected '$2', found '$3')"
         teststs=$STS_FAILED
         if [[ $Z0BUG_on_error == "continue" ]]; then
           return $STS_FAILED

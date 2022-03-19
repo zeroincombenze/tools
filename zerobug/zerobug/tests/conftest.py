@@ -2,15 +2,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
 # content of conftest.py
 
 from future import standard_library
+
 # from builtins import *                                           # noqa: F403
 from python_plus import _u
 
 from subprocess import Popen, PIPE
 import pytest
-standard_library.install_aliases()                                 # noqa: E402
+
+standard_library.install_aliases()  # noqa: E402
 
 
 def pytest_report_header(config):
@@ -19,10 +22,8 @@ def pytest_report_header(config):
 
 @pytest.fixture
 def version_to_test():
-
     def get_version(cmd):
-        res, err = Popen(
-            cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
+        res, err = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
         res = res or err
         return _u(res).split()[0].split('=')[-1].strip().strip('"').strip("'")
 
