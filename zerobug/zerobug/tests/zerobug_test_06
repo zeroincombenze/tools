@@ -49,7 +49,7 @@ GREEN="\e[1;32m"
 CLR="\e[0m"
 
 
-__version__=1.0.8
+__version__=1.0.8.1
 
 OS_TREE="10.0 10.0/l10n-italy 10.0/l10n-italy/l10n_it_base /tmp/zerobug"
 
