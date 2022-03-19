@@ -1,4 +1,4 @@
-Metadata-Version: 1.2
+Metadata-Version: 2.1
 Name: z0lib
 Version: 1.0.7
 Summary: Bash zeroincombenze lib
@@ -6,20 +6,8 @@ Home-page: https://zeroincombenze-tools.readthedocs.io
 Author: Antonio Maria Vigliotti
 Author-email: antoniomaria.vigliotti@gmail.com
 License: Affero GPL
-Project-URL: Source, https://github.com/zeroincombenze/tools
 Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
-Description: 
-        General purpose bash and python library for zeroincombenze(R) tools
-        
-        Features:
-        
-        * xuname: unix/linux platform recognizer (tested on various environments)
-        * parseoptargs: line command parser; expands python argparse and adds same functionalities to bash scripts
-        * tracelog: manage tracelog (only bash)
-        * findpkg: find package in file system (only bash)
-        * run_traced: execute (or dry_run) shell command (only bash)
-        * CFG: local dictionary values from config file like python ConfigParser (only bash)
-        
+Project-URL: Source, https://github.com/zeroincombenze/tools
 Keywords: bash,optargs
 Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
@@ -32,3 +20,17 @@ Classifier: Intended Audience :: Developers
 Classifier: Topic :: Software Development
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: System :: System Shells
+
+
+General purpose bash and python library for zeroincombenze(R) tools
+
+Features:
+
+* xuname: unix/linux platform recognizer (tested on various environments)
+* parseoptargs: line command parser; expands python argparse and adds same functionalities to bash scripts
+* tracelog: manage tracelog (only bash)
+* findpkg: find package in file system (only bash)
+* run_traced: execute (or dry_run) shell command (only bash)
+* CFG: local dictionary values from config file like python ConfigParser (only bash)
+
+

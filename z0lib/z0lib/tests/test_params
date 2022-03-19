@@ -60,7 +60,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.7
+__version__=1.0.7.1
 
 test_common() {
     # test_common(simulate_cmd, [N])
@@ -69,6 +69,8 @@ test_common() {
     [[ $1 =~ ^$HOME/devel/venv/bin ]] && tag="VENV"
     [[ $1 =~ ^$HOME/devel/pypi/z0lib/z0lib ]] && tag="DEVEL"
     [[ $1 =~ ^$TESTDIR ]] && tag="TESTDIR"
+    [[ $1 =~ TRAVIS/ ]] && tag="TRAVIS"
+    [[ $1 =~ _TRAVIS/ ]] && tag="_TRAVIS"
     [[ -f ./travisrc ]] && rm -f ./travisrc
     res=$($1 PYPATH|cut -f1 -d" ")
     test_result "$PWD> $tag/simulate_cmd PYPATH" "$(dirname $1)" "$res"
@@ -127,26 +129,46 @@ test_01() {
     test_common $TESTDIR/simulate_cmd
     cd $RUNDIR
     test_common $TESTDIR/simulate_cmd
+
     mv $TESTDIR/simulate_cmd $RUNDIR/simulate_cmd
     cd $TESTDIR
     test_common $RUNDIR/simulate_cmd "N"
     cd $RUNDIR
     test_common $RUNDIR/simulate_cmd
+
     mv $RUNDIR/simulate_cmd $HOME/tools/z0lib/simulate_cmd
     cd $HOME/tools/z0lib
     res=$($HOME/tools/z0lib/simulate_cmd TDIR)
     test_result "$PWD> TOOLS/z0lib/simulate_cmd TDIR" "$HOME/tools/z0lib" "$res"
     res=$($HOME/tools/z0lib/simulate_cmd PRJNAME)
-    # TODO> error
-    # test_result "$PWD> TOOLS/z0lib/simulate_cmd PRJNAME" "z0lib" "$res"
+    test_result "$PWD> TOOLS/z0lib/simulate_cmd PRJNAME" "tools" "$res"
     res=$($HOME/tools/z0lib/simulate_cmd PKGNAME)
-    # TODO> error
-    # test_result "$PWD> TOOLS/z0lib/simulate_cmd PKGNAME" "z0lib" "$res"
+    test_result "$PWD> TOOLS/z0lib/simulate_cmd PKGNAME" "z0lib" "$res"
     res=$($HOME/tools/z0lib/simulate_cmd PRJPATH)
     test_result "$PWD> TOOLS/z0lib/simulate_cmd PRJPATH" "$HOME/tools/z0lib" "$res"
-    # TODO> error
     res=$($HOME/tools/z0lib/simulate_cmd PKGPATH)
-    # test_result "$PWD> TOOLS/z0lib/simulate_cmd PKGPATH" "$HOME/tools" "$res"
+    test_result "$PWD> TOOLS/z0lib/simulate_cmd PKGPATH" "$HOME/tools" "$res"
+
+    mv $HOME/tools/z0lib/simulate_cmd $HOME/tools/zerobug/_travis
+    res=$($HOME/tools/zerobug/_travis/simulate_cmd PRJNAME)
+    test_result "$PWD> _TRAVIS/z0lib/simulate_cmd PRJNAME" "tools" "$res"
+    res=$($HOME/tools/zerobug/_travis/simulate_cmd PKGNAME)
+    test_result "$PWD> _TRAVIS/z0lib/simulate_cmd PKGNAME" "z0lib" "$res"
+    res=$($HOME/tools/zerobug/_travis/simulate_cmd PRJPATH)
+    test_result "$PWD> _TRAVIS/z0lib/simulate_cmd PRJPATH" "$HOME/tools/z0lib" "$res"
+    res=$($HOME/tools/zerobug/_travis/simulate_cmd PKGPATH)
+    test_result "$PWD> _TRAVIS/z0lib/simulate_cmd PKGPATH" "$HOME/tools" "$res"
+
+    mv $HOME/tools/zerobug/_travis/simulate_cmd $HOME/tools/z0bug_odoo/travis
+    res=$($HOME/tools/z0bug_odoo/travis/simulate_cmd PRJNAME)
+    test_result "$PWD> TRAVIS/z0lib/simulate_cmd PRJNAME" "tools" "$res"
+    res=$($HOME/tools/z0bug_odoo/travis/simulate_cmd PKGNAME)
+    test_result "$PWD> TRAVIS/z0lib/simulate_cmd PKGNAME" "z0lib" "$res"
+    res=$($HOME/tools/z0bug_odoo/travis/simulate_cmd PRJPATH)
+    test_result "$PWD> TRAVIS/z0lib/simulate_cmd PRJPATH" "$HOME/tools/z0lib" "$res"
+    res=$($HOME/tools/z0bug_odoo/travis/simulate_cmd PKGPATH)
+    test_result "$PWD> TRAVIS/z0lib/simulate_cmd PKGPATH" "$HOME/tools" "$res"
+
     mkdir -p $HOME/devel/pypi/z0lib
     cp -R $HOME/build/local/z0lib/ $HOME/devel/pypi/z0lib/
     mv $HOME/devel/pypi/z0lib/z0lib/scripts/setup.info $HOME/devel/pypi/z0lib/setup.py
@@ -154,7 +176,7 @@ test_01() {
     cp -R $HOME/tools/travis_emulator/ $HOME/devel/pypi/travis_emulator/
     mv $HOME/devel/pypi/travis_emulator/travis_emulator/setup.py $HOME/devel/pypi/travis_emulator/setup.py
     cd $HOME/devel/pypi/z0lib/z0lib
-    mv $HOME/tools/z0lib/simulate_cmd $HOME/devel/pypi/z0lib/z0lib/simulate_cmd
+    mv $HOME/tools/z0bug_odoo/travis/simulate_cmd $HOME/devel/pypi/z0lib/z0lib/simulate_cmd
     # [[ -f $HOME/devel/pypi/z0lib/z0lib/travisrc ]] && rm -f $HOME/devel/pypi/z0lib/z0lib/travisrc
     test_common $HOME/devel/pypi/z0lib/z0lib/simulate_cmd
     mv $HOME/devel/pypi/z0lib/z0lib/simulate_cmd $HOME/devel/venv/bin/simulate_cmd
@@ -191,6 +213,7 @@ Z0BUG_setup() {
 Z0BUG_teardown() {
     rm -f $TESTDIR/simulate_cmd
 }
+
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_z0lib.log "$@" "-J"

@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.7
+#__version__=1.0.7.1
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -77,7 +77,7 @@ export -f _install_z0librc
 xuname() {
 # You can find more help about this function on
 # http://wiki.zeroincombenze.org/en/Linux/dev
-  if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+  [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
   OS=$(uname -s)
   REV=$(uname -r)
   MACH=$(uname -m)
@@ -196,7 +196,7 @@ xuname() {
   else
     echo ${OSSTR}
   fi
-  $SET_X
+  $SETX
 }
 export -f xuname
 
@@ -237,6 +237,7 @@ export -f xuname
 #   OPTARGS  array of destination variables of positional arguments (set OPTARGS=() if no args)
 #
 parseoptargs() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local jy=0 f=0 a b v
     while ((jy<${#OPTDEST[*]})); do
       [[ "${OPTDEFL[jy]}" != "#" ]] && export ${OPTDEST[jy]}="${OPTDEFL[jy]}"
@@ -356,12 +357,14 @@ parseoptargs() {
         opt_verbose=1
       fi
     fi
+    $SETX
 }
 export -f parseoptargs
 
 
 # Print help for parse command line arguments
 print_help() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local txt="Usage: "
     local hlp=""
     txt+="$(basename $0) "
@@ -413,6 +416,7 @@ print_help() {
     xx="$(dirname $0)/man/man8/$(basename $0).8.gz"
     [[ ! -f $xx ]] && xx=$0.man
     [[ $opt_help -gt 2 && -f $xx ]] && man $xx
+    $SETX
 }
 export -f print_help
 
@@ -430,7 +434,7 @@ export -f print_help
 # Parameter $3:
 #    "echo" means wlog echoes message onto console when write log
 set_tlog_file() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local p=$(dirname "$1")
     local f=$(basename "$1")
     if [ "$p" == "~" ]; then p=$HOME; fi
@@ -447,7 +451,7 @@ set_tlog_file() {
       if [ -f "$FLOG" ]; then rm -f "$FLOG"; fi
     fi
     export FLOG_ECHO="${3:-#}"
-    $SET_X
+    $SETX
 }
 
 
@@ -527,7 +531,7 @@ elog_debug() {
 # Parameter $3:
 #    1 = do login, if execute as user
 run_traced() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
     local xcmd="$1" lm="                    "
     local sts=$STS_SUCCESS verbose=${opt_verbose:-0}
@@ -576,7 +580,7 @@ run_traced() {
     fi
     echo -en "\e[0m"
     ((Z0_STACK=Z0_STACK-2))
-    $SET_X
+    $SETX
     return $sts
 }
 
@@ -602,7 +606,7 @@ export -f run_traced
 # Parameter $6:
 #    Level 5 subdirectory list (space separated) where file could be found (maybe be empty)
 findpkg() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local p2 p3 p4 p5 p6
     local r2 r3 r4 r5 r6
@@ -659,7 +663,7 @@ findpkg() {
       [[ -n "$result" ]] && break
     done
     echo "$result"
-    $SET_X
+    $SETX
 }
 export -f findpkg
 
@@ -680,7 +684,6 @@ export -f a_new
 
 # Deprecated: use CFG_init
 a_active() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
       local tid=$1
     else
@@ -699,7 +702,6 @@ a_active() {
     # declare -gA DEFDICT$tid DEFRULE$tid
     cmd="XU_FH=$XU_FH XU_DISTO=$XU_DISTO; declare -gA DEFDICT$tid DEFRULE$tid"
     echo $cmd
-    $SET_X
 }
 export -f a_active
 
@@ -729,7 +731,7 @@ export -f a_active
 # Parameter $6:
 #    Section (reserved ti future use)
 CFG_set() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local key tid SFX
     [[ $3 =~ [0123] ]] && tid=$3 || tid="0"
     if [[ -n "$1" ]]; then
@@ -770,7 +772,7 @@ CFG_set() {
         fi
       fi
     fi
-    $SET_X
+    $SETX
 }
 export -f CFG_set
 
@@ -797,7 +799,7 @@ export -f CFG_set
 #    dictionary value to stdout
 #    status
 CFG_find() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local p=""
     local sts=1
     local x SFX key KK
@@ -926,7 +928,7 @@ CFG_find() {
       fi
     fi
     echo "$p"
-    $SET_X
+    $SETX
     return $sts
 }
 export -f CFG_find
@@ -952,6 +954,7 @@ export -f CFG_find
 # Return:
 #    parameter value
 get_cfg_value() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local p tid t
     if [ -z "$2" ]; then
       p=
@@ -967,6 +970,7 @@ get_cfg_value() {
     done
     [[ $p == "None" ]] && p=""
     echo "$p"
+    $SETX
 }
 export -f get_cfg_value
 
@@ -982,7 +986,7 @@ export -f get_cfg_value
 # Parameter $1:
 #    Id of table for access (ALL means all Ids)
 CFG_init() {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local tid x v
     if [[ $1 == "ALL" ]]; then
       for tid in 0 1 2 3; do
@@ -1003,7 +1007,7 @@ CFG_init() {
       declare -g XU_FH=$XU_FH XU_DISTO=$XU_DISTO
       declare -gA DEFDICT$tid DEFRULE$tid
     fi
-    $SET_X
+    $SETX
 }
 export -f CFG_init
 
@@ -1129,12 +1133,13 @@ _read_cfg_file() {
 }
 
 link_cfg_def() {
+  [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
   local file_bckdel file_backup file_meta file_vcs file_bins
   local file_media file_bindata
   [[ -n "$HOSTNAME_DEV" ]] && set_cfg_def "DEV_HOST" "$HOSTNAME_DEV" || set_cfg_def "DEV_HOST" "(pc[0-9]+)?shsde([a-z][0-9]+)?"
   [[ -n "$HOSTNAME_PRD" ]] && set_cfg_def "PRD_HOST" "$HOSTNAME_PRD" || set_cfg_def "PRD_HOST" "(shsp([a-z][0-9]+)?"
   CFG_set "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
-  CFG_set "ODOO_SETUPS" "__manifest__.py __openerp__.py __odoo__.py __terp__.py"
+  CFG_set "ODOO_SETUPS" "__manifest__.py __openerp__.py"
   file_bckdel=".bak *~ .tmp .log .out .tracehis .tracehistory ,cover .coverage test*.pdf tmp.* npm-debug.log.* .oca .z0i .oia .gitrepname"
   file_backup=".orig .swp .tar .gz .zip __old_*"
   file_meta=".DS_Store ._* .Spotlight-V100 .Trashes Thumbs.db Desktop.ini .cover/ .coverage/ .conf build/ dist/ conf/ filestore/ html/ .idea/ latex/ __pycache__/ .local/ .npm/ .gem/ Trash/ VME/ PycharmProjects pycharm*"
@@ -1166,11 +1171,12 @@ link_cfg_def() {
   CFG_set "distpath" "\${HOME}/tools/\${pkgname}"
   [[ -z $DIST_CONF ]] && DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
   [[ -z $TCONF ]] && TCONF="$HOME/.z0tools.conf"
+  $SETX
 }
 
 link_cfg() {
 # link_cfg(file_cfg [file_def] [tid] [section] [-D|1])  -D means debug
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local tid=""
     if [[ -n "$2" ]]; then
       if [[ -f $2.sample ]]; then
@@ -1193,7 +1199,7 @@ link_cfg() {
         _read_cfg_file "$CONFN" "$tid" "$4" "$5"
       fi
     fi
-    $SET_X
+    $SETX
 }
 export -f link_cfg
 
@@ -1249,6 +1255,7 @@ export -f link_cfg
 #
 parse_URI() {
 #parse_URI(URI default ALL|±USER|±PROT|±DOMAIN|±HOST|±FULLNAME|±DIRNAME|±BASENAME|±NAMEID|±EXT|±PORT)
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local URI_REGEX='^(([^:/?#]+):)?((//)?((([^:/?#]+)@)?([^:/?#]+)))(:([0-9]+))?(/([^?#]*))?(\?([^#]*))?(#(.*))?'
     local IS_URL1='^(([^:/?#]+):)'
@@ -1391,12 +1398,14 @@ parse_URI() {
       fi
     fi
     echo "$URL"
+    $SETX
 }
 export -f parse_URI
 
 
 expand_path() {
   # expand_path (path tkn repl)
+  [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
   local p P x=$1
   for p in pkgpath pkgname prjpath prjname reposname; do
     P=${p^^}
@@ -1410,6 +1419,7 @@ expand_path() {
   done
   [[ -n "$2" ]] && x=${x/$2/$3}
   echo $x
+  $SETX
 }
 
 
@@ -1425,7 +1435,7 @@ is_ocb_dir() {
 is_repos() {
     local x
     [[ -z $1 ]] && return 1
-    [[ (-f $1/.travis.yml || -f $1/.gitlab-ci.yml) && (-d $1/.git || (-f $1/requirements.txt || -f $1/oca_dependencies.txt) && (-f $1/README.rst || -f $1/README.md)) ]] && return 0
+    [[ (-f $1/.travis.yml || -f $1/.gitlab-ci.yml) && (-d $1/.git || (-f $1/requirements.txt || -f $1/oca_dependencies.txt)) && (-f $1/README.rst || -f $1/README.md || -f $1/tools/README.rst) ]] && return 0
     return 1
 }
 
@@ -1475,6 +1485,7 @@ repos_tools_params() {
 
 get_pypi_param() {
   # get_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
+  [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
   if [[ $1 == "ALL" ]]; then
     REMOTEREPO="local"
     PRJNAME=""
@@ -1520,10 +1531,10 @@ get_pypi_param() {
       _REPOS="OCB"
       break
     elif $(is_repos "$x"); then
-      [[ $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
+      [[ -z $_PRJNAME || $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
       _REPOS=$(basename $x)
       repos_tools_params "$x"
-      _PKGNAME=$_REPOS
+      [[ -z $_PKGNAME ]] && _PKGNAME=$_REPOS
       break
     elif [[ $_REPOS = "tools" ]]; then
       repos_tools_params "$x"
@@ -1587,6 +1598,7 @@ get_pypi_param() {
     x="_$1"
     echo "${!x}"
   fi
+  $SETX
 }
 export -f get_pypi_param
 
@@ -1615,6 +1627,7 @@ set_pybin() {
 export -f set_pybin
 
 inherit_opts() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local x opts="$1"
     if [[ -n $TRAVIS_DEBUG_MODE ]]; then
       ((x=TRAVIS_DEBUG_MODE-1))
@@ -1626,6 +1639,7 @@ inherit_opts() {
     [[ ${opt_dry_run:-0} -gt 0 ]] && opts="${opts}n"
     [[ -n "$opts" && ! $opts =~ \- ]] && opts="-$opts"
     echo "$opts"
+    $SETX
 }
 export -f inherit_opts
 
@@ -1647,37 +1661,9 @@ export -f do_chkconfig
 
 clean_dirs() {
   # clean_dirs (directory)::
-  # return:
+  [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
   run_traced "find . -name '*.bak' -delete"
   run_traced "find . -name '*~' -delete"
-#  local b cmd d excl f gx="" o p w XXXX x yy
-#  [[ -n "$1" ]] && d=$(readlink -e $1) || d="./"
-#  [[ $d == $HOME || $d == "/" ]] && echo "Too many file to delete!" && exit 1
-#  XXXX=$(get_cfg_value "" "filedel")
-#  [[ $PWD == "$HOME/tools" ]] && XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
-#  yy=$(get_cfg_value "" "fileignore")
-#  excl=""
-#  for x in $yy; do [[ ${x: -1} == "/" ]] && excl="$excl ${x:0: -1}"; done
-#  excl=${excl:1}
-#  [[ $opt_verbose -gt 1 ]] && echo "fileignore(conf)='$excl'"
-#  [[ -f ".gitmodules" ]] && \
-#    gx=$(cat .gitmodules | grep "^[[:space:]]*path" | sed -e "s/ =/=/g" -e "s/= /=/g" -e "s/^[[:space:]]*//g" | awk -F= '{print $2}'|tr "\n" "|")
-#  gx="(${gx}lib|git|__to_remove|tmp|node_modules|.cache)"
-#  [[ $opt_verbose -gt 1 ]] && echo "gitignore='$gx'"
-#  cmd="find $d"
-#  run_traced "$cmd -name '*~' -delete"
-#  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp) ]] && w=1 || w=0
-#  for f in $d/*; do
-#    b=$(basename $f)
-#    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openerp) ]] && echo "Warning! Directory $f should be in .gitmodules"
-#    [[ -d $f && (-z "$gx" || (-n "$gx" && $b =~ $gx)) ]] && cmd="$cmd -not -path '$f/*'"
-#  done
-#  for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
-#  o="-nowarn \("
-#  for x in $XXXX; do
-#    [[ ! $x =~ (.conf|\*|/)$ ]] && cmd="$cmd $o -name '*$x'" && o="-o"
-#    [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
-#  done
-#  run_traced "$cmd \) -exec rm -f '{}' \;"
+  $SETX
 }
 export -f clean_dirs
