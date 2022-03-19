@@ -15,9 +15,12 @@ import sys
 if sys.version_info[0] == 2:
     from git_run import GitRun
 else:
-    from .git_run import GitRun
+    try:
+        from .git_run import GitRun
+    except ImportError:
+        from git_run import GitRun
 
-__version__ = '1.0.11.1'
+__version__ = '1.0.12'
 
 MANIFEST_FILES = [
     '__manifest__.py',

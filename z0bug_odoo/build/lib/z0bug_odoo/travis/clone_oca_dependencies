@@ -32,7 +32,7 @@ import logging
 from travis_helpers import print_flush
 
 _logger = logging.getLogger()
-__version__ = '1.0.11.1'
+__version__ = '1.0.12'
 
 
 def parse_depfile(depfile, owner=None):
@@ -192,14 +192,14 @@ def run(deps_checkout_dir, build_dir):
             os.environ.get('MQT_TEST_MODE', 'oca') != 'oca'):
         print_flush(
             'INFO: installing PYPI packages from "%s"' % str(reqfilenames))
-    # for reqfilename in reqfilenames:
-    #     command = ['pip', 'install', '--no-binary', 'pycparser',
-    #                '-Ur', reqfilename]
-    #     _logger.info('Calling %s', ' '.join(command))
-    #     try:
-    #         subprocess.check_call(command)
-    #     except:
-    #         print_flush('ERROR: cannot install/upgrade %s' % reqfilename)
+    for reqfilename in reqfilenames:
+        command = ['pip', 'install', '--no-binary', 'pycparser',
+                   '-Ur', reqfilename]
+        _logger.info('Calling %s', ' '.join(command))
+        try:
+            subprocess.check_call(command)
+        except:
+            print_flush('ERROR: cannot install/upgrade %s' % reqfilename)
 
 
 if __name__ == '__main__':

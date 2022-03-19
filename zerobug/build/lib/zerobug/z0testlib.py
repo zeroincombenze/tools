@@ -19,7 +19,7 @@ import magic
 from python_plus import _c
 
 
-__version__ = "1.0.8"
+__version__ = "1.0.8.1"
 
 # return code
 TEST_FAILED = 1

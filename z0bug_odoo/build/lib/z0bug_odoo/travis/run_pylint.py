@@ -17,10 +17,18 @@ if sys.version_info[0] == 2:
     from getaddons import get_modules_changed, is_module
     from git_run import GitRun
 else:
-    from . import travis_helpers
-    from .getaddons import get_modules_changed, is_module
-    from .git_run import GitRun
-
+    try:
+        from . import travis_helpers
+    except ImportError:
+        from z0bug_odoo.travis import travis_helpers
+    try:
+        from .getaddons import get_modules_changed, is_module
+    except ImportError:
+        from getaddons import get_modules_changed, is_module
+    try:
+        from .git_run import GitRun
+    except ImportError:
+        from git_run import GitRun
 try:
     import ConfigParser
 except ImportError:
