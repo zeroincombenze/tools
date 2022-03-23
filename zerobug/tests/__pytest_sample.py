@@ -7,7 +7,8 @@ from future import standard_library
 from builtins import object
 
 from zerobug import Z0BUG
-standard_library.install_aliases()                                 # noqa: E402
+
+standard_library.install_aliases()  # noqa: E402
 
 
 __version__ = '1.0.8'
@@ -22,7 +23,6 @@ def test_version_z0testrc(version_to_test):
 
 
 class TestClass(object):
-
     def test_version_zerobug(self, version_to_test):
         version_to_test(Z0BUG, __version__)
 

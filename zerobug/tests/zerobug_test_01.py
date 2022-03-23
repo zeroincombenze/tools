@@ -24,12 +24,13 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    ctx = z0test.parseoptest(sys.argv[1:],
-                            version=version())
+    ctx = z0test.parseoptest(sys.argv[1:], version=version())
     z0lib_file = ''
-    for fn in ('../../z0lib/z0lib/z0librc',
-               '../z0lib/z0librc',
-               os.path.expanduser('~/tools/z0lib/z0librc')):
+    for fn in (
+        '../../z0lib/z0lib/z0librc',
+        '../z0lib/z0librc',
+        os.path.expanduser('~/tools/z0lib/z0librc'),
+    ):
         if os.path.isfile(fn):
             z0lib_file = fn
             break

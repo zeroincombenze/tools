@@ -21,8 +21,7 @@ def version():
     return __version__
 
 
-class RegressionTest():
-
+class RegressionTest:
     def __init__(self, z0bug):
         self.Z = z0bug
 
@@ -35,10 +34,7 @@ class RegressionTest():
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
                 res = os.path.isdir(path)
-            sts += self.Z.test_result(z0ctx,
-                                      'mkdir %s' % path,
-                                      True,
-                                      res)
+            sts += self.Z.test_result(z0ctx, 'mkdir %s' % path, True, res)
         return sts
 
     def test_09(self, z0ctx):
@@ -50,23 +46,23 @@ class RegressionTest():
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
                 res = os.path.isdir(path)
-            sts += self.Z.test_result(z0ctx,
-                                      'rmdir %s' % path,
-                                      False,
-                                      res)
+            sts += self.Z.test_result(z0ctx, 'rmdir %s' % path, False, res)
         return sts
 
     def setup(self, z0ctx):
-        self.os_tree = ['14.0',
-                        '14.0/l10n-italy',
-                        '14.0/l10n-italy/l10n_it_base',
-                        '/tmp/zerobug']
+        self.os_tree = [
+            '14.0',
+            '14.0/l10n-italy',
+            '14.0/l10n-italy/l10n_it_base',
+            '/tmp/zerobug',
+        ]
+
 
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    exit(z0test.main_local(
-        z0test.parseoptest(
-            sys.argv[1:],
-            version=version()),
-        RegressionTest))
+    exit(
+        z0test.main_local(
+            z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
+        )
+    )

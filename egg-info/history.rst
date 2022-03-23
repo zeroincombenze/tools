@@ -1,3 +1,22 @@
+wok_code: 1.0.8.1 (2022-03-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] to_pep8.py
+
+
+zerobug: 1.0.8.1 (2022-03-19)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Linting file config
+* [IMP] black formatting
+
+
+z0lib: 1.0.7.1 (2022-03-19)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] More tests
+
+
 zerobug: 1.0.8 (2022-03-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -104,25 +123,6 @@ python_plus: 1.0.7.1 (2022-01-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] New option -l for language
-
-
-wok_code: 1.0.7 (2022-01-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vct_csv_2_rst.py (python3)
-
-
-wok_code: 1.0.6 (2022-01-19)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py (python3)
-* [FIX] to_pep8.py (python3)
-
-
-zerobug: 1.0.6.1 (2022-01-16)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New function simulate_install_pip
 
 
 

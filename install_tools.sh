@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.12
+__version__=1.0.12.1
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -335,15 +335,20 @@ fi
 # OCA tools
 if [[ $PYVER -eq 3 ]]; then
     run_traced "cd $DSTPATH"
-    [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
-    run_traced "git clone git@github.com:OCA/maintainer-tools.git"
-    if [[ -d $DSTPATH/maintainer-tools ]]; then
-        run_traced "cd $DSTPATH/maintainer-tools"
-        run_traced ". $DSTPATH/venv/bin/activate"
-        [[ $opts =~ ^-.*v ]] && run_traced "python setup.py install" || run_traced "python setup.py --quiet install"
-        run_traced "pip install black"
-        run_traced "deactivate"
+    if [[ ! $opts =~ ^-.*t ]]; then
+        [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
+        run_traced "git clone git@github.com:OCA/maintainer-tools.git"
+        if [[ -d $DSTPATH/maintainer-tools ]]; then
+            run_traced "cd $DSTPATH/maintainer-tools"
+            [[ $opts =~ ^-.*v ]] && run_traced "$PYTHON setup.py install" || run_traced "$PYTHON setup.py --quiet install"
+            for pkg in black pre-commit pyupgrade flake8-bugbear; do
+                run_traced "pip install $pkg"
+            done
+        fi
+        run_traced "git clone https://github.com/OCA/odoo-module-migrator.git"
+        run_traced "pip install $DSTPATH/odoo-module-migrator/"
     fi
+    run_traced "git clone git@github.com:OCA/maintainer-quality-tools.git"
 fi
 
 # Final test to validate environment

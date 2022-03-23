@@ -93,7 +93,10 @@ from datetime import datetime
 from shutil import copyfile
 from lxml import etree
 
-from wok_code.scripts import license_mgnt
+try:
+    from wok_code.scripts import license_mgnt
+except ImportError:
+    from .wok_code.scripts import license_mgnt
 from python_plus import unicodes
 from os0 import os0
 try:
@@ -112,7 +115,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.8"
+__version__ = "1.0.8.1"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
