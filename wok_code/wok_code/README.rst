@@ -1,7 +1,7 @@
 
-==============
-wok_code 1.0.8
-==============
+================
+wok_code 1.0.8.1
+================
 
 
 
@@ -844,6 +844,11 @@ Current development version
 History
 -------
 
+1.0.8.1 (2022-03-21)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] to_pep8.py
+
 1.0.8 (2022-02-23)
 ~~~~~~~~~~~~~~~~~~
 
@@ -907,11 +912,6 @@ History
 * [IMP] cvt_script: man page
 * [FIX] gen_readme.py
 
-1.0.2.5 (2021-10-01)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] disk_pkg: manage setup.py & setup.info
-
 
 
 |
@@ -936,7 +936,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-14
+Last Update / Ultimo aggiornamento: 2022-03-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

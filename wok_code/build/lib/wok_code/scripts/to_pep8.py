@@ -67,9 +67,9 @@ import tokenize
 import yaml
 from subprocess import PIPE, Popen
 
-if sys.version_info[0] == 2:
+try:
     from wok_code.scripts import license_mgnt
-else:
+except ImportError:
     from .wok_code.scripts import license_mgnt
 try:
     from z0lib import z0lib

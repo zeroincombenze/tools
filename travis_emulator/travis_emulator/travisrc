@@ -396,7 +396,7 @@ create_virtual_env() {
   [[ -d $TRAVIS_HOME/maintainer-quality-tools ]] && rm -fR -d $TRAVIS_HOME/maintainer-quality-tools
   export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
   if [[ $PKGNAME == "OCB" ]]; then
-    emulate_git_clone_OCB $TRAVIS_HOME_BRANCH $TRAVIS_BUILD_DIR/$TRAVIS_REPO_SLUG
+    emulate_git_clone_OCB $TRAVIS_HOME_BRANCH $TRAVIS_BUILD_DIR
   else
     mkdir -p $TRAVIS_BUILD_DIR
     x=$(readlink -f $TRAVIS_BUILD_DIR/..)

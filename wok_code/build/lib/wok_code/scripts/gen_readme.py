@@ -93,7 +93,10 @@ from datetime import datetime
 from shutil import copyfile
 from lxml import etree
 
-from wok_code.scripts import license_mgnt
+try:
+    from wok_code.scripts import license_mgnt
+except ImportError:
+    from .wok_code.scripts import license_mgnt
 from python_plus import unicodes
 from os0 import os0
 try:

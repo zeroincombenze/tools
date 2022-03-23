@@ -15,7 +15,7 @@ name = 'os0'
 #     print('Module %s without long description' % name)
 
 setup(name=name,
-      version='1.0.2.1',
+      version='1.0.3',
       description='OS indipendent interface',
       long_description_content_type='text/x-rst',
       long_description="""
