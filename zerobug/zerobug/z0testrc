@@ -63,7 +63,7 @@
 # (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.8.1
+__version__=1.0.8.2
 
 export opt_dry_run
 export ctr
@@ -296,7 +296,6 @@ msg_test() {
 test_result () {
   # test_result (msg, testval, resval, cmd, [ttype])::ctr,max_test
   # if supplied, ttype means cmd test type; may be (str-z, str-n)
-  local
   dbgmsg "\$ test_result($@)  # min=$min_test, max=$max_test, ctr=$ctr"
   ready_opts
   ((ctr++))
@@ -309,7 +308,7 @@ test_result () {
   if [[ ${opt_dry_run:-0} -eq 0 ]]; then
     if [[ -n "$4" ]]; then
       dbgmsg "\$ if [[ -n "\$4" ]]; then"
-      if $($4 $2 $3 &>/dev/null); then
+      if $("$4" "$2" "$3" &>/dev/null); then
         if [ "$5" == "str-z" ]; then
           if [ -n "$($4 $2 $3)" ]; then
             echo "$THIS> Test failed: $4 '$2' '$3'"
@@ -343,16 +342,14 @@ test_result () {
           exit $STS_FAILED
         fi
       fi
-    else
-      if [[ $2 != $3 ]]; then
-        echo "$THIS> Test '$1' failed: expected '$2', found '$3'"
-        dbgmsg "\$ echo(Test '$1' failed: expected '$2', found '$3')"
-        teststs=$STS_FAILED
-        if [[ $Z0BUG_on_error == "continue" ]]; then
-          return $STS_FAILED
-        else
-          exit $STS_FAILED
-        fi
+    elif [[ "$2" != "$3" ]]; then
+      echo "$THIS> Test '$1' failed: expected '$2', found '$3'"
+      dbgmsg "\$ echo(Test '$1' failed: expected '$2', found '$3')"
+      teststs=$STS_FAILED
+      if [[ $Z0BUG_on_error == "continue" ]]; then
+        return $STS_FAILED
+      else
+        exit $STS_FAILED
       fi
     fi
   fi

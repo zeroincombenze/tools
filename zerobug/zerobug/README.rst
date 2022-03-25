@@ -1,6 +1,6 @@
 
 ===============
-zerobug 1.0.8.1
+zerobug 1.0.8.2
 ===============
 
 
@@ -366,6 +366,11 @@ Current development version
 History
 -------
 
+1.0.8.2 (2022-03-25)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Sometime fail test reuslt
+
 1.0.8.1 (2022-03-19)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -423,12 +428,6 @@ History
 
 * [IMP] Minor improvements
 
-1.0.1.4 (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis_install_env: echo indented command
-* [IMP] travis_install_env: new travis command testdeps
-
 
 
 |
@@ -453,7 +452,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-19
+Last Update / Ultimo aggiornamento: 2022-03-25
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
