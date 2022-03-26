@@ -1,4 +1,13 @@
-1.0.0.2 (2022-02-22)
+1.0.1.1 (2022-03-25)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo.xlsx: account.invoice-move
+* [IMP] transodoo.py: new features; merge is default type
+* [IMP] list_reqirements.py: minor improvements
+* [IMP] more tests
+
+
+1.0.1 (2022-02-22)
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] transodoo.xlsx: account.invoice-move

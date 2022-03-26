@@ -48,11 +48,11 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.1
+__version__=1.0.1.1
 
 
 test_01() {
-    local k v RES
+    local k v RES sts=0
     declare -A TRES
     TRES[6.1]="Sales Management"
     TRES[7.0]="Sales"
@@ -80,7 +80,7 @@ test_01() {
 }
 
 test_02() {
-    local k v RES
+    local k v RES sts=0
     declare -A TRES
     TRES[6.1]="report_type"
     TRES[7.0]="report_type"
@@ -109,7 +109,7 @@ test_02() {
 }
 
 test_03() {
-    local k v RES
+    local k m v RES sts=0
     declare -A TRES
     TRES[6.1]="action_cancel"
     TRES[7.0]="action_cancel"
@@ -118,12 +118,14 @@ test_03() {
     TRES[10.0]="action_invoice_cancel"
     TRES[11.0]="action_invoice_cancel"
     TRES[12.0]="action_invoice_cancel"
-    TRES[13.0]="action_invoice_cancel"
-    TRES[14.0]="action_invoice_cancel"
+    TRES[13.0]="button_cancel"
+    TRES[14.0]="button_cancel"
     #
     for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
-      RES=$($RUNDIR/transodoo.py translate -m account.invoice -k action -s action_cancel -f 7.0 -b$v)
-      test_result "translate -m account.invoice -k action -s action_cancel -f 7.0 -b$v" "${TRES[$v]}" "$RES"
+      # [[ $v =~ (13|14) ]] && m="account.move" || m="account.invoice"
+      m="account.invoice"
+      RES=$($RUNDIR/transodoo.py translate -m $m -k action -s action_cancel -f 7.0 -b$v)
+      test_result "translate -m $m -k action -s action_cancel -f 7.0 -b$v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
@@ -136,7 +138,7 @@ test_03() {
 }
 
 test_04() {
-    local k v RES
+    local k v RES sts=0
     declare -A TRES
     TRES[6.1]="invoice_cancel_draft"
     TRES[7.0]="invoice_cancel_draft"
@@ -145,8 +147,8 @@ test_04() {
     TRES[10.0]="action_invoice_draft"
     TRES[11.0]="action_invoice_draft"
     TRES[12.0]="action_invoice_draft"
-    TRES[13.0]="action_invoice_draft"
-    TRES[14.0]="action_invoice_draft"
+    TRES[13.0]="None"
+    TRES[14.0]="None"
     #
     for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m account.invoice -k action -s invoice_cancel_draft -f 7.0 -b$v)
@@ -155,7 +157,7 @@ test_04() {
     done
     #
     for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
-      RES=$($RUNDIR/transodoo.py translate -m account.invoice -k action -s action_invoice_draft -f 10.0 -b$v)
+      RES=$($RUNDIR/transodoo.py translate -m account.invoice -k action -s action_invoice_draft -f 12.0 -b$v)
       test_result "translate -m account.invoice -k action -s action_invoice_draft -f 10.0 -b$v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
@@ -163,7 +165,7 @@ test_04() {
 }
 
 test_05() {
-    local k v RES
+    local k v RES sts=0
     declare -A TRES
     TRES[6.1]="asset"
     TRES[7.0]="asset"
@@ -246,7 +248,7 @@ test_05() {
 }
 
 test_06() {
-    local k v RES
+    local k v RES sts=0
     declare -A TRES
     TRES[6.1]="0.22"
     TRES[7.0]="0.22"
@@ -304,7 +306,7 @@ test_06() {
 }
 
 test_07() {
-    local k m v RES
+    local k m v RES sts=0
     declare -A TRES
     TRES[6.1]="account_payment"
     TRES[7.0]="account_payment"
@@ -344,10 +346,10 @@ test_07() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
-    TRES[6.1]="account_journal_report"
-    TRES[7.0]="account_journal_report"
-    TRES[8.0]="account_journal_report"
-    TRES[9.0]="account_journal_report"
+    TRES[6.1]="['account_financial_report_qweb', 'account_journal_report']"
+    TRES[7.0]="['account_financial_report_qweb', 'account_journal_report']"
+    TRES[8.0]="['account_financial_report_qweb', 'account_journal_report']"
+    TRES[9.0]="['account_financial_report_qweb', 'account_journal_report']"
     TRES[10.0]="account_financial_report_qweb"
     TRES[11.0]="account_financial_report_qweb"
     TRES[12.0]="account_financial_report_qweb"
@@ -382,8 +384,108 @@ test_07() {
       RES=$($RUNDIR/transodoo.py translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -bpowerp$m)
       test_result "translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -bpowerp$m" "None" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      [[ $v =~ (6.1|12.0) ]] || continue
+      RES=$($RUNDIR/transodoo.py translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -blibrerp$m)
+      test_result "translate -k module -s l10n_it_vat_statement_split_payment -f 12.0 -blibrerp$m" "None" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
+    return $sts
+}
+
+test_08() {
+    local k m v RES sts=0
+    declare -A TRES
+    TRES[6.1]="product.uom"
+    TRES[7.0]="product.uom"
+    TRES[8.0]="product.uom"
+    TRES[9.0]="product.uom"
+    TRES[10.0]="product.uom"
+    TRES[11.0]="product.uom"
+    TRES[12.0]="uom.uom"
+    TRES[13.0]="uom.uom"
+    TRES[14.0]="uom.uom"
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -m ir.model -k model -s product.uom -f 7.0 -b$v)
+      test_result "translate -m ir.model -k model -s product.uom -f 7.0 -b$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -k model -s product.uom -f 7.0 -b$v)
+      test_result "translate -k model -s product.uom -f 7.0 -b$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -k model -s uom.uom -f 12.0 -b$v)
+      test_result "translate -k model -s uom.uom -f 12.0 -b$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+
+    TRES[6.1]="account.invoice"
+    TRES[7.0]="account.invoice"
+    TRES[8.0]="account.invoice"
+    TRES[9.0]="account.invoice"
+    TRES[10.0]="account.invoice"
+    TRES[11.0]="account.invoice"
+    TRES[12.0]="account.invoice"
+    TRES[13.0]="account.move"
+    TRES[14.0]="account.move"
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -m ir.model -k model -s account.invoice -f 7.0 -b$v)
+      test_result "translate -m ir.model -k model -s account.invoice -f 7.0 -b$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -k model -s account.invoice -f 7.0 -b$v)
+      test_result "translate -k model -s account.invoice -f 7.0 -b$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    TRES[6.1]="['account.move', 'account.invoice']"
+    TRES[7.0]="['account.move', 'account.invoice']"
+    TRES[8.0]="['account.move', 'account.invoice']"
+    TRES[9.0]="['account.move', 'account.invoice']"
+    TRES[10.0]="['account.move', 'account.invoice']"
+    TRES[11.0]="['account.move', 'account.invoice']"
+    TRES[12.0]="['account.move', 'account.invoice']"
+    TRES[13.0]="account.move"
+    TRES[14.0]="account.move"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+      RES=$($RUNDIR/transodoo.py translate -k model -s account.move -f 14.0 -b$v)
+      test_result "translate -k model -s account.move -f 14.0 -b$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+
+    return $sts
+}
+
+test_09() {
+    local k RES sts=0
+    declare -A TRES
+    TRES[1205]="123380"
+    TRES[1601]="153010"
+    TRES[2601]="260010"
+    TRES[3112]="510000"
+    for k in "1205" "1601" "2601" "3112"; do
+      RES=$($RUNDIR/transodoo.py translate -kvalue -maccount.account -Ncode -f12.0 -blibrerp12 -s $k)
+      test_result "transodoo.py translate -kvalue -maccount.account -Ncode -f12.0 -blibrerp12 -s $k" "${TRES[$k]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    TRES[123380]="1205"
+    TRES[153010]="1601"
+    TRES[260010]="2601"
+    TRES[510000]="3112"
+    for k in "123380" "153010" "260010" "510000"; do
+      RES=$($RUNDIR/transodoo.py translate -kvalue -maccount.account -Ncode -flibrerp12 -b12.0 -s $k)
+      test_result "transodoo.py translate -kvalue -maccount.account -Ncode -flibrerp12 -b12.0 -s $k" "${TRES[$k]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
     return $sts
 }
 

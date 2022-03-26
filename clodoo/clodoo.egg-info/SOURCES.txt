@@ -8,9 +8,7 @@ clodoo/clodoo.py
 clodoo/clodoocore.py
 clodoo/clodoolib.py
 clodoo/export_db_model.py
-clodoo/inv2draft_n_restore.py
 clodoo/list_requirements.py
-clodoo/manage_2_dbs.py
 clodoo/migrate_odoo_db.py
 clodoo/moduli_da_installare.py
 clodoo/odoorc
