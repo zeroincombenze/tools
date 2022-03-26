@@ -85,15 +85,18 @@ test_01() {
     test_result "cmd -V" "$opt_version" "-V"
     test_result "cmd -V [-n]" "$tested_opt_dry_run" "0"
     test_result "cmd -V [-v]" "$opt_verbose" "0"
-    echo "Usage: test_parseoptargs [-hnVv]">$FTEST
-    echo "Unit test">>$FTEST
-    echo " -h             this help">>$FTEST
-    echo " -n             do nothing (dry-run)">>$FTEST
-    echo " -V             show version">>$FTEST
-    echo " -v             verbose mode">>$FTEST
-    print_help "Unit test"\
-      "">$FOUT
-    test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+    cat <<EOF >$FTEST
+Usage: test_parseoptargs [-hnVv]
+Unit test
+ -h                   this help
+ -n                   do nothing (dry-run)
+ -V                   show version
+ -v                   verbose mode
+
+
+EOF
+    print_help "Unit test" "">$FOUT
+    test_result "print_help" "$FOUT" "$FTEST" "diff -qEbBZ"
 }
 
 test_02() {
