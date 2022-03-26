@@ -1,7 +1,8 @@
 1.0.8.2 (2022-03-25)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] Sometime fail test reuslt
+* [FIX] Sometime fails test result
+* [IMP] Lint checks
 
 1.0.8.1 (2022-03-19)
 ~~~~~~~~~~~~~~~~~~~~

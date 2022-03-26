@@ -369,7 +369,8 @@ History
 1.0.8.2 (2022-03-25)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] Sometime fail test reuslt
+* [FIX] Sometime fails test result
+* [IMP] Lint checks
 
 1.0.8.1 (2022-03-19)
 ~~~~~~~~~~~~~~~~~~~~
@@ -452,7 +453,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-25
+Last Update / Ultimo aggiornamento: 2022-03-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
