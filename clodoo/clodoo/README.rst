@@ -1,7 +1,7 @@
 
-============
-clodoo 1.0.1
-============
+==============
+clodoo 1.0.1.1
+==============
 
 
 
@@ -327,8 +327,17 @@ Current development version
 History
 -------
 
-1.0.0.2 (2022-02-22)
+1.0.1.1 (2022-03-25)
 ~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo.xlsx: account.invoice-move
+* [IMP] transodoo.py: new features; merge is default type
+* [IMP] list_reqirements.py: minor improvements
+* [IMP] more tests
+
+
+1.0.1 (2022-02-22)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] transodoo.xlsx: account.invoice-move
 
@@ -383,11 +392,6 @@ History
 
 * [FIX] python 3
 
-0.3.33.4 (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo.py: rcp login
-
 
 
 |
@@ -412,7 +416,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-14
+Last Update / Ultimo aggiornamento: 2022-03-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
