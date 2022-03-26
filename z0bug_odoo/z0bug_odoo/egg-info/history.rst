@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
+* [IMP] comfiguration file for PYPI lint
 
 1.0.11.1 (2022-03-12)
 ~~~~~~~~~~~~~~~~~~~~~
