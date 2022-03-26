@@ -22,6 +22,7 @@ TEST_SUCCESS = 0
 def version():
     return __version__
 
+
 MANIFEST_1 = """{
     'name': 'module_test',
     'version': '12.0.1.0',
@@ -37,6 +38,7 @@ MANIFEST_2 = """{
     'name': 'module_test',
     'version': '12.0.1.0',
 }"""
+
 
 class RegressionTest():
 
