@@ -14,26 +14,24 @@ __ver_major__ = 0
 __ver_minor__ = 1
 __ver_patch__ = 3
 __ver_sub__ = '6'
-__version__ = '1.0.8'
+__version__ = '1.0.8.1'
 
 PYCODESET = 'utf-8'
-# PY2 = sys.version_info[0] == 2
-# PY3 = sys.version_info[0] == 3
 if PY3:
-    text_type = str
+    text_type = unicode = str
     bytestr_type = bytes
 elif PY2:
     text_type = unicode
     bytestr_type = str
 
 
-def isunicode(object):
+def isunicode(object):                              # pylint: disable=redefined-builtin
     if PY2:
         return isinstance(object, unicode)
     return isinstance(object, str)
 
 
-def isbytestr(object):
+def isbytestr(object):                              # pylint: disable=redefined-builtin
     if PY2:
         return isinstance(object, str)
     return isinstance(object, bytes)
@@ -66,7 +64,7 @@ def bstrings(src):
             if isinstance(x, text_type):
                 del src[x]
             src[_b(x)] = _b(src2[x])
-    elif isinstance(src, list):
+    elif isinstance(src, (list, tuple)):
         for i, x in enumerate(src):
             src[i] = _b(x)
     return src
@@ -79,8 +77,8 @@ def unicodes(src):
             if isinstance(x, bytestr_type):
                 del src[x]
             src[_u(x)] = _u(src2[x])
-    elif isinstance(src, list):
-        for i,x in enumerate(src):
+    elif isinstance(src, (list, tuple)):
+        for i, x in enumerate(src):
             src[i] = _u(x)
     return src
 
@@ -94,7 +92,7 @@ def qsplit(*args, **kwargs):
         elif isinstance(sep, basestring):
             sep = _u(sep)
     else:
-        sep=[' ', '\t', '\n', '\r']
+        sep = [' ', '\t', '\n', '\r']
     if len(args) > 2 and args[2]:
         maxsplit = args[2]
     else:
@@ -256,15 +254,17 @@ def compute_date(value, refdate=None):
 
 
 class Base__(type):
+
     def __instancecheck__(cls, instance):
         if cls == __:
             return isinstance(instance, text_type)
         else:
             return issubclass(instance.__class__, cls)
 
+
 class __(object, with_metaclass(Base__, text_type)):
 
     def qsplit(self, sep=None, maxsplit=-1,
                quotes=None, escape=None, enquote=None, strip=None):
-        return qsplit(src, sep=sep, maxsplit=maxsplit, quotes=quotes,
+        return qsplit(self, sep=sep, maxsplit=maxsplit, quotes=quotes,
                       escape=escape, enquote=enquote, strip=strip)
