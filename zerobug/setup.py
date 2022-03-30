@@ -13,7 +13,7 @@ else:
                         'os0', 'z0lib'],
 
 setup(name='zerobug',
-      version='1.0.8',
+      version='1.0.8.2',
       description='Zeroincombenze continuous testing framework'
                   ' and tools for python and bash programs',
       long_description="""

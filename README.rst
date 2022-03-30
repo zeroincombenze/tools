@@ -239,6 +239,35 @@ Current development version
 History
 -------
 
+zerobug: 1.0.8.2 (2022-03-25)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Sometime fails test result
+* [IMP] Lint checks
+
+
+odoo_score: 1.0.5.2 (2022-03-25)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: minor improvements
+
+
+clodoo: 1.0.1.1 (2022-03-25)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo.xlsx: account.invoice-move
+* [IMP] transodoo.py: new features; merge is default type
+* [IMP] list_reqirements.py: minor improvements
+* [IMP] more tests
+
+
+
+python_plus: 1.0.8.1 (2022-03-24)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Lint + tests
+
+
 wok_code: 1.0.8.1 (2022-03-21)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -274,6 +303,7 @@ z0bug_odoo: 1.0.12 (2022-03-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
+* [IMP] comfiguration file for PYPI lint
 
 
 travis_emulator: 1.0.6 (2022-03-14)
@@ -347,8 +377,8 @@ travis_emulator: 1.0.5.1 (2022-02-22)
 * [IMP] Set language en_US
 
 
-clodoo: 1.0.0.2 (2022-02-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+clodoo: 1.0.1 (2022-02-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] transodoo.xlsx: account.invoice-move
 
@@ -358,12 +388,6 @@ wok_code: 1.0.7.1 (2022-02-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] gen_readme.py (python3)
-
-
-python_plus: 1.0.7.1 (2022-01-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New option -l for language
 
 
 
@@ -381,7 +405,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-03-23
+Last Update / Ultimo aggiornamento: 2022-03-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

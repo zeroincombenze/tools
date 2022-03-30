@@ -19,7 +19,7 @@ import magic
 from python_plus import _c
 
 
-__version__ = "1.0.8"
+__version__ = "1.0.8.2"
 
 # return code
 TEST_FAILED = 1
@@ -737,32 +737,22 @@ class Z0test(object):
         if opt_obj:
             for p in LX_OPT_CFG_S:
                 if p == 'opt_echo':
-                    if (
-                        hasattr(opt_obj, 'opt_echo_q')
-                        and getattr(opt_obj, 'opt_echo_q') is False
-                    ):
+                    if hasattr(opt_obj, 'opt_echo_q') and not opt_obj.opt_echo_q:
                         ctx[p] = False
-                    elif hasattr(opt_obj, 'opt_echo_e') and getattr(
-                        opt_obj, 'opt_echo_e'
-                    ):
+                    elif hasattr(opt_obj, 'opt_echo_e') and opt_obj.opt_echo_e:
                         ctx[p] = True
                     else:
                         ctx[p] = None
                 elif p == 'opt_new':
-                    if (
-                        hasattr(opt_obj, 'opt_new_k')
-                        and getattr(opt_obj, 'opt_new_k') is False
-                    ):
+                    if hasattr(opt_obj, 'opt_new_k') and not opt_obj.opt_new_k:
                         ctx[p] = False
-                    elif hasattr(opt_obj, 'opt_new_N') and getattr(
-                        opt_obj, 'opt_new_N'
-                    ):
+                    elif hasattr(opt_obj, 'opt_new_N') and opt_obj.opt_new_N:
                         ctx[p] = True
                     else:
                         ctx[p] = None
                 elif p == 'min_test':
-                    if hasattr(opt_obj, 'min_test2') and getattr(opt_obj, 'min_test2'):
-                        ctx[p] = int(getattr(opt_obj, 'min_test2'))
+                    if hasattr(opt_obj, 'min_test2') and opt_obj.min_test2:
+                        ctx[p] = int(opt_obj.min_test2)
                     else:
                         ctx[p] = None
                 elif p == 'no_run_on_top' and hasattr(opt_obj, p):
@@ -997,7 +987,8 @@ class Z0test(object):
         if TestCls:
             T = TestCls(self)
             if hasattr(TestCls, 'setup'):
-                getattr(T, 'setup')(ctx)
+                # getattr(T, 'setup')(ctx)
+                T.setup(ctx)
         for testname in test_list:
             self.dbgmsg(
                 ctx,
@@ -1045,7 +1036,7 @@ class Z0test(object):
             self.dbgmsg(ctx, '- testctr=%d+%d' % (testctr, ctx['ctr']))
             testctr += ctx['ctr']
         if TestCls and hasattr(TestCls, 'teardown'):
-            getattr(T, 'teardown')(ctx)
+            T.teardown(ctx)
         ctx = self._restore_options(ctx)
         ctx['ctr'] = testctr
         if ctx.get('max_test', 0) == 0:
@@ -1077,7 +1068,7 @@ class Z0test(object):
         if TestCls:
             T = TestCls(self)
         if TestCls and hasattr(TestCls, 'setup'):
-            getattr(T, 'setup')(ctx)
+            T.setup(ctx)
         for testname in test_list:
             self.dbgmsg(
                 ctx,
@@ -1166,7 +1157,7 @@ class Z0test(object):
                 break
         ctx['min_test'] = ctx['ctr']
         if TestCls and hasattr(TestCls, 'teardown'):
-            getattr(T, 'teardown')(ctx)
+            T.teardown(ctx)
         return sts
 
     def main_local(self, ctx, Test, UT1=None, UT=None):
@@ -1525,15 +1516,18 @@ if __name__ == '__main__':
             os.path.join(name, '.git'),
         ]
         root = Z0test().build_os_tree(ctx, os_tree)
-        RELEASE_PY = '''
-RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
+        RELEASE_PY = ("""
+RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = """
+                      """['alpha', 'beta', 'candidate', 'final']
 RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
                           BETA: BETA,
                           RELEASE_CANDIDATE: 'rc',
                           FINAL: ''}
 version_info = (%s, %s, 0, 'final', 0, '')
-version = '.'.join(map(str, version_info[:2])) + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
-series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
+version = '.'.join(map(str, version_info[:2])) + """
+                      """RELEASE_LEVELS_DISPLAY[version_info[3]] + """
+                      """str(version_info[4] or '') + version_info[5]
+series = serie = major_version = '.'.join(map(str, version_info[:2]))""")
         if name[0] not in ('~', '/') and not name.startswith('./'):
             odoo_root = os.path.join(root, name)
         else:

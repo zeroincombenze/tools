@@ -7,14 +7,13 @@ import ast
 import sys
 import os
 import re
-from os0 import os0
 try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
 
 
-__version__ = '1.0.1'
+__version__ = '1.0.1.2'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -277,7 +276,9 @@ BUILTIN = [
 MANIFEST_NAMES = {
     'accept_language': 'parse-accept-language',
     'Asterisk': 'py-Asterisk',
-    'cmislib': '/--editable=git+https://github.com/apache/chemistry-cmislib.git@py3_compat#egg=cmislib',
+    'cmislib': (
+        '/--editable=git+https://github.com/apache/'
+        'chemistry-cmislib.git@py3_compat#egg=cmislib'),
     'facturx': 'factur-x',
     'past': 'future',
     'u2flib_server': 'python-u2flib-server',
@@ -589,7 +590,7 @@ def swap(deps, itm1, itm2):
 
 def walk_dir(cdir, manifests, reqfiles):
     no_deep = ' '
-    for root, dirs, files in os.walk(cdir):
+    for root, _dirs, files in os.walk(cdir):
         if root.startswith(no_deep):
             continue
         if os.path.basename(root) in (
@@ -836,11 +837,15 @@ def main():
                 if kw == ctx['itypes'] or (ctx['itypes'] == 'both' and
                                            kw in ('python', 'bin')):
                     if ctx['opt_verbose']:
-                        print(os0.b(
-                            '%s=%s' % (
-                                kw, ctx['sep'].join(deps_list[kw]))).decode())
+                        print('%s=%s' % (
+                            kw,  ctx['sep'].join(deps_list[kw])
+                        ))
+                        # print(os0.b(
+                        #     '%s=%s' % (
+                        #         kw, ctx['sep'].join(deps_list[kw]))).decode())
                     else:
-                        print(os0.b(ctx['sep'].join(deps_list[kw])).decode())
+                        # print(os0.b(ctx['sep'].join(deps_list[kw])).decode())
+                        print(ctx['sep'].join(deps_list[kw]))
 
 
 if __name__ == "__main__":

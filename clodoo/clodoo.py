@@ -190,7 +190,7 @@ try:
         exec_sql, extract_vals_from_rec,                      # noqa: F401
         sql_reconnect, get_val_from_field,                    # noqa: F401
         cvt_from_ver_2_ver)                                   # noqa: F401
-except:
+except ImportError:
     from clodoocore import (                                  # noqa: F401
         is_valid_field, searchL8, browseL8,                   # noqa: F401
         eval_value, get_query_id, import_file_get_hdr,        # noqa: F401
@@ -209,7 +209,7 @@ try:
         msg_log, parse_args, tounicode,                       # noqa: F401
         read_config, init_logger,                             # noqa: F401
         default_conf, build_odoo_param)                       # noqa: F401
-except:
+except ImportError:
     from clodoolib import (                                   # noqa: F401
         crypt, debug_msg_log, decrypt, msg_burst,             # noqa: F401
         msg_log, parse_args, tounicode,                       # noqa: F401
@@ -217,14 +217,14 @@ except:
         default_conf, build_odoo_param)                       # noqa: F401
 try:
     from transodoo import (read_stored_dict, translate_from_to)
-except:
+except ImportError:
     from clodoo.transodoo import (read_stored_dict, translate_from_to)
 
 # TMP
 from subprocess import PIPE, Popen
 standard_library.install_aliases()                                 # noqa: E402
 
-__version__ = "1.0.1"
+__version__ = "1.0.1.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1120,7 +1120,7 @@ def act_drop_db(ctx, db_name=None):
             try:
                 cmd = 'pg_db_active -wa %s' % db_name
                 os0.muteshell(cmd, simulate=False, keepout=False)
-                if ctx['oe_version'] == '12.0': # FIX: odoorpc wont work 12.0
+                if ctx['oe_version'] == '12.0':          # FIX: odoorpc wont work 12.0
                     os0.muteshell("dropdb -Upostgres --if-exists " +
                                   db_name)
                 else:
