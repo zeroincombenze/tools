@@ -198,6 +198,7 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
                 '153010': '1601',
                 '153050': '1611',
                 '153110': '1609',
+                '211010': '2101',
                 '260010': '2601',
                 '260060': '2611',
                 '260110': '2602',
@@ -208,7 +209,9 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
                 '610100': '4101',
                 '610110': '4102',
                 '621200': '4105',
+                '623100': '4209',
                 '623460': '4204',
+                '630100': '4301',
             }.get(src_name, src_name)
         elif src_ver.split('.')[0].isdigit() and (tgt_ver.startswith('librerp') or
                                                   tgt_ver.startswith('powerp') or
@@ -218,6 +221,7 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
                 '1601': '153010',
                 '1611': '153050',
                 '1609': '153110',
+                '2101': '211010',
                 '2601': '260010',
                 '2611': '260060',
                 '2602': '260110',
@@ -229,6 +233,23 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
                 '4102': '610110',
                 '4105': '621200',
                 '4204': '623460',
+                '4209': '623100',
+                '4301': '630100',
+            }.get(src_name, src_name)
+    elif name == '${tax}':
+        if tgt_ver.split('.')[0].isdigit() and (src_ver.startswith('librerp') or
+                                                    src_ver.startswith('powerp') or
+                                                    src_ver.startswith('zero')):
+            name = {
+                'a15a': '00art15a',
+                'a15v': '00art15v',
+            }.get(src_name, src_name)
+        elif src_ver.split('.')[0].isdigit() and (tgt_ver.startswith('librerp') or
+                                                  tgt_ver.startswith('powerp') or
+                                                  tgt_ver.startswith('zero')):
+            name = {
+                '00art15a': 'a15a',
+                '00art15v': 'a15v',
             }.get(src_name, src_name)
         else:
             name = src_name
@@ -248,6 +269,8 @@ def previous_ver_name(ver_name, orig_name):
             if x:
                 version = int(ver_name[x.start(): x.end()])
                 ver_name = '%d.0' % version
+                if '~' in orig_name:
+                    ver_name = '%s~%s' % (ver_name, orig_name.split('~', 1)[-1])
             else:
                 ver_name = ''
         else:
@@ -321,7 +344,7 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                                 names.append(item[hh][tver])
                             if (typ == 'merge' and
                                     src_name not in names and
-                                    int(tver.split('.')[0]) < int(sver.split('.')[0])):
+                                    get_majver(tver) < get_majver(sver)):
                                 names.insert(0, src_name)
         if names:
             if len(names) == 1:

@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.1.1
+__version__=1.0.1.2
 
 
 test_01() {
@@ -431,11 +431,16 @@ test_08() {
     TRES[10.0]="account.invoice"
     TRES[11.0]="account.invoice"
     TRES[12.0]="account.invoice"
+    TRES[powerp12]="account.invoice"
     TRES[13.0]="account.move"
     TRES[14.0]="account.move"
     #
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 powerp12; do
       RES=$($RUNDIR/transodoo.py translate -m ir.model -k model -s account.invoice -f 7.0 -b$v)
+      test_result "translate -m ir.model -k model -s account.invoice -f 7.0 -b$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+
+      RES=$($RUNDIR/transodoo.py translate -m ir.model -k model -s account.invoice -f zero7 -b$v)
       test_result "translate -m ir.model -k model -s account.invoice -f 7.0 -b$v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
@@ -453,9 +458,10 @@ test_08() {
     TRES[10.0]="['account.move', 'account.invoice']"
     TRES[11.0]="['account.move', 'account.invoice']"
     TRES[12.0]="['account.move', 'account.invoice']"
+    TRES[powerp12]="['account.move', 'account.invoice']"
     TRES[13.0]="account.move"
     TRES[14.0]="account.move"
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 powerp12; do
       RES=$($RUNDIR/transodoo.py translate -k model -s account.move -f 14.0 -b$v)
       test_result "translate -k model -s account.move -f 14.0 -b$v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
