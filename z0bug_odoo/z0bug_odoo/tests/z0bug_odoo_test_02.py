@@ -13,7 +13,7 @@ from z0bug_odoo.travis.getaddons import (
     is_module, is_addons, get_modules_info, get_modules, get_addons)
 # from z0bug_odoo.travis.test_server import get_build_dir, get_server_script
 
-__version__ = "1.0.12"
+__version__ = "1.0.12.1"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
