@@ -844,6 +844,12 @@ Current development version
 History
 -------
 
+1.0.8.2 (2022-04-04)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] pull_repo.sh: improvements
+* [IMP] Remove old unused code
+
 1.0.8.1 (2022-03-21)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -905,13 +911,6 @@ History
 * [FIX] dist_pkg: run inside virtual environment
 * [FIX] gen_readme.py: new template layout in devel/venv
 
-1.0.2.6 (2021-10-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] cvt_script: inclusion path improved
-* [IMP] cvt_script: man page
-* [FIX] gen_readme.py
-
 
 
 |
@@ -936,7 +935,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-26
+Last Update / Ultimo aggiornamento: 2022-04-10
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

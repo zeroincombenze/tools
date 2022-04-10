@@ -23,7 +23,7 @@ else:
     from .test_server import get_test_dependencies
 
 
-__version__ = '1.0.12'
+__version__ = '1.0.12.1'
 
 
 def get_module_list(paths):

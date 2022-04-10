@@ -82,6 +82,7 @@ Unknown Odoo version
 .. \$fi
 """
 
+
 def version():
     return __version__
 
@@ -171,7 +172,6 @@ if __name__ == '__main__':
             mode = os.fstat(fd.fileno()).st_mode
             mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
             os.fchmod(fd.fileno(), stat.S_IMODE(mode))
-
 
     def get_doc_path(self, odoo_path, gitorg):
         if gitorg == 'zero':

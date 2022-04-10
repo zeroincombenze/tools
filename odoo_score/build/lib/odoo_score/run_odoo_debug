@@ -88,16 +88,17 @@ check_for_modules() {
 }
 
 
-OPTOPTS=(h        B       b          c        d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           s        T        t         U          u       V           v           w       W        x)
-OPTLONG=(help     debug   branch     conf     database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_db   opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
-OPTACTI=("+"      1       "=>"       "="      "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1         "="        1       "*>"        "+"         1       1        "=")
-OPTDEFL=(1        0       ""         ""       ""       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0         ""         0       ""          -1          0       0        "")
-OPTMETA=("help"   ""      "version"  "fname"  "name"   ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""          ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
+OPTOPTS=(h        B       b          c        C           d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           s        T        t         U          u       V           v           w       W        x)
+OPTLONG=(help     debug   branch     conf     no-coverage database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
+OPTACTI=("+"      1       "=>"       "="      1           "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1         "="        1       "*>"        "+"         1       1        "=")
+OPTDEFL=(1        0       ""         ""       0           ""       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0         ""         0       ""          -1          0       0        "")
+OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""          ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
 OPTHELP=("this help"
     "debug mode"
     "odoo branch (version id)"
     "configuration file"
+    "use coverage to run test"
     "db name to test,translate o upgrade (require -m switch)"
     "export translation (conflict with -i -u -I)"
     "force update or install modules or default parameters"
@@ -153,6 +154,20 @@ VDIR=$(build_odoo_param VDIR $odoo_root)
 GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_root)
 manifest=$(build_odoo_param MANIFEST $odoo_vid)
 [[ $opt_verbose -gt 0 && -n "$VDIR" ]] && echo "# Found $VDIR virtual directory"
+if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
+  cov=$(which coverage 2>/dev/null)
+  if [[ -n $cov ]]; then
+    [[ ! -d $HOME/coverage ]] && mkdir $HOME/coverage
+    [[ -n $opt_modules ]] && COVERAGE_FILE="${opt_modules}_${opt_branch}"
+    if [[ -n $COVERAGE_FILE ]]; then
+      COVERAGE_FILE="$HOME/coverage/$COVERAGE_FILE"
+      COVERAGE_RCFILE="$HOME/coverage/${opt_modules}rc"
+      [[ -s $COVERAGE_RCFILE ]] || coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
+      [[ -n "$coverage_tmpl" ]] && cp $coverage_tmpl $COVERAGE_RCFILE
+      sed -E "s|^ *\*.py|    */$opt_modules/*|" -i $COVERAGE_RCFILE
+    fi
+  fi
+fi
 
 create_db=0
 drop_db=0
@@ -406,7 +421,13 @@ if [[ $opt_touch -eq 0 ]]; then
     if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
         OPTS="--debug $OPTS"
     fi
-    run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
+
+    if [[ -n $COVERAGE_RCFILE ]]; then
+      run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS"
+    else
+      run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
+    fi
+
     if [[ -n "$VDIR" ]]; then
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
         [ $opt_verbose -gt 0 ] && echo "$x $$ DAEMON ? $(basename $0): deactivate"
@@ -423,5 +444,8 @@ if [[ $opt_touch -eq 0 ]]; then
         echo "# Translation exported to '$src' file"
     elif [ $opt_imp -ne 0 ]; then
         echo "# Translation imported from '$src' file"
+    fi
+    if [[ -n $COVERAGE_RCFILE ]]; then
+      coverage report --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE -m
     fi
 fi

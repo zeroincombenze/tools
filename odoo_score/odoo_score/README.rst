@@ -150,6 +150,11 @@ Current development version
 History
 -------
 
+1.0.6 (2022-04-09)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: test with coverage
+
 1.0.5.2 (2022-03-25)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -192,17 +197,6 @@ History
 
 [FIX] odoo_score.py: set_struct_attr
 
-1.0.0.9 (2021-04-05)
-~~~~~~~~~~~~~~~~~~~~
-
-[FIX] run_odoo_debug: no zeroincombenze environment
-
-1.0.0.8 (2021-04-01)
-~~~~~~~~~~~~~~~~~~~~
-
-[IMP] run_odoo_debug: check for modules supplied
-
-
 
 
 |
@@ -227,7 +221,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-26
+Last Update / Ultimo aggiornamento: 2022-04-10
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

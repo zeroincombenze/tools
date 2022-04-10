@@ -610,7 +610,7 @@ def walk_dir(cdir, manifests, reqfiles):
 
 def main():
     parser = z0lib.parseoptargs("List Odoo requirements",
-                                "© 2017-2021 by SHS-AV s.r.l.",
+                                "© 2017-2022 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',

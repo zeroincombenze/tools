@@ -33,11 +33,11 @@ for d in $DIRS; do
     [[ -n $RDME ]] && FILES=$(find $d -type f -not -path "*/.git/*" -not -path "*/docs/*" -not -path "*/__build*" -not -path "*/__pycache__*" -not -path "*/.idea*" -not -path "*/i18n/*" -not -path "*/static/*" -not -name "*.pyc" -cnewer ./$RDME)
     [[ -n $FILES ]] && echo -e "Detected undocumented files of module \e[1m$(basename $d)\e[0m; type:\n\e[32mcd $d; please docs;\e[0m" && sts=1
 done
-if [[ -f .travis.yml && ! $PWD =~ $GIT_NO_CHECK ]]; then
-    echo -e "\ntravis result:"
-    travis summary
-    [[ $? -ne 0 ]] && sts=1 && echo -e "\n\e[31mRepository not validated by travis\e[0m\nPlease type:\n\e[32mtravis\e[0m\nor try to validate with follow command:\n\e[32mtravis -Lminimal\e[0m"
-fi
+#if [[ -f .travis.yml && ! $PWD =~ $GIT_NO_CHECK ]]; then
+#    echo -e "\ntravis result:"
+#    travis summary
+#    [[ $? -ne 0 ]] && sts=1 && echo -e "\n\e[31mRepository not validated by travis\e[0m\nPlease type:\n\e[32mtravis\e[0m\nor try to validate with follow command:\n\e[32mtravis -Lminimal\e[0m"
+#fi
 if [[ $sts -ne 0 ]]; then
     echo ""
     echo ""

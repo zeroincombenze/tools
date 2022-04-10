@@ -236,6 +236,8 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
                 '4209': '623100',
                 '4301': '630100',
             }.get(src_name, src_name)
+        else:
+            name = src_name
     elif name == '${tax}':
         if tgt_ver.split('.')[0].isdigit() and (src_ver.startswith('librerp') or
                                                     src_ver.startswith('powerp') or

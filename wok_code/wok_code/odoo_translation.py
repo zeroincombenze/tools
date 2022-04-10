@@ -16,11 +16,13 @@ import re
 import sys
 import csv
 from subprocess import PIPE, Popen
+
 # import xlrd
 from openpyxl import load_workbook
 from babel.messages import pofile
 from os0 import os0
 from python_plus import _c
+
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
@@ -56,7 +58,8 @@ PROTECT_TOKENS = [
     'Discard',
     'Display',
     'Dominica',
-    'done', 'Done',
+    'done',
+    'Done',
     'Export',
     'Kenya',
     'Journal',
@@ -64,7 +67,8 @@ PROTECT_TOKENS = [
     'Myanmar',
     'Name',
     'Niger',
-    'Partner', 'Partners',
+    'Partner',
+    'Partners',
     'Remove',
     'Report',
     'Run',
@@ -73,7 +77,8 @@ PROTECT_TOKENS = [
     'The rate of the currency to the currency of rate 1',
     'Uninstall',
     'Update',
-    'You can either upload a file from your computer or copy/paste an internet link to your file',
+    ('You can either upload a file from your computer or copy/paste an internet link '
+     'to your file'),
 ]
 msg_time = time.time()
 
@@ -81,7 +86,7 @@ msg_time = time.time()
 def msg_burst(text):
     global msg_time
     t = time.time() - msg_time
-    if (t > 3):
+    if t > 3:
         print('\t', text)
         msg_time = time.time()
 
@@ -90,8 +95,9 @@ def set_odoo_path(ctx, version):
     if ctx['pofile']:
         return os.path.abspath(
             os.path.join(
-                os.path.dirname(
-                    ctx['pofile'].replace(ctx['branch'], version)), '..'))
+                os.path.dirname(ctx['pofile'].replace(ctx['branch'], version)), '..'
+            )
+        )
     odoo_path = os.path.expanduser('~/%s' % version)
     if not os.path.exists(odoo_path):
         print('\tPaths of Odoo %s not found' % version)
@@ -112,10 +118,10 @@ def change_name(ctx, filename, version):
 def term_wo_punct(msgid, msgstr):
     if msgid and msgid[-1] in PUNCT:
         if msgstr and msgstr[-1] == msgid[-1]:
-            msgstr = msgstr[0: -1]
-        msgid = msgid[0: -1]
+            msgstr = msgstr[0:-1]
+        msgid = msgid[0:-1]
     elif msgstr and msgstr[-1] in PUNCT:
-        msgstr = msgstr[0: -1]
+        msgstr = msgstr[0:-1]
     if msgid and msgstr:
         caseid = 'U' if msgid[0].isupper() else 'l'
         casestr = 'U' if msgstr[0].isupper() else 'l'
@@ -136,7 +142,6 @@ def term_with_punct(msgid, msgstr, punct):
 
 
 def load_default_dictionary(ctx, source):
-
     def process_row(ctx, module_rows, row):
         if isinstance(module_rows, list) and row['module']:
             if row['module'] == ctx['module_name']:
@@ -145,18 +150,20 @@ def load_default_dictionary(ctx, source):
         if not row['msgid'] or not row['msgstr']:
             return 0
         msgid, TNL_DICT[msgid] = term_wo_punct(
-            os0.u(row['msgid']), os0.u(row['msgstr']))
+            os0.u(row['msgid']), os0.u(row['msgstr'])
+        )
         if not TNL_DICT[msgid]:
             TNL_ACTION[msgid] = 'P'
             return 0
-        elif (msgid == TNL_DICT[msgid] or (
-                msgid[0] != ' ' and msgid[0] != '\n' and
-                msgid[0] == TNL_DICT[msgid][0].lower() and
-                msgid[1:] == TNL_DICT[msgid][1:])):
+        elif msgid == TNL_DICT[msgid] or (
+            msgid[0] != ' '
+            and msgid[0] != '\n'
+            and msgid[0] == TNL_DICT[msgid][0].lower()
+            and msgid[1:] == TNL_DICT[msgid][1:]
+        ):
             TNL_ACTION[msgid] = '*'
             return 0
-        if ctx['action'] and ctx['action'][0].upper() in (
-                'D', 'P', '*'):
+        if ctx['action'] and ctx['action'][0].upper() in ('D', 'P', '*'):
             TNL_ACTION[msgid] = ctx['action'][0].upper()
         else:
             TNL_ACTION[msgid] = 'D'
@@ -166,16 +173,14 @@ def load_default_dictionary(ctx, source):
         ctr = 0
         if ctx['opt_verbose']:
             print("\tReading %s into dictionary" % source)
-        csv.register_dialect('dict',
-                             delimiter=_c('\t'),
-                             quotechar=_c('"'),
-                             quoting=csv.QUOTE_MINIMAL)
+        csv.register_dialect(
+            'dict', delimiter=_c('\t'), quotechar=_c('"'), quoting=csv.QUOTE_MINIMAL
+        )
         csv_fd = open(source, 'rU')
         hdr_read = False
-        csv_obj = csv.DictReader(csv_fd,
-                                 fieldnames=[],
-                                 restkey='undef_name',
-                                 dialect='dict')
+        csv_obj = csv.DictReader(
+            csv_fd, fieldnames=[], restkey='undef_name', dialect='dict'
+        )
         module_rows = []
         for row in csv_obj:
             if not hdr_read:
@@ -233,16 +238,14 @@ def load_default_dictionary(ctx, source):
 
 
 def save_untranslated(ctx, untnl):
-    csv.register_dialect('transodoo',
-                         delimiter=_c(','),
-                         quotechar=_c('\"'),
-                         quoting=csv.QUOTE_MINIMAL)
+    csv.register_dialect(
+        'transodoo', delimiter=_c(','), quotechar=_c('\"'), quoting=csv.QUOTE_MINIMAL
+    )
     dict_name = os.path.expanduser('~/odoo_default_tnl.csv')
     with open(dict_name, 'wb') as fd:
         writer = csv.DictWriter(
-            fd,
-            fieldnames=('module', 'msgid', 'msgstr'),
-            dialect='transodoo')
+            fd, fieldnames=('module', 'msgid', 'msgstr'), dialect='transodoo'
+        )
         writer.writeheader()
         if untnl is None:
             sorted_list = sorted(TNL_DICT.keys(), key=lambda x: x.lower())
@@ -257,9 +260,11 @@ def save_untranslated(ctx, untnl):
             }
             if untnl is None:
                 line['msgstr'] = os0.b(TNL_DICT[item])
-            if untnl is not None or (not item.startswith(' ') and
-                                     not item.startswith('\n') and
-                                     not item.startswith('===')):
+            if untnl is not None or (
+                not item.startswith(' ')
+                and not item.startswith('\n')
+                and not item.startswith('===')
+            ):
                 writer.writerow(line)
     if ctx['opt_verbose']:
         print("*** Untranslated dictionary saved at %s ***" % dict_name)
@@ -308,10 +313,8 @@ def load_dictionary_from_file(ctx, pofn, def_action=None):
                     dummy = TNL_ACTION[msgid2]
                 elif '*' in TNL_ACTION:
                     dummy = TNL_ACTION['*']
-                while dummy not in ('D', 'P', 'E', 'I') and \
-                        len(dummy) <= 3:
-                    dummy = input(
-                        '>>> (Dictionary,Po,End,Ignore,<Text>)? ')
+                while dummy not in ('D', 'P', 'E', 'I') and len(dummy) <= 3:
+                    dummy = input('>>> (Dictionary,Po,End,Ignore,<Text>)? ')
                 if dummy == 'E':
                     TNL_ACTION['*'] = dummy
                     return
@@ -364,8 +367,7 @@ def parse_pofile(ctx, source, untnl):
                 fdiff = True
             elif msgid and msgid2 not in TNL_DICT and msgid2 not in untnl:
                 if ctx['opt_verbose']:
-                    print('\tWarning: key <%s> not found in translation!'
-                          % msgid2)
+                    print('\tWarning: key <%s> not found in translation!' % msgid2)
                 # untnl.append(msgid2)
                 untnl[msgid2] = msgstr2
         if ctx['opt_verbose']:
@@ -380,15 +382,10 @@ def rewrite_pofile(ctx, pofn, target, version):
     tmpfile = '%s.tmp' % pofn
     bakfile = '%s.bak' % pofn
     pofile.write_po(open(tmpfile, 'w'), target)
-    cmd = ['makepo_it.py',
-           '-b%s' % version,
-           '-m%s' % ctx['module_name'],
-           tmpfile]
-    out, err = Popen(cmd,
-                     stdin=PIPE,
-                     stdout=PIPE,
-                     stderr=PIPE,
-                     shell=False).communicate()
+    cmd = ['makepo_it.py', '-b%s' % version, '-m%s' % ctx['module_name'], tmpfile]
+    out, err = Popen(
+        cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=False
+    ).communicate()
     fd = open(pofn, 'rB')
     lefts = os0.u(fd.read()).split('\n')
     fd.close()
@@ -416,22 +413,27 @@ def rewrite_pofile(ctx, pofn, target, version):
         os.rename(pofn, bakfile)
     os.rename(tmpfile, pofn)
 
+
 def get_module_pofile_name(ctx, version):
     odoo_path = set_odoo_path(ctx, version)
     if odoo_path:
         module_path = False
         for root, dirs, files in os.walk(odoo_path):
-            if (root.find('__to_remove') < 0 and
-                    os.path.basename(root) == ctx['module_name'] and
-                    (os.path.isfile(os.path.join(
-                        root, '__manifest__.py')) or
-                     os.path.isfile(os.path.join(
-                         root, '__openerp__.py')))):
+            if (
+                root.find('__to_remove') < 0
+                and os.path.basename(root) == ctx['module_name']
+                and (
+                    os.path.isfile(os.path.join(root, '__manifest__.py'))
+                    or os.path.isfile(os.path.join(root, '__openerp__.py'))
+                )
+            ):
                 module_path = root
                 break
         if not module_path:
-            print('*** Module %s not found for Odoo %s !!!' % (
-                ctx['module_name'], version))
+            print(
+                '*** Module %s not found for Odoo %s !!!'
+                % (ctx['module_name'], version)
+            )
             return False
         print('Found path %s' % module_path)
         pofn = os.path.join(module_path, 'i18n', 'it.po')
@@ -492,16 +494,19 @@ def set_header_pofile(ctx, pofile):
         elif line.startswith('"# *'):
             potext += r'"# %s\n"' % ctx['module_name'] + '\n'
         elif line.startswith('"Project-Id-Version:'):
-            potext += r'"Project-Id-Version: Odoo (%s)\n"' % ctx(
-                'branch', '') + '\n'
+            potext += r'"Project-Id-Version: Odoo (%s)\n"' % ctx('branch', '') + '\n'
         elif line.startswith('"Last-Translator:'):
-            potext += r'"Last-Translator: %s <%s>\n"' % (
-                'Antonio M. Vigliotti',
-                'antoniomaria.vigliotti@gmail.com') + '\n'
+            potext += (
+                r'"Last-Translator: %s <%s>\n"'
+                % ('Antonio M. Vigliotti', 'antoniomaria.vigliotti@gmail.com')
+                + '\n'
+            )
         elif line.startswith('"Language-Team:'):
-            potext += r'"Language-Team: %s (%s)\n"' % (
-                'Zeroincombenze',
-                'https://www.zeroincombenze.it/') + '\n'
+            potext += (
+                r'"Language-Team: %s (%s)\n"'
+                % ('Zeroincombenze', 'https://www.zeroincombenze.it/')
+                + '\n'
+            )
             potext += r'"Language: it_IT\n"' + '\n'
         elif line.startswith('"Language:'):
             pass
@@ -522,7 +527,7 @@ def parse_file(ctx):
         fdiff, target, untnl = parse_pofile(ctx, pofn, untnl)
         src = '/%s/' % version
         tgt = '/oca%s/' % version.split('.')[0]
-        oca_pofn = pofn.replace(src,tgt)
+        oca_pofn = pofn.replace(src, tgt)
         if not os.path.isfile(oca_pofn):
             oca_pofn = oca_pofn.replace('einvoice', 'fatturapa')
         if os.path.isfile(oca_pofn):
@@ -546,17 +551,13 @@ def connect_db(ctx):
         ctx['svc_protocol'] = ''
         db_found = False
         try:
-            uid, ctx = clodoo.oerp_set_env(ctx=ctx,
-                                           db=dbname,
-                                           oe_version=version)
+            uid, ctx = clodoo.oerp_set_env(ctx=ctx, db=dbname, oe_version=version)
             db_found = True
         except BaseException:
             dbname = '%s%s' % (ctx['db_prefix'], version.split('.')[0])
         if not db_found:
             try:
-                uid, ctx = clodoo.oerp_set_env(ctx=ctx,
-                                               db=dbname,
-                                               oe_version=version)
+                uid, ctx = clodoo.oerp_set_env(ctx=ctx, db=dbname, oe_version=version)
                 db_found = True
             except BaseException:
                 print("No DB %s found" % ctx['db_prefix'])
@@ -565,7 +566,6 @@ def connect_db(ctx):
 
 
 def upgrade_db(ctx):
-
     def write_tnl(ctx, model, ids, msgid, msgstr, ctr):
         if ids and len(ids) < MAX_RECS:
             for id in ids:
@@ -613,27 +613,41 @@ def upgrade_db(ctx):
                 msgstr = TNL_DICT[msgid2] + punct
                 if ctx['opt_verbose']:
                     msg_burst(msgid)
-                ids = clodoo.searchL8(ctx, model,
-                                      [('lang', '=', 'it_IT'),
-                                       ('type', '=', 'model'),
-                                       ('src', '=', msgid),
-                                       ('module', '=', ctx['module_name']),
-                                       ('value', '!=', msgstr)])
+                ids = clodoo.searchL8(
+                    ctx,
+                    model,
+                    [
+                        ('lang', '=', 'it_IT'),
+                        ('type', '=', 'model'),
+                        ('src', '=', msgid),
+                        ('module', '=', ctx['module_name']),
+                        ('value', '!=', msgstr),
+                    ],
+                )
                 ctr = write_tnl(ctx, model, ids, msgid, msgstr, ctr)
                 ids = clodoo.searchL8(
-                    ctx, model,
-                    [('lang', '=', 'it_IT'),
-                     ('name', 'in', ('ir.actions.act_window,name',
-                                     'ir.model,name',
-                                     'ir.module.category,name',
-                                     'ir.module.module,description'
-                                     'ir.module.module,shortdesc',
-                                     'ir.module.module,summary',
-                                     'ir.ui.menu,name',
-                                     'ir.ui.view,arch_db',
-                                     )),
-                     ('src', '=', msgid),
-                     ('value', '!=', msgstr)])
+                    ctx,
+                    model,
+                    [
+                        ('lang', '=', 'it_IT'),
+                        (
+                            'name',
+                            'in',
+                            (
+                                'ir.actions.act_window,name',
+                                'ir.model,name',
+                                'ir.module.category,name',
+                                'ir.module.module,description'
+                                'ir.module.module,shortdesc',
+                                'ir.module.module,summary',
+                                'ir.ui.menu,name',
+                                'ir.ui.view,arch_db',
+                            ),
+                        ),
+                        ('src', '=', msgid),
+                        ('value', '!=', msgstr),
+                    ],
+                )
                 ctr = write_tnl(ctx, model, ids, msgid, msgstr, ctr)
         if ctx['opt_verbose']:
             print("\t... %d record upgraded" % ctr)
@@ -650,61 +664,58 @@ def delete_translation(ctx):
         print("\tDelete translation from DB %s" % dbname)
     model = 'ir.translation'
     clodoo.unlinkL8(
-        ctx, model, clodoo.searchL8(
-            ctx, model, [('lang', '=', 'it_IT'),
-                         ('module', '=', ctx['module_name'])]))
+        ctx,
+        model,
+        clodoo.searchL8(
+            ctx, model, [('lang', '=', 'it_IT'), ('module', '=', ctx['module_name'])]
+        ),
+    )
     return 0
 
 
 if __name__ == "__main__":
-    parser = z0lib.parseoptargs("Translate Odoo Package",
-                                "© 2018-2020 by SHS-AV s.r.l.",
-                                version=__version__)
-    parser.add_argument("-A", "--action",
-                        help="Action: Dict,Po,*",
-                        dest="action",
-                        metavar="name")
-    parser.add_argument('-B', '--debug-template',
-                        action='store_true',
-                        dest='dbg_template')
-    parser.add_argument("-b", "--branch",
-                        help="Odoo branch",
-                        dest="branch",
-                        metavar="version")
-    parser.add_argument("-c", "--config",
-                        help="configuration file",
-                        dest="conf_fn",
-                        metavar="file",
-                        default='./clodoo.conf')
-    parser.add_argument('-D', '--delete-translation',
-                        action='store_true',
-                        dest='del_tnl')
-    parser.add_argument("-d", "--dbname",
-                        help="DB name",
-                        dest="db_prefix",
-                        metavar="dbname",
-                        default='')
+    parser = z0lib.parseoptargs(
+        "Translate Odoo Package", "© 2018-2020 by SHS-AV s.r.l.", version=__version__
+    )
+    parser.add_argument(
+        "-A", "--action", help="Action: Dict,Po,*", dest="action", metavar="name"
+    )
+    parser.add_argument(
+        '-B', '--debug-template', action='store_true', dest='dbg_template'
+    )
+    parser.add_argument(
+        "-b", "--branch", help="Odoo branch", dest="branch", metavar="version"
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="configuration file",
+        dest="conf_fn",
+        metavar="file",
+        default='./clodoo.conf',
+    )
+    parser.add_argument(
+        '-D', '--delete-translation', action='store_true', dest='del_tnl'
+    )
+    parser.add_argument(
+        "-d", "--dbname", help="DB name", dest="db_prefix", metavar="dbname", default=''
+    )
     parser.add_argument('-h')
-    parser.add_argument('-H', '--translate-html',
-                        action='store_true',
-                        dest='tnl_html')
-    parser.add_argument('-l', '--load-language',
-                        action='store_true',
-                        dest='load_language')
-    parser.add_argument('-m', '--module_name',
-                        action='store',
-                        help='filename',
-                        dest='module_name')
+    parser.add_argument('-H', '--translate-html', action='store_true', dest='tnl_html')
+    parser.add_argument(
+        '-l', '--load-language', action='store_true', dest='load_language'
+    )
+    parser.add_argument(
+        '-m', '--module_name', action='store', help='filename', dest='module_name'
+    )
     parser.add_argument('-n')
-    parser.add_argument('-p', '--pofile',
-                        action='store',
-                        help='pathname',
-                        dest='pofile')
+    parser.add_argument(
+        '-p', '--pofile', action='store', help='pathname', dest='pofile'
+    )
     parser.add_argument('-q')
-    parser.add_argument('-R', '--ref-pofile',
-                        action='store',
-                        help='pathname',
-                        dest='ref_pofile')
+    parser.add_argument(
+        '-R', '--ref-pofile', action='store', help='pathname', dest='ref_pofile'
+    )
     parser.add_argument('-V')
     parser.add_argument('-v')
     ctx = parser.parseoptargs(sys.argv[1:])

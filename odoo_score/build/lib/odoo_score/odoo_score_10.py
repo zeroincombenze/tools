@@ -6,6 +6,5 @@ from __future__ import print_function, unicode_literals
 
 
 class Orm(object):
-
     def __init__(self):
         pass

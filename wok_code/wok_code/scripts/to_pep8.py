@@ -63,6 +63,7 @@ import re
 import sys
 from datetime import datetime
 import tokenize
+
 # from ruamel.yaml import YAML
 import yaml
 from subprocess import PIPE, Popen
@@ -83,8 +84,7 @@ except ImportError:
 __version__ = "1.0.8.1"
 
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
-METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0',
-         '11.0', '12.0', '13.0', '14.0')
+METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
 AUTHORS_TEMPLATE = """
 * powERP <https://www.powerp.it>
 * SHS-AV s.r.l. <https://www.zeroincombenze.it>
@@ -96,12 +96,31 @@ CONTRIBUTORS_TEMPLATE = """
 * Fabio Giovannelli <fabio.giovannelli@didotech.com>
 """
 NO_APT_GET = [
-    'build-essential', 'curl', 'git', 'gradle', 'gzip', 'java',
-    'lessc', 'nodejs', 'npm', 'openssl', 'python-setuptools',
-    'python-simplejson', 'PhantomJS', 'rvm', 'ruby', 'sass', 'scss',
-    'tesseract', 'wget', 'wkhtmltopdf', 'zip']
+    'build-essential',
+    'curl',
+    'git',
+    'gradle',
+    'gzip',
+    'java',
+    'lessc',
+    'nodejs',
+    'npm',
+    'openssl',
+    'python-setuptools',
+    'python-simplejson',
+    'PhantomJS',
+    'rvm',
+    'ruby',
+    'sass',
+    'scss',
+    'tesseract',
+    'wget',
+    'wkhtmltopdf',
+    'zip',
+]
 
-class topep8():
+
+class topep8:
     # Source file is parsed in tokens.
     # Every token is a list of:
     #        (id, value, (start_row, start_col), (end_row, end_col)
@@ -123,20 +142,19 @@ class topep8():
         abs_row = 1
         abs_col = 0
         prior_line = ''
-        for (tokid, tokval, (sarow, sacol), (earow, eacol),
-                line) in tokenize.generate_tokens(self.readline):
+        for (
+            tokid,
+            tokval,
+            (sarow, sacol),
+            (earow, eacol),
+            line,
+        ) in tokenize.generate_tokens(self.readline):
             if prior_line != line:
                 if prior_line.endswith('\\\n'):
                     if prior_line[-3] == ' ':
-                        self.tokenized.append([tokenize.NL,
-                                               '\\',
-                                               (0, 1),
-                                               (0, 0)])
+                        self.tokenized.append([tokenize.NL, '\\', (0, 1), (0, 0)])
                     else:
-                        self.tokenized.append([tokenize.NL,
-                                               '\\',
-                                               (0, 0),
-                                               (0, 0)])
+                        self.tokenized.append([tokenize.NL, '\\', (0, 0), (0, 0)])
 
                 prior_line = line
 
@@ -155,19 +173,16 @@ class topep8():
             abs_row = earow
             abs_col = eacol
             tokid = self.wash_tokid(tokid, tokval)
-            self.tokenized.append([tokid, tokval,
-                                   (srow, scol),
-                                   (erow, ecol)])
+            self.tokenized.append([tokid, tokval, (srow, scol), (erow, ecol)])
         self.init_parse()
 
     def hard_format(self, src_filepy):
-
         def split_comment(line, loom):
             pos = line.rfind(' ', 0, 79)
             if pos >= 79 or (len(line) - pos) >= 79:
                 return line, ''
-            left = line[0: pos + 1].rstrip()
-            right = '%s# %s' % (' ' * (loom.end() - 1), line[pos + 1:])
+            left = line[0 : pos + 1].rstrip()
+            right = '%s# %s' % (' ' * (loom.end() - 1), line[pos + 1 :])
             return left, right
 
         def split_expr(line, loom):
@@ -177,7 +192,7 @@ class topep8():
                 y = y.end() + 4
             else:
                 y = 4
-            left = line[0: pos].rstrip()
+            left = line[0:pos].rstrip()
             right = '%s%s' % (' ' * y, line[pos:])
             return left, right
 
@@ -205,7 +220,10 @@ class topep8():
                             z = re.match(r'^.*?, ', line)
                             if z and (not rematch or z.end() < rematch.end()):
                                 rematch = z
-                        if rematch and (not rematch_quote or rematch.start() <= rematch_quote.start()):
+                        if rematch and (
+                            not rematch_quote
+                            or rematch.start() <= rematch_quote.start()
+                        ):
                             left, right = split_expr(line, rematch)
                     if right:
                         text_tgt += left
@@ -282,14 +300,14 @@ class topep8():
         if os.path.isfile('./egg-info/authors.txt'):
             with open('./egg-info/authors.txt', 'r') as fd:
                 for line in _u(fd.read()).split('\n'):
-                    copy_found, auth, website = self.extract_website_from_line(
-                        line)
+                    copy_found, auth, website = self.extract_website_from_line(line)
                     if auth and auth not in req_copyrights:
                         req_copyrights.append(auth)
         for org in req_copyrights:
             if org not in license_mgnt.COPY:
                 print(
-                    'Invalid copyright option! Values are %s' % license_mgnt.COPY.keys())
+                    'Invalid copyright option! Values are %s' % license_mgnt.COPY.keys()
+                )
                 return
             elif org == 'powerp':
                 info_fn = './egg-info/authors.txt'
@@ -298,8 +316,9 @@ class topep8():
                         authors = _u(fd.read())
                         do_rewrite = False
                         for line in AUTHORS_TEMPLATE.split('\n'):
-                            copy_found, auth, website = \
-                                self.extract_website_from_line(line)
+                            copy_found, auth, website = self.extract_website_from_line(
+                                line
+                            )
                             if not copy_found:
                                 continue
                             if website not in authors:
@@ -332,27 +351,29 @@ class topep8():
         lineno = 0
         empty_lines = 0
         rex = r'^# *([Cc]opyright|\([Cc]\)|©|http:|https:|\w+\@[a-zA-z0-9-.]+)'
-        while (lineno < len(self.lines) and
-               self.lines[lineno] and
-               self.lines[lineno].startswith('#')):
-            if self.lines[lineno] in ('#!/usr/bin/env python',
-                                      '# flake8: ',
-                                      '# pylint: ',
-                                      '# -*- coding: utf-8 -*-',
-                                      ):
+        while (
+            lineno < len(self.lines)
+            and self.lines[lineno]
+            and self.lines[lineno].startswith('#')
+        ):
+            if self.lines[lineno] in (
+                '#!/usr/bin/env python',
+                '# flake8: ',
+                '# pylint: ',
+                '# -*- coding: utf-8 -*-',
+            ):
                 lineno += 1
                 empty_lines = 0
                 continue
             elif self.lines[lineno] == '# -*- encoding: utf-8 -*-':
                 del self.lines[lineno]
                 continue
-            elif (re.match('^# *License .GPL', self.lines[lineno]) or
-                    re.match('^# .*This program is free software',
-                        self.lines[lineno]) or
-                    re.match('^# .*http://www.gnu.org/licenses',
-                        self.lines[lineno])):
-                if re.match('# License .GPL-3.0 or later ',
-                        self.lines[lineno]):
+            elif (
+                re.match('^# *License .GPL', self.lines[lineno])
+                or re.match('^# .*This program is free software', self.lines[lineno])
+                or re.match('^# .*http://www.gnu.org/licenses', self.lines[lineno])
+            ):
+                if re.match('# License .GPL-3.0 or later ', self.lines[lineno]):
                     if ctx['opt_gpl'] == 'gpl' and 'oca' in req_copyrights:
                         ctx['opt_gpl'] = self.lines[lineno][10:14].lower()
                 del self.lines[lineno]
@@ -371,10 +392,13 @@ class topep8():
                     for item in ('author', 'website', 'devman'):
                         if found:
                             break
-                        re_item = license_mgnt.COPY[key].get(item, '').replace(
-                            'https:', 'https?:').replace('.', '.?')
-                        if (not re_item or
-                                not re.search(re_item, self.lines[lineno])):
+                        re_item = (
+                            license_mgnt.COPY[key]
+                            .get(item, '')
+                            .replace('https:', 'https?:')
+                            .replace('.', '.?')
+                        )
+                        if not re_item or not re.search(re_item, self.lines[lineno]):
                             continue
 
                         found = True
@@ -382,19 +406,18 @@ class topep8():
                             copy_found.append(key)
                         years = ''
                         ipos = 1
-                        loom = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
-                                        self.lines[lineno][ipos:])
+                        loom = re.match(
+                            r'^ *([Cc]opyright|\([Cc]\)|©)', self.lines[lineno][ipos:]
+                        )
                         if loom:
                             ipos += loom.end() + 1
-                            loom = re.match('^ *[0-9]+',
-                                self.lines[lineno][ipos:])
+                            loom = re.match('^ *[0-9]+', self.lines[lineno][ipos:])
                             if loom:
                                 i = ipos + loom.end()
                                 years = self.lines[lineno][ipos:i]
                                 if self.lines[lineno][i] == '-':
                                     ipos = i + 1
-                                    loom = re.match('[0-9]+',
-                                        self.lines[lineno][ipos:])
+                                    loom = re.match('[0-9]+', self.lines[lineno][ipos:])
                                     if loom:
                                         i = loom.end()
                                         if i == 4:
@@ -402,41 +425,50 @@ class topep8():
                                             i = ipos + i - 2
                                         else:
                                             i += ipos
-                                        if self.lines[lineno][ipos:i] == str(
-                                                cur_year)[2:]:
+                                        if (
+                                            self.lines[lineno][ipos:i]
+                                            == str(cur_year)[2:]
+                                        ):
                                             years = '%s-%s' % (
                                                 years,
-                                                self.lines[lineno][ipos:i])
+                                                self.lines[lineno][ipos:i],
+                                            )
                                         else:
                                             years = '%s-%s' % (
                                                 years,
-                                                str(cur_year)[-2:])
+                                                str(cur_year)[-2:],
+                                            )
                                     elif years != str(cur_year):
-                                        years = '%s-%s' % (
-                                            years,
-                                            str(cur_year)[-2:])
+                                        years = '%s-%s' % (years, str(cur_year)[-2:])
                                 elif years != str(cur_year):
-                                    years = '%s-%s' % (
-                                        years,
-                                        str(cur_year)[-2:])
+                                    years = '%s-%s' % (years, str(cur_year)[-2:])
                         if years:
                             line = '# Copyright %s %s <%s>' % (
                                 years,
-                                license_mgnt.COPY[key]['author'], license_mgnt.COPY[key]['website']
+                                license_mgnt.COPY[key]['author'],
+                                license_mgnt.COPY[key]['website'],
                             )
                         else:
                             line = '# Copyright %s <%s>' % (
-                                license_mgnt.COPY[key]['author'], license_mgnt.COPY[key]['website']
+                                license_mgnt.COPY[key]['author'],
+                                license_mgnt.COPY[key]['website'],
                             )
                         self.lines[lineno] = line
                         break
                 if not found:
-                    line = self.lines[lineno].replace('#  ', '# ').replace(
-                        '-201', '-1').replace('(<', '<').replace('>)', '>')
+                    line = (
+                        self.lines[lineno]
+                        .replace('#  ', '# ')
+                        .replace('-201', '-1')
+                        .replace('(<', '<')
+                        .replace('>)', '>')
+                    )
                     loom = re.search(r'\([\w.-]+@[\w-]+\.[\w]+\)', line)
                     if loom:
                         line = '%s<%s>' % (
-                            line[0:loom.start()], line[loom.start() + 1:loom.end() - 1])
+                            line[0 : loom.start()],
+                            line[loom.start() + 1 : loom.end() - 1],
+                        )
                     self.lines[lineno] = line
             if self.lines[lineno] == '#':
                 if lineno and empty_lines == 0:
@@ -454,7 +486,7 @@ class topep8():
                 line = '# Copyright %s %s <%s>' % (
                     cur_year,
                     license_mgnt.COPY[org]['author'],
-                    license_mgnt.COPY[org]['website']
+                    license_mgnt.COPY[org]['website'],
                 )
                 self.lines.insert(lineno, line)
                 lineno += 1
@@ -468,7 +500,7 @@ class topep8():
             ctx['opt_gpl'] = 'agpl'
         elif ctx['opt_gpl'].lower() in ('opl', 'oee'):
             pass
-        elif ctx['opt_gpl'].lower() =='gpl':
+        elif ctx['opt_gpl'].lower() == 'gpl':
             if 'powerp' in req_copyrights:
                 ctx['opt_gpl'] = 'opl'
             else:
@@ -481,14 +513,16 @@ class topep8():
                 odoo_license_root,
                 ctx['to_ver'],
                 odoo_license_path,
-                '#odoo-enterprise-license')
+                '#odoo-enterprise-license',
+            )
         elif ctx['opt_gpl'].startswith('opl'):
             line = '# License %s-1 or later (%s/%s/%s%s).' % (
                 ctx['opt_gpl'].upper(),
                 odoo_license_root,
                 ctx['to_ver'],
                 odoo_license_path,
-                '#odoo-apps')
+                '#odoo-apps',
+            )
         else:
             line = '# License %s-3.0 or later (%s/%s).' % (
                 ctx['opt_gpl'].upper(),
@@ -512,7 +546,6 @@ class topep8():
         self.blk_header = True
         self.tokeno = 0
         self.last_newlines = 0
-
 
     def init_rules(self):
         """Configuration .2p8 file syntax initialization"""
@@ -541,33 +574,39 @@ class topep8():
         tokenize.NULL = tokenize.N_TOKENS + 27
         tokenize.tok_name[tokenize.NULL] = 'NULL'
         #
-        self.INDENTS = [tokenize.INDENT,  tokenize.DEDENT]
+        self.INDENTS = [tokenize.INDENT, tokenize.DEDENT]
         self.NEWLINES = [tokenize.NEWLINE, tokenize.NL]
-        self.GHOST_TOKENS = [tokenize.INDENT,  tokenize.DEDENT,
-                             tokenize.NOOP, tokenize.NL]
-        self.SYNTAX = ['space',
-                       'escape',
-                       'lparen',
-                       'rparen',
-                       'lbrace',
-                       'rbrace',
-                       'lbracket',
-                       'rbracket',
-                       'dot',
-                       'comma',
-                       'colon',
-                       'assign',
-                       'op',
-                       # TODO: string by tokenize
-                       'string',
-                       'strdoc1',
-                       'strdoc2',
-                       # 'string1',
-                       # 'string2',
-                       'remark_eol',
-                       # 'fullname',
-                       'int',
-                       'name']
+        self.GHOST_TOKENS = [
+            tokenize.INDENT,
+            tokenize.DEDENT,
+            tokenize.NOOP,
+            tokenize.NL,
+        ]
+        self.SYNTAX = [
+            'space',
+            'escape',
+            'lparen',
+            'rparen',
+            'lbrace',
+            'rbrace',
+            'lbracket',
+            'rbracket',
+            'dot',
+            'comma',
+            'colon',
+            'assign',
+            'op',
+            # TODO: string by tokenize
+            'string',
+            'strdoc1',
+            'strdoc2',
+            # 'string1',
+            # 'string2',
+            'remark_eol',
+            # 'fullname',
+            'int',
+            'name',
+        ]
         self.SYNTAX_RE = {
             'space': re.compile(r'\s+'),
             # 'space': re.compile(tokenize.Whitespace),
@@ -599,7 +638,7 @@ class topep8():
             # 'int': re.compile(r'[\d]+'),
             'int': re.compile(tokenize.Intnumber),
             # 'name': re.compile(r'[a-zA-Z_]\w*'),
-            'name': re.compile(tokenize.Name)
+            'name': re.compile(tokenize.Name),
         }
 
         self.SYNTAX_TNL_ID = {
@@ -656,12 +695,12 @@ class topep8():
             elif irx <= len(self.LEX_RULES[ir]['state']):
                 self.LEX_RULES[ir]['state'][irx] = 'active'
             else:
-                raise(IndexError, 'Invalid index %d for rule %s' % (irx, ir))
+                raise (IndexError, 'Invalid index %d for rule %s' % (irx, ir))
         else:
             if irx == 0:
                 self.LEX_RULES[ir]['state'] = 'active'
             else:
-                raise(IndexError, 'Invalid index %d for rule %s' % (irx, ir))
+                raise (IndexError, 'Invalid index %d for rule %s' % (irx, ir))
 
     def restart_state(self, ir, irx):
         """Restart rule state"""
@@ -739,8 +778,10 @@ class topep8():
 
     def is_waiting4expr(self, ir, irx):
         """Check for active rule"""
-        if self.LEX_RULES[ir]['state'] != 'wait4expr' or \
-                self.LEX_RULES[ir]['level'] != self.any_paren:
+        if (
+            self.LEX_RULES[ir]['state'] != 'wait4expr'
+            or self.LEX_RULES[ir]['level'] != self.any_paren
+        ):
             return False
         return True
 
@@ -782,7 +823,7 @@ class topep8():
         if ch in '"\'':
             i = text.find(ch)
             if i >= 0 and i < 3:
-                return text[i: -1]
+                return text[i:-1]
         return text
 
     def matches(self, ir, irx, tokid, tokval):
@@ -805,15 +846,16 @@ class topep8():
         if self.LEX_RULES[ir]['tokeno_start'] < 0:
             self.LEX_RULES[ir]['tokeno_start'] = self.tokeno - 1
         param_list_from, ids_from_list = self.get_params_from_rule(
-            ir, ctx['from_ver'], 'from')
+            ir, ctx['from_ver'], 'from'
+        )
         if tokid == tokenize.COMMENT:
             param_list_to, ids_from_list = self.get_params_from_rule(
-                ir, ctx['to_ver'], 'to')
+                ir, ctx['to_ver'], 'to'
+            )
             remark = tokval
-            for i,tok in enumerate(param_list_from):
+            for i, tok in enumerate(param_list_from):
                 if remark.find(tok) >= 0:
-                    remark = remark.replace(param_list_from[i],
-                                            param_list_to[i])
+                    remark = remark.replace(param_list_from[i], param_list_to[i])
             if remark != tokval:
                 self.LEX_RULES[ir]['matched_ids'] = [self.tokeno - 1]
                 self.LEX_RULES[ir]['token_id'] = 1
@@ -821,8 +863,9 @@ class topep8():
         i = self.cur_wf_tokid(ir)
         if i < len(param_list_from):
             if ids_from_list[i] == tokenize.START_CAPTURE:
-                while i < len(ids_from_list) and \
-                        ids_from_list[i] != tokenize.STOP_CAPTURE:
+                while (
+                    i < len(ids_from_list) and ids_from_list[i] != tokenize.STOP_CAPTURE
+                ):
                     i += 1
                 i += 1
                 self.LEX_RULES[ir]['token_id'] += i
@@ -839,16 +882,14 @@ class topep8():
     def do_action_replace(self, ctx, ir):
         if self.LEX_RULES[ir]['matched_ids']:
             param_list_to, ids_from_list = self.get_params_from_rule(
-                ir, ctx['to_ver'], 'to')
+                ir, ctx['to_ver'], 'to'
+            )
             offset = 0
-            for i,tokeno in enumerate(self.LEX_RULES[ir]['matched_ids']):
-                if (i < len(param_list_to) and
-                        ids_from_list[i] != tokenize.NULL):
-                    self.update_source_token(tokeno,
-                                             ids_from_list[i],
-                                             param_list_to[i],
-                                             ir=ir,
-                                             ctx=ctx)
+            for i, tokeno in enumerate(self.LEX_RULES[ir]['matched_ids']):
+                if i < len(param_list_to) and ids_from_list[i] != tokenize.NULL:
+                    self.update_source_token(
+                        tokeno, ids_from_list[i], param_list_to[i], ir=ir, ctx=ctx
+                    )
                 else:
                     tokeno -= offset
                     offset += 1
@@ -859,28 +900,23 @@ class topep8():
             tokeno = self.LEX_RULES[ir]['matched_ids'][-1] + 1
             while i < len(param_list_to):
                 start = [0, 1]
-                if ((tokeno > 0 and
-                        self.tokenized[tokeno - 1][1] == '.') or
-                        param_list_to[i] == '.'):
+                if (
+                    tokeno > 0 and self.tokenized[tokeno - 1][1] == '.'
+                ) or param_list_to[i] == '.':
                     start = [0, 0]
-                self.insert_source_token(tokeno,
-                                         ids_from_list[i],
-                                         param_list_to[i],
-                                         start=start)
+                self.insert_source_token(
+                    tokeno, ids_from_list[i], param_list_to[i], start=start
+                )
                 i += 1
                 tokeno += 1
 
     def do_action_fields_to_8(self, ctx, ir):
         tokeno = self.LEX_RULES[ir]['tokeno_start']
-        self.update_source_token(tokeno,
-                                 tokenize.NAME,
-                                 self.tokenized[tokeno][1][1:-1],
-                                 start=[0,-4])
+        self.update_source_token(
+            tokeno, tokenize.NAME, self.tokenized[tokeno][1][1:-1], start=[0, -4]
+        )
         tokeno += 1
-        self.update_source_token(tokeno,
-                                 tokenize.EQUAL,
-                                 '=',
-                                 start=[0, 1])
+        self.update_source_token(tokeno, tokenize.EQUAL, '=', start=[0, 1])
         if self.tokenized[self.tokeno][1] == ',':
             self.delete_source_token(self.tokeno)
 
@@ -890,51 +926,34 @@ class topep8():
             self.LEX_RULES[ir]['tokeno_indent'] = tokeno - 1
         if ctx['parse_state'] == 'regular':
             ctx['parse_state'] = 'fields_to_7'
-            self.insert_source_token(tokeno,
-                                     tokenize.NAME,
-                                     '_columns')
+            self.insert_source_token(tokeno, tokenize.NAME, '_columns')
             tokeno += 1
-            self.insert_source_token(tokeno,
-                                     tokenize.EQUAL,
-                                     '=',
-                                     start=[0,1])
+            self.insert_source_token(tokeno, tokenize.EQUAL, '=', start=[0, 1])
             tokeno += 1
-            self.insert_source_token(tokeno,
-                                     tokenize.LBRACE,
-                                     '{',
-                                     start=[0,1])
+            self.insert_source_token(tokeno, tokenize.LBRACE, '{', start=[0, 1])
             tokeno += 1
-            self.insert_source_token(tokeno,
-                                     tokenize.NEWLINE,
-                                     '\n')
+            self.insert_source_token(tokeno, tokenize.NEWLINE, '\n')
         if self.LEX_RULES[ir]['tokeno_indent'] >= 0:
             indent = self.tokenized[self.LEX_RULES[ir]['tokeno_indent']]
             tokeno += 1
-            self.insert_source_token(tokeno,
-                                     indent[0],
-                                     indent[1] + '    ',
-                                     start=indent[2])
+            self.insert_source_token(
+                tokeno, indent[0], indent[1] + '    ', start=indent[2]
+            )
             tokeno += 1
             start = [0, 0]
         else:
             start = [0, 4]
-        self.update_source_token(tokeno,
-                                 tokenize.STRING,
-                                 "'%s'" % self.tokenized[tokeno][1],
-                                 start=start)
+        self.update_source_token(
+            tokeno, tokenize.STRING, "'%s'" % self.tokenized[tokeno][1], start=start
+        )
         tokeno += 1
-        self.update_source_token(tokeno,
-                                 tokenize.COLON,
-                                 ':',
-                                 start=[0,-1])
+        self.update_source_token(tokeno, tokenize.COLON, ':', start=[0, -1])
         tokeno += 3
-        self.update_source_token(tokeno,
-                                 tokenize.NAME,
-                                 self.tokenized[tokeno][1].lower())
+        self.update_source_token(
+            tokeno, tokenize.NAME, self.tokenized[tokeno][1].lower()
+        )
         tokeno = self.tokeno
-        self.insert_source_token(tokeno,
-                                 tokenize.COMMA,
-                                 ',')
+        self.insert_source_token(tokeno, tokenize.COMMA, ',')
 
     def do_action_init_fields_to_8(self, ctx, ir):
         ctx['parse_state'] = 'fields_to_8'
@@ -959,14 +978,9 @@ class topep8():
     def reset_action(self, ctx):
         if ctx['parse_state'] == 'fields_to_7':
             tokeno = self.tokeno
-            self.insert_source_token(tokeno,
-                                     tokenize.NEWLINE,
-                                     '\n')
+            self.insert_source_token(tokeno, tokenize.NEWLINE, '\n')
             tokeno += 1
-            self.insert_source_token(tokeno,
-                                     tokenize.RBRACE,
-                                     '}',
-                                     start=[1,4])
+            self.insert_source_token(tokeno, tokenize.RBRACE, '}', start=[1, 4])
             ctx['parse_state'] = 'regular'
 
     def get_key_n_id_from_rule(self, ir):
@@ -1001,7 +1015,7 @@ class topep8():
         else:
             i = state['ipos']
         state['ipos'] = len(value)
-        tokval = value[i:state['ipos']].strip()
+        tokval = value[i : state['ipos']].strip()
         return state, tokval
 
     def parse_doc_rule(self, value, state, loom):
@@ -1041,10 +1055,10 @@ class topep8():
         @return: min_max, token_id, token, next_ipos
         """
         i = state['ipos']
-        loom = self.SYNTAX_RE['name'].match(value[i + 1:])
+        loom = self.SYNTAX_RE['name'].match(value[i + 1 :])
         if loom:
             state['ipos'] += loom.end() + 1
-            loom = value[i + 1: i + 1 + loom.end()]
+            loom = value[i + 1 : i + 1 + loom.end()]
         else:
             state['ipos'] += 2
             loom = value[i + 1]
@@ -1071,16 +1085,16 @@ class topep8():
         i = state['ipos']
         loom = True
         while loom:
-            loom = self.SYNTAX_RE[endtok].match(value[state['ipos']:])
+            loom = self.SYNTAX_RE[endtok].match(value[state['ipos'] :])
             if loom:
                 state['ipos'] += loom.end()
-                if value[state['ipos']:state['ipos'] + 1] == self.SYNTAX_RE[esctok]:
+                if value[state['ipos'] : state['ipos'] + 1] == self.SYNTAX_RE[esctok]:
                     state['ipos'] += 1
                 else:
                     loom = None
             else:
                 state['ipos'] = len(value)
-        tokval = value[i:state['ipos']]
+        tokval = value[i : state['ipos']]
         tokid = tokenize.STRING
         return state, tokid, tokval, [1, 1]
 
@@ -1108,15 +1122,15 @@ class topep8():
     def parse_token_text(self, text, state):
         """Parse 1 token from source text"""
         for istkn in self.SYNTAX:
-            loom = self.SYNTAX_RE[istkn].match(text[state['ipos']:])
+            loom = self.SYNTAX_RE[istkn].match(text[state['ipos'] :])
             if not loom:
                 continue
             unknown = False
             tokid = False
             tokval = ''
-            min_max_list = [1,1]
+            min_max_list = [1, 1]
             i = state['ipos']
-            if istkn in ('space', ):
+            if istkn in ('space',):
                 state['ipos'] += loom.end()
                 if not state['indent'] or i > 0:
                     continue
@@ -1127,25 +1141,23 @@ class topep8():
                 action = 'parse_%s_rule' % istkn
                 if hasattr(self, action):
                     action = getattr(self, action)
-                    state, tokid, tokval, min_max = action(
-                        text, state, loom)
+                    state, tokid, tokval, min_max = action(text, state, loom)
                     # Token is one of prior repetition: $? $* $+
                     if tokid == -1:
                         min_max_list[-1] = min_max
                         continue
                 else:
                     tokid, tokval, state['ipos'] = self.parse_generic_rule(
-                        text, state['ipos'], loom,
-                        self.SYNTAX_TNL_ID[istkn])
+                        text, state['ipos'], loom, self.SYNTAX_TNL_ID[istkn]
+                    )
             break
         if unknown:
-            print("Unknown token %s" % text[state['ipos']:])
+            print("Unknown token %s" % text[state['ipos'] :])
             state['ipos'] += 1
         return state, tokid, tokval, min_max_list
 
     def compile_1_rule(self, rule):
-        """Compile current rule for version <meta> parsing <value>
-        """
+        """Compile current rule for version <meta> parsing <value>"""
         # bunch_keywords = []
         # bunch_keyids = []
         # bunch_min_max = []
@@ -1157,9 +1169,7 @@ class topep8():
         replacem_ids = {}
         state = self.init_state(enhanced=True, indent=False)
         while state['ipos'] < len(rule['regex']):
-            state, tokid, tokval, min_max = self.parse_token_text(
-                rule['regex'],
-                state)
+            state, tokid, tokval, min_max = self.parse_token_text(rule['regex'], state)
             keywords.append(tokval)
             keyids.append(tokid)
             min_max_list.append(min_max)
@@ -1170,13 +1180,13 @@ class topep8():
                 state = self.init_state(enhanced=False, indent=False)
                 while state['ipos'] < len(rule['meta'][meta]):
                     if keyids[0] == tokenize.COMMENT:
-                        state, tokid, tokval, min_max = \
-                            self.parse_remark_eol_rule(rule['meta'][meta],
-                                                       state,
-                                                       False)
+                        state, tokid, tokval, min_max = self.parse_remark_eol_rule(
+                            rule['meta'][meta], state, False
+                        )
                     else:
-                        state, tokid, tokval, min_max = \
-                            self.parse_token_text(rule['meta'][meta], state)
+                        state, tokid, tokval, min_max = self.parse_token_text(
+                            rule['meta'][meta], state
+                        )
                     replacements[meta].append(tokval)
                     replacem_ids[meta].append(tokid)
         ir = rule['id']
@@ -1188,7 +1198,7 @@ class topep8():
         self.LEX_RULES[ir]['min_max_list'] = min_max_list
         self.LEX_RULES[ir]['meta'] = replacements
         self.LEX_RULES[ir]['meta_ids'] = replacem_ids
-        self. init_rule_state(ir, irx)
+        self.init_rule_state(ir, irx)
 
     def extr_tokens_from_line(self, text_rule, cur_rule, parsed, cont_break):
         """Extract from line rule elements"""
@@ -1197,52 +1207,49 @@ class topep8():
         if not text_rule:
             pass
         if text_rule[-1] == '\n':
-            text_rule = text_rule[0: -1]
+            text_rule = text_rule[0:-1]
         if not text_rule:
             pass
         if text_rule[0] != '#' and text_rule[-1] == '\\':
-            text_rule = text_rule[0: -1]
+            text_rule = text_rule[0:-1]
             next_cont = True
         if cont_break:
             cur_rule['regex'] += text_rule.rstrip()
             cont_break = next_cont
         elif text_rule[0] != '#':
             state = self.init_state(enhanced=False, indent=True)
-            state, tokid, tokval, min_max = self.parse_token_text(text_rule,
-                                                                  state)
+            state, tokid, tokval, min_max = self.parse_token_text(text_rule, state)
             if tokid == tokenize.NAME:
                 id = tokval
                 if cur_rule['id'] and cur_rule['id'] != id:
                     parsed = True
                 else:
                     cur_rule['id'] = id
-            elif tokid == tokenize.INDENT and \
-                    cur_rule['id'] and \
-                    not cur_rule['regex']:
-                cur_rule['regex'] = text_rule[
-                    state['ipos']:].strip()
+            elif tokid == tokenize.INDENT and cur_rule['id'] and not cur_rule['regex']:
+                cur_rule['regex'] = text_rule[state['ipos'] :].strip()
                 state['ipos'] = len(text_rule)
             if not parsed:
                 meta = ''
                 item = ''
                 while state['ipos'] < len(text_rule):
                     state, tokid, tokval, min_max = self.parse_token_text(
-                        text_rule, state)
+                        text_rule, state
+                    )
                     if tokid == tokenize.COLON:
                         if not cur_rule['regex']:
-                            cur_rule['regex'] = text_rule[
-                                state['ipos'] + 1:].strip()
+                            cur_rule['regex'] = text_rule[state['ipos'] + 1 :].strip()
                         elif meta:
                             cur_rule['meta'][meta] = text_rule[
-                                state['ipos'] + 1:].strip()
+                                state['ipos'] + 1 :
+                            ].strip()
                         elif item in ('actions', 'parse_state'):
-                            cur_rule[item] = text_rule[
-                                state['ipos'] + 1:].strip().split(',')
+                            cur_rule[item] = (
+                                text_rule[state['ipos'] + 1 :].strip().split(',')
+                            )
                         state['ipos'] = len(text_rule)
                     elif tokid == tokenize.LBRACE and tokval == '[' and not meta:
-                        i = text_rule[state['ipos']:].find(']')
-                        meta = text_rule[
-                            state['ipos']: state['ipos'] + i].strip()
+                        i = text_rule[state['ipos'] :].find(']')
+                        meta = text_rule[state['ipos'] : state['ipos'] + i].strip()
                         state['ipos'] += i + 1
                     elif tokid == tokenize.NAME:
                         item = tokval
@@ -1253,18 +1260,19 @@ class topep8():
 
     def read_rules_from_file(self, ctx, rule_file):
         def clear_cur_rule():
-            return {'id': '',
-                    'meta': {},
-                    'meta_ids': {},
-                    'regex': '',
-                    'actions': ['replace'],
-                    'parse_state': ['regular'],
+            return {
+                'id': '',
+                'meta': {},
+                'meta_ids': {},
+                'regex': '',
+                'actions': ['replace'],
+                'parse_state': ['regular'],
             }
+
         try:
             fd = open(rule_file, 'rU')
         except IOError:
-            f = os.path.join(os.path.dirname(sys.argv[0]),
-                             os.path.basename(rule_file))
+            f = os.path.join(os.path.dirname(sys.argv[0]), os.path.basename(rule_file))
             try:
                 fd = open(f, 'rU')
                 rule_file = f
@@ -1274,12 +1282,14 @@ class topep8():
         cont_break = False
         for text_rule in fd:
             cur_rule, parsed, cont_break = self.extr_tokens_from_line(
-                text_rule, cur_rule, False, cont_break)
+                text_rule, cur_rule, False, cont_break
+            )
             while parsed:
                 self.compile_1_rule(cur_rule)
                 cur_rule = clear_cur_rule()
                 cur_rule, parsed, cont_break = self.extr_tokens_from_line(
-                    text_rule, cur_rule, parsed, cont_break)
+                    text_rule, cur_rule, parsed, cont_break
+                )
         if 'id' in cur_rule:
             self.compile_1_rule(cur_rule)
         fd.close()
@@ -1295,8 +1305,7 @@ class topep8():
         odoo_majver = int(ctx['to_ver'].split('.')[0])
         self.LEX_RULES = {}
         self.read_rules_from_file(ctx, self.set_rulefn(sys.argv[0]))
-        if ctx['conf_fn'] not in (
-                'MINIMAL', 'REDUCED', 'AVERAGE', 'NEARBY', 'OCA'):
+        if ctx['conf_fn'] not in ('MINIMAL', 'REDUCED', 'AVERAGE', 'NEARBY', 'OCA'):
             self.read_rules_from_file(ctx, self.set_rulefn(ctx['conf_fn']))
         self.read_rules_from_file(ctx, self.set_rulefn(ctx['src_filepy']))
         rules_to_rm = []
@@ -1307,14 +1316,19 @@ class topep8():
             elif ir.endswith('to_7') and odoo_majver > 7:
                 rules_to_rm.append(ir)
                 continue
-            if (ir.endswith('_78') or ir.endswith('to_8')) and \
-                    ctx['opt_ut7'] and ctx['to_ver'] == '8.0':
+            if (
+                (ir.endswith('_78') or ir.endswith('to_8'))
+                and ctx['opt_ut7']
+                and ctx['to_ver'] == '8.0'
+            ):
                 if '8.0' in self.LEX_RULES[ir]['meta']:
                     if '9.0' not in self.LEX_RULES[ir]['meta']:
-                        self.LEX_RULES[ir]['meta']['9.0'] = self.LEX_RULES[
-                            ir]['meta']['8.0']
-                        self.LEX_RULES[ir]['meta_ids']['9.0'] = self.LEX_RULES[
-                            ir]['meta_ids']['8.0']
+                        self.LEX_RULES[ir]['meta']['9.0'] = self.LEX_RULES[ir]['meta'][
+                            '8.0'
+                        ]
+                        self.LEX_RULES[ir]['meta_ids']['9.0'] = self.LEX_RULES[ir][
+                            'meta_ids'
+                        ]['8.0']
                     del self.LEX_RULES[ir]['meta']['8.0']
                     del self.LEX_RULES[ir]['meta_ids']['8.0']
             if tokenize.TOKENS in self.LEX_RULES[ir]['keyids']:
@@ -1335,7 +1349,9 @@ class topep8():
                         start_capture = i
                         offset -= 1
                         continue
-                    elif self.LEX_RULES[ir]['meta_ids'][ver][i] == tokenize.STOP_CAPTURE:
+                    elif (
+                        self.LEX_RULES[ir]['meta_ids'][ver][i] == tokenize.STOP_CAPTURE
+                    ):
                         stop_capture = i
                         offset -= 1
                         continue
@@ -1344,11 +1360,11 @@ class topep8():
                     if i <= start_capture:
                         continue
                     self.LEX_RULES[ir]['keywords'].insert(
-                        ix + i + offset,
-                        self.LEX_RULES[ir]['meta'][ver][i])
+                        ix + i + offset, self.LEX_RULES[ir]['meta'][ver][i]
+                    )
                     self.LEX_RULES[ir]['keyids'].insert(
-                        ix + i + offset,
-                        self.LEX_RULES[ir]['meta_ids'][ver][i])
+                        ix + i + offset, self.LEX_RULES[ir]['meta_ids'][ver][i]
+                    )
         for ir in rules_to_rm:
             del self.LEX_RULES[ir]
 
@@ -1356,9 +1372,13 @@ class topep8():
         for ir1 in self.LEX_RULES.keys():
             if ir1 == ir:
                 continue
-            for irx1 in [0, ]:
-                if (self.cur_tokid(ir1, irx1) == tokenize.PARENT_RULE and
-                        self.cur_tokval(ir1, irx1) == ir):
+            for irx1 in [
+                0,
+            ]:
+                if (
+                    self.cur_tokid(ir1, irx1) == tokenize.PARENT_RULE
+                    and self.cur_tokval(ir1, irx1) == ir
+                ):
                     self.set_active(ir1, irx1)
 
     def wash_tokid(self, tokid, tokval):
@@ -1381,8 +1401,7 @@ class topep8():
             self.bracket_ctrs += 1
         elif tokid == tokenize.RBRACE and tokval == '}':
             self.bracket_ctrs -= 1
-        self.any_paren = self.paren_ctrs + self.brace_ctrs + \
-            self.bracket_ctrs
+        self.any_paren = self.paren_ctrs + self.brace_ctrs + self.bracket_ctrs
         if self.any_paren:
             if tokid in self.INDENTS:
                 tokid = tokenize.NOOP
@@ -1419,28 +1438,19 @@ class topep8():
             self.set_waiting4parent(ir, irx)
             return False
         # replace string inside remark
-        elif self.cur_tokid(ir, irx) == tokenize.COMMENT and \
-                tokid == tokenize.COMMENT:
-            self.store_value_to_replace(ctx,
-                                        ir,
-                                        irx,
-                                        tokid,
-                                        tokval)
+        elif self.cur_tokid(ir, irx) == tokenize.COMMENT and tokid == tokenize.COMMENT:
+            self.store_value_to_replace(ctx, ir, irx, tokid, tokval)
             self.set_next_state(ir, irx)
             do_match = False
             do_restart = False
         # found the <any> token rule
         elif self.cur_tokid(ir, irx) == tokenize.ANY:
-            self.store_value_to_replace(ctx,
-                                        ir,
-                                        irx,
-                                        tokid,
-                                        tokval)
+            self.store_value_to_replace(ctx, ir, irx, tokid, tokval)
             self.set_next_state(ir, irx)
             do_match = False
             do_restart = False
         # found <zero, one or more> tokens rule
-        elif self.cur_tokid(ir,irx) == tokenize.MORE:
+        elif self.cur_tokid(ir, irx) == tokenize.MORE:
             self.set_waiting4more(ir, irx)
             do_restart = False
         # found expression rule
@@ -1455,27 +1465,15 @@ class topep8():
             elif self.is_waiting4expr(ir, irx):
                 self.set_active(ir, irx)
             else:
-                self.store_value_to_replace(ctx,
-                                            ir,
-                                            irx,
-                                            tokid,
-                                            tokval)
+                self.store_value_to_replace(ctx, ir, irx, tokid, tokval)
             self.set_next_state(ir, irx)
         # rule is waiting for <zero, one or more> tokens
         elif self.is_waiting4more(ir, irx):
-            self.store_value_to_replace(ctx,
-                                        ir,
-                                        irx,
-                                        tokid,
-                                        tokval)
+            self.store_value_to_replace(ctx, ir, irx, tokid, tokval)
             return False
         # rule is waiting expression
         elif self.is_waiting4expr(ir, irx):
-            self.store_value_to_replace(ctx,
-                                        ir,
-                                        irx,
-                                        tokid,
-                                        tokval)
+            self.store_value_to_replace(ctx, ir, irx, tokid, tokval)
             return False
         elif do_restart:
             self.restart_state(ir, irx)
@@ -1511,9 +1509,9 @@ class topep8():
                 self.do_action(ctx, ir)
                 self.restart_state(ir, irx)
         self.unget_token()
-        while self.tokenized[self.tokeno][0] in self.GHOST_TOKENS or \
-                self.tokenized[self.tokeno][0] in (tokenize.NEWLINE,
-                                                   tokenize.ENDMARKER):
+        while self.tokenized[self.tokeno][0] in self.GHOST_TOKENS or self.tokenized[
+            self.tokeno
+        ][0] in (tokenize.NEWLINE, tokenize.ENDMARKER):
             self.unget_token()
         self.next_token()
         self.reset_action(ctx)
@@ -1525,10 +1523,9 @@ class topep8():
     def next_token(self):
         if self.tokeno < len(self.tokenized):
             tokenized = self.tokenized[self.tokeno]
-            tokid, tokval = self.wash_token(tokenized[0],
-                                            tokenized[1],
-                                            tokenized[2],
-                                            tokenized[3])
+            tokid, tokval = self.wash_token(
+                tokenized[0], tokenized[1], tokenized[2], tokenized[3]
+            )
             self.tokeno += 1
             return tokid, tokval, tokenized[2], tokenized[3]
         return False, False, (0, 0), (0, 0)
@@ -1565,21 +1562,21 @@ class topep8():
             line = ''
         return line
 
-    def update_source_token(self, tokeno, tokid, tokval,
-                            ir=None, ctx=None, start=None):
-        start = start or [0,0]
+    def update_source_token(self, tokeno, tokid, tokval, ir=None, ctx=None, start=None):
+        start = start or [0, 0]
         if tokid == tokenize.COMMENT:
             ir = ir or ''
             ctx = ctx or {}
             param_list_from, ids_from_list = self.get_params_from_rule(
-                    ir, ctx['from_ver'], 'from')
+                ir, ctx['from_ver'], 'from'
+            )
             param_list_to, ids_from_list = self.get_params_from_rule(
-                    ir, ctx['to_ver'], 'to')
+                ir, ctx['to_ver'], 'to'
+            )
             remark = self.tokenized[tokeno][1]
-            for i,tok in enumerate(param_list_from):
+            for i, tok in enumerate(param_list_from):
                 if remark.find(tok) >= 0:
-                    remark = remark.replace(param_list_from[i],
-                                            param_list_to[i])
+                    remark = remark.replace(param_list_from[i], param_list_to[i])
             self.tokenized[tokeno][1] = remark
         else:
             self.tokenized[tokeno][1] = tokval
@@ -1594,8 +1591,8 @@ class topep8():
         self.tokenized[tokeno][2] = start
 
     def insert_source_token(self, tokeno, tokid, tokval, start=None):
-        start = start or [0,0]
-        self.tokenized.insert(tokeno, [tokid, tokval, start, [0,0]])
+        start = start or [0, 0]
+        self.tokenized.insert(tokeno, [tokid, tokval, start, [0, 0]])
         if tokeno <= self.tokeno:
             self.tokeno += 1
 
@@ -1612,16 +1609,13 @@ class topep8():
         while tokid:
             tokid, tokval, (srow, scol), (erow, ecol) = self.next_token()
             if tokid:
-                text_tgt += self.untoken(tokid,
-                                         tokval,
-                                         (srow, scol),
-                                         (erow, ecol))
-                while (text_tgt.endswith(' \n')):
-                    text_tgt = text_tgt[0: -2] + '\n'
-        while (text_tgt.endswith('\n\n')):
-            text_tgt = text_tgt[0: -1]
+                text_tgt += self.untoken(tokid, tokval, (srow, scol), (erow, ecol))
+                while text_tgt.endswith(' \n'):
+                    text_tgt = text_tgt[0:-2] + '\n'
+        while text_tgt.endswith('\n\n'):
+            text_tgt = text_tgt[0:-1]
         if ctx['no_nl_eof'] and text_tgt.endswith('\n\n'):
-            text_tgt = text_tgt[0: -1]
+            text_tgt = text_tgt[0:-1]
         return text_tgt
 
 
@@ -1650,12 +1644,18 @@ def parse_yaml(ctx, src_file, dst_file):
     # yaml = YAML()
     # yaml.indent(mapping=2, sequence=2, offset=2)
     with open(src_file, 'rb') as fd:
-        cmd = ['list_requirements.py', '-b', ctx['to_ver'],
-               '-t', 'bin', '-PRT', '-s', ',', '-q']
-        out, err = Popen(cmd,
-            stdin=PIPE,
-            stdout=PIPE,
-            stderr=PIPE).communicate()
+        cmd = [
+            'list_requirements.py',
+            '-b',
+            ctx['to_ver'],
+            '-t',
+            'bin',
+            '-PRT',
+            '-s',
+            ',',
+            '-q',
+        ]
+        out, err = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
         pkgs = []
         for pkg in out.split(','):
             pkg = pkg.replace('\n', '')
@@ -1684,27 +1684,26 @@ def parse_yaml(ctx, src_file, dst_file):
         yaml_data['before_install'] = [
             'git clone https://github.com/zeroincombenze/tools.git '
             '${HOME}/tools --single-branch --depth=1',
-            'export '
-            'PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}',
-            'export PYTHONPATH=${HOME}/tools'
+            'export ' 'PATH=${HOME}/tools/maintainer-quality-tools/travis:${PATH}',
+            'export PYTHONPATH=${HOME}/tools',
         ]
         yaml_data['install'] = [
             'travis_install_env',
             'export EXCLUDE=hw_scanner,hw_escpos,document_ftp,delivery,'
-            'stock_invoice_directly,claim_from_delivery'
+            'stock_invoice_directly,claim_from_delivery',
         ]
         yaml_data['env'] = {
             'global': [
                 'TRAVIS_DEBUG_MODE="2"',
                 'WKHTMLTOPDF_VERSION="0.12.4"',
-                'VERSION="10.0" TESTS="0" LINT_CHECK="0" ODOO_TNLBOT="0"'
+                'VERSION="10.0" TESTS="0" LINT_CHECK="0" ODOO_TNLBOT="0"',
             ],
             'matrix': [
                 'LINT_CHECK="1" LINT_CHECK_LEVEL="MINIMAL"',
                 'TESTS="1" ODOO_TEST_SELECT="NO-CORE" ODOO_REPO="odoo/odoo"',
                 'TESTS="1" ODOO_TEST_SELECT="NO-CORE" ODOO_REPO="OCA/OCB"',
-                'TESTS="1" ODOO_REPO="zeroincombenze/OCB"'
-            ]
+                'TESTS="1" ODOO_REPO="zeroincombenze/OCB"',
+            ],
         }
         yaml_data['script'] = ['travis_run_tests']
         yaml_data['after_success'] = ['travis_after_tests_success']
@@ -1761,15 +1760,14 @@ def parse_file(ctx=None):
         # Compatibility with old codes
         ctx['opt_gpl'] = 'gpl'
     if ctx['opt_gpl'] and ctx['opt_gpl'] not in LICENSES:
-        print('Invalid license %s: valid values are: %s' % (
-            ctx['opt_gpl'], str(LICENSES)))
+        print(
+            'Invalid license %s: valid values are: %s' % (ctx['opt_gpl'], str(LICENSES))
+        )
         return 1
     src_filepy, dst_filepy, ctx = get_filenames(ctx)
     ctx = get_versions(ctx)
     if ctx['opt_verbose']:
-        print("Reading %s -o%s -b%s" % (src_filepy,
-                                        ctx['from_ver'],
-                                        ctx['to_ver']))
+        print("Reading %s -o%s -b%s" % (src_filepy, ctx['from_ver'], ctx['to_ver']))
     if src_filepy.endswith('.yml'):
         return parse_yaml(ctx, src_filepy, dst_filepy)
     source = topep8(src_filepy, ctx)
@@ -1783,65 +1781,60 @@ def parse_file(ctx=None):
 def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
-    parser = z0lib.parseoptargs("Topep8",
-                          "(C) 2015-2022 by SHS-AV s.r.l.",
-                          version=__version__)
+    parser = z0lib.parseoptargs(
+        "Topep8", "(C) 2015-2022 by SHS-AV s.r.l.", version=__version__
+    )
     parser.add_argument('-h')
-    parser.add_argument('-B', '--recall-debug-statements',
-                        action='store_true',
-                        dest='opt_recall_dbg',
-                        default=False)
-    parser.add_argument('-b', '--odoo-branch',
-                        action='store',
-                        dest='odoo_ver')
-    parser.add_argument('-C', '--copyright',
-                        action='store',
-                        dest='opt_copy',
-                        default='')
-    parser.add_argument('-D', '--show-debug',
-                        help="show debug informations",
-                        action='store_true',
-                        dest='opt_dbg',
-                        default=False)
-    parser.add_argument('-F', '--from-odoo-ver',
-                        action='store',
-                        dest='from_odoo_ver')
-    parser.add_argument('-G', '--gpl-info',
-                        action='store',
-                        dest='opt_gpl',
-                        default='')
-    parser.add_argument('-L', '--no-lint',
-                        action='store_true',
-                        dest='no_lint',
-                        default=False)
+    parser.add_argument(
+        '-B',
+        '--recall-debug-statements',
+        action='store_true',
+        dest='opt_recall_dbg',
+        default=False,
+    )
+    parser.add_argument('-b', '--odoo-branch', action='store', dest='odoo_ver')
+    parser.add_argument(
+        '-C', '--copyright', action='store', dest='opt_copy', default=''
+    )
+    parser.add_argument(
+        '-D',
+        '--show-debug',
+        help="show debug informations",
+        action='store_true',
+        dest='opt_dbg',
+        default=False,
+    )
+    parser.add_argument('-F', '--from-odoo-ver', action='store', dest='from_odoo_ver')
+    parser.add_argument('-G', '--gpl-info', action='store', dest='opt_gpl', default='')
+    parser.add_argument(
+        '-L', '--no-lint', action='store_true', dest='no_lint', default=False
+    )
     parser.add_argument('-n')
-    parser.add_argument('-N', '--no-nl-eof',
-                        action='store_true',
-                        dest='no_nl_eof',
-                        default=False)
-    parser.add_argument("-R", "--rule-file",
-                        action='store',
-                        help="configuration file",
-                        dest="conf_fn",
-                        metavar="file",
-                        default='')
+    parser.add_argument(
+        '-N', '--no-nl-eof', action='store_true', dest='no_nl_eof', default=False
+    )
+    parser.add_argument(
+        "-R",
+        "--rule-file",
+        action='store',
+        help="configuration file",
+        dest="conf_fn",
+        metavar="file",
+        default='',
+    )
     parser.add_argument('-q')
-    parser.add_argument('-u', '--unit-test',
-                        action='store_true',
-                        dest='opt_ut7',
-                        default=False)
+    parser.add_argument(
+        '-u', '--unit-test', action='store_true', dest='opt_ut7', default=False
+    )
     parser.add_argument('-V')
     parser.add_argument('-v')
-    parser.add_argument('-X', '--set-executable',
-                        action='store_true',
-                        dest='set_exec',
-                        default=False)
-    parser.add_argument('-x', '--format-line',
-                        action='store_true',
-                        dest='fmt_line',
-                        help='experimental')
+    parser.add_argument(
+        '-X', '--set-executable', action='store_true', dest='set_exec', default=False
+    )
+    parser.add_argument(
+        '-x', '--format-line', action='store_true', dest='fmt_line', help='experimental'
+    )
     parser.add_argument('src_filepy')
-    parser.add_argument('dst_filepy',
-                        nargs='?')
+    parser.add_argument('dst_filepy', nargs='?')
     ctx = parser.parseoptargs(sys.argv[1:])
     return parse_file(ctx=ctx)
