@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.12.1
+__version__=1.0.13
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -74,7 +74,6 @@ set_hashbang() {
 }
 
 RFLIST__travis_emulator=""
-RFLIST__devel_tools=""
 RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog odoo_skin.sh set_worker.sh transodoo.py transodoo.xlsx"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=""
@@ -372,8 +371,6 @@ for pkg in babel lxml python-magic pyyaml python-plus z0lib z0bug-odoo zerobug; 
     [[ -z "$x" ]] && echo -e "${RED}Incomplete installation! Package $pkg non installed in $LOCAL_VENV!!${CLR}" && exit
 done
 echo ""
-[[ $opts =~ ^-.*T ]] && $BINPATH/test_tools.sh
-
 run_traced "deactivate"
 [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
 
@@ -389,13 +386,16 @@ if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
     $(grep -q "\$HOME.*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME.*/activate_tools|$DSTPATH/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $DSTPATH/activate_tools ]] && . $DSTPATH/activate_tools -q" >>$HOME/.bash_profile
 fi
 
-if [[ ! $opts =~ ^-.*[gtT] ]]; then
-  [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
-  for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
-    run_traced "cp $SRCPATH/wok_code/pre-commit $d/hooks"
-    run_traced "rm -f $d/hooks/pre-commit"
-  done
+if [[ ! $opts =~ ^-.*[gt] ]]; then
+    [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
+    for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
+        # [[ $PYVER -eq 3 && ! $opts =~ ^-.*G ]] || run_traced "cp $SRCPATH/wok_code/pre-commit $d/hooks"
+        [[ $opts =~ ^-.*G ]] && run_traced "rm -f $d/hooks/pre-commit"
+        [[ $PYVER -eq 3 && ! $opts =~ ^-.*G ]] && run_traced "cd $(readlink -f $d/..); pre-commit install"
+    done
 fi
+
+[[ $opts =~ ^-.*T ]] && $BINPATH/test_tools.sh
 
 [[ $opts =~ ^-.*U && ! $opts =~ ^-.*q && -f $DSTPATH/egg-info/history.rst ]] && tail $DSTPATH/egg-info/history.rst
 if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then

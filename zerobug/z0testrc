@@ -63,7 +63,7 @@
 # (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=1.0.8.2
+__version__=1.0.9
 
 export opt_dry_run
 export ctr
@@ -308,7 +308,7 @@ test_result () {
   if [[ ${opt_dry_run:-0} -eq 0 ]]; then
     if [[ -n "$4" ]]; then
       dbgmsg "\$ if [[ -n "\$4" ]]; then"
-      if $("$4" "$2" "$3" &>/dev/null); then
+      if $($4 $2 $3 &>/dev/null); then
         if [ "$5" == "str-z" ]; then
           if [ -n "$($4 $2 $3)" ]; then
             echo "$THIS> Test failed: $4 '$2' '$3'"

@@ -19,7 +19,7 @@ except ImportError:
 # import transodoo
 # import pdb
 
-__version__ = "1.0.1.2"
+__version__ = "1.0.2"
 
 
 VERSIONS = ['vg7', '61', '70', '80', '90', '100', '110', '120']

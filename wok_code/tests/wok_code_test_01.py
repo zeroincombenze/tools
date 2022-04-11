@@ -13,7 +13,7 @@ from zerobug import z0test, z0testodoo
 # from z0bug_odoo.travis.test_server import get_build_dir
 from python_plus import _c
 
-__version__ = "1.0.8.1"
+__version__ = "1.0.9"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
@@ -81,6 +81,7 @@ CONTRIBUTORS_FN = r"""Lorem ipsum
 Unknown Odoo version
 .. \$fi
 """
+
 
 def version():
     return __version__
@@ -171,7 +172,6 @@ if __name__ == '__main__':
             mode = os.fstat(fd.fileno()).st_mode
             mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
             os.fchmod(fd.fileno(), stat.S_IMODE(mode))
-
 
     def get_doc_path(self, odoo_path, gitorg):
         if gitorg == 'zero':

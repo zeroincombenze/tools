@@ -28,6 +28,7 @@ import sys
 import time
 import csv
 from os0 import os0
+
 try:
     from z0lib import z0lib
 except ImportError:
@@ -35,7 +36,7 @@ except ImportError:
 from clodoo import transodoo
 
 
-__version__ = "1.0.8.1"
+__version__ = "1.0.9"
 
 msg_time = time.time()
 VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')
@@ -44,7 +45,7 @@ VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')
 def msg_burst(text):
     global msg_time
     t = time.time() - msg_time
-    if (t > 3):
+    if t > 3:
         print(text)
         msg_time = time.time()
 
@@ -124,41 +125,51 @@ def manage_coa(ctx):
                     if tgt_majver > 9 and item == 'TYPE':
                         continue
                     value = transodoo.translate_from_to(
-                        tnlctx, 'ir.model.data',
+                        tnlctx,
+                        'ir.model.data',
                         line[locals()[item]] or 'other',
-                        src_ver, tgt_ver, ttype='xref',
-                        fld_name=TNLFLD[item][
-                            'old' if src_majver < 10 else 'new'])
+                        src_ver,
+                        tgt_ver,
+                        ttype='xref',
+                        fld_name=TNLFLD[item]['old' if src_majver < 10 else 'new'],
+                    )
                     if isinstance(value, (list, tuple)):
                         row[item] = value[0]
                     else:
                         row[item] = value
                 item = 'USER_TYPE'
                 if tgt_majver > 9:
-                    if (row['CODE'].startswith('121') or
-                            row['CODE'].startswith('123')):
+                    if row['CODE'].startswith('121') or row['CODE'].startswith('123'):
                         row[item] = 'account.data_account_type_fixed_assets'
                     elif row['CODE'].startswith('211'):
                         row[item] = 'account.data_account_type_equity'
                     elif row['CODE'].startswith('65'):
                         row[item] = 'account.data_account_type_depreciation'
-                    elif ((row['CODE'].startswith('190') or
-                          row['CODE'].startswith('290')) and
-                          row['CODE'].endswith('20')):
+                    elif (
+                        row['CODE'].startswith('190') or row['CODE'].startswith('290')
+                    ) and row['CODE'].endswith('20'):
                         row[item] = 'account.data_account_type_prepayments'
-                    elif (row['CODE'].startswith('610') and
-                          row[item] == 'account.data_account_type_expenses'):
+                    elif (
+                        row['CODE'].startswith('610')
+                        and row[item] == 'account.data_account_type_expenses'
+                    ):
                         row[item] = 'account.data_account_type_direct_costs'
-                    elif (row['CODE'].startswith('8') and
-                          row[item] == 'account.data_account_type_income'):
+                    elif (
+                        row['CODE'].startswith('8')
+                        and row[item] == 'account.data_account_type_income'
+                    ):
                         row[item] = 'account.data_account_type_other_income'
                     elif row['CODE'] == '870230':
                         row[item] = 'account.data_unaffected_earnings'
-                    elif (row[item] == 'account.data_account_type_current_assets' and
-                          '+12 M' in row['NAME']):
+                    elif (
+                        row[item] == 'account.data_account_type_current_assets'
+                        and '+12 M' in row['NAME']
+                    ):
                         row[item] = 'account.data_account_type_non_current_assets'
-                    elif (row[item] == 'account.data_account_type_liability' and
-                          '+12 M' in row['NAME']):
+                    elif (
+                        row[item] == 'account.data_account_type_liability'
+                        and '+12 M' in row['NAME']
+                    ):
                         row[item] = 'account.data_account_type_non_current_liabilities'
                     item = 'PARENT'
                 if not line[locals()[item]]:
@@ -193,12 +204,26 @@ def manage_coa(ctx):
                     group.append(line)
                     continue
                 if tgt_majver > 9:
-                    line = (row['ID'], row['CODE'], row['NAME'], row['USER_TYPE'],
-                            row['PARENT'], row['RECONCILE'], row['CHART'])
+                    line = (
+                        row['ID'],
+                        row['CODE'],
+                        row['NAME'],
+                        row['USER_TYPE'],
+                        row['PARENT'],
+                        row['RECONCILE'],
+                        row['CHART'],
+                    )
                 else:
-                    line = (row['ID'], row['CODE'], row['NAME'], row['USER_TYPE'],
-                            row['TYPE'], row['PARENT'], row['RECONCILE'],
-                            row['CHART'])
+                    line = (
+                        row['ID'],
+                        row['CODE'],
+                        row['NAME'],
+                        row['USER_TYPE'],
+                        row['TYPE'],
+                        row['PARENT'],
+                        row['RECONCILE'],
+                        row['CHART'],
+                    )
                 if action != 'export-group':
                     print(line)
                 coa.append(line)
@@ -211,12 +236,14 @@ def manage_coa(ctx):
         right_rec = merge_coa[right_ix]
         tgt_coa = []
         while left_ix < len(coa) and right_ix < len(merge_coa):
-            if (left_ix >= len(coa) or
-                    eval(left_rec[left_ix][1]) > eval(right_rec[right_ix][1])):
+            if left_ix >= len(coa) or eval(left_rec[left_ix][1]) > eval(
+                right_rec[right_ix][1]
+            ):
                 tgt_coa.append(right_rec)
                 right_ix += 1
-            elif (right_ix >= len(merge_coa) or
-                  eval(left_rec[left_ix][1]) < eval(right_rec[right_ix][1])):
+            elif right_ix >= len(merge_coa) or eval(left_rec[left_ix][1]) < eval(
+                right_rec[right_ix][1]
+            ):
                 tgt_coa.append(left_rec)
                 left_ix += 1
             else:
@@ -229,12 +256,14 @@ def manage_coa(ctx):
         right_rec = merge_coa[right_ix]
         tgt_group = []
         while left_ix < len(group) and right_ix < len(merge_group):
-            if (left_ix >= len(group) or
-                    eval(left_rec[left_ix][1]) > eval(right_rec[right_ix][1])):
+            if left_ix >= len(group) or eval(left_rec[left_ix][1]) > eval(
+                right_rec[right_ix][1]
+            ):
                 tgt_group.append(right_rec)
                 right_ix += 1
-            elif (right_ix >= len(merge_group) or
-                  eval(left_rec[left_ix][1]) < eval(right_rec[right_ix][1])):
+            elif right_ix >= len(merge_group) or eval(left_rec[left_ix][1]) < eval(
+                right_rec[right_ix][1]
+            ):
                 tgt_group.append(left_rec)
                 left_ix += 1
             else:
@@ -243,8 +272,7 @@ def manage_coa(ctx):
                 right_ix += 1
         return tgt_coa, tgt_group
 
-    VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0',
-                '11.0', '12.0', '13.0', '14.0']
+    VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0']
     # ORGS = ('zero', 'powerp', 'librerp')
     action = ctx['action']
     if action not in VALID_ACTIONS:
@@ -270,7 +298,8 @@ def manage_coa(ctx):
             print('File %s not found!' % merge_fn)
             return 1
         merge_coa, merge_group = read_csv_file(
-            merge_fn, src_ver, tgt_ver, 'export-full')
+            merge_fn, src_ver, tgt_ver, 'export-full'
+        )
 
     coa, group = read_csv_file(csv_fn, src_ver, tgt_ver, action)
     if merge_fn:
@@ -280,27 +309,39 @@ def manage_coa(ctx):
     if ctx['dst_csvfile']:
         out_fn = ctx['dst_csvfile']
     elif action == 'export-group':
-        out_fn = os.path.join(os.path.dirname(csv_fn),
-                              'account.group.tmp.csv')
+        out_fn = os.path.join(os.path.dirname(csv_fn), 'account.group.tmp.csv')
     else:
-        out_fn = '%s.tmp.csv' % csv_fn[0: -4]
+        out_fn = '%s.tmp.csv' % csv_fn[0:-4]
     if action == 'export-comparable':
-        header = ['code', 'name',
-                  TNLFLD['USER_TYPE']['old' if tgt_majver < 10 else 'new']]
+        header = [
+            'code',
+            'name',
+            TNLFLD['USER_TYPE']['old' if tgt_majver < 10 else 'new'],
+        ]
     elif action == 'export-group':
         header = ['id', 'code_prefix', 'name', 'parent_id:id']
     else:
         if tgt_majver > 9:
             header = [
-                'id', 'code', 'name',
+                'id',
+                'code',
+                'name',
                 '%s:id' % TNLFLD['USER_TYPE']['new'],
-                'parent_id:id', 'reconcile', 'chart_template_id:id']
+                'parent_id:id',
+                'reconcile',
+                'chart_template_id:id',
+            ]
         else:
             header = [
-                'id', 'code', 'name',
+                'id',
+                'code',
+                'name',
                 '%s:id' % TNLFLD['USER_TYPE']['old'],
                 '%s:id' % TNLFLD['TYPE']['old'],
-                'parent_id:id', 'reconcile', 'chart_template_id:id']
+                'parent_id:id',
+                'reconcile',
+                'chart_template_id:id',
+            ]
     if action == 'export-group':
         with open(out_fn, mode='wb') as fd:
             csv_obj = csv.writer(fd)
@@ -326,26 +367,25 @@ def manage_coa(ctx):
 def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
-    parser = z0lib.parseoptargs("Manage csv file of Odoo CoA",
-                                "© 2020-2022 by SHS-AV s.r.l.",
-                                version=__version__)
+    parser = z0lib.parseoptargs(
+        "Manage csv file of Odoo CoA",
+        "© 2020-2022 by SHS-AV s.r.l.",
+        version=__version__,
+    )
     parser.add_argument('-h')
-    parser.add_argument('-A', '--action',
-                        action='store',
-                        dest='action',
-                        help='Actions are %s' % ','.join(VALID_ACTIONS))
-    parser.add_argument('-b', '--odoo-branch',
-                        action='store',
-                        dest='odoo_ver')
-    parser.add_argument('-f', '--from-odoo-branch',
-                        action='store',
-                        dest='from_odoo_ver')
-    parser.add_argument('-m', '--merge-csv',
-                        action='store',
-                        dest='merge_csvfile')
-    parser.add_argument('-o', '--out-csvfile',
-                        action='store',
-                        dest='dst_csvfile')
+    parser.add_argument(
+        '-A',
+        '--action',
+        action='store',
+        dest='action',
+        help='Actions are %s' % ','.join(VALID_ACTIONS),
+    )
+    parser.add_argument('-b', '--odoo-branch', action='store', dest='odoo_ver')
+    parser.add_argument(
+        '-f', '--from-odoo-branch', action='store', dest='from_odoo_ver'
+    )
+    parser.add_argument('-m', '--merge-csv', action='store', dest='merge_csvfile')
+    parser.add_argument('-o', '--out-csvfile', action='store', dest='dst_csvfile')
     parser.add_argument('-n')
     parser.add_argument('-q')
     parser.add_argument('-V')

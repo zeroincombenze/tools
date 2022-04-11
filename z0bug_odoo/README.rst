@@ -1,7 +1,7 @@
 
-===================
-z0bug_odoo 1.0.12.1
-===================
+=================
+z0bug_odoo 1.0.13
+=================
 
 
 
@@ -1048,8 +1048,8 @@ Current development version
 History
 -------
 
-1.0.12.1 (2022-03-29)
-~~~~~~~~~~~~~~~~~~~~~
+1.0.13 (2022-03-29)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Invoice data
 
@@ -1137,7 +1137,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-30
+Last Update / Ultimo aggiornamento: 2022-04-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

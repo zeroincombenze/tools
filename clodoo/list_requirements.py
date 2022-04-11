@@ -13,7 +13,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '1.0.1.2'
+__version__ = '1.0.2'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -610,7 +610,7 @@ def walk_dir(cdir, manifests, reqfiles):
 
 def main():
     parser = z0lib.parseoptargs("List Odoo requirements",
-                                "© 2017-2021 by SHS-AV s.r.l.",
+                                "© 2017-2022 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',

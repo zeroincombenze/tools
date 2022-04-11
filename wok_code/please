@@ -62,7 +62,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.8.1
+__version__=1.0.9
 
 #
 # General Purpose options:
@@ -473,642 +473,6 @@ cvt_travis() {
   run_traced "sed -e \"s|ODOO_REPO=.[^/]*|ODOO_REPO=\\\"$ORGNM|\" -i $fn"
 }
 
-cvt_readme() {
-  # cvt_readme(file_readme oca|zero|oia currpt ORIG)
-  # params: 1=REMOTEREPO, 2=pkgname, 3=odoo_ver, 4=ver(major), 5=helpname
-  #         7=repos/pkgname, 8=(txt1)repos 9=(txt2)repos
-  [ $opt_verbose -gt 0 ] && echo "Analyzing $1 ..."
-  local fn=$1
-  local fntmp=$fn.tmp
-  local wf=0 nxtwf=0 prewf=0 preline=0
-  local Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
-  local Icright=0 Iaddons=0 Irst=0 Ichat=0 Ilang_en=0 Ilang_it=0 Idiff=0 Iinstall=0
-  local line lne1 lne2 REMOTEREPO txtrepos ver ver0 i v w x y
-  local ignnextlines=0
-  local helpname=
-  local OCA_REMOTEREPO OCA_txt1repos OCA_txt2repos
-  unset M[*] TKNS[*] REPL[*] ACT[*]
-  declare -gA M
-  declare -a TKNS REPL ACT RHLP WK
-  RHLP[0]="FI=l10n-italy-supplemental:l10n-italy"
-  RHLP[1]="FI=account-:bank-:analytic:l10n_it"
-  RHLP[2]="MM=product-"
-  RHLP[3]="LO=stock-:purchase"
-  RHLP[4]="SD=stock-:sale"
-  i=0
-  while [ $i -lt ${#RHLP[@]} ]; do
-    x=${RHLP[$i]}
-    IFS== read p v <<<$x
-    w=${v//:/ }
-    for v in $w; do
-      if [[ "$PKGNAME" =~ "$v" ]] || [[ "$REPOSNAME" =~ "$v" ]]; then
-        helpname=$p
-        break
-      fi
-    done
-    if [ -n "$helpname" ]; then
-      break
-    fi
-    ((i++))
-  done
-  [ -z "$BRANCH" ] && BRANCH=master
-  ver=$(get_ver)
-  ver0=$(get_ver "$PRJNAME")
-  OCA_REMOTEREPO=OCA
-  OCA_txt1repos=repos
-  OCA_txt2repos=r
-  if [ "$2" == "oca" ]; then
-    REMOTEREPO=$OCA_REMOTEREPO
-    txt1repos=$OCA_txt1repos
-    txt2repos=OCA_txt2repos
-  elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
-    REMOTEREPO=zeroincombenze
-    txt1repos=repos/github
-    txt2repos=github
-  elif [ "$2" == "oia" ]; then
-    REMOTEREPO=Odoo-Italia-Associazione
-    txt1repos=repos/github
-    txt2repos=github
-  fi
-  M[1]=$REMOTEREPO
-  if [ "$PRJNAME" == "tools" -o "$PKGNAME" == "tools" ]; then
-    M[2]=tools
-  elif [ "$LGITPATH" == "$HOME/tools/$PKGNAME" ]; then # Just for debug
-    M[2]=tools
-  else
-    M[2]=$PKGNAME
-  fi
-  M[3]=$BRANCH
-  M[4]=$ver
-  M[5]=$helpname
-  if [ -z "$REPOSNAME" ]; then
-    M[7]=${M[2]}
-  elif [ "$LGITPATH" == "$HOME/tools/$PKGNAME" ]; then # Just for debug
-    M[7]=${M[2]}
-  else
-    M[7]=$REPOSNAME
-  fi
-  M[8]=$txt1repos
-  M[9]=$txt2repos
-  v=${M[7]}
-  M[LNK_BUILD]="https://travis-ci.org/$REMOTEREPO/$v"
-  M[BTN_BUILD]="https://travis-ci.org/$REMOTEREPO/$v.svg?branch=$BRANCH"
-  if [ $ver0 -ge 10 -a "$PRJNAME" == "Odoo" ]; then
-    M[LNK_LICENSE]="https://www.gnu.org/licenses/lgpl.html"
-    M[BTN_LICENSE]="https://img.shields.io/badge/licence-LGPL--3-7379c3.svg"
-  else
-    M[LNK_LICENSE]="http://www.gnu.org/licenses/agpl-3.0.html"
-    M[BTN_LICENSE]="https://img.shields.io/badge/licence-AGPL--3-blue.svg"
-  fi
-  M[LNK_COVERAGE]="https://coveralls.io/$txt2repos/$REMOTEREPO/$v?branch=$BRANCH"
-  M[BTN_COVERAGE]="https://coveralls.io/$txt1repos/$REMOTEREPO/$v/badge.svg?branch=$BRANCH"
-  M[LNK_OCA_COVERAGE]="https://coveralls.io/$OCA_txt2repos/$OCA_REMOTEREPO/$v?branch=$BRANCH"
-  M[BTN_OCA_COVERAGE]="https://coveralls.io/$OCA_txt1repos/$OCA_REMOTEREPO/$v/badge.svg?branch=$BRANCH"
-  if [ -z "$REPOSNAME" ]; then
-    M[LNK_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH"
-  else
-    M[LNK_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH"
-  fi
-  M[LNK_OCA_CODECOV]="https://codecov.io/gh/$OCA_REMOTEREPO/$v/branch/$BRANCH"
-  M[BTN_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH/graph/badge.svg"
-  M[BTN_OCA_CODECOV]="https://codecov.io/gh/$OCA_REMOTEREPO/$v/branch/$BRANCH/graph/badge.svg"
-  if [ "$PRJNAME" == "Odoo" ]; then
-    M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/dev"
-    M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$ver.svg"
-  elif [ "$PKGNAME" == "tools" ]; then
-    M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Python/opt"
-    M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$PKGNAME.svg"
-  elif [ "$PKGNAME" != "tools" ]; then
-    M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Python/opt/$PKGNAME"
-    M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$PKGNAME.svg"
-  fi
-  if [ "$PRJNAME" == "Odoo" ]; then
-    M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/man/$helpname"
-    M[BTN_HELP]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-$ver.svg"
-  elif [ "$PKGNAME" == "tools" ]; then
-    M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Python/opt"
-    M[BTN_HELP]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-$PKGNAME.svg"
-  else
-    M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Python/opt/$PKGNAME/help"
-    M[BTN_HELP]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-$PKGNAME.svg"
-  fi
-  local CHAT_HOME=$(get_cfg_value 0 "CHAT_HOME")
-  M[LNK_CHAT]="$CHAT_HOME"
-  M[BTN_CHAT]="https://www.shs-av.com/wp-content/chat_with_us.gif"
-
-  TKNS[0]="^\.\.[[:space:]][|_][a-zA-Z_]+"
-  REPL[0]="⌂"
-  ACT[0]="REPL"
-  TKNS[1]="^\.\.[[:space:]]image::.*chat_with_us"
-  REPL[1]="⌂"
-  ACT[1]="REPL1"
-  TKNS[2]="^[[:space:]]+:[a-zA-Z_]+:"
-  REPL[2]="⌂"
-  ACT[2]="REPLC"
-  TKNS[3]="^[^a-zA-Z_]*Build.Status.*https://travis-ci.org/"
-  REPL[3]="[![Build Status]"
-  ACT[3]="md_BTN_build"
-  TKNS[4]="^\|build.status\|"
-  REPL[4]="|build status|_"
-  ACT[4]="rstBTN_build"
-  TKNS[5]="^[^a-zA-Z_]*license.*https://img.shields.io/badge/licence-[AL]GPL"
-  if [ $ver0 -ge 10 -a "$PRJNAME" == "Odoo" ]; then
-    REPL[5]="[![license lgpl]"
-    ACT[5]="md_BTN_license"
-    TKNS[6]="^\|license.lgpl\|"
-    REPL[6]="|license lgpl|_"
-    ACT[6]="rstBTN_license"
-  else
-    REPL[5]="[![license agpl]"
-    ACT[5]="md_BTN_license"
-    TKNS[6]="^\|license.agpl\|"
-    REPL[6]="|license agpl|_"
-    ACT[6]="rstBTN_license"
-  fi
-  TKNS[7]="^[^a-zA-Z_]*Coverage.Status.*https://coveralls.io/"
-  REPL[7]="[![Coverage Status]"
-  ACT[7]="md_BTN_coverage"
-  TKNS[8]="^\|coverage.status\|"
-  REPL[8]="|coverage status|_"
-  ACT[8]="rstBTN_coverage"
-  TKNS[9]="^[^a-zA-Z_]*codecov.*https://codecov.io/gh/"
-  REPL[9]="[![codecov]"
-  ACT[9]="md_BTN_codecov"
-  TKNS[10]="^\|codecov.status\|"
-  REPL[10]="|codecov status|_"
-  ACT[10]="rstBTN_codecov"
-  TKNS[11]="^[^a-zA-Z_]*OCA_project.*https://github.com/OCA/"
-  REPL[11]="[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-$ver.svg)](https://github.com/OCA/$v/tree/$BRANCH)"
-  ACT[11]="md_BTN_OCA"
-  TKNS[12]="^\|oca.project\|"
-  REPL[12]="|oca project|_"
-  ACT[12]="rstBTN_OCA"
-  TKNS[13]="^[^a-zA-Z_]*Code.Climate.*https://codeclimate.com/github/"
-  REPL[13]="Code.Climate  https://codeclimate.com/github/"
-  ACT[13]="md_BTN_climate"
-  TKNS[14]="^\|code.climate\|"
-  REPL[14]="|code climate|_"
-  ACT[14]="rstBTN_climate"
-  TKNS[15]="^[^a-zA-Z_]*Tech.Doc.*(https*://www.odoo.com/documentation/|https*://wiki.zeroincombenze.org/en/)"
-  REPL[15]="[![Tech Doc]"
-  ACT[15]="md_BTN_docs"
-  TKNS[16]="^\|technical.doc\|"
-  REPL[16]="|technical doc|_"
-  ACT[16]="rstBTN_docs"
-  TKNS[17]="^[^a-zA-Z_]*Help.*(https*://www.odoo.com/forum/|https*://wiki.zeroincombenze.org/)"
-  REPL[17]="[![Help]"
-  ACT[17]="md_BTN_help"
-  TKNS[18]="^\|help.zeroincombenze\|"
-  REPL[18]="|help zeroincombenze|_"
-  ACT[18]="rstBTN_help"
-  TKNS[19]="^[^a-zA-Z_]*(Runbot|Build).Status.*https://runbot.odoo-community.org/"
-  REPL[19]="Runbot Status  https://runbot.odoo-community.org/"
-  ACT[19]="md_BTN_runbot"
-  TKNS[20]="^\|runbot.status\|"
-  REPL[20]="|runbot status|_"
-  ACT[20]="rstBTN_runbot"
-  TKNS[21]="^[^a-zA-Z_]*try.it.*http(s)?://www.zeroincombenze.it"
-  REPL[21]="[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-$ver.svg)](https://erp$ver.zeroincombenze.it)"
-  ACT[21]="md_BTN_tryit"
-  TKNS[22]="^\|try.it\|"
-  REPL[22]="|try it|_"
-  ACT[22]="rstBTN_tryit"
-  TKNS[23]="^[^a-zA-Z_]*try.it.*http(s)?://.*\.odoo-italia.org"
-  REPL[23]="[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-$ver.svg)](https://odoo$ver.odoo-italia.org)"
-  ACT[23]="md_BTN_tryit"
-  TKNS[51]="\[//\]:.*#.*end.copyright"
-  REPL[51]=""
-  ACT[51]="md_END_cright"
-  TKNS[52]="\[//\]:.*#.*copyright"
-  REPL[52]=""
-  ACT[52]="md_BEG_cright"
-  TKNS[53]="\.\.\[//\]:.*#.*end.copyright"
-  REPL[53]=""
-  ACT[53]="rstEND_cright"
-  TKNS[54]="\.\.\[//\]:.*#.*copyright"
-  REPL[54]=""
-  ACT[54]="rstBEG_cright"
-  TKNS[55]="chat.with.us"
-  REPL[55]="[![chat with us]"
-  ACT[55]="md_BTN_chat"
-  TKNS[56]="^\|chat.with.us\|"
-  REPL[56]=""
-  ACT[56]="rstBTN_chat"
-  TKNS[57]="\[//\]:.*#.*end addons"
-  REPL[57]=""
-  ACT[57]="md_END_addons"
-  TKNS[58]="\[//\]:.*#.*addons"
-  REPL[58]=""
-  ACT[58]="md_BEG_addons"
-  TKNS[59]="\.\.\[//\]:.*#.*end addons"
-  REPL[59]=""
-  ACT[59]="rstEND_addons"
-  TKNS[60]="\.\.\[//\]:.*#.*addons"
-  REPL[60]=""
-  ACT[60]="rstBEG_addons"
-  TKNS[61]="^Differenze rispetto localizzazione ufficiale Odoo/OCA"
-  REPL[61]=""
-  ACT[61]="md_BEG_diff"
-  TKNS[62]="^Coverage \|"
-  REPL[62]=""
-  ACT[62]="md_diff_1"
-  TKNS[63]="^(Test compatibilità OCA e Odoo|Test con repository OCA e Odoo) \|"
-  REPL[63]=""
-  ACT[63]="md_diff_2"
-  TKNS[64]="\[//\]:.*#.*end install"
-  REPL[64]=""
-  ACT[64]="md_END_install"
-  TKNS[65]="\[//\]:.*#.*install"
-  REPL[65]=""
-  ACT[65]="md_BEG_install"
-  TKNS[66]="\.\.\[//\]:.*#.*end install"
-  REPL[66]=""
-  ACT[66]="rstEND_install"
-  TKNS[67]="\.\.\[//\]:.*#.*install"
-  REPL[67]=""
-  ACT[67]="rstBEG_install"
-  TKNS[100]="^[^a-zA-Z_]*en[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/en_US.png|https*://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)"
-  REPL[100]=""
-  ACT[100]="CHPT_lang_en"
-  TKNS[101]="^[^a-zA-Z_]*it[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/it_IT.png|https*://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)"
-  REPL[101]=""
-  ACT[101]="CHPT_lang_it"
-  TKNS[102]="^======"
-  REPL[102]=""
-  ACT[102]="CHPT_102"
-  TKNS[103]="^-----"
-  REPL[103]=""
-  ACT[103]="CHPT_103"
-  TKNS[104]="^Installation"
-  REPL[104]=""
-  ACT[104]="CHPT_104"
-  TKNS[105]="^Configuration"
-  REPL[105]=""
-  ACT[105]="CHPT_105"
-  TKNS[106]="^Usage"
-  REPL[106]=""
-  ACT[106]="CHPT_106"
-  TKNS[107]="^Known issues / Roadmap"
-  REPL[107]=""
-  ACT[107]="CHPT_107"
-  TKNS[108]="^Bug Tracker"
-  REPL[108]=""
-  ACT[108]="CHPT_108"
-  TKNS[109]="^Credits"
-  REPL[109]=""
-  ACT[109]="CHPT_109"
-  TKNS[110]="^(\[!\[Odoo Community Association\]\]|\[!\[Odoo Italia Associazione\]\])"
-  REPL[110]=""
-  ACT[110]="CHPT_110"
-  TKNS[111]="^(### |)Contributors"
-  REPL[111]=""
-  ACT[111]="CHPT_111"
-  TKNS[112]="^(### |)Funders"
-  REPL[112]=""
-  ACT[112]="CHPT_112"
-  TKNS[113]="^(### |)Maintainer"
-  REPL[113]=""
-  ACT[113]="CHPT_113"
-
-  local ONLY_OCA="Irunbot Iclimate"
-  local ONLY_ZERO="Icright IOCA Idocs Ihelp Ichat Ilang_en Ilang_it Idiff"
-  local ONLY_OIA="Icright IOCA Idocs Ihelp Ilang_en Ilang_it Idiff"
-  local ONLY_ODOO="IOCA Itryit Iaddons Iinstall"
-  local IGNORE_BTNOCA_4_PKG="l10n-italy-supplemental user_contributes"
-  rm -f $fntmp
-  while IFS= read -r line r || [ -n "$line" ]; do
-    # echo "$prewf/$wf/$nxtwf/$Iinstall> line=$line" #debug
-    lne1="⌂"
-    lne2="⌂"
-    Ibutton=0
-    prewf=$nxtwf
-    nxtwf=0
-    for i in {1..23} {51..67} {100..113}; do
-      p=${TKNS[$i]}
-      if [[ $line =~ $p ]]; then
-        if [ "${ACT[$i]}" == "REPL" -o "${ACT[$i]}" == "REPL1" ]; then
-          if [ "${ACT[$i]}" == "REPL1" ]; then
-            ignnextlines=1
-          fi
-          line="${REPL[$i]}"
-        elif [ "${ACT[$i]}" == "REPLC" ]; then
-          if [ $ignnextlines -ne 0 ]; then
-            line="${REPL[$i]}"
-          fi
-        elif [[ "${ACT[$i]}" =~ md_BTN ]] || [[ "${ACT[$i]}" =~ rstBTN ]]; then
-          if [[ "${ACT[$i]}" =~ rstBTN ]]; then
-            Irst=1
-          fi
-          ignnextlines=0
-          v="${ACT[$i]}"
-          v="I${v:7}"
-          Ibutton=1
-          if [ ${!v} -ne 0 ]; then
-            line="⌂"
-          elif [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
-            if [ "$2" != "oca" ]; then
-              line="⌂"
-            fi
-          elif [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
-            if [ "$2" != "zero" ]; then
-              line="⌂"
-              eval $v=1
-            elif [[ " $IGNORE_BTNOCA_4_PKG " =~ [[:space:]]$PKGNAME[[:space:]] ]]; then
-              line="⌂"
-              eval $v=1
-            fi
-          elif [[ " $ONLY_OIA " =~ [[:space:]]$v[[:space:]] ]]; then
-            if [ "$2" != "oia" ]; then
-              line="⌂"
-              eval $v=1
-            elif [[ " $IGNORE_BTNOCA_4_PKG " =~ [[:space:]]$PKGNAME[[:space:]] ]]; then
-              line="⌂"
-              eval $v=1
-            fi
-          elif [[ " $ONLY_ODOO " =~ [[:space:]]$v[[:space:]] ]]; then
-            if [ "$PRJNAME" != "Odoo" ]; then
-              line="⌂"
-            fi
-          fi
-          if [ "$line" != "⌂" ]; then
-            if [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
-              line="⌂"
-            else
-              eval $v=1
-              line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}")
-            fi
-          fi
-        elif [[ "${ACT[$i]}" =~ CHPT_ ]]; then
-          v="${ACT[$i]}"
-          v="${v:5}"
-          if (($v)); then
-            nxtwf=$v
-          else
-            v=I$v
-            if [ ${!v} -ne 0 ]; then
-              line="⌂"
-            elif [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
-              if [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
-                line="⌂"
-              fi
-            elif [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
-              if [ "$2" == "oca" ]; then
-                line="⌂"
-              fi
-            elif [[ " $ONLY_ODOO " =~ [[:space:]]$v[[:space:]] ]]; then
-              if [ "$PRJNAME" != "Odoo" ]; then
-                line="⌂"
-              fi
-            fi
-            if [ "$line" != "⌂" ]; then
-              eval $v=1
-              Ibutton=1
-              wf=2
-              line=$(build_line $v "$line" "${ACT[$i]}")
-            fi
-          fi
-        elif [ "${ACT[$i]}" == "md_BEG_cright" -o "${ACT[$i]}" == "rstBEG_cright" ]; then
-          if [ $Icright -eq 0 ]; then
-            Icright=2
-          fi
-          line="⌂"
-        elif [ "${ACT[$i]}" == "md_END_cright" -o "${ACT[$i]}" == "rstEND_cright" ]; then
-          if [ $Icright -eq 2 ]; then
-            Icright=3
-            add_copyright $fntmp $Irst $2
-          fi
-          line="⌂"
-        elif [ "${ACT[$i]}" == "md_BEG_addons" -o "${ACT[$i]}" == "rstBEG_addons" ]; then
-          if [ $Iaddons -eq 0 ]; then
-            Iaddons=2
-          fi
-          line="⌂"
-        elif [ "${ACT[$i]}" == "md_END_addons" -o "${ACT[$i]}" == "rstEND_addons" ]; then
-          if [ $Iaddons -eq 2 ]; then
-            Iaddons=3
-            add_addons $fntmp $Irst "$2" "$4"
-          fi
-          line="⌂"
-        elif [ "${ACT[$i]}" == "md_BEG_install" -o "${ACT[$i]}" == "rstBEG_install" ]; then
-          # echo "> begin install <$line>" #debug
-          if [ $Iinstall -eq 0 ]; then
-            Iinstall=2
-          fi
-          line="⌂"
-        elif [ "${ACT[$i]}" == "md_END_install" -o "${ACT[$i]}" == "rstEND_install" ]; then
-          # echo "> end install <$line>" #debug
-          if [ $Iinstall -eq 2 ]; then
-            Iinstall=3
-            add_install $fntmp $Irst "$2" "$4"
-          fi
-          line="⌂"
-        elif [ "${ACT[$i]}" == "md_BEG_diff" ]; then
-          if [ $Idiff -eq 0 ]; then
-            Idiff=2
-          fi
-        elif [ "${ACT[$i]}" == "md_diff_1" ]; then
-          if [ $Idiff -eq 2 ]; then
-            if [ "$BRANCH" == "7.0" ]; then
-              line="Coverage |  [![codecov](${M[BTN_CODECOV]})](${M[LNK_CODECOV]}) | [![Coverage Status](${M[BTN_OCA_COVERAGE]})](${M[LNK_OCA_COVERAGE]})"
-            else
-              line="Coverage |  [![codecov](${M[BTN_CODECOV]})](${M[LNK_CODECOV]}) | [![codecov](${M[BTN_OCA_CODECOV]})](${M[LNK_OCA_CODECOV]})"
-            fi
-          fi
-        elif [ "${ACT[$i]}" == "md_diff_2" ]; then
-          if [ $Idiff -eq 2 ]; then
-            if [ "$BRANCH" == "7.0" ]; then
-              line="Test compatibilità OCA e Odoo | :x: | [Errore import decimal precision](https://github.com/OCA/OCB/issues/629)"
-            else
-              line="Test compatibilità OCA e Odoo | :white_check_mark: | :white_check_mark:"
-            fi
-          fi
-        fi
-        break
-      elif [ -n "$line" ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
-        p=${TKNS[$i]}
-        p="..[[:space:]]${p:1}"
-        if [[ $line =~ $p ]]; then
-          ignnextlines=0
-          line="${REPL[0]}"
-          break
-        else
-          p=${TKNS[$i]}
-          p="..[[:space:]]_${p:3}"
-          p=${p/\\\|/:}
-          if [[ $line =~ $p ]]; then
-            ignnextlines=0
-            line="${REPL[0]}"
-            break
-          fi
-        fi
-      fi
-    done
-    if [ $Ibutton -eq 0 -a $wf -eq 0 ] && [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
-      lne1="⌂"
-      wf=1
-      for i in {1..23}; do
-        p=${TKNS[$i]}
-        if [[ "${ACT[$i]}" =~ md_BTN ]] || [[ "${ACT[$i]}" =~ rstBTN ]]; then
-          v="${ACT[$i]}"
-          v="I${v:7}"
-          if [ $Irst -gt 0 ] && [[ "${ACT[$i]}" =~ md_BTN ]]; then
-            :
-          elif [ $Irst -eq 0 ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
-            :
-          elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ] && [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
-            :
-          elif [ "$2" == "oca" ] && [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
-            :
-          elif [ "$PRJNAME" != "Odoo" ] && [[ " $ONLY_ODOO " =~ [[:space:]]$v[[:space:]] ]]; then
-            :
-          elif [ ${!v} -eq 0 ]; then
-            eval $v=1
-            lne1=$(build_line $v "${REPL[$i]}" "${ACT[$i]}")
-            echo "$lne1" >>$fntmp
-            if [ -z "$lne1" ]; then preline=0; else preline=1; fi
-          fi
-        fi
-      done
-      [ $preline -ne 0 ] && [ -n "$line" ] && preline=0 && echo "" >>$fntmp
-    fi
-    # echo "> if [ \$Icright=$Icright -ne 2 -a  \$Iinstall=$Iinstall -ne 2 -a $line != '⌂' ]; then" #debug
-    if [ $Icright -ne 2 -a $Iaddons -ne 2 -a $Iinstall -ne 2 -a "$line" != "⌂" ]; then
-      line=$(expand_macro "$line")
-      line="$(echo "$line" | sed -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:')"
-      line="$(echo "$line" | sed -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:')"
-      if [ -n "$line" ]; then
-        # [ $wf -ge 104 ] && echo "> if [ -n \"$line\" ]; then" #debug
-        if [ $wf -eq 1 ]; then
-          if [ $Ilang_en -eq 0 ]; then
-            echo "" >>$fntmp
-            echo "[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)" >>$fntmp
-            echo "" >>$fntmp
-          fi
-          Ilang_en=1
-          if [ $nxtwf -ne 100 ]; then
-            wf=2
-          fi
-        fi
-        # [ $wf -ge 104 ] && echo ">   if [ \$wf=$wf -eq 2 ]; then" #debug
-        if [ $wf -eq 2 ]; then
-          echo "$line" >>$fntmp
-          if [ $Ibutton -eq 0 ] && [[ $line =~ ^[A-Za-z] ]]; then
-            x=${#line}
-            w="================================================================================================"
-            v=${w:0:$x}
-            echo "$v" >>$fntmp
-            wf=104
-          fi
-        elif [ $wf -gt 100 ] && [ $nxtwf -eq 102 -o $nxtwf -eq 103 ]; then
-          # [ $wf -ge 104 ] && echo ">   elif [ \$wf=$wf -gt 100 ] && [ \$nxtwf=$nxtwf -eq 102 -o \$nxtwf -eq 103 ]; then" #debug
-          :
-        elif [ $wf -lt 100 -o $nxtwf -ge 104 ]; then
-          # [ $wf -ge 104 ] && echo ">   elif [ \$wf=$wf -lt 100 -o \$nxtwf=$nxtwf -ge 104 ]; then" #debug
-          if [ $wf -lt 104 ]; then
-            wf=104
-          fi
-          while [ $wf -le $nxtwf ]; do
-            if [ $wf -ne 110 ]; then
-              w=${TKNS[$wf]}
-              v=${w:1}
-              if [[ "$w" =~ "###" ]]; then
-                w="$v"
-                IFS=")" read x v <<<$w
-                if [ -z "$v" ]; then v=$x; fi
-                v="### $v"
-              else
-                echo "$v" >>$fntmp
-                x=${#v}
-                w="-----------------------------------------------------------------------------------------------"
-                v=${w:0:$x}
-              fi
-              echo "$v" >>$fntmp
-              ((wf++))
-              if [ $wf -le $nxtwf ]; then echo "" >>$fntmp; fi
-            else
-              ((wf++))
-            fi
-          done
-        else
-          if [ $prewf -ge 104 ]; then
-            # echo ">  echo ''" #debug
-            echo "" >>$fntmp
-          fi
-          # [ $wf -ge 104 ] && echo ">   else" #debug
-          echo "$line" >>$fntmp
-        fi
-      else
-        # [ $wf -ge 104 ] && echo "> else" #debug
-        echo "$line" >>$fntmp
-      fi
-      if [ -z "$line" ]; then preline=0; else preline=1; fi
-    fi
-    if [ "$lne2" != "⌂" ]; then
-      echo "$lne2" >>$fntmp
-      if [ -z "$lne2" ]; then preline=0; else preline=1; fi
-    fi
-  done <"$fn"
-  for i in {51..67}; do
-    p=${TKNS[$i]}
-    if [ "${ACT[$i]}" == "md_END_cright" -o "${ACT[$i]}" == "rstEND_cright" ]; then
-      if [ $Icright -eq 0 ]; then
-        [ $preline -ne 0 ] && echo "" >>$fntmp
-        Icright=3
-        add_copyright $fntmp $Irst $2
-        preline=1
-      fi
-    elif [ "${ACT[$i]}" == "md_END_addons" -o "${ACT[$i]}" == "rstEND_addons" ]; then
-      if [ $Iaddons -eq 0 ]; then
-        [ $preline -ne 0 ] && echo "" >>$fntmp
-        Iaddons=3
-        # add_addons $fntmp $Irst "$2" "$4"
-        preline=1
-      fi
-    elif [ "${ACT[$i]}" == "md_END_install" -o "${ACT[$i]}" == "rstEND_install" ]; then
-      if [ $Iinstall -eq 0 ]; then
-        [ $preline -ne 0 ] && echo "" >>$fntmp
-        Iinstall=3
-        # add_install $fntmp $Irst "$2" "$4"
-        preline=1
-      fi
-    elif [ $Irst -ne 0 ] && [[ ${ACT[$i]} =~ rstBTN ]]; then
-      v="${ACT[$i]}"
-      v="I${v:7}"
-      eval $v=1
-    fi
-  done
-  [ $preline -ne 0 ] && preline=0 && echo "" >>$fntmp
-  for i in {1..23} {51..67}; do
-    p=${TKNS[$i]}
-    if [ $Irst -eq 0 -a $i -ge 50 ] && [[ "${ACT[$i]}" =~ md_BTN ]]; then
-      v="${ACT[$i]}"
-      v="I${v:7}"
-      if [ ${!v} -eq 0 ]; then
-        eval $v=1
-        line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}")
-        echo "$line" >>$fntmp
-      fi
-    elif [ $Irst -ne 0 ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
-      v="${ACT[$i]}"
-      v="I${v:7}"
-      if [ ${!v} -eq 1 ]; then
-        eval $v=2
-        line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}/1")
-        echo "$line" >>$fntmp
-        line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}/2")
-        echo "$line" >>$fntmp
-      fi
-    fi
-  done
-  if [ ${test_mode:-0} -eq 0 -a $do_proc -gt 0 ]; then
-    if [ -n "$(diff -q $fn $fntmp)" ]; then
-      move_n_bak $fntmp $fn
-    else
-      rm -f $fntmp
-    fi
-  fi
-}
-
 cvt_file() {
   # cvt_file(file oca|zero|powerp travis|readme|manifest currpt ORIG)
   local f1=$1
@@ -1165,7 +529,8 @@ cvt_file() {
       if [ "$3" == "travis" ]; then
         cvt_travis $f1 "$2" "$4" "$5"
       elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
-        cvt_readme $f1 "$2" "$4" "$5"
+        # cvt_readme $f1 "$2" "$4" "$5"
+        :
       fi
       if [ -f $f1_cur ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
         diff -q $f1 $f1_cur &>/dev/null
@@ -1495,11 +860,6 @@ do_register_testpypi() {
   return $sts
 }
 
-do_annotate() {
-  wlog "Outdated function: annotate"
-  return $STS_FAILED
-}
-
 do_edit() {
   #do_edit (pofile|translation|untranslated)
   local cmd
@@ -1742,30 +1102,6 @@ do_build() {
   return $sts
 }
 
-do_check() {
-  wlog "Outdated function: check"
-  return $STS_FAILED
-}
-
-do_coverage() {
-  wlog "Outdated function: coverage"
-  return $STS_FAILED
-}
-
-do_commit() {
-  echo "Deprecated action!"
-  opts=$(inherits_travis_opts "C" "D")
-  opt_dry_run=0
-  run_traced "$TDIR/dist_pkg $opts $1"
-  sts=$?
-  return $sts
-}
-
-do_diff() {
-  wlog "Outdated function: diff"
-  return $STS_FAILED
-}
-
 do_distribution_pypi() {
   echo "Deprecated action!"
   local sts=$STS_SUCCESS
@@ -1781,6 +1117,7 @@ do_distribution_pypi() {
 }
 
 do_distribution_odoo() {
+  echo "Deprecated action!"
   local sts=$STS_SUCCESS
   local currpt=zero
   local ORIG= GIT_ORG=$2 UPSTREAM= OPTS
@@ -1933,6 +1270,7 @@ do_distribution_odoo() {
 
 do_distribution() {
   # do_distribution(repos oca|zero parent)
+  echo "Deprecated action!"
   local sts
   wlog "do_distribution $1 $2 $3"
   if [ "$PRJNAME" == "Odoo" ]; then
@@ -2256,29 +1594,6 @@ EOF
   return $sts
 }
 
-do_download_rep() {
-  #do_download_rep(pkg [URL])
-  echo "Deprecated action!"
-  wlog "do_download_rep $1 $2"
-  local dom full_rep local_rep
-  local ORIG="~/original"
-  if [ -z "$opt_branch" ]; then
-    echo "Missed Odoo Version"
-    exit 1
-  fi
-  if [[ -n "$2" ]]; then
-    full_rep=$(parse_URI "$2" "https://github.com/zeroincombenze/.git" "+ALL+LOCAL")
-  else
-    full_rep=$(parse_URI "$1" "https://github.com/zeroincombenze/.git" "+ALL+LOCAL")
-  fi
-  local_rep=$(parse_URI "$full_rep" "" "+NAMEID+LOCAL")
-  [ -d $ORIG ] || mkdir -p $ORIG
-  pushd $ORIG >/dev/null
-  [ -d "$local_rep" ] && rm -fR $local_rep/
-  run_traced "git clone $full_rep $local_rep/ -b $opt_branch --single-branch"
-  popd >/dev/null
-}
-
 do_duplicate() {
   set_executable
   if [ "$PRJNAME" == "Odoo" ]; then
@@ -2460,35 +1775,30 @@ do_translate() {
   return $sts
 }
 
-do_test() {
-  wlog "do_test '$1' '$2' '$3'"
-  local db module odoo_fver sts=$STS_FAILED
-  if [ "$PRJNAME" == "Odoo" ]; then
-    module=$1
-    db=$2
-  else
-    module=$1
-    db=$2
-    [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
-  fi
-  if [ -z "$module" ]; then
-    echo "Missing parameters! use:"
-    if [ "$PRJNAME" == "Odoo" ]; then
-      echo "> do_test ['DB']"
-    else
-      echo "> do_text -bBRANCH 'MODULE' ['DB']"
-    fi
-    return $STS_FAILED
-  fi
-  # [ -n "$db" ] && db="-d $db"
-  [ $? -eq 0 ] && run_traced "run_odoo_debug -Wb$odoo_fver -Tm $module"
+do_lint() {
+  wlog "do_lint '$1' '$2' '$3'"
+  local sts=$STS_FAILED s
+  run_traced "flake8 --config=$HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg --extend-ignore=B006 --max-line-length=88 ./"
   sts=$?
+  run_traced "pylint --rcfile=$HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg ./"
+  s=$?; [[ $s -ne 0 ]] && sts=$s
   return $sts
 }
 
-do_fetch() {
-  wlog "Outdated function: fetch"
-  return $STS_FAILED
+do_test() {
+  wlog "do_test '$1' '$2' '$3'"
+  local db module odoo_fver sts=$STS_FAILED
+  module=$1
+  db=$2
+  [[ -n "$opt_branch" ]] && odoo_fver=$opt_branch || odoo_fver=12.0
+  if [[ -z "$module" ]]; then
+    echo "Missing parameters! use:"
+    echo "> please test -bBRANCH 'MODULE'"
+    return $STS_FAILED
+  fi
+  run_traced "run_odoo_debug -b $odoo_fver -Tm $module"
+  sts=$?
+  return $sts
 }
 
 do_lsearch() {
@@ -2528,6 +1838,7 @@ do_lsearch() {
     fi
   done
 }
+
 do_push() {
   opts=$(inherits_travis_opts "oP" "D")
   opt_dry_run=0
@@ -2711,20 +2022,6 @@ do_show() {
   return $sts
 }
 
-do_showdoc() {
-  echo "Deprecated action! Use please show docs"
-  read -p "Press RET to continue ..."
-  do_show_docs "$@"
-  return 0
-}
-
-do_status() {
-  echo "Deprecated action! Use please show status"
-  read -p "Press RET to continue ..."
-  do_show_status "$@"
-  return 0
-}
-
 do_show_docs() {
   if [[ ! "$PRJNAME" == "Odoo" ]]; then
     if [[ -f ./docs/_build/html/index.html ]]; then
@@ -2802,73 +2099,6 @@ do_show_status() {
     [[ $x =~ "G" && ! $x =~ "V" ]] && echo -e "\e[1m    Package $pkg differs from github.com but it has the same version $v1!!\e[0m"
   done
   [[ -f $HOME/tools/egg-info/history.rst ]] && head $HOME/tools/egg-info/history.rst
-}
-
-do_synchro() {
-  wlog "do_synchro $1 $2 \"$3\""
-  local f opts
-  if [ -z "$3" ]; then
-    echo "Missed parameter! use:"
-    echo "\$ please synchro oca|zeroincombenze|zero|zero-merged TEXT"
-    return $STS_FAILED
-  fi
-  set_executable
-  if [ "$2" == "oca" -o "$2" == "zero-merged" ]; then
-    if [ "$PRJNAME" == "Odoo" ]; then
-      clean_dirs "$PKGPATH"
-      run_traced "git checkout $BRANCH"
-      do_distribution "$PKGNAME" "oca"
-      git status
-      git remote -v
-      run_traced "git pull --no-edit upstream $BRANCH"
-      if [ "$2" == "zero-merged" ]; then
-        do_distribution "$PKGNAME" "zero"
-      fi
-      for f in $(find $PKGPATH -type f -not -name "*.png" -exec grep -l ">>>>" '{}' \;); do
-        echo "Warning: see file $f"
-      done
-    fi
-  elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
-    if [ "$PRJNAME" == "Odoo" ]; then
-      run_traced "git checkout $BRANCH"
-      # [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git checkout $BRANCH'"
-      do_distribution "$PKGNAME" "$2"
-      clean_dirs "$PKGPATH"
-      local x=($git status -s)
-      if [ -n "$x" ]; then
-        if [ -n "$3" ]; then
-          run_traced "git commit -am \"$3\""
-          # [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"$3\"'"
-        # elif [ $opt_diff -ne 0 ]; then
-        else
-          run_traced "git commit -am \"[SYNCHRO] Update documentation\""
-          # [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"[SYNCHRO] Update documentation\"'"
-        # else
-        #   run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
-        #   # [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"[SYNCHRO] Synchronizing against OCA repository\"'"
-        fi
-      fi
-      opts=
-      [ $opt_force -ne 0 ] && opts=-f
-      # local ro=$(build_pkgurl $1 $2 RORIGIN)
-      # local ro=$(build_odoo_param RORIGIN '' $1 $2)
-      # run_traced "git push $opts $ro"
-      run_traced "git push $opts"
-      # restore_owner
-      git remote -v
-      git status
-    fi
-  else
-    echo "Missed parameter! use:"
-    echo "\$ please synchro oca|zeroincombenze|zero|oia|zero-merged"
-    sts=$STS_FAILED
-  fi
-  return $sts
-}
-
-do_travis() {
-  wlog "Outdated function: travis"
-  return $STS_FAILED
 }
 
 do_version() {
@@ -2973,6 +2203,7 @@ do_wep() {
 }
 
 OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O       p         q           r     s        t         u       V           v)
+OPTLONG=(help     debug   branch     conf     ""       force     ""       keep     log       ""      dry-run     ""       ""      ""        quiet       ""    ""       test      ""      version     verbose)
 OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=("+"      1       "="        "="      "="      1         1        1        "="       1       1           "=>"     1       "="       0           1     "="      1         1       "*"         "+")
 OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0       ""        0           0     ""       0         0       ""          -1)
@@ -3005,7 +2236,7 @@ if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|build|chkconfig|commit|config|distribution|docs|download_rep|duplicate|edit|export|import|list|lsearch|publish|push|pythonhosted|synchro|replace|replica|show|status|test|translate|version|wep"
+HLPCMDLIST="help|build|chkconfig|config|docs|duplicate|edit|export|import|lint|list|lsearch|publish|push|pythonhosted|replace|replica|show|test|translate|version|wep"
 if [[ $opt_help -gt 0 ]]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST" \
     "© 2015-2022 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"

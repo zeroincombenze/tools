@@ -1,3 +1,10 @@
+1.0.9 (2022-04-04)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] pull_repo.sh: improvements
+* [IMP] Remove old unused code
+* [IMP] please: new actions lint and test
+
 1.0.8.1 (2022-03-21)
 ~~~~~~~~~~~~~~~~~~~~
 

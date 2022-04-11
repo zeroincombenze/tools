@@ -1,4 +1,8 @@
-# Config file .coveragerc 2019-08-22
+# Config file .coveragerc 2022-04-07
+[run]
+# to avoid being overridden by server tests
+omit = *system_site_packages*, *site-packages*, *virtualenv*, *venv_odoo*
+
 [report]
 include =
 #    ${TRAVIS_BUILD_DIR}/*
@@ -15,6 +19,7 @@ omit =
     */site-packages/*
     */lib/python*/*
     */lib64/python*/*
+    */venv_odoo/*
     */__init__.py
     */__openerp__.py
     */__manifest__.py
@@ -33,7 +38,8 @@ exclude_lines =
     # Don't complain if tests don't hit defensive assertion code:
     raise AssertionError
     raise NotImplementedError
-
+    # We don't really care what happens if fail
+    except ImportError:
     # Don't complain if non-runnable code isn't run:
     if __name__ == .__main__.:
     if 0:
