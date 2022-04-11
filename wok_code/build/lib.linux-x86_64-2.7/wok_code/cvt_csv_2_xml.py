@@ -37,13 +37,14 @@ import time
 import csv
 from os0 import os0
 from python_plus import _c
+
 try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
 
 
-__version__ = "1.0.7"
+__version__ = "1.0.9"
 
 msg_time = time.time()
 
@@ -51,7 +52,7 @@ msg_time = time.time()
 def msg_burst(text):
     global msg_time
     t = time.time() - msg_time
-    if (t > 3):
+    if t > 3:
         print(text)
         msg_time = time.time()
 
@@ -78,10 +79,9 @@ def convert_file(ctx):
     if os.path.isfile(ctx['src_file']):
         if ctx['opt_verbose']:
             print("Reading %s" % ctx['src_file'])
-        csv.register_dialect('odoo',
-                             delimiter=_c(','),
-                             quotechar=_c('\"'),
-                             quoting=csv.QUOTE_MINIMAL)
+        csv.register_dialect(
+            'odoo', delimiter=_c(','), quotechar=_c('\"'), quoting=csv.QUOTE_MINIMAL
+        )
         majver = int(ctx['odoo_ver'].split('.')[0])
         ctr = 0
         target = '<?xml version="1.0" encoding="utf-8"?>\n'
@@ -92,10 +92,9 @@ def convert_file(ctx):
             target += '<openerp>\n<data noupdate="%s">\n' % value
         with open(ctx['src_file'], 'r') as csv_fd:
             hdr_read = False
-            csv_obj = csv.DictReader(csv_fd,
-                                     fieldnames=[],
-                                     restkey='undef_name',
-                                     dialect='odoo')
+            csv_obj = csv.DictReader(
+                csv_fd, fieldnames=[], restkey='undef_name', dialect='odoo'
+            )
             count = 0
             for row in csv_obj:
                 if not hdr_read:
@@ -104,16 +103,16 @@ def convert_file(ctx):
                     continue
                 row = items_2_unicode(row)
                 count += 1
-                msg_burst('%s [%d] ...' % (ctx['odoo_model'],
-                                           count))
+                msg_burst('%s [%d] ...' % (ctx['odoo_model'], count))
                 ctr += 1
-                if ('id' in row and 
-                        ctx['cvt-rule'] == 'l10n_it_base' and
-                        ctx['odoo_model'] == 'res.country.state' and
-                        row['id'][0:3] == 'it_'):
+                if (
+                    'id' in row
+                    and ctx['cvt-rule'] == 'l10n_it_base'
+                    and ctx['odoo_model'] == 'res.country.state'
+                    and row['id'][0:3] == 'it_'
+                ):
                     row['id'] = cvt_res_country_state(row['id'])
-                elif ('id' in row and
-                        ctx['odoo_model'] == 'res.city'):
+                elif 'id' in row and ctx['odoo_model'] == 'res.city':
                     del row['id']
                 if 'id' in row:
                     id = row['id']
@@ -122,8 +121,7 @@ def convert_file(ctx):
                 else:
                     id = '%s%d' % (ctx['id_prefix'], ctr)
                 if 'id' in row:
-                    line = '    <record model="%s" id="%s">\n' % (
-                        ctx['odoo_model'], id)
+                    line = '    <record model="%s" id="%s">\n' % (ctx['odoo_model'], id)
                 else:
                     line = '    <record model="%s">\n' % ctx['odoo_model']
                 for name in csv_obj.fieldnames:
@@ -133,16 +131,17 @@ def convert_file(ctx):
                     value = row[name].replace(b'"', b'\"')
                     if nm == 'state_id':
                         line += os0.u(
-                            b'        <field name="%s" ref="%s"/>\n' % (
-                                nm, cvt_res_country_state(value)))
+                            b'        <field name="%s" ref="%s"/>\n'
+                            % (nm, cvt_res_country_state(value))
+                        )
                     elif nm != name:
                         line += os0.u(
-                            b'        <field name="%s" ref="%s"/>\n' % (
-                                nm, value))
+                            b'        <field name="%s" ref="%s"/>\n' % (nm, value)
+                        )
                     else:
                         line += os0.u(
-                            b'        <field name="%s">%s</field>\n' % (
-                                nm, value))
+                            b'        <field name="%s">%s</field>\n' % (nm, value)
+                        )
                 line += '    </record>\n'
                 target += line
         if majver >= 10:
@@ -150,7 +149,7 @@ def convert_file(ctx):
         else:
             target += '</data>\n</openerp>\n'
         if not ctx['dst_file']:
-            ctx['dst_file'] = ctx['src_file'][0: -4] + '.xml'
+            ctx['dst_file'] = ctx['src_file'][0:-4] + '.xml'
         if ctx['dst_file'] == '/dev/tty':
             print(target)
         else:
@@ -161,36 +160,26 @@ def convert_file(ctx):
 
 
 if __name__ == "__main__":
-    parser = z0lib.parseoptargs("Convert csv file into xml file",
-                                "© 2018-2020 by SHS-AV s.r.l.",
-                                version=__version__)
+    parser = z0lib.parseoptargs(
+        "Convert csv file into xml file",
+        "© 2018-2020 by SHS-AV s.r.l.",
+        version=__version__,
+    )
     parser.add_argument('-h')
-    parser.add_argument('-b', '--odoo-branch',
-                        action='store',
-                        dest='odoo_ver')
-    parser.add_argument('-i', '--id-prefix',
-                        action='store',
-                        dest='id_prefix')
-    parser.add_argument('-j', '--id-mode',
-                        action='store',
-                        help='ctr,code',
-                        dest='id_mode')
-    parser.add_argument('-m', '--model',
-                        action='store',
-                        dest='odoo_model')
-    parser.add_argument('-N', '--no-update',
-                        action='store_true',
-                        dest='noupdate')
+    parser.add_argument('-b', '--odoo-branch', action='store', dest='odoo_ver')
+    parser.add_argument('-i', '--id-prefix', action='store', dest='id_prefix')
+    parser.add_argument(
+        '-j', '--id-mode', action='store', help='ctr,code', dest='id_mode'
+    )
+    parser.add_argument('-m', '--model', action='store', dest='odoo_model')
+    parser.add_argument('-N', '--no-update', action='store_true', dest='noupdate')
     parser.add_argument('-n')
     parser.add_argument('-q')
-    parser.add_argument('-R', '--cvt-rule',
-                        action='store',
-                        dest='cvt-rule')
+    parser.add_argument('-R', '--cvt-rule', action='store', dest='cvt-rule')
     parser.add_argument('-V')
     parser.add_argument('-v')
     parser.add_argument('src_file')
-    parser.add_argument('dst_file',
-                        nargs='?')
+    parser.add_argument('dst_file', nargs='?')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
     if not ctx['odoo_ver']:
         print(__doc__)

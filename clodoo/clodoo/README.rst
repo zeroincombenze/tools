@@ -1,7 +1,7 @@
 
-==============
-clodoo 1.0.1.2
-==============
+============
+clodoo 1.0.2
+============
 
 
 
@@ -327,8 +327,8 @@ Current development version
 History
 -------
 
-1.0.1.2 (2022-03-29)
-~~~~~~~~~~~~~~~~~~~~
+1.0.2 (2022-03-29)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] transodoo.xlsx: account.invoice-move
 * [FIX] transodoo.py: account.invoice-move
@@ -416,7 +416,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-04-01
+Last Update / Ultimo aggiornamento: 2022-04-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

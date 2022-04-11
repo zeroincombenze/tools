@@ -27,7 +27,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "1.0.8.1"
+__version__ = "1.0.9"
 
 DATA = {
     'zero6': {

@@ -47,12 +47,12 @@ optional arguments:
 
 This app can execute following actions:
   mod: print module list of paths
-  dep: print dependencies list of modules 
+  dep: print dependencies list of modules
   rev: print dependents list of module in paths
   jrq: print just strict dependents list of module in paths
   tree: print modules tree
 
-Action 'mod' returns module list from path_list (comma separated). 
+Action 'mod' returns module list from path_list (comma separated).
 With -R switch, the search traverses directories.
 With -M switch, list matches only modules in MODULES_TO_MATCH.
 With -E switch, list matches only modules in MODULES_TO_MATCH
@@ -98,6 +98,7 @@ import sys
 import os
 import ast
 from six import string_types
+
 # try:
 #     from os0 import os0
 # except ImportError:
@@ -111,7 +112,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '1.0.7'
+__version__ = '1.0.9'
 
 
 MANIFEST_FILES = [
@@ -124,9 +125,15 @@ MAX_DEEP = 20
 UNDEF_DEEP = MAX_DEEP + 5
 MISSED = 99
 
-def get_test_dependencies(addons_path, addons_list, depends_by=None,
-                          ao_list=None, external_dependencies=None,
-                          external_bin_dependencies=None):
+
+def get_test_dependencies(
+    addons_path,
+    addons_list,
+    depends_by=None,
+    ao_list=None,
+    external_dependencies=None,
+    external_bin_dependencies=None,
+):
     """
     Get the list of core and external modules dependencies
     for the modules to test.
@@ -144,17 +151,21 @@ def get_test_dependencies(addons_path, addons_list, depends_by=None,
     if ao_list == '|':
         for module in addons_list:
             deps = get_dependencies(
-                modules, module,
+                modules,
+                module,
                 external_dependencies=external_dependencies,
-                external_bin_dependencies=external_bin_dependencies)
+                external_bin_dependencies=external_bin_dependencies,
+            )
             if depends_by:
                 deps &= set(depends_by)
             dependencies |= deps
     elif ao_list == '&':
         dependencies = get_dependencies(
-            modules, addons_list[0],
+            modules,
+            addons_list[0],
             external_dependencies=external_dependencies,
-            external_bin_dependencies=external_bin_dependencies)
+            external_bin_dependencies=external_bin_dependencies,
+        )
         for module in addons_list[1:]:
             deps = get_dependents(modules, module)
             if depends_by:
@@ -165,30 +176,41 @@ def get_test_dependencies(addons_path, addons_list, depends_by=None,
     return list(dependencies - set(addons_list))
 
 
-def get_dependencies(modules, module_name, depth=None,
-                     external_dependencies=None,
-                     external_bin_dependencies=None):
+def get_dependencies(
+    modules,
+    module_name,
+    depth=None,
+    external_dependencies=None,
+    external_bin_dependencies=None,
+):
     """Return a set of all the dependencies in deep of the module_name.
     The module_name is included in the result."""
     depth = depth or 999
     result = set()
     if external_bin_dependencies:
-        for dependency in modules.get(module_name, {}).get(
-                'external_dependencies', {}).get('bin', []):
+        for dependency in (
+            modules.get(module_name, {}).get('external_dependencies', {}).get('bin', [])
+        ):
             result |= set([dependency])
         return result
     elif external_dependencies:
-        for dependency in modules.get(module_name, {}).get(
-                'external_dependencies', {}).get('python', []):
+        for dependency in (
+            modules.get(module_name, {})
+            .get('external_dependencies', {})
+            .get('python', [])
+        ):
             result |= set([dependency])
         return result
     else:
         for dependency in modules.get(module_name, {}).get('depends', []):
             if depth > 1:
                 result |= get_dependencies(
-                    modules, dependency, depth=depth-1,
+                    modules,
+                    dependency,
+                    depth=depth - 1,
                     external_dependencies=external_dependencies,
-                    external_bin_dependencies=external_bin_dependencies)
+                    external_bin_dependencies=external_bin_dependencies,
+                )
             else:
                 result |= set([dependency])
         return result | set([module_name])
@@ -204,13 +226,13 @@ def get_dependents(modules, module_name, depth=None):
             if depth <= 1:
                 result |= set([dependent])
             else:
-                result |= get_dependents(modules, dependent, depth=depth-1)
+                result |= get_dependents(modules, dependent, depth=depth - 1)
     return result | set([module_name])
 
 
-def get_dep_of_module(addons_path, addons_list,
-                      external_dependencies=None,
-                      external_bin_dependencies=None):
+def get_dep_of_module(
+    addons_path, addons_list, external_dependencies=None, external_bin_dependencies=None
+):
     if not addons_list:
         return ['base']
     else:
@@ -220,9 +242,11 @@ def get_dep_of_module(addons_path, addons_list,
         dependencies = set()
         for module in addons_list:
             dependencies |= get_dependencies(
-                modules, module,
+                modules,
+                module,
                 external_dependencies=external_dependencies,
-                external_bin_dependencies=external_bin_dependencies)
+                external_bin_dependencies=external_bin_dependencies,
+            )
         return list(dependencies - set(addons_list))
 
 
@@ -236,8 +260,7 @@ def is_module(path):
     files = os.listdir(path)
     filtered = [x for x in files if x in (MANIFEST_FILES + ['__init__.py'])]
     if len(filtered) == 2 and '__init__.py' in filtered:
-        return os.path.join(
-            path, next(x for x in filtered if x != '__init__.py'))
+        return os.path.join(path, next(x for x in filtered if x != '__init__.py'))
     else:
         return False
 
@@ -257,17 +280,21 @@ def read_valid_manifest(manifest_path, depends_by=None, ao_list=None):
         return False
     if depends_by:
         deps = manifest.get('depends', [])
-        if ((ao_list == '|' and not list(set(depends_by) & set(deps))) or
-            (ao_list == '&' and list(set(depends_by) - set(deps))) or
-            (ao_list == '=' and list(set(depends_by) - set(deps)) and
-             list(set(depends_by) - set(deps)))
+        if (
+            (ao_list == '|' and not list(set(depends_by) & set(deps)))
+            or (ao_list == '&' and list(set(depends_by) - set(deps)))
+            or (
+                ao_list == '='
+                and list(set(depends_by) - set(deps))
+                and list(set(depends_by) - set(deps))
+            )
         ):
             return False
     return manifest
 
 
 def get_modules_info(path, depth=1, depends_by=None, ao_list=None):
-    """ Return a digest of each installable module's manifest in path repo"""
+    """Return a digest of each installable module's manifest in path repo"""
     path = os.path.expanduser(path)
     # Avoid empty basename when path ends with slash
     path = os.path.dirname(path) if not os.path.basename(path) else path
@@ -277,25 +304,26 @@ def get_modules_info(path, depth=1, depends_by=None, ao_list=None):
             module_path = os.path.join(path, module)
             manifest_path = is_module(module_path)
             if manifest_path:
-                manifest = read_valid_manifest(manifest_path,
-                                               depends_by=depends_by,
-                                               ao_list=ao_list)
+                manifest = read_valid_manifest(
+                    manifest_path, depends_by=depends_by, ao_list=ao_list
+                )
                 if manifest:
                     modules[module] = {
                         'application': manifest.get('application', False),
                         'depends': manifest.get('depends', []),
                         'external_dependencies': manifest.get(
-                            'external_dependencies', {}),
+                            'external_dependencies', {}
+                        ),
                         'auto_install': manifest.get('auto_install', False),
                     }
             # ignore module whom name starts by '_'
-            elif (not module.startswith('_') and
-                    os.path.isdir(module_path)):
+            elif not module.startswith('_') and os.path.isdir(module_path):
                 deeper_modules = get_modules_info(
                     os.path.join(path, module),
-                    depth=depth-1,
+                    depth=depth - 1,
                     depends_by=depends_by,
-                    ao_list=ao_list)
+                    ao_list=ao_list,
+                )
                 modules.update(deeper_modules)
     return modules
 
@@ -314,48 +342,55 @@ def get_addons(path, depth=1):
     if is_addons(path):
         res.append(path)
     else:
-        new_paths = [os.path.join(path, x)
-                     for x in sorted(os.listdir(path))
-                     if os.path.isdir(os.path.join(path, x))]
+        new_paths = [
+            os.path.join(path, x)
+            for x in sorted(os.listdir(path))
+            if os.path.isdir(os.path.join(path, x))
+        ]
         for new_path in new_paths:
-            res.extend(get_addons(new_path, depth-1))
+            res.extend(get_addons(new_path, depth - 1))
     return res
 
 
 def add_auto_install(modules, to_install):
-    """ Append automatically installed glue modules to to_install if their
-    dependencies are already present. to_install is a set. """
+    """Append automatically installed glue modules to to_install if their
+    dependencies are already present. to_install is a set."""
     found = True
     while found:
         found = False
         for module, module_data in modules.items():
-            if (module_data.get('auto_install') and
-                    module not in to_install and
-                    all(dependency in to_install
-                        for dependency in module_data.get('depends', []))):
+            if (
+                module_data.get('auto_install')
+                and module not in to_install
+                and all(
+                    dependency in to_install
+                    for dependency in module_data.get('depends', [])
+                )
+            ):
                 found = True
                 to_install.add(module)
     return to_install
 
 
-def get_applications_with_dependencies(modules,
-                                       external_dependencies=None,
-                                       external_bin_dependencies=None):
-    """ Return all modules marked as application with their dependencies.
-    For our purposes, l10n modules cannot be an application. """
+def get_applications_with_dependencies(
+    modules, external_dependencies=None, external_bin_dependencies=None
+):
+    """Return all modules marked as application with their dependencies.
+    For our purposes, l10n modules cannot be an application."""
     result = set()
     for module, module_data in modules.items():
         if module_data.get('application') and not module.startswith('l10n_'):
             result |= get_dependencies(
-                modules, module,
+                modules,
+                module,
                 external_dependencies=external_dependencies,
-                external_bin_dependencies=external_bin_dependencies)
+                external_bin_dependencies=external_bin_dependencies,
+            )
     return add_auto_install(modules, result)
 
 
 def get_localizations_with_dependents(modules):
-    """ Return all localization modules with the modules that depend on them
-    """
+    """Return all localization modules with the modules that depend on them"""
     result = set()
     for module in modules.keys():
         if module.startswith('l10n_'):
@@ -364,15 +399,17 @@ def get_localizations_with_dependents(modules):
 
 
 def get_modules(path, depth=1, depends_by=None, ao_list=None):
-    """ Return modules of path repo (used in test_server.py)"""
-    return sorted(list(get_modules_info(path,
-                                        depth=depth,
-                                        depends_by=depends_by,
-                                        ao_list=ao_list).keys()))
+    """Return modules of path repo (used in test_server.py)"""
+    return sorted(
+        list(
+            get_modules_info(
+                path, depth=depth, depends_by=depends_by, ao_list=ao_list
+            ).keys()
+        )
+    )
 
 
 def build_module_tree(path_list, matches=None, depth=None, only_missed=None):
-
     def init_module(level=None):
         return {
             'application': None,
@@ -408,8 +445,7 @@ def build_module_tree(path_list, matches=None, depth=None, only_missed=None):
             if not all_modules[subm]['visited']:
                 walk_module_tree(subm)
             if all_modules[subm]['level'] != MISSED:
-                module_level = max(module_level,
-                                   all_modules[subm]['level'] + 1)
+                module_level = max(module_level, all_modules[subm]['level'] + 1)
         all_modules[module]['level'] = module_level
 
     depth = depth or 999
@@ -417,8 +453,7 @@ def build_module_tree(path_list, matches=None, depth=None, only_missed=None):
     for path in path_list:
         all_modules.update(get_modules_info(path, depth=depth))
     modules_2_match = matches or get_modules_list(path_list, depth=depth)
-    visit_list = sorted(
-        list(set(all_modules.keys()) | set(modules_2_match)))
+    visit_list = sorted(list(set(all_modules.keys()) | set(modules_2_match)))
 
     for module in visit_list:
         if module not in all_modules.keys():
@@ -438,8 +473,7 @@ def build_module_tree(path_list, matches=None, depth=None, only_missed=None):
     while True:
         found = False
         for module in all_modules.keys():
-            if (all_modules[module]['level'] == 0 and
-                    not all_modules[module]['visited']):
+            if all_modules[module]['level'] == 0 and not all_modules[module]['visited']:
                 walk_module_tree(module)
                 found = True
                 break
@@ -465,8 +499,15 @@ def build_module_tree(path_list, matches=None, depth=None, only_missed=None):
     return False, all_modules
 
 
-def get_modules_list(path_list, depth=None, matches=None, depends_by=None,
-                     ao_list=None, only_missed=None, modules_unstable=None):
+def get_modules_list(
+    path_list,
+    depth=None,
+    matches=None,
+    depends_by=None,
+    ao_list=None,
+    only_missed=None,
+    modules_unstable=None,
+):
     if isinstance(path_list, string_types):
         paths = path_list.split(',')
     else:
@@ -476,10 +517,12 @@ def get_modules_list(path_list, depth=None, matches=None, depends_by=None,
     modules_unstable = modules_unstable or []
     res = []
     for path in paths:
-        repo = get_modules(os.path.expanduser(path),
-                           depth=depth,
-                           depends_by=depends_by,
-                           ao_list=ao_list)
+        repo = get_modules(
+            os.path.expanduser(path),
+            depth=depth,
+            depends_by=depends_by,
+            ao_list=ao_list,
+        )
         for module in repo:
             if module not in res:
                 res.append(module)
@@ -491,10 +534,16 @@ def get_modules_list(path_list, depth=None, matches=None, depends_by=None,
     return sorted(res)
 
 
-def get_dependencies_list(path_list, matches=None, depth=None,
-                          depends_by=None, ao_list=None, pure_list=None,
-                          external_dependencies=None,
-                          external_bin_dependencies=None):
+def get_dependencies_list(
+    path_list,
+    matches=None,
+    depth=None,
+    depends_by=None,
+    ao_list=None,
+    pure_list=None,
+    external_dependencies=None,
+    external_bin_dependencies=None,
+):
     if isinstance(path_list, string_types):
         paths = path_list.split(',')
     else:
@@ -511,22 +560,31 @@ def get_dependencies_list(path_list, matches=None, depth=None,
     if ao_list == '|':
         for module in module_list:
             deps = get_dependencies(
-                modules, module, depth=depth,
+                modules,
+                module,
+                depth=depth,
                 external_dependencies=external_dependencies,
-                external_bin_dependencies=external_bin_dependencies)
+                external_bin_dependencies=external_bin_dependencies,
+            )
             if depends_by:
                 deps &= set(depends_by)
             dependencies |= deps
     elif ao_list == '&':
         dependencies = get_dependencies(
-            modules, module_list[0], depth=depth,
+            modules,
+            module_list[0],
+            depth=depth,
             external_dependencies=external_dependencies,
-            external_bin_dependencies=external_bin_dependencies)
+            external_bin_dependencies=external_bin_dependencies,
+        )
         for module in module_list[1:]:
             deps = get_dependencies(
-                modules, module, depth=depth,
+                modules,
+                module,
+                depth=depth,
                 external_dependencies=external_dependencies,
-                external_bin_dependencies=external_bin_dependencies)
+                external_bin_dependencies=external_bin_dependencies,
+            )
             if depends_by:
                 deps &= set(depends_by)
             dependencies &= set(deps)
@@ -537,8 +595,9 @@ def get_dependencies_list(path_list, matches=None, depth=None,
     return sorted(list(dependencies))
 
 
-def get_dependents_list(path_list, matches=None, depth=None,
-                        depends_by=None, ao_list=None):
+def get_dependents_list(
+    path_list, matches=None, depth=None, depends_by=None, ao_list=None
+):
     if isinstance(path_list, string_types):
         paths = path_list.split(',')
     else:
@@ -569,10 +628,15 @@ def get_dependents_list(path_list, matches=None, depth=None,
     return sorted(list(depends))
 
 
-def get_just_dependents_list(path_list, matches=None, depth=None,
-                             depends_by=None, ao_list=None,
-                             external_dependencies=None,
-                             external_bin_dependencies=None):
+def get_just_dependents_list(
+    path_list,
+    matches=None,
+    depth=None,
+    depends_by=None,
+    ao_list=None,
+    external_dependencies=None,
+    external_bin_dependencies=None,
+):
     if isinstance(path_list, string_types):
         paths = path_list.split(',')
     else:
@@ -593,9 +657,12 @@ def get_just_dependents_list(path_list, matches=None, depth=None,
                 deps &= set(matches)
             for m2 in deps:
                 d2 = get_dependencies(
-                    modules, m2, depth=depth,
+                    modules,
+                    m2,
+                    depth=depth,
                     external_dependencies=external_dependencies,
-                    external_bin_dependencies=external_bin_dependencies)
+                    external_bin_dependencies=external_bin_dependencies,
+                )
                 if d2 - set_depends_by == set([m2]):
                     depends |= set([m2])
     elif ao_list == '&':
@@ -606,9 +673,12 @@ def get_just_dependents_list(path_list, matches=None, depth=None,
                 deps &= set(matches)
             for m2 in deps:
                 d2 = get_dependencies(
-                    modules, m2, depth=depth,
+                    modules,
+                    m2,
+                    depth=depth,
                     external_dependencies=external_dependencies,
-                    external_bin_dependencies=external_bin_dependencies)
+                    external_bin_dependencies=external_bin_dependencies,
+                )
                 if d2 - set_depends_by == set([m2]):
                     depends &= set([m2])
                     if not depends:
@@ -621,35 +691,54 @@ def retrieve_db_modules(ctx, do_login=None):
     if ctx.get('db_name'):
         if do_login:
             if ctx.get('branch'):
-                uid, ctx = clodoo.oerp_set_env(ctx=ctx,
-                                               oe_version=ctx['branch'])
+                uid, ctx = clodoo.oerp_set_env(ctx=ctx, oe_version=ctx['branch'])
             else:
                 uid, ctx = clodoo.oerp_set_env(ctx=ctx)
         model = 'ir.module.module'
         if not ctx.get('modules_to_match'):
-            ctx['modules_to_match'] = sorted([x.name for x in
-                clodoo.browseL8(ctx, model, clodoo.searchL8(
-                    ctx, model, [('state', 'not in',
-                                 ['uninstalled', 'uninstallable'])]))
-            ])
-        ctx['modules_unstable'] =  sorted([x.name for x in
-                clodoo.browseL8(ctx, model, clodoo.searchL8(
-                    ctx, model, [('state', 'in',
-                                 ['to install', 'to upgrade', 'to remove'])]))
-            ])
+            ctx['modules_to_match'] = sorted(
+                [
+                    x.name
+                    for x in clodoo.browseL8(
+                        ctx,
+                        model,
+                        clodoo.searchL8(
+                            ctx,
+                            model,
+                            [('state', 'not in', ['uninstalled', 'uninstallable'])],
+                        ),
+                    )
+                ]
+            )
+        ctx['modules_unstable'] = sorted(
+            [
+                x.name
+                for x in clodoo.browseL8(
+                    ctx,
+                    model,
+                    clodoo.searchL8(
+                        ctx,
+                        model,
+                        [('state', 'in', ['to install', 'to upgrade', 'to remove'])],
+                    ),
+                )
+            ]
+        )
     return ctx
 
 
 def main(ctx):
     ctx = retrieve_db_modules(ctx, do_login=True)
     if ctx['action'] == 'mod':
-        res = get_modules_list(ctx['path_list'],
-                               depth=ctx['depth'],
-                               matches=ctx['modules_to_match'],
-                               depends_by=ctx['depends_by'],
-                               ao_list=ctx['ao_list'],
-                               only_missed=ctx['only-missed'],
-                               modules_unstable=ctx['modules_unstable'])
+        res = get_modules_list(
+            ctx['path_list'],
+            depth=ctx['depth'],
+            matches=ctx['modules_to_match'],
+            depends_by=ctx['depends_by'],
+            ao_list=ctx['ao_list'],
+            only_missed=ctx['only-missed'],
+            modules_unstable=ctx['modules_unstable'],
+        )
         if ctx['only_count']:
             print(len(res))
         else:
@@ -663,17 +752,20 @@ def main(ctx):
             ao_list=ctx['ao_list'],
             pure_list=ctx['pure_list'],
             external_dependencies=ctx['external_dependencies'],
-            external_bin_dependencies=ctx['external_bin_dependencies'])
+            external_bin_dependencies=ctx['external_bin_dependencies'],
+        )
         if ctx['only_count']:
             print(len(res))
         else:
             print(ctx['sep_list'].join(res))
     elif ctx['action'] == 'rev':
-        res = get_dependents_list(ctx['path_list'],
-                                  matches=ctx['modules_to_match'],
-                                  depth=ctx['depth'],
-                                  depends_by=ctx['depends_by'],
-                                  ao_list=ctx['ao_list'])
+        res = get_dependents_list(
+            ctx['path_list'],
+            matches=ctx['modules_to_match'],
+            depth=ctx['depth'],
+            depends_by=ctx['depends_by'],
+            ao_list=ctx['ao_list'],
+        )
         if ctx['only_count']:
             print(len(res))
         else:
@@ -686,15 +778,16 @@ def main(ctx):
             depends_by=ctx['depends_by'],
             ao_list=ctx['ao_list'],
             external_dependencies=ctx['external_dependencies'],
-            external_bin_dependencies=ctx['external_bin_dependencies'])
+            external_bin_dependencies=ctx['external_bin_dependencies'],
+        )
         if ctx['only_count']:
             print(len(res))
         else:
             print(ctx['sep_list'].join(res))
     elif ctx['action'] == 'tree':
-        error, modules = build_module_tree(ctx['path_list'],
-                                           matches=ctx['modules_to_match'],
-                                           depth=ctx['depth'])
+        error, modules = build_module_tree(
+            ctx['path_list'], matches=ctx['modules_to_match'], depth=ctx['depth']
+        )
         if error:
             print('Broken tree structure')
 
@@ -706,21 +799,21 @@ def main(ctx):
             rank_modules[level].append(module)
 
         for level in sorted(rank_modules.keys()):
-            if level == MISSED or (level <= MAX_DEEP and
-                                   ctx['only-missed']):
+            if level == MISSED or (level <= MAX_DEEP and ctx['only-missed']):
                 continue
             for module in sorted(rank_modules[level]):
                 if modules[module].get('level', MISSED) >= MAX_DEEP:
                     print(
-                        '%s %s (%s)' % ('-' * MAX_DEEP,
-                                        module,
-                                        modules[module].get('status', '')))
+                        '%s %s (%s)'
+                        % ('-' * MAX_DEEP, module, modules[module].get('status', ''))
+                    )
                 else:
                     print('%2d %s%s' % (level, ' ' * level, module))
         for module in sorted(rank_modules[MISSED]):
-            print('%s %s (%s)' % ('*' * MAX_DEEP,
-                                  module,
-                                  modules[module].get('status', '')))
+            print(
+                '%s %s (%s)'
+                % ('*' * MAX_DEEP, module, modules[module].get('status', ''))
+            )
     else:
         print(__doc__)
         return 1
@@ -729,88 +822,80 @@ def main(ctx):
 
 if __name__ == "__main__":
     ACTIONS = ('dep', 'help', 'jrq', 'mod', 'rev', 'tree')
-    parser = z0lib.parseoptargs("Odoo dependencies management",
-                                "© 2020-21 by SHS-AV s.r.l.",
-                                version=__version__)
+    parser = z0lib.parseoptargs(
+        "Odoo dependencies management",
+        "© 2020-21 by SHS-AV s.r.l.",
+        version=__version__,
+    )
     parser.add_argument('-h')
-    parser.add_argument('-A', '--action',
-                        action='store',
-                        choices=ACTIONS,
-                        dest='action')
-    parser.add_argument('-a', '--and-list',
-                        action='store_true',
-                        dest='and_list')
-    parser.add_argument("-b", "--branch",
-                        help="Odoo branch",
-                        dest="branch",
-                        metavar="version")
-    parser.add_argument('-B', '--depends-by',
-                        action='store',
-                        default='',
-                        dest='depends_by')
-    parser.add_argument("-c", "--config",
-                        help="configuration command file",
-                        dest="conf_fn",
-                        metavar="file",
-                        default=False)
-    parser.add_argument("-D", "--dbname",
-                        help="DB name",
-                        dest="db_name",
-                        metavar="file",
-                        default=False)
-    parser.add_argument('-E', '--only-missed',
-                        action='store_true',
-                        dest='only-missed')
-    parser.add_argument('-e', '--external-dependencies',
-                        action='store_true',
-                        default='',
-                        dest='external_dependencies')
-    parser.add_argument('-H', '--action-help',
-                        action='store_true',
-                        dest='act_show_full_help')
-    parser.add_argument('-M', '--modules-to-match',
-                        action='store',
-                        default='',
-                        dest='modules_to_match')
-    parser.add_argument('-m', '--action-modules',
-                        action='store_true',
-                        dest='act_modules')
-    parser.add_argument('-N', '--only-count',
-                        action='store_true',
-                        dest='only_count')
+    parser.add_argument(
+        '-A', '--action', action='store', choices=ACTIONS, dest='action'
+    )
+    parser.add_argument('-a', '--and-list', action='store_true', dest='and_list')
+    parser.add_argument(
+        "-b", "--branch", help="Odoo branch", dest="branch", metavar="version"
+    )
+    parser.add_argument(
+        '-B', '--depends-by', action='store', default='', dest='depends_by'
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="configuration command file",
+        dest="conf_fn",
+        metavar="file",
+        default=False,
+    )
+    parser.add_argument(
+        "-D", "--dbname", help="DB name", dest="db_name", metavar="file", default=False
+    )
+    parser.add_argument('-E', '--only-missed', action='store_true', dest='only-missed')
+    parser.add_argument(
+        '-e',
+        '--external-dependencies',
+        action='store_true',
+        default='',
+        dest='external_dependencies',
+    )
+    parser.add_argument(
+        '-H', '--action-help', action='store_true', dest='act_show_full_help'
+    )
+    parser.add_argument(
+        '-M', '--modules-to-match', action='store', default='', dest='modules_to_match'
+    )
+    parser.add_argument(
+        '-m', '--action-modules', action='store_true', dest='act_modules'
+    )
+    parser.add_argument('-N', '--only-count', action='store_true', dest='only_count')
     parser.add_argument('-n')
-    parser.add_argument('-o', '--or-list',
-                        action='store_true',
-                        dest='or_list')
-    parser.add_argument('-P', '--pure-list',
-                        action='store_true',
-                        dest='pure_list')
+    parser.add_argument('-o', '--or-list', action='store_true', dest='or_list')
+    parser.add_argument('-P', '--pure-list', action='store_true', dest='pure_list')
     parser.add_argument('-q')
-    parser.add_argument('-R', '--recurse',
-                        action='store_true',
-                        dest='recurse')
-    parser.add_argument('-S', '--sep-list',
-                        action='store',
-                        default=',',
-                        dest='sep_list')
+    parser.add_argument('-R', '--recurse', action='store_true', dest='recurse')
+    parser.add_argument(
+        '-S', '--sep-list', action='store', default=',', dest='sep_list'
+    )
     parser.add_argument('-V')
     parser.add_argument('-v')
-    parser.add_argument('-x', '--external-bin-dependencies',
-                        action='store_true',
-                        default='',
-                        dest='external_bin_dependencies')
-    parser.add_argument('-1', '--no-depth',
-                        action='store_true',
-                        dest='no_depth')
-    parser.add_argument('path_list',
-                        nargs='*')
+    parser.add_argument(
+        '-x',
+        '--external-bin-dependencies',
+        action='store_true',
+        default='',
+        dest='external_bin_dependencies',
+    )
+    parser.add_argument('-1', '--no-depth', action='store_true', dest='no_depth')
+    parser.add_argument('path_list', nargs='*')
     ctx = parser.parseoptargs(sys.argv[1:])
-    if (ctx['action'] not in ACTIONS and 
-            ctx['path_list'] and ctx['path_list'][0] in ACTIONS):
+    if (
+        ctx['action'] not in ACTIONS
+        and ctx['path_list']
+        and ctx['path_list'][0] in ACTIONS
+    ):
         ctx['action'] = ctx['path_list'].pop(0)
     if not ctx['action']:
         if ctx['act_show_full_help']:
-            ctx['action'] ='help'
+            ctx['action'] = 'help'
     if ctx['action'] not in ACTIONS:
         print('Invalid action!')
         ctx['action'] = 'help'
@@ -843,11 +928,12 @@ if __name__ == "__main__":
     if ctx['db_name'] and not ctx['conf_fn']:
         print('No configuration file for DB access!')
         exit(1)
-    if ctx['only-missed'] and (ctx['external_dependencies'] or
-                               ctx['external_bin_dependencies']):
+    if ctx['only-missed'] and (
+        ctx['external_dependencies'] or ctx['external_bin_dependencies']
+    ):
         print('Switches -E and -e or -b are mutually exclusive!')
         exit(1)
-    if ctx['conf_fn'] and not ctx['db_name']: 
+    if ctx['conf_fn'] and not ctx['db_name']:
         print('Warning: configuration file without db name!')
     if ctx['db_name'] and ctx['modules_to_match']:
         print('Warning: -M switch disable -D switch!')

@@ -26,7 +26,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '1.0.12'
+__version__ = '1.0.13'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -627,8 +627,8 @@ def main(argv=None):
         os.environ.get('TRAVIS_BUILD_DIR')) or [])) or ['base']
     print_flush("INFO: modules to preinstall: %s\n" % preinstall_modules)
     setup_server(dbtemplate, server_path, script_name,
-        install_options, preinstall_modules,
-        unbuffer, server_options, travis_debug_mode)
+                 install_options, preinstall_modules,
+                 unbuffer, server_options, travis_debug_mode)
     cmd_odoo_test = build_run_cmd_odoo(
         server_path, script_name,
         database,

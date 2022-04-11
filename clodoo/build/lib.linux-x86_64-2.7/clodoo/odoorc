@@ -59,11 +59,11 @@
 # ODOO_GIT_SHORT    -> regex of git organizzations with short name (def /(oca)/)
 #
 
-#__version__=1.0.1
+#__version__=1.0.2
 
 
-ODOO_FVERS="14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
-ODOO_VERS="14|13|12|11|10|9|8|7|6"
+ODOO_FVERS="16\.0|15\.0|14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
+ODOO_VERS="16|15|14|13|12|11|10|9|8|7|6"
 DEFMLIST="OCB account-analytic account-budgeting account-closing
  account-consolidation account-financial-reporting account-financial-tools
  account-fiscal-rule account-invoice-reporting account-invoicing
@@ -87,7 +87,7 @@ DEFMLIST="OCB account-analytic account-budgeting account-closing
  webkit-tools website website-cms website-themes wms zerobug-test"
 OCB_SUBDIRS="addons build debian dist doc docs egg-info _extensions filestore history howtos images odoo openerp redhat reference scripts server _static win32"
 OCB_SUBDIRS_RE="^(${OCB_SUBDIRS// /|})$"
-INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html .idea latex node_modules openupgrade setup _static tests themes __to_remove __unported__"
+INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html .idea latex node_modules openupgrade setup _static tests themes travis _travis __to_remove __unported__"
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPS_EXTRA="^(didotech_80|grymb|maintainer-quality-tools|maintainer-tools|tools|uncovered|VME|OpenUpgrade|Odoo-samples|dotnet|interface-github|odoorpc|openupgradelib|pylint-odoo|rest-framework|runbot-addons)$"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
@@ -213,10 +213,10 @@ traverse() {
 build_odoo_param() {
     # build_odoo_param(ALL|BIN|CONFN|DB_USER|DDIR|DIRLEVEL|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|LPPORT|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV
     #                  vid [(search|DEBUG|default|tree|SERVER|<rptname>|<modname>)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER)])
-    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
         echo "${!1}"
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     fi
     READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -250,7 +250,7 @@ build_odoo_param() {
           [[ -z "$DIRLEVEL" ]] && $(is_repos "$2") && DIRLEVEL="repository"
           [[ -z "$DIRLEVEL" ]] && DIRLEVEL="other"
           echo $DIRLEVEL
-          [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+          $SETX
           return
         fi
         [[ -n "$2" ]] && cdir=$($READLINK -f $2) || cdir=$($READLINK -f $PWD)
@@ -319,7 +319,7 @@ build_odoo_param() {
     if [[ $ITEM == "DIRLEVEL" ]]; then
         DIRLEVEL="other"
         echo $DIRLEVEL
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     fi
     [[ -z $REPOS ]] && REPOS=OCB
@@ -334,7 +334,7 @@ build_odoo_param() {
     MAJVER=$(get_odoo_major_ver "$FULLVER")
     if [[ "$ITEM" == "MANIFEST" ]]; then
         [[ $MAJVER -ge 10 ]] && echo "__manifest__.py" || echo "__openerp__.py"
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     fi
     [[ ${opt_multi:-0} -ne 0 ]] && MULTIVER=1 || MULTIVER=0
@@ -387,7 +387,7 @@ build_odoo_param() {
           LICENSE=$(echo $LICENSE|grep -Eo [A-Z]+|head -n1)
         fi
         echo $LICENSE
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     fi
     if [[ -z $ROOT ]]; then
@@ -457,20 +457,20 @@ build_odoo_param() {
     [[ -z "$VDIR" ]] && VDIR="$HOME/VENV-$FULLVER"
     if [[ "$ITEM" =~ ^(DB_USER|FULLVER|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|MAJVER|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RUPSTREAM|URL|URL_BRANCH|VCS|VDIR|VENV)$ ]]; then
         echo "${!ITEM}"
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     fi
     if [[ $ITEM == "ALL" ]]; then
         echo "|$FULLVER|$REPOS|$PKGPATH|$PKGNAME|"
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     elif [[ $ITEM == "USER" ]]; then
         echo "$DB_USER"
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     elif [[ $ITEM == "HOME" ]]; then
         echo "$PRJPATH"
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     elif [[ $ITEM == "RPCPORT" ]]; then
         if [[ $spec =~ (debug|DEBUG) ]]; then
@@ -493,7 +493,7 @@ build_odoo_param() {
             p=8069
         fi
         echo $p
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     elif [[ $ITEM == "LPPORT" ]]; then
         if [[ $spec =~ (debug|DEBUG) ]]; then
@@ -516,11 +516,11 @@ build_odoo_param() {
             p=8072
         fi
         echo $p
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     elif [ "$ITEM" == "LCONFN" ]; then
         [ $MAJVER -ge 10 ] && echo ".odoorc" || echo ".openerp_serverrc"
-        [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+        $SETX
         return
     elif [ "$ITEM" == "DDIR" ]; then
         [ $VENV -ne 0 ] && p="$(dirname $ROOT)/$odoo_vid/.local/share" || p="$(dirname $ROOT)/.local/share"
@@ -542,7 +542,7 @@ build_odoo_param() {
             p4=.conf
         else
             echo $p
-            [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+            $SETX
             return
         fi
     elif [ "$ITEM" == "CONFN" ]; then
@@ -634,6 +634,7 @@ build_odoo_param() {
         p=$(basename $p)
     fi
     echo "$p"
+    $SETX
 }
 
 discover_multi() {

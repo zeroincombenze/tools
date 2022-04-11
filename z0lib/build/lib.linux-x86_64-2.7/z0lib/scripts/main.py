@@ -6,7 +6,8 @@ General purpose bash and python library for zeroincombenze(R) tools
 Features:
 
 * xuname: unix/linux platform recognizer (tested on various environments)
-* parseoptargs: line command parser; expands python argparse and adds same functionalities to bash scripts
+* parseoptargs: line command parser;
+                expands python argparse and adds same functionalities to bash scripts
 * tracelog: manage tracelog (only bash)
 * findpkg: find package in file system (only bash)
 * run_traced: execute (or dry_run) shell command (only bash)
@@ -19,7 +20,7 @@ import gzip
 import shutil
 
 
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 
 
 def fake_setup(**kwargs):

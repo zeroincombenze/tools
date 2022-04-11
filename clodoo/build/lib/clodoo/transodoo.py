@@ -52,7 +52,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "1.0.1.2"
+__version__ = "1.0.2"
 VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0',
             '11.0', '12.0', '13.0', '14.0', '15.0', '16.0']
 ALL_VERSIONS = [x for x in VERSIONS]

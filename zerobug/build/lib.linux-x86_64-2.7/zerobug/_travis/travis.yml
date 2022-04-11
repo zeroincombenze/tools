@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=1.0.8
+# __version__=1.0.9
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -58,7 +58,7 @@ install:
 env:
   global:
   - TRAVIS_DEBUG_MODE="2"
-  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" LINT_CHECK_LEVEL="REDUCED"
+  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0"
 
   matrix:
   - DEV_ENVIRONMENT=${PKGNAME} LINT_CHECK="1" BASH_CHECK="0" TESTS="1"

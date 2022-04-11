@@ -1,6 +1,6 @@
 
 =================
-z0bug_odoo 1.0.12
+z0bug_odoo 1.0.13
 =================
 
 
@@ -1048,10 +1048,16 @@ Current development version
 History
 -------
 
+1.0.13 (2022-03-29)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Invoice data
+
 1.0.12 (2022-03-14)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
+* [IMP] comfiguration file for PYPI lint
 
 1.0.11.1 (2022-03-12)
 ~~~~~~~~~~~~~~~~~~~~~
@@ -1107,13 +1113,6 @@ History
 
 * [FIX] python3 failure
 
-1.0.5.2 (2021-09-27)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Tax code 2220 & 2280 / Cod.IVA 2220 e 2280
-* [FIX] Tax code for extre-EU invoice / Codice IVA fattura extra-UE
-* [IMP] Account invoices at last month / Fatture a mese precedente
-
 
 
 |
@@ -1138,7 +1137,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-14
+Last Update / Ultimo aggiornamento: 2022-04-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -15,8 +15,9 @@ Structure:
     field:    field name to translate
     action:   action/function to translate
     xref:     external reference (model is ir.model.data)
+    model:    model name to translate (model is ir.model)
     module:   module name to translate (model is ir.module.module)
-    merge:    module name merged with (model is ir.module.module)
+    merge:    module name or model merged with
     value:    value of field to translate (name is the field name)
     valuetnl: field ha translation ("1")
 
@@ -30,7 +31,6 @@ the ttype 'value' has a more level for every field name:
 [pymodel]['value'][fldname][ver.name]
 """
 from __future__ import print_function, unicode_literals
-# from builtins import input
 from past.builtins import basestring
 from python_plus import bstrings, unicodes
 
@@ -40,7 +40,6 @@ import sys
 from openpyxl import load_workbook, Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill
-# from openpyxl import load_workbook
 try:
     import jsonlib
 except ImportError:
@@ -53,12 +52,13 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "1.0.1"
-VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0']
+__version__ = "1.0.2"
+VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0',
+            '11.0', '12.0', '13.0', '14.0', '15.0', '16.0']
 ALL_VERSIONS = [x for x in VERSIONS]
 for org in ('zero', 'powerp', 'librerp'):
     for ver in VERSIONS:
-        if org == 'librerp' and ver != '6.1':
+        if org == 'librerp' and ver not in ('6.1', '12.0'):
             continue
         elif org == 'powerp' and int(ver.split('.')[0]) < 12:
             continue
@@ -137,7 +137,7 @@ def build_alias_struct(mindroot, model, ttype, fld_name=False):
     return mindroot
 
 
-def link_versioned_name(mindroot, model, hash, ttype, src_name, ver,
+def link_versioned_name(mindroot, model, hashed, ttype, src_name, ver,
                         fld_name=False):
     pymodel = get_pymodel(model, ttype=ttype)
     ver_name = get_ver_name(src_name, ver)
@@ -150,21 +150,21 @@ def link_versioned_name(mindroot, model, hash, ttype, src_name, ver,
     else:
         item = mindroot[pymodel][ttype]
     if item is not None:
-        item[hash] = item.get(hash, {})
+        item[hashed] = item.get(hashed, {})
         if ver_name:
             tver = ver_name
             while tver:
                 tver = previous_ver_name(tver, ver_name)
-                if tver in item and hash not in item[tver]:
+                if tver in item and hashed not in item[tver]:
                     item[ver_name] = item[tver]
             if ver_name in item:
                 if not isinstance(item[ver_name], list):
                     item[ver_name] = [item[ver_name]]
-                if hash not in item[ver_name]:
-                    item[ver_name].append(hash)
+                if hashed not in item[ver_name]:
+                    item[ver_name].append(hashed)
             else:
-                item[ver_name] = hash
-        item[hash][ver] = src_name
+                item[ver_name] = hashed
+        item[hashed][ver] = src_name
     return mindroot
 
 
@@ -173,16 +173,6 @@ def get_majver(name):
     if x:
         return int(name[x.start(): x.end()])
     return 0
-
-
-# def tnl_acc_type(ctx, model, src_name, src_ver, tgt_ver, name):
-#     src_majver = int(src_ver.split('.')[0])
-#     tgt_majver = int(tgt_ver.split('.')[0])
-#     if src_majver < 9 and tgt_majver >= 9:
-#         name = CVT_ACC_TYPE_OLD_NEW.get(name, name)
-#     elif src_majver >= 9 and tgt_majver < 9:
-#         name = CVT_ACC_TYPE_NEW_OLD.get(name, name)
-#     return name
 
 
 def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
@@ -199,13 +189,79 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
             name = src_name / 100
         else:
             name = src_name
+    elif name == '${coa}':
+        if tgt_ver.split('.')[0].isdigit() and (src_ver.startswith('librerp') or
+                                                src_ver.startswith('powerp') or
+                                                src_ver.startswith('zero')):
+            name = {
+                '123380': '1205',
+                '153010': '1601',
+                '153050': '1611',
+                '153110': '1609',
+                '211010': '2101',
+                '260010': '2601',
+                '260060': '2611',
+                '260110': '2602',
+                '510000': '3112',
+                '510100': '3101',
+                '510200': '3202',
+                '512000': '3103',
+                '610100': '4101',
+                '610110': '4102',
+                '621200': '4105',
+                '623100': '4209',
+                '623460': '4204',
+                '630100': '4301',
+            }.get(src_name, src_name)
+        elif src_ver.split('.')[0].isdigit() and (tgt_ver.startswith('librerp') or
+                                                  tgt_ver.startswith('powerp') or
+                                                  tgt_ver.startswith('zero')):
+            name = {
+                '1205': '123380',
+                '1601': '153010',
+                '1611': '153050',
+                '1609': '153110',
+                '2101': '211010',
+                '2601': '260010',
+                '2611': '260060',
+                '2602': '260110',
+                '3112': '510000',
+                '3101': '510100',
+                '3202': '510200',
+                '3103': '512000',
+                '4101': '610100',
+                '4102': '610110',
+                '4105': '621200',
+                '4204': '623460',
+                '4209': '623100',
+                '4301': '630100',
+            }.get(src_name, src_name)
+        else:
+            name = src_name
+    elif name == '${tax}':
+        if tgt_ver.split('.')[0].isdigit() and (src_ver.startswith('librerp') or
+                                                    src_ver.startswith('powerp') or
+                                                    src_ver.startswith('zero')):
+            name = {
+                'a15a': '00art15a',
+                'a15v': '00art15v',
+            }.get(src_name, src_name)
+        elif src_ver.split('.')[0].isdigit() and (tgt_ver.startswith('librerp') or
+                                                  tgt_ver.startswith('powerp') or
+                                                  tgt_ver.startswith('zero')):
+            name = {
+                '00art15a': 'a15a',
+                '00art15v': 'a15v',
+            }.get(src_name, src_name)
+        else:
+            name = src_name
     return name
 
 
 def previous_ver_name(ver_name, orig_name):
     x = re.search('[0-9]+', ver_name)
     if x:
-        version = int(ver_name[x.start():x.end()]) - 1
+        version = int(ver_name[x.start(): x.end()]) - 1
         if version < 6:
             if re.match(r'[0-9]+\.[0-9]', ver_name):
                 ver_name = ''
@@ -213,8 +269,10 @@ def previous_ver_name(ver_name, orig_name):
                 ver_name = orig_name if orig_name else ''
             x = re.search('[0-9]+', ver_name)
             if x:
-                version = int(ver_name[x.start():x.end()])
+                version = int(ver_name[x.start(): x.end()])
                 ver_name = '%d.0' % version
+                if '~' in orig_name:
+                    ver_name = '%s~%s' % (ver_name, orig_name.split('~', 1)[-1])
             else:
                 ver_name = ''
         else:
@@ -253,8 +311,8 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
     name = src_name
     if ver_name and pymodel in mindroot:
         names = []
-        for typ in map(lambda x: x, ('name',
-                                     'field')) if not ttype else [ttype]:
+        for typ in map(
+                lambda x: x, ('name', 'field')) if not ttype else [ttype, 'merge']:
             if ttype == 'valuetnl':
                 if fld_name in mindroot[pymodel].get('value', {}):
                     names = ['1']
@@ -267,26 +325,29 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                 item = mindroot[pymodel].get(typ, {})
             if isinstance(item, basestring):
                 if item.startswith('${') and item.endswith('}'):
-                    fct = item[2: -1]
-                    if fct == 'amount':
-                        names.append(tnl_by_code(ctx, model, src_name,
-                                                 src_ver, tgt_ver,
-                                                 item))
+                    # fct = item[2: -1]
+                    names.append(tnl_by_code(ctx, model, src_name,
+                                             src_ver, tgt_ver,
+                                             item))
             else:
                 sver = ver_name
                 while sver and sver not in item:
                     sver = previous_ver_name(sver, ver_name)
                 if sver:
-                    hash = item[sver]
-                    if not isinstance(hash, list):
-                        hash = [hash]
-                    for hh in hash:
+                    hashed = item[sver]
+                    if not isinstance(hashed, list):
+                        hashed = [hashed]
+                    for hh in hashed:
                         if hh in item:
                             tver = tgt_ver
                             while tver and tver not in item[hh]:
                                 tver = previous_ver_name(tver, tgt_ver)
                             if tver and item[hh][tver] not in names:
                                 names.append(item[hh][tver])
+                            if (typ == 'merge' and
+                                    src_name not in names and
+                                    get_majver(tver) < get_majver(sver)):
+                                names.insert(0, src_name)
         if names:
             if len(names) == 1:
                 name = names[0]
@@ -298,6 +359,7 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
 
 
 def translate_from_sym(ctx, model, sym, tgt_ver):
+    # deprecated!
     mindroot = ctx.get('mindroot', {})
     if tgt_ver not in ALL_VERSIONS:
         print('Invalid target version!')
@@ -391,8 +453,7 @@ def read_stored_dict(ctx):
             ctx['dict_fn'] = 'transodoo.xlsx'
     mindroot = {}
     wb = load_workbook(ctx['dict_fn'])
-    for sheet in wb:
-        break
+    sheet = wb.active
     colnames = []
     for column in sheet.columns:
         colnames.append(column[0].value)
@@ -414,19 +475,20 @@ def read_stored_dict(ctx):
         last_ver_value = ''
         for ver in ALL_VERSIONS:
             if ((ver.startswith('zero') and not last_ver.startswith('zero')) or
-                    (ver.startswith('powerp') and
-                     not last_ver.startswith('powerp'))):
+                    (ver.startswith('powerp') and not last_ver.startswith('powerp')) or
+                    (ver.startswith('librerp') and
+                     not last_ver.startswith('librerp'))):
                 last_ver_value = ''
             if ver in row and row[ver] and row[ver] != last_ver_value:
                 ver_names.append(row[ver])
                 used_versions.append(ver)
                 last_ver_value = row[ver]
             last_ver = ver
-        hash = set_hash(row['type'], row['name'], ver_names)
+        hashed = set_hash(row['type'], row['name'], ver_names)
         for ver in used_versions:
             mindroot = link_versioned_name(mindroot,
                                            row['model'],
-                                           hash,
+                                           hashed,
                                            row['type'],
                                            row[ver],
                                            ver,
@@ -490,25 +552,25 @@ def write_stored_dict(ctx):
                     iterate2 = [items]
                 else:
                     iterate2 = sorted(items.keys())
-                for hash in iterate2:
-                    if not is_hash(hash):
+                for hashed in iterate2:
+                    if not is_hash(hashed):
                         continue
                     line = {
                         'model': model,
                         'type': ttype,
                     }
                     if ttype == 'name':
-                        line['name'] = hash
+                        line['name'] = hashed
                     else:
                         if ttype in ('value', 'valuetnl'):
                             line['name'] = name
                     if isinstance(items, basestring):
                         for ver_name in VERSIONS:
-                            line[ver_name] = hash
+                            line[ver_name] = hashed
                     else:
-                        for ver_name in sorted(items[hash].keys()):
-                            if items[hash][ver_name]:
-                                line[ver_name] = items[hash][ver_name]
+                        for ver_name in sorted(items[hashed].keys()):
+                            if items[hashed][ver_name]:
+                                line[ver_name] = items[hashed][ver_name]
                     rowid = write_row(sheet, line, rowid, header, widths)
     for col, item in enumerate(header):
         sheet.column_dimensions[get_column_letter(col + 1)].width = widths[item]

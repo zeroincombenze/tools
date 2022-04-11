@@ -2,7 +2,7 @@
 """
 Usage: get_test_dependencies.py -r|-m|-d|mod|dep -1 path_list [module_list]
 
-If 1st switch is 'mod' or -m, return module list from path_list (comma separated) 
+If 1st switch is 'mod' or -m, return module list from path_list (comma separated)
 If 1st switch is 'dep' or -d, return dependencies list from path_list
 for specific module_list (comma separated) if supplied or
 module_list is generated from path_list.
@@ -23,7 +23,7 @@ else:
     from .test_server import get_test_dependencies
 
 
-__version__ = '1.0.12.1'
+__version__ = '1.0.13'
 
 
 def get_module_list(paths):

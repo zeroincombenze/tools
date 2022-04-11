@@ -3,14 +3,14 @@
 """z0bug
 """
 
-from __future__ import print_function,unicode_literals
+from __future__ import print_function, unicode_literals
 import os
 import sys
 import subprocess
 from zerobug import Z0BUG
 
 
-__version__ = "1.0.8"
+__version__ = "1.0.9"
 STS_FAILED = 1
 STS_SUCCESS = 0
 
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     test_file = 'test_%s.py' % Z0BUG.module_id
     # gen_test_file = 'all_tests.py'
     if (action == '-T' or ('DEV_ENVIRONMENT' in os.environ and
-            os.environ['DEV_ENVIRONMENT'] == Z0BUG.module_id)):
+                           os.environ['DEV_ENVIRONMENT'] == Z0BUG.module_id)):
         if (os.path.isdir('./tests') and
                 os.path.isfile(os.path.join('tests', test_file))):
             os.chdir('./tests')

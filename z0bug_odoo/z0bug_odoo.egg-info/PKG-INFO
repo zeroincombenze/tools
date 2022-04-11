@@ -1,13 +1,18 @@
-Metadata-Version: 2.1
+Metadata-Version: 1.2
 Name: z0bug-odoo
-Version: 1.0.12.1
+Version: 1.0.13
 Summary: Odoo testing framework
 Home-page: https://zeroincombenze-tools.readthedocs.io
 Author: Antonio Maria Vigliotti
 Author-email: antoniomaria.vigliotti@gmail.com
 License: Affero GPL
-Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
 Project-URL: Source, https://github.com/zeroincombenze/tools
+Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
+Description: 
+        Zeroincombenze(R) continuous testing framework for Odoo modules.
+        
+        Make avaiable test functions indipendent by Odoo version.
+        
 Keywords: unit test debug
 Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
@@ -20,10 +25,3 @@ Classifier: Intended Audience :: Developers
 Classifier: Topic :: Software Development
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: System :: System Shells
-
-
-Zeroincombenze(R) continuous testing framework for Odoo modules.
-
-Make avaiable test functions indipendent by Odoo version.
-
-

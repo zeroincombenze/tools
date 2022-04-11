@@ -1,6 +1,6 @@
 
 =================
-python_plus 1.0.8
+python_plus 1.0.9
 =================
 
 
@@ -274,6 +274,11 @@ Current development version
 History
 -------
 
+1.0.9 (2022-03-24)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Lint + tests
+
 1.0.8 (2022-03-14)
 ~~~~~~~~~~~~~~~~~~
 
@@ -329,11 +334,6 @@ History
 
 * [FIX] vem: 1st installation, z0librc not found
 
-1.0.3.4 (2021-09-26)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: minor fixes
-
 
 
 |
@@ -358,7 +358,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-14
+Last Update / Ultimo aggiornamento: 2022-04-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

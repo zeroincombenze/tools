@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.12.1
+__version__=1.0.13
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -391,7 +391,7 @@ if [[ ! $opts =~ ^-.*[gt] ]]; then
     for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
         # [[ $PYVER -eq 3 && ! $opts =~ ^-.*G ]] || run_traced "cp $SRCPATH/wok_code/pre-commit $d/hooks"
         [[ $opts =~ ^-.*G ]] && run_traced "rm -f $d/hooks/pre-commit"
-        [[ $PYVER -eq 3 && ! $opts =~ ^-.*G ]] && run_traced "pre-commit install"
+        [[ $PYVER -eq 3 && ! $opts =~ ^-.*G ]] && run_traced "cd $(readlink -f $d/..); pre-commit install"
     done
 fi
 

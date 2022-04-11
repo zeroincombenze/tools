@@ -15,9 +15,12 @@ import sys
 if sys.version_info[0] == 2:
     from git_run import GitRun
 else:
-    from .git_run import GitRun
+    try:
+        from .git_run import GitRun
+    except ImportError:
+        from git_run import GitRun
 
-__version__ = '1.0.12'
+__version__ = '1.0.13'
 
 MANIFEST_FILES = [
     '__manifest__.py',
@@ -25,7 +28,6 @@ MANIFEST_FILES = [
     '__openerp__.py',
     '__terp__.py',
 ]
-
 
 
 def is_module(path):

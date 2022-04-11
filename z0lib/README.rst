@@ -1,6 +1,6 @@
 
 ===========
-z0lib 1.0.7
+z0lib 1.0.8
 ===========
 
 
@@ -103,6 +103,11 @@ Current development version
 History
 -------
 
+1.0.8 (2022-03-19)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] More tests
+
 1.0.7 (2022-03-14)
 ~~~~~~~~~~~~~~~~~~
 
@@ -134,18 +139,6 @@ History
 
 [REF] CFG_set
 
-1.0.0.3 (2021-04-06)
-~~~~~~~~~~~~~~~~~~~~
-
-[REF] run_traced: identation based on stack
-[IMP] run_traced: parameter -quiet
-
-1.0.0.2 (2021-04-05)
-~~~~~~~~~~~~~~~~~~~~
-
-[REF] parseoptarg with long options
-[REF] run_traced: colors management
-
 
 
 |
@@ -170,7 +163,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-14
+Last Update / Ultimo aggiornamento: 2022-04-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
