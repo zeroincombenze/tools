@@ -391,7 +391,8 @@ if [[ ! $opts =~ ^-.*[gt] ]]; then
     for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
         # [[ $PYVER -eq 3 && ! $opts =~ ^-.*G ]] || run_traced "cp $SRCPATH/wok_code/pre-commit $d/hooks"
         [[ $opts =~ ^-.*G ]] && run_traced "rm -f $d/hooks/pre-commit"
-        [[ $PYVER -eq 3 && ! $opts =~ ^-.*G ]] && run_traced "cd $(readlink -f $d/..); pre-commit install"
+        d=$(readlink -f $d/..)
+        [[ $PYVER -eq 3 && ! $opts =~ ^-.*G && ! -f $d/.pre-commit-config.yaml ]] && run_traced "cp $SRCPATH/pre-commit-config.yaml $d/.pre-commit-config.yaml" && run_traced "cd $d; pre-commit install"
     done
 fi
 
