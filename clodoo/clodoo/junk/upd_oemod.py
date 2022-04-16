@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 
 def initialize_params(ctx):
@@ -42,14 +42,14 @@ def initialize_params(ctx):
     except BaseException:
         write_config_file = True
         if ctx.get('opt_db', None) is None:
-            database = raw_input('database[def=demo]? ')
-        user = raw_input('username[def=admin]? ')
-        passwd = raw_input('password[def=admin]? ')
-        p = raw_input('port[def=8069]? ')
+            database = input('database[def=demo]? ')
+        user = input('username[def=admin]? ')
+        passwd = input('password[def=admin]? ')
+        p = input('port[def=8069]? ')
         if p:
             xml_port = int(p)
         if ctx.get('oe_version', None) is None:
-            p = raw_input('odoo version[def=7.0]? ')
+            p = input('odoo version[def=7.0]? ')
             if p:
                 oe_version = p
     if ctx.get('opt_db', None) is not None:
@@ -131,14 +131,14 @@ if __name__ == "__main__":
                 fd = open(passed_file, 'a')
                 fd.write('%s\n' % module.name)
                 fd.close()
-                print "%s passed" % module.name
+                print("%s passed" % module.name)
                 time.sleep(1)
             except BaseException:
                 fd = open(exclusion_file, 'a')
                 fd.write('%s\n' % module.name)
                 fd.close()
-                print "%s not upgradable" % module.name
+                print("%s not upgradable" % module.name)
                 sys.exit(1)
         else:
-            print "%s passed or excluded!" % module.name
+            print("%s passed or excluded!" % module.name)
     sys.exit(0)

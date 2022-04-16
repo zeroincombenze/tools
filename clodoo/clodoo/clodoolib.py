@@ -15,11 +15,13 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from future import standard_library
+
 # from builtins import chr
 # from builtins import str
 # from builtins import *                                           # noqa: F403
 from past.builtins import unicode
 import argparse
+
 try:
     import ConfigParser
 except ImportError:
@@ -32,133 +34,154 @@ import subprocess
 from datetime import date
 
 from os0 import os0
-standard_library.install_aliases()                                 # noqa: E402
+
+standard_library.install_aliases()  # noqa: E402
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
 CONF_FN = "./clodoo.conf"
 # Read Odoo configuration file (False or /etc/odoo-server.conf)
-ODOO_CONF = ["/etc/odoo/odoo-server.conf",
-             "/etc/odoo/odoo.conf",
-             "/etc/odoo-server.conf",
-             "/etc/odoo.conf",
-             "/etc/openerp/openerp-server.conf",
-             "/etc/openerp-server.conf",
-             "/etc/odoo/openerp-server.conf", ]
+ODOO_CONF = [
+    "/etc/odoo/odoo-server.conf",
+    "/etc/odoo/odoo.conf",
+    "/etc/odoo-server.conf",
+    "/etc/odoo.conf",
+    "/etc/openerp/openerp-server.conf",
+    "/etc/openerp-server.conf",
+    "/etc/odoo/openerp-server.conf",
+]
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 # Warning: if following LX have no values LX=(), if have 1 value LX=(value,)
 # list of string parameters in [options] of config file
-LX_CFG_S = ('db_name',
-            'db_user',
-            'db_password',
-            'login_user',
-            'login2_user',
-            'crypt_password',
-            'login_password',
-            'crypt2_password',
-            'login2_password',
-            'admin_passwd',
-            'db_host',
-            'db_port',
-            'data_dir',
-            'xmlrpc_port',
-            'oe_version',
-            'zeroadm_mail',
-            'zeroadm_login',
-            'oneadm_mail',
-            'oneadm_login',
-            'oneadm_pwd',
-            'botadm_mail',
-            'botadm_login',
-            'botadm_pwd',
-            'svc_protocol',
-            'dbfilter',
-            'dbfilterd',
-            'dbfiltert',
-            'dbfilterz',
-            'dbtypefilter',
-            'companyfilter',
-            'userfilter',
-            'lang',
-            'adm_uids',
-            'data_path',
-            'date_start',
-            'date_stop',
-            'account_code',
-            'actions',
-            'actions_db',
-            'actions_mc',
-            'actions_uu',
-            'heavy_trx',
-            'install_modules',
-            'uninstall_modules',
-            'purge_modules',
-            'upgrade_modules',
-            'data_selection',
-            'modules_2_manage',
-            'chart_of_account',
-            'catalog_db',
-            'custom_act',
-            'model',
-            'model_code',
-            'model_name',
-            'model_action',
-            'model_keyids',
-            'alias_model2',
-            'alias_field',
-            'hide_cid',
-            'modelA',
-            'modelA_code',
-            'modelA_name',
-            'modelA_action',
-            'modelA_keyids',
-            'aliasA_model2',
-            'aliasA_field',
-            'hideA_cid',
-            'modelB',
-            'modelB_code',
-            'modelB_name',
-            'modelB_action',
-            'modelB_keyids',
-            'aliasB_model2',
-            'aliasB_field',
-            'hideB_cid',
-            'filename',
-            'psycopg2',
-            'TRANSDICT',
-            )
+LX_CFG_S = (
+    'db_name',
+    'db_user',
+    'db_password',
+    'login_user',
+    'login2_user',
+    'crypt_password',
+    'login_password',
+    'crypt2_password',
+    'login2_password',
+    'admin_passwd',
+    'db_host',
+    'db_port',
+    'data_dir',
+    'xmlrpc_port',
+    'oe_version',
+    'zeroadm_mail',
+    'zeroadm_login',
+    'oneadm_mail',
+    'oneadm_login',
+    'oneadm_pwd',
+    'botadm_mail',
+    'botadm_login',
+    'botadm_pwd',
+    'svc_protocol',
+    'dbfilter',
+    'dbfilterd',
+    'dbfiltert',
+    'dbfilterz',
+    'dbtypefilter',
+    'companyfilter',
+    'userfilter',
+    'lang',
+    'adm_uids',
+    'data_path',
+    'date_start',
+    'date_stop',
+    'account_code',
+    'actions',
+    'actions_db',
+    'actions_mc',
+    'actions_uu',
+    'heavy_trx',
+    'install_modules',
+    'uninstall_modules',
+    'purge_modules',
+    'upgrade_modules',
+    'data_selection',
+    'modules_2_manage',
+    'chart_of_account',
+    'catalog_db',
+    'custom_act',
+    'model',
+    'model_code',
+    'model_name',
+    'model_action',
+    'model_keyids',
+    'alias_model2',
+    'alias_field',
+    'hide_cid',
+    'modelA',
+    'modelA_code',
+    'modelA_name',
+    'modelA_action',
+    'modelA_keyids',
+    'aliasA_model2',
+    'aliasA_field',
+    'hideA_cid',
+    'modelB',
+    'modelB_code',
+    'modelB_name',
+    'modelB_action',
+    'modelB_keyids',
+    'aliasB_model2',
+    'aliasB_field',
+    'hideB_cid',
+    'filename',
+    'psycopg2',
+    'TRANSDICT',
+)
 # list of string/boolean parameters in [options] of config file
 # Must be declared in LX_CFG_S
-LX_CFG_SB = ('install_modules',
-             'uninstall_modules',
-             'purge_modules',
-             'actions',
-             'actions_db',
-             'actions_mc',
-             'actions_uu',
-             'heavy_trx',
-             'psycopg2',)
+LX_CFG_SB = (
+    'install_modules',
+    'uninstall_modules',
+    'purge_modules',
+    'actions',
+    'actions_db',
+    'actions_mc',
+    'actions_uu',
+    'heavy_trx',
+    'psycopg2',
+)
 # list of pure boolean parameters in [options] of config file
-LX_CFG_B = ('set_passepartout',
-            'check_balance',
-            'with_demo',
-            'no_fvalidation',
-            'draft_recs',
-            'setup_banks',
-            'setup_account_journal',
-            'setup_partners',
-            'setup_partner_banks',
-            'check_config',
-            'exit_onerror',
-            )
+LX_CFG_B = (
+    'set_passepartout',
+    'check_balance',
+    'with_demo',
+    'no_fvalidation',
+    'draft_recs',
+    'setup_banks',
+    'setup_account_journal',
+    'setup_partners',
+    'setup_partner_banks',
+    'check_config',
+    'exit_onerror',
+)
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
-LX_OPT_S = ('db_name', 'dbfilter', 'dbg_mode', 'do_sel_action', 'dry_run',
-            'lang', 'with_demo', 'no_fvalidation', 'lgi_user', 'lgi_pwd',
-            'logfn', 'quiet_mode', 'xmlrpc_port', 'odoo_vid', 'exit_onerror',
-            'data_selection')
+LX_OPT_S = (
+    'db_name',
+    'dbfilter',
+    'dbg_mode',
+    'do_sel_action',
+    'dry_run',
+    'lang',
+    'with_demo',
+    'no_fvalidation',
+    'lgi_user',
+    'lgi_pwd',
+    'logfn',
+    'quiet_mode',
+    'xmlrpc_port',
+    'odoo_vid',
+    'exit_onerror',
+    'data_selection',
+)
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_B = ('dry_run', 'with_demo', 'no_fvalidation', 'exit_onerror')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -175,7 +198,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 
 #############################################################################
@@ -183,23 +206,18 @@ __version__ = "1.0.2"
 #
 def init_logger(ctx):
     if ctx['quiet_mode']:
-        os0.set_tlog_file(ctx['logfn'],
-                          echo=False)
+        os0.set_tlog_file(ctx['logfn'], echo=False)
     else:
-        os0.set_tlog_file(ctx['logfn'],
-                          echo=True)
+        os0.set_tlog_file(ctx['logfn'], echo=True)
 
 
 def msg_burst(level, text, i, n):
     """Show a message per second from burst sequence as a gauge"""
     global msg_time
     t = time.time() - msg_time
-    if (t > 1):
+    if t > 1:
         ident = ' ' * level
-        print(u"\x1b[A{0}[{1:>6}/{2:>6}] {3}".format(ident,
-                                                     i,
-                                                     n,
-                                                     tounicode(text)))
+        print(u"\x1b[A{0}[{1:>6}/{2:>6}] {3}".format(ident, i, n, tounicode(text)))
         msg_time = time.time()
 
 
@@ -264,7 +282,7 @@ def decrypt(t):
 
 
 def ismbcs(t):
-    """"Return true id string contains mbcs"""
+    """ "Return true id string contains mbcs"""
     if isinstance(t, str):
         try:
             t = unicode(t)
@@ -307,86 +325,86 @@ def default_conf(ctx):
     dfmt = "%Y-%m-%d"
     dts_start = date(y, 1, 1).strftime(dfmt)
     dts_stop = date(y, 12, 31).strftime(dfmt)
-    return {'login_user': 'admin',
-            'crypt_password': 'Ec{fu',
-            'login_password': '',
-            'login2_user': 'admin',
-            'crypt2_password': '',
-            'login2_password': '',
-            'admin_passwd': 'admin',
-            'db_user': 'postgres',
-            'db_host': 'localhost',
-            'data_dir': '',
-            'db_port': 5432,
-            'oe_version': '*',
-            'svc_protocol': '',
-            'xmlrpc_port': 8069,
-            'odoo_vid': '12.0',
-            'db_name': 'demo',
-            'logfile': False,
-            'dbfilter': '.*',
-            'dbfilterd': 'demo',
-            'dbfiltert': '(openerp|odoo|test)',
-            'dbfilterz': 'zi[0-9]{8}',
-            'dbtypefilter': '',
-            'companyfilter': r'(?![Zz]eroincombenze.*)',
-            'userfilter': '.*',
-            'lang': 'en_US',
-            'with_demo': '0',
-            'date_start': dts_start,
-            'date_stop': dts_stop,
-            'draft_recs': '0',
-            'account_code': '000000',
-            'adm_uids': '1',
-            'set_passepartout': '0',
-            'check_balance': '0',
-            'setup_banks': '0',
-            'setup_account_journal': '0',
-            'setup_partners': '0',
-            'setup_partner_banks': '0',
-            'check_config': '0',
-            'exit_onerror': '0',
-            'custom_act': '',
-            'install_modules': False,
-            'uninstall_modules': False,
-            'purge_modules': False,
-            'upgrade_modules': False,
-            'data_selection': 'account_move,sale,purchase,project,mail,crm,'
-                              'inventory,marketing,hr,analytic',
-            'modules_2_manage': '',
-            'zeroadm_mail': 'cc@shs-av.com',
-            'zeroadm_login': 'zeroadm',
-            'oneadm_mail': 'admin@example.com',
-            'oneadm_login': 'admin',
-            'oneadm_pwd': 'admin',
-            'botadm_mail': 'zerobot@example.com',
-            'botadm_login': 'zerobot',
-            'botadm_pwd': '',
-            'data_path': './data',
-            'actions': '',
-            'actions_db': '',
-            'actions_mc': '',
-            'actions_uu': '',
-            'heavy_trx': False,
-            'chart_of_account': 'configurable_chart_template',
-            'catalog_db': 'zeroincombenze',
-            'psycopg2': 'False',
-            'caller': '',
-            'level': 4,
-            'dry_run': False,
-            'multi_user': False,
-            'ena_inquire': False,
-            'no_login': False,
-            'TRANSDICT': {}
-            }
+    return {
+        'login_user': 'admin',
+        'crypt_password': 'Ec{fu',
+        'login_password': '',
+        'login2_user': 'admin',
+        'crypt2_password': '',
+        'login2_password': '',
+        'admin_passwd': 'admin',
+        'db_user': 'postgres',
+        'db_host': 'localhost',
+        'data_dir': '',
+        'db_port': 5432,
+        'oe_version': '*',
+        'svc_protocol': '',
+        'xmlrpc_port': 8069,
+        'odoo_vid': '12.0',
+        'db_name': 'demo',
+        'logfile': False,
+        'dbfilter': '.*',
+        'dbfilterd': 'demo',
+        'dbfiltert': '(openerp|odoo|test)',
+        'dbfilterz': 'zi[0-9]{8}',
+        'dbtypefilter': '',
+        'companyfilter': r'(?![Zz]eroincombenze.*)',
+        'userfilter': '.*',
+        'lang': 'en_US',
+        'with_demo': '0',
+        'date_start': dts_start,
+        'date_stop': dts_stop,
+        'draft_recs': '0',
+        'account_code': '000000',
+        'adm_uids': '1',
+        'set_passepartout': '0',
+        'check_balance': '0',
+        'setup_banks': '0',
+        'setup_account_journal': '0',
+        'setup_partners': '0',
+        'setup_partner_banks': '0',
+        'check_config': '0',
+        'exit_onerror': '0',
+        'custom_act': '',
+        'install_modules': False,
+        'uninstall_modules': False,
+        'purge_modules': False,
+        'upgrade_modules': False,
+        'data_selection': 'account_move,sale,purchase,project,mail,crm,'
+        'inventory,marketing,hr,analytic',
+        'modules_2_manage': '',
+        'zeroadm_mail': 'cc@shs-av.com',
+        'zeroadm_login': 'zeroadm',
+        'oneadm_mail': 'admin@example.com',
+        'oneadm_login': 'admin',
+        'oneadm_pwd': 'admin',
+        'botadm_mail': 'zerobot@example.com',
+        'botadm_login': 'zerobot',
+        'botadm_pwd': '',
+        'data_path': './data',
+        'actions': '',
+        'actions_db': '',
+        'actions_mc': '',
+        'actions_uu': '',
+        'heavy_trx': False,
+        'chart_of_account': 'configurable_chart_template',
+        'catalog_db': 'zeroincombenze',
+        'psycopg2': 'False',
+        'caller': '',
+        'level': 4,
+        'dry_run': False,
+        'multi_user': False,
+        'ena_inquire': False,
+        'no_login': False,
+        'TRANSDICT': {},
+    }
 
 
 def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
     is_bool = is_bool or False
     found = False
     if conf_obj:
-        for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0',
-                    '11.0', '12.0', '13.0', '14.0'):
+        for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0'):
             vparam = '%s_%s' % (param, sfx)
             if conf_obj.has_option(sect, vparam):
                 found = True
@@ -427,11 +445,9 @@ def create_def_params_dict(ctx):
         for p in LX_OPT_S:
             if p in LX_OPT_OPPONENT:
                 a = LX_OPT_OPPONENT[p]
-                if hasattr(opt_obj, a) and \
-                        getattr(opt_obj, a) is False:
+                if hasattr(opt_obj, a) and getattr(opt_obj, a) is False:
                     ctx[p] = False
-                elif hasattr(opt_obj, p) and \
-                        getattr(opt_obj, p):
+                elif hasattr(opt_obj, p) and getattr(opt_obj, p):
                     ctx[p] = True
                 else:
                     ctx[p] = None
@@ -479,12 +495,13 @@ def create_params_dict(ctx):
         if hasattr(opt_obj, 'dbfilter') and opt_obj.dbfilter != "":
             ctx['dbfilter'] = opt_obj.dbfilter
             ctx['multi_db'] = True
-        if (hasattr(opt_obj, 'modules_2_manage') and
-                hasattr(opt_obj, 'do_sel_action')):
-            if opt_obj.do_sel_action in ('install_modules',
-                                         'uninstall_modules',
-                                         'upgrade_modules',
-                                         'purge_modules'):
+        if hasattr(opt_obj, 'modules_2_manage') and hasattr(opt_obj, 'do_sel_action'):
+            if opt_obj.do_sel_action in (
+                'install_modules',
+                'uninstall_modules',
+                'upgrade_modules',
+                'purge_modules',
+            ):
                 ctx[opt_obj.do_sel_action] = opt_obj.modules_2_manage
         if hasattr(opt_obj, 'data_path') and opt_obj.data_path != "":
             ctx['data_path'] = opt_obj.data_path
@@ -587,101 +604,151 @@ def create_parser(version, doc, ctx):
     """
     parser = argparse.ArgumentParser(
         description=docstring_summary(doc),
-        epilog="© 2015-2021 by SHS-AV s.r.l."
-               " - http://www.zeroincombenze.org")
-    parser.add_argument("-A", "--action-to-do",
-                        help="action to do (use list_actions to dir)",
-                        dest="do_sel_action",
-                        metavar="actions",
-                        default=None)
-    parser.add_argument("-b", "--odoo-branch",
-                        help="talk server Odoo version",
-                        dest="odoo_vid",
-                        metavar="version",
-                        default="")
-    parser.add_argument("-c", "--config",
-                        help="configuration command file",
-                        dest="conf_fn",
-                        metavar="file",
-                        default=CONF_FN)
-    parser.add_argument("-d", "--dbfilter",
-                        help="DB filter",
-                        dest="dbfilter",
-                        metavar="regex",
-                        default="")
-    parser.add_argument("-i", "--ignore-name-validation",
-                        help="ignore name validation fo csv columns",
-                        action="store_true",
-                        dest="no_fvalidation",
-                        default=False)
-    parser.add_argument("-l", "--lang",
-                        help="user language",
-                        dest="lang",
-                        metavar="iso_lang",
-                        default=False)
-    parser.add_argument("-m", "--modules-2-manage",
-                        help="Module list to upgrade",
-                        dest="modules_2_manage",
-                        metavar="list",
-                        default="")
-    parser.add_argument("-n", "--dry-run",
-                        help="test execution mode",
-                        action="store_true",
-                        dest="dry_run",
-                        default=False)
-    parser.add_argument("-o", "--with-demo",
-                        help="create db with demo data",
-                        action="store_true",
-                        dest="with_demo",
-                        default=False)
-    parser.add_argument("-p", "--data-path",
-                        help="Import file path",
-                        dest="data_path",
-                        metavar="dir",
-                        default="")
-    parser.add_argument("-P", "--pwd",
-                        help="login password",
-                        dest="lgi_pwd",
-                        metavar="password",
-                        default='admin')
-    parser.add_argument("-q", "--quiet",
-                        help="run silently",
-                        action="store_true",
-                        dest="quiet_mode",
-                        default=False)
-    parser.add_argument("-r", "--xmlrpc-port",
-                        help="xmlrpc port",
-                        dest="xmlrpc_port",
-                        metavar="port",
-                        default="")
-    parser.add_argument("-S", "--data-selection",
-                        help="Select data to remove",
-                        dest="data_selection",
-                        metavar="list",
-                        default="")
-    parser.add_argument("-U", "--user",
-                        help="login username",
-                        dest="lgi_user",
-                        metavar="username",
-                        default=None)
-    parser.add_argument("-v", "--verbose",
-                        help="run with debugging output",
-                        action="store_true",
-                        dest="dbg_mode",
-                        default=False)
-    parser.add_argument("-V", "--version",
-                        action="version",
-                        version="%(prog)s " + version)
-    parser.add_argument("-x", "--exit-on-error",
-                        help="exit on error",
-                        action="store_true",
-                        dest="exit_onerror",
-                        default=False)
+        epilog="© 2015-2021 by SHS-AV s.r.l." " - http://www.zeroincombenze.org",
+    )
+    parser.add_argument(
+        "-A",
+        "--action-to-do",
+        help="action to do (use list_actions to dir)",
+        dest="do_sel_action",
+        metavar="actions",
+        default=None,
+    )
+    parser.add_argument(
+        "-b",
+        "--odoo-branch",
+        help="talk server Odoo version",
+        dest="odoo_vid",
+        metavar="version",
+        default="",
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="configuration command file",
+        dest="conf_fn",
+        metavar="file",
+        default=CONF_FN,
+    )
+    parser.add_argument(
+        "-d",
+        "--dbfilter",
+        help="DB filter",
+        dest="dbfilter",
+        metavar="regex",
+        default="",
+    )
+    parser.add_argument(
+        "-i",
+        "--ignore-name-validation",
+        help="ignore name validation fo csv columns",
+        action="store_true",
+        dest="no_fvalidation",
+        default=False,
+    )
+    parser.add_argument(
+        "-l",
+        "--lang",
+        help="user language",
+        dest="lang",
+        metavar="iso_lang",
+        default=False,
+    )
+    parser.add_argument(
+        "-m",
+        "--modules-2-manage",
+        help="Module list to upgrade",
+        dest="modules_2_manage",
+        metavar="list",
+        default="",
+    )
+    parser.add_argument(
+        "-n",
+        "--dry-run",
+        help="test execution mode",
+        action="store_true",
+        dest="dry_run",
+        default=False,
+    )
+    parser.add_argument(
+        "-o",
+        "--with-demo",
+        help="create db with demo data",
+        action="store_true",
+        dest="with_demo",
+        default=False,
+    )
+    parser.add_argument(
+        "-p",
+        "--data-path",
+        help="Import file path",
+        dest="data_path",
+        metavar="dir",
+        default="",
+    )
+    parser.add_argument(
+        "-P",
+        "--pwd",
+        help="login password",
+        dest="lgi_pwd",
+        metavar="password",
+        default='admin',
+    )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        help="run silently",
+        action="store_true",
+        dest="quiet_mode",
+        default=False,
+    )
+    parser.add_argument(
+        "-r",
+        "--xmlrpc-port",
+        help="xmlrpc port",
+        dest="xmlrpc_port",
+        metavar="port",
+        default="",
+    )
+    parser.add_argument(
+        "-S",
+        "--data-selection",
+        help="Select data to remove",
+        dest="data_selection",
+        metavar="list",
+        default="",
+    )
+    parser.add_argument(
+        "-U",
+        "--user",
+        help="login username",
+        dest="lgi_user",
+        metavar="username",
+        default=None,
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="run with debugging output",
+        action="store_true",
+        dest="dbg_mode",
+        default=False,
+    )
+    parser.add_argument(
+        "-V", "--version", action="version", version="%(prog)s " + version
+    )
+    parser.add_argument(
+        "-x",
+        "--exit-on-error",
+        help="exit on error",
+        action="store_true",
+        dest="exit_onerror",
+        default=False,
+    )
     return parser
 
 
-def parse_args(arguments,
-               apply_conf=APPLY_CONF, version=None, tlog=None, doc=None):
+def parse_args(arguments, apply_conf=APPLY_CONF, version=None, tlog=None, doc=None):
     """Parse command-line options."""
     ctx = {}
     ctx['caller_fqn'] = inspect.stack()[1][1]
@@ -743,8 +810,9 @@ def get_odoo_full_ver(odoo_vid):
     return odoo_fver
 
 
-def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
-                     git_org=None, multi=None):
+def build_odoo_param(
+    item, odoo_vid=None, debug=None, suppl=None, git_org=None, multi=None
+):
     odoorc = os.path.join(os.path.dirname(__file__), 'odoorc')
     if multi:
         cmd = 'opt_multi=1 %s %s "%s" "%s" "%s"' % (
@@ -752,16 +820,17 @@ def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
             item,
             odoo_vid,
             suppl or '',
-            git_org or '')
+            git_org or '',
+        )
     else:
         cmd = '%s %s "%s" "%s" "%s"' % (
             odoorc,
             item,
             odoo_vid,
             suppl or '',
-            git_org or '')
-    out, err = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, shell=True).communicate()
+            git_org or '',
+        )
+    out, err = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).communicate()
     if not out:
         return False
     out = os0.u(out)

@@ -1,6 +1,6 @@
 
 ============
-clodoo 1.0.2
+clodoo 1.0.3
 ============
 
 
@@ -327,6 +327,12 @@ Current development version
 History
 -------
 
+1.0.2 (2022-04-15)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: complex branch name
+
+
 1.0.2 (2022-03-29)
 ~~~~~~~~~~~~~~~~~~
 
@@ -387,11 +393,6 @@ History
 
 * [FIX] transodoo.xlsx
 
-0.3.35.1 (2021-09-24)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] powerp module transaltion
-
 
 
 |
@@ -416,7 +417,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-04-11
+Last Update / Ultimo aggiornamento: 2022-04-16
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

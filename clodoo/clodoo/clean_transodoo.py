@@ -20,9 +20,8 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
-
 
 
 def get_pymodel(model):
@@ -114,7 +113,7 @@ def clean_transodoo(ctx=None):
                 for i in range(len(ver_names)):
                     if ver_names[i] and ver_names[i] == prior_ver_names[i]:
                         print('Duplicate record\n   %s\n   %s' % (
-                            prior_ver_names,ver_names))
+                            prior_ver_names, ver_names))
                         break
             prior_ver_names = ver_names
             # uname = set_uname(row[TYPE], row[NAME], ver_names)
@@ -140,7 +139,7 @@ if __name__ == "__main__":
     elif os.path.isfile(os.path.join(os.path.expanduser('~'),
                                      'transodoo.csv')):
         ctx['dict_fn'] = os.path.join(os.path.expanduser('~'),
-                                     'transodoo.csv')
+                                      'transodoo.csv')
     else:
         ctx['dict_fn'] = 'transodoo.csv'
     exit(clean_transodoo(ctx=ctx))

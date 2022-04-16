@@ -159,9 +159,11 @@ from __future__ import unicode_literals
 
 from future import standard_library
 from builtins import input
+
 # from builtins import str
 # from builtins import range
 from past.builtins import basestring
+
 # from builtins import *                                           # noqa: F403
 from builtins import object
 import calendar
@@ -173,65 +175,121 @@ import time
 import inspect
 import platform
 from datetime import date, datetime, timedelta
+
 # from passlib.context import CryptContext
 from os0 import os0
 from python_plus import _c
 
 try:
-    from clodoo.clodoocore import (                           # noqa: F401
-        is_valid_field, searchL8, browseL8,                   # noqa: F401
-        eval_value, get_query_id, import_file_get_hdr,        # noqa: F401
-        createL8, writeL8, unlinkL8, executeL8, connectL8,    # noqa: F401
-        get_res_users, psql_connect, put_model_alias,         # noqa: F401
-        set_some_values, get_company_id, build_model_struct,  # noqa: F401
-        get_model_model, get_model_name, extr_table_generic,  # noqa: F401
-        get_model_structure, execute_action_L8,               # noqa: F401
-        is_required_field, model_has_company,                 # noqa: F401
-        exec_sql, extract_vals_from_rec,                      # noqa: F401
-        sql_reconnect, get_val_from_field,                    # noqa: F401
-        cvt_from_ver_2_ver)                                   # noqa: F401
+    from clodoo.clodoocore import (  # noqa: F401
+        is_valid_field,
+        searchL8,
+        browseL8,  # noqa: F401
+        eval_value,
+        get_query_id,
+        import_file_get_hdr,  # noqa: F401
+        createL8,
+        writeL8,
+        unlinkL8,
+        executeL8,
+        connectL8,  # noqa: F401
+        get_res_users,
+        psql_connect,
+        put_model_alias,  # noqa: F401
+        set_some_values,
+        get_company_id,
+        build_model_struct,  # noqa: F401
+        get_model_model,
+        get_model_name,
+        extr_table_generic,  # noqa: F401
+        get_model_structure,
+        execute_action_L8,  # noqa: F401
+        is_required_field,
+        model_has_company,  # noqa: F401
+        exec_sql,
+        extract_vals_from_rec,  # noqa: F401
+        sql_reconnect,
+        get_val_from_field,  # noqa: F401
+        cvt_from_ver_2_ver,
+    )  # noqa: F401
 except ImportError:
-    from clodoocore import (                                  # noqa: F401
-        is_valid_field, searchL8, browseL8,                   # noqa: F401
-        eval_value, get_query_id, import_file_get_hdr,        # noqa: F401
-        createL8, writeL8, unlinkL8, executeL8, connectL8,    # noqa: F401
-        get_res_users, psql_connect, put_model_alias,         # noqa: F401
-        set_some_values, get_company_id, build_model_struct,  # noqa: F401
-        get_model_model, get_model_name, extr_table_generic,  # noqa: F401
-        get_model_structure, execute_action_L8,               # noqa: F401
-        is_required_field, model_has_company,                 # noqa: F401
-        exec_sql, extract_vals_from_rec,                      # noqa: F401
-        sql_reconnect, get_val_from_field,                    # noqa: F401
-        cvt_from_ver_2_ver)                                   # noqa: F401
+    from clodoocore import (  # noqa: F401
+        is_valid_field,
+        searchL8,
+        browseL8,  # noqa: F401
+        eval_value,
+        get_query_id,
+        import_file_get_hdr,  # noqa: F401
+        createL8,
+        writeL8,
+        unlinkL8,
+        executeL8,
+        connectL8,  # noqa: F401
+        get_res_users,
+        psql_connect,
+        put_model_alias,  # noqa: F401
+        set_some_values,
+        get_company_id,
+        build_model_struct,  # noqa: F401
+        get_model_model,
+        get_model_name,
+        extr_table_generic,  # noqa: F401
+        get_model_structure,
+        execute_action_L8,  # noqa: F401
+        is_required_field,
+        model_has_company,  # noqa: F401
+        exec_sql,
+        extract_vals_from_rec,  # noqa: F401
+        sql_reconnect,
+        get_val_from_field,  # noqa: F401
+        cvt_from_ver_2_ver,
+    )  # noqa: F401
 try:
-    from clodoo.clodoolib import (                            # noqa: F401
-        crypt, debug_msg_log, decrypt, msg_burst,             # noqa: F401
-        msg_log, parse_args, tounicode,                       # noqa: F401
-        read_config, init_logger,                             # noqa: F401
-        default_conf, build_odoo_param)                       # noqa: F401
+    from clodoo.clodoolib import (  # noqa: F401
+        crypt,
+        debug_msg_log,
+        decrypt,
+        msg_burst,  # noqa: F401
+        msg_log,
+        parse_args,
+        tounicode,  # noqa: F401
+        read_config,
+        init_logger,  # noqa: F401
+        default_conf,
+        build_odoo_param,
+    )  # noqa: F401
 except ImportError:
-    from clodoolib import (                                   # noqa: F401
-        crypt, debug_msg_log, decrypt, msg_burst,             # noqa: F401
-        msg_log, parse_args, tounicode,                       # noqa: F401
-        read_config, init_logger,                             # noqa: F401
-        default_conf, build_odoo_param)                       # noqa: F401
+    from clodoolib import (  # noqa: F401
+        crypt,
+        debug_msg_log,
+        decrypt,
+        msg_burst,  # noqa: F401
+        msg_log,
+        parse_args,
+        tounicode,  # noqa: F401
+        read_config,
+        init_logger,  # noqa: F401
+        default_conf,
+        build_odoo_param,
+    )  # noqa: F401
 try:
-    from transodoo import (read_stored_dict, translate_from_to)
+    from transodoo import read_stored_dict, translate_from_to
 except ImportError:
-    from clodoo.transodoo import (read_stored_dict, translate_from_to)
+    from clodoo.transodoo import read_stored_dict, translate_from_to
 
 # TMP
 from subprocess import PIPE, Popen
-standard_library.install_aliases()                                 # noqa: E402
 
-__version__ = "1.0.2"
+standard_library.install_aliases()  # noqa: E402
+
+__version__ = "1.0.3"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-PAY_MOVE_STS_2_DRAFT = ['posted', ]
+PAY_MOVE_STS_2_DRAFT = ['posted']
 INVOICES_STS_2_DRAFT = ['open', 'paid']
 STATES_2_DRAFT = ['open', 'paid', 'posted']
 CV_PROJECT_ID = 3504
@@ -242,7 +300,6 @@ db_msg_stack = []
 
 
 class Clodoo(object):
-
     def __init__(self):
         pass
 
@@ -264,11 +321,7 @@ def writelog(xmodel, model, exclusion, all=None):
         else:
             op = 'in'
         x = exclusion[0][2]
-        line = '%s,True,%s,True,%s,"%s","%s"\n' % (xmodel,
-                                                   model,
-                                                   f,
-                                                   op,
-                                                   str(x))
+        line = '%s,True,%s,True,%s,"%s","%s"\n' % (xmodel, model, f, op, str(x))
         fd.write(line)
         fd.close()
 
@@ -305,7 +358,7 @@ def open_connection(ctx):
     """Open connection to Odoo service"""
     res = connectL8(ctx)
     if isinstance(res, basestring):
-        raise RuntimeError(res)                              # pragma: no cover
+        raise RuntimeError(res)  # pragma: no cover
     return ctx['odoo_session']
 
 
@@ -352,14 +405,13 @@ def do_login(ctx):
     for username in userlist:
         for pwd in cryptlist:
             crypted = True
-            msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'],
-                                             username,
-                                             pwd)
+            msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'], username, pwd)
             debug_msg_log(ctx, ctx['level'] + 2, msg)
             if ctx['svc_protocol'] == 'jsonrpc':
                 try:
                     ctx['odoo_session'].login(
-                        db=db_name, login=username, password=decrypt(pwd))
+                        db=db_name, login=username, password=decrypt(pwd)
+                    )
                 except BaseException:
                     continue
                 # Keep out of try / except to catch user error
@@ -367,9 +419,9 @@ def do_login(ctx):
                 break
             else:
                 try:
-                    user = ctx['odoo_session'].login(database=db_name,
-                                                     user=username,
-                                                     passwd=decrypt(pwd))
+                    user = ctx['odoo_session'].login(
+                        database=db_name, user=username, passwd=decrypt(pwd)
+                    )
                     break
                 except BaseException:
                     pass
@@ -377,19 +429,21 @@ def do_login(ctx):
             crypted = False
             for pwd in pwdlist:
                 try:
-                    msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'],
-                                                     username,
-                                                     crypt(pwd))
+                    msg = "do_login_%s(%s,$1$%s)" % (
+                        ctx['svc_protocol'],
+                        username,
+                        crypt(pwd),
+                    )
                     debug_msg_log(ctx, ctx['level'] + 2, msg)
                     if ctx['svc_protocol'] == 'jsonrpc':
-                        ctx['odoo_session'].login(db=db_name,
-                                                  login=username,
-                                                  password=pwd)
+                        ctx['odoo_session'].login(
+                            db=db_name, login=username, password=pwd
+                        )
                         user = get_login_user(ctx)
                     else:
-                        user = ctx['odoo_session'].login(database=db_name,
-                                                         user=username,
-                                                         passwd=pwd)
+                        user = ctx['odoo_session'].login(
+                            database=db_name, user=username, passwd=pwd
+                        )
                     break
                 except BaseException:
                     pass
@@ -397,8 +451,7 @@ def do_login(ctx):
             break
     if not user:
         if not ctx.get('no_warning_pwd', False):
-            os0.wlog(u"!DB={0}: invalid user/pwd"
-                     .format(tounicode(ctx['db_name'])))
+            os0.wlog(u"!DB={0}: invalid user/pwd".format(tounicode(ctx['db_name'])))
         return
     if not ctx['multi_user']:
         ctx = init_user_ctx(ctx, user)
@@ -410,24 +463,25 @@ def do_login(ctx):
             vals['login'] = ctx['login_user']
         if ctx['crypt_password'] and crypted and pwd != ctx['crypt_password']:
             vals['password'] = decrypt(ctx['crypt_password'])
-        elif (ctx['crypt_password'] and not crypted and
-              pwd != decrypt(ctx['crypt_password'])):
+        elif (
+            ctx['crypt_password']
+            and not crypted
+            and pwd != decrypt(ctx['crypt_password'])
+        ):
             vals['password'] = decrypt(ctx['crypt_password'])
-        elif (ctx['login_password'] and crypted and
-              decrypt(pwd) != ctx['login_password']):
+        elif (
+            ctx['login_password'] and crypted and decrypt(pwd) != ctx['login_password']
+        ):
             vals['password'] = ctx['login_password']
-        elif (ctx['login_password'] and not crypted and
-              pwd != ctx['login_password']):
+        elif ctx['login_password'] and not crypted and pwd != ctx['login_password']:
             vals['password'] = ctx['login_password']
         if ctx['oe_version'] != '6.1':
-            if ((ctx['with_demo'] and user.email != ctx['def_email']) or
-                    (not ctx['with_demo'] and
-                     user.email != ctx['zeroadm_mail'])):
-                vals['email'] = set_some_values(ctx,
-                                                None,
-                                                'email',
-                                                user.email,
-                                                model='res.users')
+            if (ctx['with_demo'] and user.email != ctx['def_email']) or (
+                not ctx['with_demo'] and user.email != ctx['zeroadm_mail']
+            ):
+                vals['email'] = set_some_values(
+                    ctx, None, 'email', user.email, model='res.users'
+                )
         if vals:
             if vals.get('password'):
                 # ctx['password_crypt'] = CryptContext(
@@ -437,35 +491,75 @@ def do_login(ctx):
             try:
                 writeL8(ctx, 'res.users', user.id, vals)
                 if not ctx.get('no_warning_pwd', False):
-                    os0.wlog(u"DB=%s: updated user/pwd/mail %s to %s" % (
-                             tounicode(ctx['db_name']),
-                             tounicode(username),
-                             tounicode(ctx['login_user'])))
+                    os0.wlog(
+                        u"DB=%s: updated user/pwd/mail %s to %s"
+                        % (
+                            tounicode(ctx['db_name']),
+                            tounicode(username),
+                            tounicode(ctx['login_user']),
+                        )
+                    )
                     os0.wlog(u"You should restart the Odoo service")
             except BaseException:
-                os0.wlog(u"!!Passpartout user %s/%s write error!" % (
-                    tounicode(username),
-                    tounicode(ctx['login_user'])))
+                os0.wlog(
+                    u"!!Passpartout user %s/%s write error!"
+                    % (tounicode(username), tounicode(ctx['login_user']))
+                )
     if user:
         ctx['_cr'] = psql_connect(ctx)
     return user
 
 
-def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
-                 user=None, pwd=None, lang=None, ctx=None):
-    D_LIST = ('ena_inquire', 'caller', 'level', 'dry_run', 'multi_user',
-              'set_passepartout', 'no_login')
-    P_LIST = ('db_host', 'db_port', 'db_name', 'db_user', 'db_password',
-              'admin_passwd',
-              'login_user', 'login_password', 'crypt_password',
-              'login2_user', 'login2_password', 'crypt2_password',
-              'svc_protocol', 'oe_version', 'xmlrpc_port',
-              'lang', 'psycopg2')
+def oerp_set_env(
+    confn=None,
+    db=None,
+    xmlrpc_port=None,
+    oe_version=None,
+    user=None,
+    pwd=None,
+    lang=None,
+    ctx=None,
+):
+    D_LIST = (
+        'ena_inquire',
+        'caller',
+        'level',
+        'dry_run',
+        'multi_user',
+        'set_passepartout',
+        'no_login',
+    )
+    P_LIST = (
+        'db_host',
+        'db_port',
+        'db_name',
+        'db_user',
+        'db_password',
+        'admin_passwd',
+        'login_user',
+        'login_password',
+        'crypt_password',
+        'login2_user',
+        'login2_password',
+        'crypt2_password',
+        'svc_protocol',
+        'oe_version',
+        'xmlrpc_port',
+        'lang',
+        'psycopg2',
+    )
     DEFLT = default_conf(ctx)
 
-    def oerp_env_fill(db=None, xmlrpc_port=None, oe_version=None,
-                      user=None, pwd=None, lang=None, ctx=None,
-                      inquire=None):
+    def oerp_env_fill(
+        db=None,
+        xmlrpc_port=None,
+        oe_version=None,
+        user=None,
+        pwd=None,
+        lang=None,
+        ctx=None,
+        inquire=None,
+    ):
         ctx = ctx or {}
         for p in D_LIST + P_LIST:
             if p == 'db_name' and db:
@@ -511,18 +605,21 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
         if 'conf_fns' in ctx:
             del ctx['conf_fns']
     ctx = read_config(ctx)
-    ctx = oerp_env_fill(db=db,
-                        xmlrpc_port=xmlrpc_port,
-                        user=user, pwd=pwd,
-                        oe_version=oe_version or ctx.get('oe_version'),
-                        lang=lang,
-                        ctx=ctx)
+    ctx = oerp_env_fill(
+        db=db,
+        xmlrpc_port=xmlrpc_port,
+        user=user,
+        pwd=pwd,
+        oe_version=oe_version or ctx.get('oe_version'),
+        lang=lang,
+        ctx=ctx,
+    )
     open_connection(ctx)
     if ctx['no_login']:
         return False, ctx
     lgiuser = do_login(ctx)
     if not lgiuser:
-        raise RuntimeError('Invalid user or password!')      # pragma: no cover
+        raise RuntimeError('Invalid user or password!')  # pragma: no cover
     uid = lgiuser.id
     return uid, ctx
 
@@ -546,20 +643,22 @@ def set_msg(msg, modname, ignore_not_installed):
 
 
 def init_db_ctx(ctx, db):
-    """"Clear company parameters"""
-    for n in ('def_company_id',
-              'def_company_name',
-              'def_country_id',
-              'user_id',
-              'user_name',
-              'user_partner_id',
-              'user_country_id',
-              'user_company_id',
-              'company_id',
-              'company_name',
-              'company_country_id',
-              'company_partner_id',
-              'module_udpated'):
+    """ "Clear company parameters"""
+    for n in (
+        'def_company_id',
+        'def_company_name',
+        'def_country_id',
+        'user_id',
+        'user_name',
+        'user_partner_id',
+        'user_country_id',
+        'user_company_id',
+        'company_id',
+        'company_name',
+        'company_country_id',
+        'company_partner_id',
+        'module_udpated',
+    ):
         if n in ctx:
             del ctx[n]
     ctx['db_name'] = db
@@ -591,9 +690,7 @@ def init_company_ctx(ctx, c_id):
     ctx['def_company_name'] = ctx['company_name']
     if ctx.get('company_country_id', 0) != 0:
         ctx['def_country_id'] = ctx['company_country_id']
-        ctx['country_code'] = browseL8(ctx,
-                                       'res.country',
-                                       ctx['def_country_id']).code
+        ctx['country_code'] = browseL8(ctx, 'res.country', ctx['def_country_id']).code
     return ctx
 
 
@@ -602,8 +699,10 @@ def init_user_ctx(ctx, user):
     if ctx['oe_version'] != "6.1":
         ctx['user_partner_id'] = user.partner_id.id
     ctx['user_name'] = get_res_users(ctx, user, 'name')
-    ctx['def_email'] = '%s%s@example.com' % (user.login,
-                                             ctx['oe_version'].split('.')[0])
+    ctx['def_email'] = '%s%s@example.com' % (
+        user.login,
+        ctx['oe_version'].split('.')[0],
+    )
     ctx['user_company_id'] = user.company_id.id
     ctx['user_country_id'] = get_res_users(ctx, user, 'country_id')
     if ctx.get('def_company_id', 0) == 0:
@@ -614,18 +713,17 @@ def init_user_ctx(ctx, user):
 
 def get_dblist(ctx):
     # Interface xmlrpc and jsonrpc are the same
-    if ctx['oe_version'] == '12.0':     # FIX: odoorpc wont work 12.0
-        res, err = Popen(['psql', '-Atl'],
-                         stdin=PIPE,
-                         stdout=PIPE,
-                         stderr=PIPE).communicate()
+    if ctx['oe_version'] == '12.0':  # FIX: odoorpc wont work 12.0
+        res, err = Popen(
+            ['psql', '-Atl'], stdin=PIPE, stdout=PIPE, stderr=PIPE
+        ).communicate()
         list = []
         for r in res.split('\n'):
             rs = r.split('|')
             if len(rs) > 2 and rs[1] == 'odoo12':
                 list.append(rs[0])
         return list
-    elif ctx['oe_version'] == '7.0':     # FIX
+    elif ctx['oe_version'] == '7.0':  # FIX
         time.sleep(1)
     return ctx['odoo_session'].db.list()
 
@@ -654,9 +752,7 @@ def isaction(ctx, action):
 
 def isiteraction(ctx, action):
     """Return true if interable action"""
-    if action == 'per_db' or \
-            action == 'per_company' or \
-            action == 'per_user':
+    if action == 'per_db' or action == 'per_company' or action == 'per_user':
         return True
     else:
         return False
@@ -744,10 +840,11 @@ def do_single_action(ctx, action):
                     action = 'unit_test'
         act = lexec_name(ctx, action)
         if act in list(globals()):
-            if (action in ('install_modules',
-                           'upgrade_modules',
-                           'uninstall_modules') and
-                    not ctx.get('module_udpated', False)):
+            if action in (
+                'install_modules',
+                'upgrade_modules',
+                'uninstall_modules',
+            ) and not ctx.get('module_udpated', False):
                 globals()[lexec_name(ctx, 'update_modules')](ctx)
                 ctx['module_udpated'] = True
             return globals()[act](ctx)
@@ -777,8 +874,7 @@ def do_actions(ctx):
             if isiteraction(ctx, act):
                 incr_lev(ctx)
                 if act == 'per_db':
-                    ctx['multi_user'] = multiuser(ctx,
-                                                  actions)
+                    ctx['multi_user'] = multiuser(ctx, actions)
                 ctx['actions'] = ','.join(actions)
                 if act == 'per_db' and 'actions_db' in ctx:
                     del ctx['actions_db']
@@ -808,13 +904,15 @@ def create_local_parms(ctx, act):
     action = get_real_actname(ctx, act)
     conf_obj = ctx['_conf_obj']
     lctx = ctx.copy()
-    for p in ('actions',
-              'install_modules',
-              'uninstall_modules',
-              'upgrade_modules',
-              'purge_modules',
-              'data_selection',
-              'modules_2_manage',):
+    for p in (
+        'actions',
+        'install_modules',
+        'uninstall_modules',
+        'upgrade_modules',
+        'purge_modules',
+        'data_selection',
+        'modules_2_manage',
+    ):
         pv = get_param_ver(ctx, p)
         if conf_obj.has_option(action, pv):
             lctx[p] = conf_obj.get(action, pv)
@@ -822,30 +920,32 @@ def create_local_parms(ctx, act):
             lctx[p] = conf_obj.get(action, p)
         else:
             lctx[p] = False
-    for p in ('model',
-              'model_code',
-              'model_name',
-              'model_action',
-              'model_keyids',
-              'filename',
-              'hide_cid',
-              'alias_model2',
-              'alias_field',
-              'modelA',
-              'modelA_code',
-              'modelA_name',
-              'modelA_action',
-              'modelA_keyids',
-              'aliasA_model2',
-              'aliasA_field',
-              'modelB',
-              'modelB_code',
-              'modelB_name',
-              'modelB_action',
-              'modelB_keyids',
-              'aliasB_model2',
-              'aliasB_field',
-              'hideB_cid'):
+    for p in (
+        'model',
+        'model_code',
+        'model_name',
+        'model_action',
+        'model_keyids',
+        'filename',
+        'hide_cid',
+        'alias_model2',
+        'alias_field',
+        'modelA',
+        'modelA_code',
+        'modelA_name',
+        'modelA_action',
+        'modelA_keyids',
+        'aliasA_model2',
+        'aliasA_field',
+        'modelB',
+        'modelB_code',
+        'modelB_name',
+        'modelB_action',
+        'modelB_keyids',
+        'aliasB_model2',
+        'aliasB_field',
+        'hideB_cid',
+    ):
         pv = get_param_ver(ctx, p)
         if conf_obj.has_option(action, pv):
             lctx[p] = conf_obj.get(action, pv)
@@ -854,11 +954,7 @@ def create_local_parms(ctx, act):
         elif p in lctx:
             del lctx[p]
     DEFDCT = default_conf(lctx)
-    for p in ('lang',
-              'dbfilter',
-              'companyfilter',
-              'userfilter',
-              'chart_of_account'):
+    for p in ('lang', 'dbfilter', 'companyfilter', 'userfilter', 'chart_of_account'):
         pv = get_param_ver(ctx, p)
         if conf_obj.has_option(action, pv):
             lctx[p] = conf_obj.get(action, pv)
@@ -866,11 +962,13 @@ def create_local_parms(ctx, act):
             pv = conf_obj.get(action, p)
             if pv != DEFDCT[p]:
                 lctx[p] = pv
-    for p in ('install_modules',
-              'uninstall_modules',
-              'purge_modules',
-              'actions',
-              'hide_cid'):
+    for p in (
+        'install_modules',
+        'uninstall_modules',
+        'purge_modules',
+        'actions',
+        'hide_cid',
+    ):
         pv = get_param_ver(ctx, p)
         if pv in lctx:
             lctx[pv] = os0.str2bool(lctx[pv], lctx[pv])
@@ -888,37 +986,38 @@ def ident_db(ctx, db):
 
 
 def ident_company(ctx, c_id):
-    msg = u"Company {0:>3})\t'{1}'".format(c_id,
-                                           tounicode(ctx.get('company_name',
-                                                             '')))
+    msg = u"Company {0:>3})\t'{1}'".format(c_id, tounicode(ctx.get('company_name', '')))
     return msg
 
 
 def ident_user(ctx, u_id):
     user = browseL8(ctx, 'res.users', u_id)
-    msg = u"DB=%-24.24s uid=%-3d user=%-16.16s" \
-          u" email=%-24.24s company=%-24.24s" % (
-              tounicode(ctx['db_name']),
-              u_id,
-              tounicode(user.login),
-              # tounicode(ctx['user_name']),
-              tounicode(get_res_users(ctx, user, 'email')),
-              tounicode(user.company_id.name))
+    msg = u"DB=%-24.24s uid=%-3d user=%-16.16s" u" email=%-24.24s company=%-24.24s" % (
+        tounicode(ctx['db_name']),
+        u_id,
+        tounicode(user.login),
+        # tounicode(ctx['user_name']),
+        tounicode(get_res_users(ctx, user, 'email')),
+        tounicode(user.company_id.name),
+    )
     return msg
 
 
 def get_data_selection(ctx):
     if not ctx['data_selection'] or ctx['data_selection'] == 'all':
-        ctx['data_selection'] = 'account_move,sale,purchase,project,mail,crm,'\
-                                'inventory,marketing,hr,analytic,sequence'
+        ctx['data_selection'] = (
+            'account_move,sale,purchase,project,mail,crm,'
+            'inventory,marketing,hr,analytic,sequence'
+        )
     return ctx['data_selection'].split(',')
 
 
 def env_ref(ctx, xref):
     xrefs = xref.split('.')
     if len(xrefs) == 2:
-        ids = searchL8(ctx, 'ir.model.data', [('module', '=', xrefs[0]),
-                                              ('name', '=', xrefs[1])])
+        ids = searchL8(
+            ctx, 'ir.model.data', [('module', '=', xrefs[0]), ('name', '=', xrefs[1])]
+        )
         if ids:
             return browseL8(ctx, 'ir.model.data', ids[0]).res_id
     return False
@@ -974,14 +1073,12 @@ def act_echo_db(ctx):
 
 def act_set_qweb(ctx):
     """Add system param to convert web.base.url to https"""
-    msg_log(ctx, ctx['level'],
-            globals()[inspect.stack()[0][3]].__doc__)
+    msg_log(ctx, ctx['level'], globals()[inspect.stack()[0][3]].__doc__)
     ident = ' ' * ctx['level']
     model = 'ir.config_parameter'
     ids = searchL8(ctx, model, [('key', '=', 'web.base.url.cvt2https')])
     if not ids:
-        createL8(ctx, model, {'key': 'web.base.url.cvt2https',
-                              'value': True})
+        createL8(ctx, model, {'key': 'web.base.url.cvt2https', 'value': True})
     ids = searchL8(ctx, model, [('key', '=', 'web.base.url.cvt2https')])
     if ids:
         ids = searchL8(ctx, model, [('key', '=', 'web.base.url')])
@@ -998,8 +1095,7 @@ def act_set_qweb(ctx):
             elif localhost == 'shs17fid':
                 web_url = 'https://dev%d.zeroincombenze.it' % majver
             elif localhost == 'vg7odoopro' and majver == 10:
-                web_url = 'https://%s.pro%d.odoo.vg7.it' % (ctx['db_name'],
-                                                            majver)
+                web_url = 'https://%s.pro%d.odoo.vg7.it' % (ctx['db_name'], majver)
             elif localhost == 'vg7odoopro' and majver == 8:
                 web_url = 'https://%s.pro.odoo.vg7.it' % ctx['db_name']
             elif localhost == 'vg7odoodev' and majver == 10:
@@ -1047,10 +1143,8 @@ def act_show_company_params(ctx):
     ident = ' ' * ctx['level']
     print("%s- company_id    = %d " % (ident, ctx.get('company_id', 0)))
     print("%s- company name  = %s " % (ident, ctx.get('company_name', "")))
-    print("%s- c. country_id = %d " % (ident, ctx.get('company_country_id',
-                                                      0)))
-    print("%s- c. partner_id = %d " % (ident, ctx.get('company_partner_id',
-                                                      0)))
+    print("%s- c. country_id = %d " % (ident, ctx.get('company_country_id', 0)))
+    print("%s- c. partner_id = %d " % (ident, ctx.get('company_partner_id', 0)))
     return STS_SUCCESS
 
 
@@ -1088,20 +1182,15 @@ def act_show_user_params(ctx):
 
 def act_unit_test(ctx):
     """This function does nothing, it acts just for unit test"""
-    msg_log(ctx, ctx['level'],
-            globals()[inspect.stack()[0][3]].__doc__)
+    msg_log(ctx, ctx['level'], globals()[inspect.stack()[0][3]].__doc__)
     return STS_SUCCESS
 
 
 def act_run_unit_tests(ctx):
-    """"Run module unit test (no yet avaiable)"""
-    msg_log(ctx, ctx['level'],
-            globals()[inspect.stack()[0][3]].__doc__)
+    """ "Run module unit test (no yet avaiable)"""
+    msg_log(ctx, ctx['level'], globals()[inspect.stack()[0][3]].__doc__)
     try:
-        executeL8(ctx,
-                  'ir.actions.server',
-                  'Run Unit test',
-                  'banking_export_pain')
+        executeL8(ctx, 'ir.actions.server', 'Run Unit test', 'banking_export_pain')
     except BaseException:
         return STS_FAILED
     return STS_SUCCESS
@@ -1110,8 +1199,7 @@ def act_run_unit_tests(ctx):
 def act_drop_db(ctx, db_name=None):
     """Drop a DB %s, if exists"""
     db_name = db_name or ctx['db_name']
-    msg_log(ctx, ctx['level'],
-            globals()[inspect.stack()[0][3]].__doc__ % db_name)
+    msg_log(ctx, ctx['level'], globals()[inspect.stack()[0][3]].__doc__ % db_name)
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         ctr = 3
@@ -1120,12 +1208,10 @@ def act_drop_db(ctx, db_name=None):
             try:
                 cmd = 'pg_db_active -wa %s' % db_name
                 os0.muteshell(cmd, simulate=False, keepout=False)
-                if ctx['oe_version'] == '12.0':          # FIX: odoorpc wont work 12.0
-                    os0.muteshell("dropdb -Upostgres --if-exists " +
-                                  db_name)
+                if ctx['oe_version'] == '12.0':  # FIX: odoorpc wont work 12.0
+                    os0.muteshell("dropdb -Upostgres --if-exists " + db_name)
                 else:
-                    ctx['odoo_session'].db.drop(ctx['admin_passwd'],
-                                                db_name)
+                    ctx['odoo_session'].db.drop(ctx['admin_passwd'], db_name)
                 # ctx['odoo_session'].db.drop(ctx['admin_passwd'],
                 #                             db_name)
                 sts = STS_SUCCESS
@@ -1143,8 +1229,11 @@ def act_wep_company(ctx):
     if not ctx.get('company_name'):
         msg_log(ctx, ctx['level'], 'No wipe action due to missed company!!!')
         return STS_FAILED
-    msg_log(ctx, ctx['level'],
-            globals()[inspect.stack()[0][3]].__doc__ % ctx.get('company_name'))
+    msg_log(
+        ctx,
+        ctx['level'],
+        globals()[inspect.stack()[0][3]].__doc__ % ctx.get('company_name'),
+    )
     data_selection = get_data_selection(ctx)
     sts = STS_SUCCESS
     # c_id = ctx['company_id']
@@ -1182,30 +1271,36 @@ def act_wep_company(ctx):
             company_id = ctx['company_id']
             model = 'res.company'
             if company_id == 1:
-                writeL8(ctx, model,
-                        [company_id],
-                        {'name': 'Your company %d' % company_id,
-                         'street': '',
-                         'city': ''})
+                writeL8(
+                    ctx,
+                    model,
+                    [company_id],
+                    {'name': 'Your company %d' % company_id, 'street': '', 'city': ''},
+                )
             else:
                 try:
-                    unlinkL8(ctx, model,
-                             [company_id])
+                    unlinkL8(ctx, model, [company_id])
                 except BaseException:
                     msg = u"Cannot remove %s.%d" % (model, company_id)
                     msg_log(ctx, ctx['level'], msg)
-                    writeL8(ctx, model,
-                            [company_id],
-                            {'name': 'Do not use %d' % company_id,
-                             'street': '',
-                             'city': ''})
+                    writeL8(
+                        ctx,
+                        model,
+                        [company_id],
+                        {
+                            'name': 'Do not use %d' % company_id,
+                            'street': '',
+                            'city': '',
+                        },
+                    )
     return sts
 
 
 def act_wep_db(ctx):
     """Wipe DB %s: delete all records of DB but not res_parter"""
-    msg_log(ctx, ctx['level'],
-            globals()[inspect.stack()[0][3]].__doc__ % ctx.get('db_name'))
+    msg_log(
+        ctx, ctx['level'], globals()[inspect.stack()[0][3]].__doc__ % ctx.get('db_name')
+    )
     data_selection = get_data_selection(ctx)
     sts = STS_SUCCESS
     msg = ','.join(data_selection)
@@ -1248,9 +1343,11 @@ def act_new_db(ctx):
     """Create new DB"""
     sts = STS_SUCCESS
     lang = ctx.get('lang', 'en_US')
-    msg = "Create DB %s [lang=%s, demo=%s]" % (ctx['db_name'],
-                                               lang,
-                                               str(ctx['with_demo']))
+    msg = "Create DB %s [lang=%s, demo=%s]" % (
+        ctx['db_name'],
+        lang,
+        str(ctx['with_demo']),
+    )
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         if ctx['db_name'] == 'auto':
@@ -1264,31 +1361,24 @@ def act_new_db(ctx):
             else:
                 pwd = ctx['login_password']
                 try:
-                    ctx['server_version'] = ctx[
-                        'odoo_session'].db.server_version()
+                    ctx['server_version'] = ctx['odoo_session'].db.server_version()
                 except BaseException:
                     ctx['server_version'] = ctx['odoo_session'].version
             try:
                 if ctx['svc_protocol'] == 'jsonrpc':
-                    ctx['odoo_session'].db.create(ctx['admin_passwd'],
-                                                  ctx['db_name'],
-                                                  ctx['with_demo'],
-                                                  lang,
-                                                  pwd)
+                    ctx['odoo_session'].db.create(
+                        ctx['admin_passwd'], ctx['db_name'], ctx['with_demo'], lang, pwd
+                    )
                     time.sleep(3)
-                    open_connection(ctx)        # Needed for 11.0
+                    open_connection(ctx)  # Needed for 11.0
                 elif ctx['server_version'] == '7.0':
-                    ctx['odoo_session'].db.create_and_wait(ctx['admin_passwd'],
-                                                           ctx['db_name'],
-                                                           ctx['with_demo'],
-                                                           lang,
-                                                           pwd)
+                    ctx['odoo_session'].db.create_and_wait(
+                        ctx['admin_passwd'], ctx['db_name'], ctx['with_demo'], lang, pwd
+                    )
                 else:
-                    ctx['odoo_session'].db.create_database(ctx['admin_passwd'],
-                                                           ctx['db_name'],
-                                                           ctx['with_demo'],
-                                                           lang,
-                                                           pwd)
+                    ctx['odoo_session'].db.create_database(
+                        ctx['admin_passwd'], ctx['db_name'], ctx['with_demo'], lang, pwd
+                    )
                     time.sleep(3)
             except BaseException:
                 sts = STS_FAILED
@@ -1384,9 +1474,9 @@ def act_per_user(ctx):
             ctx['def_company_name'] = ctx['company_name']
             if ctx.get('company_country_id', 0) != 0:
                 ctx['def_country_id'] = ctx['company_country_id']
-                ctx['country_code'] = browseL8(ctx,
-                                               'res.country',
-                                               ctx['def_country_id']).code
+                ctx['country_code'] = browseL8(
+                    ctx, 'res.country', ctx['def_country_id']
+                ).code
             if sts != STS_SUCCESS:
                 break
     return sts
@@ -1396,9 +1486,11 @@ def act_execute(ctx):
     sts = STS_SUCCESS
     o_model = build_model_struct(ctx)
     model = get_model_model(ctx, o_model)
-    if not o_model.get('model') or \
-            not o_model.get('model_action') or \
-            not o_model.get('model_keyids'):
+    if (
+        not o_model.get('model')
+        or not o_model.get('model_action')
+        or not o_model.get('model_keyids')
+    ):
         msg = 'Excecute w/o model or key'
         msg_log(ctx, ctx['level'] + 1, msg)
         sts = STS_FAILED
@@ -1406,24 +1498,24 @@ def act_execute(ctx):
         where = []
         model_name = get_model_name(ctx, o_model)
         if model_name:
-            where.append(
-                [model_name, 'like', o_model['model_keyids']])
+            where.append([model_name, 'like', o_model['model_keyids']])
             ids = searchL8(ctx, model, where)
         else:
             ids = [o_model['model_keyids']]
-        if model == 'account.move' and \
-                o_model['model_action'] == 'button_validate' and \
-                ctx['majver'] >= 10:
+        if (
+            model == 'account.move'
+            and o_model['model_action'] == 'button_validate'
+            and ctx['majver'] >= 10
+        ):
             o_model['model_action'] = 'post'
         try:
-            executeL8(ctx,
-                      model,
-                      o_model['model_action'],
-                      ids)
+            executeL8(ctx, model, o_model['model_action'], ids)
         except BaseException:
-            msg = 'Excecute (%s, %s, %s) Failed!' % (model,
-                                                     o_model['model_action'],
-                                                     str(ids))
+            msg = 'Excecute (%s, %s, %s) Failed!' % (
+                model,
+                o_model['model_action'],
+                str(ids),
+            )
             msg_log(ctx, ctx['level'] + 1, msg)
             sts = STS_FAILED
     return sts
@@ -1433,9 +1525,11 @@ def act_workflow(ctx):
     sts = STS_SUCCESS
     o_model = build_model_struct(ctx)
     model = get_model_model(ctx, o_model)
-    if not o_model.get('model') or \
-            not o_model.get('model_action') or \
-            not o_model.get('model_keyids'):
+    if (
+        not o_model.get('model')
+        or not o_model.get('model_action')
+        or not o_model.get('model_keyids')
+    ):
         msg = 'Excecute w/o model or key'
         msg_log(ctx, ctx['level'] + 1, msg)
         sts = STS_FAILED
@@ -1443,8 +1537,7 @@ def act_workflow(ctx):
         where = []
         model_name = get_model_name(ctx, o_model)
         if model_name:
-            where.append(
-                [model_name, 'like', o_model['model_keyids']])
+            where.append([model_name, 'like', o_model['model_keyids']])
             ids = searchL8(ctx, model, where)
             if len(ids) == 0:
                 msg = 'Excecute w/o model or key'
@@ -1458,9 +1551,7 @@ def act_workflow(ctx):
         try:
             execute_action_L8(ctx, model, o_model.get('model_action'), ids)
         except BaseException:
-            msg = 'Workflow (%s, %s, %d) Failed!' % (model,
-                                                     o_model['model_action'],
-                                                     id)
+            msg = 'Workflow (%s, %s, %d) Failed!' % (model, o_model['model_action'], id)
             msg_log(ctx, ctx['level'] + 1, msg)
             sts = STS_FAILED
     return sts
@@ -1475,46 +1566,31 @@ def act_update_modules(ctx):
         ids = searchL8(ctx, model, [('name', '=like', '__old_%')])
         if len(ids):
             unlinkL8(ctx, model, ids)
-        executeL8(ctx,
-                  'base.module.update',
-                  'update_module',
-                  [])
-        ids = searchL8(ctx, model,
-                       [('state', '=', 'to install')])
+        executeL8(ctx, 'base.module.update', 'update_module', [])
+        ids = searchL8(ctx, model, [('state', '=', 'to install')])
         if ids:
             msg = u"Found module to install ..."
             msg_log(ctx, ctx['level'] + 1, msg)
             try:
-                executeL8(ctx,
-                          model,
-                          'button_install_cancel',
-                          ids)
+                executeL8(ctx, model, 'button_install_cancel', ids)
                 time.sleep(3)
             except BaseException:
                 pass
-        ids = searchL8(ctx, model,
-                       [('state', '=', 'to upgrade')])
+        ids = searchL8(ctx, model, [('state', '=', 'to upgrade')])
         if ids:
             msg = u"Found module to upgrade ..."
             msg_log(ctx, ctx['level'] + 1, msg)
             try:
-                executeL8(ctx,
-                          model,
-                          'button_upgrade_cancel',
-                          ids)
+                executeL8(ctx, model, 'button_upgrade_cancel', ids)
                 time.sleep(3)
             except BaseException:
                 pass
-        ids = searchL8(ctx, model,
-                       [('state', '=', 'to remove')])
+        ids = searchL8(ctx, model, [('state', '=', 'to remove')])
         if ids:
             msg = u"Found module to uninstall ..."
             msg_log(ctx, ctx['level'] + 1, msg)
             try:
-                executeL8(ctx,
-                          model,
-                          'button_uninstall_cancel',
-                          ids)
+                executeL8(ctx, model, 'button_uninstall_cancel', ids)
                 time.sleep(3)
             except BaseException:
                 pass
@@ -1525,8 +1601,7 @@ def act_upgrade_modules(ctx, module_list=None):
     """Upgrade module from list"""
     msg = u"Upgrade modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = module_list or get_real_paramvalue(
-        ctx, 'upgrade_modules').split(',')
+    module_list = module_list or get_real_paramvalue(ctx, 'upgrade_modules').split(',')
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
@@ -1543,13 +1618,9 @@ def act_upgrade_modules(ctx, module_list=None):
             ignore_not_installed = False
         msg = "name(%s) .." % mx
         msg_log(False, ctx['level'] + 1, msg)
-        module_ids = searchL8(ctx, model,
-                              [('name', '=', modname)],
-                              context=context)
+        module_ids = searchL8(ctx, model, [('name', '=', modname)], context=context)
         if not module_ids:
-            msg, sts = set_msg('Module %s not found!',
-                               modname,
-                               True)
+            msg, sts = set_msg('Module %s not found!', modname, True)
             msg_log(ctx, ctx['level'] + 1, msg)
             continue
         if ctx['dry_run']:
@@ -1560,21 +1631,16 @@ def act_upgrade_modules(ctx, module_list=None):
                 cur_lang = 'en_US'
                 set_user_lang(ctx, cur_lang)
             try:
-                executeL8(ctx,
-                          'ir.module.module',
-                          'button_immediate_upgrade',
-                          module_ids)
+                executeL8(
+                    ctx, 'ir.module.module', 'button_immediate_upgrade', module_ids
+                )
                 time.sleep(len(module.dependencies_id) + 1)
             except BaseException:
-                msg, sts = set_msg('Error upgrading %s!',
-                                   modname,
-                                   ignore_not_installed)
+                msg, sts = set_msg('Error upgrading %s!', modname, ignore_not_installed)
                 msg_log(ctx, ctx['level'] + 1, msg)
         module = browseL8(ctx, model, module_ids[0])
         if module.state != 'installed':
-            msg, sts = set_msg('Module %s not upgraded!',
-                               modname,
-                               ignore_not_installed)
+            msg, sts = set_msg('Module %s not upgraded!', modname, ignore_not_installed)
             msg_log(ctx, ctx['level'] + 1, msg)
         if sts == STS_FAILED and ctx['exit_onerror']:
             break
@@ -1587,8 +1653,7 @@ def act_purge_modules(ctx, module_list=None):
     """Purge module from list"""
     msg = u"Purge unuseful modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = module_list or get_real_paramvalue(
-        ctx, 'purge_modules').split(',')
+    module_list = module_list or get_real_paramvalue(ctx, 'purge_modules').split(',')
     if not ctx.get('_cr'):
         msg = u"Purge require sql access!"
         msg_log(ctx, ctx['level'], msg)
@@ -1599,9 +1664,7 @@ def act_purge_modules(ctx, module_list=None):
     for mx in module_list:
         if mx == "":
             continue
-        for table in ('ir_translation',
-                      'base.module.upgrade',
-                      ):
+        for table in ('ir_translation', 'base.module.upgrade'):
             query = '''delete from %s where module='%s' ''' % (table, mx)
             incr_lev(ctx)
             msg = u">>>%s" % query
@@ -1619,8 +1682,9 @@ def act_uninstall_modules(ctx, module_list=None):
     """Uninstall module from list"""
     msg = u"Uninstall unuseful modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = module_list or get_real_paramvalue(
-        ctx, 'uninstall_modules').split(',')
+    module_list = module_list or get_real_paramvalue(ctx, 'uninstall_modules').split(
+        ','
+    )
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
@@ -1637,13 +1701,9 @@ def act_uninstall_modules(ctx, module_list=None):
             ignore_not_installed = False
         msg = "name(%s) .." % mx
         msg_log(False, ctx['level'] + 1, msg)
-        module_ids = searchL8(ctx, model,
-                              [('name', '=', modname)],
-                              context=context)
+        module_ids = searchL8(ctx, model, [('name', '=', modname)], context=context)
         if not module_ids:
-            msg, sts = set_msg('Module %s not found!',
-                               modname,
-                               True)
+            msg, sts = set_msg('Module %s not found!', modname, True)
             msg_log(ctx, ctx['level'] + 1, msg)
             continue
         if ctx['dry_run']:
@@ -1654,19 +1714,16 @@ def act_uninstall_modules(ctx, module_list=None):
                 cur_lang = 'en_US'
                 set_user_lang(ctx, cur_lang)
             try:
-                executeL8(ctx,
-                          model,
-                          'button_immediate_uninstall',
-                          module_ids)
+                executeL8(ctx, model, 'button_immediate_uninstall', module_ids)
                 time.sleep(3)
             except BaseException:
                 msg = 'Error uninstalling %s!' % modname
                 msg_log(ctx, ctx['level'] + 1, msg)
         module = browseL8(ctx, model, module_ids[0])
         if module.state != 'uninstalled':
-            msg, sts = set_msg('Module %s not uninstalled!',
-                               modname,
-                               ignore_not_installed)
+            msg, sts = set_msg(
+                'Module %s not uninstalled!', modname, ignore_not_installed
+            )
             msg_log(ctx, ctx['level'] + 1, msg)
         if sts == STS_FAILED and ctx['exit_onerror']:
             break
@@ -1680,8 +1737,7 @@ def act_install_modules(ctx, module_list=None):
 
     msg = u"Install modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = module_list or get_real_paramvalue(
-        ctx, 'install_modules').split(',')
+    module_list = module_list or get_real_paramvalue(ctx, 'install_modules').split(',')
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
@@ -1698,13 +1754,9 @@ def act_install_modules(ctx, module_list=None):
             ignore_not_installed = False
         msg = "name(%s) .." % mx
         msg_log(False, ctx['level'] + 1, msg)
-        module_ids = searchL8(ctx, model,
-                              [('name', '=', modname)],
-                              context=context)
+        module_ids = searchL8(ctx, model, [('name', '=', modname)], context=context)
         if not module_ids:
-            msg, sts = set_msg('Module %s not found!',
-                               modname,
-                               ignore_not_installed)
+            msg, sts = set_msg('Module %s not found!', modname, ignore_not_installed)
             msg_log(ctx, ctx['level'] + 1, msg)
             if ctx['exit_onerror']:
                 break
@@ -1718,19 +1770,16 @@ def act_install_modules(ctx, module_list=None):
                 cur_lang = 'en_US'
                 set_user_lang(ctx, cur_lang)
             try:
-                executeL8(ctx,
-                          model,
-                          'button_immediate_install',
-                          module_ids)
+                executeL8(ctx, model, 'button_immediate_install', module_ids)
                 time.sleep(len(module.dependencies_id) + 1)
             except BaseException:
                 msg = 'Error installing %s!' % modname
                 msg_log(ctx, ctx['level'] + 1, msg)
         module = browseL8(ctx, model, module_ids[0])
         if module.state != 'installed':
-            msg, sts = set_msg('Module %s not installed!',
-                               modname,
-                               ignore_not_installed)
+            msg, sts = set_msg(
+                'Module %s not installed!', modname, ignore_not_installed
+            )
             msg_log(ctx, ctx['level'] + 1, msg)
         if sts == STS_FAILED and ctx['exit_onerror']:
             break
@@ -1745,8 +1794,7 @@ def act_install_language(ctx):
     model = 'res.lang'
     ids = searchL8(ctx, model, [('code', '=', lang)])
     if not ids:
-        ids = searchL8(ctx, model, [('code', '=', lang),
-                                    ('active', '=', False)])
+        ids = searchL8(ctx, model, [('code', '=', lang), ('active', '=', False)])
         if len(ids):
             msg = u"Activate language %s" % lang
             msg_log(ctx, ctx['level'], msg)
@@ -1758,25 +1806,18 @@ def act_install_language(ctx):
         vals['lang'] = lang
         vals['overwrite'] = True
         id = createL8(ctx, 'base.language.install', vals)
-        executeL8(ctx,
-                  'base.language.install',
-                  'lang_install',
-                  [id])
+        executeL8(ctx, 'base.language.install', 'lang_install', [id])
     if lang != 'en_US':
         msg = u"Translate language %s terms" % lang
         msg_log(ctx, ctx['level'], msg)
         id = createL8(ctx, 'base.update.translations', {'lang': lang})
-        executeL8(ctx,
-                  'base.update.translations',
-                  'act_update',
-                  [id])
+        executeL8(ctx, 'base.update.translations', 'act_update', [id])
     return STS_SUCCESS
 
 
 def act_install_chart_of_account(ctx):
     """Install chart of account"""
-    coa = ctx.get('chart_of_account',
-                  'Italy - Piano dei conti Zeroincombenze(R)')
+    coa = ctx.get('chart_of_account', 'Italy - Piano dei conti Zeroincombenze(R)')
     msg = u"Install chart of account %s" % coa
     msg_log(ctx, ctx['level'], msg)
     return install_chart_of_account(ctx, coa)
@@ -1806,12 +1847,11 @@ def act_import_config_file(ctx):
 
 
 def act_check_coa(ctx):
-
     def set_acc_type(type_id, prefix):
         if type_id:
             for rec in browseL8(
-                ctx, model, searchL8(
-                    ctx, model, [('code', 'like', prefix)])):
+                ctx, model, searchL8(ctx, model, [('code', 'like', prefix)])
+            ):
                 if rec.code.startswith(prefix):
                     writeL8(ctx, model, rec.id, {'user_type_id': type_id})
 
@@ -1823,9 +1863,11 @@ def act_check_coa(ctx):
             reconcile = True
         elif acc.type in ('income', 'expense', 'view', 'liquidity'):
             reconcile = False
-        elif acc.name.find('IVA') >= 0 or \
-                acc.name.find('VAT') >= 0 or \
-                acc.name.find('TAX') >= 0:
+        elif (
+            acc.name.find('IVA') >= 0
+            or acc.name.find('VAT') >= 0
+            or acc.name.find('TAX') >= 0
+        ):
             reconcile = False
         else:
             reconcile = None
@@ -1860,17 +1902,22 @@ def act_check_tax(ctx):
         tax_nature[tax.code] = tax.id
         tax_nature[tax.id] = tax.code
     model = 'account.account'
-    sale_vat_acc = searchL8(ctx, model, [('company_id', '=', company_id),
-                                         ('code', '=', '260010')])
-    purch_vat_acc = searchL8(ctx, model, [('company_id', '=', company_id),
-                                          ('code', '=', '153010')])
-    sale_def_acc = searchL8(ctx, model, [('company_id', '=', company_id),
-                                         ('code', '=', '260030')])
-    purch_def_acc = searchL8(ctx, model, [('company_id', '=', company_id),
-                                          ('code', '=', '153030')])
+    sale_vat_acc = searchL8(
+        ctx, model, [('company_id', '=', company_id), ('code', '=', '260010')]
+    )
+    purch_vat_acc = searchL8(
+        ctx, model, [('company_id', '=', company_id), ('code', '=', '153010')]
+    )
+    sale_def_acc = searchL8(
+        ctx, model, [('company_id', '=', company_id), ('code', '=', '260030')]
+    )
+    purch_def_acc = searchL8(
+        ctx, model, [('company_id', '=', company_id), ('code', '=', '153030')]
+    )
     model = 'account.tax'
-    for tax in browseL8(ctx, model, searchL8(
-            ctx, model, [('company_id', '=', company_id)])):
+    for tax in browseL8(
+        ctx, model, searchL8(ctx, model, [('company_id', '=', company_id)])
+    ):
         nature_id = False
         payability = False
         account_id = False
@@ -1880,14 +1927,16 @@ def act_check_tax(ctx):
             elif tax.type_tax_use == 'purchase':
                 account_id = purch_vat_acc
             if tax.amount not in ():
-                if ((ctx['majver'] < 9 and
-                        not tax.parent_id and
-                        abs(tax.amount) not in (0.04, 0.1, 0.21, .22)) or
-                    (ctx['majver'] >= 9 and
-                        not tax.parent_tax_ids and
-                        abs(tax.amount) not in (4, 10, 21, 22))):
-                    writeL8(ctx, model, [tax.id],
-                            {'active': False})
+                if (
+                    ctx['majver'] < 9
+                    and not tax.parent_id
+                    and abs(tax.amount) not in (0.04, 0.1, 0.21, 0.22)
+                ) or (
+                    ctx['majver'] >= 9
+                    and not tax.parent_tax_ids
+                    and abs(tax.amount) not in (4, 10, 21, 22)
+                ):
+                    writeL8(ctx, model, [tax.id], {'active': False})
                     msg = 'Tax code %s deactivated' % tax.description
                     msg_log(ctx, ctx['level'] + 1, msg)
             if re.search('[Aa]rt[ .]*17[ -./]ter', tax.name):
@@ -1896,55 +1945,56 @@ def act_check_tax(ctx):
                 payability = 'S'
             elif re.search('cassa', tax.name):
                 payability = 'D'
-            if re.search('[Aa]rt[ .]*74[- .,]*c(omma)?[- ./]*[78][^0-9]',
-                    tax.name):
+            if re.search('[Aa]rt[ .]*74[- .,]*c(omma)?[- ./]*[78][^0-9]', tax.name):
                 # N6.1: cessione rottami > Art. 74c7/8
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.1']
-            elif re.search('[Aa]rt[ .]*74[- .,]*c(omma)?[- ./]*5[^0-9]',
-                    tax.name):
+            elif re.search('[Aa]rt[ .]*74[- .,]*c(omma)?[- ./]*5[^0-9]', tax.name):
                 # N6.2: oro e argento > Art. 74c5
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.2']
             elif re.search(
-                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etr.]*a[- ./]+bis',
-                    tax.name):
+                '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etr.]*a[- ./]+bis',
+                tax.name,
+            ):
                 # N6.4: cessione fabbricati > Art. 17c6 lett.a-bis
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.4']
             elif re.search(
                 '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etr.]*a[- ./]+ter',
-                    tax.name):
+                tax.name,
+            ):
                 # N6.7: prestazioni comparto edile > Art. 17c6 lett.a-ter
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.7']
             elif re.search(
-                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b',
-                    tax.name):
+                '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b', tax.name
+            ):
                 # N6.4: cellulari > Art. 17c6 lett.b
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.5']
             elif re.search(
-                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b',
-                    tax.name):
+                '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*b', tax.name
+            ):
                 # N6.4: cellulari > Art. 17c6 lett.c
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.6']
             elif re.search(
-                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*a',
-                    tax.name):
+                '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*a', tax.name
+            ):
                 # N6.4: subappalto edile > Art. 17c6 lett.a
                 # Attenzione! Non spostare in alto
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.3']
             elif re.search(
-                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*d[- ./]+(ter|quater)',
-                    tax.name):
+                    ('[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*d[- ./]+'
+                     '(ter|quater)'),
+                    tax.name,
+            ):
                 # N6.8: prestazioni energetichee > Art. 17c6 lett.d-ter/quater
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.8']
-            elif re.search(
-                    '[Aa]rt[ .]*4[12] *([a-zA-Z.](331|427).*)?$', tax.name):
+            elif re.search('[Aa]rt[ .]*4[12] *([a-zA-Z.](331|427).*)?$', tax.name):
                 # N6.9: altri rc > Art. 41/42 DL.331
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.9']
@@ -1993,8 +2043,9 @@ def act_check_tax(ctx):
                 nature_id = tax_nature['N3']
             elif re.search('[Aa]rt[^0-9]7[12][^0-9]', tax.name):
                 nature_id = tax_nature['N3']
-            elif re.search('[Aa]rt[^0-9]7[^0-9]?[ -./]*(bis|ter|quater|quinq)',
-                           tax.name):
+            elif re.search(
+                '[Aa]rt[^0-9]7[^0-9]?[ -./]*(bis|ter|quater|quinq)', tax.name
+            ):
                 nature_id = tax_nature['N2']
             elif re.search('[Aa]rt[^0-9]2[^0-9]', tax.name):
                 nature_id = tax_nature['N1']
@@ -2032,9 +2083,7 @@ def act_check_tax(ctx):
                     'non_taxable_nature': tax_nature[nature_id],
                 }
             else:
-                vals = {
-                    'nature_id': nature_id,
-                }
+                vals = {'nature_id': nature_id}
         if payability:
             vals['payability'] = payability
         if account_id:
@@ -2042,8 +2091,10 @@ def act_check_tax(ctx):
         if vals:
             writeL8(ctx, model, [tax.id], vals)
             if nature_id:
-                msg = 'Tax code %s: nature=%s' % (tax.description,
-                                                  tax_nature[nature_id])
+                msg = 'Tax code %s: nature=%s' % (
+                    tax.description,
+                    tax_nature[nature_id],
+                )
             else:
                 msg = 'Tax code %s: pay=%s' % (tax.description, payability)
             msg_log(ctx, ctx['level'] + 1, msg)
@@ -2056,25 +2107,19 @@ def act_check_xid(ctx):
         ids = searchL8(ctx, model, [])
         for i, id in enumerate(ids):
             xref = browseL8(ctx, model, id)
-            msg_burst(ctx['level'] + 1,
-                      'xreference',
-                      i,
-                      len(ids))
+            msg_burst(ctx['level'] + 1, 'xreference', i, len(ids))
             try:
                 browseL8(ctx, xref.model, xref.res_id)
             except BaseException:
-                print('!! Invalid external reference %s.%s' % (xref.module,
-                                                               xref.name))
+                print('!! Invalid external reference %s.%s' % (xref.module, xref.name))
                 unlinkL8(ctx, model, id)
     return STS_SUCCESS
 
 
 def act_check_config(ctx):
-
     def cvt_rec_2_vals(rec):
         values = {'is_company': True, 'parent_id': False}
-        for fld in ('name', 'street', 'zip', 'city', 'vat', 'customer',
-                    'supplier'):
+        for fld in ('name', 'street', 'zip', 'city', 'vat', 'customer', 'supplier'):
             values[fld] = rec[fld]
         for fld in ('country_id', 'state_id'):
             values[fld] = rec[fld].id
@@ -2098,85 +2143,116 @@ def act_check_config(ctx):
     partner_root = env_ref(ctx, 'base.partner_root')
     main_company = env_ref(ctx, 'base.main_company')
     if user_root:
-        writeL8(ctx, model, user_root,
-                {
-                    'company_ids': [(4, main_company)],
-                })
-        writeL8(ctx, model, user_root,
-                {
-                    'company_id': main_company,
-                    'partner_id': partner_root,
-                })
+        writeL8(ctx, model, user_root, {'company_ids': [(4, main_company)]})
+        writeL8(
+            ctx,
+            model,
+            user_root,
+            {'company_id': main_company, 'partner_id': partner_root},
+        )
     if user_demo:
-        writeL8(ctx, model, user_demo,
-                {
-                    'company_ids': [(4, main_company)],
-                })
-        writeL8(ctx, model, user_demo,
-                {
-                    'company_id': main_company,
-                    'partner_id': partner_root,
-                })
+        writeL8(ctx, model, user_demo, {'company_ids': [(4, main_company)]})
+        writeL8(
+            ctx,
+            model,
+            user_demo,
+            {'company_id': main_company, 'partner_id': partner_root},
+        )
 
     model = 'ir.model.data'
     # Rename old state_id entries (Odoo 7.0 l10n_it_base)
-    for xid in browseL8(ctx, model,
-             searchL8(ctx, model, [('module', '=', 'l10n_it_base'),
-                                   ('model', '=', 'res.county.state'),
-                                   ('name', 'like', r'it\_%')])):
+    for xid in browseL8(
+        ctx,
+        model,
+        searchL8(
+            ctx,
+            model,
+            [
+                ('module', '=', 'l10n_it_base'),
+                ('model', '=', 'res.county.state'),
+                ('name', 'like', r'it\_%'),
+            ],
+        ),
+    ):
         if xid.name.startswith('it_') and len(xid.name) == 5:
-            writeL8(ctx, model, xid.id, {
-                'module': 'base',
-                'name': 'state_%s' % xid.name.lower()})
+            writeL8(
+                ctx,
+                model,
+                xid.id,
+                {'module': 'base', 'name': 'state_%s' % xid.name.lower()},
+            )
             msg_log(
-                ctx, ctx['level'] + 1,
-                'External id %d renamed l10n_it_base -> base' % xid.id)
+                ctx,
+                ctx['level'] + 1,
+                'External id %d renamed l10n_it_base -> base' % xid.id,
+            )
     # Rename old state_id entries (Odoo 7.0 l10n_it_bbone)
-    for xid in searchL8(ctx, model, [('module', '=', 'l10n_it_bbone'),
-                                     ('model', '=', 'res.county.state'),
-                                     ('name', 'like', r'it\_%')]):
+    for xid in searchL8(
+        ctx,
+        model,
+        [
+            ('module', '=', 'l10n_it_bbone'),
+            ('model', '=', 'res.county.state'),
+            ('name', 'like', r'it\_%'),
+        ],
+    ):
         if xid.name.startswith('it_') and len(xid.name) == 5:
             unlinkL8(ctx, model, [xid])
             msg_log(
-                ctx, ctx['level'] + 1,
-                'External id %d (l10n_it_bbone) removed' % xid.id)
+                ctx, ctx['level'] + 1, 'External id %d (l10n_it_bbone) removed' % xid.id
+            )
     # Rename deprecated testing prefix (base2/z0incombenze)
-    for xid in browseL8(ctx, model,
-             searchL8(ctx, model, [('module', '=', 'base2')])):
+    for xid in browseL8(ctx, model, searchL8(ctx, model, [('module', '=', 'base2')])):
         writeL8(ctx, model, xid.id, {'module': 'z0bug'})
         msg_log(
-            ctx, ctx['level'] + 1,
-            'External id %d renamed from base2 to z0bug' % xid.id)
-    for xid in browseL8(ctx, model,
-             searchL8(ctx, model, [('module', '=', 'z0incombenze')])):
+            ctx, ctx['level'] + 1, 'External id %d renamed from base2 to z0bug' % xid.id
+        )
+    for xid in browseL8(
+        ctx, model, searchL8(ctx, model, [('module', '=', 'z0incombenze')])
+    ):
         writeL8(ctx, model, xid.id, {'module': 'z0bug'})
         msg_log(
-            ctx, ctx['level'] + 1,
-            'External id %d renamed from z0incombenze to z0bug' % xid.id)
+            ctx,
+            ctx['level'] + 1,
+            'External id %d renamed from z0incombenze to z0bug' % xid.id,
+        )
     # Check for testing environment
-    ids = searchL8(ctx, model, [('module', '=', 'base'),
-                                ('name', 'in', ('mycompany',
-                                                'partner_mycompany',
-                                                'user_admin2',
-                                                'partner_admin2',
-                                                'user_bot',
-                                                'partner_bot'))])
+    ids = searchL8(
+        ctx,
+        model,
+        [
+            ('module', '=', 'base'),
+            (
+                'name',
+                'in',
+                (
+                    'mycompany',
+                    'partner_mycompany',
+                    'user_admin2',
+                    'partner_admin2',
+                    'user_bot',
+                    'partner_bot',
+                ),
+            ),
+        ],
+    )
     for id in ids:
         writeL8(ctx, model, id, {'module': 'z0bug'})
-        msg_log(ctx, ctx['level'] + 1,
-                'External id %d renamed from base to z0bug' % id)
+        msg_log(ctx, ctx['level'] + 1, 'External id %d renamed from base to z0bug' % id)
     # Rename invoice refs
     invoice_xrefs = []
     for pfx in ('SO', 'PO'):
         for yr in ('17', '18', '19', '20'):
             for nr in ('01', '02', '03', '04', '05'):
                 invoice_xrefs.append('invoice_%s%s%s' % (pfx, yr, nr))
-    ids = searchL8(ctx, model, [('module', '=', 'account'),
-                                ('name', 'in', invoice_xrefs)])
+    ids = searchL8(
+        ctx, model, [('module', '=', 'account'), ('name', 'in', invoice_xrefs)]
+    )
     for id in ids:
         writeL8(ctx, model, id, {'module': 'z0bug'})
-        msg_log(ctx, ctx['level'] + 1,
-                'External id %d renamed from account to z0bug' % id)
+        msg_log(
+            ctx, ctx['level'] + 1, 'External id %d renamed from account to z0bug' % id
+        )
     # Search for partners with demo ref and testing refs that give errors
     # in Odoo update
     model_partner = 'res.partner'
@@ -2190,8 +2266,7 @@ def act_check_config(ctx):
     xref_dups_id = {}
     avaiable_xrefs = []
     replacement_list = {}
-    for id in searchL8(ctx, model,
-                       [('model', '=', model_partner)], order='module'):
+    for id in searchL8(ctx, model, [('model', '=', model_partner)], order='module'):
         rec = browseL8(ctx, model, id)
         xname = '%s.%s' % (rec.module, rec.name)
         if xname == 'base.public_user_res_partner':
@@ -2205,19 +2280,32 @@ def act_check_config(ctx):
             xref_partner_ids[part_id] = xname
             xref_names[xname] = part_id
             xref_ids[xname] = id
-    excl_list_user = [x.partner_id.id for x in browseL8(
-        ctx, model_user, searchL8(ctx, model_user, []))]
-    excl_list_company = [x.partner_id.id for x in browseL8(
-        ctx, model_company, searchL8(ctx, model_company, []))]
-    excl_xref = [x.res_id for x in browseL8(
-        ctx, model, searchL8(ctx, model,
-                             [('model', '=', model_partner),
-                              ('module', '!=', 'z0bug')]))]
+    excl_list_user = [
+        x.partner_id.id
+        for x in browseL8(ctx, model_user, searchL8(ctx, model_user, []))
+    ]
+    excl_list_company = [
+        x.partner_id.id
+        for x in browseL8(ctx, model_company, searchL8(ctx, model_company, []))
+    ]
+    excl_xref = [
+        x.res_id
+        for x in browseL8(
+            ctx,
+            model,
+            searchL8(
+                ctx, model, [('model', '=', model_partner), ('module', '!=', 'z0bug')]
+            ),
+        )
+    ]
     partners_no_use = excl_list_user + excl_list_company + excl_xref
     partners_no_use = list(set(partners_no_use))
     avaiable_partner_ids = searchL8(
-        ctx, model_partner, [('id', 'not in', partners_no_use),
-                             ('parent_id', '=', False)], order='id')
+        ctx,
+        model_partner,
+        [('id', 'not in', partners_no_use), ('parent_id', '=', False)],
+        order='id',
+    )
     for xname in xref_dups:
         part_id = xref_dups[xname]
         partner = browseL8(ctx, model_partner, part_id)
@@ -2225,8 +2313,7 @@ def act_check_config(ctx):
         if part_id in xref_partner_ids:
             new_id = xref_names[xref_partner_ids[part_id]]
         else:
-            new_id, avaiable_partner_ids = book_partner(
-                avaiable_partner_ids, vals)
+            new_id, avaiable_partner_ids = book_partner(avaiable_partner_ids, vals)
         writeL8(ctx, model_partner, new_id, vals)
         replacement_list[part_id] = new_id
         xref_names[xname] = new_id
@@ -2242,35 +2329,44 @@ def act_check_config(ctx):
 
     for part_id in excl_list_company:
         if part_id in excl_list_user:
-            ids = searchL8(ctx, model_company,
-                           [('partner_id', '=', part_id)])
+            ids = searchL8(ctx, model_company, [('partner_id', '=', part_id)])
             if ids:
                 partner = browseL8(ctx, model_partner, part_id)
                 vals = cvt_rec_2_vals(partner)
-                new_id, avaiable_partner_ids = book_partner(
-                    avaiable_partner_ids, vals)
+                new_id, avaiable_partner_ids = book_partner(avaiable_partner_ids, vals)
                 excl_list_company.append(new_id)
                 partners_no_use.append(new_id)
-                msg_log(ctx, ctx['level'] + 1,
-                        'New partner no user id %d for the company %s' % (
-                            new_id, vals['name']))
-                writeL8(ctx, model_company, ids[0],
-                        {'partner_id': new_id})
-                msg_log(ctx, ctx['level'] + 1,
-                        'Company id %d has a new partner id %d' % (
-                            ids[0], new_id))
-                ids2 = searchL8(ctx, model,
-                                [('module', '=', 'z0bug'),
-                                 ('model', '=', model_partner),
-                                 ('res_id', '=', ids[0])])
+                msg_log(
+                    ctx,
+                    ctx['level'] + 1,
+                    'New partner no user id %d for the company %s'
+                    % (new_id, vals['name']),
+                )
+                writeL8(ctx, model_company, ids[0], {'partner_id': new_id})
+                msg_log(
+                    ctx,
+                    ctx['level'] + 1,
+                    'Company id %d has a new partner id %d' % (ids[0], new_id),
+                )
+                ids2 = searchL8(
+                    ctx,
+                    model,
+                    [
+                        ('module', '=', 'z0bug'),
+                        ('model', '=', model_partner),
+                        ('res_id', '=', ids[0]),
+                    ],
+                )
                 if ids2:
                     writeL8(ctx, model, ids2[0], {'res_id': new_id})
-                    msg_log(ctx, ctx['level'] + 1,
-                            'External id %d with new res_id %d' % (
-                            ids2[0], new_id))
-    z0_invoice_xid_list = searchL8(ctx, model,
-                                   [('model', '=', model_invoice),
-                                    ('module', '=', 'z0bug')])
+                    msg_log(
+                        ctx,
+                        ctx['level'] + 1,
+                        'External id %d with new res_id %d' % (ids2[0], new_id),
+                    )
+    z0_invoice_xid_list = searchL8(
+        ctx, model, [('model', '=', model_invoice), ('module', '=', 'z0bug')]
+    )
     for inv_xid in browseL8(ctx, model, z0_invoice_xid_list):
         inv = browseL8(ctx, model_invoice, inv_xid.res_id)
         part_id = inv.partner_id.id
@@ -2280,8 +2376,7 @@ def act_check_config(ctx):
             if part_id in xref_partner_ids:
                 new_id = xref_names[xref_partner_ids[part_id]]
             else:
-                new_id, avaiable_partner_ids = book_partner(
-                    avaiable_partner_ids, vals)
+                new_id, avaiable_partner_ids = book_partner(avaiable_partner_ids, vals)
             writeL8(ctx, model_partner, new_id, vals)
             replacement_list[part_id] = new_id
 
@@ -2290,31 +2385,42 @@ def act_check_config(ctx):
         if not ctx['db_name'].startswith('demo'):
             excl = []
             for xref in browseL8(
-                    ctx, model, searchL8(
-                        ctx, model, [('module', '=', 'z0bug'),
-                                     ('name', 'in', invoice_xrefs)])):
+                ctx,
+                model,
+                searchL8(
+                    ctx,
+                    model,
+                    [('module', '=', 'z0bug'), ('name', 'in', invoice_xrefs)],
+                ),
+            ):
                 excl.append(xref, id)
             where.append(('id', 'in', excl))
         invoice_ids = searchL8(ctx, model_invoice, where)
         for inv in browseL8(ctx, model_invoice, invoice_ids):
             # inv_state = inv.state
             if inv.state in INVOICES_STS_2_DRAFT:
-                reconcile_dict, move_dict = get_reconcile_from_invoices(
-                    [inv.id], ctx)
+                reconcile_dict, move_dict = get_reconcile_from_invoices([inv.id], ctx)
                 unreconcile_invoices(reconcile_dict, ctx)
                 upd_invoices_2_draft(move_dict, ctx)
-            writeL8(ctx, model_invoice, inv.id,
-                    {'partner_id': replacement_list[inv.partner_id.id]})
-            msg_log(ctx, ctx['level'] + 1,
-                    'Invoice id %d, new partner id=%d' % (
-                        inv.id, replacement_list[inv.partner_id.id]))
+            writeL8(
+                ctx,
+                model_invoice,
+                inv.id,
+                {'partner_id': replacement_list[inv.partner_id.id]},
+            )
+            msg_log(
+                ctx,
+                ctx['level'] + 1,
+                'Invoice id %d, new partner id=%d'
+                % (inv.id, replacement_list[inv.partner_id.id]),
+            )
             if inv.state in INVOICES_STS_2_DRAFT:
                 upd_invoices_2_posted(move_dict, ctx)
                 reconciles = reconcile_dict[inv.id]
                 if len(reconciles):
-                    cur_reconciles, cur_reconcile_dict = \
-                        refresh_reconcile_from_inv(
-                            inv.id, reconciles, ctx)
+                    cur_reconciles, cur_reconcile_dict = refresh_reconcile_from_inv(
+                        inv.id, reconciles, ctx
+                    )
                     reconcile_invoices(cur_reconcile_dict, ctx)
 
     DEMO_PARTNERS = {
@@ -2401,9 +2507,7 @@ def act_check_partners(ctx):
     msg_log(ctx, ctx['level'], msg)
     model = 'res.partner'
 
-    italy_id = searchL8(ctx,
-                        'res.country',
-                        [('code', '=', 'IT')])[0]
+    italy_id = searchL8(ctx, 'res.country', [('code', '=', 'IT')])[0]
     partner_ids = searchL8(ctx, 'res.partner', [])
     rec_ctr = 0
     for partner_id in partner_ids:
@@ -2414,9 +2518,7 @@ def act_check_partners(ctx):
             msg_log(ctx, ctx['level'], msg)
             continue
         rec_ctr += 1
-        msg_burst(4, 'Partner ',
-                  rec_ctr,
-                  partner.name)
+        msg_burst(4, 'Partner ', rec_ctr, partner.name)
         vals = {}
         if not partner.country_id and (partner.street or partner.city):
             vals['country_id'] = italy_id
@@ -2427,37 +2529,53 @@ def act_check_partners(ctx):
         else:
             vals['country_id'] = False
         if is_valid_field(ctx, model, 'province'):
-            if (partner.province and
-                    vals['country_id'] == italy_id and
-                    not partner.state_id):
-                state_ids = searchL8(ctx,
-                                     'res.country.state',
-                                     [('code', '=', partner.province.code),
-                                      ('country_id', '=', vals['country_id'])])
+            if (
+                partner.province
+                and vals['country_id'] == italy_id
+                and not partner.state_id
+            ):
+                state_ids = searchL8(
+                    ctx,
+                    'res.country.state',
+                    [
+                        ('code', '=', partner.province.code),
+                        ('country_id', '=', vals['country_id']),
+                    ],
+                )
                 if state_ids:
                     vals['state_id'] = state_ids[0]
                     msg = u"Wrong province of %s" % partner.name
                     msg_log(ctx, ctx['level'], msg)
 
-        if (not vals.get('state_id') and
-                not partner.state_id and
-                partner.zip and
-                vals['country_id'] == italy_id):
-            city_ids = searchL8(ctx,
-                                'res.city',
-                                [('zip', '=', partner.zip),
-                                 ('country_id', '=', vals['country_id'])])
-            if not len(city_ids):
-                city_ids = searchL8(ctx,
-                                    'res.city',
-                                    [('zip', '=', '%s%%' % partner.zip[0:4]),
-                                     ('country_id', '=', vals['country_id'])])
+        if (
+            not vals.get('state_id')
+            and not partner.state_id
+            and partner.zip
+            and vals['country_id'] == italy_id
+        ):
+            city_ids = searchL8(
+                ctx,
+                'res.city',
+                [('zip', '=', partner.zip), ('country_id', '=', vals['country_id'])],
+            )
             if not len(city_ids):
                 city_ids = searchL8(
                     ctx,
                     'res.city',
-                    [('zip', '=', '%s%%%%' % partner.zip[0:3]),
-                     ('country_id', '=', vals['country_id'])])
+                    [
+                        ('zip', '=', '%s%%' % partner.zip[0:4]),
+                        ('country_id', '=', vals['country_id']),
+                    ],
+                )
+            if not len(city_ids):
+                city_ids = searchL8(
+                    ctx,
+                    'res.city',
+                    [
+                        ('zip', '=', '%s%%%%' % partner.zip[0:3]),
+                        ('country_id', '=', vals['country_id']),
+                    ],
+                )
             state_id = None
             for id in city_ids:
                 city = browseL8(ctx, 'res.city', id)
@@ -2483,9 +2601,11 @@ def act_check_partners(ctx):
                     vals['vat'] = new_vat
                     msg = u"Wrong VAT %s" % partner.vat
                     msg_log(ctx, ctx['level'], msg)
-            elif (vals['country_id'] == italy_id and
-                    partner.vat.isdigit() and
-                    len(partner.vat) == 11):
+            elif (
+                vals['country_id'] == italy_id
+                and partner.vat.isdigit()
+                and len(partner.vat) == 11
+            ):
                 iso = 'IT'
                 vatn = partner.vat
                 vals['vat'] = iso + vatn
@@ -2500,8 +2620,7 @@ def act_check_partners(ctx):
                 msg_log(ctx, ctx['level'], msg)
             if not partner.is_company:
                 vals['is_company'] = True
-                msg = '%s (%d) is company not person' % (
-                    partner.name, partner.id)
+                msg = '%s (%d) is company not person' % (partner.name, partner.id)
                 msg_log(ctx, ctx['level'], msg)
 
         if partner.fiscalcode and vals['country_id'] == italy_id:
@@ -2518,8 +2637,7 @@ def act_check_partners(ctx):
                 msg = '%s wrong zip' % partner.name
                 msg_log(ctx, ctx['level'], msg)
 
-        if (not vals['country_id'] or
-                vals['country_id'] == partner.country_id.id):
+        if not vals['country_id'] or vals['country_id'] == partner.country_id.id:
             del vals['country_id']
         if vals:
             try:
@@ -2535,86 +2653,94 @@ def act_set_periods(ctx):
     msg_log(ctx, ctx['level'], msg)
     majver = ctx['majver']
     company_id = ctx['company_id']
-    fiscalyear_id, process_it, last_name, last_start, last_stop = \
-        read_last_fiscalyear(company_id, ctx)
+    fiscalyear_id, process_it, last_name, last_start, last_stop = read_last_fiscalyear(
+        company_id, ctx
+    )
     if process_it and fiscalyear_id == 0:
-        name, date_start, date_stop = \
-            evaluate_date_n_name(ctx,
-                                 last_name,
-                                 last_start,
-                                 last_stop,
-                                 'year')
+        name, date_start, date_stop = evaluate_date_n_name(
+            ctx, last_name, last_start, last_stop, 'year'
+        )
         if majver < 10:
             model = 'account.fiscalyear'
             code = re.findall('[0-9./-]+', name)[0]
-            fiscal_year_id = createL8(ctx, model, {
-                'name': name,
-                'code': code,
-                'date_start': str(date_start),
-                'date_stop': str(date_stop),
-                'company_id': company_id})
+            fiscal_year_id = createL8(
+                ctx,
+                model,
+                {
+                    'name': name,
+                    'code': code,
+                    'date_start': str(date_start),
+                    'date_stop': str(date_stop),
+                    'company_id': company_id,
+                },
+            )
         else:
             model = 'date.range.type'
-            ids = searchL8(ctx, model,
-                           [('company_id', '=', company_id),
-                            ('name', '=', 'Annual')])
+            ids = searchL8(
+                ctx, model, [('company_id', '=', company_id), ('name', '=', 'Annual')]
+            )
             if not ids:
                 date_type_id = fiscal_year_id = createL8(
-                    ctx, model, {
-                        'name': 'Annual',
-                        'company_id': company_id
-                    })
+                    ctx, model, {'name': 'Annual', 'company_id': company_id}
+                )
             else:
                 date_type_id = ids[0]
             model = 'date.range'
-            fiscal_year_id = createL8(ctx, model, {
-                'name': name,
-                'date_start': str(date_start),
-                'date_end': str(date_stop),
-                'company_id': company_id,
-                'type_id': date_type_id})
+            fiscal_year_id = createL8(
+                ctx,
+                model,
+                {
+                    'name': name,
+                    'date_start': str(date_start),
+                    'date_end': str(date_stop),
+                    'company_id': company_id,
+                    'type_id': date_type_id,
+                },
+            )
         msg = u"Added fiscalyear %s" % name
         msg_log(ctx, ctx['level'], msg)
         if majver < 10:
-            add_periods(ctx,
-                        company_id,
-                        fiscal_year_id,
-                        last_name,
-                        last_start,
-                        last_stop)
+            add_periods(
+                ctx, company_id, fiscal_year_id, last_name, last_start, last_stop
+            )
     if majver >= 10:
-        add_periods(ctx,
-                    company_id,
-                    False,
-                    last_name,
-                    last_start,
-                    last_stop)
+        add_periods(ctx, company_id, False, last_name, last_start, last_stop)
     set_journal_per_year(ctx)
     return STS_SUCCESS
 
 
 def act_check_tax_balance(ctx):
-    msg = u"Check for tax balance; period: " + \
-        ctx['date_start'] + ".." + ctx['date_stop']
+    msg = (
+        u"Check for tax balance; period: " + ctx['date_start'] + ".." + ctx['date_stop']
+    )
     msg_log(ctx, ctx['level'], msg)
     company_id = ctx['company_id']
-    period_ids = searchL8(ctx, 'account.period',
-                          [('company_id', '=', company_id),
-                           ('date_start', '>=', ctx['date_start']),
-                           ('date_stop', '<=', ctx['date_stop'])])
+    period_ids = searchL8(
+        ctx,
+        'account.period',
+        [
+            ('company_id', '=', company_id),
+            ('date_start', '>=', ctx['date_start']),
+            ('date_stop', '<=', ctx['date_stop']),
+        ],
+    )
     STATES = STATES_2_DRAFT
     if ctx['draft_recs']:
         STATES.append('draft')
-    move_line_ids = searchL8(ctx, 'account.move.line',
-                             [('company_id', '=', company_id),
-                              ('period_id', 'in', period_ids),
-                              ('state', '!=', 'draft')])
+    move_line_ids = searchL8(
+        ctx,
+        'account.move.line',
+        [
+            ('company_id', '=', company_id),
+            ('period_id', 'in', period_ids),
+            ('state', '!=', 'draft'),
+        ],
+    )
     tax_balance = {}
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
-        move_line = browseL8(ctx,
-                             'account.move.line', move_line_id)
+        move_line = browseL8(ctx, 'account.move.line', move_line_id)
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         tax_code = move_line.tax_code_id
@@ -2630,11 +2756,7 @@ def act_check_tax_balance(ctx):
                     x = ''
                 if isinstance(name, basestring):
                     x = x + ' - ' + name
-                add_on_account(tax_balance,
-                               level,
-                               x,
-                               move_line.tax_amount,
-                               0)
+                add_on_account(tax_balance, level, x, move_line.tax_amount, 0)
                 if not tax_code.parent_id:
                     break
                 tax_code = tax_code.parent_id
@@ -2657,45 +2779,53 @@ def act_check_tax_balance(ctx):
 
 def act_ena_del_in_journal(ctx):
     """Enable delete flag of journals"""
-    msg_log(ctx, ctx['level'],
-            globals()[inspect.stack()[0][3]].__doc__)
+    msg_log(ctx, ctx['level'], globals()[inspect.stack()[0][3]].__doc__)
     model = 'account.journal'
     return upd_del_in_journal(
-        ctx, searchL8(ctx, model, [('update_posted', '=', False)]))
+        ctx, searchL8(ctx, model, [('update_posted', '=', False)])
+    )
 
 
 def act_dis_del_in_journal(ctx):
     """Disable delete flag of journals"""
-    msg_log(ctx, ctx['level'],
-            globals()[inspect.stack()[0][3]].__doc__)
+    msg_log(ctx, ctx['level'], globals()[inspect.stack()[0][3]].__doc__)
     model = 'account.journal'
     return upd_del_in_journal(
-        ctx, searchL8(ctx, model, [('update_posted', '=', True)]), value=False)
+        ctx, searchL8(ctx, model, [('update_posted', '=', True)]), value=False
+    )
 
 
 def act_check_balance(ctx):
-    msg = u"Check for balance; period: " + \
-        ctx['date_start'] + ".." + ctx['date_stop']
+    msg = u"Check for balance; period: " + ctx['date_start'] + ".." + ctx['date_stop']
     msg_log(ctx, ctx['level'], msg)
     company_id = ctx['company_id']
-    period_ids = searchL8(ctx, 'account.period',
-                          [('company_id', '=', company_id),
-                           ('date_start', '>=', ctx['date_start']),
-                           ('date_stop', '<=', ctx['date_stop'])])
+    period_ids = searchL8(
+        ctx,
+        'account.period',
+        [
+            ('company_id', '=', company_id),
+            ('date_start', '>=', ctx['date_start']),
+            ('date_stop', '<=', ctx['date_stop']),
+        ],
+    )
     acc_balance = {}
     acc_partners = {}
     STATES = STATES_2_DRAFT
     if ctx['draft_recs']:
         STATES.append('draft')
-    move_line_ids = searchL8(ctx, 'account.move.line',
-                             [('company_id', '=', company_id),
-                              ('period_id', 'in', period_ids),
-                              ('state', '!=', 'draft')])
+    move_line_ids = searchL8(
+        ctx,
+        'account.move.line',
+        [
+            ('company_id', '=', company_id),
+            ('period_id', 'in', period_ids),
+            ('state', '!=', 'draft'),
+        ],
+    )
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
-        move_line = browseL8(ctx,
-                             'account.move.line', move_line_id)
+        move_line = browseL8(ctx, 'account.move.line', move_line_id)
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         warn_rec = False
@@ -2704,16 +2834,13 @@ def act_check_balance(ctx):
         account_tax = move_line.account_tax_id
         journal = move_line.journal_id
         acctype_id = account.user_type.id
-        acc_type = browseL8(ctx,
-                            'account.account.type', acctype_id)
-        if acc_type.report_type not in ("asset", "liability",
-                                        "income", "expense"):
+        acc_type = browseL8(ctx, 'account.account.type', acctype_id)
+        if acc_type.report_type not in ("asset", "liability", "income", "expense"):
             warn_rec = "Untyped"
         if account.parent_id:
             parent_account = account.parent_id
             parent_acctype_id = parent_account.user_type.id
-            parent_acc_type = browseL8(ctx, 'account.account.type',
-                                       parent_acctype_id)
+            parent_acc_type = browseL8(ctx, 'account.account.type', parent_acctype_id)
             parent_code = parent_account.code
         else:
             parent_account = None
@@ -2721,14 +2848,16 @@ def act_check_balance(ctx):
             parent_acc_type = None
             parent_code = None
             warn_rec = 'Orphan'
-        if parent_acc_type and\
-                parent_acc_type.report_type and\
-                parent_acc_type.report_type != 'none':
-            if parent_acc_type.report_type in ("asset",
-                                               "liability",
-                                               "income",
-                                               "expense") and \
-                    acc_type.report_type != parent_acc_type.report_type:
+        if (
+            parent_acc_type
+            and parent_acc_type.report_type
+            and parent_acc_type.report_type != 'none'
+        ):
+            if (
+                parent_acc_type.report_type
+                in ("asset", "liability", "income", "expense")
+                and acc_type.report_type != parent_acc_type.report_type
+            ):
                 warn_rec = "Mismatch"
 
         code = account.code
@@ -2750,30 +2879,23 @@ def act_check_balance(ctx):
             clf2 = "unknown"
             clf1 = "unknown"
 
-        if (account.company_id.id != company_id):
+        if account.company_id.id != company_id:
             msg = u"Invalid company account {0} in {1:>6}/{2:>6}  {3}".format(
-                os0.u(code),
-                move_hdr_id,
-                move_line_id,
-                os0.u(move_line.ref))
+                os0.u(code), move_hdr_id, move_line_id, os0.u(move_line.ref)
+            )
             msg_log(ctx, ctx['level'] + 1, msg)
-        if (account_tax and account_tax.company_id.id != company_id):
-            msg = u"Invalid company account tax {0} in {1:>6}/{2:>6}  {3}".\
-                format(os0.u(code),
-                       move_hdr_id,
-                       move_line_id,
-                       os0.u(move_line.ref))
+        if account_tax and account_tax.company_id.id != company_id:
+            msg = u"Invalid company account tax {0} in {1:>6}/{2:>6}  {3}".format(
+                os0.u(code), move_hdr_id, move_line_id, os0.u(move_line.ref)
+            )
             msg_log(ctx, ctx['level'] + 1, msg)
-        if (journal and journal.company_id.id != company_id):
+        if journal and journal.company_id.id != company_id:
             msg = u"Invalid company journal {0} in {1:>6}/{2:>6}  {3}".format(
-                os0.u(code),
-                move_hdr_id,
-                move_line_id,
-                os0.u(move_line.ref))
+                os0.u(code), move_hdr_id, move_line_id, os0.u(move_line.ref)
+            )
             msg_log(ctx, ctx['level'] + 1, msg)
 
-        if move_line.partner_id and \
-                move_line.partner_id.id:
+        if move_line.partner_id and move_line.partner_id.id:
             partner_id = move_line.partner_id.id
             if clf3 == "Crediti":
                 kk = 'C'
@@ -2788,53 +2910,29 @@ def act_check_balance(ctx):
             acc_partners[kk] -= move_line.credit
 
         level = '9'
-        add_on_account(acc_balance,
-                       level,
-                       code,
-                       move_line.debit,
-                       move_line.credit)
+        add_on_account(acc_balance, level, code, move_line.debit, move_line.credit)
 
         level = '8'
-        add_on_account(acc_balance,
-                       level,
-                       parent_code,
-                       move_line.debit,
-                       move_line.credit)
+        add_on_account(
+            acc_balance, level, parent_code, move_line.debit, move_line.credit
+        )
 
         level = '4'
-        add_on_account(acc_balance,
-                       level,
-                       clf3,
-                       move_line.debit,
-                       move_line.credit)
+        add_on_account(acc_balance, level, clf3, move_line.debit, move_line.credit)
 
         level = '2'
-        add_on_account(acc_balance,
-                       level,
-                       clf2,
-                       move_line.debit,
-                       move_line.credit)
+        add_on_account(acc_balance, level, clf2, move_line.debit, move_line.credit)
 
         level = '1'
-        add_on_account(acc_balance,
-                       level,
-                       clf1,
-                       move_line.debit,
-                       move_line.credit)
+        add_on_account(acc_balance, level, clf1, move_line.debit, move_line.credit)
 
         level = '0'
-        add_on_account(acc_balance,
-                       level,
-                       '_',
-                       move_line.debit,
-                       move_line.credit)
+        add_on_account(acc_balance, level, '_', move_line.debit, move_line.credit)
 
         if warn_rec:
             msg = u"Because {0:8} look at {1:>6}/{2:>6} record {3}".format(
-                warn_rec,
-                move_hdr_id,
-                move_line_id,
-                os0.u(move_line.ref))
+                warn_rec, move_hdr_id, move_line_id, os0.u(move_line.ref)
+            )
             msg_log(ctx, ctx['level'] + 1, msg)
             warn_rec = False
 
@@ -2857,30 +2955,24 @@ def act_check_balance(ctx):
             for sublevel in acc_balance[level]:
                 if acc_balance[level][sublevel] > 0:
                     msg = u"{0} {1:<16} {2:11.2f}".format(
-                        os0.u(ident),
-                        os0.u(sublevel),
-                        acc_balance[level][sublevel])
+                        os0.u(ident), os0.u(sublevel), acc_balance[level][sublevel]
+                    )
                     msg_log(ctx, ctx['level'], msg)
                     crd_amt += acc_balance[level][sublevel]
                 elif acc_balance[level][sublevel] < 0:
                     msg = u"{0} {1:<16} {2:11}{3:11.2f}".format(
-                        os0.u(ident),
-                        os0.u(sublevel),
-                        '', -acc_balance[level][sublevel])
+                        os0.u(ident), os0.u(sublevel), '', -acc_balance[level][sublevel]
+                    )
                     msg_log(ctx, ctx['level'], msg)
                     dbt_amt -= acc_balance[level][sublevel]
                 else:
                     msg = u"{0} {1:<16} {2:11.2f}{3:11.2f}".format(
-                        os0.u(ident),
-                        os0.u(sublevel),
-                        0,
-                        0)
+                        os0.u(ident), os0.u(sublevel), 0, 0
+                    )
                     msg_log(ctx, ctx['level'], msg)
             msg = u"{0} {1:<16} {2:11.2f}{3:11.2f}".format(
-                os0.u(ident),
-                '---------------',
-                crd_amt,
-                dbt_amt)
+                os0.u(ident), '---------------', crd_amt, dbt_amt
+            )
             msg_log(ctx, ctx['level'], msg)
         level = '9'
         for kk in sorted(acc_partners):
@@ -2888,9 +2980,8 @@ def act_check_balance(ctx):
                 partner_id = int(kk.split('\n')[2])
                 partner = browseL8(ctx, 'res.partner', partner_id)
                 msg = u"{0:<16} {1:<60} {2:11.2f}".format(
-                    os0.u(kk.replace('\n', '.')),
-                    os0.u(partner.name),
-                    acc_partners[kk])
+                    os0.u(kk.replace('\n', '.')), os0.u(partner.name), acc_partners[kk]
+                )
                 msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
@@ -2913,18 +3004,20 @@ def act_complete_partners(ctx):
     # It looks for partners to update and update them.
     msg = u"Convert partners"
     msg_log(ctx, ctx['level'], msg)
-    italy_id = searchL8(ctx,
-                        'res.country',
-                        [('code', '=', 'IT')])[0]
+    italy_id = searchL8(ctx, 'res.country', [('code', '=', 'IT')])[0]
     model = 'res.partner'
     if is_valid_field(ctx, model, 'province'):
-        partner_ids = searchL8(ctx,
-                               model,
-                               [('province', '!=', None),
-                                ('state_id', '=', None),
-                                '|',
-                                ('country_id', '=', False),
-                                ('country_id', '=', italy_id)])
+        partner_ids = searchL8(
+            ctx,
+            model,
+            [
+                ('province', '!=', None),
+                ('state_id', '=', None),
+                '|',
+                ('country_id', '=', False),
+                ('country_id', '=', italy_id),
+            ],
+        )
     else:
         partner_ids = []
     for i, partner_id in enumerate(partner_ids):
@@ -2934,41 +3027,54 @@ def act_complete_partners(ctx):
         if not partner.country_id:
             vals['country_id'] = italy_id
         if partner.province:
-            state_ids = searchL8(ctx,
-                                 'res.country.state',
-                                 [('code', '=', partner.province.code),
-                                  ('country_id', '=', italy_id)])
+            state_ids = searchL8(
+                ctx,
+                'res.country.state',
+                [('code', '=', partner.province.code), ('country_id', '=', italy_id)],
+            )
             if state_ids:
                 vals['state_id'] = state_ids[0]
         if vals:
             writeL8(ctx, 'res.partner', partner_id, vals)
 
-    partner_ids = searchL8(ctx,
-                           'res.partner',
-                           [('state_id', '=', None),
-                            '|',
-                            ('country_id', '=', False),
-                            ('country_id', '=', italy_id)])
+    partner_ids = searchL8(
+        ctx,
+        'res.partner',
+        [
+            ('state_id', '=', None),
+            '|',
+            ('country_id', '=', False),
+            ('country_id', '=', italy_id),
+        ],
+    )
     for i, partner_id in enumerate(partner_ids):
         partner = browseL8(ctx, 'res.partner', partner_id)
         msg_burst(4, '%-40.40s' % partner.name, i, len(partner_ids))
         vals = {}
         if partner.zip:
-            city_ids = searchL8(ctx,
-                                'res.city',
-                                [('zip', '=', partner.zip),
-                                 ('country_id', '=', italy_id)])
-            if not len(city_ids):
-                city_ids = searchL8(ctx,
-                                    'res.city',
-                                    [('zip', '=', '%s%%' % partner.zip[0:4]),
-                                     ('country_id', '=', italy_id)])
+            city_ids = searchL8(
+                ctx,
+                'res.city',
+                [('zip', '=', partner.zip), ('country_id', '=', italy_id)],
+            )
             if not len(city_ids):
                 city_ids = searchL8(
                     ctx,
                     'res.city',
-                    [('zip', '=', '%s%%%%' % partner.zip[0:3]),
-                     ('country_id', '=', italy_id)])
+                    [
+                        ('zip', '=', '%s%%' % partner.zip[0:4]),
+                        ('country_id', '=', italy_id),
+                    ],
+                )
+            if not len(city_ids):
+                city_ids = searchL8(
+                    ctx,
+                    'res.city',
+                    [
+                        ('zip', '=', '%s%%%%' % partner.zip[0:3]),
+                        ('country_id', '=', italy_id),
+                    ],
+                )
             state_id = None
             for id in city_ids:
                 city = browseL8(ctx, 'res.city', id)
@@ -2999,8 +3105,10 @@ def act_hard_clean_module(ctx):
             try:
                 unlinkL8(ctx, model, [id])
                 msg_log(
-                    ctx, ctx['level'] + 1,
-                    'Record id %s.%d (%s) removed' % (model, id, module_name))
+                    ctx,
+                    ctx['level'] + 1,
+                    'Record id %s.%d (%s) removed' % (model, id, module_name),
+                )
             except BaseException:
                 pass
 
@@ -3008,8 +3116,7 @@ def act_hard_clean_module(ctx):
     msg_log(ctx, ctx['level'], msg)
     model = 'ir.module.module'
     for module_name in ctx['modules_2_manage']:
-        ids = searchL8(ctx, model,
-                       [('name', '=', module_name)])
+        ids = searchL8(ctx, model, [('name', '=', module_name)])
         if not ids:
             continue
         module = browseL8(ctx, model, ids[0])
@@ -3032,16 +3139,27 @@ def act_upgrade_l10n_it_base(ctx):
     msg_log(ctx, ctx['level'], msg)
     sts = act_update_modules(ctx)
     model = 'ir.module.module'
-    ids = searchL8(ctx, model,
-                   [('name', 'in', ['l10n_it_base',
-                                    'l10n_it_spesometro',
-                                    'zeroincombenze',
-                                    'l10n_it_base_crm',
-                                    'l10n_it_vat_registries',
-                                    'l10n_it_fiscalcode',
-                                    'l10n_it_rea',
-                                    'l10n_it_fatturapa',
-                                    'l10n_it_bbone'])])
+    ids = searchL8(
+        ctx,
+        model,
+        [
+            (
+                'name',
+                'in',
+                [
+                    'l10n_it_base',
+                    'l10n_it_spesometro',
+                    'zeroincombenze',
+                    'l10n_it_base_crm',
+                    'l10n_it_vat_registries',
+                    'l10n_it_fiscalcode',
+                    'l10n_it_rea',
+                    'l10n_it_fatturapa',
+                    'l10n_it_bbone',
+                ],
+            )
+        ],
+    )
     prior_state = {}
     # l10n_it_bb_id = 0
     l10n_it_bb_state = ''
@@ -3057,20 +3175,16 @@ def act_upgrade_l10n_it_base(ctx):
                 l10n_it_bb_state = module_obj.state
             writeL8(ctx, model, [id], {'state': 'uninstalled'})
     if l10n_it_bb_state == 'installed' and l10n_it_base_state == 'installed':
-        sts = cvt_ir_ui_view('l10n_it_bbone',
-                             'l10n_it_base',
-                             'res.city',
-                             ctx)
+        sts = cvt_ir_ui_view('l10n_it_bbone', 'l10n_it_base', 'res.city', ctx)
     if l10n_it_bb_state == 'installed':
-        for model in ('res.country',
-                      'res.region',
-                      'res.country.state',
-                      'res.province',
-                      'res.city'):
-            sts = cvt_ir_model_data('l10n_it_bbone',
-                                    'l10n_it_base',
-                                    model,
-                                    ctx)
+        for model in (
+            'res.country',
+            'res.region',
+            'res.country.state',
+            'res.province',
+            'res.city',
+        ):
+            sts = cvt_ir_model_data('l10n_it_bbone', 'l10n_it_base', model, ctx)
     model = 'ir.module.module'
     for id in prior_state:
         state = prior_state[id]
@@ -3085,9 +3199,11 @@ def act_upgrade_l10n_it_base(ctx):
     s = ''
     for id in prior_state:
         module_obj = browseL8(ctx, model, id)
-        if module_obj.name != 'l10n_it_base' and \
-                module_obj.name != 'l10n_it_bbone' and \
-                module_obj.name != 'zeroincombenze':
+        if (
+            module_obj.name != 'l10n_it_base'
+            and module_obj.name != 'l10n_it_bbone'
+            and module_obj.name != 'zeroincombenze'
+        ):
             ctx['upgrade_modules'] += s
             ctx['upgrade_modules'] += module_obj.name
             s = ','
@@ -3102,8 +3218,7 @@ def read_last_fiscalyear(company_id, ctx):
         model = 'account.fiscalyear'
     else:
         model = 'date.range'
-    fiscalyear_ids = searchL8(ctx, model,
-                              [('company_id', '=', company_id)])
+    fiscalyear_ids = searchL8(ctx, model, [('company_id', '=', company_id)])
     if fiscalyear_ids:
         last_start = date(1970, 1, 1)
         last_stop = date(1970, 12, 31)
@@ -3142,54 +3257,64 @@ def read_last_fiscalyear(company_id, ctx):
     return valid_fiscalyear_id, process_it, last_name, last_start, last_stop
 
 
-def add_periods(ctx, company_id, fiscalyear_id,
-                last_name, last_start, last_stop):
+def add_periods(ctx, company_id, fiscalyear_id, last_name, last_start, last_stop):
     majver = ctx['majver']
     if majver < 10:
         model = 'account.period'
-        period_ids = searchL8(ctx, model,
-                              [('company_id', '=', company_id),
-                               ('date_start', '>=', str(last_start)),
-                               ('date_stop', '<=', str(last_stop))])
+        period_ids = searchL8(
+            ctx,
+            model,
+            [
+                ('company_id', '=', company_id),
+                ('date_start', '>=', str(last_start)),
+                ('date_stop', '<=', str(last_stop)),
+            ],
+        )
         for period_id in period_ids:
             period = browseL8(ctx, model, period_id)
             name = period.name
             date_start = period.date_start
             date_stop = period.date_stop
             special = period.special
-            name, date_start, date_stop = \
-                evaluate_date_n_name(ctx,
-                                     name,
-                                     date_start,
-                                     date_stop,
-                                     'period')
-            ids = searchL8(ctx, model,
-                           [('company_id', '=', company_id),
-                            ('date_start', '=', str(date_start)),
-                            ('date_stop', '=', str(date_stop)),
-                            ('special', '=', special)])
+            name, date_start, date_stop = evaluate_date_n_name(
+                ctx, name, date_start, date_stop, 'period'
+            )
+            ids = searchL8(
+                ctx,
+                model,
+                [
+                    ('company_id', '=', company_id),
+                    ('date_start', '=', str(date_start)),
+                    ('date_stop', '=', str(date_stop)),
+                    ('special', '=', special),
+                ],
+            )
             if len(ids) == 0:
                 code = re.findall('[0-9./-]+', name)[0]
-                createL8(ctx, model, {'name': name,
-                                      'code': code,
-                                      'fiscalyear_id': fiscalyear_id,
-                                      'date_start': str(date_start),
-                                      'date_stop': str(date_stop),
-                                      'special': special,
-                                      'company_id': company_id})
+                createL8(
+                    ctx,
+                    model,
+                    {
+                        'name': name,
+                        'code': code,
+                        'fiscalyear_id': fiscalyear_id,
+                        'date_start': str(date_start),
+                        'date_stop': str(date_stop),
+                        'special': special,
+                        'company_id': company_id,
+                    },
+                )
                 msg = u"Added period %s" % name
                 msg_log(ctx, ctx['level'], msg)
     else:
         model = 'date.range.type'
-        ids = searchL8(ctx, model,
-                       [('company_id', '=', company_id),
-                        ('name', '=', 'Monthly')])
+        ids = searchL8(
+            ctx, model, [('company_id', '=', company_id), ('name', '=', 'Monthly')]
+        )
         if not ids:
             date_type_id = createL8(
-                ctx, model, {
-                    'name': 'Monthly',
-                    'company_id': company_id
-                })
+                ctx, model, {'name': 'Monthly', 'company_id': company_id}
+            )
         else:
             date_type_id = ids[0]
         model = 'date.range'
@@ -3198,29 +3323,38 @@ def add_periods(ctx, company_id, fiscalyear_id,
             day = calendar.monthrange(last_start.year, month + 1)[1]
             date_stop = date(last_start.year, month + 1, day)
             name = '%d/%02d' % (last_start.year, month + 1)
-            ids = searchL8(ctx, model,
-                           [('company_id', '=', company_id),
-                            ('date_start', '=', str(date_start)),
-                            ('date_end', '=', str(date_stop))])
+            ids = searchL8(
+                ctx,
+                model,
+                [
+                    ('company_id', '=', company_id),
+                    ('date_start', '=', str(date_start)),
+                    ('date_end', '=', str(date_stop)),
+                ],
+            )
             if not ids:
-                createL8(ctx, model, {'name': name,
-                                      'date_start': str(date_start),
-                                      'date_end': str(date_stop),
-                                      'company_id': company_id,
-                                      'type_id': date_type_id})
+                createL8(
+                    ctx,
+                    model,
+                    {
+                        'name': name,
+                        'date_start': str(date_start),
+                        'date_end': str(date_stop),
+                        'company_id': company_id,
+                        'type_id': date_type_id,
+                    },
+                )
                 msg = u"Added period %s" % name
                 msg_log(ctx, ctx['level'], msg)
 
         model = 'date.range.type'
-        ids = searchL8(ctx, model,
-                       [('company_id', '=', company_id),
-                        ('name', '=', 'Quarter')])
+        ids = searchL8(
+            ctx, model, [('company_id', '=', company_id), ('name', '=', 'Quarter')]
+        )
         if not ids:
             date_type_id = createL8(
-                ctx, model, {
-                    'name': 'Quarter',
-                    'company_id': company_id
-                    })
+                ctx, model, {'name': 'Quarter', 'company_id': company_id}
+            )
         else:
             date_type_id = ids[0]
         model = 'date.range'
@@ -3231,16 +3365,27 @@ def add_periods(ctx, company_id, fiscalyear_id,
             day = calendar.monthrange(last_start.year, emonth)[1]
             date_stop = date(last_start.year, emonth, day)
             name = '%d/%dQ' % (last_start.year, quarter + 1)
-            ids = searchL8(ctx, model,
-                           [('company_id', '=', company_id),
-                            ('date_start', '=', str(date_start)),
-                            ('date_end', '=', str(date_stop))])
+            ids = searchL8(
+                ctx,
+                model,
+                [
+                    ('company_id', '=', company_id),
+                    ('date_start', '=', str(date_start)),
+                    ('date_end', '=', str(date_stop)),
+                ],
+            )
             if not ids:
-                createL8(ctx, model, {'name': name,
-                                      'date_start': str(date_start),
-                                      'date_end': str(date_stop),
-                                      'company_id': company_id,
-                                      'type_id': date_type_id})
+                createL8(
+                    ctx,
+                    model,
+                    {
+                        'name': name,
+                        'date_start': str(date_start),
+                        'date_end': str(date_stop),
+                        'company_id': company_id,
+                        'type_id': date_type_id,
+                    },
+                )
                 msg = u"Added period %s" % name
                 msg_log(ctx, ctx['level'], msg)
 
@@ -3256,7 +3401,7 @@ def set_journal_per_year(ctx):
         fy_name = ''
         last_date = date(1970, 1, 1)
         for id in fy_ids:
-            if browseL8(ctx,  model, id).date_stop > last_date:
+            if browseL8(ctx, model, id).date_stop > last_date:
                 last_date = browseL8(ctx, model, id).date_stop
                 fy_name = str(last_date.year)
     else:
@@ -3267,13 +3412,13 @@ def set_journal_per_year(ctx):
         fy_name = ''
         date_stop = date(1970, 1, 1)
         for id in fy_ids:
-            if browseL8(ctx,  model, id).date_end > date_stop:
+            if browseL8(ctx, model, id).date_end > date_stop:
                 date_stop = browseL8(ctx, model, id).date_end
                 date_start = browseL8(ctx, model, id).date_start
     model = 'account.journal'
-    journal_ids = searchL8(ctx,
-                           model, [('company_id', '=', company_id),
-                                   ('type', '!=', 'situation')])
+    journal_ids = searchL8(
+        ctx, model, [('company_id', '=', company_id), ('type', '!=', 'situation')]
+    )
     primary_ir_sequences = []
     for journal_id in journal_ids:
         id = browseL8(ctx, model, journal_id)
@@ -3281,9 +3426,11 @@ def set_journal_per_year(ctx):
     if len(primary_ir_sequences) == 0:
         return
     model = 'ir.sequence'
-    ir_ids = searchL8(ctx, model,
-                      [('company_id', '=', company_id),
-                       ('id', 'in', primary_ir_sequences)])
+    ir_ids = searchL8(
+        ctx,
+        model,
+        [('company_id', '=', company_id), ('id', 'in', primary_ir_sequences)],
+    )
     for ir_id in ir_ids:
         ir_sequence = browseL8(ctx, model, ir_id)
         fy = []
@@ -3293,8 +3440,9 @@ def set_journal_per_year(ctx):
                 fy.append(fy_id)
             for fy_id in fy_ids:
                 if fy_id not in fy:
-                    fy_name = str(browseL8(ctx, 'account.fiscalyear',
-                                           fy_id).date_stop.year)
+                    fy_name = str(
+                        browseL8(ctx, 'account.fiscalyear', fy_id).date_stop.year
+                    )
                     vals = {}
                     name = ir_sequence.name
                     if len(name) > 59:
@@ -3312,30 +3460,33 @@ def set_journal_per_year(ctx):
                     pfx = vals['prefix']
                     sfx = vals['suffix']
                     if vals['prefix']:
-                        vals['prefix'] = vals['prefix'].replace('%(year)s',
-                                                                fy_name)
+                        vals['prefix'] = vals['prefix'].replace('%(year)s', fy_name)
                     if vals['suffix']:
-                        vals['suffix'] = vals['suffix'].replace('%(year)s',
-                                                                fy_name)
+                        vals['suffix'] = vals['suffix'].replace('%(year)s', fy_name)
                     if pfx != vals['prefix'] or sfx != vals['suffix']:
                         new_id = createL8(ctx, model, vals)
-                        createL8(ctx, 'account.sequence.fiscalyear',
-                                 {'sequence_id': new_id,
-                                  'sequence_main_id': ir_id,
-                                  'fiscalyear_id': fy_id})
-            for asf_id in searchL8(ctx, 'account.sequence.fiscalyear',
-                                   [('sequence_main_id', '=', ir_id)]):
-                id = browseL8(ctx, 'account.sequence.fiscalyear',
-                              asf_id).sequence_id.id
-                fy_id = browseL8(ctx, 'account.sequence.fiscalyear',
-                                 asf_id).fiscalyear_id.id
-                fy_name = str(browseL8(ctx, 'account.fiscalyear',
-                                       fy_id).date_stop.year)
+                        createL8(
+                            ctx,
+                            'account.sequence.fiscalyear',
+                            {
+                                'sequence_id': new_id,
+                                'sequence_main_id': ir_id,
+                                'fiscalyear_id': fy_id,
+                            },
+                        )
+            for asf_id in searchL8(
+                ctx, 'account.sequence.fiscalyear', [('sequence_main_id', '=', ir_id)]
+            ):
+                id = browseL8(ctx, 'account.sequence.fiscalyear', asf_id).sequence_id.id
+                fy_id = browseL8(
+                    ctx, 'account.sequence.fiscalyear', asf_id
+                ).fiscalyear_id.id
+                fy_name = str(browseL8(ctx, 'account.fiscalyear', fy_id).date_stop.year)
                 name = browseL8(ctx, model, id).name
                 if not name.endswith(' ' + fy_name):
                     vals = {}
                     if name.endswith(fy_name):
-                        name = name[0: -4]
+                        name = name[0:-4]
                     if len(name) > 59:
                         vals['name'] = name[0:59] + ' ' + fy_name
                     else:
@@ -3348,12 +3499,16 @@ def set_journal_per_year(ctx):
                     found_range = True
                     break
             if not found_range:
-                createL8(ctx,
-                         'ir.sequence.date_range',
-                         {'sequence_id': ir_id,
-                          'date_from': str(date_start),
-                          'date_to': str(date_stop),
-                          'number_next': 1})
+                createL8(
+                    ctx,
+                    'ir.sequence.date_range',
+                    {
+                        'sequence_id': ir_id,
+                        'date_from': str(date_start),
+                        'date_to': str(date_stop),
+                        'number_next': 1,
+                    },
+                )
 
 
 def evaluate_date_n_name(ctx, last_name, last_start, last_stop, yp):
@@ -3368,9 +3523,7 @@ def evaluate_date_n_name(ctx, last_name, last_start, last_stop, yp):
             day = calendar.monthrange(yp_year, last_start.month)[1]
         else:
             day = last_start.day
-        date_start = date(yp_year,
-                          last_start.month,
-                          day)
+        date_start = date(yp_year, last_start.month, day)
     if yp == 'range':
         yp_year = last_stop.year
     else:
@@ -3379,9 +3532,7 @@ def evaluate_date_n_name(ctx, last_name, last_start, last_stop, yp):
         day = calendar.monthrange(yp_year, last_stop.month)[1]
     else:
         day = last_stop.day
-    date_stop = date(yp_year,
-                     last_stop.month,
-                     day)
+    date_stop = date(yp_year, last_stop.month, day)
     n = yp_year % 100
     o = last_stop.year % 100
     name = last_name.replace(str(o), str(n))
@@ -3420,8 +3571,7 @@ def get_reconcile_from_inv(inv_id, ctx):
     for state in STATES_2_DRAFT:
         move_dict[state] = []
     model = 'account.invoice'
-    account_invoice = browseL8(ctx, model,
-                               inv_id)
+    account_invoice = browseL8(ctx, model, inv_id)
     if ctx['majver'] >= 10:
         if account_invoice.payment_move_line_ids:
             for move_line_id in account_invoice.payment_move_line_ids:
@@ -3429,20 +3579,20 @@ def get_reconcile_from_inv(inv_id, ctx):
     elif account_invoice.payment_ids:
         partner_id = account_invoice.partner_id.id
         move_id = account_invoice.move_id.id
-        move_line_ids = searchL8(ctx, 'account.move.line',
-                                 [('move_id', '=', move_id),
-                                  ('partner_id', '=', partner_id), ])
+        move_line_ids = searchL8(
+            ctx,
+            'account.move.line',
+            [('move_id', '=', move_id), ('partner_id', '=', partner_id)],
+        )
         for move_line_id in move_line_ids:
             # type = browseL8(ctx, 'account.account',
             #                 browseL8(ctx, 'account.move.line',
             #                          move_line_id).account_id.id).type
-            type = browseL8(ctx, 'account.move.line',
-                move_line_id).account_id.type
+            type = browseL8(ctx, 'account.move.line', move_line_id).account_id.type
         if type in ('receivable', 'payable'):
             reconciles.append(move_line_id)
         for move_line in account_invoice.payment_ids:
-            move_id, move_line_id, mov_state = \
-                get_payment_info(move_line, ctx)
+            move_id, move_line_id, mov_state = get_payment_info(move_line, ctx)
             reconciles.append(move_line_id)
             if mov_state:
                 move_dict[state].append(move_id)
@@ -3465,25 +3615,23 @@ def refresh_reconcile_from_inv(inv_id, reconciles, ctx):
     # Payment move line (detail) list
     new_reconciles = []
     model = 'account.invoice'
-    account_invoice = browseL8(ctx, model,
-                               inv_id)
+    account_invoice = browseL8(ctx, model, inv_id)
     partner_id = account_invoice.partner_id.id
     if account_invoice.move_id:
         move_id = account_invoice.move_id.id
     else:
         move_id = False
-    move_line_ids = searchL8(ctx, 'account.move.line',
-                             [('move_id', '=', move_id)])
+    move_line_ids = searchL8(ctx, 'account.move.line', [('move_id', '=', move_id)])
     for move_line_id in move_line_ids:
         if ctx['majver'] >= 10:
-            type = browseL8(ctx, 'account.move.line',
-                move_line_id).account_id.user_type_id.type
+            type = browseL8(
+                ctx, 'account.move.line', move_line_id
+            ).account_id.user_type_id.type
         else:
             # type = browseL8(ctx, 'account.account',
             #                 browseL8(ctx, 'account.move.line',
             #                          move_line_id).account_id.id).type
-            type = browseL8(ctx, 'account.move.line',
-                move_line_id).account_id.type
+            type = browseL8(ctx, 'account.move.line', move_line_id).account_id.type
         if type in ('receivable', 'payable'):
             new_reconciles.append(move_line_id)
     partner_id = account_invoice.partner_id.id
@@ -3495,13 +3643,14 @@ def refresh_reconcile_from_inv(inv_id, reconciles, ctx):
     valid_recs = True
     for move_line_id in reconciles[1:]:
         try:
-            move_line = browseL8(ctx,
-                                 'account.move.line', move_line_id)
+            move_line = browseL8(ctx, 'account.move.line', move_line_id)
         except BaseException:
             move_line = False
         if move_line:
-            if move_line.partner_id.id != partner_id or \
-                    move_line.company_id.id != company_id:
+            if (
+                move_line.partner_id.id != partner_id
+                or move_line.company_id.id != company_id
+            ):
                 valid_recs = False
             else:
                 new_reconciles.append(move_line_id)
@@ -3553,25 +3702,21 @@ def get_reconcile_list_from_move_line(move_line, ctx):
         move_dict[state] = []
     move_id = move_line.move_id.id
     model = 'account.invoice'
-    invoice_ids = searchL8(ctx, model,
-                           [('move_id', '=', move_id)])
+    invoice_ids = searchL8(ctx, model, [('move_id', '=', move_id)])
     if len(invoice_ids):
         for inv_id in invoice_ids:
-            reconciles, inv_move_dict = \
-                get_reconcile_from_inv(inv_id,
-                                       ctx)
+            reconciles, inv_move_dict = get_reconcile_from_inv(inv_id, ctx)
             for state in STATES_2_DRAFT:
                 if len(inv_move_dict[state]):
-                    move_dict[state] = list(set(move_dict[state]) |
-                                            set(inv_move_dict[state]))
+                    move_dict[state] = list(
+                        set(move_dict[state]) | set(inv_move_dict[state])
+                    )
             if inv_id in reconcile_dict:
-                reconcile_dict[inv_id] = \
-                    list(set(reconcile_dict[inv_id]) | reconciles)
+                reconcile_dict[inv_id] = list(set(reconcile_dict[inv_id]) | reconciles)
             else:
                 reconcile_dict[inv_id] = reconciles
     else:
-        move_id, move_line_id, mov_state = get_payment_info(move_line,
-                                                            ctx)
+        move_id, move_line_id, mov_state = get_payment_info(move_line, ctx)
         if mov_state:
             move_dict[mov_state].append(move_id)
     return reconcile_dict, move_dict
@@ -3592,14 +3737,13 @@ def get_reconcile_from_invoices(invoices, ctx):
         move_dict[state] = []
     if len(invoices):
         for inv_id in invoices:
-            inv_reconciles, inv_move_dict = \
-                get_reconcile_from_inv(inv_id,
-                                       ctx)
+            inv_reconciles, inv_move_dict = get_reconcile_from_inv(inv_id, ctx)
             reconcile_dict[inv_id] = inv_reconciles
             for state in STATES_2_DRAFT:
                 if len(inv_move_dict[state]):
-                    move_dict[state] = list(set(move_dict[state]) |
-                                            set(inv_move_dict[state]))
+                    move_dict[state] = list(
+                        set(move_dict[state]) | set(inv_move_dict[state])
+                    )
     return reconcile_dict, move_dict
 
 
@@ -3637,11 +3781,7 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
     list_keys = {}
     company_id = None
     journal_id = None
-    move_name = translate_from_to(ctx,
-                                  model,
-                                  'move_name'
-                                  '10.0',
-                                  ctx['oe_version'])
+    move_name = translate_from_to(ctx, model, 'move_name' '10.0', ctx['oe_version'])
     for inv_id in invoices:
         invoice = invoice_model.browse(inv_id)
         if not company_id:
@@ -3680,8 +3820,7 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
                 if registration_date < date_invoice:
                     vals['registration_date'] = str(date_invoice)
                     registration_date = date_invoice
-                elif date_invoice and min_rec_date and \
-                        date_invoice >= min_rec_date:
+                elif date_invoice and min_rec_date and date_invoice >= min_rec_date:
                     vals['registration_date'] = str(date_invoice)
                     registration_date = date_invoice
                 elif date_invoice and not min_rec_date:
@@ -3694,21 +3833,18 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
                 vals['registration_date'] = str(min_rec_date)
                 registration_date = min_rec_date
         elif inv_type in ('in_invoice', 'in_refund'):
-            if min_rec_date and registration_date and \
-                    registration_date < min_rec_date:
+            if min_rec_date and registration_date and registration_date < min_rec_date:
                 vals['registration_date'] = str(min_rec_date)
                 registration_date = min_rec_date
             elif min_rec_date and not registration_date:
                 vals['registration_date'] = str(min_rec_date)
                 registration_date = min_rec_date
-        if not min_rec_date or \
-                (registration_date and registration_date < min_rec_date):
+        if not min_rec_date or (registration_date and registration_date < min_rec_date):
             min_rec_date = registration_date
         if len(vals):
-            period_ids = executeL8(ctx,
-                                   'account.period',
-                                   'find',
-                                   str(registration_date))
+            period_ids = executeL8(
+                ctx, 'account.period', 'find', str(registration_date)
+            )
             period_id = period_ids and period_ids[0] or False
             vals['period_id'] = period_id
             try:
@@ -3717,15 +3853,19 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
                 msg = u"Cannot update registration date of %d" % inv_id
                 msg_log(ctx, ctx['level'], msg)
             if 'registration_date' in vals and move_id:
-                writeL8(ctx, 'account.move',
-                        [move_id],
-                        {'date': vals['registration_date']})
-                move_line_ids = searchL8(ctx, 'account.move.line',
-                                         [('move_id', '=', move_id)])
+                writeL8(
+                    ctx, 'account.move', [move_id], {'date': vals['registration_date']}
+                )
+                move_line_ids = searchL8(
+                    ctx, 'account.move.line', [('move_id', '=', move_id)]
+                )
                 for move_line_id in move_line_ids:
-                    writeL8(ctx, 'account.move.line',
-                            [move_line_id],
-                            {'date': vals['registration_date']})
+                    writeL8(
+                        ctx,
+                        'account.move.line',
+                        [move_line_id],
+                        {'date': vals['registration_date']},
+                    )
     return min_rec_date
 
 
@@ -3744,17 +3884,13 @@ def upd_invoices_2_cancel(move_dict, ctx):
             invoices = move_dict
         if len(invoices):
             try:
-                executeL8(ctx, model,
-                          'action_invoice_cancel',
-                          invoices)
+                executeL8(ctx, model, 'action_invoice_cancel', invoices)
             except BaseException:
                 # zero-amount invoices have not payments so keep 'paid' state
                 for inv_id in invoices:
                     if browseL8(ctx, model, inv_id).state == 'paid':
                         try:
-                            writeL8(ctx, model,
-                                    [inv_id],
-                                    {'state': 'cancel'})
+                            writeL8(ctx, model, [inv_id], {'state': 'cancel'})
                         except BaseException:
                             msg = u"Cannot update invoice status (%d)" % inv_id
                             msg_log(ctx, ctx['level'], msg)
@@ -3777,28 +3913,20 @@ def upd_invoices_2_draft(move_dict, ctx):
             invoices = move_dict
         if len(invoices):
             try:
-                executeL8(ctx,
-                          model,
-                          'action_invoice_cancel',
-                          invoices)
+                executeL8(ctx, model, 'action_invoice_cancel', invoices)
             except RuntimeError:
                 # zero-amount invoices have not payments so keep 'paid' state
                 for inv_id in invoices:
                     if browseL8(ctx, model, inv_id).state == 'paid':
                         try:
-                            writeL8(ctx, model,
-                                    [inv_id],
-                                    {'state': 'draft'})
+                            writeL8(ctx, model, [inv_id], {'state': 'draft'})
                             passed.append(inv_id)
                         except BaseException:
                             msg = u"Cannot update invoice status (%d)" % inv_id
                             msg_log(ctx, ctx['level'], msg)
                 invoices = list(set(invoices) - set(passed))
             try:
-                executeL8(ctx,
-                          model,
-                          'action_invoice_draft',
-                          invoices)
+                executeL8(ctx, model, 'action_invoice_draft', invoices)
             except BaseException:
                 msg = u"Cannot update invoice status %s" % str(invoices)
                 msg_log(ctx, ctx['level'], msg)
@@ -3825,9 +3953,7 @@ def upd_invoices_2_posted(move_dict, ctx):
             # msg_log(ctx, ctx['level'], msg)
             for inv_id in invoices:
                 try:
-                    execute_action_L8(ctx, model,
-                                      'action_invoice_open',
-                                      inv_id)
+                    execute_action_L8(ctx, model, 'action_invoice_open', inv_id)
                 except RuntimeError:
                     msg = u"Cannot restore invoice status of %d" % inv_id
                     msg_log(ctx, ctx['level'], msg)
@@ -3841,10 +3967,16 @@ def upd_invoices_2_posted(move_dict, ctx):
                         comment = inv.comment[0:i]
                         fatturapa_attachment_out_id = eval(atts[8:])
                         try:
-                            writeL8(ctx, 'account.invoice', inv_id,
-                                    {'fatturapa_attachment_out_id':
+                            writeL8(
+                                ctx,
+                                'account.invoice',
+                                inv_id,
+                                {
+                                    'fatturapa_attachment_out_id':
                                         fatturapa_attachment_out_id,
-                                     'comment': comment})
+                                    'comment': comment,
+                                },
+                            )
                         except BaseException:
                             return 1
     return sts
@@ -3866,10 +3998,7 @@ def upd_payments_2_draft(move_dict, ctx):
             try:
                 # msg = u"Update payments to draft %s" % payments
                 # msg_log(ctx, ctx['level'], msg)
-                executeL8(ctx,
-                          'account.move',
-                          'button_cancel',
-                          payments)
+                executeL8(ctx, 'account.move', 'button_cancel', payments)
             except BaseException:
                 msg = u"Cannot update payment status %s" % str(payments)
                 msg_log(ctx, ctx['level'], msg)
@@ -3893,10 +4022,7 @@ def upd_payments_2_posted(move_dict, ctx):
             try:
                 # msg = u"Restore payments to posted %s" % payments
                 # msg_log(ctx, ctx['level'], msg)
-                executeL8(ctx,
-                          'account.move',
-                          'button_validate',
-                          payments)
+                executeL8(ctx, 'account.move', 'button_validate', payments)
             except BaseException:
                 msg = u"Cannot restore payment status %s" % str(payments)
                 msg_log(ctx, ctx['level'], msg)
@@ -3934,11 +4060,7 @@ def unreconcile_invoices(reconcile_dict, ctx):
     for inv_id in reconcile_dict:
         try:
             context = {'active_ids': reconcile_dict[inv_id]}
-            executeL8(ctx,
-                      'account.unreconcile',
-                      'trans_unrec',
-                      None,
-                      context)
+            executeL8(ctx, 'account.unreconcile', 'trans_unrec', None, context)
         except BaseException:
             msg = u"Cannot update invoice status of %d" % inv_id
             msg_log(ctx, ctx['level'], msg)
@@ -3949,20 +4071,15 @@ def unreconcile_invoices(reconcile_dict, ctx):
 def unreconcile_payments(ctx):
     msg = u"Unreconcile payments"
     msg_log(ctx, ctx['level'], msg)
-    reconciled_name = translate_from_to(ctx,
-                                        'account.move.line',
-                                        'reconciled',
-                                        '7.0',
-                                        ctx['oe_version'])
-    reconcile_list = searchL8(ctx, 'account.move.line',
-                              [(reconciled_name, '!=', False)])
+    reconciled_name = translate_from_to(
+        ctx, 'account.move.line', 'reconciled', '7.0', ctx['oe_version']
+    )
+    reconcile_list = searchL8(
+        ctx, 'account.move.line', [(reconciled_name, '!=', False)]
+    )
     try:
         context = {'active_ids': reconcile_list}
-        executeL8(ctx,
-                  'account.unreconcile',
-                  'trans_unrec',
-                  None,
-                  context)
+        executeL8(ctx, 'account.unreconcile', 'trans_unrec', None, context)
     except BaseException:
         msg = u"Cannot update payment status %s" % str(reconcile_list)
         msg_log(ctx, ctx['level'], msg)
@@ -3976,11 +4093,13 @@ def reconcile_invoices(reconcile_dict, ctx):
         msg_log(ctx, ctx['level'], msg)
         try:
             context = {'active_ids': reconcile_dict[inv_id]}
-            executeL8(ctx,
-                      'account.move.line.reconcile',
-                      'trans_rec_reconcile_partial_reconcile',
-                      None,
-                      context)
+            executeL8(
+                ctx,
+                'account.move.line.reconcile',
+                'trans_rec_reconcile_partial_reconcile',
+                None,
+                context,
+            )
         except BaseException:
             msg = u"Cannot reconcile invoice of %d" % inv_id
             msg_log(ctx, ctx['level'], msg)
@@ -4007,23 +4126,26 @@ def upd_acc_2_bank(accounts, ctx):
 def cvt_ir_ui_view(old_module, new_module, model_name, ctx):
     model = 'ir.ui.view'
     # name = old_module + '.%'
-    id1 = searchL8(ctx, model, [('xml_id', '=like', old_module),
-                                ('model', '=', model_name)])
-    id2 = searchL8(ctx, model,
-                   [('arch', '=like', '%it_partner_updated%')])
-    id3 = searchL8(ctx, model,
-                   [('arch', '=like', '%birthday%'),
-                    '|',
-                    ('xml_id', '=like', old_module),
-                    ('xml_id', '=like', new_module)])
+    id1 = searchL8(
+        ctx, model, [('xml_id', '=like', old_module), ('model', '=', model_name)]
+    )
+    id2 = searchL8(ctx, model, [('arch', '=like', '%it_partner_updated%')])
+    id3 = searchL8(
+        ctx,
+        model,
+        [
+            ('arch', '=like', '%birthday%'),
+            '|',
+            ('xml_id', '=like', old_module),
+            ('xml_id', '=like', new_module),
+        ],
+    )
     ids = list(set(id1 + id2 + id3))
     for id in ids:
         try:
             view = browseL8(ctx, model, id)
             unlinkL8(ctx, model, [id])
-            msg = u"Remove view id %d/%s of %s " % (id,
-                                                    view.name,
-                                                    view.xml_id)
+            msg = u"Remove view id %d/%s of %s " % (id, view.name, view.xml_id)
             msg_log(ctx, ctx['level'], msg)
         except BaseException:
             pass
@@ -4032,17 +4154,24 @@ def cvt_ir_ui_view(old_module, new_module, model_name, ctx):
 
 def cvt_ir_model_data(old_module, new_module, model_name, ctx):
     model = 'ir.model.data'
-    ids = searchL8(ctx, model, [('module', '=', old_module),
-                                ('model', '=', model_name)])
+    ids = searchL8(
+        ctx, model, [('module', '=', old_module), ('model', '=', model_name)]
+    )
     for id in ids:
         seq_name = browseL8(ctx, model, id)
         name = seq_name.name
         res_id = seq_name.res_id
         display = seq_name.display_name
         cname = seq_name.complete_name
-        new_ids = searchL8(ctx, model, [('module', '=', new_module),
-                                        ('model', '=', model_name),
-                                        ('name', '=', name)])
+        new_ids = searchL8(
+            ctx,
+            model,
+            [
+                ('module', '=', new_module),
+                ('model', '=', model_name),
+                ('name', '=', name),
+            ],
+        )
         if len(new_ids):
             new_seq_name = browseL8(ctx, model, new_ids[0])
             new_res_id = new_seq_name.res_id
@@ -4055,29 +4184,32 @@ def cvt_ir_model_data(old_module, new_module, model_name, ctx):
             new_cname = False
         if not new_seq_name:
             new_cname = new_module + '.' + name
-            writeL8(ctx, model, [id], {'module': new_module,
-                                       'complete_name': new_cname})
+            writeL8(
+                ctx, model, [id], {'module': new_module, 'complete_name': new_cname}
+            )
             msg = u"Update module name of id %d" % id
             msg_log(ctx, ctx['level'], msg)
         elif res_id != new_res_id:
-            msg = u"Name %s/%s has two different res_ids %d %d" % (name,
-                                                                   display,
-                                                                   res_id,
-                                                                   new_res_id)
+            msg = u"Name %s/%s has two different res_ids %d %d" % (
+                name,
+                display,
+                res_id,
+                new_res_id,
+            )
             msg_log(ctx, ctx['level'], msg)
             if model_name == 'res.city':
                 unlinkL8(ctx, model_name, [res_id])
-                msg = u"Remove record id %d/%s of %s " % (res_id,
-                                                          display,
-                                                          model_name)
+                msg = u"Remove record id %d/%s of %s " % (res_id, display, model_name)
                 msg_log(ctx, ctx['level'], msg)
                 unlinkL8(ctx, model, [id])
                 msg = u"Remove duplicate id %d (%s)" % (id, cname)
                 msg_log(ctx, ctx['level'], msg)
         elif display != new_display:
-            msg = u"Name %d has two different display %s %s" % (name,
-                                                                display,
-                                                                new_display)
+            msg = u"Name %d has two different display %s %s" % (
+                name,
+                display,
+                new_display,
+            )
             msg_log(ctx, ctx['level'], msg)
         else:
             if not new_cname:
@@ -4103,18 +4235,22 @@ def set_account_type(ctx):
     7. restore reconciliation
     """
     company_id = ctx['company_id']
-    account_ids = searchL8(ctx, 'account.account',
-                           [('company_id', '=', company_id),
-                            ('code', 'like', ctx['account_code'])])
+    account_ids = searchL8(
+        ctx,
+        'account.account',
+        [('company_id', '=', company_id), ('code', 'like', ctx['account_code'])],
+    )
     if len(account_ids) == 0:
         return STS_FAILED
     for account_id in account_ids:
         account = browseL8(ctx, 'account.account', account_id)
         msg = u"Account %s %s" % (account.code, account.name)
         msg_log(ctx, ctx['level'], msg)
-    move_line_ids = searchL8(ctx, 'account.move.line',
-                             [('company_id', '=', company_id),
-                              ('account_id', 'in', account_ids)])
+    move_line_ids = searchL8(
+        ctx,
+        'account.move.line',
+        [('company_id', '=', company_id), ('account_id', 'in', account_ids)],
+    )
     accounts = []
     # Journals to enable update posted
     journals = []
@@ -4137,8 +4273,7 @@ def set_account_type(ctx):
             valid = False
         acctype_id = account.user_type.id
         acc_type = browseL8(ctx, 'account.account.type', acctype_id)
-        if acc_type.report_type not in ("asset", "liability",
-                                        "income", "expense"):
+        if acc_type.report_type not in ("asset", "liability", "income", "expense"):
             valid = False
         if not valid:
             account_id = account.id
@@ -4148,32 +4283,35 @@ def set_account_type(ctx):
                 journal_id = move_line.journal_id.id
                 if journal_id not in journals:
                     journals.append(journal_id)
-            inv_reconcile_dict, inv_move_dict = \
-                get_reconcile_list_from_move_line(move_line, ctx)
+            inv_reconcile_dict, inv_move_dict = get_reconcile_list_from_move_line(
+                move_line, ctx
+            )
             for inv_id in inv_reconcile_dict:
                 if inv_id in reconcile_dict:
-                    reconcile_dict[inv_id] = \
-                        list(set(reconcile_dict[inv_id]) |
-                             set(inv_reconcile_dict[inv_id]))
+                    reconcile_dict[inv_id] = list(
+                        set(reconcile_dict[inv_id]) | set(inv_reconcile_dict[inv_id])
+                    )
                 else:
                     reconcile_dict[inv_id] = inv_reconcile_dict[inv_id]
             for state in STATES_2_DRAFT:
                 if len(inv_move_dict[state]):
-                    move_dict[state] = list(set(move_dict[state]) |
-                                            set(inv_move_dict[state]))
+                    move_dict[state] = list(
+                        set(move_dict[state]) | set(inv_move_dict[state])
+                    )
     sts = upd_del_in_journal(ctx, journals)
     if sts == STS_SUCCESS:
         sts = unreconcile_invoices(reconcile_dict, ctx)
     if sts == STS_SUCCESS:
         sts = upd_movements_2_draft(move_dict, ctx)
-    raw_input('Press RET to continue')
+    input('Press RET to continue')
     if sts == STS_SUCCESS:
         sts = upd_movements_2_posted(move_dict, ctx)
         if sts == STS_SUCCESS:
             for inv_id in reconcile_dict:
                 reconciles = reconcile_dict[inv_id]
-                new_reconciles, new_reconcile_dict = \
-                    refresh_reconcile_from_inv(inv_id, reconciles, ctx)
+                new_reconciles, new_reconcile_dict = refresh_reconcile_from_inv(
+                    inv_id, reconciles, ctx
+                )
                 sts = reconcile_invoices(new_reconcile_dict, ctx)
     return sts
 
@@ -4182,34 +4320,41 @@ def recompute_tax_balance(ctx):
     sts = STS_SUCCESS
     company_id = ctx['company_id']
     model = 'account.period'
-    period_ids = searchL8(ctx, model,
-                          [('company_id', '=', company_id),
-                           ('date_start', '>=', ctx['date_start']),
-                           ('date_stop', '<=', ctx['date_stop'])])
+    period_ids = searchL8(
+        ctx,
+        model,
+        [
+            ('company_id', '=', company_id),
+            ('date_start', '>=', ctx['date_start']),
+            ('date_stop', '<=', ctx['date_stop']),
+        ],
+    )
     if ctx['custom_act'] == 'cscs':
         model = 'account.tax'
-        tax_00_sell = searchL8(ctx, model,
-                               [('description', '=', '00%VDCServ')])
-        tax_00_pur = searchL8(ctx, model,
-                              [('description', '=', '00%ACCServ')])
+        tax_00_sell = searchL8(ctx, model, [('description', '=', '00%VDCServ')])
+        tax_00_pur = searchL8(ctx, model, [('description', '=', '00%ACCServ')])
 
     model = 'account.invoice'
     model2 = 'account.invoice.line'
-    invoice_ids = searchL8(ctx, model, [('period_id', 'in', period_ids),
-                                        ('state', '!=', 'draft'),
-                                        ('state', '!=', 'cancel')])
+    invoice_ids = searchL8(
+        ctx,
+        model,
+        [
+            ('period_id', 'in', period_ids),
+            ('state', '!=', 'draft'),
+            ('state', '!=', 'cancel'),
+        ],
+    )
     num_moves = len(invoice_ids)
     move_ctr = 0
     for invoice_id in invoice_ids:
         move_ctr += 1
         msg_burst(ctx['level'], "Processing ", move_ctr, num_moves)
         rec_ids = [invoice_id]
-        reconcile_dict, move_dict = get_reconcile_from_invoices(
-            rec_ids, ctx)
+        reconcile_dict, move_dict = get_reconcile_from_invoices(rec_ids, ctx)
         unreconcile_invoices(reconcile_dict, ctx)
         upd_invoices_2_draft(move_dict, ctx)
-        line_ids = searchL8(ctx, model2,
-                            [('invoice_id', '=', invoice_id)])
+        line_ids = searchL8(ctx, model2, [('invoice_id', '=', invoice_id)])
         if ctx['custom_act'] == 'cscs':
             for line_id in line_ids:
                 line = browseL8(ctx, model2, line_id)
@@ -4221,18 +4366,15 @@ def recompute_tax_balance(ctx):
                     elif type in ('out_invoice', 'out_refund'):
                         tax = [(6, 0, tax_00_sell)]
                     if tax:
-                        writeL8(ctx, model2, [line_id],
-                                {'invoice_line_tax_id': tax})
+                        writeL8(ctx, model2, [line_id], {'invoice_line_tax_id': tax})
         upd_invoices_2_posted(move_dict, ctx)
         reconciles = reconcile_dict[invoice_id]
         if len(reconciles):
             try:
-                cur_reconciles, cur_reconcile_dict = \
-                    refresh_reconcile_from_inv(invoice_id,
-                                               reconciles,
-                                               ctx)
-                reconcile_invoices(cur_reconcile_dict,
-                                   ctx)
+                cur_reconciles, cur_reconcile_dict = refresh_reconcile_from_inv(
+                    invoice_id, reconciles, ctx
+                )
+                reconcile_invoices(cur_reconcile_dict, ctx)
             except BaseException:
                 msg = u"**** Warning invoice %d ****" % invoice_id
                 msg_log(ctx, ctx['level'], msg)
@@ -4242,13 +4384,19 @@ def recompute_tax_balance(ctx):
 def recompute_balance(ctx):
     company_id = ctx['company_id']
     model = 'account.period'
-    period_ids = searchL8(ctx, model,
-                          [('company_id', '=', company_id),
-                           ('date_start', '>=', ctx['date_start']),
-                           ('date_stop', '<=', ctx['date_stop'])])
+    period_ids = searchL8(
+        ctx,
+        model,
+        [
+            ('company_id', '=', company_id),
+            ('date_start', '>=', ctx['date_start']),
+            ('date_stop', '<=', ctx['date_stop']),
+        ],
+    )
     model = 'account.move'
-    move_ids = searchL8(ctx, model, [('period_id', 'in', period_ids),
-                                     ('state', '!=', 'draft')])
+    move_ids = searchL8(
+        ctx, model, [('period_id', 'in', period_ids), ('state', '!=', 'draft')]
+    )
     num_moves = len(move_ids)
     move_ctr = 0
     for move_id in move_ids:
@@ -4257,10 +4405,7 @@ def recompute_balance(ctx):
         try:
             # msg = u"Update payments to draft %d" % move_id
             # msg_log(ctx, ctx['level'], msg)
-            executeL8(ctx,
-                      'account.move',
-                      'button_cancel',
-                      [move_id])
+            executeL8(ctx, 'account.move', 'button_cancel', [move_id])
         except BaseException:
             msg = u"Cannot update payment status %d" % move_id
             msg_log(ctx, ctx['level'], msg)
@@ -4268,10 +4413,7 @@ def recompute_balance(ctx):
         try:
             # msg = u"Restore payments to posted %d" % move_id
             # msg_log(ctx, ctx['level'], msg)
-            executeL8(ctx,
-                      'account.move',
-                      'button_validate',
-                      [move_id])
+            executeL8(ctx, 'account.move', 'button_validate', [move_id])
         except BaseException:
             msg = u"Cannot restore payment status %d" % move_id
             msg_log(ctx, ctx['level'], msg)
@@ -4288,23 +4430,13 @@ def build_where(model, hide_cid, exclusion, ctx):
     where = []
     if not hide_cid and 'company_id' in ctx:
         company_id = ctx['company_id']
-        where = append_2_where(model,
-                               'company_id',
-                               '=',
-                               company_id,
-                               where,
-                               ctx)
+        where = append_2_where(model, 'company_id', '=', company_id, where, ctx)
     if exclusion:
         for rule in exclusion:
             code = rule[0]
             op = rule[1]
             value = rule[2]
-            where = append_2_where(model,
-                                   code,
-                                   op,
-                                   value,
-                                   where,
-                                   ctx)
+            where = append_2_where(model, code, op, value, where, ctx)
     return where
 
 
@@ -4352,8 +4484,7 @@ def build_exclusion(model, records2keep, ctx):
     return exclusion
 
 
-def workflow_model_all_records(model, hide_cid, signal, ctx,
-                               exclusion=None):
+def workflow_model_all_records(model, hide_cid, signal, ctx, exclusion=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
     msg = u"Searching for records to execute workflow in %s" % model
@@ -4378,82 +4509,72 @@ def workflow_model_all_records(model, hide_cid, signal, ctx,
     return sts
 
 
-def setstate_model_all_records(model, hide_cid, field_name,
-                               new_value, ctx, exclusion=None):
+def setstate_model_all_records(
+    model, hide_cid, field_name, new_value, ctx, exclusion=None
+):
     sts = STS_SUCCESS
     incr_lev(ctx)
     msg = u"Searching for records to update status in %s" % model
     msg_log(ctx, ctx['level'], msg)
     where = build_where(model, hide_cid, exclusion, ctx)
     if is_valid_field(ctx, model, field_name):
-        where = append_2_where(model,
-                               field_name,
-                               '!=',
-                               new_value,
-                               where,
-                               ctx)
+        where = append_2_where(model, field_name, '!=', new_value, where, ctx)
     record_ids = searchL8(ctx, model, where)
-    if is_valid_field(ctx, model, 'state') and \
-            not ctx['dry_run'] and len(record_ids) > 0:
+    if (
+        is_valid_field(ctx, model, 'state')
+        and not ctx['dry_run']
+        and len(record_ids) > 0
+    ):
         num_moves = len(record_ids)
         move_ctr = 0
         for record_id in record_ids:
             msg_burst(ctx['level'], "Upstate ", move_ctr, num_moves)
             move_ctr += 1
             try:
-                if model in ('purchase.order', 'sale.order') and \
-                        field_name == 'state' and \
-                        new_value == 'cancel':
-                    executeL8(ctx,
-                              model,
-                              'action_cancel',
-                              [record_id])
-                elif model == 'purchase.requisition' and \
-                        field_name == 'state' and \
-                        new_value == 'cancel':
-                    executeL8(ctx,
-                              model,
-                              'tender_cancel',
-                              [record_id])
-                elif model == 'procurement.order' and \
-                        field_name == 'state' and \
-                        new_value == 'cancel':
-                    executeL8(ctx,
-                              model,
-                              'cancel',
-                              [record_id])
-                elif model == 'account.move' and \
-                        field_name == 'state' and \
-                        new_value == 'cancel':
-                    executeL8(ctx,
-                              model,
-                              'button_cancel',
-                              [record_id])
-                elif model == 'account.voucher' and \
-                        field_name == 'state' and \
-                        new_value == 'cancel':
-                    executeL8(ctx,
-                              model,
-                              'cancel_voucher',
-                              [record_id])
-                elif model == 'project.task' and \
-                        field_name == 'state' and \
-                        new_value == 'cancelled':
-                    executeL8(ctx,
-                              model,
-                              'do_cancel',
-                              [record_id])
-                elif model == 'project.project' and \
-                        field_name == 'state' and \
-                        new_value == 'cancelled':
-                    executeL8(ctx,
-                              model,
-                              'set_cancel',
-                              [record_id])
+                if (
+                    model in ('purchase.order', 'sale.order')
+                    and field_name == 'state'
+                    and new_value == 'cancel'
+                ):
+                    executeL8(ctx, model, 'action_cancel', [record_id])
+                elif (
+                    model == 'purchase.requisition'
+                    and field_name == 'state'
+                    and new_value == 'cancel'
+                ):
+                    executeL8(ctx, model, 'tender_cancel', [record_id])
+                elif (
+                    model == 'procurement.order'
+                    and field_name == 'state'
+                    and new_value == 'cancel'
+                ):
+                    executeL8(ctx, model, 'cancel', [record_id])
+                elif (
+                    model == 'account.move'
+                    and field_name == 'state'
+                    and new_value == 'cancel'
+                ):
+                    executeL8(ctx, model, 'button_cancel', [record_id])
+                elif (
+                    model == 'account.voucher'
+                    and field_name == 'state'
+                    and new_value == 'cancel'
+                ):
+                    executeL8(ctx, model, 'cancel_voucher', [record_id])
+                elif (
+                    model == 'project.task'
+                    and field_name == 'state'
+                    and new_value == 'cancelled'
+                ):
+                    executeL8(ctx, model, 'do_cancel', [record_id])
+                elif (
+                    model == 'project.project'
+                    and field_name == 'state'
+                    and new_value == 'cancelled'
+                ):
+                    executeL8(ctx, model, 'set_cancel', [record_id])
                 else:
-                    writeL8(ctx, model,
-                            [record_id],
-                            {field_name: new_value})
+                    writeL8(ctx, model, [record_id], {field_name: new_value})
             except BaseException:
                 msg = u"Cannot update status of %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
@@ -4464,42 +4585,37 @@ def setstate_model_all_records(model, hide_cid, field_name,
     return sts
 
 
-def reactivate_model_all_records(model, hide_cid, field_name,
-                                 sel_value, new_value, ctx,
-                                 exclusion=None):
+def reactivate_model_all_records(
+    model, hide_cid, field_name, sel_value, new_value, ctx, exclusion=None
+):
     sts = STS_SUCCESS
     incr_lev(ctx)
     msg = u"Searching for records to reactivate in %s" % model
     msg_log(ctx, ctx['level'], msg)
     where = build_where(model, hide_cid, exclusion, ctx)
     if is_valid_field(ctx, model, field_name):
-        where = append_2_where(model,
-                               field_name,
-                               '=',
-                               sel_value,
-                               where,
-                               ctx)
+        where = append_2_where(model, field_name, '=', sel_value, where, ctx)
     record_ids = searchL8(ctx, model, where)
-    if is_valid_field(ctx, model, 'state') and \
-            not ctx['dry_run'] and len(record_ids) > 0:
+    if (
+        is_valid_field(ctx, model, 'state')
+        and not ctx['dry_run']
+        and len(record_ids) > 0
+    ):
         num_moves = len(record_ids)
         move_ctr = 0
         for record_id in record_ids:
             msg_burst(ctx['level'], "Reactive", move_ctr, num_moves)
             move_ctr += 1
             try:
-                if model == 'project.project' and \
-                        field_name == 'state' and \
-                        sel_value == 'close' and \
-                        new_value == 'set_open':
-                    executeL8(ctx,
-                              model,
-                              'set_open',
-                              [record_id])
+                if (
+                    model == 'project.project'
+                    and field_name == 'state'
+                    and sel_value == 'close'
+                    and new_value == 'set_open'
+                ):
+                    executeL8(ctx, model, 'set_open', [record_id])
                 else:
-                    writeL8(ctx, model,
-                            [record_id],
-                            {field_name: new_value})
+                    writeL8(ctx, model, [record_id], {field_name: new_value})
             except BaseException:
                 msg = u"Cannot reactivate %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
@@ -4510,8 +4626,7 @@ def reactivate_model_all_records(model, hide_cid, field_name,
     return sts
 
 
-def deactivate_model_all_records(model, hide_cid, ctx,
-                                 exclusion=None, reverse=None):
+def deactivate_model_all_records(model, hide_cid, ctx, exclusion=None, reverse=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
     if reverse is None:
@@ -4521,33 +4636,19 @@ def deactivate_model_all_records(model, hide_cid, ctx,
         if reverse:
             msg = u"Searching for records to reactivate in %s" % model
             msg_log(ctx, ctx['level'], msg)
-            where = append_2_where(model,
-                                   'active',
-                                   '=',
-                                   False,
-                                   where,
-                                   ctx)
+            where = append_2_where(model, 'active', '=', False, where, ctx)
 
         else:
             msg = u"Searching for records to cancel in %s" % model
             msg_log(ctx, ctx['level'], msg)
-            where = append_2_where(model,
-                                   'active',
-                                   '=',
-                                   True,
-                                   where,
-                                   ctx)
+            where = append_2_where(model, 'active', '=', True, where, ctx)
         record_ids = searchL8(ctx, model, where)
         if not ctx['dry_run'] and len(record_ids) > 0:
             try:
                 if reverse:
-                    writeL8(ctx, model,
-                            record_ids,
-                            {'active': True})
+                    writeL8(ctx, model, record_ids, {'active': True})
                 else:
-                    writeL8(ctx, model,
-                            record_ids,
-                            {'active': False})
+                    writeL8(ctx, model, record_ids, {'active': False})
             except BaseException:
                 if ctx['exit_onerror']:
                     sts = STS_FAILED
@@ -4583,8 +4684,7 @@ def remove_model_all_records(model, hide_cid, ctx, exclusion=None):
             msg_burst(ctx['level'], "Unlink  ", move_ctr, num_moves)
             move_ctr += 1
             try:
-                unlinkL8(ctx, model,
-                         [record_id])
+                unlinkL8(ctx, model, [record_id])
             except BaseException:
                 msg = u"Cannot remove %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
@@ -4593,23 +4693,32 @@ def remove_model_all_records(model, hide_cid, ctx, exclusion=None):
                     break
 
         if model == 'project.project':
-            hard_del_sql(model, hide_cid, ctx,
-                         where="state='cancelled'",
-                         exclusion=exclusion)
+            hard_del_sql(
+                model, hide_cid, ctx, where="state='cancelled'", exclusion=exclusion
+            )
     decr_lev(ctx)
     return sts
 
 
-def remove_group_records(models, records2keep, ctx, hide_cid=None,
-                         special=None, specparams=None, tables2save=None):
+def remove_group_records(
+    models,
+    records2keep,
+    ctx,
+    hide_cid=None,
+    special=None,
+    specparams=None,
+    tables2save=None,
+):
     sts = STS_SUCCESS
     for xmodel in models:
         exclusion = build_exclusion(xmodel, records2keep, ctx)
         act = None
-        if xmodel.endswith('.2') or \
-                xmodel.endswith('.3') or \
-                xmodel.endswith('.4') or \
-                xmodel.endswith('.5'):
+        if (
+            xmodel.endswith('.2')
+            or xmodel.endswith('.3')
+            or xmodel.endswith('.4')
+            or xmodel.endswith('.5')
+        ):
             model = xmodel[0:-2]
         else:
             model = xmodel
@@ -4621,75 +4730,67 @@ def remove_group_records(models, records2keep, ctx, hide_cid=None,
             if special and xmodel in special:
                 act = special[xmodel]
                 if act == 'deactivate':
-                    sts = deactivate_model_all_records(model,
-                                                       hide_cid,
-                                                       ctx,
-                                                       exclusion=exclusion,
-                                                       reverse=True)
+                    sts = deactivate_model_all_records(
+                        model, hide_cid, ctx, exclusion=exclusion, reverse=True
+                    )
                 elif act == 'reactivate':
                     if specparams and xmodel in specparams:
                         field_name = specparams[xmodel][0]
                         sel_value = specparams[xmodel][1]
                         new_value = specparams[xmodel][2]
-                        sts = reactivate_model_all_records(model,
-                                                           hide_cid,
-                                                           field_name,
-                                                           sel_value,
-                                                           new_value,
-                                                           ctx,
-                                                           exclusion=exclusion)
+                        sts = reactivate_model_all_records(
+                            model,
+                            hide_cid,
+                            field_name,
+                            sel_value,
+                            new_value,
+                            ctx,
+                            exclusion=exclusion,
+                        )
                     else:
-                        msg = u"Invalid parameters in %s on model %s!" % \
-                            (act, model)
+                        msg = u"Invalid parameters in %s on model %s!" % (act, model)
                         msg_log(ctx, ctx['level'], msg)
                         sts = STS_FAILED
                 elif act == 'set_state':
                     if specparams and xmodel in specparams:
                         field_name = specparams[xmodel][0]
                         sel_value = specparams[xmodel][1]
-                        sts = setstate_model_all_records(model,
-                                                         hide_cid,
-                                                         field_name,
-                                                         sel_value,
-                                                         ctx,
-                                                         exclusion=exclusion)
+                        sts = setstate_model_all_records(
+                            model,
+                            hide_cid,
+                            field_name,
+                            sel_value,
+                            ctx,
+                            exclusion=exclusion,
+                        )
                     else:
-                        msg = u"Invalid parameters in %s on model %s!" % \
-                            (act, model)
+                        msg = u"Invalid parameters in %s on model %s!" % (act, model)
                         msg_log(ctx, ctx['level'], msg)
                         sts = STS_FAILED
                 elif act == 'wf':
                     if specparams and xmodel in specparams:
                         signal = specparams[xmodel]
-                        sts = workflow_model_all_records(model,
-                                                         hide_cid,
-                                                         signal,
-                                                         ctx,
-                                                         exclusion=None)
+                        sts = workflow_model_all_records(
+                            model, hide_cid, signal, ctx, exclusion=None
+                        )
                     else:
-                        msg = u"Invalid parameters in %s on model %s!" % \
-                            (act, model)
+                        msg = u"Invalid parameters in %s on model %s!" % (act, model)
                         msg_log(ctx, ctx['level'], msg)
                         sts = STS_FAILED
                 else:
                     msg = u"Invalid action %s on model %s!" % (act, model)
                     msg_log(ctx, ctx['level'], msg)
                     sts = STS_FAILED
-        if sts == STS_SUCCESS and \
-                ctx['custom_act'] == 'cscs' and \
-                model == 'project.project':
+        if (
+            sts == STS_SUCCESS
+            and ctx['custom_act'] == 'cscs'
+            and model == 'project.project'
+        ):
             where = build_where(model, hide_cid, exclusion, ctx)
-            where = append_2_where(model,
-                                   'x_stakeholders',
-                                   '!=',
-                                   False,
-                                   where,
-                                   ctx)
+            where = append_2_where(model, 'x_stakeholders', '!=', False, where, ctx)
             record_ids = searchL8(ctx, model, where)
             if len(record_ids):
-                writeL8(ctx, model,
-                        record_ids,
-                        {'x_stakeholders': [(5, 0)]})
+                writeL8(ctx, model, record_ids, {'x_stakeholders': [(5, 0)]})
             where = build_where(model, hide_cid, exclusion, ctx)
             record_ids = searchL8(ctx, model, where)
             if len(record_ids):
@@ -4704,9 +4805,12 @@ def remove_group_records(models, records2keep, ctx, hide_cid=None,
                             date_stop = date(2013, 7, 15)
                         if date_start > date_stop:
                             today = str(date.today())
-                            writeL8(ctx, model,
-                                    record_id,
-                                    {'date_start': today, 'date': today})
+                            writeL8(
+                                ctx,
+                                model,
+                                record_id,
+                                {'date_start': today, 'date': today},
+                            )
                     except BaseException:
                         pass
         if sts == STS_SUCCESS and model == 'account.move' and model == xmodel:
@@ -4714,24 +4818,27 @@ def remove_group_records(models, records2keep, ctx, hide_cid=None,
         if sts == STS_SUCCESS and model == xmodel:
             if model == 'account.fiscalyear':
                 company_id = ctx['company_id']
-                exclusion = [('company_id', '!=', company_id),
-                             ('code', '!=', str(date.today().year))]
+                exclusion = [
+                    ('company_id', '!=', company_id),
+                    ('code', '!=', str(date.today().year)),
+                ]
             elif model == 'account.period':
                 company_id = ctx['company_id']
-                exclusion = [('company_id', '!=', company_id),
-                             ('code', 'not like',
-                              str(date.today().year))]
-            sts = remove_model_all_records(model, hide_cid, ctx,
-                                           exclusion=exclusion)
+                exclusion = [
+                    ('company_id', '!=', company_id),
+                    ('code', 'not like', str(date.today().year)),
+                ]
+            sts = remove_model_all_records(model, hide_cid, ctx, exclusion=exclusion)
         if sts == STS_SUCCESS and act == 'deactivate':
-            sts = deactivate_model_all_records(model,
-                                               hide_cid,
-                                               ctx,
-                                               exclusion=exclusion)
-        if model in ('project.task.work',
-                     'account.analytic.line',
-                     'purchase.order',
-                     'sale.order',):
+            sts = deactivate_model_all_records(
+                model, hide_cid, ctx, exclusion=exclusion
+            )
+        if model in (
+            'project.task.work',
+            'account.analytic.line',
+            'purchase.order',
+            'sale.order',
+        ):
             if model == 'purchase.order':
                 hard_del_sql('purchase.order.line', hide_cid, ctx)
             elif model == 'sale.order':
@@ -4777,8 +4884,7 @@ def reset_sequence(ctx):
                     x = '/' + str(i) + '/'
                     if obj.prefix and obj.prefix.find(x) > 0:
                         try:
-                            unlinkL8(ctx, model,
-                                     [record_id])
+                            unlinkL8(ctx, model, [record_id])
                             f_deleted = True
                         except BaseException:
                             msg = u"Cannot remove %s.%d" % (model, record_id)
@@ -4801,13 +4907,10 @@ def reset_menuitem(ctx):
     msg = u"Reset sequence %s" % model
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
-        record_ids = (367, 368, 473, 495,
-                      530, 688, 699, 725,
-                      844, 845)
+        record_ids = (367, 368, 473, 495, 530, 688, 699, 725, 844, 845)
         for record_id in record_ids:
             try:
-                unlinkL8(ctx, model,
-                         [record_id])
+                unlinkL8(ctx, model, [record_id])
             except BaseException:
                 msg = u"Cannot remove %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
@@ -4828,87 +4931,85 @@ def validate_models(ctx, models):
 def remove_company_mail_records(ctx):
     models = validate_models(ctx, ('ir.attachment',))
     records2keep = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False)
+    sts = remove_group_records(models, records2keep, ctx, hide_cid=False)
     return sts
 
 
 def remove_all_mail_records(ctx):
-    models = validate_models(ctx, ('mail.message',
-                                   'mail.mail',
-                                   'mail.notification',
-                                   'mail.alias',
-                                   ))
+    models = validate_models(
+        ctx, ('mail.message', 'mail.mail', 'mail.notification', 'mail.alias')
+    )
     records2keep = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=True)
+    sts = remove_group_records(models, records2keep, ctx, hide_cid=True)
     return sts
 
 
 def remove_all_note_records(ctx):
-    models = validate_models(ctx, ('note.stage',
-                                   'note.note',
-                                   'document.page',
-                                   ))
+    models = validate_models(ctx, ('note.stage', 'note.note', 'document.page'))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'note.stage': 8}
     else:
         records2keep = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=True)
+    sts = remove_group_records(models, records2keep, ctx, hide_cid=True)
     return sts
 
 
 def remove_company_crm_records(ctx):
-    models = validate_models(ctx, ('crm.lead',
-                                   'crm.helpdesk',
-                                   'crm.phonecall',
-                                   ))
+    models = validate_models(ctx, ('crm.lead', 'crm.helpdesk', 'crm.phonecall'))
     records2keep = {}
     special = {'crm.lead': 'deactivate'}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False, special=special)
+    sts = remove_group_records(
+        models, records2keep, ctx, hide_cid=False, special=special
+    )
     return sts
 
 
 def remove_all_crm_records(ctx):
-    models = validate_models(ctx, ('crm.meeting',
-                                   'calendar.event',
-                                   'calendar.todo',
-                                   ))
+    models = validate_models(ctx, ('crm.meeting', 'calendar.event', 'calendar.todo'))
     records2keep = {}
     special = {'crm.lead': 'deactivate'}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False, special=special)
+    sts = remove_group_records(
+        models, records2keep, ctx, hide_cid=False, special=special
+    )
 
     return sts
 
 
 def remove_company_purchases_records(ctx):
-    models = validate_models(ctx, ('procurement.order',
-                                   'purchase.order.2',
-                                   'purchase.order',
-                                   'purchase.requisition',
-                                   'product.pricelist.version',
-                                   'product.pricelist',
-                                   ))
+    models = validate_models(
+        ctx,
+        (
+            'procurement.order',
+            'purchase.order.2',
+            'purchase.order',
+            'purchase.requisition',
+            'product.pricelist.version',
+            'product.pricelist',
+        ),
+    )
     records2keep = {}
-    special = {'procurement.order': 'reactivate',
-               'procurement.order.2': 'set_state',
-               'purchase.order.2': 'wf',
-               'purchase.order': 'set_state',
-               'purchase.requisition': 'set_state',
-               }
-    specparams = {'procurement.order': ('state', 'done', 'draft'),
-                  'procurement.order.2': ('state', 'cancel'),
-                  'purchase.order.2': 'state_draft_set',
-                  'purchase.order': ('state', 'cancel'),
-                  'purchase.requisition': ('state', 'cancel'),
-                  }
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    special = {
+        'procurement.order': 'reactivate',
+        'procurement.order.2': 'set_state',
+        'purchase.order.2': 'wf',
+        'purchase.order': 'set_state',
+        'purchase.requisition': 'set_state',
+    }
+    specparams = {
+        'procurement.order': ('state', 'done', 'draft'),
+        'procurement.order.2': ('state', 'cancel'),
+        'purchase.order.2': 'state_draft_set',
+        'purchase.order': ('state', 'cancel'),
+        'purchase.requisition': ('state', 'cancel'),
+    }
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
@@ -4918,18 +5019,18 @@ def remove_all_purchases_records(ctx):
 
 
 def remove_company_sales_records(ctx):
-    models = validate_models(ctx, ('sale.order',
-                                   'sale.shop',
-                                   ))
+    models = validate_models(ctx, ('sale.order', 'sale.shop'))
     records2keep = {'sale.shop': 1}
-    special = {'sale.order': 'set_state',
-               }
-    specparams = {'sale.order': ('state', 'cancel'),
-                  }
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    special = {'sale.order': 'set_state'}
+    specparams = {'sale.order': ('state', 'cancel')}
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
@@ -4939,39 +5040,47 @@ def remove_all_sales_records(ctx):
 
 
 def remove_company_inventory_records(ctx):
-    models = validate_models(ctx, ('stock.inventory',
-                                   'stock.pack.operation',
-                                   # 'wk.order.mapping',
-                                   'stock.picking.package.preparation',
-                                   'stock.picking.out',
-                                   'stock.picking.in',
-                                   'stock.picking',
-                                   'stock.move',
-                                   'stock.location',
-                                   'stock.warehouse',
-                                   ))
+    models = validate_models(
+        ctx,
+        (
+            'stock.inventory',
+            'stock.pack.operation',
+            # 'wk.order.mapping',
+            'stock.picking.package.preparation',
+            'stock.picking.out',
+            'stock.picking.in',
+            'stock.picking',
+            'stock.move',
+            'stock.location',
+            'stock.warehouse',
+        ),
+    )
     records2keep = {}
-    special = {'stock.picking.out': 'reactivate',
-               'stock.picking.in': 'reactivate',
-               'stock.picking': 'reactivate',
-               'stock.move': 'reactivate',
-               }
-    specparams = {'stock.picking.out': ('state', 'cancel', 'draft'),
-                  'stock.picking.in': ('state', 'cancel', 'draft'),
-                  'stock.picking': ('state', 'cancel', 'draft'),
-                  'stock.move': ('state', 'cancel', 'draft'),
-                  }
+    special = {
+        'stock.picking.out': 'reactivate',
+        'stock.picking.in': 'reactivate',
+        'stock.picking': 'reactivate',
+        'stock.move': 'reactivate',
+    }
+    specparams = {
+        'stock.picking.out': ('state', 'cancel', 'draft'),
+        'stock.picking.in': ('state', 'cancel', 'draft'),
+        'stock.picking': ('state', 'cancel', 'draft'),
+        'stock.move': ('state', 'cancel', 'draft'),
+    }
     if ctx['custom_act'] == 'cscs':
-        tables2save = ('stock.location',
-                       'stock.warehouse',
-                       )
+        tables2save = ('stock.location', 'stock.warehouse')
     else:
         tables2save = None
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams,
-                               tables2save=tables2save)
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+        tables2save=tables2save,
+    )
     return sts
 
 
@@ -4981,64 +5090,85 @@ def remove_all_inventory_records(ctx):
 
 
 def remove_company_project_records(ctx):
-    models = validate_models(ctx, ('project.task.work',
-                                   'project.task',
-                                   'account.analytic.line'
-                                   ))
+    models = validate_models(
+        ctx, ('project.task.work', 'project.task', 'account.analytic.line')
+    )
     records2keep = {}
     if ctx['custom_act'] == 'cscs':
         model = 'project.task'
-        records2keep['project.task'] = searchL8(ctx, model,
-                                                [('project_id',
-                                                  '=',
-                                                  CV_PROJECT_ID)])
+        records2keep['project.task'] = searchL8(
+            ctx, model, [('project_id', '=', CV_PROJECT_ID)]
+        )
         records2keep['project.task'].append(8771)
     if ctx['oe_version'] == '7.0:':
-        special = {'project.task': 'set_state', }
-        specparams = {'project.task': ('state', 'cancelled'), }
+        special = {'project.task': 'set_state'}
+        specparams = {'project.task': ('state', 'cancelled')}
     else:
         special = {}
         specparams = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
 def remove_all_project_records(ctx):
-    models = validate_models(ctx, ('survey.page',
-                                   'survey.request',
-                                   'survey',
-                                   'project.phase'
-                                   'project.project.2',
-                                   'project.project',
-                                   ))
+    models = validate_models(
+        ctx,
+        (
+            'survey.page',
+            'survey.request',
+            'survey',
+            'project.phase' 'project.project.2',
+            'project.project',
+        ),
+    )
     records2keep = {}
-    records2keep['project.project'] = (260, 265, 2869, 3026,
-                                       3027, 3028, 3029, 3030,
-                                       3031, 3032, 3033, 3034,
-                                       3035, 3036, 3037, 3038,
-                                       3039, 3040, 3187, 3361,
-                                       3504, 3664, 3932)
+    records2keep['project.project'] = (
+        260,
+        265,
+        2869,
+        3026,
+        3027,
+        3028,
+        3029,
+        3030,
+        3031,
+        3032,
+        3033,
+        3034,
+        3035,
+        3036,
+        3037,
+        3038,
+        3039,
+        3040,
+        3187,
+        3361,
+        3504,
+        3664,
+        3932,
+    )
     if ctx['oe_version'] == '7.0:':
-        special = {'project.project.2': 'reactivate',
-                   'project.project': 'set_state',
-                   }
-        specparams = {'project.project.2': ('state', 'close', 'set_open'),
-                      'project.project': ('state', 'cancelled')
-                      }
+        special = {'project.project.2': 'reactivate', 'project.project': 'set_state'}
+        specparams = {
+            'project.project.2': ('state', 'close', 'set_open'),
+            'project.project': ('state', 'cancelled'),
+        }
     else:
-        special = {'project.project.2': 'reactivate',
-                   'project.project': 'set_state',
-                   }
-        specparams = {'project.project.2': ('state', 'close', 'set_open'),
-                      'project.project': ('state', 'cancelled')
-                      }
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=True,
-                               special=special,
-                               specparams=specparams)
+        special = {'project.project.2': 'reactivate', 'project.project': 'set_state'}
+        specparams = {
+            'project.project.2': ('state', 'close', 'set_open'),
+            'project.project': ('state', 'cancelled'),
+        }
+    sts = remove_group_records(
+        models, records2keep, ctx, hide_cid=True, special=special, specparams=specparams
+    )
     return sts
 
 
@@ -5048,210 +5178,246 @@ def remove_company_marketing_records(ctx):
 
 
 def remove_all_marketing_records(ctx):
-    models = validate_models(ctx, ('marketing.campaign.workitem',
-                                   'marketing.campaign.segment',
-                                   'marketing.campaign',
-                                   'booking.resource',
-                                   'campaign.analysis',
-                                   ))
+    models = validate_models(
+        ctx,
+        (
+            'marketing.campaign.workitem',
+            'marketing.campaign.segment',
+            'marketing.campaign',
+            'booking.resource',
+            'campaign.analysis',
+        ),
+    )
     records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=True,
-                               special=special,
-                               specparams=specparams)
+    sts = remove_group_records(
+        models, records2keep, ctx, hide_cid=True, special=special, specparams=specparams
+    )
     return sts
 
 
 def remove_company_hr_records(ctx):
-    models = validate_models(ctx, ('hr.expense.expense.2',
-                                   'hr.expense.expense.3',
-                                   'hr.expense.expense.4',
-                                   'hr.expense.expense.5',
-                                   'hr.expense.expense',
-                                   ))
+    models = validate_models(
+        ctx,
+        (
+            'hr.expense.expense.2',
+            'hr.expense.expense.3',
+            'hr.expense.expense.4',
+            'hr.expense.expense.5',
+            'hr.expense.expense',
+        ),
+    )
     records2keep = {}
-    special = {'hr.expense.expense.2': 'wf',
-               'hr.expense.expense.3': 'wf',
-               'hr.expense.expense.4': 'wf',
-               'hr.expense.expense.5': 'wf',
-               'hr.expense.expense': 'set_state',
-               }
-    specparams = {'hr.expense.expense.2': 'draft',
-                  'hr.expense.expense.3': 'edit',
-                  'hr.expense.expense.4': 'set_draft',
-                  'hr.expense.expense.5': 'state_draft_set',
-                  'hr.expense.expense': ('state', 'draft'),
-                  }
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    special = {
+        'hr.expense.expense.2': 'wf',
+        'hr.expense.expense.3': 'wf',
+        'hr.expense.expense.4': 'wf',
+        'hr.expense.expense.5': 'wf',
+        'hr.expense.expense': 'set_state',
+    }
+    specparams = {
+        'hr.expense.expense.2': 'draft',
+        'hr.expense.expense.3': 'edit',
+        'hr.expense.expense.4': 'set_draft',
+        'hr.expense.expense.5': 'state_draft_set',
+        'hr.expense.expense': ('state', 'draft'),
+    }
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
 def remove_all_hr_records(ctx):
-    models = validate_models(ctx, ('hr_timesheet_sheet.sheet.account',
-                                   'hr_timesheet_sheet.sheet',
-                                   'hr.analytic.timesheet',
-                                   'hr.expense.line',
-                                   'hr.contract',
-                                   'hr.holidays',
-                                   'hr.payslip',
-                                   'hr.attendance',
-                                   'hr.applicant',
-                                   'hr.department',
-                                   'hr.employee',
-                                   ))
+    models = validate_models(
+        ctx,
+        (
+            'hr_timesheet_sheet.sheet.account',
+            'hr_timesheet_sheet.sheet',
+            'hr.analytic.timesheet',
+            'hr.expense.line',
+            'hr.contract',
+            'hr.holidays',
+            'hr.payslip',
+            'hr.attendance',
+            'hr.applicant',
+            'hr.department',
+            'hr.employee',
+        ),
+    )
     records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=True,
-                               special=special,
-                               specparams=specparams)
+    sts = remove_group_records(
+        models, records2keep, ctx, hide_cid=True, special=special, specparams=specparams
+    )
     return sts
 
 
 def remove_company_product_records(ctx):
-    models = validate_models(ctx, ('product.template',
-                                   ))
+    models = validate_models(ctx, ('product.template',))
     records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
 def remove_all_product_records(ctx):
-    models = validate_models(ctx, ('product.category',
-                                   'product.uom.categ',
-                                   'product.uom',
-                                   'product.product',
-                                   ))
+    models = validate_models(
+        ctx, ('product.category', 'product.uom.categ', 'product.uom', 'product.product')
+    )
     records2keep = {}
     special = {}
     specparams = {}
     if ctx['custom_act'] == 'cscs':
-        tables2save = ('product.category',
-                       'product.product',
-                       'product.uom.categ',
-                       'product.uom',
-                       )
+        tables2save = (
+            'product.category',
+            'product.product',
+            'product.uom.categ',
+            'product.uom',
+        )
     else:
         tables2save = None
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=True,
-                               special=special,
-                               specparams=specparams,
-                               tables2save=tables2save)
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=True,
+        special=special,
+        specparams=specparams,
+        tables2save=tables2save,
+    )
     return sts
 
 
 def remove_company_partner_records(ctx):
-    models = validate_models(ctx, ('res.partner.bank',
-                                   'res.partner',
-                                   ))
+    models = validate_models(ctx, ('res.partner.bank', 'res.partner'))
     company_id = ctx['company_id']
     if ctx['custom_act'] == 'cscs':
-        records2keep = {'res.partner': (1, 3, 4, 5, 33523, 33783,
-                                        browseL8(ctx, 'res.company',
-                                                 company_id).id),
-                        }
+        records2keep = {
+            'res.partner': (
+                1,
+                3,
+                4,
+                5,
+                33523,
+                33783,
+                browseL8(ctx, 'res.company', company_id).id,
+            )
+        }
     else:
-        records2keep = {'res.partner': browseL8(ctx, 'res.company',
-                                                company_id).id
-                        }
+        records2keep = {'res.partner': browseL8(ctx, 'res.company', company_id).id}
     special = {}
     specparams = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
 def remove_company_analytics_records(ctx):
-    models = validate_models(ctx, ('account.analytic.account',
-                                   'account.analytic.journal',
-                                   ))
+    models = validate_models(
+        ctx, ('account.analytic.account', 'account.analytic.journal')
+    )
     if ctx['custom_act'] == 'cscs':
         records2keep = {'account.analytic.account': (48, 3932)}
     else:
         records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
 def remove_all_partner_records(ctx):
-    models = validate_models(ctx, ('res.partner.category',
-                                   'res.partner'
-                                   ))
+    models = validate_models(ctx, ('res.partner.category', 'res.partner'))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'res.partner': (1, 3, 4, 5, 33890, 33523, 33783)}
     else:
         records2keep = {'res.partner': 1}
     special = {}
     specparams = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
 def remove_all_user_records(ctx):
-    models = validate_models(ctx, ('ir.default',
-                                   'res.users',
-                                   ))
+    models = validate_models(ctx, ('ir.default', 'res.users'))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'res.users': (1, 4, 95)}
     else:
         records2keep = {'res.users': 1}
     special = {}
     specparams = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
 def remove_company_account_move_records(ctx):
     sts = STS_SUCCESS
     model = 'account.invoice'
-    move_name = translate_from_to(ctx,
-                              model,
-                              'move_name',
-                              '10.0',
-                              ctx['oe_version'])
+    move_name = translate_from_to(ctx, model, 'move_name', '10.0', ctx['oe_version'])
     if not ctx['dry_run']:
         company_id = ctx['company_id']
         if sts == STS_SUCCESS:
             msg = u"Searching for invoices to delete"
             msg_log(ctx, ctx['level'], msg)
-            record_ids = searchL8(ctx, model,
-                                  [('company_id', '=', company_id),
-                                   '|',
-                                   ('state', '=', 'paid'),
-                                   ('state', '=', 'open')])
-            reconcile_dict, move_dict = get_reconcile_from_invoices(record_ids,
-                                                                    ctx)
+            record_ids = searchL8(
+                ctx,
+                model,
+                [
+                    ('company_id', '=', company_id),
+                    '|',
+                    ('state', '=', 'paid'),
+                    ('state', '=', 'open'),
+                ],
+            )
+            reconcile_dict, move_dict = get_reconcile_from_invoices(record_ids, ctx)
             sts = unreconcile_invoices(reconcile_dict, ctx)
         if sts == STS_SUCCESS:
             msg = u"Setting invoices to cancel state"
             msg_log(ctx, ctx['level'], msg)
-            record_ids = searchL8(ctx, model,
-                                  [('company_id', '=', company_id)])
+            record_ids = searchL8(ctx, model, [('company_id', '=', company_id)])
             if len(record_ids) > 0:
                 try:
                     sts = upd_invoices_2_cancel(record_ids, ctx)
@@ -5261,31 +5427,40 @@ def remove_company_account_move_records(ctx):
                     sts = STS_FAILED
     if sts == STS_SUCCESS:
         company_id = ctx['company_id']
-        models = validate_models(ctx,
-                                 ('account.invoice',
-                                  'account.move',
-                                  'account.voucher',
-                                  'payment.order',
-                                  'account.bank.statement',
-                                  'account.period',
-                                  'account.fiscalyear',
-                                  'account.banking.account.settings',
-                                  'spesometro.comunicazione',
-                                  'payment.mode',
-                                  ))
+        models = validate_models(
+            ctx,
+            (
+                'account.invoice',
+                'account.move',
+                'account.voucher',
+                'payment.order',
+                'account.bank.statement',
+                'account.period',
+                'account.fiscalyear',
+                'account.banking.account.settings',
+                'spesometro.comunicazione',
+                'payment.mode',
+            ),
+        )
         records2keep = {}
-        special = {'account.invoice': 'set_state',
-                   'account.move': 'set_state',
-                   'account.voucher': 'set_state',
-                   }
-        specparams = {'account.invoice': (move_name, ''),
-                      'account.move': ('state', 'cancel'),
-                      'account.voucher': ('state', 'cancel'),
-                      }
-        sts = remove_group_records(models, records2keep, ctx,
-                                   hide_cid=False,
-                                   special=special,
-                                   specparams=specparams)
+        special = {
+            'account.invoice': 'set_state',
+            'account.move': 'set_state',
+            'account.voucher': 'set_state',
+        }
+        specparams = {
+            'account.invoice': (move_name, ''),
+            'account.move': ('state', 'cancel'),
+            'account.voucher': ('state', 'cancel'),
+        }
+        sts = remove_group_records(
+            models,
+            records2keep,
+            ctx,
+            hide_cid=False,
+            special=special,
+            specparams=specparams,
+        )
     return sts
 
 
@@ -5297,19 +5472,22 @@ def remove_company_account_base_records(ctx):
         if sts == STS_SUCCESS:
             msg = u"Searching for invoices to delete"
             msg_log(ctx, ctx['level'], msg)
-            record_ids = searchL8(ctx, model,
-                                  [('company_id', '=', company_id),
-                                   '|',
-                                   ('state', '=', 'paid'),
-                                   ('state', '=', 'open')])
-            reconcile_dict, move_dict = get_reconcile_from_invoices(record_ids,
-                                                                    ctx)
+            record_ids = searchL8(
+                ctx,
+                model,
+                [
+                    ('company_id', '=', company_id),
+                    '|',
+                    ('state', '=', 'paid'),
+                    ('state', '=', 'open'),
+                ],
+            )
+            reconcile_dict, move_dict = get_reconcile_from_invoices(record_ids, ctx)
             sts = unreconcile_invoices(reconcile_dict, ctx)
         if sts == STS_SUCCESS:
             msg = u"Setting invoices to cancel state"
             msg_log(ctx, ctx['level'], msg)
-            record_ids = searchL8(ctx, model,
-                                  [('company_id', '=', company_id)])
+            record_ids = searchL8(ctx, model, [('company_id', '=', company_id)])
             if len(record_ids) > 0:
                 try:
                     sts = upd_invoices_2_cancel(record_ids, ctx)
@@ -5319,34 +5497,53 @@ def remove_company_account_base_records(ctx):
                     sts = STS_FAILED
     if sts == STS_SUCCESS:
         company_id = ctx['company_id']
-        models = validate_models(ctx,
-                                 ('account.fiscal.position',
-                                  'account.tax.code',
-                                  'account.tax',
-                                  'account.journal',
-                                  'account.account',
-                                  ))
+        models = validate_models(
+            ctx,
+            (
+                'account.fiscal.position',
+                'account.tax.code',
+                'account.tax',
+                'account.journal',
+                'account.account',
+            ),
+        )
         if ctx['custom_act'] == 'cscs':
-            records2keep = {'account.account': (1, 2, 31, 32,
-                                                54, 55, 109, 158, 159,
-                                                172, 174, 225, 226,
-                                                227, 263, 264, 265),
-                            'account.tax': (23, 24),
-                            'account.tax.code': (1, 4, 5, 6, 45, 46),
-                            'account.journal': (77, 78, 79, 80,
-                                                81, 82, 93, 84,
-                                                85, 86, 87, 88)
-                            }
+            records2keep = {
+                'account.account': (
+                    1,
+                    2,
+                    31,
+                    32,
+                    54,
+                    55,
+                    109,
+                    158,
+                    159,
+                    172,
+                    174,
+                    225,
+                    226,
+                    227,
+                    263,
+                    264,
+                    265,
+                ),
+                'account.tax': (23, 24),
+                'account.tax.code': (1, 4, 5, 6, 45, 46),
+                'account.journal': (77, 78, 79, 80, 81, 82, 93, 84, 85, 86, 87, 88),
+            }
         else:
             records2keep = {}
-        special = {'account.journal': 'deactivate',
-                   'account.tax': 'deactivate',
-                   }
+        special = {'account.journal': 'deactivate', 'account.tax': 'deactivate'}
         specparams = {}
-        sts = remove_group_records(models, records2keep, ctx,
-                                   hide_cid=False,
-                                   special=special,
-                                   specparams=specparams)
+        sts = remove_group_records(
+            models,
+            records2keep,
+            ctx,
+            hide_cid=False,
+            special=special,
+            specparams=specparams,
+        )
     return sts
 
 
@@ -5355,61 +5552,71 @@ def remove_all_account_move_records(ctx):
     records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(models, records2keep, ctx,
-                               hide_cid=False,
-                               special=special,
-                               specparams=specparams)
+    sts = remove_group_records(
+        models,
+        records2keep,
+        ctx,
+        hide_cid=False,
+        special=special,
+        specparams=specparams,
+    )
     return sts
 
 
 def analyze_invoices(ctx, inv_type):
     company_id = ctx['company_id']
     model = 'account.invoice'
-    move_name = translate_from_to(ctx,
-                                  model,
-                                  'move_name',
-                                  '10.0',
-                                  ctx['oe_version'])
-    period_ids = searchL8(ctx, 'account.period',
-                          [('company_id', '=', company_id),
-                           ('date_start', '>=', ctx['date_start']),
-                           ('date_stop', '<=', ctx['date_stop'])])
-    account_invoice_ids = searchL8(ctx, model,
-                                   [('company_id', '=', company_id),
-                                    ('period_id', 'in', period_ids),
-                                    ('type', '=', inv_type),
-                                    (move_name, '!=', '')],
-                                   order=move_name)
+    move_name = translate_from_to(ctx, model, 'move_name', '10.0', ctx['oe_version'])
+    period_ids = searchL8(
+        ctx,
+        'account.period',
+        [
+            ('company_id', '=', company_id),
+            ('date_start', '>=', ctx['date_start']),
+            ('date_stop', '<=', ctx['date_stop']),
+        ],
+    )
+    account_invoice_ids = searchL8(
+        ctx,
+        model,
+        [
+            ('company_id', '=', company_id),
+            ('period_id', 'in', period_ids),
+            ('type', '=', inv_type),
+            (move_name, '!=', ''),
+        ],
+        order=move_name,
+    )
     num_invs = len(account_invoice_ids)
     last_number = ''
     inv_ctr = 0
     last_seq = 0
     for account_invoice_id in account_invoice_ids:
-        account_invoice = browseL8(ctx, model,
-                                   account_invoice_id)
+        account_invoice = browseL8(ctx, model, account_invoice_id)
         inv_ctr += 1
-        msg_burst(4,
-                  "Invoice %s       " % account_invoice[move_name],
-                  inv_ctr, num_invs)
+        msg_burst(
+            4, "Invoice %s       " % account_invoice[move_name], inv_ctr, num_invs
+        )
         # vals = {}
         if last_number[:-4] != account_invoice[move_name][0:-4]:
             last_number = ''
         if last_number == '':
             last_number = account_invoice[move_name]
-            last_rec_date = datetime.strptime(ctx['date_start'],
-                                              "%Y-%m-%d").date()
+            last_rec_date = datetime.strptime(ctx['date_start'], "%Y-%m-%d").date()
             last_seq = 0
         last_seq += 1
-        if str.isdigit(account_invoice[move_name][-4:]) and \
-                int(account_invoice[move_name][-4:]) != last_seq:
+        if (
+            str.isdigit(account_invoice[move_name][-4:])
+            and int(account_invoice[move_name][-4:]) != last_seq
+        ):
             msg = u"In {0} invalid number sequence {1}".format(
-                account_invoice_id,
-                account_invoice[move_name])
+                account_invoice_id, account_invoice[move_name]
+            )
             msg_log(ctx, ctx['level'] + 1, msg)
             last_seq = int(account_invoice[move_name][-4:])
-        last_rec_date = put_invoices_record_date([account_invoice_id],
-                                                 last_rec_date,
-                                                 ctx)
+        last_rec_date = put_invoices_record_date(
+            [account_invoice_id], last_rec_date, ctx
+        )
         last_number = account_invoice[move_name]
     return STS_SUCCESS
 
@@ -5429,20 +5636,10 @@ def create_zero_db(ctx):
     if not lgiuser:
         return None
     setup_model = 'zi.dbmgr.db.create.database.wizard'
-    values = executeL8(ctx,
-                       setup_model,
-                       'default_get',
-                       [])
+    values = executeL8(ctx, setup_model, 'default_get', [])
     db_name = values['name']
-    setup_id = executeL8(ctx,
-                         setup_model,
-                         'create',
-                         values)
-    executeL8(ctx,
-              setup_model,
-              'execute',
-              [setup_id],
-              None)
+    setup_id = executeL8(ctx, setup_model, 'create', values)
+    executeL8(ctx, setup_model, 'execute', [setup_id], None)
     fd = open('clodoo_last.conf', 'w')
     fd.write('db_name=%s\n' % db_name)
     fd.close()
@@ -5482,9 +5679,15 @@ def get_real_paramvalue(ctx, param):
 
 
 def get_real_actname(ctx, actv):
-    if isinstance(actv, basestring) and \
-            actv[-4:] in ('_6.1', '_7.0', '_8.0', '_9.0',
-                          '_10.0', '_11.0', '_12.0'):
+    if isinstance(actv, basestring) and actv[-4:] in (
+        '_6.1',
+        '_7.0',
+        '_8.0',
+        '_9.0',
+        '_10.0',
+        '_11.0',
+        '_12.0',
+    ):
         if actv[-3:] == ctx['oe_version']:
             act = actv[0:-4]
         else:
@@ -5497,21 +5700,20 @@ def get_real_actname(ctx, actv):
 def add_external_name(ctx, o_model, row, id):
     model = get_model_model(ctx, o_model)
     if 'id' in row and row['id'] and not row['id'].isdigit():
-        put_model_alias(ctx,
-                        model=model,
-                        ref=row['id'],
-                        id=id)
-    if o_model.get('alias_model2', '') and \
-            o_model.get('alias_field', '') and \
-            o_model['alias_field'] in row and \
-            row[o_model['alias_field']].find('None') < 0:
-        res_id = browseL8(ctx,
-                          model,
-                          id)[o_model['alias_field']].id
-        put_model_alias(ctx,
-                        model=o_model['alias_model2'],
-                        ref=row[o_model['alias_field']],
-                        id=res_id)
+        put_model_alias(ctx, model=model, ref=row['id'], id=id)
+    if (
+        o_model.get('alias_model2', '')
+        and o_model.get('alias_field', '')
+        and o_model['alias_field'] in row
+        and row[o_model['alias_field']].find('None') < 0
+    ):
+        res_id = browseL8(ctx, model, id)[o_model['alias_field']].id
+        put_model_alias(
+            ctx,
+            model=o_model['alias_model2'],
+            ref=row[o_model['alias_field']],
+            id=res_id,
+        )
 
 
 def translate_ext_names(ctx, o_model, csv, csv_obj):
@@ -5530,11 +5732,7 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
         ctx['validated_fields'] = []
     model = get_model_model(ctx, o_model)
     for n in csv:
-        nm = translate_from_to(ctx,
-                               model,
-                               n,
-                               '7.0',
-                               ctx['oe_version'])
+        nm = translate_from_to(ctx, model, n, '7.0', ctx['oe_version'])
         if not nm:
             continue
         if n in csv_obj.fieldnames:
@@ -5547,12 +5745,21 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
             nm = ctx['TNL_DICT'][nm] or nm
         else:
             nm = nm.split('/')[0].split(':')[0]
-        if ctx['no_fvalidation'] or nm in ('id', 'db_type', 'oe_versions',
-                                           'name2', 'name_first', 'name_last',
-                                           'customer-supplier') or \
-                (len(ctx['validated_fields']) and
-                 nm in ctx['validated_fields']) or \
-                is_valid_field(ctx, model, nm):
+        if (
+            ctx['no_fvalidation']
+            or nm
+            in (
+                'id',
+                'db_type',
+                'oe_versions',
+                'name2',
+                'name_first',
+                'name_last',
+                'customer-supplier',
+            )
+            or (len(ctx['validated_fields']) and nm in ctx['validated_fields'])
+            or is_valid_field(ctx, model, nm)
+        ):
             if nm in ctx.get('TNL_VALUE', ''):
                 translate_from_param(ctx, n, nm)
             elif csv[n] != 'None':
@@ -5567,39 +5774,47 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
         if not row[nm] and nm in ctx.get('EXPR', ''):
             row[nm] = eval(ctx['EXPR'][nm])
         else:
-            row[nm] = set_some_values(ctx,
-                                      o_model,
-                                      nm,
-                                      row[nm],
-                                      row=row)
+            row[nm] = set_some_values(ctx, o_model, nm, row[nm], row=row)
     if 'name2' in row:
         if 'name' in row:
             row['name'] = '%s %s' % (row['name'], row['name2'])
         else:
             row['name'] = row['name2']
         del row['name2']
-    if 'name_first' in row and 'name_last' in row and \
-            (not row.get('is_company', True) or
-             row.get('company_type') == 'person' or
-             not row.get('name')):
+    if (
+        'name_first' in row
+        and 'name_last' in row
+        and (
+            not row.get('is_company', True)
+            or row.get('company_type') == 'person'
+            or not row.get('name')
+        )
+    ):
         row['name'] = '%s %s' % (row['name_last'], row['name_first'])
         del row['name_first'], row['name_last']
     if 'street2' in row and row['street2'].isdigit() and 'street' in row:
         row['street'] = '%s, %s' % (row['street'], row['street2'])
         row['street2'] = ''
-    if 'customer-supplier' in row or not row.get('is_company', True) or \
-            row.get('company_type') == 'person':
+    if (
+        'customer-supplier' in row
+        or not row.get('is_company', True)
+        or row.get('company_type') == 'person'
+    ):
         if 'customer' in row:
             row['customer'] = False
         if 'supplier' in row:
             row['supplier'] = False
     if 'customer-supplier' in row:
-        if row['customer-supplier'].lower().find('customer') >= 0 or \
-                row['customer-supplier'].lower().find('client') >= 0:
+        if (
+            row['customer-supplier'].lower().find('customer') >= 0
+            or row['customer-supplier'].lower().find('client') >= 0
+        ):
             row['customer'] = True
-        if row['customer-supplier'].lower().find('supplier') >= 0 or \
-                row['customer-supplier'].lower().find('vendor') >= 0 or \
-                row['customer-supplier'].lower().find('fornitore') >= 0:
+        if (
+            row['customer-supplier'].lower().find('supplier') >= 0
+            or row['customer-supplier'].lower().find('vendor') >= 0
+            or row['customer-supplier'].lower().find('fornitore') >= 0
+        ):
             row['supplier'] = True
         del row['customer-supplier']
     return row
@@ -5616,14 +5831,16 @@ def parse_in_fields(ctx, o_model, row, ids, cur_obj):
     elif row.get('key'):
         name_new = row['key']
     for nm in row:
-        if not nm or nm in ('id',
-                            'db_type',
-                            'oe_versions',
-                            'name2',
-                            'name_first',
-                            'name_last',
-                            'customer-supplier',
-                            o_model['alias_field']):
+        if not nm or nm in (
+            'id',
+            'db_type',
+            'oe_versions',
+            'name2',
+            'name_first',
+            'name_last',
+            'customer-supplier',
+            o_model['alias_field'],
+        ):
             continue
         if isinstance(row[nm], basestring):
             # if nm == o_model['alias_field']:
@@ -5631,13 +5848,11 @@ def parse_in_fields(ctx, o_model, row, ids, cur_obj):
             if row[nm].find('${header_id}') >= 0:
                 update_header_id = False
             row[nm] = row[nm].replace('\\n', '\n')
-        val = eval_value(ctx,
-                         o_model,
-                         nm,
-                         row[nm])
+        val = eval_value(ctx, o_model, nm, row[nm])
         if val is not None:
-            if (nm != 'fiscalcode' or val != '') and \
-                    (len(ids) == 0 or tounicode(val) != cur_obj[nm]):
+            if (nm != 'fiscalcode' or val != '') and (
+                len(ids) == 0 or tounicode(val) != cur_obj[nm]
+            ):
                 vals[nm] = tounicode(val)
         msg = u"{0}={1}".format(nm, tounicode(val))
         debug_msg_log(ctx, ctx['level'] + 2, msg)
@@ -5664,10 +5879,9 @@ def import_file(ctx, o_model, csv_fn):
         company_id = ctx['company_id']
     if ctx.get('full_model'):
         ctx['MANDATORY'] = extr_table_generic(ctx, model)
-    csv.register_dialect('odoo',
-                         delimiter=_c(','),
-                         quotechar=_c('\"'),
-                         quoting=csv.QUOTE_MINIMAL)
+    csv.register_dialect(
+        'odoo', delimiter=_c(','), quotechar=_c('\"'), quoting=csv.QUOTE_MINIMAL
+    )
     csv_ffn = os.path.join(ctx['data_path'], csv_fn)
     if csv_ffn[-4:] == '.csv':
         ver_csv = '%s_%s%s' % (csv_ffn[0:-4], ctx['oe_version'], csv_ffn[-4:])
@@ -5678,23 +5892,19 @@ def import_file(ctx, o_model, csv_fn):
     if os.path.isfile(csv_ffn):
         csv_fd = open(csv_ffn, 'rb')
         hdr_read = False
-        csv_obj = csv.DictReader(csv_fd,
-                                 fieldnames=[],
-                                 restkey='undef_name',
-                                 dialect='odoo')
+        csv_obj = csv.DictReader(
+            csv_fd, fieldnames=[], restkey='undef_name', dialect='odoo'
+        )
         for row in csv_obj:
             if not hdr_read:
                 hdr_read = True
-                o_model = import_file_get_hdr(ctx,
-                                              o_model,
-                                              csv_obj,
-                                              csv_fn,
-                                              row)
+                o_model = import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row)
                 msg = u"Model=%s, Code=%s Name=%s NoCompany=%s" % (
                     model,
                     tounicode(o_model['code']),
                     tounicode(o_model['name']),
-                    o_model.get('hide_cid', False))
+                    o_model.get('hide_cid', False),
+                )
                 debug_msg_log(ctx, ctx['level'] + 2, msg)
                 if o_model['name'] and o_model['code']:
                     continue
@@ -5724,7 +5934,8 @@ def import_file(ctx, o_model, csv_fn):
             if model == 'res.users' and 'login' in row:
                 ctx['def_email'] = '%s%s@example.com' % (
                     row['login'],
-                    ctx['oe_version'].split('.')[0])
+                    ctx['oe_version'].split('.')[0],
+                )
             if 'undef_name' in row:
                 msg = u"!Invalid line format!"
                 msg_log(ctx, ctx['level'], msg)
@@ -5733,27 +5944,23 @@ def import_file(ctx, o_model, csv_fn):
             saved_hide_id = o_model['hide_id']
             if o_model['repl_by_id'] and row.get('id', False):
                 o_model['hide_id'] = False
-            ids = get_query_id(ctx,
-                               o_model,
-                               row)
+            ids = get_query_id(ctx, o_model, row)
             o_model['hide_id'] = saved_hide_id
             if len(ids):
                 id = ids[0]
                 cur_obj = browseL8(ctx, model, id)
-                if model == 'res.users' and\
-                        len(ids) == 1:
+                if model == 'res.users' and len(ids) == 1:
                     cur_login = cur_obj.login
                     if 'login' in row:
                         ctx['def_email'] = '%s%s@example.com' % (
                             cur_obj.login,
-                            ctx['oe_version'].split('.')[0])
+                            ctx['oe_version'].split('.')[0],
+                        )
             else:
                 cur_obj = False
-            vals, update_header_id, name_new = parse_in_fields(ctx,
-                                                               o_model,
-                                                               row,
-                                                               ids,
-                                                               cur_obj)
+            vals, update_header_id, name_new = parse_in_fields(
+                ctx, o_model, row, ids, cur_obj
+            )
             if 'company_id' in ctx and 'company_id' in vals:
                 if vals['company_id'] != company_id:
                     continue
@@ -5765,9 +5972,7 @@ def import_file(ctx, o_model, csv_fn):
                     name_old = ''
                 msg = u"Update %d %s" % (id, name_old)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
-            if (model == 'res.users' and
-                    'new_password' in vals and
-                    len(ids) == 0):
+            if model == 'res.users' and 'new_password' in vals and len(ids) == 0:
                 vals['password'] = vals['new_password']
                 del vals['new_password']
                 vals['password_crypt'] = ''
@@ -5776,31 +5981,34 @@ def import_file(ctx, o_model, csv_fn):
                 if not ctx['dry_run'] and len(vals):
                     try:
                         writeL8(ctx, model, ids, vals)
-                        msg = u"id=%d, %s=%s->%s" % (cur_obj.id,
-                                                     o_model['name'],
-                                                     tounicode(name_old),
-                                                     tounicode(name_new))
+                        msg = u"id=%d, %s=%s->%s" % (
+                            cur_obj.id,
+                            o_model['name'],
+                            tounicode(name_old),
+                            tounicode(name_new),
+                        )
                         msg_log(ctx, ctx['level'] + 1, msg)
                         written = True
                     except BaseException:
                         msg = u"!!write error! id=%d, %s=%s" % (
                             cur_obj.id,
                             o_model['name'],
-                            tounicode(name_new))
+                            tounicode(name_new),
+                        )
                         os0.wlog(msg)
                     if written:
-                        if (model == 'res.users' and
-                                'login' in vals and
-                                cur_login == ctx['login_user']):
+                        if (
+                            model == 'res.users'
+                            and 'login' in vals
+                            and cur_login == ctx['login_user']
+                        ):
                             if 'login' in vals:
                                 ctx['login_user'] = vals['login']
                             if 'new_password' in vals:
                                 if vals['new_password'].find('$1$!') == 0:
-                                    ctx['crypt_password'] = vals[
-                                        'new_password']
+                                    ctx['crypt_password'] = vals['new_password']
                                 else:
-                                    ctx['login_password'] = vals[
-                                        'new_password']
+                                    ctx['login_password'] = vals['new_password']
                             do_login(ctx)
                         try:
                             add_external_name(ctx, o_model, row, ids[0])
@@ -5808,23 +6016,22 @@ def import_file(ctx, o_model, csv_fn):
                             msg = u"!!No set external name id=%d, %s=%s" % (
                                 cur_obj.id,
                                 o_model['name'],
-                                tounicode(name_new))
+                                tounicode(name_new),
+                            )
                             os0.wlog(msg)
             else:
                 msg = u"insert " + os0.u(name_new)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
                 if not ctx['dry_run']:
-                    if not o_model.get('hide_cid', False) and \
-                            'company_id' not in vals:
+                    if not o_model.get('hide_cid', False) and 'company_id' not in vals:
                         vals['company_id'] = ctx['company_id']
                     try:
                         id = createL8(ctx, model, vals)
                         if update_header_id:
                             ctx['header_id'] = id
-                        msg = u"creat id={0}, {1}={2}"\
-                              .format(id,
-                                      tounicode(o_model['name']),
-                                      tounicode(name_new))
+                        msg = u"creat id={0}, {1}={2}".format(
+                            id, tounicode(o_model['name']), tounicode(name_new)
+                        )
                         msg_log(ctx, ctx['level'] + 1, msg)
                         written = True
                     except BaseException:
@@ -5832,7 +6039,8 @@ def import_file(ctx, o_model, csv_fn):
                         msg = u"!!create error! %s[%s]=%s" % (
                             tounicode(o_model.get('model')),
                             tounicode(o_model['name']),
-                            tounicode(name_new))
+                            tounicode(name_new),
+                        )
                         os0.wlog(msg)
                     if written and id:
                         try:
@@ -5841,7 +6049,8 @@ def import_file(ctx, o_model, csv_fn):
                             msg = u"!!No set external name id=%d, %s=%s" % (
                                 cur_obj.id,
                                 o_model['name'],
-                                tounicode(name_new))
+                                tounicode(name_new),
+                            )
                             os0.wlog(msg)
                 else:
                     ctx['header_id'] = -1
@@ -5854,10 +6063,9 @@ def import_file(ctx, o_model, csv_fn):
 
 
 def import_config_file(ctx, csv_fn):
-    csv.register_dialect('odoo',
-                         delimiter=',',
-                         quotechar='\"',
-                         quoting=csv.QUOTE_MINIMAL)
+    csv.register_dialect(
+        'odoo', delimiter=',', quotechar='\"', quoting=csv.QUOTE_MINIMAL
+    )
 
     csv_ffn = os.path.join(ctx['data_path'], csv_fn)
     if csv_ffn[-4:] == '.csv':
@@ -5869,10 +6077,9 @@ def import_config_file(ctx, csv_fn):
     if os.path.isfile(csv_ffn):
         csv_fd = open(csv_ffn, 'rb')
         hdr_read = False
-        csv_obj = csv.DictReader(csv_fd,
-                                 fieldnames=[],
-                                 restkey='undef_name',
-                                 dialect='odoo')
+        csv_obj = csv.DictReader(
+            csv_fd, fieldnames=[], restkey='undef_name', dialect='odoo'
+        )
         select_4_ver = False
         for row in csv_obj:
             if not hdr_read:
@@ -5903,18 +6110,9 @@ def import_config_file(ctx, csv_fn):
                     item = '+' + ctx['oe_version']
                     if row['oe_versions'].find(item) < 0:
                         continue
-            user = eval_value(ctx,
-                              None,
-                              None,
-                              row['user'])
-            name = eval_value(ctx,
-                              None,
-                              None,
-                              row['name'])
-            value = eval_value(ctx,
-                               None,
-                               None,
-                               row['value'])
+            user = eval_value(ctx, None, None, row['user'])
+            name = eval_value(ctx, None, None, row['name'])
+            value = eval_value(ctx, None, None, row['value'])
             if name:
                 if user:
                     sts = setup_user_config_param(ctx, user, name, value)
@@ -5940,36 +6138,39 @@ def setup_user_config_param(ctx, username, name, value):
     if v is not None:
         value = v
     if isinstance(value, bool):
-        if isinstance(name, (int, long)):
+        if isinstance(name, int):
             group_ids = [name]
         else:
-            group_ids = searchL8(ctx, 'res.groups',
-                                 [('name', '=', name)],
-                                 context=context)
+            group_ids = searchL8(
+                ctx, 'res.groups', [('name', '=', name)], context=context
+            )
     else:
-        cat_ids = searchL8(ctx, 'ir.module.category',
-                           [('name', '=', name)],
-                           context=context)
-        if isinstance(value, (int, long)):
+        cat_ids = searchL8(
+            ctx, 'ir.module.category', [('name', '=', name)], context=context
+        )
+        if isinstance(value, int):
             group_ids = [value]
         else:
-            group_ids = searchL8(ctx, 'res.groups',
-                                 [('category_id', 'in', cat_ids),
-                                  ('name', '=', value)],
-                                 context=context)
+            group_ids = searchL8(
+                ctx,
+                'res.groups',
+                [('category_id', 'in', cat_ids), ('name', '=', value)],
+                context=context,
+            )
     if len(group_ids) != 1:
         if isinstance(value, bool):
             msg = u"!!Parameter name '%s' not found!!" % tounicode(name)
         else:
-            msg = u"!!Parameter name '%s/%s' not found!!" % (tounicode(name),
-                                                             tounicode(value))
+            msg = u"!!Parameter name '%s/%s' not found!!" % (
+                tounicode(name),
+                tounicode(value),
+            )
         msg_log(ctx, ctx['level'] + 2, msg)
         return sts
     if isinstance(username, int):
         user_ids = [username]
     else:
-        user_ids = searchL8(ctx, 'res.users',
-                            [('login', '=', username)])
+        user_ids = searchL8(ctx, 'res.users', [('login', '=', username)])
         if len(user_ids) != 1:
             msg = u"!!User " + tounicode(username) + " not found!!"
             msg_log(ctx, ctx['level'] + 2, msg)
@@ -5994,9 +6195,9 @@ def setup_user_config_param(ctx, username, name, value):
             msg = u"%s.%s = False" % (tounicode(username), tounicode(name))
             msg_log(ctx, ctx['level'] + 2, msg)
     else:
-        for id in searchL8(ctx, 'res.groups',
-                           [('category_id', 'in', cat_ids)],
-                           context=context):
+        for id in searchL8(
+            ctx, 'res.groups', [('category_id', 'in', cat_ids)], context=context
+        ):
             if id != group_id and id in user.groups_id.ids:
                 vals['groups_id'] = [(3, id)]
                 try:
@@ -6007,12 +6208,13 @@ def setup_user_config_param(ctx, username, name, value):
         if group_id not in user.groups_id.ids:
             vals['groups_id'] = [(4, group_id)]
             if isinstance(value, bool):
-                msg = u"%s.%s = True" % (tounicode(username),
-                                         tounicode(name))
+                msg = u"%s.%s = True" % (tounicode(username), tounicode(name))
             else:
-                msg = u"%s.%s/%s" % (tounicode(username),
-                                     tounicode(name),
-                                     tounicode(value))
+                msg = u"%s.%s/%s" % (
+                    tounicode(username),
+                    tounicode(name),
+                    tounicode(value),
+                )
             msg_log(ctx, ctx['level'] + 2, msg)
     if not ctx['dry_run'] and len(vals):
         writeL8(ctx, 'res.users', user_ids, vals)
@@ -6024,7 +6226,7 @@ def setup_global_config_param(ctx, name, value):
     sts = STS_SUCCESS
     items = name.split('.')
     if len(items) > 1:
-        model = '.'.join(items[0:len(items)-1])
+        model = '.'.join(items[0 : len(items) - 1])
         name = items[-1]
     else:
         model = 'res.config.settings'
@@ -6047,7 +6249,7 @@ def setup_global_config_param(ctx, name, value):
             except BaseException:
                 pass
         else:
-            model2 = '.'.join(items[0:len(items)-1])
+            model2 = '.'.join(items[0 : len(items) - 1])
             value = items[-1]
             id = searchL8(ctx, model2, [('name', '=', value)])
             if not id:
@@ -6073,9 +6275,9 @@ def setup_global_config_param(ctx, name, value):
 def install_chart_of_account(ctx, name):
     sts = STS_SUCCESS
     context = get_context(ctx)
-    chart_template_id = searchL8(ctx, 'account.chart.template',
-                                 [('name', '=', name)],
-                                 context=context)
+    chart_template_id = searchL8(
+        ctx, 'account.chart.template', [('name', '=', name)], context=context
+    )
     if len(chart_template_id) == 0:
         msg = u"!Invalid chart of account " + tounicode(name) + "!!"
         msg_log(ctx, ctx['level'] + 2, msg)
@@ -6090,7 +6292,7 @@ def install_chart_of_account(ctx, name):
     chart_values = {
         'company_id': company_id,
         'currency_id': currency_id,
-        'chart_template_id': chart_template_id
+        'chart_template_id': chart_template_id,
     }
     model = 'account.account'
     ids = searchL8(ctx, model, [('company_id', '=', company_id)])
@@ -6099,27 +6301,29 @@ def install_chart_of_account(ctx, name):
         unlinkL8(ctx, model, ids)
     if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
         chart_setup_model = 'wizard.multi.charts.accounts'
-        chart_values.update(executeL8(ctx, chart_setup_model,
-                                      'onchange_chart_template_id',
-                                      [],
-                                      1)['value'])
-        chart_setup_id = executeL8(ctx, chart_setup_model,
-                                   'create',
-                                   chart_values)
-        executeL8(ctx, chart_setup_model,
-                  'execute',
-                  [chart_setup_id])
+        chart_values.update(
+            executeL8(ctx, chart_setup_model, 'onchange_chart_template_id', [], 1)[
+                'value'
+            ]
+        )
+        chart_setup_id = executeL8(ctx, chart_setup_model, 'create', chart_values)
+        executeL8(ctx, chart_setup_model, 'execute', [chart_setup_id])
     else:
         if company_id != ctx.get('user_company_id', 0):
-            writeL8(ctx, 'res.users', ctx['user_id'],
-                    {'company_id': company_id})
-        executeL8(ctx,
-                  'account.chart.template',
-                  'try_loading_for_current_company',
-                  [chart_template_id])
+            writeL8(ctx, 'res.users', ctx['user_id'], {'company_id': company_id})
+        executeL8(
+            ctx,
+            'account.chart.template',
+            'try_loading_for_current_company',
+            [chart_template_id],
+        )
         if company_id != ctx.get('user_company_id', 0):
-            writeL8(ctx, 'res.users', ctx['user_id'],
-                    {'company_id': ctx.get('user_company_id', 0)})
+            writeL8(
+                ctx,
+                'res.users',
+                ctx['user_id'],
+                {'company_id': ctx.get('user_company_id', 0)},
+            )
     if sts == STS_SUCCESS:
         time.sleep(5)
     return sts
@@ -6155,30 +6359,15 @@ def check_actions_list(ctx, lx_act):
     conf_obj = ctx['_conf_obj']
     res = True
     if ctx.get('do_sel_action', False):
-        res = check_actions_1_list(ctx,
-                                   ctx['do_sel_action'],
-                                   lx_act,
-                                   conf_obj)
+        res = check_actions_1_list(ctx, ctx['do_sel_action'], lx_act, conf_obj)
     elif ctx.get('actions', None):
-        res = check_actions_1_list(ctx,
-                                   ctx['actions'],
-                                   lx_act,
-                                   conf_obj)
+        res = check_actions_1_list(ctx, ctx['actions'], lx_act, conf_obj)
     if res and ctx.get('actions_db', None):
-        res = check_actions_1_list(ctx,
-                                   ctx['actions_db'],
-                                   lx_act,
-                                   conf_obj)
+        res = check_actions_1_list(ctx, ctx['actions_db'], lx_act, conf_obj)
     if res and ctx.get('actions_mc', None):
-        res = check_actions_1_list(ctx,
-                                   ctx['actions_mc'],
-                                   lx_act,
-                                   conf_obj)
+        res = check_actions_1_list(ctx, ctx['actions_mc'], lx_act, conf_obj)
     if res and ctx.get('actions_uu', None):
-        res = check_actions_1_list(ctx,
-                                   ctx['actions_uu'],
-                                   lx_act,
-                                   conf_obj)
+        res = check_actions_1_list(ctx, ctx['actions_uu'], lx_act, conf_obj)
     return res
 
 
@@ -6197,18 +6386,12 @@ def check_actions_1_list(ctx, list, lx_act, conf_obj):
             pv = get_param_ver(ctx, 'actions')
             if conf_obj.has_option(act, pv):
                 actions = conf_obj.get(act, pv)
-                res = check_actions_1_list(ctx,
-                                           actions,
-                                           lx_act,
-                                           conf_obj)
+                res = check_actions_1_list(ctx, actions, lx_act, conf_obj)
                 if not res:
                     break
             elif conf_obj.has_option(act, 'actions'):
                 actions = conf_obj.get(act, 'actions')
-                res = check_actions_1_list(ctx,
-                                           actions,
-                                           lx_act,
-                                           conf_obj)
+                res = check_actions_1_list(ctx, actions, lx_act, conf_obj)
                 if not res:
                     break
             else:
@@ -6223,25 +6406,13 @@ def check_actions_1_list(ctx, list, lx_act, conf_obj):
 def extend_actions_list(ctx, lx_act):
     conf_obj = ctx['_conf_obj']
     if ctx.get('actions', None):
-        lx_act = extend_actions_1_list(ctx,
-                                       ctx['actions'],
-                                       lx_act,
-                                       conf_obj)
+        lx_act = extend_actions_1_list(ctx, ctx['actions'], lx_act, conf_obj)
     if ctx.get('actions_db', None):
-        lx_act = extend_actions_1_list(ctx,
-                                       ctx['actions_db'],
-                                       lx_act,
-                                       conf_obj)
+        lx_act = extend_actions_1_list(ctx, ctx['actions_db'], lx_act, conf_obj)
     if ctx.get('actions_mc', None):
-        lx_act = extend_actions_1_list(ctx,
-                                       ctx['actions_mc'],
-                                       lx_act,
-                                       conf_obj)
+        lx_act = extend_actions_1_list(ctx, ctx['actions_mc'], lx_act, conf_obj)
     if ctx.get('actions_uu', None):
-        lx_act = extend_actions_1_list(ctx,
-                                       ctx['actions_uu'],
-                                       lx_act,
-                                       conf_obj)
+        lx_act = extend_actions_1_list(ctx, ctx['actions_uu'], lx_act, conf_obj)
     return lx_act
 
 
@@ -6260,16 +6431,10 @@ def extend_actions_1_list(ctx, list, lx_act, conf_obj):
             pv = get_param_ver(ctx, 'actions')
             if conf_obj.has_option(act, pv):
                 actions = conf_obj.get(act, pv)
-                lx_act = extend_actions_1_list(ctx,
-                                               actions,
-                                               lx_act,
-                                               conf_obj)
+                lx_act = extend_actions_1_list(ctx, actions, lx_act, conf_obj)
             elif conf_obj.has_option(act, 'actions'):
                 actions = conf_obj.get(act, 'actions')
-                lx_act = extend_actions_1_list(ctx,
-                                               actions,
-                                               lx_act,
-                                               conf_obj)
+                lx_act = extend_actions_1_list(ctx, actions, lx_act, conf_obj)
             else:
                 break
     return lx_act
@@ -6298,10 +6463,9 @@ def check_4_actions(ctx):
 def main():
     """Tool main"""
     sts = STS_SUCCESS
-    ctx = parse_args(sys.argv[1:],
-                     apply_conf=APPLY_CONF,
-                     version=version(),
-                     doc=__doc__)
+    ctx = parse_args(
+        sys.argv[1:], apply_conf=APPLY_CONF, version=version(), doc=__doc__
+    )
     read_stored_dict(ctx)
     ctx['_today'] = str(date.today())
     ctx['_current_year'] = str(date.today().year)
@@ -6328,8 +6492,7 @@ def main():
         ctx = read_config(ctx)
         open_connection(ctx)
         print_hdr_msg(ctx)
-    ctx['multi_user'] = multiuser(ctx,
-                                  ctx['actions'].split(','))
+    ctx['multi_user'] = multiuser(ctx, ctx['actions'].split(','))
     if do_newdb:
         if ctx.get('multi_db', False):
             ctx['db_name'] = ctx['dbfilter']
