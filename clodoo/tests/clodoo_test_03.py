@@ -22,7 +22,7 @@ except BaseException:
     from clodoolib import build_odoo_param
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 
 MODULE_ID = 'clodoo'
@@ -673,9 +673,9 @@ class RegressionTest():
             'librerp': 'https://github.com/iw3hxn/server',
         }
         if re.match('shs[a-z0-9]+', os.environ['HOSTNAME']):
-            TRES['zero']=TRES['zero-git']
+            TRES['zero'] = TRES['zero-git']
         else:
-            TRES['zero']=TRES['zero-http']
+            TRES['zero'] = TRES['zero-http']
         for org in ('zero', 'zero-git', 'zero-http', 'oca', 'librerp'):
             for ver in VERSIONS_TO_TEST:
                 RES = build_odoo_param('URL', odoo_vid=ver, multi=False)
@@ -711,9 +711,9 @@ class RegressionTest():
             'librerp': 'https://github.com/iw3hxn',
         }
         if re.match('shs[a-z0-9]+', os.environ['HOSTNAME']):
-            TRES['zero']=TRES['zero-git']
+            TRES['zero'] = TRES['zero-git']
         else:
-            TRES['zero']=TRES['zero-http']
+            TRES['zero'] = TRES['zero-http']
         for org in ('zero', 'zero-git', 'zero-http', 'oca', 'librerp'):
             for ver in VERSIONS_TO_TEST:
                 RES = build_odoo_param('GIT_ORG', odoo_vid=ver, suppl=repos,

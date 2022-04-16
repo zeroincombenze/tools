@@ -25,7 +25,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 
 MODULE_ID = 'clodoo'
@@ -140,6 +140,7 @@ def is_module(path):
 def is_addons(path):
     res = get_modules(path) != []
     return res
+
 
 def get_addons(path, depth=1):
     path = os.path.expanduser(path)
@@ -319,7 +320,8 @@ class RegressionTest():
                 ctx={'oe_version': '*',
                      'no_login': True,
                      'xmlrpc_port': self.rpcport,
-                     'conf_fn': './no_filename.conf',})
+                     'conf_fn': './no_filename.conf',
+                     })
         else:
             self.ctx = {'oe_version': self.odoo_version}
         sts = self.Z.test_result(z0ctx,
@@ -348,7 +350,8 @@ class RegressionTest():
                 db=self.db,
                 ctx={'oe_version': self.ctx['oe_version'],
                      'xmlrpc_port': self.rpcport,
-                     'conf_fn': './no_filename.conf',})
+                     'conf_fn': './no_filename.conf',
+                     })
             self.ctx['test_unit_mode'] = True
             res = self.uid
         else:
@@ -447,7 +450,7 @@ class RegressionTest():
             else:
                 RES = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             sts = self.Z.test_result(z0ctx,
-                                    'user[login_date] (date[time])',
+                                     'user[login_date] (date[time])',
                                      datetime.now().strftime('%Y-%m-%d'),
                                      RES[0:10])
         return sts
@@ -464,7 +467,7 @@ class RegressionTest():
             RES = clodoo.get_val_from_field(ctx, model, rec,
                                             'field_id')
         else:
-            RES = [1,2,3]
+            RES = [1, 2, 3]
         sts = self.Z.test_result(z0ctx,
                                  'ir_model[field_id] (o2m)',
                                  True,

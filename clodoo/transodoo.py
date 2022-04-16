@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://ww.zeroincombenze.it>)
-#f
+#
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 #    All Rights Reserved
@@ -52,7 +52,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0',
             '11.0', '12.0', '13.0', '14.0', '15.0', '16.0']
 ALL_VERSIONS = [x for x in VERSIONS]
@@ -239,16 +239,18 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
         else:
             name = src_name
     elif name == '${tax}':
-        if tgt_ver.split('.')[0].isdigit() and (src_ver.startswith('librerp') or
-                                                    src_ver.startswith('powerp') or
-                                                    src_ver.startswith('zero')):
+        if tgt_ver.split('.')[0].isdigit() and (
+                src_ver.startswith('librerp') or
+                src_ver.startswith('powerp') or
+                src_ver.startswith('zero')):
             name = {
                 'a15a': '00art15a',
                 'a15v': '00art15v',
             }.get(src_name, src_name)
-        elif src_ver.split('.')[0].isdigit() and (tgt_ver.startswith('librerp') or
-                                                  tgt_ver.startswith('powerp') or
-                                                  tgt_ver.startswith('zero')):
+        elif src_ver.split('.')[0].isdigit() and (
+                tgt_ver.startswith('librerp') or
+                tgt_ver.startswith('powerp') or
+                tgt_ver.startswith('zero')):
             name = {
                 '00art15a': 'a15a',
                 '00art15v': 'a15v',
@@ -448,7 +450,7 @@ def read_stored_dict(ctx):
         elif os.path.isfile(os.path.join(os.path.expanduser('~'),
                                          'transodoo.xlsx')):
             ctx['dict_fn'] = os.path.join(os.path.expanduser('~'),
-                                         'transodoo.xlsx')
+                                          'transodoo.xlsx')
         else:
             ctx['dict_fn'] = 'transodoo.xlsx'
     mindroot = {}

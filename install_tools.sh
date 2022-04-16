@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.13
+__version__=1.0.14
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -102,7 +102,8 @@ CLR="\e[0m"
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
 [[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
 
-[[ $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
+[[ -n $HOME_DEVEL ]] && DSTPATH=$HOME_DEVEL
+[[ -z "$DSTPATH" && $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
 [[ $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
 [[ -z "$DSTPATH" && -d $HOME/odoo/devel ]] && DSTPATH="$HOME/odoo/devel"
 [[ -z "$DSTPATH" && -d $HOME/devel ]] && DSTPATH="$HOME/devel"
@@ -302,14 +303,11 @@ for fn in $FILES_2_DELETE; do
 done
 
 if [[ ! $opts =~ ^-.*n ]]; then
-    # echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
     echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
+    echo "HOME_DEVEL=\"DSTPATH\"">>$DSTPATH/activate_tools
     echo "[[ -f $LOCAL_VENV/bin/activate && ! :\$PATH: =~ :$LOCAL_VENV/bin: && \$1 != '-t' ]] && export PATH=\$PATH:$LOCAL_VENV/bin">>$DSTPATH/activate_tools
     echo "[[ -f $LOCAL_VENV/bin/activate && \$1 == '-t' ]] && export PATH=$LOCAL_VENV/bin:\$PATH">>$DSTPATH/activate_tools
-    # [[ $DSTPATH != $LOCAL_VENV ]] && echo "export PATH=\$PATH:$DSTPATH">>$DSTPATH/activate_tools
-    # echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">>$DSTPATH/activate_tools
-    # echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:\$PYTHONPATH">>$DSTPATH/activate_tools
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $PYLIB/zerobug/_travis || :\$PATH: =~ :$PYLIB/zerobug/_travis: ]] || export PATH=$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $PYLIB/z0bug_odoo/travis || :\$PATH: =~ :$PYLIB/z0bug_odoo/travis: ]] || export PATH=$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
@@ -387,6 +385,8 @@ if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
 fi
 
 if [[ ! $opts =~ ^-.*[gt] ]]; then
+    run_traced "sed -E \"s|^ +--config=travis_run_flake8.cfg|          - --config=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg|\" -i $SRCPATH/pre-commit-config.yaml"
+    run_traced "sed -E \"s|^ +- --rcfile=\.pylintrc|          - --rcfile=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg|\" -i $SRCPATH/pre-commit-config.yaml"
     [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
     for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
         # [[ $PYVER -eq 3 && ! $opts =~ ^-.*G ]] || run_traced "cp $SRCPATH/wok_code/pre-commit $d/hooks"

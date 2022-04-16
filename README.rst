@@ -239,6 +239,13 @@ Current development version
 History
 -------
 
+clodoo: 1.0.2 (2022-04-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: complex branch name
+
+
+
 odoo_score: 1.0.6 (2022-04-09)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -431,7 +438,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-04-12
+Last Update / Ultimo aggiornamento: 2022-04-16
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

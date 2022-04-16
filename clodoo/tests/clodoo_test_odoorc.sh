@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.2
+__version__=1.0.3
 VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca powerp librerp VENV_123- devel"
@@ -66,7 +66,7 @@ test_01() {
         test_result "1a> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in odoo12 odoo_12 VENV_123-odoo12 odoo-12-devel odoo12-main; do
+    for v in odoo12 odoo_12 VENV_123-odoo12 odoo-12-devel odoo12-main odoo12-r14 odoo12-r20.0; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
         test_result "1b> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -771,7 +771,9 @@ test_07() {
                 [[ $x =~ (odoo|odoo_|ODOO) ]] && TRES="https://github.com/odoo/odoo.git" || TRES="https://github.com/OCA/${z}.git"
                 [[ $v == "6.1" ]] && TRES="git@github.com:zeroincombenze/${z}.git"
                 [[ $x == "librerp" && $v == "6.1" ]] && TRES="https://github.com/iw3hxn/server.git"
-                [[ $x == "powerp" ]] && TRES="https://github.com/OCA/${z}.git"
+                [[ $x == "librerp" && $v == "12.0" ]] && continue
+                [[ $x == "powerp" ]] && continue
+                # [[ $x == "powerp" ]] && TRES="https://github.com/OCA/${z}.git"
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RUPSTREAM $w $z)
                 test_result "7c> multi RUPSTREAM $w/$z [bash]" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s

@@ -14,63 +14,62 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from future import standard_library
+
 # from builtins import hex
 # from builtins import str
 from builtins import int
 from past.builtins import basestring
 from builtins import str
+
 # from builtins import *                                           # noqa: F403
 from past.utils import old_div
 import sys
 import re
 
 import odoorpc
+
 try:
     import oerplib
-except:
+except ImportError:
     if sys.version_info[0] == 2:
         raise ImportError("Package oerplib not found")
 from os0 import os0
+
 try:
     from clodoolib import debug_msg_log, msg_log, decrypt
-except:
+except ImportError:
     from clodoo.clodoolib import debug_msg_log, msg_log, decrypt
 try:
-    from transodoo import (read_stored_dict,
-                           translate_from_sym,
-                           translate_from_to)
-except:
-    from clodoo.transodoo import (read_stored_dict,
-                                  translate_from_sym,
-                                  translate_from_to)
+    from transodoo import read_stored_dict, translate_from_sym, translate_from_to
+except ImportError:
+    from clodoo.transodoo import read_stored_dict, translate_from_sym, translate_from_to
 try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
     postgres_drive = True
-except BaseException:                                        # pragma: no cover
+except BaseException:  # pragma: no cover
     postgres_drive = False
-standard_library.install_aliases()                                 # noqa: E402
+standard_library.install_aliases()  # noqa: E402
 
 
 STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 
 #############################################################################
 # Low level (driver) functions
 def psql_connect(ctx):
     cr = False
-    if (postgres_drive and
-            ctx.get('psycopg2', False)):
+    if postgres_drive and ctx.get('psycopg2', False):
         dbname = ctx['db_name']
         dbuser = ctx['db_user']
         pwd = ctx.get('db_password')
         port = ctx.get('db_port') or 5432
-        cnx = psycopg2.connect(
-            dbname=dbname, user=dbuser, password=pwd, port=port)
+        cnx = psycopg2.connect(dbname=dbname, user=dbuser, password=pwd, port=port)
         cnx.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cr = cnx.cursor()
     return cr
@@ -82,15 +81,15 @@ def psql_connect(ctx):
 def cnx(ctx):
     try:
         if ctx['svc_protocol'] == 'jsonrpc':
-            odoo = odoorpc.ODOO(ctx['db_host'],
-                                ctx['svc_protocol'],
-                                ctx['xmlrpc_port'])
+            odoo = odoorpc.ODOO(ctx['db_host'], ctx['svc_protocol'], ctx['xmlrpc_port'])
         else:
-            odoo = oerplib.OERP(server=ctx['db_host'],
-                                protocol=ctx['svc_protocol'],
-                                port=ctx['xmlrpc_port'])
+            odoo = oerplib.OERP(
+                server=ctx['db_host'],
+                protocol=ctx['svc_protocol'],
+                port=ctx['xmlrpc_port'],
+            )
             # version=ctx['oe_version'])
-    except BaseException:                                    # pragma: no cover
+    except BaseException:  # pragma: no cover
         odoo = False
     return odoo
 
@@ -140,12 +139,16 @@ def connectL8(ctx):
         except BaseException:
             ctx['server_version'] = odoo.version
     x = re.match(r'[0-9]+\.[0-9]+', ctx['server_version'])
-    if (ctx['oe_version'] != '*' and
-            ctx['server_version'][0:x.end()] != ctx['oe_version']):
-        return u"!Invalid Odoo Server version: expected %s, found %s!" % \
-            (ctx['oe_version'], ctx['server_version'])
+    if (
+        ctx['oe_version'] != '*'
+        and ctx['server_version'][0 : x.end()] != ctx['oe_version']
+    ):
+        return u"!Invalid Odoo Server version: expected %s, found %s!" % (
+            ctx['oe_version'],
+            ctx['server_version'],
+        )
     elif ctx['oe_version'] == '*':
-        ctx['oe_version'] = ctx['server_version'][0:x.end()]
+        ctx['oe_version'] = ctx['server_version'][0 : x.end()]
     ctx['majver'] = eval(ctx['server_version'].split('.')[0])
     if ctx['majver'] < 10 and ctx['svc_protocol'] == 'jsonrpc':
         ctx['svc_protocol'] = 'xmlrpc'
@@ -159,18 +162,17 @@ def connectL8(ctx):
 #
 def searchL8(ctx, model, where, order=None, context=None):
     if ctx['svc_protocol'] == 'jsonrpc':
-        return ctx['odoo_session'].env[model].search(where, order=order,
-                                                     context=context)
+        return (
+            ctx['odoo_session'].env[model].search(where, order=order, context=context)
+        )
     else:
-        return ctx['odoo_session'].search(model, where, order=order,
-                                          context=context)
+        return ctx['odoo_session'].search(model, where, order=order, context=context)
 
 
 def browseL8(ctx, model, id, context=None):
     if ctx['svc_protocol'] == 'jsonrpc':
         if context:
-            return ctx['odoo_session'].env[model].browse(id).with_context(
-                context)
+            return ctx['odoo_session'].env[model].browse(id).with_context(context)
         else:
             return ctx['odoo_session'].env[model].browse(id)
     else:
@@ -182,12 +184,13 @@ def createL8(ctx, model, vals, context=None):
     vals = complete_fields(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         if context:
-            return ctx['odoo_session'].env[model].create(vals).with_context(
-                context)
+            return ctx['odoo_session'].env[model].create(vals).with_context(context)
         else:
             return ctx['odoo_session'].env[model].create(vals)
     else:
         return ctx['odoo_session'].create(model, vals)
+
+
 #
 #
 # def write_recordL8(ctx, record):
@@ -203,13 +206,17 @@ def writeL8(ctx, model, ids, vals, context=None):
     vals = drop_invalid_fields(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         if context:
-            return ctx['odoo_session'].env[model].browse(ids).with_context(
-                context).write(vals)
+            return (
+                ctx['odoo_session']
+                .env[model]
+                .browse(ids)
+                .with_context(context)
+                .write(vals)
+            )
         else:
             return ctx['odoo_session'].env[model].write(ids, vals)
     else:
-        return ctx['odoo_session'].write(
-            model, ids, vals, context=context)
+        return ctx['odoo_session'].write(model, ids, vals, context=context)
 
 
 def unlinkL8(ctx, model, ids):
@@ -220,56 +227,34 @@ def unlinkL8(ctx, model, ids):
 
 
 def executeL8(ctx, model, action, *args):
-    action = translate_from_to(ctx,
-                               model,
-                               action,
-                               '10.0',
-                               ctx['oe_version'],
-                               type='action')
+    action = translate_from_to(
+        ctx, model, action, '10.0', ctx['oe_version'], type='action'
+    )
     if ctx['majver'] < 10 and action == 'invoice_open':
-        return ctx['odoo_session'].exec_workflow(model,
-                                                 action,
-                                                 *args)
-    return ctx['odoo_session'].execute(model,
-                                       action,
-                                       *args)
+        return ctx['odoo_session'].exec_workflow(model, action, *args)
+    return ctx['odoo_session'].execute(model, action, *args)
 
 
 def execute_action_L8(ctx, model, action, ids):
     sts = 0
-    if (model == 'account.invoice'):
+    if model == 'account.invoice':
         ids = [ids] if isinstance(ids, int) else ids
         try:
             if ctx['majver'] >= 10:
-                executeL8(ctx,
-                          model,
-                          'compute_taxes',
-                          ids)
+                executeL8(ctx, model, 'compute_taxes', ids)
             else:
-                executeL8(ctx,
-                          model,
-                          'button_compute',
-                          ids)
-                executeL8(ctx,
-                          model,
-                          'button_reset_taxes',
-                          ids)
+                executeL8(ctx, model, 'button_compute', ids)
+                executeL8(ctx, model, 'button_reset_taxes', ids)
                 ids = ids[0]
         except RuntimeError:
             pass
-    elif (model == 'sale.order'):
+    elif model == 'sale.order':
         ids = [ids] if isinstance(ids, int) else ids
         try:
-            executeL8(ctx,
-                      model,
-                      'compute_tax_id',
-                      ids)
+            executeL8(ctx, model, 'compute_tax_id', ids)
         except RuntimeError:
             pass
-    executeL8(ctx,
-              model,
-              action,
-              ids)
+    executeL8(ctx, model, action, ids)
     return sts
 
 
@@ -290,10 +275,8 @@ def drop_fields(ctx, model, vals, to_delete):
 def complete_fields(ctx, model, vals):
     to_delete = []
     for name in ctx.get('STRUCT', {}).get(model, {}):
-        if (is_required_field(ctx, model, name) and
-                (name not in vals or not vals[name])):
-            vals[name] = set_some_values(ctx, None, name, '',
-                                         model=model, row=vals)
+        if is_required_field(ctx, model, name) and (name not in vals or not vals[name]):
+            vals[name] = set_some_values(ctx, None, name, '', model=model, row=vals)
             if not vals.get(name):
                 to_delete.append(name)
     return drop_fields(ctx, model, vals, to_delete)
@@ -304,28 +287,29 @@ def drop_invalid_fields(ctx, model, vals):
         if isinstance(vals, (list, tuple)):
             to_delete = list(set(vals) - set(ctx['STRUCT'][model].keys()))
         else:
-            to_delete = list(set(vals.keys()) -
-                             set(ctx['STRUCT'][model].keys()))
+            to_delete = list(set(vals.keys()) - set(ctx['STRUCT'][model].keys()))
         return drop_fields(ctx, model, vals, to_delete)
     return vals
 
 
-def tnl_2_ver_seq_code(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                       default=None):
+def tnl_2_ver_seq_code(
+    ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None
+):
     if src_ver == '10.0' and tgt_ver == '8.0':
-        if not searchL8(ctx,
-                        'ir.sequence.type',
-                        [('code', '=', vals[new_name])]):
-            createL8(ctx, 'ir.sequence.type',
-                     {'code': vals[new_name],
-                      'name': vals[new_name].replace('.', ' ')})
+        if not searchL8(ctx, 'ir.sequence.type', [('code', '=', vals[new_name])]):
+            createL8(
+                ctx,
+                'ir.sequence.type',
+                {'code': vals[new_name], 'name': vals[new_name].replace('.', ' ')},
+            )
     if name != new_name:
         del vals[name]
     return vals
 
 
-def tnl_2_ver_acc_type(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                       default=None):
+def tnl_2_ver_acc_type(
+    ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None
+):
     TNL_9_TO_10 = {
         'income': 'other',
         'none': 'other',
@@ -360,8 +344,7 @@ def tnl_2_ver_acc_type(ctx, model, vals, new_name, name, src_ver, tgt_ver,
     return vals
 
 
-def tnl_2_ver_group(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                    default=None):
+def tnl_2_ver_group(ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None):
     '''Type Group'''
     if name != new_name:
         del vals[name]
@@ -372,40 +355,33 @@ def tnl_2_ver_group(ctx, model, vals, new_name, name, src_ver, tgt_ver,
     return vals
 
 
-def tnl_2_ver_type_tax_use(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                           default=None):
+def tnl_2_ver_type_tax_use(
+    ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None
+):
     if vals.get(new_name) not in ('sale', 'purchase'):
         if vals['description'][-1] == 'v':
             vals[new_name] = 'sale'
         else:
             vals[new_name] = 'purchase'
         if vals['type_tax_use'] == 'sale':
-            code = 'IT%s%sD' % (
-                'D', vals['description'][0:-1])
-            ids = searchL8(ctx, 'account.tax.code',
-                           [('code', '=', code)])
+            code = 'IT%s%sD' % ('D', vals['description'][0:-1])
+            ids = searchL8(ctx, 'account.tax.code', [('code', '=', code)])
             if ids:
                 vals['base_code_id'] = ids[0]
                 vals['ref_base_code_id'] = ids[0]
-            code = 'IT%s%sV' % (
-                'D', vals['description'][0:-1])
-            ids = searchL8(ctx, 'account.tax.code',
-                           [('code', '=', code)])
+            code = 'IT%s%sV' % ('D', vals['description'][0:-1])
+            ids = searchL8(ctx, 'account.tax.code', [('code', '=', code)])
             if ids:
                 vals['tax_code_id'] = ids[0]
                 vals['ref_tax_code_id'] = ids[0]
         elif vals['type_tax_use'] == 'purchase':
-            code = 'IT%s%sD' % (
-                'C', vals['description'][0:-1])
-            ids = searchL8(ctx, 'account.tax.code',
-                           [('code', '=', code)])
+            code = 'IT%s%sD' % ('C', vals['description'][0:-1])
+            ids = searchL8(ctx, 'account.tax.code', [('code', '=', code)])
             if ids:
                 vals['base_code_id'] = ids[0]
                 vals['ref_base_code_id'] = ids[0]
-            code = 'IT%s%sV' % (
-                'C', vals['description'][0:-1])
-            ids = searchL8(ctx, 'account.tax.code',
-                           [('code', '=', code)])
+            code = 'IT%s%sV' % ('C', vals['description'][0:-1])
+            ids = searchL8(ctx, 'account.tax.code', [('code', '=', code)])
             if ids:
                 vals['tax_code_id'] = ids[0]
                 vals['ref_tax_code_id'] = ids[0]
@@ -414,8 +390,9 @@ def tnl_2_ver_type_tax_use(ctx, model, vals, new_name, name, src_ver, tgt_ver,
     return vals
 
 
-def tnl_2_ver_tax_amount(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                         default=None):
+def tnl_2_ver_tax_amount(
+    ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None
+):
     if src_ver == '10.0' and tgt_ver == '8.0':
         vals[new_name] = old_div(vals[new_name], 100)
     elif src_ver == '8.0' and tgt_ver == '10.0':
@@ -425,12 +402,13 @@ def tnl_2_ver_tax_amount(ctx, model, vals, new_name, name, src_ver, tgt_ver,
     return vals
 
 
-def tnl_2_ver_vat(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                  default=None):
+def tnl_2_ver_vat(ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None):
     '''External vat may not contain ISO code'''
-    if (isinstance(vals[new_name], basestring) and
-            len(vals[new_name]) == 11 and
-            vals[new_name].isdigit()):
+    if (
+        isinstance(vals[new_name], basestring)
+        and len(vals[new_name]) == 11
+        and vals[new_name].isdigit()
+    ):
         vals[new_name] = 'IT%s' % vals[new_name]
     else:
         vals[new_name] = vals[new_name]
@@ -439,11 +417,13 @@ def tnl_2_ver_vat(ctx, model, vals, new_name, name, src_ver, tgt_ver,
     return vals
 
 
-def tnl_2_ver_state_id(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                       default=None):
+def tnl_2_ver_state_id(
+    ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None
+):
     if 'country_id' in vals:
-        vals[new_name] = get_state_id(ctx, vals[new_name],
-                                      country_id=vals['country_id'])
+        vals[new_name] = get_state_id(
+            ctx, vals[new_name], country_id=vals['country_id']
+        )
     else:
         vals[new_name] = get_state_id(ctx, vals[new_name])
     if name != new_name:
@@ -451,23 +431,26 @@ def tnl_2_ver_state_id(ctx, model, vals, new_name, name, src_ver, tgt_ver,
     return vals
 
 
-def tnl_2_ver_child_id(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                       default=None):
+def tnl_2_ver_child_id(
+    ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None
+):
     if eval(tgt_ver.split('.')[0]) >= 10 and vals[name]:
         vals = {}
     return vals
 
 
-def tnl_2_ver_set_value(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                        default=None):
+def tnl_2_ver_set_value(
+    ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None
+):
     vals[new_name] = default
     if name != new_name:
         del vals[name]
     return vals
 
 
-def tnl_2_ver_drop_record(ctx, model, vals, new_name, name, src_ver, tgt_ver,
-                          default=None):
+def tnl_2_ver_drop_record(
+    ctx, model, vals, new_name, name, src_ver, tgt_ver, default=None
+):
     vals = {}
     return vals
 
@@ -475,30 +458,18 @@ def tnl_2_ver_drop_record(ctx, model, vals, new_name, name, src_ver, tgt_ver,
 def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
 
     APPLY = {
-        'account.account.type': {'type': 'acc_type()',
-                                 'report_type': 'acc_type()',
-        },
-        'account.account': {'child_id': 'child_id()',
-        },
-        'account.tax': {'type': 'group()',
-                        'type_tax_use': 'type_tax_use()',
-        },
-        'res.partner': {'is_company': 'true',
-                        'vat': 'vat()',
-                        'state_id': 'state_id()',
-        },
-        'ir.sequence': {'code': 'seq_code()',
-        },
+        'account.account.type': {'type': 'acc_type()', 'report_type': 'acc_type()'},
+        'account.account': {'child_id': 'child_id()'},
+        'account.tax': {'type': 'group()', 'type_tax_use': 'type_tax_use()'},
+        'res.partner': {'is_company': 'true', 'vat': 'vat()', 'state_id': 'state_id()'},
+        'ir.sequence': {'code': 'seq_code()'},
     }
 
-    def process_fields(ctx, model, vals, src_ver, tgt_ver,
-                       field_list=None, excl_list=None):
+    def process_fields(
+        ctx, model, vals, src_ver, tgt_ver, field_list=None, excl_list=None
+    ):
         for name in vals.copy():
-            new_name = translate_from_to(ctx,
-                                         model,
-                                         name,
-                                         src_ver,
-                                         tgt_ver)
+            new_name = translate_from_to(ctx, model, name, src_ver, tgt_ver)
             if not new_name:
                 new_name = name
             if name == 'company_id':
@@ -527,11 +498,20 @@ def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
                         del vals[name]
                     continue
                 if not new_name:
-                    vals = globals()[apply](ctx, model, vals, name, name,
-                                            src_ver, tgt_ver, default=default)
+                    vals = globals()[apply](
+                        ctx, model, vals, name, name, src_ver, tgt_ver, default=default
+                    )
                 else:
-                    vals = globals()[apply](ctx, model, vals, new_name, name,
-                                            src_ver, tgt_ver, default=default)
+                    vals = globals()[apply](
+                        ctx,
+                        model,
+                        vals,
+                        new_name,
+                        name,
+                        src_ver,
+                        tgt_ver,
+                        default=default,
+                    )
                 if not vals:
                     break
         return vals
@@ -542,15 +522,14 @@ def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
         elif model_has_company(ctx, model):
             ctx['company_id'] = ctx['def_company_id']
         if ctx.get('company_id'):
-            ctx['country_id'] = browseL8(ctx, 'res.company',
-                    ctx['company_id']).partner_id.country_id.id
+            ctx['country_id'] = browseL8(
+                ctx, 'res.company', ctx['company_id']
+            ).partner_id.country_id.id
         else:
             ctx['country_id'] = False
         pf_list = ('company_id', 'country_id', 'street')
-        vals = process_fields(ctx, model, vals, src_ver, tgt_ver,
-                              field_list=pf_list)
-        vals = process_fields(ctx, model, vals, src_ver, tgt_ver,
-                              excl_list=pf_list)
+        vals = process_fields(ctx, model, vals, src_ver, tgt_ver, field_list=pf_list)
+        vals = process_fields(ctx, model, vals, src_ver, tgt_ver, excl_list=pf_list)
     return vals
 
 
@@ -558,9 +537,11 @@ def extr_table_generic(ctx, model, keys=None, alls=None):
     get_model_structure(ctx, model)
     field_names = []
     for field in ctx['STRUCT'][model]:
-        if (alls or
-                (keys and field in keys) or
-                (not keys and not ctx['STRUCT'][model][field]['readonly'])):
+        if (
+            alls
+            or (keys and field in keys)
+            or (not keys and not ctx['STRUCT'][model][field]['readonly'])
+        ):
             field_names.append(field)
     return field_names
 
@@ -612,28 +593,32 @@ def extract_vals_from_rec(ctx, model, rec, keys=None, format=False):
         res[field] = get_val_from_field(ctx, model, rec, field, format=format)
     return res
 
+
 FIX_7_0 = {
     'res.partner': {'name': {'required': True}},
     'product.product': {'name': {'required': True}},
     'product.template': {'name': {'required': True}},
     'res.users': {'name': {'required': True}},
-    'account.invoice': {'company_id': {'readonly': False},
-                        'number': {'readonly': False},
-                        'date_invoice': {'readonly': False},
-                        'journal_id': {'readonly': False},
-                        'account_id': {'readonly': False},
-                        'amount_tax': {'readonly': False},
-                        'amount_total': {'readonly': False},
-                        'amount_untaxed': {'readonly': False},
-                        'internal_number': {'readonly': False},
-                        'move_id': {'readonly': False},
-                        'name': {'readonly': False},
-                        'partner_id': {'readonly': False},
-                        },
-    'account.invoice.line': {'company_id': {'readonly': False},
-                             'number': {'readonly': False},
-                             'date_invoice': {'readonly': False},
-                             'journal_id': {'readonly': False}},
+    'account.invoice': {
+        'company_id': {'readonly': False},
+        'number': {'readonly': False},
+        'date_invoice': {'readonly': False},
+        'journal_id': {'readonly': False},
+        'account_id': {'readonly': False},
+        'amount_tax': {'readonly': False},
+        'amount_total': {'readonly': False},
+        'amount_untaxed': {'readonly': False},
+        'internal_number': {'readonly': False},
+        'move_id': {'readonly': False},
+        'name': {'readonly': False},
+        'partner_id': {'readonly': False},
+    },
+    'account.invoice.line': {
+        'company_id': {'readonly': False},
+        'number': {'readonly': False},
+        'date_invoice': {'readonly': False},
+        'journal_id': {'readonly': False},
+    },
 }
 FIX_ALL = {
     'message_follower_ids': {'readonly': True},
@@ -643,6 +628,7 @@ FIX_ALL = {
     'message_unread': {'readonly': True},
 }
 
+
 def get_model_structure(ctx, model, ignore=None):
     read_stored_dict(ctx)
     ignore = ignore or []
@@ -651,23 +637,22 @@ def get_model_structure(ctx, model, ignore=None):
     ctx['STRUCT'] = ctx.get('STRUCT', {})
     ctx['STRUCT'][model] = ctx['STRUCT'].get(model, {})
     ir_model = 'ir.model.fields'
-    for field in browseL8(ctx,
-                          ir_model,
-                          searchL8(ctx,
-                                   ir_model,
-                                   [('model', '=', model)])):
+    for field in browseL8(
+        ctx, ir_model, searchL8(ctx, ir_model, [('model', '=', model)])
+    ):
         res = FIX_7_0.get(model, {}).get(field, {}).get('required', None)
         required = res if res is not None else field.required
-        if (field.name == 'id' or
-                (ctx['majver'] >= 9 and field.compute) or
-                field.name in ignore or
-                field.ttype in ('binary', 'reference')):
+        if (
+            field.name == 'id'
+            or (ctx['majver'] >= 9 and field.compute)
+            or field.name in ignore
+            or field.ttype in ('binary', 'reference')
+        ):
             readonly = True
         else:
-            readonly = FIX_ALL.get(
-                model, {}).get(field, {}).get('readonly', False) or \
-                FIX_7_0.get(
-                model, {}).get(field, {}).get('readonly', False)
+            readonly = FIX_ALL.get(model, {}).get(field, {}).get(
+                'readonly', False
+            ) or FIX_7_0.get(model, {}).get(field, {}).get('readonly', False)
         ctx['STRUCT'][model][field.name] = {
             'ttype': field.ttype,
             'relation': field.relation,
@@ -684,8 +669,7 @@ def get_model_structure(ctx, model, ignore=None):
             'readonly': True,
         }
     field = 'name'
-    if model in ('res.users', 'res.partner', 'product.product',
-                 'product.template'):
+    if model in ('res.users', 'res.partner', 'product.product', 'product.template'):
         if field not in ctx['STRUCT'][model]:
             ctx['STRUCT'][model][field] = {
                 'ttype': 'char',
@@ -697,14 +681,16 @@ def get_model_structure(ctx, model, ignore=None):
 
 def build_model_struct(ctx):
     o_model = {}
-    for p in ('model',
-              'model_code',
-              'model_name',
-              'model_action',
-              'model_keyids',
-              'hide_cid',
-              'alias_model2',
-              'alias_field'):
+    for p in (
+        'model',
+        'model_code',
+        'model_name',
+        'model_action',
+        'model_keyids',
+        'hide_cid',
+        'alias_model2',
+        'alias_field',
+    ):
         if p in ctx:
             o_model[p] = ctx[p]
     if not o_model.get('model_code') and not o_model.get('model_name'):
@@ -719,8 +705,7 @@ def get_model_model(ctx, o_model):
         if isinstance(o_model['model'], basestring):
             model = o_model['model']
         else:
-            model_selector = o_model.get('cur_model',
-                                         o_model['model'].keys()[0])
+            model_selector = o_model.get('cur_model', o_model['model'].keys()[0])
             model = o_model['model'][model_selector]
     else:
         model = False
@@ -732,8 +717,7 @@ def get_model_name(ctx, o_model):
         if isinstance(o_model['model_name'], basestring):
             model_name = o_model['model_name']
         else:
-            model_selector = o_model.get('cur_model',
-                                         o_model['model_name'].keys()[0])
+            model_selector = o_model.get('cur_model', o_model['model_name'].keys()[0])
             model_name = o_model['model_name'][model_selector]
     else:
         model_name = False
@@ -786,8 +770,7 @@ def _get_model_bone(ctx, o_model):
                 if 'hide_cid' in ctx:
                     hide_cid = ctx['hide_cid']
                 else:
-                    hide_cid = not model_has_company(ctx,
-                                                     model)
+                    hide_cid = not model_has_company(ctx, model)
     if model is None:
         if 'model' in o_model:
             model = o_model['model']
@@ -796,8 +779,7 @@ def _get_model_bone(ctx, o_model):
             if 'hide_cid' in o_model:
                 hide_cid = o_model['hide_cid']
             else:
-                hide_cid = not model_has_company(ctx,
-                                                 model)
+                hide_cid = not model_has_company(ctx, model)
     return model, hide_cid
 
 
@@ -877,16 +859,10 @@ def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
     """
     o_skull = o_model.copy()
     csv_obj.fieldnames = row['undef_name']
-    o_skull['model'], o_skull['hide_cid'] = _import_file_model(ctx,
-                                                               o_model,
-                                                               csv_fn)
-    o_skull['name'] = _get_model_name(csv_obj.fieldnames,
-                                      o_model)
-    o_skull['code'] = _get_model_code(csv_obj.fieldnames,
-                                      o_model)
-    o_skull['db_type'] = _import_file_dbtype(o_model,
-                                             csv_obj.fieldnames,
-                                             csv_fn)
+    o_skull['model'], o_skull['hide_cid'] = _import_file_model(ctx, o_model, csv_fn)
+    o_skull['name'] = _get_model_name(csv_obj.fieldnames, o_model)
+    o_skull['code'] = _get_model_code(csv_obj.fieldnames, o_model)
+    o_skull['db_type'] = _import_file_dbtype(o_model, csv_obj.fieldnames, csv_fn)
     if o_skull['code'] != 'id' and 'id' in csv_obj.fieldnames:
         o_skull['repl_by_id'] = True
     else:
@@ -918,14 +894,11 @@ def get_country_id(ctx, value):
     if value:
         model = 'res.country'
         if value[0:5] == 'base.':
-            ids = searchL8(ctx, model,
-                           [('code', '=', value[5:].upper())])
+            ids = searchL8(ctx, model, [('code', '=', value[5:].upper())])
         else:
-            ids = searchL8(ctx, model,
-                           [('code', '=', value.upper())])
+            ids = searchL8(ctx, model, [('code', '=', value.upper())])
         if not ids:
-            ids = searchL8(ctx, model,
-                           [('name', 'ilike', value)])
+            ids = searchL8(ctx, model, [('name', 'ilike', value)])
         if ids:
             value = ids[0]
         else:
@@ -940,13 +913,13 @@ def get_state_id(ctx, value, country_id=None):
         if not country_id:
             country_id = ctx['def_country_id']
         model = 'res.country.state'
-        ids = searchL8(ctx, model,
-                       [('country_id', '=', country_id),
-                        ('code', '=', value.upper())])
+        ids = searchL8(
+            ctx, model, [('country_id', '=', country_id), ('code', '=', value.upper())]
+        )
         if not ids:
-            ids = searchL8(ctx, model,
-                           [('country_id', '=', country_id),
-                            ('name', 'ilike', value)])
+            ids = searchL8(
+                ctx, model, [('country_id', '=', country_id), ('name', 'ilike', value)]
+            )
         if ids:
             value = ids[0]
         else:
@@ -1014,8 +987,7 @@ def set_some_values(ctx, o_model, name, value, model=None, row=None):
                     value = 'IT%011d' % eval(value)
             elif name == 'state_id':
                 if row and 'country_id' in row:
-                    value = get_state_id(ctx, value,
-                                         country_id=row['country_id'])
+                    value = get_state_id(ctx, value, country_id=row['country_id'])
                 else:
                     value = get_state_id(ctx, value)
         elif model == 'res.users':
@@ -1054,50 +1026,39 @@ def eval_value(ctx, o_model, name, value):
             tok_beg = '[(' if isinstance(value, str) else b'[('
             tok_end = ')]' if isinstance(value, str) else b')]'
             if value.startswith(token):
-                value = expr(ctx,
-                             o_model,
-                             name,
-                             value[1:])
+                value = expr(ctx, o_model, name, value[1:])
                 eval_dict = False
             elif tok_left in value and tok_right in value:
-                value = expr(ctx,
-                             o_model,
-                             name,
-                             value)
+                value = expr(ctx, o_model, name, value)
                 eval_dict = False
             elif value.startswith(tok_beg) and value.endswith(tok_end):
-                value = expr(ctx,
-                             o_model,
-                             name,
-                             value)
+                value = expr(ctx, o_model, name, value)
                 eval_dict = False
         if isinstance(value, basestring):
-            if value in ('None', 'True', 'False') or \
-                    (value[0:2] == "[(" and value[-2:] == ")]"):
+            if value in ('None', 'True', 'False') or (
+                value[0:2] == "[(" and value[-2:] == ")]"
+            ):
                 if eval_dict:
                     try:
                         value = eval(value, None, ctx)
-                    except BaseException:                    # pragma: no cover
+                    except BaseException:  # pragma: no cover
                         pass
                 else:
                     try:
                         value = eval(value)
-                    except BaseException:            # pragma: no cover
+                    except BaseException:  # pragma: no cover
                         pass
             elif value.isdigit():
                 ir_model = 'ir.model.fields'
-                ids = searchL8(ctx,
-                               ir_model,
-                               [('model', '=', o_model),
-                                ('name', '=', name)])
+                ids = searchL8(
+                    ctx, ir_model, [('model', '=', o_model), ('name', '=', name)]
+                )
                 if ids:
-                    ttype = browseL8(ctx,
-                                     ir_model,
-                                     ids[0]).ttype
+                    ttype = browseL8(ctx, ir_model, ids[0]).ttype
                     if ttype in ('integer', 'float', 'many2one'):
                         try:
                             value = eval(value)
-                        except BaseException:            # pragma: no cover
+                        except BaseException:  # pragma: no cover
                             pass
     return value
 
@@ -1107,17 +1068,17 @@ def expr(ctx, o_model, code, value):
     if isinstance(value, basestring):
         i, j = get_macro_pos(value)
         if i >= 0 and j > i:
-            v = value[i + 2:j]
+            v = value[i + 2 : j]
             x, y = get_macro_pos(v)
             while x >= 0 and y > i:
                 v = expr(ctx, o_model, code, v)
-                value = value[0:i + 2] + v + value[j:]
+                value = value[0 : i + 2] + v + value[j:]
                 i, j = get_macro_pos(value)
-                v = value[i + 2:j]
+                v = value[i + 2 : j]
                 x, y = get_macro_pos(v)
             res = ""
             while i >= 0 and j > i:
-                v = value[i + 2:j]
+                v = value[i + 2 : j]
                 if v.find(':') >= 0:
                     v = _query_expr(ctx, o_model, code, v)
                 else:
@@ -1125,16 +1086,15 @@ def expr(ctx, o_model, code, value):
                         v = 'def_email'
                     try:
                         v = eval(v, None, ctx)
-                    except BaseException:                    # pragma: no cover
+                    except BaseException:  # pragma: no cover
                         pass
                 if i > 0:
                     res = concat_res(res, value[0:i])
-                value = value[j + 1:]
+                value = value[j + 1 :]
                 res = concat_res(res, v)
                 i, j = get_macro_pos(value)
             value = concat_res(res, value)
-    if isinstance(value, basestring) and \
-            value[0:2] == "[(" and value[-2:] == ")]":
+    if isinstance(value, basestring) and value[0:2] == "[(" and value[-2:] == ")]":
         res = []
         for v in value[2:-2].split(','):
             res.append(get_db_alias(ctx, v, fmt='string'))
@@ -1157,17 +1117,12 @@ def _get_simple_query_id(ctx, model, code, value, hide_cid):
     if model == 'ir.model.data' and len(ids) == 1:
         try:
             ids = [browseL8(ctx, 'ir.model.data', ids[0]).res_id]
-        except BaseException:                                # pragma: no cover
+        except BaseException:  # pragma: no cover
             ids = None
     if ids is None:
         return []
     if len(ids) == 0 and model != 'res.users':
-        ids = _get_raw_query_id(ctx,
-                                model,
-                                code,
-                                value,
-                                hide_cid,
-                                'ilike')
+        ids = _get_raw_query_id(ctx, model, code, value, hide_cid, 'ilike')
     return ids
 
 
@@ -1179,29 +1134,14 @@ def _get_raw_query_id(ctx, model, code, value, hide_cid, op):
     if isinstance(code, list) and isinstance(value, list):
         for i, c in enumerate(code):
             if i < len(value):
-                where = append_2_where(ctx,
-                                       model,
-                                       c,
-                                       value[i],
-                                       where,
-                                       op)
+                where = append_2_where(ctx, model, c, value[i], where, op)
             else:
-                where = append_2_where(ctx,
-                                       model,
-                                       c,
-                                       '',
-                                       where,
-                                       op)
+                where = append_2_where(ctx, model, c, '', where, op)
     else:
-        where = append_2_where(ctx,
-                               model,
-                               code,
-                               value,
-                               where,
-                               op)
+        where = append_2_where(ctx, model, code, value, where, op)
     try:
         ids = searchL8(ctx, model, where)
-    except BaseException:                                    # pragma: no cover
+    except BaseException:  # pragma: no cover
         ids = None
     return ids
 
@@ -1213,8 +1153,12 @@ def append_2_where(ctx, model, code, value, where, op):
             where.append('|')
             where.append((code, op, value))
             where.append((code, op, value[1:]))
-        elif not isinstance(value, basestring) and \
-                op in ('like', 'ilike', '=like', '=ilike'):
+        elif not isinstance(value, basestring) and op in (
+            'like',
+            'ilike',
+            '=like',
+            '=ilike',
+        ):
             where.append((code, '=', value))
         else:
             where.append((code, op, value))
@@ -1240,10 +1184,7 @@ def get_query_id(ctx, o_model, row):
         o_skull = o_model.copy()
         o_skull['code'] = 'id'
         o_skull['hide_id'] = False
-        value = eval_value(ctx,
-                           o_skull,
-                           'id',
-                           row['id'])
+        value = eval_value(ctx, o_skull, 'id', row['id'])
         if isinstance(value, int):
             ids = searchL8(ctx, model, [('id', '=', value)])
     if not ids:
@@ -1271,31 +1212,21 @@ def get_query_id(ctx, o_model, row):
         if model is None or not value:
             ids = []
         else:
-            ids = _get_simple_query_id(ctx,
-                                       model,
-                                       code,
-                                       value,
-                                       hide_cid)
+            ids = _get_simple_query_id(ctx, model, code, value, hide_cid)
     return ids
 
 
 def _query_expr(ctx, o_model, code, value):
     msg = "_quer_expr(value=%s)" % value
     debug_msg_log(ctx, 6, msg)
-    model, name, value, hide_cid, fldname = _get_model_parms(ctx,
-                                                             o_model,
-                                                             value)
+    model, name, value, hide_cid, fldname = _get_model_parms(ctx, o_model, value)
     if model:
         if fldname == 'db_type':
             value = o_model.get('db_type', '')
         elif fldname == 'oe_versions':
             value = value == ctx['server_version']
         else:
-            value = _get_simple_query_id(ctx,
-                                         model,
-                                         name,
-                                         value,
-                                         hide_cid)
+            value = _get_simple_query_id(ctx, model, name, value, hide_cid)
             if isinstance(value, list):
                 if len(value):
                     value = value[0]
@@ -1367,11 +1298,11 @@ def _get_model_parms(ctx, o_model, value):
             model = None
             try:
                 value = eval(value, None, ctx)
-            except BaseException:                            # pragma: no cover
+            except BaseException:  # pragma: no cover
                 pass
     else:
         model = value[:i]
-        value = value[i + len(sep):]
+        value = value[i + len(sep) :]
         model, fldname = _get_name_n_ix(model, deflt=fldname)
         model, x = _get_name_n_params(model, name)
         if x.find(',') >= 0:
@@ -1402,28 +1333,33 @@ def is_db_alias(ctx, value):
     model, name, value, hide_cid = get_model_alias(value)
     if model == 'ir.transodoo':
         if value[2] and value[2] != '0':
-            return translate_from_to(ctx,
-                                     value[0],
-                                     name,
-                                     value[1],
-                                     value[2],
-                                     ctx['oe_version']) != ''
+            return (
+                translate_from_to(
+                    ctx, value[0], name, value[1], value[2], ctx['oe_version']
+                )
+                != ''
+            )
         else:
-            return translate_from_sym(ctx,
-                                      value[0],
-                                      value[1],
-                                      ctx['oe_version']) != ''
+            return translate_from_sym(ctx, value[0], value[1], ctx['oe_version']) != ''
     if ctx['svc_protocol'] == 'jsonrpc':
-        if model and name and value and ctx['odoo_session'].env[model].search(
-                [(name[0], '=', value[0]),
-                 (name[1], '=', value[1])]):
+        if (
+            model
+            and name
+            and value
+            and ctx['odoo_session']
+            .env[model]
+            .search([(name[0], '=', value[0]), (name[1], '=', value[1])])
+        ):
             return True
     else:
-        if model and name and value and searchL8(
-                ctx,
-                model,
-                [(name[0], '=', value[0]),
-                 (name[1], '=', value[1])]):
+        if (
+            model
+            and name
+            and value
+            and searchL8(
+                ctx, model, [(name[0], '=', value[0]), (name[1], '=', value[1])]
+            )
+        ):
             return True
     return False
 
@@ -1433,21 +1369,12 @@ def get_db_alias(ctx, value, fmt=None):
         model, name, value, hide_cid = get_model_alias(value)
         if model == 'ir.transodoo':
             if value[2] and value[2] != '0':
-                return translate_from_to(ctx,
-                                         value[0],
-                                         value[1],
-                                         value[2],
-                                         ctx['oe_version'])
+                return translate_from_to(
+                    ctx, value[0], value[1], value[2], ctx['oe_version']
+                )
             else:
-                return translate_from_sym(ctx,
-                                          value[0],
-                                          value[1],
-                                          ctx['oe_version'])
-        ids = _get_simple_query_id(ctx,
-                                   model,
-                                   name,
-                                   value,
-                                   hide_cid)
+                return translate_from_sym(ctx, value[0], value[1], ctx['oe_version'])
+        ids = _get_simple_query_id(ctx, model, name, value, hide_cid)
         if isinstance(ids, list):
             if len(ids):
                 if name == 'id' or isinstance(name, list):
@@ -1465,8 +1392,13 @@ def get_db_alias(ctx, value, fmt=None):
 def get_model_alias(value):
     if value:
         items = value.split('.')
-        if len(items) == 3 and items[0] and items[0][0].isalpha() and \
-                items[-1] and items[-1][0].isdigit():
+        if (
+            len(items) == 3
+            and items[0]
+            and items[0][0].isalpha()
+            and items[-1]
+            and items[-1][0].isdigit()
+        ):
             model = "ir.transodoo"
             name = ['module', 'name', 'version']
             value = [items[0], items[1], items[2]]
@@ -1481,8 +1413,7 @@ def get_model_alias(value):
     return None, None, value, None
 
 
-def put_model_alias(ctx,
-                    model=None, name=None, ref=None, id=None, module=None):
+def put_model_alias(ctx, model=None, name=None, ref=None, id=None, module=None):
     if ref:
         refs = ref.split('.')
         if len(refs):
@@ -1492,19 +1423,15 @@ def put_model_alias(ctx,
                 name = refs[1]
     module = module or 'base'
     if model and name and id:
-        ids = searchL8(ctx, 'ir.model.data',
-                       [('model', '=', model),
-                        ('module', '=', module),
-                        ('name', '=', name)])
+        ids = searchL8(
+            ctx,
+            'ir.model.data',
+            [('model', '=', model), ('module', '=', module), ('name', '=', name)],
+        )
         if ids:
             writeL8(ctx, 'ir.model.data', ids, {'res_id': id})
         else:
-            vals = {
-                'module': module,
-                'model': model,
-                'name': name,
-                'res_id': id,
-            }
+            vals = {'module': module, 'model': model, 'name': name, 'res_id': id}
             createL8(ctx, 'ir.model.data', vals)
     else:
         msg = 'Invalid alias ref'
@@ -1518,7 +1445,7 @@ def _get_name_n_params(name, deflt=None):
     j = name.rfind(')')
     if i >= 0 and j >= i:
         n = name[:i]
-        p = name[i + 1:j]
+        p = name[i + 1 : j]
     else:
         n = name
         p = deflt
@@ -1532,7 +1459,7 @@ def _get_name_n_ix(name, deflt=None):
     j = name.rfind(']')
     if i >= 0 and j >= i:
         n = name[:i]
-        x = name[i + 1:j]
+        x = name[i + 1 : j]
     else:
         n = name
         x = deflt

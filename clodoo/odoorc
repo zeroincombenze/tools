@@ -59,7 +59,7 @@
 # ODOO_GIT_SHORT    -> regex of git organizzations with short name (def /(oca)/)
 #
 
-#__version__=1.0.2
+#__version__=1.0.3
 
 
 ODOO_FVERS="16\.0|15\.0|14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
@@ -126,29 +126,30 @@ REPT_EXCL_MATRIX="zeroincombenze/account_invoice_create_payment,zeroincombenze/a
 
 
 get_odoo_major_ver() {
-    local v=$(echo "$1" | grep -Eo '[0-9]+(\.[0-9])?' | awk -F. '{print $1}')
-    if [[ -n $v && $v =~ ($ODOO_VERS) ]]; then
-        echo "$v"
-    elif [[ $1 =~ librerp[6]? ]]; then
-        echo "6"
-    else
-        echo "12"
-    fi
+    local v="" x
+    for x in $(echo "$1" | grep -Eo '[0-9]+'); do
+      [[ $x =~ ($ODOO_VERS) ]] && v=$x && break
+    done
+    [[ -z $v && $1 =~ librerp[6]? ]] && v="6"
+    [[ -z $v ]] && v="12"
+    echo $v
 }
 
 get_odoo_full_ver() {
-    local v=$(echo "$1" | grep -Eo '[0-9]+(\.[0-9])?' | tail -n1)
-    if [[ $v == "6" ]]; then
-        echo "6.1"
-    elif [[ -n $v && $v =~ ($ODOO_FVERS) ]]; then
-        echo "$v"
-    elif [[ -n $v && $v =~ ($ODOO_VERS) ]]; then
-        echo "$v.0"
-    elif [[ $1 =~ librerp[6]? ]]; then
-        echo "6.1"
-    else
-        echo "12.0"
+    local v="" x
+    for x in $(echo "$1" | grep -Eo '[0-9]+\.[0-9]+'); do
+      [[ $x =~ ($ODOO_FVERS) && ${x/./} -gt ${v/./} ]] && v=$x
+    done
+    if [[ -z $v ]]; then
+      for x in $(echo "$1" | grep -Eo '[0-9]+'); do
+        [[ $x =~ ($ODOO_VERS) ]] && v=$x && break
+      done
+      [[ -n $v && $v != "6" ]] && v="${v}.0"
+      [[ $v == "6" ]] && v="6.1"
     fi
+    [[ -z $v && $1 =~ librerp[6]? ]] && v="6.1"
+    [[ -z $v ]] && v="12.0"
+    echo $v
 }
 
 find_odoo_ver() {
@@ -366,7 +367,7 @@ build_odoo_param() {
         [[ $GIT_ORGID =~ (zero|zeroincombenze) ]] && GIT_ORGID="zero" && GIT_ORGNM="zeroincombenze" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
         [[ $GIT_ORGID == "powerp" ]] && GIT_ORGID="powerp" && GIT_ORGNM="PowERP-cloud" && RUPSTREAM="https://github.com/OCA/$REPOS.git" && GIT_BRANCH="master"
         [[ $GIT_ORGID =~ librerp[6]? && "$FULLVER" == "6.1" ]] && GIT_ORGNM="iw3hxn" && GIT_BRANCH="master"
-        [[ $GIT_ORGID == "librerp" && "$FULLVER" == "12.0" ]] && GIT_ORGID="librerp" && GIT_ORGNM="librerp" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+        # [[ $GIT_ORGID == "librerp" && "$FULLVER" == "12.0" ]] && GIT_ORGID="librerp" && GIT_ORGNM="librerp" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
 #        if [[ $GIT_ORGID =~ (odoo|oca) && "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
 #            r=$(echo "$REPT_ORG_MATRIX," | grep -Eo "[A-Za-z0-9_.-]+/$REPOS,")
 #            IFS=/ read GIT_ORGNM x <<<$r

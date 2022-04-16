@@ -34,7 +34,7 @@ except BaseException:
 from zerobug import z0test
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -351,7 +351,6 @@ class Oerp():
             setattr(self, field, self.db[model][id][field])
         return self
 
-
     def browse(self, model, ids, context=None):
         """Simulate browse on 1 or more records"""
         if isinstance(ids, list):
@@ -361,7 +360,6 @@ class Oerp():
             return res
         else:
             return self.browse1(model, ids, context=context)
-Oerp()
 
 
 class Csv():
@@ -369,9 +367,6 @@ class Csv():
 
     def _init(self):
         self.fieldnames = ""
-
-
-Csv()
 
 
 class Conf():
@@ -397,9 +392,6 @@ class Conf():
             return 'unit_test'
         else:
             return False
-
-
-Conf()
 
 
 class RegressionTest():
