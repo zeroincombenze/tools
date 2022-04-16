@@ -385,8 +385,8 @@ if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
 fi
 
 if [[ ! $opts =~ ^-.*[gt] ]]; then
-    run_traced "sed -E \"s|^ +--config=travis_run_flake8.cfg|          - --config=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg|\" -i $SRCPATH/pre-commit-config.yaml"
-    run_traced "sed -E \"s|^ +- --rcfile=\.pylintrc|          - --rcfile=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg|\" -i $SRCPATH/pre-commit-config.yaml"
+    run_traced "sed -E \"s|=travis_run_flake8.cfg|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg|\" -i $SRCPATH/pre-commit-config.yaml"
+    run_traced "sed -E \"s|=\.pylintrc|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg|\" -i $SRCPATH/pre-commit-config.yaml"
     [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
     for d in $(find $HOME -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
         # [[ $PYVER -eq 3 && ! $opts =~ ^-.*G ]] || run_traced "cp $SRCPATH/wok_code/pre-commit $d/hooks"
