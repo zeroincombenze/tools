@@ -1,4 +1,4 @@
-# __version__=1.0.13
+# __version__=1.0.14
 for f in .travis.yml activate_devel_env install_tools.sh LICENSE odoo_default_tnl.xlsx pre-commit-config.yaml README.rst; do
   echo "\$ cp ./$f ~/tools/"
   cp ./$f ~/tools/

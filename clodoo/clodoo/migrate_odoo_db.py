@@ -598,7 +598,6 @@ def write_no_dup(ctx, model, ids, vals, src_id):
         except IOError, e:
             os0.wlog('%s Error writing record %d of %s' % (e, src_id, model))
             manage_error()
-            pass
 
 
 def create_with_id(ctx, model, id, vals):
