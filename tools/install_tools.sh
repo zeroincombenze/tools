@@ -100,7 +100,7 @@ CLR="\e[0m"
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
 [[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
 
-[[ -n $HOME_DEVEL ]] && DSTPATH=$HOME_DEVEL
+[[ ! $opts =~ ^-.*p && ! $opts =~ ^-.*t && -n $HOME_DEVEL ]] && DSTPATH=$HOME_DEVEL
 [[ -z "$DSTPATH" && $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
 [[ $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
 [[ -z "$DSTPATH" && -d $HOME/odoo/devel ]] && DSTPATH="$HOME/odoo/devel"
@@ -309,7 +309,7 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
     echo "HOME_DEVEL=\"$DSTPATH\"">>$DSTPATH/activate_tools
     echo "[[ -f $LOCAL_VENV/bin/activate && ! :\$PATH: =~ :$LOCAL_VENV/bin: && \$1 != '-t' ]] && export PATH=\$PATH:$LOCAL_VENV/bin">>$DSTPATH/activate_tools
-    echo "[[ -f $LOCAL_VENV/bin/activate && \$1 == '-t' ]] && export PATH=$LOCAL_VENV/bin:\$PATH">>$DSTPATH/activate_tools
+    echo "[[ -f $LOCAL_VENV/bin/activate && ! :\$PATH: =~ :$LOCAL_VENV/bin: && \$1 == '-t' ]] && export PATH=$LOCAL_VENV/bin:\$PATH">>$DSTPATH/activate_tools
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $PYLIB/zerobug/_travis || :\$PATH: =~ :$PYLIB/zerobug/_travis: ]] || export PATH=$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $PYLIB/z0bug_odoo/travis || :\$PATH: =~ :$PYLIB/z0bug_odoo/travis: ]] || export PATH=$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
@@ -389,13 +389,18 @@ fi
 if [[ ! $opts =~ ^-.*[gt] ]]; then
     run_traced "sed -E \"s|=travis_run_flake8.cfg|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg|\" -i $SRCPATH/pre-commit-config.yaml"
     run_traced "sed -E \"s|=\.pylintrc|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg|\" -i $SRCPATH/pre-commit-config.yaml"
+    . $DSTPATH/venv/bin/clodoo/odoorc
     [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
     for d in $(find $HOME -not -path "*/.cache/*" -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
         d=$(readlink -f $d/..)
+        v=$(build_odoo_param MAJVER $d)
+        g=$(build_odoo_param GIT_ORGID $d)
+        [[ $g == "oca" ]] && continue
+        [[ $v -le 10 ]] && fn="pre-commit-config2.yaml" || fn="pre-commit-config.yaml"
         [[ ! -f $d/.travis.yml ]]  && continue
-        [[ $opts =~ ^-.*G && -f $d/.git/hooks/pre-commit ]] && run_traced "rm -f $d/.git/hooks/pre-commit"
+        [[ $opts =~ ^-.*G && -f $d/.git/hooks/pre-commit ]] && run_traced "cd $d; pre-commit uninstall" && run_traced "rm -f $d/.git/hooks/pre-commit"
         [[ $opts =~ ^-.*G && $d/.pre-commit-config.yaml ]] && run_traced "rm -f $d/.pre-commit-config.yaml"
-        [[ $PYVER -eq 3 && ! $opts =~ ^-.*G && ! -f $d/.pre-commit-config.yaml ]] && run_traced "cp $SRCPATH/pre-commit-config.yaml $d/.pre-commit-config.yaml" && run_traced "cd $d; pre-commit install"
+        [[ $PYVER -eq 3 && ( ! $opts =~ ^-.*G || $opts =~ ^-.*f.*G || $opts =~ ^-.*G.*f ) && ! -f $d/.pre-commit-config.yaml ]] && run_traced "cp $SRCPATH/$fn $d/.pre-commit-config.yaml" && run_traced "cd $d; pre-commit install"
     done
 fi
 

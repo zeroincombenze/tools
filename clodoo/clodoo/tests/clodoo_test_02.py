@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://www.zeroincombenze.org>)
 #
@@ -9,14 +8,14 @@
 """
     Clodoo Regression Test Suite
 """
+import ast
 import os
 import sys
-import ast
-from datetime import datetime
 import time
-from subprocess import PIPE, Popen
-from multiprocessing import Process
 from configparser import ConfigParser
+from datetime import datetime
+from multiprocessing import Process
+from subprocess import PIPE, Popen
 
 from zerobug import z0test
 
@@ -33,12 +32,7 @@ MODULE_ID = "clodoo"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-MANIFEST_FILES = [
-    "__manifest__.py",
-    "__odoo__.py",
-    "__openerp__.py",
-    "__terp__.py",
-]
+MANIFEST_FILES = ["__manifest__.py", "__odoo__.py", "__openerp__.py", "__terp__.py"]
 
 
 def get_server_path(odoo_full, odoo_version, travis_home):
@@ -89,12 +83,12 @@ def set_conf_data(addons_path, data_dir=None, logfile=None):
 
 
 def get_modules(path, depth=1):
-    """ Return modules of path repo (used in test_server.py)"""
+    """Return modules of path repo (used in test_server.py)"""
     return sorted(list(get_modules_info(path, depth).keys()))
 
 
 def get_modules_info(path, depth=1):
-    """ Return a digest of each installable module's manifest in path repo"""
+    """Return a digest of each installable module's manifest in path repo"""
     # Avoid empty basename when path ends with slash
     path = os.path.expanduser(path)
     if not os.path.basename(path):
@@ -193,10 +187,7 @@ def write_server_conf(data, version):
 
 def get_odoo_cmd(script_path, db=None, modules=None, loglevel=None):
     loglevel = loglevel or "info"
-    cmd_odoo = [
-        script_path,
-        "--log-level=%s" % loglevel,
-    ]
+    cmd_odoo = [script_path, "--log-level=%s" % loglevel]
     if db:
         cmd_odoo += ["-d", db]
     if modules:

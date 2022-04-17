@@ -1,23 +1,23 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2015-2022 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
-import os
 
-# import os.path
-import sys
-import stat
-import subprocess
-from string import Template
-from subprocess import Popen, PIPE
-import shutil
 import argparse
 import glob
-from os0 import os0
-import magic
-from python_plus import _c
+import os
+import shutil
+import stat
+import subprocess
+# import os.path
+import sys
+from string import Template
+from subprocess import PIPE, Popen
 
+import magic
+
+from os0 import os0
+from python_plus import _c
 
 __version__ = "1.0.9"
 
@@ -1166,7 +1166,7 @@ class Z0test(object):
         test_num = 0
         test_list = []
         for _i in range(MAX_TEST_NUM):
-            tname = "test_{0:02}".format(test_num)
+            tname = "test_{:02}".format(test_num)
             if hasattr(Test, tname):
                 test_list.append(tname)
             test_num += 1
@@ -1254,7 +1254,7 @@ class Z0test(object):
             self.dbgmsg(ctx, '- len(test_list) == 0 ')
             test_num = 0
             for _i in range(MAX_TEST_NUM):
-                tname = "test_{0:02}".format(test_num)
+                tname = "test_{:02}".format(test_num)
                 if hasattr(Test, tname):
                     test_list.append(tname)
                 test_num += 1
@@ -1309,11 +1309,11 @@ class Z0test(object):
                         print("%sTest %d: %s" % (prfx, ctx['ctr'], msg))
             else:
                 if not ctx.get('opt_noctr', None):
-                    txt = "{0}Test {1}/{2}: {3}".format(
+                    txt = "{}Test {}/{}: {}".format(
                         prfx, ctx['ctr'], ctx['max_test'], msg
                     )
                 else:
-                    txt = "{0}Test {1}: {2}".format(prfx, ctx['ctr'], msg)
+                    txt = "{}Test {}: {}".format(prfx, ctx['ctr'], msg)
                 os0.wlog(txt)
 
     def test_result(self, ctx, msg, test_value, result_val):
@@ -1516,18 +1516,20 @@ if __name__ == '__main__':
             os.path.join(name, '.git'),
         ]
         root = Z0test().build_os_tree(ctx, os_tree)
-        RELEASE_PY = ("""
+        RELEASE_PY = (
+            """
 RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = """
-                      """['alpha', 'beta', 'candidate', 'final']
+            """['alpha', 'beta', 'candidate', 'final']
 RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
                           BETA: BETA,
                           RELEASE_CANDIDATE: 'rc',
                           FINAL: ''}
 version_info = (%s, %s, 0, 'final', 0, '')
 version = '.'.join(map(str, version_info[:2])) + """
-                      """RELEASE_LEVELS_DISPLAY[version_info[3]] + """
-                      """str(version_info[4] or '') + version_info[5]
-series = serie = major_version = '.'.join(map(str, version_info[:2]))""")
+            """RELEASE_LEVELS_DISPLAY[version_info[3]] + """
+            """str(version_info[4] or '') + version_info[5]
+series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
+        )
         if name[0] not in ('~', '/') and not name.startswith('./'):
             odoo_root = os.path.join(root, name)
         else:
@@ -1552,14 +1554,8 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))""")
         self, ctx, root, reponame, version, hierarchy=None, name=None, repotype=None
     ):
         REPOTYPES = {
-            'oca': {
-                'd': ['.git'],
-                'f': ['README.md', '.travis.yml'],
-            },
-            'zero': {
-                'd': ['egg-info', '.git'],
-                'f': ['README.rst', '.travis.yml'],
-            },
+            'oca': {'d': ['.git'], 'f': ['README.md', '.travis.yml']},
+            'zero': {'d': ['egg-info', '.git'], 'f': ['README.rst', '.travis.yml']},
         }
         name = name or version
         repotype = repotype or 'oca'
@@ -1582,12 +1578,7 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))""")
     def create_module(
         self, ctx, repo_root, name, version, moduletype=None, dependencies=None
     ):
-        MODULETYPES = {
-            'simple': {
-                'd': [],
-                'f': ['__init__.py'],
-            },
-        }
+        MODULETYPES = {'simple': {'d': [], 'f': ['__init__.py']}}
         moduletype = moduletype or 'simple'
         moduledir = os.path.join(repo_root, name)
         if not os.path.isdir(moduledir):

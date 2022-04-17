@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
+
 import os
 import sys
+
 try:
     import ConfigParser
 except ImportError:
@@ -28,29 +29,24 @@ def main(argv=None, database=None):
     config.read(src_confn)
     if not config.has_section('options'):
         config.add_section('options')
-    data = {
-        'login_user': 'admin',
-        'psycopg2': '1',
-        'oe_version': odoo_version,
-    }
+    data = {'login_user': 'admin', 'psycopg2': '1', 'oe_version': odoo_version}
     for key, value in data.items():
         config.set('options', key, value)
     with open(fname_conf, 'w') as configfile:
         config.write(configfile)
     ctx = {}
-    uid, ctx = clodoo.oerp_set_env(
-        confn=fname_conf,
-        db=database,
-        ctx=ctx)
+    uid, ctx = clodoo.oerp_set_env(confn=fname_conf, db=database, ctx=ctx)
     if not uid:
-        print_flush('ERROR: Cannot connect to DB %s with user %s!' % (
-            database, data['login_user'],
-        ))
+        print_flush(
+            'ERROR: Cannot connect to DB %s with user %s!'
+            % (database, data['login_user'])
+        )
         return 1
     if ctx['_cr']:
-        print_flush('ERROR: Cannot connect to DB %s via sql with user %s|' % (
-            database, config.get('options', 'db_user')
-        ))
+        print_flush(
+            'ERROR: Cannot connect to DB %s via sql with user %s|'
+            % (database, config.get('options', 'db_user'))
+        )
         return 1
     query = "select name from ir_module_module where state='installed'"
     rows = clodoo.exec_sql(ctx, query, response=True)

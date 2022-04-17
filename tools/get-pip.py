@@ -23,8 +23,8 @@
 import os.path
 import pkgutil
 import shutil
-import sys
 import struct
+import sys
 import tempfile
 
 # Useful for very coarse version differentiation.
@@ -34,14 +34,18 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     iterbytes = iter
 else:
+
     def iterbytes(buf):
         return (ord(byte) for byte in buf)
+
 
 try:
     from base64 import b85decode
 except ImportError:
-    _b85alphabet = (b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    b"abcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~")
+    _b85alphabet = (
+        b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        b"abcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~"
+    )
 
     def b85decode(b):
         _b85dec = [None] * 256
@@ -53,7 +57,7 @@ except ImportError:
         out = []
         packI = struct.Struct('!I').pack
         for i in range(0, len(b), 5):
-            chunk = b[i:i + 5]
+            chunk = b[i : i + 5]
             acc = 0
             try:
                 for c in iterbytes(chunk):
@@ -68,8 +72,7 @@ except ImportError:
             try:
                 out.append(packI(acc))
             except struct.error:
-                raise ValueError('base85 overflow in hunk starting at byte %d'
-                                 % i)
+                raise ValueError('base85 overflow in hunk starting at byte %d' % i)
 
         result = b''.join(out)
         if padding:

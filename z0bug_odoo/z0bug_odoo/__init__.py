@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import print_function
 
 import os
@@ -6,6 +5,7 @@ import sys
 from . import scripts
 from . import travis
 from . import z0bug_odoo_lib
+
 z0bugodoo = z0bug_odoo_lib.Z0bugOdoo()
 try:
     import odoo.release as release

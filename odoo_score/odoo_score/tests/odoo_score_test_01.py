@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
@@ -9,6 +8,7 @@
 # import pdb
 # import os
 import sys
+
 from zerobug import z0test
 
 __version__ = '1.0.6'
@@ -22,8 +22,7 @@ def version():
     return __version__
 
 
-class RegressionTest():
-
+class RegressionTest:
     def __init__(self, z0bug):
         self.Z = z0bug
 
@@ -34,8 +33,8 @@ class RegressionTest():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    exit(z0test.main_local(
-        z0test.parseoptest(
-            sys.argv[1:],
-            version=version()),
-        RegressionTest))
+    exit(
+        z0test.main_local(
+            z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
+        )
+    )

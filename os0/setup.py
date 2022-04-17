@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 # import os
-from setuptools import setup
-from setuptools import find_packages
+from setuptools import find_packages, setup
 
 name = 'os0'
 # fn = './%s/README.rst' % name
@@ -14,11 +12,12 @@ name = 'os0'
 # except IOError:
 #     print('Module %s without long description' % name)
 
-setup(name=name,
-      version='1.0.3',
-      description='OS indipendent interface',
-      long_description_content_type='text/x-rst',
-      long_description="""
+setup(
+    name=name,
+    version='1.0.3',
+    description='OS indipendent interface',
+    long_description_content_type='text/x-rst',
+    long_description="""
 This module extends python os module with a few new functionality
 to interface operating system.
 
@@ -36,36 +35,30 @@ UNC example for the same of previous URI name is '\\home\\myfile'
 
 ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
 """,
-      classifiers=[
-          'Development Status :: 4 - Beta',
-          'License :: OSI Approved :: GNU Affero General Public License v3',
-          'Operating System :: POSIX',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3.6',
-          'Programming Language :: Python :: 3.7',
-          'Intended Audience :: Developers',
-          'Topic :: Software Development',
-          'Topic :: Software Development :: Build Tools',
-          'Operating System :: OS Independent',
-      ],
-      keywords='os path linux windows openvms',
-      url='https://zeroincombenze-tools.readthedocs.io',
-      project_urls={
-          'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
-          'Source': 'https://github.com/zeroincombenze/tools',
-      },
-      author='Antonio Maria Vigliotti',
-      author_email='antoniomaria.vigliotti@gmail.com',
-      license='Affero GPL',
-      install_requires=['z0lib', 'future'],
-      packages=find_packages(
-          exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-      package_data={
-          '': ['scripts/setup.info'],
-      },
-      entry_points={
-          'console_scripts': [
-              'os0-info = os0.scripts.main:main'
-          ],
-      },
-      zip_safe=False)
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'Operating System :: POSIX',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Build Tools',
+        'Operating System :: OS Independent',
+    ],
+    keywords='os path linux windows openvms',
+    url='https://zeroincombenze-tools.readthedocs.io',
+    project_urls={
+        'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
+        'Source': 'https://github.com/zeroincombenze/tools',
+    },
+    author='Antonio Maria Vigliotti',
+    author_email='antoniomaria.vigliotti@gmail.com',
+    license='Affero GPL',
+    install_requires=['z0lib', 'future'],
+    packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
+    package_data={'': ['scripts/setup.info']},
+    entry_points={'console_scripts': ['os0-info = os0.scripts.main:main']},
+    zip_safe=False,
+)

@@ -1,4 +1,5 @@
 # __version__=1.0.14
+# python2
 exclude: |
   (?x)
   # NOT INSTALLABLE ADDONS
@@ -14,9 +15,7 @@ exclude: |
   # Library files can have extraneous formatting (even minimized)
   /static/(src/)?lib/|
   # Repos using Sphinx to generate docs don't need prettying
-  docs/|
-  # PYPI
-  odoo_shell.py|z0lib/z0lib/tests/tmp1.py|z0lib/z0lib/tests/tmp.py|wok_code/wok_code/scripts/to_pep8.py|wok_code/build/lib/wok_code/scripts/to_pep8.py|wok_code/build/lib.linux-x86_64-2.7/wok_code/scripts/to_pep8.py|wok_code/build/lib.linux-x86_64-2.7/wok_code/to_pep8.py|clodoo/clodoo/export_db_model.py|clodoo/clodoo/migrate_odoo_db.py|clodoo/clodoo/update_coa.py|clodoo/clodoo/examples/example_partner_shipping_addr.py|clodoo/clodoo/examples/example_product.py|clodoo/clodoo/examples/import_partners_fitness.py|clodoo/clodoo/examples/import_records.py|clodoo/clodoo/examples/import_products_gb.py|clodoo/clodoo/examples/import_rigoli.py|clodoo/clodoo/examples/import_partners_servizigrafici.py|clodoo/clodoo/examples/import_partners_merkatrade.py|clodoo/clodoo/examples/import_products.py|clodoo/clodoo/examples/example_sale_order.py|clodoo/clodoo/examples/import_partners_sicignano.py|clodoo/clodoo/examples/import_partners_gb.py|clodoo/build/lib/clodoo/export_db_model.py|clodoo/build/lib/clodoo/migrate_odoo_db.py|clodoo/build/lib/clodoo/update_coa.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/export_db_model.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/migrate_odoo_db.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/update_coa.py|
+  ^docs/_templates/.*\.html$|
   # You don't usually want a bot to modify your legal texts
   (LICENSE.*|COPYING.*)|
   # official goverment specs
@@ -113,14 +112,14 @@ repos:
     hooks:
       - id: pyupgrade
         args: ["--keep-percent-format"]
-#  - repo: https://github.com/PyCQA/isort
-#    rev: 5.5.1
-#    hooks:
-#      - id: isort
-#        name: isort except __init__.py
-#        args:
-#          - --settings=.
-#        exclude: /__init__\.py$
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.5.1
+    hooks:
+      - id: isort
+        name: isort except __init__.py
+        args:
+          - --settings=.
+        exclude: /__init__\.py$
   #  - repo: https://github.com/acsone/setuptools-odoo
   #    rev: 2.6.0
   #    hooks:
@@ -140,7 +139,7 @@ repos:
         args:
           - --config=travis_run_flake8.cfg
   - repo: https://github.com/PyCQA/pylint
-    rev: pylint-2.13.5
+    rev: pylint-2.5.3
     hooks:
       - id: pylint
         name: pylint with optional checks
@@ -148,7 +147,7 @@ repos:
           - --rcfile=.pylintrc
           - --exit-zero
           - --ignore=l10n_it_fatturapa_in/tests/data/
-          - --py-version=3.7
+          - --py-version=2.7
         verbose: true
         additional_dependencies: &pylint_deps
           - pylint-odoo==3.5.0

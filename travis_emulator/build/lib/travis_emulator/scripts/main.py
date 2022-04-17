@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # template 18
 """
-Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.
+Travis emulator can emulate TravisCi parsing the **.travis.yml** file in
+local Linux machine and it is osx/darwin compatible.
 You can test your application before pushing code to github.com web site.
 
-Travis emulator can creates all the build declared in **.travis.yml**; all the builds are executed in sequential way.
+Travis emulator can creates all the build declared in **.travis.yml**;
+all the builds are executed in sequential way.
 The directory ~/travis_log (see -l switch) keeps the logs of all builds created.
 Please note that log file is a binary file with escape ANSI screen code.
 If you want to see the log use one of following command:
@@ -32,7 +34,8 @@ A travis build executes the following steps:
 * Execute code `after_script` (not emulated)
 * Wep from local .travis.conf (not in travis-ci.org)
 
-Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
+Read furthermore info read
+`travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
 """
 import os
 import sys

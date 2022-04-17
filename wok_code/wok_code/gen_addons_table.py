@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
 """
 This script replaces markers in the README.md files of an Odoo repository
 with the list of addons present in the repository. It preserves the marker
@@ -16,18 +15,19 @@ OCA version of module
 [//]: # (end addons)
 """
 
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
-from past.builtins import cmp
-from future import standard_library
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 # from builtins import *                                             # noqa: F403
 import ast
 import os
 import re
 import sys
-standard_library.install_aliases()                                 # noqa: E402
+
+from future import standard_library
+from past.builtins import cmp
+
+standard_library.install_aliases()  # noqa: E402
 
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'
@@ -64,23 +64,27 @@ def render_markdown_table(header, rows):
 def print_addons(header, rows_available, rows_unported):
     addons = []
     if rows_available:
-        addons.extend([
-            '\n',
-            '\n',
-            'Available addons\n',
-            '----------------\n',
-            render_markdown_table(header, rows_available),
-            '\n'
-        ])
+        addons.extend(
+            [
+                '\n',
+                '\n',
+                'Available addons\n',
+                '----------------\n',
+                render_markdown_table(header, rows_available),
+                '\n',
+            ]
+        )
     if rows_unported:
-        addons.extend([
-            '\n',
-            '\n',
-            'Unported addons\n',
-            '---------------\n',
-            render_markdown_table(header, rows_unported),
-            '\n'
-        ])
+        addons.extend(
+            [
+                '\n',
+                '\n',
+                'Unported addons\n',
+                '---------------\n',
+                render_markdown_table(header, rows_unported),
+                '\n',
+            ]
+        )
     addons.append('\n')
     for line in addons:
         sys.stdout.write(line)
@@ -90,27 +94,30 @@ def replace_in_readme(readme_path, header, rows_available, rows_unported):
     readme = open(readme_path).read()
     parts = re.split(MARKERS, readme, flags=re.MULTILINE)
     if len(parts) != 7:
-        raise UserError('Addons markers not found or incorrect in %s' %
-                        readme_path)
+        raise UserError('Addons markers not found or incorrect in %s' % readme_path)
     addons = []
     if rows_available:
-        addons.extend([
-            '\n',
-            '\n',
-            'Available addons\n',
-            '----------------\n',
-            render_markdown_table(header, rows_available),
-            '\n'
-        ])
+        addons.extend(
+            [
+                '\n',
+                '\n',
+                'Available addons\n',
+                '----------------\n',
+                render_markdown_table(header, rows_available),
+                '\n',
+            ]
+        )
     if rows_unported:
-        addons.extend([
-            '\n',
-            '\n',
-            'Unported addons\n',
-            '---------------\n',
-            render_markdown_table(header, rows_unported),
-            '\n'
-        ])
+        addons.extend(
+            [
+                '\n',
+                '\n',
+                'Unported addons\n',
+                '---------------\n',
+                render_markdown_table(header, rows_unported),
+                '\n',
+            ]
+        )
     addons.append('\n')
     parts[2:5] = addons
     parts = [p.encode('utf-8') if isinstance(p, str) else p for p in parts]
@@ -134,7 +141,7 @@ def get_values_from_manifest(addon_path, manifest_path, element):
 
 
 def gen_addons_table(args):
-    if len(args) and args[0] in ('addons', ):
+    if len(args) and args[0] in ('addons',):
         inline = True
         element = args[0]
     else:
@@ -172,25 +179,26 @@ def gen_addons_table(args):
             if has_manifest:
                 break
         if has_manifest:
-            row, installable = get_values_from_manifest(addon_path,
-                                                        manifest_path,
-                                                        element)
+            row, installable = get_values_from_manifest(
+                addon_path, manifest_path, element
+            )
             if unported and installable:
-                raise UserError('%s is in __unported__ but is marked '
-                                'installable.' % addon_path)
+                raise UserError(
+                    '%s is in __unported__ but is marked ' 'installable.' % addon_path
+                )
             o_row = ['', ':x:', '']
             if original_OCA:
                 addon_name = os.path.basename(addon_path)
                 OCA_addon_path = os.path.join(original_OCA, addon_name)
                 for o_manifest_file in MANIFESTS:
-                    o_manifest_path = os.path.join(OCA_addon_path,
-                                                   o_manifest_file)
+                    o_manifest_path = os.path.join(OCA_addon_path, o_manifest_file)
                     o_has_manifest = os.path.isfile(o_manifest_path)
                     if o_has_manifest:
                         break
                 if o_has_manifest:
                     o_row, o_installable = get_values_from_manifest(
-                        OCA_addon_path, o_manifest_path, 'addons')
+                        OCA_addon_path, o_manifest_path, 'addons'
+                    )
                 if row[1] != o_row[1]:
                     row.insert(2, o_row[1])
                 else:

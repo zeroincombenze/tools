@@ -1,11 +1,9 @@
-# coding: utf-8
 """
 helpers shared by the various QA tools
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-import sys
+from __future__ import print_function, unicode_literals
 
+import sys
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -15,8 +13,7 @@ CLEAR = "\033[0;m"
 
 
 def colorized(text, color):
-    return '\n'.join(
-        map(lambda line: color + line + CLEAR, text.split('\n')))
+    return '\n'.join(map(lambda line: color + line + CLEAR, text.split('\n')))
 
 
 def reset(text):

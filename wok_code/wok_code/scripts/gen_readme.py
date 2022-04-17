@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
 """
 Documentation generator
 
@@ -80,25 +79,27 @@ warning
 xml_schema
 """
 
-from __future__ import print_function, unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-from future import standard_library
-from past.builtins import basestring
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import ast
 import os
 import re
 import sys
 from datetime import datetime
 from shutil import copyfile
+
+from future import standard_library
 from lxml import etree
+from past.builtins import basestring
 
 try:
     from wok_code.scripts import license_mgnt
 except ImportError:
     from .wok_code.scripts import license_mgnt
-from python_plus import unicodes
+
 from os0 import os0
+from python_plus import unicodes
 
 try:
     from z0lib import z0lib
@@ -208,9 +209,7 @@ DEFINED_GRYMB_SYMBOLS = {
         'blob/master/certificates/ade/scope/fatturapa.md',
     ],
 }
-EXCLUDED_MODULES = [
-    'lxml',
-]
+EXCLUDED_MODULES = ['lxml']
 MANIFEST_ITEMS = (
     'name',
     'version',
@@ -538,7 +537,7 @@ def tohtml(ctx, text, state=None):
     k = text.find('`', i + 1)
     while i >= 0 and (j > i or k > i):
         if k > 0 and (k < j or j < 0):
-            text = u'%s<code>%s</code>%s' % (text[0:i], text[i + 1 : k], text[k + 1 :])
+            text = '%s<code>%s</code>%s' % (text[0:i], text[i + 1 : k], text[k + 1 :])
         else:
             t = text[i + 1 : j]
             ii = t.find('<')
@@ -554,14 +553,14 @@ def tohtml(ctx, text, state=None):
                 if url.startswith('http') and not url.endswith('/'):
                     url += '/'
                 if (j + 3) < len(text):
-                    text = u'%s<a href="%s">%s</a>%s' % (
+                    text = '%s<a href="%s">%s</a>%s' % (
                         text[0:i],
                         url,
                         t[0 : ii - 1].strip(),
                         text[j + 3 :],
                     )
                 else:
-                    text = u'%s<a href="%s">%s</a>' % (
+                    text = '%s<a href="%s">%s</a>' % (
                         text[0:i],
                         url,
                         t[0 : ii - 1].strip(),
@@ -577,7 +576,7 @@ def tohtml(ctx, text, state=None):
     i = text.find('**')
     j = text.find('**', i + 2)
     while i > 0 and j > i:
-        text = u'%s<b>%s</b>%s' % (text[0:i], text[i + 2 : j], text[j + 2 :])
+        text = '%s<b>%s</b>%s' % (text[0:i], text[i + 2 : j], text[j + 2 :])
         i = text.find('**')
         j = text.find('**', i + 2)
     # Parse single line rst tags; remove trailing and tailing empty lines
@@ -690,7 +689,7 @@ def tohtml(ctx, text, state=None):
                 i = lines[lineno].find('*')
                 j = lines[lineno].find('*', i + 1)
                 while i > 0 and j > i:
-                    lines[lineno] = u'%s<i>%s</i>%s' % (
+                    lines[lineno] = '%s<i>%s</i>%s' % (
                         lines[lineno][0:i],
                         lines[lineno][i + 1 : j],
                         lines[lineno][j + 1 :],
@@ -855,16 +854,8 @@ def expand_macro(ctx, token, default=None):
         value = default
     else:
         value = (
-            parse_local_file(
-                ctx,
-                '%s.csv' % token,
-                ignore_ntf=True,
-            )[1]
-            or parse_local_file(
-                ctx,
-                '%s.rst' % token,
-                ignore_ntf=True,
-            )[1]
+            parse_local_file(ctx, '%s.csv' % token, ignore_ntf=True)[1]
+            or parse_local_file(ctx, '%s.rst' % token, ignore_ntf=True)[1]
             or 'Unknown %s' % token
         )
     return value
@@ -1649,12 +1640,9 @@ def manifest_contents(ctx):
     if ctx['opt_gpl'] not in ('agpl', 'lgpl', 'opl', 'oee'):
         ctx['opt_gpl'] = ctx['license_mgnt'].get_license(odoo_majver=ctx['odoo_majver'])
     AUTHINFO = {
-        'license': {
-            'agpl': 'AGPL-3',
-            'lgpl': 'LGPL-3',
-            'opl': 'OPL-1',
-            'oee': 'OEE-1',
-        }[ctx['opt_gpl']],
+        'license': {'agpl': 'AGPL-3', 'lgpl': 'LGPL-3', 'opl': 'OPL-1', 'oee': 'OEE-1'}[
+            ctx['opt_gpl']
+        ],
         'author': ctx['license_mgnt'].summary_authors(),
         'website': ctx['license_mgnt'].get_website(),
         'maintainer': ctx['license_mgnt'].get_maintainer(),
@@ -1778,10 +1766,7 @@ def set_default_values(ctx):
     else:
         ctx['dst_file'] = './README.rst'
     if ctx['odoo_layer'] != 'module':
-        ctx['manifest'] = {
-            'name': 'repos_name',
-            'development_status': 'Alfa',
-        }
+        ctx['manifest'] = {'name': 'repos_name', 'development_status': 'Alfa'}
     if ctx['product_doc'] == 'odoo':
         ctx['development_status'] = (
             ctx['manifest'].get(
@@ -1822,11 +1807,7 @@ def read_purge_readme(ctx, source):
     if source is None:
         return '', '', ''
     lines = source.split('\n')
-    out_sections = {
-        'description': '',
-        'authors': '',
-        'contributors': '',
-    }
+    out_sections = {'description': '', 'authors': '', 'contributors': ''}
     cur_sect = 'description'
     ix = 0
     while ix < len(lines):

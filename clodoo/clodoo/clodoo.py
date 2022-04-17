@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. (http://www.shs-av.com/)
 #
@@ -152,126 +151,79 @@ oe_versions: select record if matches Odoo version
     i.e  +11.0+10.0 => select record if Odoo 11.0 or 10.0
     i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from future import standard_library
-from builtins import input
-
-# from builtins import str
-# from builtins import range
-from past.builtins import basestring
-
-# from builtins import *                                           # noqa: F403
-from builtins import object
 import calendar
 import csv
+import inspect
 import os.path
+import platform
 import re
 import sys
 import time
-import inspect
-import platform
+# from builtins import *                                           # noqa: F403
+from builtins import input, object
 from datetime import date, datetime, timedelta
+
+from future import standard_library
+# from builtins import str
+# from builtins import range
+from past.builtins import basestring
 
 # from passlib.context import CryptContext
 from os0 import os0
 from python_plus import _c
 
 try:
-    from clodoo.clodoocore import (  # noqa: F401
-        is_valid_field,
-        searchL8,
-        browseL8,  # noqa: F401
-        eval_value,
-        get_query_id,
-        import_file_get_hdr,  # noqa: F401
-        createL8,
-        writeL8,
-        unlinkL8,
-        executeL8,
-        connectL8,  # noqa: F401
-        get_res_users,
-        psql_connect,
-        put_model_alias,  # noqa: F401
-        set_some_values,
-        get_company_id,
-        build_model_struct,  # noqa: F401
-        get_model_model,
-        get_model_name,
-        extr_table_generic,  # noqa: F401
-        get_model_structure,
-        execute_action_L8,  # noqa: F401
-        is_required_field,
-        model_has_company,  # noqa: F401
-        exec_sql,
-        extract_vals_from_rec,  # noqa: F401
-        sql_reconnect,
-        get_val_from_field,  # noqa: F401
-        cvt_from_ver_2_ver,
-    )  # noqa: F401
+    from clodoo.clodoocore import browseL8  # noqa: F401; noqa: F401
+    from clodoo.clodoocore import build_model_struct  # noqa: F401
+    from clodoo.clodoocore import connectL8  # noqa: F401
+    from clodoo.clodoocore import execute_action_L8  # noqa: F401
+    from clodoo.clodoocore import extr_table_generic  # noqa: F401
+    from clodoo.clodoocore import extract_vals_from_rec  # noqa: F401
+    from clodoo.clodoocore import get_val_from_field  # noqa: F401
+    from clodoo.clodoocore import import_file_get_hdr  # noqa: F401
+    from clodoo.clodoocore import model_has_company  # noqa: F401
+    from clodoo.clodoocore import put_model_alias  # noqa: F401
+    from clodoo.clodoocore import (createL8, cvt_from_ver_2_ver, eval_value,
+                                   exec_sql, executeL8, get_company_id,
+                                   get_model_model, get_model_name,
+                                   get_model_structure, get_query_id,
+                                   get_res_users, is_required_field,
+                                   is_valid_field, psql_connect, searchL8,
+                                   set_some_values, sql_reconnect, unlinkL8,
+                                   writeL8)
 except ImportError:
-    from clodoocore import (  # noqa: F401
-        is_valid_field,
-        searchL8,
-        browseL8,  # noqa: F401
-        eval_value,
-        get_query_id,
-        import_file_get_hdr,  # noqa: F401
-        createL8,
-        writeL8,
-        unlinkL8,
-        executeL8,
-        connectL8,  # noqa: F401
-        get_res_users,
-        psql_connect,
-        put_model_alias,  # noqa: F401
-        set_some_values,
-        get_company_id,
-        build_model_struct,  # noqa: F401
-        get_model_model,
-        get_model_name,
-        extr_table_generic,  # noqa: F401
-        get_model_structure,
-        execute_action_L8,  # noqa: F401
-        is_required_field,
-        model_has_company,  # noqa: F401
-        exec_sql,
-        extract_vals_from_rec,  # noqa: F401
-        sql_reconnect,
-        get_val_from_field,  # noqa: F401
-        cvt_from_ver_2_ver,
-    )  # noqa: F401
+    from clodoocore import browseL8  # noqa: F401; noqa: F401
+    from clodoocore import build_model_struct  # noqa: F401
+    from clodoocore import connectL8  # noqa: F401
+    from clodoocore import execute_action_L8  # noqa: F401
+    from clodoocore import extr_table_generic  # noqa: F401
+    from clodoocore import extract_vals_from_rec  # noqa: F401
+    from clodoocore import get_val_from_field  # noqa: F401
+    from clodoocore import import_file_get_hdr  # noqa: F401
+    from clodoocore import model_has_company  # noqa: F401
+    from clodoocore import put_model_alias  # noqa: F401
+    from clodoocore import (createL8, cvt_from_ver_2_ver, eval_value, exec_sql,
+                            executeL8, get_company_id, get_model_model,
+                            get_model_name, get_model_structure, get_query_id,
+                            get_res_users, is_required_field, is_valid_field,
+                            psql_connect, searchL8, set_some_values,
+                            sql_reconnect, unlinkL8, writeL8)
 try:
-    from clodoo.clodoolib import (  # noqa: F401
-        crypt,
-        debug_msg_log,
-        decrypt,
-        msg_burst,  # noqa: F401
-        msg_log,
-        parse_args,
-        tounicode,  # noqa: F401
-        read_config,
-        init_logger,  # noqa: F401
-        default_conf,
-        build_odoo_param,
-    )  # noqa: F401
+    from clodoo.clodoolib import init_logger  # noqa: F401; noqa: F401
+    from clodoo.clodoolib import msg_burst  # noqa: F401
+    from clodoo.clodoolib import tounicode  # noqa: F401
+    from clodoo.clodoolib import (build_odoo_param, crypt, debug_msg_log,
+                                  decrypt, default_conf, msg_log, parse_args,
+                                  read_config)
 except ImportError:
-    from clodoolib import (  # noqa: F401
-        crypt,
-        debug_msg_log,
-        decrypt,
-        msg_burst,  # noqa: F401
-        msg_log,
-        parse_args,
-        tounicode,  # noqa: F401
-        read_config,
-        init_logger,  # noqa: F401
-        default_conf,
-        build_odoo_param,
-    )  # noqa: F401
+    from clodoolib import init_logger  # noqa: F401; noqa: F401
+    from clodoolib import msg_burst  # noqa: F401
+    from clodoolib import tounicode  # noqa: F401
+    from clodoolib import (build_odoo_param, crypt, debug_msg_log, decrypt,
+                           default_conf, msg_log, parse_args, read_config)
 try:
     from transodoo import read_stored_dict, translate_from_to
 except ImportError:
@@ -328,10 +280,10 @@ def writelog(xmodel, model, exclusion, all=None):
 
 def print_hdr_msg(ctx):
     ctx['level'] = 0
-    msg = u"====== Do massive operations V%s ======" % __version__
+    msg = "====== Do massive operations V%s ======" % __version__
     msg_log(ctx, ctx['level'], msg)
     incr_lev(ctx)
-    msg = u"Configuration from"
+    msg = "Configuration from"
     for f in ctx.get('conf_fns'):
         msg = msg + ' ' + f
     msg_log(ctx, ctx['level'], msg)
@@ -451,7 +403,7 @@ def do_login(ctx):
             break
     if not user:
         if not ctx.get('no_warning_pwd', False):
-            os0.wlog(u"!DB={0}: invalid user/pwd".format(tounicode(ctx['db_name'])))
+            os0.wlog("!DB={}: invalid user/pwd".format(tounicode(ctx['db_name'])))
         return
     if not ctx['multi_user']:
         ctx = init_user_ctx(ctx, user)
@@ -492,17 +444,17 @@ def do_login(ctx):
                 writeL8(ctx, 'res.users', user.id, vals)
                 if not ctx.get('no_warning_pwd', False):
                     os0.wlog(
-                        u"DB=%s: updated user/pwd/mail %s to %s"
+                        "DB=%s: updated user/pwd/mail %s to %s"
                         % (
                             tounicode(ctx['db_name']),
                             tounicode(username),
                             tounicode(ctx['login_user']),
                         )
                     )
-                    os0.wlog(u"You should restart the Odoo service")
+                    os0.wlog("You should restart the Odoo service")
             except BaseException:
                 os0.wlog(
-                    u"!!Passpartout user %s/%s write error!"
+                    "!!Passpartout user %s/%s write error!"
                     % (tounicode(username), tounicode(ctx['login_user']))
                 )
     if user:
@@ -788,7 +740,7 @@ def action_id(lexec):
 def do_group_action(ctx, action):
     """Do group actions (recursive)"""
     if ctx['dbg_mode'] or 'test_unit_mode' not in ctx:
-        msg = u"> do_group_action(%s)" % action
+        msg = "> do_group_action(%s)" % action
         msg_log(ctx, ctx['level'] + 1, msg)
     conf_obj = ctx['_conf_obj']
     sts = STS_SUCCESS
@@ -804,7 +756,7 @@ def do_group_action(ctx, action):
                 if act == '' or act is False or act is None:
                     break
                 elif act == action:
-                    msg = u"Recursive actions " + act
+                    msg = "Recursive actions " + act
                     msg_log(ctx, ctx['level'] + 1, msg)
                     sts = STS_FAILED
                     break
@@ -812,13 +764,13 @@ def do_group_action(ctx, action):
                 if sts == STS_SUCCESS and 'header_id' in lctx:
                     ctx['header_id'] = lctx['header_id']
             else:
-                msg = u"Invalid action " + act
+                msg = "Invalid action " + act
                 msg_log(ctx, ctx['level'] + 1, msg)
                 sts = STS_FAILED
                 break
         decr_lev(ctx)
     else:
-        msg = u"Undefined action"
+        msg = "Undefined action"
         msg_log(ctx, ctx['level'] + 1, msg)
         sts = STS_FAILED
     return sts
@@ -830,7 +782,7 @@ def do_single_action(ctx, action):
         if action == '' or action is False or action is None:
             return STS_SUCCESS
         if ctx['dbg_mode']:
-            msg = u"> do_single_action(%s)" % action
+            msg = "> do_single_action(%s)" % action
             msg_log(ctx, ctx['level'] + 1, msg)
         if ctx.get('db_name', '') == 'auto':
             if action not in ("help", "list_actions", "show_params", "new_db"):
@@ -860,7 +812,7 @@ def do_actions(ctx):
     if not actions:
         return STS_FAILED
     if ctx['dbg_mode']:
-        msg = u"> do_actions(%s)" % actions
+        msg = "> do_actions(%s)" % actions
         msg_log(ctx, ctx['level'] + 1, msg)
     actions = actions.split(',')
     sts = STS_SUCCESS
@@ -979,20 +931,20 @@ def create_local_parms(ctx, act):
 
 def ident_db(ctx, db):
     db_name = get_dbname(ctx, '')
-    msg = u"DB=" + db + " [" + ctx.get('db_type', '') + "]"
+    msg = "DB=" + db + " [" + ctx.get('db_type', '') + "]"
     if db_name != db:
         msg = msg + " - default " + db_name
     return msg
 
 
 def ident_company(ctx, c_id):
-    msg = u"Company {0:>3})\t'{1}'".format(c_id, tounicode(ctx.get('company_name', '')))
+    msg = "Company {:>3})\t'{}'".format(c_id, tounicode(ctx.get('company_name', '')))
     return msg
 
 
 def ident_user(ctx, u_id):
     user = browseL8(ctx, 'res.users', u_id)
-    msg = u"DB=%-24.24s uid=%-3d user=%-16.16s" u" email=%-24.24s company=%-24.24s" % (
+    msg = "DB=%-24.24s uid=%-3d user=%-16.16s" " email=%-24.24s company=%-24.24s" % (
         tounicode(ctx['db_name']),
         u_id,
         tounicode(user.login),
@@ -1281,7 +1233,7 @@ def act_wep_company(ctx):
                 try:
                     unlinkL8(ctx, model, [company_id])
                 except BaseException:
-                    msg = u"Cannot remove %s.%d" % (model, company_id)
+                    msg = "Cannot remove %s.%d" % (model, company_id)
                     msg_log(ctx, ctx['level'], msg)
                     writeL8(
                         ctx,
@@ -1399,7 +1351,7 @@ def act_per_db(ctx):
         del ctx['actions_db']
     saved_actions = ctx['actions']
     if ctx['dbg_mode']:
-        msg = u"> per_db(%s =~ %s)" % (dblist, ctx['dbfilter'])
+        msg = "> per_db(%s =~ %s)" % (dblist, ctx['dbfilter'])
         msg_log(ctx, ctx['level'] + 1, msg)
     sts = STS_SUCCESS
     db_ctr = 0
@@ -1410,7 +1362,7 @@ def act_per_db(ctx):
             msg_log(ctx, ctx['level'], msg)
             if ctx['dbtypefilter']:
                 if ctx['db_type'] != ctx['dbtypefilter']:
-                    msg = u"DB skipped by invalid db_type"
+                    msg = "DB skipped by invalid db_type"
                     debug_msg_log(ctx, ctx['level'] + 1, msg)
                     continue
             lgiuser = do_login(ctx)
@@ -1423,7 +1375,7 @@ def act_per_db(ctx):
             if sts != STS_SUCCESS:
                 break
     if db_ctr == 0:
-        msg = u"No DB matches"
+        msg = "No DB matches"
         msg_log(ctx, ctx['level'], msg)
         sts = STS_FAILED
     return sts
@@ -1436,7 +1388,7 @@ def act_per_company(ctx):
     company_ids = get_companylist(ctx)
     saved_actions = ctx['actions']
     if ctx['dbg_mode']:
-        msg = u"> per_company(%s =~ %s)" % (company_ids, ctx['companyfilter'])
+        msg = "> per_company(%s =~ %s)" % (company_ids, ctx['companyfilter'])
         msg_log(ctx, ctx['level'] + 1, msg)
     sts = STS_SUCCESS
     for c_id in company_ids:
@@ -1449,7 +1401,7 @@ def act_per_company(ctx):
             sts = do_actions(ctx)
             if sts != STS_SUCCESS:
                 if ctx['dbg_mode']:
-                    msg = u"> break action(per_company)"
+                    msg = "> break action(per_company)"
                     msg_log(ctx, ctx['level'] + 1, msg)
                 break
     return sts
@@ -1559,7 +1511,7 @@ def act_workflow(ctx):
 
 def act_update_modules(ctx):
     """Update module list on DB"""
-    msg = u"Update module list"
+    msg = "Update module list"
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         model = 'ir.module.module'
@@ -1569,7 +1521,7 @@ def act_update_modules(ctx):
         executeL8(ctx, 'base.module.update', 'update_module', [])
         ids = searchL8(ctx, model, [('state', '=', 'to install')])
         if ids:
-            msg = u"Found module to install ..."
+            msg = "Found module to install ..."
             msg_log(ctx, ctx['level'] + 1, msg)
             try:
                 executeL8(ctx, model, 'button_install_cancel', ids)
@@ -1578,7 +1530,7 @@ def act_update_modules(ctx):
                 pass
         ids = searchL8(ctx, model, [('state', '=', 'to upgrade')])
         if ids:
-            msg = u"Found module to upgrade ..."
+            msg = "Found module to upgrade ..."
             msg_log(ctx, ctx['level'] + 1, msg)
             try:
                 executeL8(ctx, model, 'button_upgrade_cancel', ids)
@@ -1587,7 +1539,7 @@ def act_update_modules(ctx):
                 pass
         ids = searchL8(ctx, model, [('state', '=', 'to remove')])
         if ids:
-            msg = u"Found module to uninstall ..."
+            msg = "Found module to uninstall ..."
             msg_log(ctx, ctx['level'] + 1, msg)
             try:
                 executeL8(ctx, model, 'button_uninstall_cancel', ids)
@@ -1599,7 +1551,7 @@ def act_update_modules(ctx):
 
 def act_upgrade_modules(ctx, module_list=None):
     """Upgrade module from list"""
-    msg = u"Upgrade modules"
+    msg = "Upgrade modules"
     msg_log(ctx, ctx['level'], msg)
     module_list = module_list or get_real_paramvalue(ctx, 'upgrade_modules').split(',')
     context = get_context(ctx)
@@ -1651,13 +1603,13 @@ def act_upgrade_modules(ctx, module_list=None):
 
 def act_purge_modules(ctx, module_list=None):
     """Purge module from list"""
-    msg = u"Purge unuseful modules"
+    msg = "Purge unuseful modules"
     msg_log(ctx, ctx['level'], msg)
     module_list = module_list or get_real_paramvalue(ctx, 'purge_modules').split(',')
     if not ctx.get('_cr'):
-        msg = u"Purge require sql access!"
+        msg = "Purge require sql access!"
         msg_log(ctx, ctx['level'], msg)
-        msg = u"Please set sql parameters (db_* odoo params)"
+        msg = "Please set sql parameters (db_* odoo params)"
         msg_log(ctx, ctx['level'], msg)
         return STS_FAILED
     sts = STS_SUCCESS
@@ -1667,7 +1619,7 @@ def act_purge_modules(ctx, module_list=None):
         for table in ('ir_translation', 'base.module.upgrade'):
             query = '''delete from %s where module='%s' ''' % (table, mx)
             incr_lev(ctx)
-            msg = u">>>%s" % query
+            msg = ">>>%s" % query
             msg_log(ctx, ctx['level'], msg)
             decr_lev(ctx)
             try:
@@ -1680,7 +1632,7 @@ def act_purge_modules(ctx, module_list=None):
 
 def act_uninstall_modules(ctx, module_list=None):
     """Uninstall module from list"""
-    msg = u"Uninstall unuseful modules"
+    msg = "Uninstall unuseful modules"
     msg_log(ctx, ctx['level'], msg)
     module_list = module_list or get_real_paramvalue(ctx, 'uninstall_modules').split(
         ','
@@ -1735,7 +1687,7 @@ def act_uninstall_modules(ctx, module_list=None):
 def act_install_modules(ctx, module_list=None):
     """Install modules from list"""
 
-    msg = u"Install modules"
+    msg = "Install modules"
     msg_log(ctx, ctx['level'], msg)
     module_list = module_list or get_real_paramvalue(ctx, 'install_modules').split(',')
     context = get_context(ctx)
@@ -1796,11 +1748,11 @@ def act_install_language(ctx):
     if not ids:
         ids = searchL8(ctx, model, [('code', '=', lang), ('active', '=', False)])
         if len(ids):
-            msg = u"Activate language %s" % lang
+            msg = "Activate language %s" % lang
             msg_log(ctx, ctx['level'], msg)
             writeL8(ctx, model, ids[0], {'active': True})
     if len(ids) == 0:
-        msg = u"Install language %s" % lang
+        msg = "Install language %s" % lang
         msg_log(ctx, ctx['level'], msg)
         vals = {}
         vals['lang'] = lang
@@ -1808,7 +1760,7 @@ def act_install_language(ctx):
         id = createL8(ctx, 'base.language.install', vals)
         executeL8(ctx, 'base.language.install', 'lang_install', [id])
     if lang != 'en_US':
-        msg = u"Translate language %s terms" % lang
+        msg = "Translate language %s terms" % lang
         msg_log(ctx, ctx['level'], msg)
         id = createL8(ctx, 'base.update.translations', {'lang': lang})
         executeL8(ctx, 'base.update.translations', 'act_update', [id])
@@ -1818,7 +1770,7 @@ def act_install_language(ctx):
 def act_install_chart_of_account(ctx):
     """Install chart of account"""
     coa = ctx.get('chart_of_account', 'Italy - Piano dei conti Zeroincombenze(R)')
-    msg = u"Install chart of account %s" % coa
+    msg = "Install chart of account %s" % coa
     msg_log(ctx, ctx['level'], msg)
     return install_chart_of_account(ctx, coa)
 
@@ -1828,12 +1780,12 @@ def act_import_file(ctx):
     if 'filename' in ctx:
         csv_fn = ctx['filename']
     elif 'model' not in o_model:
-        msg = u"!Wrong import file!"
+        msg = "!Wrong import file!"
         msg_log(ctx, ctx['level'], msg)
         return STS_FAILED
     else:
         csv_fn = get_model_model(ctx, o_model).replace('.', '_') + ".csv"
-    msg = u"Import file " + csv_fn
+    msg = "Import file " + csv_fn
     msg_log(ctx, ctx['level'], msg)
     return import_file(ctx, o_model, csv_fn)
 
@@ -1841,7 +1793,7 @@ def act_import_file(ctx):
 def act_import_config_file(ctx):
     if 'filename' in ctx:
         csv_fn = ctx['filename']
-    msg = u"Import config file " + csv_fn
+    msg = "Import config file " + csv_fn
     msg_log(ctx, ctx['level'], msg)
     return import_config_file(ctx, csv_fn)
 
@@ -1855,7 +1807,7 @@ def act_check_coa(ctx):
                 if rec.code.startswith(prefix):
                     writeL8(ctx, model, rec.id, {'user_type_id': type_id})
 
-    msg = u"Check for chart of account"
+    msg = "Check for chart of account"
     msg_log(ctx, ctx['level'], msg)
     model = 'account.account'
     for acc in browseL8(ctx, model, searchL8(ctx, model, [])):
@@ -1893,7 +1845,7 @@ def act_check_coa(ctx):
 
 
 def act_check_tax(ctx):
-    msg = u"Check for tax compliance"
+    msg = "Check for tax compliance"
     msg_log(ctx, ctx['level'], msg)
     company_id = ctx['company_id']
     model = 'italy.ade.tax.nature'
@@ -1987,9 +1939,11 @@ def act_check_tax(ctx):
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6.3']
             elif re.search(
-                    ('[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*d[- ./]+'
-                     '(ter|quater)'),
-                    tax.name,
+                (
+                    '[Aa]rt[ .]*17[- .,]*c(omma)?[- ./]*6[- ./]*l[etra.]*d[- ./]+'
+                    '(ter|quater)'
+                ),
+                tax.name,
             ):
                 # N6.8: prestazioni energetichee > Art. 17c6 lett.d-ter/quater
                 if tax.type_tax_use == 'purchase':
@@ -2135,7 +2089,7 @@ def act_check_config(ctx):
     if ctx['dry_run'] or 'def_company_id' not in ctx:
         return STS_FAILED
 
-    msg = u"Check config"
+    msg = "Check config"
     msg_log(ctx, ctx['level'], msg)
     model = 'res.users'
     user_root = env_ref(ctx, 'base.user_root')
@@ -2503,7 +2457,7 @@ def act_check_config(ctx):
 
 
 def act_check_partners(ctx):
-    msg = u"Check for partners"
+    msg = "Check for partners"
     msg_log(ctx, ctx['level'], msg)
     model = 'res.partner'
 
@@ -2514,7 +2468,7 @@ def act_check_partners(ctx):
         try:
             partner = browseL8(ctx, model, partner_id)
         except BaseException:
-            msg = u"Wrong partner id=%d" % partner_id
+            msg = "Wrong partner id=%d" % partner_id
             msg_log(ctx, ctx['level'], msg)
             continue
         rec_ctr += 1
@@ -2522,7 +2476,7 @@ def act_check_partners(ctx):
         vals = {}
         if not partner.country_id and (partner.street or partner.city):
             vals['country_id'] = italy_id
-            msg = u"Wrong country of %s (%d)" % (partner.name, partner.id)
+            msg = "Wrong country of %s (%d)" % (partner.name, partner.id)
             msg_log(ctx, ctx['level'], msg)
         elif partner.country_id:
             vals['country_id'] = partner.country_id.id
@@ -2544,7 +2498,7 @@ def act_check_partners(ctx):
                 )
                 if state_ids:
                     vals['state_id'] = state_ids[0]
-                    msg = u"Wrong province of %s" % partner.name
+                    msg = "Wrong province of %s" % partner.name
                     msg_log(ctx, ctx['level'], msg)
 
         if (
@@ -2581,7 +2535,7 @@ def act_check_partners(ctx):
                 city = browseL8(ctx, 'res.city', id)
                 if state_id is None:
                     state_id = city.state_id.id
-                    msg = u"Wrong province of %s" % partner.name
+                    msg = "Wrong province of %s" % partner.name
                     msg_log(ctx, ctx['level'], msg)
                 elif city.state_id.id != state_id:
                     state_id = False
@@ -2593,13 +2547,13 @@ def act_check_partners(ctx):
             iso = partner.vat.upper()[0:2]
             vatn = partner.vat[2:]
             if iso != 'IT' and iso != partner.vat[0:2]:
-                msg = u"Wrong VAT %s of %s" % (partner.vat, partner.name)
+                msg = "Wrong VAT %s of %s" % (partner.vat, partner.name)
                 vals['vat'] = iso + vatn
             if iso == 'IT':
                 new_vat = partner.vat.upper().replace(' ', '')
                 if new_vat != partner.vat:
                     vals['vat'] = new_vat
-                    msg = u"Wrong VAT %s" % partner.vat
+                    msg = "Wrong VAT %s" % partner.vat
                     msg_log(ctx, ctx['level'], msg)
             elif (
                 vals['country_id'] == italy_id
@@ -2609,7 +2563,7 @@ def act_check_partners(ctx):
                 iso = 'IT'
                 vatn = partner.vat
                 vals['vat'] = iso + vatn
-                msg = u"Wrong VAT %s of %s" % (partner.vat, partner.name)
+                msg = "Wrong VAT %s of %s" % (partner.vat, partner.name)
                 msg_log(ctx, ctx['level'], msg)
             elif iso < 'AA' or iso > 'ZZ':
                 msg = '%s WRONG VAT' % partner.name
@@ -2649,7 +2603,7 @@ def act_check_partners(ctx):
 
 
 def act_set_periods(ctx):
-    msg = u"Set account periods "
+    msg = "Set account periods "
     msg_log(ctx, ctx['level'], msg)
     majver = ctx['majver']
     company_id = ctx['company_id']
@@ -2697,7 +2651,7 @@ def act_set_periods(ctx):
                     'type_id': date_type_id,
                 },
             )
-        msg = u"Added fiscalyear %s" % name
+        msg = "Added fiscalyear %s" % name
         msg_log(ctx, ctx['level'], msg)
         if majver < 10:
             add_periods(
@@ -2711,7 +2665,7 @@ def act_set_periods(ctx):
 
 def act_check_tax_balance(ctx):
     msg = (
-        u"Check for tax balance; period: " + ctx['date_start'] + ".." + ctx['date_stop']
+        "Check for tax balance; period: " + ctx['date_start'] + ".." + ctx['date_stop']
     )
     msg_log(ctx, ctx['level'], msg)
     company_id = ctx['company_id']
@@ -2796,7 +2750,7 @@ def act_dis_del_in_journal(ctx):
 
 
 def act_check_balance(ctx):
-    msg = u"Check for balance; period: " + ctx['date_start'] + ".." + ctx['date_stop']
+    msg = "Check for balance; period: " + ctx['date_start'] + ".." + ctx['date_stop']
     msg_log(ctx, ctx['level'], msg)
     company_id = ctx['company_id']
     period_ids = searchL8(
@@ -2880,17 +2834,17 @@ def act_check_balance(ctx):
             clf1 = "unknown"
 
         if account.company_id.id != company_id:
-            msg = u"Invalid company account {0} in {1:>6}/{2:>6}  {3}".format(
+            msg = "Invalid company account {} in {:>6}/{:>6}  {}".format(
                 os0.u(code), move_hdr_id, move_line_id, os0.u(move_line.ref)
             )
             msg_log(ctx, ctx['level'] + 1, msg)
         if account_tax and account_tax.company_id.id != company_id:
-            msg = u"Invalid company account tax {0} in {1:>6}/{2:>6}  {3}".format(
+            msg = "Invalid company account tax {} in {:>6}/{:>6}  {}".format(
                 os0.u(code), move_hdr_id, move_line_id, os0.u(move_line.ref)
             )
             msg_log(ctx, ctx['level'] + 1, msg)
         if journal and journal.company_id.id != company_id:
-            msg = u"Invalid company journal {0} in {1:>6}/{2:>6}  {3}".format(
+            msg = "Invalid company journal {} in {:>6}/{:>6}  {}".format(
                 os0.u(code), move_hdr_id, move_line_id, os0.u(move_line.ref)
             )
             msg_log(ctx, ctx['level'] + 1, msg)
@@ -2930,7 +2884,7 @@ def act_check_balance(ctx):
         add_on_account(acc_balance, level, '_', move_line.debit, move_line.credit)
 
         if warn_rec:
-            msg = u"Because {0:8} look at {1:>6}/{2:>6} record {3}".format(
+            msg = "Because {:8} look at {:>6}/{:>6} record {}".format(
                 warn_rec, move_hdr_id, move_line_id, os0.u(move_line.ref)
             )
             msg_log(ctx, ctx['level'] + 1, msg)
@@ -2939,38 +2893,38 @@ def act_check_balance(ctx):
     if '0' in acc_balance:
         for level in ('0', '1', '2', '4', '8'):
             if level == '0':
-                ident = "- {0:<10}".format('GT')
+                ident = "- {:<10}".format('GT')
             elif level == '1':
-                ident = " - {0:<9}".format('TOTALE')
+                ident = " - {:<9}".format('TOTALE')
             elif level == '2':
-                ident = "  - {0:<8}".format('Totale')
+                ident = "  - {:<8}".format('Totale')
             elif level == '4':
-                ident = "   - {0:<7}".format('Grp')
+                ident = "   - {:<7}".format('Grp')
             elif level == '8':
-                ident = "    - {0:<6}".format('Mastro')
+                ident = "    - {:<6}".format('Mastro')
             else:
-                ident = "     - {0:<5}".format('conto')
+                ident = "     - {:<5}".format('conto')
             crd_amt = 0.0
             dbt_amt = 0.0
             for sublevel in acc_balance[level]:
                 if acc_balance[level][sublevel] > 0:
-                    msg = u"{0} {1:<16} {2:11.2f}".format(
+                    msg = "{} {:<16} {:11.2f}".format(
                         os0.u(ident), os0.u(sublevel), acc_balance[level][sublevel]
                     )
                     msg_log(ctx, ctx['level'], msg)
                     crd_amt += acc_balance[level][sublevel]
                 elif acc_balance[level][sublevel] < 0:
-                    msg = u"{0} {1:<16} {2:11}{3:11.2f}".format(
+                    msg = "{} {:<16} {:11}{:11.2f}".format(
                         os0.u(ident), os0.u(sublevel), '', -acc_balance[level][sublevel]
                     )
                     msg_log(ctx, ctx['level'], msg)
                     dbt_amt -= acc_balance[level][sublevel]
                 else:
-                    msg = u"{0} {1:<16} {2:11.2f}{3:11.2f}".format(
+                    msg = "{} {:<16} {:11.2f}{:11.2f}".format(
                         os0.u(ident), os0.u(sublevel), 0, 0
                     )
                     msg_log(ctx, ctx['level'], msg)
-            msg = u"{0} {1:<16} {2:11.2f}{3:11.2f}".format(
+            msg = "{} {:<16} {:11.2f}{:11.2f}".format(
                 os0.u(ident), '---------------', crd_amt, dbt_amt
             )
             msg_log(ctx, ctx['level'], msg)
@@ -2979,7 +2933,7 @@ def act_check_balance(ctx):
             if acc_partners[kk] != 0.0:
                 partner_id = int(kk.split('\n')[2])
                 partner = browseL8(ctx, 'res.partner', partner_id)
-                msg = u"{0:<16} {1:<60} {2:11.2f}".format(
+                msg = "{:<16} {:<60} {:11.2f}".format(
                     os0.u(kk.replace('\n', '.')), os0.u(partner.name), acc_partners[kk]
                 )
                 msg_log(ctx, ctx['level'], msg)
@@ -2987,14 +2941,14 @@ def act_check_balance(ctx):
 
 
 def act_recompute_tax_balance(ctx):
-    msg = u"Recompute tax balance"
+    msg = "Recompute tax balance"
     msg_log(ctx, ctx['level'], msg)
     sts = recompute_tax_balance(ctx)
     return sts
 
 
 def act_recompute_balance(ctx):
-    msg = u"Recompute balance"
+    msg = "Recompute balance"
     msg_log(ctx, ctx['level'], msg)
     sts = recompute_balance(ctx)
     return sts
@@ -3002,7 +2956,7 @@ def act_recompute_balance(ctx):
 
 def act_complete_partners(ctx):
     # It looks for partners to update and update them.
-    msg = u"Convert partners"
+    msg = "Convert partners"
     msg_log(ctx, ctx['level'], msg)
     italy_id = searchL8(ctx, 'res.country', [('code', '=', 'IT')])[0]
     model = 'res.partner'
@@ -3093,7 +3047,7 @@ def act_complete_partners(ctx):
 
 
 def act_set_4_cscs(ctx):
-    msg = u"Set for cscs"
+    msg = "Set for cscs"
     msg_log(ctx, ctx['level'], msg)
     sts = set_account_type(ctx)
     return sts
@@ -3112,7 +3066,7 @@ def act_hard_clean_module(ctx):
             except BaseException:
                 pass
 
-    msg = u"Hard_clean_module"
+    msg = "Hard_clean_module"
     msg_log(ctx, ctx['level'], msg)
     model = 'ir.module.module'
     for module_name in ctx['modules_2_manage']:
@@ -3124,7 +3078,7 @@ def act_hard_clean_module(ctx):
             continue
         try:
             unlinkL8(ctx, model, [module.id])
-            msg = u"Clean module %s" % module_name
+            msg = "Clean module %s" % module_name
             msg_log(ctx, ctx['level'] + 1, msg)
         except BaseException:
             pass
@@ -3135,7 +3089,7 @@ def act_hard_clean_module(ctx):
 
 
 def act_upgrade_l10n_it_base(ctx):
-    msg = u"Upgrade module l10n_it_base"
+    msg = "Upgrade module l10n_it_base"
     msg_log(ctx, ctx['level'], msg)
     sts = act_update_modules(ctx)
     model = 'ir.module.module'
@@ -3304,7 +3258,7 @@ def add_periods(ctx, company_id, fiscalyear_id, last_name, last_start, last_stop
                         'company_id': company_id,
                     },
                 )
-                msg = u"Added period %s" % name
+                msg = "Added period %s" % name
                 msg_log(ctx, ctx['level'], msg)
     else:
         model = 'date.range.type'
@@ -3344,7 +3298,7 @@ def add_periods(ctx, company_id, fiscalyear_id, last_name, last_start, last_stop
                         'type_id': date_type_id,
                     },
                 )
-                msg = u"Added period %s" % name
+                msg = "Added period %s" % name
                 msg_log(ctx, ctx['level'], msg)
 
         model = 'date.range.type'
@@ -3386,7 +3340,7 @@ def add_periods(ctx, company_id, fiscalyear_id, last_name, last_start, last_stop
                         'type_id': date_type_id,
                     },
                 )
-                msg = u"Added period %s" % name
+                msg = "Added period %s" % name
                 msg_log(ctx, ctx['level'], msg)
 
 
@@ -3665,7 +3619,7 @@ def get_user_lang(ctx):
     user_id = ctx.get('user_id', 1)
     user = browseL8(ctx, model, user_id)
     if not user:
-        msg = u"!User %s not found" % user_id
+        msg = "!User %s not found" % user_id
         msg_log(ctx, ctx['level'] + 2, msg)
         return False
     return get_res_users(ctx, user, 'lang')
@@ -3676,13 +3630,13 @@ def set_user_lang(ctx, lang):
     user_id = ctx.get('user_id', 1)
     user = browseL8(ctx, model, user_id)
     if not user:
-        msg = u"!User %s not found" % user_id
+        msg = "!User %s not found" % user_id
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     try:
         writeL8(ctx, 'res.users', user_id, {'lang': lang})
     except BaseException:
-        msg = u"!Language %s not found" % lang
+        msg = "!Language %s not found" % lang
         msg_log(ctx, ctx['level'] + 2, msg)
     return STS_SUCCESS
 
@@ -3756,11 +3710,11 @@ def upd_del_in_journal(ctx, journals, value=None):
     if len(journals):
         vals = {'update_posted': value}
         try:
-            msg = u"Journals %s: update_posted=%s " % (str(journals), value)
+            msg = "Journals %s: update_posted=%s " % (str(journals), value)
             msg_log(ctx, ctx['level'], msg)
             writeL8(ctx, 'account.journal', journals, vals)
         except BaseException:
-            msg = u"Cannot update journals %s" % str(journals)
+            msg = "Cannot update journals %s" % str(journals)
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     return STS_SUCCESS
@@ -3850,7 +3804,7 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
             try:
                 writeL8(ctx, model, [inv_id], vals)
             except BaseException:
-                msg = u"Cannot update registration date of %d" % inv_id
+                msg = "Cannot update registration date of %d" % inv_id
                 msg_log(ctx, ctx['level'], msg)
             if 'registration_date' in vals and move_id:
                 writeL8(
@@ -3892,7 +3846,7 @@ def upd_invoices_2_cancel(move_dict, ctx):
                         try:
                             writeL8(ctx, model, [inv_id], {'state': 'cancel'})
                         except BaseException:
-                            msg = u"Cannot update invoice status (%d)" % inv_id
+                            msg = "Cannot update invoice status (%d)" % inv_id
                             msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
@@ -3922,13 +3876,13 @@ def upd_invoices_2_draft(move_dict, ctx):
                             writeL8(ctx, model, [inv_id], {'state': 'draft'})
                             passed.append(inv_id)
                         except BaseException:
-                            msg = u"Cannot update invoice status (%d)" % inv_id
+                            msg = "Cannot update invoice status (%d)" % inv_id
                             msg_log(ctx, ctx['level'], msg)
                 invoices = list(set(invoices) - set(passed))
             try:
                 executeL8(ctx, model, 'action_invoice_draft', invoices)
             except BaseException:
-                msg = u"Cannot update invoice status %s" % str(invoices)
+                msg = "Cannot update invoice status %s" % str(invoices)
                 msg_log(ctx, ctx['level'], msg)
                 return STS_FAILED
     return STS_SUCCESS
@@ -3955,7 +3909,7 @@ def upd_invoices_2_posted(move_dict, ctx):
                 try:
                     execute_action_L8(ctx, model, 'action_invoice_open', inv_id)
                 except RuntimeError:
-                    msg = u"Cannot restore invoice status of %d" % inv_id
+                    msg = "Cannot restore invoice status of %d" % inv_id
                     msg_log(ctx, ctx['level'], msg)
                     sts = STS_FAILED
                 #
@@ -3972,8 +3926,7 @@ def upd_invoices_2_posted(move_dict, ctx):
                                 'account.invoice',
                                 inv_id,
                                 {
-                                    'fatturapa_attachment_out_id':
-                                        fatturapa_attachment_out_id,
+                                    'fatturapa_attachment_out_id': fatturapa_attachment_out_id,
                                     'comment': comment,
                                 },
                             )
@@ -4000,7 +3953,7 @@ def upd_payments_2_draft(move_dict, ctx):
                 # msg_log(ctx, ctx['level'], msg)
                 executeL8(ctx, 'account.move', 'button_cancel', payments)
             except BaseException:
-                msg = u"Cannot update payment status %s" % str(payments)
+                msg = "Cannot update payment status %s" % str(payments)
                 msg_log(ctx, ctx['level'], msg)
                 return STS_FAILED
     return STS_SUCCESS
@@ -4024,7 +3977,7 @@ def upd_payments_2_posted(move_dict, ctx):
                 # msg_log(ctx, ctx['level'], msg)
                 executeL8(ctx, 'account.move', 'button_validate', payments)
             except BaseException:
-                msg = u"Cannot restore payment status %s" % str(payments)
+                msg = "Cannot restore payment status %s" % str(payments)
                 msg_log(ctx, ctx['level'], msg)
                 return STS_FAILED
     return STS_SUCCESS
@@ -4062,14 +4015,14 @@ def unreconcile_invoices(reconcile_dict, ctx):
             context = {'active_ids': reconcile_dict[inv_id]}
             executeL8(ctx, 'account.unreconcile', 'trans_unrec', None, context)
         except BaseException:
-            msg = u"Cannot update invoice status of %d" % inv_id
+            msg = "Cannot update invoice status of %d" % inv_id
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     return STS_SUCCESS
 
 
 def unreconcile_payments(ctx):
-    msg = u"Unreconcile payments"
+    msg = "Unreconcile payments"
     msg_log(ctx, ctx['level'], msg)
     reconciled_name = translate_from_to(
         ctx, 'account.move.line', 'reconciled', '7.0', ctx['oe_version']
@@ -4081,7 +4034,7 @@ def unreconcile_payments(ctx):
         context = {'active_ids': reconcile_list}
         executeL8(ctx, 'account.unreconcile', 'trans_unrec', None, context)
     except BaseException:
-        msg = u"Cannot update payment status %s" % str(reconcile_list)
+        msg = "Cannot update payment status %s" % str(reconcile_list)
         msg_log(ctx, ctx['level'], msg)
         return STS_FAILED
     return STS_SUCCESS
@@ -4089,7 +4042,7 @@ def unreconcile_payments(ctx):
 
 def reconcile_invoices(reconcile_dict, ctx):
     for inv_id in reconcile_dict:
-        msg = u"Reconcile invoice %d" % inv_id
+        msg = "Reconcile invoice %d" % inv_id
         msg_log(ctx, ctx['level'], msg)
         try:
             context = {'active_ids': reconcile_dict[inv_id]}
@@ -4101,7 +4054,7 @@ def reconcile_invoices(reconcile_dict, ctx):
                 context,
             )
         except BaseException:
-            msg = u"Cannot reconcile invoice of %d" % inv_id
+            msg = "Cannot reconcile invoice of %d" % inv_id
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     return STS_SUCCESS
@@ -4113,11 +4066,11 @@ def upd_acc_2_bank(accounts, ctx):
         vals['type'] = 'liquidity'
         vals['user_type'] = 4
         try:
-            msg = u"Update accounts " + str(accounts)
+            msg = "Update accounts " + str(accounts)
             msg_log(ctx, ctx['level'], msg)
             writeL8(ctx, 'account.account', accounts, vals)
         except BaseException:
-            msg = u"Cannot update accounts %s" % str(accounts)
+            msg = "Cannot update accounts %s" % str(accounts)
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     return STS_SUCCESS
@@ -4145,7 +4098,7 @@ def cvt_ir_ui_view(old_module, new_module, model_name, ctx):
         try:
             view = browseL8(ctx, model, id)
             unlinkL8(ctx, model, [id])
-            msg = u"Remove view id %d/%s of %s " % (id, view.name, view.xml_id)
+            msg = "Remove view id %d/%s of %s " % (id, view.name, view.xml_id)
             msg_log(ctx, ctx['level'], msg)
         except BaseException:
             pass
@@ -4187,10 +4140,10 @@ def cvt_ir_model_data(old_module, new_module, model_name, ctx):
             writeL8(
                 ctx, model, [id], {'module': new_module, 'complete_name': new_cname}
             )
-            msg = u"Update module name of id %d" % id
+            msg = "Update module name of id %d" % id
             msg_log(ctx, ctx['level'], msg)
         elif res_id != new_res_id:
-            msg = u"Name %s/%s has two different res_ids %d %d" % (
+            msg = "Name %s/%s has two different res_ids %d %d" % (
                 name,
                 display,
                 res_id,
@@ -4199,13 +4152,13 @@ def cvt_ir_model_data(old_module, new_module, model_name, ctx):
             msg_log(ctx, ctx['level'], msg)
             if model_name == 'res.city':
                 unlinkL8(ctx, model_name, [res_id])
-                msg = u"Remove record id %d/%s of %s " % (res_id, display, model_name)
+                msg = "Remove record id %d/%s of %s " % (res_id, display, model_name)
                 msg_log(ctx, ctx['level'], msg)
                 unlinkL8(ctx, model, [id])
-                msg = u"Remove duplicate id %d (%s)" % (id, cname)
+                msg = "Remove duplicate id %d (%s)" % (id, cname)
                 msg_log(ctx, ctx['level'], msg)
         elif display != new_display:
-            msg = u"Name %d has two different display %s %s" % (
+            msg = "Name %d has two different display %s %s" % (
                 name,
                 display,
                 new_display,
@@ -4215,10 +4168,10 @@ def cvt_ir_model_data(old_module, new_module, model_name, ctx):
             if not new_cname:
                 new_cname = new_module + '.' + name
                 writeL8(ctx, model, new_ids, {'complete_name': new_cname})
-                msg = u"Update complete name of id %d" % new_ids[0]
+                msg = "Update complete name of id %d" % new_ids[0]
                 msg_log(ctx, ctx['level'], msg)
             unlinkL8(ctx, model, [id])
-            msg = u"Remove duplicate id %d of %s " % (id, cname)
+            msg = "Remove duplicate id %d of %s " % (id, cname)
             msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
@@ -4244,7 +4197,7 @@ def set_account_type(ctx):
         return STS_FAILED
     for account_id in account_ids:
         account = browseL8(ctx, 'account.account', account_id)
-        msg = u"Account %s %s" % (account.code, account.name)
+        msg = "Account %s %s" % (account.code, account.name)
         msg_log(ctx, ctx['level'], msg)
     move_line_ids = searchL8(
         ctx,
@@ -4376,7 +4329,7 @@ def recompute_tax_balance(ctx):
                 )
                 reconcile_invoices(cur_reconcile_dict, ctx)
             except BaseException:
-                msg = u"**** Warning invoice %d ****" % invoice_id
+                msg = "**** Warning invoice %d ****" % invoice_id
                 msg_log(ctx, ctx['level'], msg)
     return sts
 
@@ -4407,7 +4360,7 @@ def recompute_balance(ctx):
             # msg_log(ctx, ctx['level'], msg)
             executeL8(ctx, 'account.move', 'button_cancel', [move_id])
         except BaseException:
-            msg = u"Cannot update payment status %d" % move_id
+            msg = "Cannot update payment status %d" % move_id
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
         try:
@@ -4415,7 +4368,7 @@ def recompute_balance(ctx):
             # msg_log(ctx, ctx['level'], msg)
             executeL8(ctx, 'account.move', 'button_validate', [move_id])
         except BaseException:
-            msg = u"Cannot restore payment status %d" % move_id
+            msg = "Cannot restore payment status %d" % move_id
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     return STS_SUCCESS
@@ -4487,7 +4440,7 @@ def build_exclusion(model, records2keep, ctx):
 def workflow_model_all_records(model, hide_cid, signal, ctx, exclusion=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
-    msg = u"Searching for records to execute workflow in %s" % model
+    msg = "Searching for records to execute workflow in %s" % model
     msg_log(ctx, ctx['level'], msg)
     where = build_where(model, hide_cid, exclusion, ctx)
     record_ids = searchL8(ctx, model, where)
@@ -4500,7 +4453,7 @@ def workflow_model_all_records(model, hide_cid, signal, ctx, exclusion=None):
             try:
                 ctx['odoo_session'].exec_workflow(model, signal, record_id)
             except BaseException:
-                msg = u"Workflow of %s.%d do not executed" % (model, record_id)
+                msg = "Workflow of %s.%d do not executed" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
                     sts = STS_FAILED
@@ -4514,7 +4467,7 @@ def setstate_model_all_records(
 ):
     sts = STS_SUCCESS
     incr_lev(ctx)
-    msg = u"Searching for records to update status in %s" % model
+    msg = "Searching for records to update status in %s" % model
     msg_log(ctx, ctx['level'], msg)
     where = build_where(model, hide_cid, exclusion, ctx)
     if is_valid_field(ctx, model, field_name):
@@ -4576,7 +4529,7 @@ def setstate_model_all_records(
                 else:
                     writeL8(ctx, model, [record_id], {field_name: new_value})
             except BaseException:
-                msg = u"Cannot update status of %s.%d" % (model, record_id)
+                msg = "Cannot update status of %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
                     sts = STS_FAILED
@@ -4590,7 +4543,7 @@ def reactivate_model_all_records(
 ):
     sts = STS_SUCCESS
     incr_lev(ctx)
-    msg = u"Searching for records to reactivate in %s" % model
+    msg = "Searching for records to reactivate in %s" % model
     msg_log(ctx, ctx['level'], msg)
     where = build_where(model, hide_cid, exclusion, ctx)
     if is_valid_field(ctx, model, field_name):
@@ -4617,7 +4570,7 @@ def reactivate_model_all_records(
                 else:
                     writeL8(ctx, model, [record_id], {field_name: new_value})
             except BaseException:
-                msg = u"Cannot reactivate %s.%d" % (model, record_id)
+                msg = "Cannot reactivate %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
                     sts = STS_FAILED
@@ -4634,12 +4587,12 @@ def deactivate_model_all_records(model, hide_cid, ctx, exclusion=None, reverse=N
     if is_valid_field(ctx, model, 'active'):
         where = build_where(model, hide_cid, exclusion, ctx)
         if reverse:
-            msg = u"Searching for records to reactivate in %s" % model
+            msg = "Searching for records to reactivate in %s" % model
             msg_log(ctx, ctx['level'], msg)
             where = append_2_where(model, 'active', '=', False, where, ctx)
 
         else:
-            msg = u"Searching for records to cancel in %s" % model
+            msg = "Searching for records to cancel in %s" % model
             msg_log(ctx, ctx['level'], msg)
             where = append_2_where(model, 'active', '=', True, where, ctx)
         record_ids = searchL8(ctx, model, where)
@@ -4660,7 +4613,7 @@ def hard_del_sql(model, hide_cid, ctx, where=None, exclusion=None):
     if ctx.get('_cr'):
         query = build_sql_where(model, hide_cid, exclusion, where, ctx)
         incr_lev(ctx)
-        msg = u">>>%s" % query
+        msg = ">>>%s" % query
         msg_log(ctx, ctx['level'], msg)
         decr_lev(ctx)
         try:
@@ -4672,7 +4625,7 @@ def hard_del_sql(model, hide_cid, ctx, where=None, exclusion=None):
 def remove_model_all_records(model, hide_cid, ctx, exclusion=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
-    msg = u"Searching for records to delete in %s" % model
+    msg = "Searching for records to delete in %s" % model
     msg_log(ctx, ctx['level'], msg)
     writelog(model, model, exclusion)
     where = build_where(model, hide_cid, exclusion, ctx)
@@ -4686,7 +4639,7 @@ def remove_model_all_records(model, hide_cid, ctx, exclusion=None):
             try:
                 unlinkL8(ctx, model, [record_id])
             except BaseException:
-                msg = u"Cannot remove %s.%d" % (model, record_id)
+                msg = "Cannot remove %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
                     sts = STS_FAILED
@@ -4748,7 +4701,7 @@ def remove_group_records(
                             exclusion=exclusion,
                         )
                     else:
-                        msg = u"Invalid parameters in %s on model %s!" % (act, model)
+                        msg = "Invalid parameters in %s on model %s!" % (act, model)
                         msg_log(ctx, ctx['level'], msg)
                         sts = STS_FAILED
                 elif act == 'set_state':
@@ -4764,7 +4717,7 @@ def remove_group_records(
                             exclusion=exclusion,
                         )
                     else:
-                        msg = u"Invalid parameters in %s on model %s!" % (act, model)
+                        msg = "Invalid parameters in %s on model %s!" % (act, model)
                         msg_log(ctx, ctx['level'], msg)
                         sts = STS_FAILED
                 elif act == 'wf':
@@ -4774,11 +4727,11 @@ def remove_group_records(
                             model, hide_cid, signal, ctx, exclusion=None
                         )
                     else:
-                        msg = u"Invalid parameters in %s on model %s!" % (act, model)
+                        msg = "Invalid parameters in %s on model %s!" % (act, model)
                         msg_log(ctx, ctx['level'], msg)
                         sts = STS_FAILED
                 else:
-                    msg = u"Invalid action %s on model %s!" % (act, model)
+                    msg = "Invalid action %s on model %s!" % (act, model)
                     msg_log(ctx, ctx['level'], msg)
                     sts = STS_FAILED
         if (
@@ -4869,7 +4822,7 @@ def reset_sequence(ctx):
     sts = STS_SUCCESS
     incr_lev(ctx)
     model = 'ir.sequence'
-    msg = u"Reset sequence %s" % model
+    msg = "Reset sequence %s" % model
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         exclusion = [('company_id', '!=', 1)]
@@ -4887,7 +4840,7 @@ def reset_sequence(ctx):
                             unlinkL8(ctx, model, [record_id])
                             f_deleted = True
                         except BaseException:
-                            msg = u"Cannot remove %s.%d" % (model, record_id)
+                            msg = "Cannot remove %s.%d" % (model, record_id)
                             msg_log(ctx, ctx['level'], msg)
                             if ctx['exit_onerror']:
                                 sts = STS_FAILED
@@ -4904,7 +4857,7 @@ def reset_menuitem(ctx):
     sts = STS_SUCCESS
     incr_lev(ctx)
     model = 'ir.ui.menu'
-    msg = u"Reset sequence %s" % model
+    msg = "Reset sequence %s" % model
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         record_ids = (367, 368, 473, 495, 530, 688, 699, 725, 844, 845)
@@ -4912,7 +4865,7 @@ def reset_menuitem(ctx):
             try:
                 unlinkL8(ctx, model, [record_id])
             except BaseException:
-                msg = u"Cannot remove %s.%d" % (model, record_id)
+                msg = "Cannot remove %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
                     sts = STS_FAILED
@@ -5400,7 +5353,7 @@ def remove_company_account_move_records(ctx):
     if not ctx['dry_run']:
         company_id = ctx['company_id']
         if sts == STS_SUCCESS:
-            msg = u"Searching for invoices to delete"
+            msg = "Searching for invoices to delete"
             msg_log(ctx, ctx['level'], msg)
             record_ids = searchL8(
                 ctx,
@@ -5415,14 +5368,14 @@ def remove_company_account_move_records(ctx):
             reconcile_dict, move_dict = get_reconcile_from_invoices(record_ids, ctx)
             sts = unreconcile_invoices(reconcile_dict, ctx)
         if sts == STS_SUCCESS:
-            msg = u"Setting invoices to cancel state"
+            msg = "Setting invoices to cancel state"
             msg_log(ctx, ctx['level'], msg)
             record_ids = searchL8(ctx, model, [('company_id', '=', company_id)])
             if len(record_ids) > 0:
                 try:
                     sts = upd_invoices_2_cancel(record_ids, ctx)
                 except BaseException:
-                    msg = u"Cannot delete invoices"
+                    msg = "Cannot delete invoices"
                     msg_log(ctx, ctx['level'], msg)
                     sts = STS_FAILED
     if sts == STS_SUCCESS:
@@ -5470,7 +5423,7 @@ def remove_company_account_base_records(ctx):
     if not ctx['dry_run']:
         company_id = ctx['company_id']
         if sts == STS_SUCCESS:
-            msg = u"Searching for invoices to delete"
+            msg = "Searching for invoices to delete"
             msg_log(ctx, ctx['level'], msg)
             record_ids = searchL8(
                 ctx,
@@ -5485,14 +5438,14 @@ def remove_company_account_base_records(ctx):
             reconcile_dict, move_dict = get_reconcile_from_invoices(record_ids, ctx)
             sts = unreconcile_invoices(reconcile_dict, ctx)
         if sts == STS_SUCCESS:
-            msg = u"Setting invoices to cancel state"
+            msg = "Setting invoices to cancel state"
             msg_log(ctx, ctx['level'], msg)
             record_ids = searchL8(ctx, model, [('company_id', '=', company_id)])
             if len(record_ids) > 0:
                 try:
                     sts = upd_invoices_2_cancel(record_ids, ctx)
                 except BaseException:
-                    msg = u"Cannot delete invoices"
+                    msg = "Cannot delete invoices"
                     msg_log(ctx, ctx['level'], msg)
                     sts = STS_FAILED
     if sts == STS_SUCCESS:
@@ -5609,7 +5562,7 @@ def analyze_invoices(ctx, inv_type):
             str.isdigit(account_invoice[move_name][-4:])
             and int(account_invoice[move_name][-4:]) != last_seq
         ):
-            msg = u"In {0} invalid number sequence {1}".format(
+            msg = "In {} invalid number sequence {}".format(
                 account_invoice_id, account_invoice[move_name]
             )
             msg_log(ctx, ctx['level'] + 1, msg)
@@ -5854,7 +5807,7 @@ def parse_in_fields(ctx, o_model, row, ids, cur_obj):
                 len(ids) == 0 or tounicode(val) != cur_obj[nm]
             ):
                 vals[nm] = tounicode(val)
-        msg = u"{0}={1}".format(nm, tounicode(val))
+        msg = "{}={}".format(nm, tounicode(val))
         debug_msg_log(ctx, ctx['level'] + 2, msg)
     return vals, update_header_id, name_new
 
@@ -5869,7 +5822,7 @@ def import_file(ctx, o_model, csv_fn):
      'model:value' -> get value id of model w/o company
     value may be an exact value or a like value
     """
-    msg = u"Import file " + csv_fn
+    msg = "Import file " + csv_fn
     debug_msg_log(ctx, ctx['level'] + 1, msg)
     model = get_model_model(ctx, o_model)
     get_model_structure(ctx, model)
@@ -5899,7 +5852,7 @@ def import_file(ctx, o_model, csv_fn):
             if not hdr_read:
                 hdr_read = True
                 o_model = import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row)
-                msg = u"Model=%s, Code=%s Name=%s NoCompany=%s" % (
+                msg = "Model=%s, Code=%s Name=%s NoCompany=%s" % (
                     model,
                     tounicode(o_model['code']),
                     tounicode(o_model['name']),
@@ -5909,7 +5862,7 @@ def import_file(ctx, o_model, csv_fn):
                 if o_model['name'] and o_model['code']:
                     continue
                 else:
-                    msg = u"!File " + csv_fn + " without key!"
+                    msg = "!File " + csv_fn + " without key!"
                     msg_log(ctx, ctx['level'] + 1, msg)
                     break
             row = translate_ext_names(ctx, o_model, row, csv_obj)
@@ -5917,18 +5870,18 @@ def import_file(ctx, o_model, csv_fn):
             if o_model.get('db_type', ''):
                 if row[o_model['db_type']]:
                     if row[o_model['db_type']].find(ctx['db_type']) < 0:
-                        msg = u"Record not imported by invalid db_type"
+                        msg = "Record not imported by invalid db_type"
                         debug_msg_log(ctx, ctx['level'] + 2, msg)
                         continue
             if row.get('oe_versions'):
                 if row['oe_versions'].find('-') >= 0:
                     if row['oe_versions'].find(ctx['oe_version']) >= 0:
-                        msg = u"Record not imported by invalid version"
+                        msg = "Record not imported by invalid version"
                         debug_msg_log(ctx, ctx['level'] + 2, msg)
                         continue
                 elif row['oe_versions'].find('+') >= 0:
                     if row['oe_versions'].find(ctx['oe_version']) < 0:
-                        msg = u"Record not imported by invalid version"
+                        msg = "Record not imported by invalid version"
                         debug_msg_log(ctx, ctx['level'] + 2, msg)
                         continue
             if model == 'res.users' and 'login' in row:
@@ -5937,7 +5890,7 @@ def import_file(ctx, o_model, csv_fn):
                     ctx['oe_version'].split('.')[0],
                 )
             if 'undef_name' in row:
-                msg = u"!Invalid line format!"
+                msg = "!Invalid line format!"
                 msg_log(ctx, ctx['level'], msg)
                 del row['undef_name']
             # Does record exist ?
@@ -5970,7 +5923,7 @@ def import_file(ctx, o_model, csv_fn):
                 name_old = cur_obj[o_model['name']]
                 if not isinstance(name_old, basestring):
                     name_old = ''
-                msg = u"Update %d %s" % (id, name_old)
+                msg = "Update %d %s" % (id, name_old)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
             if model == 'res.users' and 'new_password' in vals and len(ids) == 0:
                 vals['password'] = vals['new_password']
@@ -5981,7 +5934,7 @@ def import_file(ctx, o_model, csv_fn):
                 if not ctx['dry_run'] and len(vals):
                     try:
                         writeL8(ctx, model, ids, vals)
-                        msg = u"id=%d, %s=%s->%s" % (
+                        msg = "id=%d, %s=%s->%s" % (
                             cur_obj.id,
                             o_model['name'],
                             tounicode(name_old),
@@ -5990,7 +5943,7 @@ def import_file(ctx, o_model, csv_fn):
                         msg_log(ctx, ctx['level'] + 1, msg)
                         written = True
                     except BaseException:
-                        msg = u"!!write error! id=%d, %s=%s" % (
+                        msg = "!!write error! id=%d, %s=%s" % (
                             cur_obj.id,
                             o_model['name'],
                             tounicode(name_new),
@@ -6013,14 +5966,14 @@ def import_file(ctx, o_model, csv_fn):
                         try:
                             add_external_name(ctx, o_model, row, ids[0])
                         except BaseException:
-                            msg = u"!!No set external name id=%d, %s=%s" % (
+                            msg = "!!No set external name id=%d, %s=%s" % (
                                 cur_obj.id,
                                 o_model['name'],
                                 tounicode(name_new),
                             )
                             os0.wlog(msg)
             else:
-                msg = u"insert " + os0.u(name_new)
+                msg = "insert " + os0.u(name_new)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
                 if not ctx['dry_run']:
                     if not o_model.get('hide_cid', False) and 'company_id' not in vals:
@@ -6029,14 +5982,14 @@ def import_file(ctx, o_model, csv_fn):
                         id = createL8(ctx, model, vals)
                         if update_header_id:
                             ctx['header_id'] = id
-                        msg = u"creat id={0}, {1}={2}".format(
+                        msg = "creat id={}, {}={}".format(
                             id, tounicode(o_model['name']), tounicode(name_new)
                         )
                         msg_log(ctx, ctx['level'] + 1, msg)
                         written = True
                     except BaseException:
                         id = None
-                        msg = u"!!create error! %s[%s]=%s" % (
+                        msg = "!!create error! %s[%s]=%s" % (
                             tounicode(o_model.get('model')),
                             tounicode(o_model['name']),
                             tounicode(name_new),
@@ -6046,7 +5999,7 @@ def import_file(ctx, o_model, csv_fn):
                         try:
                             add_external_name(ctx, o_model, row, id)
                         except BaseException:
-                            msg = u"!!No set external name id=%d, %s=%s" % (
+                            msg = "!!No set external name id=%d, %s=%s" % (
                                 cur_obj.id,
                                 o_model['name'],
                                 tounicode(name_new),
@@ -6056,7 +6009,7 @@ def import_file(ctx, o_model, csv_fn):
                     ctx['header_id'] = -1
         csv_fd.close()
     else:
-        msg = u"Import file " + csv_fn + " not found!"
+        msg = "Import file " + csv_fn + " not found!"
         msg_log(ctx, ctx['level'] + 1, msg)
         return STS_FAILED
     return STS_SUCCESS
@@ -6097,8 +6050,8 @@ def import_config_file(ctx, csv_fn):
                 if file_valid:
                     continue
                 else:
-                    msg = u"!Invalid header of " + csv_fn
-                    msg = msg + u" Should be: user,name,value"
+                    msg = "!Invalid header of " + csv_fn
+                    msg = msg + " Should be: user,name,value"
                     msg_log(ctx, ctx['level'] + 1, msg)
                     return STS_FAILED
             if select_4_ver and row['oe_versions'].strip():
@@ -6121,11 +6074,11 @@ def import_config_file(ctx, csv_fn):
                 if sts != STS_SUCCESS:
                     break
             else:
-                msg = u"!Unmanaged parameter %s " % row['name']
+                msg = "!Unmanaged parameter %s " % row['name']
                 msg_log(ctx, ctx['level'] + 1, msg)
         csv_fd.close()
     else:
-        msg = u"!File " + csv_fn + " not found!"
+        msg = "!File " + csv_fn + " not found!"
         msg_log(ctx, ctx['level'] + 1, msg)
         return STS_FAILED
     return STS_SUCCESS
@@ -6159,9 +6112,9 @@ def setup_user_config_param(ctx, username, name, value):
             )
     if len(group_ids) != 1:
         if isinstance(value, bool):
-            msg = u"!!Parameter name '%s' not found!!" % tounicode(name)
+            msg = "!!Parameter name '%s' not found!!" % tounicode(name)
         else:
-            msg = u"!!Parameter name '%s/%s' not found!!" % (
+            msg = "!!Parameter name '%s/%s' not found!!" % (
                 tounicode(name),
                 tounicode(value),
             )
@@ -6172,15 +6125,15 @@ def setup_user_config_param(ctx, username, name, value):
     else:
         user_ids = searchL8(ctx, 'res.users', [('login', '=', username)])
         if len(user_ids) != 1:
-            msg = u"!!User " + tounicode(username) + " not found!!"
+            msg = "!!User " + tounicode(username) + " not found!!"
             msg_log(ctx, ctx['level'] + 2, msg)
             return STS_FAILED
     user = browseL8(ctx, 'res.users', user_ids[0])
     if not user:
         if isinstance(username, int):
-            msg = u"!!Invalid %d username!!" % username
+            msg = "!!Invalid %d username!!" % username
         else:
-            msg = u"!!Invalid username: %s!!" % tounicode(username)
+            msg = "!!Invalid username: %s!!" % tounicode(username)
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     group_id = group_ids[0]
@@ -6188,11 +6141,11 @@ def setup_user_config_param(ctx, username, name, value):
     if isinstance(value, bool):
         if value and group_id not in user.groups_id.ids:
             vals['groups_id'] = [(4, group_id)]
-            msg = u"%s.%s = True" % (tounicode(username), tounicode(name))
+            msg = "%s.%s = True" % (tounicode(username), tounicode(name))
             msg_log(ctx, ctx['level'] + 2, msg)
         elif not value and group_id in user.groups_id.ids:
             vals['groups_id'] = [(3, group_id)]
-            msg = u"%s.%s = False" % (tounicode(username), tounicode(name))
+            msg = "%s.%s = False" % (tounicode(username), tounicode(name))
             msg_log(ctx, ctx['level'] + 2, msg)
     else:
         for id in searchL8(
@@ -6203,14 +6156,14 @@ def setup_user_config_param(ctx, username, name, value):
                 try:
                     writeL8(ctx, 'res.users', user_ids, vals)
                 except BaseException:
-                    msg = u"!!Error writing parameter %s" % name
+                    msg = "!!Error writing parameter %s" % name
                     msg_log(ctx, ctx['level'] + 2, msg)
         if group_id not in user.groups_id.ids:
             vals['groups_id'] = [(4, group_id)]
             if isinstance(value, bool):
-                msg = u"%s.%s = True" % (tounicode(username), tounicode(name))
+                msg = "%s.%s = True" % (tounicode(username), tounicode(name))
             else:
-                msg = u"%s.%s/%s" % (
+                msg = "%s.%s/%s" % (
                     tounicode(username),
                     tounicode(name),
                     tounicode(value),
@@ -6263,7 +6216,7 @@ def setup_global_config_param(ctx, name, value):
             except BaseException:
                 pass
     try:
-        msg = u"%s/%s" % (tounicode(name), tounicode(value))
+        msg = "%s/%s" % (tounicode(name), tounicode(value))
         msg_log(ctx, ctx['level'] + 2, msg)
         id = createL8(ctx, model, {name: value})
         executeL8(ctx, model, 'execute', [id])
@@ -6279,12 +6232,12 @@ def install_chart_of_account(ctx, name):
         ctx, 'account.chart.template', [('name', '=', name)], context=context
     )
     if len(chart_template_id) == 0:
-        msg = u"!Invalid chart of account " + tounicode(name) + "!!"
+        msg = "!Invalid chart of account " + tounicode(name) + "!!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     chart_template_id = chart_template_id[0]
     if 'company_id' not in ctx:
-        msg = u"!No company declared!!"
+        msg = "!No company declared!!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     company_id = ctx['company_id']
@@ -6451,11 +6404,11 @@ def check_4_actions(ctx):
         lx_act = create_simple_act_list()
     valid_actions = check_actions_list(ctx, lx_act)
     if not valid_actions and log:
-        msg = u"Invalid action declarative "
+        msg = "Invalid action declarative "
         msg_log(ctx, ctx['level'], msg)
-        msg = u"Use one or more in following parameters:"
+        msg = "Use one or more in following parameters:"
         msg_log(ctx, ctx['level'], msg)
-        msg = u"actions=" + ",".join(str(e) for e in sorted(lx_act))
+        msg = "actions=" + ",".join(str(e) for e in sorted(lx_act))
         msg_log(ctx, ctx['level'], msg)
     return valid_actions
 
@@ -6497,7 +6450,7 @@ def main():
         if ctx.get('multi_db', False):
             ctx['db_name'] = ctx['dbfilter']
         if not ctx['db_name']:
-            msg = u"!No DB name supplied!!"
+            msg = "!No DB name supplied!!"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     elif conn2do and ctx.get('multi_db', False) and not do_multidb:
@@ -6519,9 +6472,9 @@ def main():
         sts = do_actions(ctx)
     decr_lev(ctx)
     if sts == STS_SUCCESS:
-        msg = u"------ Operations ended ------"
+        msg = "------ Operations ended ------"
     else:
-        msg = u"###??? Last operation FAILED!!! ###???"
+        msg = "###??? Last operation FAILED!!! ###???"
     msg_log(ctx, ctx['level'], msg)
     return sts
 

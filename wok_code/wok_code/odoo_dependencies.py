@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
 """
 Return module list or dependencies list or depends list of odoo modules.
 
@@ -94,9 +93,10 @@ login_user, login_password parameters to connect to DB.
 """
 from __future__ import print_function, unicode_literals
 
-import sys
-import os
 import ast
+import os
+import sys
+
 from six import string_types
 
 # try:
@@ -115,12 +115,7 @@ except ImportError:
 __version__ = '1.0.9'
 
 
-MANIFEST_FILES = [
-    '__manifest__.py',
-    '__odoo__.py',
-    '__openerp__.py',
-    '__terp__.py',
-]
+MANIFEST_FILES = ['__manifest__.py', '__odoo__.py', '__openerp__.py', '__terp__.py']
 MAX_DEEP = 20
 UNDEF_DEEP = MAX_DEEP + 5
 MISSED = 99
@@ -191,7 +186,7 @@ def get_dependencies(
         for dependency in (
             modules.get(module_name, {}).get('external_dependencies', {}).get('bin', [])
         ):
-            result |= set([dependency])
+            result |= {dependency}
         return result
     elif external_dependencies:
         for dependency in (
@@ -199,7 +194,7 @@ def get_dependencies(
             .get('external_dependencies', {})
             .get('python', [])
         ):
-            result |= set([dependency])
+            result |= {dependency}
         return result
     else:
         for dependency in modules.get(module_name, {}).get('depends', []):
@@ -212,8 +207,8 @@ def get_dependencies(
                     external_bin_dependencies=external_bin_dependencies,
                 )
             else:
-                result |= set([dependency])
-        return result | set([module_name])
+                result |= {dependency}
+        return result | {module_name}
 
 
 def get_dependents(modules, module_name, depth=None):
@@ -224,10 +219,10 @@ def get_dependents(modules, module_name, depth=None):
     for dependent in modules.keys():
         if module_name in modules.get(dependent, {}).get('depends', []):
             if depth <= 1:
-                result |= set([dependent])
+                result |= {dependent}
             else:
                 result |= get_dependents(modules, dependent, depth=depth - 1)
-    return result | set([module_name])
+    return result | {module_name}
 
 
 def get_dep_of_module(
@@ -663,8 +658,8 @@ def get_just_dependents_list(
                     external_dependencies=external_dependencies,
                     external_bin_dependencies=external_bin_dependencies,
                 )
-                if d2 - set_depends_by == set([m2]):
-                    depends |= set([m2])
+                if d2 - set_depends_by == {m2}:
+                    depends |= {m2}
     elif ao_list == '&':
         depends = get_dependents(modules, depends_by[0], depth=depth)
         for module in depends_by[1:]:
@@ -679,8 +674,8 @@ def get_just_dependents_list(
                     external_dependencies=external_dependencies,
                     external_bin_dependencies=external_bin_dependencies,
                 )
-                if d2 - set_depends_by == set([m2]):
-                    depends &= set([m2])
+                if d2 - set_depends_by == {m2}:
+                    depends &= {m2}
                     if not depends:
                         break
     return sorted(list(depends))

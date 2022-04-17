@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
 """
 Action may be:
 - Dictionary
@@ -8,18 +7,19 @@ Action may be:
 - Ignore
 """
 from __future__ import print_function, unicode_literals
-from builtins import input
 
+import csv
 import os
-import time
 import re
 import sys
-import csv
+import time
+from builtins import input
 from subprocess import PIPE, Popen
 
+from babel.messages import pofile
 # import xlrd
 from openpyxl import load_workbook
-from babel.messages import pofile
+
 from os0 import os0
 from python_plus import _c
 
@@ -39,9 +39,7 @@ MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']
 TNL_DICT = {}
 TNL_ACTION = {}
-SYNTAX = {
-    'string': re.compile(u'"([^"\\\n]|\\.|\\\n)*"'),
-}
+SYNTAX = {'string': re.compile('"([^"\\\n]|\\.|\\\n)*"')}
 VERSIONS = ('14.0', '13.0', '12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
 PROTECT_TOKENS = [
     'Adviser',
@@ -77,8 +75,10 @@ PROTECT_TOKENS = [
     'The rate of the currency to the currency of rate 1',
     'Uninstall',
     'Update',
-    ('You can either upload a file from your computer or copy/paste an internet link '
-     'to your file'),
+    (
+        'You can either upload a file from your computer or copy/paste an internet link '
+        'to your file'
+    ),
 ]
 msg_time = time.time()
 
@@ -253,11 +253,7 @@ def save_untranslated(ctx, untnl):
             sorted_list = sorted(untnl, key=lambda x: x.lower())
         for item in sorted_list:
             msg_burst(item)
-            line = {
-                'module': '',
-                'msgid': os0.b(item),
-                'msgstr': '',
-            }
+            line = {'module': '', 'msgid': os0.b(item), 'msgstr': ''}
             if untnl is None:
                 line['msgstr'] = os0.b(TNL_DICT[item])
             if untnl is not None or (

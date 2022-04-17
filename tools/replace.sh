@@ -1,12 +1,16 @@
 # __version__=1.0.14
-for f in .travis.yml activate_devel_env install_tools.sh LICENSE odoo_default_tnl.xlsx pre-commit-config.yaml README.rst; do
-  echo "\$ cp ./$f ~/tools/"
-  cp ./$f ~/tools/
+if [[ -z $HOME_DEVEL ]]; then
+    [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
+fi
+tgtdir=$(readlink -f $HOME_DEVEL/..)
+for f in .travis.yml install_tools.sh LICENSE odoo_default_tnl.xlsx pre-commit-config.yaml pre-commit-config2.yaml README.rst; do
+    echo "\$ cp ./$f $tgtdir/"
+    cp ./$f $tgtdir/
 done
 for item in egg-info docs tests templates license_text; do
-  echo "\$ rsync -av ./$item/ ~/tools/$item/"
-  rsync -av ./$item/ ~/tools/$item/
+    echo "\$ rsync -av ./$item/ $tgtdir/$item/"
+    rsync -av ./$item/ $tgtdir/$item/
 done
-[[ -f ~/tools/install_foreign.sh ]] && rm -f ~/tools/install_foreign.sh
-cd ~/tools
-# ./install_tools.sh -dfgq
+[[ -f $tgtdir/install_foreign.sh ]] && rm -f $tgtdir/install_foreign.sh
+# cd $tgtdir
+# ./install_tools.sh -T

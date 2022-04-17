@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://www.zeroincombenze.org>)
 #
@@ -10,28 +9,20 @@
     Clodoo Regression Test Suite
 """
 from __future__ import print_function, unicode_literals
-from past.builtins import basestring
+
 import sys
 from datetime import date
 
+from past.builtins import basestring
+
 try:
-    from clodoo.clodoo import (
-        check_4_actions,
-        create_act_list,
-        do_single_action,
-        isaction,
-    )
-    from clodoo.clodoocore import (
-        _get_model_bone,
-        _get_model_code,
-        _get_model_name,
-        _import_file_dbtype,
-        _import_file_model,
-        model_has_company,
-        eval_value,
-        get_query_id,
-        import_file_get_hdr,
-    )
+    from clodoo.clodoo import (check_4_actions, create_act_list,
+                               do_single_action, isaction)
+    from clodoo.clodoocore import (_get_model_bone, _get_model_code,
+                                   _get_model_name, _import_file_dbtype,
+                                   _import_file_model, eval_value,
+                                   get_query_id, import_file_get_hdr,
+                                   model_has_company)
 except BaseException:
     from clodoo import check_4_actions, create_act_list, do_single_action, isaction
     from clodoocore import (
@@ -47,7 +38,6 @@ except BaseException:
     )
 
 from zerobug import z0test
-
 
 __version__ = "1.0.3"
 
@@ -241,52 +231,32 @@ class Oerp:
                 "module": "base",
                 "name": "main_company",
                 "res_id": ID_0,
-            },
+            }
         }
 
         # date test table: res.zero
         # name, ref, description
         model = "res.zero"
         self.db["model"] = {}
-        self.db[model] = {
-            ID_0: {
-                "name": "myname",
-                "ref": REF_ID,
-                "description": MARK,
-            },
-        }
+        self.db[model] = {ID_0: {"name": "myname", "ref": REF_ID, "description": MARK}}
 
         # date test table: res.one
         # name, ref0, company_id
         model = "res.one"
         self.db["model"] = {}
-        self.db[model] = {
-            ID_1: {
-                "name": "myname",
-                "ref0": ID_0,
-                "company_id": CID,
-            },
-        }
+        self.db[model] = {ID_1: {"name": "myname", "ref0": ID_0, "company_id": CID}}
 
         # date test table: res.two
         # name, country_id
         model = "res.two"
         self.db["model"] = {}
-        self.db[model] = {
-            REF_ID: {"name": "myname", "country_id": CTRY_IT},
-        }
+        self.db[model] = {REF_ID: {"name": "myname", "country_id": CTRY_IT}}
 
         # date test table: res.three
         # name, ref0, company_id
         model = "res.three"
         self.db["model"] = {}
-        self.db[model] = {
-            ID_1: {
-                "name": "name àèìòù",
-                "ref0": ID_0,
-                "company_id": CID,
-            },
-        }
+        self.db[model] = {ID_1: {"name": "name àèìòù", "ref0": ID_0, "company_id": CID}}
 
     def comp_tuple(self, left, op, right):
         """Apply for op between 2 operands

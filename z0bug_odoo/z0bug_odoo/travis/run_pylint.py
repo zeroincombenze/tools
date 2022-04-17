@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 from __future__ import print_function
 
 import ast
+import inspect
 import os
 import re
 import sys
-import inspect
 
 import click
 import pylint.lint
@@ -81,22 +80,33 @@ def get_extra_params(odoo_version):
     versioned_msgs = get_versioned_msgs(odoo_version)
 
     extra_params_cmd = [
-        '--sys-paths', os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            'pylint_deprecated_modules'),
-        '--extra-params', '--load-plugins=pylint_odoo']
+        '--sys-paths',
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), 'pylint_deprecated_modules'
+        ),
+        '--extra-params',
+        '--load-plugins=pylint_odoo',
+    ]
 
     extra_params = list(extra_params_cmd)
     if is_version_number:
-        extra_params.extend([
-            '--extra-params', '--valid_odoo_versions=%s' % odoo_version])
+        extra_params.extend(
+            ['--extra-params', '--valid_odoo_versions=%s' % odoo_version]
+        )
     for beta_msg in beta_msgs:
-        extra_params.extend(['--msgs-no-count', beta_msg,
-                             '--extra-params', '--enable=%s' % beta_msg])
+        extra_params.extend(
+            ['--msgs-no-count', beta_msg, '--extra-params', '--enable=%s' % beta_msg]
+        )
     # [antoniov: 2018-09-12]
     for leverage_msg in leverage_msgs:
-        extra_params.extend(['--msgs-no-count', leverage_msg,
-                             '--extra-params', '--disable=%s' % leverage_msg])
+        extra_params.extend(
+            [
+                '--msgs-no-count',
+                leverage_msg,
+                '--extra-params',
+                '--disable=%s' % leverage_msg,
+            ]
+        )
     # [antoniov: 2020-07-20]
     for versioned_msg in versioned_msgs:
         extra_params.extend(['--extra-params', '--disable=%s' % versioned_msg])
@@ -110,7 +120,8 @@ def get_versioned_msgs(odoo_version):
     odoo_version = odoo_version.replace('.', '')
     specific_cfg = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        'cfg/travis_run_pylint_exclude_%s.cfg' % (odoo_version))
+        'cfg/travis_run_pylint_exclude_%s.cfg' % (odoo_version),
+    )
     if not os.path.isfile(specific_cfg):
         return []
     config = ConfigParser.ConfigParser()
@@ -128,7 +139,8 @@ def get_leverage_msgs():
     exclude_level = os.environ.get('LINT_CHECK_LEVEL', '')
     specific_cfg = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        'cfg/travis_run_pylint_exclude_%s.cfg' % exclude_level)
+        'cfg/travis_run_pylint_exclude_%s.cfg' % exclude_level,
+    )
     if not os.path.isfile(specific_cfg):
         return []
     config = ConfigParser.ConfigParser()
@@ -144,8 +156,8 @@ def get_beta_msgs():
     """Get beta msgs from beta.cfg file
     :return: List of strings with beta message names"""
     beta_cfg = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'cfg/travis_run_pylint_beta.cfg')
+        os.path.dirname(os.path.realpath(__file__)), 'cfg/travis_run_pylint_beta.cfg'
+    )
     if not os.path.isfile(beta_cfg):
         return []
     config = ConfigParser.ConfigParser()
@@ -153,7 +165,8 @@ def get_beta_msgs():
     return [
         msg.strip().replace('\n', '')
         for msg in config.get('MESSAGES CONTROL', 'enable').split(',')
-        if msg.strip()]
+        if msg.strip()
+    ]
 
 
 def get_modules_cmd(dir):
@@ -171,14 +184,16 @@ def version_validate(version, dir):
     if not version and dir:
         repo_path = os.path.join(dir, '.git')
         branch_name = GitRun(repo_path).get_branch_name()
-        version = (branch_name.replace('_', '-').split('-')[:1]
-                   if branch_name else False)
+        version = branch_name.replace('_', '-').split('-')[:1] if branch_name else False
         version = version[0] if version else None
     if not version:
-        print(travis_helpers.yellow(
-            'Undefined environment variable'
-            ' `VERSION`.\nSet `VERSION` for '
-            'compatibility with guidelines by version.'))
+        print(
+            travis_helpers.yellow(
+                'Undefined environment variable'
+                ' `VERSION`.\nSet `VERSION` for '
+                'compatibility with guidelines by version.'
+            )
+        )
     return version
 
 
@@ -195,13 +210,13 @@ def pylint_run(is_pr, version, dir):
     # (this file will then be expected to be found in the 'cfg/' folder).
     # If such an environment variable is not found,
     # it defaults to the standard configuration file.
-    pylint_config_file = os.environ.get(
-        'PYLINT_CONFIG_FILE', 'travis_run_pylint.cfg')
+    pylint_config_file = os.environ.get('PYLINT_CONFIG_FILE', 'travis_run_pylint.cfg')
     pylint_rcfile = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'cfg', pylint_config_file)
+        os.path.dirname(os.path.realpath(__file__)), 'cfg', pylint_config_file
+    )
     pylint_rcfile_pr = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'cfg', "travis_run_pylint_pr.cfg")
+        os.path.dirname(os.path.realpath(__file__)), 'cfg', "travis_run_pylint_pr.cfg"
+    )
     odoo_version = version_validate(version, dir)
     modules_cmd = get_modules_cmd(dir)
     beta_msgs = get_beta_msgs()
@@ -213,20 +228,24 @@ def pylint_run(is_pr, version, dir):
     cmd = conf + modules_cmd + extra_params_cmd
 
     real_errors = main(cmd, standalone_mode=False)
-    res = dict(
-        (key, value) for key, value in (real_errors.get(
-            'by_msg') or {}).items() if key not in beta_msgs)
+    res = {
+        key: value
+        for key, value in (real_errors.get('by_msg') or {}).items()
+        if key not in beta_msgs
+    }
     count_errors = get_count_fails(real_errors, list(beta_msgs))
     count_info = "count_errors %s" % count_errors
     print(count_info)
     if is_pr:
-        print(travis_helpers.green(
-            'Starting lint check only for modules changed'))
+        print(travis_helpers.green('Starting lint check only for modules changed'))
         modules_changed = get_modules_changed(dir, branch_base)
         if not modules_changed:
-            print(travis_helpers.green(
-                'There are not modules changed from '
-                '"git --git-dir=%s diff ..%s"' % (dir, branch_base)))
+            print(
+                travis_helpers.green(
+                    'There are not modules changed from '
+                    '"git --git-dir=%s diff ..%s"' % (dir, branch_base)
+                )
+            )
             return res
         modules_changed_cmd = []
         for module_changed in modules_changed:
@@ -234,21 +253,26 @@ def pylint_run(is_pr, version, dir):
         conf = ["--config-file=%s" % (pylint_rcfile_pr)]
         cmd = conf + modules_changed_cmd + extra_params_cmd
         pr_real_errors = main(cmd, standalone_mode=False)
-        pr_stats = dict(
-            (key, value) for key, value in (pr_real_errors.get(
-                'by_msg') or {}).items() if key not in beta_msgs)
+        pr_stats = {
+            key: value
+            for key, value in (pr_real_errors.get('by_msg') or {}).items()
+            if key not in beta_msgs
+        }
         if pr_stats:
             pr_errors = get_count_fails(pr_real_errors, list(beta_msgs))
-            print(travis_helpers.yellow(
-                "Found %s errors in modules changed." % (pr_errors)))
+            print(
+                travis_helpers.yellow(
+                    "Found %s errors in modules changed." % (pr_errors)
+                )
+            )
             if pr_errors < 0:
                 res = pr_stats
             else:
                 new_dict = {}
                 for val in res:
-                    new_dict[val] = (new_dict.get(val, 0) + res[val])
+                    new_dict[val] = new_dict.get(val, 0) + res[val]
                 for val in pr_stats:
-                    new_dict[val] = (new_dict.get(val, 0) + pr_stats[val])
+                    new_dict[val] = new_dict.get(val, 0) + pr_stats[val]
                 res = new_dict
     return res
 
@@ -259,10 +283,13 @@ def get_count_fails(linter_stats, msgs_no_count=None):
     :param no_count: List of messages that will not add to the failure count.
     :return: Integer with quantity of fails found.
     """
-    return sum([
-        linter_stats['by_msg'][msg]
-        for msg in (linter_stats.get('by_msg') or {})
-        if msg not in msgs_no_count])
+    return sum(
+        [
+            linter_stats['by_msg'][msg]
+            for msg in (linter_stats.get('by_msg') or {})
+            if msg not in msgs_no_count
+        ]
+    )
 
 
 def is_installable_module(path):
@@ -291,11 +318,13 @@ def get_subpaths(paths, depth=1):
         if depth < 0:
             continue
         if not os.path.isfile(os.path.join(path, '__init__.py')):
-            new_subpaths = [os.path.join(path, item)
-                            for item in os.listdir(path)
-                            if os.path.isdir(os.path.join(path, item))]
+            new_subpaths = [
+                os.path.join(path, item)
+                for item in os.listdir(path)
+                if os.path.isdir(os.path.join(path, item))
+            ]
             if new_subpaths:
-                subpaths.extend(get_subpaths(new_subpaths, depth-1))
+                subpaths.extend(get_subpaths(new_subpaths, depth - 1))
         else:
             if is_installable_module(path):
                 subpaths.append(path)
@@ -322,8 +351,7 @@ def run_pylint(paths, cfg, beta_msgs=None, sys_paths=None, extra_params=None):
     if not subpaths:
         raise UserWarning("Python modules not found in paths %s" % (paths))
     exclude = os.environ.get('EXCLUDE', '').split(',')
-    subpaths = [path for path in subpaths
-                if os.path.basename(path) not in exclude]
+    subpaths = [path for path in subpaths if os.path.basename(path) not in exclude]
     if not subpaths:
         return {'error': 0}
     cmd.extend(subpaths)
@@ -336,32 +364,55 @@ def run_pylint(paths, cfg, beta_msgs=None, sys_paths=None, extra_params=None):
 
 
 @click.command()
-@click.option('paths', '--path', envvar='TRAVIS_BUILD_DIR',
-              multiple=True, type=CLICK_DIR, required=True,
-              default=[os.getcwd()],
-              help="Addons paths to check pylint")
-@click.option('--config-file', '-c',
-              type=click.File('r', lazy=True), required=True,
-              help="Pylint config file")
-@click.option('--sys-paths', '-sys-path', envvar='PYTHONPATH',
-              multiple=True, type=CLICK_DIR,
-              help="Additional paths to append in sys path.")
-@click.option('--extra-params', '-extra-param', multiple=True,
-              help="Extra pylint params to append "
-                   "in pylint command")
-@click.option('--msgs-no-count', '-msgs-no-count', multiple=True,
-              help="List of messages that will not add to the failure count.")
-def main(paths, config_file, msgs_no_count=None,
-         sys_paths=None, extra_params=None):
+@click.option(
+    'paths',
+    '--path',
+    envvar='TRAVIS_BUILD_DIR',
+    multiple=True,
+    type=CLICK_DIR,
+    required=True,
+    default=[os.getcwd()],
+    help="Addons paths to check pylint",
+)
+@click.option(
+    '--config-file',
+    '-c',
+    type=click.File('r', lazy=True),
+    required=True,
+    help="Pylint config file",
+)
+@click.option(
+    '--sys-paths',
+    '-sys-path',
+    envvar='PYTHONPATH',
+    multiple=True,
+    type=CLICK_DIR,
+    help="Additional paths to append in sys path.",
+)
+@click.option(
+    '--extra-params',
+    '-extra-param',
+    multiple=True,
+    help="Extra pylint params to append " "in pylint command",
+)
+@click.option(
+    '--msgs-no-count',
+    '-msgs-no-count',
+    multiple=True,
+    help="List of messages that will not add to the failure count.",
+)
+def main(paths, config_file, msgs_no_count=None, sys_paths=None, extra_params=None):
     """Script to run pylint command with additional params
     to check fails of odoo modules.
     If expected errors is equal to count fails found then
     this program exits with zero, otherwise exits with counted fails"""
     try:
         stats = run_pylint(
-            list(paths), config_file.name,
+            list(paths),
+            config_file.name,
             sys_paths=sys_paths,
-            extra_params=extra_params)
+            extra_params=extra_params,
+        )
     except UserWarning:
         stats = {'error': -1}
     return stats

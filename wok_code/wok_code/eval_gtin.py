@@ -1,5 +1,7 @@
 from __future__ import print_function
+
 from builtins import input
+
 # import pdb
 
 
@@ -16,7 +18,7 @@ def eval_GTIN(code, code_len):
     chkdgt = 0
     for i in range(range_code):
         n = int(pad_code[range_code - i - 1])
-        if (i % 2):
+        if i % 2:
             chkdgt = chkdgt + n
         else:
             chkdgt = chkdgt + n * 3

@@ -1,17 +1,17 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 import os
-import sys
 import stat
-from zerobug import z0test, z0testodoo
+import sys
+
 # from z0bug_odoo.travis.getaddons import is_module
 # from z0bug_odoo.travis.test_server import get_build_dir
 from python_plus import _c
+from zerobug import z0test, z0testodoo
 
 __version__ = "1.0.9"
 
@@ -87,69 +87,89 @@ def version():
     return __version__
 
 
-class RegressionTest():
-
+class RegressionTest:
     def __init__(self, z0bug):
         if os.path.basename(os.getcwd()) == 'tests':
             travis_addons = os.path.abspath(
-                os.path.join(os.environ.get("TRAVIS_BUILD_DIR", ".."),
-                             'travis'))
+                os.path.join(os.environ.get("TRAVIS_BUILD_DIR", ".."), 'travis')
+            )
         else:
             travis_addons = os.path.abspath(
-                os.path.join(os.environ.get("TRAVIS_BUILD_DIR", "."),
-                             'travis'))
+                os.path.join(os.environ.get("TRAVIS_BUILD_DIR", "."), 'travis')
+            )
         if travis_addons not in sys.path:
             sys.path.append(travis_addons)
         self.templatedir = os.path.join(
-            os.path.expanduser('~'),
-            'devel',
-            'pypi',
-            'tools',
-            'templates')
+            os.path.expanduser('~'), 'devel', 'pypi', 'tools', 'templates'
+        )
         if not os.path.isdir(self.templatedir):
             os.makedirs(self.templatedir)
         with open(os.path.join(self.templatedir, 'footer.rst'), 'w') as fd:
-            fd.write(_c("""
+            fd.write(
+                _c(
+                    """
 ----------------------
 
 .. |en| image:: {{grymb_image_en}}
    :target: {{grymb_url_en}}
 .. |it| image:: {{grymb_image_it}}
    :target: {{grymb_url_it}}
-"""))
-        with open(os.path.join(self.templatedir,
-                               'header_authors.txt'), 'w') as fd:
-            fd.write(_c("""
+"""
+                )
+            )
+        with open(os.path.join(self.templatedir, 'header_authors.txt'), 'w') as fd:
+            fd.write(
+                _c(
+                    """
 Authors
 -------
-"""))
-        with open(os.path.join(self.templatedir,
-                               'header_contributors.txt'), 'w') as fd:
-            fd.write(_c("""
+"""
+                )
+            )
+        with open(os.path.join(self.templatedir, 'header_contributors.txt'), 'w') as fd:
+            fd.write(
+                _c(
+                    """
 Contributors
 ------------
-"""))
-        with open(os.path.join(self.templatedir,
-                               'header_acknowledges.txt'), 'w') as fd:
-            fd.write(_c("""
+"""
+                )
+            )
+        with open(os.path.join(self.templatedir, 'header_acknowledges.txt'), 'w') as fd:
+            fd.write(
+                _c(
+                    """
 Acknoledges to
 --------------
-"""))
-        with open(os.path.join(self.templatedir,
-                               'readme_main_module.rst'), 'w') as fd:
-            fd.write(_c("""
+"""
+                )
+            )
+        with open(os.path.join(self.templatedir, 'readme_main_module.rst'), 'w') as fd:
+            fd.write(
+                _c(
+                    """
 {{description}}
-"""))
-        with open(os.path.join(self.templatedir,
-                               'readme_main_repository.rst'), 'w') as fd:
-            fd.write(_c("""
+"""
+                )
+            )
+        with open(
+            os.path.join(self.templatedir, 'readme_main_repository.rst'), 'w'
+        ) as fd:
+            fd.write(
+                _c(
+                    """
 {{description}}
-"""))
-        with open(os.path.join(self.templatedir,
-                               'readme_main_ocb.rst'), 'w') as fd:
-            fd.write(_c("""
+"""
+                )
+            )
+        with open(os.path.join(self.templatedir, 'readme_main_ocb.rst'), 'w') as fd:
+            fd.write(
+                _c(
+                    """
 {{description}}
-"""))
+"""
+                )
+            )
         self.Z = z0bug
         self.simulate_install_pypi('gen_readme.py')
 
@@ -217,9 +237,11 @@ if __name__ == '__main__':
                 self.root = z0testodoo.build_odoo_env(z0ctx, odoo_version)
                 odoo_root = os.path.join(self.root, odoo_version)
                 repodir = z0testodoo.create_repo(
-                    z0ctx, odoo_root, 'test_repo', odoo_version)
+                    z0ctx, odoo_root, 'test_repo', odoo_version
+                )
                 moduledir = z0testodoo.create_module(
-                    z0ctx, repodir, 'test_module', '%s.0.1.0' % odoo_version)
+                    z0ctx, repodir, 'test_module', '%s.0.1.0' % odoo_version
+                )
                 self.create_description_file(moduledir, odoo_version, gitorg)
                 self.create_authors_file(moduledir, odoo_version, gitorg)
                 self.create_contributors_file(moduledir, odoo_version, gitorg)
@@ -229,8 +251,8 @@ if __name__ == '__main__':
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    exit(z0test.main_local(
-        z0test.parseoptest(
-            sys.argv[1:],
-            version=version()),
-        RegressionTest))
+    exit(
+        z0test.main_local(
+            z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
+        )
+    )

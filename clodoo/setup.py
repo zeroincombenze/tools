@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
-from setuptools import setup
-from setuptools import find_packages
 import sys
+
+from setuptools import find_packages, setup
 
 if sys.version_info >= (3, 0):
     install_requires = [
@@ -74,14 +73,14 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
             "./odoorc",
             "./list_requirements.py",
             "./transodoo.xlsx",
-        ],
+        ]
     },
     install_requires=install_requires,
     entry_points={
         "console_scripts": [
             "clodoo-info = clodoo.scripts.main:main",
             # 'list_requirements = clodoo.scripts.list_requirements:main',
-        ],
+        ]
     },
     zip_safe=False,
 )

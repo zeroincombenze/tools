@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from subprocess import PIPE, Popen
+from __future__ import print_function, unicode_literals
+
 import ast
-import sys
 import os
 import re
+import sys
+from subprocess import PIPE, Popen
 
 try:
     from z0lib import z0lib
@@ -85,9 +84,7 @@ REQVERSION = {
     "Pygments": {"6.1": "==2.0.2", "0": "==2.2"},  # Version by test pkgs
     "pylint": {"2.7": "==1.9.3", "3.5": "==2.3.0"},
     "pylint-plugin-utils": {"2.7": "==0.4", "3.5": "==0.5"},
-    "pyopenssl": {
-        "0": ">=16.2.0",
-    },  # by MQT
+    "pyopenssl": {"0": ">=16.2.0"},  # by MQT
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
     "pysftp": {"6.1": ">=0.2.9"},
     "pyparsing": {"6.1": "==1.5.7", "7.0": "==2.0.3", "10.0": "==2.1.10"},
@@ -170,14 +167,8 @@ ALIAS = {
     "werkzeug": "Werkzeug",
     "xlsxwriter": "XlsxWriter",
 }
-ALIAS3 = {
-    "PyWebDAV": "PyWebDAV3",
-    "python-ldap": "python3-ldap",
-    "pyPdf": "pyPDF2",
-}
-FORCE_ALIAS = {
-    "docutils==0.12": "docutils==0.14",
-}
+ALIAS3 = {"PyWebDAV": "PyWebDAV3", "python-ldap": "python3-ldap", "pyPdf": "pyPDF2"}
+FORCE_ALIAS = {"docutils==0.12": "docutils==0.14"}
 PIP_TEST_PACKAGES = [
     "astroid",
     "Click",
@@ -231,12 +222,7 @@ BIN_TEST_PACKAGES = [
     "python-dev",
     "python-setuptools",
 ]
-RPC_PACKAGES = [
-    "clodoo",
-    "odoorpc",
-    "oerplib",
-    "os0",
-]
+RPC_PACKAGES = ["clodoo", "odoorpc", "oerplib", "os0"]
 PIP_BASE_PACKAGES = [
     "Babel",
     "chardet",
@@ -293,13 +279,8 @@ BIN_PACKAGES = [
     # 'PyChart',
     # 'pyvies',
 ]
-PIP_WITH_DOT = [
-    "py3o.",
-    "anybox.",
-]
-BUILTIN = [
-    "csv",
-]
+PIP_WITH_DOT = ["py3o.", "anybox."]
+BUILTIN = ["csv"]
 MANIFEST_NAMES = {
     "accept_language": "parse-accept-language",
     "Asterisk": "py-Asterisk",
@@ -368,10 +349,7 @@ def eval_requirement_cond(line, odoo_ver=None, pyver=None):
     items = line.split(";")
     if len(items) == 1:
         return line.strip()
-    testenv = {
-        "sys_platform": sys.platform,
-        "python_version": pyver,
-    }
+    testenv = {"sys_platform": sys.platform, "python_version": pyver}
     if eval(items[1], testenv):
         return items[0].strip()
     return False

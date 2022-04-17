@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # template 18
 """
 Interactive tool to install, update, remove, query and manage software
@@ -10,12 +9,12 @@ it is not a real package installer.
 You can easily write portable script to install packages
 over every Linux distribution.
 """
-import os
-import sys
-import pkg_resources
 import gzip
+import os
 import shutil
+import sys
 
+import pkg_resources
 
 __version__ = '1.0.0'
 
@@ -25,11 +24,11 @@ def fake_setup(**kwargs):
 
 
 def read_setup():
-    setup_info = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), 'setup.info'))
+    setup_info = os.path.abspath(os.path.join(os.path.dirname(__file__), 'setup.info'))
     if not os.path.isfile(setup_info):
         setup_info = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '..', 'setup.py'))
+            os.path.join(os.path.dirname(__file__), '..', 'setup.py')
+        )
     setup_args = {}
     if os.path.isfile(setup_info):
         with open(setup_info, 'r') as fd:
@@ -49,8 +48,7 @@ def read_setup():
 
 def get_pypi_paths():
     local_venv = '/devel/venv/'
-    pkgpath = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..'))
+    pkgpath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     bin_path = lib_path = ''
     path = pkgpath
     while not bin_path and path != '/' and path != os.environ['HOME']:
@@ -62,8 +60,9 @@ def get_pypi_paths():
         for path in sys.path:
             if local_venv in path:
                 bin_path = os.path.join(
-                    path[:path.find(local_venv)],
-                    *[x for x in local_venv.split('/') if x][:-1])
+                    path[: path.find(local_venv)],
+                    *[x for x in local_venv.split('/') if x][:-1]
+                )
                 break
     return pkgpath, bin_path, lib_path
 
@@ -139,14 +138,15 @@ def main(cli_args=None):
             verbose = True
     setup_args = read_setup()
     if action == '-h':
-        print('%s [-h][-H][--help][-V][--version][-C][--copy-pkg-data]' %
-              setup_args['name'])
+        print(
+            '%s [-h][-H][--help][-V][--version][-C][--copy-pkg-data]'
+            % setup_args['name']
+        )
     elif action in ('-V', '--version'):
         if setup_args['version'] == __version__:
             print(setup_args['version'])
         else:
-            print('Version mismatch %s/%s' % (setup_args['version'],
-                                              __version__))
+            print('Version mismatch %s/%s' % (setup_args['version'], __version__))
     elif action in ('-H', '--help'):
         for text in __doc__.split('\n'):
             print(text)

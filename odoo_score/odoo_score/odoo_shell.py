@@ -1,23 +1,22 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from future import standard_library
-from builtins import *  # noqa
-from builtins import input
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from python_plus import _b
-
-# import os
-import sys
-from datetime import date, datetime, timedelta
-import time
-import re
 import csv
 import getpass
+import re
+# import os
+import sys
+import time
+from builtins import *  # noqa
+from builtins import input
+from datetime import date, datetime, timedelta
+
+from future import standard_library
 from openpyxl import load_workbook
+
 from os0 import os0
+from python_plus import _b
 
 try:
     from clodoo import clodoo
@@ -27,6 +26,7 @@ try:
     from z0lib.z0lib import z0lib
 except ImportError:
     from z0lib import z0lib
+
 import pdb  # pylint: disable=deprecated-module
 
 standard_library.install_aliases()  # noqa: E402
@@ -269,7 +269,7 @@ def param_date(param, model=None, date_field=None, domain=None, ctx=ctx):
         if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
             if isinstance(domain, (list, tuple)):
                 where = [x for x in domain]
-                where.append(((date_field, '>=', date_ids)))
+                where.append((date_field, '>=', date_ids))
             else:
                 where = [(date_field, '>=', date_ids)]
             date_ids = clodoo.searchL8(ctx, model, where)
@@ -2821,10 +2821,12 @@ def check_rec_links(ctx):
                     invoice.partner_id.id
                     not in (
                         invoice_line.ddt_line_id.sale_line_id.order_id.partner_id.id,
-                        (invoice_line.ddt_line_id.sale_line_id.order_id.
-                            partner_invoice_id.id),
-                        (invoice_line.ddt_line_id.sale_line_id.order_id.
-                            partner_shipping_id.id),
+                        (
+                            invoice_line.ddt_line_id.sale_line_id.order_id.partner_invoice_id.id
+                        ),
+                        (
+                            invoice_line.ddt_line_id.sale_line_id.order_id.partner_shipping_id.id
+                        ),
                     )
                 )
             ):
@@ -2925,7 +2927,7 @@ def check_rec_links(ctx):
             (ctr, err_ctr, ddts) = parse_ddt_from_invline(
                 invoice_line, ctr, err_ctr, ddts
             )
-        diff = list(set([x.id for x in invoice.ddt_ids]) - set(ddts))
+        diff = list({x.id for x in invoice.ddt_ids} - set(ddts))
         do_write = False
         if diff:
             os0.wlog(
@@ -2934,7 +2936,7 @@ def check_rec_links(ctx):
             )
             err_ctr += 1
             do_write = True
-        diff = list(set(ddts) - set([x.id for x in invoice.ddt_ids]))
+        diff = list(set(ddts) - {x.id for x in invoice.ddt_ids})
         if diff:
             os0.wlog(
                 '!!! Some DdT (%s) in invoice lines are not detected '
@@ -2984,7 +2986,7 @@ def check_rec_links(ctx):
                     )
                 err_ctr += 1
                 os0.wlog('!!! Found line of DdT %s w/o invoice line ref!!!' % (ddt.id))
-        diff = list(set(invoices) - set([x.id for x in ddt.invoice_ids]))
+        diff = list(set(invoices) - {x.id for x in ddt.invoice_ids})
         if diff:
             ddt_state = ddt.state
             err_ctr += 1
@@ -4026,4 +4028,3 @@ print(' - fix_weburl')
 pdb.set_trace()
 print('\n\n')
 pdb.set_trace()
-pass
