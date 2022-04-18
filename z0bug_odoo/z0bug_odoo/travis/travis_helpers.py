@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 helpers shared by the various QA tools
 """

@@ -114,9 +114,9 @@ def get_modules_changed(path, ref='HEAD'):
         git_run_obj.run(['fetch'] + fetch_ref.split('/', 1))
     items_changed = git_run_obj.get_items_changed(ref)
     folders_changed = {
-            item_changed.split('/')[0]
-            for item_changed in items_changed
-            if '/' in item_changed
+        item_changed.split('/')[0]
+        for item_changed in items_changed
+        if '/' in item_changed
     }
     modules = set(get_modules(path))
     modules_changed = list(modules & folders_changed)

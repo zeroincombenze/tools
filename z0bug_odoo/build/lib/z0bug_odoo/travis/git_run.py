@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import subprocess
+
 from six import string_types
 
 
 class GitRun(object):
-
     def __init__(self, repo_path, debug=False):
         self.repo_path = repo_path
         self.debug = debug
@@ -33,8 +33,7 @@ class GitRun(object):
             e.g. "master" or "SHA_NUMBER"
         :return: List of name of items changed
         """
-        command = ['diff-index', '--name-only',
-                   '--cached', base_ref]
+        command = ['diff-index', '--name-only', '--cached', base_ref]
         res = self.run(command)
         items = res.decode('UTF-8').split('\n') if res else []
         return items
