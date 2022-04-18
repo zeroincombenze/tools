@@ -13,12 +13,10 @@ from threading import Lock
 
 try:
     import odoo.release as release
-
     __db_protocol__ = 'psycopg2'
 except ImportError:
     try:
         import openerp.release as release
-
         __db_protocol__ = 'psycopg2'
     except ImportError:
         release = ''
@@ -45,13 +43,11 @@ if release:
 else:
     try:
         import odoorpc  # noqa: F401
-
         __db_protocol__ = 'json'
     except ImportError:
         __db_protocol__ = ''
     try:
         import oerplib  # noqa: F401
-
         __db_protocol__ = 'xml' if not __db_protocol__ else 'json+xml'
     except ImportError:
         pass

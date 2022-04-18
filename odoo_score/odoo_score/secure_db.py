@@ -1,4 +1,5 @@
 #!/home/odoo/10.0/venv_odoo/bin/python
+# -*- coding: utf-8 -*-
 """
 Check for DB and connections security
 """

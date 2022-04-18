@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -2822,10 +2823,12 @@ def check_rec_links(ctx):
                     not in (
                         invoice_line.ddt_line_id.sale_line_id.order_id.partner_id.id,
                         (
-                            invoice_line.ddt_line_id.sale_line_id.order_id.partner_invoice_id.id
+                            invoice_line.ddt_line_id.sale_line_id.order_id.
+                            partner_invoice_id.id
                         ),
                         (
-                            invoice_line.ddt_line_id.sale_line_id.order_id.partner_shipping_id.id
+                            invoice_line.ddt_line_id.sale_line_id.order_id.
+                            partner_shipping_id.id
                         ),
                     )
                 )

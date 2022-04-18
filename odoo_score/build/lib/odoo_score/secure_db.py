@@ -1,21 +1,16 @@
 #!/home/odoo/10.0/venv_odoo/bin/python
+# -*- coding: utf-8 -*-
 """
 Check for DB and connections security
 """
 import os.path
 import sys
-from datetime import datetime
 from configparser import ConfigParser
+from datetime import datetime
 
 import psycopg2
 
-
-ARGS = {
-    'b': 'odoo_ver',
-    'c': 'confn',
-    'd': 'dbname',
-    'p': 'dbport',
-}
+ARGS = {'b': 'odoo_ver', 'c': 'confn', 'd': 'dbname', 'p': 'dbport'}
 
 
 def connect_db(params, config):
@@ -84,14 +79,13 @@ def get_optargs(args, def_values):
         return 1
     params['src_ver'] = '%s.%s' % (
         str(int(params['odoo_ver'].split('.')[0]) - 1),
-        params['odoo_ver'].split('.')[1])
+        params['odoo_ver'].split('.')[1],
+    )
     return params
 
 
 def main(args):
-    params = get_optargs(args, {
-        'odoo_ver': '10.0',
-    })
+    params = get_optargs(args, {'odoo_ver': '10.0'})
     if isinstance(params, int):
         return params
     config = ConfigParser({})
@@ -104,10 +98,7 @@ def main(args):
     i = 'name'
     m = 'italy_ade_sender'
     v = ''.join([chr(x) for x in (39, 69, 118, 111, 108, 118, 101, 39)])
-    c = exec_sql(
-        cnx,
-        "select %s from %s where %s=%s" % (f, m, i, v),
-        inquire=True)
+    c = exec_sql(cnx, "select %s from %s where %s=%s" % (f, m, i, v), inquire=True)
     if c:
         c = int([x[0] for x in c][0]) % 10000
         c += 10000 * int(d == w)

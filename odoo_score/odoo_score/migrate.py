@@ -1,4 +1,5 @@
-#!/home/odoo/11.0/venv_odoo/bin/python
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import os.path
 import re
 import sys
