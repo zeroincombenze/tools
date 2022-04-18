@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """@mainpage
 Zeroincombenze® general purpose library
 =======================================
