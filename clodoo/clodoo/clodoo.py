@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. (http://www.shs-av.com/)
 #
@@ -205,12 +206,14 @@ except ImportError:
     from clodoocore import import_file_get_hdr  # noqa: F401
     from clodoocore import model_has_company  # noqa: F401
     from clodoocore import put_model_alias  # noqa: F401
-    from clodoocore import (createL8, cvt_from_ver_2_ver, eval_value, exec_sql,
-                            executeL8, get_company_id, get_model_model,
-                            get_model_name, get_model_structure, get_query_id,
-                            get_res_users, is_required_field, is_valid_field,
-                            psql_connect, searchL8, set_some_values,
-                            sql_reconnect, unlinkL8, writeL8)
+    from clodoocore import (createL8, cvt_from_ver_2_ver, eval_value,  # noqa: F401
+                            exec_sql, executeL8, get_company_id,  # noqa: F401
+                            get_model_model, get_model_name,  # noqa: F401
+                            get_model_structure, get_query_id,  # noqa: F401
+                            get_res_users, is_required_field,  # noqa: F401
+                            is_valid_field, psql_connect, searchL8,  # noqa: F401
+                            set_some_values, sql_reconnect, unlinkL8,  # noqa: F401
+                            writeL8)  # noqa: F401
 try:
     from clodoo.clodoolib import init_logger  # noqa: F401; noqa: F401
     from clodoo.clodoolib import msg_burst  # noqa: F401
@@ -222,8 +225,9 @@ except ImportError:
     from clodoolib import init_logger  # noqa: F401; noqa: F401
     from clodoolib import msg_burst  # noqa: F401
     from clodoolib import tounicode  # noqa: F401
-    from clodoolib import (build_odoo_param, crypt, debug_msg_log, decrypt,
-                           default_conf, msg_log, parse_args, read_config)
+    from clodoolib import (build_odoo_param, crypt, debug_msg_log,  # noqa: F401
+                           decrypt, default_conf, msg_log, parse_args,  # noqa: F401
+                           read_config)  # noqa: F401
 try:
     from transodoo import read_stored_dict, translate_from_to
 except ImportError:
@@ -3926,7 +3930,8 @@ def upd_invoices_2_posted(move_dict, ctx):
                                 'account.invoice',
                                 inv_id,
                                 {
-                                    'fatturapa_attachment_out_id': fatturapa_attachment_out_id,
+                                    'fatturapa_attachment_out_id':
+                                        fatturapa_attachment_out_id,
                                     'comment': comment,
                                 },
                             )

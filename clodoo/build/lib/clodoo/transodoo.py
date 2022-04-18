@@ -31,15 +31,17 @@ the ttype 'value' has a more level for every field name:
 [pymodel]['value'][fldname][ver.name]
 """
 from __future__ import print_function, unicode_literals
-from past.builtins import basestring
-from python_plus import bstrings, unicodes
 
-import re
 import os
+import re
 import sys
-from openpyxl import load_workbook, Workbook
-from openpyxl.utils import get_column_letter
+
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
+from past.builtins import basestring
+
+from python_plus import bstrings, unicodes
 
 try:
     import jsonlib
@@ -107,11 +109,7 @@ def natstr(s):
 
 def get_pymodel(model, ttype=None):
     return (
-        {
-            "xref": "ir.model.data",
-            "model": "ir.model",
-            "module": "ir.module.module",
-        }
+        {"xref": "ir.model.data", "model": "ir.model", "module": "ir.module.module"}
         .get(ttype, model or "res.groups")
         .lower()
     )
@@ -264,19 +262,13 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
             or src_ver.startswith("powerp")
             or src_ver.startswith("zero")
         ):
-            name = {
-                "a15a": "00art15a",
-                "a15v": "00art15v",
-            }.get(src_name, src_name)
+            name = {"a15a": "00art15a", "a15v": "00art15v"}.get(src_name, src_name)
         elif src_ver.split(".")[0].isdigit() and (
             tgt_ver.startswith("librerp")
             or tgt_ver.startswith("powerp")
             or tgt_ver.startswith("zero")
         ):
-            name = {
-                "00art15a": "a15a",
-                "00art15v": "a15v",
-            }.get(src_name, src_name)
+            name = {"00art15a": "a15a", "00art15v": "a15v"}.get(src_name, src_name)
         else:
             name = src_name
     return name
@@ -560,11 +552,7 @@ def write_stored_dict(ctx):
     sheet.title = "transodoo"
     mindroot = ctx["mindroot"]
     rowid = 0
-    header = [
-        "model",
-        "name",
-        "type",
-    ]
+    header = ["model", "name", "type"]
     for ver in ALL_VERSIONS:
         header.append(ver)
     widths = {}
@@ -587,10 +575,7 @@ def write_stored_dict(ctx):
                 for hashed in iterate2:
                     if not is_hash(hashed):
                         continue
-                    line = {
-                        "model": model,
-                        "type": ttype,
-                    }
+                    line = {"model": model, "type": ttype}
                     if ttype == "name":
                         line["name"] = hashed
                     else:

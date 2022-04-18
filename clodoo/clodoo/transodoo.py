@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://ww.zeroincombenze.it>)
 #
