@@ -102,7 +102,6 @@ conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 # prepare_env_travis
-prepare_env_travis ""
 sts=$STS_SUCCESS
 
 if [ "$opt_sts" ]; then

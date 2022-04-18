@@ -2248,7 +2248,6 @@ conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 # prepare_env_travis
-# prepare_env_travis
 prepare_env_travis "$actions" "-r"
 sts=$STS_SUCCESS
 sts_bash=127

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Documentation generator
 
@@ -292,18 +293,18 @@ def get_full_fn(ctx, src_path, filename):
     return full_fn
 
 
-def iter_template_path(debug_mode=None, body=None):
+def iter_template_path(ctx, debug_mode=None, body=None):
     for src_path in (
         '.',
         './egg-info',
         './readme',
         './docs',
-        '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
-        '%s/devel/templates/${p}' % os.environ['HOME'],
-        '%s/devel/pypi/tools/templates' % os.environ['HOME'],
-        '%s/devel/templates' % os.environ['HOME'],
-        '%s/devel/venv/bin/templates/${p}' % os.environ['HOME'],
-        '%s/devel/venv/bin/templates' % os.environ['HOME'],
+        '%s/pypi/tools/templates/${p}' % ctx['HOME_DEVEL'],
+        '%s/templates/${p}' % ctx['HOME_DEVEL'],
+        '%s/pypi/tools/templates' % ctx['HOME_DEVEL'],
+        '%s/templates' % ctx['HOME_DEVEL'],
+        '%s/venv/bin/templates/${p}' % ctx['HOME_DEVEL'],
+        '%s/venv/bin/templates' % ctx['HOME_DEVEL'],
     ):
         if '/devel/pypi/tools/' in src_path and not debug_mode:
             continue
@@ -345,7 +346,8 @@ def get_template_fn(ctx, template, ignore_ntf=None):
             product_template = '%s_%s' % (ctx['product_doc'], template)
         else:
             layered_template = product_template = False
-        for src_path in iter_template_path(debug_mode=ctx['dbg_template'], body=body):
+        for src_path in iter_template_path(
+                ctx, debug_mode=ctx['dbg_template'], body=body):
             if body:
                 full_fn = get_full_fn(ctx, src_path, product_template)
                 if os.path.isfile(full_fn):
@@ -537,7 +539,7 @@ def tohtml(ctx, text, state=None):
     k = text.find('`', i + 1)
     while i >= 0 and (j > i or k > i):
         if k > 0 and (k < j or j < 0):
-            text = '%s<code>%s</code>%s' % (text[0:i], text[i + 1 : k], text[k + 1 :])
+            text = u'%s<code>%s</code>%s' % (text[0:i], text[i + 1 : k], text[k + 1 :])
         else:
             t = text[i + 1 : j]
             ii = t.find('<')
@@ -553,14 +555,14 @@ def tohtml(ctx, text, state=None):
                 if url.startswith('http') and not url.endswith('/'):
                     url += '/'
                 if (j + 3) < len(text):
-                    text = '%s<a href="%s">%s</a>%s' % (
+                    text = u'%s<a href="%s">%s</a>%s' % (
                         text[0:i],
                         url,
                         t[0 : ii - 1].strip(),
                         text[j + 3 :],
                     )
                 else:
-                    text = '%s<a href="%s">%s</a>' % (
+                    text = u'%s<a href="%s">%s</a>' % (
                         text[0:i],
                         url,
                         t[0 : ii - 1].strip(),
@@ -576,7 +578,7 @@ def tohtml(ctx, text, state=None):
     i = text.find('**')
     j = text.find('**', i + 2)
     while i > 0 and j > i:
-        text = '%s<b>%s</b>%s' % (text[0:i], text[i + 2 : j], text[j + 2 :])
+        text = u'%s<b>%s</b>%s' % (text[0:i], text[i + 2 : j], text[j + 2 :])
         i = text.find('**')
         j = text.find('**', i + 2)
     # Parse single line rst tags; remove trailing and tailing empty lines
@@ -689,7 +691,7 @@ def tohtml(ctx, text, state=None):
                 i = lines[lineno].find('*')
                 j = lines[lineno].find('*', i + 1)
                 while i > 0 and j > i:
-                    lines[lineno] = '%s<i>%s</i>%s' % (
+                    lines[lineno] = u'%s<i>%s</i>%s' % (
                         lines[lineno][0:i],
                         lines[lineno][i + 1 : j],
                         lines[lineno][j + 1 :],
@@ -1495,10 +1497,10 @@ def read_all_manifests(ctx, path=None, module2search=None):
                             )
     if not module2search:
         if ctx['odoo_layer'] == 'ocb':
-            oca_root = '%s/oca%d' % (os.environ['HOME'], ctx['odoo_majver'])
+            oca_root = '%s/oca%d' % (ctx['ODOO_ROOT'], ctx['odoo_majver'])
         else:
             oca_root = '%s/oca%d/%s' % (
-                os.environ['HOME'],
+                ctx['ODOO_ROOT'],
                 ctx['odoo_majver'],
                 ctx['repos_name'],
             )
@@ -1788,16 +1790,16 @@ def set_default_values(ctx):
         '`Zeroincombenze Tools ' '<https://zeroincombenze-tools.readthedocs.io/>`__'
     )
     if ctx['odoo_layer'] == 'ocb':
-        ctx['local_path'] = '%s/%s' % (os.environ['HOME'], ctx['branch'])
+        ctx['local_path'] = '%s/%s' % (ctx['ODOO_ROOT'], ctx['branch'])
     elif ctx['odoo_layer'] == 'repository':
         ctx['local_path'] = '%s/%s/%s/' % (
-            os.environ['HOME'],
+            ctx['ODOO_ROOT'],
             ctx['branch'],
             ctx['repos_name'],
         )
     else:
         ctx['local_path'] = '%s/%s/%s/' % (
-            os.environ['HOME'],
+            ctx['ODOO_ROOT'],
             ctx['branch'],
             ctx['repos_name'],
         )
@@ -2014,6 +2016,9 @@ def generate_readme(ctx):
             read_manifest(ctx)
         return ctx
 
+    ctx['HOME_DEVEL'] = os.environ.get('HOME_DEVEL') or os.path.join(
+        os.environ['HOME'], 'devel')
+    ctx['ODOO_ROOT'] = os.path.abspath(os.path.join(ctx['HOME_DEVEL'], '..'))
     for section in (
         'histories',
         'history-summary',

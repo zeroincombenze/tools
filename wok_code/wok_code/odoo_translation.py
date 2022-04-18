@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Action may be:
 - Dictionary
@@ -76,8 +77,8 @@ PROTECT_TOKENS = [
     'Uninstall',
     'Update',
     (
-        'You can either upload a file from your computer or copy/paste an internet link '
-        'to your file'
+        'You can either upload a file from your computer or '
+        'copy/paste an internet link to your file'
     ),
 ]
 msg_time = time.time()
