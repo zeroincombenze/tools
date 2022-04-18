@@ -22,7 +22,7 @@ python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 # - requests: oca-maintainers-tools -> '==2.3.0',
 #             codecov -> '>=2.7.9'
 # Here we assume: Odoo 11.0 use python 3.5, Odoo 12.0 uses python 3.7
-# If version is 2.7 or 3.5 otr 3.6 or 3.7 the it refers to python version
+# If version is 2.7 or 3.5 or 3.6 or 3.7 or 3.8 then it refers to python version
 REQVERSION = {
     "acme_tiny": {"6.1": ">=4.0.3"},
     "argparse": {"0": "==1.2.1"},
@@ -31,7 +31,7 @@ REQVERSION = {
     "Babel": {"6.1": "==1.3", "8.0": "==2.3.4"},
     "beautifulsoup": {"6.1": "==3.2.1"},
     "codicefiscale": {"6.1": "==0.9"},
-    "coverage": {"0": "<5.0.0"},
+    "coverage": {"2.7": "<5.0.0", "3.5": ">=5.0.0"},
     "cryptography": {"6.1": ">=2.2.2"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
     "docutils": {"6.1": "==0.12", "0": "==0.14"},  # Version by test pkgs
@@ -392,7 +392,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
             if pyver in REQVERSION[item]:
                 min_v = pyver
             elif pyver and pyver.startswith("3"):
-                for v in ("3.7", "3.6", "3.5"):
+                for v in ("3.8", "3.7", "3.6", "3.5"):
                     if v in REQVERSION[item]:
                         min_v = v
                         break
@@ -423,13 +423,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         item = item[1:-1]
     if full_item.startswith("'"):
         full_item = full_item[1:-1]
-    full_item = (
-        full_item.strip()
-        .replace(" =", "=")
-        .replace("= ", "=")
-        .replace(" >", ">")
-        .replace("> ", ">")
-    )
+    full_item = re.sub(' *([<=>]+) *', r'\1', full_item.strip())
     full_item = FORCE_ALIAS.get(full_item, full_item)
     return item, full_item, defver
 
