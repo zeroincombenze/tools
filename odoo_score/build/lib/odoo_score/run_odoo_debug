@@ -154,20 +154,6 @@ VDIR=$(build_odoo_param VDIR $odoo_root)
 GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_root)
 manifest=$(build_odoo_param MANIFEST $odoo_vid)
 [[ $opt_verbose -gt 0 && -n "$VDIR" ]] && echo "# Found $VDIR virtual directory"
-if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-  cov=$(which coverage 2>/dev/null)
-  if [[ -n $cov ]]; then
-    [[ ! -d $HOME/coverage ]] && mkdir $HOME/coverage
-    [[ -n $opt_modules ]] && COVERAGE_FILE="${opt_modules}_${opt_branch}"
-    if [[ -n $COVERAGE_FILE ]]; then
-      COVERAGE_FILE="$HOME/coverage/$COVERAGE_FILE"
-      COVERAGE_RCFILE="$HOME/coverage/${opt_modules}rc"
-      [[ -s $COVERAGE_RCFILE ]] || coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
-      [[ -n "$coverage_tmpl" ]] && cp $coverage_tmpl $COVERAGE_RCFILE
-      sed -E "s|^ *\*.py|    */$opt_modules/*|" -i $COVERAGE_RCFILE
-    fi
-  fi
-fi
 
 create_db=0
 drop_db=0
@@ -379,6 +365,24 @@ if [[ $opt_touch -eq 0 ]]; then
         if [[ $opt_dry_run -eq 0 ]]; then
           cd $VDIR
           source ./bin/activate
+          if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
+            cov=$(which coverage 2>/dev/null)
+            [[ -z $cov ]] && run_traced "pip install coverage"
+            cov=$(which coverage 2>/dev/null)
+            if [[ -n $cov ]]; then
+              v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
+              [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
+              [[ ! -d $HOME/coverage ]] && mkdir $HOME/coverage
+              [[ -n $opt_modules ]] && export COVERAGE_FILE="${opt_modules}_${opt_branch}"
+              if [[ -n $COVERAGE_FILE ]]; then
+                export COVERAGE_FILE="$HOME/coverage/$COVERAGE_FILE"
+                COVERAGE_RCFILE="$HOME/coverage/${opt_modules}rc"
+                [[ -s $COVERAGE_RCFILE ]] || coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
+                [[ -n "$coverage_tmpl" ]] && cp $coverage_tmpl $COVERAGE_RCFILE
+                sed -E "s|^ *\*.py|    */$opt_modules/*|" -i $COVERAGE_RCFILE
+              fi
+            fi
+          fi
         fi
     fi
     [[ ! -f "$CONFN" ]] && run_traced "$script -s --stop-after-init"
@@ -423,7 +427,8 @@ if [[ $opt_touch -eq 0 ]]; then
     fi
 
     if [[ -n $COVERAGE_RCFILE ]]; then
-      run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS"
+      v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
+      [[ $v -ge 6 ]] && run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS" || run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS"
     else
       run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
     fi
@@ -446,6 +451,7 @@ if [[ $opt_touch -eq 0 ]]; then
         echo "# Translation imported from '$src' file"
     fi
     if [[ -n $COVERAGE_RCFILE ]]; then
-      coverage report --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE -m
+      v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
+      [[ $v -ge 6 ]] && coverage report --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE -m || coverage report --rcfile=$COVERAGE_RCFILE -m
     fi
 fi
