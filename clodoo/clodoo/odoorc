@@ -404,11 +404,11 @@ build_odoo_param() {
     fi
     if [[ -z $ROOT ]]; then
         if [[ $MULTIVER -eq 0 || $exorg -eq 0 || $main -ne 0 || -z $GIT_ORGID || $GIT_ORGID == "odoo" || $odo_vid =~ $ref || $odoo_vid =~ $reo ]]; then
-            [ $VENV -ne 0 ] && ROOT=$ODOO_ROOT/$odoo_vid/odoo || ROOT=$ODOO_ROOT/$odoo_vid
+            [[ $VENV -ne 0 ]] && ROOT=$ODOO_ROOT/$odoo_vid/odoo || ROOT=$ODOO_ROOT/$odoo_vid
         elif [[ $GIT_ORGID =~ $SHORT ]]; then
-            [ $VENV -ne 0 ] && ROOT=$ODOO_ROOT/${GIT_ORGID}${MAJVER}/odoo || ROOT=$ODOO_ROOT/${GIT_ORGID}${MAJVER}
+            [[ $VENV -ne 0 ]] && ROOT=$ODOO_ROOT/${GIT_ORGID}${MAJVER}/odoo || ROOT=$ODOO_ROOT/${GIT_ORGID}${MAJVER}
         else
-            [ $VENV -ne 0 ] && ROOT=$ODOO_ROOT/odoo$MAJVER-$GIT_ORGID/odoo || ROOT=$ODOO_ROOT/odoo$MAJVER-$GIT_ORGID
+            [[ $VENV -ne 0 ]] && ROOT=$ODOO_ROOT/odoo$MAJVER-$GIT_ORGID/odoo || ROOT=$ODOO_ROOT/odoo$MAJVER-$GIT_ORGID
         fi
     fi
     if [[ -z $PKGPATH ]]; then
@@ -458,7 +458,7 @@ build_odoo_param() {
     [[ -z "$RUPSTREAM" ]] && RUPSTREAM=$GIT_URL
     if [[ $main -ne 0 ]]; then
         DB_USER="odoo"
-    elif [ $MAJVER -lt 8 -a $USER == "openerp" ]; then
+    elif [[ $MAJVER -lt 8 && $USER == "openerp" ]]; then
         DB_USER="openerp"
     elif [[ $MULTIVER -ne 0 ]]; then
         DB_USER=${ODOO_DB_USER/\%(MAJVER)s/$MAJVER}
@@ -466,7 +466,7 @@ build_odoo_param() {
     else
         DB_USER="odoo"
     fi
-    [[ -z "$VDIR" ]] && VDIR="$ODOO_ROOT/VENV-$FULLVER"
+    [[ -z "$VDIR" ]] && VDIR="$ODOO_ROOT/$FULLVER/venv_odoo"
     if [[ "$ITEM" =~ ^(DB_USER|FULLVER|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|MAJVER|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RUPSTREAM|URL|URL_BRANCH|VCS|VDIR|VENV)$ ]]; then
         echo "${!ITEM}"
         $SETX
