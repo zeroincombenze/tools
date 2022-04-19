@@ -372,11 +372,11 @@ if [[ $opt_touch -eq 0 ]]; then
             if [[ -n $cov ]]; then
               v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
               [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
-              [[ ! -d $HOME/coverage ]] && mkdir $HOME/coverage
+              [[ ! -d $ODOO_RUNDIR/coverage ]] && mkdir $ODOO_RUNDIR/coverage
               [[ -n $opt_modules ]] && export COVERAGE_FILE="${opt_modules}_${opt_branch}"
               if [[ -n $COVERAGE_FILE ]]; then
-                export COVERAGE_FILE="$HOME/coverage/$COVERAGE_FILE"
-                COVERAGE_RCFILE="$HOME/coverage/${opt_modules}rc"
+                export COVERAGE_FILE="$ODOO_RUNDIR/coverage/$COVERAGE_FILE"
+                COVERAGE_RCFILE="$ODOO_RUNDIR/coverage/${opt_modules}rc"
                 [[ -s $COVERAGE_RCFILE ]] || coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
                 [[ -n "$coverage_tmpl" ]] && cp $coverage_tmpl $COVERAGE_RCFILE
                 sed -E "s|^ *\*.py|    */$opt_modules/*|" -i $COVERAGE_RCFILE
