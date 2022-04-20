@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 import os
-from datetime import datetime
 import re
+from datetime import datetime
 
 COPY = {
     'zero': {
@@ -33,14 +32,10 @@ COPY = {
         'github-user': 'iw3hxn',
     },
 }
-ALIAS = {
-    'shs-av': 'shs',
-    'zeroincombenze': 'zero'
-}
+ALIAS = {'shs-av': 'shs', 'zeroincombenze': 'zero'}
 
 
 class License:
-
     def __init__(self, path=None):
         self.org_ids = {}
         self.authors = {}
@@ -84,20 +79,21 @@ class License:
         for name in self.authors.copy().keys():
             website = self.authors[name][1]
             for org_id in self.org_ids.keys():
-                if (name == self.org_ids[org_id][0] or
-                        website == self.org_ids[org_id][1]):
+                if (
+                    name == self.org_ids[org_id][0]
+                    or website == self.org_ids[org_id][1]
+                ):
                     del self.authors[name]
                     break
         for name in self.contributors.copy().keys():
             email = self.contributors[name][1]
             for org_id in self.org_ids.keys():
-                if (name == self.org_ids[org_id][0] or
-                        email == self.org_ids[org_id][2]):
+                if name == self.org_ids[org_id][0] or email == self.org_ids[org_id][2]:
                     del self.contributors[name]
                     break
 
     def extract_info_from_line(self, line):
-        """"Return org_id, name, website, email, years from line"""
+        """ "Return org_id, name, website, email, years from line"""
 
         def from_rst_line(line):
             org_id = False
@@ -109,17 +105,17 @@ class License:
                 ii = line.find('(')
                 jj = line.find(')')
             if 0 <= ii < jj and jj >= 0:
-                name = line[0: ii].strip()
-                url = line[ii + 1: jj]
+                name = line[0:ii].strip()
+                url = line[ii + 1 : jj]
                 url = url.replace('http:', 'https:')
                 if url.endswith('/'):
-                    url = url[0: -1]
+                    url = url[0:-1]
                 if '@' in url or url.startswith('https://github.com/'):
                     email = url
                     if not name:
                         name = ' '.join(
-                            [x.capitalize()
-                             for x in email.split('@')[0].split('.')])
+                            [x.capitalize() for x in email.split('@')[0].split('.')]
+                        )
                 else:
                     website = '.'.join(os.path.basename(url).split('.')[-2:])
                     for kk, item in COPY.items():
@@ -141,7 +137,7 @@ class License:
 
         def from_comment_line(line):
             head = r'^ *([Cc]opyright|\([Cc]\)|©)'
-            rex = '%s%s' % (head[0: -1], r'|http:|https:|\w+\@[a-zA-z0-9-.]+)')
+            rex = '%s%s' % (head[0:-1], r'|http:|https:|\w+\@[a-zA-z0-9-.]+)')
             org_id = False
             name = False
             website = False
@@ -167,21 +163,14 @@ class License:
                                 else:
                                     ii += ipos
                                 if line[ipos:ii] == str(self.cur_year)[2:]:
-                                    years = '%s-%s' % (
-                                        years, line[ipos:ii])
+                                    years = '%s-%s' % (years, line[ipos:ii])
                                 else:
-                                    years = '%s-%s' % (
-                                        years, str(self.cur_year)[-2:])
+                                    years = '%s-%s' % (years, str(self.cur_year)[-2:])
                             elif years != str(self.cur_year):
-                                years = '%s-%s' % (
-                                    years,
-                                    str(self.cur_year)[-2:])
+                                years = '%s-%s' % (years, str(self.cur_year)[-2:])
                         elif years != str(self.cur_year):
-                            years = '%s-%s' % (
-                                years,
-                                str(self.cur_year)[-2:])
-                org_id, name, website, email = from_rst_line(
-                    line[ipos:].strip())
+                            years = '%s-%s' % (years, str(self.cur_year)[-2:])
+                org_id, name, website, email = from_rst_line(line[ipos:].strip())
             return org_id, name, website, email, years
 
         line = line.replace('`__', '').replace('`', '')

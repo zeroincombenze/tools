@@ -9,8 +9,9 @@
 # import pdb
 import os
 import sys
-from zerobug import z0test, z0testodoo
+
 from wok_code import license_mgnt
+from zerobug import z0test, z0testodoo
 
 __version__ = "1.0.9"
 
@@ -40,8 +41,7 @@ MANIFEST_2 = """{
 }"""
 
 
-class RegressionTest():
-
+class RegressionTest:
     def __init__(self, z0bug):
         self.Z = z0bug
 
@@ -78,19 +78,20 @@ class RegressionTest():
     def prepare_env(self, z0ctx, odoo_ver=None, step=None):
         step = step or 1
         if not odoo_ver:
-            raise(ValueError, 'No odoo version supplied')
+            raise (ValueError, 'No odoo version supplied')
         odoo_root = z0testodoo.build_odoo_env(z0ctx, odoo_ver)
         odoo_root = os.path.join(odoo_root, odoo_ver)
-        for ldir in (['egg-info'],
-                     ['test_repository'],
-                     ['test_repository', 'egg-info'],
-                     ['test_repository', 'test_module'],
-                     ['test_repository', 'test_module', 'egg-info']):
+        for ldir in (
+            ['egg-info'],
+            ['test_repository'],
+            ['test_repository', 'egg-info'],
+            ['test_repository', 'test_module'],
+            ['test_repository', 'test_module', 'egg-info'],
+        ):
             path = os.path.join(odoo_root, *ldir)
             if not os.path.isdir(path):
                 os.mkdir(path)
-        path = os.path.join(
-            odoo_root, 'test_repository', 'test_module', 'egg-info')
+        path = os.path.join(odoo_root, 'test_repository', 'test_module', 'egg-info')
         if step == 1:
             self.create_file_author_1(path)
             self.create_file_contributor_1(path)
@@ -115,18 +116,15 @@ class RegressionTest():
             author = license.summary_authors()
             website = license.get_website()
             devman = license.get_maintainer()
-        sts += self.Z.test_result(z0ctx,
-                                  'License author',
-                                  'powERP enterprise network',
-                                  author)
-        sts += self.Z.test_result(z0ctx,
-                                  'License website',
-                                  'https://www.powerp.it',
-                                  website)
-        sts += self.Z.test_result(z0ctx,
-                                  'License maintainer',
-                                  'powERP enterprise network',
-                                  devman)
+        sts += self.Z.test_result(
+            z0ctx, 'License author', 'powERP enterprise network', author
+        )
+        sts += self.Z.test_result(
+            z0ctx, 'License website', 'https://www.powerp.it', website
+        )
+        sts += self.Z.test_result(
+            z0ctx, 'License maintainer', 'powERP enterprise network', devman
+        )
         return sts
 
     def test_02(self, z0ctx):
@@ -140,26 +138,23 @@ class RegressionTest():
             author = license.summary_authors()
             website = license.get_website()
             devman = license.get_maintainer()
-        sts += self.Z.test_result(z0ctx,
-                                  'License author',
-                                  'powERP enterprise network, SHS-AV s.r.l.',
-                                  author)
-        sts += self.Z.test_result(z0ctx,
-                                  'License website',
-                                  'https://www.powerp.it',
-                                  website)
-        sts += self.Z.test_result(z0ctx,
-                                  'License maintainer',
-                                  'powERP enterprise network',
-                                  devman)
+        sts += self.Z.test_result(
+            z0ctx, 'License author', 'powERP enterprise network, SHS-AV s.r.l.', author
+        )
+        sts += self.Z.test_result(
+            z0ctx, 'License website', 'https://www.powerp.it', website
+        )
+        sts += self.Z.test_result(
+            z0ctx, 'License maintainer', 'powERP enterprise network', devman
+        )
         return sts
 
 
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    exit(z0test.main_local(
-        z0test.parseoptest(
-            sys.argv[1:],
-            version=version()),
-        RegressionTest))
+    exit(
+        z0test.main_local(
+            z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
+        )
+    )

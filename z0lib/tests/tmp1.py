@@ -1,4 +1,6 @@
+# flake8: noqa - pylint: skip-file
 import os
+
 fn = os.path.join(os.path.dirname(__file__), 'tmp.py')
 with open(fn, 'r') as fd:
     tgt = 'C=\'"$TDIR"\'\\nD=\'"$HOME_DEVEL"\'\\n'

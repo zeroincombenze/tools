@@ -16,20 +16,19 @@ Area managed:
 
 @author: Antonio M. Vigliotti antoniomaria.vigliotti@gmail.com
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from future import standard_library
+import argparse
+import configparser
+import inspect
+import os
 # from builtins import *                                             # noqa: F403
 from builtins import object
-import os
-import argparse
-import inspect
-import configparser
 
-standard_library.install_aliases()                                 # noqa: E402
+from future import standard_library
+
+standard_library.install_aliases()  # noqa: E402
 
 
 # Apply for configuration file (True/False)
@@ -37,12 +36,14 @@ APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
 CONF_FN = "./clodoo.conf"
 # Read Odoo configuration file (False or /etc/odoo-server.conf)
-ODOO_CONF = ["/etc/odoo/odoo-server.conf",
-             "/etc/odoo-server.conf",
-             "/etc/openerp/openerp-server.conf",
-             "/etc/openerp-server.conf",
-             "/etc/odoo/openerp-server.conf",
-             "/etc/openerp/odoo-server.conf"]
+ODOO_CONF = [
+    "/etc/odoo/odoo-server.conf",
+    "/etc/odoo-server.conf",
+    "/etc/openerp/openerp-server.conf",
+    "/etc/openerp-server.conf",
+    "/etc/odoo/openerp-server.conf",
+    "/etc/openerp/odoo-server.conf",
+]
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
@@ -54,20 +55,15 @@ def nakedname(path):
 
 
 class CountAction(argparse.Action):
-
-    def __init__(self,
-                 option_strings,
-                 dest,
-                 default=None,
-                 required=False,
-                 help=None):
+    def __init__(self, option_strings, dest, default=None, required=False, help=None):
         super(CountAction, self).__init__(
             option_strings=option_strings,
             dest=dest,
             nargs=0,
             default=default,
             required=required,
-            help=help)
+            help=help,
+        )
 
     def __call__(self, parser, namespace, values, option_string=None):
         # new_count = argparse._ensure_value(namespace, self.dest, 0)
@@ -78,10 +74,8 @@ class CountAction(argparse.Action):
 
 
 class parseoptargs(object):
-
     def __init__(self, *args, **kwargs):
-        self.parser = argparse.ArgumentParser(description=args[0],
-                                              epilog=args[1])
+        self.parser = argparse.ArgumentParser(description=args[0], epilog=args[1])
         if 'version' in kwargs:
             self.version = kwargs['version']
         self.param_list = []
@@ -111,30 +105,35 @@ class parseoptargs(object):
             if len(args) == 1:
                 if args[0] == '-n' or args[0] == '--dry-run':
                     self.parser.add_argument(
-                        '-n', '--dry-run',
+                        '-n',
+                        '--dry-run',
                         help='do nothing (dry-run)',
                         action='store_true',
                         dest='dry_run',
-                        default=False)
+                        default=False,
+                    )
                     self.param_list.append('dry_run')
                 elif args[0] == '-q' or args[0] == '--quite':
                     self.parser.add_argument(
-                        '-q', '--quiet',
+                        '-q',
+                        '--quiet',
                         help="silent mode",
                         action=CountAction,
-                        dest="opt_verbose",)
+                        dest="opt_verbose",
+                    )
                     self.param_list.append('opt_verbose')
                 elif args[0] == '-V' or args[0] == '--version':
                     self.parser.add_argument(
-                        '-V', '--version',
-                        action='version',
-                        version=self.version)
+                        '-V', '--version', action='version', version=self.version
+                    )
                 elif args[0] == '-v' or args[0] == '--verbose':
                     self.parser.add_argument(
-                        '-v', '--verbose',
+                        '-v',
+                        '--verbose',
                         help="verbose mode",
                         action=CountAction,
-                        dest="opt_verbose")
+                        dest="opt_verbose",
+                    )
                     self.param_list.append('opt_verbose')
                 else:
                     raise NotImplementedError
@@ -218,8 +217,9 @@ class parseoptargs(object):
         ctx['_conf_obj'] = conf_obj
         return ctx
 
-    def parseoptargs(self, arguments,
-                     apply_conf=APPLY_CONF, version=None, tlog=None, doc=None):
+    def parseoptargs(
+        self, arguments, apply_conf=APPLY_CONF, version=None, tlog=None, doc=None
+    ):
         """Parse command-line options.
         @param arguments list of arguments; should argv from command line
         @param version   software version to displya with -V option
@@ -232,7 +232,7 @@ class parseoptargs(object):
         ctx['this'] = this
         if os.isatty(0):
             ctx['run_daemon'] = False
-        else:                                               # pragma: no cover
+        else:  # pragma: no cover
             ctx['run_daemon'] = True
         ctx['run_tty'] = os.isatty(0)
         if tlog:

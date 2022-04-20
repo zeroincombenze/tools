@@ -1,11 +1,11 @@
-#!/home/odoo/11.0/venv_odoo/bin/python
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import os.path
-import sys
 import re
+import sys
 from configparser import ConfigParser
 
 import psycopg2
-
 
 ARGS = {
     'b': 'tgt_ver',
@@ -83,21 +83,22 @@ def get_optargs(args, def_values):
         return 1
     params['src_ver'] = '%s.%s' % (
         str(int(params['tgt_ver'].split('.')[0]) - 1),
-        params['tgt_ver'].split('.')[1])
+        params['tgt_ver'].split('.')[1],
+    )
     return params
 
 
 def ismodule(path):
     if os.path.isdir(path):
-        if ((os.path.join(path, '__manifest__.py') or
-                os.path.join(path, '__openerp__.py')) and
-                os.path.join(path, '__init__.py')):
+        if (
+            os.path.join(path, '__manifest__.py')
+            or os.path.join(path, '__openerp__.py')
+        ) and os.path.join(path, '__init__.py'):
             return True
     return False
 
 
 def get_modules_info(params, config, installed_modules=None):
-
     def search_module(params, addons_path, offn):
         module = os.path.basename(offn)
         ffn = offn.replace(params['src_ver'], params['tgt_ver'])
@@ -151,12 +152,9 @@ def copy_confn(params, oupg_path, addons_path):
         '^addons_path *=.*',
         'addons_path = %s' % ','.join(addons_path),
         config,
-        flags=re.MULTILINE)
-    config = re.sub(
-        '^db_user *=.*',
-        'db_user = odoo',
-        config,
-        flags=re.MULTILINE)
+        flags=re.MULTILINE,
+    )
+    config = re.sub('^db_user *=.*', 'db_user = odoo', config, flags=re.MULTILINE)
     new_confn = os.path.join(oupg_path, 'odoo.conf')
     with open(new_confn, 'w') as fd:
         fd.write(config)
@@ -164,25 +162,24 @@ def copy_confn(params, oupg_path, addons_path):
 
 
 def main(args):
-    params = get_optargs(args, {
-        'tgt_ver': '11.0',
-        'src_org': 'zero',
-        'tgt_org': 'oca',
-    })
+    params = get_optargs(args, {'tgt_ver': '11.0', 'src_org': 'zero', 'tgt_org': 'oca'})
     if isinstance(params, int):
         return params
     config = ConfigParser({})
     config.read(params['confn'])
     cnx = connect_db(params, config)
     installed_modules = exec_sql(
-        cnx,
-        "select name from ir_module_module where state='installed'",
-        inquire=True)
+        cnx, "select name from ir_module_module where state='installed'", inquire=True
+    )
     if installed_modules:
         installed_modules = [x[0] for x in installed_modules]
-    (odoo_root, oupg_path, addon_path,
-     modules_list, modules_2_ignore) = get_modules_info(
-        params, config, installed_modules=installed_modules)
+    (
+        odoo_root,
+        oupg_path,
+        addon_path,
+        modules_list,
+        modules_2_ignore,
+    ) = get_modules_info(params, config, installed_modules=installed_modules)
     # exec_sql(
     #     cnx,
     #     "update ir_module_module set state='uninstalled' where name in (%s)" %

@@ -4,7 +4,9 @@
 """
 
 from __future__ import print_function
+
 import sys
+
 # import pdb
 
 __version__ = "1.0.9"
@@ -50,14 +52,15 @@ with open(params['file'], 'rU') as fd:
         elif line.startswith('"# *'):
             potext += r'"# %s\n"' % params['module'] + '\n'
         elif line.startswith('"Project-Id-Version:'):
-            potext += r'"Project-Id-Version: Odoo (%s)\n"' % params[
-                'branch'] + '\n'
+            potext += r'"Project-Id-Version: Odoo (%s)\n"' % params['branch'] + '\n'
         elif line.startswith('"Last-Translator:'):
-            potext += r'"Last-Translator: %s <%s>\n"' % (
-                LAST_TNL_NAME, LAST_TNL_MAIL) + '\n'
+            potext += (
+                r'"Last-Translator: %s <%s>\n"' % (LAST_TNL_NAME, LAST_TNL_MAIL) + '\n'
+            )
         elif line.startswith('"Language-Team:'):
-            potext += r'"Language-Team: %s (%s)\n"' % (
-                LAST_TEAM_NAME, LAST_TEAM_URL) + '\n'
+            potext += (
+                r'"Language-Team: %s (%s)\n"' % (LAST_TEAM_NAME, LAST_TEAM_URL) + '\n'
+            )
             potext += r'"Language: it_IT\n"' + '\n'
         elif line.startswith('"Language:'):
             pass

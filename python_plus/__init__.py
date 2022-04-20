@@ -3,6 +3,7 @@ from past.builtins import basestring, long
 from future.utils import PY2, PY3, with_metaclass
 from datetime import date, timedelta
 import calendar
+
 # import sys
 
 
@@ -25,13 +26,13 @@ elif PY2:
     bytestr_type = str
 
 
-def isunicode(object):                              # pylint: disable=redefined-builtin
+def isunicode(object):  # pylint: disable=redefined-builtin
     if PY2:
         return isinstance(object, unicode)
     return isinstance(object, str)
 
 
-def isbytestr(object):                              # pylint: disable=redefined-builtin
+def isbytestr(object):  # pylint: disable=redefined-builtin
     if PY2:
         return isinstance(object, str)
     return isinstance(object, bytes)
@@ -125,8 +126,9 @@ def qsplit(*args, **kwargs):
             sts = ch
             if enquote:
                 item += ch
-        elif ((isinstance(sep, (tuple, list)) and ch in sep) or
-              (isinstance(sep, basestring) and ch == sep)):
+        elif (isinstance(sep, (tuple, list)) and ch in sep) or (
+            isinstance(sep, basestring) and ch == sep
+        ):
             if strip:
                 result.append(item.strip())
             else:
@@ -142,6 +144,7 @@ def qsplit(*args, **kwargs):
     if isinstance(src, bytestr_type):
         return bstrings(result)
     return result
+
 
 # if PY3:
 #     def qsplit(src, sep=None, maxsplit=-1,
@@ -232,29 +235,23 @@ def compute_date(value, refdate=None):
         while items[2] < 1:
             items[1] -= 1
             items = cur_prior_month(items)
-            dd = calendar.monthrange(items[0],
-                                     items[1])[1]
+            dd = calendar.monthrange(items[0], items[1])[1]
             items[2] += dd
         items = cur_prior_month(items)
         items = cur_next_month(items)
         if items[2] == 99:
-            items[2] = calendar.monthrange(items[0],
-                                           items[1])[1]
-        while items[2] > calendar.monthrange(items[0],
-                                             items[1])[1]:
-            items[2] -= calendar.monthrange(items[0],
-                                            items[1])[1]
+            items[2] = calendar.monthrange(items[0], items[1])[1]
+        while items[2] > calendar.monthrange(items[0], items[1])[1]:
+            items[2] -= calendar.monthrange(items[0], items[1])[1]
             items[1] += 1
             items = cur_next_month(items)
-        value = '%04d-%02d-%02d' % (
-            items[0], items[1], items[2])
+        value = '%04d-%02d-%02d' % (items[0], items[1], items[2])
     if tm:
         value = '%s%s%s' % (value, sep, tm)
     return value
 
 
 class Base__(type):
-
     def __instancecheck__(cls, instance):
         if cls == __:
             return isinstance(instance, text_type)
@@ -263,8 +260,15 @@ class Base__(type):
 
 
 class __(object, with_metaclass(Base__, text_type)):
-
-    def qsplit(self, sep=None, maxsplit=-1,
-               quotes=None, escape=None, enquote=None, strip=None):
-        return qsplit(self, sep=sep, maxsplit=maxsplit, quotes=quotes,
-                      escape=escape, enquote=enquote, strip=strip)
+    def qsplit(
+        self, sep=None, maxsplit=-1, quotes=None, escape=None, enquote=None, strip=None
+    ):
+        return qsplit(
+            self,
+            sep=sep,
+            maxsplit=maxsplit,
+            quotes=quotes,
+            escape=escape,
+            enquote=enquote,
+            strip=strip,
+        )

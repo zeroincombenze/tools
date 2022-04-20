@@ -12,23 +12,19 @@
 # import pytest
 from clodoo import transodoo
 
-__version__ = '1.0.3'
+__version__ = "1.0.3"
 
 
 class TestClass:
-
     def test_version_zerobug(self):
         ctx = {}
-        ctx['mindroot'] = transodoo.read_stored_dict(ctx)
-        model = 'account.account.type'
-        item = 'report_type'
-        src_ver = '6.1'
-        tgt_ver = '10.0'
-        ttype = 'field'
-        tnl_item = transodoo.translate_from_to(ctx,
-                                               model,
-                                               item,
-                                               src_ver,
-                                               tgt_ver,
-                                               ttype=ttype)
-        assert tnl_item == 'type'
+        ctx["mindroot"] = transodoo.read_stored_dict(ctx)
+        model = "account.account.type"
+        item = "report_type"
+        src_ver = "6.1"
+        tgt_ver = "10.0"
+        ttype = "field"
+        tnl_item = transodoo.translate_from_to(
+            ctx, model, item, src_ver, tgt_ver, ttype=ttype
+        )
+        assert tnl_item == "type"

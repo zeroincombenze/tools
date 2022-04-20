@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Documentation generator
 
@@ -80,25 +80,27 @@ warning
 xml_schema
 """
 
-from __future__ import print_function, unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-from future import standard_library
-from past.builtins import basestring
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import ast
 import os
 import re
 import sys
 from datetime import datetime
 from shutil import copyfile
+
+from future import standard_library
 from lxml import etree
+from past.builtins import basestring
 
 try:
     from wok_code.scripts import license_mgnt
 except ImportError:
     from .wok_code.scripts import license_mgnt
-from python_plus import unicodes
+
 from os0 import os0
+from python_plus import unicodes
 
 try:
     from z0lib import z0lib
@@ -208,9 +210,7 @@ DEFINED_GRYMB_SYMBOLS = {
         'blob/master/certificates/ade/scope/fatturapa.md',
     ],
 }
-EXCLUDED_MODULES = [
-    'lxml',
-]
+EXCLUDED_MODULES = ['lxml']
 MANIFEST_ITEMS = (
     'name',
     'version',
@@ -293,18 +293,18 @@ def get_full_fn(ctx, src_path, filename):
     return full_fn
 
 
-def iter_template_path(debug_mode=None, body=None):
+def iter_template_path(ctx, debug_mode=None, body=None):
     for src_path in (
         '.',
         './egg-info',
         './readme',
         './docs',
-        '%s/devel/pypi/tools/templates/${p}' % os.environ['HOME'],
-        '%s/devel/templates/${p}' % os.environ['HOME'],
-        '%s/devel/pypi/tools/templates' % os.environ['HOME'],
-        '%s/devel/templates' % os.environ['HOME'],
-        '%s/devel/venv/bin/templates/${p}' % os.environ['HOME'],
-        '%s/devel/venv/bin/templates' % os.environ['HOME'],
+        '%s/pypi/tools/templates/${p}' % ctx['HOME_DEVEL'],
+        '%s/templates/${p}' % ctx['HOME_DEVEL'],
+        '%s/pypi/tools/templates' % ctx['HOME_DEVEL'],
+        '%s/templates' % ctx['HOME_DEVEL'],
+        '%s/venv/bin/templates/${p}' % ctx['HOME_DEVEL'],
+        '%s/venv/bin/templates' % ctx['HOME_DEVEL'],
     ):
         if '/devel/pypi/tools/' in src_path and not debug_mode:
             continue
@@ -346,7 +346,8 @@ def get_template_fn(ctx, template, ignore_ntf=None):
             product_template = '%s_%s' % (ctx['product_doc'], template)
         else:
             layered_template = product_template = False
-        for src_path in iter_template_path(debug_mode=ctx['dbg_template'], body=body):
+        for src_path in iter_template_path(
+                ctx, debug_mode=ctx['dbg_template'], body=body):
             if body:
                 full_fn = get_full_fn(ctx, src_path, product_template)
                 if os.path.isfile(full_fn):
@@ -855,16 +856,8 @@ def expand_macro(ctx, token, default=None):
         value = default
     else:
         value = (
-            parse_local_file(
-                ctx,
-                '%s.csv' % token,
-                ignore_ntf=True,
-            )[1]
-            or parse_local_file(
-                ctx,
-                '%s.rst' % token,
-                ignore_ntf=True,
-            )[1]
+            parse_local_file(ctx, '%s.csv' % token, ignore_ntf=True)[1]
+            or parse_local_file(ctx, '%s.rst' % token, ignore_ntf=True)[1]
             or 'Unknown %s' % token
         )
     return value
@@ -1504,10 +1497,10 @@ def read_all_manifests(ctx, path=None, module2search=None):
                             )
     if not module2search:
         if ctx['odoo_layer'] == 'ocb':
-            oca_root = '%s/oca%d' % (os.environ['HOME'], ctx['odoo_majver'])
+            oca_root = '%s/oca%d' % (ctx['ODOO_ROOT'], ctx['odoo_majver'])
         else:
             oca_root = '%s/oca%d/%s' % (
-                os.environ['HOME'],
+                ctx['ODOO_ROOT'],
                 ctx['odoo_majver'],
                 ctx['repos_name'],
             )
@@ -1649,12 +1642,9 @@ def manifest_contents(ctx):
     if ctx['opt_gpl'] not in ('agpl', 'lgpl', 'opl', 'oee'):
         ctx['opt_gpl'] = ctx['license_mgnt'].get_license(odoo_majver=ctx['odoo_majver'])
     AUTHINFO = {
-        'license': {
-            'agpl': 'AGPL-3',
-            'lgpl': 'LGPL-3',
-            'opl': 'OPL-1',
-            'oee': 'OEE-1',
-        }[ctx['opt_gpl']],
+        'license': {'agpl': 'AGPL-3', 'lgpl': 'LGPL-3', 'opl': 'OPL-1', 'oee': 'OEE-1'}[
+            ctx['opt_gpl']
+        ],
         'author': ctx['license_mgnt'].summary_authors(),
         'website': ctx['license_mgnt'].get_website(),
         'maintainer': ctx['license_mgnt'].get_maintainer(),
@@ -1778,10 +1768,7 @@ def set_default_values(ctx):
     else:
         ctx['dst_file'] = './README.rst'
     if ctx['odoo_layer'] != 'module':
-        ctx['manifest'] = {
-            'name': 'repos_name',
-            'development_status': 'Alfa',
-        }
+        ctx['manifest'] = {'name': 'repos_name', 'development_status': 'Alfa'}
     if ctx['product_doc'] == 'odoo':
         ctx['development_status'] = (
             ctx['manifest'].get(
@@ -1803,16 +1790,16 @@ def set_default_values(ctx):
         '`Zeroincombenze Tools ' '<https://zeroincombenze-tools.readthedocs.io/>`__'
     )
     if ctx['odoo_layer'] == 'ocb':
-        ctx['local_path'] = '%s/%s' % (os.environ['HOME'], ctx['branch'])
+        ctx['local_path'] = '%s/%s' % (ctx['ODOO_ROOT'], ctx['branch'])
     elif ctx['odoo_layer'] == 'repository':
         ctx['local_path'] = '%s/%s/%s/' % (
-            os.environ['HOME'],
+            ctx['ODOO_ROOT'],
             ctx['branch'],
             ctx['repos_name'],
         )
     else:
         ctx['local_path'] = '%s/%s/%s/' % (
-            os.environ['HOME'],
+            ctx['ODOO_ROOT'],
             ctx['branch'],
             ctx['repos_name'],
         )
@@ -1822,11 +1809,7 @@ def read_purge_readme(ctx, source):
     if source is None:
         return '', '', ''
     lines = source.split('\n')
-    out_sections = {
-        'description': '',
-        'authors': '',
-        'contributors': '',
-    }
+    out_sections = {'description': '', 'authors': '', 'contributors': ''}
     cur_sect = 'description'
     ix = 0
     while ix < len(lines):
@@ -2033,6 +2016,9 @@ def generate_readme(ctx):
             read_manifest(ctx)
         return ctx
 
+    ctx['HOME_DEVEL'] = os.environ.get('HOME_DEVEL') or os.path.join(
+        os.environ['HOME'], 'devel')
+    ctx['ODOO_ROOT'] = os.path.abspath(os.path.join(ctx['HOME_DEVEL'], '..'))
     for section in (
         'histories',
         'history-summary',

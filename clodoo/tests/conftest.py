@@ -1,7 +1,9 @@
 # content of conftest.py
 
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
+
 import pytest
+
 # from clodoo import transodoo
 
 
@@ -12,8 +14,7 @@ def pytest_report_header(config):
 @pytest.fixture
 def version_to_test():
     def get_version(cmd):
-        res, err = Popen(
-            cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
+        res, err = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
         res = res or err
         return res.split()[0].split('=')[-1].strip().strip('"').strip("'")
 

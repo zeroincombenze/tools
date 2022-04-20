@@ -30,9 +30,10 @@ class _OdooBaseContext(object):
         self.dbname = dbname
 
     def __enter__(self):
-        raise NotImplementedError("The class %s is an abstract class which"
-                                  "doesn't have __enter__ implemented."
-                                  % self.__class__.__name__)
+        raise NotImplementedError(
+            "The class %s is an abstract class which"
+            "doesn't have __enter__ implemented." % self.__class__.__name__
+        )
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
@@ -46,8 +47,10 @@ class _OdooBaseContext(object):
         :param str addon: Addon name
         :returns str: Gettext from addon .pot content
         """
-        import cStringIO
         import codecs
+
+        import cStringIO
+
         buffer = cStringIO.StringIO()
         codecs.getwriter("utf8")(buffer)
         self.trans_export(lang, [addon], buffer, 'po', self.cr)
@@ -74,16 +77,15 @@ class Odoo10Context(_OdooBaseContext):
         :returns Odoo10Context: This instance
         """
         sys.path.append(self.server_path)
-        from odoo import netsvc, api
+        from odoo import api, netsvc
         from odoo.modules.registry import Registry
-        from odoo.tools import trans_export, config, trans_load_data
+        from odoo.tools import config, trans_export, trans_load_data
+
         self.trans_export = trans_export
         self.trans_load_data = trans_load_data
         sys.path.pop()
         netsvc.init_logger()
-        config['addons_path'] = (
-            config.get('addons_path') + ',' + self.addons_path
-        )
+        config['addons_path'] = config.get('addons_path') + ',' + self.addons_path
         registry = Registry.new(self.dbname)
         self.environment_manage = api.Environment.manage()
         self.environment_manage.__enter__()
@@ -103,6 +105,7 @@ class Odoo11Context(Odoo10Context):
     """A context for connecting to a odoo 11 server with an special override
     for getting translations with Python 3.
     """
+
     def get_pot_contents(self, addon, lang=None):
         """
         Export source translation files from addon.
@@ -110,6 +113,7 @@ class Odoo11Context(Odoo10Context):
         :returns bytes: Gettext from addon .pot content
         """
         from io import BytesIO
+
         with closing(BytesIO()) as buf:
             self.trans_export(lang, [addon], buf, 'po', self.cr)
             return buf.getvalue()
@@ -130,16 +134,15 @@ class Odoo8Context(_OdooBaseContext):
         :returns Odoo8Context: This instance
         """
         sys.path.append(self.server_path)
-        from openerp import netsvc, api
+        from openerp import api, netsvc
         from openerp.modules.registry import RegistryManager
-        from openerp.tools import trans_export, config, trans_load_data
+        from openerp.tools import config, trans_export, trans_load_data
+
         self.trans_export = trans_export
         self.trans_load_data = trans_load_data
         sys.path.pop()
         netsvc.init_logger()
-        config['addons_path'] = (
-            config.get('addons_path') + ',' + self.addons_path
-        )
+        config['addons_path'] = config.get('addons_path') + ',' + self.addons_path
         registry = RegistryManager.new(self.dbname)
         self.environment_manage = api.Environment.manage()
         self.environment_manage.__enter__()
@@ -171,15 +174,14 @@ class Odoo7Context(_OdooBaseContext):
         """
         sys.path.append(self.server_path)
         from openerp import netsvc
-        from openerp.tools import trans_export, config, trans_load_data
         from openerp.pooler import get_db
+        from openerp.tools import config, trans_export, trans_load_data
+
         self.trans_export = trans_export
         self.trans_load_data = trans_load_data
         sys.path.pop()
         netsvc.init_logger()
-        config['addons_path'] = str(
-            config.get('addons_path') + ',' + self.addons_path
-        )
+        config['addons_path'] = str(config.get('addons_path') + ',' + self.addons_path)
         self.cr = get_db(self.dbname).cursor()
         return self
 

@@ -58,15 +58,16 @@ Every entry is composed by:
 """
 
 from __future__ import print_function
+
 import os
 import re
 import sys
-from datetime import datetime
 import tokenize
+from datetime import datetime
+from subprocess import PIPE, Popen
 
 # from ruamel.yaml import YAML
 import yaml
-from subprocess import PIPE, Popen
 
 try:
     from wok_code.scripts import license_mgnt
@@ -276,7 +277,7 @@ class topep8:
             website = line.split('<')[1].split('>')[0]
             website = website.replace('http:', 'https:')
             if website.endswith('/'):
-                website = website[0: -1]
+                website = website[0:-1]
             for kk, item in license_mgnt.COPY.items():
                 if item['website'].endswith(website):
                     auth = kk
@@ -1372,9 +1373,7 @@ class topep8:
         for ir1 in self.LEX_RULES.keys():
             if ir1 == ir:
                 continue
-            for irx1 in [
-                0,
-            ]:
+            for irx1 in [0]:
                 if (
                     self.cur_tokid(ir1, irx1) == tokenize.PARENT_RULE
                     and self.cur_tokval(ir1, irx1) == ir

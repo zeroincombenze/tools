@@ -1164,11 +1164,11 @@ link_cfg_def() {
   CFG_set "PS_HDR3_COLOR" "30;45"
   CFG_set "PKGS_LIST" "clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
   CFG_set "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
-  CFG_set "DEV_SVG" "$HOME/devel/svg"
+  CFG_set "DEV_SVG" "$HOME_DEVEL/svg"
   CFG_set "HTML_DOCS_DIR" "/var/www/html/mw/html"
   CFG_set "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
   CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
-  CFG_set "distpath" "\${HOME}/tools/\${pkgname}"
+  CFG_set "distpath" "\$(readlink -f $HOME_DEVEL/..)/tools/\${pkgname}"
   [[ -z $DIST_CONF ]] && DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
   [[ -z $TCONF ]] && TCONF="$HOME/.z0tools.conf"
   $SETX
@@ -1495,10 +1495,15 @@ get_pypi_param() {
     REPOSNAME=""
   fi
   local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
-  local r w x="$PWD"
+  local r w x="$PWD" ODOO_ROOT
   local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
   ODOO_SETUPS=${ODOO_SETUPS//,/ }
   [[ -z $ODOO_SETUPS ]] && ODOO_SETUPS="__manifest__.py"
+  if [[ -z $HOME_DEVEL ]]; then
+      [[ -d $HOME/odoo ]] && ODOO_ROOT="$HOME/odoo" || ODOO_ROOT="$HOME"
+  else
+      ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
+  fi
   x=$PWD
   r=
   for ODOO_SETUP in $ODOO_SETUPS; do
@@ -1513,7 +1518,7 @@ get_pypi_param() {
     _SETUP=$w
   fi
   INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|travis|_travis|__to_remove|__unported__)"
-  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $HOME && $x != "/" ]]; do
+  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $ODOO_ROOT && $x != "/" ]]; do
     r=$(basename $x)
     if $(is_pypi "$x"); then
       _PRJNAME=$(basename $x)
@@ -1548,14 +1553,14 @@ get_pypi_param() {
         [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
         [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
         if [[ $_PRJNAME != "Odoo" ]]; then
-          [[ $x != $HOME && $x != "/" ]] && _REPOS=$(basename $(dirname $x)) || _REPOS=
+          [[ $x != $ODOO_ROOT && $x != "/" ]] && _REPOS=$(basename $(dirname $x)) || _REPOS=
         fi
         break
       elif [[ -z "$_REPOS" ]]; then
         _REPOS=$(basename $x)
       fi
     fi
-    [[ $x != $HOME && $x != "/" ]] && x=$(readlink -e $x/..) || x=
+    [[ $x != $ODOO_ROOT && $x != "/" ]] && x=$(readlink -e $x/..) || x=
   done
   if [[ -z "$_PRJNAME" && -n "$_SETUP" && -f "$_SETUP" ]]; then
     r=$(get_value_from_setup "$_SETUP" "name")

@@ -22,19 +22,21 @@ optional arguments:
 """
 
 from __future__ import print_function, unicode_literals
-from python_plus import unicodes, bstrings, _b
+
+import csv
 import os
 import sys
 import time
-import csv
+
 from os0 import os0
+from python_plus import _b, bstrings, unicodes
 
 try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
-from clodoo import transodoo
 
+from clodoo import transodoo
 
 __version__ = "1.0.9"
 
@@ -62,14 +64,8 @@ def items_2_unicode(src):
 
 def manage_coa(ctx):
     TNLFLD = {
-        'USER_TYPE': {
-            'old': 'user_type',
-            'new': 'user_type_id',
-        },
-        'TYPE': {
-            'old': 'type',
-            'new': 'internal_type',
-        },
+        'USER_TYPE': {'old': 'user_type', 'new': 'user_type_id'},
+        'TYPE': {'old': 'type', 'new': 'internal_type'},
     }
 
     def read_csv_file(csv_fn, src_ver, tgt_ver, action):

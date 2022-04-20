@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-from setuptools import setup
-from setuptools import find_packages
+from setuptools import find_packages, setup
 
-setup(name='travis_emulator',
-      version='1.0.6',
-      description='Travis CI emulator for local develop environment',
-      long_description="""
+setup(
+    name='travis_emulator',
+    version='1.0.6',
+    description='Travis CI emulator for local develop environment',
+    long_description="""
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.
 You can test your application before pushing code to github.com web site.
 
@@ -39,38 +38,35 @@ A travis build executes the following steps:
 
 Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
 """,
-      classifiers=[
-          'Development Status :: 4 - Beta',
-          'License :: OSI Approved :: GNU Affero General Public License v3',
-          'Operating System :: POSIX',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3.6',
-          'Programming Language :: Python :: 3.7',
-          'Intended Audience :: Developers',
-          'Topic :: Software Development',
-          'Topic :: Software Development :: Build Tools',
-          'Operating System :: OS Independent',
-      ],
-      keywords='linux travis development',
-      url='https://zeroincombenze-tools.readthedocs.io',
-      project_urls={
-          'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
-          'Source': 'https://github.com/zeroincombenze/tools',
-      },
-      author='Antonio Maria Vigliotti',
-      author_email='antoniomaria.vigliotti@gmail.com',
-      license='Affero GPL',
-      install_requires=['z0lib', 'future'],
-      packages=find_packages(
-          exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-      package_data={
-          '': ['scripts/setup.info',
-               './travis', './travisrc', './travis.man']
-      },
-      entry_points={
-          'console_scripts': [
-              'travis_emulator-info = travis_emulator.scripts.main:main',
-              # 'travis = travis_emulator.scripts.travis:main',
-          ],
-      },
-      zip_safe=False)
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'Operating System :: POSIX',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Build Tools',
+        'Operating System :: OS Independent',
+    ],
+    keywords='linux travis development',
+    url='https://zeroincombenze-tools.readthedocs.io',
+    project_urls={
+        'Documentation': 'https://zeroincombenze-tools.readthedocs.io',
+        'Source': 'https://github.com/zeroincombenze/tools',
+    },
+    author='Antonio Maria Vigliotti',
+    author_email='antoniomaria.vigliotti@gmail.com',
+    license='Affero GPL',
+    install_requires=['z0lib', 'future'],
+    packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
+    package_data={'': ['scripts/setup.info', './travis', './travisrc', './travis.man']},
+    entry_points={
+        'console_scripts': [
+            'travis_emulator-info = travis_emulator.scripts.main:main',
+            # 'travis = travis_emulator.scripts.travis:main',
+        ]
+    },
+    zip_safe=False,
+)
