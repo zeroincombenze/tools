@@ -400,7 +400,7 @@ if [[ ! $opts =~ ^-.*[gt] ]]; then
         [[ ! -f $d/.travis.yml ]]  && continue
         [[ $opts =~ ^-.*G && -f $d/.git/hooks/pre-commit ]] && run_traced "cd $d; pre-commit uninstall" && run_traced "rm -f $d/.git/hooks/pre-commit"
         [[ $opts =~ ^-.*G && $d/.pre-commit-config.yaml ]] && run_traced "rm -f $d/.pre-commit-config.yaml"
-        [[ $PYVER -eq 3 && ( ! $opts =~ ^-.*G || $opts =~ ^-.*f.*G || $opts =~ ^-.*G.*f ) && ! -f $d/.pre-commit-config.yaml ]] && run_traced "cp $SRCPATH/$fn $d/.pre-commit-config.yaml" && run_traced "cd $d; pre-commit install"
+        [[ $PYVER -eq 3 && ( ! $opts =~ ^-.*G || $opts =~ ^-.*f.*G || $opts =~ ^-.*G.*f ) && ! -f $d/.pre-commit-config.yaml ]] && run_traced "cp $SRCPATH/templates/$fn $d/.pre-commit-config.yaml" && run_traced "cd $d; pre-commit install"
     done
 fi
 
