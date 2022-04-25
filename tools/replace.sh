@@ -2,7 +2,7 @@
 if [[ -z $HOME_DEVEL ]]; then
     [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-tgtdir=$(readlink -f $HOME_DEVEL/..)
+tgtdir=$(readlink -f $HOME_DEVEL/..)/tools
 for f in .travis.yml install_tools.sh LICENSE odoo_default_tnl.xlsx pre-commit-config.yaml pre-commit-config2.yaml README.rst; do
     echo "\$ cp ./$f $tgtdir/"
     cp ./$f $tgtdir/
