@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation on 2019-11-01 19:02:15
 #
@@ -69,21 +68,45 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
-                    'description*', 'descrizione*', 'features*',
-                    'oca_diff*', 'certifications*', 'prerequisites*',
-                    'installation*', 'configuration*', 'upgrade*',
-                    'support*', 'usage*', 'maintenance*',
-                    'troubleshooting*', 'known_issues*',
-                    'proposals_for_enhancement*', 'history*', 'faq*',
-                    'sponsor*', 'copyright_notes*', 'available_addons*',
-                    'contact_us*',
-                    '__init__*', 'name*', 'summary*', 'sommario*',
-                    'maturity*', 'module_name*', 'repos_name*',
-                    'today*',
-                    'authors*', 'contributors*', 'translators*',
-                    'acknowledges*',
-                    'MAINPAGE.rst']
+exclude_patterns = [
+    '_build',
+    'Thumbs.db',
+    '.DS_Store',
+    'description*',
+    'descrizione*',
+    'features*',
+    'oca_diff*',
+    'certifications*',
+    'prerequisites*',
+    'installation*',
+    'configuration*',
+    'upgrade*',
+    'support*',
+    'usage*',
+    'maintenance*',
+    'troubleshooting*',
+    'known_issues*',
+    'proposals_for_enhancement*',
+    'history*',
+    'faq*',
+    'sponsor*',
+    'copyright_notes*',
+    'available_addons*',
+    'contact_us*',
+    '__init__*',
+    'name*',
+    'summary*',
+    'sommario*',
+    'maturity*',
+    'module_name*',
+    'repos_name*',
+    'today*',
+    'authors*',
+    'contributors*',
+    'translators*',
+    'acknowledges*',
+    'MAINPAGE.rst',
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 # pygments_style = None

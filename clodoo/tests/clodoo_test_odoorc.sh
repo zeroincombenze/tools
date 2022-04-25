@@ -66,7 +66,7 @@ test_01() {
         test_result "1a> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in odoo12 odoo_12 VENV_123-odoo12 odoo-12-devel odoo12-main odoo12-r14 odoo12-r20.0; do
+    for v in odoo12 odoo_12 VENV_123-odoo12 odoo-12-devel odoo12-main odoo12-r10 odoo12-r20.0; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
         test_result "1b> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s

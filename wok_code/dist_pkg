@@ -438,7 +438,7 @@ if [ "$opt_cpush" == "-w" ]; then
   exit $STS_SUCCESS
 fi
 # update_dev "$PRJNAME" -R
-if [ "$PRJNAME" == "travis_emulator" ]; then
+if [[ $PRJNAME == "travis_emulator" ]]; then
   if [ ! -d "$LGITPATH" ]; then
     exit $STS_SUCCESS
   fi

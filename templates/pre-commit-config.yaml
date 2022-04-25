@@ -1,5 +1,4 @@
 # __version__=1.0.14
-# python2
 exclude: |
   (?x)
   # NOT INSTALLABLE ADDONS
@@ -15,7 +14,9 @@ exclude: |
   # Library files can have extraneous formatting (even minimized)
   /static/(src/)?lib/|
   # Repos using Sphinx to generate docs don't need prettying
-  ^docs/_templates/.*\.html$|
+  docs/|
+  # PYPI
+  odoo_shell.py|z0lib/z0lib/tests/tmp1.py|z0lib/z0lib/tests/tmp.py|wok_code/wok_code/scripts/to_pep8.py|wok_code/build/lib/wok_code/scripts/to_pep8.py|wok_code/build/lib.linux-x86_64-2.7/wok_code/scripts/to_pep8.py|wok_code/build/lib.linux-x86_64-2.7/wok_code/to_pep8.py|clodoo/clodoo/export_db_model.py|clodoo/clodoo/migrate_odoo_db.py|clodoo/clodoo/update_coa.py|clodoo/clodoo/examples/example_partner_shipping_addr.py|clodoo/clodoo/examples/example_product.py|clodoo/clodoo/examples/import_partners_fitness.py|clodoo/clodoo/examples/import_records.py|clodoo/clodoo/examples/import_products_gb.py|clodoo/clodoo/examples/import_rigoli.py|clodoo/clodoo/examples/import_partners_servizigrafici.py|clodoo/clodoo/examples/import_partners_merkatrade.py|clodoo/clodoo/examples/import_products.py|clodoo/clodoo/examples/example_sale_order.py|clodoo/clodoo/examples/import_partners_sicignano.py|clodoo/clodoo/examples/import_partners_gb.py|clodoo/build/lib/clodoo/export_db_model.py|clodoo/build/lib/clodoo/migrate_odoo_db.py|clodoo/build/lib/clodoo/update_coa.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/export_db_model.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/migrate_odoo_db.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/update_coa.py|
   # You don't usually want a bot to modify your legal texts
   (LICENSE.*|COPYING.*)|
   # official goverment specs
@@ -60,12 +61,9 @@ repos:
           - --remove-duplicate-keys
           - --remove-unused-variables
   - repo: https://github.com/psf/black
-    rev: 20.8b1
+    rev: 22.3.0
     hooks:
       - id: black
-        args:
-          - --skip-string-normalization
-          - --skip-magic-trailing-comma
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.1.2
     hooks:
@@ -120,16 +118,16 @@ repos:
         args:
           - --settings=.
         exclude: /__init__\.py$
-#  - repo: https://github.com/acsone/setuptools-odoo
-#    rev: 2.6.0
-#    hooks:
-#      - id: setuptools-odoo-make-default
-#      - id: setuptools-odoo-get-requirements
-#        args:
-#          - --output
-#          - requirements.txt
-#          - --header
-#          - "# generated from manifests external_dependencies"
+  #  - repo: https://github.com/acsone/setuptools-odoo
+  #    rev: 2.6.0
+  #    hooks:
+  #      - id: setuptools-odoo-make-default
+  #      - id: setuptools-odoo-get-requirements
+  #        args:
+  #          - --output
+  #          - requirements.txt
+  #          - --header
+  #          - "# generated from manifests external_dependencies"
   - repo: https://gitlab.com/PyCQA/flake8
     rev: 3.8.3
     hooks:
@@ -137,23 +135,23 @@ repos:
         name: flake8
         additional_dependencies: ["flake8-bugbear==20.1.4"]
         args:
-          - --config=travis_run_flake8.cfg
+          - --config=/home/antoniomaria/odoo/devel/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg
   - repo: https://github.com/PyCQA/pylint
-    rev: pylint-2.5.3
+    rev: v2.11.1
     hooks:
       - id: pylint
         name: pylint with optional checks
         args:
-          - --rcfile=.pylintrc
+          - --rcfile=/home/antoniomaria/odoo/devel/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg
           - --exit-zero
           - --ignore=l10n_it_fatturapa_in/tests/data/
-          - --py-version=2.7
+          - --py-version=3.7
         verbose: true
         additional_dependencies: &pylint_deps
-          - pylint-odoo==3.5.0
+          - pylint-odoo==5.0.5
       - id: pylint
         name: pylint with mandatory checks
         args:
-          - --rcfile=.pylintrc-mandatory
+          - --rcfile=/home/antoniomaria/odoo/devel/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg-mandatory
           - --ignore=l10n_it_fatturapa_in/tests/data/
         additional_dependencies: *pylint_deps

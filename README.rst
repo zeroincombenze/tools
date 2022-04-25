@@ -295,6 +295,7 @@ clodoo: 1.0.1.1 (2022-03-25)
 * [IMP] more tests
 
 
+
 python_plus: 1.0.9 (2022-03-24)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -379,50 +380,6 @@ travis_emulator: 1.0.5.2 (2022-03-12)
 * [IMP] New bash template
 
 
-zerobug: 1.0.7 (2022-02-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-z0lib: 1.0.6 (2022-02-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-z0bug_odoo: 1.0.11 (2022-02-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-wok_code: 1.0.8 (2022-02-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] please docs with -O option to use OCA command
-* [FIX] please in no odoo user
-
-
-travis_emulator: 1.0.5.1 (2022-02-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Set language en_US
-
-
-clodoo: 1.0.1 (2022-02-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] transodoo.xlsx: account.invoice-move
-
-
-
-wok_code: 1.0.7.1 (2022-02-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py (python3)
-
-
 
 
 
@@ -438,7 +395,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-04-17
+Last Update / Ultimo aggiornamento: 2022-04-25
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
