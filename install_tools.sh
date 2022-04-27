@@ -72,7 +72,7 @@ set_hashbang() {
 }
 
 RFLIST__travis_emulator=""
-RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc set_worker.sh transodoo.py"
+RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc set_worker.sh transodoo.py"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=""
 RFLIST__zerobug=""
@@ -387,20 +387,44 @@ if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
 fi
 
 if [[ ! $opts =~ ^-.*[gt] ]]; then
-    run_traced "sed -E \"s|=travis_run_flake8.cfg|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg|\" -i $SRCPATH/templates/pre-commit-config.yaml"
-    run_traced "sed -E \"s|=\.pylintrc|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg|\" -i $SRCPATH/templates/pre-commit-config.yaml"
+    # run_traced "sed -E \"s|=travis_run_flake8.cfg|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg|\" -i $SRCPATH/templates/pre-commit-config.yaml"
+    # run_traced "sed -E \"s|=\.pylintrc-mandatory|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg|\" -i $SRCPATH/templates/pre-commit-config.yaml"
+    # run_traced "sed -E \"s|=\.pylintrc|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg|\" -i $SRCPATH/templates/pre-commit-config.yaml"
     . $DSTPATH/venv/bin/clodoo/odoorc
     [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
     for d in $(find $HOME -not -path "*/.cache/*" -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
         d=$(readlink -f $d/..)
+        run_traced "cd $d"
         v=$(build_odoo_param MAJVER $d)
         g=$(build_odoo_param GIT_ORGID $d)
         [[ $g == "oca" ]] && continue
-        [[ $v -le 10 ]] && fn="pre-commit-config2.yaml" || fn="pre-commit-config.yaml"
+        act="install"
         [[ ! -f $d/.travis.yml ]]  && continue
-        [[ $opts =~ ^-.*G && -f $d/.git/hooks/pre-commit ]] && run_traced "cd $d; pre-commit uninstall" && run_traced "rm -f $d/.git/hooks/pre-commit"
+        r=$(build_odoo_param REPOS $d)
+        [[ $opts =~ ^-.*G && -f $d/.git/hooks/pre-commit ]] && act="autoupdate" && run_traced "rm -f $d/.git/hooks/pre-commit" && run_traced "pre-commit uninstall"
         [[ $opts =~ ^-.*G && $d/.pre-commit-config.yaml ]] && run_traced "rm -f $d/.pre-commit-config.yaml"
-        [[ $PYVER -eq 3 && ( ! $opts =~ ^-.*G || $opts =~ ^-.*f.*G || $opts =~ ^-.*G.*f ) && ! -f $d/.pre-commit-config.yaml ]] && run_traced "cp $SRCPATH/$fn $d/.pre-commit-config.yaml" && run_traced "cd $d; pre-commit install"
+        [[ $r == "OCB" ]] && continue
+        [[ $PYVER -ne 3 || ( $opts =~ ^-.*G && ! $opts =~ ^-.*f.*G && ! $opts =~ ^-.*G.*f ) || -f $d/.pre-commit-config.yaml ]] && continue
+        for fn in copier-answers.yml editorconfig eslintrc.yml flake8 isort.cfg pre-commit-config.yaml prettierrc.yml pylintrc pylintrc-mandatory; do
+            [[ $fn == "pre-commit-config.yaml" && $v -le 10 ]] && run_traced "cp $SRCPATH/templates/pre-commit-config2.yaml $d/.$fn" || run_traced "cp $SRCPATH/templates/$fn $d/.$fn"
+        done
+        # [[ $PYVER -eq 3 && ( ! $opts =~ ^-.*G || $opts =~ ^-.*f.*G || $opts =~ ^-.*G.*f ) && ! -f $d/.pre-commit-config.yaml ]] && run_traced "cp $SRCPATH/templates/$fn $d/.pre-commit-config.yaml" && run_traced "pre-commit install"
+        v=$(build_odoo_param FULLVER $d)
+        run_traced "sed -E \"s|^odoo_version:.*|odoo_version: $v|\" -i $d/.copier-answers.yml"
+        run_traced "sed -E \"s|^valid_odoo_versions=.*|valid_odoo_versions=$v|\" -i $d/.pylintrc"
+        run_traced "sed -E \"s|^valid_odoo_versions=.*|valid_odoo_versions=$v|\" -i $d/.pylintrc-mandatory"
+        n="$g"
+        [[ $g == "zero" ]] && n="Zeroincombenze(R)"
+        [[ $g == "librerp" ]] && n="Librerp enterprise network"
+        run_traced "sed -E \"s|^org_name:.*|org_name: $n|\" -i $d/.copier-answers.yml"
+        n=$(build_odoo_param GIT_ORGNM $d)
+        run_traced "sed -E \"s|^org_slug:.*|org_slug: $n|\" -i $d/.copier-answers.yml"
+        n=$(basename $d)
+        run_traced "sed -E \"s|^repo_name:.*|repo_name: $n|\" -i $d/.copier-answers.yml"
+        run_traced "sed -E \"s|^repo_slug:.*|repo_slug: $n|\" -i $d/.copier-answers.yml"
+        n=$(build_odoo_param GIT_ORG $d)
+        run_traced "sed -E \"s|^repo_website:.*|repo_website: $n|\" -i $d/.copier-answers.yml"
+        run_traced "pre-commit install"
     done
 fi
 

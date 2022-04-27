@@ -20,13 +20,13 @@ exclude: |
   # You don't usually want a bot to modify your legal texts
   (LICENSE.*|COPYING.*)|
   # official goverment specs
-  (l10n_it_fatturapa/data/xsd)|
+  (l10n_it_fatturapa/data/xsd|l10n_it_einvoice_base/data|l10n_it_ade/data/data|l10n_it_vat_statement_communication/data|l10n_it_vat_statement_communication/data)|
   # external stylesheets
-  (l10n_it_fatturapa/data/fatturaordinaria_v1.2.1.xsl)|
-  (l10n_it_fatturapa/data/FoglioStileAssoSoftware_v1.1.xsl)|
+  (l10n_it_fatturapa/data/fatturaordinaria_v1.2.1.xsl|l10n_it_einvoice_base/static/src/fatturaordinaria_v1.2.1.xsl)|
+  (l10n_it_fatturapa/data/FoglioStileAssoSoftware_v1.1.xsl|l10n_it_einvoice_base/static/src/FoglioStileAssoSoftware_v1.1.xsl)|
   # XML tests should not be reformatted
-  ^l10n_it_fatturapa_out/tests/data|
-  ^l10n_it_fatturapa_in/tests/data|
+  ^l10n_it_fatturapa_out/tests/data|^l10n_it_einvoice_out/tests/data|
+  ^l10n_it_fatturapa_in/tests/data|^l10n_it_einvoice_in/tests/data|
   ^l10n_it_fatturapa_out_sp/tests/data|
   ^l10n_it_fatturapa_out_di/tests/data
 default_language_version:
@@ -118,16 +118,16 @@ repos:
         args:
           - --settings=.
         exclude: /__init__\.py$
-  #  - repo: https://github.com/acsone/setuptools-odoo
-  #    rev: 2.6.0
-  #    hooks:
-  #      - id: setuptools-odoo-make-default
-  #      - id: setuptools-odoo-get-requirements
-  #        args:
-  #          - --output
-  #          - requirements.txt
-  #          - --header
-  #          - "# generated from manifests external_dependencies"
+  - repo: https://github.com/acsone/setuptools-odoo
+    rev: 2.6.0
+    hooks:
+      - id: setuptools-odoo-make-default
+      - id: setuptools-odoo-get-requirements
+        args:
+          - --output
+          - requirements.txt
+          - --header
+          - "# generated from manifests external_dependencies"
   - repo: https://gitlab.com/PyCQA/flake8
     rev: 3.8.3
     hooks:
@@ -135,14 +135,14 @@ repos:
         name: flake8
         additional_dependencies: ["flake8-bugbear==20.1.4"]
         args:
-          - --config=/home/antoniomaria/odoo/devel/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg
+          - --config=.flake8
   - repo: https://github.com/PyCQA/pylint
     rev: v2.11.1
     hooks:
       - id: pylint
         name: pylint with optional checks
         args:
-          - --rcfile=/home/antoniomaria/odoo/devel/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg
+          - --rcfile=.pylintrc
           - --exit-zero
           - --ignore=l10n_it_fatturapa_in/tests/data/
           - --py-version=3.7
@@ -152,6 +152,6 @@ repos:
       - id: pylint
         name: pylint with mandatory checks
         args:
-          - --rcfile=/home/antoniomaria/odoo/devel/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg-mandatory
+          - --rcfile=.pylintrc-mandatory
           - --ignore=l10n_it_fatturapa_in/tests/data/
         additional_dependencies: *pylint_deps
