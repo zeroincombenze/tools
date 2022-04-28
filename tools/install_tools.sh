@@ -336,7 +336,7 @@ if [[ $PYVER -eq 3 ]]; then
     run_traced "cd $DSTPATH"
     if [[ ! $opts =~ ^-.*t ]]; then
         [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
-        run_traced "git clone git@github.com:OCA/maintainer-tools.git"
+        run_traced "git clone https://github.com/OCA/maintainer-tools.git"
         if [[ -d $DSTPATH/maintainer-tools ]]; then
             run_traced "cd $DSTPATH/maintainer-tools"
             [[ $opts =~ ^-.*v ]] && run_traced "$PYTHON setup.py install" || run_traced "$PYTHON setup.py --quiet install"
@@ -347,7 +347,7 @@ if [[ $PYVER -eq 3 ]]; then
         run_traced "git clone https://github.com/OCA/odoo-module-migrator.git"
         run_traced "pip install $DSTPATH/odoo-module-migrator/"
     fi
-    run_traced "git clone git@github.com:OCA/maintainer-quality-tools.git"
+    run_traced "git clone https://github.com/OCA/maintainer-quality-tools.git"
 fi
 
 # Final test to validate environment
