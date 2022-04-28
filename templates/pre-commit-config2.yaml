@@ -21,7 +21,7 @@ exclude: |
   # You don't usually want a bot to modify your legal texts
   (LICENSE.*|COPYING.*)|
   # official goverment specs
-  (l10n_it_fatturapa/data/xsd|l10n_it_einvoice_base/data|l10n_it_ade/data|l10n_it_vat_statement_communication/data|l10n_it_vat_statement_communication/data)|
+  (l10n_it_fatturapa/data/xsd|l10n_it_einvoice_base/data|l10n_it_ade/data|l10n_it_ade/bindings|l10n_it_vat_statement_communication/data|l10n_it_vat_statement_communication/data)|
   # external stylesheets
   (l10n_it_fatturapa/data/fatturaordinaria_v1.2.1.xsl|l10n_it_einvoice_base/static/src/fatturaordinaria_v1.2.1.xsl)|
   (l10n_it_fatturapa/data/FoglioStileAssoSoftware_v1.1.xsl|l10n_it_einvoice_base/static/src/FoglioStileAssoSoftware_v1.1.xsl)|
