@@ -11,7 +11,7 @@ import sys
 from z0bug_odoo.travis.test_server import get_addons_path, get_server_path
 from zerobug import z0test, z0testodoo
 
-__version__ = "1.0.13"
+__version__ = "1.0.14"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1

@@ -2,10 +2,12 @@
 # Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 from __future__ import print_function
-from builtins import str
+
 import sys
+from builtins import str
 
 from .z0bug_odoo_lib import Z0bugOdoo
+
 try:
     import odoo.release as release
 except ImportError:
@@ -16,20 +18,19 @@ except ImportError:
 if release:
     if int(release.major_version.split('.')[0]) < 10:
         import openerp.tests.common as test_common
-        from openerp.modules.module import get_module_resource     # noqa: F401
-        from openerp import workflow                               # noqa: F401
+        from openerp import workflow  # noqa: F401
+        from openerp.modules.module import get_module_resource  # noqa: F401
     else:
         import odoo.tests.common as test_common
-        from odoo.modules.module import get_module_resource        # noqa: F401
+        from odoo.modules.module import get_module_resource  # noqa: F401
 else:
     print('No Odoo environment found!')
     sys.exit(0)
 
-__version__ = '1.0.13'
+__version__ = '1.0.14'
 
 
 class Z0bugBaseCase(test_common.BaseCase):
-
     def pool_env(self, model):
         """Return model pool_environment"""
         if int(release.major_version.split('.')[0]) < 8:
@@ -39,9 +40,7 @@ class Z0bugBaseCase(test_common.BaseCase):
     def create_id(self, model, values):
         """Create a new record for test"""
         if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).create(self.cr,
-                                               self.uid,
-                                               values)
+            return self.registry(model).create(self.cr, self.uid, values)
         return self.env[model].create(values).id
 
     def create_rec(self, model, values):
@@ -50,9 +49,8 @@ class Z0bugBaseCase(test_common.BaseCase):
             return self.registry(model).browse(
                 self.cr,
                 self.uid,
-                self.registry(model).create(self.cr,
-                                            self.uid,
-                                            values))
+                self.registry(model).create(self.cr, self.uid, values),
+            )
         return self.env[model].create(values)
 
     def write_rec(self, model, id, values):
@@ -75,8 +73,9 @@ class Z0bugBaseCase(test_common.BaseCase):
         Warning! Do not use with Odoo 7.0: result may fails!"""
         if int(release.major_version.split('.')[0]) < 8:
             ir_model = self.registry(model)
-            return ir_model.browse(self.cr, self.uid,
-                                   ir_model.search(self.cr, self.uid, args))
+            return ir_model.browse(
+                self.cr, self.uid, ir_model.search(self.cr, self.uid, args)
+            )
         return self.env[model].search(args)
 
     def ref_id(self, xref):
@@ -103,8 +102,7 @@ class Z0bugBaseCase(test_common.BaseCase):
             if xref.startswith('base.state_it_'):
                 # 7.0 compatibility
                 try:
-                    return self.browse_ref(
-                        'l10n_it_base.it_%s' % xref[14:].upper())
+                    return self.browse_ref('l10n_it_base.it_%s' % xref[14:].upper())
                 except BaseException:
                     pass
             try:
@@ -124,9 +122,9 @@ class Z0bugBaseCase(test_common.BaseCase):
                     continue
                 elif how_id == 'keep':
                     continue
-            field = self.search_rec('ir.model.fields',
-                                    [('model', '=', model),
-                                     ('name', '=', name)])
+            field = self.search_rec(
+                'ir.model.fields', [('model', '=', model), ('name', '=', name)]
+            )
             if isinstance(field, (list, tuple)) and len(field):
                 field = field[0]
             if not field:
@@ -134,9 +132,11 @@ class Z0bugBaseCase(test_common.BaseCase):
             elif model == 'res.partner' and name in ('lang', 'state_id'):
                 # Tests w/o italian language
                 del vals[name]
-            elif (field.ttype == 'many2one' and
-                  isinstance(vals[name], str) and
-                  len(vals[name].split('.')) == 2):
+            elif (
+                field.ttype == 'many2one'
+                and isinstance(vals[name], str)
+                and len(vals[name].split('.')) == 2
+            ):
                 vals[name] = self.ref_id(vals[name])
         return vals
 
@@ -144,8 +144,8 @@ class Z0bugBaseCase(test_common.BaseCase):
         if not hasattr(self, 'Z0bugOdoo'):
             self.Z0bugOdoo = Z0bugOdoo()
         return self.settle_fields(
-            model, self.Z0bugOdoo.get_test_values(model, xref),
-            how_id='keep')
+            model, self.Z0bugOdoo.get_test_values(model, xref), how_id='keep'
+        )
 
     def build_model_data(self, model, xrefs):
         if not isinstance(xrefs, (list, tuple)):
@@ -186,8 +186,10 @@ class Z0bugBaseCase(test_common.BaseCase):
     def set_test_company(self, xref=None):
         """Set company to test"""
         if not xref:
-            for xref1, model in (('z0bug.partner_mycompany', 'res.partner'),
-                                 ('z0bug.mycompany', 'res.company')):
+            for xref1, model in (
+                ('z0bug.partner_mycompany', 'res.partner'),
+                ('z0bug.mycompany', 'res.company'),
+            ):
                 self.build_model_data(model, xref1)
             xref = 'z0bug.mycompany'
         xref_id = self.ref_id(xref)
@@ -198,16 +200,17 @@ class Z0bugBaseCase(test_common.BaseCase):
         # company_id is not in "company_ids" at the time of the write
         if int(release.major_version.split('.')[0]) < 8:
             self.registry('res.users').write(
-                self.cr, self.uid, [self.uid], {'company_ids': [(4, xref_id)]})
+                self.cr, self.uid, [self.uid], {'company_ids': [(4, xref_id)]}
+            )
             self.registry('res.users').write(
-                self.cr, self.uid, [self.uid], {'company_id': xref_id})
+                self.cr, self.uid, [self.uid], {'company_id': xref_id}
+            )
         else:
             self.env.user.write({'company_ids': [(4, xref_id)]})
             self.env.user.write({'company_id': xref_id})
         return xref_id
 
-    def bind_fields(self, model, vals, company_id,
-                    parent_id=None, parent_model=None):
+    def bind_fields(self, model, vals, company_id, parent_id=None, parent_model=None):
         """TODO: write implementation"""
         return vals
 
@@ -215,25 +218,22 @@ class Z0bugBaseCase(test_common.BaseCase):
         """TODO: write implementation"""
         return self.write_rec(model, id, vals)
 
-    def get_domain_field(self, model, vals, company_id,
-                         parent_id=None, parent_name=None):
+    def get_domain_field(
+        self, model, vals, company_id, parent_id=None, parent_name=None
+    ):
         """TODO: write implementation"""
         return False
 
     def add_xref(self, xref, model, xid):
         xrefs = xref.split('.')
         if len(xrefs) == 2:
-            vals = {
-                'module': xrefs[0],
-                'model': model,
-                'name': xrefs[1],
-                'res_id': id,
-            }
+            vals = {'module': xrefs[0], 'model': model, 'name': xrefs[1], 'res_id': id}
             return self.create_rec('ir.model.data', vals)
         return False
 
-    def store_xref(self, xref, model, company_id,
-                   parent_id=None, parent_model=None, force=None):
+    def store_xref(
+        self, xref, model, company_id, parent_id=None, parent_model=None, force=None
+    ):
         if parent_id and parent_model:
             xid = False
         else:
@@ -241,17 +241,21 @@ class Z0bugBaseCase(test_common.BaseCase):
         if not xid or force:
             vals = self.Z0bugOdoo.get_test_values(model, xref)
             vals, parent_name = self.bind_fields(
-                model, vals, company_id,
-                parent_id=parent_id, parent_model=parent_model)
+                model, vals, company_id, parent_id=parent_id, parent_model=parent_model
+            )
             if xid:
                 self.write_diff(model, xid, vals)
             else:
                 if vals.get('id') and isinstance(vals['id'], int):
                     xid = vals['id']
                 else:
-                    xid = self.get_domain_field(model, vals, company_id,
-                                                parent_id=parent_id,
-                                                parent_name=parent_name)
+                    xid = self.get_domain_field(
+                        model,
+                        vals,
+                        company_id,
+                        parent_id=parent_id,
+                        parent_name=parent_name,
+                    )
                 if xid:
                     self.write_diff(model, xid, vals)
                 else:
@@ -264,7 +268,8 @@ class Z0bugBaseCase(test_common.BaseCase):
         return xid
 
     def make_model_data(
-            self, model, model2=None, company_id=None, xref=None, force=None):
+        self, model, model2=None, company_id=None, xref=None, force=None
+    ):
         """Create a full table with demo data"""
         if model == 'res.country.state':
             xrefs = self.Z0bugOdoo.get_test_xrefs(model)
@@ -274,7 +279,6 @@ class Z0bugBaseCase(test_common.BaseCase):
 
 
 class TransactionCase(test_common.TransactionCase, Z0bugBaseCase):
-
     def setUp(self):
         Z0bugBaseCase.setUp(self)
 
@@ -319,7 +323,6 @@ class TransactionCase(test_common.TransactionCase, Z0bugBaseCase):
 
 
 class SingleTransactionCase(test_common.SingleTransactionCase, Z0bugBaseCase):
-
     def pool_env(self, model):
         return Z0bugBaseCase.pool_env(self, model)
 

@@ -12,36 +12,36 @@ Functions with sql call are in test_common.py file.
 """
 
 from __future__ import print_function, unicode_literals
-# from past.builtins import basestring
-from python_plus import unicodes
 
-import os
 # import sys
 import base64
 import csv
+import os
+
 from openpyxl import load_workbook
 
-__version__ = "1.0.13"
+# from past.builtins import basestring
+from python_plus import unicodes
+
+__version__ = "1.0.14"
 
 
 class Z0bugOdoo(object):
-
     def __init__(self, release=None):
         try:
             import odoo.release as release
+
             self.release = release
         except ImportError:
             try:
                 import openerp.release as release
+
                 self.release = release
             except ImportError:
                 self.release = None
 
     def get_image_filename(self, xref):
-        file_image = os.path.join(
-            os.path.dirname(__file__),
-            'data',
-            '%s.png' % xref)
+        file_image = os.path.join(os.path.dirname(__file__), 'data', '%s.png' % xref)
         if os.path.isfile(file_image):
             return file_image
         return False
@@ -86,9 +86,7 @@ class Z0bugOdoo(object):
         pymodel = model.replace('.', '_')
         with open(full_fn, 'r') as fd:
             hdr = True
-            csv_obj = csv.DictReader(fd,
-                                     fieldnames=[],
-                                     restkey='undef_name')
+            csv_obj = csv.DictReader(fd, fieldnames=[], restkey='undef_name')
             for row in csv_obj:
                 if hdr:
                     hdr = False
