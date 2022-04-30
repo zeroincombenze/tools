@@ -20,11 +20,9 @@ pull_n_run() {
 __version__=1.0.15
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-export READLINK
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
 THIS=$(basename "$0")
-TDIR=$($READLINK -f $(dirname $0))
+TDIR=$($readlink -f $(dirname $0))
 opts=$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9)
 if [[ $opts =~ ^-.*h ]]; then
     echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
@@ -92,7 +90,7 @@ RED="\e[31m"
 GREEN="\e[32m"
 CLR="\e[0m"
 
-# [[ $opts =~ ^-.*t ]] && HOME=$($READLINK -e $(dirname $0)/..)
+# [[ $opts =~ ^-.*t ]] && HOME=$($readlink -e $(dirname $0)/..)
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
 [[ -d $TDIR/clodoo && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
 [[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
@@ -100,7 +98,7 @@ CLR="\e[0m"
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
 [[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
 
-[[ ! $opts =~ ^-.*p && ! $opts =~ ^-.*t && -n $HOME_DEVEL ]] && DSTPATH=$HOME_DEVEL
+[[ ! $opts =~ ^-.*p && ! $opts =~ ^-.*t && -n $HOME_DEVEL && -f $HOME_DEVEL ]] && DSTPATH=$HOME_DEVEL
 [[ -z "$DSTPATH" && $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
 [[ $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
 [[ -z "$DSTPATH" && -d $HOME/odoo/devel ]] && DSTPATH="$HOME/odoo/devel"
