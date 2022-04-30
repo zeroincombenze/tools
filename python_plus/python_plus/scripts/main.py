@@ -22,7 +22,7 @@ import sys
 
 import pkg_resources
 
-__version__ = '1.0.9'
+__version__ = '1.0.10'
 
 
 def fake_setup(**kwargs):

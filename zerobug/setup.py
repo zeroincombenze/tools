@@ -33,7 +33,7 @@ else:
 
 setup(
     name='zerobug',
-    version='1.0.9',
+    version='1.0.10',
     description='Zeroincombenze continuous testing framework'
     ' and tools for python and bash programs',
     long_description="""
