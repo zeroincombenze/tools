@@ -6,6 +6,8 @@ wok_code/cvt_csv_2_xml.py
 wok_code/cvt_script
 wok_code/cvt_script.man
 wok_code/dist_pkg
+wok_code/do_ren_openerp.py
+wok_code/do_set_utf8.py
 wok_code/eval_gtin.py
 wok_code/gen_addons_table.py
 wok_code/makepo_it.py

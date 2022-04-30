@@ -196,11 +196,8 @@ init_travis() {
     SETUP=$MANIFEST
   fi
   if [[ -z "$TOOLS_PATH" ]]; then
-    if [[ -d $HOME/tools/zerobug/_travis ]]; then
-      TOOLS_PATH=$HOME/tools/zerobug/_travis
-    else
-      TOOLS_PATH=$(find $OME_DEVEL -type d -name _travis | head -n1)
-    fi
+    TOOLS_PATH=$(readlink -f $HOME_DEVEL/../\tools/zerobug/_travis)
+    [[ ! -d $TOOLS_PATH ]] && TOOLS_PATH=$(find $HOME_DEVEL -type d -name _travis | head -n1)
   fi
 }
 

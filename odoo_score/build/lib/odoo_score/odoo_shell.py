@@ -3966,7 +3966,10 @@ def store_einvoices_stats(ctx):
         row = {}
         for column, cell in enumerate(line):
             row[colnames[column]] = cell.value
-        db = {'Vampigroup s.r.l.': 'vampigroup10'}.get(
+        db = {
+            'Vampigroup s.r.l.': 'vampigroup10',
+            'SHS-AV s.r.l.': 'zi10010009'
+        }.get(
             row['Cliente'],
             row['Cliente'].replace(' ', '').replace('s.r.l.', '').lower(),
         )
@@ -3978,7 +3981,10 @@ def store_einvoices_stats(ctx):
         print('DB=%s, T=%s, U=%s, A=%s' % (db, inv_tot, inv_used, inv_avail))
         if inv_avail != (inv_tot - inv_used):
             print('Wrong counter!')
-        uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'], db=db, ctx=ctx)
+        try:
+            uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'], db=db, ctx=ctx)
+        except BaseException:
+            continue
         channel = clodoo.browseL8(ctx, 'res.users', uid).company_id.einvoice_sender_id
         clodoo.writeL8(
             ctx,
