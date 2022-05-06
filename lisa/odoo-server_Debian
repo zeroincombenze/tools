@@ -31,11 +31,11 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.19-Debian
+# version: 1.0.0 (Debian)
 # Warning: this is a customized ${xtl_Id} script, running Linux
-# It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
+# It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2021 by zeroincombenze(R) <http://wiki.zeroincombenze.org/en/Odoo>
+# (C) 2015-2022 by zeroincombenze(R) <http://wiki.zeroincombenze.it>
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}
@@ -72,8 +72,8 @@ if [[ "$FH" == "Debian" ]]; then
 fi
 [[ -f /etc/profile.d/custom.sh ]] && . /etc/profile.d/custom.sh
 # Specify the user name (Default: odoo).
-USER=${xtl_user}
-USERHOME=$(eval echo ~$USER)
+USER_RUN=${xtl_user}
+USERHOME=$(eval echo ~$USER_RUN)
 # Specify config file (Default: ${xtl_cfgfile}).
 if [[ -f ${xtl_cfgfile} ]]; then
   CONFIGFILE="${xtl_cfgfile}"
@@ -83,9 +83,9 @@ else
   CONFIGFILE=""
 fi
 # search for execution command script
-xtl_org=$(echo $(basename $0)|grep -Eo "(oca|librerp|flectra|zero|powerp)"|tail -n1)
+xtl_org=$(echo $(basename $0)|grep -Eo "(oca|librerp|zero|powerp)"|tail -n1)
 [[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
-mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12|13|14)")
+mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12|13|14|15|16)")
 [[ $DRY_RUN -gt 0 ]] && echo "mult=${mult}"
 [[ $DRY_RUN -gt 0 ]] && echo "ORG=$ORG"
 DAEMON=""
@@ -119,30 +119,40 @@ if [[ -z "$DAEMON" ]]; then
     fi
   fi
 fi
-if [[ -z "$DAEMON" ]]; then
-  [[ $DRY_RUN -gt 0 ]] && echo "find ${USERHOME} -maxdepth 1 -type d -not -name \"_*\" -name \"${ORG}*${mult}*\" -o -name \"odoo*${mult}*${ORG}*\" -o -name \"OCB*${mult}*\" -o -name \"*${mult}.0*\""
-  LL=$(find ${USERHOME} -maxdepth 1 -type d -not -name "_*" -name "${ORG}*${mult}*" -o -name "odoo*${mult}*${ORG}*" -o -name "OCB*${mult}*" -o -name "*${mult}.0*")
-  [[ $DRY_RUN -gt 0 ]] && echo "LL=$LL"
-  for dr in $LL; do
-    [[ $DRY_RUN -gt 0 ]] && echo "> for $dr in $LL"
-    [[ -n "$mult" && ! $dr =~ [0-9]+ ]] && continue
-    [[ -z "$mult" && $dr =~ [0-9]+ ]] && continue
-    [[ $dr =~ /server/ ]] && dr=$(dirname $dr)
-    [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 2 -type f -executable -name odoo-bin -o -name openerp-server"
-    for fn in $(find $dr -maxdepth 2 -type f -executable -name odoo-bin -o -name openerp-server); do
-      [[ $DRY_RUN -gt 0 ]] && echo "> for $fn in ..."
-      mime=$(file --mime-type -b $fn)
-      [[ "$mime" == "text/x-python" ]] && DAEMON=$fn && break
-    done
-    if [[ -n "$DAEMON" ]]; then
-      [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 2 -type d -name venv -o -name \"venv*odoo\"|head -n1"
-      VENV_DIR=$(find $dr -maxdepth 2 -type d -name venv -o -name "venv*odoo"|head -n1)
-      break
-    fi
-  done
-fi
+#if [[ -z "$DAEMON" ]]; then
+#  [[ $DRY_RUN -gt 0 ]] && echo "find ${USERHOME} -maxdepth 1 -type d -not -name \"_*\" -name \"${ORG}*${mult}*\" -o -name \"odoo*${mult}*${ORG}*\" -o -name \"OCB*${mult}*\" -o -name \"*${mult}.0*\""
+#  LL=$(find ${USERHOME} -maxdepth 1 -type d -not -name "_*" -name "${ORG}*${mult}*" -o -name "odoo*${mult}*${ORG}*" -o -name "OCB*${mult}*" -o -name "*${mult}.0*")
+#  [[ $DRY_RUN -gt 0 ]] && echo "LL=$LL"
+#  for dr in $LL; do
+#    [[ $DRY_RUN -gt 0 ]] && echo "> for $dr in $LL"
+#    [[ -n "$mult" && ! $dr =~ [0-9]+ ]] && continue
+#    [[ -z "$mult" && $dr =~ [0-9]+ ]] && continue
+#    [[ $dr =~ /server/ ]] && dr=$(dirname $dr)
+#    [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 2 -type f -executable -name odoo-bin -o -name openerp-server"
+#    for fn in $(find $dr -maxdepth 2 -type f -executable -name odoo-bin -o -name openerp-server); do
+#      [[ $DRY_RUN -gt 0 ]] && echo "> for $fn in ..."
+#      mime=$(file --mime-type -b $fn)
+#      [[ "$mime" == "text/x-python" ]] && DAEMON=$fn && break
+#    done
+#    if [[ -n "$DAEMON" ]]; then
+#      [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 2 -type d -name venv -o -name \"venv*odoo\"|head -n1"
+#      # VENV_DIR=$(find $dr -maxdepth 2 -type d -name venv -o -name "venv*odoo"|head -n1)
+#      break
+#    fi
+#  done
+#fi
 [[ $DRY_RUN -gt 0 ]] && echo "DAEMON=$DAEMON"
 [[ -z "$DAEMON" ]] && exit 2
+p=$(dirname ${DAEMON})
+[[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
+[[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
+if [[ -f $p/bin/activate ]]; then
+  VENV_DIR=$p
+else
+  for dn in venv_odoo venv; do
+    [[ -f $p/$dn/bin/activate ]] && VENV_DIR=$p/$dn && break
+  done
+fi
 if [[ -z "$VENV_DIR" ]]; then
   [[ $dr =~ /server/ ]] && dr=$(readlink -f $(dirname $DAEMON)/../..) || dr=$(readlink -f $(dirname $DAEMON)/..)
   [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV*${ORG}*${mult}*\"|head -n1"
@@ -170,6 +180,14 @@ fi
 DAEMON_OPTS="$DAEMON_OPTS $2 $3 $4 $5 $6 $7 $8 $9"
 [[ -x $DAEMON ]] || exit 0
 RETVAL=0
+if [[ -f $CONFIGFILE ]]; then
+  modules=$(grep ^server_wide_modules $CONFIGFILE|awk -F= '{print $2}')
+  if [[ $modules =~ queue_job ]]; then
+    ch=$(grep ^channels $CONFIGFILE|awk -F= '{print $2}'|tr -d ' ')
+    [[ -z $ch ]] && ch="root:1"
+    export ODOO_CONNECTOR_CHANNELS="$ch"
+  fi
+fi
 
 
 set_lessc() {
@@ -242,19 +260,9 @@ checkpid() {
 
 
 check_4_venv() {
-    if [[ -z "$VENV_DIR" ]]; then
-      local dn dt p=$(dirname ${DAEMON})
-      [[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
-      [[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
-      if [[ ! -f $p/bin/activate ]]; then
-          for dn in venv_odoo venv; do
-              [[ -f $p/$dn/bin/activate ]] && p=$p/$dn
-          done
-      fi
-      VENV_DIR=$p
-    fi
+    local dt
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-    if [[ -f $VENV_DIR/bin/activate ]]; then
+    if [[ -n "$VENV_DIR" && -f $VENV_DIR/bin/activate ]]; then
         echo "$dt $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate" >> $LOGFILE
         [[ $DRY_RUN -gt 0 ]] && echo "cd $VENV_DIR" && echo "source ./bin/activate"
         cd $VENV_DIR
@@ -269,33 +277,33 @@ check_4_venv() {
 check_privsep_dir() {
     # Create the PrivSep empty dir if necessary
     local uu x
-    local grp=$(id -g ${USER})
+    local grp=$(id -g ${USER_RUN})
     local PIDDIR=$(dirname $PIDFILE)
     if [[ "$PIDDIR" != "/var/run" && "$PIDDIR" != "/run" ]]; then
       if [[ ! -d $PIDDIR ]]; then
         mkdir $PIDDIR
         [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0775 $PIDDIR || chmod 0755 $PIDDIR
-        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chown ${USER}:${grp} $PIDDIR || chown ${USER}:${USER} $PIDDIR
+        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chown ${USER_RUN}:${grp} $PIDDIR || chown ${USER_RUN}:${USER_RUN} $PIDDIR
       fi
     fi
-    [[ ! -f "$PIDFILE" ]] && touch $PIDFILE
+    [[ ! -f "$PIDFILE" ]] && touch $PIDFILE && chown ${USER_RUN}:${grp} $PIDFILE
     if [[ "$PIDDIR" != "/var/run" && "$PIDDIR" != "/run" ]]; then
       uu=$(stat -c %U $PIDDIR)
-      if [[ "$uu" != "${USER}" ]]; then
+      if [[ "$uu" != "${USER_RUN}" ]]; then
         local x=$(date +"%Y-%m-%d %H:%M:%S,000")
         echo "$x $$ DAEMON ? $0: Invalid pid directory owner!">>$LOGFILE
         [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0775 $PIDDIR || chmod 0755 $PIDDIR
-        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chown ${USER}:${grp} $PIDDIR || chown ${USER}:${USER} $PIDDIR
+        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chown ${USER_RUN}:${grp} $PIDDIR || chown ${USER_RUN}:${USER_RUN} $PIDDIR
       fi
     fi
     if [[ -f "$PIDFILE" ]]; then
       uu=$(stat -c %U $PIDFILE)
-      if [[ "$uu" != "${USER}" ]]; then
+      if [[ "$uu" != "${USER_RUN}" ]]; then
         local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        echo "$x $$ DAEMON ? $0: Invalid pid directory owner!">>$LOGFILE
+        echo "$x $$ DAEMON ? $0: Invalid pid file $PIDFILE owner $uu: expected ${USER_RUN}!">>$LOGFILE
       fi
       [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0664 $PIDFILE || chmod 0644 $PIDFILE
-      [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chown ${USER}:${grp} $PIDFILE || chown ${USER}:${USER} $PIDFILE
+      [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chown ${USER_RUN}:${grp} $PIDFILE || chown ${USER_RUN}:${USER_RUN} $PIDFILE
     fi
 }
 
@@ -316,9 +324,9 @@ start_RHEL () {
 
     check_privsep_dir
     if [ $DRY_RUN -gt 0 ]; then
-      echo "> daemon --user ${USER} --check ${NAME} \"/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &\""
+      echo "> daemon --user ${USER_RUN} --check ${NAME} \"/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &\""
     else
-      daemon --user ${USER} --check ${NAME} \
+      daemon --user ${USER_RUN} --check ${NAME} \
       "/usr/bin/setsid ${DAEMON} \
       ${DAEMON_OPTS} &"
     fi
@@ -334,18 +342,18 @@ start_Debian () {
     check_privsep_dir
     if [ -z "$USE_SUDO" ] || [ $USE_SUDO -eq 0 ]; then
       if [ $DRY_RUN -gt 0 ]; then
-        echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
+        echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER_RUN} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
       else
         start-stop-daemon --start --quiet --pidfile ${PIDFILE} \
-              --chuid ${USER} --background --make-pidfile \
+              --chuid ${USER_RUN} --background --make-pidfile \
               --exec ${DAEMON} -- ${DAEMON_OPTS}
       fi
       RETVAL=$?
     else
       if [ $DRY_RUN -gt 0 ]; then
-        echo "> sudo -u ${USER} -bn ${DAEMON} ${DAEMON_OPTS}"
+        echo "> sudo -u ${USER_RUN} -bn ${DAEMON} ${DAEMON_OPTS}"
       else
-        sudo -u ${USER} -bn ${DAEMON} ${DAEMON_OPTS}
+        sudo -u ${USER_RUN} -bn ${DAEMON} ${DAEMON_OPTS}
       fi
       RETVAL=$?
     fi
@@ -361,6 +369,7 @@ start() {
     check_4_venv
     check_lessc
     local x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    [[ -n $ODOO_CONNECTOR_CHANNELS ]] && echo "$x $$ DAEMON ? $0: ODOO_CONNECTOR_CHANNELS=\"$ODOO_CONNECTOR_CHANNELS\"">>$LOGFILE
     echo "$x $$ DAEMON ? $0: ${DAEMON} ${DAEMON_OPTS}">>$LOGFILE
     if [ "$FH" == "RHEL" ]; then
         start_RHEL
@@ -448,9 +457,6 @@ restart() {
     RETVAL=$?
 }
 
-condrestart() {
-    [ -e $LOCKFILE ] && restart || :
-}
 
 status() {
     if [[ -f $PIDFILE ]] ; then
@@ -467,6 +473,7 @@ status() {
     return $RETVAL
 }
 
+
 case "${1}" in
     start)
         start
@@ -480,10 +487,6 @@ case "${1}" in
         restart
         ;;
 
-    condrestart)
-        condrestart
-        ;;
-
     status)
         status
         ;;
@@ -494,7 +497,7 @@ case "${1}" in
 
     *)
         if [ "$FH" == "RHEL" ]; then
-          echo "Usage: ${NAME} {start|stop|status|restart|condrestart|reload}"
+          echo "Usage: ${NAME} {start|stop|status|restart|reload}"
         elif [ "$FH" == "Debian" ]; then
            echo "Usage: ${NAME} {start|stop|status|restart|force-reload}" >&2
         else
