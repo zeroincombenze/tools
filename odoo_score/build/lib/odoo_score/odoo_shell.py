@@ -3193,21 +3193,37 @@ def link_sale_2_invoice(ctx):
 def check_integrity_by_vg7(ctx):
     def check_partner_child(ctx, model, partner):
         parent = clodoo.browseL8(ctx, model, partner.parent_id.id)
-        if partner.name and partner.name != parent.name:
-            print(
-                'Current partner %d name %s differs from its parent %s'
-                % (partner.id, partner.name, parent.name)
-            )
-            dummy = input('Action: Confirm,Standard,Unlink? ')
-            if dummy.upper() == 'S':
-                clodoo.writeL8(ctx, model, partner.id, {'name': False})
+        # if partner.name and partner.name != parent.name:
+        #     print(
+        #         'Current partner %d name %s differs from its parent %s'
+        #         % (partner.id, partner.name, parent.name)
+        #     )
+        #     dummy = input('Action: Confirm,Standard,Unlink? ')
+        #     if dummy.upper() == 'S':
+        #         clodoo.writeL8(
+        #             ctx, model, partner.id, {'is_company': False, 'name': False})
+        #         ctx['ctr'] += 1
+        #     elif dummy.upper() == 'U':
+        #         clodoo.writeL8(ctx, model, partner.id, {'parent_id': False})
+        #         ctx['ctr'] += 1
+        if partner.name:
+            if partner.name == parent.name or partner.name.lower() == "false":
+                if partner.type in ('delivery', 'invoice'):
+                    clodoo.writeL8(
+                        ctx, model, partner.id, {'is_company': False, 'name': False})
+                    ctx['ctr'] += 1
+                else:
+                    try:
+                        clodoo.unlinkL8(ctx, model, partner.id)
+                        ctx['ctr'] += 1
+                        return
+                    except BaseException:
+                        print('Partner %s non deletable!' % partner.name)
+            if partner.name.startswith("False "):
+                print('%s ...' % partner.name)
+                clodoo.writeL8(
+                    ctx, model, partner.id, {'name': partner.name.replace('False ', '')})
                 ctx['ctr'] += 1
-            elif dummy.upper() == 'U':
-                clodoo.writeL8(ctx, model, partner.id, {'parent_id': False})
-                ctx['ctr'] += 1
-        elif partner.name and partner.name == parent.name:
-            clodoo.writeL8(ctx, model, partner.id, {'name': False})
-            ctx['ctr'] += 1
         if partner.customer:
             clodoo.writeL8(ctx, model, partner.id, {'customer': False})
             ctx['ctr'] += 1
@@ -3223,10 +3239,10 @@ def check_integrity_by_vg7(ctx):
             )
             msg = 'Action: '
             if partner.vg7_id:
-                if partner.vg7 > 200000000:
+                if partner.vg7_id > 200000000:
                     if partner.type != 'invoice':
                         msg = '%s,Invoice' % msg
-                elif partner.vg7 > 100000000:
+                elif partner.vg7_id > 100000000:
                     if partner.type != 'delivery':
                         msg = '%s,Delivery' % msg
                 else:
