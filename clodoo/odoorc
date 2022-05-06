@@ -91,38 +91,35 @@ INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html .i
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPS_EXTRA="^(didotech_80|grymb|maintainer-quality-tools|maintainer-tools|tools|uncovered|VME|OpenUpgrade|Odoo-samples|dotnet|interface-github|odoorpc|openupgradelib|pylint-odoo|rest-framework|runbot-addons)$"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
-"OCA/project-service,OCA/multi-company,"\
 "local/didotech_80,zeroincombenze/profiles,local/uncovered,local/mymodules,local/themes,local/woven_fabric,"\
 "local/zeroincombenze,local/cscs_addons,local/account_banking_cscs,"\
-"zeroincombenze/l10n-italy-supplemental,zeroincombenze/connector,OCA/social,OCA/event,"\
-"OCA/pylint-odoo,OCA/operating-unit,OCA/manufacture,OCA/survey,OCA/rma,OCA/queue,"\
-"OCA/e-commerce,OCA/delivery-carrier,OCA/vertical-education,"\
-"OCA/bank-statement-reconcile,OCA/vertical-isp,OCA/geospatial,"\
-"OCA/account-fiscal-rule,OCA/vertical-association,OCA/runbot-addons,"\
-"OCA/stock-logistics-reporting,OCA/project-reporting,OCA/edi,OCA/product-variant,"\
-"OCA/manufacture-reporting,OCA/purchase-reporting,OCA/intrastat,OCA/sale-financial,"\
-"OCA/interface-github,OCA/connector-odoo2odoo,OCA/webhook,OCA/product-kitting,"\
-"OCA/account-reconcile,OCA/OpenUpgrade,OCA/account-analytic,OCA/server-brand,"\
-"OCA/server-auth,OCA/maintainer-quality-tools,OCA/odoo-sentinel,OCA/openupgradelib,"\
-"OCA/donation,OCA/server-ux,OCA/stock-logistics-transport,OCA/connector-interfaces,"\
-"OCA/connector-infor,OCA/maintainer-tools,OCA/currency,OCA/connector-telephony,"\
-"OCA/server-env,OCA/connector-prestashop,OCA/ddmrp,OCA/website-themes,"\
-"OCA/ansible-odoo,OCA/mis-builder,OCA/connector-lengow,OCA/business-requirement,"\
-"OCA/margin-analysis,OCA/connector-magento,OCA/connector-cmis,OCA/account-consolidation,"\
-"OCA/connector-ecommerce,OCA/server-backend,OCA/vertical-medical,OCA/vertical-hotel,"\
-"OCA/community-data-files,OCA/apps-store,OCA/project-agile,OCA/connector-woocommerce,"\
-"OCA/account-budgeting,OCA/odoorpc,OCA/oca-custom,OCA/calendar,OCA/oca-decorators,"\
-"OCA/vertical-ngo,OCA/connector-redmine,OCA/vertical-abbey,OCA/maintenance,"\
+"zeroincombenze/l10n-italy-supplemental,"\
+"OCA/pylint-odoo,OCA/operating-unit,"\
+"OCA/vertical-education,OCA/vertical-isp,"\
+"OCA/vertical-association,OCA/runbot-addons,"\
+"OCA/interface-github,OCA/OpenUpgrade,"\
+"OCA/maintainer-quality-tools,OCA/odoo-sentinel,OCA/openupgradelib,"\
+"OCA/donation,"\
+"OCA/connector-infor,OCA/maintainer-tools,OCA/connector-telephony,"\
+"OCA/server-env,OCA/connector-prestashop,"\
+"OCA/ansible-odoo,OCA/connector-lengow,"\
+"OCA/connector-magento,OCA/connector-cmis,"\
+"OCA/connector-ecommerce,OCA/vertical-medical,OCA/vertical-hotel,"\
+"OCA/connector-woocommerce,"\
+"OCA/odoorpc,OCA/oca-customOCA/oca-decorators,"\
+"OCA/vertical-ngo,OCA/connector-redmine,OCA/vertical-abbey,"\
 "OCA/odoo-sphinx-autodoc,OCA/vertical-travel,OCA/vertical-edition,"\
 "OCA/vertical-construction,OCA/vertical-community,OCA/vertical-agriculture,"\
 "OCA/infrastructure-dns,OCA/dotnet,OCA/connector-salesforce,OCA/connector-sage,"\
 "OCA/connector-lims,OCA/connector-accountedge,OCA/vertical-realestate,"\
-"OCA/connector-magento-php-extension,zeroincombenze/zerobug-test"
-REPT_EXCL_MATRIX="zeroincombenze/account_invoice_create_payment,zeroincombenze/account_payment_approve_invoice,"\
-"zeroincombenze/website-cms,zeroincombenze/sale-reporting,zeroincombenze/bank-statement-import,"\
-"zeroincombenze/account-invoice-reporting,zeroincombenze/hr,zeroincombenze/hr-timesheet,"\
-"zeroincombenze/margin-analysis,zeroincombenze/pos,7.0/didotech_80,"\
-"9.0/didotech_80,10.0/didotech_80,11.0/didotech_80,12.0/didotech_80,13.0/didotech_80,"
+"OCA/connector-magento-php-extension,zeroincombenze/zerobug-test,"\
+"LibrERP/double-trouble,LibrERP/custom-addons,LibrERP/aeroolib,LibrERP/generic,"\
+"local/addons_kalamitica,local/nardo_modules"
+#REPT_EXCL_MATRIX="zeroincombenze/account_invoice_create_payment,zeroincombenze/account_payment_approve_invoice,"\
+#"zeroincombenze/website-cms,zeroincombenze/sale-reporting,zeroincombenze/bank-statement-import,"\
+#"zeroincombenze/account-invoice-reporting,zeroincombenze/hr,zeroincombenze/hr-timesheet,"\
+#"zeroincombenze/margin-analysis,zeroincombenze/pos,7.0/didotech_80,"\
+#"9.0/didotech_80,10.0/didotech_80,11.0/didotech_80,12.0/didotech_80,13.0/didotech_80,"
 
 
 get_odoo_major_ver() {
@@ -379,10 +376,10 @@ build_odoo_param() {
         [[ $GIT_ORGID == "powerp" ]] && GIT_ORGID="powerp" && GIT_ORGNM="PowERP-cloud" && RUPSTREAM="https://github.com/OCA/$REPOS.git" && GIT_BRANCH="master"
         [[ $GIT_ORGID =~ librerp[6]? && "$FULLVER" == "6.1" ]] && GIT_ORGNM="iw3hxn" && GIT_BRANCH="master"
         # [[ $GIT_ORGID == "librerp" && "$FULLVER" == "12.0" ]] && GIT_ORGID="librerp" && GIT_ORGNM="librerp" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
-#        if [[ $GIT_ORGID =~ (odoo|oca) && "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
-#            r=$(echo "$REPT_ORG_MATRIX," | grep -Eo "[A-Za-z0-9_.-]+/$REPOS,")
-#            IFS=/ read GIT_ORGNM x <<<$r
-#        fi
+        if [[ "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
+            r=$(echo "$REPT_ORG_MATRIX," | grep -Eo "[A-Za-z0-9_.-]+/$REPOS,")
+            IFS=/ read GIT_ORGNM x <<<$r
+        fi
     fi
     [[ $GIT_ORGNM == "OCA" ]] && GIT_ORGID="oca"
     [[ $GIT_ORGNM == "zeroincombenze" ]] && GIT_ORGID="zero"
