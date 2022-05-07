@@ -99,15 +99,26 @@ test_01() {
         test_result "1d> GIT_ORGNM $v" "PowERP-cloud" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in librerp6 librerp odoo6-librerp VENV-librerp6 VENV-librerp VENV_123-librerp6 VENV_123-librerp; do
+    for v in librerp VENV-librerp VENV_123-librerp; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        [[ $v =~ 6 ]] && test_result "1e> FULLVER $v" "6.1" "$RES" || test_result "1e> FULLVER $v" "12.0" "$RES"
+        test_result "1e> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
         test_result "1e> GIT_ORGID $v" "librerp" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        [[ $v =~ 6 ]] && test_result "1e> GIT_ORGNM $v" "iw3hxn" "$RES" || test_result "1e> GIT_ORGNM $v" "LibrERP-network" "$RES"
+        test_result "1e> GIT_ORGNM $v" "LibrERP-network" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    for v in librerp6 odoo6-librerp VENV-librerp6 VENV_123-librerp6; do
+        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
+        test_result "1e> FULLVER $v" "6.1" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
+        test_result "1e> GIT_ORGID $v" "librerp6" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
+        test_result "1e> GIT_ORGNM $v" "iw3hxn" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts
@@ -567,7 +578,8 @@ test_05() {
                 test_result "$PWD> ROOT '.' [bash]" "$Z0BUG_root/$w" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param REPOS ".")
-                [[ $w == "librerp6" ]] && test_result "$PWD> REPOS '.' [bash]" "server" "$RES" || test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
+                # [[ $w == "librerp6" ]] && test_result "$PWD> REPOS '.' [bash]" "server" "$RES" || test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
+                test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param DIRLEVEL ".")
                 test_result "$PWD> DIRLEVEL '.' [bash]" "OCB" "$RES"
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param DIRLEVEL "$Z0BUG_root/$w/crm")
@@ -740,6 +752,7 @@ test_07() {
     sts=0
     local TRES
 
+    export ODOO_GIT_ORGID="(librerp|zero)"
     opt_multi=1
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
@@ -749,14 +762,13 @@ test_07() {
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
             for z in "OCB" "l10n-italy"; do
-                # [[ $HOSTNAME =~ (shs[a-z0-9]{4,6}|zeroincombenze) ]] && TRES="git@github.com:zeroincombenze/${z}.git" || TRES="https://github.com/zeroincombenze/${z}.git"
                 TRES="git@github.com:zeroincombenze/${z}.git"
                 [[ $x =~ ^(odoo|ODOO) ]] && TRES="https://github.com/odoo/odoo.git"
                 [[ $x =~ ^(odoo|ODOO) && ! $z == "OCB" ]] && continue
                 [[ $x == "librerp" && $v == "6.1" && $z == "l10n-italy" ]] && continue
                 [[ $x =~ ^(oca|OCB) ]] && TRES="https://github.com/OCA/${z}.git"
-                [[ $x == "librerp" && $v =~ (14.0|12.0) ]] && TRES="https://github.com/LibrERP-network/${z}.git"
-                [[ $x == "librerp" && $v == "6.1" ]] && TRES="https://github.com/iw3hxn/server.git"
+                [[ $x == "librerp" && $v =~ (14.0|12.0) ]] && TRES="git@github.com:LibrERP-network/${z}.git"
+                [[ $x == "librerp" && $v == "6.1" ]] && TRES="git@github.com:iw3hxn/server.git"
                 [[ $x == "powerp" ]] && TRES="https://github.com/PowERP-cloud/${z}.git"
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param GIT_URL $w $z)
                 test_result "7a> multi GIT_URL $w/$z [bash]" "$TRES" "$RES"
@@ -770,7 +782,7 @@ test_07() {
                 [[ $x =~ (odoo|odoo_|ODOO) && ! $z == "OCB" ]] && continue
                 [[ $x =~ (odoo|odoo_|ODOO) ]] && TRES="https://github.com/odoo/odoo.git" || TRES="https://github.com/OCA/${z}.git"
                 [[ $v == "6.1" ]] && TRES="git@github.com:zeroincombenze/${z}.git"
-                [[ $x == "librerp" && $v == "6.1" ]] && TRES="https://github.com/iw3hxn/server.git"
+                [[ $x == "librerp" && $v == "6.1" ]] && TRES="git@github.com:iw3hxn/server.git"
                 [[ $x == "librerp" && $v =~ (14.0|12.0) ]] && continue
                 [[ $x == "powerp" ]] && continue
                 # [[ $x == "powerp" ]] && TRES="https://github.com/OCA/${z}.git"
@@ -818,6 +830,13 @@ test_07() {
 
         [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
     fi
+
+    v="12.0"
+    for z in accounting custom-addons double-trouble; do
+        RES=$(build_odoo_param GIT_URL $v)
+        [[ $z == "accounting" ]] && TRES="git@github.com:LibrERP-network/accounting.git" || TRES="git@github.com:LibrERP/$z.git"
+        test_result "7e> multi GIT_URL [bash]" "$TRES" "$RES"
+    done
     return $sts
 }
 
@@ -895,7 +914,7 @@ __Z0BUG_teardown() {
     for v in $VERSIONS_TO_TEST $MAJVERS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (12|6) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (14|12|6) ]] && continue
             [[ $x == "powerp" && $v != "12.0" ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             OS_TREE="$OS_TREE $w $HOME/$w"
