@@ -101,13 +101,13 @@ test_01() {
     done
     for v in librerp6 librerp odoo6-librerp VENV-librerp6 VENV-librerp VENV_123-librerp6 VENV_123-librerp; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1e> FULLVER $v" "6.1" "$RES"
+        [[ $v =~ 6 ]] && test_result "1e> FULLVER $v" "6.1" "$RES" || test_result "1e> FULLVER $v" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
         test_result "1e> GIT_ORGID $v" "librerp" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1e> GIT_ORGNM $v" "iw3hxn" "$RES"
+        [[ $v =~ 6 ]] && test_result "1e> GIT_ORGNM $v" "iw3hxn" "$RES" || test_result "1e> GIT_ORGNM $v" "LibrERP-network" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts
@@ -123,7 +123,7 @@ test_02() {
     for v in $MAJVERS_TO_TEST; do
         [[ "$v" == "6" ]] && TRES="$v.1" || TRES="$v.0"
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (12|6) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (14|12|6) ]] && continue
             [[ $x == "powerp" && $v != "12" ]] && continue
             [[ $x == "devel" ]] && continue
             w="$x$v"
@@ -176,7 +176,7 @@ test_02() {
         m=$(echo $v|awk -F. '{print $1}')
         TRES=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
             [[ $x == "powerp" && $v != "12.0" ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
@@ -280,7 +280,7 @@ test_03() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
             [[ $x == "powerp" && $v != "12.0" ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
@@ -336,7 +336,7 @@ test_04() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
             [[ $x == "powerp" && $v != "12.0" ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
@@ -456,7 +456,7 @@ test_05() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
             [[ $x == "powerp" && $v != "12.0" ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
@@ -715,7 +715,7 @@ test_06() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
             [[ $x == "powerp" && $v != "12.0" ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
@@ -744,7 +744,7 @@ test_07() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
             [[ $x == "powerp" && $v != "12.0" ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
@@ -755,7 +755,7 @@ test_07() {
                 [[ $x =~ ^(odoo|ODOO) && ! $z == "OCB" ]] && continue
                 [[ $x == "librerp" && $v == "6.1" && $z == "l10n-italy" ]] && continue
                 [[ $x =~ ^(oca|OCB) ]] && TRES="https://github.com/OCA/${z}.git"
-                [[ $x == "librerp" && $v == "12.0" ]] && TRES="https://github.com/librerp/${z}.git"
+                [[ $x == "librerp" && $v =~ (14.0|12.0) ]] && TRES="https://github.com/LibrERP-network/${z}.git"
                 [[ $x == "librerp" && $v == "6.1" ]] && TRES="https://github.com/iw3hxn/server.git"
                 [[ $x == "powerp" ]] && TRES="https://github.com/PowERP-cloud/${z}.git"
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param GIT_URL $w $z)
@@ -771,7 +771,7 @@ test_07() {
                 [[ $x =~ (odoo|odoo_|ODOO) ]] && TRES="https://github.com/odoo/odoo.git" || TRES="https://github.com/OCA/${z}.git"
                 [[ $v == "6.1" ]] && TRES="git@github.com:zeroincombenze/${z}.git"
                 [[ $x == "librerp" && $v == "6.1" ]] && TRES="https://github.com/iw3hxn/server.git"
-                [[ $x == "librerp" && $v == "12.0" ]] && continue
+                [[ $x == "librerp" && $v =~ (14.0|12.0) ]] && continue
                 [[ $x == "powerp" ]] && continue
                 # [[ $x == "powerp" ]] && TRES="https://github.com/OCA/${z}.git"
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RUPSTREAM $w $z)
@@ -871,7 +871,7 @@ Z0BUG_setup() {
     for v in $VERSIONS_TO_TEST $MAJVERS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (12|6) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (14|12|6) ]] && continue
             [[ $x == "powerp" && $v != "12.0" ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             OS_TREE="$OS_TREE $w $HOME/$w"

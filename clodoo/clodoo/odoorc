@@ -113,6 +113,7 @@ REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wi
 "OCA/infrastructure-dns,OCA/dotnet,OCA/connector-salesforce,OCA/connector-sage,"\
 "OCA/connector-lims,OCA/connector-accountedge,OCA/vertical-realestate,"\
 "OCA/connector-magento-php-extension,zeroincombenze/zerobug-test,"\
+"/LibrERP-network/accounting,"\
 "LibrERP/double-trouble,LibrERP/custom-addons,LibrERP/aeroolib,LibrERP/generic,"\
 "local/addons_kalamitica,local/nardo_modules"
 #REPT_EXCL_MATRIX="zeroincombenze/account_invoice_create_payment,zeroincombenze/account_payment_approve_invoice,"\
@@ -127,7 +128,7 @@ get_odoo_major_ver() {
     for x in $(echo "$1" | grep -Eo '[0-9]+'); do
       [[ $x =~ ($ODOO_VERS) ]] && v=$x && break
     done
-    [[ -z $v && $1 =~ librerp[6]? ]] && v="6"
+    [[ -z $v && $1 =~ librerp6 ]] && v="6"
     [[ -z $v ]] && v="12"
     echo $v
 }
@@ -144,7 +145,7 @@ get_odoo_full_ver() {
       [[ -n $v && $v != "6" ]] && v="${v}.0"
       [[ $v == "6" ]] && v="6.1"
     fi
-    [[ -z $v && $1 =~ librerp[6]? ]] && v="6.1"
+    [[ -z $v && $1 =~ librerp6 ]] && v="6.1"
     [[ -z $v ]] && v="12.0"
     echo $v
 }
@@ -237,7 +238,7 @@ build_odoo_param() {
         ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
     fi
     p1="v|V|ODOO|ocb|OCB"
-    p2="odoo|oca|powerp|librerp|flectra|zero|zeroincombenze"
+    p2="odoo|oca|powerp|librerp|zero|zeroincombenze"
     local rex="^(VENV[_-]([0-9]{3,10})?)?($p1|$p2)?[_-]?($ODOO_FVERS|$ODOO_VERS)[_-]?($p2)?"
     local reo="^($p1)"
     local reg="($p2)"
@@ -373,17 +374,18 @@ build_odoo_param() {
         GIT_ORGNM="$GIT_ORGID"
         [[ $GIT_ORGID == "oca" ]] && GIT_ORGNM="OCA"
         [[ $GIT_ORGID =~ (zero|zeroincombenze) ]] && GIT_ORGID="zero" && GIT_ORGNM="zeroincombenze" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
-        [[ $GIT_ORGID == "powerp" ]] && GIT_ORGID="powerp" && GIT_ORGNM="PowERP-cloud" && RUPSTREAM="https://github.com/OCA/$REPOS.git" && GIT_BRANCH="master"
-        [[ $GIT_ORGID =~ librerp[6]? && "$FULLVER" == "6.1" ]] && GIT_ORGNM="iw3hxn" && GIT_BRANCH="master"
+        [[ $GIT_ORGID == "powerp" ]] && GIT_ORGNM="PowERP-cloud" && RUPSTREAM="https://github.com/OCA/$REPOS.git" && GIT_BRANCH="master"
+        [[ $GIT_ORGID == "librerp" ]] && GIT_ORGNM="LibrERP-network" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+        [[ $GIT_ORGID =~ librerp[6]? && $FULLVER == "6.1" ]] && GIT_ORGNM="iw3hxn" && GIT_BRANCH="master"
         # [[ $GIT_ORGID == "librerp" && "$FULLVER" == "12.0" ]] && GIT_ORGID="librerp" && GIT_ORGNM="librerp" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
         if [[ "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
             r=$(echo "$REPT_ORG_MATRIX," | grep -Eo "[A-Za-z0-9_.-]+/$REPOS,")
             IFS=/ read GIT_ORGNM x <<<$r
         fi
     fi
-    [[ $GIT_ORGNM == "OCA" ]] && GIT_ORGID="oca"
+    [[ $ == "OCA" ]] && GIT_ORGID="oca"
     [[ $GIT_ORGNM == "zeroincombenze" ]] && GIT_ORGID="zero"
-    [[ $GIT_ORGNM == "iw3hxn" ]] && GIT_ORGID="librerp"
+    [[ $GIT_ORGNM =~ (iw3hxn|LibrERP-network) ]] && GIT_ORGID="librerp"
     [[ $GIT_ORGNM =~ (PowERP-cloud|powerp1) ]] && GIT_ORGID="powerp"
     [[ $GIT_ORGID == $ODOO_GIT_ORGID ]] && GIT_PROT="git"
     [[ -n $ODOO_GIT_PROT ]] && GIT_PROT="$ODOO_GIT_PROT"
@@ -420,7 +422,7 @@ build_odoo_param() {
     if [[ -z $PRJPATH ]]; then
         [[ $REPOS == "OCB" ]] && PRJPATH=$ROOT || PRJPATH="$ROOT/$REPOS"
     fi
-    [[ -z $RUPSTREAM && $GIT_ORGID =~ (zero|powerp) ]] && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+    [[ -z $RUPSTREAM && $GIT_ORGID =~ (zero|powerp|librerp) ]] && RUPSTREAM="https://github.com/OCA/$REPOS.git"
     [[ -z "$GIT_PROT" ]] && GIT_PROT="https"
     [[ "$FULLVER" == "6.1" ]] && RUPSTREAM=""
     if [[ $REPOS =~ $REPS_EXTRA ]]; then
