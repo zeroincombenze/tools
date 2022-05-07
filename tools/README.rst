@@ -239,6 +239,12 @@ Current development version
 History
 -------
 
+clodoo: 1.0.4 (2022-05-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: nre librerp repository
+
+
 clodoo: 1.0.2 (2022-04-15)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -395,7 +401,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-04-30
+Last Update / Ultimo aggiornamento: 2022-05-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
