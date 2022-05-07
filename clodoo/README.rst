@@ -327,6 +327,11 @@ Current development version
 History
 -------
 
+1.0.4 (2022-05-06)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: nre librerp repository
+
 1.0.2 (2022-04-15)
 ~~~~~~~~~~~~~~~~~~
 
@@ -388,11 +393,6 @@ History
 
 * [FIX] clodoo: specific openpyxl for python2
 
-0.3.35.2 (2021-09-24)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] transodoo.xlsx
-
 
 
 |
@@ -417,7 +417,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-05-06
+Last Update / Ultimo aggiornamento: 2022-05-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
