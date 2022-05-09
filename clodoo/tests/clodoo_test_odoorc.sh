@@ -4,13 +4,15 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.2.7
+# Based on template 1.0.10
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-HOME_DEV="$HOME/devel"
+if [[ -z $HOME_DEVEL ]]; then
+  [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
+fi
 [[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\no=os.path\nHOME=os.environ.get('HOME');t=o.join(HOME,'tools')\nn=o.join(HOME,'pypi') if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME,HOME_DEV, 'pypi')\nd=HOME_DEV if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME_DEV,'venv')\ndef apl(l,p,b):\n if p:\n  p2=o.join(p,b,b)\n  p1=o.join(p,b)\n  if o.isdir(p2):\n   l.append(p2)\n  elif o.isdir(p1):\n   l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if not o.isdir(t) and o.isdir(o.join(x,'tools')):\n  t=o.join(x,'tools')\n if not v and o.basename(x)=='site-packages':\n  v=x\nfor x in os.environ['PATH'].split(':'):\n if x.startswith(d):\n  d=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n apl(l,v,b)\n apl(l,t,b)\nl=l+os.environ['PATH'].split(':')\ntdir=o.dirname(TDIR)\np=set()\npa=p.add\np=[x for x in l if x and (x.startswith(HOME) or x.startswith(HOME_DEV) or x.startswith(tdir)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEVEL"'\nimport os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nH=o.expanduser('~')\nT=j(d(D), 'tools')\nR=j(d(D),'pypi') if o.basename(D)=='venv_tools' else j(D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('scripts','tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==b(d(C)) and f(j(C,'..','setup.py')):\n C=a(j(C,'..','..'))\nelif b(d(C))=='tools' and f(j(C,'setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)) or p(j(C,b(C),B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+[os.getcwd()]+P\np=set()\npa=p.add\np=[x for x in L if x and x.startswith((H,D,C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -49,8 +51,11 @@ GREEN="\e[1;32m"
 CLR="\e[0m"
 
 __version__=1.0.4
-VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
-MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
+# VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
+# MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
+VERSIONS_TO_TEST="12.0 10.0 8.0 7.0 6.1"
+MAJVERS_TO_TEST="12 10 8 7 6"
+
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca powerp librerp VENV_123- devel"
 
 
@@ -59,66 +64,55 @@ test_01() {
     local sts=0
     export opt_multi=0
 
-    discover_multi
-    test_result "Discover_multi (0)" "0" "$opt_multi"
+    ## discover_multi
+    ## test_result "Discover_multi (0)" "0" "$opt_multi"
     for v in 12 12.0 v12 V12 v12.0 V12.0 VENV-12.0 VENV_123-12.0; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1a> FULLVER $v" "12.0" "$RES"
+        test_result "bash 1a.${opt_multi}> build_odoo_param FULLVER '$v'" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in odoo12 odoo_12 VENV_123-odoo12 odoo-12-devel odoo12-main odoo12-r10 odoo12-r20.0; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1b> FULLVER $v" "12.0" "$RES"
+        test_result "bash 1b.${opt_multi}> build_odoo_param FULLVER '$v'" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1b> GIT_ORGID $v" "odoo" "$RES"
+        test_result "bash 1b.${opt_multi}> build_odoo_param GIT_ORGID '$v'" "odoo" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1b> GIT_ORGNM $v" "odoo" "$RES"
+        test_result "bash 1b.${opt_multi}> build_odoo_param GIT_ORGNM '$v'" "odoo" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in OCB-12 OCB-12.0 oca12 odoo12-oca VENV-odoo12-oca VENV_123-odoo12-oca; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1c> FULLVER $v" "12.0" "$RES"
+        test_result "bash 1c.${opt_multi}> build_odoo_param FULLVER '$v'" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1c> GIT_ORGID $v" "oca" "$RES"
+        test_result "bash 1c.${opt_multi}> build_odoo_param GIT_ORGID '$v'" "oca" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1c> GIT_ORGNM $v" "OCA" "$RES"
+        test_result "bash 1c.${opt_multi}> build_odoo_param GIT_ORGNM '$v'" "OCA" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in powerp12 odoo12-powerp odoo12-powerp odoo_12-powerp VENV-odoo12-powerp VENV_123-odoo12-powerp; do
+    for v in librerp12 odoo12-librerp odoo_12-librerp VENV-odoo12-librerp VENV_123-odoo12-librerp; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1d> FULLVER $v" "12.0" "$RES"
+        test_result "bash 1d.${opt_multi}> build_odoo_param FULLVER '$v'" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1d> GIT_ORGID $v" "powerp" "$RES"
+        test_result "bash 1d.${opt_multi}> build_odoo_param GIT_ORGID '$v'" "librerp" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1d> GIT_ORGNM $v" "PowERP-cloud" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-    for v in librerp VENV-librerp VENV_123-librerp; do
-        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1e> FULLVER $v" "12.0" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1e> GIT_ORGID $v" "librerp" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1e> GIT_ORGNM $v" "LibrERP-network" "$RES"
+        test_result "bash 1d.${opt_multi}> build_odoo_param GIT_ORGNM '$v'" "LibrERP-network" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in librerp6 odoo6-librerp VENV-librerp6 VENV_123-librerp6; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
-        test_result "1e> FULLVER $v" "6.1" "$RES"
+        test_result "bash 1e.${opt_multi}> build_odoo_param FULLVER '$v'" "6.1" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "1e> GIT_ORGID $v" "librerp6" "$RES"
+        test_result "bash 1e.${opt_multi}> build_odoo_param GIT_ORGID '$v'" "librerp6" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "1e> GIT_ORGNM $v" "iw3hxn" "$RES"
+        test_result "bash 1e.${opt_multi}> build_odoo_param GIT_ORGNM '$v'" "iw3hxn" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts
@@ -139,7 +133,7 @@ test_02() {
             [[ $x == "devel" ]] && continue
             w="$x$v"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $w)
-            test_result "2a> FULLVER $w [bash]" "$TRES" "$RES"
+            test_result "bash 2a.${opt_multi}> build_odoo_param FULLVER '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [[ $x == "VENV_123-" ]] && continue
 
@@ -149,14 +143,14 @@ test_02() {
                 RES=$(build_odoo_param FULLVER ".")
                 popd >/dev/null || return 1
             fi
-            test_result "$PWD> FULLVER '.' [bash]" "$TRES" "$RES"
+            test_result "bash 2b.${opt_multi} $PWD> build_odoo_param FULLVER '.'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ -d $Z0BUG_root/$w/addons ]]; then
                 if [ ${opt_dry_run:-0} -eq 0 ]; then
                     pushd $Z0BUG_root/$w/addons>/dev/null || return 1
                     RES=$(build_odoo_param FULLVER ".")
                 fi
-                test_result "$PWD> FULLVER '.' [bash]" "$TRES" "$RES"
+                test_result "bash 2c.${opt_multi} $PWD> build_odoo_param FULLVER '.'" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
             fi
@@ -167,14 +161,14 @@ test_02() {
                 RES=$(build_odoo_param FULLVER ".")
                 popd >/dev/null || return 1
             fi
-            test_result "$PWD> FULLVER '.' [bash]" "$TRES" "$RES"
+            test_result "bash 2e.${opt_multi} $PWD> build_odoo_param FULLVER '.'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ -d $HOME/$w/addons ]]; then
                 if [ ${opt_dry_run:-0} -eq 0 ]; then
                     pushd $HOME/$w/addons>/dev/null || return 1
                     RES=$(build_odoo_param FULLVER ".")
                 fi
-                test_result "$PWD> FULLVER '.' [bash]" "$TRES" "$RES"
+                test_result "bash 2f.${opt_multi} $PWD> build_odoo_param FULLVER '.'" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
             fi
@@ -192,12 +186,12 @@ test_02() {
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param MAJVER $w)
-            test_result "2b> MAJVER $w [bash]" "$TRES" "$RES"
+            test_result "bash 2g.${opt_multi}> build_odoo_param MAJVER '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ $x =~ (oca|librerp|powerp) ]]; then
                 w="$x$m"
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param MAJVER $w)
-                test_result "2b> MAJVER $w [bash]" "$TRES" "$RES"
+                test_result "bash 2h.${opt_multi}> build_odoo_param MAJVER '$w'" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
             fi
             [[ $x == "VENV_123-" ]] && continue
@@ -208,7 +202,7 @@ test_02() {
                 RES=$(build_odoo_param MAJVER ".")
                 popd >/dev/null || return 1
             fi
-            test_result "$PWD> MAJVER '.' [bash]" "$TRES" "$RES"
+            test_result "bash 2i.${opt_multi} $PWD> build_odoo_param MAJVER '.'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ $x == "odoo" ]]; then
                 for o in "-oca" "-powerp" "-zero"; do
@@ -218,7 +212,7 @@ test_02() {
                         RES=$(build_odoo_param MAJVER ".")
                         popd >/dev/null || return 1
                     fi
-                    test_result "$PWD> MAJVER '.' [bash]" "$TRES" "$RES"
+                    test_result "bash 2j.${opt_multi} $PWD> build_odoo_param MAJVER '.'" "$TRES" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 done
             fi
@@ -226,7 +220,7 @@ test_02() {
                 if [ ${opt_dry_run:-0} -eq 0 ]; then
                     pushd $Z0BUG_root/$w/odoo/addons>/dev/null || return 1
                     RES=$(build_odoo_param MAJVER ".")
-                    test_result "$PWD> MAJVER '.' [bash]" "$TRES" "$RES"
+                    test_result "bash 2k.${opt_multi} $PWD> build_odoo_param MAJVER '.'" "$TRES" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                     popd >/dev/null || return 1
                 fi
@@ -234,7 +228,7 @@ test_02() {
                 if [ ${opt_dry_run:-0} -eq 0 ]; then
                     pushd $Z0BUG_root/$w/addons>/dev/null || return 1
                     RES=$(build_odoo_param MAJVER ".")
-                    test_result "$PWD> MAJVER '.' [bash]" "$TRES" "$RES"
+                    test_result "bash 2l.${opt_multi} $PWD> build_odoo_param MAJVER '.'" "$TRES" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                     popd >/dev/null || return 1
                 fi
@@ -245,13 +239,13 @@ test_02() {
                 RES=$(build_odoo_param MAJVER ".")
                 popd >/dev/null || return 1
             fi
-            test_result "$PWD> MAJVER '.' [bash]" "$TRES" "$RES"
+            test_result "bash 2m.${opt_multi} $PWD> build_odoo_param MAJVER '.'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ -d $HOME/$w/odoo/addons ]]; then
                 if [ ${opt_dry_run:-0} -eq 0 ]; then
                     pushd $HOME/$w/odoo/addons>/dev/null || return 1
                     RES=$(build_odoo_param MAJVER ".")
-                    test_result "$PWD> MAJVER '.' [bash]" "$TRES" "$RES"
+                    test_result "bash 2n.${opt_multi} $PWD> build_odoo_param MAJVER '.'" "$TRES" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                     popd >/dev/null || return 1
                 fi
@@ -259,7 +253,7 @@ test_02() {
                 if [ ${opt_dry_run:-0} -eq 0 ]; then
                     pushd $HOME/$w/addons>/dev/null || return 1
                     RES=$(build_odoo_param MAJVER ".")
-                    test_result "$PWD> MAJVER '.' [bash]" "$TRES" "$RES"
+                    test_result "bash 2o.${opt_multi} $PWD> build_odoo_param MAJVER '.'" "$TRES" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                     popd >/dev/null || return 1
                 fi
@@ -270,7 +264,7 @@ test_02() {
                 Z0BUG_build_odoo_env "$HOME/$x${m}${o}"
                 [ ${opt_dry_run:-0} -eq 0 ] && pushd $HOME/$x${m}${o}>/dev/null || return 1
                 RES=$(build_odoo_param MAJVER ".")
-                test_result "$PWD> MAJVER '.' [bash]" "$TRES" "$RES"
+                test_result "bash 2p.${opt_multi} $PWD> build_odoo_param MAJVER '.'" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
             done
@@ -300,7 +294,7 @@ test_03() {
             [[ "$v" == "6.1" ]] && TRES="/etc/odoo/openerp-server.conf"
             [[ $w =~ (v|V)(7|6) ]] && TRES="/etc/odoo/openerp-server.conf"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param CONFN $w)
-            test_result "3a> unique CONFN $w [bash]" "$TRES" "$RES"
+            test_result "bash 3a.${opt_multi}> build_odoo_param CONFN '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             TRES="/var/log/odoo/odoo.log"
@@ -309,7 +303,7 @@ test_03() {
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $w =~ (v|V)(7|6) ]] && TRES="/var/log/odoo/openerp-server.log"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FLOG $w)
-            test_result "3b> unique FLOG $w [bash]" "$TRES" "$RES"
+            test_result "bash 3b.${opt_multi}> build_odoo_param FLOG '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             TRES="/var/run/odoo/odoo.pid"
@@ -318,7 +312,7 @@ test_03() {
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $w =~ (v|V)(7|6) ]] && TRES="/var/run/odoo/openerp-server.pid"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FPID $w)
-            test_result "3c> unique FPID $w [bash]" "$TRES" "$RES"
+            test_result "bash 3c.${opt_multi}> build_odoo_param FPID '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             TRES="/etc/init.d/odoo"
@@ -327,11 +321,11 @@ test_03() {
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $w =~ (v|V)(7|6) ]] && TRES="/etc/init.d/openerp-server"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULL_SVCNAME $w)
-            test_result "3d> unique FULL_SVCNAME $w [bash]" "$TRES" "$RES"
+            test_result "bash 3d.${opt_multi}> build_odoo_param FULL_SVCNAME '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param SVCNAME $w)
-            test_result "3e> unique SVCNAME $w [bash]" "$(basename $TRES)" "$RES"
+            test_result "bash 3e.${opt_multi}> build_odoo_param SVCNAME '$w'" "$(basename $TRES)" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
         done
     done
@@ -360,7 +354,7 @@ test_04() {
             [[ "$w" =~ (v|V)(9|8) ]] && TRES="/etc/odoo/odoo-server.conf"
             [[ "$w" =~ (v|V)(14|13|12|11|10) ]] && TRES="/etc/odoo/odoo.conf"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param CONFN $w)
-            test_result "4a> multi CONFN $w [bash]" "$TRES" "$RES"
+            test_result "bash 4a.${opt_multi}> build_odoo_param CONFN '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
@@ -368,7 +362,7 @@ test_04() {
                     w="$x${m}${o}"
                     TRES="/etc/odoo/odoo${m}${o}.conf"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param CONFN $w)
-                    test_result "4a> multi CONFN $w [bash]" "$TRES" "$RES"
+                    test_result "bash 4a.${opt_multi}> build_odoo_param CONFN '$w'" "$TRES" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 done
             fi
@@ -385,7 +379,7 @@ test_04() {
             [[ "$w" =~ (v|V)(14|13|12|11|10) ]] && TRES="/var/log/odoo/odoo.log"
             [[ $x =~ (oca|librerp|powerp) ]] && TRES="/var/log/odoo/odoo${m}-$x.log"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FLOG $w)
-            test_result "4b> multi FLOG $w [bash]" "$TRES" "$RES"
+            test_result "bash 4b.${opt_multi}> build_odoo_param FLOG '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
@@ -393,7 +387,7 @@ test_04() {
                     w="$x${m}${o}"
                     TRES="/var/log/odoo/odoo${m}${o}.log"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FLOG $w)
-                    test_result "4b> multi FLOG $w [bash]" "$TRES" "$RES"
+                    test_result "bash 4b.${opt_multi}> build_odoo_param FLOG '$w'" "$TRES" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 done
             fi
@@ -410,7 +404,7 @@ test_04() {
             [[ "$w" =~ (v|V)(14|13|12|11|10) ]] && TRES="/var/run/odoo/odoo.pid"
             [[ $x =~ (oca|librerp|powerp) ]] && TRES="/var/run/odoo/odoo${m}-$x.pid"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FPID $w)
-            test_result "4c> multi FPID $w [bash]" "$TRES" "$RES"
+            test_result "bash 4c.${opt_multi}> build_odoo_param FPID '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
@@ -418,7 +412,7 @@ test_04() {
                     w="$x${m}${o}"
                     TRES="/var/run/odoo/odoo${m}${o}.pid"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FPID $w)
-                    test_result "4c> multi FPID $w [bash]" "$TRES" "$RES"
+                    test_result "bash 4c.${opt_multi}> build_odoo_param FPID '$w'" "$TRES" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 done
             fi
@@ -435,11 +429,11 @@ test_04() {
             [[ "$w" =~ (v|V)(14|13|12|11|10) ]] && TRES="/etc/init.d/odoo"
             [[ $x =~ (oca|librerp|powerp) ]] && TRES="/etc/init.d/odoo${m}-$x"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULL_SVCNAME $w)
-            test_result "4d> multi FULL_SVCNAME $w [bash]" "$TRES" "$RES"
+            test_result "bash 4d.${opt_multi}> build_odoo_param FULL_SVCNAME '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param SVCNAME $w)
-            test_result "4d> multi SVCNAME $w [bash]" "$(basename $TRES)" "$RES"
+            test_result "bash 4d.${opt_multi}> build_odoo_param SVCNAME '$w'" "$(basename $TRES)" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
             if [[ $x == "odoo" ]]; then
@@ -447,10 +441,10 @@ test_04() {
                     w="$x${m}${o}"
                     TRES="/etc/init.d/odoo${m}${o}"
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULL_SVCNAME $w)
-                    test_result "4d> multi FULL_SVCNAME $w [bash]" "$TRES" "$RES"
+                    test_result "bash 4e.${opt_multi}> build_odoo_param FULL_SVCNAME '$w'" "$TRES" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                     [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param SVCNAME $w)
-                    test_result "4d> multi SVCNAME $w [bash]" "$(basename $TRES)" "$RES"
+                    test_result "bash 4e.${opt_multi}> build_odoo_param SVCNAME '$w'" "$(basename $TRES)" "$RES"
                     s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 done
             fi
@@ -481,40 +475,39 @@ test_05() {
             [[ $x =~ ^VENV ]] && TRES="$HOME/$w/odoo/$b"
             [[ $x =~ ^VENV && $v == "6.1" ]] && TRES="$HOME/$w/odoo/server/openerp-server"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param BIN $w)
-            test_result "5a> unique BIN $w [bash]" "$TRES" "$RES"
+            test_result "bash 5a.${opt_multi}> build_odoo_param BIN '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             b=$(dirname $TRES)
             [[ $b =~ server$ ]] && b=$(dirname $b)
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param ROOT $w)
-            test_result "5b> unique ROOT $w [bash]" "$b" "$RES"
+            test_result "bash 5b.${opt_multi}> build_odoo_param ROOT '$w'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param PKGPATH $w)
-            test_result "5b> unique PKGPATH $w [bash]" "$b" "$RES"
+            test_result "bash 5b.${opt_multi}> build_odoo_param PKGPATH '$w'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param HOME $w)
-            test_result "5b> unique HOME $w [bash]" "$b" "$RES"
+            test_result "bash 5b.${opt_multi}> build_odoo_param HOME '$w'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param PARENTDIR $w)
-            test_result "5b> unique PARENTDIR $w [bash]" "$(dirname $b)" "$RES"
+            test_result "bash 5b.${opt_multi}> build_odoo_param PARENTDIR '$w'" "$(dirname $b)" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param ROOT $w "crm")
-            test_result "5b> unique ROOT $w/crm [bash]" "$b" "$RES"
+            test_result "bash 5b.${opt_multi}> build_odoo_param ROOT '$w' 'crm'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param PKGPATH $w "crm")
-            test_result "5b> unique PKGPATH $w/crm [bash]" "$b/crm" "$RES"
+            test_result "bash 5b.${opt_multi}> build_odoo_param PKGPATH '$w' 'crm'" "$b/crm" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param ROOT $w "crm")
-            test_result "5b> unique PARENTDIR $w/crm [bash]" "$b" "$RES"
+            test_result "bash 5b.${opt_multi}> build_odoo_param PARENTDIR '$w' 'crm'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param HOME $w "crm")
-            test_result "5b> unique HOME $w/crm [bash]" "$b/crm" "$RES"
+            test_result "bash 5b.${opt_multi}> build_odoo_param HOME '$w' 'crm'" "$b/crm" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ $x =~ (oca|librerp|powerp) ]]; then
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param ROOT $v "OCB" $x)
-                test_result "5c> unique ROOT $v OCB $x [bash]" "$HOME/$v" "$RES"
+                test_result "bash 5c.${opt_multi}> build_odoo_param ROOT '$v' 'OCB'" "$HOME/$v" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
             fi
-
             export opt_multi=1
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
             [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
@@ -525,42 +518,42 @@ test_05() {
                 [[ $x =~ ^VENV ]] && TRES="$HOME/$w/odoo/server/openerp-server" || TRES="$HOME/$w/server/openerp-server"
             fi
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param BIN $w)
-            test_result "5d> multi BIN $w [bash]" "$TRES" "$RES"
+            test_result "bash 5d.${opt_multi}> build_odoo_param BIN '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ ! $x =~ (VENV_123-|v|V) && ! $v =~ (6\.1) ]]; then
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param BIN $w search)
-                test_result "5d> multi BIN $w search [bash]" "$TRES" "$RES"
+                test_result "bash 5d.${opt_multi}> build_odoo_param BIN '$w' 'search'" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
             fi
             b=$(dirname $TRES)
             [[ $b =~ server$ ]] && b=$(dirname $b)
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param ROOT $w)
-            test_result "5d> multi ROOT $w [bash]" "$b" "$RES"
+            test_result "bash 5d.${opt_multi}> build_odoo_param ROOT '$w'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param PKGPATH $w)
-            test_result "5d> multi PKGPATH $w [bash]" "$b" "$RES"
+            test_result "bash 5d.${opt_multi}> build_odoo_param PKGPATH '$w'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param HOME $w)
-            test_result "5d> multi HOME $w [bash]" "$b" "$RES"
+            test_result "bash 5d.${opt_multi}> build_odoo_param HOME '$w'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param PARENTDIR $w)
-            test_result "5d> multi PARENTDIR $w [bash]" "$(dirname $b)" "$RES"
+            test_result "bash 5d.${opt_multi}> build_odoo_param PARENTDIR '$w'" "$(dirname $b)" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param ROOT $w "crm")
-            test_result "5d> multi ROOT $w/crm [bash]" "$b" "$RES"
+            test_result "bash 5d.${opt_multi}> build_odoo_param ROOT '$w'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param PKGPATH $w "crm")
-            test_result "5d> multi PKGPATH $w/crm [bash]" "$b/crm" "$RES"
+            test_result "bash 5d.${opt_multi}> build_odoo_param PKGPATH '$w' 'crm'" "$b/crm" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param HOME $w "crm")
-            test_result "5d> multi HOME $w/crm [bash]" "$b/crm" "$RES"
+            test_result "bash 5d.${opt_multi}> build_odoo_param HOME '$w' 'crm'" "$b/crm" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param PARENTDIR $w "crm")
-            test_result "5d> multi PARENTDIR $w/crm [bash]" "$b" "$RES"
+            test_result "bash 5d.${opt_multi}> build_odoo_param PARENTDIR '$w' 'crm'" "$b" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
             if [[ $x =~ (oca|librerp|powerp) ]]; then
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param ROOT $v "OCB" $x)
-                test_result "5e> multi ROOT $v OCB $x [bash]" "$b" "$RES"
+                test_result "bash 5e.${opt_multi}> build_odoo_param ROOT '$v' 'OCB'" "$b" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
             fi
 
@@ -575,15 +568,15 @@ test_05() {
                     pushd $Z0BUG_root/$w>/dev/null || return 1
                     RES=$(build_odoo_param ROOT ".")
                 fi
-                test_result "$PWD> ROOT '.' [bash]" "$Z0BUG_root/$w" "$RES"
+                test_result "bash 5d.${opt_multi} $PWD> build_odoo_param ROOT '.'" "$Z0BUG_root/$w" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param REPOS ".")
-                # [[ $w == "librerp6" ]] && test_result "$PWD> REPOS '.' [bash]" "server" "$RES" || test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
-                test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
+                [[ $w == "librerp6" ]] &&  test_result "bash 5d.${opt_multi} $PWD> build_odoo_param REPOS '.'" "server" "$RES" || test_result "bash 5d.${opt_multi} $PWD> build_odoo_param REPOS '.'" "OCB" "$RES"
+                # test_result "$PWD> REPOS '.' [bash]" "OCB" "$RES"
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param DIRLEVEL ".")
-                test_result "$PWD> DIRLEVEL '.' [bash]" "OCB" "$RES"
+                test_result "bash 5d.${opt_multi} $PWD> build_odoo_param DIRLEVEL '.'" "OCB" "$RES"
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param DIRLEVEL "$Z0BUG_root/$w/crm")
-                test_result "5f> DIRLEVEL '$Z0BUG_root/$w/crm' [bash]" "repository" "$RES"
+                test_result "bash 5d.${opt_multi}> build_odoo_param DIRLEVEL '$Z0BUG_root/$w/crm'" "repository" "$RES"
 
                 [ ${opt_dry_run:-0} -eq 0 ] && ( popd >/dev/null || return 1 )
 
@@ -756,41 +749,44 @@ test_07() {
     opt_multi=1
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
-        for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
-            [[ $x == "powerp" && $v != "12.0" ]] && continue
-            [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp|powerp) ]] && w="$x$m"
+        for g in "" $SUB_TO_TEST; do
+            [[ $g == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
+            [[ $g == "powerp" && $v != "12.0" ]] && continue
+            [[ $g == "devel" ]] && w="${v}-$g" || w="$g$v"
+            [[ $g =~ (oca|librerp|powerp) ]] && w="$g$m"
             for z in "OCB" "l10n-italy"; do
+                # TODO>
+                [[ $z == "OCB" && $v == "6.1" ]] && continue
                 TRES="git@github.com:zeroincombenze/${z}.git"
-                [[ $x =~ ^(odoo|ODOO) ]] && TRES="https://github.com/odoo/odoo.git"
-                [[ $x =~ ^(odoo|ODOO) && ! $z == "OCB" ]] && continue
-                [[ $x == "librerp" && $v == "6.1" && $z == "l10n-italy" ]] && continue
-                [[ $x =~ ^(oca|OCB) ]] && TRES="https://github.com/OCA/${z}.git"
-                [[ $x == "librerp" && $v =~ (14.0|12.0) ]] && TRES="git@github.com:LibrERP-network/${z}.git"
-                [[ $x == "librerp" && $v == "6.1" ]] && TRES="git@github.com:iw3hxn/server.git"
-                [[ $x == "powerp" ]] && TRES="https://github.com/PowERP-cloud/${z}.git"
+                [[ $g =~ ^(odoo|ODOO) ]] && TRES="https://github.com/odoo/odoo.git"
+                [[ $g =~ ^(odoo|ODOO) && ! $z == "OCB" ]] && continue
+                [[ $g == "librerp" && $v == "6.1" && $z == "l10n-italy" ]] && continue
+                [[ $g =~ ^(oca|OCB) ]] && TRES="https://github.com/OCA/${z}.git"
+                [[ ( -z $g || $g =~ (v|V|VENV-|VENV_123-|devel|librerp) ) && $v =~ (14.0|12.0) && $z == "l10n-italy" ]] && TRES="git@github.com:LibrERP-network/${z}.git"
+                [[ $g == "librerp" && $v == "6.1" ]] && TRES="git@github.com:iw3hgn/server.git"
+                [[ $g == "powerp" ]] && TRES="https://github.com/PowERP-cloud/${z}.git"
+                # [[ ${opt_dry_run:-0} -eq 0 && $z == "OCB" ]] && set -x && build_odoo_param GIT_URL $w $z && set +x    #debug
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param GIT_URL $w $z)
-                test_result "7a> multi GIT_URL $w/$z [bash]" "$TRES" "$RES"
+                test_result "bash 7a.${opt_multi}> build_odoo_param GIT_URL '$w' '$z'" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RORIGIN $w $z)
-                test_result "7b> multi RORIGIN $w/$z [bash]" "$TRES" "$RES"
+                test_result "bash 7b.${opt_multi}> build_odoo_param RORIGIN '$w' '$z'" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
-                [[ $v == "6.1" && $x =~ (odoo|odoo_|ODOO|oca|OCB) ]] && continue
-                [[ $x =~ (odoo|odoo_|ODOO) && ! $z == "OCB" ]] && continue
-                [[ $x =~ (odoo|odoo_|ODOO) ]] && TRES="https://github.com/odoo/odoo.git" || TRES="https://github.com/OCA/${z}.git"
+                [[ $v == "6.1" && $g =~ (odoo|odoo_|ODOO|oca|OCB) ]] && continue
+                [[ $g =~ (odoo|odoo_|ODOO) && ! $z == "OCB" ]] && continue
+                [[ $g =~ (odoo|odoo_|ODOO) ]] && TRES="https://github.com/odoo/odoo.git" || TRES="https://github.com/OCA/${z}.git"
                 [[ $v == "6.1" ]] && TRES="git@github.com:zeroincombenze/${z}.git"
-                [[ $x == "librerp" && $v == "6.1" ]] && TRES="git@github.com:iw3hxn/server.git"
-                [[ $x == "librerp" && $v =~ (14.0|12.0) ]] && continue
-                [[ $x == "powerp" ]] && continue
-                # [[ $x == "powerp" ]] && TRES="https://github.com/OCA/${z}.git"
+                [[ $g == "librerp" && $v == "6.1" ]] && TRES="git@github.com:iw3hxn/server.git"
+                [[ $g == "librerp" && $v =~ (14.0|12.0) ]] && continue
+                [[ $g == "powerp" ]] && continue
+                # [[ $g == "powerp" ]] && TRES="https://github.com/OCA/${z}.git"
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RUPSTREAM $w $z)
-                test_result "7c> multi RUPSTREAM $w/$z [bash]" "$TRES" "$RES"
+                test_result "bash 7c.${opt_multi}> build_odoo_param RUPSTREAM '$w' '$z'" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
             done
-            if [[ ! $x == "VENV_123-" ]]; then
+            if [[ ! $g == "VENV_123-" ]]; then
                 if [ ${opt_dry_run:-0} -eq 0 ]; then
                     Z0BUG_build_os_tree "$w/venv_odoo $w/venv_odoo/bin"
                     touch $Z0BUG_root/$w/venv_odoo/bin/activate
@@ -833,9 +829,9 @@ test_07() {
 
     v="12.0"
     for z in accounting custom-addons double-trouble; do
-        RES=$(build_odoo_param GIT_URL $v)
+        RES=$(build_odoo_param GIT_URL $v $z)
         [[ $z == "accounting" ]] && TRES="git@github.com:LibrERP-network/accounting.git" || TRES="git@github.com:LibrERP/$z.git"
-        test_result "7e> multi GIT_URL [bash]" "$TRES" "$RES"
+        test_result "7e> multi GIT_URL $v/$z [bash]" "$TRES" "$RES"
     done
     return $sts
 }
@@ -934,18 +930,18 @@ __Z0BUG_teardown() {
 
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_clodoo.log "$@" "-O"
+parseoptest -l$TESTDIR/test_clodoo.log "$@"
 sts=$?
 [[ $sts -ne 127 ]] && exit $sts
-if [ ${opt_oeLib:-0} -ne 0 ]; then
-  ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
-  if [ -z "$ODOOLIBDIR" ]; then
-    echo "Library file odoorc not found!"
-    exit 2
+for p in z0librc odoorc travisrc zarrc z0testrc; do
+  if [[ -f $RUNDIR/$p ]]; then
+    [[ $p == "z0librc" ]] && Z0LIBDIR="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "odoorc" ]] && ODOOLIBDIR="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "travisrc" ]] && TRAVISLIBDIR="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "zarrc" ]] && ZARLIB="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "z0testrc" ]] && Z0TLIBDIR="$RUNDIR" && source $RUNDIR/$p
   fi
-  . $ODOOLIBDIR
-  [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
-fi
+done
 
 
 UT1_LIST=
@@ -954,7 +950,7 @@ if [[ ${opt_dry_run:-0} -ne 0 ]]; then
   echo 6175
   sts=0
 else
-  [[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
+[[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
   Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
   sts=$?
   [[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
