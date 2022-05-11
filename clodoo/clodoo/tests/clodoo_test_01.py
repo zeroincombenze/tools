@@ -16,13 +16,23 @@ from datetime import date
 from past.builtins import basestring
 
 try:
-    from clodoo.clodoo import (check_4_actions, create_act_list,
-                               do_single_action, isaction)
-    from clodoo.clodoocore import (_get_model_bone, _get_model_code,
-                                   _get_model_name, _import_file_dbtype,
-                                   _import_file_model, eval_value,
-                                   get_query_id, import_file_get_hdr,
-                                   model_has_company)
+    from clodoo.clodoo import (
+        check_4_actions,
+        create_act_list,
+        do_single_action,
+        isaction,
+    )
+    from clodoo.clodoocore import (
+        _get_model_bone,
+        _get_model_code,
+        _get_model_name,
+        _import_file_dbtype,
+        _import_file_model,
+        eval_value,
+        get_query_id,
+        import_file_get_hdr,
+        model_has_company,
+    )
 except BaseException:
     from clodoo import check_4_actions, create_act_list, do_single_action, isaction
     from clodoocore import (
@@ -795,7 +805,7 @@ class RegressionTest:
                     res = get_query_id(ctx, o_bones, row)
                     sts = self.Z.test_result(z0ctx, msg, [], res)
 
-                for i in range(2):
+                for _i in range(2):
                     if sts == TEST_SUCCESS:
                         # repeat 2 time to check side effects
                         if model == "res.zero":
@@ -812,7 +822,7 @@ class RegressionTest:
                     if sts == TEST_SUCCESS:
                         sts = self.Z.test_result(z0ctx, msg, row["id"], res[0])
 
-            for i in range(2):
+            for _i in range(2):
                 if sts == TEST_SUCCESS:
                     # repeat 2 time to check side effects
                     row["id"] = ""

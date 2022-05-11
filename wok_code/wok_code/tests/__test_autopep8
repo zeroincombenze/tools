@@ -4,7 +4,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.8
+# Based on template 1.0.10.1
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -50,7 +50,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.10
+__version__=1.0.10.1
 
 
 test_01() {
@@ -470,6 +470,16 @@ Z0BUG_init
 parseoptest -l$TESTDIR/test_wok_code.log "$@"
 sts=$?
 [[ $sts -ne 127 ]] && exit $sts
+for p in z0librc odoorc travisrc zarrc z0testrc; do
+  if [[ -f $RUNDIR/$p ]]; then
+    [[ $p == "z0librc" ]] && Z0LIBDIR="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "odoorc" ]] && ODOOLIBDIR="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "travisrc" ]] && TRAVISLIBDIR="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "zarrc" ]] && ZARLIB="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "z0testrc" ]] && Z0TLIBDIR="$RUNDIR" && source $RUNDIR/$p
+  fi
+done
+
 
 
 UT1_LIST=""
