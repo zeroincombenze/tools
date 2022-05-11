@@ -22,7 +22,7 @@ __version__=1.0.15
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
 THIS=$(basename "$0")
-TDIR=$($readlink -f $(dirname $0))
+TDIR=$(readlink -f $(dirname $0))
 opts=$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9)
 if [[ $opts =~ ^-.*h ]]; then
     echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
@@ -90,7 +90,7 @@ RED="\e[31m"
 GREEN="\e[32m"
 CLR="\e[0m"
 
-# [[ $opts =~ ^-.*t ]] && HOME=$($readlink -e $(dirname $0)/..)
+# [[ $opts =~ ^-.*t ]] && HOME=$(readlink -e $(dirname $0)/..)
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
 [[ -d $TDIR/clodoo && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
 [[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)

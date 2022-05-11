@@ -9,7 +9,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.9
+# Based on template 1.0.10
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -43,7 +43,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.10
+__version__=1.0.10.1
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -449,21 +449,21 @@ fi
 EOF
 }
 
-blk_2z() {
-  if [ $opt_oeLib -ne 0 ]; then
-    cat <<EOF >>$1
-if [ \${opt_oeLib:-0} -ne 0 ]; then
-  ODOOLIBDIR=\$(findpkg odoorc "\$PYPATH" "clodoo")
-  if [ -z "\$ODOOLIBDIR" ]; then
-    echo "Library file odoorc not found!"
-    exit 2
-  fi
-  . \$ODOOLIBDIR
-  [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=\$ODOOLIBDIR"
-fi
-EOF
-  fi
-}
+#blk_2z() {
+#  if [ $opt_oeLib -ne 0 ]; then
+#    cat <<EOF >>$1
+#if [ \${opt_oeLib:-0} -ne 0 ]; then
+#  ODOOLIBDIR=\$(findpkg odoorc "\$PYPATH" "clodoo")
+#  if [ -z "\$ODOOLIBDIR" ]; then
+#    echo "Library file odoorc not found!"
+#    exit 2
+#  fi
+#  . \$ODOOLIBDIR
+#  [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=\$ODOOLIBDIR"
+#fi
+#EOF
+#  fi
+#}
 
 blk_3() {
   cat <<EOF >>$1
@@ -477,21 +477,21 @@ fi
 EOF
 }
 
-blk_3z() {
-  if [ $opt_tjLib -ne 0 ]; then
-    cat <<EOF >>$1
-if [ \${opt_tjLib:-0} -ne 0 ]; then
-  TRAVISLIBDIR=\$(findpkg travisrc "\$PYPATH" "travis_emulator")
-  if [[ -z "\$TRAVISLIBDIR" ]]; then
-    echo "Library file travisrc not found!"
-    exit 72
-  fi
-  . \$TRAVISLIBDIR
-  [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=\$TRAVISLIBDIR"
-fi
-EOF
-  fi
-}
+#blk_3z() {
+#  if [ $opt_tjLib -ne 0 ]; then
+#    cat <<EOF >>$1
+#if [ \${opt_tjLib:-0} -ne 0 ]; then
+#  TRAVISLIBDIR=\$(findpkg travisrc "\$PYPATH" "travis_emulator")
+#  if [[ -z "\$TRAVISLIBDIR" ]]; then
+#    echo "Library file travisrc not found!"
+#    exit 72
+#  fi
+#  . \$TRAVISLIBDIR
+#  [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=\$TRAVISLIBDIR"
+#fi
+#EOF
+#  fi
+#}
 
 blk_4() {
   cat <<EOF >>$1
@@ -505,21 +505,21 @@ fi
 EOF
 }
 
-blk_4z() {
-  if [ $opt_zLib -ne 0 ]; then
-    cat <<EOF >>$1
-if [ \$opt_zLib -ne 0 ]; then
-  ZARLIB=\$(findpkg zarrc "\$PYPATH")
-  if [[ -z "\$ZARLIB" ]]; then
-    echo "Library file zarrc not found!"
-    exit 72
-  fi
-  . \$ZARLIB
-  [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ZARLIB=\$ZARLIB"
-fi
-EOF
-  fi
-}
+#blk_4z() {
+#  if [ $opt_zLib -ne 0 ]; then
+#    cat <<EOF >>$1
+#if [ \$opt_zLib -ne 0 ]; then
+#  ZARLIB=\$(findpkg zarrc "\$PYPATH")
+#  if [[ -z "\$ZARLIB" ]]; then
+#    echo "Library file zarrc not found!"
+#    exit 72
+#  fi
+#  . \$ZARLIB
+#  [[ \$TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ZARLIB=\$ZARLIB"
+#fi
+#EOF
+#  fi
+#}
 
 blk_8() {
   cat <<EOF >>$1
@@ -576,9 +576,20 @@ EOF
 sts=\$?
 [[ \$sts -ne 127 ]] && exit \$sts
 EOF
-  blk_2z "$1"
-  blk_3z "$1"
-  blk_4z "$1"
+  # blk_2z "$1"
+  # blk_3z "$1"
+  # blk_4z "$1"
+  cat <<EOF >>$1
+for p in z0librc odoorc travisrc zarrc z0testrc; do
+  if [[ -f \$RUNDIR/\$p ]]; then
+    [[ \$p == "z0librc" ]] && Z0LIBDIR="\$RUNDIR" && source \$RUNDIR/\$p
+    [[ \$p == "odoorc" ]] && ODOOLIBDIR="\$RUNDIR" && source \$RUNDIR/\$p
+    [[ \$p == "travisrc" ]] && TRAVISLIBDIR="\$RUNDIR" && source \$RUNDIR/\$p
+    [[ \$p == "zarrc" ]] && ZARLIB="\$RUNDIR" && source \$RUNDIR/\$p
+    [[ \$p == "z0testrc" ]] && Z0TLIBDIR="\$RUNDIR" && source \$RUNDIR/\$p
+  fi
+done
+EOF
   echo "" >>$1
 }
 

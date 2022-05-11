@@ -239,6 +239,12 @@ Current development version
 History
 -------
 
+clodoo: 1.0.4 (2022-05-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: nre librerp repository
+
+
 clodoo: 1.0.2 (2022-04-15)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -321,65 +327,6 @@ z0lib: 1.0.8 (2022-03-19)
 * [IMP] More tests
 
 
-zerobug: 1.0.8 (2022-03-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-z0lib: 1.0.7 (2022-03-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-z0bug_odoo: 1.0.12 (2022-03-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-* [IMP] comfiguration file for PYPI lint
-
-
-travis_emulator: 1.0.6 (2022-03-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-python_plus: 1.0.8 (2022-03-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-zerobug: 1.0.7.1 (2022-03-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New bash template
-* [IMP] create_module: new param dependencies
-
-
-z0lib: 1.0.6.1 (2022-03-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New bash template
-
-
-z0bug_odoo: 1.0.11.1 (2022-03-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New file account_banking_manadate.xlsx
-* [IMP] New file product_supplierinfo.xlsx
-* [IMP] New test data
-* [IMP] New tests
-
-
-travis_emulator: 1.0.5.2 (2022-03-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New bash template
-
-
 
 
 
@@ -395,7 +342,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-04-30
+Last Update / Ultimo aggiornamento: 2022-05-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
