@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://ww.zeroincombenze.it>)
 #
@@ -55,7 +54,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "1.0.4"
+__version__ = "1.0.4.1"
 VERSIONS = [
     "6.1",
     "7.0",
@@ -546,8 +545,9 @@ def write_stored_dict(ctx):
 
     # ctx['dict_fn'] = os.path.join(os.path.expanduser('~/transodoo.xlsx'))
     wb = Workbook()
-    for sheet in wb:
-        break
+    sheet = wb.active
+    # for sheet in wb:
+    #     break
     sheet.font = Font(name="arial", size=8)
     sheet.title = "transodoo"
     mindroot = ctx["mindroot"]
@@ -621,11 +621,13 @@ def cvt_file(ctx):
         print("Missed filename!\nuse -F switch")
         return 1
     wbi = load_workbook(ctx["file_2_cvt"])
-    for sheeti in wbi:
-        break
+    sheeti = wbi.active
+    # for sheeti in wbi:
+    #     break
     wbo = Workbook()
-    for sheeto in wbo:
-        break
+    sheeto = wbo.active
+    # for sheeto in wbo:
+    #     break
     sheeto.font = Font(name="arial", size=9)
     colnames = []
     for column in sheeti.columns:

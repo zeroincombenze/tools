@@ -3,7 +3,6 @@ setup.py
 clodoo/__init__.py
 clodoo/__main__.py
 clodoo/check_one2many.py
-clodoo/clean_transodoo.py
 clodoo/clodoo.py
 clodoo/clodoocore.py
 clodoo/clodoolib.py
