@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.15
+__version__=1.0.16
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
@@ -172,10 +172,11 @@ PYPI_LIST="pyyaml"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
 PYVER=$($PYTHON --version 2>&1 | grep -o "[0-9]" | head -n1)
-[[ $opts =~ ^-.*q ]] && popts="-q --disable-pip-version-check --no-python-version-warning" || popts="--disable-pip-version-check --no-python-version-warning"
+popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PIPVER -gt 18 ]] && popts="$popts --no-warn-conflicts"
 [[ $PIPVER -eq 19 ]] && popts="$popts --use-feature=2020-resolver"
-[[ $PIPVER -ge 21 ]] && popts="$popts --use-feature=in-tree-build"
+[[ $PIPVER -eq 21 ]] && popts="$popts --use-feature=in-tree-build"
+[[ $opts =~ ^-.*q ]] && popts="$popts -q"
 [[ $opts =~ ^-.*v ]] && echo "# $(which pip).$PIPVER $popts ..."
 [[ -d $DSTPATH/tmp ]] && rm -fR $DSTPATH/tmp
 [[ -d $LOCAL_VENV/tmp ]] && rm -fR $LOCAL_VENV/tmp
