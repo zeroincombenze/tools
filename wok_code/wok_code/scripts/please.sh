@@ -101,6 +101,25 @@ __version__=1.0.10.1
 
 FIND_EXCL="-not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*'"
 
+get_dbuser() {
+  # get_dbuser odoo_majver
+  local u
+  for u in $USER odoo openerp postgres; do
+    if [[ -n "$1" ]]; then
+      psql -U$u$1 -l &>/dev/null
+      if [[ $? -eq 0 ]]; then
+        echo "$u$1"
+        break
+      fi
+    fi
+    psql -U$u -l &>/dev/null
+    if [[ $? -eq 0 ]]; then
+      echo "$u"
+      break
+    fi
+  done
+}
+
 move() {
   # move(src dst)
   if [ -f "$2" ]; then rm -f $2; fi
@@ -1623,48 +1642,52 @@ do_duplicate() {
 
 do_export() {
   wlog "do_export '$1' '$2' '$3'"
-  local db module odoo_fver sts=$STS_FAILED
-  if [[ "$PRJNAME" == "Odoo" ]]; then
-    module=$2
-    db=$3
-  else
-    module=$1
-    db=$2
+  local db dbdt dummy DBs m module odoo_fver path pofile sts=$STS_FAILED u
+  if [[ $PRJNAME != "Odoo" ]]; then
+    echo "This action can be issued only on Odoo projects"
+    return $sts
   fi
-  if [[ -z "$module" || "$module" == '.' ]]; then
-    odoo_fver=$(build_odoo_param FULLVER '.')
-    pofile="$(build_odoo_param PKGPATH '.')/i18n/it.po"
-    module=$(build_odoo_param PKGNAME '.')
-  else
-    [[ -n "$opt_branch" ]] && odoo_fver=$opt_branch
-    pofile="$(find $HOME/$opt_branch -type d -name $module)/i18n/it.po"
+  odoo_fver=$(build_odoo_param FULLVER ".")
+  m=$(build_odoo_param MAJVER ".")
+  module=$(build_odoo_param PKGNAME ".")
+  [[ $module != $(basename $PWD) ]] && module=$1
+  if [[ -z "$module" ]]; then
+    echo "Invalid environment!"
+    return $sts
   fi
-  if [[ -z "$odoo_fver" ]]; then
-    echo "Missing Odoo branch! use:"
-    echo "$0 export -bBRANCH 'MODULE' 'DB'"
-    return $STS_FAILED
+  path=$(build_odoo_param PKGPATH '.')
+  if [[ ! -d $PKGPATH/i18n ]]; then
+    echo "Directory $PKGPATH/i18n not found!"
+    read -p "Create $PKGPATH/i18n (y/n)?" dummy
+    [[ $dummy != "y" ]] && return $sts
+    mkdir $PKGPATH/i18n
   fi
-  odoo_ver=$(echo $odoo_fver | grep -Eo [0-9]+ | head -n1)
-  if [[ ! -f "$pofile" ]]; then
+  pofile="$PKGPATH/i18n/it.po"
+  if [[ ! -f $pofile ]]; then
     echo "File $pofile not found!"
-    return $STS_FAILED
+    read -p "Create empty file $pofile (y/n)?" dummy
+    [[ $dummy != "y" ]] && return $sts
+    [[ ! -f $HOME_DEVEL/venv/bin/templates/it_IT.po ]] && "Template file $HOME_DEVEL/venv/bin/templates/it_IT.po not found!" && return $sts
+    cp $HOME_DEVEL/venv/bin/templates/it_IT.po $pofile
   fi
+  db="$2"
   if [[ -z "$db" ]]; then
-    DBs=$(psql -Atl | awk -F'|' '{print $1}' | tr \"\\n\" '|')
+    u=$(get_dbuser $m)
+    DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
     DBs="^(${DBs:0: -1})\$"
     for x in tnl test demo; do
-      [[ $x$odoo_ver =~ $DBs ]] && db="$x$odoo_ver" && break
+      [[ $x$m =~ $DBs ]] && db="$x$m" && break
     done
   fi
-  if [[ -z "$module" || -z "$db" ]]; then
-    echo "Parameters mismatch! use:"
-    echo "$0 export -bBRANCH 'MODULE' 'DB'"
+  if [[ -z "$db" ]]; then
+    echo "No DB matched! use:"
+    echo "$0 export 'DB'"
     return $STS_FAILED
   fi
-  opt_user=$(get_dbuser $odoo_ver)
-  stat=$(psql -U$opt_user -Atc "select state from ir_module_module where name = '$module'" $db)
-  [[ -z "$stat" || $stat == "uninstalled" ]] && run_traced "run_odoo_debug -b$odoo_fver -Ism $module -d $db"
-  dbdt=$(psql -U$opt_user -Atc "select write_date from ir_module_module where name='$module' and state='installed'" $db)
+  stat=$(psql -U$u -Atc "select state from ir_module_module where name = '$module'" $db)
+  # [[ -z "$stat" || $stat == "uninstalled" ]] && run_traced "run_odoo_debug -b$odoo_fver -Ism $module -d $db"
+  [[ -z "$stat" || $stat == "uninstalled" ]] && echo "Module $module not installed in $db!" && exit $sts
+  dbdt=$(psql -U$u -Atc "select write_date from ir_module_module where name='$module' and state='installed'" $db)
   [[ -n "$dbdt" ]] && dbdt=$(date -d "$dbdt" +"%s") || dbdt="999999999999999999"
   podt=$(stat -c "%Y" $pofile)
   ((dbdt < podt)) && run_traced "run_odoo_debug -b$odoo_fver -usm $module -d $db"
@@ -1709,69 +1732,45 @@ do_list() {
 
 do_translate() {
   wlog "do_translate '$1' '$2' '$3'"
-  local confn db module odoo_fver sts=$STS_FAILED opts pyv pofile
-  if [[ "$PRJNAME" == "Odoo" ]]; then
-    module=$2
-    db=$3
-  else
-    module=$1
-    db=$2
+  local db dbdt dummy DBs m module odoo_fver path sts=$STS_FAILED u
+  local confn opts pofile
+  if [[ $PRJNAME != "Odoo" ]]; then
+    echo "This action can be issued only on Odoo projects"
+    return $sts
   fi
-  if [[ -z "$module" || "$module" == '.' ]]; then
-    odoo_fver=$(build_odoo_param FULLVER '.')
-    pofile="$(build_odoo_param PKGPATH '.')/i18n/it.po"
-    module=$(build_odoo_param PKGNAME '.')
-  else
-    [[ -n "$opt_branch" ]] && odoo_fver=$opt_branch
-    pofile="$(find $HOME/$opt_branch -type d -name $module)/i18n/it.po"
+  odoo_fver=$(build_odoo_param FULLVER ".")
+  m=$(build_odoo_param MAJVER ".")
+  module=$(build_odoo_param PKGNAME ".")
+  [[ $module != $(basename $PWD) ]] && module=$1
+  if [[ -z "$module" ]]; then
+    echo "Invalid environment!"
+    return $sts
   fi
-  if [[ -z "$odoo_fver" ]]; then
-    echo "Missing Odoo branch! use:"
-    echo "$0 export -bBRANCH 'MODULE' 'DB'"
-    return $STS_FAILED
-  fi
-  odoo_ver=$(echo $odoo_fver | grep -Eo [0-9]+ | head -n1)
-  if [[ ! -f "$pofile" ]]; then
+  pofile="$PKGPATH/i18n/it.po"
+  if [[ ! -f $pofile ]]; then
     echo "File $pofile not found!"
-    return $STS_FAILED
+    return $sts
   fi
-  [[ -n "$opt_conf" ]] && conf=$opt_conf
-  [[ -z "$opt_conf" ]] && confn=$HOME/clodoo/confs/${odoo_fver/./-}.conf
-  if [[ ! -f $confn ]]; then
-    echo "Configuration file $confn not founcd!"
-    return $STS_FAILED
-  fi
+  confn=$(readlink -f $HOME_DEVEL/../clodoo/confs)/${odoo_fver/./-}.conf
+  [[ ! -f $confn ]] && echo "Configuration file $confn not found!" && return $sts
+  db="$2"
   if [[ -z "$db" ]]; then
-    DBs=$(psql -Atl | awk -F'|' '{print $1}' | tr \"\\n\" '|')
+    u=$(get_dbuser $m)
+    DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
     DBs="^(${DBs:0: -1})\$"
     for x in tnl test demo; do
-      [[ $x$odoo_ver =~ $DBs ]] && db="$x$odoo_ver" && break
+      [[ $x$m =~ $DBs ]] && db="$x$m" && break
     done
   fi
-  if [[ -z "$module" || -z "$db" ]]; then
-    echo "Parameters mismatch! use:"
-    echo "$0 export -bBRANCH 'MODULE' 'DB'"
+  if [[ -z "$db" ]]; then
+    echo "No DB matched! use:"
+    echo "$0 export 'DB'"
     return $STS_FAILED
   fi
-  if [[ ! -d $HOME/clodoo ]]; then
-    echo "Missed environment!"
-    echo "Directory clodoo not found!"
-    return $STS_FAILED
-  fi
-  pyv=$(python3 --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
-  [[ -n "$pyv" ]] && pyver="-p $pyv"
-  pyver="-p 2.7" #debug
-  [[ ! -d $HOME/clodoo/venv ]] && \
-    run_traced "vem $pyver create $HOME/clodoo/venv" && \
-    run_traced "vem $HOME/clodoo/venv install openpyxl" && \
-    run_traced "vem $HOME/clodoo/venv install Babel" && \
-    run_traced "vem $HOME/clodoo/venv install clodoo"
-  # run_traced "pushd $HOME/clodoo >/dev/null"
-  [ $opt_verbose -ne 0 ] && opts="-v" || opts="-q"
-  [ $opt_dbg -ne 0 ] && opts="${opts}B"
+  [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
+  [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
   run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -d $db -c $confn -p $pofile"
   sts=$?
-  # run_traced "popd >/dev/null"
   return $sts
 }
 

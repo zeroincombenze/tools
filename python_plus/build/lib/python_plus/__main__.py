@@ -1,4 +1,5 @@
 #!/home/odoo/devel/venv/bin/python2
+# -*- coding: utf-8 -*-
 """z0bug
 """
 

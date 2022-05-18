@@ -3,10 +3,13 @@ import sys
 from setuptools import find_packages, setup
 
 if sys.version_info >= (3, 0):
-    install_requires = (['z0lib', 'future', 'lxml', 'pyyaml', 'babel', 'twine'],)
+    install_requires = (
+        ['z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'babel', 'twine'],
+    )
 else:
     install_requires = (
-        ['z0lib', 'future', 'lxml', 'pyyaml', 'babel', 'twine==1.15.0'],
+        ['z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'babel'
+                                                                   'twine==1.15.0'],
     )
 
 setup(
@@ -54,7 +57,7 @@ The available tools are:
     package_data={
         '': [
             'scripts/setup.info',
-            './please',
+            'scripts/please.sh',
             './please.man',
             './cvt_script',
             './cvt_script.man',
@@ -68,7 +71,7 @@ The available tools are:
     entry_points={
         'console_scripts': [
             'wok_code-info = wok_code.scripts.main:main',
-            # 'please = wok_code.scripts.please:main',
+            'please = wok_code.scripts.please:main',
             'gen_readme.py = wok_code.scripts.gen_readme:main',
             # 'cvt_script = wok_code.scripts.cvt_script:main',
             'cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main',

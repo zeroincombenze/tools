@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # template 18
 """
 Python supplemental features

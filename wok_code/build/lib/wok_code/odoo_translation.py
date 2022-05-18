@@ -442,13 +442,15 @@ def get_module_pofile_name(ctx, version):
 
 
 def load_dictionary(ctx):
-    if os.path.isdir(os.path.expanduser('~/devel')):
-        root = os.path.expanduser('~/devel')
-    elif os.path.isdir(os.path.expanduser('~/dev')):
-        root = os.path.expanduser('~/dev')
-    else:
-        print('Development directory ~/devel not found!')
-        return 1
+    root = os.environ.get('HOME_DEVEL')
+    if not root or not os.path.isdir(root):
+        if os.path.isdir(os.path.expanduser('~/odoo/devel')):
+            root = os.path.expanduser('~/odoo/devel')
+        elif os.path.isdir(os.path.expanduser('~/devel')):
+            root = os.path.expanduser('~/devel')
+        else:
+            print('Development directory ~/devel not found!')
+            return 1
     if ctx['dbg_template']:
         dict_name = os.path.join(root, 'pypi', 'tools', 'odoo_default_tnl')
     else:

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 from past.builtins import basestring, long
 from future.utils import PY2, PY3, with_metaclass
