@@ -28,7 +28,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
     echo "  -h  this help"
     echo "  -d  use development branch not master"
-    echo "  -D  create development environment"
+    echo "  -D  create the development environment"
     echo "  -f  force creation of virtual environment even if exists"
     echo "  -g  do not install hooks in git projects"
     echo "  -G  remove hooks from git projects"
@@ -169,8 +169,6 @@ PYTHON3=""
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
 PKGS_LIST="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
-# PYPI_LIST="babel lxml python-magic pyyaml"
-PYPI_LIST="pyyaml"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
 PYVER=$($PYTHON --version 2>&1 | grep -o "[0-9]" | head -n1)
@@ -183,16 +181,6 @@ popts="--disable-pip-version-check --no-python-version-warning"
 [[ -d $DSTPATH/tmp ]] && rm -fR $DSTPATH/tmp
 [[ -d $LOCAL_VENV/tmp ]] && rm -fR $LOCAL_VENV/tmp
 [[ ! -d $LOCAL_VENV/tmp ]] && mkdir -p $LOCAL_VENV/tmp
-# TODO> Remove early
-#if [[ $DSTPATH != $LOCAL_VENV ]]; then
-#    # Please do not change package list order
-#    for pkg in $PYPI_LIST; do
-#        echo -n "."
-#        pfn=$(echo "$pkg"|grep -Eo '[^!<=>\\[]*'|head -n1)
-#        run_traced "$VEM $LOCAL_VENV install $pkg -q"
-#    done
-#    echo ""
-#fi
 
 if [[ ! $opts =~ ^-.*k ]]; then
     for pkg in $PKGS_LIST tools; do
@@ -317,21 +305,6 @@ if [[ ! $opts =~ ^-.*n ]]; then
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
 fi
 
-#if [[ $opts =~ ^-.*[Ss] ]]; then
-#    SITECUSTOM=$DSTPATH/sitecustomize.py
-#    if [[ -n "$PYLIB" && -f SITECUSTOM ]]; then
-#        if [[ -f $PYLIB/sitecustomize.py ]]; then
-#            if grep -q "import sys" $PYLIB/sitecustomize.py; then
-#                run_traced "tail $SITECUSTOM -n -1 >> $SITECUSTOM"
-#            else
-#                run_traced "cat $SITECUSTOM >> $PYLIB/sitecustomize.py"
-#            fi
-#        else
-#            run_traced "cp $SITECUSTOM $PYLIB"
-#        fi
-#    fi
-#fi
-
 # OCA tools
 if [[ $PYVER -eq 3 ]]; then
     run_traced "cd $DSTPATH"
@@ -388,9 +361,6 @@ if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
 fi
 
 if [[ ! $opts =~ ^-.*[gt] ]]; then
-    # run_traced "sed -E \"s|=travis_run_flake8.cfg|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg|\" -i $SRCPATH/templates/pre-commit-config.yaml"
-    # run_traced "sed -E \"s|=\.pylintrc-mandatory|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg|\" -i $SRCPATH/templates/pre-commit-config.yaml"
-    # run_traced "sed -E \"s|=\.pylintrc|=$DSTPATH/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg|\" -i $SRCPATH/templates/pre-commit-config.yaml"
     . $DSTPATH/venv/bin/clodoo/odoorc
     [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
     for d in $(find $HOME -not -path "*/.cache/*" -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
@@ -409,7 +379,6 @@ if [[ ! $opts =~ ^-.*[gt] ]]; then
         for fn in copier-answers.yml editorconfig eslintrc.yml flake8 isort.cfg pre-commit-config.yaml prettierrc.yml pylintrc pylintrc-mandatory; do
             [[ $fn == "pre-commit-config.yaml" && $v -le 10 ]] && run_traced "cp $SRCPATH/templates/pre-commit-config2.yaml $d/.$fn" || run_traced "cp $SRCPATH/templates/$fn $d/.$fn"
         done
-        # [[ $PYVER -eq 3 && ( ! $opts =~ ^-.*G || $opts =~ ^-.*f.*G || $opts =~ ^-.*G.*f ) && ! -f $d/.pre-commit-config.yaml ]] && run_traced "cp $SRCPATH/templates/$fn $d/.pre-commit-config.yaml" && run_traced "pre-commit install"
         v=$(build_odoo_param FULLVER $d)
         run_traced "sed -E \"s|^odoo_version:.*|odoo_version: $v|\" -i $d/.copier-answers.yml"
         run_traced "sed -E \"s|^valid_odoo_versions=.*|valid_odoo_versions=$v|\" -i $d/.pylintrc"

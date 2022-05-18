@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2015-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
@@ -46,7 +47,8 @@ class RegressionTest:
     def test_01(self, z0ctx):
         self.clear_venv()
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
-        cmd = '%s/vem -qf -p%s create %s' % (self.Z.rundir, pyver, self.venv_dir)
+        cmd = '%s/scripts/vem.sh -qf -p%s create %s' % (
+            self.Z.rundir, pyver, self.venv_dir)
         if not z0ctx['dry_run']:
             os.system(cmd)
         sts = self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
@@ -63,7 +65,8 @@ class RegressionTest:
 
         outfile = os.path.join(self.Z.testdir, 'home.log')
         out = ''
-        cmd = r'%s/vem %s -q exec "cd;pwd>%s"' % (self.Z.rundir, self.venv_dir, outfile)
+        cmd = r'%s/scripts/vem.sh %s -q exec "cd;pwd>%s"' % (
+            self.Z.rundir, self.venv_dir, outfile)
         if not z0ctx['dry_run']:
             os.system(cmd)
             if not os.path.isfile(outfile):
@@ -78,7 +81,8 @@ class RegressionTest:
     def test_02(self, z0ctx):
         self.clear_venv()
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
-        cmd = '%s/vem -qIf -p%s create %s' % (self.Z.rundir, pyver, self.venv_dir)
+        cmd = '%s/scripts/vem.sh -qIf -p%s create %s' % (
+            self.Z.rundir, pyver, self.venv_dir)
         if not z0ctx['dry_run']:
             os.system(cmd)
         sts = self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
@@ -95,7 +99,8 @@ class RegressionTest:
 
         outfile = os.path.join(self.Z.testdir, 'home.log')
         out = ''
-        cmd = r'%s/vem %s -q exec "cd;pwd>%s"' % (self.Z.rundir, self.venv_dir, outfile)
+        cmd = r'%s/scripts/vem.sh %s -q exec "cd;pwd>%s"' % (
+            self.Z.rundir, self.venv_dir, outfile)
         if not z0ctx['dry_run']:
             os.system(cmd)
             if not os.path.isfile(outfile):
@@ -110,7 +115,8 @@ class RegressionTest:
     def test_03(self, z0ctx):
         self.clear_venv()
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
-        cmd = '%s/vem -qDIf -p%s create %s' % (self.Z.rundir, pyver, self.venv_dir)
+        cmd = '%s/scripts/vem.sh -qDIf -p%s create %s' % (
+            self.Z.rundir, pyver, self.venv_dir)
         if not z0ctx['dry_run']:
             os.system(cmd)
         sts = self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
@@ -121,7 +127,7 @@ class RegressionTest:
         if not z0ctx['dry_run']:
             with open(test_python, 'w') as fd:
                 fd.write(TEST_PYTHON)
-        cmd = '%s/vem -qf %s exec "python %s &>%s"' % (
+        cmd = '%s/scripts/vem.sh -qf %s exec "python %s &>%s"' % (
             self.Z.rundir,
             self.venv_dir,
             test_python,
