@@ -41,7 +41,7 @@ PUNCT = [' ', '.', ',', '!', ':']
 TNL_DICT = {}
 TNL_ACTION = {}
 SYNTAX = {'string': re.compile('"([^"\\\n]|\\.|\\\n)*"')}
-VERSIONS = ('14.0', '13.0', '12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
+VERSIONS = ('15.0', '14.0', '13.0', '12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
 PROTECT_TOKENS = [
     'Adviser',
     'Apply',
@@ -140,6 +140,14 @@ def term_wo_punct(msgid, msgstr):
 
 def term_with_punct(msgid, msgstr, punct):
     return msgid + punct, msgstr + punct
+
+
+def term_with_tag(msgid, msgstr, ltag, rtag):
+    if not msgid.startswith(ltag):
+        msgid = ltag + msgid + rtag
+    if not msgstr.endswith(rtag):
+        msgstr = ltag + msgstr + rtag
+    return msgid, msgstr
 
 
 def load_default_dictionary(ctx, source):
@@ -344,20 +352,34 @@ def parse_pofile(ctx, source, untnl):
             msgstr = os0.u(message.string)
             msgid2, msgstr2 = term_wo_punct(msgid, msgstr)
             punct = ''
+            ltag = ''
+            rtag = ''
+            x = re.match('<[^>]+>', msgid)
+            if x:
+                ltag = msgid2[:x.end()]
+                msgid2 = msgid2[x.end():]
+                x = re.search('<[^>]+>', msgid2)
+                if x:
+                    rtag = msgid2[x.start():x.end()]
+                    msgid2 = msgid2[:x.start()]
+                    msgid, msgstr = term_with_tag(msgid, msgstr, ltag, rtag)
             if msgid and msgid[-1] in PUNCT:
                 punct = msgid[-1]
                 msgid, msgstr = term_with_punct(msgid, msgstr, punct)
             if not msgid:
-                for k, value in message.__dict__.iteritems():
+                for k, value in message.__dict__.items():
                     if k == 'string':
-                        message.string = ''
+                        message.string = u''
                     elif value:
                         setattr(message, k, value)
                 ctr += 1
             elif msgid2 in TNL_DICT and msgstr != TNL_DICT[msgid2]:
-                for k, value in message.__dict__.iteritems():
+                for k, value in message.__dict__.items():
                     if k == 'string':
-                        message.string = TNL_DICT[msgid2] + punct
+                        if ltag and rtag:
+                            message.string = ltag + TNL_DICT[msgid2] + rtag
+                        else:
+                            message.string = TNL_DICT[msgid2] + punct
                     elif value:
                         setattr(message, k, value)
                 ctr += 1
@@ -365,7 +387,6 @@ def parse_pofile(ctx, source, untnl):
             elif msgid and msgid2 not in TNL_DICT and msgid2 not in untnl:
                 if ctx['opt_verbose']:
                     print('\tWarning: key <%s> not found in translation!' % msgid2)
-                # untnl.append(msgid2)
                 untnl[msgid2] = msgstr2
         if ctx['opt_verbose']:
             print("\t... %d records to update" % ctr)
@@ -378,15 +399,15 @@ def rewrite_pofile(ctx, pofn, target, version):
         print("\tWriting %s " % pofn)
     tmpfile = '%s.tmp' % pofn
     bakfile = '%s.bak' % pofn
-    pofile.write_po(open(tmpfile, 'w'), target)
+    pofile.write_po(open(tmpfile, 'wb'), target)
     cmd = ['makepo_it.py', '-b%s' % version, '-m%s' % ctx['module_name'], tmpfile]
     out, err = Popen(
         cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=False
     ).communicate()
-    fd = open(pofn, 'rB')
+    fd = open(pofn, 'r')
     lefts = os0.u(fd.read()).split('\n')
     fd.close()
-    fd = open(tmpfile, 'rB')
+    fd = open(tmpfile, 'r')
     rights = os0.u(fd.read()).split('\n')
     jj = 0
     for ii in range(len(lefts)):
@@ -401,7 +422,7 @@ def rewrite_pofile(ctx, pofn, target, version):
                     rights.insert(jj, lefts[ii])
                     ii += 1
                 jj += 1
-    fd = open(tmpfile, 'w')
+    fd = open(tmpfile, 'wb')
     fd.write(os0.b('\n'.join(rights)))
     fd.close()
     if os.path.isfile(bakfile):
@@ -454,7 +475,7 @@ def load_dictionary(ctx):
     if ctx['dbg_template']:
         dict_name = os.path.join(root, 'pypi', 'tools', 'odoo_default_tnl')
     else:
-        dict_name = os.path.join(root, 'odoo_default_tnl')
+        dict_name = os.path.join(root, 'venv', 'bin', 'odoo_default_tnl')
     ctr = load_default_dictionary(ctx, dict_name)
     ctx['pofiles'] = {}
     ctx['ctrs'] = {'0': ctr}
@@ -481,7 +502,7 @@ def refresh_dictionary(ctx):
     dict_name = os.path.join(root, 'pypi', 'tools', 'odoo_default_tnl')
     load_default_dictionary(ctx, dict_name)
     load_dictionary_from_file(ctx, ctx['ref_pofile'], def_action=ctx['action'])
-    save_untranslated(ctx, None)
+    # save_untranslated(ctx, None)
 
 
 def set_header_pofile(ctx, pofile):
@@ -519,7 +540,6 @@ def set_header_pofile(ctx, pofile):
 
 
 def parse_file(ctx):
-    # untnl = []
     untnl = {}
     for version in ctx['pofiles'].keys():
         pofn = ctx['pofiles'][version]
@@ -536,7 +556,7 @@ def parse_file(ctx):
                 print("No change done.")
         else:
             rewrite_pofile(ctx, pofn, target, version)
-    save_untranslated(ctx, untnl)
+    # save_untranslated(ctx, untnl)
     return 0
 
 
@@ -600,12 +620,6 @@ def upgrade_db(ctx):
         # Report translations are in ir.ui.view model
         #
         model = 'ir.translation'
-        # clodoo.unlinkL8(
-        #     ctx, model, clodoo.searchL8(
-        #         ctx, model, [('lang', '=', 'it_IT'),
-        #                      ('name', 'in', ('ir.module.module,description'
-        #                                      'ir.module.module,shortdesc',
-        #                                      'ir.module.module,summary'))]))
         for msgid2 in TNL_DICT:
             for punct in PUNCT + ['']:
                 msgid = msgid2 + punct
