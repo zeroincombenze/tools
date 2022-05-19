@@ -7,6 +7,8 @@ from . import travis
 from . import z0bug_odoo_lib
 
 z0bugodoo = z0bug_odoo_lib.Z0bugOdoo()
+# TODO> Remove early
+Z0BUG = z0bugodoo
 try:
     import odoo.release as release
     from . import test_common
