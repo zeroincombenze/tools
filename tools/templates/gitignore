@@ -1,4 +1,4 @@
-# [antoniov: 2022-05-19]
+# [antoniov: 2022-05-20]
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -155,6 +155,7 @@ stdout.log
 /data-protection
 /ddmrp
 /delivery-carrier
+/dms
 /donation
 /dotnet
 /double-trouble
@@ -170,6 +171,7 @@ stdout.log
 /interface-github
 /intrastat
 /intrastat-extrastat
+/iot
 /knowledge
 /l10n-italy
 /l10n-italy-supplemental
@@ -198,6 +200,7 @@ stdout.log
 /pos
 /product-attribute
 /product-kitting
+/product-pack
 /product-variant
 /profiles
 /project

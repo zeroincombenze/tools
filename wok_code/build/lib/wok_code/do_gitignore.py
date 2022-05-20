@@ -20,7 +20,13 @@ def do_create_gitignore(path, submodules):
     with open(template, 'r') as fd:
         trig = False
         for line in fd.read().split('\n'):
-            if line in ('/coverage', '/venv_odoo'):
+            if line in (
+                '/addons_kalamitica',
+                '/coverage',
+                '/generic',
+                '/nardo_modules',
+                '/venv_odoo'
+            ):
                 found = True
             else:
                 found = False
