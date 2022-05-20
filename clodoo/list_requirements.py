@@ -344,7 +344,7 @@ DEPS9 = [
 ]
 
 
-def eval_requirement_cond(line, odoo_ver=None, pyver=None):
+def eval_requirement_cond(line, pyver=None):
     # odoo_ver = odoo_ver or '10.0'
     pyver = pyver or 3.7
     items = line.split(";")
@@ -356,14 +356,15 @@ def eval_requirement_cond(line, odoo_ver=None, pyver=None):
     return False
 
 
-def parse_requirements(reqfile, odoo_ver=None, pyver=None):
-    lines = open(reqfile, "rU").read().split("\n")
+def parse_requirements(reqfile, pyver=None):
     reqlist = []
-    for line in lines:
-        if line and line[0] != "#":
-            item = eval_requirement_cond(line, odoo_ver=odoo_ver, pyver=pyver)
-            if item:
-                reqlist.append(item)
+    with open(reqfile, "r") as fd:
+        lines = fd.read().split("\n")
+        for line in lines:
+            if not line.startswith("#"):
+                item = eval_requirement_cond(line, pyver=pyver)
+                if item:
+                    reqlist.append(item)
     return reqlist
 
 
@@ -381,7 +382,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         item = item.split(".")[0].lower()
     if item in ALIAS:
         item = ALIAS[item]
-    if odoo_ver in ("14.0", "13.0", "12.0", "11.0"):
+    if odoo_ver in ("16.0", "15.0", "14.0", "13.0", "12.0", "11.0"):
         if item in ALIAS3:
             item = ALIAS3[item]
     defver = False
@@ -407,6 +408,9 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
                     "11.0",
                     "12.0",
                     "13.0",
+                    "14.0",
+                    "15.0",
+                    "16.0",
                 ):
                     if v in REQVERSION[item]:
                         min_v = v
@@ -599,20 +603,13 @@ def package_from_manifest(
 
 
 def add_manifest(root, manifests, reqfiles, files):
-    import_manifest = False
-    manifest_imported = False
-    for fn in files:
-        if fn == "__init__.py":
-            import_manifest = True
-        if fn == "__openerp__.py":
-            if not manifest_imported:
-                manifest_imported = os.path.join(root, fn)
-        elif fn == "__manifest__.py":
-            manifest_imported = os.path.join(root, fn)
-        elif fn == "requirements.txt":
-            reqfiles.append(os.path.join(root, fn))
-    if import_manifest and manifest_imported:
-        manifests.append(manifest_imported)
+    if "__init__.py" in files:
+        for fn in ("__manifest__.py", "__openerp__.py"):
+            if fn in files:
+                manifests.append(os.path.join(root, fn))
+                break
+    if "requirements.txt" in files:
+        reqfiles.append(os.path.join(root, "requirements.txt"))
     return manifests, reqfiles
 
 
@@ -632,15 +629,21 @@ def swap(deps, itm1, itm2):
         deps.insert(itm1_id, item)
 
 
-def walk_dir(cdir, manifests, reqfiles):
+def walk_dir(cdir, manifests, reqfiles, read_from_manifest):
     no_deep = " "
     for root, _dirs, files in os.walk(cdir):
         if root.startswith(no_deep):
             continue
-        if os.path.basename(root) in (".git", "__to_remove", "doc", "setup"):
+        basename = os.path.basename(root)
+        if (
+            basename.startswith('.') or
+            basename.startswith('_') or
+            basename.endswith('~') or
+            basename in ("doc", "tmp", "setup", "venv_odoo")
+        ):
             no_deep = root
             continue
-        if "__init__.py" in files and (
+        if not read_from_manifest and "__init__.py" in files and (
             "__manifest__.py" in files or "__openerp__.py" in files
         ):
             no_deep = root
@@ -674,8 +677,15 @@ def main():
         "--manifest",
         help="Declare manifest files if no path supplied",
         dest="manifests",
-        metavar="file list",
+        metavar="file_list",
         default="",
+    )
+    parser.add_argument(
+        "-M",
+        "--read-from-manifest",
+        help="Read from manifest instead of requirements.txt",
+        dest="from_manifest",
+        action="store_true",
     )
     parser.add_argument("-n")
     parser.add_argument(
@@ -743,6 +753,8 @@ def main():
             ctx["pyver"] = "3.5"
         elif odoo_majver >= 12:
             ctx["pyver"] = "3.7"
+        elif odoo_majver >= 14:
+            ctx["pyver"] = "3.8"
     elif not ctx["odoo_ver"] and ctx["pyver"]:
         py_majver = int(ctx["pyver"].split(".")[0])
         if py_majver == 3:
@@ -756,6 +768,7 @@ def main():
             )
             sys.exit(1)
         ctx["sep"] = "\n"
+        ctx["from_manifest"] = True
         ctx["with_version"] = True
         ctx["itypes"] = "python"
         ctx["opt_verbose"] = False
@@ -785,8 +798,10 @@ def main():
     elif ctx["odoo_dir"]:
         if ctx["oca_dependencies"]:
             for cdir in ctx["oca_dependencies"].split(","):
-                manifests, reqfiles = walk_dir(cdir, manifests, reqfiles)
-        manifests, reqfiles = walk_dir(ctx["odoo_dir"], manifests, reqfiles)
+                manifests, reqfiles = walk_dir(
+                    cdir, manifests, reqfiles, ctx['from_manifest'])
+        manifests, reqfiles = walk_dir(
+            ctx["odoo_dir"], manifests, reqfiles, ctx['from_manifest'])
     deps_list = {}
     for kw in (
         "python",
@@ -800,9 +815,7 @@ def main():
     ):
         deps_list[kw] = []
     for reqfile in reqfiles:
-        requirements = parse_requirements(
-            reqfile, odoo_ver=ctx["odoo_ver"], pyver=ctx["pyver"]
-        )
+        requirements = parse_requirements(reqfile, pyver=ctx["pyver"])
         deps_list = package_from_list(
             deps_list,
             "python",
@@ -880,20 +893,20 @@ def main():
         )
         + deps_list["python9"]
     )
-    for ii, pkg in enumerate(deps_list["python"]):
-        if pkg.find(">") >= 0 or pkg.find("<") >= 0 or pkg.find(" ") >= 0:
-            if pkg.find(" ") >= 0:
-                pkg = pkg.replace(" ", "")
-            deps_list["python"][ii] = "'%s'" % pkg
+    for ii, dep_pkg in enumerate(deps_list["python"]):
+        if dep_pkg.find(">") >= 0 or dep_pkg.find("<") >= 0 or dep_pkg.find(" ") >= 0:
+            if dep_pkg.find(" ") >= 0:
+                dep_pkg = dep_pkg.replace(" ", "")
+            deps_list["python"][ii] = "'%s'" % dep_pkg
     deps_list["bin"] = sorted(
         sorted(deps_list["bin1"], key=lambda s: s.lower()) + deps_list["bin2"],
         key=lambda s: s.lower(),
     )
-    for ii, pkg in enumerate(deps_list["bin"]):
-        if pkg.find(">") >= 0 or pkg.find("<") >= 0 or pkg.find(" ") >= 0:
-            if pkg.find(" ") >= 0:
-                pkg = pkg.replace(" ", "")
-            deps_list["bin"][ii] = "'%s'" % pkg
+    for ii, dep_pkg in enumerate(deps_list["bin"]):
+        if dep_pkg.find(">") >= 0 or dep_pkg.find("<") >= 0 or dep_pkg.find(" ") >= 0:
+            if dep_pkg.find(" ") >= 0:
+                dep_pkg = dep_pkg.replace(" ", "")
+            deps_list["bin"][ii] = "'%s'" % dep_pkg
     for item in DEPS:
         if "python" in DEPS[item]:
             if isinstance(DEPS[item]["python"], (tuple, list)):
@@ -918,22 +931,46 @@ def main():
                 else:
                     swap(deps_list["python"], item, DEPS3[item]["python"])
     if ctx["out_file"]:
+        pkgs = []
         try:
-            pkgs = open(ctx["opt_fn"], "rU").read().split("\n")
-        except BaseException:
-            pkgs = []
-        for pkg in deps_list["python"]:
-            if pkg not in pkgs:
-                if pkg.startswith("'"):
-                    naked_pkg = pkg[1:-1]
-                    if naked_pkg not in pkgs:
-                        pkgs.append(pkg)
-                else:
+            with open(ctx["opt_fn"], "r") as fd:
+                for pkg in fd.read().split("\n"):
+                    pkg = pkg if not pkg.startswith("'") else pkg[1:-1]
+                    if not pkg:
+                        continue
                     pkgs.append(pkg)
+        except BaseException:
+            pass
+        sel_pkgs = []
+        for dep_pkg in deps_list["python"]:
+            dep_pkg = dep_pkg.replace("'", "")
+            for mx_pkg in pkgs:
+                mx_pkg = mx_pkg.replace("'", "").split('#')[0].strip()
+                pkg = re.split('[<=>]', mx_pkg)[0]
+                if dep_pkg.startswith(pkg):
+                    if pkg == mx_pkg:
+                        mx_pkg = dep_pkg
+                    sel_pkgs.append(mx_pkg)
+                    break
+        pkgs = []
+        for mx_pkg in sorted(list(set(sel_pkgs)), key=lambda s: s.lower()):
+            pkg = re.split('[<=>]', mx_pkg)[0]
+            found = True
+            if not any([x for x in deps_list["python"] if x.startswith(pkg)]):
+                found = False
+            if '>' in mx_pkg or '<' in mx_pkg:
+                mx_pkg = "'%s'" % mx_pkg
+            if not found:
+                mx_pkg = "%-50.50s# not found in any manifests" % mx_pkg
+            pkgs.append(mx_pkg)
         if len(pkgs):
-            fd = open(ctx["opt_fn"], "w")
-            fd.write(ctx["sep"].join(sorted(pkgs)))
-            fd.close()
+            bakfile = '%s~' % ctx["opt_fn"]
+            if os.path.isfile(bakfile):
+                os.remove(bakfile)
+            if os.path.isfile(ctx["opt_fn"]):
+                os.rename(ctx["opt_fn"], bakfile)
+            with open(ctx["opt_fn"], 'w') as fd:
+                fd.write(ctx["sep"].join(pkgs))
         print("Updated %s file" % ctx["opt_fn"])
         print(ctx["sep"].join(pkgs))
     else:

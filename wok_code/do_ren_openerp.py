@@ -32,17 +32,20 @@ def main(argv):
     if not path:
         print('No path supplied! Use %s PATH' % sys.argv[0])
         return 1
-    if not os.path.isdir(path):
+    if os.path.isdir(path):
+        for root, dirs, files in os.walk(path):
+            if 'setup' in dirs:
+                del dirs[dirs.index('setup')]
+            for fn in files:
+                if not fn.endswith('.py'):
+                    continue
+                ffn = os.path.join(root, fn)
+                do_ren_openerp(ffn)
+    elif os.path.isfile(path):
+        do_ren_openerp(path)
+    else:
         print('Path %s does not exist!' % sys.argv[0])
         return 2
-    for root, dirs, files in os.walk(path):
-        if 'setup' in dirs:
-            del dirs[dirs.index('setup')]
-        for fn in files:
-            if not fn.endswith('.py'):
-                continue
-            ffn = os.path.join(root, fn)
-            do_ren_openerp(ffn)
     return 0
 
 
