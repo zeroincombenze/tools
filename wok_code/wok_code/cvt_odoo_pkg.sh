@@ -101,7 +101,7 @@ else
   opt_help=1
 fi
 if [[ $opt_help -gt 0 ]]; then
-  print_help "Cvt odoo package to comparition"\
+  print_help "Cvt odoo package to comparison"\
   "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi

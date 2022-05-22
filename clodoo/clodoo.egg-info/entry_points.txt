@@ -1,3 +1,4 @@
 [console_scripts]
 clodoo-info = clodoo.scripts.main:main
+list_requirements.py = clodoo.scripts.list_requirements:main
 

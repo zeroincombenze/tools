@@ -7,7 +7,6 @@ clodoo/clodoo.py
 clodoo/clodoocore.py
 clodoo/clodoolib.py
 clodoo/export_db_model.py
-clodoo/list_requirements.py
 clodoo/migrate_odoo_db.py
 clodoo/moduli_da_installare.py
 clodoo/odoorc
@@ -22,5 +21,6 @@ clodoo.egg-info/not-zip-safe
 clodoo.egg-info/requires.txt
 clodoo.egg-info/top_level.txt
 clodoo/scripts/__init__.py
+clodoo/scripts/list_requirements.py
 clodoo/scripts/main.py
 clodoo/scripts/setup.info

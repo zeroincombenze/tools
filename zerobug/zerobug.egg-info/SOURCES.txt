@@ -13,6 +13,7 @@ zerobug.egg-info/not-zip-safe
 zerobug.egg-info/requires.txt
 zerobug.egg-info/top_level.txt
 zerobug/_travis/__init__.py
+zerobug/_travis/build_cmd
 zerobug/_travis/travis.yml
 zerobug/_travis/travis_after_tests_success
 zerobug/_travis/travis_install_env
