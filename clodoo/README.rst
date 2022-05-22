@@ -1,6 +1,6 @@
 
 ==============
-clodoo 1.0.4.1
+clodoo 1.0.4.2
 ==============
 
 
@@ -417,7 +417,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-05-20
+Last Update / Ultimo aggiornamento: 2022-05-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

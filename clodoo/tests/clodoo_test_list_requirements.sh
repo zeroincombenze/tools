@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.4.1
+__version__=1.0.4.2
 
 
 test_01() {
@@ -73,7 +73,7 @@ test_01() {
 }
 
 Z0BUG_setup() {
-    :
+    build_cmd $RUNDIR/list_requirements.py
 }
 
 Z0BUG_teardown() {

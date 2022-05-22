@@ -49,7 +49,7 @@ except BaseException:
 
 from zerobug import z0test
 
-__version__ = "1.0.4.1"
+__version__ = "1.0.4.2"
 
 MODULE_ID = "clodoo"
 TEST_FAILED = 1
