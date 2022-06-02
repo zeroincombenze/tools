@@ -21,7 +21,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.4.2"
+__version__ = "1.0.5"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -65,7 +65,7 @@ REQVERSION = {
     "lessc": {"0": "==3.0.4"},
     "lxml": {"6.1": ">=3.4.1", "0": ">=4.2.3"},
     "Mako": {"6.1": "==1.0.0", "7.0": "==1.0.1", "8.0": "==1.0.4"},
-    "MarkupSafe": {"6.1": ">=0.23"},  # Tested 1.0
+    "MarkupSafe": {"6.1": ">=0.23", "0": "<2.1.0"},  # Tested 1.0
     "mock": {"6.1": "==1.0.1", "8.0": "==2.0.0"},
     "ofxparse": {"6.1": "==0.16"},
     "passlib": {"6.1": "==1.6.2", "10.0": "==1.6.5"},

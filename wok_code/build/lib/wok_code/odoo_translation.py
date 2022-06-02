@@ -207,28 +207,24 @@ def load_default_dictionary(ctx, source):
         ctr = 0
         if ctx['opt_verbose']:
             print("\tReading %s into dictionary" % source)
-        # wb = xlrd.open_workbook(source)
         wb = load_workbook(source)
         # sheet = wb.sheet_by_index(0)
-        for sheet in wb:
-            break
+        # for sheet in wb:
+        #     break
+        sheet = wb.active
         colnames = []
-        # for ncol in range(sheet.ncols):
         for ncol in sheet.columns:
-            # colnames.append(sheet.cell_value(0, ncol))
             colnames.append(ncol[0].value)
         module_rows = []
-        # for nrow in range(1, sheet.nrows):
         hdr = True
         for nrow in sheet.rows:
             if hdr:
                 hdr = False
                 continue
             row = {}
-            # for ncol in range(sheet.ncols):
             for ncol, cell in enumerate(nrow):
-                # row[colnames[ncol]] = sheet.cell_value(nrow, ncol)
-                row[colnames[ncol]] = cell.value
+                row[colnames[ncol]] = cell.value.replace(
+                    '\\n', '\n') if cell.value else cell.value
             ctr += process_row(ctx, module_rows, row)
         for row in module_rows:
             ctr += process_row(ctx, None, row)

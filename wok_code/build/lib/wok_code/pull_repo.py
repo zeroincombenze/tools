@@ -114,6 +114,11 @@ DATA = {
         "git_org": "git@github.com:zeroincombenze",
         "conf": "odoo15.conf",
     },
+    "zero16": {
+        "dirname": "~/16.0",
+        "git_org": "git@github.com:zeroincombenze",
+        "conf": "odoo16.conf",
+    },
     "librerp6": {
         "dirname": "~/librerp6",
         "git_org": "https://github.com/iw3hxn",
@@ -209,7 +214,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-b",
         "--odoo-branch",
-        help="may be one of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 or 15.0",
+        help="may be one of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 or 16.0",
         action="store",
         dest="odoo_vid",
     )
@@ -229,6 +234,7 @@ if __name__ == "__main__":
     ctx = parser.parseoptargs(sys.argv[1:])
     odoo_version = build_odoo_param("FULLVER", odoo_vid=ctx["odoo_vid"], multi=True)
     if odoo_version not in (
+        "16.0",
         "15.0",
         "14.0",
         "13.0",
@@ -285,6 +291,15 @@ if __name__ == "__main__":
             cmd = "git checkout %s &>/dev/null" % ctx["odoo_vid"]
             print("$ %s" % cmd)
             sts = os.system(cmd)
+            if sts:
+                if ctx["odoo_vid"].endswith("-devel"):
+                    cmd = cmd.replace("-devel", "_devel")
+                    print("$ %s" % cmd)
+                    sts = os.system(cmd)
+                elif ctx["odoo_vid"].endswith("_devel"):
+                    cmd = cmd.replace("_devel", "-devel")
+                    print("$ %s" % cmd)
+                    sts = os.system(cmd)
             if sts:
                 print("Invalid branch %s" % ctx["odoo_vid"])
                 cmd = "git checkout %s &>/dev/null" % odoo_version
