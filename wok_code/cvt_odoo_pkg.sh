@@ -43,7 +43,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.10.1
+__version__=1.0.10.2
 
 cvt_dir() {
     # echo "cvt_dir ($1,$2)"
@@ -101,7 +101,7 @@ else
   opt_help=1
 fi
 if [[ $opt_help -gt 0 ]]; then
-  print_help "Cvt odoo package to comparition"\
+  print_help "Cvt odoo package to comparison"\
   "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi

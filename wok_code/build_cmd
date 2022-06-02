@@ -8,11 +8,12 @@ echo "#!$PYTHON">$cmd
 echo "# -*- coding: utf-8 -*-">>$cmd
 echo "import re">>$cmd
 echo "import sys">>$cmd
-if [[ $PYVER == "2" ]]; then
-  echo "from scripts.$BASE import main">>$cmd
-else
-  echo "from .scripts.$BASE import main">>$cmd
-fi
+# echo "if sys.version_info[0] == 2">>$cmd
+# if [[ $PYVER == "2" ]]; then
+echo "from scripts.$BASE import main">>$cmd
+# echo "else:"
+# echo "    from .scripts.$BASE import main">>$cmd
+# fi
 echo "if __name__ == '__main__':">>$cmd
 echo "    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])">>$cmd
 echo "    sys.exit(main())">>$cmd

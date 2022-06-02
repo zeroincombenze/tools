@@ -9,7 +9,7 @@ import sys
 
 # import pdb
 
-__version__ = "1.0.10.1"
+__version__ = "1.0.10.2"
 
 params = {'clear_base_tnl': False}
 me = True
