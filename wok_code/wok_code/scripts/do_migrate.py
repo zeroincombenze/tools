@@ -3,6 +3,7 @@ import os
 import argparse
 import re
 import lxml.etree as ET
+from python_plus import _b
 
 __version__ = "1.0.5"
 
@@ -129,7 +130,9 @@ class MigrateFile(object):
                 os.rename(self.ffn, bakfile)
             with open(self.ffn, 'w') as fd:
                 if self.ffn.endswith(".xml"):
-                    xml = ET.fromstring("\n".join(self.lines).replace('\t', '    '))
+                    xml = ET.fromstring(
+                        _b("\n".join(self.lines).replace('\t', '    '))
+                    )
                     fd.write(ET.tostring(
                         xml,
                         encoding="unicode",

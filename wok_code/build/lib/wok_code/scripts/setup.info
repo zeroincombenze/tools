@@ -8,13 +8,12 @@ if sys.version_info >= (3, 0):
     )
 else:
     install_requires = (
-        ['z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'babel'
-                                                                   'twine==1.15.0'],
+        ['z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'twine==1.15.0'],
     )
 
 setup(
     name='wok_code',
-    version='1.0.10.1',
+    version='1.0.10.2',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.
@@ -78,6 +77,7 @@ The available tools are:
             # 'cvt_csv_2_xml = wok_code.scripts.cvt_csv_2_xml:main',
             'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',
             'to_pep8.py = wok_code.scripts.to_pep8:main',
+            'do_migrate = wok_code.scripts.do_migrate:main',
         ]
     },
     zip_safe=False,

@@ -29,7 +29,7 @@ import sys
 import time
 
 from os0 import os0
-from python_plus import _b, bstrings, unicodes
+from python_plus import unicodes
 
 try:
     from z0lib import z0lib
@@ -38,10 +38,10 @@ except ImportError:
 
 from clodoo import transodoo
 
-__version__ = "1.0.10.1"
+__version__ = "1.0.10.2"
 
 msg_time = time.time()
-VALID_ACTIONS = ('export-comparable', 'export-full', 'export-group')
+VALID_ACTIONS = ("export-comparable", "export-full", "export-z0bug", "export-group")
 
 
 def msg_burst(text):
@@ -62,10 +62,58 @@ def items_2_unicode(src):
     return src
 
 
+def manage_tax(ctx):
+    # def read_csv_file(csv_fn, src_ver, tgt_ver, action):
+    #     tax = []
+    #     group = []
+    #     tnlctx = {}
+    #     transodoo.read_stored_dict(tnlctx)
+    #     src_majver = eval(src_ver.split('.')[0])
+    #     tgt_majver = eval(tgt_ver.split('.')[0])
+    #     with open(csv_fn, 'r') as fd:
+    #         hdr = False
+    #         reader = csv.reader(fd)
+    #         for row in reader:
+    #             if not hdr:
+    #                 hdr = True
+    #                 ix = len(row)
+    #                 ID = row.index('id')
+    #                 CODE = row.index('description')
+    #                 NAME = row.index('name')
+    #                 SEQUENCE = row.index('sequence')
+    #                 AMOUNT = row.index('amount')
+    #                 AMT_TYPE = row.index('amount_type')
+    #                 TYPE = row.index('type_tax_use')
+    #                 PRICE = row.index('price_include')
+    #                 if 'account_id:id' in row:
+    #                     ACCOUNT = row.index('account_id:id')
+    #                 else:
+    #                     ACCOUNT = ix
+    #                     ix += 1
+    #                 if 'refund_account_id:id' in row:
+    #                     REFUND = row.index('refund_account_id:id')
+    #                 else:
+    #                     REFUND = ix
+    #                     ix += 1
+    #                 if 'chart_template_id:id' in row:
+    #                     CHART = row.index('chart_template_id:id')
+    #                 else:
+    #                     CHART = ix
+    #                     ix += 1
+    #                 continue
+    #             line = unicodes(row)
+    #             while len(line) < ix:
+    #                 line.append('')
+    #             row = {}
+    #             pass
+    #     return tax, group
+    pass
+
+
 def manage_coa(ctx):
     TNLFLD = {
-        'USER_TYPE': {'old': 'user_type', 'new': 'user_type_id'},
-        'TYPE': {'old': 'type', 'new': 'internal_type'},
+        "USER_TYPE": {"old": "user_type", "new": "user_type_id"},
+        "TYPE": {"old": "type", "new": "internal_type"},
     }
 
     def read_csv_file(csv_fn, src_ver, tgt_ver, action):
@@ -73,154 +121,193 @@ def manage_coa(ctx):
         group = []
         tnlctx = {}
         transodoo.read_stored_dict(tnlctx)
-        src_majver = eval(src_ver.split('.')[0])
-        tgt_majver = eval(tgt_ver.split('.')[0])
-        # Do not remove 'b' (binary= to avoid utf-8 conflicts!
-        with open(csv_fn, 'rbU') as fd:
+        src_majver = eval(src_ver.split(".")[0])
+        tgt_majver = eval(tgt_ver.split(".")[0])
+        with open(csv_fn, "r") as fd:
             hdr = False
             reader = csv.reader(fd)
             for row in reader:
                 if not hdr:
                     hdr = True
                     ix = len(row)
-                    ID = row.index('id')
-                    CODE = row.index('code')
-                    NAME = row.index('name')
-                    RECONCILE = row.index('reconcile')
-                    if 'user_type_id:id' in row:
-                        USER_TYPE = row.index('user_type_id:id')
-                    elif 'user_type:id' in row:
-                        USER_TYPE = row.index('user_type:id')
+                    ID = row.index("id")
+                    CODE = row.index("code")
+                    NAME = row.index("name")
+                    RECONCILE = row.index("reconcile")
+                    if "user_type_id:id" in row:
+                        USER_TYPE = row.index("user_type_id:id")
+                    elif "user_type:id" in row:
+                        USER_TYPE = row.index("user_type:id")
                     else:
                         USER_TYPE = False
-                    if 'type' in row:
-                        TYPE = row.index('type')
-                    elif 'user_type' in row:
-                        TYPE = row.index('user_type')
+                    if "type" in row:
+                        TYPE = row.index("type")
+                    elif "user_type" in row:
+                        TYPE = row.index("user_type")
                     else:
                         TYPE = ix
                         ix += 1
-                    if 'parent_id:id' in row:
-                        PARENT = row.index('parent_id:id')
+                    if "parent_id:id" in row:
+                        PARENT = row.index("parent_id:id")
                     else:
                         PARENT = ix
                         ix += 1
-                    if 'chart_template_id:id' in row:
-                        CHART = row.index('chart_template_id:id')
+                    if "chart_template_id:id" in row:
+                        CHART = row.index("chart_template_id:id")
                     else:
                         CHART = ix
                         ix += 1
                     continue
                 line = unicodes(row)
                 while len(line) < ix:
-                    line.append('')
+                    line.append("")
                 row = {}
-                for item in ('ID', 'CODE', 'NAME'):
+                row["ID"] = (
+                    line[locals()["ID"]].split(".")[1]
+                    if "." in line[locals()["ID"]]
+                    else line[locals()["ID"]]
+                )
+                for item in ("CODE", "NAME"):
                     row[item] = line[locals()[item]]
-                for item in ('TYPE', 'USER_TYPE'):
-                    if tgt_majver > 9 and item == 'TYPE':
+                for item in ("TYPE", "USER_TYPE"):
+                    if tgt_majver > 9 and item == "TYPE":
                         continue
                     value = transodoo.translate_from_to(
                         tnlctx,
-                        'ir.model.data',
-                        line[locals()[item]] or 'other',
+                        "ir.model.data",
+                        line[locals()[item]] or "other",
                         src_ver,
                         tgt_ver,
-                        ttype='xref',
-                        fld_name=TNLFLD[item]['old' if src_majver < 10 else 'new'],
+                        ttype="xref",
+                        fld_name=TNLFLD[item]["old" if src_majver < 10 else "new"],
                     )
                     if isinstance(value, (list, tuple)):
                         row[item] = value[0]
                     else:
                         row[item] = value
-                item = 'USER_TYPE'
+                item = "USER_TYPE"
                 if tgt_majver > 9:
-                    if row['CODE'].startswith('121') or row['CODE'].startswith('123'):
-                        row[item] = 'account.data_account_type_fixed_assets'
-                    elif row['CODE'].startswith('211'):
-                        row[item] = 'account.data_account_type_equity'
-                    elif row['CODE'].startswith('65'):
-                        row[item] = 'account.data_account_type_depreciation'
+                    if row["CODE"].startswith("121") or row["CODE"].startswith("123"):
+                        row[item] = "account.data_account_type_fixed_assets"
+                    elif row["CODE"] == "152220":
+                        row[item] = "account.data_account_type_current_assets"
+                    elif row["CODE"] == "152420":
+                        row[item] = "account.data_account_type_non_current_assets"
+                    elif row["CODE"].startswith("211"):
+                        row[item] = "account.data_account_type_equity"
+                    elif row["CODE"].startswith("65"):
+                        row[item] = "account.data_account_type_depreciation"
+                    elif row["CODE"] == "190120":
+                        row[item] = "account.data_account_type_prepayments"
                     elif (
-                        row['CODE'].startswith('190') or row['CODE'].startswith('290')
-                    ) and row['CODE'].endswith('20'):
-                        row[item] = 'account.data_account_type_prepayments'
-                    elif (
-                        row['CODE'].startswith('610')
-                        and row[item] == 'account.data_account_type_expenses'
+                        row["CODE"].startswith("610")
+                        and row[item] == "account.data_account_type_expenses"
                     ):
-                        row[item] = 'account.data_account_type_direct_costs'
+                        row[item] = "account.data_account_type_direct_costs"
+                    elif row["CODE"] == "870230":
+                        row[item] = "account.data_unaffected_earnings"
                     elif (
-                        row['CODE'].startswith('8')
-                        and row[item] == 'account.data_account_type_income'
+                        row["CODE"].startswith("8")
+                        and row[item] == "account.data_account_type_income"
                     ):
-                        row[item] = 'account.data_account_type_other_income'
-                    elif row['CODE'] == '870230':
-                        row[item] = 'account.data_unaffected_earnings'
+                        row[item] = "account.data_account_type_other_income"
                     elif (
-                        row[item] == 'account.data_account_type_current_assets'
-                        and '+12 M' in row['NAME']
+                        row[item] == "account.data_account_type_current_assets"
+                        and "+12 M" in row["NAME"]
                     ):
-                        row[item] = 'account.data_account_type_non_current_assets'
+                        row[item] = "account.data_account_type_non_current_assets"
                     elif (
-                        row[item] == 'account.data_account_type_liability'
-                        and '+12 M' in row['NAME']
+                        row[item] == "account.data_account_type_liability"
+                        and "+12 M" in row["NAME"]
                     ):
-                        row[item] = 'account.data_account_type_non_current_liabilities'
-                    item = 'PARENT'
+                        row[item] = "account.data_account_type_non_current_liabilities"
+                    item = "PARENT"
                 if not line[locals()[item]]:
-                    if len(row['CODE']) >= 6:
-                        row[item] = line[CODE][0:3]
-                    elif len(row['CODE']) >= 3:
+                    if len(row["CODE"]) >= 6:
+                        if row["CODE"].startswith("126"):
+                            row[item] = "125"
+                        elif row["CODE"].startswith("154"):
+                            row[item] = "153"
+                        elif row["CODE"].startswith("18"):
+                            row[item] = "180"
+                        elif (
+                            row["CODE"].startswith("12")
+                            or row["CODE"].startswith("15")
+                            or row["CODE"].startswith("265")
+                            or row["CODE"].startswith("651")
+                            or row["CODE"].startswith("652")
+                        ):
+                            row[item] = line[CODE][0:3]
+                        else:
+                            row[item] = line[CODE][0:2]
+                    elif len(row["CODE"]) >= 3:
                         row[item] = line[CODE][0:2]
-                    elif len(row['CODE']) >= 2:
+                    elif len(row["CODE"]) >= 2:
                         row[item] = line[CODE][0:1]
                     else:
-                        row[item] = ''
+                        row[item] = ""
                 else:
                     row[item] = line[locals()[item]]
-                if len(row['PARENT']) < 2 and tgt_majver > 9:
-                    row['PARENT'] = ''
-                item = 'RECONCILE'
-                row[item] = line[locals()[item]]
-                item = 'CHART'
-                row[item] = 'l10n_chart_it_zeroincombenze'
-                if action == 'export-comparable':
-                    if len(row['CODE']) < 6:
+                if len(row["PARENT"]) < 2 and tgt_majver > 9:
+                    row["PARENT"] = ""
+                item = "RECONCILE"
+                row[item] = {
+                    "FALSE": "0",
+                    "TRUE": "1",
+                }.get(line[locals()[item]], line[locals()[item]])
+                item = "CHART"
+                row[item] = "l10n_chart_it_zeroincombenze"
+                if action == "export-comparable":
+                    if len(row["CODE"]) < 6:
                         continue
-                    line = (row['CODE'], row['NAME'], row['USER_TYPE'])
+                    line = (row["CODE"], row["NAME"], row["USER_TYPE"])
                     print(line)
                     coa.append(line)
                     continue
-                if len(row['CODE']) < 6 and tgt_majver > 9:
-                    line = (row['ID'], row['CODE'], row['NAME'], row['PARENT'])
-                    if len(row['CODE']) < 2:
+                if len(row["CODE"]) < 6 and tgt_majver > 9:
+                    line = (row["ID"], row["CODE"], row["NAME"], row["PARENT"])
+                    if len(row["CODE"]) < 2:
                         continue
                     print(line)
                     group.append(line)
                     continue
-                if tgt_majver > 9:
+                if action == "export-z0bug":
                     line = (
-                        row['ID'],
-                        row['CODE'],
-                        row['NAME'],
-                        row['USER_TYPE'],
-                        row['PARENT'],
-                        row['RECONCILE'],
-                        row['CHART'],
+                        "z0bug.coa_%s" % row["ID"],
+                        row["CODE"],
+                        row["NAME"],
+                        row["USER_TYPE"],
+                        row["RECONCILE"],
+                        "",
+                    )
+                elif tgt_majver > 9:
+                    line = (
+                        row["ID"],
+                        row["CODE"],
+                        row["NAME"],
+                        row["USER_TYPE"],
+                        row["PARENT"],
+                        {
+                            "0": "FALSE",
+                            "1": "TRUE",
+                        }.get(row["RECONCILE"], row["RECONCILE"]),
+                        row["CHART"],
                     )
                 else:
                     line = (
-                        row['ID'],
-                        row['CODE'],
-                        row['NAME'],
-                        row['USER_TYPE'],
-                        row['TYPE'],
-                        row['PARENT'],
-                        row['RECONCILE'],
-                        row['CHART'],
+                        row["ID"],
+                        row["CODE"],
+                        row["NAME"],
+                        row["USER_TYPE"],
+                        row["TYPE"],
+                        row["PARENT"],
+                        {
+                            "0": "FALSE",
+                            "1": "TRUE",
+                        }.get(row["RECONCILE"], row["RECONCILE"]),
+                        row["CHART"],
                     )
-                if action != 'export-group':
+                if action != "export-group":
                     print(line)
                 coa.append(line)
         return coa, group
@@ -268,95 +355,107 @@ def manage_coa(ctx):
                 right_ix += 1
         return tgt_coa, tgt_group
 
-    VERSIONS = ['6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0']
+    VERSIONS = ["6.1", "7.0", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0"]
     # ORGS = ('zero', 'powerp', 'librerp')
-    action = ctx['action']
+    action = ctx["action"]
     if action not in VALID_ACTIONS:
-        print('Invalid action %s!' % action)
-        print('Valid action are: %s' % ','.join(VALID_ACTIONS))
+        print("Invalid action %s!" % action)
+        print("Valid action are: %s" % ",".join(VALID_ACTIONS))
         return 1
-    src_ver = ctx['from_odoo_ver']
+    src_ver = ctx["from_odoo_ver"]
     if src_ver not in VERSIONS:
-        print('Invalid Odoo source version %s' % src_ver)
+        print("Invalid Odoo source version %s: use -F option" % src_ver)
         return 1
-    tgt_ver = ctx['odoo_ver']
+    tgt_ver = ctx["odoo_ver"]
     if tgt_ver not in VERSIONS:
-        print('Invalid Odoo target version %s' % tgt_ver)
+        print("Invalid Odoo target version %s: use -b option" % tgt_ver)
         return 1
-    csv_fn = os.path.expanduser(ctx['src_csvfile'])
+    csv_fn = os.path.expanduser(ctx["src_csvfile"])
     if not os.path.isfile(csv_fn):
-        print('File %s not found!' % csv_fn)
+        print("File %s not found!" % csv_fn)
         return 1
     merge_fn = None
-    if ctx['merge_csvfile']:
-        merge_fn = ctx['merge_csvfile']
+    if ctx["merge_csvfile"]:
+        merge_fn = ctx["merge_csvfile"]
         if not os.path.isfile(merge_fn):
-            print('File %s not found!' % merge_fn)
+            print("File %s not found!" % merge_fn)
             return 1
         merge_coa, merge_group = read_csv_file(
-            merge_fn, src_ver, tgt_ver, 'export-full'
+            merge_fn, src_ver, tgt_ver, "export-full"
         )
 
     coa, group = read_csv_file(csv_fn, src_ver, tgt_ver, action)
     if merge_fn:
         coa, group = merge_coa(coa, merge_coa, group, merge_group)
     # src_majver = eval(src_ver.split('.')[0])
-    tgt_majver = eval(tgt_ver.split('.')[0])
-    if ctx['dst_csvfile']:
-        out_fn = ctx['dst_csvfile']
-    elif action == 'export-group':
-        out_fn = os.path.join(os.path.dirname(csv_fn), 'account.group.tmp.csv')
+    tgt_majver = eval(tgt_ver.split(".")[0])
+    if ctx["dst_csvfile"]:
+        out_fn = ctx["dst_csvfile"]
+    elif action == "export-group":
+        out_fn = os.path.join(os.path.dirname(csv_fn), "account.group.tmp.csv")
     else:
-        out_fn = '%s.tmp.csv' % csv_fn[0:-4]
-    if action == 'export-comparable':
+        out_fn = "%s.tmp.csv" % csv_fn[0:-4]
+    if action == "export-comparable":
         header = [
-            'code',
-            'name',
-            TNLFLD['USER_TYPE']['old' if tgt_majver < 10 else 'new'],
+            "code",
+            "name",
+            TNLFLD["USER_TYPE"]["old" if tgt_majver < 10 else "new"],
         ]
-    elif action == 'export-group':
-        header = ['id', 'code_prefix', 'name', 'parent_id:id']
+    elif action == "export-group":
+        header = ["id", "code_prefix", "name", "parent_id:id"]
     else:
-        if tgt_majver > 9:
+        if action == "export-z0bug":
             header = [
-                'id',
-                'code',
-                'name',
-                '%s:id' % TNLFLD['USER_TYPE']['new'],
-                'parent_id:id',
-                'reconcile',
-                'chart_template_id:id',
+                "id",
+                "code",
+                "name",
+                TNLFLD["USER_TYPE"]["new"],
+                "group_id",
+                "reconcile",
+                "company_id",
+            ]
+        elif tgt_majver > 9:
+            header = [
+                "id",
+                "code",
+                "name",
+                "%s:id" % TNLFLD["USER_TYPE"]["new"],
+                "group_id:id",
+                "reconcile",
+                "chart_template_id:id",
             ]
         else:
             header = [
-                'id',
-                'code',
-                'name',
-                '%s:id' % TNLFLD['USER_TYPE']['old'],
-                '%s:id' % TNLFLD['TYPE']['old'],
-                'parent_id:id',
-                'reconcile',
-                'chart_template_id:id',
+                "id",
+                "code",
+                "name",
+                "%s:id" % TNLFLD["USER_TYPE"]["old"],
+                "%s:id" % TNLFLD["TYPE"]["old"],
+                "parent_id:id",
+                "reconcile",
+                "chart_template_id:id",
             ]
-    if action == 'export-group':
-        with open(out_fn, mode='wb') as fd:
+    if action == "export-group":
+        with open(out_fn, mode="wb") as fd:
             csv_obj = csv.writer(fd)
-            csv_obj.writerow(bstrings(header))
+            # csv_obj.writerow(bstrings(header))
+            csv_obj.writerow(header)
             for line in group:
                 ln = []
                 for x in line:
-                    ln.append(_b(x))
+                    ln.append(x)
                 csv_obj.writerow(ln)
     else:
-        with open(out_fn, mode='wb') as fd:
+        with open(out_fn, mode="w") as fd:
             csv_obj = csv.writer(fd)
-            csv_obj.writerow(bstrings(header))
+            # csv_obj.writerow(bstrings(header))
+            csv_obj.writerow(header)
             for line in coa:
                 ln = []
                 for x in line:
-                    ln.append(_b(x))
+                    ln.append(x)
                 csv_obj.writerow(ln)
-    print('File %s created' % out_fn)
+    print("File %s created" % out_fn)
     return 0
 
 
@@ -368,24 +467,31 @@ def main(cli_args=None):
         "© 2020-2022 by SHS-AV s.r.l.",
         version=__version__,
     )
-    parser.add_argument('-h')
+    parser.add_argument("-h")
     parser.add_argument(
-        '-A',
-        '--action',
-        action='store',
-        dest='action',
-        help='Actions are %s' % ','.join(VALID_ACTIONS),
+        "-A",
+        "--action",
+        action="store",
+        dest="action",
+        help="Actions are %s" % ",".join(VALID_ACTIONS),
     )
-    parser.add_argument('-b', '--odoo-branch', action='store', dest='odoo_ver')
+    parser.add_argument("-b", "--odoo-branch", action="store", dest="odoo_ver")
     parser.add_argument(
-        '-f', '--from-odoo-branch', action='store', dest='from_odoo_ver'
+        "-f", "--from-odoo-branch", action="store", dest="from_odoo_ver"
     )
-    parser.add_argument('-m', '--merge-csv', action='store', dest='merge_csvfile')
-    parser.add_argument('-o', '--out-csvfile', action='store', dest='dst_csvfile')
-    parser.add_argument('-n')
-    parser.add_argument('-q')
-    parser.add_argument('-V')
-    parser.add_argument('-v')
-    parser.add_argument('src_csvfile')
+    parser.add_argument("-m", "--merge-csv", action="store", dest="merge_csvfile")
+    parser.add_argument(
+        "-M", "--model", action="store", dest="model", default="account.account"
+    )
+    parser.add_argument("-o", "--out-csvfile", action="store", dest="dst_csvfile")
+    parser.add_argument("-n")
+    parser.add_argument("-q")
+    parser.add_argument("-V")
+    parser.add_argument("-v")
+    parser.add_argument("src_csvfile")
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
+    if ctx["model"] not in ("account.account", "account.tax"):
+        print("Invalid model: use account.account or account.tax")
+    if ctx["model"] == "account.tax":
+        return manage_tax(ctx)
     return manage_coa(ctx)

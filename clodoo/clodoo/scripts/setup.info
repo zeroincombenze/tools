@@ -71,7 +71,7 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
         "": [
             "scripts/setup.info",
             "./odoorc",
-            "scripts//list_requirements.py",
+            "scripts/list_requirements.py",
             "./transodoo.xlsx",
         ]
     },
