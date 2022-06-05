@@ -259,14 +259,6 @@ odoo_score: 1.0.6 (2022-04-09)
 * [IMP] run_odoo_debug: test with coverage
 
 
-wok_code: 1.0.9 (2022-04-04)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] pull_repo.sh: improvements
-* [IMP] Remove old unused code
-* [IMP] please: new actions lint and test
-
-
 
 
 
@@ -282,7 +274,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-06-02
+Last Update / Ultimo aggiornamento: 2022-06-05
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

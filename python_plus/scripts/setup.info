@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='python_plus',
-    version='1.0.10',
+    version='1.0.11',
     description='python useful function',
     long_description="""
 Python supplemental features

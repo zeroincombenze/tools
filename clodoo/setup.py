@@ -31,7 +31,7 @@ else:
 
 setup(
     name="clodoo",
-    version="1.0.4.2",
+    version="1.0.5",
     description="Do massive operations on Odoo Cloud",
     long_description="""
 Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.
@@ -71,7 +71,7 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
         "": [
             "scripts/setup.info",
             "./odoorc",
-            "scripts//list_requirements.py",
+            "scripts/list_requirements.py",
             "./transodoo.xlsx",
         ]
     },
