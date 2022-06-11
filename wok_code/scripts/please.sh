@@ -62,7 +62,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.10.2
+__version__=1.0.11
 
 #
 # General Purpose options:
@@ -1667,8 +1667,9 @@ do_export() {
     echo "File $pofile not found!"
     read -p "Create empty file $pofile (y/n)?" dummy
     [[ $dummy != "y" ]] && return $sts
-    [[ ! -f $HOME_DEVEL/venv/bin/templates/it_IT.po ]] && "Template file $HOME_DEVEL/venv/bin/templates/it_IT.po not found!" && return $sts
-    cp $HOME_DEVEL/venv/bin/templates/it_IT.po $pofile
+    # [[ ! -f $HOME_DEVEL/venv/bin/templates/it_IT.po ]] && "Template file $HOME_DEVEL/venv/bin/templates/it_IT.po not found!" && return $sts
+    # cp $HOME_DEVEL/venv/bin/templates/it_IT.po $pofile
+    makepo_it.py -m $module -b $odoo_fver -f $pofile
   fi
   db="$2"
   if [[ -z "$db" ]]; then
@@ -1698,22 +1699,46 @@ do_export() {
 
 do_import() {
   wlog "do_import '$1' '$2' '$3'"
-  local db module odoo_fver sts=$STS_FAILED
-  if [ "$PRJNAME" == "Odoo" ]; then
-    module=$2
-    db=$3
-  else
-    module=$1
-    db=$2
+  local db dbdt dummy DBs m module odoo_fver path pofile sts=$STS_FAILED u
+  if [[ $PRJNAME != "Odoo" ]]; then
+    echo "This action can be issued only on Odoo projects"
+    return $sts
   fi
-  [[ "$module" == '.' ]] && module=$PKGNAME
-  [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
-  if [ -z "$module" -o -z "$db" ]; then
-    echo "Missing parameters! use:"
-    echo "> do_import -bBRANCH 'MODULE' 'DB'"
+  odoo_fver=$(build_odoo_param FULLVER ".")
+  m=$(build_odoo_param MAJVER ".")
+  module=$(build_odoo_param PKGNAME ".")
+  [[ $module != $(basename $PWD) ]] && module=$1
+  if [[ -z "$module" ]]; then
+    echo "Invalid environment!"
+    return $sts
+  fi
+  path=$(build_odoo_param PKGPATH '.')
+  if [[ ! -d $PKGPATH/i18n ]]; then
+    echo "Directory $PKGPATH/i18n not found!"
+    return $sts
+  fi
+  pofile="$PKGPATH/i18n/it.po"
+  if [[ ! -f $pofile ]]; then
+    echo "File $pofile not found!"
+    return $sts
+  fi
+  db="$2"
+  if [[ -z "$db" ]]; then
+    u=$(get_dbuser $m)
+    DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
+    DBs="^(${DBs:0: -1})\$"
+    for x in tnl test demo; do
+      [[ $x$m =~ $DBs ]] && db="$x$m" && break
+    done
+  fi
+  if [[ -z "$db" ]]; then
+    echo "No DB matched! use:"
+    echo "$0 import 'DB'"
     return $STS_FAILED
   fi
-  [ $? -eq 0 ] && run_traced "run_odoo_debug -Wb$odoo_fver -im $module -d $db"
+  stat=$(psql -U$u -Atc "select state from ir_module_module where name = '$module'" $db)
+  [[ -z "$stat" || $stat == "uninstalled" ]] && echo "Module $module not installed in $db!" && exit $sts
+  run_traced "run_odoo_debug -b$odoo_fver -im $module -d $db"
   sts=$?
   return $sts
 }

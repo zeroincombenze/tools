@@ -34,7 +34,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "1.0.10.2"
+__version__ = "1.0.11"
 
 MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']
@@ -117,12 +117,14 @@ def change_name(ctx, filename, version):
 
 
 def term_wo_punct(msgid, msgstr):
-    if msgid and msgid[-1] in PUNCT:
-        if msgstr and msgstr[-1] == msgid[-1]:
-            msgstr = msgstr[0:-1]
-        msgid = msgid[0:-1]
-    elif msgstr and msgstr[-1] in PUNCT:
-        msgstr = msgstr[0:-1]
+    if msgid:
+        while msgid[-1] in PUNCT:
+            if msgstr and msgstr[-1] == msgid[-1]:
+                msgstr = msgstr[:-1]
+            msgid = msgid[:-1]
+    elif msgstr:
+        while msgstr[-1] in PUNCT:
+            msgstr = msgstr[:-1]
     if msgid and msgstr:
         caseid = 'U' if msgid[0].isupper() else 'l'
         casestr = 'U' if msgstr[0].isupper() else 'l'
@@ -359,9 +361,12 @@ def parse_pofile(ctx, source, untnl):
                     rtag = msgid2[x.start():x.end()]
                     msgid2 = msgid2[:x.start()]
                     msgid, msgstr = term_with_tag(msgid, msgstr, ltag, rtag)
-            if msgid and msgid[-1] in PUNCT:
-                punct = msgid[-1]
-                msgid, msgstr = term_with_punct(msgid, msgstr, punct)
+            if msgid:
+                punct = ""
+                while msgid[-1] in PUNCT:
+                    punct = '%s%s' % (msgid[-1], punct)
+                if punct:
+                    msgid, msgstr = term_with_punct(msgid, msgstr, punct)
             if not msgid:
                 for k, value in message.__dict__.items():
                     if k == 'string':

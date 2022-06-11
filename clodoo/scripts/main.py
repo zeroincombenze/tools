@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# template 18
+# template 19
 """
 This module extends python os module with a few new functionality
  to interface operating system.
@@ -61,9 +61,11 @@ def get_pypi_paths():
     path = pkgpath
     while not bin_path and path != "/" and path != os.environ["HOME"]:
         path = os.path.dirname(path)
-        if os.path.isdir(path) and os.path.basename(path) == "lib":
-            bin_path = os.path.join(os.path.dirname(path), "bin")
-            lib_path = path
+        if os.path.isdir(path) and os.path.basename(path) in ("bin", "lib"):
+            if (os.path.isdir(os.path.join(os.path.dirname(path), "bin")) and
+                    os.path.isdir(os.path.join(os.path.dirname(path), "lib"))):
+                bin_path = os.path.join(os.path.dirname(path), "bin")
+                lib_path = os.path.join(os.path.dirname(path), "lib")
     if not bin_path and local_venv:
         for path in sys.path:
             if local_venv in path:
@@ -104,9 +106,12 @@ def copy_pkg_data(setup_args, verbose):
                         continue
                     if lib_path:
                         tgt_fn = os.path.join(lib_path, base)
-                        if verbose:
-                            print("$ cp %s %s" % (full_fn, tgt_fn))
-                        shutil.copy(full_fn, tgt_fn)
+                        try:
+                            shutil.copy(full_fn, tgt_fn)
+                            if verbose:
+                                print("$ cp %s %s" % (full_fn, tgt_fn))
+                        except shutil.SameFileError:
+                            pass
                     # TODO> compatibility mode
                     tgt_fn = os.path.join(bin_path, base)
                     if os.path.isfile(tgt_fn):
@@ -119,10 +124,6 @@ def copy_pkg_data(setup_args, verbose):
                         tgt_fn = os.path.join(bin2_path, base)
                         if os.path.isfile(tgt_fn):
                             os.unlink(tgt_fn)
-                        # if not os.path.exists(tgt_fn):
-                        #     if verbose:
-                        #         print('$ ln -s %s %s' % (full_fn, tgt_fn))
-                        #     os.symlink(full_fn, tgt_fn)
             # TODO> compatibility mode to remove early
             if lib_path and bin2_path:
                 for base in ("z0librc", "odoorc", "travisrc"):

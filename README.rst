@@ -253,12 +253,6 @@ clodoo: 1.0.2 (2022-04-15)
 
 
 
-odoo_score: 1.0.6 (2022-04-09)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: test with coverage
-
-
 
 
 
@@ -274,7 +268,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-06-05
+Last Update / Ultimo aggiornamento: 2022-06-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
