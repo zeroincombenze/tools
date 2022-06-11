@@ -13,7 +13,7 @@ else:
 
 setup(
     name='wok_code',
-    version='1.0.10.2',
+    version='1.0.11',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.
@@ -78,6 +78,7 @@ The available tools are:
             'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',
             'to_pep8.py = wok_code.scripts.to_pep8:main',
             'do_migrate = wok_code.scripts.do_migrate:main',
+            'makepo_it.py = wok_code.scripts.makepo_it:main',
         ]
     },
     zip_safe=False,

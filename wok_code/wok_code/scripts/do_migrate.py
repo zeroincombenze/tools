@@ -149,7 +149,7 @@ def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Migrate source file",
-        epilog="(C) SHS-AV s.r.l."
+        epilog="© 2021-2022 by SHS-AV s.r.l."
     )
     parser.add_argument('-b', '--to-version', default="12.0")
     parser.add_argument('-F', '--from-version')

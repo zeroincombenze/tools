@@ -11,7 +11,7 @@ import sys
 from zerobug import z0test
 
 
-__version__ = "1.0.10.2"
+__version__ = "1.0.11"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1

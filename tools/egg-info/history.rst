@@ -12,10 +12,4 @@ clodoo: 1.0.2 (2022-04-15)
 
 
 
-odoo_score: 1.0.6 (2022-04-09)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: test with coverage
-
-
 

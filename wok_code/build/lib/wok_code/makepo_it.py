@@ -37,7 +37,7 @@ for prm in sys.argv:
         print('makepo_it.py [-bbranch] [-C] [-mmodule] file_po')
         exit(1)
 
-with open(params['file'], 'rU') as fd:
+with open(params['file'], 'r') as fd:
     LAST_TNL_NAME = 'Antonio M. Vigliotti'
     LAST_TNL_MAIL = 'antoniomaria.vigliotti@gmail.com'
     LAST_TEAM_NAME = 'Zeroincombenze'

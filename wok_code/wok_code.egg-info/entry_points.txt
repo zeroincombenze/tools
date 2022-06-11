@@ -3,6 +3,7 @@ cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main
 cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main
 do_migrate = wok_code.scripts.do_migrate:main
 gen_readme.py = wok_code.scripts.gen_readme:main
+makepo_it.py = wok_code.scripts.makepo_it:main
 please = wok_code.scripts.please:main
 to_pep8.py = wok_code.scripts.to_pep8:main
 wok_code-info = wok_code.scripts.main:main
