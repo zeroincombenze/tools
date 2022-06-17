@@ -3967,6 +3967,19 @@ def reconcile_invoice(ctx):
     )
 
 
+def reset_einvoices_stats(ctx):
+    channel = clodoo.browseL8(ctx, 'res.users', uid).company_id.einvoice_sender_id
+    clodoo.writeL8(
+        ctx,
+        'italy.ade.sender',
+        channel.id,
+        {
+            'used_invoices_ctr': 0,
+            'bonus_invoices_ctr': 0,
+        },
+    )
+
+
 def store_einvoices_stats(ctx):
     wb = load_workbook('./Riepilogo-consumo-clienti.xlsx', data_only=True)
     for sheet in wb:

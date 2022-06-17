@@ -90,6 +90,7 @@ OCB_SUBDIRS_RE="^(${OCB_SUBDIRS// /|})$"
 INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html .idea latex node_modules openupgrade setup _static tests themes travis _travis __to_remove __unported__"
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPS_EXTRA="^(didotech_80|grymb|maintainer-quality-tools|maintainer-tools|tools|uncovered|VME|OpenUpgrade|Odoo-samples|dotnet|interface-github|odoorpc|openupgradelib|pylint-odoo|rest-framework|runbot-addons)$"
+PRIVATE_REPS="(accounting|uncovered)"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
 "local/didotech_80,zeroincombenze/profiles,local/uncovered,local/mymodules,local/themes,local/woven_fabric,"\
 "local/zeroincombenze,local/cscs_addons,local/account_banking_cscs,"\
@@ -431,7 +432,11 @@ build_odoo_param() {
     [[ $GIT_ORGID == "odoo" && ! "$REPOS" == "OCB" ]] && GIT_ORGID="oca" && GIT_ORGNM="OCA"
     [[ -z $RGIT_ORGID ]] && RGIT_ORGID=$GIT_ORGID
     [[ -z $RGIT_ORGNM ]] && RGIT_ORGNM=$GIT_ORGNM
-    if [[ -n "$GIT_PROT" ]]; then
+    if [[ $REPOS =~ $PRIVATE_REPS ]]; then
+        GIT_ORG="git@github.com:$RGIT_ORGNM"
+        [[ "$GIT_PROT" == "git" ]] && GIT_OPTS="" || GIT_OPTS="--depth 1 --single-branch"
+        OPTS_ASM=
+    elif [[ -n "$GIT_PROT" ]]; then
         if [[ "$GIT_PROT" == "git" ]]; then
             GIT_ORG="git@github.com:$RGIT_ORGNM"
             GIT_OPTS=""

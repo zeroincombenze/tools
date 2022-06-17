@@ -400,9 +400,9 @@ if [[ $opt_touch -eq 0 ]]; then
             run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error"
         fi
     fi
-    if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
-        OPTS="--debug $OPTS"
-    fi
+    # if [[ $odoo_ver -lt 10 && $opt_dry_run -eq 0 && $opt_exp -eq 0 && $opt_imp -eq 0 && $opt_lang -eq 0 ]]; then
+    #     OPTS="--debug $OPTS"
+    # fi
 
     if [[ -n $COVERAGE_RCFILE ]]; then
       v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)

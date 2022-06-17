@@ -87,7 +87,7 @@ __version__ = "1.0.11"
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
 AUTHORS_TEMPLATE = """
-* powERP <https://www.powerp.it>
+* LibrERP enterprise network <LibrERP-network>
 * SHS-AV s.r.l. <https://www.zeroincombenze.it>
 * Didotech s.r.l. <https://www.didotech.com>
 """

@@ -32,6 +32,12 @@ COPY = {
         'devman': 'powERP enterprise network',
         'github-user': 'PowERP-cloud',
     },
+    'librerp': {
+        'author': 'LibrERP enterprise network',
+        'website': 'https://www.librerp.it',
+        'devman': 'LibrERP enterprise network',
+        'github-user': 'LibrERP-network',
+    },
     'didotech': {
         'author': 'Didotech s.r.l.',
         'website': 'https://www.didotech.com',
