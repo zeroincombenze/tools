@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
-# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com <info@shs-av.com>
+# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com <info@shs-av.com>
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -245,7 +245,8 @@ update_confn() {
 
 set_var() {
     #set_var(var parm vid)
-    local x=$(build_odoo_param "$2" "$3" "$git_repo" "$opt_org" "$opt_deploy")
+    local x
+    x=$(build_odoo_param "$2" "$3" "$git_repo" "$opt_org" "$opt_deploy")
     [[ -n "$x" ]] && eval $1="'$x'"
     [[ $opt_verbose -gt 1 ]] && echo "$1=$x \$(build_odoo_param \"$2\" \"$3\" \"$git_repo\" \"$opt_org\" \"$opt_deploy\")"
 }
@@ -292,7 +293,7 @@ if [[ $opt_updconf -eq 0 && $opt_ucfg -ne 0 ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Add or duplicate odoo repository into local filesystem" \
-        "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit $STS_SUCCESS
 fi
 [[ $opt_verbose -eq -1 ]] && opt_verbose=1
