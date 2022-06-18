@@ -79,6 +79,7 @@ The available tools are:
             'to_pep8.py = wok_code.scripts.to_pep8:main',
             'do_migrate = wok_code.scripts.do_migrate:main',
             'makepo_it.py = wok_code.scripts.makepo_it:main',
+            'do_odoo_site.py = wok_code.scripts.do_odoo_site:main',
         ]
     },
     zip_safe=False,

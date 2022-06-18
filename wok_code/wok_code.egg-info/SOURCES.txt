@@ -31,6 +31,7 @@ wok_code/scripts/__init__.py
 wok_code/scripts/cvt_csv_2_rst.py
 wok_code/scripts/cvt_csv_coa.py
 wok_code/scripts/do_migrate.py
+wok_code/scripts/do_odoo_site.py
 wok_code/scripts/gen_readme.py
 wok_code/scripts/license_mgnt.py
 wok_code/scripts/main.py
