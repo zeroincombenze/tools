@@ -266,13 +266,13 @@ if [[ -n "$opt_modules" ]]; then
             OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
         elif [[ $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
             [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
-            src=$(find ${opaths//,/ } -type d -name $opt_modules 2>/dev/null)
+            src=$(find ${opaths//,/ } -maxdepth 1 -type d -name $opt_modules 2>/dev/null|head -n1)
             if [[ -z $src ]]; then
                 echo "Translation file not found!!"
                 exit 1
             fi
             src=$($READLINK -f $src)
-            [[ ! -d $src/i18n ]] && echo "Non directory $src/i18n found!!" && exit 1
+            [[ ! -d $src/i18n ]] && echo "No directory $src/i18n found!!" && exit 1
             src="$src/1i8n/it.po"
             makepo_it.py -f -b$odoo_fver -m$opt_modules $src
             if [[ $opt_imp -ne 0 ]]; then
