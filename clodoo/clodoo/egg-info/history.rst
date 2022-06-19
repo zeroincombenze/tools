@@ -1,3 +1,10 @@
+1.0.6 (2022-06-17)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: more default data
+* [FIX] list_requirements.py: some error with incomplete data supplied
+* [FIX] odoorc: value of GIT_URL with private repositories
+
 1.0.4 (2022-05-06)
 ~~~~~~~~~~~~~~~~~~
 

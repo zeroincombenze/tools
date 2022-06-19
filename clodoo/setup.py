@@ -70,6 +70,9 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
     package_data={
         "": [
             "scripts/setup.info",
+            "./manage_db",
+            "./manage_odoo",
+            "./odoo_install_repository",
             "./odoorc",
             "./transodoo.xlsx",
         ]

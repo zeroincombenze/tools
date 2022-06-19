@@ -1,3 +1,8 @@
+1.0.7 (2022-06-17)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: now may be supplied the odoo configuration file
+
 1.0.6 (2022-04-09)
 ~~~~~~~~~~~~~~~~~~
 

@@ -7,8 +7,11 @@ clodoo/clodoo.py
 clodoo/clodoocore.py
 clodoo/clodoolib.py
 clodoo/export_db_model.py
+clodoo/manage_db
+clodoo/manage_odoo
 clodoo/migrate_odoo_db.py
 clodoo/moduli_da_installare.py
+clodoo/odoo_install_repository
 clodoo/odoorc
 clodoo/transodoo.py
 clodoo/transodoo.xlsx

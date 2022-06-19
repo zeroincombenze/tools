@@ -3222,7 +3222,8 @@ def check_integrity_by_vg7(ctx):
             if partner.name.startswith("False "):
                 print('%s ...' % partner.name)
                 clodoo.writeL8(
-                    ctx, model, partner.id, {'name': partner.name.replace('False ', '')})
+                    ctx, model, partner.id,
+                    {'name': partner.name.replace('False ', '')})
                 ctx['ctr'] += 1
         if partner.customer:
             clodoo.writeL8(ctx, model, partner.id, {'customer': False})
