@@ -21,7 +21,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -605,6 +605,18 @@ def package_from_manifest(
                             odoo_ver=odoo_ver,
                             pyver=pyver,
                         )
+        elif os.path.basename(os.path.dirname(manifest_file)) == "repository_check":
+            for item in ("GitPython==3.1.2", "mercurial==5.4.1"):
+                if item in MANIFEST_NAMES:
+                    item = MANIFEST_NAMES[item]
+                deps_list = add_package(
+                    deps_list,
+                    "python",
+                    item,
+                    with_version=with_version,
+                    odoo_ver=odoo_ver,
+                    pyver=pyver,
+                )
         if manifest.get("depends"):
             deps = manifest["depends"]
             kw = "modules"
@@ -839,6 +851,8 @@ def main(cli_args=None):
         ctx = get_pyver(ctx)
     elif not ctx["odoo_ver"] and ctx["pyver"]:
         ctx = get_def_odoo_ver(ctx)
+    else:
+        ctx["odoo_ver"] = "12.0"
     if ctx["out_file"]:
         ctx = set_def_outfile(ctx)
     if not ctx["odoo_dir"] and ctx["odoo_ver"]:
@@ -897,7 +911,7 @@ def main(cli_args=None):
             odoo_ver=ctx["odoo_ver"],
             pyver=ctx["pyver"],
         )
-        if int(ctx['pyver'].split('.')[0]) == 3:
+        if ctx['pyver'] and int(ctx['pyver'].split('.')[0]) == 3:
             deps_list = package_from_list(
                 deps_list,
                 "python",

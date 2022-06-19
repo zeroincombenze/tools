@@ -1,3 +1,12 @@
+1.0.11 (2022-06-17)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] gen_readme.py: git_org librerp
+* [IMP] do_odo_site.py: generate configration files for cloud
+* [IMP] makepo_it.py: new features
+* [IMP] topep8: git_org librerp
+* [IMP] topep8: some actions are deprecated
+
 1.0.9 (2022-04-04)
 ~~~~~~~~~~~~~~~~~~
 

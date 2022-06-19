@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.16
+__version__=1.0.17
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
@@ -70,7 +70,7 @@ set_hashbang() {
 }
 
 RFLIST__travis_emulator=""
-RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc set_worker.sh transodoo.py"
+RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py manage_odoo.man set_worker.sh transodoo.py"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=""
 RFLIST__zerobug=""

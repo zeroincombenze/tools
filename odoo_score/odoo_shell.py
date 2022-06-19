@@ -3222,7 +3222,8 @@ def check_integrity_by_vg7(ctx):
             if partner.name.startswith("False "):
                 print('%s ...' % partner.name)
                 clodoo.writeL8(
-                    ctx, model, partner.id, {'name': partner.name.replace('False ', '')})
+                    ctx, model, partner.id,
+                    {'name': partner.name.replace('False ', '')})
                 ctx['ctr'] += 1
         if partner.customer:
             clodoo.writeL8(ctx, model, partner.id, {'customer': False})
@@ -3964,6 +3965,19 @@ def reconcile_invoice(ctx):
     print(
         '%d records read, %d records updated, %d wrong records'
         % (ctr_read, ctr_upd, ctr_err)
+    )
+
+
+def reset_einvoices_stats(ctx):
+    channel = clodoo.browseL8(ctx, 'res.users', uid).company_id.einvoice_sender_id
+    clodoo.writeL8(
+        ctx,
+        'italy.ade.sender',
+        channel.id,
+        {
+            'used_invoices_ctr': 0,
+            'bonus_invoices_ctr': 0,
+        },
     )
 
 

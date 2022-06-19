@@ -1,4 +1,4 @@
-#__version__=1.0.5
+#__version__=1.0.6
 # Change os PATH in order to run lessc 2.0+ instead of lessc 1.7
 # Odoo won't work if lessc version is 2.0-
 # Standard ruby set lessc 1.7

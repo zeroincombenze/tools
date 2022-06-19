@@ -1,6 +1,6 @@
 
 ================
-odoo_score 1.0.6
+odoo_score 1.0.7
 ================
 
 
@@ -150,6 +150,11 @@ Current development version
 History
 -------
 
+1.0.7 (2022-06-17)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: now may be supplied the odoo configuration file
+
 1.0.6 (2022-04-09)
 ~~~~~~~~~~~~~~~~~~
 
@@ -192,11 +197,6 @@ History
 [FIX] odoo_score.py: crash with python 3 (due clodoo package)
 [IMP] odoo_shell.py: removed old code
 
-1.0.0.10 (2021-06-04)
-~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] odoo_score.py: set_struct_attr
-
 
 
 |
@@ -221,7 +221,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-04-19
+Last Update / Ultimo aggiornamento: 2022-06-19
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

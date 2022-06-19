@@ -17,7 +17,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 
 
 msg_time = time.time()
@@ -27,7 +27,7 @@ def msg_burst(text):
     global msg_time
     t = time.time() - msg_time
     if t > 3:
-        print text
+        print(text)
         msg_time = time.time()
 
 
@@ -77,7 +77,7 @@ def get_company_account(ctx):
         ctx, "account.account", [("code", "=", "0"), ("company_id", "=", company_id)]
     )
     if len(ids) != 1:
-        print "Company account not found!"
+        print("Company account not found!")
         sys.exit(1)
     return ids[0]
 
@@ -93,7 +93,7 @@ def get_code_values(ctx, code):
     vals["type"] = "view"
     ids = clodoo.searchL8(ctx, "account.account.type", [("code", "=", "view")])
     if len(ids) == 0:
-        print "Type view not found!"
+        print("Type view not found!")
         sys.exit(1)
     vals["user_type"] = ids[0]
     if code == "A":
@@ -106,7 +106,7 @@ def get_code_values(ctx, code):
             ctx, model, [("code", "=", "__"), ("company_id", "=", company_id)]
         )
         if len(ids) != 1:
-            print "L&P account not found!"
+            print("L&P account not found!")
             sys.exit(1)
         vals["parent_id"] = ids[0]
     elif code == "S":
@@ -115,13 +115,13 @@ def get_code_values(ctx, code):
             ctx, model, [("code", "=", "__"), ("company_id", "=", company_id)]
         )
         if len(ids) != 1:
-            print "L&P account not found!"
+            print("L&P account not found!")
             sys.exit(1)
         vals["parent_id"] = ids[0]
     elif code == "__":
         vals["name"] = "UTILE (-) O PERDITA (+) DI ESERCIZIO"
     else:
-        print "Invalid account code %s" % code
+        print("Invalid account code %s" % code)
         sys.exit(1)
     return vals
 
@@ -132,13 +132,13 @@ def update_coa(ctx):
     if len(clodoo.searchL8(ctx, model, [("company_id", "=", company_id)])) < 100:
         return
     company = clodoo.browseL8(ctx, "res.company", company_id)
-    print "- Processing company %s" % company.name
+    print( "- Processing company %s" % company.name)
     for code in ("__", "A", "P", "R", "S"):
         ids = clodoo.searchL8(
             ctx, model, [("code", "=", code), ("company_id", "=", company_id)]
         )
         if len(ids) > 2:
-            print "Warning: invalid account '%s'" % code
+            print( "Warning: invalid account '%s'" % code)
             sys.exit(1)
         elif ids:
             vals = get_code_values(ctx, code)
@@ -194,7 +194,7 @@ def update_coa(ctx):
 if __name__ == "__main__":
     # pdb.set_trace()
     oerp, uid, ctx = init_n_connect()
-    print "Update Chart of Account on DB %s" % (ctx["db_name"])
+    print( "Update Chart of Account on DB %s" % (ctx["db_name"]))
     ids = clodoo.searchL8(ctx, "res.company", [])
     for company_id in ids:
         ctx["company_id"] = company_id
