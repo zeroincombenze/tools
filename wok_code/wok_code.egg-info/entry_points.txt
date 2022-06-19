@@ -5,6 +5,7 @@ do_migrate = wok_code.scripts.do_migrate:main
 do_odoo_site.py = wok_code.scripts.do_odoo_site:main
 gen_readme.py = wok_code.scripts.gen_readme:main
 makepo_it.py = wok_code.scripts.makepo_it:main
+odoo_translation.py = wok_code.scripts.odoo_translation:main
 please = wok_code.scripts.please:main
 to_pep8.py = wok_code.scripts.to_pep8:main
 wok_code-info = wok_code.scripts.main:main

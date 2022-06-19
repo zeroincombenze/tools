@@ -97,7 +97,7 @@ def set_odoo_path(ctx, version):
     if ctx['pofile']:
         return os.path.abspath(
             os.path.join(
-                os.path.dirname(ctx['pofile'].replace(ctx['branch'], version)), '..'
+                os.path.dirname(ctx['pofile'].replace(ctx['branch'], version)), '../..'
             )
         )
     odoo_path = os.path.expanduser('~/%s' % version)
@@ -118,12 +118,21 @@ def change_name(ctx, filename, version):
 
 
 def term_wo_punct(msgid, msgstr):
+    lpunct = rpunct = ''
     while msgid and msgid[-1] in PUNCT:
-        if msgstr and msgstr[-1] == msgid[-1]:
+        rpunct = msgid[-1] + rpunct
+        if msgid[-1] == msgstr[-1]:
             msgstr = msgstr[:-1]
         msgid = msgid[:-1]
     while msgstr and msgstr[-1] in PUNCT:
         msgstr = msgstr[:-1]
+    while msgid and msgid[0] in PUNCT:
+        lpunct = lpunct + msgid[0]
+        if msgid[0] == msgstr[0]:
+            msgstr = msgstr[1:]
+        msgid = msgid[1:]
+    while msgstr and msgstr[0] in PUNCT:
+        msgstr = msgstr[1:]
     if msgid and msgstr:
         caseid = 'U' if msgid[0].isupper() else 'l'
         casestr = 'U' if msgstr[0].isupper() else 'l'
@@ -136,19 +145,34 @@ def term_wo_punct(msgid, msgstr):
                 msgstr = msgstr[0].upper() + msgstr[1:]
             elif caseid == 'll' and casestr == 'Ul':
                 msgstr = msgstr[0].lower() + msgstr[1:]
-    return msgid, msgstr
+    return msgid, msgstr, lpunct, rpunct
 
 
-def term_with_punct(msgid, msgstr, punct):
-    return msgid + punct, msgstr + punct
+def term_wo_tag(msgid):
+    ltag = ''
+    rtag = ''
+    x = re.match('<[^>]+>', msgid)
+    while x:
+        ltag += msgid[:x.end()]
+        rtag = msgid[:x.end()].replace("<", "</") + rtag
+        msgid = msgid[x.end():]
+        x = re.match('<[^>]+>', msgid)
+    x = re.search(rtag, msgid)
+    if x:
+        msgid = msgid[:x.start()]
+    return ltag, rtag
 
 
-def term_with_tag(msgid, msgstr, ltag, rtag):
-    if not msgid.startswith(ltag):
-        msgid = ltag + msgid + rtag
+def term_with_punct(msgid, msgstr, lpunct, rpunct):
+    if msgid:
+        return lpunct + msgid + rpunct, lpunct + msgstr + rpunct
+    return lpunct + msgstr + rpunct
+
+
+def term_with_tag(msgstr, ltag, rtag):
     if not msgstr.endswith(rtag):
         msgstr = ltag + msgstr + rtag
-    return msgid, msgstr
+    return msgstr
 
 
 def load_default_dictionary(ctx, source):
@@ -159,7 +183,7 @@ def load_default_dictionary(ctx, source):
             return 0
         if not row['msgid'] or not row['msgstr']:
             return 0
-        msgid, TNL_DICT[msgid] = term_wo_punct(
+        msgid, TNL_DICT[msgid], lpunct, rpunct = term_wo_punct(
             os0.u(row['msgid']), os0.u(row['msgstr'])
         )
         if not TNL_DICT[msgid]:
@@ -288,17 +312,18 @@ def load_dictionary_from_file(ctx, pofn, def_action=None):
                 continue
             msgid = message.id
             msgstr = message.string
-            msgid2, msgstr2 = term_wo_punct(msgid, msgstr)
+            msgid2, msgstr2, lpunct, rpunct = term_wo_punct(msgid, msgstr)
             if ctx['tnl_html']:
                 msgstr = translate_html(ctx, msgstr)
-            punct = '' if msgid == msgid2 else msgid[-1]
+            # punct = '' if msgid == msgid2 else msgid[-1]
             if msgid2 not in TNL_DICT:
                 TNL_DICT[msgid2] = msgstr2
                 TNL_ACTION[msgid2] = 'P'
                 ctr += 1
             elif msgstr2 != TNL_DICT[msgid2]:
                 print('  Duplicate key "%s"' % msgid)
-                print('    Dictionary="%s%s"' % (TNL_DICT[msgid2], punct))
+                print('    Dictionary="%s"' % term_with_punct(
+                    None, TNL_DICT[msgid2], lpunct, rpunct))
                 print('    %-60.60s' % trline)
                 print('    Po="%s"' % msgstr)
                 print('    %-60.60s' % trline)
@@ -347,24 +372,10 @@ def parse_pofile(ctx, source, untnl):
         for message in catalog:
             msgid = os0.u(message.id)
             msgstr = os0.u(message.string)
-            msgid2, msgstr2 = term_wo_punct(msgid, msgstr)
-            punct = ''
-            ltag = ''
-            rtag = ''
-            x = re.match('<[^>]+>', msgid)
-            if x:
-                ltag = msgid2[:x.end()]
-                msgid2 = msgid2[x.end():]
-                x = re.search('<[^>]+>', msgid2)
-                if x:
-                    rtag = msgid2[x.start():x.end()]
-                    msgid2 = msgid2[:x.start()]
-                    msgid, msgstr = term_with_tag(msgid, msgstr, ltag, rtag)
-            punct = ""
-            while msgid and msgid[-1] in PUNCT:
-                punct = '%s%s' % (msgid[-1], punct)
-            if punct:
-                msgid, msgstr = term_with_punct(msgid, msgstr, punct)
+            msgid2, msgstr2, lpunct, rpunct = term_wo_punct(msgid, msgstr)
+            ltag, rtag = term_wo_tag(msgid2)
+            if lpunct or rpunct:
+                msgid, msgstr = term_with_punct(msgid, msgstr, lpunct, rpunct)
             if not msgid:
                 for k, value in message.__dict__.items():
                     if k == 'string':
@@ -376,9 +387,11 @@ def parse_pofile(ctx, source, untnl):
                 for k, value in message.__dict__.items():
                     if k == 'string':
                         if ltag and rtag:
-                            message.string = ltag + TNL_DICT[msgid2] + rtag
+                            message.string = term_with_tag(
+                                TNL_DICT[msgid2], ltag, rtag)
                         else:
-                            message.string = TNL_DICT[msgid2] + punct
+                            message.string = term_with_punct(
+                                None, TNL_DICT[msgid2], lpunct, rpunct)
                     elif value:
                         setattr(message, k, value)
                 ctr += 1
@@ -479,10 +492,12 @@ def load_dictionary(ctx):
     ctx['pofiles'] = {}
     ctx['ctrs'] = {'0': ctr}
     for version in VERSIONS:
-        if ctx['branch'] and version == ctx['branch'] and ctx['pofile']:
+        if not ctx['branch']:
+            pofn = get_module_pofile_name(ctx, version)
+        elif version == ctx['branch'] and ctx['pofile']:
             pofn = ctx['pofile']
         else:
-            pofn = get_module_pofile_name(ctx, version)
+            pofn = ''
         if pofn:
             ctx['pofiles'][version] = pofn
             ctr = load_dictionary_from_file(ctx, pofn)
@@ -687,7 +702,9 @@ def delete_translation(ctx):
     return 0
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    # if not cli_args:
+    #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
         "Translate Odoo Package", "© 2018-2022 by SHS-AV s.r.l.", version=__version__
     )
