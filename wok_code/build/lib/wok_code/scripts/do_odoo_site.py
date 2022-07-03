@@ -29,7 +29,46 @@ TEMPLATE = """#############################################
 
     ErrorLog logs/%(domain)s-error.log
     CustomLog logs/%(domain)s-access.log combined
+
+    RewriteEngine on
+    RewriteCond %%{SERVER_NAME} =%(domain)s
+    RewriteRule ^ https://%%{SERVER_NAME}%%{REQUEST_URI} [END,NE,R=permanent]
 </VirtualHost>
+"""
+
+TEMPLATE_HTTPS = """#############################################
+# Odoo service
+# Domain: <http://%(domain)s>
+#
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+    ServerAdmin %(email)s
+    DocumentRoot /var/www/html/odoo
+    ServerName %(domain)s
+
+    RemoteIPHeader X-Forwarded-For
+    RemoteIPInternalProxy 127.0.0.0/8
+    ProxyRequests Off
+    ProxyPreserveHost On
+    <Proxy *>
+        AllowOverride None
+        Require all granted
+    </Proxy>
+    ProxyVia On
+    ProxyPass /longpolling http://localhost:%(longport)s/
+    ProxyPassReverse /longpolling http://localhost:%(longport)s/
+    ProxyPass / http://localhost:%(port)s/ timeout=600 keepalive=On retry=0
+    ProxyPassReverse / http://localhost:%(port)s/
+
+    ErrorLog logs/%(domain)s-error.log
+    CustomLog logs/%(domain)s-access.log combined
+
+    SSLCertificateFile
+    SSLCertificateKeyFile
+    Include /etc/letsencrypt/options-ssl-apache.conf
+    SSLCertificateChainFile
+</VirtualHost>
+</IfModule>
 """
 
 __version__ = "1.0.5"
@@ -43,6 +82,7 @@ class CreateConfig(object):
             self.domain = domain
         else:
             self.domain = "%s.zeroincombenze.it" % domain
+        self.email = "postmaster@%s" % ".".join(self.domain.split(".")[-2:])
         self.site_id = self.domain.split(".")[0]
         self.odoo_major_version = int(opt_args.odoo_version.split('.')[0])
         if opt_args.http_port:
@@ -57,9 +97,12 @@ class CreateConfig(object):
             "domain": self.domain,
             "port": self.http_port,
             "longport": self.longport,
-            "email": "postmaster@%s" % self.domain.split(".", 1)[1]
+            "email": "%s" % self.email,
         }
-        self.http_config = TEMPLATE % params
+        if self.opt_args.https:
+            self.http_config = TEMPLATE_HTTPS % params
+        else:
+            self.http_config = TEMPLATE % params
         self.confn = "%s.conf" % self.domain
         self.odoo_config = ""
         if self.opt_args.odoo_config:
@@ -123,6 +166,7 @@ def main(cli_args=None):
     parser.add_argument('-c', '--odoo-config', dest="odoo_config")
     parser.add_argument("-n", "--dry-run", dest="dry_run", action="store_true")
     parser.add_argument('-p', '--http-port', dest="http_port")
+    parser.add_argument('-s', '--https', action="store_true", dest="https")
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
     parser.add_argument('domain')

@@ -33,7 +33,7 @@ import pdb  # pylint: disable=deprecated-module
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '1.0.7'
+__version__ = '1.0.7.1'
 
 
 MAX_DEEP = 20
@@ -4026,6 +4026,129 @@ def store_einvoices_stats(ctx):
                 'avail_invoices_ctr': inv_avail,
             },
         )
+
+
+def reconfigure_warehouse(ctx):
+    print('reconfigure_warehouse')
+    if ctx['param_1'] == 'help':
+        print('reconfigure_warehouse')
+        return
+
+    # import pdb; pdb.set_trace()
+    model = 'res.company'
+    main_company_id = False
+    # main_company = False
+    for company in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [], order="id")):
+        vals = {}
+        if company.name.lower().startswith("zeroincombenze"):
+            company_id_zero = company.id
+            vals['name'] = 'Zeroincombenze®'
+            vals['rml_header'] = "Più impresa. Meno preoccupazioni."
+            clodoo.writeL8(ctx, model, company_id_zero, vals)
+            print('Z0 company is %s' % company.name)
+        elif not main_company_id:
+            main_company_id = company.id
+            # main_company = company
+            print('Main company is %s' % company.name)
+
+    model = 'stock.warehouse'
+    main_wh_id = False
+    for wh in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [], order="id")):
+        vals = {}
+        if wh.company_id.id == main_company_id and not main_wh_id:
+            vals['active'] = False
+            vals['code'] = 'WH%02d' % wh.company_id.id
+            vals['name'] = 'Magazzino %s' % company.name
+            clodoo.writeL8(ctx, model, wh.id, vals)
+            print('Stock warehouse %s disabled' % wh.name)
+        else:
+            vals['code'] = 'WH'
+            vals['name'] = company.name
+            if vals['code'] != wh.code or vals['name'] != wh.name:
+                clodoo.writeL8(ctx, model, wh.id, vals)
+            print('Main stock warehouse %s' % wh.name)
+            main_wh_id = wh.id
+
+    model = 'stock.location'
+    main_locations = {}
+    main_location_id = False
+    for wl in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [], order="id")):
+        if wl.company_id.id != main_company_id:
+            clodoo.writeL8(ctx, model, wl.id,
+                           {'active': False, 'name': '%s~' % wl.name})
+            print('Stock location %s disabled' % wl.name)
+            continue
+        usage = wl.usage
+        if wl.name.lower().endswith('output') or wl.name.lower().endswith('uscita'):
+            usage = 'output'
+        elif wl.name.lower().endswith('stock'):
+            usage = 'stock'
+        if not wl.location_id and usage != 'view':
+            clodoo.writeL8(ctx, model, wl.id,
+                           {'active': False, 'name': '%s~' % wl.name})
+            print('Stock location %s disabled' % wl.name)
+            continue
+        if not wl.location_id and usage == 'view' and not main_location_id:
+            main_location_id = wl.id
+            clodoo.writeL8(ctx, model, wl.id, {'name': 'WH'})
+            print('Root location is %s' % wl.id)
+            continue
+        if usage not in main_locations:
+            main_locations[usage] = {}
+            main_locations[usage]['id'] = wl.id
+            main_locations[usage]['location_id'] = wl.location_id
+    if not main_location_id:
+        location_ids = clodoo.searchL8(
+            ctx, model, [('active', '=', False),
+                         ('usage', '=', 'view'),
+                         ('location_id', '=', False)],
+            order='id')
+        if location_ids:
+            main_location_id = location_ids[0]
+            clodoo.writeL8(
+                ctx, model, main_location_id,
+                {'active': True, 'company_id': main_company_id, 'name': 'WH'})
+            print('Location id %s reenabled' % main_location_id)
+    for usage in ('customer', 'stock', 'output'):
+        if usage in main_locations:
+            continue
+        location_ids = clodoo.searchL8(
+            ctx, model, [('active', '=', False),
+                         ('usage', '=', usage if usage == 'customer' else 'internal'),
+                         ('location_id', '!=', False)])
+        if location_ids:
+            location_id = location_ids[0]
+            location = clodoo.browseL8(ctx, model, location_id)
+            clodoo.writeL8(
+                ctx, model, location_id, {
+                    'active': True,
+                    'company_id': main_company_id,
+                    'name': location.name.replace('~', '')})
+            main_locations[usage] = {}
+            main_locations[usage]['id'] = location_id
+            main_locations[usage]['location_id'] = location.location_id.id
+            print('Location %s reenabled' % location.name)
+    if main_location_id:
+        # wl_main_location = clodoo.browseL8(ctx, model, main_location_id)
+        for wl in clodoo.browseL8(
+            ctx, model, clodoo.searchL8(
+                ctx, model, [('location_id', '=', main_location_id)], order="id")):
+            name = 'WH / %s' % wl.name.split('/')[-1].strip()
+            clodoo.writeL8(ctx, model, wl.id, {'name': name})
+            continue
+        for item in main_locations.keys():
+            # usage = 'internal' if item in ('output', 'stock') else item
+            wl = clodoo.browseL8(ctx, model, main_locations[item]['id'])
+            wl_parent = clodoo.browseL8(
+                ctx, model, main_locations[item]['location_id'])
+            name = '%s / %s' % (wl_parent.name, wl.name.split('/')[-1].strip())
+            clodoo.writeL8(ctx, model, wl.id, {'name': name})
 
 
 if ctx['function']:

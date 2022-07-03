@@ -18,7 +18,6 @@ from builtins import input
 from subprocess import PIPE, Popen
 
 from babel.messages import pofile
-# import xlrd
 from openpyxl import load_workbook
 
 from os0 import os0
@@ -121,14 +120,14 @@ def term_wo_punct(msgid, msgstr):
     lpunct = rpunct = ''
     while msgid and msgid[-1] in PUNCT:
         rpunct = msgid[-1] + rpunct
-        if msgid[-1] == msgstr[-1]:
+        if msgstr and msgid[-1] == msgstr[-1]:
             msgstr = msgstr[:-1]
         msgid = msgid[:-1]
     while msgstr and msgstr[-1] in PUNCT:
         msgstr = msgstr[:-1]
     while msgid and msgid[0] in PUNCT:
         lpunct = lpunct + msgid[0]
-        if msgid[0] == msgstr[0]:
+        if msgstr and msgid[0] == msgstr[0]:
             msgstr = msgstr[1:]
         msgid = msgid[1:]
     while msgstr and msgstr[0] in PUNCT:
@@ -300,7 +299,7 @@ def translate_html(ctx, msgstr):
     return msgstr
 
 
-def load_dictionary_from_file(ctx, pofn, def_action=None):
+def load_terms_from_pofile(ctx, pofn, def_action=None):
     ctr = 0
     trline = '-' * 60
     if os.path.isfile(pofn):
@@ -315,7 +314,6 @@ def load_dictionary_from_file(ctx, pofn, def_action=None):
             msgid2, msgstr2, lpunct, rpunct = term_wo_punct(msgid, msgstr)
             if ctx['tnl_html']:
                 msgstr = translate_html(ctx, msgstr)
-            # punct = '' if msgid == msgid2 else msgid[-1]
             if msgid2 not in TNL_DICT:
                 TNL_DICT[msgid2] = msgstr2
                 TNL_ACTION[msgid2] = 'P'
@@ -330,8 +328,6 @@ def load_dictionary_from_file(ctx, pofn, def_action=None):
                 dummy = ''
                 if msgid2 in PROTECT_TOKENS:
                     dummy = 'D'
-                elif def_action:
-                    dummy = def_action
                 elif not msgstr:
                     dummy = 'D'
                 elif not TNL_DICT[msgid2]:
@@ -340,6 +336,8 @@ def load_dictionary_from_file(ctx, pofn, def_action=None):
                     dummy = TNL_ACTION[msgid2]
                 elif '*' in TNL_ACTION:
                     dummy = TNL_ACTION['*']
+                elif def_action:
+                    dummy = def_action
                 while dummy not in ('D', 'P', 'E', 'I') and len(dummy) <= 3:
                     dummy = input('>>> (Dictionary,Po,End,Ignore,<Text>)? ')
                 if dummy == 'E':
@@ -416,11 +414,10 @@ def rewrite_pofile(ctx, pofn, target, version):
     out, err = Popen(
         cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=False
     ).communicate()
-    fd = open(pofn, 'r')
-    lefts = os0.u(fd.read()).split('\n')
-    fd.close()
-    fd = open(tmpfile, 'r')
-    rights = os0.u(fd.read()).split('\n')
+    with open(pofn, 'r') as fd:
+        lefts = os0.u(fd.read()).split('\n')
+    with open(tmpfile, 'r') as fd:
+        rights = os0.u(fd.read()).split('\n')
     jj = 0
     for ii in range(len(lefts)):
         line = lefts[ii]
@@ -434,9 +431,8 @@ def rewrite_pofile(ctx, pofn, target, version):
                     rights.insert(jj, lefts[ii])
                     ii += 1
                 jj += 1
-    fd = open(tmpfile, 'wb')
-    fd.write(os0.b('\n'.join(rights)))
-    fd.close()
+    with open(tmpfile, 'wb') as fd:
+        fd.write(os0.b('\n'.join(rights)))
     if os.path.isfile(bakfile):
         os.remove(bakfile)
     if os.path.isfile(pofn):
@@ -500,7 +496,7 @@ def load_dictionary(ctx):
             pofn = ''
         if pofn:
             ctx['pofiles'][version] = pofn
-            ctr = load_dictionary_from_file(ctx, pofn)
+            ctr = load_terms_from_pofile(ctx, pofn)
             ctx['ctrs'][version] = ctr
     return 0
 
@@ -517,7 +513,7 @@ def refresh_dictionary(ctx):
             return 1
     dict_name = os.path.join(root, 'pypi', 'tools', 'odoo_default_tnl')
     load_default_dictionary(ctx, dict_name)
-    load_dictionary_from_file(ctx, ctx['ref_pofile'], def_action=ctx['action'])
+    load_terms_from_pofile(ctx, ctx['ref_pofile'], def_action=ctx['action'])
     # save_untranslated(ctx, None)
 
 
@@ -555,7 +551,7 @@ def set_header_pofile(ctx, pofile):
     return potext
 
 
-def parse_file(ctx):
+def translate_module_pofile(ctx):
     untnl = {}
     for version in ctx['pofiles'].keys():
         pofn = ctx['pofiles'][version]
@@ -760,7 +756,7 @@ def main(cli_args=None):
     else:
         sts = load_dictionary(ctx)
         if sts == 0:
-            sts = parse_file(ctx)
+            sts = translate_module_pofile(ctx)
         # if sts == 0 and ctx['db_prefix']:
         #     sts = upgrade_db(ctx)
     sys.exit(sts)
