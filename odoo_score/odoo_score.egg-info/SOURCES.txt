@@ -25,4 +25,6 @@ odoo_score.egg-info/requires.txt
 odoo_score.egg-info/top_level.txt
 odoo_score/scripts/__init__.py
 odoo_score/scripts/main.py
+odoo_score/scripts/openupgrade.py
+odoo_score/scripts/rename_odoo_module.py
 odoo_score/scripts/setup.info

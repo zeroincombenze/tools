@@ -36,7 +36,8 @@ odoo_score is a library that extends the odoo orm functionality and makes availa
     entry_points={
         'console_scripts': [
             'odoo_score-info = odoo_score.scripts.main:main',
-            # 'run_odoo_debug = odoo_score.scripts.run_odoo_debug:main'
+            'rename_odoo_module = odoo_score.scripts.rename_odoo_module:main'
+            # 'run_odoo_debug = odoo_score.scripts.run_odoo_debug:main',
         ]
     },
     zip_safe=False,

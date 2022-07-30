@@ -48,6 +48,7 @@ z0bug_odoo/data/purchase_order_line.xlsx
 z0bug_odoo/data/res_bank.xlsx
 z0bug_odoo/data/res_company.xlsx
 z0bug_odoo/data/res_country_state.xlsx
+z0bug_odoo/data/res_currency_rate.xlsx
 z0bug_odoo/data/res_partner.xlsx
 z0bug_odoo/data/res_partner_bank.xlsx
 z0bug_odoo/data/sale_order.xlsx

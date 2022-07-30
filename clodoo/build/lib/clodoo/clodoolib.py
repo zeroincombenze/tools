@@ -748,13 +748,18 @@ def create_parser(version, doc, ctx):
     return parser
 
 
-def parse_args(arguments, apply_conf=APPLY_CONF, version=None, tlog=None, doc=None):
-    """Parse command-line options."""
-    ctx = {}
+def set_base_ctx(ctx=None):
+    ctx = ctx or {}
     ctx["caller_fqn"] = inspect.stack()[1][1]
     ctx["caller"] = os0.nakedname(os.path.basename(ctx["caller_fqn"]))
     ctx["run_daemon"] = False if os.isatty(0) else True
     ctx["run_tty"] = os.isatty(0)
+    return ctx
+
+
+def parse_args(arguments, apply_conf=APPLY_CONF, version=None, tlog=None, doc=None):
+    """Parse command-line options."""
+    ctx = set_base_ctx()
     if tlog:
         ctx["tlog"] = tlog
     else:
