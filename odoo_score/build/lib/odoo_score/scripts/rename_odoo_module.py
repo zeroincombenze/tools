@@ -87,8 +87,7 @@ def update_module_names(ctx, namespec, merge_modules=False):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="""Rename Odoo module
-Use: vem ODOO_VENV exec 'rename_odoo_module.py OPTIONS'""",
+        description="Rename Odoo module",
         epilog="© 2021-2022 by SHS-AV s.r.l."
     )
     parser.add_argument('-c', '--config')
@@ -99,19 +98,6 @@ Use: vem ODOO_VENV exec 'rename_odoo_module.py OPTIONS'""",
     parser.add_argument('new')
     opt_args = parser.parse_args(cli_args)
     sts = 0
-    try:
-        import odoo
-    except ImportError:
-        print('No Odoo instance found!')
-        print('Please use:')
-        print('vem ODOO_VENV exec "python %s OPTIONS"' % sys.argv[0])
-        return 2
-    try:
-        from openupgradelib import openupgrade
-    except ImportError:
-        print('Openupgradelib not installed in this virtual environment!')
-        print('Please install openupgradelib')
-        return 2
     if not opt_args.config:
         print('Missed configuration file: use -c CONFIG')
         sts = 1

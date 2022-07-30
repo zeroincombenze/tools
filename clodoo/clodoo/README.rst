@@ -1,6 +1,6 @@
 
 ============
-clodoo 1.0.6
+clodoo 1.0.7
 ============
 
 
@@ -327,6 +327,11 @@ Current development version
 History
 -------
 
+1.0.7 (2022-07-30)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo: remote login
+
 1.0.6 (2022-06-17)
 ~~~~~~~~~~~~~~~~~~
 
@@ -388,12 +393,6 @@ History
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] stable version
-
-0.3.35.4 (2021-09-29)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: do not use git --show-current
-* [IMP] odoorc: now it a command too
 
 
 
