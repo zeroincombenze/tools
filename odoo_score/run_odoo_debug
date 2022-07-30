@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.7
+__version__=1.0.7.1
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then
@@ -98,7 +98,7 @@ OPTHELP=("this help"
     "debug mode"
     "odoo branch (version id)"
     "odoo configuration file"
-    "use coverage to run test"
+    "no use coverage to run test"
     "db name to test,translate o upgrade (require -m switch)"
     "export translation (conflict with -i -u -I)"
     "force update or install modules or default parameters"
@@ -161,7 +161,6 @@ elif [[ -n $opt_branch ]]; then
     CONFN=$(build_odoo_param CONFN $odoo_fver search)
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
 fi
-# [[ -z $CONFN || ! -f $CONFN ]] &&  && echo "Configuration file $CONFN not found!" && exit 1
 [[ -z $odoo_root || ! -d $odoo_root ]] && echo "Odoo path $odoo_root not found!" && exit 1
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 LCONFN=$(build_odoo_param LCONFN $odoo_fver)
@@ -212,9 +211,10 @@ if [[ $opt_test -ne 0 ]]; then
     opt_lang=0 opt_exp=0 opt_imp=0
     opt_upd=0 opt_stop=1
     opt_xtl=1
-    opt_dbg=1
+    # opt_dbg=1
     [[ -z "$opt_db" ]] && opt_db="test_openerp_$odoo_ver"
     create_db=1 drop_db=1
+    LOGFILE="$HOME_DEVEL/travis_log/${opt_modules//,/-}.log"
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
@@ -373,7 +373,7 @@ if [[ $opt_touch -eq 0 ]]; then
     else
         run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $ve_root/$$.log|\" -i $FULL_LCONFN"
     fi
-    if [[ $opt_dbg -ne 0 ]]; then
+    if [[ $opt_dbg -ne 0 || $opt_test -ne 0 ]]; then
         run_traced_debug "sed -e \"s|^limit_time_cpu *=.*|limit_time_cpu = 0|\" -i $FULL_LCONFN"
         run_traced_debug "sed -e \"s|^limit_time_real *=.*|limit_time_real = 0|\" -i $FULL_LCONFN"
     fi
@@ -404,11 +404,28 @@ if [[ $opt_touch -eq 0 ]]; then
     #     OPTS="--debug $OPTS"
     # fi
 
-    if [[ -n $COVERAGE_RCFILE ]]; then
-      v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
-      [[ $v -ge 6 ]] && run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS" || run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS"
+    if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
+      [[ -f $LOGFILE ]] && rm -f $LOGFILE
+      if [[ -n $COVERAGE_RCFILE ]]; then
+        v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
+        if [[ $v -ge 6 ]]; then
+          echo "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS"
+          cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
+        else
+          echo "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS"
+          cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
+        fi
+      else
+        echo "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
+        cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
+      fi
     else
-      run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
+      if [[ -n $COVERAGE_RCFILE ]]; then
+        v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
+        [[ $v -ge 6 ]] && run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS" || run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS"
+      else
+        run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
+      fi
     fi
 
     if [[ -n "$VDIR" ]]; then

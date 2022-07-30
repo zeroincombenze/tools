@@ -3,6 +3,8 @@
 # flake8: noqa
 # pylint: skip-file
 from __future__ import print_function, unicode_literals
+from past.builtins import basestring, long
+from builtins import input
 
 from python_plus import _b
 
@@ -36,7 +38,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -194,7 +196,7 @@ def pushd(new_dir):
 def manage_error():
     dummy = ''
     while dummy not in ('I', 'i', 'S', 's', 'D', 'd'):
-        dummy = raw_input('(Ignore, Stop, Debug)? ')
+        dummy = input('(Ignore, Stop, Debug)? ')
         if not dummy:
             dummy = 'I'
         if dummy == 'S' or dummy == 's':
@@ -500,7 +502,7 @@ def drop_module(ctx, module, force=None):
             os0.wlog('>>> uninstall %s' % module)
             return clodoo.act_uninstall_modules(ctx, module_list=[module])
     return 1
- 
+
 
 def remove_unmigrable_modules(src_ctx, tgt_ctx, bad_module_list):
     MODULES_2_DROP = {
@@ -595,7 +597,7 @@ def write_no_dup(ctx, model, ids, vals, src_id):
         try:
             try_again = False
             clodoo.writeL8(ctx, model, ids, vals)
-        except IOError, e:
+        except IOError as e:
             os0.wlog('%s Error writing record %d of %s' % (e, src_id, model))
             manage_error()
 
@@ -658,7 +660,7 @@ def create_with_id(ctx, model, id, vals):
     if new_id != id:
         os0.wlog("Cannot create record %d of %s" % (id, model))
         if not ctx['assume_yes']:
-            raw_input('Press RET to continue')
+            input('Press RET to continue')
     if last_id and last_id > 1 and last_id > id:
         sql = 'alter sequence %s restart %d;' % (table, last_id)
         exec_sql(ctx, sql)
@@ -668,12 +670,12 @@ def install_modules(tgt_ctx, src_ctx):
     assume_yes = tgt_ctx['assume_yes']
     upgrade = False
     if not tgt_ctx['assume_yes']:
-        dummy = raw_input('Install modules (Yes,No,All)? ')
+        dummy = input('Install modules (Yes,No,All)? ')
         if dummy[0] in ('n', 'N'):
             assume_yes = 'N'
         if dummy[0] in ('a', 'A'):
             assume_yes = 'Y'
-        dummy = raw_input('Upgrade installed modules (Yes,No)? ')
+        dummy = input('Upgrade installed modules (Yes,No)? ')
         if dummy[0] in ('y', 'Y'):
             upgrade = True
         if assume_yes == 'N' and not upgrade:
@@ -704,7 +706,7 @@ def install_modules(tgt_ctx, src_ctx):
                 dummy = 'Y'
             else:
                 if not assume_yes:
-                    dummy = raw_input(
+                    dummy = input(
                         'Install module %s (Yes,No,All,Quit)? ' % module)
             if dummy[0] in ('n', 'N'):
                 continue
@@ -967,7 +969,7 @@ def synchro(tgt_ctx, model, vals):
             id = clodoo.createL8(tgt_ctx, model, vals)
             cache_store_entry(cache, model, id)
             tgt_ctx['_COMMIT'][model]['id'] = id
-        except IOError, e:
+        except IOError as e:
             os0.wlog('%s Cannot create %s src id=%d' % (e, model, id))
             manage_error()
 
@@ -1090,7 +1092,7 @@ def copy_table(tgt_ctx, src_ctx, model, mode=None):
                 except IOError:
                     os0.wlog("Cannot delete record %d of %s" % (id, model))
                     if not tgt_ctx['assume_yes']:
-                        dummy = raw_input('Press RET to continue')
+                        dummy = input('Press RET to continue')
     where = set_where_from_txtids(src_ctx['sel_ids'])
     if src_ctx['by_company']:
         company_id = env_ref(src_ctx, 'z0bug.mycompany')
@@ -1316,7 +1318,7 @@ def get_model_copy_mode(ctx, model):
                 else:
                     dummy = 'N'
             else:
-                dummy = raw_input('Copy table %s (Image,Sql,No)? ' % model)
+                dummy = input('Copy table %s (Image,Sql,No)? ' % model)
             if dummy and dummy[0].lower() in mode_selection:
                 mode = mode_selection[dummy[0].lower()]
             else:
@@ -1869,12 +1871,12 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
         if bad_module_list:
             if len(bad_module_list) == 1:
                 query = '''select id,name,state from ir_module_module
-                           where state not in 
+                           where state not in
                            ('installed', 'uninstalled', 'uninstallable') and
                            name = '%s';''' % bad_module_list[0]
             else:
                 query = '''select id,name,state from ir_module_module
-                           where state not in 
+                           where state not in
                            ('installed', 'uninstalled', 'uninstallable') and
                            name in (%s);''' % (
                                "'%s'" % "','".join(bad_module_list))
@@ -1925,7 +1927,7 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
             fd.write(b'deactivate\n')
             fd.write(b'exit $sts\n')
             fd.close()
-            os.chmod(script, 0744)
+            os.chmod(script, 0o744)
             sts = 0
             if not src_ctx['dry_run']:
                 sts = os.system(script)
@@ -2025,7 +2027,7 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
                 tgt_ctx['tgt_odoo_fver']))
             fd.write('deactivate\n')
             fd.close()
-            os.chmod(script, 0744)
+            os.chmod(script, 0o744)
             if not src_ctx['dry_run']:
                 os.system(script)
         if not src_ctx['dry_run']:
@@ -2033,7 +2035,7 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
         tmp_dbname = new_dbname(src_ctx['db_name'],
                                 tgt_ctx['tgt_odoo_ver'],
                                 tgt_ctx['oca_migrate'])
-        if not src_ctx['dry_run']: 
+        if not src_ctx['dry_run']:
             if tgt_ctx['db_name'] != tmp_dbname:
                 ren_db(tmp_dbname, tgt_ctx['db_name'], src_ctx['db_user'])
             if src_ctx['db_user'] != tgt_ctx['db_user']:
@@ -2044,7 +2046,7 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
         tgt_full_lconf = tgt_ctx['conf_fn']
     else:
         ou_ver_path = load_openupgrade(tgt_ctx, tgt_ctx['tgt_odoo_fver'])
-        if not src_ctx['dry_run']: 
+        if not src_ctx['dry_run']:
             load_openupgradelib(src_ctx, tgt_ctx['tgt_odoo_fver'])
         if tgt_ctx['upd_translation']:
             add_versioned_tnl(src_ctx, src_ctx['src_odoo_fver'],
@@ -2054,7 +2056,7 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
             root_path = os.path.join(ou_ver_path, 'openerp', 'addons')
         else:
             root_path = os.path.join(ou_ver_path, 'odoo', 'addons')
-        if not src_ctx['dry_run']: 
+        if not src_ctx['dry_run']:
             for repo in tgt_paths:
                 for name in os.listdir(repo):
                     if (os.path.isdir(os.path.join(repo, name)) and
@@ -2078,7 +2080,7 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
                                   tgt_ctx['db_name'],
                                   src_ctx['db_user'],
                                   tgt_ctx['db_user'])
-            # Some modules not available on intermediate version might be 
+            # Some modules not available on intermediate version might be
             # available on current target odoo version
             if tgt_ctx['try_reinstall']:
                 modules_to_restore = bad_list = []
@@ -2091,7 +2093,7 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
                         tgt_ctx['tgt_odoo_fver'],
                         tgt_all_module_list,
                         pure=True)
-                    modules_to_restore = list(set(modules_to_restore) - 
+                    modules_to_restore = list(set(modules_to_restore) -
                                               set(src_ctx['src_module_list']))
                     if modules_to_restore:
                         set_installed_by_sql(tgt_ctx, modules_to_restore)
@@ -2102,7 +2104,7 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
             fix_bug_post(src_ctx, tgt_ctx, src_full_lconf, src_paths)
 
     # Test for not migrated modules
-    tgt_ctx['conf_fn'] = tgt_saved_fconf 
+    tgt_ctx['conf_fn'] = tgt_saved_fconf
     to_uninstall_list = get_wrong_modules(tgt_ctx)
     if to_uninstall_list:
         os0.wlog('*** Wrong state for modules %s ***' % to_uninstall_list)
@@ -2193,7 +2195,7 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
         src_ctx, tgt_ctx = shift_ctx(src_ctx, tgt_ctx, phase=phase)
 
     if phase == 1:
-        src_ctx['dry_run'] = saved_dry_run 
+        src_ctx['dry_run'] = saved_dry_run
         tgt_ctx['dry_run'] = src_ctx['dry_run']
 
 
@@ -2258,7 +2260,7 @@ def parse_ctx(src_ctx):
     if not src_ctx['opt_oulpath']:
         src_ctx['opt_oulpath'] = os.path.join(src_ctx['opt_oupath'],
                                               'openupgradelib')
- 
+
     if src_ctx['final_dbname'] and not src_ctx['from_dbname']:
         src_ctx['from_dbname'], src_ctx['final_dbname'] = \
             src_ctx['final_dbname'], '%s_2021' % src_ctx['final_dbname']

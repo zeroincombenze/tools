@@ -1,3 +1,21 @@
+odoo_score: 1.0.8 (2022-07-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New command rename_odoo_module
+
+
+clodoo: 1.0.7 (2022-07-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo: remote login
+
+
+odoo_score: 1.0.7.1 (2022-06-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: log test result
+
+
 wok_code: 1.0.11 (2022-06-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -20,12 +38,6 @@ clodoo: 1.0.6 (2022-06-17)
 * [IMP] list_requirements.py: more default data
 * [FIX] list_requirements.py: some error with incomplete data supplied
 * [FIX] odoorc: value of GIT_URL with private repositories
-
-
-clodoo: 1.0.4 (2022-05-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: nre librerp repository
 
 
 

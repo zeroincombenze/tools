@@ -220,14 +220,14 @@ try:
     from clodoo.clodoolib import tounicode  # noqa: F401
     from clodoo.clodoolib import (build_odoo_param, crypt, debug_msg_log,
                                   decrypt, default_conf, msg_log, parse_args,
-                                  read_config)
+                                  read_config, set_base_ctx)
 except ImportError:
     from clodoolib import init_logger  # noqa: F401; noqa: F401
     from clodoolib import msg_burst  # noqa: F401
     from clodoolib import tounicode  # noqa: F401
     from clodoolib import (build_odoo_param, crypt, debug_msg_log,  # noqa: F401
                            decrypt, default_conf, msg_log, parse_args,  # noqa: F401
-                           read_config)  # noqa: F401
+                           read_config, set_base_ctx)  # noqa: F401
 try:
     from transodoo import read_stored_dict, translate_from_to
 except ImportError:
@@ -238,7 +238,7 @@ from subprocess import PIPE, Popen
 
 standard_library.install_aliases()  # noqa: E402
 
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -555,7 +555,7 @@ def oerp_set_env(
             ctx['run_daemon'] = True
         return ctx
 
-    ctx = ctx or {}
+    ctx = set_base_ctx(ctx)
     if confn:
         ctx['conf_fn'] = confn
         if 'conf_fns' in ctx:

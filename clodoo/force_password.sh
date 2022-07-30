@@ -52,7 +52,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.6
+__version__=1.0.7
 
 get_dbuser() {
   # get_dbuser odoo_majver

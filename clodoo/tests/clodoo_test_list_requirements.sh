@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.6
+__version__=1.0.7
 
 
 test_01() {
@@ -67,7 +67,7 @@ test_01() {
     RES=$($RUNDIR/list_requirements.py -b10.0 -tpython -BP)
     test_result "list_requirements -b10.0 -tpython -BP" "$TRES" "$RES"
     #
-    TRES="python=Babel==2.3.4,chardet,configparser,decorator==4.0.10,feedparser==5.2.1,future,gdata==2.0.18,gevent==1.3.4,html2text,Jinja2==2.10.1,'lxml>=3.4.1',Mako==1.0.4,num2words,numpy,passlib==1.6.5,docutils==0.14,Pillow==6.1.0,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pydot==1.2.3,pyparsing==2.1.10,pyPDF2,'pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-openid==2.2.5,'python-stdnum>=1.8.1',python3-ldap,pytz==2016.7,reportlab==3.3.0,simplejson==3.5.3,'six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.14.1"
+    TRES="python=Babel==2.3.4,chardet,configparser,decorator==4.0.10,feedparser==5.2.1,future,gdata==2.0.18,gevent==1.3.4,html2text,Jinja2==2.10.1,'lxml>=3.4.1',Mako==1.0.4,num2words,numpy,passlib==1.6.5,docutils==0.14,Pillow==6.1.0,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pydot==1.2.3,pyparsing==2.1.10,'pyPDF2>=2.0','pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-openid==2.2.5,'python-stdnum>=1.8.1',python3-ldap,pytz==2016.7,reportlab==3.3.0,simplejson==3.5.3,'six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.14.1"
     RES=$($RUNDIR/list_requirements.py -b12.0 -tpython -BP)
     test_result "list_requirements -b12.0 -tpython -BP" "$TRES" "$RES"
 }

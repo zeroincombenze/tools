@@ -1,6 +1,6 @@
 
 ============
-clodoo 1.0.6
+clodoo 1.0.7
 ============
 
 
@@ -327,6 +327,11 @@ Current development version
 History
 -------
 
+1.0.7 (2022-07-30)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo: remote login
+
 1.0.6 (2022-06-17)
 ~~~~~~~~~~~~~~~~~~
 
@@ -389,12 +394,6 @@ History
 
 * [IMP] stable version
 
-0.3.35.4 (2021-09-29)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: do not use git --show-current
-* [IMP] odoorc: now it a command too
-
 
 
 |
@@ -419,7 +418,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-06-19
+Last Update / Ultimo aggiornamento: 2022-07-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

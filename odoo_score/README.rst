@@ -1,7 +1,7 @@
 
-================
-odoo_score 1.0.7
-================
+==================
+odoo_score 1.0.7.1
+==================
 
 
 
@@ -150,6 +150,11 @@ Current development version
 History
 -------
 
+1.0.7.1 (2022-06-30)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: log test result
+
 1.0.7 (2022-06-17)
 ~~~~~~~~~~~~~~~~~~
 
@@ -190,13 +195,6 @@ History
 
 [FIX] run_odoo_debug: run in osx darwin
 
-1.0.1.3 (2021-07-23)
-~~~~~~~~~~~~~~~~~~~~
-
-[FIX] run_odoo_debug: -T and -k switches togheter
-[FIX] odoo_score.py: crash with python 3 (due clodoo package)
-[IMP] odoo_shell.py: removed old code
-
 
 
 |
@@ -221,7 +219,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-06-19
+Last Update / Ultimo aggiornamento: 2022-07-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

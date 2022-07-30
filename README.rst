@@ -239,6 +239,24 @@ Current development version
 History
 -------
 
+odoo_score: 1.0.8 (2022-07-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New command rename_odoo_module
+
+
+clodoo: 1.0.7 (2022-07-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo: remote login
+
+
+odoo_score: 1.0.7.1 (2022-06-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: log test result
+
+
 wok_code: 1.0.11 (2022-06-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -263,12 +281,6 @@ clodoo: 1.0.6 (2022-06-17)
 * [FIX] odoorc: value of GIT_URL with private repositories
 
 
-clodoo: 1.0.4 (2022-05-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: nre librerp repository
-
-
 
 
 
@@ -285,7 +297,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-06-19
+Last Update / Ultimo aggiornamento: 2022-07-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
