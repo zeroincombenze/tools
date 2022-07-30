@@ -1,6 +1,6 @@
 
 ============
-clodoo 1.0.5
+clodoo 1.0.7
 ============
 
 
@@ -327,6 +327,18 @@ Current development version
 History
 -------
 
+1.0.7 (2022-07-30)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo: remote login
+
+1.0.6 (2022-06-17)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: more default data
+* [FIX] list_requirements.py: some error with incomplete data supplied
+* [FIX] odoorc: value of GIT_URL with private repositories
+
 1.0.4 (2022-05-06)
 ~~~~~~~~~~~~~~~~~~
 
@@ -382,17 +394,6 @@ History
 
 * [IMP] stable version
 
-0.3.35.4 (2021-09-29)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: do not use git --show-current
-* [IMP] odoorc: now it a command too
-
-0.3.35.3 (2021-09-26)
-~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo: specific openpyxl for python2
-
 
 
 |
@@ -417,7 +418,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-06-11
+Last Update / Ultimo aggiornamento: 2022-07-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

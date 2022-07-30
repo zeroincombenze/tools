@@ -11,7 +11,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '1.0.7.1'
+__version__ = '1.0.8'
 
 
 def update_module_names(ctx, namespec, merge_modules=False):
