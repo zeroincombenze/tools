@@ -143,6 +143,13 @@ class RegressionTest:
                     out = fd.read().split()[0]
         sts += self.Z.test_result(z0ctx, "- exec", '1.2.3.4', out)
         return sts
+    #
+    # def test_04(self, z0ctx):
+    #     cmd = '%s/scripts/vem.sh %s install wkhtmltopdf -vn|grep Download' % (
+    #         self.Z.rundir, self.venv_dir)
+    #     if not z0ctx['dry_run']:
+    #         os.system(cmd)
+    #
 
 
 # Run main if executed as a script

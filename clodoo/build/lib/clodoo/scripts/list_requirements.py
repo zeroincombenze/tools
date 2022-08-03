@@ -852,7 +852,7 @@ def main(cli_args=None):
         ctx = get_pyver(ctx)
     elif not ctx["odoo_ver"] and ctx["pyver"]:
         ctx = get_def_odoo_ver(ctx)
-    else:
+    if not ctx["odoo_ver"]:
         ctx["odoo_ver"] = "12.0"
     if ctx["out_file"]:
         ctx = set_def_outfile(ctx)

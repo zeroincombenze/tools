@@ -23,7 +23,7 @@ THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 HOME_DEV="$HOME/devel"
-[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
 PYPATH=$(echo -e "import os,sys;\nTDIR='"$TDIR"';HOME_DEV='"$HOME_DEV"'\no=os.path\nHOME=os.environ.get('HOME');t=o.join(HOME,'tools')\nn=o.join(HOME,'pypi') if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME,HOME_DEV, 'pypi')\nd=HOME_DEV if o.basename(HOME_DEV)=='venv_tools' else o.join(HOME_DEV,'venv')\ndef apl(l,p,b):\n if p:\n  p2=o.join(p,b,b)\n  p1=o.join(p,b)\n  if o.isdir(p2):\n   l.append(p2)\n  elif o.isdir(p1):\n   l.append(p1)\nl=[TDIR]\nv=''\nfor x in sys.path:\n if not o.isdir(t) and o.isdir(o.join(x,'tools')):\n  t=o.join(x,'tools')\n if not v and o.basename(x)=='site-packages':\n  v=x\nfor x in os.environ['PATH'].split(':'):\n if x.startswith(d):\n  d=x\n  break\nfor b in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if TDIR.startswith(d):\n  apl(l,d,b)\n elif TDIR.startswith(n):\n  apl(l,n,b)\n apl(l,v,b)\n apl(l,t,b)\nl=l+os.environ['PATH'].split(':')\ntdir=o.dirname(TDIR)\np=set()\npa=p.add\np=[x for x in l if x and (x.startswith(HOME) or x.startswith(HOME_DEV) or x.startswith(tdir)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
@@ -64,6 +64,7 @@ GIT_PKGS="(openupgradelib|prestapyt)"
 PYBIN_PKGS="(dateutil|ldap|openid)"
 BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
+UNISOLATED_PKGS="(.?-|lxml)"
 ERROR_PKGS=""
 LOCAL_PKGS="(clodoo|odoo_score|os0|python_plus|z0bug_odoo|z0lib|zerobug)"
 XPKGS_RE=""
@@ -152,19 +153,19 @@ get_pkg_wo_version() {
 
 
 get_wkhtmltopdf_dwname() {
-  #get_wkhtmltopdf_dwname(pkg FH dist MACHARCH)
-  local pkg=$1 FH=$2 dist=$3 MACHARCH=$4 pkgext wkhtmltopdf_wget x y z
-  dist=${dist,,}
-  [[ $dist =~ debian ]] && y="_" || y="-"
+  #get_wkhtmltopdf_dwname(pkg FH DISTO MACHARCH)
+  local pkg=$1 FH=$2 DISTO=$3 MACHARCH=$4 pkgext wkhtmltopdf_wget x y z
+  DISTO=${DISTO,,}
+  [[ $DISTO =~ ^debian ]] && y="_" || y="-"
   [[ "$FH" == "RHEL" ]] && x="." || x="_"
-  [[ $dist =~ (redhat|fedora) ]] && dist="centos7"
-  [[ "$dist" == "ubuntu20" ]] && dist="focal"
-  [[ "$dist" == "ubuntu18" ]] && dist="bionic"
-  [[ "$dist" == "ubuntu16" ]] && dist="xenial"
-  [[ "$dist" == "ubuntu14" ]] && dist="trusty"
-  [[ "$dist" == "debian10" ]] && dist="buster"
-  [[ "$dist" == "debian9" ]] && dist="stretch"
-  [[ "$dist" == "debian8" ]] && dist="jessie"
+  [[ $DISTO =~ ^(redhat|fedora) ]] && DISTO="centos7"
+  [[ "$DISTO" == "ubuntu20" ]] && DISTO="focal"
+  [[ "$DISTO" == "ubuntu18" ]] && DISTO="bionic"
+  [[ "$DISTO" == "ubuntu16" ]] && DISTO="xenial"
+  [[ "$DISTO" == "ubuntu14" ]] && DISTO="trusty"
+  [[ "$DISTO" == "debian10" ]] && DISTO="buster"
+  [[ "$DISTO" == "debian9" ]] && DISTO="stretch"
+  [[ "$DISTO" == "debian8" ]] && DISTO="jessie"
   [[ "$FH" == "RHEL" ]] && pkgext=".rpm" || pkgext=".deb"
   [[ "$FH" == "Debian" && "$MACHARCH" == "x86_64" ]] && MACHARCH="amd64"
   reqver=$(echo "$pkg" | grep -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
@@ -174,13 +175,13 @@ get_wkhtmltopdf_dwname() {
   if [[ ${reqver} =~ 0.12.6 ]]; then
     reqver="0.12.6-1"
     z="packaging"
-    wkhtmltopdf_wget="wkhtmltox${y}${reqver}.${dist}${x}${MACHARCH}${pkgext}"
+    wkhtmltopdf_wget="wkhtmltox${y}${reqver}.${DISTO}${x}${MACHARCH}${pkgext}"
   elif [[ ${reqver} == "0.12.5" ]]; then
-    wkhtmltopdf_wget="wkhtmltox${y}${reqver}-1.${dist}${x}${MACHARCH}${pkgext}"
+    wkhtmltopdf_wget="wkhtmltox${y}${reqver}-1.${DISTO}${x}${MACHARCH}${pkgext}"
   elif [[ ${reqver} == "0.12.4" ]]; then
     wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-generic-${MACHARCH}.tar.xz"
   else
-    wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-${dist}-${MACHARCH}${pkgext}"
+    wkhtmltopdf_wget="wkhtmltox-${reqver}_linux-${DISTO}-${MACHARCH}${pkgext}"
   fi
   echo "https://github.com/wkhtmltopdf/${z}/releases/download/${reqver}/${wkhtmltopdf_wget}"
 }
@@ -198,26 +199,36 @@ set_hashbang() {
 bin_install() {
   # bin_install(pkg)
   [[ $opt_verbose -gt 2 ]] && echo ">>> bin_install($*)"
-  local x
+  local x FH DISTO
   local reqver size
-  local FH=$(xuname -f)
+  [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
   local MACHARCH=$(xuname -m)
-  local dist=$(xuname -d)
-  dist=${dist,,}$(xuname -v | grep -Eo "[0-9]*" | head -n1)
+  [[ -n $opt_distro ]] && DISTO=${opt_distro,,} || DISTO=$(xuname -d)
+  [[ -z $opt_distro ]] && DISTO=${DISTO,,}$(xuname -v | grep -Eo "[0-9]*" | head -n1)
   local pkg=$1
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ $pkg =~ lessc ]]; then
-      [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
-      pkg=${pkg/==/@}
-      pkg=$(echo $pkg | tr -d "'")
-      run_traced "npm install $pkg"
-      run_traced "npm install less-plugin-clean-css"
-      x=$(find $(npm bin) -name lessc 2>/dev/null)
-      [[ -n "$x" ]] && run_traced "ln -s $x $VENV/bin"
+      x=$(which npm 2>/dev/null)
+      if [[ -z "$x" ]]; then
+        echo "Package $pkg require npm software but this software is not installed on your system"
+        echo "You should install npm ..."
+        [[ $DISTO =~ ^fedora ]] && echo "dnf install npm"
+        [[ ! $DISTO =~ ^fedora && $FH == "RHEL" ]] && echo "yum install npm"
+        [[ $DISTO =~ ^debian ]] && echo "apt install npm"
+        ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      else
+        [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
+        pkg=${pkg/==/@}
+        pkg=$(echo $pkg | tr -d "'")
+        run_traced "npm install $pkg"
+        run_traced "npm install less-plugin-clean-css"
+        x=$(find $(npm bin) -name lessc 2>/dev/null)
+        [[ -n "$x" ]] && run_traced "ln -s $x $VENV/bin" || ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      fi
     elif [[ $pkg =~ wkhtmltopdf ]]; then
       mkdir wkhtmltox.rpm_files
       pushd wkhtmltox.rpm_files >/dev/null
-      wkhtmltopdf_wget=$(get_wkhtmltopdf_dwname $pkg $FH $dist $MACHARCH)
+      wkhtmltopdf_wget=$(get_wkhtmltopdf_dwname $pkg $FH $DISTO $MACHARCH)
       pkgext=$(echo wkhtmltopdf_wget | grep -Eo ".xz$")
       [[ -z "$pkgext" ]] && pkgext=${wkhtmltopdf_wget: -4}
       [[ $opt_verbose -gt 0 ]] && echo "Download ${wkhtmltopdf_wget}"
@@ -261,13 +272,15 @@ bin_install_1() {
 
 pip_install() {
   #pip_install(pkg opts)
-  local pkg d x srcdir pfn popts pypath v tmpdir
+  local pkg d x srcdir pfn popts pypath v tmpdir DISTO  FH
+  [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
+  [[ -n $opt_distro ]] && DISTO=${opt_distro,,} || DISTO=$(xuname -d)
   pypath=$(find $VIRTUAL_ENV/lib -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
   tmpdir=$VIRTUAL_ENV/tmp
   pkg="$(get_actual_pkg $1)"
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
-  [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
+  [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
@@ -285,7 +298,6 @@ pip_install() {
         echo "Missed Odoo version to install (please use -O and -o switches)!"
         exit 1
       fi
-      [[ $pkg =~ ^(odoo|openerp)$ && -n $opt_oepath ]] && srcdir=$(odoo_orm_path $opt_oepath)
       if [[ $pkg =~ ^(odoo|openerp)$ && -z $srcdir ]]; then
         echo "Odoo path not found! Please supply path with -o switch)!"
         exit 1
@@ -314,12 +326,12 @@ pip_install() {
         [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
         v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
         popd >/dev/null
-        x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
-        [[ -n $x && $x != $pypath/${pfn}-${v}.dist-info ]] && run_traced "mv $x $pypath/${pfn}-${v}.dist-info"
-        if [[ ! -d $pypath/${pfn}-${v}.dist-info ]]; then
-          run_traced "mkdir $pypath/${pfn}-${v}.dist-info"
+        x=$(ls -d $pypath/${pfn}-*DISTO-info 2>/dev/null|grep -E "${pfn}-[0-9.]*DISTO-info")
+        [[ -n $x && $x != $pypath/${pfn}-${v}.DISTO-info ]] && run_traced "mv $x $pypath/${pfn}-${v}.DISTO-info"
+        if [[ ! -d $pypath/${pfn}-${v}.DISTO-info ]]; then
+          run_traced "mkdir $pypath/${pfn}-${v}.DISTO-info"
           for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
-            run_traced "touch $pypath/${pfn}-${v}.dist-info/$d"
+            run_traced "touch $pypath/${pfn}-${v}.DISTO-info/$d"
           done
         fi
         run_traced "ln -s $srcdir $pypath/$pfn"
@@ -331,6 +343,7 @@ pip_install() {
     elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install $pkg"
       run_traced "$PIP install $popts --upgrade $pkg"
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     elif [[ $pkg =~ $WGET_PKGS ]]; then
       d=""
       [[ $pkg == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
@@ -341,24 +354,25 @@ pip_install() {
       [[ -f $x ]] && run_traced "rm -f $x"
       run_traced "wget $d"
       run_traced "$PIP install $popts $x"
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     elif [[ $pkg =~ $GIT_PKGS ]]; then
       d=""
       [[ $pkg =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
       [[ $pkg =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
       [[ -z "$d" ]] && echo "Unknown URL for $pkg" && return
       run_traced "$PIP install $d"
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     elif [[ $pkg =~ $BZR_PKGS ]]; then
       x=$(which bzr 2>/dev/null)
       if [[ -z "$x" ]]; then
         echo "Package $pkg require bazar software but this software is not installed on your system"
         echo "You should install bazar ..."
-        DISTO=$(xuname -d)
-        FH=$(xuname -f)
-        [[ $DISTO == "Fedora" ]] && echo "dnf install bzr"
-        [[ $DISTO != "Fedora" && $FH == "RHEL" ]] && echo "yum install bzr"
-        [[ $DISTO == "Debian" ]] && echo "apt -t lenny-backports install bzr"
-        [[ $DISTO == "Ubuntu" ]] && echo "add-apt-repository ppa:bzr/ppa"
+        [[ $DISTO =~ ^fedora ]] && echo "dnf install bzr"
+        [[ ! $DISTO =~ ^fedora && $FH == "RHEL" ]] && echo "yum install bzr"
+        [[ $DISTO =~ ^debian ]] && echo "apt install bzr"
+        [[ $DISTO =~ ^Ubuntu ]] && echo "add-apt-repository ppa:bzr/ppa"
         [[ $FH == "Debian" ]] && echo "apt update"
+        ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
         run_traced "mkdir -p $HOME/bazar"
         run_traced "cd $HOME/bazar"
@@ -368,8 +382,10 @@ pip_install() {
         if [[ -n "$d" && -d "$d" ]]; then
           run_traced "cd $d"
           run_traced "python ./setup.py install"
+          [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         else
           echo "Invalid bazar package: file setup.py not found!"
+          ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         fi
       fi
     elif [[ $opt_debug -eq 1 ]]; then
@@ -412,8 +428,7 @@ pip_install_req() {
   local f pfn pkg flist cmd
   for f in ${opt_rfile//,/ }; do
     pfn=$(readlink -f $f)
-    [ -z "$pfn" ] && echo "File $f not found!"
-    [ -z "$pfn" ] && continue
+    [[ -z "$pfn" ]] && echo "File $f not found!" && continue
     [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $pfn\e[0m"
     cmd="$LIST_REQ -qt python -BP"
     [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
@@ -447,8 +462,8 @@ pip_uninstall() {
       [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
       v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
       popd >/dev/null
-      x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
-      [[ -n $x && $x != $pypath/${pfn}-${v}.dist-info ]] && run_traced "rm $x"
+      x=$(ls -d $pypath/${pfn}-*DISTO-info 2>/dev/null|grep -E "${pfn}-[0-9.]*DISTO-info")
+      [[ -n $x && $x != $pypath/${pfn}-${v}.DISTO-info ]] && run_traced "rm $x"
     else
       [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
       run_traced "$PIP uninstall $popts $pkg $2"
@@ -467,9 +482,9 @@ check_bin_package() {
   op=$(echo "$vpkg" | grep -Eo '[!<=>]*' | head -n1)
   pkg=$(echo "$vpkg" | grep -Eo '[^!<=>\\[]*' | tr -d "'" | head -n1)
   reqver=$(echo "$vpkg" | grep -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
-  [ -n "$reqver" ] && xreqver=$(echo $reqver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
+  [[ -n "$reqver" ]] && xreqver=$(echo $reqver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
   sts=0
-  curver=$($pkg --version 2>/dev/null | grep -Eo "[0-9]+\.[0-9]+\.?[0-9]*x" | head -n1)
+  curver=$($pkg --version 2>/dev/null | grep -Eo "[0-9]+\.[0-9]+\.?[0-9]*" | head -n1)
   if [[ -n "$reqver" ]]; then
     if [[ -z "$curver" ]]; then
       echo "Package $pkg not installed!!!"
@@ -480,7 +495,7 @@ check_bin_package() {
         ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       fi
     else
-      [ -n "$curver" ] && xcurver=$(echo $curver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
+      [[ -n "$curver" ]] && xcurver=$(echo $curver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
       if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
         echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
         if [[ "$cmd" == "amend" ]]; then
@@ -533,7 +548,9 @@ check_package() {
   reqver=$(echo "$vpkg" | grep -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
   [[ -n "$reqver" ]] && xreqver=$(echo $reqver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
   sts=0
-  if [[ -n "$reqver" ]]; then
+  if [[ $pkg =~ $BIN_PKGS ]]; then
+      check_bin_package "$pkg"
+  elif [[ -n "$reqver" ]]; then
     curver=$($PIP show $pkg | grep "^[Vv]ersion" | awk -F: '{print $2}' | tr -d ', \r\n\(\)') || curver=
     if [[ -z "$curver" ]]; then
       echo "Package $pkg not installed!!!"
@@ -571,8 +588,10 @@ check_package() {
       fi
     fi
   fi
-  x=$($PIP show $pkg | grep "^[Ll]ocation" | awk -F: '{print $2}' | tr -d ', \r\n\(\)')
-  [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "Warning: file $x is outside of virtual env"
+  if [[ ! $pkg =~ $BIN_PKGS ]]; then
+    x=$($PIP show $pkg | grep "^[Ll]ocation" | awk -F: '{print $2}' | tr -d ', \r\n\(\)')
+    [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "Warning: file $x is outside of virtual env"
+  fi
 }
 
 pip_check_1() {
@@ -691,6 +710,22 @@ find_cur_py() {
     fi
 }
 
+find_odoo_path() {
+# find_odoo_path(path opts)
+    local p v x y
+    [[ -n "$1" && -d $1 ]] && p="$1"
+    x=(basename $p)
+    [[ $x =~ ^VENV && -d $p/odoo ]] && p="$p/odoo"
+    [[ $x =~ ^venv_odoo && -d $p ]] && p=$(dirname $p)
+    [[ -z $p && -n $opt_oepath ]] && p="$opt_oepath"
+    [[ -z $p && -n $opt_oever && -d $HOME/$opt_oever ]] && p="$HOME/$opt_oever"
+    [[ $opt_verbose -gt 2 ]] && echo ">>> find $1 $p -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.*/*" -not -path "*/node_modules/*"  ( -name odoo-bin -o -name openerp-server )"
+    for f in $(find $2 $p -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.*/*" -not -path "*/node_modules/*" ( -name odoo-bin -o -name openerp-server ) 2>/dev/null|sort); do
+        opt_oepath=$(dirname $f)
+        break
+    done
+}
+
 venv_mgr_check_src_path() {
   # venv_mgr_check_src_path(VENV)
   [[ $opt_verbose -gt 2 ]] && echo ">>> venv_mgr_check_src_path($*)"
@@ -730,7 +765,7 @@ check_installed_pkgs() {
   [[ $opt_verbose -gt 2 ]] && echo ">>> check_installed_pkgs()"
   local mime p p2 popts x
   check_4_needing_pkgs
-  [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
+  [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
@@ -744,7 +779,7 @@ check_installed_pkgs() {
     [[ -z "${!x}" ]] && $PIP install $popts$p2 $p
   done
   LIST_REQ="list_requirements.py"
-  if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
+  if [[ -n "$opt_oepath" && -n "$opt_oever" ]]; then
     if [[ -z $(which list_requirements.py 2>/dev/null) ]]; then
       x=$($PIP show clodoo|grep Location|awk -F: '{print $2}')
       x=$(echo $x/clodoo/list_requirements.py)
@@ -773,20 +808,10 @@ odoo_orm_path() {
 
 venv_mgr_check_oever() {
   #venv_mgr_check_oever action venv
-  local p x
-  if [[ -z "$opt_oever" && ! $1 =~ (help|create) ]]; then
-    p=""
-    [[ $2 =~ ^VENV- ]] && p="$p $(echo $HOME/"$2"|grep -Eo "[0-9]+\.[0-9]"|head -n1)"
-    [[ $2 =~ /venv_odoo ]] && p="$p $(dirname $2)"
-    for x in lib/python$opt_pyver/site-packages/odoo odoo openerp server; do
-      [[ -d $p2/odoo/$x ]] && p="$p $p2/odoo/$x"
-      [[ $x != "odoo" && -d $p2/$x ]] && p="$p $p2/$x"
-    done
-    [[ -z $p ]] && p="$2"
-    find_odoo_path "$p2" "-L"
-  fi
-  if [[ ! $1 =~ (help|create) ]]; then
-    [[ -n "$opt_oever" && $opt_verbose -gt 1 ]] && echo "### Odoo version $opt_oever ...  ###"
+  local f p x
+  if [[ -z "$opt_oever" && -n "$opt_oepath" ]]; then
+    [[ -d $opt_oepath/openerp ]] && f="$opt_oepath/openerp/release.py" || f="$opt_oepath/odoo/release.py"
+    opt_oever=$(grep "^version_info" $f|cut -d= -f2|tr -d "("|tr -d ")"|tr -d " "|awk -F, '{print $1 "." $2}')
   fi
 }
 
@@ -848,6 +873,8 @@ do_venv_mgr() {
   [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
   [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
   [[ -d $HOME/OCA ]] && lropts="$lropts -d${HOME}/OCA"
+  [[ -d $HOME/maintainer-tools ]] && lropts="$lropts -d${HOME}/maintainer-tools"
+  [[ -d $HOME/maintainer-quality-tools ]] && lropts="$lropts -d${HOME}/maintainer-quality-tools"
   [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t bin"
   BINPKGS=$($LIST_REQ -qs' ' $lropts -t bin)
   [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS"
@@ -986,7 +1013,7 @@ do_venv_create() {
   # do_venv_create VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_create($*)"
   local f lropts p pkg v VENV xpkgs SAVED_PATH x
-  local venvexe pyexe
+  local venvexe pyexe pypath
   VENV="$1"
   if [[ -d $VENV ]]; then
     if [[ $opt_force -eq 0 ]]; then
@@ -1076,7 +1103,6 @@ do_venv_create() {
   fi
 
   do_activate "$VENV"
-  # [[ -d $VENV/bin ]] && export PATH=$VENV/bin:$PATH
   venv_mgr_check_src_path "$VENV"
   x=$($PIP --version|grep -Eo "python *[23]"|grep -Eo "[23]")
   [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -Uq" || run_traced "$PIP install pip -Uq"
@@ -1084,7 +1110,9 @@ do_venv_create() {
   run_traced "$PIP install \"setuptools<58.0\" -Uq"
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
   check_installed_pkgs
-  if [[ -n "$opt_oepath" || -n "$opt_oever" ]]; then
+  pypath=$(find $VENV/lib -type d -name "python$opt_pyver")
+  [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
+  if [[ -n "$opt_oepath" && -n "$opt_oever" ]]; then
     [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
     [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
     [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t bin"
@@ -1099,9 +1127,8 @@ do_venv_create() {
   pip_install_1
   [[ -n "$opt_oever" ]] && pip_install_2
   [[ -n "$opt_rfile" ]] && pip_install_req
-  # [[ $opt_travis -ne 0 ]] && set_hashbang "$VENV/bin"
-  # do_deactivate
-  # [[ -n "$opt_oever" && -d $HOME/$opt_oever ]] && run_traced "ln -s $opt_oepath $(readlink -f ./odoo)"
+  [[ -n "$opt_oepath" && -d $opt_oepath ]] && x=$(basename $opt_oepath) || x=""
+  [[ -n "$x" ]] && run_traced "ln -s $opt_oepath $(readlink -f pypath/$x)"
   do_venv_mgr_test $VENV
 }
 
@@ -1120,31 +1147,34 @@ do_venv_pip() {
   local SAVED_PATH=$PATH
   local cmd="$2"
   VENV="$1"
-  if [[ $opt_alone -ne 0 ]]; then
+  pkg="$(get_actual_pkg $3)"
+  [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
+  if [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]]; then
     V=""
     for d in ${PATH//:/ }; do
-      [[ ! $d =~ ^$HOME/ || $d =~ ^/(usr/bin) ]] && V="$V:$d"
+      [[ $d =~ ^$HOME/ || $d =~ ^/(usr/bin) ]] && V="$V:$d"
     done
     PATH=${V:1}
     [[ $opt_verbose -ne 0 ]] && echo "$ PATH=$PATH"
   fi
-  V=""
-  pkg="$(get_actual_pkg $3)"
-  [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   if [[ $cmd == "uninstall" ]]; then
     pip_uninstall "$pkg"
   else
-    [[ $opt_alone -ne 0 && ! $pkg =~ ^.?- ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
+    [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
     [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
     [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
     [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
     [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
     if [[ $cmd =~ (info|show) ]]; then
       pkg=$(get_pkg_wo_version $pkg)
-      run_traced "$PIP show $pkg"
-      x=$($PIP show $pkg | grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
-      [[ -n $x ]] && x=$x/$pkg
-      [[ -L $x ]] && echo "Actual location is $(readlink -e $x)"
+      if [[ $pkg =~ $BIN_PKGS ]]; then
+        check_bin_package "$pkg"
+      else
+        run_traced "$PIP show $pkg"
+        x=$($PIP show $pkg | grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
+        [[ -n $x ]] && x=$x/$pkg
+        [[ -L $x ]] && echo "Actual location is $(readlink -e $x)"
+      fi
     fi
     [[ $cmd == "install" ]] && pip_install "$pkg"
     [[ "$cmd" == "uninstall" ]] && run_traced "$PIP $cmd $pkg"
@@ -1152,17 +1182,6 @@ do_venv_pip() {
   fi
   do_deactivate
   export PATH=$SAVED_PATH
-}
-
-find_odoo_path() {
-# find_odoo_path(path opts)
-    local p v x
-    [[ $opt_verbose -gt 2 ]] && echo ">>> find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.*/*" -not -path "*/node_modules/*" -name release.py"
-    for f in $(find $2 $1 -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.*/*" -not -path "*/node_modules/*" -name release.py 2>/dev/null|sort); do
-        v=$(grep "^version_info" $f|cut -d= -f2|tr -d "("|tr -d ")"|tr -d " "|awk -F, '{print $1 "." $2}')
-        [[ -n "$opt_oever" && $v == $opt_oever ]] && opt_oepath="$(readlink -e $(dirname $f)/..)" && break
-        [[ -z "$opt_oever" ]] && opt_oever="$v" && break
-    done
 }
 
 validate_py_oe_vers() {
@@ -1180,18 +1199,20 @@ validate_py_oe_vers() {
 }
 
 
-OPTOPTS=(h        a        B         C      D       f         k        I           i         l        n           O         o          p         q           r           s                    t          V           v)
-OPTLONG=(help     ""       ""        ""     devel   force     keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose)
-OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_force opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose)
-OPTACTI=('+'      "="      "+"       1      1       1         1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
-OPTDEFL=(1        ""       0         0      0       0         0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1)
-OPTMETA=("help"   "list"   ""        ""     ""      ""        ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
+OPTOPTS=(h        a        B         C      D       E          f         F      k        I           i         l        n           O         o          p         q           r           s                    t          V           v)
+OPTLONG=(help     ""       ""        ""     devel   distro     force     ""     keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose)
+OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_distro opt_force opt_FH opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose)
+OPTACTI=('+'      "="      "+"       1      1       "="        1         "="    1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
+OPTDEFL=(1        ""       0         0      0       ""         0         ""     0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1)
+OPTMETA=("help"   "list"   ""        ""     ""      "distro"   ""        "name" ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
   "use unstable packages: -B testpypi / -BB from ~/tools / -BBB from ~/pypi / -BBBB link to local ~/pypi"
   "clear cache before executing pip command"
   "create v.environment with development packages"
+  "Simulate Linux distro: like Ubuntu20 Centos7 etc (requires -n switch)"
   "force v.environment create, even if exists or inside another virtual env"
+  "Simulate Linux family: may be RHEL or Debian (requires -n switch)"
   "keep python2 executable as python (deprecated)"
   "run pip in an isolated mode and set home virtual directory"
   "run pip in an isolated mode, ignoring environment variables and user configuration"
@@ -1261,6 +1282,7 @@ fi
 [[ -z $VENV_STACK ]] && declare -A VENV_STACK && export VENV_STACK
 [[ -n "$VIRTUAL_ENV" && -z "$VENV_STACK" ]] && push_venv "$VIRTUAL_ENV"
 [[ $opt_verbose -eq -1 ]] && opt_verbose=1
+[[ $opt_dry_run -eq 0 ]] && opt_FH="" && opt_distro=""
 if [[ $action == "create" && -n "$VIRTUAL_ENV" && ${opt_force:-0} -eq 0 ]]; then
   echo "You cannot create a new virtual environment inside $VIRTUAL_ENV"
   exit 1
@@ -1289,16 +1311,13 @@ if [[ $action == "rm" ]]; then
   exit 0
 elif [[ ! $action =~ (help|create) ]]; then
   do_activate "$p2" "-q"
-  venv_mgr_check_src_path $p2
+  venv_mgr_check_src_path "$p2"
+  [[ -z $opt_eopath ]] && find_odoo_path "$p2" "-L" || find_odoo_path "$opt_eopath" "-L"
+  venv_mgr_check_oever
   check_installed_pkgs
-  venv_mgr_check_oever $action $p2
   validate_py_oe_vers
 fi
 [[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
-if [[ $action != "help" ]]; then
-  [[ -n "$opt_oever" && -z "$opt_oepath" ]] && find_odoo_path $HOME "-L"
-  [[ $opt_verbose -gt 2 ]] && echo "# Odoo dir = '$opt_oepath'"
-fi
 if [[ $action =~ (help|create|exec|python|shell) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
   [[ $opt_dev -eq 0 ]] && DEV_PKGS=""
 else
@@ -1312,22 +1331,22 @@ else
   DEV_PKGS=$($cmd -s" ")
   [[ $opt_verbose -gt 2 ]] && echo "DEV_PKGS=$DEV_PKGS"
 fi
-if [ "$action" == "help" ]; then
+if [[ "$action" == "help" ]]; then
   man $(dirname $0)/man/man8/$(basename $0).8.gz
-elif [ "$action" == "exec" ]; then
+elif [[ "$action" == "exec" ]]; then
   do_venv_exec "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
   do_deactivate "-q"
-elif [ "$action" == "python" ]; then
+elif [[ "$action" == "python" ]]; then
   do_venv_exec "$p2" "python" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
   do_deactivate "-q"
-elif [ "$action" == "shell" ]; then
+elif [[ "$action" == "shell" ]]; then
   do_venv_exec "$p2" "$SHELL -i" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
   do_deactivate "-q"
 elif [[ $action =~ (info|install|show|uninstall|update) ]]; then
   [[ $opt_cc -ne 0 && -d $HOME/.cache/pip ]] && run_traced "rm -fR $HOME/.cache/pip"
   do_venv_pip "$p2" "$action" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
   do_deactivate "-q"
-elif [ "$action" == "create" ]; then
+elif [[ "$action" == "create" ]]; then
   [[ $opt_cc -ne 0 && -d $HOME/.cache/pip ]] && run_traced "rm -fR $HOME/.cache/pip"
   do_venv_create "$p2" "$p3" "$p4" "$p5" "$p6"
   do_deactivate "-q"
@@ -1346,11 +1365,10 @@ if [[ -n "$ERROR_PKGS" ]]; then
   [[ $FH == "RHEL" ]] && XTAL="yum" || XTAL="apt"
   [[ $DISTO == "Fedora" ]] && XTAL="dnf"
   echo "Perhaps you should install ..."
-  [[ $FH == "RHEL" ]] && PKGLIST="python-devel" || PKGLIST="python-dev"
-  [[ $DISTO == "Fedora" ]] && PKGLIST=""
-  [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST python3-devel" || PKGLIST="$PKGLIST python3-dev"
-  [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST python3-pip" || PKGLIST="$PKGLIST python3-pip"
-  [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST python3-venv" || PKGLIST="$PKGLIST python3-venv"
+  [[ ! $opt_pyver =~ ^3 && $FH == "RHEL" ]] && PKGLIST="python-devel"
+  [[ $opt_pyver =~ ^3 && $FH == "RHEL" ]] && PKGLIST="python3-devel python3-pip python3-venv"
+  [[ ! $opt_pyver =~ ^3 && $FH != "RHEL" ]] && PKGLIST="python-dev"
+  [[ $opt_pyver =~ ^3 && $FH != "RHEL" ]] && PKGLIST="python3-dev python3-pip python3-venv"
   [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST libsass-devel"
   [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST zlib-devel" || PKGLIST="$PKGLIST zlib1g-dev"
   echo "$XTAL install $PKGLIST"
@@ -1359,6 +1377,7 @@ if [[ -n "$ERROR_PKGS" ]]; then
     [[ $DISTO == "Fedora" ]] && PKGLIST="redhat-rpm-config"
     [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST libxml2-devel" || PKGLIST="$PKGLIST libxml2-dev"
     [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST libxslt-devel" || PKGLIST="$PKGLIST libxslt-dev"
+    [[ $opt_pyver =~ ^3 ]] && PKGLIST="$PKGLIST python3-lxml" || PKGLIST="$PKGLIST python-lxml"
     echo "$XTAL install $PKGLIST    # lxml"
   fi
   if [[ $ERROR_PKGS =~ ldap ]]; then
