@@ -145,6 +145,7 @@ ALIAS = {
     "babel": "Babel",
     "click": "Click",
     "crypto": "pycrypto",
+    "crypto.cipher": "pycrypto",
     "dateutil": "python-dateutil",
     "jinja2": "Jinja2",
     "ldap": "python-ldap",
@@ -361,7 +362,7 @@ def get_naked_pkgname(pkg):
 
 def eval_requirement_cond(line, pyver=None):
     # odoo_ver = odoo_ver or '10.0'
-    pyver = pyver or 3.7
+    pyver = pyver or '3.7'
     items = line.split('#')[0].split(";")
     if len(items) == 1:
         return get_naked_pkgname(line)
@@ -396,9 +397,10 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         if '.' in item:
             full_item = full_item.replace('.'+item.split(".")[1], '')
             item = item.split(".")[0].lower()
-    if item in ALIAS:
-        full_item = full_item.replace(item, ALIAS[item])
-        item = ALIAS[item]
+    item_l = item.lower()
+    if item_l in ALIAS:
+        full_item = full_item.replace(item, ALIAS[item_l])
+        item = ALIAS[item_l]
     if int(odoo_ver.split('.')[0]) > 10:
         if item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])

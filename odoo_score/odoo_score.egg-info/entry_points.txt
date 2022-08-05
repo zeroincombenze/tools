@@ -1,0 +1,4 @@
+[console_scripts]
+odoo_score-info = odoo_score.scripts.main:main
+rename_odoo_module = odoo_score.scripts.rename_odoo_module:main
+

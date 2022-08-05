@@ -196,6 +196,27 @@ set_hashbang() {
     done
 }
 
+get_req_list() {
+# get_req_list(req_file type debug)
+    local cmd fn mime tt x
+    fn="$1"
+    tt="$2"
+
+    [[ "$3" == "debug" ]] && cmd="$(which $LIST_REQ)" || cmd="$LIST_REQ"
+    [[ -n $tt ]] && cmd="$cmd -qt $tt -BP" || cmd="$cmd -qt python -BP"
+    [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
+    [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
+    [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
+    [[ -n "$opt_oepath" ]] && cmd="$cmd -p$opt_oepath"
+    x=""
+    [[ -d $HOME/OCA ]] && x="$x,${HOME}/OCA"
+    [[ -d $HOME/maintainer-tools ]] && x="$x,${HOME}/maintainer-tools"
+    [[ -d $HOME/maintainer-quality-tools ]] && x="$x,${HOME}/maintainer-quality-tools"
+    [[ -n $x ]] && cmd="$cmd -d${x:1}"
+    [[ -n $fn ]] && cmd="$cmd -m $pfn"
+    [[ "$3" == "debug" ]] && echo $cmd -qs "" || $cmd -qs" "
+}
+
 bin_install() {
   # bin_install(pkg)
   [[ $opt_verbose -gt 2 ]] && echo ">>> bin_install($*)"
@@ -430,14 +451,8 @@ pip_install_req() {
     pfn=$(readlink -f $f)
     [[ -z "$pfn" ]] && echo "File $f not found!" && continue
     [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $pfn\e[0m"
-    cmd="$LIST_REQ -qt python -BP"
-    [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
-    [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
-    [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
-    [[ -d $HOME/OCA ]] && cmd="$cmd -d${HOME}/OCA"
-    [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $pfn -qs\" \""
-    flist=$($cmd -m $pfn -qs" ")
-    [[ $opt_verbose -gt 2 ]] && echo "flist=$flist"
+    flist=$(get_req_list "$pfn")
+    [[ $opt_verbose -gt 2 ]] && echo "<<<$flist>>>$(get_req_list '$pfn' '' 'debug')"
     for pkg in $flist; do
       pip_install "$pkg" "$1"
     done
@@ -618,17 +633,10 @@ pip_check_req() {
   local f pfn pkg cmd=$1 flist cmd
   for f in ${opt_rfile//,/ }; do
     pfn=$(readlink -f $f)
-    [ -z "$pfn" ] && echo "File $f not found!"
-    [ -z "$pfn" ] && continue
+    [[ -z "$pfn" ]] && echo "File $f not found!" && continue
     [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m-- Analyzing file $pfn\e[0m"
-    cmd="$LIST_REQ -qt python -BP"
-    [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
-    [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
-    [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
-    [[ -d $HOME/OCA ]] && cmd="$cmd -d${HOME}/OCA"
-    [[ $opt_verbose -gt 1 ]] && echo "$cmd -m $pfn -qs\" \""
-    flist=$($cmd -m $pfn -qs" ")
-    [[ $opt_verbose -gt 1 ]] && echo "--> $flist"
+    flist=$(get_req_list "$pfn")
+    [[ $opt_verbose -gt 1 ]] && echo "<<<$flist>>>$(get_req_list '$pfn' '' 'debug')"
     for pkg in $flist; do
       check_package $pkg $cmd
     done
@@ -714,13 +722,15 @@ find_odoo_path() {
 # find_odoo_path(path opts)
     local p v x y
     [[ -n "$1" && -d $1 ]] && p="$1"
-    x=(basename $p)
-    [[ $x =~ ^VENV && -d $p/odoo ]] && p="$p/odoo"
-    [[ $x =~ ^venv_odoo && -d $p ]] && p=$(dirname $p)
+    if [[ -n $p ]]; then
+      x=(basename $p)
+      [[ $x =~ ^VENV && -d $p/odoo ]] && p="$p/odoo"
+      [[ $x =~ ^venv_odoo && -d $p ]] && p=$(dirname $p)
+    fi
     [[ -z $p && -n $opt_oepath ]] && p="$opt_oepath"
     [[ -z $p && -n $opt_oever && -d $HOME/$opt_oever ]] && p="$HOME/$opt_oever"
-    [[ $opt_verbose -gt 2 ]] && echo ">>> find $1 $p -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.*/*" -not -path "*/node_modules/*"  ( -name odoo-bin -o -name openerp-server )"
-    for f in $(find $2 $p -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.*/*" -not -path "*/node_modules/*" ( -name odoo-bin -o -name openerp-server ) 2>/dev/null|sort); do
+    [[ $opt_verbose -gt 2 ]] && echo ">>> find $2 $p -maxdepth 3 -type f -not -path \"*tmp*\" -a -not -path \"*old*\" -not -path \"*/__to_remove/*\" -not -path \"*/lib/*\" -not -path \"*/lib64/*\" -not -path \"*/tests/res/*\" -not -path \"*/include/*\" -not -path \"*/.*/*\" -not -path \"*/node_modules/*\"  ( -name odoo-bin -o -name openerp-server )"
+    for f in $(find $2 $p -maxdepth 3 -type f -not -path "*tmp*" -a -not -path "*old*" -not -path "*/__to_remove/*" -not -path "*/lib/*" -not -path "*/lib64/*" -not -path "*/tests/res/*" -not -path "*/include/*" -not -path "*/.*/*" -not -path "*/node_modules/*" \( -name odoo-bin -o -name openerp-server \) 2>/dev/null|sort); do
         opt_oepath=$(dirname $f)
         break
     done
@@ -778,20 +788,6 @@ check_installed_pkgs() {
     [[ $opt_verbose -lt 2 ]] && echo -en "."
     [[ -z "${!x}" ]] && $PIP install $popts$p2 $p
   done
-  LIST_REQ="list_requirements.py"
-  if [[ -n "$opt_oepath" && -n "$opt_oever" ]]; then
-    if [[ -z $(which list_requirements.py 2>/dev/null) ]]; then
-      x=$($PIP show clodoo|grep Location|awk -F: '{print $2}')
-      x=$(echo $x/clodoo/list_requirements.py)
-      run_traced "chmod +x $x"
-      LIST_REQ="$(readlink -f $x)"
-      mime=$(file -b --mime-type $f)
-      if [[ $mime =~ (text/x-python|text/plain) || $f =~ \.py$ ]]; then
-        [[ $opt_verbose -lt 2 ]] && echo -en "."
-        run_traced "sed -i -e \"s|^#\!.*[ /]python|#\!$PYTHON|\" $x"
-      fi
-    fi
-  fi
   [[ $opt_verbose -lt 2 ]] && echo -en "\r"
   check_4_needing_pkgs
 }
@@ -849,7 +845,7 @@ do_venv_mgr_test() {
 do_venv_mgr() {
   # do_venv_mgr {amend|check|cp|mv|merge|test} VENV NEW_VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_mgr($*)"
-  local d f mime VENV V sitecustom x lropts
+  local d f mime VENV V sitecustom x
   local cmd=$1
   VENV="$2"
   [[ -n "$3" ]] && VENV_TGT=$(readlink -m $3)
@@ -870,17 +866,10 @@ do_venv_mgr() {
       sed -Ee "s|^ *\[ -x \\\$f -a ! -d \\\$f ] |    [[ -x \$f \&\& ! -d \$f ]] \&\& grep -q \"^#\!.*[ /]python\" \$f \&>/dev/null |" -i $VENV/bin/activate
     fi
   fi
-  [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
-  [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
-  [[ -d $HOME/OCA ]] && lropts="$lropts -d${HOME}/OCA"
-  [[ -d $HOME/maintainer-tools ]] && lropts="$lropts -d${HOME}/maintainer-tools"
-  [[ -d $HOME/maintainer-quality-tools ]] && lropts="$lropts -d${HOME}/maintainer-quality-tools"
-  [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t bin"
-  BINPKGS=$($LIST_REQ -qs' ' $lropts -t bin)
-  [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS"
-  [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t python"
-  OEPKGS=$($LIST_REQ -qs' ' $lropts -t python)
-  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
+  BINPKGS=$(get_req_list "" "bin")
+  [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' 'bin' 'debug')"
+  OEPKGS=$(get_req_list "" "python")
+  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug')"
   if [[ $cmd =~ (amend|check|test|inspect) ]]; then
     V=$VENV
   elif [[ "$cmd" == "cp" ]]; then
@@ -1012,9 +1001,10 @@ do_venv_mgr() {
 do_venv_create() {
   # do_venv_create VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_create($*)"
-  local f lropts p pkg v VENV xpkgs SAVED_PATH x
+  local f p pkg v VENV xpkgs SAVED_PATH x
   local venvexe pyexe pypath
   VENV="$1"
+  [[ $VENV =~ /$ ]] && VENV="${VENV:0: -1}"
   if [[ -d $VENV ]]; then
     if [[ $opt_force -eq 0 ]]; then
       echo "Warning: virtual environment $VENV already exists!!"
@@ -1113,14 +1103,10 @@ do_venv_create() {
   pypath=$(find $VENV/lib -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
   if [[ -n "$opt_oepath" && -n "$opt_oever" ]]; then
-    [[ -n "$opt_oepath" ]] && lropts="-y $opt_pyver -BPRT -p $opt_oepath" || lropts="-y $opt_pyver -BPRT"
-    [[ -n "$opt_oever" ]] && lropts="$lropts -b $opt_oever"
-    [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t bin"
-    BINPKGS=$($LIST_REQ -qs' ' $lropts -t bin)
-    [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS"
-    [[ $opt_verbose -gt 1 ]] && echo "$LIST_REQ -qs' ' $lropts -t python"
-    OEPKGS=$($LIST_REQ -qs' ' $lropts -t python)
-    [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS"
+    BINPKGS=$(get_req_list "" "bin")
+    [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' 'bin' 'debug')"
+    OEPKGS=$(get_req_list "" "python")
+    [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug')"
     bin_install_1 $VENV
   fi
   [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
@@ -1303,6 +1289,8 @@ PRINTED_PIPVER=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"
+LIST_REQ="$(which list_requirements.py)"
+
 if [[ $action == "rm" ]]; then
   [[ $PWD == $(readlink -f $p2) ]] && cd
   rm -fR $p2
@@ -1321,15 +1309,8 @@ fi
 if [[ $action =~ (help|create|exec|python|shell) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
   [[ $opt_dev -eq 0 ]] && DEV_PKGS=""
 else
-  cmd="list_requirements.py -qt python -BP"
-  [[ $opt_dev -ne 0 ]] && cmd="$cmd -TR"
-  [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
-  [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
-  [[ -d $HOME/OCA ]] && cmd="$cmd -d${HOME}/OCA"
-  [[ -d $HOME/maintainer-tools ]] && cmd="$cmd -d${HOME}/maintainer-tools"
-  [[ -d $HOME/maintainer-quality-tools ]] && cmd="$cmd -d${HOME}/maintainer-quality-tools"
-  DEV_PKGS=$($cmd -s" ")
-  [[ $opt_verbose -gt 2 ]] && echo "DEV_PKGS=$DEV_PKGS"
+  DEV_PKGS=$(get_req_list "")
+  [[ $opt_verbose -gt 2 ]] && echo "DEV_PKGS=$DEV_PKGS #$(get_req_list '' '' 'debug')"
 fi
 if [[ "$action" == "help" ]]; then
   man $(dirname $0)/man/man8/$(basename $0).8.gz
