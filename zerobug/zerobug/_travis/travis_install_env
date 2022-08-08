@@ -267,15 +267,20 @@ check_pythonpath() {
 }
 
 install_n_activate_tools() {
-  local opts
-  if [[ -d $HOME/tools && $(which travis_run_tests 2>&1 >/dev/null) ]]; then
-    run_traced "pushd $HOME/tools >/dev/null"
-    opts=$(inherit_opts "-pt")
-    run_traced "./install_tools.sh $opts"
-    run_traced ". $HOME/dev/activate_tools -t"
-    run_traced "popd >/dev/null"
-    [[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]] && echo "PATH=$PATH" && echo "PYTHONPATH=$PYTHONPATH"
-  fi
+    local x
+    x=$(readlink -f $HOME_DEVEL/../tools)
+    if [[ -d $x ]]; then
+        [[ ${opt_verbose:-1} -gt 0 ]] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $x\e[${PS_TXT_COLOR}m"
+        pushd $x > /dev/null
+        [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-pt
+        [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qpt
+        run_traced "./install_tools.sh $x"
+        [[ ${opt_verbose:-1} -gt 0 ]] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME_DEVEL/activate_tools\e[${PS_TXT_COLOR}m"
+        . $HOME_DEVEL/activate_tools
+        popd > /dev/null
+        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
+        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+    fi
 }
 
 check_4_needing_pkgs() {

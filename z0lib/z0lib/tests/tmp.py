@@ -9,69 +9,57 @@
 # D='/home/odoo/devel'
 ##############
 import pdb
-
 pdb.set_trace()
-import os
-import sys
-
-o = os.path
-a = o.abspath
-j = o.join
-d = o.dirname
-b = o.basename
-f = o.isfile
-p = o.isdir
+import os,sys
+o=os.path
+a=o.abspath
+j=o.join
+d=o.dirname
+b=o.basename
+f=o.isfile
+p=o.isdir
 ###############
-C = os.path.dirname(__file__)
-D = '/home/odoo/devel'
+C=a(os.path.dirname(__file__))
+D='/home/odoo/devel'
 ###############
-H = o.expanduser('~')
-T = j(d(D), 'tools')
-R = j(d(D), 'pypi') if b(D) == 'venv_tools' else j(D, 'pypi')
-W = D if b(D) == 'venv_tools' else j(D, 'venv')
+H=o.expanduser('~')
+T=j(d(D),'tools')
+R=j(d(D),'pypi') if b(D)=='venv_tools' else j(D,'pypi')
+W=D if b(D)=='venv_tools' else j(D,'venv')
+S='site-packages'
+X='scripts'
 
+def isk(P):
+ return P.startswith((H,D,C,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))
 
-def apl(L, P, B):
-    if P:
-        if p(j(P, B, B)) and p(j(P, B, B, 'script')) and f(j(P, B, B, '__init__')):
-            L.append(j(P, B, B))
-            return 1
-        elif j(P, B):
-            L.append(j(P, B))
-            return 1
-    return 0
-
-
-L = [C]
-if b(C) in ('scripts', 'tests', 'travis', '_travis'):
-    C = a(j(C, '..'))
-    L.append(C)
-if b(C) == b(d(C)) and f(j(C, '..', 'setup.py')):
-    C = a(j(C, '..', '..'))
-elif b(d(C)) == 'tools' and f(j(C, 'setup.py')):
-    C = a(j(C, '..'))
-P = os.environ['PATH'].split(':')
-V = ''
-for X in sys.path:
-    if not p(T) and p(j(X, 'tools')):
-        T = j(X, 'tools')
-    if not V and b(X) == 'site-packages':
-        V = X
-for B in ('z0lib', 'zerobug', 'odoo_score', 'clodoo', 'travis_emulator'):
-    if p(j(C, B)) or p(j(C, b(C), B)):
-        F = apl(L, C, B)
-    else:
-        F = 0
-        for X in P:
-            if p(j(X, B)):
-                F = apl(L, X, B)
-                break
-        if not F:
-            F = apl(L, V, B)
-        if not F:
-            apl(L, T, B)
-L = L + [os.getcwd()] + P
-p = set()
-pa = p.add
-p = [x for x in L if x and x.startswith((H, D, C)) and not (x in p or pa(x))]
-print(' '.join(p))
+L=[C,os.getcwd()]
+for B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):
+ for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T,os.getcwd()]:
+  P=a(P)
+#  if b(P)=='tests' and isk(P):
+#   L.append(P)
+  if b(P) in (X,'tests','travis','_travis'):
+   P=d(P)
+  if b(P)==b(d(P)) and f(j(P,'..','setup.py')):
+   P=d(d(P))
+  elif b(d(C))=='tools' and f(j(P,'setup.py')):
+   P=d(P)
+  if B==b(P) and isk(P):
+   if P not in L:
+    L.append(P)
+   break
+  elif isk(j(P,B,B)):
+   if j(P,B,B) not in L:
+    L.append(j(P,B,B))
+   break
+  elif isk(j(P,B)):
+   if j(P,B) not in L:
+    L.append(j(P,B))
+   break
+  elif isk(j(P,S,B)):
+   if j(P,S,B) not in L:
+    L.append(j(P,S,B))
+   break
+# if os.getcwd() not in L:
+#  L.append(os.getcwd())
+print(' '.join(L))

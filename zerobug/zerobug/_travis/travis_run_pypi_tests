@@ -110,7 +110,7 @@ please_test_flake8() {
     sts=0
     run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../_travis/cfg)"
     [[ -z "$FLAKE8_CONFIG_DIR" ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../travis/cfg)"
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
         if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg
         else
@@ -331,20 +331,6 @@ check_pythonpath() {
     done
 }
 
-install_n_activate_tools() {
-    if [[ -d $HOME/tools ]]; then
-        [[ ${opt_verbose:-1} -gt 0 ]] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
-        pushd $HOME/tools > /dev/null
-        [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-pt
-        [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qpt
-        run_traced "./install_tools.sh $x"
-        [[ ${opt_verbose:-1} -gt 0 ]] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
-        . $HOME/dev/activate_tools
-        popd > /dev/null
-        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-    fi
-}
 
 OPTOPTS=(h        c        j        K         n            p        q           r     T        t         V           v)
 OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_pyth opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
