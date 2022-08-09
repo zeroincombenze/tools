@@ -22,44 +22,43 @@ p=o.isdir
 C=a(os.path.dirname(__file__))
 D='/home/odoo/devel'
 ###############
+N= 'venv_tools'
+U='setup.py'
+O='tools'
 H=o.expanduser('~')
-T=j(d(D),'tools')
-R=j(d(D),'pypi') if b(D)=='venv_tools' else j(D,'pypi')
-W=D if b(D)=='venv_tools' else j(D,'venv')
+T=j(d(D),O)
+R=j(d(D),'pypi') if b(D) == N else j(D, 'pypi')
+W=D if b(D) == N else j(D, 'venv')
 S='site-packages'
 X='scripts'
 
 def isk(P):
  return P.startswith((H,D,C,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))
+def adk(L,P):
+ if P not in L:
+  L.append(P)
 
-L=[C,os.getcwd()]
+L=[C]
 for B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):
- for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T,os.getcwd()]:
+ for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:
   P=a(P)
-#  if b(P)=='tests' and isk(P):
-#   L.append(P)
   if b(P) in (X,'tests','travis','_travis'):
    P=d(P)
-  if b(P)==b(d(P)) and f(j(P,'..','setup.py')):
+  if b(P)==b(d(P)) and f(j(P,'..',U)):
    P=d(d(P))
-  elif b(d(C))=='tools' and f(j(P,'setup.py')):
+  elif b(d(C))==O and f(j(P,U)):
    P=d(P)
   if B==b(P) and isk(P):
-   if P not in L:
-    L.append(P)
+   adk(L,P)
    break
   elif isk(j(P,B,B)):
-   if j(P,B,B) not in L:
-    L.append(j(P,B,B))
+   adk(L,j(P,B,B))
    break
   elif isk(j(P,B)):
-   if j(P,B) not in L:
-    L.append(j(P,B))
+   adk(L,j(P,B))
    break
   elif isk(j(P,S,B)):
-   if j(P,S,B) not in L:
-    L.append(j(P,S,B))
+   adk(L,j(P,S,B))
    break
-# if os.getcwd() not in L:
-#  L.append(os.getcwd())
+adk(L,os.getcwd())
 print(' '.join(L))
