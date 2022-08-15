@@ -13,7 +13,7 @@ else:
 
 setup(
     name='wok_code',
-    version='1.0.11',
+    version='2.0.0',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.
@@ -57,10 +57,10 @@ The available tools are:
         '': [
             'scripts/setup.info',
             'scripts/please.sh',
+            'scripts/dist_pkg.sh',
             './please.man',
             './cvt_script',
             './cvt_script.man',
-            'dist_pkg',
             './topep8',
             './to_oca.2p8',
             './to_zero.2p8',
@@ -71,6 +71,7 @@ The available tools are:
         'console_scripts': [
             'wok_code-info = wok_code.scripts.main:main',
             'please = wok_code.scripts.please:main',
+            'dist_pkg = wok_code.scripts.dist_pkg:main',
             'gen_readme.py = wok_code.scripts.gen_readme:main',
             'cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main',
             'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',

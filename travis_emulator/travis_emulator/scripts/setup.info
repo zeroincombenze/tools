@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='travis_emulator',
-    version='1.0.6',
+    version='1.0.7',
     description='Travis CI emulator for local develop environment',
     long_description="""
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.

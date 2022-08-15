@@ -33,7 +33,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "1.0.11"
+__version__ = "2.0.0"
 
 MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']
@@ -444,7 +444,7 @@ def get_module_pofile_name(ctx, version):
     odoo_path = set_odoo_path(ctx, version)
     if odoo_path:
         module_path = False
-        for root, dirs, files in os.walk(odoo_path):
+        for root, _dirs, _files in os.walk(odoo_path):
             if (
                 root.find('__to_remove') < 0
                 and os.path.basename(root) == ctx['module_name']

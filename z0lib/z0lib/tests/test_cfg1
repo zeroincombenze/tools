@@ -50,7 +50,7 @@ GREEN="\e[1;32m"
 CLR="\e[0m"
 
 
-__version__=1.0.9
+__version__=2.0.0
 
 
 test_01() {

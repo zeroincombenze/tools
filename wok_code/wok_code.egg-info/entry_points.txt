@@ -1,6 +1,7 @@
 [console_scripts]
 cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main
 cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main
+dist_pkg = wok_code.scripts.dist_pkg:main
 do_migrate = wok_code.scripts.do_migrate:main
 do_odoo_site.py = wok_code.scripts.do_odoo_site:main
 gen_readme.py = wok_code.scripts.gen_readme:main

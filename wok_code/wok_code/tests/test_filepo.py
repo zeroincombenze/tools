@@ -15,7 +15,7 @@ def test_file_po(args):
     print('Checking for po file in %s' % root_dir)
     # import pdb
     # pdb.set_trace()
-    for root, dirs, files in os.walk(root_dir):
+    for root, _dirs, files in os.walk(root_dir):
         if os.path.basename(root) in ('.git', '__to_remove', 'doc', 'setup', '.idea'):
             continue
         # print('- examing %s ...' % root)

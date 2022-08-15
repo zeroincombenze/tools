@@ -1,3 +1,9 @@
+z0lib: 2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] Partial refactoring for shell scripts
+
+
 odoo_score: 1.0.8 (2022-07-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -8,6 +14,7 @@ clodoo: 1.0.7 (2022-07-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] clodoo: remote login
+* [IMP] Crypto.Cipher recognition
 
 
 odoo_score: 1.0.7.1 (2022-06-30)
@@ -32,13 +39,13 @@ odoo_score: 1.0.7 (2022-06-17)
 * [IMP] run_odoo_debug: now may be supplied the odoo configuration file
 
 
+
 clodoo: 1.0.6 (2022-06-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: more default data
 * [FIX] list_requirements.py: some error with incomplete data supplied
 * [FIX] odoorc: value of GIT_URL with private repositories
-
 
 
 

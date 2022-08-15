@@ -11,15 +11,15 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.9
+# Based on template 2.0.0
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-if [[ -z $HOME_DEVEL ]]; then
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEVEL"'\nimport os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nH=o.expanduser('~')\nT=j(d(D), 'tools')\nR=j(d(D),'pypi') if o.basename(D)=='venv_tools' else j(D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('scripts','tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==b(d(C)) and f(j(C,'..','setup.py')):\n C=a(j(C,'..','..'))\nelif b(d(C))=='tools' and f(j(C,'setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)) or p(j(C,b(C),B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+[os.getcwd()]+P\np=set()\npa=p.add\np=[x for x in L if x and x.startswith((H,D,C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nN= 'venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D) == N else j(D, 'pypi')\nW=D if b(D) == N else j(D, 'venv')\nS='site-packages'\nX='scripts'\ndef isk(P):\n return P.startswith((H,D,C,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef adk(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=a(P)\n  if b(P) in (X,'tests','travis','_travis'):\n   P=d(P)\n  if b(P)==b(d(P)) and f(j(P,'..',U)):\n   P=d(d(P))\n  elif b(d(C))==O and f(j(P,U)):\n   P=d(P)\n  if B==b(P) and isk(P):\n   adk(L,P)\n   break\n  elif isk(j(P,B,B)):\n   adk(L,j(P,B,B))\n   break\n  elif isk(j(P,B)):\n   adk(L,j(P,B))\n   break\n  elif isk(j(P,S,B)):\n   adk(L,j(P,S,B))\n   break\nadk(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -28,16 +28,10 @@ for d in $PYPATH /etc; do
     break
   fi
 done
-if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found in <$PYPATH>!"
-  exit 72
-fi
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
-if [[ -z "$TRAVISLIBDIR" ]]; then
-  echo "Library file travisrc not found!"
-  exit 72
-fi
+[[ -z "$TRAVISLIBDIR" ]] && echo "Library file travisrc not found!" && exit 72
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
@@ -45,8 +39,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
-TCONF="$HOME/.z0tools.conf"
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -56,7 +50,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.11
+__version__=2.0.0
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -104,45 +98,15 @@ init_travis
 # prepare_env_travis
 sts=$STS_SUCCESS
 
-if [ "$opt_sts" ]; then
-  if [ "$opt_sts" == "0" ]; then
-    opt_sts=" 0 - WIP"
-  elif [ "$opt_sts" == "1" ]; then
-    opt_sts=" 1 - Planning"
-  elif [ "$opt_sts" == "2" ]; then
-    opt_sts=" 2 - Pre-Alpha"
-  elif [ "$opt_sts" == "3" ]; then
-    opt_sts=" 3 - Alpha"
-  elif [ "$opt_sts" == "4" ]; then
-    opt_sts=" 4 - Beta"
-  elif [ "$opt_sts" == "5" ]; then
-    opt_sts=" 5 - Production/Stable"
-  elif [ "$opt_sts" == "6" ]; then
-    opt_sts=" 6 - Mature"
-  elif [ "$opt_sts" == "7" ]; then
-    opt_sts=" 7 - Inactive"
+if [[ -n $opt_whatis ]]; then
+  if [[ $opt_whatis =~ ^(LGITPATH|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOSNAME|SETUP)$ ]]; then
+    echo "${opt_whatis}=${!opt_whatis}"
   else
-    echo "Invalid status:"
-    echo "use $(basename $0) -n -S n PKGPATH"
-    echo "where n is 0..7 for more info about status"
-    exit $STS_FAILED
-  fi
-fi
-if [ "$opt_sts" ]; then
-  devstatus="$opt_sts"
-else
-  devstatus=""
-fi
-if [ "$opt_whatis" ]; then
-  if [ "$opt_whatis" == "LGITPATH" -o "$opt_whatis" == "PKGPATH" -o "$opt_whatis" == "SETUP" -o "$opt_whatis" == "ODOO_SETUP" -o "$opt_whatis" == "REPOSNAME" ]; then
-    echo "${!opt_whatis}"
-  elif [ "$opt_whatis" == "PRJVERSION" ]; then
-    echo "${prjversion}"
-  else
-    echo "Unknown!!"
+    echo "Unknown parame $opt_whatis!!"
   fi
   exit $STS_SUCCESS
 fi
+
 if [ $opt_dry_run -gt 0 ]; then
   if [ $opt_sync -gt 0 ]; then
     echo "$(basename $0) -n -- $PKGNAME $PRJNAME"
@@ -157,56 +121,25 @@ if [ $opt_dry_run -gt 0 ]; then
   fi
 fi
 
-if [ "$PRJNAME" == "Odoo" ]; then
+if [[ $PRJNAME == "Odoo" ]]; then
     valid=0
-    # manifest files count for 2 times
-    for f in __manifest__.py __manifest__.py __openerp__.py __openerp__.py __init__.py README.rst .travis.yml LICENSE oca_dependencies.txt requirements.txt; do
-        [[ -f $f ]] && ((valid++))
-    done
-    for f in tests egg-info; do
-        [[ -d $f ]] && ((valid++))
-    done
-    if [ $valid -lt 5 ]; then
-        echo "Invalid environment"
+    [[ -f "$PKGPATH/__manifest__.py" || -f "$PKGPATH/__openerp__.py" ]] && ((valid++))
+    [[ -f "$PKGPATH/__init__.py" ]] && ((valid++))
+    [[ -f "$PKGPATH/README.rst" || -f "$PKGPATH/README.md" ]] && ((valid++))
+    if [[ $valid -lt 3 ]]; then
+        echo "Invalid environment!!"
         exit 1
     fi
 else
     valid=0
-    if [[ $(basename $PWD) == "tools" ]]; then
-      for f in ./setup.py README.rst LICENSE .travis.yml; do
-          [[ -f $f ]] && ((valid++))
-      done
-      for f in tests egg-info ../clodoo ../odoo_score ../wok_code ../z0bug_odoo ../z0lib ../zerobug; do
-          [[ -d $f ]] && ((valid++))
-      done
-    else
-      for f in ../setup.py README.rst; do
-          [[ -f $f ]] && ((valid++))
-      done
-      for f in tests docs egg-info __init__.py __main__.py LICENSE; do
-          [[ -d $f ]] && ((valid++))
-      done
-    fi
-    if [ $valid -lt 5 ]; then
-        echo "Invalid environment"
+    [[ -f "$PKGPATH/setup.py" ]] && ((valid++))
+    [[ -f "$PRJPATH/__init__.py" ]] && ((valid++))
+    [[ -d "$PRJPATH/scripts" ]] && ((valid++))
+    if [[ $valid -lt 3 ]]; then
+        echo "Invalid environment!!"
         exit 1
     fi
     LSETUP=$PKGPATH/setup.py
-    if [[ -f $LSETUP ]]; then
-        DEVSSTS0=" 1 - Planning"
-        if [ -z "$devstatus" ]; then
-          devstatus=$(if [ -f $LSETUP ]; then echo ""; else echo "$DEVSSTS0"; fi)
-        fi
-        if [ -z "$devstatus" ]; then
-          devstatus=$(if [ $(find . -executable -type f -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
-        fi
-        if [ -z "$devstatus" ]; then
-          devstatus=$(if [ $(find . -type f -name "*.py" -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
-        fi
-        if [ -z "$devstatus" ]; then
-          devstatus=$(grep " *'Development Status" $LSETUP 2>/dev/null|awk -F":" '{print $3}'|tr -d "\"',\r\n")
-        fi
-    fi
 fi
 
 if [ "$opt_cpush" == "-O" ]; then
@@ -399,19 +332,14 @@ if [[ $opt_cpush =~ ^(-C|-P) ]]; then
   fi
   exit $STS_SUCCESS
 fi
+
+# check for source dirs
 check_4_travis
-# install_dev
-if [ "$PRJNAME" != "Odoo" ]; then
-  if [ "$PKGNAME" != "$PRJNAME" ]; then
-    echo "Warning: package name $PKGNAME and project name $PRJNAME are different!"
-  fi
-fi
-if [ "$opt_sts" ]; then
-  exit $STS_SUCCESS
-fi
+[[ $PRJNAME != "Odoo" && $PKGNAME != $PRJNAME ]] && echo "Warning: package name $PKGNAME and project name $PRJNAME are different!"
 if [ $opt_sync -gt 0 ]; then
   exit $STS_SUCCESS
 fi
+
 if [ "$opt_cpush" == "-w" ]; then
   clean_dirs "$PKGPATH"
   if [ "$PRJNAME" == "Odoo" ]; then
@@ -437,59 +365,42 @@ if [ "$opt_cpush" == "-w" ]; then
   fi
   exit $STS_SUCCESS
 fi
-# update_dev "$PRJNAME" -R
-if [[ $PRJNAME == "travis_emulator" ]]; then
-  if [ ! -d "$LGITPATH" ]; then
-    exit $STS_SUCCESS
-  fi
-fi
-if [ ! -d "$LGITPATH" ]; then
-  echo "Invalid destination path $LGITPATH"
-  exit $STS_FAILED
-fi
+
+[[ ! -d $LGITPATH ]] && echo "Destination path $LGITPATH not found!" && exit $STS_FAILED
 dpath_parent=$LGITPATH
 dpath_child=$LGITPATH/$PKGNAME
 dpath_prj=$PKGPATH/$PRJNAME
-if [ "$PRJNAME" == "Odoo" ]; then
+
+if [[ "$PRJNAME" == "Odoo" ]]; then
   dpath_prj=$PKGPATH
   LGITLEV=0
 else
   LGITLEV=1
 fi
+
 robocopy_init "$PRJNAME" "$PKGNAME"
-if [ $opt_fetch -eq 0 ]; then
-  [[ -f $PKGPATH/setup.py && -d $PRJPATH/scripts ]] && cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info
-  [[ -f $PRJPATH/setup.py && -d $PRJPATH/scripts ]] && rm -f $PRJPATH/setup.py
-  if [ $LGITLEV -gt 0 ]; then
-    for f in $(dir $PKGPATH); do
-      robocopy "$PKGPATH/$f" "$LGITPATH"
+
+if [[ $opt_fetch -eq 0 ]]; then
+  [[ $PKGNAME != "tools" ]] &&  run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
+  [[ -f $PRJPATH/setup.py && -f $PRJPATH/scripts/setup.info ]] &&  run_traced "rm -f $PRJPATH/setup.py"
+  if [[ $LGITLEV -gt 0 ]]; then
+    for f in $PKGPATH/*; do
+      robocopy "$f" "$LGITPATH/$(basename $f)"
     done
   else
-    for f in $(dir $PKGPATH); do
-      robocopy "$PKGPATH/$f" "$LGITPATH/$f"
+    for f in $PKGPATH/*; do
+      robocopy "$f" "$LGITPATH//$(basename $f)"
     done
   fi
-  [[ $PKGNAME != "tools" && -f $PKGPATH/setup.py ]] && cp $PKGPATH/setup.py $LGITPATH/
-  [[ -f "$PRJPATH/scripts/setup.info" ]] && cp $PRJPATH/scripts/setup.info $LGITPATH/scripts/
-#  if [ ! -f ~/tools/pytok/Makefile ]; then
-#    if [ $opt_verbose -gt 0 ]; then echo "$ cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
-#    cp /opt/odoo/dev/Makefile ~/tools/pytok
-#  fi
-#   cd $LGITPATH/..
-#   [ -x install_foreign.sh ] && ./install_foreign.sh
+  [[ $PKGNAME != "tools" && -f $PKGPATH/setup.py ]] &&  run_traced "cp $PKGPATH/setup.py $LGITPATH/setup.py"
+  [[ -f "$PRJPATH/scripts/setup.info" ]] &&  run_traced "cp $PRJPATH/scripts/setup.info $LGITPATH/scripts/setup.info"
+elif [[ $LGITLEV -gt 0 ]]; then
+  for f in $LGITPATH/*; do
+    [[ ! $f =~ .*~ ]] && robocopy "$LGITPATH/$f" "$PKGPATH/$PKGNAME/$f"
+  done
 else
-  if [ $LGITLEV -gt 0 ]; then
-    for f in $(dir $LGITPATH); do
-      if [[ ! $f =~ .*~ ]]; then
-        robocopy "$LGITPATH/$f" "$PKGPATH/$PKGNAME/$f"
-      fi
-    done
-  else
-    for f in $(dir $LGITPATH); do
-      if [[ ! $f =~ .*~ ]]; then
-        robocopy "$LGITPATH/$f" "$PKGPATH/$f"
-      fi
-    done
-  fi
+  for f in $LGITPATH/*; do
+    [[ ! $f =~ .*~ ]] && robocopy "$LGITPATH/$f" "$PKGPATH/$f"
+  done
 fi
 exit $STS_SUCCESS
