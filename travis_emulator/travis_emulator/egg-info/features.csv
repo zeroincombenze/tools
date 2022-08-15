@@ -1,0 +1,15 @@
+Function,Status,Note
+Execute tests in virtual environment,|check|,As TravisCI
+Python 2 test,|check|,If installed in local machine
+Python 3 test,|check|,If installed in local machine
+Bash test,|check|,Using zerobug package
+Matrix,|check|,Test sequentialized
+Show coverage result,|check|,If installed in local machine
+Quality check,|check|,With zerobug and z0bug_odoo packages
+Stored images,|check|,In ~/VME/ directory (see -C switch)
+Debug information,|check|,See -B and -D switches
+Keep DB after test,|check|,See -k switch
+Lint level,|check|,"With zerobug, see -L switch"
+Build selection,|check|,See -O switch
+System packages,|check| |no_check|,See -S switch
+Use specific python version,|check|,See -y switch

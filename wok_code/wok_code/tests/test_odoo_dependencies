@@ -1,0 +1,390 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+# Based on template 2.0.0
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+  [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
+fi
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nN= 'venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D) == N else j(D, 'pypi')\nW=D if b(D) == N else j(D, 'venv')\nS='site-packages'\nX='scripts'\ndef isk(P):\n return P.startswith((H,D,C,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef adk(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=a(P)\n  if b(P) in (X,'tests','travis','_travis'):\n   P=d(P)\n  if b(P)==b(d(P)) and f(j(P,'..',U)):\n   P=d(d(P))\n  elif b(d(C))==O and f(j(P,U)):\n   P=d(P)\n  if B==b(P) and isk(P):\n   adk(L,P)\n   break\n  elif isk(j(P,B,B)):\n   adk(L,j(P,B,B))\n   break\n  elif isk(j(P,B)):\n   adk(L,j(P,B))\n   break\n  elif isk(j(P,S,B)):\n   adk(L,j(P,S,B))\n   break\nadk(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$(readlink -e $d)
+    break
+  fi
+done
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
+[[ -z "$Z0TLIBDIR" ]] && echo "Library file z0testrc not found!" && exit 72
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
+
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=2.0.0
+
+
+#
+# Modules Tree for tests (* means missed module)
+# l10n-italy/l10n_it_base
+#   |---- addons/sale
+#   |       |---- */sales_team
+#   |       |---- addons/account
+#   |       |       |---- */base_setup
+#   |       |       |---- */product
+#   |       |       |---- */analytic
+#   |       |       |---- */report (1)
+#   |       |       \---- */web_planner
+#   |       |---- */procurement
+#   |       |---- (1) */report
+#   |       \---- */web_tour
+#   \---- addons/base (2)
+# addons/web
+#   \---- (2) addons/base
+# unported/deprecated
+#            \---- */website
+#
+test_01() {
+    local TRES RES OPTS
+    OPTS="-A mod $LCL_OE_ROOT"
+    TRES=""
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A mod -R $LCL_OE_ROOT"
+    TRES="account,base,l10n_it_base,sale,web"
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A mod $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH"
+    TRES="account,base,l10n_it_base,sale,web"
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A mod -R $LCL_OE_ROOT -M account,l10n_it_base,l10n_it_ade"
+    TRES="account,l10n_it_base"
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A mod -RE $LCL_OE_ROOT -M account,l10n_it_base,l10n_it_ade"
+    TRES="l10n_it_ade"
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A mod -R $LCL_OE_ROOT -B base"
+    TRES="l10n_it_base,web"
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+}
+
+test_02() {
+    local TRES RES OPTS
+    OPTS="-A dep $LCL_OE_ROOT"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="account,analytic,base,base_setup,l10n_it_base,procurement,product,report,sale,sales_team,web,web_planner,web_tour"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep $LCL_OE_ROOT -R"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="account,analytic,base,base_setup,l10n_it_base,procurement,product,report,sale,sales_team,web,web_planner,web_tour"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep $LCL_OE_ROOT -1"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES=""
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="account,analytic,base,base_setup,l10n_it_base,procurement,product,report,sale,sales_team,web,web_planner,web_tour"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -M account,l10n_it_base,l10n_it_ade"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="account,analytic,base,base_setup,l10n_it_ade,l10n_it_base,procurement,product,report,sale,sales_team,web_planner,web_tour"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep -1 $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -M account,l10n_it_base,l10n_it_ade"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="account,analytic,base,base_setup,l10n_it_ade,l10n_it_base,product,report,sale,web_planner"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep $LCL_OE_ROOT -R -B base,sale"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="base,sale"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep $LCL_OE_ROOT/addons -1a -Maccount,sale"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="account,report"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -PM account,l10n_it_base,l10n_it_ade"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="analytic,base,base_setup,procurement,product,report,sale,sales_team,web_planner,web_tour"
+    test_result "od $OPTS" "$TRES" "$RES"
+}
+
+test_03() {
+    local TRES RES OPTS
+    OPTS="-A rev $LCL_OE_ROOT"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="base"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A rev -R $LCL_OE_ROOT"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="base,l10n_it_base,web"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A rev -R $LCL_OE_ROOT -B base"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="base,l10n_it_base,web"
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A rev -1 $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -B base"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    fi
+    TRES="base,l10n_it_base,web"
+    test_result "od $OPTS" "$TRES" "$RES"
+}
+
+test_04() {
+    local TRES RES OPTS
+    OPTS="-A jrq -1 $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -B base"
+    TRES="web"
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep -Re $LCL_OE_ROOT"
+    TRES="lxml,vatnumber"
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    OPTS="-A dep -Rx $LCL_OE_ROOT"
+    TRES="wkhtmltox"
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+}
+
+test_05() {
+    local TRES RES OPTS
+
+    cat<<'EOF' >$TESTDIR/odoo_dependencies.log
+ 0 base
+ 1  web
+-------------------- account (Not installable, missed base_setup,product,analytic,report,web_planner)
+-------------------- sale (Not installable, missed sales_team,procurement,report,web_tour)
+-------------------- l10n_it_base (Recursive chain)
+******************** analytic (Missed dependency of account)
+******************** base_setup (Missed dependency of account)
+******************** procurement (Missed dependency of sale)
+******************** product (Missed dependency of account)
+******************** report (Missed dependency of account,sale)
+******************** sales_team (Missed dependency of sale)
+******************** web_planner (Missed dependency of account)
+******************** web_tour (Missed dependency of sale)
+EOF
+    OPTS="-A tree $LCL_OE_ROOT -R"
+    TRES=$(cat $TESTDIR/odoo_dependencies.log)
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+
+    cat<<'EOF' >$TESTDIR/odoo_dependencies.log
+-------------------- account (Not installable, missed base_setup,product,analytic,report,web_planner)
+-------------------- sale (Not installable, missed sales_team,procurement,report,web_tour)
+-------------------- l10n_it_base (Recursive chain)
+******************** analytic (Missed dependency of account)
+******************** base_setup (Missed dependency of account)
+******************** procurement (Missed dependency of sale)
+******************** product (Missed dependency of account)
+******************** report (Missed dependency of account,sale)
+******************** sales_team (Missed dependency of sale)
+******************** web_planner (Missed dependency of account)
+******************** web_tour (Missed dependency of sale)
+EOF
+    OPTS="-A tree $LCL_OE_ROOT -RE"
+    TRES=$(cat $TESTDIR/odoo_dependencies.log)
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+}
+
+test_06() {
+    local TRES RES OPTS
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+      # Create recursive chain: add module product which depends from sale
+      mkdir -p $LCL_OE_ROOT/addons/product
+      cat<<'EOF' >$LCL_OE_ROOT/addons/product/__manifest__.py
+{
+    'depends': ['sale'],
+}
+EOF
+      cat<<'EOF' >$LCL_OE_ROOT/addons/product/__init__.py
+# File generated just for test
+EOF
+    fi
+    cat<<'EOF' >$TESTDIR/odoo_dependencies.log
+ 0 base
+ 1  web
+-------------------- account (Not installable, missed base_setup,analytic,report,web_planner)
+-------------------- sale (Not installable, missed sales_team,procurement,report,web_tour)
+-------------------- l10n_it_base (Recursive chain)
+-------------------- product (Recursive chain)
+******************** analytic (Missed dependency of account)
+******************** base_setup (Missed dependency of account)
+******************** procurement (Missed dependency of sale)
+******************** report (Missed dependency of sale,account)
+******************** sales_team (Missed dependency of sale)
+******************** web_planner (Missed dependency of account)
+******************** web_tour (Missed dependency of sale)
+EOF
+    OPTS="-A tree $LCL_OE_ROOT -R"
+    TRES=$(cat $TESTDIR/odoo_dependencies.log)
+    [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
+    test_result "od $OPTS" "$TRES" "$RES"
+}
+
+Z0BUG_setup() {
+    local VERSION=10.0
+    local ODOO_REPO=local/odoo
+    LCL_OE_REPOS=l10n_italy
+    LCL_OE_PKGNAME=l10n_it_base
+    LCL_OE_ROOT=~/devel/odoo/$VERSION
+    LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OE_REPOS
+    LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OE_PKGNAME
+    LCL_OE_PKGPATH2=$LCL_OE_ROOT/__unported__/deprecated
+    [[ -d $LCL_OE_ROOT ]] && rm -fR $LCL_OE_ROOT
+    mkdir -p $LCL_OE_ROOT
+    mkdir -p $LCL_OE_ROOT/odoo
+    touch $LCL_OE_ROOT/odoo-bin
+    mkdir -p $LCL_OE_ROOT/addons
+    mkdir -p $LCL_OE_ROOT/addons/base
+    mkdir -p $LCL_OE_ROOT/addons/account
+    mkdir -p $LCL_OE_ROOT/addons/sale
+    mkdir -p $LCL_OE_ROOT/addons/web
+    mkdir -p $LCL_OE_PRJPATH
+    mkdir -p $LCL_OE_PKGPATH2
+    mkdir -p $LCL_OE_PKGPATH
+    cat<<'EOF' >$LCL_OE_ROOT/addons/base/__manifest__.py
+{
+    'depends': [],
+}
+EOF
+    cat<<'EOF' >$LCL_OE_ROOT/addons/base/__init__.py
+# File generated just for test
+EOF
+    cat<<'EOF' >$LCL_OE_PKGPATH/__manifest__.py
+{
+    'depends': ['base', 'sale'],
+    'external_dependencies': {'python': ['vatnumber', 'lxml'],
+                              'bin': ['wkhtmltox']}
+}
+EOF
+    cat<<'EOF' >$LCL_OE_PKGPATH/__init__.py
+# File generated just for test
+EOF
+    cat<<'EOF' >$LCL_OE_ROOT/addons/sale/__manifest__.py
+{
+    'depends': ['sales_team', 'account', 'procurement', 'report', 'web_tour'],
+}
+EOF
+    cat<<'EOF' >$LCL_OE_ROOT/addons/sale/__init__.py
+# File generated just for test
+EOF
+    cat<<'EOF' >$LCL_OE_ROOT/addons/account/__manifest__.py
+{
+    'depends' : ['base_setup', 'product', 'analytic', 'report', 'web_planner'],
+}
+EOF
+    cat<<'EOF' >$LCL_OE_ROOT/addons/account/__init__.py
+# File generated just for test
+EOF
+    cat<<'EOF' >$LCL_OE_ROOT/addons/web/__manifest__.py
+{
+    'depends' : ['base'],
+}
+EOF
+    cat<<'EOF' >$LCL_OE_ROOT/addons/web/__init__.py
+# File generated just for test
+EOF
+    cat<<'EOF' >$LCL_OE_PKGPATH2/__manifest__.py
+{
+    'depends': ['website'],
+}
+EOF
+    cat<<'EOF' >$LCL_OE_PKGPATH2/__init__.py
+# File generated just for test
+EOF
+}
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_wok_code.log "$@"
+sts=$?
+[[ $sts -ne 127 ]] && exit $sts
+for p in z0librc odoorc travisrc zarrc z0testrc; do
+  if [[ -f $RUNDIR/$p ]]; then
+    [[ $p == "z0librc" ]] && Z0LIBDIR="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "odoorc" ]] && ODOOLIBDIR="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "travisrc" ]] && TRAVISLIBDIR="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "zarrc" ]] && ZARLIB="$RUNDIR" && source $RUNDIR/$p
+    [[ $p == "z0testrc" ]] && Z0TLIBDIR="$RUNDIR" && source $RUNDIR/$p
+  fi
+done
+
+
+
+UT1_LIST=""
+UT_LIST=""
+[[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+[[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
+exit $sts

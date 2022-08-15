@@ -1,0 +1,14 @@
+> if [ -d $LCL_ROOT/dependencies ]; then rm -fR $LCL_ROOT/dependencies; fi
+> if [ -L $LCL_ROOT/dependencies ]; then rm -f $LCL_ROOT/dependencies; fi
+> if [ -L $LCL_ROOT/l10n_it_base-9.0 ]; then rm -f $LCL_ROOT/l10n_it_base-9.0; fi
+> if [ -L $LCL_ROOT/odoo-9.0 ]; then rm -f $LCL_ROOT/odoo-9.0; fi
+> if [ -L $LCL_ROOT/odoo-9.0 ]; then rm -f $LCL_ROOT/odoo-9.0; fi
+> rm -fR $LCL_ROOT/maintainer-quality-tools
+$ cp /etc/odoo/odoo9-server.conf $LCL_ROOT/.openerp_serverrc
+> mkdir $LCL_ROOT/dependencies
+> export INCLUDE=l10n_it_base
+> ln -s $LCL_ROOT/dev/odoo/9.0/l10n_italy $LCL_ROOT/dependencies/
+> ln -s $LCL_ROOT/dev/odoo/9.0/openerp $LCL_ROOT/dependencies/
+> ln -s $LCL_ROOT/dev/odoo/9.0/openerp $LCL_ROOT/dependencies/
+> ln -s $LCL_ROOT/dev/odoo/9.0 $LCL_ROOT/odoo-9.0
+> ln -s $LCL_ROOT/dev/odoo/9.0/l10n_italy/l10n_it_base $LCL_ROOT/l10n_it_base-9.0

@@ -1,0 +1,260 @@
+#! /bin/bash
+#
+# (Re)generate all translation, readin po files from OCA installation
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+# Based on template 2.0.0
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+  [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
+fi
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nN= 'venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D) == N else j(D, 'pypi')\nW=D if b(D) == N else j(D, 'venv')\nS='site-packages'\nX='scripts'\ndef isk(P):\n return P.startswith((H,D,C,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef adk(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=a(P)\n  if b(P) in (X,'tests','travis','_travis'):\n   P=d(P)\n  if b(P)==b(d(P)) and f(j(P,'..',U)):\n   P=d(d(P))\n  elif b(d(C))==O and f(j(P,U)):\n   P=d(P)\n  if B==b(P) and isk(P):\n   adk(L,P)\n   break\n  elif isk(j(P,B,B)):\n   adk(L,j(P,B,B))\n   break\n  elif isk(j(P,B)):\n   adk(L,j(P,B))\n   break\n  elif isk(j(P,S,B)):\n   adk(L,j(P,S,B))\n   break\nadk(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$(readlink -e $d)
+    break
+  fi
+done
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+[[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
+. $ODOOLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
+
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=2.0.0
+
+
+upgrade_oca_repo() {
+# upgrade_oca_repo(odoo_vid)
+    local odoo_fver=$(build_odoo_param FULLVER "$1")
+    local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+    local reps=$(ls -1 $HOME/$1/|tr "\n" " ")
+    local r opts
+    [ $opt_dry_run -eq 0 ] && opts= || opts=n
+    if [ -d $HOME/oca$odoo_ver/$r ]; then
+      [ $opt_verbose -ne 0 ] && echo "- Upgrading repository OCA OCB -b $odoo_fver ..."
+      odoo_install_repository -b$odoo_vid OCB -Ooca -o $HOME/oca$odoo_ver -UCq$opts
+    else
+      [ $opt_verbose -ne 0 ] && echo "- Installing repository OCA OCB -b $odoo_fver ..."
+      odoo_install_repository -b$odoo_vid OCB -Ooca -o $HOME/oca$odoo_ver -Cq$opts
+    fi
+    for r in $reps; do
+      if [[ ! $r =~ $INVALID_MODNAMES_RE && ! "${r:0:1}" == "_" && -d "$HOME/$odoo_fver/$r" ]]; then
+        if [ -d $HOME/oca$odoo_ver/$r ]; then
+          [ $opt_verbose -ne 0 ] && echo "- Upgrading repository OCA $r -b $odoo_fver ..."
+          odoo_install_repository -b$odoo_vid $r -Ooca -o $HOME/oca$odoo_ver/$r -UCq$opts
+        else
+          [ $opt_verbose -ne 0 ] && echo "- Installing repository OCA $r -b $odoo_fver ..."
+          odoo_install_repository -b$odoo_vid $r -Ooca -o $HOME/oca$odoo_ver/$r -Cq$opts
+        fi
+      fi
+    done
+}
+
+copy_po_from_oca_path() {
+# copy_po_from_oca_path(odoo_vid)
+    local b d f fn frepos m p repos
+    local r opts
+    [ $opt_dry_run -eq 0 ] && opts= || opts=-n
+    local odoo_fver=$(build_odoo_param FULLVER "$1")
+    local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+    cd $HOME/oca$odoo_ver
+    for repos in ./*; do
+      if [ -d $repos ]; then
+        frepos=$(readlink -f $repos)
+        [ $opt_verbose -ne 0 ] && echo "- examing $frepos ..."
+        m=$(basename $repos)
+        [ ! -d $HOME/$odoo_vid/$m/i18n ] && run_traced "rm -fR $HOME/$odoo_vid/$m/i18n"
+        if [[ $m =~ (addons|odoo|openerp) ]]; then
+          :
+        elif [[ $m =~ $INVALID_MODNAMES_RE || "${m:0:1}" == "_" ]]; then
+          continue
+        fi
+        for f in $(find $frepos -name it.po -o -name README.md  -o -name README.rst); do
+          p=$(dirname $f)
+          b=$(basename $f)
+          d=${p/oca$odoo_ver/$odoo_vid}
+          if [[ "$b" == "it.po" ]]; then
+            m=$(dirname $p)
+            m=$(basename $m)
+            if [[ "${m:0:5}" == "l10n_" && ! $m == "l10n_it" ]]; then
+              continue
+            elif [[ ! -d $d ]]; then
+              run_traced "mkdir $d"
+            fi
+          fi
+          if [[ ! "$b" == "README.md" || ! -d $d/egg-info ]]; then
+            run_traced "cp $p/$b $d"
+          elif [[ "$b" == "README.md" && -d $d/egg-info && -f $d/$b ]]; then
+            run_traced "rm -f $d/$b"
+          fi
+        done
+        repos=${frepos/oca$odoo_ver/$odoo_vid}
+        for d in $(find $repos -name egg-info); do
+          p=$(dirname $d)
+          pushd $p >/dev/null
+          run_traced "gen_readme.py -b$odoo_fver -lmodule $opts"
+          [ -d $p/static/description ] && run_traced "gen_readme.py -H -b$odoo_fver -lmodule $opts"
+          popd >/dev/null
+        done
+      fi
+      if [ -d $repos ]; then
+        m=$(basename $repos)
+        pushd  $HOME/$odoo_fver/$m >/dev/null
+        [ -d egg-info ] && run_traced "gen_readme.py -b$odoo_fver -lrepository $opts"
+        popd >/dev/null
+      fi
+    done
+    cd $HOME/$odoo_fver
+    [ -d egg-info ] && run_traced "gen_readme.py -b$odoo_fver -lOCB $opts"
+}
+
+update_translation() {
+# copy_po_from_oca_path(odoo_vid)
+    local b d f fn frepos m p repos
+    local r opts
+    [ $opt_dry_run -eq 0 ] && opts= || opts=-n
+    local odoo_fver=$(build_odoo_param FULLVER "$1")
+    local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+    cd $HOME/$odoo_fver
+    for repos in ./*; do
+      if [ -d $repos ]; then
+        frepos=$(readlink -f $repos)
+        r=$(basename $frepos)
+        if [[ $r =~ (addons|odoo|openerp) ]]; then
+          :
+        elif [[ $r =~ $INVALID_MODNAMES_RE || "${r:0:1}" == "_" ]]; then
+          continue
+        fi
+        [ $opt_verbose -ne 0 ] && echo "- examing $frepos ..."
+        for f in $(find $frepos -name __openerp__.py -o -name __manifest__.py); do
+          p=$(dirname $f)
+          m=$(basename $p)
+          if [[ ! "${m:0:5}" == "l10n_" || $m == "l10n_it" ]]; then
+            # echo "-- Module $r/$m -b $odoo_fver"
+            run_traced "odoo_translation.py -m $m -b $odoo_fver $opts"
+          fi
+        done
+      fi
+    done
+}
+
+
+regenerate_po_files() {
+#regenerate_po_files(odoo_vid)
+    local b d db f frepos m p repos
+    local r opts
+    [ $opt_dry_run -eq 0 ] && opts=-s || opts=-sn
+    local odoo_fver=$(build_odoo_param FULLVER "$1")
+    local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+    db="test${odoo_ver}_tnl"
+    cd $HOME/$odoo_fver
+    run_traced "run_odoo_debug -Im base -b $odoo_fver $opts -d $db"
+    run_traced "run_odoo_debug -em base -b $odoo_fver $opts -d $db"
+    for repos in ./*; do
+      if [ -d $repos ]; then
+        frepos=$(readlink -f $repos)
+        r=$(basename $frepos)
+        if [[ $r =~ (addons|odoo|openerp) ]]; then
+          :
+        elif [[ $r =~ $INVALID_MODNAMES_RE || "${r:0:1}" == "_" ]]; then
+          continue
+        fi
+        [ $opt_verbose -ne 0 ] && echo "- examing $frepos ..."
+        for r in $frepos/*; do
+          if [[ -d $r ]]; then
+            m=$(basename $r)
+            if [[ $m =~ $INVALID_MODNAMES_RE || "${m:0:1}" == "_" ]]; then
+              continue
+            fi
+            if [[ ! "${m:0:5}" == "l10n_" || $m == "l10n_it" ]]; then
+              echo "-- examing module $m"
+              run_traced "run_odoo_debug -Im $m -b $odoo_fver $opts -d $db"
+              run_traced "run_odoo_debug -em $m -b $odoo_fver $opts -d $db"
+            fi
+          fi
+        done
+      fi
+    done
+}
+
+
+OPTOPTS=(h        b          D        d        n           O         P        R       T         V           v)
+OPTDEST=(opt_help opt_branch opt_drop opt_db   opt_dry_run opt_nooca opt_nopo opt_rga opt_notnl opt_version opt_verbose)
+OPTACTI=("+"      "=>"       1        "="      1           1         1        1       1         "*>"        "+")
+OPTDEFL=(0        ""         0        ""       0           0         0        0       0         ""          -1)
+OPTMETA=("help"   "branch"   ""       "dbname" ""          ""        ""       ""      ""        ""         "")
+OPTHELP=("this help"\
+ "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or all"\
+ "drop oca repository (ignored if -O)"\
+ "dbname to upgrade"\
+ "do nothing (dry-run)"\
+ "do not upgrade from OCA repository"\
+ "do not copy po files from OCA path"\
+ "regenerate all po files"\
+ "do not translate from odoo_default_tnl.csv"
+ "show version"\
+ "verbose mode")
+
+OPTARGS=()
+
+parseoptargs "$@"
+if [[ "$opt_version" ]]; then
+  echo "$__version__"
+  exit $STS_SUCCESS
+fi
+if [ $opt_verbose -eq -1 ]; then
+  opt_verbose=1
+fi
+if [ -z "$opt_branch" ]; then
+  opt_help=1
+fi
+if [ $opt_nooca -ne 0 -a $opt_drop -ne 0 ]; then
+  opt_help=1
+fi
+if [[ $opt_help -gt 0 ]]; then
+  print_help "(Re)generate translations"\
+  "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit $STS_SUCCESS
+fi
+if [ "$opt_branch" == "all" ]; then
+  opt_branch="12.0 11.0 10.0 9.0 8.0 7.0"
+fi
+opt_branch="${opt_branch//,/ }"
+echo "Load translation for Odoo $opt_branch"
+INVALID_MODNAMES_RE=$(build_odoo_param INVALID_MODNAMES_RE)
+INVALID_MODNAMES_RE="${INVALID_MODNAMES_RE:0: -2}|profiles|uncovered|openupgrade)\$"
+for odoo_vid in $opt_branch; do
+  odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
+  odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+  [ $opt_drop -ne 0 ] && run_traced "rm -fR $HOME/oca$odoo_ver"
+  [ $opt_nooca -eq 0 ] && upgrade_oca_repo $odoo_vid
+  [ $opt_nopo -eq 0 ] && copy_po_from_oca_path $odoo_vid
+  [ $opt_notnl -eq 0 ] && update_translation $odoo_vid
+  [ $opt_rga -ne 0 ] && regenerate_po_files $odoo_vid
+  if [ -n "$opt_db" ]; then
+    [ $opt_dry_run -eq 0 ] && opts= || opts=-n
+    run_traced "odoo_translation.py -mbase -b $odoo_fver -d $opt_db $opts"
+  fi
+done

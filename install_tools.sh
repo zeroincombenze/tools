@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=1.0.18
+__version__=1.0.19
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
@@ -77,7 +77,7 @@ RFLIST__zerobug=""
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="odoo_default_tnl.xlsx templates license_text readlink"
 RFLIST__python_plus=""
-RFLIST__wok_code="cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py odoo_dependencies.py odoo_translation.py vfcp vfdiff wget_odoo_repositories.py"
+RFLIST__wok_code="cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py odoo_dependencies.py wget_odoo_repositories.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""

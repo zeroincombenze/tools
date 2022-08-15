@@ -1,0 +1,9 @@
+.. $if branch in '12.0'
+* wrong contributor <wrong@example.com>
+.. $elif branch in '11.0'
+* antonio <antoniov@libero.it>
+.. $elif branch in '10.0'
+* lorenzo <lorenzo@libero.it>
+.. $else
+* unknown contributor <unknow@example.com>
+.. $fi

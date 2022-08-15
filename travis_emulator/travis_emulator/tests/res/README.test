@@ -1,0 +1,60 @@
+|build status|_
+|license agpl|_
+|coverage status|_
+|codecov status|_
+|oca project|_
+|technical doc|_
+|help zeroincombenze|_
+|try it|_
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS II
+==============
+
+
+.. [//]: # (copyright)
+
+----
+
+**Odoo** is a trademark of  `Odoo S.A.
+<https://www.odoo.com/>`_.
+(formerly OpenERP, formerly TinyERP)
+
+**OCA**, or the  `Odoo Community Association
+<http://odoo-community.org/>`_.
+is a nonprofit organization whose
+mission is to support the collaborative development of Odoo features and
+promote its widespread use.
+
+**zeroincombenze®** is a trademark of `SHS-AV s.r.l.
+<http://www.shs-av.com/>`_.
+which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.
+[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)
+is mainly designed for Italian law and markeplace.
+Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server.
+
+
+.. [//]: # (end copyright)
+
+
+
+.. |build status| image:: https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0
+.. _build status: https://travis-ci.org/zeroincombenze/l10n_italy
+.. |license agpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
+.. _license agpl: http://www.gnu.org/licenses/agpl-3.0.html
+.. |coverage status| image:: https://coveralls.io/repos/github/zeroincombenze/l10n_italy/badge.svg?branch=9.0
+.. _coverage status: https://coveralls.io/github/zeroincombenze/l10n_italy?branch=9.0
+.. |codecov status| image:: https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg
+.. _codecov status: https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0
+.. |oca project| image::
+.. _oca project:
+.. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-9.svg
+.. _technical doc: http://wiki.zeroincombenze.org/en/Odoo/9.0/dev
+.. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-9.svg
+.. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Odoo/9.0/man/FI
+.. |try it| image::
+.. _try it:
+.. image:: https://www.shs-av.com/wp-content/chat_with_us.gif
+   :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b

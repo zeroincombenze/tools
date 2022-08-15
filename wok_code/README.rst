@@ -844,15 +844,6 @@ Current development version
 History
 -------
 
-1.0.11 (2022-06-17)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] gen_readme.py: git_org librerp
-* [IMP] do_odo_site.py: generate configration files for cloud
-* [IMP] makepo_it.py: new features
-* [IMP] topep8: git_org librerp
-* [IMP] topep8: some actions are deprecated
-
 1.0.9 (2022-04-04)
 ~~~~~~~~~~~~~~~~~~
 
@@ -912,6 +903,15 @@ History
 
 * [FIX] cvt_csv_2_rst.py: python 3
 
+1.0.2.6 (2021-10-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] cvt_scrit: run inside virtual environment
+* [FIX] please: run inside virtual environment
+* [FIX] please: version
+* [FIX] dist_pkg: run inside virtual environment
+* [FIX] gen_readme.py: new template layout in devel/venv
+
 
 
 |
@@ -936,7 +936,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-06-19
+Last Update / Ultimo aggiornamento: 2022-06-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

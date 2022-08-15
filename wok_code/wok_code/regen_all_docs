@@ -1,0 +1,118 @@
+#! /bin/bash
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2018-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+# Based on template 2.0.0
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+  [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
+fi
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nN= 'venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D) == N else j(D, 'pypi')\nW=D if b(D) == N else j(D, 'venv')\nS='site-packages'\nX='scripts'\ndef isk(P):\n return P.startswith((H,D,C,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef adk(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=a(P)\n  if b(P) in (X,'tests','travis','_travis'):\n   P=d(P)\n  if b(P)==b(d(P)) and f(j(P,'..',U)):\n   P=d(d(P))\n  elif b(d(C))==O and f(j(P,U)):\n   P=d(P)\n  if B==b(P) and isk(P):\n   adk(L,P)\n   break\n  elif isk(j(P,B,B)):\n   adk(L,j(P,B,B))\n   break\n  elif isk(j(P,B)):\n   adk(L,j(P,B))\n   break\n  elif isk(j(P,S,B)):\n   adk(L,j(P,S,B))\n   break\nadk(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$(readlink -e $d)
+    break
+  fi
+done
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+[[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
+. $ODOOLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
+
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=2.0.0
+
+
+
+OPTOPTS=(h        b          n           p        R           V           v)
+OPTDEST=(opt_help opt_branch opt_dry_run opt_path opt_recurse opt_version opt_verbose)
+OPTACTI=("+"      "="        1           "="      1           "*>"        "+")
+OPTDEFL=(0        ""         0           ""       0           ""          -1)
+OPTMETA=("help"   "branch"   ""          "dir"    ""          ""          "")
+OPTHELP=("this help"\
+ "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
+ "do nothing (dry-run)"\
+ "odoo directory"\
+ "if OCB recurse all repositories"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(odoo_vid git_org)
+
+parseoptargs "$@"
+if [[ "$opt_version" ]]; then
+  echo "$__version__"
+  exit $STS_SUCCESS
+fi
+[ -z $odoo_vid ] && opt_help=1
+if [ $opt_verbose -eq -1 ]; then
+  opt_verbose=1
+fi
+if [[ $opt_help -gt 0 ]]; then
+  print_help "Regenerate all documentation of specific odoo version of module"\
+  "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit $STS_SUCCESS
+fi
+odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
+odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
+if [ -n "$opt_path" ]; then
+  odoo_dir=$(readlink -f $opt_path)
+else
+  odoo_dir=$(build_odoo_param HOME $odoo_vid)
+fi
+[ -z "$git_org" ] && git_org=$(build_odoo_param GIT_ORGNM $odoo_vid)
+repo=$(build_odoo_param REPOS "$odoo_vid")
+[ "$repo" == "OCB" ] && OCB_SUBDIRS_RE=$(build_odoo_param OCB_SUBDIRS_RE)
+#   tgtdir=$odoo_dir
+#   [ -d $odoo_dir/odoo/addons ] && tgtdir="$odoo_dir/odoo/addons"
+#   [ -d $odoo_dir/openerp/addons ] && tgtdir="$odoo_dir/openerp/addons"
+#   tgtdir="$tgtdir $odoo_dir/addons"
+# else
+  tgtdir=$odoo_dir
+# fi
+# echo "git_org=$git_org"
+# echo "odoo_fver=$odoo_fver"
+# echo "repo=$repo"
+# echo "tgtdir=$tgtdir"
+for f in $(find $tgtdir -maxdepth 2 -type d -name 'egg-info'); do
+  d=$(dirname $f)
+  b=$(basename $d)
+  [ "$b" == "__to_remove" ] && continue
+  if [[ "$d" == "$tgtdir" ]]; then
+    OPTS=-lrepository
+  else
+    [ $opt_recurse -eq 0 ] && [[ "$repo" == "OCB" && ! $b =~ $OCB_SUBDIRS_RE ]] && continue
+    OPTS=-lmodule
+  fi
+  echo "\$ cd $d"
+  cd $d
+  [ -f README.md ] && rm -fR README.md
+  run_traced "gen_readme.py -qG$git_org -b$odoo_fver $OPTS"
+  if [ $odoo_ver -ge 8 ]; then
+    if [ -f __openerp__.py -o -f __manifest__.py ]; then
+      [ ! -d ./static ] && mkdir -p ./static
+      [ ! -d ./static/description ] && mkdir -p ./static/description
+      run_traced "gen_readme.py -b$odoo_fver -qH -G$git_org $OPTS"
+    fi
+  fi
+done
