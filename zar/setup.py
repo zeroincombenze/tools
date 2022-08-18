@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='zar',
-    version='1.3.38',
+    version='2.0.0',
     description='Zeroincombenze Archive Replica',
     long_description="""
 ZAR stand for Zeroincombenze® Archive Replica.
