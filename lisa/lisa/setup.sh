@@ -1,70 +1,22 @@
 # lisa setup 0.3.2.2 (2021-12-11 15:44)
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+# Based on template 2.0.0
 THIS=$(basename "$0")
-TDIR=$($READLINK -f $(dirname $0))
-pkgname=lisa
-if [ -d $TDIR/$pkgname ]; then
-  SRCDIR=$TDIR/$pkgname
-else
-  SRCDIR=$TDIR
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+  [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-tarball=$pkgname.tar.gz
-opt_verbose=0
-opt_dry_run=0
-if [ "${1:0:1}" == "-" ]; then
-  if [[ "$1" =~ v ]]; then opt_verbose=1; fi
-  if [[ "$1" =~ n ]]; then opt_dry_run=1; fi
-fi
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  pfx="\$"
-else
-  pfx=">"
-fi
-if [ -f $SRCDIR/z0librc -o $opt_dry_run -gt 0 ]; then
-  [ $opt_dry_run -gt 0 ] || . $SRCDIR/z0librc
-  if [ "${TDIR:0:10}" == "/opt/odoo/" ]; then
-    cpmv="cp"
-  else
-    cpmv="mv"
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$(readlink -e $d)
+    break
   fi
-  [ $opt_verbose -gt 0 ] && echo "$pfx mkdir -p /etc/lisa"
-  [ $opt_dry_run -gt 0 ] || mkdir -p /etc/lisa
-  [ $opt_verbose -gt 0 ] && echo "$pfx mkdir -p /etc/lisa/kbase"
-  [ $opt_dry_run -gt 0 ] || mkdir -p /etc/lisa/kbase
-  for f in ; do
-    if [ -f $SRCDIR/$f ]; then
-      [ $opt_verbose -gt 0 ] && echo "$pfx $cpmv $SRCDIR/$f /usr/bin"
-      [ $opt_dry_run -gt 0 ] || eval $cpmv $SRCDIR/$f /usr/bin
-      [ $opt_verbose -gt 0 ] && echo "$pfx [ -x /usr/bin/$f ] && chmod +x /usr/bin/$f"
-      [[ $opt_dry_run > 0 && -x /usr/bin/$f ]] && chmod +x /usr/bin/$f
-    fi
-  done
-  for f in ; do
-    if [ -f $SRCDIR/$f ]; then
-      [ $opt_verbose -gt 0 ] && echo "$pfx $cpmv $SRCDIR/$f /etc/lisa"
-      [ $opt_dry_run -gt 0 ] || eval $cpmv $SRCDIR/$f /etc/lisa/$f
-    fi
-  done
-  if [  -gt 0 ]; then
-    [ $opt_verbose -gt 0 ] && echo "$pfx cd $SRCDIR"
-    [ $opt_dry_run -gt 0 ] || cd $SRCDIR
-    [ $opt_verbose -gt 0 ] && echo "$pfx _install_z0librc"
-    [ $opt_dry_run -eq 0 ] && _install_z0librc
-  fi
-  if [  -gt 0 ]; then
-    [ $opt_verbose -gt 0 ] && echo "$pfx $cpmv $SRCDIR/odoorc /etc"
-    [ $opt_dry_run -eq 0 ] && eval $cpmv $SRCDIR/odoorc /etc
-  fi
-  [ $opt_verbose -gt 0 ] && echo "$pfx cd $TDIR"
-  [ $opt_dry_run -gt 0 ] || cd $TDIR
-  if [ -d $TDIR/$pkgname ]; then
-    [ $opt_verbose -gt 0 ] && echo "rm -fR $TDIR/$pkgname"
-    [ $opt_dry_run -gt 0 ] || rm -fR $TDIR/$pkgname
-  fi
-  if [ -f "./$tarball" ]; then
-    [ $opt_verbose -gt 0 ] && echo "rm -f ./$tarball"
-    [ $opt_dry_run -gt 0 ] || rm -f ./$tarball
-  fi
-else
-  echo "Library z0librc not found!"
-  exit 1
-fi
+done
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"

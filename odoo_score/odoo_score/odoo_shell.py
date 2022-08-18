@@ -33,7 +33,7 @@ import pdb  # pylint: disable=deprecated-module
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '1.0.8'
+__version__ = '2.0.0'
 
 
 MAX_DEEP = 20

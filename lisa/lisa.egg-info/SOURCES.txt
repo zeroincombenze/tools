@@ -1,6 +1,7 @@
 setup.py
 lisa/__init__.py
 lisa/__main__.py
+lisa/tmp2.py
 lisa.egg-info/PKG-INFO
 lisa.egg-info/SOURCES.txt
 lisa.egg-info/dependency_links.txt

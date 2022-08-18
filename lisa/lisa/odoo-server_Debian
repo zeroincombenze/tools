@@ -238,7 +238,9 @@ checkpid() {
 
 
 check_4_venv() {
-    local dt
+    local dt x
+    x=$(which wsl.exe)
+    [[ -n $x ]] && ps -ef|grep -Eq "^postgres.* /.*/postgresql" || sleep 8
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     if [[ -n "$VENV_DIR" && -f $VENV_DIR/bin/activate ]]; then
         echo "$dt $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate" >> $LOGFILE

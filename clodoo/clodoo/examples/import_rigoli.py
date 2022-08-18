@@ -12,7 +12,7 @@ from import_records import init_n_connect, import_from_csv, copy_db
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = "1.0.7"
+__version__ = "2.0.0"
 
 MYDICT_C = {}
 

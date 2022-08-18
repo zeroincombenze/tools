@@ -34,8 +34,8 @@ __version__=1.3.38
 
 
 conf_default () {
-    set_cfg_def "DEV_HOST" "shsita16"
-    set_cfg_def "PRD_HOST" "shsdef14"
+    CFG_set "DEV_HOST" "shsita16"
+    CFG_set "PRD_HOST" "shsdef14"
 }
 
 OPTOPTS=(h        V           v)
