@@ -1934,7 +1934,7 @@ do_replace() {
     ## do_docs
     clean_dirs "$PKGPATH"
     opts=$(inherits_travis_opts "R" "D")
-    [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg.sh $opts $1"
+    run_traced "$TDIR/dist_pkg.sh $opts $1"
     sts=$?
     [[ $(basename $PRJPATH) != "tools" ]] && clean_dirs "$HOME_DEVEL/tools"
     [[ $opt_force -ne 0 ]] && set_executable
@@ -2247,6 +2247,7 @@ sts_bash=127
 sts_flake8=127
 sts_pylint=127
 test_sts=127
+[[ -n $LGITPATH && $PKGNAME == "tools" && $LGITPATH =~ "tools" ]] && LGITPATH=$(dirname $LGITPATH)
 
 if [[ -z $sub1 ]]; then
   sub1="$sub2"

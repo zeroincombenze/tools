@@ -96,9 +96,9 @@ conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 # prepare_env_travis
-# prepare_env_travis
 sts=$STS_SUCCESS
 
+[[ -n $LGITPATH && $PKGNAME == "tools" && $LGITPATH =~ "tools" ]] && LGITPATH=$(dirname $LGITPATH)
 if [[ -n $opt_whatis ]]; then
   if [[ $opt_whatis =~ ^(LGITPATH|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOSNAME|SETUP)$ ]]; then
     echo "${opt_whatis}=${!opt_whatis}"
@@ -136,6 +136,8 @@ else
     [[ -f "$PKGPATH/setup.py" ]] && ((valid++))
     [[ -f "$PRJPATH/__init__.py" ]] && ((valid++))
     [[ -d "$PRJPATH/scripts" ]] && ((valid++))
+    [[ $PKGNAME == "tools" && -x "$PKGPATH/install_tools.sh" ]] && ((valid++))
+    [[ $PKGNAME == "tools" && -d "$PKGPATH/templates" ]] && ((valid++))
     if [[ $valid -lt 3 ]]; then
         echo "Invalid environment!!"
         exit 1
@@ -336,10 +338,9 @@ fi
 
 # check for source dirs
 check_4_travis
-[[ $PRJNAME != "Odoo" && $PKGNAME != $PRJNAME ]] && echo "Warning: package name $PKGNAME and project name $PRJNAME are different!"
-if [ $opt_sync -gt 0 ]; then
-  exit $STS_SUCCESS
-fi
+[[ "$PRJNAME" == "Odoo" ]] && echo "Invalid project Odoo!" && exit 1
+[[ $PKGNAME != $PRJNAME ]] && echo "Warning: package name $PKGNAME and project name $PRJNAME are different!"
+[[ $opt_sync -gt 0 ]] && exit $STS_SUCCESS
 
 if [ "$opt_cpush" == "-w" ]; then
   clean_dirs "$PKGPATH"
@@ -368,40 +369,13 @@ if [ "$opt_cpush" == "-w" ]; then
 fi
 
 [[ ! -d $LGITPATH ]] && echo "Destination path $LGITPATH not found!" && exit $STS_FAILED
-dpath_parent=$LGITPATH
-dpath_child=$LGITPATH/$PKGNAME
-dpath_prj=$PKGPATH/$PRJNAME
-
-if [[ "$PRJNAME" == "Odoo" ]]; then
-  dpath_prj=$PKGPATH
-  LGITLEV=0
-else
-  LGITLEV=1
-fi
-
 robocopy_init "$PRJNAME" "$PKGNAME"
-
 if [[ $opt_fetch -eq 0 ]]; then
   [[ $PKGNAME != "tools" ]] &&  run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
   [[ -f $PRJPATH/setup.py && -f $PRJPATH/scripts/setup.info ]] &&  run_traced "rm -f $PRJPATH/setup.py"
-  if [[ $LGITLEV -gt 0 ]]; then
-    for f in $PKGPATH/*; do
-      robocopy "$f" "$LGITPATH/$(basename $f)"
-    done
-  else
-    for f in $PKGPATH/*; do
-      robocopy "$f" "$LGITPATH//$(basename $f)"
-    done
-  fi
+  [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh"
+  [[ ! -x $PRJPATH/replace.sh ]] && robocopy "$PRJPATH" "$LGITPATH"
   [[ $PKGNAME != "tools" && -f $PKGPATH/setup.py ]] &&  run_traced "cp $PKGPATH/setup.py $LGITPATH/setup.py"
   [[ -f "$PRJPATH/scripts/setup.info" ]] &&  run_traced "cp $PRJPATH/scripts/setup.info $LGITPATH/scripts/setup.info"
-elif [[ $LGITLEV -gt 0 ]]; then
-  for f in $LGITPATH/*; do
-    [[ ! $f =~ .*~ ]] && robocopy "$LGITPATH/$f" "$PKGPATH/$PKGNAME/$f"
-  done
-else
-  for f in $LGITPATH/*; do
-    [[ ! $f =~ .*~ ]] && robocopy "$LGITPATH/$f" "$PKGPATH/$f"
-  done
 fi
 exit $STS_SUCCESS
