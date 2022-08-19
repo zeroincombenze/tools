@@ -318,10 +318,7 @@ pip_install() {
         echo "Missed Odoo version to install (please use -O and -o switches)!"
         exit 1
       fi
-      if [[ $pkg =~ ^(odoo|openerp)$ && -z $srcdir ]]; then
-        echo "Odoo path not found! Please supply path with -o switch)!"
-        exit 1
-      fi
+      [[ $pkg =~ ^(odoo|openerp)$ ]] && srcdir=$opt_oepath
     fi
     if [[ $pkg =~ $BIN_PKGS ]]; then
       bin_install "$pkg"
@@ -722,7 +719,7 @@ find_odoo_path() {
     local p v x y
     [[ -n "$1" && -d $1 ]] && p="$1"
     if [[ -n $p ]]; then
-      x=(basename $p)
+      x=$(basename $p)
       [[ $x =~ ^VENV && -d $p/odoo ]] && p="$p/odoo"
       [[ $x =~ ^venv_odoo && -d $p ]] && p=$(dirname $p)
     fi
@@ -1101,7 +1098,6 @@ do_venv_create() {
   check_installed_pkgs
   pypath=$(find $VENV/lib -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
-  set -x  #debug
   if [[ -n "$opt_oepath" && -n "$opt_oever" ]]; then
     BINPKGS=$(get_req_list "" "bin")
     [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' 'bin' 'debug')"
@@ -1109,7 +1105,6 @@ do_venv_create() {
     [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug')"
     bin_install_1 $VENV
   fi
-  set +x  #debug
   [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
   pip_install_1
   [[ -n "$opt_oever" ]] && pip_install_2
@@ -1301,7 +1296,7 @@ if [[ $action == "rm" ]]; then
 elif [[ ! $action =~ (help|create) ]]; then
   do_activate "$p2" "-q"
   venv_mgr_check_src_path "$p2"
-  [[ -z $opt_eopath ]] && find_odoo_path "$p2" "-L" || find_odoo_path "$opt_eopath" "-L"
+  [[ -z $opt_oepath ]] && find_odoo_path "$p2" "-L" || find_odoo_path "$opt_oepath" "-L"
   venv_mgr_check_oever
   check_installed_pkgs
   validate_py_oe_vers
