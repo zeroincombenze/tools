@@ -1,7 +1,7 @@
 
-===============
-wok_code 1.0.11
-===============
+==============
+wok_code 2.0.0
+==============
 
 
 
@@ -509,10 +509,10 @@ In this documentation VAR means the name of the macro while MACRO is the name of
 ::
 
     i.e.  .. $if branch == '12.0'
-          Current branch is 1.0
+          Current branch is 2.0
 
 In above example then word branch after statement $if ia the VAR branch.
-The word branch in the second line is a text. The item 1.0 is the macro, replaced by the value of varaibale branch.
+The word branch in the second line is a text. The item 2.0 is the macro, replaced by the value of varaibale branch.
 
 CONDITION may be a python condition or one of follow special condition:
 
@@ -844,6 +844,15 @@ Current development version
 History
 -------
 
+1.0.11 (2022-06-17)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] gen_readme.py: git_org librerp
+* [IMP] do_odo_site.py: generate configration files for cloud
+* [IMP] makepo_it.py: new features
+* [IMP] topep8: git_org librerp
+* [IMP] topep8: some actions are deprecated
+
 1.0.9 (2022-04-04)
 ~~~~~~~~~~~~~~~~~~
 
@@ -903,15 +912,6 @@ History
 
 * [FIX] cvt_csv_2_rst.py: python 3
 
-1.0.2.6 (2021-10-08)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] cvt_scrit: run inside virtual environment
-* [FIX] please: run inside virtual environment
-* [FIX] please: version
-* [FIX] dist_pkg: run inside virtual environment
-* [FIX] gen_readme.py: new template layout in devel/venv
-
 
 
 |
@@ -936,7 +936,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-06-11
+Last Update / Ultimo aggiornamento: 2022-08-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -951,22 +951,22 @@ Last Update / Ultimo aggiornamento: 2022-06-11
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=2.0
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/2.0/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/2.0
     :alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0/dev
     :alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0/man
     :alt: Technical Documentation
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
-    :target: https://erp1.zeroincombenze.it
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
+    :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/2.0/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/2.0
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

@@ -2,21 +2,21 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.7
+#__version__=2.0.0
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.9
+# Based on template 2.0.0
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-if [[ -z $HOME_DEVEL ]]; then
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEVEL"'\nimport os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nH=o.expanduser('~')\nT=j(d(D), 'tools')\nR=j(d(D),'pypi') if o.basename(D)=='venv_tools' else j(D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('scripts','tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==b(d(C)) and f(j(C,'..','setup.py')):\n C=a(j(C,'..','..'))\nelif b(d(C))=='tools' and f(j(C,'setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)) or p(j(C,b(C),B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+[os.getcwd()]+P\np=set()\npa=p.add\np=[x for x in L if x and x.startswith((H,D,C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -25,18 +25,23 @@ for d in $PYPATH /etc; do
     break
   fi
 done
-if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found in <$PYPATH>!"
-  exit 72
-fi
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
-if [[ -z "$ODOOLIBDIR" ]]; then
-  echo "Library file odoorc not found!"
-  exit 72
-fi
+[[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
+
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
 
 
 opts_travis() {
@@ -804,42 +809,6 @@ robocopy() {
       fi
     fi
   fi
-}
-
-clean_dirs() {
-  # clean_dirs (directory)::
-  # return:
-  run_traced "find . -name '*.bak' -delete"
-  run_traced "find . -name '*~' -delete"
-#  local b cmd d excl f gx="" o p w XXXX x yy
-#  [[ -n "$1" ]] && d=$(readlink -e $1) || d="./"
-#  [[ $d == $HOME || $d == "/" ]] && echo "Too many file to delete!" && exit 1
-#  XXXX=$(get_cfg_value "" "filedel")
-#  [[ $PWD == "$HOME/tools" ]] && XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
-#  yy=$(get_cfg_value "" "fileignore")
-#  excl=""
-#  for x in $yy; do [[ ${x: -1} == "/" ]] && excl="$excl ${x:0: -1}"; done
-#  excl=${excl:1}
-#  [[ $opt_verbose -gt 1 ]] && echo "fileignore(conf)='$excl'"
-#  [[ -f ".gitmodules" ]] && \
-#    gx=$(cat .gitmodules | grep "^[[:space:]]*path" | sed -e "s/ =/=/g" -e "s/= /=/g" -e "s/^[[:space:]]*//g" | awk -F= '{print $2}'|tr "\n" "|")
-#  gx="(${gx}lib|git|__to_remove|tmp|node_modules|.cache)"
-#  [[ $opt_verbose -gt 1 ]] && echo "gitignore='$gx'"
-#  cmd="find $d"
-#  run_traced "$cmd -name '*~' -delete"
-#  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp) ]] && w=1 || w=0
-#  for f in $d/*; do
-#    b=$(basename $f)
-#    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openerp) ]] && echo "Warning! Directory $f should be in .gitmodules"
-#    [[ -d $f && (-z "$gx" || (-n "$gx" && $b =~ $gx)) ]] && cmd="$cmd -not -path '$f/*'"
-#  done
-#  for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
-#  o="-nowarn \("
-#  for x in $XXXX; do
-#    [[ ! $x =~ (.conf|\*|/)$ ]] && cmd="$cmd $o -name '*$x'" && o="-o"
-#    [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
-#  done
-#  run_traced "$cmd \) -exec rm -f '{}' \;"
 }
 
 do_summary() {

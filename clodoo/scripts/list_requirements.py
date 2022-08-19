@@ -21,7 +21,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.7"
+__version__ = "2.0.0"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -145,6 +145,7 @@ ALIAS = {
     "babel": "Babel",
     "click": "Click",
     "crypto": "pycrypto",
+    "crypto.cipher": "pycrypto",
     "dateutil": "python-dateutil",
     "jinja2": "Jinja2",
     "ldap": "python-ldap",
@@ -178,7 +179,10 @@ ALIAS = {
     "xlsxwriter": "XlsxWriter",
 }
 ALIAS3 = {
-    "PyWebDAV": "PyWebDAV3", "python-ldap": "python3-ldap", "pyPdf": "pyPDF2",
+    "PyWebDAV": "PyWebDAV3",
+    "pyPdf": "pyPDF2",
+    "python-ldap": "pyldap",  # pyldap is a fork!
+    "python-dev": "python3-dev",
 }
 FORCE_ALIAS = {"docutils==0.12": "docutils==0.14"}
 PIP_TEST_PACKAGES = [
@@ -333,8 +337,8 @@ DEPS2 = {
     "python-ldap": {"bin": ("libsasl2-dev", "libldap2-dev", "libssl-dev")},
 }
 DEPS3 = {
-    "lxml": {"bin": (PY3_DEV, "libxml2-dev", "libxslt1-dev", "zlib1g-dev")},
-    "python-psycopg2": {"bin": (PY3_DEV, "libpq-dev")},
+    "lxml": {"bin": ("PY3_DEV", "libxml2-dev", "libxslt1-dev", "zlib1g-dev")},
+    "python-psycopg2": {"bin": ("PY3_DEV", "libpq-dev")},
     "python3-ldap": {"bin": ("libsasl2-dev", "libldap2-dev", "libssl-dev")},
 }
 DEPS9 = [
@@ -359,9 +363,24 @@ def get_naked_pkgname(pkg):
     return re.split('[!<=>@#;]', pkg.replace("'", ""))[0].strip()
 
 
+def trim_pkgname(pkg):
+    pkg = pkg.replace(
+        " =", "=").replace(
+        " <", "<").replace(
+        " >", ">").replace(
+        " ;", ";").replace(
+        " @", "@").replace(
+        "= ", "=").replace(
+        "< ", "<").replace(
+        "> ", ">").replace(
+        "; ", ";").replace(
+        "@ ", "@")
+    return pkg.replace(" !", "!").strip()
+
+
 def eval_requirement_cond(line, pyver=None):
     # odoo_ver = odoo_ver or '10.0'
-    pyver = pyver or 3.7
+    pyver = pyver or '3.7'
     items = line.split('#')[0].split(";")
     if len(items) == 1:
         return get_naked_pkgname(line)
@@ -371,7 +390,7 @@ def eval_requirement_cond(line, pyver=None):
     return False
 
 
-def parse_requirements(reqfile, pyver=None):
+def parse_requirements(ctx, reqfile, pyver=None):
     if reqfile == "openupgradelib":
         return [reqfile]
     reqlist = []
@@ -379,11 +398,15 @@ def parse_requirements(reqfile, pyver=None):
         lines = fd.read().split("\n")
         for line in lines:
             if eval_requirement_cond(line, pyver=pyver):
-                reqlist.append(line)
+                if ctx["keep_cond"]:
+                    reqlist.append(line)
+                else:
+                    reqlist.append(line.split(";")[0].strip())
     return reqlist
 
 
 def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
+    full_item = trim_pkgname(full_item)
     item = re.split("[!=<>]", full_item)
     if len(item) == 1:
         item_ver = ""
@@ -396,11 +419,12 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         if '.' in item:
             full_item = full_item.replace('.'+item.split(".")[1], '')
             item = item.split(".")[0].lower()
-    if item in ALIAS:
-        full_item = full_item.replace(item, ALIAS[item])
-        item = ALIAS[item]
+    item_l = item.lower()
+    if "openupgradelib" not in item_l and item_l in ALIAS:
+        full_item = full_item.replace(item, ALIAS[item_l])
+        item = ALIAS[item_l]
     if int(odoo_ver.split('.')[0]) > 10:
-        if item in ALIAS3:
+        if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
     defver = False
@@ -453,6 +477,8 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
 def add_package(deps_list, kw, item, with_version=None, odoo_ver=None, pyver=None):
     if item in BUILTIN:
         return deps_list
+    if item == "PY3_DEV":
+        item = PY3_DEV
     item, full_item, defver = name_n_version(
         item, with_version=with_version, odoo_ver=odoo_ver, pyver=pyver
     )
@@ -769,6 +795,13 @@ def main(cli_args=None):
         dest="oca_dependencies",
     )
     parser.add_argument(
+        "-k",
+        "--keep-condition",
+        help="Keep condition",
+        action="store_true",
+        dest="keep_cond",
+    )
+    parser.add_argument(
         "-m",
         "--manifest",
         help="Declare manifest files if no path supplied",
@@ -848,11 +881,14 @@ def main(cli_args=None):
     parser.add_argument("-v")
     parser.add_argument("-y", "--python-version", action="store", dest="pyver")
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+    if ctx["pyver"]:
+        global PY3_DEV
+        PY3_DEV = "python%s-dev" % ctx["pyver"]
     if ctx["odoo_ver"] and not ctx["pyver"]:
         ctx = get_pyver(ctx)
     elif not ctx["odoo_ver"] and ctx["pyver"]:
         ctx = get_def_odoo_ver(ctx)
-    else:
+    if not ctx["odoo_ver"]:
         ctx["odoo_ver"] = "12.0"
     if ctx["out_file"]:
         ctx = set_def_outfile(ctx)
@@ -886,7 +922,7 @@ def main(cli_args=None):
     ):
         deps_list[kw] = []
     for reqfile in reqfiles:
-        requirements = parse_requirements(reqfile, pyver=ctx["pyver"])
+        requirements = parse_requirements(ctx, reqfile, pyver=ctx["pyver"])
         deps_list = package_from_list(
             deps_list,
             "python",
@@ -966,8 +1002,6 @@ def main(cli_args=None):
     )
     for ii, dep_pkg in enumerate(deps_list["python"]):
         if dep_pkg.find(">") >= 0 or dep_pkg.find("<") >= 0 or dep_pkg.find(" ") >= 0:
-            if dep_pkg.find(" ") >= 0:
-                dep_pkg = dep_pkg.replace(" ", "")
             deps_list["python"][ii] = "'%s'" % dep_pkg
     deps_list["bin"] = sorted(
         sorted(deps_list["bin1"], key=lambda s: s.lower()) + deps_list["bin2"],
@@ -975,8 +1009,6 @@ def main(cli_args=None):
     )
     for ii, dep_pkg in enumerate(deps_list["bin"]):
         if dep_pkg.find(">") >= 0 or dep_pkg.find("<") >= 0 or dep_pkg.find(" ") >= 0:
-            if dep_pkg.find(" ") >= 0:
-                dep_pkg = dep_pkg.replace(" ", "")
             deps_list["bin"][ii] = "'%s'" % dep_pkg
     for item in DEPS:
         if "python" in DEPS[item]:

@@ -10,15 +10,15 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.9
+# Based on template 2.0.0
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-if [[ -z $HOME_DEVEL ]]; then
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEVEL"'\nimport os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nH=o.expanduser('~')\nT=j(d(D), 'tools')\nR=j(d(D),'pypi') if o.basename(D)=='venv_tools' else j(D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('scripts','tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==b(d(C)) and f(j(C,'..','setup.py')):\n C=a(j(C,'..','..'))\nelif b(d(C))=='tools' and f(j(C,'setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)) or p(j(C,b(C),B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+[os.getcwd()]+P\np=set()\npa=p.add\np=[x for x in L if x and x.startswith((H,D,C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -27,23 +27,14 @@ for d in $PYPATH /etc; do
     break
   fi
 done
-if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found in <$PYPATH>!"
-  exit 72
-fi
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
-if [[ -z "$ODOOLIBDIR" ]]; then
-  echo "Library file odoorc not found!"
-  exit 72
-fi
+[[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
-if [[ -z "$TRAVISLIBDIR" ]]; then
-  echo "Library file travisrc not found!"
-  exit 72
-fi
+[[ -z "$TRAVISLIBDIR" ]] && echo "Library file travisrc not found!" && exit 72
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
@@ -51,8 +42,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
-TCONF="$HOME/.z0tools.conf"
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -62,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.7
+__version__=2.0.0
 
 
 store_cfg_param_value() {
@@ -1047,6 +1038,8 @@ conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 # prepare_env_travis
+# prepare_env_travis
+# prepare_env_travis
 
 [[ -n $opt_flog ]] && LOGDIR="$(dirname $opt_flog)" || LOGDIR="$(get_cfg_value "" "LOGDIR")"
 [[ -d $LOGDIR ]] || mkdir $LOGDIR
@@ -1131,56 +1124,59 @@ elif [[ $action == "parseyaml" ]]; then
 elif [[ $action =~ (wep_db|wep-db) ]]; then
   export PGUSER="$(get_cfg_value "" "MQT_DBUSER")"
   [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
-  if [[ -n $PGUSER ]]; then
-    done=0
-    all_dbs=1
-    [[ $opt_force -ne 0 ]] && md=30 || md=1800
-    dt=$(date "+%s")
-    for d in $HOME/VENV_*; do
-      if [[ "$d" != "$HOME/VENV_*" ]]; then
-        dd=$(stat -c "%Y" $d)
-        df=$(($dt - $dd))
-        if [[ $df -gt $md ]]; then
-          echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
-          rm -fR $d
-          sfx=$(echo "$d" | grep -Eo "[0-9]+$")
+  done_db=0
+  done_ve=0
+  all_dbs=1
+  [[ $opt_force -ne 0 ]] && md=30 || md=1800
+  dt=$(date "+%s")
+  for d in $HOME/VENV_*; do
+    if [[ "$d" != "$HOME/VENV_*" ]]; then
+      dd=$(stat -c "%Y" $d)
+      df=$(($dt - $dd))
+      if [[ $df -gt $md ]]; then
+        [[ $opt_verbose -gt 0 ]] && echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
+        rm -fR $d
+        ((done_ve++))
+        sfx=$(echo "$d" | grep -Eo "[0-9]+$")
+        if [[ -n $PGUSER ]]; then
           for db in openerp_template$sfx openerp_test$sfx; do
-            echo "\$ dropdb -U$PGUSER $db"
+            [[ $opt_verbose -gt 0 ]] && echo "\$ dropdb -U$PGUSER $db"
             pg_db_active -wa $db
             dropdb -U$PGUSER $db --if-exists &>/dev/null
-            done=1
+            ((done_db++))
           done
-        else
-          ((dd = md - df))
-          echo "$d ($(date -d@$df -u +"%H:%M:%S") old) will be removed in ${dd}s"
-          all_dbs=0
         fi
+      else
+        ((dd = md - df))
+        echo "$d ($(date -d@$df -u +"%H:%M:%S") old) will be removed in ${dd}s"
+        all_dbs=0
+      fi
+    fi
+  done
+  if [[ -n $PGUSER && $all_dbs -ne 0 ]]; then
+    for db in $(psql -U$PGUSER -Atl | grep -E "(openerp_template|openerp_test)" | awk -F"|" '{print $1}'); do
+      [[ $opt_verbose -gt 0 ]] && echo "\$ dropdb -U$PGUSER $db"
+      pg_db_active -wa $db
+      dropdb -U$PGUSER $db --if-exists &>/dev/null
+      ((done_db++))
+    done
+  fi
+  ((md = 60 * 60 * 24 * 90))
+  if [[ -n "$LOGDIR" && -d $LOGDIR ]]; then
+    for d in $LOGDIR/*; do
+      dd=$(stat -c "%Y" $d)
+      df=$(($dt - $dd))
+      if [[ $df -gt $md ]]; then
+        [[ $opt_verbose -gt 0 ]] && echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
+        rm -fR $d
+        ((done_ve++))
       fi
     done
-    if [[ $all_dbs -ne 0 ]]; then
-      for db in $(psql -U$PGUSER -Atl | grep -E "(openerp_template|openerp_test)" | awk -F"|" '{print $1}'); do
-        echo "\$ dropdb -U$PGUSER $db"
-        pg_db_active -wa $db
-        dropdb -U$PGUSER $db --if-exists &>/dev/null
-        done=1
-      done
-    fi
-    ((md = 60 * 60 * 24 * 90))
-    if [[ -n "$LOGDIR" && -d $LOGDIR ]]; then
-      for d in $LOGDIR/*; do
-        dd=$(stat -c "%Y" $d)
-        df=$(($dt - $dd))
-        if [[ $df -gt $md ]]; then
-          echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
-          rm -fR $d
-        fi
-      done
-    fi
-    [[ $done -eq 0 ]] && echo "Nothing to wep"
-    exit $STS_SUCCESS
-  else
-    exit 2
   fi
+  [[ $done_db -eq 0 ]] && echo "Warning: no DB to wep"
+  [[ $done_db -ne 0 && $opt_verbose -gt 0 ]] && echo "$done_db DB removed"
+  [[ $done_ve -ne 0 && $opt_verbose -gt 0 ]] && echo "$done_ve directories removed"
+  exit $STS_SUCCESS
 elif [[ $action == "summary" ]]; then
   [[ "$sub" == "old" ]] && logfile=$OLD_LOGFILE || logfile=$LOGFILE
   sts=0

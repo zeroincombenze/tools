@@ -10,15 +10,15 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.9
+# Based on template 2.0.0
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-if [[ -z $HOME_DEVEL ]]; then
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEVEL"'\nimport os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nH=o.expanduser('~')\nT=j(d(D), 'tools')\nR=j(d(D),'pypi') if o.basename(D)=='venv_tools' else j(D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('scripts','tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==b(d(C)) and f(j(C,'..','setup.py')):\n C=a(j(C,'..','..'))\nelif b(d(C))=='tools' and f(j(C,'setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)) or p(j(C,b(C),B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+[os.getcwd()]+P\np=set()\npa=p.add\np=[x for x in L if x and x.startswith((H,D,C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -27,23 +27,14 @@ for d in $PYPATH /etc; do
     break
   fi
 done
-if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found in <$PYPATH>!"
-  exit 72
-fi
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
-if [[ -z "$ODOOLIBDIR" ]]; then
-  echo "Library file odoorc not found!"
-  exit 72
-fi
+[[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
-if [[ -z "$TRAVISLIBDIR" ]]; then
-  echo "Library file travisrc not found!"
-  exit 72
-fi
+[[ -z "$TRAVISLIBDIR" ]] && echo "Library file travisrc not found!" && exit 72
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
@@ -51,8 +42,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
-TCONF="$HOME/.z0tools.conf"
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -62,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.11
+__version__=2.0.0
 
 #
 # General Purpose options:
@@ -1794,7 +1785,7 @@ do_translate() {
   fi
   [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
   [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
-  run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -d $db -c $confn -p $pofile"
+  run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -d $db -c $confn -p $pofile -AP"
   sts=$?
   return $sts
 }
@@ -1927,47 +1918,27 @@ do_register() {
 }
 
 do_replace() {
-  if [[ "$PRJNAME" == "Odoo" ]]; then
-    clean_dirs
-    [[ $opt_force -ne 0 ]] && set_executable
-    if [[ $LGITPATH =~ (oca|zero) ]]; then
-      local odoo_fver=$(build_odoo_param FULLVER ".")
-      local p=$(build_odoo_param HOME "." "$PKGNAME" "$LGITPATH")
-      LGITPATH=$p
+    wlog "do_replace '$1' '$2' '$3'"
+    local f opts t
+    if [[ $PRJNAME == "Odoo" ]]; then
+      echo "This action can be issued only on PYPI projects"
+      return $sts
     fi
-    if [[ ! -d "$LGITPATH" && $opt_force -ne 0 ]]; then
-      [[ $opt_verbose -gt 0 ]] && echo "Creating destination directory ..."
-      run_traced "mkdir -p $LGITPATH"
-    fi
-    if [[ ! -d "$LGITPATH" ]]; then
-      echo "Destination directory $LGITPATH not found!"
-      sts=$STS_FAILED
-    else
-      opts=$(inherits_travis_opts "O" "D")
-      opt_dry_run=0
-      run_traced "$TDIR/dist_pkg $opts $1 -p$LGITPATH"
-      sts=$?
-    fi
-  else
     # do_distribution_pypi "$@"
-    for f in ./*; do
+    for f in $PRJPATH/*; do
       t=$(file -b --mime-type $f)
       [[ $t != "application/x-sharedlib" && ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python3$|^#\!/usr/bin/env python3|\" $f"
       [[ $t != "application/x-sharedlib" && ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python2|\" $f"
       [[ $t != "application/x-sharedlib" && ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python|\" $f"
     done
-    do_docs
-    [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
-    # [[ -f $PKGPATH/setup.py && -d $PRJPATH/scripts ]] && run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
-    # [[ -f $PRJPATH/setup.py ]] && run_traced "rm -f $PRJPATH/setup.py"
+    ## do_docs
+    clean_dirs "$PKGPATH"
     opts=$(inherits_travis_opts "R" "D")
-    [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh" || run_traced "$TDIR/dist_pkg $opts $1"
+    run_traced "$TDIR/dist_pkg.sh $opts $1"
     sts=$?
-    # [[ $(basename $PWD) != "tools" ]] && run_traced "cp $PKGPATH/setup.py $HOME/tools/$PKGNAME/"
-    [[ $(basename $PWD) != "tools" ]] && clean_dirs "$HOME/tools"
+    [[ $(basename $PRJPATH) != "tools" ]] && clean_dirs "$HOME_DEVEL/tools"
     [[ $opt_force -ne 0 ]] && set_executable
-  fi
-  return $sts
+    return $sts
 }
 
 do_replica() {
@@ -2217,13 +2188,10 @@ do_config() {
 }
 
 do_wep() {
-  wlog "do_wep '$1' '$2' '$3'"
-  # [[ "$PRJNAME" == "Odoo" ]] && PKGPATH=$2 || PKGPATH=$1
-  # [[ -z "$PKGPATH" ]] && PKGPATH="."
-  # clean_dirs "$PKGPATH"
-  [[ $(basename $PWD) == "tools" ]] && clean_dirs "./" || clean_dirs "../"
-  [[ $opt_force -ne 0 ]] && set_executable
-  return 0
+    wlog "do_wep '$1' '$2' '$3'"
+    clean_dirs "$PKGPATH"
+    [[ $opt_force -ne 0 ]] && set_executable
+    return 0
 }
 
 OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O       p         q           r     s        t         u       V           v)
@@ -2272,12 +2240,14 @@ conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
 # prepare_env_travis
+# prepare_env_travis
 prepare_env_travis "$actions" "-r"
 sts=$STS_SUCCESS
 sts_bash=127
 sts_flake8=127
 sts_pylint=127
 test_sts=127
+[[ -n $LGITPATH && $PKGNAME == "tools" && $LGITPATH =~ "tools" ]] && LGITPATH=$(dirname $LGITPATH)
 
 if [[ -z $sub1 ]]; then
   sub1="$sub2"

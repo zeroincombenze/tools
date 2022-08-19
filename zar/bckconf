@@ -1,4 +1,0 @@
-#
-#python ${0}.py
-python bckconf.py
-exit

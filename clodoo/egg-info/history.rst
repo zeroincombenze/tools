@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] clodoo: remote login
+* [IMP] Crypto.Cipher recognition
 
 1.0.6 (2022-06-17)
 ~~~~~~~~~~~~~~~~~~

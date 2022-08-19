@@ -117,7 +117,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "1.0.11"
+__version__ = "2.0.0"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -1114,7 +1114,7 @@ def tail(source, max_ctr=None, max_days=None, module=None):
     max_ctr = max_ctr or 12
     max_days = max_days or 360
     left = ""
-    for lno, line in enumerate(source.split("\n")):
+    for _lno, line in enumerate(source.split("\n")):
         if left:
             line = "%s%s" % (left, line)
             left = ""
@@ -1145,7 +1145,7 @@ def sort_history(source):
     histories = {}
     hash = ""
     histories[hash] = ""
-    for lno, line in enumerate(source.split("\n")):
+    for _lno, line in enumerate(source.split("\n")):
         x = re.match(r"^.*: [0-9]+\.[0-9]+\.[0-9]+", line)
         if x:
             x = re.search(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", line)
@@ -1381,7 +1381,7 @@ def read_setup(ctx):
     ctx["history-summary"] = ""
     if ctx["odoo_layer"] == "repository":
         ctx["histories"] = ""
-        for root, dirs, files in os.walk("../"):
+        for root, dirs, _files in os.walk("../"):
             for dir in dirs:
                 if dir == "tools":
                     continue

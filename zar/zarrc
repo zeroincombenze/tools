@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=1.3.36.1
+#__version__=2.0.0
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -57,36 +57,36 @@ detached_login() {
 conf_default() {
     local sfx XDB
     ACTION=$1
-    set_cfg_def "bckformat" "0"
-    set_cfg_def "dbfilter" ".*"
-    set_cfg_def "test_db" "test"
-    set_cfg_def "tar_ext" ".gz .bz2 .tar"
-    set_cfg_def "tar_opt" ""
-    set_cfg_def "pg_dump_opt" ""
-    set_cfg_def "db_user" "odoo"
-    set_cfg_def "set_original_user" "1"
-    set_cfg_def "pg_user" "postgres:postgres"
-    set_cfg_def "excl_list" ""
+    CFG_set "bckformat" "0"
+    CFG_set "dbfilter" ".*"
+    CFG_set "test_db" "test"
+    CFG_set "tar_ext" ".gz .bz2 .tar"
+    CFG_set "tar_opt" ""
+    CFG_set "pg_dump_opt" ""
+    CFG_set "db_user" "odoo"
+    CFG_set "set_original_user" "1"
+    CFG_set "pg_user" "postgres:postgres"
+    CFG_set "excl_list" ""
     local DBFA="zi[0-9]+"
     for sfx in A B C D E F G H; do
       x=DBF$sfx
       XDB=${!x}
-      set_cfg_def "DB${sfx}_filter" "$XDB"
-      set_cfg_def "DB${sfx}_keep_recent" "30"
-      set_cfg_def "DB${sfx}_keep_monthly" "12"
+      CFG_set "DB${sfx}_filter" "$XDB"
+      CFG_set "DB${sfx}_keep_recent" "30"
+      CFG_set "DB${sfx}_keep_monthly" "12"
     done
-    set_cfg_def "wait_4_prod" "60"
-    set_cfg_def "odoo_rpc_host" "localhost"
-    set_cfg_def "odoo_rpc_protocol" "xmlrpc"
-    set_cfg_def "odoo_rpc_xmlport" "8069"
-    set_cfg_def "odoo_version" "7.0"
-    set_cfg_def "odoo_rpc_pwd" "admin"
+    CFG_set "wait_4_prod" "60"
+    CFG_set "odoo_rpc_host" "localhost"
+    CFG_set "odoo_rpc_protocol" "xmlrpc"
+    CFG_set "odoo_rpc_xmlport" "8069"
+    CFG_set "odoo_version" "7.0"
+    CFG_set "odoo_rpc_pwd" "admin"
     if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
       test_mode=1
     fi
     if [ ${test_mode:-0} -ne 0 ]; then
       opt_dry_run=1
-      set_cfg_def "bckdir" "res/backups"
+      CFG_set "bckdir" "res/backups"
     fi
     if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
       FCONF=$opt_conf
