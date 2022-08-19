@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 1.0.0 (Debian)
+# version: 2.0.0 (Debian)
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com

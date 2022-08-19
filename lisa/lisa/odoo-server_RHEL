@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 1.0.0 (RHEL)
+# version: 2.0.0 (RHEL)
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -159,12 +159,12 @@ DAEMON_OPTS="$DAEMON_OPTS $2 $3 $4 $5 $6 $7 $8 $9"
 [[ -x $DAEMON ]] || exit 0
 RETVAL=0
 if [[ -f $CONFIGFILE ]]; then
-modules=$(grep ^server_wide_modules $CONFIGFILE|awk -F= '{print $2}')
-if [[ $modules =~ queue_job ]]; then
+  modules=$(grep ^server_wide_modules $CONFIGFILE|awk -F= '{print $2}')
+  if [[ $modules =~ queue_job ]]; then
     ch=$(grep ^channels $CONFIGFILE|awk -F= '{print $2}'|tr -d ' ')
-  [[ -z $ch ]] && ch="root:1"
-  export ODOO_CONNECTOR_CHANNELS="$ch"
-fi
+    [[ -z $ch ]] && ch="root:1"
+    export ODOO_CONNECTOR_CHANNELS="$ch"
+  fi
 fi
 
 
@@ -238,7 +238,9 @@ checkpid() {
 
 
 check_4_venv() {
-    local dt
+    local dt x
+    x=$(which wsl.exe)
+    [[ -n $x ]] && ps -ef|grep -Eq "^postgres.* /.*/postgresql" || sleep 8
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     if [[ -n "$VENV_DIR" && -f $VENV_DIR/bin/activate ]]; then
         echo "$dt $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate" >> $LOGFILE

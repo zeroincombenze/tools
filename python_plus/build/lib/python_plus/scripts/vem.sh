@@ -1101,6 +1101,7 @@ do_venv_create() {
   check_installed_pkgs
   pypath=$(find $VENV/lib -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
+  set -x  #debug
   if [[ -n "$opt_oepath" && -n "$opt_oever" ]]; then
     BINPKGS=$(get_req_list "" "bin")
     [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' 'bin' 'debug')"
@@ -1108,6 +1109,7 @@ do_venv_create() {
     [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug')"
     bin_install_1 $VENV
   fi
+  set +x  #debug
   [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
   pip_install_1
   [[ -n "$opt_oever" ]] && pip_install_2

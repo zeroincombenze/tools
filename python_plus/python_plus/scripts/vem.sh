@@ -318,10 +318,7 @@ pip_install() {
         echo "Missed Odoo version to install (please use -O and -o switches)!"
         exit 1
       fi
-      if [[ $pkg =~ ^(odoo|openerp)$ && -z $srcdir ]]; then
-        echo "Odoo path not found! Please supply path with -o switch)!"
-        exit 1
-      fi
+      [[ $pkg =~ ^(odoo|openerp)$ ]] && srcdir=$opt_oepath
     fi
     if [[ $pkg =~ $BIN_PKGS ]]; then
       bin_install "$pkg"
@@ -722,7 +719,7 @@ find_odoo_path() {
     local p v x y
     [[ -n "$1" && -d $1 ]] && p="$1"
     if [[ -n $p ]]; then
-      x=(basename $p)
+      x=$(basename $p)
       [[ $x =~ ^VENV && -d $p/odoo ]] && p="$p/odoo"
       [[ $x =~ ^venv_odoo && -d $p ]] && p=$(dirname $p)
     fi
@@ -1299,7 +1296,7 @@ if [[ $action == "rm" ]]; then
 elif [[ ! $action =~ (help|create) ]]; then
   do_activate "$p2" "-q"
   venv_mgr_check_src_path "$p2"
-  [[ -z $opt_eopath ]] && find_odoo_path "$p2" "-L" || find_odoo_path "$opt_eopath" "-L"
+  [[ -z $opt_oepath ]] && find_odoo_path "$p2" "-L" || find_odoo_path "$opt_oepath" "-L"
   venv_mgr_check_oever
   check_installed_pkgs
   validate_py_oe_vers
