@@ -62,7 +62,7 @@ REQVERSION = {
     "isort": {"0": "==4.3.4"},  # Version by test pkgs
     "jcconv": {"6.1": "==0.2.3"},
     "Jinja2": {"6.1": "==2.7.3", "9.0": "==2.8.1", "10.0": "==2.10.1"},
-    "lessc": {"0": "==3.0.4"},
+    "lessc": {"0": ">=3.0.0"},
     "lxml": {"6.1": ">=3.4.1", "0": ">=4.2.3"},
     "Mako": {"6.1": "==1.0.0", "7.0": "==1.0.1", "8.0": "==1.0.4"},
     "MarkupSafe": {"6.1": ">=0.23", "0": "<2.1.0"},  # Tested 1.0
@@ -149,7 +149,7 @@ ALIAS = {
     "dateutil": "python-dateutil",
     "jinja2": "Jinja2",
     "ldap": "python-ldap",
-    "lxml": "lxml",
+    # "lxml": "lxml",
     "mako": "Mako",
     "markupsafe": "MarkupSafe",
     "openid": "python-openid",
@@ -267,7 +267,7 @@ PIP_BASE_PACKAGES = [
     "python-openid",
     "pydot",
     "pyparsing",
-    "pypdf",
+    "pypdf",    # with PY3 becomes pyPDF2
     "pyserial",
     "pytz",
     "reportlab",
@@ -281,7 +281,6 @@ PIP_BASE_PACKAGES = [
 PIP3_BASE_PACKAGES = []
 BIN_BASE_PACKAGES = [
     "curl",
-    "lessc",
     "less-plugin-clean-css",
     "nodejs",
     "npm",
@@ -291,9 +290,6 @@ BIN_BASE_PACKAGES = [
 BIN_PACKAGES = [
     "git",
     "cups",
-    # 'pychart',
-    # 'PyChart',
-    # 'pyvies',
 ]
 PIP_WITH_DOT = ["py3o.", "anybox."]
 BUILTIN = ["csv"]
@@ -379,7 +375,6 @@ def trim_pkgname(pkg):
 
 
 def eval_requirement_cond(line, pyver=None):
-    # odoo_ver = odoo_ver or '10.0'
     pyver = pyver or '3.7'
     items = line.split('#')[0].split(";")
     if len(items) == 1:
@@ -423,7 +418,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
     if "openupgradelib" not in item_l and item_l in ALIAS:
         full_item = full_item.replace(item, ALIAS[item_l])
         item = ALIAS[item_l]
-    if int(odoo_ver.split('.')[0]) > 10:
+    if odoo_ver and int(odoo_ver.split('.')[0]) > 10:
         if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
@@ -719,15 +714,19 @@ def walk_dir(cdir, manifests, reqfiles, read_from_manifest, recurse):
 
 
 def get_pyver(ctx):
-    odoo_majver = int(ctx["odoo_ver"].split(".")[0])
-    if odoo_majver <= 10:
-        ctx["pyver"] = "2.7"
-    elif odoo_majver == 11:
-        ctx["pyver"] = "3.5"
-    elif odoo_majver >= 12:
-        ctx["pyver"] = "3.7"
-    elif odoo_majver >= 14:
-        ctx["pyver"] = "3.8"
+    if not ctx.get("odoo_ver"):
+        global python_version
+        ctx["pyver"] = python_version
+    else:
+        odoo_majver = int(ctx["odoo_ver"].split(".")[0])
+        if odoo_majver <= 10:
+            ctx["pyver"] = "2.7"
+        elif odoo_majver == 11:
+            ctx["pyver"] = "3.5"
+        elif odoo_majver >= 12:
+            ctx["pyver"] = "3.7"
+        elif odoo_majver >= 14:
+            ctx["pyver"] = "3.8"
     return ctx
 
 
@@ -957,6 +956,17 @@ def main(cli_args=None):
                 odoo_ver=ctx["odoo_ver"],
                 pyver=ctx["pyver"],
             )
+        if ctx["odoo_ver"]:
+            odoo_majver = int(ctx["odoo_ver"].split(".")[0])
+            if odoo_majver >= 10:
+                deps_list = package_from_list(
+                    deps_list,
+                    "python",
+                    ["lessc"],
+                    with_version=ctx["with_version"],
+                    odoo_ver=ctx["odoo_ver"],
+                    pyver=ctx["pyver"],
+                )
         deps_list = package_from_list(
             deps_list,
             "bin",
