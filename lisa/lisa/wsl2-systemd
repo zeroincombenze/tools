@@ -1,0 +1,94 @@
+#!/bin/sh
+# /etc/init.d/wsl2-systemd: start systemd
+### BEGIN INIT INFO
+# Provides:          wsl2-systemd
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     S
+# Default-Stop:
+# Short-Description:    Activate systemd on wsl2 host
+# Description:          This is an experimental service
+### END INIT INFO
+
+. /lib/lsb/init-functions
+SYSDPID=""
+
+systemd_running() {
+    while [ $(systemctl is-system-running 2>/dev/null|grep -qE "starting") ]; do echo $(systemctl is-system-running); sleep 1; done
+    SYSDPID=$(pidof /lib/systemd/systemd)
+}
+
+
+start() {
+    echo "Starting systemd ..."
+    systemd_running
+    [ -z "$SYSDPID" ] && daemonize /usr/bin/unshare --fork --pid --mount-proc /lib/systemd/systemd --system-unit=basic.target
+    RETVAL=$?
+    return $RETVAL
+}
+
+
+stop() {
+    echo "Stopping systemd ..."
+    ps -ef|grep -v grep|grep "/systemd"
+    for ln in $(ps -ef|grep -v grep|grep "/systemd"|tr -s " " "|"); do
+        kill $(echo $ln|cut -d"|" -f2)
+        sleep 1
+    done
+    RETVAL=0
+    return $RETVAL
+}
+
+
+restart() {
+    echo "Restarting systemd ... "
+    stop
+    sleep 3
+    start
+    RETVAL=$?
+}
+
+
+status() {
+    systemd_running
+    set -x
+    if [ -z "$SYSDPID" ]; then
+        echo "systemd is stopped"
+        RETVAL=1
+    else
+        echo "systemd is running..."
+        RETVAL=0
+    fi
+    set +x
+    return $RETVAL
+}
+
+
+case "${1}" in
+    start)
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    restart|reload|force-reload)
+        restart
+        ;;
+
+    status)
+        status
+        ;;
+
+    probe)
+        exit 0
+        ;;
+
+    *)
+        echo "Usage: wsl_systemd {start|stop|status|restart|force-reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
