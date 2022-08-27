@@ -310,15 +310,17 @@ pip_install() {
     if [[ ! $pkg =~ $BIN_PKGS ]]; then
       srcdir=""
       [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
-      [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/tools/$pfn)
+      [[ $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/,,/tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/,,/tools/$pfn)
       if [[ $opt_debug -ge 3 ]]; then
-        [[ -d $SAVED_HOME/devel/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/devel/pypi/$pfn/$pfn)
+        [[ -d $SAVED_HOME_DEVEL/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pfn)
       fi
-      if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
-        echo "Missed Odoo version to install (please use -O and -o switches)!"
-        exit 1
+      if [[ $pkg =~ ^(odoo|openerp)$ ]]; then
+        [[ -z $opt_oepath ]] && echo "Missed Odoo version to install (please use -O and -o switches)!" && exit 1
+        [[ -d $opt_oepath/openerp && -f $opt_oepath/openerp/__init__.py ]] && srcdir=$opt_oepath/openerp
+        [[ -d $opt_oepath/odoo && -f $opt_oepath/odoo/__init__.py ]] && srcdir=$opt_oepath/odoo
       fi
-      [[ $pkg =~ ^(odoo|openerp)$ ]] && srcdir=$opt_oepath
+      [[ -z $srcdir && $opt_debug -ge 2 && $pkg =~ $LOCAL_PKGS ]] && echo "Invalid or not found source path!" && exit 1
+      [[ -z $srcdir && $pkg =~ ^(odoo|openerp)$ ]] && echo "Odoo source not found!" && exit 1
     fi
     if [[ $pkg =~ $BIN_PKGS ]]; then
       bin_install "$pkg"
@@ -336,7 +338,7 @@ pip_install() {
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         run_traced "rm -fR $tmpdir/$pfn"
       elif [[ $opt_debug -eq 3 ]]; then
-        run_traced "$PIP install $(dirname $srcdir) $popts"
+        run_traced "$PIP install $srcdir $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
         pushd $srcdir/.. >/dev/null
@@ -464,8 +466,8 @@ pip_uninstall() {
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     srcdir=""
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
-    [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/tools/$pfn)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/dev/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/dev/pypi/$pfn/$pfn)
+    [[ $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/,,/tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/,,/tools/$pfn)
+    [[ $opt_debug -eq 3 && -d $SAVED_HOME_DEVEL/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pfn/$pfn)
     [[ $opt_debug -eq 3 && -d $SAVED_HOME/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/pypi/$pfn/$pfn)
     if [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
@@ -1280,6 +1282,7 @@ if [[ $action != "create" && -f $p2/bin/activate ]]; then
   [[ $opt_dev -eq 0 && ${x:-0} -gt 1 ]] && opt_dev=1
 fi
 SAVED_HOME=$HOME
+SAVED_HOME_DEVEL=$HOME_DEVEL
 SAVED_PYTHONPATH=$PYTHONPATH
 PRINTED_PIPVER=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""

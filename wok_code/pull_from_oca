@@ -292,11 +292,10 @@ else
 fi
 
 
-[ "${tgtpath: -1}" == "/" ] && tgtpath=${tgtpath:0: -1}
-if [ ! -d $tgtpath ]; then
-  echo "Directory $tgtpath not found!"
-  exit 1
-fi
+
+[[ ! -d $tgtpath ]] && echo "Directory $tgtpath not found!" && exit 1
+tgtpath=$(readlink -f tgtpath)
+
 if [[ $tgtpath =~ ^/.*/tests/res/ ]]; then
   test_mode=1
   SAVED_HOME=$HOME
@@ -305,21 +304,16 @@ if [[ $tgtpath =~ ^/.*/tests/res/ ]]; then
 else
   test_mode=0
 fi
-[ "$PWD" == "$tgtpath" ] && cd $HOME
+[[ $PWD == "$tgtpath" ]] && cd $HOME
 tgt_odoo_dir=$(dirname $tgtpath)
 
 odoo_fver=$(build_odoo_param FULLVER "$tgtpath")
-if [ "$odoo_fver" != "$opt_branch" ]; then
-  echo "Directory $tgtpath is $odoo_fver: not for Odoo $opt_branch!"
-  exit 1
-fi
+[[ $odoo_fver != "$opt_branch" ]] && echo "Directory $tgtpath is $odoo_fver: not for Odoo $opt_branch!" && exit 1
 odoo_ver=$(build_odoo_param MAJVER "$odoo_fver")
 repo=$(build_odoo_param REPOS "$tgtpath")
-[ "$repo" != "OCB" ] && src_oca=$HOME/oca$odoo_ver/$repo || src_oca=$HOME/oca$odoo_ver
-if [ ! -d $src_oca ]; then
-  echo "Odoo source repository $src_oca not found!"
-  exit 1
-fi
+[[ $repo != "OCB" ]] && src_oca=$HOME/oca$odoo_ver/$repo || src_oca=$HOME/oca$odoo_ver
+[[ ! -d $src_oca ]] && echo "Odoo source repository $src_oca not found!" && exit 1
+
 [ $opt_verbose -ne 0 ] && echo "Upgrade repository $repo from $src_oca to $tgtpath ..."
 if [ $opt_yes -eq 0 ]; then
   read -p "Proceed (yes/no)? " dummy

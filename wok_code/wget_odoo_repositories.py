@@ -9,12 +9,12 @@
 #
 import os
 import sys
+import json
 
 if sys.version_info[0] == 2:
     from urllib2 import urlopen as urlopen
 else:
     from urllib.request import urlopen as urlopen
-import json
 
 try:
     from z0lib.z0lib import z0lib
