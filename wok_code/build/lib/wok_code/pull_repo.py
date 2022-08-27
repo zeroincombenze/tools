@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2018-21 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2018-22 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -25,6 +25,10 @@ try:
     from clodoo.clodoo import build_odoo_param
 except ImportError:
     from clodoo import build_odoo_param
+# try:
+#     from wok_code.wok_code.wget_odoo_repositories import get_list_from_url
+# except ImportError:
+#     from wok_code.wget_odoo_repositories import get_list_from_url
 
 
 __version__ = "2.0.0"
@@ -208,7 +212,7 @@ def get_repos(hash, update=False):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs(
-        "Pull repository from OCA", "© 2021-22 by SHS-AV s.r.l.", version=__version__
+        "Pull repository from git", "© 2021-22 by SHS-AV s.r.l.", version=__version__
     )
     parser.add_argument("-h")
     parser.add_argument(

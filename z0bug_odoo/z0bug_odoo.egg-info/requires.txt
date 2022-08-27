@@ -1,3 +1,4 @@
 future
 python-magic
 zerobug
+gitPython
