@@ -310,7 +310,7 @@ pip_install() {
     if [[ ! $pkg =~ $BIN_PKGS ]]; then
       srcdir=""
       [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
-      [[ $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/,,/tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/,,/tools/$pfn)
+      [[ $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/../tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/../tools/$pfn)
       if [[ $opt_debug -ge 3 ]]; then
         [[ -d $SAVED_HOME_DEVEL/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pfn)
       fi
@@ -466,7 +466,7 @@ pip_uninstall() {
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     srcdir=""
     [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
-    [[ $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/,,/tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/,,/tools/$pfn)
+    [[ $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/../tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/../tools/$pfn)
     [[ $opt_debug -eq 3 && -d $SAVED_HOME_DEVEL/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pfn/$pfn)
     [[ $opt_debug -eq 3 && -d $SAVED_HOME/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/pypi/$pfn/$pfn)
     if [[ -n "$srcdir" ]]; then

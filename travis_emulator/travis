@@ -104,7 +104,7 @@ process_yaml_init() {
   python_ver_ena=""
   [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep "^PYPI_RUN_PYVER"|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
-    [[ -d $HOME_DEVEL/pypi ]] && export YML_lisa=$HOME/devel/pypi/lisa/lisa/lisa
+    [[ -d $HOME_DEVEL/pypi ]] && export YML_lisa=$HOME_DEVEL/pypi/lisa/lisa/lisa
     (($opt_debug)) && export TRAVIS_PDB="true"
   else
     export YML_lisa=lisa
@@ -791,7 +791,7 @@ process_yaml() {
     sts=$STS_SUCCESS
     wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[0m"
     TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-    for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST LOGFILE PGUSER MQT_TEMPLATE_DB MQT_TEST_DB PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_EMULATE_OSX TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
+    for lne in TODAY job-id __version__ TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo BRANCH DIST HOME HOME_DEVEL LOGFILE PGUSER MQT_TEMPLATE_DB MQT_TEST_DB ODOO_ROOT PRJNAME PKGNAME REPOSNAME PRJPATH PKGPATH PATH TOOLS_PATH TRAVIS TRAVIS_EMULATE_OSX TRAVIS_HOME_BRANCH TRAVIS_REPO_SLUG TRAVIS_PDB; do
       if [[ $lne == "job-id" ]]; then
         lne1=$$
       elif [[ $lne == "DIST" ]]; then
@@ -885,13 +885,10 @@ process_yaml() {
           [[ -n $opt_trace && ::build =~ $opt_trace ]] && debug_shell "::build"
           create_virtual_env
           wlog "\e[${PS_HDR2_COLOR}m----- [System informations] -----\e[0m"
-          for p in PATH HOME HOME_BRANCH PIP PYTHON PYTHONPATH PYPI_CACHED TRAVIS SYSTEM_SITE_PACKAGES TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_SAVED_HOME; do
+          for p in PATH HOME HOME_BRANCH PIP PYTHON PYTHONPATH PYPI_CACHED TRAVIS SYSTEM_SITE_PACKAGES TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_SAVED_HOME TRAVIS_SAVED_HOME_DEVEL; do
             X=${!p}
             [[ -n "$X" || $p =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $p=$X\e[0m"
           done
-#          for p in pip python; do
-#            eval $p --version
-#          done
           [[ -n $opt_tafter && ::build =~ $opt_tafter ]] && debug_shell
           process_yaml_global
           if [ $sts -eq $STS_SUCCESS ]; then
@@ -908,6 +905,7 @@ process_yaml() {
           fi
           if [ $sts -eq $STS_SUCCESS ]; then
             wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[0m"
+            [[ -n $opt_trace && ::script =~ $opt_trace ]] && debug_shell "::script"
             for lne in $YML_script; do
               process_yaml_run_cmd "$lne"
               s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
@@ -1037,9 +1035,6 @@ opts_travis
 conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
-# prepare_env_travis
-# prepare_env_travis
-# prepare_env_travis
 
 [[ -n $opt_flog ]] && LOGDIR="$(dirname $opt_flog)" || LOGDIR="$(get_cfg_value "" "LOGDIR")"
 [[ -d $LOGDIR ]] || mkdir $LOGDIR
@@ -1231,6 +1226,7 @@ if [[ $sts -eq $STS_SUCCESS ]]; then
         if [[ ${opt_dry_run:-0} -gt 0 ]]; then
             echo "> travis > $LOGFILE"
         else
+            clear
             echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
             process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $TMP_LOGFILE
             sts=$?
