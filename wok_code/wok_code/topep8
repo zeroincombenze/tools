@@ -414,7 +414,7 @@ format_yaml() {
           echo "  # Use Zeroincombenze(R) tools" >>$fntmp
           echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1" >>$fntmp
           echo "  - \${HOME}/tools/install_tools.sh -qpt" >>$fntmp
-          echo "  - source \${HOME}/devel/activate_tools" >>$fntmp
+          echo "  - source \${HOME}/devel/activate_tools -t" >>$fntmp
           if [[ $PKGNAME == "OCB" ]]; then
             echo "  # - \"export DISPLAY=:99.0\"" >>$fntmp
             echo "  # - \"sh -e /etc/init.d/xvfb start\"" >>$fntmp

@@ -310,6 +310,7 @@ pip_install() {
         run_traced "$PIP install $(dirname $srcdir) $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
+        # Odoo
         pushd $srcdir/.. >/dev/null
         [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
         v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)

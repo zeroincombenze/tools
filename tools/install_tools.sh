@@ -297,10 +297,14 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
     echo "HOME_DEVEL=\"$DSTPATH\"">>$DSTPATH/activate_tools
-    echo "[[ -f $LOCAL_VENV/bin/activate && ! :\$PATH: =~ :$LOCAL_VENV/bin: && \$1 != '-t' ]] && export PATH=\$PATH:$LOCAL_VENV/bin">>$DSTPATH/activate_tools
-    echo "[[ -f $LOCAL_VENV/bin/activate && ! :\$PATH: =~ :$LOCAL_VENV/bin: && \$1 == '-t' ]] && export PATH=$LOCAL_VENV/bin:\$PATH">>$DSTPATH/activate_tools
-    [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $PYLIB/zerobug/_travis || :\$PATH: =~ :$PYLIB/zerobug/_travis: ]] || export PATH=$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
-    [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ ! -d $PYLIB/z0bug_odoo/travis || :\$PATH: =~ :$PYLIB/z0bug_odoo/travis: ]] || export PATH=$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
+    echo "BINDIR=\"$LOCAL_VENV/bin\"">>$DSTPATH/activate_tools
+    echo "ACTIVATE=\"\$BINDIR/activate\"">>$DSTPATH/activate_tools
+    echo "PYLIB=\"\$PYLIB\"">>$DSTPATH/activate_tools
+    [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qc \":\$PYLIB/zerobug/_travis:\" && export PATH=\$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
+    [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
+    echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ \$1 != '-t' ]] && export PATH=\$PATH:\$BINDIR">>$DSTPATH/activate_tools
+    echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ \$1 == '-t' ]] && export PATH=\$(echo \$PATH|sed -E \"s|:\$BINDIR|:|\")">>$DSTPATH/activate_tools
+    echo "[[ -f \$ACTIVATE ]] && echo \"+\$PATH:\"|grep -qv \"+\$BINDIR:\" && [[ \$1 == '-t' ]] && export PATH=\$BINDIR:\$PATH">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
 fi
@@ -319,8 +323,7 @@ if [[ $PYVER -eq 3 ]]; then
             done
         fi
         run_traced "git clone https://github.com/OCA/odoo-module-migrator.git"
-        run_traced "pip install $DSTPATH/odoo-module-migrator/"
-    fi
+     fi
     run_traced "git clone https://github.com/OCA/maintainer-quality-tools.git"
 fi
 

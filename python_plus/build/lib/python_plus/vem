@@ -279,7 +279,7 @@ pip_install() {
       [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
       [[ $opt_debug -eq 2 && -d $SAVED_HOME/tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/tools/$pfn)
       if [[ $opt_debug -ge 3 ]]; then
-        [[ -d $SAVED_HOME/devel/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/devel/pypi/$pfn/$pfn)
+        [[ -d $SAVED_HOME/devel/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/devel/pypi/$pfn)
       fi
       if [[ $pkg =~ ^(odoo|openerp)$ && -z $opt_oepath ]]; then
         echo "Missed Odoo version to install (please use -O and -o switches)!"
@@ -307,7 +307,7 @@ pip_install() {
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         run_traced "rm -fR $tmpdir/$pfn"
       elif [[ $opt_debug -eq 3 ]]; then
-        run_traced "$PIP install $(dirname $srcdir) $popts"
+        run_traced "$PIP install $srcdir $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
         pushd $srcdir/.. >/dev/null
