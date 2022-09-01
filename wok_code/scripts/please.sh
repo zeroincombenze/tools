@@ -2009,7 +2009,7 @@ do_show() {
   else
     echo "Missing object! Use:"
     echo "> please show (docs|licence)"
-    echo "show docs        -> show docs using local firefox"
+    echo "show docs        -> show docs using local browser"
     echo "show license     -> show licenses of modules of current Odoo repository"
     echo "show status      -> show component status"
     sts=$STS_FAILED
@@ -2019,8 +2019,12 @@ do_show() {
 
 do_show_docs() {
   if [[ ! "$PRJNAME" == "Odoo" ]]; then
+    local b
+    b=$(which firefox)
+    [[ -z $b ]] && b=$(which google-chrome)
+    [[ -z $b ]] && echo "No browser found! Please install firefox or google-chrome" && return 1
     if [[ -f ./docs/_build/html/index.html ]]; then
-      firefox $(readlink -e ./docs/_build/html/index.html) &
+      eval $b $(readlink -e ./docs/_build/html/index.html) &
     else
       echo "No documentation found in ./docs!"
     fi

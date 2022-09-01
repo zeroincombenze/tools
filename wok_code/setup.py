@@ -80,6 +80,8 @@ The available tools are:
             'makepo_it.py = wok_code.scripts.makepo_it:main',
             'do_odoo_site.py = wok_code.scripts.do_odoo_site:main',
             'odoo_translation.py = wok_code.scripts.odoo_translation:main',
+            'deploy_odoo = wok_code.scripts.deploy_odoo:main',
+            'wget_odoo_repositories.py = wok_code.scripts.wget_odoo_repositories:main',
         ]
     },
     zip_safe=False,
