@@ -245,10 +245,17 @@ z0lib: 2.0.0 (2022-08-10)
 * [REF] Partial refactoring for shell scripts
 
 
+wok_code: 2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] Refactoring
+
+
 odoo_score: 1.0.8 (2022-07-30)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] New command rename_odoo_module
+
 
 
 clodoo: 1.0.7 (2022-07-30)
@@ -256,13 +263,6 @@ clodoo: 1.0.7 (2022-07-30)
 
 * [FIX] clodoo: remote login
 * [IMP] Crypto.Cipher recognition
-
-
-odoo_score: 1.0.7.1 (2022-06-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: log test result
-
 
 
 
@@ -280,7 +280,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-08-19
+Last Update / Ultimo aggiornamento: 2022-09-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

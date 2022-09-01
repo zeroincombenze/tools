@@ -77,7 +77,7 @@ RFLIST__zerobug=""
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="odoo_default_tnl.xlsx templates license_text readlink"
 RFLIST__python_plus=""
-RFLIST__wok_code="cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py odoo_dependencies.py wget_odoo_repositories.py"
+RFLIST__wok_code="cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py odoo_dependencies.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""
@@ -325,6 +325,9 @@ if [[ $PYVER -eq 3 ]]; then
         run_traced "git clone https://github.com/OCA/odoo-module-migrator.git"
      fi
     run_traced "git clone https://github.com/OCA/maintainer-quality-tools.git"
+    for pkg in sphinx sphinx_rtd_theme; do
+        run_traced "pip install $pkg"
+    done
 fi
 
 # Final test to validate environment

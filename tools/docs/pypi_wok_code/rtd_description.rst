@@ -18,6 +18,7 @@ The available tools are:
 * please: developer shell
 * wget_odoo_repositories.py: get repository names from github.com
 
+
 please: developer shell
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -300,7 +301,7 @@ It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-08-12
+Last Update / Ultimo aggiornamento: 2022-09-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -30,6 +30,7 @@ The available tools are:
 * please: developer shell
 * wget_odoo_repositories.py: get repository names from github.com
 
+
 please: developer shell
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -844,73 +845,10 @@ Current development version
 History
 -------
 
-1.0.11 (2022-06-17)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] gen_readme.py: git_org librerp
-* [IMP] do_odo_site.py: generate configration files for cloud
-* [IMP] makepo_it.py: new features
-* [IMP] topep8: git_org librerp
-* [IMP] topep8: some actions are deprecated
-
-1.0.9 (2022-04-04)
+2.0.0 (2022-08-10)
 ~~~~~~~~~~~~~~~~~~
 
-* [IMP] pull_repo.sh: improvements
-* [IMP] Remove old unused code
-* [IMP] please: new actions lint and test
-
-1.0.8.1 (2022-03-21)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] to_pep8.py
-
-1.0.8 (2022-02-23)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] please docs with -O option to use OCA command
-* [FIX] please in no odoo user
-
-1.0.7.1 (2022-02-17)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py (python3)
-
-1.0.7 (2022-01-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] vct_csv_2_rst.py (python3)
-
-1.0.6 (2022-01-19)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py (python3)
-* [FIX] to_pep8.py (python3)
-
-1.0.5.1 (2022-01-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] cvt_csv_coa: executable command
-
-1.0.5 (2022-01-05)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-1.0.4.1 (2021-12-22)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] cvt_script: new PYPATH algoritm
-
-1.0.4 (2021-12-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-1.0.3.3 (2021-12-01)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] cvt_csv_2_rst.py: python 3
+* [REF] Refactoring
 
 
 
@@ -936,7 +874,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-08-12
+Last Update / Ultimo aggiornamento: 2022-09-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -10,19 +10,20 @@
 import os
 import sys
 import json
+import argparse
 
 if sys.version_info[0] == 2:
     from urllib2 import urlopen as urlopen
 else:
     from urllib.request import urlopen as urlopen
 
-try:
-    from z0lib.z0lib import z0lib
-except ImportError:
-    try:
-        from z0lib import z0lib
-    except ImportError:
-        import z0lib
+# try:
+#     from z0lib.z0lib import z0lib
+# except ImportError:
+#     try:
+#         from z0lib import z0lib
+#     except ImportError:
+#         import z0lib
 
 __version__ = '2.0.0'
 
@@ -44,6 +45,7 @@ DEVEL_REPS = [
     'runbot-addons',
     'z0bug_odoo',
     'zerobug',
+    'zeroincombenze',
 ]
 REPNAME_OCB = 'OCB'
 TEST_REP_OCB = {
@@ -357,8 +359,8 @@ TEST_REP_L10N_IT = {
 }
 
 
-def get_list_from_url(ctx, git_org):
-    def name_is_valid(ctx, name):
+def get_list_from_url(opt_args, git_org):
+    def name_is_valid(opt_args, name):
         if (
             (
                 not name.startswith('.')
@@ -370,18 +372,18 @@ def get_list_from_url(ctx, git_org):
                 and not name.startswith('l10n-')
                 and name not in DEVEL_REPS
             )
-            or (name.startswith('connector-') and 'connector' in ctx['extra'])
-            or (name.startswith('maintainer-') and 'maintainer' in ctx['extra'])
-            or (name.startswith('oca-') and 'oca' in ctx['extra'])
-            or (name.startswith('odoo-') and 'odoo' in ctx['extra'])
-            or (name.startswith('vertical-') and 'vertical' in ctx['extra'])
-            or (name in DEVEL_REPS and 'devel' in ctx['extra'])
-            or (name.startswith('l10n-') and name in ctx['l10n'])
+            or (name.startswith('connector-') and 'connector' in opt_args.extra)
+            or (name.startswith('maintainer-') and 'maintainer' in opt_args.extra)
+            or (name.startswith('oca-') and 'oca' in opt_args.extra)
+            or (name.startswith('odoo-') and 'odoo' in opt_args.extra)
+            or (name.startswith('vertical-') and 'vertical' in opt_args.extra)
+            or (name in DEVEL_REPS and 'devel' in opt_args.extra)
+            or (name.startswith('l10n-') and name in opt_args.l10n)
         ):
             return True
         return False
 
-    def default_repositories(ctx, git_org):
+    def default_repositories(opt_args, git_org):
         data = []
         if git_org == 'odoo':
             data = [
@@ -529,18 +531,19 @@ def get_list_from_url(ctx, git_org):
                 {'url': '//zerobug-test'},
                 {'url': '//zeroincombenze'},
             ]
-            if ctx['odoo_vid'] == '7.0':
+            if opt_args.odoo_vid == '7.0':
                 data.append({'url': '//account_banking_cscs'})
                 data.append({'url': '//cscs_addons'})
         return data
 
     def add_repo(name):
-        if ctx.get('opt_verbose'):
+        if opt_args.opt_verbose:
             print(name)
         repositories.append(name)
 
     fn = os.path.join(
-        os.path.dirname(__file__), '.%s.dat' % os.path.basename(__file__)[0:-3]
+        os.path.dirname(__file__), '.%s.dat' % os.path.splitext(
+            os.path.basename(__file__))[0]
     )
     cache = {}
     if os.path.isfile(fn):
@@ -554,16 +557,16 @@ def get_list_from_url(ctx, git_org):
     while 1:
         page += 1
         pageurl = '%s?q=addClass+user:mozilla&page=%d' % (baseurl, page)
-        if ctx['opt_verbose']:
+        if opt_args.opt_verbose:
             print('Acquire data from github.com (page=%d)...' % page)
-        if ctx['dry_run']:
+        if opt_args.dry_run:
             data = [TEST_REP_OCB, TEST_REP_ACC_CLO, TEST_REP_L10N_IT]
             if page > 1:
                 data = []
-        elif ctx['def_repo']:
+        elif opt_args.def_repo:
             data = []
             if not done_default:
-                data = default_repositories(ctx, git_org)
+                data = default_repositories(opt_args, git_org)
                 done_default = True
         else:
             try:
@@ -572,20 +575,20 @@ def get_list_from_url(ctx, git_org):
             except BaseException:
                 if (not repositories and
                         git_org in cache and
-                        ctx['odoo_vid'] in cache[git_org]):
+                        opt_args.odoo_vid in cache[git_org]):
                     break
                 data = []
                 if not done_default:
-                    data = default_repositories(ctx, git_org)
+                    data = default_repositories(opt_args, git_org)
                     done_default = True
         if not data:
             break
-        if ctx['opt_verbose']:
+        if opt_args.opt_verbose:
             print('Analyzing received data ...')
         for repos in data:
             name = os.path.basename(repos['url'])
-            if name_is_valid(ctx, name):
-                if ctx['odoo_vid']:
+            if name_is_valid(opt_args, name):
+                if opt_args.odoo_vid:
                     pageurl = '%s/%s/branches' % (branchurl, name)
                     try:
                         branch_response = urlopen(pageurl)
@@ -605,34 +608,33 @@ def get_list_from_url(ctx, git_org):
                             {'name': '16.0'},
                         ]
                     if not branches or not any(
-                        [x for x in branches if x['name'] == ctx['odoo_vid']]
+                        [x for x in branches if x['name'] == opt_args.odoo_vid]
                     ):
                         continue
                 add_repo(name)
-            elif ctx['opt_verbose']:
+            elif opt_args.opt_verbose:
                 print('discaded %s' % name)
 
     if repositories:
         cache[git_org] = cache.get(git_org, {})
-        cache[git_org][ctx['odoo_vid']] = repositories
+        cache[git_org][opt_args.odoo_vid] = repositories
         with open(fn, 'w') as fd:
             fd.write(str(cache))
-    elif git_org in cache and ctx['odoo_vid'] in cache[git_org]:
-        repositories = cache[git_org][ctx['odoo_vid']]
+    elif git_org in cache and opt_args.odoo_vid in cache[git_org]:
+        repositories = cache[git_org][opt_args.odoo_vid]
     return repositories
 
 
-if __name__ == "__main__":
-    parser = z0lib.parseoptargs(
-        "Get repository list from github.com",
-        "(R) 2019-2022 by SHS-AV s.r.l.",
-        version=__version__,
+def main(cli_args=None):
+    cli_args = cli_args or sys.argv[1:]
+    parser = argparse.ArgumentParser(
+        description="Get repository list from github",
+        epilog="© 2019-2022 by SHS-AV s.r.l.",
     )
-    parser.add_argument('-h')
     parser.add_argument(
         '-b',
         '--odoo-branch',
-        help="may be one of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 O 16.0",
+        help="may be one of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 or 16.0",
         action='store',
         dest='odoo_vid',
     )
@@ -650,13 +652,14 @@ if __name__ == "__main__":
         action='store',
         dest='l10n',
     )
-    parser.add_argument('-n')
+    parser.add_argument('-n', '--dry-run', action='store_true')
     parser.add_argument(
         '-O', '--oca', help="repository OCA", action='store_true', dest='oca'
     )
-    parser.add_argument('-q')
-    parser.add_argument('-V')
-    parser.add_argument('-v')
+    # parser.add_argument('-q')
+    parser.add_argument(
+        '-v', '--verbose', action='count', default=0, dest='opt_verbose')
+    parser.add_argument('-V', '--version', action="version", version=__version__)
     parser.add_argument(
         '-x',
         '--extra-reps',
@@ -671,27 +674,35 @@ if __name__ == "__main__":
         action='store_true',
         dest='zero',
     )
-    ctx = parser.parseoptargs(sys.argv[1:])
+    opt_args = parser.parse_args(cli_args)
 
     git_orgs = []
     repositories = []
-    if ctx['git_org']:
-        git_orgs = ctx['git_org'].split(',')
+    if opt_args.git_org:
+        git_orgs = []
+        for x in opt_args.git_org.split(','):
+            x = x if x != 'zero' else 'zeroincombenze'
+            x = x if x != 'OCA' else 'oca'
+            git_orgs.append(x)
     else:
-        if ctx['zero']:
+        if opt_args.zero:
             git_orgs.append('zeroincombenze')
-        if ctx['oca']:
-            git_orgs.append('OCA')
-    if not ctx['l10n']:
-        ctx['l10n'] = 'l10n-italy,l10n-italy-supplemental'
-    ctx['l10n'] = ctx['l10n'].split(',')
-    if not ctx['extra']:
-        ctx['extra'] = 'none'
-    elif ctx['extra'] == "all":
-        ctx['extra'] = 'connector,maintainer,oca,odoo,vertical,devel'
-    ctx['extra'] = ctx['extra'].split(',')
+        if opt_args.oca:
+            git_orgs.append('oca')
+    if not opt_args.l10n:
+        opt_args.l10n = 'l10n-italy,l10n-italy-supplemental'
+    opt_args.l10n = opt_args.l10n.split(',')
+    if not opt_args.extra:
+        opt_args.extra = 'none'
+    elif opt_args.extra == "all":
+        opt_args.extra = 'connector,maintainer,oca,odoo,vertical,devel'
+    opt_args.extra = opt_args.extra.split(',')
     for git_org in git_orgs:
-        repository = get_list_from_url(ctx, git_org)
+        repository = get_list_from_url(opt_args, git_org)
         repositories = list(set(repository) | set(repositories))
     print('Found %d repositories of %s' % (len(repositories), git_orgs))
     print('\t' + ' '.join(sorted(repositories)))
+
+
+if __name__ == "__main__":
+    exit(main())

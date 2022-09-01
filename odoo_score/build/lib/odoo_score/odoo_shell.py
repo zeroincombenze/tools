@@ -3983,8 +3983,7 @@ def reset_einvoices_stats(ctx):
 
 def store_einvoices_stats(ctx):
     wb = load_workbook('./Riepilogo-consumo-clienti.xlsx', data_only=True)
-    for sheet in wb:
-        break
+    sheet = wb.active
     colnames = []
     for column in sheet.columns:
         colnames.append(column[0].value)

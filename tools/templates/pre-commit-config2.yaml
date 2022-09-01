@@ -3,6 +3,7 @@
 exclude: |
   (?x)
   # NOT INSTALLABLE ADDONS
+  ^account_invoice_report_ddt_group/|
   ^l10n_eu_trial_balance/|
   ^l10n_it_CEE_balance_generic/|
   ^l10n_it_ateco/|
@@ -75,6 +76,8 @@ repos:
     rev: 22.3.0
     hooks:
       - id: black
+        args:
+          - --skip-string-normalization
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.1.2
     hooks:
@@ -157,7 +160,7 @@ repos:
           - --rcfile=.pylintrc
           - --exit-zero
           - --ignore=l10n_it_fatturapa_in/tests/data/
-          - --py-version=3.7
+          - --py-version=2.7
         verbose: true
         additional_dependencies: &pylint_deps
           - pylint-odoo==5.0.5
