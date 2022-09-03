@@ -70,7 +70,7 @@ get_ver() {
     if [ "$BRANCH" == "master" ]; then
       ver=$BRANCH
     else
-      ver=$(echo $BRANCH | grep -Eo '[0-9]+' | head -n1)
+      ver=$(echo $BRANCH | grep --color=never -Eo '[0-9]+' | head -n1)
     fi
   else
     ver=master
@@ -266,7 +266,7 @@ format_yaml() {
       lne=$(echo $line)
       if [[ "$cur_sub" == "odoo_repo" && ! $lne =~ -\ TESTS=...\ ODOO_REPO=.*/OCB ]]; then
         if [[ ! "${found[repo_zero]}" == "t" || "$PKGNAME" == "OCB" ]]; then
-          x=$(echo $opt_copy | grep -Eo [a-z]+ | head -n1)
+          x=$(echo $opt_copy | grep --color=never -Eo '[a-z]+' | head -n1)
           org=$(build_odoo_param GIT_ORGNM $odoo_vid "" "$x")
           echo "    - TESTS=\"1\" ODOO_REPO=\"$org/OCB\"" >>$fntmp
         fi
@@ -530,9 +530,9 @@ format_xml() {
       elif [ "${lne:0:9}" == "<template" ]; then
         ((level++))
       else
-        o=$(echo $lne | grep -Eo "<[a-zA-Z0-9-]+" | wc -l)
-        c=$(echo $lne | grep -Eo "</[a-zA-Z0-9-]+" | wc -l)
-        k=$(echo $lne | grep -Eo "/>" | wc -l)
+        o=$(echo $lne | grep --color=never -Eo "<[a-zA-Z0-9-]+" | wc -l)
+        c=$(echo $lne | grep --color=never -Eo "</[a-zA-Z0-9-]+" | wc -l)
+        k=$(echo $lne | grep --color=never -Eo "/>" | wc -l)
         ((c = c + k))
         if [ $o -gt $c ]; then
           ((level++))
@@ -556,7 +556,7 @@ format_xml() {
         line="$lne"
       elif [ "${lne:0:1}" == "<" ]; then
         [ "$line" == "⌂" ] && line="$lm$lne"
-        x=$(echo "$line" | grep -Eo "[[:space:]]*<[a-zA-Z0-9-]+[[:space:]]*")
+        x=$(echo "$line" | grep --color=never -Eo "[[:space:]]*<[a-zA-Z0-9-]+[[:space:]]*")
         nxtlm=${#x}
       elif [ "$line" == "⌂" ]; then
         lm=
@@ -775,7 +775,7 @@ for fl in $LIST; do
 #        fi
         # TOFIX
         if [[ -n "$opt_from" && $f =~ (__manifest__.py|__openerp__.py) ]]; then
-          vf=$(grep -Eo "['\"]version['\"]: ['\"][0-9.]+['\"]" $f.new)
+          vf=$(grep --color=never -Eo "['\"]version['\"]: ['\"][0-9.]+['\"]" $f.new)
           vt="${vf/$opt_from/$odoo_fver}"
           sed -e "s|$vf|$vt|" -i $f.new
         fi

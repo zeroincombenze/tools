@@ -86,7 +86,7 @@ run_traced() {
 }
 
 cp_n_upd_odoo_conf() {
-  local odoo_ver=$(echo $VERSION | grep -Eo '[0-9]*' | head -n1)
+  local odoo_ver=$(echo $VERSION | grep --color=never -Eo '[0-9]*' | head -n1)
   if [ $odoo_ver -ge 10 ]; then
     local tgt=~/.odoorc
     local atgt=~/.openerp_serverrc
@@ -155,8 +155,8 @@ git_clone_ocb() {
   local ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
   echo -e "\e[${PS_HDR3_COLOR}m### Installing Odoo from $ODOO_URL\e[${PS_TXT_COLOR}m"
   if [[ ! -L ${ODOO_PATH} && ! "$TRAVIS" == "true" ]]; then
-    prjhome=$(echo $TRAVIS_HOME_BRANCH | grep -Eo "$TRAVIS_SAVED_HOME/[^/]+")
-    majver=$(echo $BRANCH | grep -Eo [0-9]+ | head -n1)
+    prjhome=$(echo $TRAVIS_HOME_BRANCH | grep --color=never -Eo "$TRAVIS_SAVED_HOME/[^/]+")
+    majver=$(echo $BRANCH | grep --color=never -Eo '[0-9]+' | head -n1)
     if [[ -n "$prjhome" ]]; then
       if [[ $REMOTE == "oca" && -d $prjhome/oca$majver ]]; then
         SRCREPOPATH="$prjhome/oca$majver"
@@ -247,20 +247,27 @@ check_pythonpath() {
   local TOOLS_PATH="${1//,/ }"
   TOOLS_PATH="${TOOLS_PATH//:/ }"
   local PYTHON=${2:-python}
-  local PYVER=$(python --version 2>&1 | grep -Eo "[0-9]+" | head -n1)
+  local PYVER=$(${PYTHON} --version 2>&1 | grep --color=never -Eo "[0-9]+" | head -n1)
   local pth PYLIB
   for pth in $TOOLS_PATH; do
-    if [ "$PYVER" == "2" ]; then
+    if [[ $PYVER -eq 2 ]]; then
       echo -e "import sys\nfor x in sys.path:\n  print x," | $PYTHON | grep -q " $pth "
     else
       echo -e "import sys\nfor x in sys.path:\n  print(x,end=' ')" | $PYTHON | grep -q " $pth "
     fi
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
       echo "Warning: sitecustomize.py without effect! Use PYTHONPATH method"
-      [ -n "$PYTHONPATH" ] && export PYTHONPATH=$PYTHONPATH:$pth
-      [ -z "$PYTHONPATH" ] && export PYTHONPATH=$pth
+      [[ -n "$PYTHONPATH" ]] && export PYTHONPATH=$PYTHONPATH:$pth
+      [[ -z "$PYTHONPATH" ]] && export PYTHONPATH=$pth
     fi
   done
+  if [[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]]; then
+    if [[ $PYVER -eq 2 ]]; then
+      echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | $PYTHON
+    else
+      echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | $PYTHON
+    fi
+  fi
 }
 
 install_n_activate_tools() {
@@ -268,19 +275,9 @@ install_n_activate_tools() {
     [[ $test_mode -ne 0 ]] && o="t"
     [[ -z $ODOO_ROOT ]] && ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
     x=$(readlink -f $ODOO_ROOT/tools)
-    if [[ -d $x ]]; then
-        [[ ${opt_verbose:-1} -gt 0 ]] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $x\e[${PS_TXT_COLOR}m"
-        pushd $x > /dev/null
-        [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-p${o}
-        [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qp${o}
-        run_traced "./install_tools.sh $x"
-        [[ $test_mode -ne 0 ]] && o="-t"
-        [[ ${opt_verbose:-1} -gt 0 ]] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME_DEVEL/activate_tools ${o}\e[${PS_TXT_COLOR}m"
-        . $HOME_DEVEL/activate_tools ${o}
-        popd > /dev/null
-        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-        [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-    fi
+    [[ ! -d $x ]] && echo "Tools environment not found (path $ODOO_ROOT/tools)" && exit 1
+    x=$(readlink -f $ODOO_ROOT/devel)
+    [[ ! -d $x ]] && echo "Tools environment not found (path $ODOO_ROOT/devel)" && exit 1
 }
 
 check_4_needing_pkgs() {
@@ -288,7 +285,7 @@ check_4_needing_pkgs() {
   NEEDING_PKGS="future configparser os0 z0lib"
   for p in $NEEDING_PKGS; do
     x=${p^^}
-    eval $x=$(pip show $p 2>/dev/null | grep "Version" | grep -Eo "[0-9.]+")
+    eval $x=$(pip show $p 2>/dev/null | grep "Version" | grep --color=never -Eo "[0-9.]+")
     [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "Inner package $p=${!x}"
   done
 }
@@ -373,30 +370,21 @@ export MQT_TEST_MODE=$mode
 set_pybin $TRAVIS_PYTHON_VERSION
 export PYTHON PIP
 install_n_activate_tools
-if [[ -d $HOME/devel ]]; then
-  set_pythonpath "$HOME/tools" "$HOME/devel/sitecustomize.py" $PIP
-  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
-  [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-else
-  echo "!! Error! Directory $HOME/devel not found!"
-fi
-check_pythonpath "$HOME/tools" $PYTHON
-if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
-  echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | python
-else
-  echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | python3
-fi
-run_traced "$PIP install -q pip --upgrade" "nolocal"
-PIPVER=$($PIP --version | grep -Eo [0-9]+ | head -n1)
-[ $PIPVER -gt 18 ] && PIP_OPTS="$PIP_OPTS --no-warn-conflicts"
-[ $PIPVER -gt 19 ] && PIP_OPTS="$PIP_OPTS --use-feature=2020-resolver"
-check_installed_pkgs
+# set_pythonpath "$HOME/tools" "$HOME/devel/sitecustomize.py" $PIP
+[[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]] && echo "PATH=$PATH"
+[[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]] && echo "PYTHONPATH=$PYTHONPATH"
+# check_pythonpath "$HOME/tools" $PYTHON
+# run_traced "$PIP install -q pip --upgrade" "nolocal"
+# PIPVER=$($PIP --version | grep --color=never -Eo [0-9]+ | head -n1)
+[[ $PIPVER -gt 18 ]] && PIP_OPTS="$PIP_OPTS --no-warn-conflicts"
+[[ $PIPVER -gt 19 ]] && PIP_OPTS="$PIP_OPTS --use-feature=2020-resolver"
+# check_installed_pkgs
 LISTREQ=$(which list_requirements.py 2>/dev/null)
 if [[ -z "$LISTREQ" ]]; then
-  if [ -n "$YML_mgrodoo" ]; then
+  if [[ -n "$YML_mgrodoo" ]]; then
     LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
   else
-    [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
+    [[ -f $HOME/tools/clodoo/list_requirements.py ]] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
   fi
 fi
 LISA=$(which lisa 2>/dev/null)
@@ -480,7 +468,7 @@ if [[ "$MQT_TEST_MODE" == "tools" ]]; then
 else
   # Odoo
   if [[ "${LINT_CHECK:-1}" != "0" ]]; then
-    NODE_VER=$(node --version | grep -Eo "[0-9]+" | head -n1)
+    NODE_VER=$(node --version | grep --color=never -Eo "[0-9]+" | head -n1)
     if [ $NODE_VER -lt 6 -a -f "${HOME}/.nvm/nvm.sh" ]; then
       [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "1> node version: $NODE_VER"
       CURRENT_NODE=$(which node)
@@ -500,7 +488,7 @@ else
   if [[ $TESTS == "1" ]]; then
     echo -e "\e[${PS_HDR3_COLOR}m### Install Packages for Base Environment\e[${PS_TXT_COLOR}m"
     if [[ $UNIT_TEST != "0" ]]; then
-      NODE_VER=$(node --version | grep -Eo "[0-9]+" | head -n1)
+      NODE_VER=$(node --version | grep --color=never -Eo "[0-9]+" | head -n1)
       if [[ $NODE_VER -lt 6 ]]; then
         x=$(which nodejs 2>/dev/null)
         [[ -z "$x" ]] && x=$(which node 2>/dev/null)
@@ -519,13 +507,13 @@ else
       lessc --version
     fi
     [[ -z "${WKHTMLTOPDF_VERSION}" ]] && export WKHTMLTOPDF_VERSION="0.12.5"
-    [[ -n "$(which example.com 2>/dev/null)" ]] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep -Eo [0-9.]+ | head -n1) || CUR_WKHTMLTOPDF_VERSION=
+    [[ -n "$(which example.com 2>/dev/null)" ]] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep --color=never -Eo '[0-9.]+' | head -n1) || CUR_WKHTMLTOPDF_VERSION=
     if [[ "$CUR_WKHTMLTOPDF_VERSION" == "$WKHTMLTOPDF_VERSION" ]]; then
       [ $opt_verbose -gt 0 ] && echo "Installed version of wkhtmltopdf is $WKHTMLTOPDF_VERSION"
     else
       [[ $opt_verbose -gt 0 ]] && echo "Installing wkhtmltopdf version $WKHTMLTOPDF_VERSION (current is $CUR_WKHTMLTOPDF_VERSION)"
       vem install "wkhtmltopdf==$WKHTMLTOPDF_VERSION"
-      CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep -Eo [0-9.]+ | head -n1)
+      CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep --color=never -Eo '[0-9.]+' | head -n1)
       [[ $opt_verbose -gt 0 ]] && echo "Current version of wkhtmltopdf is $CUR_WKHTMLTOPDF_VERSION"
     fi
     if [[ "${WEBSITE_REPO}" == "1" ]]; then

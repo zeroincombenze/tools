@@ -110,7 +110,7 @@ REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wi
 
 get_odoo_major_ver() {
     local v="" x
-    for x in $(echo "$1" | grep -Eo '[0-9]+'); do
+    for x in $(echo "$1" | grep --color=never -Eo '[0-9]+'); do
       [[ $x =~ ($ODOO_VERS) ]] && v=$x && break
     done
     [[ -z $v && $1 =~ librerp6 ]] && v="6"
@@ -120,11 +120,11 @@ get_odoo_major_ver() {
 
 get_odoo_full_ver() {
     local v="" x
-    for x in $(echo "$1" | grep -Eo '[0-9]+\.[0-9]+'); do
+    for x in $(echo "$1" | grep --color=never -Eo '[0-9]+\.[0-9]+'); do
       [[ $x =~ ($ODOO_FVERS) && ${x/./} -gt ${v/./} ]] && v=$x && break
     done
     if [[ -z $v ]]; then
-      for x in $(echo "$1" | grep -Eo '[0-9]+'); do
+      for x in $(echo "$1" | grep --color=never -Eo '[0-9]+'); do
         [[ $x =~ ($ODOO_VERS) ]] && v=$x && break
       done
       [[ -n $v && $v != "6" ]] && v="${v}.0"
@@ -301,7 +301,7 @@ build_odoo_param() {
                         VCS="git"
                     fi
                     # GIT_BRANCH=$(git branch --show-current)
-                    GIT_BRANCH=$(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+"|head -n1|tr -d "\n")
+                    GIT_BRANCH=$(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+"|head -n1|tr -d "\n")
                 fi
             fi
             [[ $cdir == $ODOO_ROOT ]] && break
@@ -319,8 +319,8 @@ build_odoo_param() {
         return
     fi
     [[ -z $REPOS ]] && REPOS=OCB
-    x=$(echo $odoo_vid | grep -Eo "VENV[_-]([0-9]{3,10})?/?" | tail -n1)
-    [[ -n $x ]] && x=$(echo $odoo_vid | grep -Eo "^.*$x")
+    x=$(echo $odoo_vid | grep --color=never -Eo "VENV[_-]([0-9]{3,10})?/?" | tail -n1)
+    [[ -n $x ]] && x=$(echo $odoo_vid | grep --color=never -Eo "^.*$x")
     [[ -n $x ]] && noenv_vid=${odoo_vid/$x/} || noenv_vid=$odoo_vid
     [[ $noenv_vid =~ ^(v|V)($ODOO_VERS)[^0-9]* ]] && main=1 || main=0
     [[ -z "$FULLVER" && -n "$noenv_vid" && ($noenv_vid =~ $rex || $noenv_vid =~ librerp[6]?) ]] && FULLVER=$(get_odoo_full_ver "$noenv_vid")
@@ -334,7 +334,7 @@ build_odoo_param() {
         return
     fi
     [[ ${opt_multi:-0} -ne 0 ]] && MULTIVER=1 || MULTIVER=0
-    ORGSFX=$(echo $noenv_vid | grep -Eo "[-_][a-z][a-z0-9]+$" | grep -Eo "[a-z0-9]+")
+    ORGSFX=$(echo $noenv_vid | grep --color=never -Eo "[-_][a-z][a-z0-9]+$" | grep --color=never -Eo "[a-z0-9]+")
     if [[ -n $ORGSFX ]]; then
         [[ $ORGSFX =~ -git$ ]] && GIT_PROT="git" && ORGSFX=${ORGSFX:0: -4}
         [[ $ORGSFX =~ -http$ ]] && GIT_PROT="https" && ORGSFX=${ORGSFX:0: -5}
@@ -342,7 +342,7 @@ build_odoo_param() {
     fi
     if [[ -n $ORGSFX && $ORGSFX =~ ^$reg ]]; then
         exorg=1
-        GIT_ORGID=$(echo $ORGSFX | grep -Eo "^$reg" | head -n1)
+        GIT_ORGID=$(echo $ORGSFX | grep --color=never -Eo "^$reg" | head -n1)
         [[ $GIT_ORGID == "librerp" && $FULLVER == "6.1" ]] && GIT_ORGID="librerp6"
         ORGSFX=${ORGSFX/$GIT_ORGID/}
     fi
@@ -355,7 +355,7 @@ build_odoo_param() {
             [[ -n "$4" ]] && GIT_ORGID=$4 && exorg=1
             [[ -z $GIT_ORGID && $noenv_vid =~ ^(OCB|ocb) ]] && GIT_ORGID="oca" && exorg=1
             [[ -z $GIT_ORGID && $noenv_vid =~ ^(ODOO|odoo) ]] && GIT_ORGID="odoo" && exorg=0    ## TODO
-            [[ -z $GIT_ORGID && $noenv_vid =~ ^$reg ]] && GIT_ORGID=$(echo $noenv_vid | grep -Eo $reg | head -n1) && [[ ! $noenv_vid =~ ^odoo ]] && exorg=1
+            [[ -z $GIT_ORGID && $noenv_vid =~ ^$reg ]] && GIT_ORGID=$(echo $noenv_vid | grep --color=never -Eo $reg | head -n1) && [[ ! $noenv_vid =~ ^odoo ]] && exorg=1
             [[ -z $GIT_ORGID && ! $noenv_vid =~ ^$reg && -n "$ODOO_GIT_ORGID" ]] && GIT_ORGID=$(echo $ODOO_GIT_ORGID|cut -d"|" -f1|tr -d "("|tr -d ")") && GIT_PROT="git"
             [[ -z "$GIT_ORGID" ]] && GIT_ORGID="odoo"
         fi
@@ -367,7 +367,7 @@ build_odoo_param() {
         [[ $GIT_ORGID =~ ^librerp[6]?$ && $FULLVER == "6.1" ]] && GIT_ORGNM="iw3hxn" && GIT_BRANCH="master"
         # [[ $GIT_ORGID == "librerp" && "$FULLVER" == "12.0" ]] && GIT_ORGID="librerp" && GIT_ORGNM="librerp" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
         if [[ "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
-            r=$(echo "$REPT_ORG_MATRIX," | grep -Eo "[A-Za-z0-9_.-]+/$REPOS,")
+            r=$(echo "$REPT_ORG_MATRIX," | grep --color=never -Eo "[A-Za-z0-9_.-]+/$REPOS,")
             IFS=/ read GIT_ORGNM x <<<$r
         elif [[ ( $GIT_ORGID =~ ^(librerp)$ || $GIT_ORGNM =~ (LibrERP-network|LibrERP) ) && ( ! $REPOS =~ (l10n-italy|server) || ! $FULLVER =~ (12.0|14.0) ) ]]; then
             RGIT_ORGID="zero"
@@ -390,7 +390,7 @@ build_odoo_param() {
           [[ -z "$LICENSE" && $MAJVER -le 8 ]] && LICENSE="AGPL"
           [[ -z "$LICENSE" ]] && LICENSE="LGPL"
         else
-          LICENSE=$(echo $LICENSE|grep -Eo [A-Z]+|head -n1)
+          LICENSE=$(echo $LICENSE|grep --color=never -Eo [A-Z]+|head -n1)
         fi
         echo $LICENSE
         $SETX

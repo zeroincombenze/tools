@@ -168,7 +168,7 @@ if [[ -z $PSQL ]]; then
     echo "Denied inquire with psql. Please configure user $USER to access via psql"
     exit 2
 fi
-PSQL_VER=$(psql --version|grep -Eo "[0-9]+\.[0-9]"|tr -d "."|head -n1)
+PSQL_VER=$(psql --version|grep --color=never -Eo "[0-9]+\.[0-9]"|tr -d "."|head -n1)
 if [[ $pool -lt 1 ]]; then
   pool=$($PSQL -Atc "select setting from pg_settings where name='max_connections';"|head -n1)
   pool=$(echo $pool)

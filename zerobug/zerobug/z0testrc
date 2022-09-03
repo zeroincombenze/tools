@@ -524,7 +524,7 @@ exec_all_tests () {
         elif [ "${testname:0:9}" == "__version" ]; then
           dbgmsg "\$ elif [ \"\${testname:0:9}\" == \"__version\" ]; then"
           local t=${testname:10:1}
-          local v=$( echo "$testname"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9abcfr]+)?(\.[0-9abcfr]+)?'|head -n1)
+          local v=$( echo "$testname"|grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9abcfr]+)?(\.[0-9abcfr]+)?'|head -n1)
           local x="/${testname#*/}"
           test_version "$v" "$t" "$x"
           s=$?
@@ -681,7 +681,7 @@ Z0BUG_remove_os_tree() {
 Z0BUG_simulate_install_pypi() {
     local cmd PYTHON PYVER BASE
     PYTHON=$(which python)
-    PYVER=$(python --version 2>&1 | grep -Eo "[0-9]" | head -n1)
+    PYVER=$(python --version 2>&1 | grep --color=never -Eo "[0-9]" | head -n1)
     BASE=$(basename $1)
     [[ $BASE =~ .py$ ]] && BASE=${BASE:0: -3}
     cmd=$(readlink -f $1)
@@ -705,11 +705,11 @@ Z0BUG_build_odoo_env() {
     local odoo_home os_tree script h v w x y path
     local odoo_vid=$1
     local hy=$2
-    x=$(echo $odoo_vid | grep -Eo "VENV[_-]([0-9]{3,10})?/?" | tail -n1)
-    [[ -n $x ]] && x=$(echo $odoo_vid | grep -Eo "^.*$x")
+    x=$(echo $odoo_vid | grep --color=never -Eo "VENV[_-]([0-9]{3,10})?/?" | tail -n1)
+    [[ -n $x ]] && x=$(echo $odoo_vid | grep --color=never -Eo "^.*$x")
     [[ -n $x ]] && w=${odoo_vid/$x/} || w=$odoo_vid
     [[ $odoo_vid =~ ^($HOME/)?VENV ]] && h="$odoo_vid/odoo" || h=$odoo_vid
-    v=$(echo $w|grep -Eo "(6|7|8|9|10|11|12|13|14)"|head -n1)
+    v=$(echo $w|grep --color=never -Eo "(6|7|8|9|10|11|12|13|14)"|head -n1)
     if [[ -n $v ]]; then
         [ $v -ge 10 ] && odoo_home="$h/odoo" || odoo_home="$h/openerp"
         [[ $hy == "tree" ]] && odoo_home="$odoo_vid/odoo/odoo"

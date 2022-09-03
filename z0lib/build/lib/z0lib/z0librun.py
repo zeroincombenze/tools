@@ -23,11 +23,11 @@ import argparse
 import configparser
 import inspect
 import os
-# from builtins import *                                             # noqa: F403
 from builtins import object
-
 from future import standard_library
-
+import shutil
+from subprocess import Popen
+from python_plus import qsplit
 standard_library.install_aliases()  # noqa: E402
 
 
@@ -52,6 +52,26 @@ __version__ = "2.0.0"
 
 def nakedname(path):
     return os.path.splitext(os.path.basename(path))[0]
+
+
+def run_traced(cmd, verbose=None, dry_run=None):
+    if verbose:
+        print('%s %s' % (">" if dry_run else "$", cmd))
+    args = qsplit(cmd)
+    if cmd.startswith("cd "):
+        tgtdir = cmd[3:].strip()
+        if not dry_run or os.path.isdir(tgtdir):
+            return os.chdir(tgtdir)
+        return 0
+    elif not dry_run:
+        if cmd.startswith("rm -fR "):
+            tgtdir = cmd[7:].strip()
+            return shutil.rmtree(tgtdir)
+        elif cmd.startswith("mkdir "):
+            tgtdir = cmd[6:].strip()
+            return os.mkdir(tgtdir)
+        return Popen(args).wait()
+    return 0
 
 
 class CountAction(argparse.Action):

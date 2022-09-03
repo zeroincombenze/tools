@@ -165,7 +165,7 @@ discover_multi
 odoo_vid=$(echo ""|grep "^addons_path *=.*" $confn|tr -d " "|awk -F= '{print $2}'|awk -F, '{print $1}')
 b=$(basename $odoo_vid)
 [[ $b == "addons" ]] && odoo_vid=$(dirname $odoo_vid)
-CUR_NUSER=$(echo ""|grep -E "^# .antoniov.*Workers are set for [0-9]+ users" $confn|grep -Eo "[0-9]+"|tail -n1)
+CUR_NUSER=$(echo ""|grep -E "^# .antoniov.*Workers are set for [0-9]+ users" $confn|grep --color=never -Eo "[0-9]+"|tail -n1)
 [[ -z "$CUR_NUSER" ]] && CUR_NUSER=0
 if [[ -n "$NUSER" && ! $NUSER =~ ^[0-9]+$ ]]; then
     echo "Invalid # of user supplied. Please issue a valid number or leave empty to get current value!!"
@@ -196,7 +196,7 @@ else
     PRC4WRK=4
 fi
 # Detected or simulated values
-CUR_LPPORT=$(echo ""|grep "^longpolling_port *=.*" $confn|awk -F= '{print $2}'|grep -Eo "[0-9]+")
+CUR_LPPORT=$(echo ""|grep "^longpolling_port *=.*" $confn|awk -F= '{print $2}'|grep --color=never -Eo "[0-9]+")
 [[ -n $opt_lpport ]] && WK_LPPORT=$opt_lpport || WK_LPPORT=$CUR_LPPORT
 [[ -z $WK_LPPORT || $WK_LPPORT == "0" ]] && WK_LPPORT=$(build_odoo_param LPPORT $odoo_vid)
 [[ -z "$WK_LPPORT" ]] && WK_LPPORT=8072
@@ -212,17 +212,17 @@ CUR_PG_DBCONN=$(pg_db_active -s)
 [[ $opt_cw -gt 2 ]] && opt_cw=2
 cur_proxy_mode=$(echo ""|grep "^proxy_mode *=.*" $confn|awk -F= '{print $2}')
 [[ -z "$cur_proxy_mode" ]] && cur_proxy_mode=False
-cur_time_cpu=$(echo ""|grep "^limit_time_cpu *=.*" $confn|grep -Eo "[0-9]+")
+cur_time_cpu=$(echo ""|grep "^limit_time_cpu *=.*" $confn|grep --color=never -Eo "[0-9]+")
 [[ -z "$cur_time_cpu" ]] && cur_time_cpu=60
-cur_time_real=$(echo ""|grep "^limit_time_real *=.*" $confn|grep -Eo "[0-9]+")
+cur_time_real=$(echo ""|grep "^limit_time_real *=.*" $confn|grep --color=never -Eo "[0-9]+")
 [[ -z "$cur_time_real" ]] && cur_time_real=120
-CUR_HWRK=$(echo "2147483648"|grep "^limit_memory_hard *=.*" $confn|grep -Eo "[0-9]+")
+CUR_HWRK=$(echo "2147483648"|grep "^limit_memory_hard *=.*" $confn|grep --color=never -Eo "[0-9]+")
 ((CUR_HLIMIT=(CUR_HWRK+1048575)/1048576))
-CUR_LWRK=$(echo "1610612736"|grep "^limit_memory_soft *=.*" $confn|grep -Eo "[0-9]+")
+CUR_LWRK=$(echo "1610612736"|grep "^limit_memory_soft *=.*" $confn|grep --color=never -Eo "[0-9]+")
 ((CUR_LLIMIT=(CUR_LWRK+1048575)/1048576))
-CUR_WRKS=$(echo ""|grep "^workers *=.*" $confn|grep -Eo "[0-9]+")
+CUR_WRKS=$(echo ""|grep "^workers *=.*" $confn|grep --color=never -Eo "[0-9]+")
 [[ -z "$CUR_WRKS" ]] && CUR_WRKS=0
-CUR_DBCONN=$(echo ""|grep "^db_maxconn *=.*" $confn|grep -Eo "[0-9]+")
+CUR_DBCONN=$(echo ""|grep "^db_maxconn *=.*" $confn|grep --color=never -Eo "[0-9]+")
 [[ -z "$CUR_DBCONN" ]] && CUR_DBCONN=64
 #
 evaluate_params

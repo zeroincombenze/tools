@@ -53,7 +53,7 @@ before_install:
   # Use Zeroincombenze(R) tools
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --single-branch --depth=1
   - ${HOME}/tools/install_tools.sh -qpt
-  - source ${HOME}/devel/activate_tools
+  - source ${HOME}/devel/activate_tools -t
 
 install:
   - travis_install_env tools

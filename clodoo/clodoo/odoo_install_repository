@@ -136,7 +136,7 @@ wep_other_branches() {
                 fi
             done <$TMPFILE
         fi
-        for v in $(git branch | grep -Eo [0-9.]+); do
+        for v in $(git branch | grep --color=never -Eo [0-9.]+); do
             if [[ -n "$v" && -n "$1" && ! "$v" == "$1" ]]; then
                 run_traced "git branch -D $v" "$RUN_USER"
             fi

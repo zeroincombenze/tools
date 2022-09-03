@@ -102,7 +102,7 @@ process_yaml_init() {
   [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
   python_ver_req=""
   python_ver_ena=""
-  [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep "^PYPI_RUN_PYVER"|awk -F= '{print $2}'|grep -Eo "[0-9.]+"|head -n1)
+  [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep "^PYPI_RUN_PYVER"|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
     [[ -d $HOME_DEVEL/pypi ]] && export YML_lisa=$HOME_DEVEL/pypi/lisa/lisa/lisa
     (($opt_debug)) && export TRAVIS_PDB="true"
@@ -439,7 +439,7 @@ process_yaml_before_install() {
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
     [[ -n $opt_trace && ::addons.apt.package =~ $opt_trace ]] && debug_shell "::addons.apt.package"
-    CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo [0-9] | head -n1)
+    CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo '[0-9]' | head -n1)
     for lne in $YML_packages; do
       if [[ "$lne" == "python-dev" && $CURPYVER == "3" ]]; then
         [[ "$FH" == "RHEL" ]] && lne="python3-devel" || lne="python3-dev"
@@ -648,9 +648,9 @@ process_yaml_run_cmd() {
             if [ -n "$tk" ]; then
               if [ "${tk:0:4}" == "http" ]; then
                 p=$(basename $tk)
-                tk=$(echo $p | grep -Eo '[a-zA-Z0-9_]*' | head -n1)
+                tk=$(echo $p | grep --color=never -Eo '[a-zA-Z0-9_]*' | head -n1)
               fi
-              p=$(echo "$tk" | grep -Eo '[^!<=>;\[]*' | head -n1)
+              p=$(echo "$tk" | grep --color=never -Eo '[^!<=>;\[]*' | head -n1)
               p=${p//\"/}
               p=$(echo $p)
               if [ "$p" == "transifex-client" ]; then
@@ -663,7 +663,7 @@ process_yaml_run_cmd() {
             fi
           done <$pp
         elif [ "${tk:0:1}" != "-" ]; then
-          p=$(echo "${x[$ix]}" | grep -Eo '[^!<=>;]*' | head -n1)
+          p=$(echo "${x[$ix]}" | grep --color=never -Eo '[^!<=>;]*' | head -n1)
           p=${p//\"/}
           if $(pip show $p &>/dev/null); then
             xcmd="$xcmd $p"
@@ -761,6 +761,7 @@ process_yaml_run_cmd() {
 #    fi
     [[ $c != $xcmd && ! $xcmd =~ ^# ]] && ((Z0_STACK=Z0_STACK-2))
   fi
+  [[ $TRAVIS_DEBUG_MODE -gt 2 ]] && echo "<<<PATH=$PATH>>>"
   [[ -n $opt_tafter && $xcmd =~ $opt_tafter ]] && debug_shell
   return $sts
 }
@@ -809,7 +810,7 @@ process_yaml() {
     fi
     if [[ $sts -eq $STS_SUCCESS ]]; then
       [[ -n $opt_trace && ::matrix =~ $opt_trace ]] && debug_shell "::matrix"
-      [[ -z "$python_ver_req" ]] && python_ver_req=$(python --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
+      [[ -z "$python_ver_req" ]] && python_ver_req=$(python --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+")
       [[ -z "$opt_pyv" ]] && opt_pyv=$(get_cfg_value "" "PYTHON_MATRIX")
       [[ -z "$opt_pyv" ]] && opt_pyv="(2.7|3.5|3.6|3.7|3.8)"
       opt_pyv="${opt_pyv//,/|}"
@@ -824,13 +825,15 @@ process_yaml() {
       for TRAVIS_PYTHON_VERSION in $python_matrix; do
         [[ $sts -eq $STS_SUCCESS ]] || break
         wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[0m"
-        CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo "[0-9]" | head -n1)
-        CURPYVER2=$(echo $TRAVIS_PYTHON_VERSION | grep -Eo "[0-9]\.[0-9]" | head -n1)
-        PYTHON=$(which python$TRAVIS_PYTHON_VERSION)
-        [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER2)
-        [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER)
-        PYTHON_VERSION=$($PYTHON --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
-        if [[ $($PYTHON --version 2>&1 | grep -Eo "[0-9.]+") != $TRAVIS_PYTHON_VERSION ]]; then
+        set_pybin $TRAVIS_PYTHON_VERSION "PYTHON_VERSION"
+        CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo "[0-9]" | head -n1)
+        CURPYVER2=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+#        PYTHON=$(which python$TRAVIS_PYTHON_VERSION)
+#        [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER2)
+#        [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER)
+#        PYTHON_VERSION=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+")
+#        if [[ $($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+") != $TRAVIS_PYTHON_VERSION ]]; then
+        if [[ $PYTHON_VERSION != $TRAVIS_PYTHON_VERSION ]]; then
           if [[ $PYTHON_VERSION != $CURPYVER2 ]]; then
             wlog "\e[${PS_HDR1_COLOR}mError: Required version $TRAVIS_PYTHON_VERSION of python is not availale. Replace by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
             continue
@@ -848,7 +851,7 @@ process_yaml() {
           [[ -n "$lne1" || $lne =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $lne=$lne1\e[0m"
         done
         if [[ $TRAVIS_DEBUG_MODE -gt 2 ]]; then
-          if [ $CURPYVER -eq 3 ]; then
+          if [[ $CURPYVER -eq 3 ]]; then
             echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | $PYTHON
           else
             echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | $PYTHON
@@ -1132,7 +1135,7 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
         [[ $opt_verbose -gt 0 ]] && echo "\$ rm -fR $d ($(date -d@$df -u +"%H:%M:%S") old)"
         rm -fR $d
         ((done_ve++))
-        sfx=$(echo "$d" | grep -Eo "[0-9]+$")
+        sfx=$(echo "$d" | grep --color=never -Eo "[0-9]+$")
         if [[ -n $PGUSER ]]; then
           for db in openerp_template$sfx openerp_test$sfx; do
             [[ $opt_verbose -gt 0 ]] && echo "\$ dropdb -U$PGUSER $db"
@@ -1176,7 +1179,7 @@ elif [[ $action == "summary" ]]; then
   [[ "$sub" == "old" ]] && logfile=$OLD_LOGFILE || logfile=$LOGFILE
   sts=0
   if [[ -f $logfile ]]; then
-    echo "$(readlink -f $logfile):\$ VIRTUALENV=$(grep -E "vem .*VENV_" $logfile|grep -Eo "VENV_[0-9]+"|head -n1)"
+    echo "$(readlink -f $logfile):\$ VIRTUALENV=$(grep -E "vem .*VENV_" $logfile|grep --color=never -Eo "VENV_[0-9]+"|head -n1)"
     grep -EH "(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])" $logfile
     travis_status "$logfile"
     sts=$?

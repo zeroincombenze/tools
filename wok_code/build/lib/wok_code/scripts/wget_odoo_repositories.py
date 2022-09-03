@@ -393,6 +393,7 @@ def get_list_from_url(opt_args, git_org):
             data = [
                 {'url': '//accounting'},
                 {'url': '//custom-addons'},
+                {'url': '//l10n-italy'},
             ]
         elif git_org == 'oca':
             data = [
@@ -537,7 +538,7 @@ def get_list_from_url(opt_args, git_org):
         return data
 
     def add_repo(name):
-        if opt_args.opt_verbose:
+        if opt_args.verbose:
             print(name)
         repositories.append(name)
 
@@ -557,7 +558,7 @@ def get_list_from_url(opt_args, git_org):
     while 1:
         page += 1
         pageurl = '%s?q=addClass+user:mozilla&page=%d' % (baseurl, page)
-        if opt_args.opt_verbose:
+        if opt_args.verbose:
             print('Acquire data from github.com (page=%d)...' % page)
         if opt_args.dry_run:
             data = [TEST_REP_OCB, TEST_REP_ACC_CLO, TEST_REP_L10N_IT]
@@ -583,7 +584,7 @@ def get_list_from_url(opt_args, git_org):
                     done_default = True
         if not data:
             break
-        if opt_args.opt_verbose:
+        if opt_args.verbose:
             print('Analyzing received data ...')
         for repos in data:
             name = os.path.basename(repos['url'])
@@ -612,7 +613,7 @@ def get_list_from_url(opt_args, git_org):
                     ):
                         continue
                 add_repo(name)
-            elif opt_args.opt_verbose:
+            elif opt_args.verbose:
                 print('discaded %s' % name)
 
     if repositories:
@@ -658,7 +659,7 @@ def main(cli_args=None):
     )
     # parser.add_argument('-q')
     parser.add_argument(
-        '-v', '--verbose', action='count', default=0, dest='opt_verbose')
+        '-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
     parser.add_argument(
         '-x',
@@ -674,6 +675,7 @@ def main(cli_args=None):
         action='store_true',
         dest='zero',
     )
+    parser.add_argument('--return-repos', action='store_true')
     opt_args = parser.parse_args(cli_args)
 
     git_orgs = []
@@ -699,9 +701,12 @@ def main(cli_args=None):
     opt_args.extra = opt_args.extra.split(',')
     for git_org in git_orgs:
         repository = get_list_from_url(opt_args, git_org)
-        repositories = list(set(repository) | set(repositories))
+        repositories = list(set(repositories) | set(repository))
+    if opt_args.return_repos:
+        return repositories
     print('Found %d repositories of %s' % (len(repositories), git_orgs))
     print('\t' + ' '.join(sorted(repositories)))
+    return 0
 
 
 if __name__ == "__main__":

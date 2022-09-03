@@ -63,7 +63,7 @@ do_edit_module() {
     grep -q "antoniov.*Avoid translation error" $fn
     [ $? -eq 0 ] && return
     ln=$(grep "output = publish_string" $fn)
-    lm=$(echo "$ln"|grep -Eo "^[ ]+")
+    lm=$(echo "$ln"|grep --color=never -Eo "^[ ]+")
     lm=${lm// /\\ }
     x="${lm}# [antoniov 2018-09-04] Avoid translation error"
     run_traced "sed \"/output = publish_string/i$x\" -i $fn"
@@ -299,7 +299,7 @@ tgtpath=$(readlink -f tgtpath)
 if [[ $tgtpath =~ ^/.*/tests/res/ ]]; then
   test_mode=1
   SAVED_HOME=$HOME
-  HOME=$(echo $tgtpath|grep -Eo "^/.*/tests/res/")
+  HOME=$(echo $tgtpath|grep --color=never -Eo "^/.*/tests/res/")
   HOME=${HOME:0: -1}
 else
   test_mode=0

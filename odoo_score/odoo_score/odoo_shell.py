@@ -4033,7 +4033,7 @@ def reset_statement(ctx):
         print('reset_statement STMT_ID hard')
         return
     statement_id = int(ctx['param_1'])
-    hard = ctx['param_2']
+    # hard = ctx['param_2']
     ctr_ulk = 0
     ctr_upd = 0
     model_stmt = "account.bank.statement"
@@ -4043,18 +4043,18 @@ def reset_statement(ctx):
     if ctx.get('param_2', '') == 'hard':
         print('Hard redet of statement id %d' % statement_id)
         for stmt_line in clodoo.browseL8(
-                ctx, model_bank, clodoo.searchL8(ctx,model_bank, [
+                ctx, model_bank, clodoo.searchL8(ctx, model_bank, [
                     ("statement_id", "=", statement_id,
                      "|",
                      ("journal_entry_ids", "<>", []),
                      ('move_name', '!=', False))])):
             clodoo.writeL8(
                 ctx, model_bank, stmt_line.id, {"move_name": False,
-                                            "journal_entry_ids": [(5,0)]})
+                                                "journal_entry_ids": [(5, 0)]})
             ctr_upd += 1
         for move_line in clodoo.browseL8(
-                ctx,model_line,clodoo.searchL8(
-                    ctx,model_line, [("statement_id", "=", statement_id)])):
+                ctx, model_line, clodoo.searchL8(
+                    ctx, model_line, [("statement_id", "=", statement_id)])):
             clodoo.writeL8(ctx, model_line, move_line.id, {"statement_id": False})
             ctr_upd += 1
     print('Search for move line wrong linked to this bank statement')
@@ -4081,7 +4081,8 @@ def reset_statement(ctx):
             if move_line.move_id.id in stmt_line.journal_entry_ids:
                 stmt_line_preferred = stmt_line
                 if move_line_linked and not stmt_line.move_name:
-                    clodoo.writeL8(ctx, model_bank, stmt_line.id, {'move_name': move_name})
+                    clodoo.writeL8(
+                        ctx, model_bank, stmt_line.id, {'move_name': move_name})
                     ctr_upd += 1
                 break
             # if stmt_line.move_name == move_name:
@@ -4127,7 +4128,6 @@ def reset_statement(ctx):
     if to_unlink:
         clodoo.writeL8(ctx, model_line, to_unlink, {'statement_id': False})
     print('%d records unlinked, %d record updated' % (ctr_ulk, ctr_upd))
-
 
 
 def reconfigure_warehouse(ctx):

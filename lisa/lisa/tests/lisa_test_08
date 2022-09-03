@@ -52,7 +52,7 @@ test_run () {
     # set -x #debug
     TPRODUCT="$RUNDIR/lisa -T"
     local msg="$1"
-    local Package=$(echo "$2"|grep -Eo '[^!<=>]*'|head -n1)
+    local Package=$(echo "$2"|grep --color=never -Eo '[^!<=>]*'|head -n1)
     local Disto="$3"
     local cmd="$4"
     local FH=

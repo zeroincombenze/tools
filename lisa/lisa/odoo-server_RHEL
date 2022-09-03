@@ -83,9 +83,9 @@ else
   CONFIGFILE=""
 fi
 # search for execution command script
-xtl_org=$(echo $(basename $0)|grep -Eo "(oca|librerp|zero|powerp)"|tail -n1)
+xtl_org=$(echo $(basename $0)|grep --color=never -Eo "(oca|librerp|zero|powerp)"|tail -n1)
 [[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
-mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12|13|14|15|16)")
+mult=$(echo $(basename $0)|grep --color=never -Eo "(6|7|8|9|10|11|12|13|14|15|16)")
 [[ $DRY_RUN -gt 0 ]] && echo "mult=${mult}"
 [[ $DRY_RUN -gt 0 ]] && echo "ORG=$ORG"
 DAEMON=""
@@ -173,7 +173,7 @@ set_lessc() {
     local f=$1
     local minv=$2
     [[ -z "$minv" ]] && minv=30000
-    local lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+    local lv=$($f --version 2>/dev/null|grep --color=never -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
     [[ -z "$lv" ]] && lv=0
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     if [[ $lv -ge $minv ]]; then
@@ -192,7 +192,7 @@ set_lessc() {
 
 check_lessc() {
     local d dt f x
-    local lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+    local lv=$(lessc --version 2>/dev/null|grep --color=never -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
     local alt_less=
     [[ -z "$lv" ]] && lv=0
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
@@ -203,7 +203,7 @@ check_lessc() {
         if [[ -d $d ]]; then
           if [[ -x $d/less/bin/lessc ]]; then
             f=$d/less/bin/lessc
-            lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+            lv=$($f --version 2>/dev/null|grep --color=never -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
             [[ -z "$lv" ]] && lv=0
             if [[ $lv -gt 30000 ]]; then
               set_lessc $f 30000
@@ -215,7 +215,7 @@ check_lessc() {
         fi
       done
     fi
-    lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+    lv=$(lessc --version 2>/dev/null|grep --color=never -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
     [[ -z "$lv" ]] && lv=0
     if [[ $lv -lt 20000 && -n "$alt_less" ]]; then
       set_lessc $alt_less 20000

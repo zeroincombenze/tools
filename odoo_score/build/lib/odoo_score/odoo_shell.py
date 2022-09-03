@@ -4027,6 +4027,109 @@ def store_einvoices_stats(ctx):
         )
 
 
+def reset_statement(ctx):
+    print('reconfigure_warehouse')
+    if ctx['param_1'] == 'help':
+        print('reset_statement STMT_ID hard')
+        return
+    statement_id = int(ctx['param_1'])
+    # hard = ctx['param_2']
+    ctr_ulk = 0
+    ctr_upd = 0
+    model_stmt = "account.bank.statement"
+    model_bank = "account.bank.statement.line"
+    model_move = "account.move"
+    model_line = "account.move.line"
+    if ctx.get('param_2', '') == 'hard':
+        print('Hard redet of statement id %d' % statement_id)
+        for stmt_line in clodoo.browseL8(
+                ctx, model_bank, clodoo.searchL8(ctx, model_bank, [
+                    ("statement_id", "=", statement_id,
+                     "|",
+                     ("journal_entry_ids", "<>", []),
+                     ('move_name', '!=', False))])):
+            clodoo.writeL8(
+                ctx, model_bank, stmt_line.id, {"move_name": False,
+                                                "journal_entry_ids": [(5, 0)]})
+            ctr_upd += 1
+        for move_line in clodoo.browseL8(
+                ctx, model_line, clodoo.searchL8(
+                    ctx, model_line, [("statement_id", "=", statement_id)])):
+            clodoo.writeL8(ctx, model_line, move_line.id, {"statement_id": False})
+            ctr_upd += 1
+    print('Search for move line wrong linked to this bank statement')
+    stmt = clodoo.browseL8(ctx, model_stmt, statement_id)
+    to_unlink = []
+    for move_line in clodoo.browseL8(
+            ctx, model_line, clodoo.searchL8(
+                ctx, model_line, [('statement_id', '=', statement_id)])):
+        move_name = move_line.move_id.name
+        msg_burst('move %s (%s)...' % (move_name, move_line.debit - move_line.credit))
+        if move_line in stmt.move_line_ids:
+            move_line_linked = True
+        else:
+            move_line_linked = False
+        stmt_line_preferred = False
+        for stmt_line in stmt.line_ids:
+            # stmt_line in clodoo.browseL8(ctx, model2, stmt_line_id)
+            msg_burst('  stmt %s (%s)...' % (stmt_line.name, stmt_line.amount))
+            if not stmt_line_preferred and move_line_linked:
+                if stmt_line.amount > 0 and stmt_line.amount == move_line.debit:
+                    stmt_line_preferred = stmt_line
+                elif stmt_line.amount < 0 and -stmt_line.amount == move_line.credit:
+                    stmt_line_preferred = stmt_line
+            if move_line.move_id.id in stmt_line.journal_entry_ids:
+                stmt_line_preferred = stmt_line
+                if move_line_linked and not stmt_line.move_name:
+                    clodoo.writeL8(
+                        ctx, model_bank, stmt_line.id, {'move_name': move_name})
+                    ctr_upd += 1
+                break
+            # if stmt_line.move_name == move_name:
+            #     stmt_line_preferred = stmt_line
+            #     break
+        if stmt_line_preferred and move_line_linked:
+            move = clodoo.browseL8(ctx, model_move, move_line.move_id.id)
+            move_ids = clodoo.searchL8(
+                ctx, model_move, [('statement_line_id', '=', stmt_line_preferred.id)])
+            if move_ids and move.id not in move_ids:
+                saved_move_id = [x for x in move_ids]
+                vals = {}
+                vals['statement_line_id'] = stmt_line_preferred.id
+                clodoo.writeL8(ctx, 'account.move', move.id, vals)
+                ctr_upd += 1
+                move_ids = clodoo.searchL8(
+                    ctx, model_move,
+                    [('statement_line_id', '=', stmt_line_preferred.id)])
+                saved_move_id.append(move.id)
+                if set(move_ids) != set(saved_move_id):
+                    print('Error: moves %s and %s point to the same stmt %s' % (
+                        move_ids, move_line.move_id.id, stmt_line_preferred.id
+                    ))
+                    input('Press RET to continue ...')
+            else:
+                vals = {}
+                if move.statement_line_id != stmt_line_preferred:
+                    vals['statement_line_id'] = stmt_line_preferred.id
+                    clodoo.writeL8(ctx, 'account.move', move.id, vals)
+                    ctr_upd += 1
+                vals = {}
+                if not stmt_line_preferred.move_name:
+                    vals['move_name'] = move_name
+                    clodoo.writeL8(ctx, model_bank, stmt_line_preferred.id, vals)
+                    ctr_upd += 1
+        elif stmt_line_preferred and not move_line_linked:
+            to_unlink.append(move_line.id)
+            ctr_ulk += 1
+        elif not stmt_line_preferred and move_line_linked:
+            stmt.move_line_ids = [(3, move_line.id)]
+            to_unlink.append(move_line.id)
+            ctr_ulk += 1
+    if to_unlink:
+        clodoo.writeL8(ctx, model_line, to_unlink, {'statement_id': False})
+    print('%d records unlinked, %d record updated' % (ctr_ulk, ctr_upd))
+
+
 def reconfigure_warehouse(ctx):
     print('reconfigure_warehouse')
     if ctx['param_1'] == 'help':
