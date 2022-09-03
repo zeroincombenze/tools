@@ -89,7 +89,7 @@ test_common() {
       # tres=$(echo "import sys;print([x for x in sys.path if '/site-packages' in x][0].split('/site-packages')[0])"|$PYTHON3)
     fi
     tres="$tres/travis_emulator"
-    res=$($1 PYPATH|grep -Eo $tres)
+    res=$($1 PYPATH|grep --color=never -Eo $tres)
     # TODO>
     [[ $tag == "TESTDIR" ]] || test_result "$PWD> $tag/simulate_cmd PYPATH #travis_emulator" "$tres" "$res"
     [[ $tag == "DEVEL" ]] && tres="$tres/travis_emulator"

@@ -299,8 +299,8 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "HOME_DEVEL=\"$DSTPATH\"">>$DSTPATH/activate_tools
     echo "BINDIR=\"$LOCAL_VENV/bin\"">>$DSTPATH/activate_tools
     echo "ACTIVATE=\"\$BINDIR/activate\"">>$DSTPATH/activate_tools
-    echo "PYLIB=\"\$PYLIB\"">>$DSTPATH/activate_tools
-    [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qc \":\$PYLIB/zerobug/_travis:\" && export PATH=\$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
+    echo "PYLIB=\"$PYLIB\"">>$DSTPATH/activate_tools
+    [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
     echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ \$1 != '-t' ]] && export PATH=\$PATH:\$BINDIR">>$DSTPATH/activate_tools
     echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ \$1 == '-t' ]] && export PATH=\$(echo \$PATH|sed -E \"s|:\$BINDIR|:|\")">>$DSTPATH/activate_tools

@@ -234,10 +234,11 @@ if [[ -n "$opt_modules" ]]; then
             echo "Test incomplete!"
             echo "File odoo_dependencies.py not found!"
         else
+            [[ $opt_verbose -ne 0 ]] && echo "Searching for modules path ..."
             if [[ "$opt_modules" == "all" ]]; then
-                depmods=$(odoo_dependencies.py -RA mod $opaths)
+                depmods=$(odoo_dependencies.py -RA mod "$opaths")
             else
-                depmods=$(odoo_dependencies.py -RA mod $opaths -PM $opt_modules)
+                depmods=$(odoo_dependencies.py -RA mod "$opaths" -PM $opt_modules)
             fi
             [[ -z "$depmods" ]] && echo "Modules $opt_modules not found!" && exit 1
             if [[ "$opt_modules" != "all" ]]; then
@@ -345,7 +346,7 @@ if [[ $opt_touch -eq 0 ]]; then
             [[ -z $cov ]] && run_traced "pip install coverage"
             cov=$(which coverage 2>/dev/null)
             if [[ -n $cov ]]; then
-              v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
+              v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
               [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
               [[ ! -d $ODOO_RUNDIR/coverage ]] && mkdir $ODOO_RUNDIR/coverage
               [[ -n $opt_modules ]] && export COVERAGE_FILE="${opt_modules}_${opt_branch}"
@@ -401,7 +402,7 @@ if [[ $opt_touch -eq 0 ]]; then
     if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
       [[ -f $LOGFILE ]] && rm -f $LOGFILE
       if [[ -n $COVERAGE_RCFILE ]]; then
-        v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
+        v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
         if [[ $v -ge 6 ]]; then
           echo "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS"
           cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
@@ -415,7 +416,7 @@ if [[ $opt_touch -eq 0 ]]; then
       fi
     else
       if [[ -n $COVERAGE_RCFILE ]]; then
-        v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
+        v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
         [[ $v -ge 6 ]] && run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS" || run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS"
       else
         run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
@@ -440,7 +441,7 @@ if [[ $opt_touch -eq 0 ]]; then
         echo "# Translation imported from '$src' file"
     fi
     if [[ -n $COVERAGE_RCFILE ]]; then
-      v=$(coverage --version|grep -Eo "[0-9]+"|head -n1)
+      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
       [[ $v -ge 6 ]] && coverage report --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE -m || coverage report --rcfile=$COVERAGE_RCFILE -m
     fi
 fi

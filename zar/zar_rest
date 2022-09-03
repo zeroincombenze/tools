@@ -232,7 +232,7 @@ create_script_db_2_restore() {
     local dtc=$(date "+%Y-%m-%d %H:%M:%S")
     wlog "Prepare file script $fsql from $SQLFNAME ..."
     if [ -n "$ORIGINAL_OWN" -a $ORIGINAL_OWN -ne 0 ]; then
-      NEW_OWNER=$(head $SQLFNAME -n100|grep -Eo "Owner: *[a-zA-Z0-9_]+"|head -n1|awk -F: '{print $2}')
+      NEW_OWNER=$(head $SQLFNAME -n100|grep --color=never -Eo "Owner: *[a-zA-Z0-9_]+"|head -n1|awk -F: '{print $2}')
       NEW_OWNER=$(echo $NEW_OWNER)
       OLD_OWNER=$opt_user
       # reass_own=0

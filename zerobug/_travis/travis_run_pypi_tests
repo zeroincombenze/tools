@@ -56,11 +56,11 @@ travis_test_bash() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       local f p param
       if [[ -n "$LINT_CHECK_LEVEL" && -f $TDIR/cfg/travis_run_shellcheck_$LINT_CHECK_LEVEL.cfg ]]; then
-        local shellcheck_ignore=$(grep -Eo "^ignore *= *[0-9,]+" $TDIR/cfg/travis_run_shellcheck_$LINT_CHECK_LEVEL.cfg|tr -d " "|awk -F= '{print $2}')
+        local shellcheck_ignore=$(grep --color=never -Eo "^ignore *= *[0-9,]+" $TDIR/cfg/travis_run_shellcheck_$LINT_CHECK_LEVEL.cfg|tr -d " "|awk -F= '{print $2}')
       else
-        local shellcheck_ignore=$(grep -Eo "^ignore *= *[0-9,]+" $TDIR/cfg/travis_run_shellcheck.cfg|tr -d " "|awk -F= '{print $2}')
+        local shellcheck_ignore=$(grep --color=never -Eo "^ignore *= *[0-9,]+" $TDIR/cfg/travis_run_shellcheck.cfg|tr -d " "|awk -F= '{print $2}')
       fi
-      local shellcheck_exclude=$(grep -Eo "^exclude *= *[^#]+" $TDIR/cfg/travis_run_shellcheck.cfg|tr -d " "|awk -F= '{print $2}')
+      local shellcheck_exclude=$(grep --color=never -Eo "^exclude *= *[^#]+" $TDIR/cfg/travis_run_shellcheck.cfg|tr -d " "|awk -F= '{print $2}')
       shellcheck_exclude="${shellcheck_exclude//,/ } *.py"
       shellcheck_exclude=$(echo $shellcheck_exclude)
       param=
@@ -266,7 +266,7 @@ set_pythonpath() {
     local PIP=${3:-pip}
     local pth PYLIB x
     if [[ -n "$PYPATH" || -n "$FSITE" ]]; then
-        PYLIB=$(dirname $($PIP --version | grep -Eo "from [^ ]+" | awk '{print $2}'))
+        PYLIB=$(dirname $($PIP --version | grep --color=never -Eo "from [^ ]+" | awk '{print $2}'))
         if [ -z "$PYLIB" ]; then
             PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
         fi
@@ -309,7 +309,7 @@ check_pythonpath() {
     local PYPATH="${1//,/ }"
     PYPATH="${PYPATH//:/ }"
     local PYTHON=${2:-python}
-    local PYVER=$(python --version 2>&1|grep -Eo "[0-9]+"|head -n1)
+    local PYVER=$(python --version 2>&1|grep --color=never -Eo "[0-9]+"|head -n1)
     local pth PYLIB
     for pth in $PYPATH; do
       if [ "$PYVER" == "2" ]; then

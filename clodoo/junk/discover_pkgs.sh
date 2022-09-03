@@ -5,11 +5,11 @@ else
   root_dir=.
 fi
 echo "searching for 'import ...'"
-find . -name "*.py" -exec grep -Eo "^ *import [A-Za-z0-9_,]+" '{}' \;|awk '{print $2 $3 $4 $5 $6 $7 $8 $9}'|tr "," "\n"|tr " " "\n">~/discover_pkgs.log
+find . -name "*.py" -exec grep --color=never -Eo "^ *import [A-Za-z0-9_,]+" '{}' \;|awk '{print $2 $3 $4 $5 $6 $7 $8 $9}'|tr "," "\n"|tr " " "\n">~/discover_pkgs.log
 echo "searching for 'from . import ...'"
-find . -name "*.py" -exec grep -Eo "^ *from [A-Za-z0-9_]+ import [A-Za-z0-9_,]+" '{}' \;|awk '{print $2}'|tr "," "\n"|tr " " "\n">>~/discover_pkgs.log
+find . -name "*.py" -exec grep --color=never -Eo "^ *from [A-Za-z0-9_]+ import [A-Za-z0-9_,]+" '{}' \;|awk '{print $2}'|tr "," "\n"|tr " " "\n">>~/discover_pkgs.log
 echo "searching for exclusions ..."
-O=$(find . -name "*.py" -exec grep -Eo " _name *= *['\"][A-Za-z0-9_-]+['\"]" '{}' \;|awk -F= '{print $2}'|tr -d "'"|tr -d '"'|sort -bf|uniq|tr -d "\r"|tr "\n" " ")
+O=$(find . -name "*.py" -exec grep --color=never -Eo " _name *= *['\"][A-Za-z0-9_-]+['\"]" '{}' \;|awk -F= '{print $2}'|tr -d "'"|tr -d '"'|sort -bf|uniq|tr -d "\r"|tr "\n" " ")
 # echo "$O"
 D=$(find $root_dir -type d -not -path '*/.git/*' -not -name '.git'|xargs -I'{}' basename {}|sort -bf|uniq|tr -d "\r"|tr "\n" " ")
 F=$(find $root_dir -type f -name '*.py' -not -name "_*"|xargs -I'{}' basename {}|sort -bf|uniq|awk -F. '{print $1}'|tr -d "\r"|tr "\n" " ")

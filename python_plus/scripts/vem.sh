@@ -146,7 +146,7 @@ get_local_version() {
 }
 
 get_pkg_wo_version() {
-  pkg=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
+  pkg=$(echo "$1"|grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
   echo $pkg
 }
 
@@ -167,7 +167,7 @@ get_wkhtmltopdf_dwname() {
   [[ "$DISTO" == "debian8" ]] && DISTO="jessie"
   [[ "$FH" == "RHEL" ]] && pkgext=".rpm" || pkgext=".deb"
   [[ "$FH" == "Debian" && "$MACHARCH" == "x86_64" ]] && MACHARCH="amd64"
-  reqver=$(echo "$pkg" | grep -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
+  reqver=$(echo "$pkg" | grep --color=never -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
   [[ -z "$reqver" ]] && reqver="0.12.5"
   [[ "$FH" == "RHEL" && "$MACHARCH" == "x86_64" && $reqver =~ 0.12.[14] ]] && MACHARCH="amd64"
   z="wkhtmltopdf"
@@ -224,7 +224,7 @@ bin_install() {
   [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
   local MACHARCH=$(xuname -m)
   [[ -n $opt_distro ]] && DISTO=${opt_distro,,} || DISTO=$(xuname -d)
-  [[ -z $opt_distro ]] && DISTO=${DISTO,,}$(xuname -v | grep -Eo "[0-9]*" | head -n1)
+  [[ -z $opt_distro ]] && DISTO=${DISTO,,}$(xuname -v | grep --color=never -Eo "[0-9]*" | head -n1)
   local pkg=$1
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ $pkg =~ lessc ]]; then
@@ -249,7 +249,7 @@ bin_install() {
       mkdir wkhtmltox.rpm_files
       pushd wkhtmltox.rpm_files >/dev/null
       wkhtmltopdf_wget=$(get_wkhtmltopdf_dwname $pkg $FH $DISTO $MACHARCH)
-      pkgext=$(echo wkhtmltopdf_wget | grep -Eo ".xz$")
+      pkgext=$(echo wkhtmltopdf_wget | grep --color=never -Eo ".xz$")
       [[ -z "$pkgext" ]] && pkgext=${wkhtmltopdf_wget: -4}
       [[ $opt_verbose -gt 0 ]] && echo "Download ${wkhtmltopdf_wget}"
       wget -q --timeout=240 ${wkhtmltopdf_wget} -O wkhtmltox${pkgext}
@@ -332,7 +332,7 @@ pip_install() {
         run_traced "mkdir -p $tmpdir/$pfn"
         run_traced "cp -r $srcdir $tmpdir/$pfn/"
         run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
-        x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep -Eo "\./README.rst")
+        x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep --color=never -Eo "\./README.rst")
         # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
         run_traced "$PIP install $tmpdir/$pfn $popts"
         [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -492,12 +492,12 @@ check_bin_package() {
   local op reqver xreqver sts curver vpkg x
   local vpkg=$1
 
-  op=$(echo "$vpkg" | grep -Eo '[!<=>]*' | head -n1)
-  pkg=$(echo "$vpkg" | grep -Eo '[^!<=>\\[]*' | tr -d "'" | head -n1)
-  reqver=$(echo "$vpkg" | grep -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
-  [[ -n "$reqver" ]] && xreqver=$(echo $reqver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
+  op=$(echo "$vpkg" | grep --color=never -Eo '[!<=>]*' | head -n1)
+  pkg=$(echo "$vpkg" | grep --color=never -Eo '[^!<=>\\[]*' | tr -d "'" | head -n1)
+  reqver=$(echo "$vpkg" | grep --color=never -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
+  [[ -n "$reqver" ]] && xreqver=$(echo $reqver | grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
   sts=0
-  curver=$($pkg --version 2>/dev/null | grep -Eo "[0-9]+\.[0-9]+\.?[0-9]*" | head -n1)
+  curver=$($pkg --version 2>/dev/null | grep  =never-Eo "[0-9]+\.[0-9]+\.?[0-9]*" | head -n1)
   if [[ -n "$reqver" ]]; then
     if [[ -z "$curver" ]]; then
       echo "Package $pkg not installed!!!"
@@ -508,7 +508,7 @@ check_bin_package() {
         ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       fi
     else
-      [[ -n "$curver" ]] && xcurver=$(echo $curver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
+      [[ -n "$curver" ]] && xcurver=$(echo $curver | grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
       if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
         echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
         if [[ "$cmd" == "amend" ]]; then
@@ -556,10 +556,10 @@ check_package() {
   local op reqver xreqver sts curver vpkg x
   local vpkg="$(get_actual_pkg $1)"
 
-  op=$(echo "$vpkg" | grep -Eo '[!<=>]*' | head -n1)
-  pkg=$(echo "$vpkg" | grep -Eo '[^!<=>\\[]*' | tr -d "'" | head -n1)
-  reqver=$(echo "$vpkg" | grep -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
-  [[ -n "$reqver" ]] && xreqver=$(echo $reqver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
+  op=$(echo "$vpkg" | grep --color=never -Eo '[!<=>]*' | head -n1)
+  pkg=$(echo "$vpkg" | grep --color=never -Eo '[^!<=>\\[]*' | tr -d "'" | head -n1)
+  reqver=$(echo "$vpkg" | grep --color=never -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
+  [[ -n "$reqver" ]] && xreqver=$(echo $reqver | grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
   sts=0
   if [[ $pkg =~ $BIN_PKGS ]]; then
       check_bin_package "$pkg"
@@ -574,7 +574,7 @@ check_package() {
         ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       fi
     else
-      [[ -n "$curver" ]] && xcurver=$(echo $curver | grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
+      [[ -n "$curver" ]] && xcurver=$(echo $curver | grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
       if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
         echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
         if [[ "$cmd" == "amend" ]]; then
@@ -660,7 +660,7 @@ package_debug() {
 custom_env() {
   # custom_env(VENV pyver)
   [[ $opt_verbose -gt 2 ]] && echo ">>> custom_env($*)"
-  local VIRTUAL_ENV=$1 pyver=$(echo $2|grep -Eo "[0-9]"|head -n1)
+  local VIRTUAL_ENV=$1 pyver=$(echo $2|grep --color=never -Eo "[0-9]"|head -n1)
   sed -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(dirname \$(dirname \$(readlink -f \$BASH_SOURCE[0])))":g' -i $VIRTUAL_ENV/bin/activate
   if $(grep -q "^export HOME=" $VIRTUAL_ENV/bin/activate); then
     sed -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' -i $VIRTUAL_ENV/bin/activate
@@ -705,12 +705,12 @@ find_cur_py() {
       [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
       PYTHON=$(which $PYTHON 2>/dev/null)
       [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep -o "[0-9]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
       PIP=$(which pip$opt_pyver 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     else
       PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep -o "[0-9]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
       PIP=$(which pip 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     fi
@@ -765,7 +765,7 @@ check_4_needing_pkgs() {
   local p x
   for p in $NEEDING_PKGS; do
     x=${p^^}
-    eval $x=$($PIP show "$p" 2>/dev/null | grep "Version" | grep -Eo "[0-9.]+")
+    eval $x=$($PIP show "$p" 2>/dev/null | grep "Version" | grep --color=never -Eo "[0-9.]+")
   done
 }
 
@@ -819,8 +819,8 @@ do_venv_mgr_test() {
   do_deactivate
   do_activate $VENV
   [[ -z "$HOME" ]] && echo "Wrong environment (No HOME directory declared)!" && return
-  [[ $opt_alone -eq 2 && "$HOME" == "$SAVED_HOME" ]] && echo -e "${RED}Virtual Environment not isolated!${CLR}"
-  [[ $opt_verbose -gt 0 && "$HOME" != "$SAVED_HOME" ]] && echo "Isolated environment (-I switch)."
+  [[ $opt_alone -eq 2 && "$HOME" == "$SAVED_HOME" ]] && echo -e "${RED}Virtual Environment $HOME not isolated!${CLR}"
+  [[ $opt_verbose -gt 0 && "$HOME" != "$SAVED_HOME" ]] && echo "Isolated environment $HOME (-I switch, parent $SAVED_HOME)."
   if [[ $opt_verbose -gt 0 ]]; then
     [[ $opt_dev -eq 0 ]] && echo "Environment w/o devel packages." || echo "Environment with devel packages (created with -D switch)."
     if [[ -f $V/pyvenv.cfg ]]; then
@@ -918,9 +918,9 @@ do_venv_mgr() {
     fi
     [[ ! $cmd =~ (amend|check|cp) ]] && bin_install_1 $VENV
     [[ $cmd =~ (amend|check) ]] && bin_check_1 $VENV
-    x=$($PIP --version|grep -Eo "python *[23]"|grep -Eo "[23]")
+    x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]")
     [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -U" || run_traced "$PIP install pip -U"
-    PIPVER=$($PIP --version | grep -Eo "[0-9]+" | head -n1)
+    PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "--upgrade"
     [[ $cmd =~ (amend|check) ]] && pip_check_1 $cmd
     [[ -n "$opt_oever" && "$cmd" == "amend" ]] && pip_install_2 "--upgrade"
@@ -1031,7 +1031,7 @@ do_venv_create() {
   PYTHON=""
   if [[ -x $opt_pyver ]]; then
     PYTHON=$opt_pyver
-    opt_pyver=$($PYTHON --version 2>&1 | grep -o "[0-9]\.[0-9]" | head -n1)
+    opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
     PIP=$(which pip$opt_pyver 2>/dev/null)
     [[ -z $PIP ]] && PIP="$PYTHON -m pip"
   elif [[ -n $opt_pyver ]]; then
@@ -1040,7 +1040,7 @@ do_venv_create() {
     [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
     PYTHON=$(which $PYTHON 2>/dev/null)
     [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-    opt_pyver=$($PYTHON --version 2>&1 | grep -o "[0-9]\.[0-9]" | head -n1)
+    opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
     PIP=$(which pip$opt_pyver 2>/dev/null)
     [[ -z $PIP ]] && PIP="$PYTHON -m pip"
   else
@@ -1049,12 +1049,12 @@ do_venv_create() {
     PIP=$(which pip 2>/dev/null)
     [[ -z $PIP ]] && PIP="$PYTHON -m pip"
   fi
-  [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep -Eo "[0-9]+" | head -n1)
+  [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   validate_py_oe_vers
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   venvexe=$(which virtualenv 2>/dev/null)
   if [[ -n "$venvexe" ]]; then
-    v=$(virtualenv --version 2>&1 | grep -Eo "[0-9]+" | head -n1)
+    v=$(virtualenv --version 2>&1 | grep --color=never -Eo "[0-9]+" | head -n1)
     if [ $v -gt 17 ]; then
       [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
     else
@@ -1092,9 +1092,9 @@ do_venv_create() {
 
   do_activate "$VENV"
   venv_mgr_check_src_path "$VENV"
-  x=$($PIP --version|grep -Eo "python *[23]"|grep -Eo "[23]")
+  x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]")
   [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -Uq" || run_traced "$PIP install pip -Uq"
-  PIPVER=$($PIP --version | grep -Eo "[0-9]+" | head -n1)
+  PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   run_traced "$PIP install \"setuptools<58.0\" -Uq"
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
   check_installed_pkgs

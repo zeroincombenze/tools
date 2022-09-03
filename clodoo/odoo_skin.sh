@@ -244,7 +244,7 @@ update_base_sass() {
       [ $ctr -eq 0 ] && break
       ((ctr--)) #debug
       if [[ $line =~ ^\$[a-zA-Z0-9_-]+[[:space:]]*: ]]; then
-        param=$(echo $line|grep -Eo "[a-zA-Z0-9_-]+"|head -n1)
+        param=$(echo $line|grep --color=never -Eo "[a-zA-Z0-9_-]+"|head -n1)
         param=CSS_${param//-/_}
         x=$(get_cfg_value 0 $param)
         if [ -z "$x" ]; then

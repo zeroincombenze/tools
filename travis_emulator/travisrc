@@ -379,16 +379,17 @@ create_virtual_env() {
   [[ $sts -ne 0 ]] && return
 
   run_traced "source $TRAVIS_HOME/bin/activate"
-  PYTHON=$(which python)
-  [[ $TRAVIS_PYTHON_VERSION =~ ^3 ]] && PYTHON3=$(which python3)
-  PIP=$(which pip)
+  set_pybin $TRAVIS_PYTHON_VERSION
+  # PYTHON=$(which python)
+  # [[ $TRAVIS_PYTHON_VERSION =~ ^3 ]] && PYTHON3=$(which python3)
+  # PIP=$(which pip)
   if [[ $opt_dbgmnt -ne 0 ]]; then
     # Install unstable packages to run them when needed
     for p in $(get_cfg_value "" "PKGS_LIST"); do
         # Use unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
         [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/scripts/setup.info ]] && \
-          run_traced "pip install -qU $TRAVIS_SAVED_HOME_DEVEL/pypi/$p"
+          run_traced "$PIP install -qU $TRAVIS_SAVED_HOME_DEVEL/pypi/$p"
     done
   fi
   [[ -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && source $NVM_DIR/nvm.sh
@@ -400,6 +401,7 @@ create_virtual_env() {
   # Compatibility with OCA test
   [[ -d $TRAVIS_HOME/maintainer-quality-tools ]] && rm -fR -d $TRAVIS_HOME/maintainer-quality-tools
   export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
+  echo "Download testing repository ..."
   if [[ $PKGNAME == "OCB" ]]; then
     emulate_git_clone_OCB $TRAVIS_HOME_BRANCH $TRAVIS_BUILD_DIR
   else
@@ -684,7 +686,7 @@ robocopy_init() {
     else
       a_append "setup.py" ""
       if [ "$2" == "OCB" ]; then
-        local p=$(echo $PWD | grep -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0|15.0)" | head -n1)
+        local p=$(echo $PWD | grep --color=never -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0|15.0)" | head -n1)
         if [ -n "$p" ]; then
           a_append "$p" "/"
         fi

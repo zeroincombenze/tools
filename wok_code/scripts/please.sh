@@ -335,7 +335,7 @@ get_ver() {
     if [ "$BRANCH" == "master" ]; then
       ver=$BRANCH
     else
-      ver=$(echo $BRANCH | grep -Eo '[0-9]+' | head -n1)
+      ver=$(echo $BRANCH | grep --color=never -Eo '[0-9]+' | head -n1)
     fi
   else
     ver=master
@@ -767,8 +767,8 @@ do_publish_download() {
     fi
     run_traced "cd $PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep -Eo [a-zA-Z0-9_-]+ | head -n1)
-    v=$(cat setup.py | grep version | grep -Eo [0-9]+\.[0-9]+\.[0-9]+ | head -n1)
+    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep --color=never -Eo '[a-zA-Z0-9_-]+' | head -n1)
+    v=$(cat setup.py | grep version | grep --color=never -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
     f=$(ls -1 $n*$v*tar.gz)
     # f=$n*$v*tar.gz
     if [ -n "$f" -a -f "$f" ]; then
@@ -834,8 +834,8 @@ do_register_pypi() {
   if [ "$PRJNAME" != "Odoo" ]; then
     run_traced "cd $PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep -Eo [a-zA-Z0-9_-]+ | head -n1)
-    v=$(cat setup.py | grep version | grep -Eo [0-9]+[0-9\.]* | head -n1)
+    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep --color=never -Eo '[a-zA-Z0-9_-]+' | head -n1)
+    v=$(cat setup.py | grep version | grep --color=never -Eo '[0-9]+[0-9\.]*' | head -n1)
     p=$(find dist -name "$n*$v*.whl")
     if [ -z "$p" -o $opt_force -gt 0 ]; then
       run_traced "python setup.py bdist_wheel --universal"
@@ -856,8 +856,8 @@ do_register_testpypi() {
   if [ "$PRJNAME" != "Odoo" ]; then
     run_traced "cd $PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep -Eo [a-zA-Z0-9_-]+ | head -n1)
-    v=$(cat setup.py | grep version | grep -Eo [0-9]+[0-9\.]* | head -n1)
+    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep --color=never -Eo '[a-zA-Z0-9_-]+' | head -n1)
+    v=$(cat setup.py | grep version | grep --color=never -Eo '[0-9]+[0-9\.]*' | head -n1)
     p=$(find dist -name "$n*$v*.whl")
     if [ -z "$p" -o $opt_force -gt 0 ]; then
       run_traced "python setup.py bdist_wheel --universal"
@@ -913,12 +913,12 @@ do_edit_translation_from_pofile() {
     echo "Invalid Odoo environment!"
     return $STS_FAILED
   fi
-  odoo_ver=$(echo $odoo_fver | grep -Eo [0-9]+ | head -n1)
+  odoo_ver=$(echo $odoo_fver | grep --color=never -Eo '[0-9]+' | head -n1)
   if [[ ! -f "$pofile" ]]; then
     echo "File $pofile not found!"
     return $STS_FAILED
   fi
-  pyv=$(python3 --version 2>&1 | grep -Eo "[0-9]+\.[0-9]+")
+  pyv=$(python3 --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+")
   [[ -n "$pyv" ]] && pyver="-p $pyv"
   pyver="-p 2.7" #debug
   [[ ! -d $HOME/clodoo/venv ]] && \
@@ -1025,8 +1025,8 @@ do_build() {
     run_traced "cd $PKGPATH"
     # run_traced "mkdir -p tmp"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep -Eo [a-zA-Z0-9_-]+ | head -n1)
-    v=$(cat setup.py | grep version | grep -Eo [0-9]+\.[0-9]+\.[0-9]+ | head -n1)
+    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep --color=never -Eo '[a-zA-Z0-9_-]+' | head -n1)
+    v=$(cat setup.py | grep version | grep --color=never -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
     if [ ! -f "$n*$v*tar.gz" -o $opt_force -gt 0 ]; then
       PKGLIST=$(cat setup.py | grep "# PKGLIST=" | awk -F= '{print $2}')
       if [ -n "$PKGLIST" ]; then
@@ -1381,7 +1381,7 @@ do_docs() {
       run_traced "gen_readme.py $opts -t ./rtd_template.rst -o $docs_dir/$f.rst"
       run_traced "rm ./rtd_template.rst"
     elif [[ $f =~ ^pypi_ ]]; then
-      x=$(echo $f | grep -Eo "^pypi.*/index")
+      x=$(echo $f | grep --color=never -Eo "^pypi.*/index")
       b=${x:0:-6}
       x=${x:5:-6}
       [[ -d $docs_dir/$b ]] || run_traced "mkdir -p $docs_dir/$b"
@@ -1821,7 +1821,7 @@ do_lsearch() {
   wlog "do_lsearch '$1' '$2' '$3'"
   local CM cmd db f LOGDIRS odoo_fver odoo_ver PM sts=$STS_FAILED tok_dt token
   [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
-  odoo_ver=$(echo $odoo_fver | grep -Eo [0-9]+ | head -n1)
+  odoo_ver=$(echo $odoo_fver | grep --color=never -Eo '[0-9]+' | head -n1)
   tok_dt=$opt_date
   CM=$(date +%Y-%m)
   PM=$(date -d "1 month ago" +%Y-%m)
@@ -1931,7 +1931,7 @@ do_replace() {
       [[ $t != "application/x-sharedlib" && ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python3$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python2|\" $f"
       [[ $t != "application/x-sharedlib" && ( -x $f || $f =~ .py$ ) && ! -d $f ]] && grep -q "^#\!.*/venv/bin/python$" $f &>/dev/null && run_traced "sed -i -e \"s|^#\!.*/venv/bin/python2$|^#\!/usr/bin/env python|\" $f"
     done
-    ## do_docs
+    do_docs
     clean_dirs "$PKGPATH"
     opts=$(inherits_travis_opts "R" "D")
     run_traced "$TDIR/dist_pkg.sh $opts $1"
@@ -2039,7 +2039,7 @@ do_show_license() {
     for fn in $FILES; do
       path=$(readlink -f $(dirname $fn))
       module=$(basename $path)
-      licence=$(grep "[\"']license[\"'] *:" $fn|grep -Eo "(.GPL-3|OPL-1)")
+      licence=$(grep "[\"']license[\"'] *:" $fn|grep --color=never -Eo "(.GPL-3|OPL-1)")
       printf "Module %-60.60s: $licence\n" $module
     done
   fi
@@ -2079,11 +2079,11 @@ do_show_status() {
     [[ $PKGS != "()" && $pkg =~ $PKGS ]] && x="$x G"
     [[ $PKGS_V != "()" && $pkg =~ $PKGS_V ]] && x="$x V"
     if [[ $pkg == "tools" ]]; then
-      v1=$(grep -E "version" $HOME/tools/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
-      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+      v1=$(grep -E "version" $HOME/tools/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
+      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
     else
-      v1=$(grep -E "version" $HOME/tools/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
-      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep -Eo "[0-9.]+")
+      v1=$(grep -E "version" $HOME/tools/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
+      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
     fi
     if [[ $x =~ "R" ]]; then
       [[ $pkg == "tools" ]] && s="$HOME_DEVEL/pypi/$pkg" || s="$HOME_DEVEL/pypi/$pkg/$pkg"
