@@ -826,37 +826,17 @@ process_yaml() {
         [[ $sts -eq $STS_SUCCESS ]] || break
         wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[0m"
         set_pybin $TRAVIS_PYTHON_VERSION "PYTHON_VERSION"
-        CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo "[0-9]" | head -n1)
-        CURPYVER2=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
-#        PYTHON=$(which python$TRAVIS_PYTHON_VERSION)
-#        [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER2)
-#        [[ -z "$PYTHON" ]] && PYTHON=$(which python$CURPYVER)
-#        PYTHON_VERSION=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+")
-#        if [[ $($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+") != $TRAVIS_PYTHON_VERSION ]]; then
+        TRAVIS_PYVER_1=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo "[0-9]" | head -n1)
+        TRAVIS_PYVER_2=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
         if [[ $PYTHON_VERSION != $TRAVIS_PYTHON_VERSION ]]; then
-          if [[ $PYTHON_VERSION != $CURPYVER2 ]]; then
+          if [[ $PYTHON_VERSION != $TRAVIS_PYVER_2 ]]; then
             wlog "\e[${PS_HDR1_COLOR}mError: Required version $TRAVIS_PYTHON_VERSION of python is not availale. Replace by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
             continue
           fi
           wlog "\e[${PS_HDR1_COLOR}mWarning: Required version $TRAVIS_PYTHON_VERSION of python is replaced by $PYTHON_VERSION\e[${PS_TXT_COLOR}m"
-          TRAVIS_PYTHON_VERSION=$CURPYVER2
+          TRAVIS_PYTHON_VERSION=$TRAVIS_PYVER_2
         fi
-        alias python=$PYTHON
         export TRAVIS_PYTHON_VERSION
-        PIP=$(which pip$TRAVIS_PYTHON_VERSION)
-        [[ -z "$PIP" ]] && PIP=$(which pip$CURPYVER)
-        alias pip=$PIP
-        for lne in PIP PYTHON PYTHONPATH TRAVIS_PYTHON_VERSION; do
-          lne1=${!lne}
-          [[ -n "$lne1" || $lne =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $lne=$lne1\e[0m"
-        done
-        if [[ $TRAVIS_DEBUG_MODE -gt 2 ]]; then
-          if [[ $CURPYVER -eq 3 ]]; then
-            echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | $PYTHON
-          else
-            echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | $PYTHON
-          fi
-        fi
         [[ -n "$YML_matrix" ]] || YML_matrix=":"
         for lne in $YML_matrix; do
           if [[ $lne == ":" ]]; then
@@ -888,7 +868,7 @@ process_yaml() {
           [[ -n $opt_trace && ::build =~ $opt_trace ]] && debug_shell "::build"
           create_virtual_env
           wlog "\e[${PS_HDR2_COLOR}m----- [System informations] -----\e[0m"
-          for p in PATH HOME HOME_BRANCH PIP PYTHON PYTHONPATH PYPI_CACHED TRAVIS SYSTEM_SITE_PACKAGES TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_SAVED_HOME TRAVIS_SAVED_HOME_DEVEL; do
+          for p in PATH HOME HOME_BRANCH PIP PYTHON PYTHONPATH PYPI_CACHED TRAVIS SYSTEM_SITE_PACKAGES TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_SAVED_HOME TRAVIS_SAVED_HOME_DEVEL; do
             X=${!p}
             [[ -n "$X" || $p =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $p=$X\e[0m"
           done

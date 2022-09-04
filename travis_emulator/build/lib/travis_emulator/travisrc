@@ -200,6 +200,7 @@ init_travis() {
     BRANCH=$(build_odoo_param FULLVER ".")
     SETUP=$MANIFEST
   fi
+  # TODO>Deprecated
   if [[ -z "$TOOLS_PATH" ]]; then
     TOOLS_PATH=$(readlink -f $ODOO_ROOT/tools/zerobug/_travis)
     [[ ! -d $TOOLS_PATH ]] && TOOLS_PATH=$(find $HOME_DEVEL -type d -name _travis | head -n1)
@@ -446,7 +447,7 @@ drop_virtual_env() {
   unset TRAVIS_SAVED_HOME
   unset TRAVIS_SAVED_HOME_DEVEL
   unset SAVED_ODOO_ROOT
-  cd $HOME
+  [[ "$PRJNAME" == "Odoo" ]] && cd $PKGPATH || cd $PRJPATHJ
   if [[ ${opt_keep:-0} -eq 0 ]]; then
     drop_test_db
     if [[ $TRAVIS != "true" ]]; then
@@ -455,7 +456,7 @@ drop_virtual_env() {
       hash -r
     fi
   fi
-  [[ ${opt_virt:-0} -gt 0 ]] && echo "HOME=$HOME" && echo "HOME_DEVEL=$HOME_DEVEL" && echo "ODOO_ROOT=$ODOO_ROOT"
+  [[ ${opt_virt:-0} -gt 0 ]] && echo "HOME=$HOME" && echo "HOME_DEVEL=$HOME_DEVEL" && echo "ODOO_ROOT=$ODOO_ROOT" && echo "PWD=$PWD"
   TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
 }
 
