@@ -1,3 +1,4 @@
+README.rst
 setup.py
 lisa/__init__.py
 lisa/__main__.py

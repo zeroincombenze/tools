@@ -24,15 +24,15 @@ optional arguments:
 from __future__ import print_function, unicode_literals
 import os
 import sys
+import time
+import csv
+from os0 import os0
+from python_plus import _b, _c, _u
 
 if sys.version_info[0] == 2:
     from io import BytesIO
 else:
     from io import StringIO
-import time
-import csv
-from os0 import os0
-from python_plus import _b, _c, _u
 
 try:
     from z0lib import z0lib
@@ -40,7 +40,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "1.0.9"
+__version__ = "2.0.0"
 
 msg_time = time.time()
 

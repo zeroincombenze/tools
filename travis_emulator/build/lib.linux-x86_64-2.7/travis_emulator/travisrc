@@ -2,21 +2,21 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=1.0.6
+#__version__=2.0.0
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.8
+# Based on template 2.0.0
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-if [[ -z $HOME_DEVEL ]]; then
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEVEL"'\nimport os,sys\no=os.path\na=o.abspath\nj=os.path.join\nd=os.path.dirname\nb=os.path.basename\nf=os.path.isfile\np=os.path.isdir\nH=o.expanduser('~')\nT=j(d(D), 'tools')\nR=j(d(D),'pypi') if o.basename(D)=='venv_tools' else j(D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==b(d(C)) and f(j(C,'..','setup.py')):\n C=a(j(C,'..','..'))\nelif b(d(C))=='tools' and f(j(C,'setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)) or p(j(C,b(C),B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+P\np=set()\npa=p.add\np=[x for x in L if x and (x.startswith(H) or x.startswith(D) or x.startswith(C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -25,18 +25,23 @@ for d in $PYPATH /etc; do
     break
   fi
 done
-if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found in <$PYPATH>!"
-  exit 72
-fi
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
-if [[ -z "$ODOOLIBDIR" ]]; then
-  echo "Library file odoorc not found!"
-  exit 72
-fi
+[[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
+
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
 
 
 opts_travis() {
@@ -166,7 +171,7 @@ init_travis() {
   else
     opts_upd=
   fi
-  local x=$(get_cfg_value "" "loglevel")
+  x=$(get_cfg_value "" "loglevel")
   if [ ${x:-1} -ne -1 ]; then
     opt_verbose=$x
   fi
@@ -191,16 +196,13 @@ init_travis() {
       mkdir -p $NPM_CONFIG_PREFIX
       npm config set prefix $NPM_CONFIG_PREFIX
     fi
-    [ -z "$REPOSNAME" ] && REPOSNAME=$(build_odoo_param REPOS ".")
+    [[ -z $REPOSNAME ]] && REPOSNAME=$(build_odoo_param REPOS ".")
     BRANCH=$(build_odoo_param FULLVER ".")
     SETUP=$MANIFEST
   fi
   if [[ -z "$TOOLS_PATH" ]]; then
-    if [[ -d $HOME/tools/zerobug/_travis ]]; then
-      TOOLS_PATH=$HOME/tools/zerobug/_travis
-    else
-      TOOLS_PATH=$(find $HOME -type d -name _travis | head -n1)
-    fi
+    TOOLS_PATH=$(readlink -f $ODOO_ROOT/tools/zerobug/_travis)
+    [[ ! -d $TOOLS_PATH ]] && TOOLS_PATH=$(find $HOME_DEVEL -type d -name _travis | head -n1)
   fi
 }
 
@@ -302,7 +304,9 @@ create_virtual_env() {
   VENVOPTS="-Dlen_US"
   drop_test_db
   export TRAVIS_SAVED_HOME=$HOME
-  [[ -d $HOME/odoo/devel ]] && export TRAVIS_SAVED_DHOME=$HOME/odoo || export TRAVIS_SAVED_DHOME=$HOME
+  export TRAVIS_SAVED_HOME_DEVEL=$HOME_DEVEL
+  [[ -z $ODOO_ROOT ]] && ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
+  export SAVED_ODOO_ROOT=$ODOO_ROOT
   if [[ $HOME =~ ^/(home|opt)/travis && -d $HOME/virtualenv ]]; then
     export TRAVIS=true
     export TRAVIS_HOME=$HOME/virtualenv
@@ -316,47 +320,47 @@ create_virtual_env() {
   [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
   [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
   hash -r
-  if [[ "$PRJNAME" == "Odoo" && ( ! -d $TRAVIS_SAVED_DHOME/VME/VME$BRANCH || $(stat -c %Y $TRAVIS_SAVED_DHOME/VME/VME$BRANCH) -lt 1639237000 ) ]]; then
-    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_DHOME/VME/VME$BRANCH not found or expired!${CLR}"
-    echo -e "Now virtual environment $TRAVIS_SAVED_DHOME/VME/VME$BRANCH will be (re)created."
+  if [[ "$PRJNAME" == "Odoo" && ( ! -d $SAVED_ODOO_ROOT/VME/VME$BRANCH || $(stat -c %Y $SAVED_ODOO_ROOT/VME/VME$BRANCH) -lt 1661637600 ) ]]; then
+    echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH not found or expired!${CLR}"
+    echo -e "Now virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH will be (re)created."
     [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
-    run_traced "vem create $TRAVIS_SAVED_DHOME/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH -len_US"
+    run_traced "vem create $SAVED_ODOO_ROOT/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH -len_US"
     echo -e "\n\n"
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
-  elif [[ ! -d "$TRAVIS_SAVED_DHOME/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $TRAVIS_SAVED_DHOME/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1639237000 ]]; then
-    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SAVED_DHOME/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
-    run_traced "vem create $TRAVIS_SAVED_DHOME/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq -len_US"
+  elif [[ ! -d "$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1661637600 ]]; then
+    echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
+    run_traced "vem create $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq -len_US"
     echo -e "\n\n"
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
   fi
   if [[ $TRAVIS == "true" || -d $TRAVIS_HOME ]]; then
     true
   elif [[ $opt_full -eq 0 && ${opt_cache:-0} -ne 0 && -n "$TRAVIS_PYTHON_VERSION" ]]; then
-    [[ -d $TRAVIS_SAVED_DHOME ]] || mkdir $TRAVIS_SAVED_DHOME
-    if [[ "$PRJNAME" == "Odoo" && -d $TRAVIS_SAVED_DHOME/VME/VME$BRANCH ]]; then
+    [[ -d $SAVED_ODOO_ROOT ]] || mkdir $SAVED_ODOO_ROOT
+    if [[ "$PRJNAME" == "Odoo" && -d $SAVED_ODOO_ROOT/VME/VME$BRANCH ]]; then
       opt_keepE=0
-      TRAVIS_SRC_VME=$TRAVIS_SAVED_DHOME/VME/VME$BRANCH
+      TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$BRANCH
       opts=$(inherits_travis_opts "" "V")
       [[ $TRAVIS == "true" ]] || opts="$opts -f"
       run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
       sts=$?
-    elif [[ -d "$TRAVIS_SAVED_DHOME/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
+    elif [[ -d "$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION" ]]; then
       opt_keepE=0
-      TRAVIS_SRC_VME=$TRAVIS_SAVED_DHOME/VME/VME$TRAVIS_PYTHON_VERSION
+      TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION
       opts=$(inherits_travis_opts "" "V")
       [[ $TRAVIS == "true" ]] || opts="$opts -f"
       run_traced "vem cp $VENVOPTS $opts $TRAVIS_SRC_VME $TRAVIS_HOME"
       sts=$?
     else
       if [[ "$PRJNAME" == "Odoo" && -n "$VERSION" ]]; then
-        TRAVIS_SRC_VME=$TRAVIS_SAVED_DHOME/VME/VME$VERSION
+        TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$VERSION
         opts=$(inherits_travis_opts "" "V")
         [[ $TRAVIS == "true" ]] || opts="$opts -f"
         opts="$opts -q"
         run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION -O$VERSION"
         sts=$?
       else
-        TRAVIS_SRC_VME=$TRAVIS_SAVED_DHOME/VME/VME$TRAVIS_PYTHON_VERSION
+        TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION
         opts=$(inherits_travis_opts "" "V")
         [[ $TRAVIS == "true" ]] || opts="$opts -f"
         opts="$opts -q"
@@ -375,16 +379,18 @@ create_virtual_env() {
   [[ $sts -ne 0 ]] && return
 
   run_traced "source $TRAVIS_HOME/bin/activate"
-  PYTHON=$(which python)
-  [[ $TRAVIS_PYTHON_VERSION =~ ^3 ]] && PYTHON3=$(which python3)
-  PIP=$(which pip)
+  set_pybin $TRAVIS_PYTHON_VERSION
+  # PYTHON=$(which python)
+  # [[ $TRAVIS_PYTHON_VERSION =~ ^3 ]] && PYTHON3=$(which python3)
+  # PIP=$(which pip)
   if [[ $opt_dbgmnt -ne 0 ]]; then
+    # Install unstable packages to run them when needed
     for p in $(get_cfg_value "" "PKGS_LIST"); do
         # Use unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
-        [[ -f $TRAVIS_SAVED_DHOME/devel/pypi/$p/$p/scripts/setup.info ]] && \
-          run_traced "pip install -U $TRAVIS_SAVED_DHOME/devel/pypi/$p"
-      done
+        [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/scripts/setup.info ]] && \
+          run_traced "$PIP install -qU $TRAVIS_SAVED_HOME_DEVEL/pypi/$p"
+    done
   fi
   [[ -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && source $NVM_DIR/nvm.sh
   if [ $opt_cache -ne 0 -a "$TRAVIS" == "false" -a -d $HOME/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]; then
@@ -395,18 +401,21 @@ create_virtual_env() {
   # Compatibility with OCA test
   [[ -d $TRAVIS_HOME/maintainer-quality-tools ]] && rm -fR -d $TRAVIS_HOME/maintainer-quality-tools
   export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
+  echo "Download testing repository ..."
   if [[ $PKGNAME == "OCB" ]]; then
-    emulate_git_clone_OCB $TRAVIS_HOME_BRANCH $TRAVIS_BUILD_DIR/$TRAVIS_REPO_SLUG
+    emulate_git_clone_OCB $TRAVIS_HOME_BRANCH $TRAVIS_BUILD_DIR
   else
     mkdir -p $TRAVIS_BUILD_DIR
     x=$(readlink -f $TRAVIS_BUILD_DIR/..)
     run_traced "cp -R $TRAVIS_HOME_BRANCH/ $x/"
     if [[ ${opt_dbgmnt:-0} -ne 0 && "$TRAVIS_REPO_SLUG" == "local/tools" ]]; then
       git_clone "https://github.com/zeroincombenze/tools.git"
-      [[ $HOME_DEVEL =~ /devel$ ]] && run_traced "cp $TRAVIS_SAVED_DHOME/devel/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
+      [[ $HOME_DEVEL =~ /devel$ ]] && run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
     fi
   fi
   [[ $PWD != $TRAVIS_BUILD_DIR ]] && run_traced "cd $TRAVIS_BUILD_DIR"
+  unset TOOLS_PATH
+  init_travis
   if [[ -n "$opt_pybrk" ]]; then
     IFS=":" read f t <<<"$opt_pybrk"
     [[ $f =~ ^\. ]] && x=$(readlink -f $TRAVIS_BUILD_DIR/$f) || x=$(find $TRAVIS_BUILD_DIR -name $f)
@@ -431,9 +440,12 @@ EOF
 drop_virtual_env() {
   [[ ${opt_virt:-0} -gt 0 ]] && run_traced "deactivate"
   [[ $TRAVIS == "true" ]] && export HOME=$(readlink -f $TRAVIS_HOME/..) || export HOME=$TRAVIS_SAVED_HOME
+  [[ -n $TRAVIS_SAVED_HOME_DEVEL ]] && export HOME_DEVEL=$TRAVIS_SAVED_HOME_DEVEL
+  [[ -n $SAVED_ODOO_ROOT ]] && export ODOO_ROOT=$SAVED_ODOO_ROOT
   hash -r
   unset TRAVIS_SAVED_HOME
-  unset TRAVIS_SAVED_DHOME
+  unset TRAVIS_SAVED_HOME_DEVEL
+  unset SAVED_ODOO_ROOT
   cd $HOME
   if [[ ${opt_keep:-0} -eq 0 ]]; then
     drop_test_db
@@ -443,6 +455,7 @@ drop_virtual_env() {
       hash -r
     fi
   fi
+  [[ ${opt_virt:-0} -gt 0 ]] && echo "HOME=$HOME" && echo "HOME_DEVEL=$HOME_DEVEL" && echo "ODOO_ROOT=$ODOO_ROOT"
   TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
 }
 
@@ -472,27 +485,27 @@ git_clone() {
   while [[ -n "$1" && "${1:0:1}" == "-" ]]; do
     shift
   done
-  if [[ "$1" == "https://github.com/zeroincombenze/tools.git" ]]; then
+  if [[ $1 == "https://github.com/zeroincombenze/tools.git" ]]; then
     if [[ -n "$2" ]]; then
       d=$(readlink -m $2/..)
     else
       d="./"
     fi
-    run_traced "cp -R $TRAVIS_SAVED_DHOME/tools $d"
+    [[ -z $SAVED_ODOO_ROOT ]] && SAVE_ODOO_ROOT=$(readlink -f $TRAVIS_SAVED_HOME_DEVEL/..)
+    run_traced "cp -R $SAVED_ODOO_ROOT/tools $d"
     if [[ $opt_dbgmnt -ne 0 ]]; then
       x=${TRAVIS_REPO_SLUG#*/}
-      echo "$d=\$(find $HOME/lib -type d -name site-packages|head -n1)" #debug
       for p in $(get_cfg_value "" "PKGS_LIST"); do
-        # Use unstable version
+        # Load unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
-        [[ -f $TRAVIS_SAVED_DHOME/devel/pypi/$p/$p/scripts/setup.info ]] && \
-          run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_DHOME/devel/pypi/$p/$p/ $HOME/tools/$p/" && \
-          run_traced "cp $TRAVIS_SAVED_DHOME/devel/pypi/$p/setup.py $HOME/tools/$p/"
+        [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/scripts/setup.info ]] && \
+          run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/ $HOME/tools/$p/" && \
+          run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/setup.py $HOME/tools/$p/"
         s=$?; [ ${s-1} -eq 0 ] || echo "Internal error $s! Statement rsync $p failed!!"
       done
       for p in install_tools.sh odoo_default_tnl.xlsx; do
-        [[ -d $TRAVIS_SAVED_DHOME/devel/pypi/tools/ ]] && \
-          run_traced "cp $TRAVIS_SAVED_DHOME/devel/pypi/tools/$p $HOME/tools/$p"
+        [[ -d $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/ ]] && \
+          run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/$p $HOME/tools/$p"
       done
       true # FIX: return no error
     fi
@@ -610,35 +623,8 @@ conf_default() {
 }
 
 #
-#expand_path() {
-#  # expand_path (path tkn repl)
-#  local p P x=$1
-#  for p in pkgpath pkgname prjpath prjname reposname; do
-#    P=${p^^}
-#    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
-#  done
-#  for p in version TRAVIS_BUILD_DIR ODOO_REPO odoo_vid HOME PATH; do
-#    P=$p
-#    [ $p == "version" ] && P="BRANCH"
-#    [ $p == "odoo_vid" ] && P="opt_branch"
-#    x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
-#  done
-#  [ -n "$2" ] && x=${x/$2/$3}
-#  echo $x
-#}
-
-#set_pkgname() {
-#  #set_pkgname(PKGPATH)
-#  PKGNAME=$(basename $1)
-#  if [[ $PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|14|13|12|11|10|9|8|7|6) ]]; then
-#    PKGNAME=OCB
-#  fi
-#}
-
+# [antoniov: 2022-08-06] TODO: remove early
 #
-# [antoniov: 2021-08-06] TODO: remove early
-#
-
 a_append() {
   # a_append (key, values)::DEFPRM,DEFVAL
   # return:
@@ -700,7 +686,7 @@ robocopy_init() {
     else
       a_append "setup.py" ""
       if [ "$2" == "OCB" ]; then
-        local p=$(echo $PWD | grep -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0|15.0)" | head -n1)
+        local p=$(echo $PWD | grep --color=never -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0|15.0)" | head -n1)
         if [ -n "$p" ]; then
           a_append "$p" "/"
         fi
@@ -808,42 +794,6 @@ robocopy() {
       fi
     fi
   fi
-}
-
-clean_dirs() {
-  # clean_dirs (directory)::
-  # return:
-  run_traced "find . -name '*.bak' -delete"
-  run_traced "find . -name '*~' -delete"
-#  local b cmd d excl f gx="" o p w XXXX x yy
-#  [[ -n "$1" ]] && d=$(readlink -e $1) || d="./"
-#  [[ $d == $HOME || $d == "/" ]] && echo "Too many file to delete!" && exit 1
-#  XXXX=$(get_cfg_value "" "filedel")
-#  [[ $PWD == "$HOME/tools" ]] && XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
-#  yy=$(get_cfg_value "" "fileignore")
-#  excl=""
-#  for x in $yy; do [[ ${x: -1} == "/" ]] && excl="$excl ${x:0: -1}"; done
-#  excl=${excl:1}
-#  [[ $opt_verbose -gt 1 ]] && echo "fileignore(conf)='$excl'"
-#  [[ -f ".gitmodules" ]] && \
-#    gx=$(cat .gitmodules | grep "^[[:space:]]*path" | sed -e "s/ =/=/g" -e "s/= /=/g" -e "s/^[[:space:]]*//g" | awk -F= '{print $2}'|tr "\n" "|")
-#  gx="(${gx}lib|git|__to_remove|tmp|node_modules|.cache)"
-#  [[ $opt_verbose -gt 1 ]] && echo "gitignore='$gx'"
-#  cmd="find $d"
-#  run_traced "$cmd -name '*~' -delete"
-#  [[ -d $d/addons && (-d $d/odoo || -d $d/openerp) ]] && w=1 || w=0
-#  for f in $d/*; do
-#    b=$(basename $f)
-#    [[ $opt_verbose -gt 0 && $w -ne 0 && -d $f && -n "$gx" && ! $b =~ $gx && ! $b =~ (addons|debian|doc|egg-info|odoo|openerp) ]] && echo "Warning! Directory $f should be in .gitmodules"
-#    [[ -d $f && (-z "$gx" || (-n "$gx" && $b =~ $gx)) ]] && cmd="$cmd -not -path '$f/*'"
-#  done
-#  for f in $excl; do cmd="$cmd -not -path '*/$f/*'"; done
-#  o="-nowarn \("
-#  for x in $XXXX; do
-#    [[ ! $x =~ (.conf|\*|/)$ ]] && cmd="$cmd $o -name '*$x'" && o="-o"
-#    [[ $x =~ [*] ]] && cmd="$cmd $o -name '$x'" && o="-o"
-#  done
-#  run_traced "$cmd \) -exec rm -f '{}' \;"
 }
 
 do_summary() {
@@ -972,56 +922,6 @@ coverage() {
   fi
   return $?
 }
-#
-#run_annotate_test() {
-#  cd $PRJPATH
-#  if [ ${opt_dry_run:-0} -eq 0 ]; then
-#    if [ "$PRJNAME" != "Odoo" ]; then
-#      if [ ${opt_verbose:-0} -gt 0 ]; then
-#        echo "export COVERAGE_FILE=$(readlink -f ./.coverage)"
-#      fi
-#      export COVERAGE_FILE=$(readlink -f ./.coverage)
-#      if [ -f ./__main__.py ]; then
-#        coverage erase
-#        if [ ${opt_verbose:-0} -gt 0 ]; then
-#          echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./*.py"
-#        fi
-#        DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./*.py
-#        dir $PRJPATH/cover/
-#        # coverage report
-#        sts=$STS_SUCCESS
-#      elif [ -f ./tests/test_$PRJNAME.py ]; then
-#        coverage erase
-#        if [ ${opt_verbose:-0} -gt 0 ]; then
-#          echo "export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)"
-#        fi
-#        export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)
-#        if [ ${opt_dprj:-0} -gt 0 ]; then
-#          if [ ${opt_verbose:-0} -gt 0 ]; then
-#            echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./tests/test_$PRJNAME.py"
-#          fi
-#          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./tests/test_$PRJNAME.py
-#        else
-#          if [ ${opt_verbose:-0} -gt 0 ]; then
-#            echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover --rcfile=$COVERAGE_PROCESS_START --rcfile=$COVERAGE_PROCESS_START test_$PRJNAME.py"
-#          fi
-#          cd ./tests
-#          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover test_$PRJNAME.py
-#        fi
-#        dir $PRJPATH/cover/
-#        # coverage report
-#        sts=$STS_SUCCESS
-#      else
-#        sts=$STS_FAILED
-#      fi
-#    else
-#      sts=$STS_SUCCESS
-#    fi
-#  else
-#    sts=$STS_SUCCESS
-#  fi
-#  return $sts
-#}
 
 emulate_install_nightly() {
   run_traced "# pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"

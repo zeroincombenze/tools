@@ -16,20 +16,19 @@ Area managed:
 
 @author: Antonio M. Vigliotti antoniomaria.vigliotti@gmail.com
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from future import standard_library
-# from builtins import *                                             # noqa: F403
-from builtins import object
-import os
 import argparse
-import inspect
 import configparser
-
-standard_library.install_aliases()                                 # noqa: E402
+import inspect
+import os
+from builtins import object
+from future import standard_library
+import shutil
+from subprocess import Popen
+from python_plus import qsplit
+standard_library.install_aliases()  # noqa: E402
 
 
 # Apply for configuration file (True/False)
@@ -37,37 +36,54 @@ APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
 CONF_FN = "./clodoo.conf"
 # Read Odoo configuration file (False or /etc/odoo-server.conf)
-ODOO_CONF = ["/etc/odoo/odoo-server.conf",
-             "/etc/odoo-server.conf",
-             "/etc/openerp/openerp-server.conf",
-             "/etc/openerp-server.conf",
-             "/etc/odoo/openerp-server.conf",
-             "/etc/openerp/odoo-server.conf"]
+ODOO_CONF = [
+    "/etc/odoo/odoo-server.conf",
+    "/etc/odoo-server.conf",
+    "/etc/openerp/openerp-server.conf",
+    "/etc/openerp-server.conf",
+    "/etc/odoo/openerp-server.conf",
+    "/etc/openerp/odoo-server.conf",
+]
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "1.0.8"
+__version__ = "2.0.0"
 
 
 def nakedname(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 
-class CountAction(argparse.Action):
+def run_traced(cmd, verbose=None, dry_run=None):
+    if verbose:
+        print('%s %s' % (">" if dry_run else "$", cmd))
+    args = qsplit(cmd)
+    if cmd.startswith("cd "):
+        tgtdir = cmd[3:].strip()
+        if not dry_run or os.path.isdir(tgtdir):
+            return os.chdir(tgtdir)
+        return 0
+    elif not dry_run:
+        if cmd.startswith("rm -fR "):
+            tgtdir = cmd[7:].strip()
+            return shutil.rmtree(tgtdir)
+        elif cmd.startswith("mkdir "):
+            tgtdir = cmd[6:].strip()
+            return os.mkdir(tgtdir)
+        return Popen(args).wait()
+    return 0
 
-    def __init__(self,
-                 option_strings,
-                 dest,
-                 default=None,
-                 required=False,
-                 help=None):
+
+class CountAction(argparse.Action):
+    def __init__(self, option_strings, dest, default=None, required=False, help=None):
         super(CountAction, self).__init__(
             option_strings=option_strings,
             dest=dest,
             nargs=0,
             default=default,
             required=required,
-            help=help)
+            help=help,
+        )
 
     def __call__(self, parser, namespace, values, option_string=None):
         # new_count = argparse._ensure_value(namespace, self.dest, 0)
@@ -78,10 +94,8 @@ class CountAction(argparse.Action):
 
 
 class parseoptargs(object):
-
     def __init__(self, *args, **kwargs):
-        self.parser = argparse.ArgumentParser(description=args[0],
-                                              epilog=args[1])
+        self.parser = argparse.ArgumentParser(description=args[0], epilog=args[1])
         if 'version' in kwargs:
             self.version = kwargs['version']
         self.param_list = []
@@ -111,30 +125,35 @@ class parseoptargs(object):
             if len(args) == 1:
                 if args[0] == '-n' or args[0] == '--dry-run':
                     self.parser.add_argument(
-                        '-n', '--dry-run',
+                        '-n',
+                        '--dry-run',
                         help='do nothing (dry-run)',
                         action='store_true',
                         dest='dry_run',
-                        default=False)
+                        default=False,
+                    )
                     self.param_list.append('dry_run')
                 elif args[0] == '-q' or args[0] == '--quite':
                     self.parser.add_argument(
-                        '-q', '--quiet',
+                        '-q',
+                        '--quiet',
                         help="silent mode",
                         action=CountAction,
-                        dest="opt_verbose",)
+                        dest="opt_verbose",
+                    )
                     self.param_list.append('opt_verbose')
                 elif args[0] == '-V' or args[0] == '--version':
                     self.parser.add_argument(
-                        '-V', '--version',
-                        action='version',
-                        version=self.version)
+                        '-V', '--version', action='version', version=self.version
+                    )
                 elif args[0] == '-v' or args[0] == '--verbose':
                     self.parser.add_argument(
-                        '-v', '--verbose',
+                        '-v',
+                        '--verbose',
                         help="verbose mode",
                         action=CountAction,
-                        dest="opt_verbose")
+                        dest="opt_verbose",
+                    )
                     self.param_list.append('opt_verbose')
                 else:
                     raise NotImplementedError
@@ -218,8 +237,9 @@ class parseoptargs(object):
         ctx['_conf_obj'] = conf_obj
         return ctx
 
-    def parseoptargs(self, arguments,
-                     apply_conf=APPLY_CONF, version=None, tlog=None, doc=None):
+    def parseoptargs(
+        self, arguments, apply_conf=APPLY_CONF, version=None, tlog=None, doc=None
+    ):
         """Parse command-line options.
         @param arguments list of arguments; should argv from command line
         @param version   software version to displya with -V option
@@ -232,7 +252,7 @@ class parseoptargs(object):
         ctx['this'] = this
         if os.isatty(0):
             ctx['run_daemon'] = False
-        else:                                               # pragma: no cover
+        else:  # pragma: no cover
             ctx['run_daemon'] = True
         ctx['run_tty'] = os.isatty(0)
         if tlog:

@@ -1,7 +1,7 @@
 
-===============
-wok_code 1.0.11
-===============
+==============
+wok_code 2.0.0
+==============
 
 
 
@@ -29,6 +29,7 @@ The available tools are:
 * pep8: parse source .py file to meet pep8 and convert across Odoo versions
 * please: developer shell
 * wget_odoo_repositories.py: get repository names from github.com
+
 
 please: developer shell
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -509,10 +510,10 @@ In this documentation VAR means the name of the macro while MACRO is the name of
 ::
 
     i.e.  .. $if branch == '12.0'
-          Current branch is 1.0
+          Current branch is 2.0
 
 In above example then word branch after statement $if ia the VAR branch.
-The word branch in the second line is a text. The item 1.0 is the macro, replaced by the value of varaibale branch.
+The word branch in the second line is a text. The item 2.0 is the macro, replaced by the value of varaibale branch.
 
 CONDITION may be a python condition or one of follow special condition:
 
@@ -844,73 +845,10 @@ Current development version
 History
 -------
 
-1.0.9 (2022-04-04)
+2.0.0 (2022-08-10)
 ~~~~~~~~~~~~~~~~~~
 
-* [IMP] pull_repo.sh: improvements
-* [IMP] Remove old unused code
-* [IMP] please: new actions lint and test
-
-1.0.8.1 (2022-03-21)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] to_pep8.py
-
-1.0.8 (2022-02-23)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] please docs with -O option to use OCA command
-* [FIX] please in no odoo user
-
-1.0.7.1 (2022-02-17)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py (python3)
-
-1.0.7 (2022-01-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] vct_csv_2_rst.py (python3)
-
-1.0.6 (2022-01-19)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py (python3)
-* [FIX] to_pep8.py (python3)
-
-1.0.5.1 (2022-01-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] cvt_csv_coa: executable command
-
-1.0.5 (2022-01-05)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-1.0.4.1 (2021-12-22)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] cvt_script: new PYPATH algoritm
-
-1.0.4 (2021-12-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-1.0.3.3 (2021-12-01)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] cvt_csv_2_rst.py: python 3
-
-1.0.2.6 (2021-10-08)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] cvt_scrit: run inside virtual environment
-* [FIX] please: run inside virtual environment
-* [FIX] please: version
-* [FIX] dist_pkg: run inside virtual environment
-* [FIX] gen_readme.py: new template layout in devel/venv
+* [REF] Refactoring
 
 
 
@@ -936,7 +874,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-06-11
+Last Update / Ultimo aggiornamento: 2022-09-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -951,22 +889,22 @@ Last Update / Ultimo aggiornamento: 2022-06-11
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=2.0
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/2.0/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/2.0
     :alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0/dev
     :alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0/man
     :alt: Technical Documentation
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
-    :target: https://erp1.zeroincombenze.it
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
+    :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/2.0/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/2.0
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

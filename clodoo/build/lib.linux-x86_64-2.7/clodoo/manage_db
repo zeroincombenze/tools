@@ -1,0 +1,517 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Set Odoo Version in clodo files
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2020 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+# Based on template 2.0.0
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+  [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
+fi
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$(readlink -e $d)
+    break
+  fi
+done
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+[[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
+. $ODOOLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TESTDIR=$TESTDIR"
+RUNDIR=$(readlink -e $TESTDIR/..)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
+
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=2.0.0
+
+
+up_oemod() {
+#up_oemod(DB branch)
+    local DB=$1
+    local oe_version=$2
+    local passed_file=./upd_oemod_passed.log
+    local exclusion_file=./upd_oemod_exclude.log
+    local excl_bak_file=./upd_oemod_exclude.bak
+    rm -f $passed_file
+    rm -f $exclusion_file
+    rm -f $excl_bak_file
+    sts=1
+    errctr=0
+    while [ $sts -ne 0 ]; do
+        psql -U$opt_dbuser -c "update ir_module_module set state='uninstalled' where state='to install';" $DB
+        psql -U$opt_dbuser -c "update ir_module_module set state='installed' where state='to upgrade';" $DB
+        echo -e "\033[1;32m"; cat $passed_file || true
+        echo -e "\033[1;31m"; cat $exclusion_file || true
+        echo -e "\033[0m";
+        python $TDIR/upd_oemod.py -d $DB -b $oe_version
+        sts=$?
+        if [ $sts -eq 0 -a -f $exclusion_file ]; then
+            if [ -f $excl_bak_file ]; then
+                echo "diff -q $excl_bak_file $exclusion_file"
+                diff -q $excl_bak_file $exclusion_file
+                if [ $? -eq 0 ]; then
+                    rm -f $excl_bak_file
+                    return 1
+                fi
+            fi
+            mv $exclusion_file  $excl_bak_file
+            sts=1
+        else
+           ((errctr++))
+           if [ $errctr -gt 2 ]; then
+             return $sts
+           fi
+        fi
+    done
+    return $sts
+}
+
+get_dbuser() {
+  # get_dbuser odoo_majver
+  local u
+  for u in $USER odoo openerp postgresql; do
+    if [[ -n "$1" ]]; then
+      psql -U$u$1 -l &>/dev/null
+      if [[ $? -eq 0 ]]; then
+        echo "$u$1"
+        break
+      fi
+    fi
+    psql -U$u -l &>/dev/null
+    if [[ $? -eq 0 ]]; then
+      echo "$u"
+      break
+    fi
+  done
+}
+
+db_list() {
+    DBlist=
+    local db user a b c
+    found=0
+    while IFS=\| read db user a b c; do
+      ((found++))
+      if [ -n "$db" -a "$user" == "$opt_dbuser" ]; then
+        if [[ $db =~ $opt_db ]]; then
+          DBlist=$DBlist,$db
+        fi
+      fi
+    done < <(psql -U$opt_dbuser -Atl)
+    DBlist=${DBlist:1}
+    echo "$DBlist"
+}
+
+declare_cfloop() {
+    if [ "$opt_conf" == "code/z0_install_01.conf" ]; then
+      if [ $opt_del -ne 0 ]; then
+        CFLOOP="00 01"
+      else
+        CFLOOP="01"
+      fi
+    elif [ -n "$cmdlist" ]; then
+      IFS=- read min max <<< "$cmdlist"
+      if [ -n "$max" ]; then
+        CFLOOP=
+        for cf in $PHASE_LIST; do
+          if [ $cf -ge $min -a $cf -le $max ]; then
+            CFLOOP="$CFLOOP $cf"
+          fi
+        done
+      else
+        CFLOOP="${cmdlist//,/ }"
+      fi
+    else
+      CFLOOP="$PHASE_LIST"
+    fi
+}
+
+set_opt_conf() {
+    local x
+    cf=""
+    for x in $opt_conf $opt_conf.conf code/$opt_conf code/$opt_conf.conf; do
+      if [[ -f "$x" ]]; then
+        cf=$x
+        break
+      fi
+    done
+    if [[ -n "$cf" ]]; then
+      opts_cf="-c $cf"
+      x=$(parse_URI "$cf" "" "+NAMEID+LOCAL")
+      x=${x: -2}
+      if [[ -z "$opt_with_demo" && " $DEMO_PHASE_LIST " =~ [[:space:]]$x[[:space:]] ]]; then
+        echo "This file require -o switch to be executed!"
+        exit 1
+      fi
+    fi
+}
+
+OPTOPTS=(h        B       b         c        D       d      m         n           o             q           r           t         U          V           v           w       x)
+OPTDEST=(opt_help opt_dbg odoo_vids opt_conf opt_del opt_DB opt_multi opt_dry_run opt_with_demo opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose opt_way opt_exit)
+OPTACTI=("+"      1       "="       "="      1       "="    1         1           "*"           0           "="         1         "="        "*"         "+"         "="     1)
+OPTDEFL=(1        0       "10.0"    ""       0       ""     -1        0           ""            0           ""          0         ""         ""          -1          ""      0)
+OPTMETA=("help"   ""      "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "A|E"   "")
+OPTHELP=("this help"\
+ "execute clodoo in debug mode"\
+ "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 or * (def 10.0)"\
+ "configuration file (only update/action)"\
+ "delete DB if exists"\
+ "set database name or regex when update/action (@ is replaced by odoo major version)"\
+ "multi-version odoo environment"\
+ "do nothing (dry-run)"\
+ "add demo data to new db"\
+ "silent mode"\
+ "xmlrpc port"\
+ "test mode (implies dry-run)"\
+ "db user (@ is replaced by odoo major version)"\
+ "show version end exit"\
+ "verbose mode"\
+ "upgrade way: may be A (by App) or (External run odoo)"\
+ "exit on error")
+OPTARGS=(action cmdlist)
+PHASE_LIST="00 01 02 03 10 11 12 13 14 15 16 17 18 19 20 22 30 31 32 50 51 53 54 55 61 62 90 91 92"
+DEMO_PHASE_LIST="50 51 53 54 55 61 62"
+
+parseoptargs "$@"
+if [[ "$opt_version" ]]; then
+  echo "$__version__"
+  exit 0
+fi
+if [[ $opt_help -gt 0 ]]; then
+  print_help "Manage Cloud DB(s) \n"\
+  "Action may be on of: action,install,update,upgrade,module,translate,reassign,rename,rename_phase\ncmdlist of action may be upd_oemod or clodoo action\ncmdlist of module,upgrade is module list\ncmdlist of install/update is phase list: $PHASE_LIST\ncmdlist of reassign is new username\ncmdlist of rename_phase (phase) is old=new\ncmdlist of rename is a csv filename with module renames list\n\n(C) 2015-2020 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+sts=$STS_SUCCESS
+discover_multi
+
+OPTS=
+[ $opt_dry_run -ne 0 ] && OPTS="${OPTS}n"
+[ $opt_dbg -ne 0 ] && OPTS="${OPTS}v"
+OPTR=$OPTS
+[ $opt_multi -ne 0 ] && OPTR="${OPTR}M"
+[ -n "$OPTS" ] && OPTS="-${OPTS}"
+[ -n "$OPTR" ] && OPTR="-${OPTR}"
+
+WCMD=$(which pg_db_active 2>/dev/null)
+if [ -n "$WCMD" ]; then
+  WCMD="$WCMD -k"
+else
+  SLEEP_TIME=30
+  WCMD="sleep $SLEEP_TIME"
+fi
+
+if [ "$odoo_vids" == "*" ]; then
+  [ $opt_multi -gt 0 ] && odoo_vids="14.0 13.0,12.0,11.0,10.0,9.0,8.0,7.0,6.1" || odoo_vids="12.0"
+fi
+[ $opt_exit -ne 0 ] && opts_x=-x || opts_x=
+for odoo_vid in ${odoo_vids//,/ }; do
+  odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
+  odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
+  [[ -z "$opt_dbuser" ]] && opt_dbuser=$(build_odoo_param DB_USER $odoo_vid) || opt_dbuser=${opt_dbuser/@/$odoo_ver}
+  [[ -z "$opt_xmlport" ]] && xmlport=$(build_odoo_param RPCPORT $odoo_vid) || xmlport=$opt_xmlport
+  if [[ $HOSTNAME =~ shs ]]; then
+    lgi_user=zeroadm
+  elif [[ $HOSTNAME =~ vg7odoo ]]; then
+    lgi_user=vg7admin
+  else
+    lgi_user=admin
+  fi
+  [[ -n "$opt_DB" ]] && opt_db=${opt_DB/@/$odoo_ver} || opt_db=""
+  if [[ $action =~ (install|update) ]]; then
+    [[ ! -d data && ! -d code && -d ~/clodoo ]] && cd ~/clodoo
+    if [[ ! -d data ]]; then
+      echo "Directory data/ not found!"
+      exit 1
+    fi
+    if [[ ! -d code ]]; then
+      echo "Directory code/ not found!"
+      exit 1
+    fi
+    [[ $action == "update" ]] && set_opt_conf
+    declare_cfloop
+    for cf in $CFLOOP; do
+      if [ ! -f code/z0_install_$cf.conf ]; then
+        echo "Configuration file z0_install_$cf.conf not found!"
+        exit 1
+      fi
+    done
+    [ -f ~/.openerp_serverrc ] && run_traced "rm -f ~/.openerp_serverrc"
+    [ -f .odoorc ] && run_traced "rm -f .odoorc"
+    if [ $action == "update" ]; then
+      [ -z "$opt_db" ] && opt_db=".*"
+      DBlist=$(db_list)
+      if [ -z "$DBlist" ]; then
+        if [ $found -eq 0 ]; then
+          [ $opt_verbose -gt 0 ] && echo "No DB found!"
+        else
+          [ $opt_verbose -gt 0 ] && echo "No DB found, owned by $opt_dbuser!"
+        fi
+        [ $opt_exit -ne 0 ] && exit 1
+        break
+      fi
+      DBlist=${DBlist//,/ }
+    fi
+    sts=0
+    cf0=""
+    [[ -f ./clodoo.conf ]] && cf0="$(readlink -f ./clodoo.conf),"
+    for cf in $CFLOOP; do
+      # TODO FIX
+       opts=
+      if [[ $cf == "01" ]]; then
+        if [[ $action == "install" ]]; then
+          if [[ -n "$opt_db" ]]; then
+            optdb="-d $opt_db -lit_IT"
+          else
+            optdb=
+          fi
+          run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c ${cf0}code/z0_install_$cf.conf $optdb -r$xmlport $opt_with_demo $opts"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+        else
+          echo "Invalid phase $cf in update!"
+          sts=1
+        fi
+      elif [[ $cf == "00" ]]; then
+        if [[ $action == "install" ]]; then
+          if [[ -n "$opt_db" ]]; then
+            db=$opt_db
+          else
+            db=$(cat clodoo_last.conf|awk -F= '{print $2}')
+          fi
+          if [ $opt_del -eq 0 ]; then
+            [ $opt_verbose -gt 0 ] && echo "Warning: you must enable dropping DB using -D switch"
+            sts=1
+          else
+            if $(psql -l|grep -q $db); then
+              datadir=$(build_odoo_param DDIR $odoo_vid search)
+              for f in $(grep -l "$db" $datadir/sessions/*); do run_traced "rm -f $f"; done
+              for f in $(grep -l "$db" /tmp/oe-sessions-odoo/*); do run_traced "rm -f $f"; done
+              [ -d $datadir/filestore/$db ] && run_traced "rm -fR $datadir/filestore/$db"
+              eval $WCMD
+              if [ "${HOSTNAME:0:3}" == "shs" ]; then
+                svcname=$(build_odoo_param SVCNAME $odoo_vid)
+                run_traced "sudo systemctl restart $svcname"
+                sleep 2
+              fi
+              run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c ${cf0}code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
+              if $(psql -l|grep -q $db); then
+                run_traced "pg_db_active -L -wa $db; dropdb --if-exists -U$opt_dbuser $db"
+              fi
+              if $(psql -l|grep -q $db); then
+                echo "DB $db not dropped!"
+                sts=1
+              fi
+            else
+              echo "DB $db already dropped"
+            fi
+            sts=0
+          fi
+        else
+          echo "Invalid phase $cf in update!"
+          sts=1
+        fi
+      elif [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$cf[[:space:]] ]]; then
+        [ $opt_verbose -gt 0 ] && echo "Warning: phase $cf is just for demo (use -o switch to enable)"
+      else
+        if [ $action == "update" ]; then
+          W4T=0
+          for db in $DBlist; do
+            if [ $W4T -eq 0 -o $opt_dry_run -ne 0 ]; then
+              W4T=1
+            else
+              eval $WCMD
+            fi
+            run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
+            s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+            [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
+          done
+        else
+          if [ -n "$opt_db" ]; then
+            db=$opt_db
+          else
+            db=$(cat clodoo_last.conf|awk -F= '{print $2}')
+          fi
+          run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c ${cf0}code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+        fi
+      fi
+      [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
+    done
+  elif [[ $action =~ (action|module|translate|upgrade) ]]; then
+    set_opt_conf
+    declare_cfloop
+    if [[ $action =~ (module|upgrade) && -z "$cmdlist" ]]; then
+      echo "No module list declared!"
+      exit 1
+    elif [[ "$action" == "action" && -z "$cmdlist" ]]; then
+      echo "No actions declared!"
+      exit 1
+    fi
+    [[ -z "$opt_db" ]] && opt_db=".*"
+    DBlist=$(db_list)
+    if [ -z "$DBlist" ]; then
+      if [ $found -eq 0 ]; then
+        [ $opt_verbose -gt 0 ] && echo "No DB found!"
+      else
+        [ $opt_verbose -gt 0 ] && echo "No DB found, owned by $opt_dbuser!"
+      fi
+      exit 1
+    fi
+    DBlist=${DBlist//,/ }
+    W4T=0
+    for db in $DBlist; do
+      if [ $W4T -eq 0 -o $opt_dry_run -ne 0 ]; then
+        W4T=1
+      else
+        eval $WCMD
+      fi
+      if [ "$action" == "module" ]; then
+        run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -um $cmdlist -d $db -sk"
+        [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
+      elif [ "$action" == "upgrade" ]; then
+        [[ "$opt_way" == "A" ]] || run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -um $cmdlist -d $db -sk"
+        if [[ ! "$cmdlist" == "all" && ! "$opt_way" == "E" ]]; then
+          run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+        fi
+        [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
+      elif [ "$action" == "action" ]; then
+        if [ "$cmdlist" == "upd_oemod" ]; then
+          run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c=code/z0_install_10.conf -d $db -r$xmlport $opt_with_demo $opts"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+          [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
+        elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
+          run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -l -d $db"
+        else
+          echo "$TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+          [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
+        fi
+      elif [ "$action" == "translate" ]; then
+        run_traced "nice run_odoo_debug $OPTR -b$odoo_vid -U$opt_dbuser -l -d $db"
+      else
+        if [ -n "$cmdlist" ]; then
+          run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+          [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
+        else
+          if [ -z "$cf" ]; then
+            echo "Configuration file $opt_conf not found!"
+            exit 1
+          fi
+          run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -b$odoo_fver -c $cf -d $db -r$xmlport $opt_with_demo $opts"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+        fi
+      fi
+      [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
+    done
+  elif [ "$action" == "rename_phase" ]; then
+    if [  -z "$cmdlist" ]; then
+      echo "Missed phase rename!"
+      echo "$THIS rename_phase old=new"
+      sts=1
+    else
+      IFS== read old new <<< "$cmdlist"
+      confn=$(ls code/*${old}.conf 2>/dev/null|head -n1)
+      if [ -z "$confn" ]; then
+        echo "phase $old not found!"
+        sts=1
+      else
+        new_confn=${confn/$old/$new}
+        echo "mv $confn $new_confn"
+        mv $confn $new_confn
+        for datafn in $(ls data/*${old}.csv 2>/dev/null); do
+          new_datafn=${datafn/$old/$new}
+          echo "mv $datafn $new_datafn"
+          mv $datafn $new_datafn
+          f=$(basename $datafn)
+          n=$(basename $new_datafn)
+          echo "sed -e \"s|$f|$n|g\" -i $new_confn"
+          sed -e "s|$f|$n|g" -i $new_confn
+        done
+      fi
+    fi
+  elif [ "$action" == "rename" ]; then
+    if [ -z "$opt_dbuser" ]; then
+      opt_dbuser=$(build_odoo_param USER $odoo_vid)
+    fi
+    DBlist=$(db_list)
+    DBlist=${DBlist//,/ }
+    [ -z "$cmdlist" ] && cmdlist=./moduli_alias.csv
+    if [ ! -f $cmdlist ]; then
+      echo "File $cmdlist not found!"
+      exit 1
+    fi
+    for db in $DBlist; do
+      while IFS== read src tgt; do
+        if [ -n "$src" -a -n "$tgt" -a "$src" != "$tgt" ]; then
+          run_traced "psql -U$opt_dbuser -c \"update ir_module_module set name='$tgt' where name='$src';\" $db"
+        fi
+      done < $cmdlist
+    done
+  elif [ "$action" == "reassign" ]; then
+    if [ -z "$opt_dbuser" ]; then
+      opt_dbuser=$(build_odoo_param USER $odoo_vid)
+    fi
+    DBlist=$(db_list)
+    DBlist=${DBlist//,/ }
+    if [ -z "$cmdlist" ]; then
+      echo "Missing username to reassing!"
+      exit 1
+    fi
+    OWNER=$cmdlist
+    for db in $DBlist; do
+      run_traced "psql -U$opt_dbuser -qc 'COMMENT ON EXTENSION plpgsql IS null;' $db"
+      run_traced "psql -U$opt_dbuser -qc 'GRANT ALL PRIVILEGES ON DATABASE $db TO $OWNER;' $db"
+      run_traced "psql -U$opt_dbuser -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $OWNER' $db"
+      run_traced "psql -U$opt_dbuser -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $OWNER' $db"
+      run_traced "psql -U$opt_dbuser -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $OWNER' $db"
+      run_traced "psql -U$opt_dbuser -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $OWNER' $db"
+      run_traced "psql -U$opt_dbuser -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $OWNER' $db"
+      if [ $opt_dry_run -eq 0 ]; then
+        [ $opt_verbose -gt 0 ] && echo "Reassigning all tables ..."
+        for tbl in $(psql -U$opt_dbuser -qAtc "select tablename from pg_tables where schemaname = 'public'" $db); do
+          psql -U$opt_dbuser -qc "ALTER TABLE \"$tbl\" OWNER TO $OWNER" $db
+          psql -U$opt_dbuser -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $OWNER" $db
+        done
+        for tbl in $(psql -U$opt_dbuser -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $db); do
+          psql -U$opt_dbuser -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $OWNER" $db
+          psql -U$opt_dbuser -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $OWNER" $db
+        done
+        for tbl in $(psql -qAtc "select table_name from information_schema.views where table_schema = 'public'" $db); do
+          psql -U$opt_dbuser -qc "ALTER view \"$tbl\" OWNER TO $OWNER" $db
+          psql -U$opt_dbuser -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $OWNER" $db
+        done
+      fi
+    done
+  else
+    echo "Invalid action!"
+    sts=1
+  fi
+done
+exit $sts

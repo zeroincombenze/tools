@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 1.1
 Name: lisa
 Version: 2.0.0
 Summary: Linux Install Simplifier App
@@ -6,6 +6,16 @@ Home-page: http://wiki.zeroincombenze.org/it/Linux
 Author: Antonio Maria Vigliotti
 Author-email: antoniomaria.vigliotti@gmail.com
 License: Affero GPL
+Description: 
+        Interactive tool to install, update, remove, query and manage software
+        for building a complete LAMP server or Odoo server.
+        LAMP means Linux Apache Mysql PHP;
+        in recent times, Python, Postgresql and Mariadb were added.
+        This software is just a front-end for yum, apt-get, pip and other commands,
+        it is not a real package installer.
+        You can easily write portable script to install packages
+        over every Linux distribution.
+        
 Keywords: bash,LAMP,install,odoo
 Platform: UNKNOWN
 Classifier: Development Status :: 3 - Alpha
@@ -16,15 +26,3 @@ Classifier: Intended Audience :: Developers
 Classifier: Topic :: Software Development
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: System :: System Shells
-
-
-Interactive tool to install, update, remove, query and manage software
-for building a complete LAMP server or Odoo server.
-LAMP means Linux Apache Mysql PHP;
-in recent times, Python, Postgresql and Mariadb were added.
-This software is just a front-end for yum, apt-get, pip and other commands,
-it is not a real package installer.
-You can easily write portable script to install packages
-over every Linux distribution.
-
-

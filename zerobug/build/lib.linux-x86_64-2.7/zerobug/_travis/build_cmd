@@ -1,0 +1,19 @@
+#! /bin/bash
+PYTHON=$(which python)
+PYVER=$(python --version 2>&1 | grep --color=never -Eo "[0-9]" | head -n1)
+BASE=$(basename $1)
+[[ $BASE =~ .py$ ]] && BASE=${BASE:0: -3}
+cmd=$(readlink -f $1)
+echo "#!$PYTHON">$cmd
+echo "# -*- coding: utf-8 -*-">>$cmd
+echo "import re">>$cmd
+echo "import sys">>$cmd
+# if [[ $PYVER == "2" ]]; then
+  echo "from scripts.$BASE import main">>$cmd
+# else
+#   echo "from .scripts.$BASE import main">>$cmd
+# fi
+echo "if __name__ == '__main__':">>$cmd
+echo "    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])">>$cmd
+echo "    sys.exit(main())">>$cmd
+chmod +x $cmd

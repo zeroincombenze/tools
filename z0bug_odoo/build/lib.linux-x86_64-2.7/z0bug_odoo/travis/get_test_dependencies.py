@@ -11,19 +11,20 @@ If 1st swicth is -r, return module which dependes from module_list
 """
 from __future__ import print_function
 
-import sys
 import os
+import sys
+
 if sys.version_info[0] == 2:
-    from getaddons import (get_modules, get_dependents,
-                           get_dependencies, get_modules_info)
+    from getaddons import (get_dependencies, get_dependents, get_modules,
+                           get_modules_info)
     from test_server import get_test_dependencies
 else:
-    from .getaddons import (get_modules, get_dependents,
-                            get_dependencies, get_modules_info)
+    from .getaddons import (get_dependencies, get_dependents, get_modules,
+                            get_modules_info)
     from .test_server import get_test_dependencies
 
 
-__version__ = '1.0.13'
+__version__ = '2.0.0'
 
 
 def get_module_list(paths):

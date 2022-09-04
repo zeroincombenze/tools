@@ -59,7 +59,7 @@
 # ODOO_GIT_SHORT    -> regex of git organizzations with short name (def /(oca)/)
 #
 
-#__version__=1.0.2
+#__version__=2.0.0
 
 
 ODOO_FVERS="16\.0|15\.0|14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
@@ -90,70 +90,59 @@ OCB_SUBDIRS_RE="^(${OCB_SUBDIRS// /|})$"
 INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html .idea latex node_modules openupgrade setup _static tests themes travis _travis __to_remove __unported__"
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPS_EXTRA="^(didotech_80|grymb|maintainer-quality-tools|maintainer-tools|tools|uncovered|VME|OpenUpgrade|Odoo-samples|dotnet|interface-github|odoorpc|openupgradelib|pylint-odoo|rest-framework|runbot-addons)$"
+PRIVATE_REPS="(accounting|uncovered)"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
-"OCA/project-service,OCA/multi-company,"\
 "local/didotech_80,zeroincombenze/profiles,local/uncovered,local/mymodules,local/themes,local/woven_fabric,"\
 "local/zeroincombenze,local/cscs_addons,local/account_banking_cscs,"\
-"zeroincombenze/l10n-italy-supplemental,zeroincombenze/connector,OCA/social,OCA/event,"\
-"OCA/pylint-odoo,OCA/operating-unit,OCA/manufacture,OCA/survey,OCA/rma,OCA/queue,"\
-"OCA/e-commerce,OCA/delivery-carrier,OCA/vertical-education,"\
-"OCA/bank-statement-reconcile,OCA/vertical-isp,OCA/geospatial,"\
-"OCA/account-fiscal-rule,OCA/vertical-association,OCA/runbot-addons,"\
-"OCA/stock-logistics-reporting,OCA/project-reporting,OCA/edi,OCA/product-variant,"\
-"OCA/manufacture-reporting,OCA/purchase-reporting,OCA/intrastat,OCA/sale-financial,"\
-"OCA/interface-github,OCA/connector-odoo2odoo,OCA/webhook,OCA/product-kitting,"\
-"OCA/account-reconcile,OCA/OpenUpgrade,OCA/account-analytic,OCA/server-brand,"\
-"OCA/server-auth,OCA/maintainer-quality-tools,OCA/odoo-sentinel,OCA/openupgradelib,"\
-"OCA/donation,OCA/server-ux,OCA/stock-logistics-transport,OCA/connector-interfaces,"\
-"OCA/connector-infor,OCA/maintainer-tools,OCA/currency,OCA/connector-telephony,"\
-"OCA/server-env,OCA/connector-prestashop,OCA/ddmrp,OCA/website-themes,"\
-"OCA/ansible-odoo,OCA/mis-builder,OCA/connector-lengow,OCA/business-requirement,"\
-"OCA/margin-analysis,OCA/connector-magento,OCA/connector-cmis,OCA/account-consolidation,"\
-"OCA/connector-ecommerce,OCA/server-backend,OCA/vertical-medical,OCA/vertical-hotel,"\
-"OCA/community-data-files,OCA/apps-store,OCA/project-agile,OCA/connector-woocommerce,"\
-"OCA/account-budgeting,OCA/odoorpc,OCA/oca-custom,OCA/calendar,OCA/oca-decorators,"\
-"OCA/vertical-ngo,OCA/connector-redmine,OCA/vertical-abbey,OCA/maintenance,"\
-"OCA/odoo-sphinx-autodoc,OCA/vertical-travel,OCA/vertical-edition,"\
-"OCA/vertical-construction,OCA/vertical-community,OCA/vertical-agriculture,"\
-"OCA/infrastructure-dns,OCA/dotnet,OCA/connector-salesforce,OCA/connector-sage,"\
-"OCA/connector-lims,OCA/connector-accountedge,OCA/vertical-realestate,"\
-"OCA/connector-magento-php-extension,zeroincombenze/zerobug-test"
-REPT_EXCL_MATRIX="zeroincombenze/account_invoice_create_payment,zeroincombenze/account_payment_approve_invoice,"\
-"zeroincombenze/website-cms,zeroincombenze/sale-reporting,zeroincombenze/bank-statement-import,"\
-"zeroincombenze/account-invoice-reporting,zeroincombenze/hr,zeroincombenze/hr-timesheet,"\
-"zeroincombenze/margin-analysis,zeroincombenze/pos,7.0/didotech_80,"\
-"9.0/didotech_80,10.0/didotech_80,11.0/didotech_80,12.0/didotech_80,13.0/didotech_80,"
+"zeroincombenze/l10n-italy-supplemental,"\
+"OCA/pylint-odoo,OCA/operating-unit,"\
+"OCA/runbot-addons,OCA/interface-github,OCA/OpenUpgrade,"\
+"OCA/maintainer-quality-tools,OCA/odoo-sentinel,OCA/openupgradelib,"\
+"OCA/maintainer-tools,OCA/server-env,"\
+"OCA/ansible-odoo,OCA/connector-ecommerce,"\
+"OCA/odoorpc,OCA/oca-customOCA/oca-decorators,"\
+"OCA/odoo-sphinx-autodoc,OCA/infrastructure-dns,OCA/dotnet,"\
+"OCA/connector-magento-php-extension,zeroincombenze/zerobug-test,"\
+"LibrERP-network/accounting,LibrERP/connector-prestashop,"\
+"LibrERP/double-trouble,LibrERP/custom-addons,LibrERP/aeroolib,LibrERP/generic,"\
+"local/addons_kalamitica,local/nardo_modules"
 
 
 get_odoo_major_ver() {
-    local v=$(echo "$1" | grep -Eo '[0-9]+(\.[0-9])?' | awk -F. '{print $1}')
-    if [[ -n $v && $v =~ ($ODOO_VERS) ]]; then
-        echo "$v"
-    elif [[ $1 =~ librerp[6]? ]]; then
-        echo "6"
-    else
-        echo "12"
-    fi
+    local v="" x
+    for x in $(echo "$1" | grep --color=never -Eo '[0-9]+'); do
+      [[ $x =~ ($ODOO_VERS) ]] && v=$x && break
+    done
+    [[ -z $v && $1 =~ librerp6 ]] && v="6"
+    [[ -z $v ]] && v="12"
+    echo $v
 }
 
 get_odoo_full_ver() {
-    local v=$(echo "$1" | grep -Eo '[0-9]+(\.[0-9])?' | tail -n1)
-    if [[ $v == "6" ]]; then
-        echo "6.1"
-    elif [[ -n $v && $v =~ ($ODOO_FVERS) ]]; then
-        echo "$v"
-    elif [[ -n $v && $v =~ ($ODOO_VERS) ]]; then
-        echo "$v.0"
-    elif [[ $1 =~ librerp[6]? ]]; then
-        echo "6.1"
-    else
-        echo "12.0"
+    local v="" x
+    for x in $(echo "$1" | grep --color=never -Eo '[0-9]+\.[0-9]+'); do
+      [[ $x =~ ($ODOO_FVERS) && ${x/./} -gt ${v/./} ]] && v=$x && break
+    done
+    if [[ -z $v ]]; then
+      for x in $(echo "$1" | grep --color=never -Eo '[0-9]+'); do
+        [[ $x =~ ($ODOO_VERS) ]] && v=$x && break
+      done
+      [[ -n $v && $v != "6" ]] && v="${v}.0"
+      [[ $v == "6" ]] && v="6.1"
     fi
+    [[ -z $v && $1 =~ librerp6 ]] && v="6.1"
+    [[ -z $v ]] && v="12.0"
+    echo $v
 }
 
 find_odoo_ver() {
     #find_odoo_ver(odoo_root_dir)
-    local ldir odoo_fver x
+    local ldir odoo_fver x ODOO_ROOT
+    if [[ -z $HOME_DEVEL ]]; then
+        [[ -d $HOME/odoo ]] && ODOO_ROOT="$HOME/odoo" || ODOO_ROOT="$HOME"
+    else
+        ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
+    fi
     [[ -n "$1" ]] && pushd $1 &>/dev/null
     while [[ -z "$odoo_fver" ]]; do
         for ldir in $PWD/odoo $PWD/openerp $PWD/server/openerp; do
@@ -165,7 +154,7 @@ find_odoo_ver() {
                 break
             fi
         done
-        [[ $PWD == $HOME ]] && break
+        [[ $PWD == $ODOO_ROOT ]] && break
         [[ ! $PWD == "/" ]] && PWD=$($READLINK -f "$PWD/..") || break
     done
     [[ -n "$1" ]] && popd &>/dev/null
@@ -220,15 +209,22 @@ build_odoo_param() {
         return
     fi
     READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+    local ODOO_ROOT
     local VENV=0 main exorg spec
     local ITEM=$1 ROOT PARENTDIR PRJPATH
     local DIRLEVEL FULLVER LICENSE MAJVER odoo_vid noenv_vid MULTIVER REPOS
     local GIT_URL GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS ORGSFX OPTS_ASM
+    local RGIT_ORGID RGIT_ORGNM
     local RUPSTREAM RORIGIN DB_USER
     local PKGPATH PKGNAME ORGNM VDIR
     local cdir d ldir p p1 p11 p2 p3 p4 pd r x
+    if [[ -z $HOME_DEVEL ]]; then
+        [[ -d $HOME/odoo ]] && ODOO_ROOT="$HOME/odoo" || ODOO_ROOT="$HOME"
+    else
+        ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
+    fi
     p1="v|V|ODOO|ocb|OCB"
-    p2="odoo|oca|powerp|librerp|flectra|zero|zeroincombenze"
+    p2="odoo|oca|powerp|librerp|librerp6|zero|zeroincombenze"
     local rex="^(VENV[_-]([0-9]{3,10})?)?($p1|$p2)?[_-]?($ODOO_FVERS|$ODOO_VERS)[_-]?($p2)?"
     local reo="^($p1)"
     local reg="($p2)"
@@ -271,7 +267,7 @@ build_odoo_param() {
                 [[ -z "$PRJPATH" ]] && PRJPATH=$cdir
                 [[ -z "$PARENTDIR" ]] && PARENTDIR=$($READLINK -e $cdir/..)
                 odoo_vid=$(basename $cdir)
-                [ $VENV -eq 0 ] && [[ -f $cdir/../VENV-${odoo_vid}/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/../VENV-${odoo_vid})
+                [[ $VENV -eq 0 ]] && [[ -f $cdir/../VENV-${odoo_vid}/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/../VENV-${odoo_vid})
                 [[ $odoo  == "odoo" ]] && cdir=$($READLINK -e $cdir/..) && odoo_vid=$(basename $cdir)
                 FULLVER=$(find_odoo_ver $cdir)
                 [[ -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
@@ -305,16 +301,16 @@ build_odoo_param() {
                         VCS="git"
                     fi
                     # GIT_BRANCH=$(git branch --show-current)
-                    GIT_BRANCH=$(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+"|head -n1|tr -d "\n")
+                    GIT_BRANCH=$(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+"|head -n1|tr -d "\n")
                 fi
             fi
-            [[ $cdir == $HOME ]] && break
+            [[ $cdir == $ODOO_ROOT ]] && break
             [[ ! $cdir == "/" ]] && cdir=$($READLINK -e $cdir/..) || cdir=
         done
     else
         IFS=/ read odoo_vid x <<<$2
         [[ -n $x ]] && REPOS=$x
-        [[ $odoo_vid =~ ^VENV ]] && VENV=1 && VDIR="$HOME/$odoo_vid"
+        [[ $odoo_vid =~ ^VENV ]] && VENV=1 && VDIR="$ODOO_ROOT/$odoo_vid"
     fi
     if [[ $ITEM == "DIRLEVEL" ]]; then
         DIRLEVEL="other"
@@ -323,8 +319,8 @@ build_odoo_param() {
         return
     fi
     [[ -z $REPOS ]] && REPOS=OCB
-    x=$(echo $odoo_vid | grep -Eo "VENV[_-]([0-9]{3,10})?/?" | tail -n1)
-    [[ -n $x ]] && x=$(echo $odoo_vid | grep -Eo "^.*$x")
+    x=$(echo $odoo_vid | grep --color=never -Eo "VENV[_-]([0-9]{3,10})?/?" | tail -n1)
+    [[ -n $x ]] && x=$(echo $odoo_vid | grep --color=never -Eo "^.*$x")
     [[ -n $x ]] && noenv_vid=${odoo_vid/$x/} || noenv_vid=$odoo_vid
     [[ $noenv_vid =~ ^(v|V)($ODOO_VERS)[^0-9]* ]] && main=1 || main=0
     [[ -z "$FULLVER" && -n "$noenv_vid" && ($noenv_vid =~ $rex || $noenv_vid =~ librerp[6]?) ]] && FULLVER=$(get_odoo_full_ver "$noenv_vid")
@@ -338,14 +334,16 @@ build_odoo_param() {
         return
     fi
     [[ ${opt_multi:-0} -ne 0 ]] && MULTIVER=1 || MULTIVER=0
-    ORGSFX=$(echo $noenv_vid | grep -Eo "[-_][a-z][a-z0-9]+$" | grep -Eo "[a-z0-9]+")
+    ORGSFX=$(echo $noenv_vid | grep --color=never -Eo "[-_][a-z][a-z0-9]+$" | grep --color=never -Eo "[a-z0-9]+")
     if [[ -n $ORGSFX ]]; then
         [[ $ORGSFX =~ -git$ ]] && GIT_PROT="git" && ORGSFX=${ORGSFX:0: -4}
         [[ $ORGSFX =~ -http$ ]] && GIT_PROT="https" && ORGSFX=${ORGSFX:0: -5}
+        [[ $ORGSFX == "librerp6" ]] && ORGSFX="librerp"
     fi
     if [[ -n $ORGSFX && $ORGSFX =~ ^$reg ]]; then
         exorg=1
-        GIT_ORGID=$(echo $ORGSFX | grep -Eo "^$reg" | head -n1)
+        GIT_ORGID=$(echo $ORGSFX | grep --color=never -Eo "^$reg" | head -n1)
+        [[ $GIT_ORGID == "librerp" && $FULLVER == "6.1" ]] && GIT_ORGID="librerp6"
         ORGSFX=${ORGSFX/$GIT_ORGID/}
     fi
     if [[ -z "$GIT_ORGNM" ]]; then
@@ -357,26 +355,34 @@ build_odoo_param() {
             [[ -n "$4" ]] && GIT_ORGID=$4 && exorg=1
             [[ -z $GIT_ORGID && $noenv_vid =~ ^(OCB|ocb) ]] && GIT_ORGID="oca" && exorg=1
             [[ -z $GIT_ORGID && $noenv_vid =~ ^(ODOO|odoo) ]] && GIT_ORGID="odoo" && exorg=0    ## TODO
-            [[ -z $GIT_ORGID && $noenv_vid =~ ^$reg ]] && GIT_ORGID=$(echo $noenv_vid | grep -Eo $reg | head -n1) && [[ ! $noenv_vid =~ ^odoo ]] && exorg=1
-            [[ -z $GIT_ORGID && ! $noenv_vid =~ ^$reg && -n "$ODOO_GIT_ORGID" ]] && GIT_ORGID=$ODOO_GIT_ORGID && GIT_PROT="git"
+            [[ -z $GIT_ORGID && $noenv_vid =~ ^$reg ]] && GIT_ORGID=$(echo $noenv_vid | grep --color=never -Eo $reg | head -n1) && [[ ! $noenv_vid =~ ^odoo ]] && exorg=1
+            [[ -z $GIT_ORGID && ! $noenv_vid =~ ^$reg && -n "$ODOO_GIT_ORGID" ]] && GIT_ORGID=$(echo $ODOO_GIT_ORGID|cut -d"|" -f1|tr -d "("|tr -d ")") && GIT_PROT="git"
             [[ -z "$GIT_ORGID" ]] && GIT_ORGID="odoo"
         fi
         GIT_ORGNM="$GIT_ORGID"
         [[ $GIT_ORGID == "oca" ]] && GIT_ORGNM="OCA"
-        [[ $GIT_ORGID =~ (zero|zeroincombenze) ]] && GIT_ORGID="zero" && GIT_ORGNM="zeroincombenze" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
-        [[ $GIT_ORGID == "powerp" ]] && GIT_ORGID="powerp" && GIT_ORGNM="PowERP-cloud" && RUPSTREAM="https://github.com/OCA/$REPOS.git" && GIT_BRANCH="master"
-        [[ $GIT_ORGID =~ librerp[6]? && "$FULLVER" == "6.1" ]] && GIT_ORGNM="iw3hxn" && GIT_BRANCH="master"
-        [[ $GIT_ORGID == "librerp" && "$FULLVER" == "12.0" ]] && GIT_ORGID="librerp" && GIT_ORGNM="librerp" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
-#        if [[ $GIT_ORGID =~ (odoo|oca) && "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
-#            r=$(echo "$REPT_ORG_MATRIX," | grep -Eo "[A-Za-z0-9_.-]+/$REPOS,")
-#            IFS=/ read GIT_ORGNM x <<<$r
-#        fi
+        [[ $GIT_ORGID =~ ^(zero|zeroincombenze)$ ]] && GIT_ORGID="zero" && GIT_ORGNM="zeroincombenze" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+        [[ $GIT_ORGID == "powerp" ]] && GIT_ORGNM="PowERP-cloud" && RUPSTREAM="https://github.com/OCA/$REPOS.git" && GIT_BRANCH="master"
+        [[ $GIT_ORGID == "librerp" ]] && GIT_ORGNM="LibrERP-network" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+        [[ $GIT_ORGID =~ ^librerp[6]?$ && $FULLVER == "6.1" ]] && GIT_ORGNM="iw3hxn" && GIT_BRANCH="master"
+        # [[ $GIT_ORGID == "librerp" && "$FULLVER" == "12.0" ]] && GIT_ORGID="librerp" && GIT_ORGNM="librerp" && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+        if [[ "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
+            r=$(echo "$REPT_ORG_MATRIX," | grep --color=never -Eo "[A-Za-z0-9_.-]+/$REPOS,")
+            IFS=/ read GIT_ORGNM x <<<$r
+        elif [[ ( $GIT_ORGID =~ ^(librerp)$ || $GIT_ORGNM =~ (LibrERP-network|LibrERP) ) && ( ! $REPOS =~ (l10n-italy|server) || ! $FULLVER =~ (12.0|14.0) ) ]]; then
+            RGIT_ORGID="zero"
+            RGIT_ORGNM="zeroincombenze"
+        fi
+    elif [[ ( $GIT_ORGID =~ ^(librerp)$ || $GIT_ORGNM =~ (LibrERP-network|LibrERP) ) && ( ! $REPOS =~ (l10n-italy|server) || ! $FULLVER =~ (12.0|14.0) ) ]]; then
+        RGIT_ORGID="zero"
+        RGIT_ORGNM="zeroincombenze"
     fi
     [[ $GIT_ORGNM == "OCA" ]] && GIT_ORGID="oca"
     [[ $GIT_ORGNM == "zeroincombenze" ]] && GIT_ORGID="zero"
-    [[ $GIT_ORGNM == "iw3hxn" ]] && GIT_ORGID="librerp"
-    [[ $GIT_ORGNM =~ (PowERP-cloud|powerp1) ]] && GIT_ORGID="powerp"
-    [[ $GIT_ORGID == $ODOO_GIT_ORGID ]] && GIT_PROT="git"
+    [[ $GIT_ORGNM =~ ^(LibrERP-network|LibrERP) ]] && GIT_ORGID="librerp"
+    [[ $GIT_ORGNM == "iw3hxn" ]] && GIT_ORGID="librerp6"
+    [[ $GIT_ORGNM =~ ^(PowERP-cloud|powerp1) ]] && GIT_ORGID="powerp"
+    [[ -n $ODOO_GIT_ORGID && ( $GIT_ORGID == $ODOO_GIT_ORGID || $GIT_ORGID =~ ^$ODOO_GIT_ORGID$ ) ]] && GIT_PROT="git"
     [[ -n $ODOO_GIT_PROT ]] && GIT_PROT="$ODOO_GIT_PROT"
     if [[ "$ITEM" == "LICENSE" ]]; then
         if [[ -z "$LICENSE" ]]; then
@@ -384,19 +390,21 @@ build_odoo_param() {
           [[ -z "$LICENSE" && $MAJVER -le 8 ]] && LICENSE="AGPL"
           [[ -z "$LICENSE" ]] && LICENSE="LGPL"
         else
-          LICENSE=$(echo $LICENSE|grep -Eo [A-Z]+|head -n1)
+          LICENSE=$(echo $LICENSE|grep --color=never -Eo [A-Z]+|head -n1)
         fi
         echo $LICENSE
         $SETX
         return
     fi
     if [[ -z $ROOT ]]; then
-        if [ $MULTIVER -eq 0 -o $exorg -eq 0 -o $main -ne 0 ] || [[ -z $GIT_ORGID || $GIT_ORGID == "odoo" || $odo_vid =~ $ref || $odoo_vid =~ $reo ]]; then
-            [ $VENV -ne 0 ] && ROOT=$HOME/$odoo_vid/odoo || ROOT=$HOME/$odoo_vid
-        elif [[ $GIT_ORGID =~ $SHORT ]]; then
-            [ $VENV -ne 0 ] && ROOT=$HOME/${GIT_ORGID}${MAJVER}/odoo || ROOT=$HOME/${GIT_ORGID}${MAJVER}
+        if [[ $MULTIVER -eq 0 || $exorg -eq 0 || $main -ne 0 || ( -z $GIT_ORGID && $odoo_vid =~ $ref ) || ( -n $ODOO_GIT_ORGID && ( $GIT_ORGID == $ODOO_GIT_ORGID || $GIT_ORGID =~ ^$ODOO_GIT_ORGID$ ) && $odoo_vid =~ $ref ) || $odoo_vid =~ $reo ]]; then
+            [[ $VENV -ne 0 ]] && ROOT=$ODOO_ROOT/$odoo_vid/odoo || ROOT=$ODOO_ROOT/$odoo_vid
+        elif [[ $GIT_ORGID == "librerp6" ]]; then
+            [[ $VENV -ne 0 ]] && ROOT=$ODOO_ROOT/${GIT_ORGID}/odoo || ROOT=$ODOO_ROOT/${GIT_ORGID}
+        elif [[ $GIT_ORGID =~ ^$SHORT ]]; then
+            [[ $VENV -ne 0 ]] && ROOT=$ODOO_ROOT/${GIT_ORGID}${MAJVER}/odoo || ROOT=$ODOO_ROOT/${GIT_ORGID}${MAJVER}
         else
-            [ $VENV -ne 0 ] && ROOT=$HOME/odoo$MAJVER-$GIT_ORGID/odoo || ROOT=$HOME/odoo$MAJVER-$GIT_ORGID
+            [[ $VENV -ne 0 ]] && ROOT=$ODOO_ROOT/odoo$MAJVER-$GIT_ORGID/odoo || ROOT=$ODOO_ROOT/odoo$MAJVER-$GIT_ORGID
         fi
     fi
     if [[ -z $PKGPATH ]]; then
@@ -411,7 +419,7 @@ build_odoo_param() {
     if [[ -z $PRJPATH ]]; then
         [[ $REPOS == "OCB" ]] && PRJPATH=$ROOT || PRJPATH="$ROOT/$REPOS"
     fi
-    [[ -z $RUPSTREAM && $GIT_ORGID =~ (zero|powerp) ]] && RUPSTREAM="https://github.com/OCA/$REPOS.git"
+    [[ -z $RUPSTREAM && $GIT_ORGID =~ ^(zero|powerp|librerp[6]?)$ ]] && RUPSTREAM="https://github.com/OCA/$REPOS.git"
     [[ -z "$GIT_PROT" ]] && GIT_PROT="https"
     [[ "$FULLVER" == "6.1" ]] && RUPSTREAM=""
     if [[ $REPOS =~ $REPS_EXTRA ]]; then
@@ -420,15 +428,21 @@ build_odoo_param() {
         GIT_PROT=""
         RUPSTREAM=""
     fi
-    [[ $GIT_ORGID == "librerp" && $MAJVER == "6" && "$REPOS" == "OCB" ]] && REPOS="server"
+    [[ $GIT_ORGID =~ ^librerp[6]?$ && $MAJVER == "6" && "$REPOS" == "OCB" ]] && REPOS="server"
     [[ $GIT_ORGID == "odoo" && ! "$REPOS" == "OCB" ]] && GIT_ORGID="oca" && GIT_ORGNM="OCA"
-    if [[ -n "$GIT_PROT" ]]; then
+    [[ -z $RGIT_ORGID ]] && RGIT_ORGID=$GIT_ORGID
+    [[ -z $RGIT_ORGNM ]] && RGIT_ORGNM=$GIT_ORGNM
+    if [[ $REPOS =~ $PRIVATE_REPS ]]; then
+        GIT_ORG="git@github.com:$RGIT_ORGNM"
+        [[ "$GIT_PROT" == "git" ]] && GIT_OPTS="" || GIT_OPTS="--depth 1 --single-branch"
+        OPTS_ASM=
+    elif [[ -n "$GIT_PROT" ]]; then
         if [[ "$GIT_PROT" == "git" ]]; then
-            GIT_ORG="git@github.com:$GIT_ORGNM"
+            GIT_ORG="git@github.com:$RGIT_ORGNM"
             GIT_OPTS=""
             OPTS_ASM=
         else
-            GIT_ORG="https://github.com/$GIT_ORGNM"
+            GIT_ORG="https://github.com/$RGIT_ORGNM"
             GIT_OPTS="--depth 1 --single-branch"
             OPTS_ASM="-1"
         fi
@@ -446,7 +460,7 @@ build_odoo_param() {
     [[ -z "$RUPSTREAM" ]] && RUPSTREAM=$GIT_URL
     if [[ $main -ne 0 ]]; then
         DB_USER="odoo"
-    elif [ $MAJVER -lt 8 -a $USER == "openerp" ]; then
+    elif [[ $MAJVER -lt 8 && $USER == "openerp" ]]; then
         DB_USER="openerp"
     elif [[ $MULTIVER -ne 0 ]]; then
         DB_USER=${ODOO_DB_USER/\%(MAJVER)s/$MAJVER}
@@ -454,7 +468,7 @@ build_odoo_param() {
     else
         DB_USER="odoo"
     fi
-    [[ -z "$VDIR" ]] && VDIR="$HOME/VENV-$FULLVER"
+    [[ -z "$VDIR" ]] && VDIR="$ODOO_ROOT/$FULLVER/venv_odoo"
     if [[ "$ITEM" =~ ^(DB_USER|FULLVER|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|MAJVER|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RUPSTREAM|URL|URL_BRANCH|VCS|VDIR|VENV)$ ]]; then
         echo "${!ITEM}"
         $SETX
@@ -482,9 +496,9 @@ build_odoo_param() {
                 ((p = 8160 + $MAJVER))
             elif [[ $GIT_ORGID == "oca" ]]; then
                 ((p = 8260 + $MAJVER))
-            elif [[ $GIT_ORGID =~ (powerp|librerp) ]]; then
+            elif [[ $GIT_ORGID =~ ^(powerp|librerp[6]?)$ ]]; then
                 ((p = 8360 + $MAJVER))
-            elif [[ $GIT_ORGID =~ (zero|flectra) ]]; then
+            elif [[ $GIT_ORGID =~ ^(zero|flectra)$ ]]; then
                 ((p = 8460 + $MAJVER))
             else
                 ((p = 8160 + $MAJVER))
@@ -505,9 +519,9 @@ build_odoo_param() {
                 ((p = 8130 + $MAJVER))
             elif [[ $GIT_ORGID == "oca" ]]; then
                 ((p = 8230 + $MAJVER))
-            elif [[ $GIT_ORGID =~ (powerp|librerp) ]]; then
+            elif [[ $GIT_ORGID =~ ^(powerp|librerp[6]?)$ ]]; then
                 ((p = 8330 + $MAJVER))
-            elif [[ $GIT_ORGID =~ (zero|flectra) ]]; then
+            elif [[ $GIT_ORGID =~ ^(zero|flectra)$ ]]; then
                 ((p = 8430 + $MAJVER))
             else
                 ((p = 8130 + $MAJVER))
@@ -518,19 +532,19 @@ build_odoo_param() {
         echo $p
         $SETX
         return
-    elif [ "$ITEM" == "LCONFN" ]; then
-        [ $MAJVER -ge 10 ] && echo ".odoorc" || echo ".openerp_serverrc"
+    elif [[ $ITEM == "LCONFN" ]]; then
+        [[ $MAJVER -ge 10 ]] && echo ".odoorc" || echo ".openerp_serverrc"
         $SETX
         return
-    elif [ "$ITEM" == "DDIR" ]; then
-        [ $VENV -ne 0 ] && p="$(dirname $ROOT)/$odoo_vid/.local/share" || p="$(dirname $ROOT)/.local/share"
-        if [ $MAJVER -lt 8 ]; then
+    elif [[ $ITEM == "DDIR" ]]; then
+        [[ $VENV -ne 0 ]] && p="$(dirname $ROOT)/$odoo_vid/.local/share" || p="$(dirname $ROOT)/.local/share"
+        if [[ $MAJVER -lt 8 ]]; then
             p="$ROOT/openerp/filestore"
-        elif [[ $odoo_vid =~ ^($HOME/)?VENV ]]; then
-            p="$HOME/VENV-$FULLVER/.local/share/Odoo"
+        elif [[ $odoo_vid =~ ^($ODOO_ROOT/)?VENV ]]; then
+            p="$ODOO_ROOT/VENV-$FULLVER/.local/share/Odoo"
         elif [[ $noenv_vid =~ ^(v|V) ]]; then
             p="$p/Odoo"
-        elif [ $MULTIVER -ne 0 -a $VENV -eq 0 ]; then
+        elif [[ $MULTIVER -ne 0 && $VENV -eq 0 ]]; then
             p="$p/Odoo$MAJVER"
         else
             p="$p/Odoo"
@@ -545,24 +559,24 @@ build_odoo_param() {
             $SETX
             return
         fi
-    elif [ "$ITEM" == "CONFN" ]; then
+    elif [[ $ITEM == "CONFN" ]]; then
         p1=/etc/odoo/
         p11=/etc/
         p4=.conf
-    elif [ "$ITEM" == "FULL_SVCNAME" -o "$ITEM" == "SVCNAME" ]; then
+    elif [[ $ITEM == "FULL_SVCNAME" || "$ITEM" == "SVCNAME" ]]; then
         p1=/etc/init.d/
         p11=
         p4=
-    elif [ "$ITEM" == "FLOG" ]; then
+    elif [[ $ITEM == "FLOG" ]]; then
         p1=/var/log/odoo/
         p11=/var/log/
         p4=.log
-    elif [ "$ITEM" == "FPID" ]; then
+    elif [[ $ITEM == "FPID" ]]; then
         p1=/var/run/odoo/
         p11=/var/run/
         p4=.pid
-    elif [ "$ITEM" == "BIN" ]; then
-        if [ $MAJVER -le 7 ]; then
+    elif [[ $ITEM == "BIN" ]]; then
+        if [[ $MAJVER -le 7 ]]; then
             p1=$PKGPATH/
             p11=$PKGPATH/server/
         else
@@ -574,27 +588,27 @@ build_odoo_param() {
         echo "Invalid parameter <$ITEM>!"
         exit 1
     fi
-    if [ $MULTIVER -ne 0 -a "$ITEM" != "BIN" ]; then
-        if [ $main -ne 0 ]; then
-            [ $MAJVER -ge 8 ] && p2=odoo || p2=openerp
-        elif [ "$ITEM" == "DDIR" -a $VENV -ne 0 ]; then
+    if [[ $MULTIVER -ne 0 && $ITEM != "BIN" ]]; then
+        if [[ $main -ne 0 ]]; then
+            [[ $MAJVER -ge 8 ]] && p2=odoo || p2=openerp
+        elif [[ $ITEM == "DDIR" && $VENV -ne 0 ]]; then
             p2=odoo
-        elif [[ ! $ITEM =~ (CONFN|FULL_SVCNAME|SVCNAME|FLOG|FPID|DDIR) && $GIT_ORGID =~ $SHORT ]]; then
+        elif [[ ! $ITEM =~ (CONFN|FULL_SVCNAME|SVCNAME|FLOG|FPID|DDIR) && $GIT_ORGID =~ ^$SHORT ]]; then
             p2="${GIT_ORGID}${MAJVER}"
         else
             p2="odoo${MAJVER}"
         fi
-    elif [ "$ITEM" == "BIN" ]; then
-        [ $MAJVER -ge 10 ] && p2=odoo || p2=openerp
-    elif [ $MAJVER -lt 7 ] || [[ $odoo_vid =~ (v7|V7) ]]; then
+    elif [[ $ITEM == "BIN" ]]; then
+        [[ $MAJVER -ge 10 ]] && p2=odoo || p2=openerp
+    elif [[ $MAJVER -lt 7 || $odoo_vid =~ (v7|V7) ]]; then
         p2=openerp
     else
         p2="odoo"
     fi
     if [[ $ITEM =~ (CONFN|FULL_SVCNAME|SVCNAME|FLOG|FPID|DDIR) ]]; then
         p3=
-        if [ $MULTIVER -ne 0 ]; then
-            if [ $exorg -ne 0 ]; then
+        if [[ $MULTIVER -ne 0 ]]; then
+            if [[ $exorg -ne 0 ]]; then
                 [[ -z $ORGSFX ]] && p3="-${GIT_ORGID}"
                 [[ -n $ORGSFX ]] && p3="-${GIT_ORGID}${ORGSFX}"
             elif [ $exorg -eq 0 ]; then
@@ -602,9 +616,10 @@ build_odoo_param() {
             fi
         fi
         if [[ -z $p3 || $p3 == "-odoo" ]]; then
-            [ $MAJVER -ge 10 ] && p3="" || p3="-server"
+            [[ $MAJVER -ge 10 ]] && p3="" || p3="-server"
         fi
-    elif [ $MAJVER -ge 10 ]; then
+        [[ $p3 == "-librerp6" ]] && p3="-librerp"
+    elif [[ $MAJVER -ge 10 ]]; then
         [[ $ITEM == "BIN" ]] && p3=-bin || p3=
     else
         p3="-server"
@@ -612,25 +627,25 @@ build_odoo_param() {
     [[ $ITEM == "BIN" && ($spec =~ (SERVER|tree) || $MAJVER == 6 || $noenv_vid =~ ^(v7|V7)) ]] && p="$p11$p2$p3$p4" || p="$p1$p2$p3$p4"
     if [[ $spec =~ search ]]; then
         p=$(findpkg "$p2$p3$p4" "$p1 $p11")
-        if [ -z "$p" ]; then
+        if [[ -z "$p" ]]; then
             p=$(findpkg "odoo$p3$p4" "$p1 $p11")
         fi
-        if [ -z "$p" -a $MAJVER -lt 7 ]; then
+        if [[ -z "$p" && $MAJVER -lt 7 ]]; then
             p=$(findpkg "openerp$p4" "$p1 $p11")
             if [ -z "$p" ]; then
                 p=$(findpkg "odoo$p3$p4" "$p1 $p11")
             fi
         elif [ -z "$p" -a $MAJVER -ge 7 ]; then
             p=$(findpkg "odoo$p4" "$p1 $p11")
-            if [ -z "$p" ]; then
+            if [[ -z "$p" ]]; then
                 p=$(findpkg "openerp$p3$p4" "$p1 $p11")
             fi
         fi
     fi
-    if [ "$ITEM" == "DDIR" ]; then
+    if [[ $ITEM == "DDIR" ]]; then
         p=$(grep "data_dir *=" $p | awk -F= '{print $2}' | tr -d " ")
-        [ -z "$p" ] && p=$pd
-    elif [ "$ITEM" == "SVCNAME" ]; then
+        [[ -z "$p" ]] && p=$pd
+    elif [[ $ITEM == "SVCNAME" ]]; then
         p=$(basename $p)
     fi
     echo "$p"
@@ -646,15 +661,15 @@ discover_multi() {
     for v in ${ov//\\/}; do
         odoo_bin=$(build_odoo_param BIN $v search)
         [[ -n "$odoo_bin" ]] && ((c++))
-        [ $c -gt 1 ] && break
+        [[ $c -gt 1 ]] && break
         odoo_bin=$(build_odoo_param BIN "V$v" search)
         [[ -n "$odoo_bin" ]] && ((c++))
-        [ $c -gt 1 ] && break
+        [[ $c -gt 1 ]] && break
         odoo_bin=$(build_odoo_param BIN $v search oca)
         [[ -n "$odoo_bin" ]] && ((c++))
-        [ $c -gt 1 ] && break
+        [[ $c -gt 1 ]] && break
     done
-    [ $c -gt 1 ] && opt_multi=1
+    [[ $c -gt 1 ]] && opt_multi=1
 }
 
 module_list() {

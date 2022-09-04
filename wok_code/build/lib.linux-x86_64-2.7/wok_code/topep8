@@ -7,15 +7,15 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 1.0.8
+# Based on template 2.0.0
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-if [[ -z $HOME_DEVEL ]]; then
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python ]] && PYTHON=$(readlink -f $TDIR/../bin/python) || [[ -x $TDIR/python ]] && PYTHON="$TDIR/python" || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "C='"$TDIR"'\nD='"$HOME_DEVEL"'\nimport os,sys\no=os.path\na=o.abspath\nj=os.path.join\nd=os.path.dirname\nb=os.path.basename\nf=os.path.isfile\np=os.path.isdir\nH=o.expanduser('~')\nT=j(d(D), 'tools')\nR=j(d(D),'pypi') if o.basename(D)=='venv_tools' else j(D,'pypi')\nW=D if o.basename(D)=='venv_tools' else j(D,'venv')\ndef apl(L,P,B):\n if P:\n  if p(j(P,B,B)) and p(j(P,B,B,'script')) and f(j(P,B,B,'__init__')):\n   L.append(j(P,B,B))\n   return 1\n  elif j(P,B):\n   L.append(j(P,B))\n   return 1\n return 0\nL=[C]\nif b(C) in ('tests','travis','_travis'):\n C=a(j(C,'..'))\n L.append(C)\nif b(C)==b(d(C)) and f(j(C,'..','setup.py')):\n C=a(j(C,'..','..'))\nelif b(d(C))=='tools' and f(j(C,'setup.py')):\n C=a(j(C,'..'))\nP=os.environ['PATH'].split(':')\nV= ''\nfor X in sys.path:\n if not p(T) and p(j(X,'tools')):\n  T=j(X,'tools')\n if not V and b(X)=='site-packages':\n  V=X\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n if p(j(C,B)) or p(j(C,b(C),B)):\n  F=apl(L,C,B)\n else:\n  F=0\n  for X in P:\n   if p(j(X,B)):\n    F=apl(L,X,B)\n    break\n  if not F:\n   F=apl(L,V,B)\n  if not F:\n   apl(L,T,B)\nL=L+P\np=set()\npa=p.add\np=[x for x in L if x and (x.startswith(H) or x.startswith(D) or x.startswith(C)) and not (x in p or pa(x))]\nprint(' '.join(p))\n"|$PYTHON)
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -24,28 +24,19 @@ for d in $PYPATH /etc; do
     break
   fi
 done
-if [[ -z "$Z0LIBDIR" ]]; then
-  echo "Library file z0librc not found in <$PYPATH>!"
-  exit 72
-fi
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
-if [[ -z "$ODOOLIBDIR" ]]; then
-  echo "Library file odoorc not found!"
-  exit 72
-fi
+[[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
-if [[ -z "$TRAVISLIBDIR" ]]; then
-  echo "Library file travisrc not found!"
-  exit 72
-fi
+[[ -z "$TRAVISLIBDIR" ]] && echo "Library file travisrc not found!" && exit 72
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
-DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
-TCONF="$HOME/.z0tools.conf"
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -55,7 +46,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=1.0.9
+__version__=2.0.0
 
 [[ -f $TDIR/../../clodoo/list_requirements.py ]] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
 YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
@@ -79,7 +70,7 @@ get_ver() {
     if [ "$BRANCH" == "master" ]; then
       ver=$BRANCH
     else
-      ver=$(echo $BRANCH | grep -Eo '[0-9]+' | head -n1)
+      ver=$(echo $BRANCH | grep --color=never -Eo '[0-9]+' | head -n1)
     fi
   else
     ver=master
@@ -275,7 +266,7 @@ format_yaml() {
       lne=$(echo $line)
       if [[ "$cur_sub" == "odoo_repo" && ! $lne =~ -\ TESTS=...\ ODOO_REPO=.*/OCB ]]; then
         if [[ ! "${found[repo_zero]}" == "t" || "$PKGNAME" == "OCB" ]]; then
-          x=$(echo $opt_copy | grep -Eo [a-z]+ | head -n1)
+          x=$(echo $opt_copy | grep --color=never -Eo '[a-z]+' | head -n1)
           org=$(build_odoo_param GIT_ORGNM $odoo_vid "" "$x")
           echo "    - TESTS=\"1\" ODOO_REPO=\"$org/OCB\"" >>$fntmp
         fi
@@ -423,7 +414,7 @@ format_yaml() {
           echo "  # Use Zeroincombenze(R) tools" >>$fntmp
           echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1" >>$fntmp
           echo "  - \${HOME}/tools/install_tools.sh -qpt" >>$fntmp
-          echo "  - source \${HOME}/devel/activate_tools" >>$fntmp
+          echo "  - source \${HOME}/devel/activate_tools -t" >>$fntmp
           if [[ $PKGNAME == "OCB" ]]; then
             echo "  # - \"export DISPLAY=:99.0\"" >>$fntmp
             echo "  # - \"sh -e /etc/init.d/xvfb start\"" >>$fntmp
@@ -539,9 +530,9 @@ format_xml() {
       elif [ "${lne:0:9}" == "<template" ]; then
         ((level++))
       else
-        o=$(echo $lne | grep -Eo "<[a-zA-Z0-9-]+" | wc -l)
-        c=$(echo $lne | grep -Eo "</[a-zA-Z0-9-]+" | wc -l)
-        k=$(echo $lne | grep -Eo "/>" | wc -l)
+        o=$(echo $lne | grep --color=never -Eo "<[a-zA-Z0-9-]+" | wc -l)
+        c=$(echo $lne | grep --color=never -Eo "</[a-zA-Z0-9-]+" | wc -l)
+        k=$(echo $lne | grep --color=never -Eo "/>" | wc -l)
         ((c = c + k))
         if [ $o -gt $c ]; then
           ((level++))
@@ -565,7 +556,7 @@ format_xml() {
         line="$lne"
       elif [ "${lne:0:1}" == "<" ]; then
         [ "$line" == "⌂" ] && line="$lm$lne"
-        x=$(echo "$line" | grep -Eo "[[:space:]]*<[a-zA-Z0-9-]+[[:space:]]*")
+        x=$(echo "$line" | grep --color=never -Eo "[[:space:]]*<[a-zA-Z0-9-]+[[:space:]]*")
         nxtlm=${#x}
       elif [ "$line" == "⌂" ]; then
         lm=
@@ -613,14 +604,14 @@ FCONF=$TDIR/.$THIS.conf
 OPTOPTS=(h        a        A         B         b         c         C        D       d        e        F        f       G       i       L         n            N        o       O        R        q           u       V           v           X       x       0     1)
 OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_dbg opt_diff opt_nenh opt_from opt_fut opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_fmt opt_z opt_1)
 OPTACTI=('+'      "+"      '+'       1         "="       1         "="      1       1        1        "="      1       "="     1       1         1            1        "="     1        "="      0           1       "*>"        "+"         1       1       1     1)
-OPTDEFL=(1        0        0         0         ""        0         ""       0       0        0        ""       0       ""      0       0         0            0        ""      0        ""       0           0       ""          -1          0       0       0     0)
+OPTDEFL=(1        0        2         0         ""        0         ""       0       0        0        ""       0       ""      0       0         0            0        ""      0        ""       0           0       ""          -1          0       0       0     0)
 OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    ""      "diff"   ""       "ver"    ""      "gpl"   ""      ""        "do nothing" ""       "file"  ""       "file"   "silent"   "ut7"   "version"    "verbose"   ""      ""      ""    "")
 OPTHELP=("this help"
   "enable non-whitespace changes (may issue multiple -a)"
-  "do not execute autoflake (-A) neither autopep8 (-AA)"
+  "deprecated"
   "activate debug statements"
   "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0"
-  "change class name to CamelCase"
+  "deprecated"
   "add developers Copyright (comma separated, def zero)"
   "show debug informations"
   "show diff"
@@ -628,12 +619,12 @@ OPTHELP=("this help"
   "from odoo branch, value like -b switch"
   "futurize"
   "Write GPL info into header (agpl,lgpl,gpl,opl,oee)"
-  "sort import statements"
+  "deprecated"
   "set file excluded by lint parse"
   "do nothing (dry-run)"
   "do not add newline at the EOF"
   "output filename, leave source unchanged rather than source becomes .bak"
-  "change copyright from openerp to odoo"
+  "deprecated"
   "use specific rule file"
   "silent mode"
   "use old api odoo<8.0 or create yaml old style"
@@ -660,6 +651,8 @@ opts_travis
 conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
+# prepare_env_travis
+# prepare_env_travis
 # prepare_env_travis
 
 optfnd="-type f"
@@ -750,10 +743,10 @@ for fl in $LIST; do
           AP8OPTS="$AP8OPTS -$x"
         fi
         srcfile="$f"
-        if [ $opt_imp -ne 0 ]; then
-          isort $f -d >$f.tmp
-          ! $(grep -q "Skipped [0-9]* files" $f.tmp) && srcfile="$f.tmp"
-        fi
+#        if [ $opt_imp -ne 0 ]; then
+#          isort $f -d >$f.tmp
+#          ! $(grep -q "Skipped [0-9]* files" $f.tmp) && srcfile="$f.tmp"
+#        fi
         if [ $opt_fut -ne 0 ] && [[ ! $f =~ (__manifest__.py|__openerp__.py|__init__.py) ]]; then
           futurize --no-diffs -pauwn2 $srcfile -o ~/py3
           if [[ -f ~/py3/$(basename $f) ]]; then
@@ -769,20 +762,20 @@ for fl in $LIST; do
           cp $srcfile $f.new
         fi
         [ -f $f.tmp ] && rm -f $f.tmp
-        [ $opt_c2o -ne 0 ] && sed -e 's/openerp\.com/odoo.com/' -i $f.new
-        if [ $opt_nauto -lt 2 ]; then
-          run_traced "autopep8 $AP8OPTS $f.new -i && sed 's/ $/\n/' -i $f.new"
-        fi
-        if [ $opt_Camel -gt 0 ]; then
-          run_traced "oca-autopep8 --select=CW0001 -i $f.new"
-        fi
-        if [ $opt_nauto -lt 1 ]; then
-          oca-autopep8 --select=CW0002 -i $f.new
-          run_traced "autoflake --imports=openerp,openerp.http.request,openerp.SUPERUSER_ID,openerp.addons.base.ir.ir_qweb,openerp.exceptions.ValidationError,openerp.fields,openerp.api.openerp.models,openerp.osv.fields,openerp.osv.api,telebot,lxml,werkzeug,MySQLdb.cursors,cStringIO.StringIO,werkzeug.utils,pandas.merge,pandas.DataFrame,werkzeug.wsgi.wrap_file,werkzeug.wsgi,werkzeug.wsgi.wrap_file,openerp.exceptions,openerp.tools.DEFAULT_SERVER_DATETIME_FORMAT -i $f.new"
-        fi
+#        [ $opt_c2o -ne 0 ] && sed -e 's/openerp\.com/odoo.com/' -i $f.new
+#        if [ $opt_nauto -lt 2 ]; then
+#          run_traced "autopep8 $AP8OPTS $f.new -i && sed 's/ $/\n/' -i $f.new"
+#        fi
+#        if [ $opt_Camel -gt 0 ]; then
+#          run_traced "oca-autopep8 --select=CW0001 -i $f.new"
+#        fi
+#        if [ $opt_nauto -lt 1 ]; then
+#          oca-autopep8 --select=CW0002 -i $f.new
+#          run_traced "autoflake --imports=openerp,openerp.http.request,openerp.SUPERUSER_ID,openerp.addons.base.ir.ir_qweb,openerp.exceptions.ValidationError,openerp.fields,openerp.api.openerp.models,openerp.osv.fields,openerp.osv.api,telebot,lxml,werkzeug,MySQLdb.cursors,cStringIO.StringIO,werkzeug.utils,pandas.merge,pandas.DataFrame,werkzeug.wsgi.wrap_file,werkzeug.wsgi,werkzeug.wsgi.wrap_file,openerp.exceptions,openerp.tools.DEFAULT_SERVER_DATETIME_FORMAT -i $f.new"
+#        fi
         # TOFIX
         if [[ -n "$opt_from" && $f =~ (__manifest__.py|__openerp__.py) ]]; then
-          vf=$(grep -Eo "['\"]version['\"]: ['\"][0-9.]+['\"]" $f.new)
+          vf=$(grep --color=never -Eo "['\"]version['\"]: ['\"][0-9.]+['\"]" $f.new)
           vt="${vf/$opt_from/$odoo_fver}"
           sed -e "s|$vf|$vt|" -i $f.new
         fi

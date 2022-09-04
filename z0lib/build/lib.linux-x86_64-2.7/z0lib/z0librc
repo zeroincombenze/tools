@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.0.8
+#__version__=2.0.0
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -19,12 +19,12 @@ _install_z0librc() {
     if [ -f $src ]; then
       if [ -f $tgt ]; then
         if [ "$1" == "-n" ]; then
-          local xtlver=$(echo "#__version__=0.1.1"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+          local xtlver=$(echo "#__version__=0.1.1"|grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
         else
-          local xtlver=$(grep "#__version__" $tgt|head -n1|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+          local xtlver=$(grep "#__version__" $tgt|head -n1|grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
           if [ -z "$xtver" ]; then xtlver="0"; fi
         fi
-        local newver=$(grep "#__version__" $src|head -n1|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+        local newver=$(grep "#__version__" $src|head -n1|grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
         if [ -z "$newver" ]; then newver="0"; fi
         if [ $newver -gt $xtlver ]; then
           xtl=1
@@ -458,25 +458,31 @@ set_tlog_file() {
 ##############################################################################
 # Write log on file $FLOG: see set_tlog_file function
 wlog() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local dt=$(date +"%F %H:%M:%S")
     [[ -n "$FLOG" ]] && echo $dt "$@">>$FLOG
     [[ $FLOG_ECHO == "echo" ]] && $FLOG_ECHO -e "$@"
+    $SETX
 }
 export -f wlog
 
 ##############################################################################
 # Write log on file $FLOG without echo
 slog() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local dt=$(date +"%F %H:%M:%S")
     [[ -n "$FLOG" ]] && echo $dt "$@">>$FLOG
+    $SETX
 }
 export -f wlog
 
 ##############################################################################
 # Echo meassage and write log on file $FLOG: see set_tlog_file function
 elog() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     wlog "$@"
     [[ $FLOG_ECHO != "echo" ]] && echo -e "$@"
+    $SETX
 }
 export -f elog
 
@@ -583,7 +589,6 @@ run_traced() {
     $SETX
     return $sts
 }
-
 export -f run_traced
 
 
@@ -670,6 +675,7 @@ export -f findpkg
 
 # Deprecated: use CFG_init
 a_new() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
       local tid=$1
     else
@@ -677,6 +683,7 @@ a_new() {
     fi
     cmd="unset DEFDICT$tid DEFRULE$tid"
     echo $cmd
+    $SETX
 }
 export -f a_new
 
@@ -684,6 +691,7 @@ export -f a_new
 
 # Deprecated: use CFG_init
 a_active() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
       local tid=$1
     else
@@ -702,6 +710,7 @@ a_active() {
     # declare -gA DEFDICT$tid DEFRULE$tid
     cmd="XU_FH=$XU_FH XU_DISTO=$XU_DISTO; declare -gA DEFDICT$tid DEFRULE$tid"
     echo $cmd
+    $SETX
 }
 export -f a_active
 
@@ -1038,9 +1047,11 @@ export -f CFG_init
 #export -f active_cfg
 
 set_cfg_def() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     # set_cfg_set(key value [id])
     # Deprecated: use CFG_set
     CFG_set "$1" "$2" "$3" "$4" "$5" "$6"
+    $SETX
 }
 export -f set_cfg_def
 
@@ -1164,11 +1175,11 @@ link_cfg_def() {
   CFG_set "PS_HDR3_COLOR" "30;45"
   CFG_set "PKGS_LIST" "clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
   CFG_set "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
-  CFG_set "DEV_SVG" "$HOME/devel/svg"
+  CFG_set "DEV_SVG" "$HOME_DEVEL/svg"
   CFG_set "HTML_DOCS_DIR" "/var/www/html/mw/html"
   CFG_set "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
   CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8)"
-  CFG_set "distpath" "\${HOME}/tools/\${pkgname}"
+  CFG_set "distpath" "$(readlink -f $HOME_DEVEL/..)/tools/\${pkgname}"
   [[ -z $DIST_CONF ]] && DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
   [[ -z $TCONF ]] && TCONF="$HOME/.z0tools.conf"
   $SETX
@@ -1411,10 +1422,10 @@ expand_path() {
     P=${p^^}
     x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
   done
-  for p in version TRAVIS_BUILD_DIR ODOO_REPO odoo_vid HOME PATH; do
+  for p in version TRAVIS_BUILD_DIR ODOO_REPO odoo_vid HOME HOME_DEVEL PATH; do
     P=$p
-    [ $p == "version" ] && P="BRANCH"
-    [ $p == "odoo_vid" ] && P="opt_branch"
+    [[ $p == "version" ]] && P="BRANCH"
+    [[ $p == "odoo_vid" ]] && P="opt_branch"
     x=$(echo $x | sed -e "s|\\\${$p}|${!P}|g")
   done
   [[ -n "$2" ]] && x=${x/$2/$3}
@@ -1457,6 +1468,7 @@ is_pypi() {
 
 get_value_from_setup() {
   # get_value_from_setup(file value)
+  [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
   local n r s x=$(basename $1)
   if [[ $x == "setup.py" ]]; then
     if [[ $2 == "name" ]]; then
@@ -1473,6 +1485,7 @@ get_value_from_setup() {
     fi
   fi
   echo "$r"
+  $SETX
 }
 
 repos_tools_params() {
@@ -1495,10 +1508,15 @@ get_pypi_param() {
     REPOSNAME=""
   fi
   local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
-  local r w x="$PWD"
+  local r w x="$PWD" ODOO_ROOT
   local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
   ODOO_SETUPS=${ODOO_SETUPS//,/ }
   [[ -z $ODOO_SETUPS ]] && ODOO_SETUPS="__manifest__.py"
+  if [[ -z $HOME_DEVEL ]]; then
+      [[ -d $HOME/odoo ]] && ODOO_ROOT="$HOME/odoo" || ODOO_ROOT="$HOME"
+  else
+      ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
+  fi
   x=$PWD
   r=
   for ODOO_SETUP in $ODOO_SETUPS; do
@@ -1513,7 +1531,7 @@ get_pypi_param() {
     _SETUP=$w
   fi
   INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|travis|_travis|__to_remove|__unported__)"
-  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $HOME && $x != "/" ]]; do
+  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $ODOO_ROOT && $x != "/" ]]; do
     r=$(basename $x)
     if $(is_pypi "$x"); then
       _PRJNAME=$(basename $x)
@@ -1548,14 +1566,14 @@ get_pypi_param() {
         [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
         [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
         if [[ $_PRJNAME != "Odoo" ]]; then
-          [[ $x != $HOME && $x != "/" ]] && _REPOS=$(basename $(dirname $x)) || _REPOS=
+          [[ $x != $ODOO_ROOT && $x != "/" ]] && _REPOS=$(basename $(dirname $x)) || _REPOS=
         fi
         break
       elif [[ -z "$_REPOS" ]]; then
         _REPOS=$(basename $x)
       fi
     fi
-    [[ $x != $HOME && $x != "/" ]] && x=$(readlink -e $x/..) || x=
+    [[ $x != $ODOO_ROOT && $x != "/" ]] && x=$(readlink -e $x/..) || x=
   done
   if [[ -z "$_PRJNAME" && -n "$_SETUP" && -f "$_SETUP" ]]; then
     r=$(get_value_from_setup "$_SETUP" "name")
@@ -1583,7 +1601,7 @@ get_pypi_param() {
     [[ -n "$REPOSNAME" ]] && LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
     [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
     [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "distpath")
-    [[ -n "$LGITPATH" ]] && export LGITPATH="$(expand_path \"$LGITPATH\")"
+    [[ -n "$LGITPATH" ]] && export LGITPATH=$(expand_path "$LGITPATH")
     [[ $DEV_ENVIRONMENT == $THIS ]] && test_mode=1
     [[ ${test_mode:-0} -gt 0 ]] && opt_dry_run=1
     PS_TXT_COLOR=$(get_cfg_value "" "PS_TXT_COLOR")
@@ -1603,7 +1621,8 @@ get_pypi_param() {
 export -f get_pypi_param
 
 set_pybin() {
-    # set_pybin(pyver)
+    # set_pybin(pyver ver_varname)
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local opt_pyver=$1
     PYTHON=""
     PIP=""
@@ -1614,15 +1633,19 @@ set_pybin() {
       [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
       PYTHON=$(which $PYTHON 2>/dev/null)
       [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo '[0-9]\.[0-9]+' | head -n1)
       PIP=$(which pip$opt_pyver 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     else
       PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep -o [0-9]\.[0-9] | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo '[0-9]\.[0-9]+' | head -n1)
       PIP=$(which pip 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     fi
+    PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+    [[ -n $2 ]] && eval $2=$opt_pyver
+    [[ $opt_pyver =~ ^3 ]] && PYTHON3=$PYTHON
+    $SETX
 }
 export -f set_pybin
 
