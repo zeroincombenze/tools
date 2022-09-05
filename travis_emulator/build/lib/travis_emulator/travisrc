@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=2.0.0
+#__version__=2.0.0.1
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -296,11 +296,12 @@ set_osx() {
 }
 
 create_virtual_env() {
-  local f opts p t x
-  export TRAVIS_BRANCH=$BRANCH
+  local f opts p sts=0 t x
   [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
   ((Z0_STACK=Z0_STACK+2))
-  local sts=0
+  unset TOOLS_PATH
+  init_travis
+  export TRAVIS_BRANCH=$BRANCH
   [[ -z "$HOME_DEVEL" ]] && echo "Zeroincombenze(R) tools not found!" && exit 1
   VENVOPTS="-Dlen_US"
   drop_test_db
@@ -321,14 +322,14 @@ create_virtual_env() {
   [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
   [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
   hash -r
-  if [[ "$PRJNAME" == "Odoo" && ( ! -d $SAVED_ODOO_ROOT/VME/VME$BRANCH || $(stat -c %Y $SAVED_ODOO_ROOT/VME/VME$BRANCH) -lt 1661637600 ) ]]; then
+  if [[ $PRJNAME == "Odoo" && ( ! -d $SAVED_ODOO_ROOT/VME/VME$BRANCH || $((($(date "+%s") - $(stat -c%Y $SAVED_ODOO_ROOT/VME/VME$BRANCH)) > 10454400)) ) ]]; then
     echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH not found or expired!${CLR}"
     echo -e "Now virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH will be (re)created."
     [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
     run_traced "vem create $SAVED_ODOO_ROOT/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH -len_US"
     echo -e "\n\n"
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
-  elif [[ ! -d "$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION" || $(stat -c %Y $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION) -lt 1661637600 ]]; then
+  elif [[ ! -d "$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION" || $((($(date "+%s") - $(stat -c%Y $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION)) > 8035100)) ]]; then
     echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
     run_traced "vem create $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq -len_US"
     echo -e "\n\n"
@@ -415,8 +416,6 @@ create_virtual_env() {
     fi
   fi
   [[ $PWD != $TRAVIS_BUILD_DIR ]] && run_traced "cd $TRAVIS_BUILD_DIR"
-  unset TOOLS_PATH
-  init_travis
   if [[ -n "$opt_pybrk" ]]; then
     IFS=":" read f t <<<"$opt_pybrk"
     [[ $f =~ ^\. ]] && x=$(readlink -f $TRAVIS_BUILD_DIR/$f) || x=$(find $TRAVIS_BUILD_DIR -name $f)

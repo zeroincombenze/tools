@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0
+__version__=2.0.0.1
 
 
 store_cfg_param_value() {
@@ -72,7 +72,7 @@ store_cfg_param_value() {
 debug_shell() {
     echo "PS1='ctrl+d to exit> '">/tmp/$$.sh
     [[ -n "$1" ]] && echo "TODO>$1"
-    eval $SHELL --noprofile --rcfile -s/tmp/$$.sh -s
+    eval $SHELL --noprofile --rcfile /tmp/$$.sh -s
 }
 
 process_yaml_init() {
