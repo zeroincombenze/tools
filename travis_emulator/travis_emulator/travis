@@ -868,7 +868,7 @@ process_yaml() {
           [[ -n $opt_trace && ::build =~ $opt_trace ]] && debug_shell "::build"
           create_virtual_env
           wlog "\e[${PS_HDR2_COLOR}m----- [System informations] -----\e[0m"
-          for p in PATH HOME HOME_BRANCH PIP PYTHON PYTHONPATH PYPI_CACHED TRAVIS SYSTEM_SITE_PACKAGES TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_SAVED_HOME TRAVIS_SAVED_HOME_DEVEL; do
+          for p in HOME HOME_BRANCH PATH PIP PIPVER PYTHON PYTHONPATH PYPI_CACHED TRAVIS SYSTEM_SITE_PACKAGES TRAVIS_BUILD_DIR TRAVIS_BRANCH TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_SAVED_HOME TRAVIS_SAVED_HOME_DEVEL; do
             X=${!p}
             [[ -n "$X" || $p =~ PATH ]] && wlog "\e[${PS_RUN_COLOR}m\$ $p=$X\e[0m"
           done

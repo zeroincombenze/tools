@@ -230,9 +230,9 @@ check_lessc() {
 
 
 checkpid() {
-    [[ -f $PIDFILE ]] || return 1
-    pid=$(cat $PIDFILE)
-    [[ -d /proc/$pid ]] && return 0
+    local pid=$1
+    [[ -z $pid && -s $PIDFILE ]] && pid=$(cat $PIDFILE)
+    [[ -n $pid && -d /proc/$pid ]] && return 0
     return 1
 }
 
@@ -360,6 +360,13 @@ start() {
     return $RETVAL
 }
 
+stop_by_ps() {
+      echo "Error during stopping .. try to stop process ..."
+      [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
+      local pid=$(ps -ef | grep "$py .*$DAEMON.*\.conf" | grep -v grep | awk '{print $2}' | head -n1)
+      [[ -n "$pid" ]] && kill $pid && echo "Killed process $pid!"
+      RETVAL=$?
+}
 
 stop_RHEL() {
     if [[ -f $PIDFILE ]]; then
@@ -370,13 +377,7 @@ stop_RHEL() {
         fi
     fi
     RETVAL=$?
-    if [[ $RETVAL -ne 0 ]]; then
-        echo "Error during stopping .. try to stop process ..."
-        [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
-        local pid=$(ps -ef | grep "$py .*$DAEMON.*\.conf" | grep -v grep | awk '{print $2}')
-        [[ -z "$pid" ]] || kill $pid
-        RETVAL=$?
-    fi
+    [[ $RETVAL -ne 0 ]] && stop_by_ps
     if [[ $RETVAL -eq 0 ]]; then
         [[ $DRY_RUN -eq 0 ]] && rm -f $LOCKFILE
         # echo_success
@@ -390,7 +391,6 @@ stop_RHEL() {
         run-parts /etc/${xtl_id}/stop.d
         echo
     fi
-    # [[ $DRY_RUN -eq 0 && -f "$PIDFILE" ]] && rm -f $PIDFILE
     return $RETVAL
 }
 
@@ -402,23 +402,24 @@ stop_Debian () {
         start-stop-daemon --stop --quiet --pidfile ${PIDFILE}  --oknodo --remove-pidfile
     fi
     RETVAL=$?
-    # [[ $DRY_RUN -eq 0 && -f "$PIDFILE" ]] && rm -f $PIDFILE
+    [[ $RETVAL -ne 0 ]] && stop_by_ps
     return $RETVAL
 }
 
 
 stop() {
-    chown root:root $PIDFILE
-    if [ "$1" != "mute" ]; then
-        echo "Stopping ${DESC}: "
-    fi
-    if [ "$FH" == "RHEL" ]; then
-        stop_RHEL
-    elif [ "$FH" == "Debian" ]; then
-        stop_Debian
+    if [[ -f $PIDFILE ]]; then
+        chown root:root $PIDFILE
+        if [ "$FH" == "RHEL" ]; then
+            stop_RHEL
+        elif [ "$FH" == "Debian" ]; then
+            stop_Debian
+        else
+            echo "Unrecognized Linux distribution"
+            exit 1
+        fi
     else
-        echo "Unrecognized Linux distribution"
-        exit 1
+        stop_by_ps
     fi
     RETVAL=$?
     local x=$(date +"%Y-%m-%d %H:%M:%S,000")
@@ -437,14 +438,16 @@ restart() {
 
 
 status() {
-    if [[ -f $PIDFILE ]] ; then
+    if [[ -s $PIDFILE ]] ; then
         checkpid $(cat $PIDFILE)
         RETVAL=$?
-        if [ $RETVAL -eq 0 ] ; then
-            echo "$NAME is running..."
-        else
-            echo "$NAME is stopped"
-        fi
+    else
+        [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
+        checkpid $(ps -ef | grep "$py .*$DAEMON.*\.conf" | grep -v grep | awk '{print $2}' | head -n1)
+        RETVAL=$?
+    fi
+    if [[ $RETVAL -eq 0 ]] ; then
+        echo "$NAME is running..."
     else
         echo "$NAME is stopped"
     fi
