@@ -1,6 +1,6 @@
 
 =====================
-travis_emulator 1.0.6
+travis_emulator 1.0.7
 =====================
 
 
@@ -315,33 +315,6 @@ History
 
 * [IMP] travis: check for cached expired VME
 
-1.0.2 (2021-08-27)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: stable version
-
-1.0.1.8 (2021-08-26)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: color change
-* [IMP] travis: new action testdeps
-* [FIX] travis: matrix selection
-* [IMP] travis: switch -y forces python version
-
-1.0.1.5 (2021-08-11)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: summary return 1 if test failed or is broken
-* [IMP] travis: return status like summary
-* [IMP] travis: summary & show-log can show old logfile i.e.: travis summary old
-* [IMP] travis: osx emulatore return more info when error
-
-1.0.1.4 (2021-08-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] devel_tools replaced by wok_code
-* [IMP] travis: summary return 1 if test failed
-
 
 
 |
@@ -366,7 +339,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-03-14
+Last Update / Ultimo aggiornamento: 2022-09-03
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

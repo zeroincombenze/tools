@@ -329,7 +329,7 @@ set_from_conf_pkg() {
       PKG_CONF=$(findpkg "lisa.lish" "$sdir")
       SAMPLE=$(findpkg "lisa.lish.sample" "$sdir")
     fi
-    pkg=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
+    pkg=$(echo "$1"|grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
     get_conf_pkg "$PKG_CONF" "$SAMPLE" "$pkg" $3
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return #set_from_conf_pkg">>~/$THIS.his
 }
@@ -604,8 +604,8 @@ disable_port() {
 get_arch() {
     local v x
     if [[ -n "$1" ]]; then
-        export x=$(echo $1|grep -Eo [a-zA-Z]+)
-        v=$(echo $1 | grep -Eo [0-9]+)
+        export x=$(echo $1|grep --color=never -Eo [a-zA-Z]+)
+        v=$(echo $1 | grep --color=never -Eo [0-9]+)
         [[ $x =~ (CentOS|Fedora|RHEL) ]] && export FH="RHEL" || export FH="Debian"
         [[ "$1" == "CentOS6" || "$1" == "Ubuntu12" ]] && MACHARCH="i686" || MACHARCH="x86_64"
         export DISTO=$1
@@ -688,7 +688,7 @@ get_realname() {
     if [[ "$1" == "." ]]; then
       p="EVERYTHINGS"
     else
-      pkgname=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
+      pkgname=$(echo "$1"|grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
       if [[ ! "$pkgname" == "$1" && -z "$5" ]]; then
         specimen=$(get_specimen $1 "$2" "${3}n" "$4" "$5")
         IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$specimen"
@@ -743,15 +743,15 @@ get_specimen() {
     if [ "$1" == "." ]; then
       local specimen="~~~~~~"
     else
-      local c=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|wc -l)
+      local c=$(echo "$1"|grep --color=never -Eo '[^!<=>\\[]*'|wc -l)
       local i pkg pkgname lop rop lreqver rreqver xtlcmd op p
-      pkg=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
+      pkg=$(echo "$1"|grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
       i=1
       while ((i<c)); do
-        # op=$(echo "$1"|grep -Eo '[!<=>\\[]*'|head -n$i|tail -n1)
-        op=$(echo "$1"|grep -Eo '[!<=>]*'|head -n$i|tail -n1)
+        # op=$(echo "$1"|grep --color=never -Eo '[!<=>\\[]*'|head -n$i|tail -n1)
+        op=$(echo "$1"|grep --color=never -Eo '[!<=>]*'|head -n$i|tail -n1)
         ((i++))
-        p=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n$i|tail -n1)
+        p=$(echo "$1"|grep --color=never -Eo '[^!<=>\\[]*'|head -n$i|tail -n1)
         if [ "$op" == "!!" ]; then
           xtlcmd=$p
         elif [ -z "$lreqver" ]; then
@@ -932,7 +932,7 @@ get_pkg_ver_dpkg() {
         # fi
         IFS=: read l x <<<"$pkgversion"
         [ -n "$x" ] && pkgversion="$x"
-        pkgversion=$(echo "$pkgversion"|grep -Eo '[0-9.]+'|head -n1)
+        pkgversion=$(echo "$pkgversion"|grep --color=never -Eo '[0-9.]+'|head -n1)
       fi
       if [[ $2 =~ I ]]; then
         if [ -z "$pkgversion" ]; then
@@ -1002,7 +1002,7 @@ get_pkg_ver_npm() {
     elif [[ $2 =~ J ]]; then
       :
     else
-      pkgversion=$(npm version|grep $pkgname:|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|head -n1)
+      pkgversion=$(npm version|grep $pkgname:|grep --color=never -Eo '[0-9]+\.[0-9]+\.[0-9]+'|head -n1)
     fi
     [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $pkgversion=get_pkg_ver_npm($1 $2 $3 $4 $5)">>~/$THIS.his
     echo $pkgversion
@@ -1789,8 +1789,8 @@ do_dry_build_package() {
     local atarball
     if [ -z "$tarball" ]; then
       if [ -f ../setup.py ]; then
-        n=$(cat ../setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
-        v=$(cat ../setup.py|grep version|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|head -n1)
+        n=$(cat ../setup.py|grep "name *="|awk -F= '{print $2}'|grep --color=never -Eo '[a-zA-Z0-9_-]+'|head -n1)
+        v=$(cat ../setup.py|grep version|grep --color=never -Eo '[0-9]+\.[0-9]+\.[0-9]+'|head -n1)
         tarball="$n-$v.tar.gz"
         atarball=$package.tar.gz
       else
@@ -1929,7 +1929,7 @@ end_remove() {
 }
 
 get_ver_num() {
-    local xtlver=$(echo "$1"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+    local xtlver=$(echo "$1"|grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
     if [ -z "$xtlver" ]; then xtlver="0"; fi
     echo $xtlver
 }
@@ -3503,8 +3503,8 @@ opt_aaeD=$(echo "$opt_aae,2"|awk -F, '{print $2}')
 UPDATED=0
 python3 --version &>/dev/null
 if [ $? -ne 127 ]; then
-  PY3ID=$(python3 --version 2>&1 |head -n1|grep -Eo [0-9]+\.[0-9]+|tr -d ".")
-  # x=$(yum search python$PY3ID 2>/dev/null|grep -Eo "python$PY3ID[a-z]*\."|grep -Eo ".*[^.]"|head -n1)
+  PY3ID=$(python3 --version 2>&1 |head -n1|grep --color=never -Eo ''[0-9]+\.[0-9]+''|tr -d ".")
+  # x=$(yum search python$PY3ID 2>/dev/null|grep --color=never -Eo "python$PY3ID[a-z]*\."|grep --color=never -Eo ".*[^.]"|head -n1)
   # PY3ID=${x:6}
   CFG_set "REAL_python3-dev" "python${PY3ID}-devel" "0" "CentOS7"
 fi
