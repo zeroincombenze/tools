@@ -23,7 +23,7 @@ __version__=2.0.0
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-opts=$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9)
+opts=$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9 .)
 if [[ $opts =~ ^-.*h ]]; then
     echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
     echo "  -h  this help"
@@ -103,14 +103,15 @@ CLR="\e[0m"
 [[ $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
 [[ -z "$DSTPATH" && -d $HOME/odoo/devel ]] && DSTPATH="$HOME/odoo/devel"
 [[ -z "$DSTPATH" && -d $HOME/devel ]] && DSTPATH="$HOME/devel"
+[[ -z "$DSTPATH" && -d $HOME/devel ]] && DSTPATH="$HOME/devel"
 LOCAL_VENV="$DSTPATH/venv"
 [[ $DSTPATH != $LOCAL_VENV && ! -d $DSTPATH && ! $opts =~ ^-.*p ]] && run_traced "mkdir -p $DSTPATH"
 [[ -z "$DSTPATH" ]] && echo "# Environment not found! Please use -p switch" && exit 1
 DEVELPATH="$(readlink $DSTPATH/pypi)"
 
 if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
-    [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
-    [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
+    [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
+    [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && git stash -q && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
 [[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo -e "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
@@ -134,22 +135,22 @@ if [[ ! $opts =~ ^-.*k ]]; then
     done
 fi
 
-[[ -x $LOCAL_VENV/python ]] && PYVER=$($LOCAL_VENV/python --version 2>&1 | grep -o "[0-9]" | head -n1) || PYVER=$(python --version 2>&1 | grep -o "[0-9]" | head -n1)
-[[ $opts =~ ^-.*t ]] && opts="${opts} -$(echo ${TRAVIS_PYTHON_VERSION}3 | grep -Eo [0-9] | head -n1)"
-[[ ! $opts =~ ^-.*2 && PYVER -eq 2 ]] && opts="${opts} -f"
-[[ $opts =~ ^-.*2 && PYVER -ne 2 ]] && opts="${opts} -f"
+if [[ -x $LOCAL_VENV/python ]]; then
+  x=$($LOCAL_VENV/python --version 2>&1 | grep --color=never -Eo "[0-9]" | head -n1)
+  [[ ! $opts =~ ^-.*2 && x -eq 2 ]] && opts="${opts} -f"
+  [[ $opts =~ ^-.*2 && x -ne 2 ]] && opts="${opts} -f"
+fi
+
+[[ $opts =~ ^-.*2 ]] && PYVER=$(python2 --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]+" | head -n1) || PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]+" | head -n1)
+[[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1)
+[[ -z $PYVER && ! $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+[[ -z $PYVER ]] && echo "No python not found in path|" && exit 1
 if [[ ! $opts =~ ^-.*k && ( $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! -d $DSTPATH/venv/bin || ! -d $DSTPATH/bin ) ]]; then
     x="-iDBB"
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && x="${x}t"
-    if [[ $opts =~ ^-.*2 ]]; then
-        run_traced "$VEM create $LOCAL_VENV -p2.7 $x -f"
-    else
-        PYVER=$(python3 --version 2>&1 | grep -o "[0-9]\.[0-9]" | head -n1)
-        [[ -z $PYVER ]] && PYVER="3.7"
-        run_traced "$VEM create $LOCAL_VENV -p$PYVER $x -f"
-    fi
+    run_traced "$VEM create $LOCAL_VENV -p$PYVER $x -f"
     [[ $? -ne 0 ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
     [[ ! -d $LOCAL_VENV/bin || ! -d $LOCAL_VENV/lib ]] && echo -e "${RED}# Incomplete Tools virtual environment!${CLR}" && exit 1
     [[ -d $HOME/.cache/pip && $opts =~ ^-.*p ]] && run_traced "rm -fR $HOME/.cache/pip"
@@ -170,8 +171,8 @@ PLEASE_CMDS=""
 TRAVIS_CMDS=""
 PKGS_LIST="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
 BINPATH="$LOCAL_VENV/bin"
-PIPVER=$(pip --version | grep -Eo [0-9]+ | head -n1)
-PYVER=$($PYTHON --version 2>&1 | grep -o "[0-9]" | head -n1)
+PIPVER=$(pip --version | grep --color=never -Eo '[0-9]+' | head -n1)
+PYVER=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]" | head -n1)
 popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PIPVER -gt 18 ]] && popts="$popts --no-warn-conflicts"
 [[ $PIPVER -eq 19 ]] && popts="$popts --use-feature=2020-resolver"
@@ -244,7 +245,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
         # Tools PYPI installation
         [[ $pkg == "tools" ]] && continue
         x=$(find $SRCPATH/$pfn -maxdepth 3 -name __manifest__.rst 2>/dev/null|head -n 1)
-        [[ -n "$x" ]] && x=$(grep -E "^\.\. .set no_pypi ." $x|grep -Eo "[0-9]")
+        [[ -n "$x" ]] && x=$(grep -E "^\.\. .set no_pypi ." $x|grep --color=never -Eo "[0-9]")
         if [[ -z "$x" || $x -eq 0 ]]; then
             if [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info && -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then
                 run_traced "cp -r $SRCPATH/$pfn/ $LOCAL_VENV/tmp/"
@@ -300,11 +301,15 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "BINDIR=\"$LOCAL_VENV/bin\"">>$DSTPATH/activate_tools
     echo "ACTIVATE=\"\$BINDIR/activate\"">>$DSTPATH/activate_tools
     echo "PYLIB=\"$PYLIB\"">>$DSTPATH/activate_tools
+    echo "opts=\$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9 .)">>$DSTPATH/activate_tools
+    echo "[[ \$opts =~ ^-.*h ]] && echo \$0 [-f][-t] && exit 0">>$DSTPATH/activate_tools
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
+    [[ ! $opts =~ ^-.*t && ! $TRAVIS =~ (true|false|emulate) ]] && echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && echo "[[ -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
-    echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ \$1 != '-t' ]] && export PATH=\$PATH:\$BINDIR">>$DSTPATH/activate_tools
-    echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ \$1 == '-t' ]] && export PATH=\$(echo \$PATH|sed -E \"s|:\$BINDIR|:|\")">>$DSTPATH/activate_tools
-    echo "[[ -f \$ACTIVATE ]] && echo \"+\$PATH:\"|grep -qv \"+\$BINDIR:\" && [[ \$1 == '-t' ]] && export PATH=\$BINDIR:\$PATH">>$DSTPATH/activate_tools
+    [[ ! $opts =~ ^-.*t && ! $TRAVIS =~ (true|false|emulate) ]] && echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
+    echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ ! \$opts =~ ^-.*f ]] && export PATH=\$PATH:\$BINDIR">>$DSTPATH/activate_tools
+    echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ \$opts =~ ^-.*f ]] && export PATH=\$(echo \$PATH|sed -E \"s|:\$BINDIR|:|\")">>$DSTPATH/activate_tools
+    echo "[[ -f \$ACTIVATE ]] && echo \"+\$PATH:\"|grep -qv \"+\$BINDIR:\" && [[ \$opts =~ ^-.*f ]] && export PATH=\$BINDIR:\$PATH">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
 fi
@@ -312,22 +317,23 @@ fi
 # OCA tools
 if [[ $PYVER -eq 3 ]]; then
     run_traced "cd $DSTPATH"
+    [[ $opts =~ ^-.*v ]] && x="" || x="--quiet"
     if [[ ! $opts =~ ^-.*t ]]; then
         [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
         run_traced "git clone https://github.com/OCA/maintainer-tools.git"
         if [[ -d $DSTPATH/maintainer-tools ]]; then
             run_traced "cd $DSTPATH/maintainer-tools"
-            [[ $opts =~ ^-.*v ]] && run_traced "$PYTHON setup.py install" || run_traced "$PYTHON setup.py --quiet install"
+            run_traced "$PYTHON setup.py $x install"
             for pkg in black pre-commit pyupgrade flake8-bugbear; do
-                run_traced "pip install $pkg"
+                run_traced "pip install $pkg $popts"
             done
         fi
-        run_traced "git clone https://github.com/OCA/odoo-module-migrator.git"
-     fi
-    run_traced "git clone https://github.com/OCA/maintainer-quality-tools.git"
-    for pkg in sphinx sphinx_rtd_theme; do
-        run_traced "pip install $pkg"
-    done
+        run_traced "git clone $x https://github.com/OCA/odoo-module-migrator.git"
+        for pkg in sphinx sphinx_rtd_theme; do
+            run_traced "pip install $pkg $popts"
+        done
+    fi
+    run_traced "git clone $x https://github.com/OCA/maintainer-quality-tools.git"
 fi
 
 # Final test to validate environment
@@ -346,7 +352,7 @@ for pkg in kbase templates; do
 done
 for pkg in babel lxml python-magic pyyaml python-plus z0lib z0bug-odoo zerobug; do
     echo -n "."
-    pfn=$(echo "$pkg"|grep -Eo '[^!<=>\\[]*'|head -n1)
+    pfn=$(echo "$pkg"| grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
     x=$($VEM $LOCAL_VENV info $pkg 2>/dev/null|grep -E "^Location: .*")
     [[ -z "$x" ]] && echo -e "${RED}Incomplete installation! Package $pkg non installed in $LOCAL_VENV!!${CLR}" && exit
 done

@@ -21,7 +21,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.0"
+__version__ = "2.0.0.1"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -186,6 +186,15 @@ ALIAS3 = {
     "python-dev": "python3-dev",
 }
 FORCE_ALIAS = {"docutils==0.12": "docutils==0.14"}
+PIP_SECURE_PACKAGES = [
+    "urllib3[secure]",
+    "cryptography",
+    "pyOpenSSL",
+    "idna",
+    "certifi",
+    "asn1crypto",
+    "pyasn1",
+]
 PIP_TEST_PACKAGES = [
     "astroid",
     "Click",
@@ -212,8 +221,8 @@ PIP_TEST_PACKAGES = [
     "pylint-mccabe",
     "pylint_odoo",
     "pylint-plugin-utils",
-    "pyopenssl",
-    "python_plus",
+    # "pyopenssl",
+    # "python_plus",
     "python-magic",
     "pyserial",
     "pytest",
@@ -225,7 +234,7 @@ PIP_TEST_PACKAGES = [
     "setuptools",
     "simplejson",
     "unittest2",
-    "urllib3[secure]",
+    # "urllib3[secure]",
     "websocket-client",
     "whichcraft",
     "wrapt",
@@ -268,6 +277,7 @@ PIP_BASE_PACKAGES = [
     "python-ldap",
     "python-dateutil",
     "python-openid",
+    "python-plus",
     "pydot",
     "pyparsing",
     "pypdf",    # with PY3 becomes pyPDF2
@@ -277,7 +287,7 @@ PIP_BASE_PACKAGES = [
     "simplejson",
     "six",
     "stdnum",
-    "urllib3[secure]",
+    # "urllib3[secure]",
     "vatnumber",
     "Werkzeug",
 ]
@@ -785,7 +795,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-B",
         "--base-packages",
-        help="Add base packages",
+        help="Add base & secure packages",
         action="store_true",
         dest="base_pkgs",
     )
@@ -855,6 +865,13 @@ def main(cli_args=None):
         help="Add packages for xmlrpc/jsonrpc",
         action="store_true",
         dest="rpc_pkgs",
+    )
+    parser.add_argument(
+        "-S",
+        "--secure-packages",
+        help="Add secure packages",
+        action="store_true",
+        dest="secure_pkgs",
     )
     parser.add_argument(
         "-s",
@@ -945,7 +962,7 @@ def main(cli_args=None):
         deps_list = package_from_list(
             deps_list,
             "python",
-            PIP_BASE_PACKAGES,
+            PIP_BASE_PACKAGES + PIP_SECURE_PACKAGES,
             with_version=ctx["with_version"],
             odoo_ver=ctx["odoo_ver"],
             pyver=ctx["pyver"],
@@ -974,6 +991,15 @@ def main(cli_args=None):
             deps_list,
             "bin",
             BIN_BASE_PACKAGES,
+            with_version=ctx["with_version"],
+            odoo_ver=ctx["odoo_ver"],
+            pyver=ctx["pyver"],
+        )
+    if ctx["secure_pkgs"] and not ctx["base_pkgs"]:
+        deps_list = package_from_list(
+            deps_list,
+            "python",
+            PIP_SECURE_PACKAGES,
             with_version=ctx["with_version"],
             odoo_ver=ctx["odoo_ver"],
             pyver=ctx["pyver"],

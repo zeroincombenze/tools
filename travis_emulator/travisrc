@@ -296,7 +296,7 @@ set_osx() {
 }
 
 create_virtual_env() {
-  local f opts p sts=0 t x
+  local f opts p sts=0 t x xp1 xp2
   [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
   ((Z0_STACK=Z0_STACK+2))
   unset TOOLS_PATH
@@ -322,14 +322,21 @@ create_virtual_env() {
   [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
   [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
   hash -r
-  if [[ $PRJNAME == "Odoo" && ( ! -d $SAVED_ODOO_ROOT/VME/VME$BRANCH || $((($(date "+%s") - $(stat -c%Y $SAVED_ODOO_ROOT/VME/VME$BRANCH)) > 10454400)) ) ]]; then
+  xp1=0
+  [[ $PRJNAME == "Odoo" && ! -d $SAVED_ODOO_ROOT/VME/VME$BRANCH || $opt_force -ne 0 ]] && xp1=1
+  [[ $PRJNAME == "Odoo" && $xp1 -eq 0 && opt_keep -eq 0 ]] && xp1=$(($(date "+%s") - $(stat -c%Y $SAVED_ODOO_ROOT/VME/VME$BRANCH) > 10454400))
+  xp2=0
+  [[ ! -d $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION || $opt_force -ne 0 ]] && xp2=1
+  [[ $xp2 -eq 0 && opt_keep -eq 0 ]] && xp2=$(($(date "+%s") - $(stat -c%Y $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION) > 8035100))
+  if [[ $xp1 -ne 0 ]]; then
     echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH not found or expired!${CLR}"
     echo -e "Now virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH will be (re)created."
     [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
-    run_traced "vem create $SAVED_ODOO_ROOT/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH -len_US"
+    [[ $BRANCH =~ ^(15|16) ]] && pv="3.8"
+    run_traced "vem create $SAVED_ODOO_ROOT/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH -o$(build_odoo_param ROOT $PRJPATH) -len_US"
     echo -e "\n\n"
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
-  elif [[ ! -d "$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION" || $((($(date "+%s") - $(stat -c%Y $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION)) > 8035100)) ]]; then
+  elif [[ $xp2 -ne 0 ]]; then
     echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
     run_traced "vem create $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq -len_US"
     echo -e "\n\n"
