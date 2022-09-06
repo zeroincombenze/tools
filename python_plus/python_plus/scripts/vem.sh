@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0
+__version__=2.0.0.1
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -196,24 +196,26 @@ set_hashbang() {
 }
 
 get_req_list() {
-# get_req_list(req_file type debug)
-    local cmd fn mime tt x
+# get_req_list(req_file type [debug|all|base|dev|oe])
+    local cmd fn mime tt wh x
     fn="$1"
     tt="$2"
+    [[ -z $3 ]] && wh="all" || wh="$3"
 
-    [[ "$3" == "debug" ]] && cmd="$(which $LIST_REQ)" || cmd="$LIST_REQ"
+    cmd="$LIST_REQ"
     [[ -n $tt ]] && cmd="$cmd -qt $tt -BP" || cmd="$cmd -qt python -BP"
-    [[ $opt_dev -ne 0 ]] && cmd="${cmd}TR"
+    [[ $opt_dev -ne 0 && $wh =~ (all|dev)  ]] && cmd="${cmd}TR"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
-    [[ -n "$opt_oever" ]] && cmd="$cmd -b$opt_oever"
-    [[ -n "$opt_oepath" ]] && cmd="$cmd -p$opt_oepath"
-    x=""
+    [[ -n "$opt_oever" && $wh =~ (all|oe) ]] && cmd="$cmd -b$opt_oever"
+    [[ -n "$opt_oepath" && $wh =~ (all|oe) ]] && cmd="$cmd -p$opt_oepath"
+    x="$opt_deps"
     [[ -d $HOME/OCA ]] && x="$x,${HOME}/OCA"
     [[ -d $HOME/maintainer-tools ]] && x="$x,${HOME}/maintainer-tools"
     [[ -d $HOME/maintainer-quality-tools ]] && x="$x,${HOME}/maintainer-quality-tools"
-    [[ -n $x ]] && cmd="$cmd -d${x:1}"
+    [[ -n $x && $x =~ ^, ]] && x="${x:1}"
+    [[ -n $x  && $wh =~ (all|oe) ]] && cmd="$cmd -d${x}"
     [[ -n $fn ]] && cmd="$cmd -m $pfn"
-    [[ "$3" == "debug" ]] && echo $cmd -qs "" || $cmd -qs" "
+    [[ $wh =~ debug ]] && echo $cmd -qs "" || $cmd -qs" "
 }
 
 bin_install() {
@@ -423,10 +425,11 @@ pip_install() {
 
 pip_install_1() {
   # pip_install_1(popts)
-  local pkg popts
+  local pkg popts ll
   [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
-  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing $SUP_PKGS $SECURE_PKGS $DEV_PKGS\e[0m (1)"
-  for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
+  ll="$SUP_PKGS $SECURE_PKGS $DEV_PKGS $(get_req_list "" "python" "base")"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing $ll\e[0m (1)"
+  for pkg in $ll; do
     [[ $opt_verbose -lt 2 ]] && echo -en "."
     pip_install "$pkg" "$popts"
   done
@@ -497,7 +500,7 @@ check_bin_package() {
   reqver=$(echo "$vpkg" | grep --color=never -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
   [[ -n "$reqver" ]] && xreqver=$(echo $reqver | grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
   sts=0
-  curver=$($pkg --version 2>/dev/null | grep  =never-Eo "[0-9]+\.[0-9]+\.?[0-9]*" | head -n1)
+  curver=$($pkg --version 2>/dev/null | grep --color=never-Eo "[0-9]+\.[0-9]+\.?[0-9]*" | head -n1)
   if [[ -n "$reqver" ]]; then
     if [[ -z "$curver" ]]; then
       echo "Package $pkg not installed!!!"
@@ -866,8 +869,8 @@ do_venv_mgr() {
   fi
   BINPKGS=$(get_req_list "" "bin")
   [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' 'bin' 'debug')"
-  OEPKGS=$(get_req_list "" "python")
-  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug')"
+  OEPKGS=$(get_req_list "" "python" "oe")
+  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug,oe')"
   if [[ $cmd =~ (amend|check|test|inspect) ]]; then
     V=$VENV
   elif [[ "$cmd" == "cp" ]]; then
@@ -1034,22 +1037,25 @@ do_venv_create() {
     opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
     PIP=$(which pip$opt_pyver 2>/dev/null)
     [[ -z $PIP ]] && PIP="$PYTHON -m pip"
-  elif [[ -n $opt_pyver ]]; then
-    PYTHON=$(which python$opt_pyver 2>/dev/null)
-    [[ -z "$PYTHON" && $opt_pyver =~ ^3 ]] && PYTHON=python3
-    [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
-    PYTHON=$(which $PYTHON 2>/dev/null)
-    [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-    opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
-    PIP=$(which pip$opt_pyver 2>/dev/null)
-    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+    [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   else
-    PYTHON=$(which python 2>/dev/null)
-    opt_pyver=$($PYTHON --version 2>&1 | grep -o "[0-9]\.[0-9]" | head -n1)
-    PIP=$(which pip 2>/dev/null)
-    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+    set_pybin $opt_pyver "opt_pyver"
+#  elif [[ -n $opt_pyver ]]; then
+#    PYTHON=$(which python$opt_pyver 2>/dev/null)
+#    [[ -z "$PYTHON" && $opt_pyver =~ ^3 ]] && PYTHON=python3
+#    [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
+#    PYTHON=$(which $PYTHON 2>/dev/null)
+#    [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
+#    opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+#    PIP=$(which pip$opt_pyver 2>/dev/null)
+#    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
+#  else
+#    PYTHON=$(which python 2>/dev/null)
+#    opt_pyver=$($PYTHON --version 2>&1 | grep -o "[0-9]\.[0-9]" | head -n1)
+#    PIP=$(which pip 2>/dev/null)
+#    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
   fi
-  [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+#  [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   validate_py_oe_vers
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   venvexe=$(which virtualenv 2>/dev/null)
@@ -1103,8 +1109,8 @@ do_venv_create() {
   if [[ -n "$opt_oepath" && -n "$opt_oever" ]]; then
     BINPKGS=$(get_req_list "" "bin")
     [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' 'bin' 'debug')"
-    OEPKGS=$(get_req_list "" "python")
-    [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug')"
+    OEPKGS=$(get_req_list "" "python" "oe")
+    [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug,oe')"
     bin_install_1 $VENV
   fi
   [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
@@ -1183,26 +1189,27 @@ validate_py_oe_vers() {
 }
 
 
-OPTOPTS=(h        a        B         C      D       E          f         F      k        I           i         l        n           O         o          p         q           r           s                    t          V           v)
-OPTLONG=(help     ""       ""        ""     devel   distro     force     ""     keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose)
-OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_distro opt_force opt_FH opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose)
-OPTACTI=('+'      "="      "+"       1      1       "="        1         "="    1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
-OPTDEFL=(1        ""       0         0      0       ""         0         ""     0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1)
-OPTMETA=("help"   "list"   ""        ""     ""      "distro"   ""        "name" ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
+OPTOPTS=(h        a        B         C      D       d        E          f         F      k        I           i         l        n           O         o          p         q           r           s                    t          V           v)
+OPTLONG=(help     ""       ""        ""     devel   dep-path distro     force     ""     keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose)
+OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_deps opt_distro opt_force opt_FH opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose)
+OPTACTI=('+'      "="      "+"       1      1       "="      "="        1         "="    1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+")
+OPTDEFL=(1        ""       0         0      0       ""       ""         0         ""     0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1)
+OPTMETA=("help"   "list"   ""        ""     ""      "paths"  "distro"   ""        "name" ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
   "use unstable packages: -B testpypi / -BB from ~/tools / -BBB from ~/pypi / -BBBB link to local ~/pypi"
   "clear cache before executing pip command"
   "create v.environment with development packages"
-  "Simulate Linux distro: like Ubuntu20 Centos7 etc (requires -n switch)"
+  "odoo dependencies paths (comma separated)"
+  "simulate Linux distro: like Ubuntu20 Centos7 etc (requires -n switch)"
   "force v.environment create, even if exists or inside another virtual env"
-  "Simulate Linux family: may be RHEL or Debian (requires -n switch)"
+  "simulate Linux family: may be RHEL or Debian (requires -n switch)"
   "keep python2 executable as python (deprecated)"
   "run pip in an isolated mode and set home virtual directory"
   "run pip in an isolated mode, ignoring environment variables and user configuration"
   "set default language"
   "do nothing (dry-run)"
-  "install pypi required by odoo ver (amend or create)"
+  "install pypi required by odoo version (amend or create)"
   "odoo path used to search odoo requirements"
   "python version"
   "silent mode"
@@ -1308,8 +1315,8 @@ fi
 if [[ $action =~ (help|create|exec|python|shell) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
   [[ $opt_dev -eq 0 ]] && DEV_PKGS=""
 else
-  DEV_PKGS=$(get_req_list "")
-  [[ $opt_verbose -gt 2 ]] && echo "DEV_PKGS=$DEV_PKGS #$(get_req_list '' '' 'debug')"
+  DEV_PKGS=$(get_req_list "" "" "dev")
+  [[ $opt_verbose -gt 2 ]] && echo "DEV_PKGS=$DEV_PKGS #$(get_req_list '' '' 'debug,dev')"
 fi
 if [[ "$action" == "help" ]]; then
   man $(dirname $0)/man/man8/$(basename $0).8.gz

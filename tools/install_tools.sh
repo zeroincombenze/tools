@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=2.0.0
+__version__=2.0.0.1
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
@@ -329,11 +329,11 @@ if [[ $PYVER -eq 3 ]]; then
             done
         fi
         run_traced "git clone $x https://github.com/OCA/odoo-module-migrator.git"
-     fi
+        for pkg in sphinx sphinx_rtd_theme; do
+            run_traced "pip install $pkg $popts"
+        done
+    fi
     run_traced "git clone $x https://github.com/OCA/maintainer-quality-tools.git"
-    for pkg in sphinx sphinx_rtd_theme; do
-        run_traced "pip install $pkg $popts"
-    done
 fi
 
 # Final test to validate environment
