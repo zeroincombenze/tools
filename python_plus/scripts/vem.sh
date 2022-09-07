@@ -230,21 +230,25 @@ bin_install() {
   local pkg=$1
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ $pkg =~ lessc ]]; then
-      x=$(which npm 2>/dev/null)
-      if [[ -z "$x" ]]; then
-        echo "Package $pkg require npm software but this software is not installed on your system"
-        echo "You should install npm ..."
-        [[ $DISTO =~ ^fedora ]] && echo "dnf install npm"
-        [[ ! $DISTO =~ ^fedora && $FH == "RHEL" ]] && echo "yum install npm"
-        [[ $DISTO =~ ^debian ]] && echo "apt install npm"
-        ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-      else
-        [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
-        pkg=${pkg/==/@}
-        pkg=$(echo $pkg | tr -d "'")
-        run_traced "npm install $pkg"
-        run_traced "npm install less-plugin-clean-css"
-        x=$(find $(npm bin) -name lessc 2>/dev/null)
+      x=$(which lessc 2>/dev/null)
+      if [[ -z $x ]]; then
+        x=$(which npm 2>/dev/null)
+        if [[ -z "$x" ]]; then
+          echo "Package $pkg require npm software but this software is not installed on your system"
+          echo "You should install npm ..."
+          [[ $DISTO =~ ^fedora ]] && echo "dnf install npm"
+          [[ ! $DISTO =~ ^fedora && $FH == "RHEL" ]] && echo "yum install npm"
+          [[ $DISTO =~ ^debian ]] && echo "apt install npm"
+          ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+        else
+          [[ ! -f package-lock.json ]] && run_traced "npm init"
+          [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
+          pkg=${pkg/==/@}
+          pkg=$(echo $pkg | tr -d "'")
+          run_traced "npm install $pkg"
+          run_traced "npm install less-plugin-clean-css"
+          x=$(find $(npm bin) -name lessc 2>/dev/null)
+        fi
         [[ -n "$x" ]] && run_traced "ln -s $x $VENV/bin" || ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       fi
     elif [[ $pkg =~ wkhtmltopdf ]]; then
@@ -347,12 +351,12 @@ pip_install() {
         [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
         v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
         popd >/dev/null
-        x=$(ls -d $pypath/${pfn}-*DISTO-info 2>/dev/null|grep -E "${pfn}-[0-9.]*DISTO-info")
-        [[ -n $x && $x != $pypath/${pfn}-${v}.DISTO-info ]] && run_traced "mv $x $pypath/${pfn}-${v}.DISTO-info"
-        if [[ ! -d $pypath/${pfn}-${v}.DISTO-info ]]; then
-          run_traced "mkdir $pypath/${pfn}-${v}.DISTO-info"
+        x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
+        [[ -n $x && $x != $pypath/${pfn}-${v}.dist-info ]] && run_traced "mv $x $pypath/${pfn}-${v}.dist-info"
+        if [[ ! -d $pypath/${pfn}-${v}.dist-info ]]; then
+          run_traced "mkdir $pypath/${pfn}-${v}.dist-info"
           for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
-            run_traced "touch $pypath/${pfn}-${v}.DISTO-info/$d"
+            run_traced "touch $pypath/${pfn}-${v}.dist-info/$d"
           done
         fi
         run_traced "ln -s $srcdir $pypath/$pfn"
@@ -472,14 +476,18 @@ pip_uninstall() {
     [[ $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/../tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/../tools/$pfn)
     [[ $opt_debug -eq 3 && -d $SAVED_HOME_DEVEL/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pfn/$pfn)
     [[ $opt_debug -eq 3 && -d $SAVED_HOME/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/pypi/$pfn/$pfn)
+    [[ -L $pypath/$pkg ]] && srcdir="$pypath/$pkg"
     if [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
+      [[ $pkg =~ ^(odoo|openerp)$ ]] && venv_mgr_check_oever "$(readlink -f $srcdir)" && x="$opt_oever"
       pushd $srcdir/.. >/dev/null
-      [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
+      [[ $pkg =~ ^(odoo|openerp)$ ]] || x=$(get_local_version $pfn)
       v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
       popd >/dev/null
-      x=$(ls -d $pypath/${pfn}-*DISTO-info 2>/dev/null|grep -E "${pfn}-[0-9.]*DISTO-info")
-      [[ -n $x && $x != $pypath/${pfn}-${v}.DISTO-info ]] && run_traced "rm $x"
+      x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
+      [[ -n $x && $x != $pypath/${pfn}-${v}.dist-info ]] && run_traced "rm $x"
+      run_traced "rm -fR $pypath/${pfn}-${v}.dist-info"
+      run_traced "rm -f $srcdir"
     else
       [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
       run_traced "$PIP uninstall $popts $pkg $2"
@@ -567,7 +575,7 @@ check_package() {
   if [[ $pkg =~ $BIN_PKGS ]]; then
       check_bin_package "$pkg"
   elif [[ -n "$reqver" ]]; then
-    curver=$($PIP show $pkg | grep "^[Vv]ersion" | awk -F: '{print $2}' | tr -d ', \r\n\(\)') || curver=
+    curver=$($PIP show $pkg  2>/dev/null| grep "^[Vv]ersion" | awk -F: '{print $2}' | tr -d ', \r\n\(\)') || curver=
     if [[ -z "$curver" ]]; then
       echo "Package $pkg not installed!!!"
       if [[ "$cmd" == "amend" ]]; then
@@ -605,7 +613,7 @@ check_package() {
     fi
   fi
   if [[ ! $pkg =~ $BIN_PKGS ]]; then
-    x=$($PIP show $pkg | grep "^[Ll]ocation" | awk -F: '{print $2}' | tr -d ', \r\n\(\)')
+    x=$($PIP show $pkg  2>/dev/null| grep "^[Ll]ocation" | awk -F: '{print $2}' | tr -d ', \r\n\(\)')
     [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "Warning: file $x is outside of virtual env"
   fi
 }
@@ -804,10 +812,12 @@ odoo_orm_path() {
 }
 
 venv_mgr_check_oever() {
-  #venv_mgr_check_oever action venv
-  local f p x
-  if [[ -z "$opt_oever" && -n "$opt_oepath" ]]; then
-    [[ -d $opt_oepath/openerp ]] && f="$opt_oepath/openerp/release.py" || f="$opt_oepath/odoo/release.py"
+  #venv_mgr_check_oever([oe_path] [oe_ver])
+  local f p v
+  [[ -n $2 ]] && v="$2" || v="$opt_oever"
+  [[ -n $1 ]] && p="$1" || p="$opt_oepath"
+  if [[ -z "$v" && -n "$p" ]]; then
+    [[ -d $p/openerp ]] && f="$p/openerp/release.py" || f="$p/odoo/release.py"
     opt_oever=$(grep "^version_info" $f|cut -d= -f2|tr -d "("|tr -d ")"|tr -d " "|awk -F, '{print $1 "." $2}')
   fi
 }
@@ -975,26 +985,40 @@ do_venv_mgr() {
       do_activate "$VENV_TGT" "-q"
     fi
   elif [[ $cmd == "inspect" ]]; then
-    x="vem create $V"
+    do_activate "$V"
+    set_pybin "" "opt_pyver"
+    cmd="vem create $V"
     echo "Virtual Environment name: $V"
     echo "Python version: $opt_pyver ($PYTHON)"
-    [[ -n $opt_pyver ]] && x="$x -p $opt_pyver"
-    [[ -z $opt_pyver && -n $PYTHON ]] && x="$x -p $PYTHON"
+    [[ -n $opt_pyver ]] && cmd="$cmd -p $opt_pyver"
+    [[ -z $opt_pyver && -n $PYTHON ]] && cmd="$cmd -p $PYTHON"
     echo "PIP command: $PIP"
-    [[ $opt_dev -ne 0 ]] && x="$x -D"
-    [[ -n "$HOME" && $HOME != $SAVED_HOME ]] && x="$x -I"
+    [[ $opt_dev -ne 0 ]] && cmd="$cmd -D"
+    [[ -n "$HOME" && $HOME != $SAVED_HOME ]] && cmd="$cmd -I"
     if [[ -f $V/pyvenv.cfg ]]; then
       ssp=$(grep -E "^include-system-site-packages" $V/pyvenv.cfg|awk -F= '{print $2}'|tr -d " ")
     else
       ssp="false"
     fi
-    [[ $ssp != true ]] || x="$x -s"
-    echo "Odoo version: $opt_oever"
-    [[ -n $opt_oever ]] && x="$x -O $opt_oever"
-    echo "Odoo path: $opt_oepath"
-    [[ -n $opt_oepath ]] && x="$x -o $opt_oepath"
+    [[ $ssp != true ]] || cmd="$cmd -s"
+    x=$($PIP show odoo 2>/dev/null| grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
+    if [[ -n $x ]]; then
+      venv_mgr_check_oever "$x"
+      echo "Odoo version: $opt_oever"
+      echo "Odoo path: $(readlink -e $x/odoo)"
+      cmd="$cmd -O $opt_oever -o $(readlink -e $x/odoo)"
+    else
+      x=$($PIP show openerp  2>/dev/null| grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
+      if [[ -n $x ]]; then
+        venv_mgr_check_oever "$x"
+        echo "Odoo version: $opt_oever"
+        echo "Odoo path: $(readlink -e $x/openerp)"
+        cmd="$cmd -O $opt_oever -o $(readlink -e $x/openerp)"
+      fi
+    fi
     echo "Internal sys.path: $PATH"
-    echo -e "Environment created with \e[1m$x\e[0m"
+    echo -e "Environment created with command: \e[1m$cmd\e[0m"
+    do_deactivate
   fi
   do_venv_mgr_test $V
 }
@@ -1010,7 +1034,7 @@ do_venv_create() {
     if [[ $opt_force -eq 0 ]]; then
       echo "Warning: virtual environment $VENV already exists!!"
     else
-      for f in bin include lib node_modules; do
+      for f in bin include lib node_modules share; do
          [[ -d $VENV/$f ]] && run_traced "rm -fR $VENV/$f"
       done
       for f in odoo package-lock.json pyvenv.cfg "=2.0.0"; do
@@ -1040,22 +1064,7 @@ do_venv_create() {
     [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   else
     set_pybin $opt_pyver "opt_pyver"
-#  elif [[ -n $opt_pyver ]]; then
-#    PYTHON=$(which python$opt_pyver 2>/dev/null)
-#    [[ -z "$PYTHON" && $opt_pyver =~ ^3 ]] && PYTHON=python3
-#    [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
-#    PYTHON=$(which $PYTHON 2>/dev/null)
-#    [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-#    opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
-#    PIP=$(which pip$opt_pyver 2>/dev/null)
-#    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
-#  else
-#    PYTHON=$(which python 2>/dev/null)
-#    opt_pyver=$($PYTHON --version 2>&1 | grep -o "[0-9]\.[0-9]" | head -n1)
-#    PIP=$(which pip 2>/dev/null)
-#    [[ -z $PIP ]] && PIP="$PYTHON -m pip"
   fi
-#  [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   validate_py_oe_vers
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   venvexe=$(which virtualenv 2>/dev/null)
@@ -1117,8 +1126,8 @@ do_venv_create() {
   pip_install_1
   [[ -n "$opt_oever" ]] && pip_install_2
   [[ -n "$opt_rfile" ]] && pip_install_req
-  [[ -n "$opt_oepath" && -d $opt_oepath ]] && x=$(basename $opt_oepath) || x=""
-  [[ -n "$x" ]] && run_traced "ln -s $opt_oepath $(readlink -f pypath/$x)"
+  [[ -n "$opt_oepath" && -d $opt_oepath/openerp ]] && pip_install openerp
+  [[ -n "$opt_oepath" && -d $opt_oepath/odoo ]] && pip_install odoo
   do_venv_mgr_test $VENV
 }
 
@@ -1161,7 +1170,7 @@ do_venv_pip() {
         check_bin_package "$pkg"
       else
         run_traced "$PIP show $pkg"
-        x=$($PIP show $pkg | grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
+        x=$($PIP show $pkg  2>/dev/null| grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
         [[ -n $x ]] && x=$x/$pkg
         [[ -L $x ]] && echo "Actual location is $(readlink -e $x)"
       fi

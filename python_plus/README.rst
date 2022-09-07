@@ -279,6 +279,7 @@ History
 
 * [IMP] vem: new swith -d for Odoo dependencies path
 * [FIX] vem: create with best package list
+* [FIX] vem: install odoo/openerp
 
 
 2.0.0 (2022-08-10)
@@ -310,7 +311,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-09-06
+Last Update / Ultimo aggiornamento: 2022-09-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
