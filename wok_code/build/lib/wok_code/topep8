@@ -1,0 +1,835 @@
+#! /bin/bash
+# Update source python file to pep8 standard
+# Tool for internal use
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-22 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+export READLINK
+# Based on template 2.0.0
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+  [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
+fi
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+for d in $PYPATH /etc; do
+  if [[ -e $d/z0librc ]]; then
+    . $d/z0librc
+    Z0LIBDIR=$(readlink -e $d)
+    break
+  fi
+done
+[[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+[[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
+. $ODOOLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
+TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
+[[ -z "$TRAVISLIBDIR" ]] && echo "Library file travisrc not found!" && exit 72
+. $TRAVISLIBDIR
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
+
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
+CFG_init "ALL"
+link_cfg_def
+link_cfg $DIST_CONF $TCONF
+[[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
+get_pypi_param ALL
+RED="\e[1;31m"
+GREEN="\e[1;32m"
+CLR="\e[0m"
+
+__version__=2.0.0
+
+[[ -f $TDIR/../../clodoo/list_requirements.py ]] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py
+YAML_TMPL=~/dev/pypi/z0bug_odd/z0bug_odoo/sample_files/.travis.yml
+NO_APT_GET="(build-essential|curl|git|gradle|gzip|java|lessc|less-plugin-clean-css|nodejs|npm|openssl|python-setuptools|python-simplejson|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
+
+expand_macro() {
+  local t p v lne lne1
+  lne="$1"
+  for t in {1..9} LNK_DOCS BTN_DOCS LNK_HELP BTN_HELP; do
+    p=\${$t}
+    v=${M[$t]}
+    lne1="${lne//$p/$v}"
+    lne="$lne1"
+  done
+  echo -n "$lne"
+}
+
+get_ver() {
+  local ver=
+  if [ -n "$BRANCH" ]; then
+    if [ "$BRANCH" == "master" ]; then
+      ver=$BRANCH
+    else
+      ver=$(echo $BRANCH | grep --color=never -Eo '[0-9]+' | head -n1)
+    fi
+  else
+    ver=master
+  fi
+  [ -n "$1" -a "$ver" == "master" ] && ver=0
+  echo $ver
+}
+
+build_line() {
+  # build_line(flag replmnt act)
+  local v w x line
+  v=${1^^}
+  w="LNK_${v:1}"
+  v="BTN_${v:1}"
+  line="$2"
+  if [[ "$3" =~ md_BTN ]]; then
+    if [ -n "${M[$v]}" ]; then
+      x="${M[$v]}"
+      line="$line($x)]"
+    fi
+    if [ -n "${M[$w]}" ]; then
+      x="${M[$w]}"
+      line="$line($x)"
+    fi
+  elif [[ "$3" =~ rstBTN_.*/1 ]]; then
+    if [ -z "$2" ]; then
+      line=".. image::"
+    else
+      line=".. ${line:0:-1} image::"
+    fi
+    if [ -n "${M[$v]}" ]; then
+      x="${M[$v]}"
+      line="$line $x"
+    fi
+  elif [[ "$3" =~ rstBTN_.*/2 ]]; then
+    if [ -z "$2" ]; then
+      line="   :target:"
+    else
+      line=".. _${line:1:-2}:"
+    fi
+    if [ -n "${M[$w]}" ]; then
+      x="${M[$w]}"
+      line="$line $x"
+    fi
+  elif [ "$3" == "CHPT_lang_en" ]; then
+    line="[![en](https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)](https://www.facebook.com/groups/openerp.italia/)"
+  elif [ "$3" == "CHPT_lang_it" ]; then
+    line="[![it](https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)](https://www.facebook.com/groups/openerp.italia/)"
+  elif [[ $3 =~ CHPT_ ]]; then
+    :
+  fi
+  echo "$line"
+}
+
+add_copyright() {
+  #add_copyright(file rst zero|oca|oia)
+  if [ "$PRJNAME" == "Odoo" ]; then
+    if [ $2 -eq 1 ]; then
+      echo ".. [//]: # (copyright)" >>$1
+    else
+      echo "[//]: # (copyright)" >>$1
+    fi
+    echo "" >>$1
+    echo "----" >>$1
+    echo "" >>$1
+    if [ $2 -eq 1 ]; then
+      echo "**Odoo** is a trademark of  \`Odoo S.A." >>$1
+      echo "<https://www.odoo.com/>\`_." >>$1
+      echo "(formerly OpenERP, formerly TinyERP)" >>$1
+    else
+      echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)" >>$1
+    fi
+    echo "" >>$1
+    if [ $2 -eq 1 ]; then
+      echo "**OCA**, or the  \`Odoo Community Association" >>$1
+      echo "<http://odoo-community.org/>\`_." >>$1
+      echo "is a nonprofit organization whose" >>$1
+    else
+      echo "**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose" >>$1
+    fi
+    echo "mission is to support the collaborative development of Odoo features and" >>$1
+    echo "promote its widespread use." >>$1
+    echo "" >>$1
+    if [ "$3" == "oia" ]; then
+      echo "**Odoo Italia Associazione**, or the [Associazione Odoo Italia](https://www.odoo-italia.org/)" >>$1
+      echo "is the nonprofit Italian Community Association whose mission" >>$1
+      echo "is to support the collaborative development of Odoo designed for Italian law and markeplace." >>$1
+      echo "Since 2017 Odoo Italia Associazione issues modules for Italian localization not developed by OCA" >>$1
+      echo "or available only with Odoo Proprietary License." >>$1
+      echo "Odoo Italia Associazione distributes code under [AGPL](https://www.gnu.org/licenses/agpl-3.0.html) or [LGPL](https://www.gnu.org/licenses/lgpl.html) free license." >>$1
+      echo "" >>$1
+      echo "[Odoo Italia Associazione](https://www.odoo-italia.org/) è un'Associazione senza fine di lucro" >>$1
+      echo "che dal 2017 rilascia moduli per la localizzazione italiana non sviluppati da OCA" >>$1
+      echo "o disponibili solo con [Odoo Proprietary License](https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html)." >>$1
+      echo "" >>$1
+      echo "Odoo Italia Associazione distribuisce il codice esclusivamente con licenza [AGPL](https://www.gnu.org/licenses/agpl-3.0.html) o [LGPL](https://www.gnu.org/licenses/lgpl.html)" >>$1
+      echo "" >>$1
+    else
+      if [ $2 -eq 1 ]; then
+        echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l." >>$1
+        echo "<http://www.shs-av.com/>\`_." >>$1
+      else
+        echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)" >>$1
+      fi
+      echo "which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure." >>$1
+      echo "[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)" >>$1
+      echo "is mainly designed for Italian law and markeplace." >>$1
+      echo "Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server." >>$1
+      echo "" >>$1
+    fi
+    if [ $2 -eq 1 ]; then
+      echo "" >>$1
+      echo ".. [//]: # (end copyright)" >>$1
+    else
+      echo "[//]: # (end copyright)" >>$1
+    fi
+  else
+    if [ $2 -eq 1 ]; then
+      echo ".. [//]: # (copyright)" >>$1
+    else
+      echo "[//]: # (copyright)" >>$1
+    fi
+    echo "" >>$1
+    echo "----" >>$1
+    echo "" >>$1
+    if [ $2 -eq 1 ]; then
+      echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l." >>$1
+      echo "<http://www.shs-av.com/>\`_." >>$1
+    else
+      echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)" >>$1
+    fi
+    echo "which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure." >>$1
+    echo "" >>$1
+    echo "Odoo is a trademark of Odoo S.A." >>$1
+    if [ $2 -eq 1 ]; then
+      echo "" >>$1
+      echo ".. [//]: # (end copyright)" >>$1
+    else
+      echo "[//]: # (end copyright)" >>$1
+    fi
+  fi
+}
+
+add_addons() {
+  #add_addons(file rst zero|oca|oia ORIG)
+  if [ "$PRJNAME" == "Odoo" ]; then
+    if [ $2 -eq 1 ]; then
+      echo ".. [//]: # (addons)" >>$1
+    else
+      echo "[//]: # (addons)" >>$1
+    fi
+    $TDIR/gen_addons_table.py addons $4 >>$1
+    if [ $2 -eq 1 ]; then
+      echo "" >>$1
+      echo ".. [//]: # (end addons)" >>$1
+    else
+      echo "[//]: # (end addons)" >>$1
+    fi
+  fi
+}
+
+format_yaml() {
+  local fn=$1
+  if [[ -f $fn ]]; then
+    local fntmp=$fn.new
+    if [[ $opt_z -ne 0 ]]; then
+      local fntmpl=$YAML_TMPL
+    else
+      local fntmpl=$fn
+    fi
+    rm -f $fntmp
+    local ident=0 lev=0 cur_sect= cur_fsect= cur_sub=
+    local a f line lne org p
+    declare -A found
+    f=$($READLINK -e $fn)
+    p=$(dirname $f)
+    while IFS= read -r line || [ -n "$line" ]; do
+      if [[ $line =~ ^[[:space:]]+ ]]; then
+        for i in {0..10}; do if [ "${line:i:1}" != " " ]; then break; fi; done
+        if [ $i -gt $ident ]; then
+          ((lev++))
+          ident=$i
+        elif [ $i -lt $ident ]; then
+          ((lev--))
+          ident=$i
+        fi
+      else
+        lev=0
+        ident=0
+      fi
+
+      [[ -n "$odoo_vid" ]] && line=${line/\$TRAVIS_BRANCH/$odoo_fver}
+      lne=$(echo $line)
+      if [[ "$cur_sub" == "odoo_repo" && ! $lne =~ -\ TESTS=...\ ODOO_REPO=.*/OCB ]]; then
+        if [[ ! "${found[repo_zero]}" == "t" || "$PKGNAME" == "OCB" ]]; then
+          x=$(echo $opt_copy | grep --color=never -Eo '[a-z]+' | head -n1)
+          org=$(build_odoo_param GIT_ORGNM $odoo_vid "" "$x")
+          echo "    - TESTS=\"1\" ODOO_REPO=\"$org/OCB\"" >>$fntmp
+        fi
+        cur_sub=
+      fi
+      if [ -z "$line" ]; then
+        if [ "$cur_sect" == "install" ]; then
+          if [[ ! ${found[exclude]} == "t" ]]; then
+            echo "  - export EXCLUDE=hw_scanner,hw_escpos,document_ftp,delivery,stock_invoice_directly,claim_from_delivery" >>$fntmp
+          fi
+          if [[ ! ${found[include]} == "t" ]]; then
+            if [ $opt_ut7 -eq 0 ]; then
+              if [ $odoo_ver -ge 10 ]; then
+                echo "  - export INCLUDE=\$(getaddons.py -m \${HOME}/build/\${ODOO_REPO}/odoo/addons \${HOME}/build/\${ODOO_REPO}/addons)" >>$fntmp
+              else
+                echo "  - export INCLUDE=\$(getaddons.py -m \${HOME}/build/\${ODOO_REPO}/openerp/addons \${HOME}/build/\${ODOO_REPO}/addons)" >>$fntmp
+              fi
+            fi
+          fi
+        elif [ "$cur_sect" == "addons" ]; then
+          cur_sect=
+        fi
+        echo "$line" >>$fntmp
+      elif [[ "$cur_sect" == "cache" && $lne =~ -\ .HOME/.cache/pip ]]; then
+        :
+      elif [[ $lne =~ -\ TESTS=...\ ODOO_REPO=.zeroincombenze/OCB. ]]; then
+        found[repo_zero]="t"
+        cur_sub="odoo_repo"
+        if [ "$PKGNAME" != "OCB" ]; then
+          echo "$line" >>$fntmp
+        fi
+      elif [[ $ine =~ -\ TESTS=...\ ODOO_REPO=.OCA/OCB. ]]; then
+        found[repo_oca]="t"
+        cur_sub="odoo_repo"
+        if [ "$PKGNAME" != "OCB" ]; then
+          echo "$line" >>$fntmp
+        fi
+      elif [[ $lne =~ -\ TESTS=...\ ODOO_REPO=.odoo/odoo. ]]; then
+        found[repo_odoo]="t"
+        cur_sub="odoo_repo"
+        if [ "$PKGNAME" != "OCB" ]; then
+          echo "$line" >>$fntmp
+        fi
+      elif [[ $lne =~ "# Use Zeroincombenze(R) tools" ]]; then
+        :
+      elif [[ $lne =~ "git clone https://github.com/zeroincombenze/tools.git" ]]; then
+        :
+      elif [[ $lne =~ export.PATH=\$.HOME./.*/travis:\$.PATH ]]; then
+        :
+      elif [[ $lne =~ -\ \$.HOME./tools/install_tools.sh ]]; then
+        :
+      elif [[ $lne =~ mv.\$.HOME./tools.\$.HOME ]]; then
+        :
+      elif [[ $lne =~ "- pip install urllib3[secure] --upgrade" ]]; then
+        :
+      elif [[ $lne =~ "- .*export DISPLAY=:99.0" ]]; then
+        :
+      elif [[ $lne =~ "- .*sh -e /etc/init.d/xvfb start" ]]; then
+        :
+      elif [[ $lne =~ -\ export\ TRAVIS_DEBUG_MODE=... ]]; then
+        :
+      elif [[ $lne =~ -\ TRAVIS_DEBUG_MODE=... ]]; then
+        :
+      elif [[ $lne =~ -\ ln\ -s\ .*/build/.*ODOO_REPO.*VERSION ]]; then
+        :
+      elif [[ $lne =~ -\ source\ \$.HOME./dev(el)?/activate_tools ]]; then
+        :
+      elif [[ $lne =~ -\ pov-wkhtmltopdf ]]; then
+        :
+      elif [[ $lne =~ -\ export\ EXCLUDE= ]]; then
+        found[exclude]="t"
+        echo "$line" >>$fntmp
+      elif [[ $lne =~ -\ export\ INCLUDE= ]]; then
+        found[include]="t"
+        echo "$line" >>$fntmp
+      elif [[ $lne =~ -\ TRANSIFEX=... ]]; then
+        :
+      elif [[ $lne =~ -\ WKHTMLTOPDF_VERSION=... || "$cur_sect" == "global" ]]; then
+        if [ $odoo_ver -ge 12 ]; then
+          echo "  - WKHTMLTOPDF_VERSION=\"0.12.6\"" >>$fntmp
+        elif [ $odoo_ver -ge 11 ]; then
+          echo "  - WKHTMLTOPDF_VERSION=\"0.12.5\"" >>$fntmp
+        elif [ $odoo_ver -ge 10 ]; then
+          echo "  - WKHTMLTOPDF_VERSION=\"0.12.4\"" >>$fntmp
+        else
+          echo "  - WKHTMLTOPDF_VERSION=\"0.12.1\"" >>$fntmp
+        fi
+      elif [[ "$cur_sect" == "virtualenv" && $lne =~ system_site_packages ]]; then
+        echo "  system_site_packages: false" >>$fntmp
+      elif [[ $lne =~ -\ travis_install_nightly ]]; then
+        echo "# $line" >>$fntmp
+      elif [[ $lne =~ -\ LINT_CHECK=... ]]; then
+        if [[ $opt_rule =~ (MINIMAL|REDUCED|AVERAGE|NEARBY|OCA) ]]; then
+          line=$(echo "$line" | sed -Ee "s|LINT_CHECK_LEVEL=\"[A-Z]+\"|LINT_CHECK_LEVEL=\"$opt_rule\"|")
+        fi
+        echo "$line" >>$fntmp
+      elif [[ $lne == -\ pip\ install\ -r\ .*/maintainer-quality-tools/requirements.txt ]]; then
+        # echo "# $line">>$fntmp
+        :
+      elif [[ "$cur_sect" == "python" && "$lne" =~ [23]\.[0-9] ]]; then
+        if [[ -z "$cur_sub" ]]; then
+          if [[ $odoo_ver -ge 11 ]]; then
+            [[ $odoo_ver -eq 11 ]] && echo "  - \"3.5\"" >>$fntmp
+            echo "  - \"3.6\"" >>$fntmp
+            echo "  - \"3.7\"" >>$fntmp
+            # echo "  - \"3.8\"">>$fntmp
+          else
+            echo "  - \"2.7\"" >>$fntmp
+          fi
+          cur_sub="1"
+        fi
+      elif [[ "$cur_sect" == "addons" && ! $line =~ ^[a-z] ]]; then
+        if [ "$lne" == "packages:" ]; then
+          echo "      # Search your sources alias here:" >>$fntmp
+          echo "      # https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json" >>$fntmp
+          echo "$line" >>$fntmp
+          for a in $($LISTREQ -p"$p" -tbin -q -s' ' -BT); do
+            if [ "$a" == "psycopg2" ]; then
+              echo "      - $a-binary" >>$fntmp
+            elif [ "$a" == "python-dev" -a $odoo_ver -ge 11 ]; then
+              echo "      - python3-dev" >>$fntmp
+            elif [ "$a" == "python3-dev" -a $odoo_ver -lt 11 ]; then
+              echo "      - python-dev" >>$fntmp
+            elif [[ $a =~ $NO_APT_GET ]]; then
+              printf "      # - %-32.32s# Pre-installed\n" "$a" >>$fntmp
+            else
+              echo "      - $a" >>$fntmp
+            fi
+          done
+        elif [[ $lne =~ sources: ]]; then
+          echo "    sources:" >>$fntmp
+        elif [[ $lne =~ apt: ]]; then
+          echo "$line" >>$fntmp
+        fi
+      elif [[ $line =~ ^(addons|before_install|cache|env|git|install|python|script|virtualenv): ]]; then
+        cur_sect=${line:0:-1}
+        cur_fsect=$cur_sect
+        cur_sub=
+        echo "$line" >>$fntmp
+        if [[ $cur_sect =~ "cache" ]]; then
+          echo "  apt: true" >>$fntmp
+          echo "  directories:" >>$fntmp
+          echo "    - \$HOME/.cache/pip" >>$fntmp
+        elif [[ $cur_sect == "before_install" ]]; then
+          echo "  # Use Zeroincombenze(R) tools" >>$fntmp
+          echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1" >>$fntmp
+          echo "  - \${HOME}/tools/install_tools.sh -qpt" >>$fntmp
+          echo "  - source \${HOME}/devel/activate_tools -t" >>$fntmp
+          if [[ $PKGNAME == "OCB" ]]; then
+            echo "  # - \"export DISPLAY=:99.0\"" >>$fntmp
+            echo "  # - \"sh -e /etc/init.d/xvfb start\"" >>$fntmp
+          fi
+        fi
+      elif [[ $lne =~ ^(apt|directories|global|matrix): ]]; then
+        cur_fsect="$cur_sect.${lne:0:-1}"
+        cur_sub=
+        [[ $cur_sect == "cache" ]] || echo "$line" >>$fntmp
+        [[ $cur_fsect == "env.global" ]] && echo "  - TRAVIS_DEBUG_MODE=\"2\"" >>$fntmp
+      else
+        echo "$line" >>$fntmp
+      fi
+    done <"$fntmpl"
+  fi
+}
+
+format_xml() {
+  local fn=$1
+  local empty=0
+  if [ -f $fn ]; then
+    local fntmp=$fn.new
+    rm -f $fntmp
+    local line lne lm level o c k x nxtlm lm1 comment
+    comment=0
+    act=0
+    nxtlm=0
+    level=0
+    while IFS= read -r line || [ -n "$line" ]; do
+      lne=$(echo $line)
+      if [ $comment -eq 0 ]; then
+        line="⌂"
+        lm1=$nxtlm
+        lm=
+        x=$((level * 4))
+        [ $x -eq 0 ] || eval printf -v lm '%.s\\x20' {1..$x}
+      fi
+      if [ "${lne:0:3}" == "-->" ]; then
+        comment=0
+      elif [ $comment -ne 0 ]; then
+        :
+      elif [ "${lne:0:6}" == "<?xml " ]; then
+        level=0
+        line="$lne"
+      elif [ "${lne:0:9}" == "<openerp>" -o "${lne:0:10}" == "</openerp>" ]; then
+        level=0
+        if [ $odoo_ver -ge 10 ]; then
+          line="${lne//openerp/odoo}"
+          level=1
+          lm=
+          x=$((level * 4))
+          [ $x -eq 0 ] || eval printf -v lm '%.s\\x20' {1..$x}
+        else
+          line="$lne"
+        fi
+        [ "${lne:0:2}" == "</" -a $level -gt 0 ] && ((level--))
+      elif [ "${lne:0:5}" == "<data" ]; then
+        if [ $odoo_ver -ge 10 -a $level -le 1 ]; then
+          continue
+        else
+          ((level++))
+        fi
+      elif [ "${lne:0:6}" == "</data" ]; then
+        if [ $odoo_ver -ge 10 -a $level -le 1 ]; then
+          continue
+        elif [ $level -gt 0 ]; then
+          ((level--))
+          lm=
+          x=$((level * 4))
+          [ $x -eq 0 ] || eval printf -v lm '%.s\\x20' {1..$x}
+        fi
+      elif [ "${lne:0:6}" == "<odoo>" ]; then
+        level=1
+        if [ $odoo_ver -lt 10 ]; then
+          line="${lne//odoo/openerp}"
+          echo "$line" >>$fntmp
+          line="<data>"
+        else
+          line="$lne"
+        fi
+      elif [ "${lne:0:7}" == "</odoo>" ]; then
+        level=1
+        if [ $odoo_ver -lt 10 ]; then
+          echo "</data>" >>$fntmp
+          line="${lne//odoo/openerp}"
+          level=0
+        else
+          line="$lne"
+        fi
+        [ $level -gt 0 ] && ((level--))
+      elif [ "${lne:0:14}" == "<odoo noupdate" ]; then
+        level=1
+        if [ $odoo_ver -lt 10 ]; then
+          echo "<openerp>" >>$fntmp
+          line="${lne//odoo/data}"
+        else
+          line="$lne"
+        fi
+      elif [ "${lne:0:4}" == "<!--" ]; then
+        line="$lm$lne"
+        if [ "${lne: -3}" != "-->" ]; then
+          nxtlm=${#lm}
+          comment=1
+        fi
+      elif [ "${lne:0:10}" == "<templates" ]; then
+        if [ $level -gt 0 ]; then
+          ((level++))
+          lm=
+          x=$((level * 4))
+          [ $x -eq 0 ] || eval printf -v lm '%.s\\x20' {1..$x}
+          line="$lm$line"
+        fi
+      elif [ "${lne:0:9}" == "<template" ]; then
+        ((level++))
+      else
+        o=$(echo $lne | grep --color=never -Eo "<[a-zA-Z0-9-]+" | wc -l)
+        c=$(echo $lne | grep --color=never -Eo "</[a-zA-Z0-9-]+" | wc -l)
+        k=$(echo $lne | grep --color=never -Eo "/>" | wc -l)
+        ((c = c + k))
+        if [ $o -gt $c ]; then
+          ((level++))
+        elif [ $c -gt $o ]; then
+          if [ $level -gt 0 ]; then
+            ((level--))
+            lm=
+            x=$((level * 4))
+            [ $x -eq 0 ] || eval printf -v lm '%.s\\x20' {1..$x}
+          fi
+        fi
+        if [[ $lne =~ \<record.*model=.ir.actions.act_window. ]]; then
+          act=1
+        elif [ $act -gt 0 ] && [[ $lne =~ \<field.*name=.type.*\>ir.actions.act_window.*/field ]]; then
+          line="⌂"
+          lne=
+          act=0
+        fi
+      fi
+      if [ "$line" == "⌂" -a -z "$lne" ]; then
+        line="$lne"
+      elif [ "${lne:0:1}" == "<" ]; then
+        [ "$line" == "⌂" ] && line="$lm$lne"
+        x=$(echo "$line" | grep --color=never -Eo "[[:space:]]*<[a-zA-Z0-9-]+[[:space:]]*")
+        nxtlm=${#x}
+      elif [ "$line" == "⌂" ]; then
+        lm=
+        [ $lm1 -eq 0 ] || eval printf -v lm '%.s\\x20' {1..$lm1}
+        line="$lm$lne"
+      fi
+      [ -z "$(echo $line)" ] && line=""
+      echo "$line" >>$fntmp
+      [ -z "$line" ] && empty=1 || empty=0
+    done <"$fn"
+  fi
+  [ $empty -eq 0 ] && echo "" >>$fntmp
+}
+
+specific_subst() {
+  local src new tmp item
+  src="$1"
+  tgt="$2"
+  out="$2.tmp"
+  [[ -f $out ]] && rm -f $out
+  while IFS="" read -r line || [[ -n "$line" ]]; do
+    echo "$line" | grep -qE "^OPT[A-Z]+=\(" 2>/dev/null
+    if [[ $? -eq 0 ]]; then
+      item=$(echo "$line" | tr -s ' ')
+      item="${item//(/.}"
+      item="${item//)/.}"
+      item="${item//+/.}"
+      item="${item//\*/.}"
+      item="${item// / *}"
+      line=$(grep -E "$item" $src | head -n1)
+    elif [[ $line =~ readlink ]]; then
+      if [[ ! $line =~ (READLINK.*readlink|readlink.*READLINK|TDIR=..readlink|if.*line.*readlink) ]]; then
+        line=$(echo "$line" | sed -e "s|readlink|\$READLINK|g")
+      fi
+    fi
+    echo "$line" >>$out
+  done <"$tgt"
+  mv -f $out $tgt
+  chmod +x $tgt
+}
+
+FCONF=$TDIR/.$THIS.conf
+
+# main
+OPTOPTS=(h        a        A         B         b         c         C        D       d        e        F        f       G       i       L         n            N        o       O        R        q           u       V           v           X       x       0     1)
+OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_dbg opt_diff opt_nenh opt_from opt_fut opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_fmt opt_z opt_1)
+OPTACTI=('+'      "+"      '+'       1         "="       1         "="      1       1        1        "="      1       "="     1       1         1            1        "="     1        "="      0           1       "*>"        "+"         1       1       1     1)
+OPTDEFL=(1        0        2         0         ""        0         ""       0       0        0        ""       0       ""      0       0         0            0        ""      0        ""       0           0       ""          -1          0       0       0     0)
+OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    ""      "diff"   ""       "ver"    ""      "gpl"   ""      ""        "do nothing" ""       "file"  ""       "file"   "silent"   "ut7"   "version"    "verbose"   ""      ""      ""    "")
+OPTHELP=("this help"
+  "enable non-whitespace changes (may issue multiple -a)"
+  "deprecated"
+  "activate debug statements"
+  "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0"
+  "deprecated"
+  "add developers Copyright (comma separated, def zero)"
+  "show debug informations"
+  "show diff"
+  "do not apply enhance update"
+  "from odoo branch, value like -b switch"
+  "futurize"
+  "Write GPL info into header (agpl,lgpl,gpl,opl,oee)"
+  "deprecated"
+  "set file excluded by lint parse"
+  "do nothing (dry-run)"
+  "do not add newline at the EOF"
+  "output filename, leave source unchanged rather than source becomes .bak"
+  "deprecated"
+  "use specific rule file"
+  "silent mode"
+  "use old api odoo<8.0 or create yaml old style"
+  "show version"
+  "verbose mode"
+  "make file.py executable"
+  "format lines"
+  "create yaml file from zero"
+  "do not recurse travese directories")
+OPTARGS=(fullname)
+
+parseoptargs "$@"
+if [[ "$opt_version" ]]; then
+  echo "$__version__"
+  exit 0
+fi
+if [[ $opt_help -gt 0 ]]; then
+  print_help "PEP8 source python file\nfull path name maybe supplied or a single file\n" \
+    "(C) 2015-2022 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+opts_travis
+conf_default
+[[ $opt_verbose -gt 2 ]] && set -x
+init_travis
+# prepare_env_travis
+# prepare_env_travis
+# prepare_env_travis
+
+optfnd="-type f"
+[[ -n "$opt_out" ]] && opt_out=$($READLINK -f $opt_out)
+
+odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
+odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+sts=1
+OPTS=
+[ $opt_debug -ne 0 ] && OPTS="${OPTS}B"
+[ $opt_dbg -ne 0 ] && OPTS="${OPTS}D"
+[ $opt_verbose -gt 0 ] && OPTS="${OPTS}v" || OPTS="${OPTS}q"
+[ $opt_ut7 -gt 0 ] && OPTS="${OPTS}u"
+[ $opt_nlint -gt 0 ] && OPTS="${OPTS}L"
+[ $opt_nonl -gt 0 ] && OPTS="${OPTS}N"
+[ $opt_xec -gt 0 ] && OPTS="${OPTS}X"
+[ $opt_fmt -gt 0 ] && OPTS="${OPTS}x"
+[ -n "$OPTS" ] && OPTS="-${OPTS}"
+[ -n "$odoo_vid" ] && OPTS="$OPTS -b$odoo_fver"
+[ -n "$opt_from" ] && OPTS="$OPTS -F$opt_from"
+[ -n "$opt_copy" ] && OPTS="${OPTS} -C$opt_copy"
+[ -n "$opt_rule" ] && OPTS="${OPTS} -R$opt_rule"
+[ -n "$opt_gpl" ] && OPTS="${OPTS} -G$opt_gpl"
+[[ "${fullname: -1}" == "/" ]] && fullname="${fullname:0:-1}"
+if [[ -d $fullname ]]; then
+  LIST="$(find $fullname $optfnd -not -path '*/.idea/*' -not -path '*/docs/*' \( -name '*.py' -or -name '*.xml' -or -name '*.html' -or -name '*.xsd' -or -name '.travis.yml' \)| tr '\n' ' ')"
+  [ -d $fullname/static ] && LIST="$fullname/static $LIST"
+else
+  LIST=$($READLINK -e $fullname)
+fi
+if [[ -z "$LIST" ]]; then
+  echo "No file found!"
+  exit 1
+fi
+[[ $opt_fut -ne 0 ]] && mkdir -p ~/py3
+for fl in $LIST; do
+  sts=0
+  if [[ -d $fl ]]; then
+    [ $opt_verbose -gt 0 ] && echo "Scanning $fl ..."
+    b=$(basename $fl)
+    if [[ "$b" == "static" ]]; then
+      if [ $odoo_ver -le 8 ]; then
+        if [[ ! -d $fl/src && -d $fl/description ]]; then
+          run_traced "mkdir $fl/src"
+          run_traced "mv $fl/description $fl/src/img"
+          [[ -f $fl/src/img/index.html ]] && run_traced "rm -f $fl/src/img/index.html"
+        fi
+      else
+        if [[ -d $fl/src && -d $fl/src/img && ! -d $fl/description ]]; then
+          run_traced "mv$fl/src/img $fl/description"
+          run_traced "rmdir $fl/src"
+        fi
+      fi
+    fi
+    p=$fl
+    b="*"
+  else
+    p=$(dirname $fl)
+    b=$(basename $fl)
+    [ $opt_verbose -gt 0 ] && echo "Scanning $b in $p ..."
+  fi
+  pushd $p >/dev/null
+  for f in $b; do
+    if [ "${f: -4}" == ".xml" -o "${f: -4}" == ".xsd" -o "${f: -5}" == ".html" ]; then
+      format_xml $f
+    elif [ "${f: -4}" == ".yml" ]; then
+      format_yaml $f
+    else
+      mime=$(file -b --mime-type $f)
+      if [ "$mime" == "text/x-shellscript" -o "${f: -3}" == ".sh" ]; then
+        # Ident like google styleguide https://google.github.io/styleguide/shellguide.html
+        cat $f | shfmt -i 2 -ci >${f}.new
+        [ $? -eq 0 ] || cp $f ${f}.new
+        if [ $opt_nenh -eq 0 ]; then
+          specific_subst "${f}" "${f}.new"
+          $TDIR/cvt_script -k ${f}.new ${f}.new
+        fi
+      elif [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
+        AP8OPTS=
+        if [[ $opt_rule =~ (MINIMAL|REDUCED|AVERAGE|NEARBY|OCA) ]]; then
+          pep8cfg=$($READLINK -e $TDIR/../../z0bug_odoo/z0bug_odoo/travis/cfg/travis_run_flake8_${opt_rule}.cfg)
+          [[ -n $pep8cfg ]] || pep8cfg=$($READLINK -e $TDIR/../z0bug_odoo/travis/cfg/travis_run_flake8_${opt_rule}.cfg)
+          [[ -n $pep8cfg ]] && AP8OPTS=--ignore=$(cat $pep8cfg | grep "^ *ignore *=.*" | awk -F= '{print $2}' | tr -d " ")
+        fi
+        [[ -n $AP8OPTS ]] || AP8OPTS="--ignore E501"
+        if [ $opt_aggr -gt 0 ]; then
+          x=$(printf "%${opt_aggr}.${opt_aggr}s" " " | sed y'/ /a/')
+          AP8OPTS="$AP8OPTS -$x"
+        fi
+        srcfile="$f"
+#        if [ $opt_imp -ne 0 ]; then
+#          isort $f -d >$f.tmp
+#          ! $(grep -q "Skipped [0-9]* files" $f.tmp) && srcfile="$f.tmp"
+#        fi
+        if [ $opt_fut -ne 0 ] && [[ ! $f =~ (__manifest__.py|__openerp__.py|__init__.py) ]]; then
+          futurize --no-diffs -pauwn2 $srcfile -o ~/py3
+          if [[ -f ~/py3/$(basename $f) ]]; then
+            mv ~/py3/$(basename $f) $f.tmp
+            sed -Ee "s|^from builtins import \*$|from builtins import *                                             # noqa: F403|" -i $f.tmp
+            sed -Ee "s|^standard_library.install_aliases\(\)$|standard_library.install_aliases()                                 # noqa: E402|" -i $f.tmp
+            srcfile="$f.tmp"
+          fi
+        fi
+        if [[ $opt_nenh -eq 0 ]]; then
+          $TDIR/to_pep8.py $OPTS $srcfile $f.new
+        else
+          cp $srcfile $f.new
+        fi
+        [ -f $f.tmp ] && rm -f $f.tmp
+#        [ $opt_c2o -ne 0 ] && sed -e 's/openerp\.com/odoo.com/' -i $f.new
+#        if [ $opt_nauto -lt 2 ]; then
+#          run_traced "autopep8 $AP8OPTS $f.new -i && sed 's/ $/\n/' -i $f.new"
+#        fi
+#        if [ $opt_Camel -gt 0 ]; then
+#          run_traced "oca-autopep8 --select=CW0001 -i $f.new"
+#        fi
+#        if [ $opt_nauto -lt 1 ]; then
+#          oca-autopep8 --select=CW0002 -i $f.new
+#          run_traced "autoflake --imports=openerp,openerp.http.request,openerp.SUPERUSER_ID,openerp.addons.base.ir.ir_qweb,openerp.exceptions.ValidationError,openerp.fields,openerp.api.openerp.models,openerp.osv.fields,openerp.osv.api,telebot,lxml,werkzeug,MySQLdb.cursors,cStringIO.StringIO,werkzeug.utils,pandas.merge,pandas.DataFrame,werkzeug.wsgi.wrap_file,werkzeug.wsgi,werkzeug.wsgi.wrap_file,openerp.exceptions,openerp.tools.DEFAULT_SERVER_DATETIME_FORMAT -i $f.new"
+#        fi
+        # TOFIX
+        if [[ -n "$opt_from" && $f =~ (__manifest__.py|__openerp__.py) ]]; then
+          vf=$(grep --color=never -Eo "['\"]version['\"]: ['\"][0-9.]+['\"]" $f.new)
+          vt="${vf/$opt_from/$odoo_fver}"
+          sed -e "s|$vf|$vt|" -i $f.new
+        fi
+        [ $odoo_ver -le 10 ] && src="index=" || tgt="select="
+        [ $odoo_ver -le 10 ] && tgt="select=" || src="index="
+        sed -e "s|${src}|${tgt}-3|" -i $f.new
+      fi
+    fi
+  done
+  if [ -f "$f.new" ]; then
+    if [ "$(diff -q $f $f.new)" ]; then
+      [[ -x $f && ! -x $f.new ]] && chmod +x $f.new
+      if [ $odoo_ver -lt 10 -a "$f" == "__manifest__.py" -a ! -f "__openerp__.py" ]; then
+        f="__openerp__.py"
+        run_traced "mv __manifest__.py.new __openerp__.py.new"
+        run_traced "mv __manifest__.py __openerp__.py"
+      fi
+      if [ $odoo_ver -ge 10 -a "$f" == "__openerp__.py" -a ! -f "__manifest__.py" ]; then
+        f="__manifest__.py"
+        run_traced "mv __manifest__.py.new __openerp__.py.new"
+        run_traced "mv __manifest__.py __openerp__.py"
+      fi
+      if [ $opt_dry_run -eq 0 ]; then
+        if [ -n "$opt_out" ]; then
+          [[ "$($READLINK -f $f.new)" == "$($READLINK -f $opt_out)" ]] || mv $f.new $opt_out
+          if [ $opt_diff -gt 0 ]; then
+            diff $f $opt_out
+          fi
+        else
+          cp -p $f $f.bak
+          mv $f.new $f
+          if [ $opt_diff -gt 0 ]; then
+            diff $f.bak $f
+          fi
+        fi
+        if [ $opt_verbose -gt 0 ]; then
+          echo "File $f in $p converted"
+        fi
+      else
+        if [ $opt_diff -gt 0 ]; then
+          diff $f $f.new
+        fi
+        rm -f $f.new
+        if [ $opt_verbose -gt 0 ]; then
+          echo "File $f in $p should be converted"
+        fi
+      fi
+    else
+      rm -f $f.new
+    fi
+  fi
+  popd >/dev/null
+done
+if [ $opt_verbose -gt 0 -a $sts -gt 0 ]; then
+  echo "No file found!"
+fi
+exit $sts

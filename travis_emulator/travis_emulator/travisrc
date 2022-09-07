@@ -303,7 +303,6 @@ create_virtual_env() {
   init_travis
   export TRAVIS_BRANCH=$BRANCH
   [[ -z "$HOME_DEVEL" ]] && echo "Zeroincombenze(R) tools not found!" && exit 1
-  VENVOPTS="-Dlen_US"
   drop_test_db
   export TRAVIS_SAVED_HOME=$HOME
   export TRAVIS_SAVED_HOME_DEVEL=$HOME_DEVEL
@@ -320,25 +319,32 @@ create_virtual_env() {
   HOME=$TRAVIS_HOME
   TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p $(which python$TRAVIS_PYTHON_VERSION)"
   [[ $SYSTEM_SITE_PACKAGES == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
-  [[ $SYSTEM_SITE_PACKAGES != "true" ]] && VENVOPTS="-DI"
+  [[ $TRAVIS_DEBUG_MODE -gt 2 ]] && VENVOPTS="-vD" || VENVOPTS="-D"
+  [[ $SYSTEM_SITE_PACKAGES == "true" && -n $opt_loc ]] && VENVOPTS="-Dl${opt_loc}"
+  [[ $SYSTEM_SITE_PACKAGES != "true" && -n $opt_loc ]] && VENVOPTS="-DIl${opt_loc}"
+  [[ $SYSTEM_SITE_PACKAGES != "true" && -z $opt_loc ]] && VENVOPTS="-DI"
   hash -r
   xp1=0
-  [[ $PRJNAME == "Odoo" && ! -d $SAVED_ODOO_ROOT/VME/VME$BRANCH || $opt_force -ne 0 ]] && xp1=1
-  [[ $PRJNAME == "Odoo" && $xp1 -eq 0 && opt_keep -eq 0 ]] && xp1=$(($(date "+%s") - $(stat -c%Y $SAVED_ODOO_ROOT/VME/VME$BRANCH) > 10454400))
+  TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$BRANCH
+  [[ $PRJNAME == "Odoo" && ! -d $TRAVIS_SRC_VME || $opt_force -ne 0 ]] && xp1=1
+  [[ $PRJNAME == "Odoo" && $xp1 -eq 0 && opt_keep -eq 0 ]] && xp1=$(($(date "+%s") - $(stat -c%Y $TRAVIS_SRC_VME) > 10454400))
+  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp1 -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y $TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 10454400"
   xp2=0
-  [[ ! -d $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION || $opt_force -ne 0 ]] && xp2=1
-  [[ $xp2 -eq 0 && opt_keep -eq 0 ]] && xp2=$(($(date "+%s") - $(stat -c%Y $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION) > 8035100))
+  TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION
+  [[ ! -d $TRAVIS_SRC_VME || $opt_force -ne 0 ]] && xp2=1
+  [[ $xp2 -eq 0 && opt_keep -eq 0 ]] && xp2=$(($(date "+%s") - $(stat -c%Y $TRAVIS_SRC_VME) > 8035100))
+  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp2 -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y $TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 8035100"
   if [[ $xp1 -ne 0 ]]; then
     echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH not found or expired!${CLR}"
     echo -e "Now virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH will be (re)created."
     [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
     [[ $BRANCH =~ ^(15|16) ]] && pv="3.8"
-    run_traced "vem create $SAVED_ODOO_ROOT/VME/VME$BRANCH -p$pv -DIfq -O$BRANCH -o$(build_odoo_param ROOT $PRJPATH) -len_US"
+    run_traced "vem create  $VENVOPTS $SAVED_ODOO_ROOT/VME/VME$BRANCH -p$pv -fq -O$BRANCH -o$(build_odoo_param ROOT $PRJPATH)"
     echo -e "\n\n"
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
   elif [[ $xp2 -ne 0 ]]; then
     echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
-    run_traced "vem create $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -DIfq -len_US"
+    run_traced "vem create  $VENVOPTS $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -fq"
     echo -e "\n\n"
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
   fi
