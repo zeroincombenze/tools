@@ -1802,7 +1802,7 @@ do_lint() {
 
 do_test() {
   wlog "do_test '$1' '$2' '$3'"
-  local db module odoo_fver sts=$STS_FAILED
+  local db module odoo_fver sts=$STS_FAILED x
   odoo_fver=$(build_odoo_param FULLVER ".")
   module=$(build_odoo_param PKGNAME ".")
   [[ $module != $(basename $PWD) ]] && module=$1
@@ -1811,7 +1811,8 @@ do_test() {
     echo "> please test -bBRANCH 'MODULE'"
     return $STS_FAILED
   fi
-  run_traced "run_odoo_debug -b $odoo_fver -Tm $module"
+  [[ $opt_dbg -ne 0 ]] && x="-B"
+  run_traced "run_odoo_debug -b $odoo_fver -Tm $module $x"
   sts=$?
   return $sts
 }

@@ -38,7 +38,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0
+__version__=2.0.0.1
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then
@@ -205,7 +205,7 @@ if [[ $opt_test -ne 0 ]]; then
     opt_lang=0 opt_exp=0 opt_imp=0
     opt_upd=0 opt_stop=1
     opt_xtl=1
-    # opt_dbg=1
+    [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
     [[ -z "$opt_db" ]] && opt_db="test_openerp_$odoo_ver"
     create_db=1 drop_db=1
     LOGFILE="$HOME_DEVEL/travis_log/${opt_modules//,/-}.log"
