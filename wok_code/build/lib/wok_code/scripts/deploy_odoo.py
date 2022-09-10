@@ -25,7 +25,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.0"
+__version__ = "2.0.0.2"
 
 ODOO_VALID_VERSIONS = (
     "16.0",
@@ -180,7 +180,7 @@ class OdooDeploy(object):
                     continue
                 content += ('/%s\n' % repo)
                 updated = True
-            if updated:
+            if updated and not self.opt_args.dry_run:
                 with open(gitignore_fn, "w") as fd:
                     fd.write(content)
 
@@ -387,7 +387,7 @@ class OdooDeploy(object):
             sts = self.git_clone(
                 git_url, tgtdir, branch,
                 master_branch=odoo_master_branch,
-                compact=True if repo == 'oca' else False)
+                compact=True if git_org in ('odoo', 'oca') else False)
             self.result[repo] = {
                 'sts': sts,
                 'path': tgtdir,
@@ -395,7 +395,7 @@ class OdooDeploy(object):
             }
             if not os.path.isdir(tgtdir):
                 sts = 0 if self.opt_args.dry_run else 1
-            if sts == 0:
+            if os.path.isdir(tgtdir):
                 cmd = "cd %s" % tgtdir
                 run_traced(self.opt_args, cmd)
                 if self.repo_is_ocb(repo) and bakdir and os.path.isdir(bakdir):
@@ -412,7 +412,7 @@ class OdooDeploy(object):
                         else:
                             cmd = "mv %s %s" % (path, tgtfn)
                             run_traced(self.opt_args, cmd)
-        if sts == 0 or repo == "OCB":
+        if os.path.isdir(tgtdir) or repo == "OCB":
             self.add_addons_path(tgtdir, repo)
             run_traced(self.opt_args, "git branch")
         if sts:
@@ -593,7 +593,7 @@ def main(cli_args=None):
         deploy.update_conf(addons_path=addons_path)
     if opt_args.verbose:
         for repo in sorted(result.keys()):
-            print('%-20.20s %s %s %s' % (repo,
+            print('%-30.30s %s %s %s' % (repo,
                                          result[repo]['org'],
                                          result[repo]['sts'],
                                          result[repo]['path']))

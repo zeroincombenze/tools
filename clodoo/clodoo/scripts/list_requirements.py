@@ -667,7 +667,7 @@ def package_from_manifest(
     return deps_list
 
 
-def add_manifest(root, manifests, reqfiles, files, read_from_manifest):
+def add_manifest(root, manifests, reqfiles, setups, files, read_from_manifest):
     if "__init__.py" in files:
         for fn in ("__manifest__.py", "__openerp__.py"):
             if fn in files:
@@ -675,7 +675,7 @@ def add_manifest(root, manifests, reqfiles, files, read_from_manifest):
                 break
     if not read_from_manifest and "requirements.txt" in files:
         reqfiles.append(os.path.join(root, "requirements.txt"))
-    return manifests, reqfiles
+    return manifests, reqfiles, setups
 
 
 def swap(deps, itm1, itm2):
@@ -694,9 +694,9 @@ def swap(deps, itm1, itm2):
         deps.insert(itm1_id, item)
 
 
-def walk_dir(cdir, manifests, reqfiles, read_from_manifest, recurse):
+def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
 
-    def parse_manifest(manifests, reqfiles, root, files, no_deep, recurse):
+    def parse_manifest(manifests, reqfiles, setups, root, files, no_deep, recurse):
         if root.startswith(no_deep):
             return manifests, reqfiles, no_deep
         basename = os.path.basename(root)
@@ -714,13 +714,13 @@ def walk_dir(cdir, manifests, reqfiles, read_from_manifest, recurse):
             no_deep = root
             return manifests, reqfiles, no_deep
         manifests, reqfiles = add_manifest(
-            root, manifests, reqfiles, files, read_from_manifest)
+            root, manifests, reqfiles, setups, files, read_from_manifest)
         return manifests, reqfiles, no_deep
 
     no_deep = " "
     for root, _dirs, files in os.walk(cdir):
         manifests, reqfiles, no_deep = parse_manifest(
-            manifests, reqfiles, root, files, no_deep, recurse)
+            manifests, reqfiles, setups, root, files, no_deep, recurse)
         if not recurse and root != cdir and '.git' in _dirs:
             no_deep = root
     return manifests, reqfiles
@@ -915,6 +915,7 @@ def main(cli_args=None):
         ctx = search_4_odoo_dir(ctx)
     manifests = []
     reqfiles = []
+    setups = []
     if ctx["manifests"]:
         for item in ctx["manifests"].split(","):
             if item.endswith(".py"):
@@ -925,9 +926,10 @@ def main(cli_args=None):
         if ctx["oca_dependencies"]:
             for cdir in ctx["oca_dependencies"].split(","):
                 manifests, reqfiles = walk_dir(
-                    cdir, manifests, reqfiles, ctx['from_manifest'], False)
+                    cdir, manifests, reqfiles, setups, ctx['from_manifest'], False)
         manifests, reqfiles = walk_dir(
-            ctx["odoo_dir"], manifests, reqfiles, ctx['from_manifest'], ctx['recurse'])
+            ctx["odoo_dir"], manifests, reqfiles, setups,
+            ctx['from_manifest'], ctx['recurse'])
     deps_list = {}
     for kw in (
         "python",

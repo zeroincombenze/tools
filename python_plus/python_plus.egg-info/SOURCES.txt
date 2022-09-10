@@ -2,6 +2,7 @@ README.rst
 setup.py
 python_plus/__init__.py
 python_plus/__main__.py
+python_plus/conf.py
 python_plus/vem.man
 python_plus.egg-info/PKG-INFO
 python_plus.egg-info/SOURCES.txt

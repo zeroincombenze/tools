@@ -1,7 +1,7 @@
 
-==============
-wok_code 2.0.0
-==============
+================
+wok_code 2.0.0.2
+================
 
 
 
@@ -845,6 +845,13 @@ Current development version
 History
 -------
 
+2.0.0.2 (2022-09-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] deploy_odoo: add path in addoons_path of directory exists
+* [FIX] deploy_odoo: clone oca repositories with --single-branch option
+* [IMP] manage_pypi: improvements
+
 2.0.0.1 (2022-09-07)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -879,7 +886,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-09-07
+Last Update / Ultimo aggiornamento: 2022-09-10
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
