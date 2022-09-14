@@ -304,18 +304,18 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "opts=\$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9 .)">>$DSTPATH/activate_tools
     echo "[[ \$opts =~ ^-.*h ]] && echo \$0 [-f][-t] && exit 0">>$DSTPATH/activate_tools
     if [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]]; then
-      echo "[[ -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
-      echo "[[ -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
+      echo "[[ -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\"\$PYLIB/zerobug/_travis:\$PATH\"">>$DSTPATH/activate_tools
+      echo "[[ -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\"\$PYLIB/z0bug_odoo/travis:\$PATH\"">>$DSTPATH/activate_tools
     else
-      echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\$PYLIB/zerobug/_travis:\$PATH">>$DSTPATH/activate_tools
-      echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\$PYLIB/z0bug_odoo/travis:\$PATH">>$DSTPATH/activate_tools
+      echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\"\$PYLIB/zerobug/_travis:\$PATH\"">>$DSTPATH/activate_tools
+      echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\"\$PYLIB/z0bug_odoo/travis:\$PATH\"">>$DSTPATH/activate_tools
     fi
     for fn in codecov coverage coverage3 coveralls flake8 pylint; do
       echo "[[ ! -L \$PYLIB/zerobug/_travis/$fn ]] && ln -s \$BINDIR/$fn \$PYLIB/zerobug/_travis/$fn">>$DSTPATH/activate_tools
     done
-    echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ ! \$opts =~ ^-.*f ]] && export PATH=\$PATH:\$BINDIR">>$DSTPATH/activate_tools
+    echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ ! \$opts =~ ^-.*f ]] && export PATH=\"\$PATH:\$BINDIR\"">>$DSTPATH/activate_tools
     echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ \$opts =~ ^-.*f ]] && export PATH=\$(echo \$PATH|sed -E \"s|:\$BINDIR|:|\")">>$DSTPATH/activate_tools
-    echo "[[ -f \$ACTIVATE ]] && echo \"+\$PATH:\"|grep -qv \"+\$BINDIR:\" && [[ \$opts =~ ^-.*f ]] && export PATH=\$BINDIR:\$PATH">>$DSTPATH/activate_tools
+    echo "[[ -f \$ACTIVATE ]] && echo \"+\$PATH:\"|grep -qv \"+\$BINDIR:\" && [[ \$opts =~ ^-.*f ]] && export PATH=\"\$BINDIR:\$PATH\"">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
 fi

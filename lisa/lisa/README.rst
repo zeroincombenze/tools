@@ -1,7 +1,7 @@
 
-==========
-lisa 2.0.0
-==========
+============
+lisa 2.0.0.1
+============
 
 
 
@@ -104,6 +104,11 @@ Current development version
 History
 -------
 
+2.0.0.1 (2022-09-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] wsl2-systemd: experimental systemd for wsl2
+
 2.0.0 (2022-08-10)
 ~~~~~~~~~~~~~~~~~~
 
@@ -133,7 +138,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-09-07
+Last Update / Ultimo aggiornamento: 2022-09-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

@@ -29,7 +29,7 @@ while [[ -n $1 ]]; do
     fi
     shift
 done
-ACTLIST="dir|docs|info|show|install|update|libdir|replace|replace-update|travis|travis-summary|version"
+ACTLIST="diff|dir|docs|info|show|install|update|libdir|replace|replace-update|travis|travis-summary|version"
 PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
 PKGS_LIST_RE="(${PKGS_LIST// /|})"
 PKGS_LIST_RE=${PKGS_LIST_RE//-/.}
@@ -46,7 +46,7 @@ b=$(basename $PWD)
 [[ -n $branch ]] && branch="(${branch//,/|})"
 echo "$0 $act '$pypi' -d $tgtdir -b $branch $opts"
 for d in $tgtdir; do
-    if [[ ! $act =~ (docs|replace|travis|travis-summary|version) ]]; then
+    if [[ ! $act =~ (diff|docs|replace|travis|travis-summary|version) ]]; then
         [[ -d "$d" ]] || continue
         [[ -n "$branch" && ! $d =~ $branch ]] && continue
         [[ $d =~ VME(3.5|3.6) ]] && continue
@@ -114,6 +114,9 @@ for d in $tgtdir; do
             [[ $act == "travis" ]] && echo "cd $srcdir; travis $OPTS" || echo "cd $srcdir; travis $OPTS summary"
             cd $srcdir
             [[ $act == "travis" ]] && travis $OPTS || travis $OPTS summary
+        elif [[ $act == "diff" ]]; then
+            [[ $pkg == "tools" ]] && srcdir="$HOME_DEVEL/pypi/$fn" || srcdir="$HOME_DEVEL/pypi/$fn/$fn"
+            diff --suppress-common-line -y ""$srcdir"" "$ODOO_ROOT/tools/$fn" | less
         elif [[ $act == "docs" ]]; then
             [[ $pkg == "tools" ]] && srcdir="$HOME_DEVEL/pypi/$fn" || srcdir="$HOME_DEVEL/pypi/$fn/$fn"
             OPTS=""

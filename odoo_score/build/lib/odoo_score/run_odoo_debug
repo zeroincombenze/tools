@@ -85,11 +85,11 @@ check_for_modules() {
 OPTOPTS=(h        B       b          c        C           d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           s        T        t         U          u       V           v           w       W        x)
 OPTLONG=(help     debug   branch     conf     no-coverage database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
 OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
-OPTACTI=("+"      1       "=>"       "=>"     1           "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1         "="        1       "*>"        "+"         1       1        "=")
+OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1         "="        1       "*>"        "+"         1       1        "=")
 OPTDEFL=(1        0       ""         ""       0           ""       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0         ""         0       ""          -1          0       0        "")
 OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""          ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
 OPTHELP=("this help"
-    "debug mode"
+    "debug mode (-BB debug via pycharm)"
     "odoo branch (version id)"
     "odoo configuration file"
     "no use coverage to run test"
@@ -208,6 +208,7 @@ if [[ $opt_test -ne 0 ]]; then
     [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
     [[ -z "$opt_db" ]] && opt_db="test_openerp_$odoo_ver"
     create_db=1 drop_db=1
+    [[ ! -d $HOME_DEVEL/travis_log ]] && run_traced "mkdir $HOME_DEVEL/travis_log"
     LOGFILE="$HOME_DEVEL/travis_log/${opt_modules//,/-}.log"
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
@@ -390,6 +391,7 @@ if [[ $opt_touch -eq 0 ]]; then
     run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $FULL_LCONFN"
     if [[ $create_db -gt 0 ]]; then
         if [[ -n "$depmods" && $opt_test -ne 0 ]]; then
+            # Create DB for test
             run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error -i $depmods"
         else
             run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error"
@@ -411,16 +413,15 @@ if [[ $opt_touch -eq 0 ]]; then
           cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
         fi
       else
-        echo "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
-        cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
-      fi
-    else
-      if [[ -n $COVERAGE_RCFILE ]]; then
-        v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-        [[ $v -ge 6 ]] && run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS" || run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS"
-      else
         run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
       fi
+    elif [[ opt_dbg -gt 1 ]]; then
+      echo ""
+      echo "Now you can test module running from pycharm"
+      echo "Browse http://localhost:$RPCPORT"
+      echo "DB=$opt_db login: admin/admin"
+    else
+      run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
     fi
 
     if [[ -n "$VDIR" ]]; then

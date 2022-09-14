@@ -1143,7 +1143,7 @@ do_venv_exec() {
 do_venv_pip() {
   # do_venv_pip VENV action pkg
   local d f VENV V popts x
-  local SAVED_PATH=$PATH
+  local SAVED_PATH="$PATH"
   local cmd="$2"
   VENV="$1"
   pkg="$(get_actual_pkg $3)"
@@ -1180,7 +1180,7 @@ do_venv_pip() {
     [[ $cmd == "update" ]] && pip_install "$pkg" "--upgrade"
   fi
   do_deactivate
-  export PATH=$SAVED_PATH
+  export PATH="$SAVED_PATH"
 }
 
 validate_py_oe_vers() {
