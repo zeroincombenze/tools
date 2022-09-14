@@ -25,7 +25,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.0"
+__version__ = "2.0.0.2"
 
 ODOO_VALID_VERSIONS = (
     "16.0",
@@ -98,32 +98,32 @@ class OdooDeploy(object):
             for branch in ODOO_VALID_VERSIONS:
                 if git_org == 'librerp' and branch not in ('12.0', '14.0'):
                     continue
-                hash_id = git_org + branch.split(".")[0]
+                hash_key = git_org + branch.split(".")[0]
                 if git_org == self.opt_args.default_gitorg:
                     odoo_vid = branch
                 else:
-                    odoo_vid = hash_id
-                self.DATA[hash_id] = {}
-                if hash_id in DEFAULT_DATA:
-                    for key, item in DEFAULT_DATA[hash_id].items():
-                        self.DATA[hash_id][key] = item
+                    odoo_vid = hash_key
+                self.DATA[hash_key] = {}
+                if hash_key in DEFAULT_DATA:
+                    for key, item in DEFAULT_DATA[hash_key].items():
+                        self.DATA[hash_key][key] = item
                 if self.root:
-                    self.DATA[hash_id]['PATH'] = self.root
-                elif 'PATH' not in self.DATA[hash_id]:
-                    self.DATA[hash_id]['PATH'] = build_odoo_param(
+                    self.DATA[hash_key]['PATH'] = self.root
+                elif 'PATH' not in self.DATA[hash_key]:
+                    self.DATA[hash_key]['PATH'] = build_odoo_param(
                         "ROOT", odoo_vid=odoo_vid, multi=True)
-                if "URL" not in self.DATA[hash_id]:
+                if "URL" not in self.DATA[hash_key]:
                     if git_org == 'zero':
-                        self.DATA[hash_id]["URL"] = "git@github.com:zeroincombenze"
+                        self.DATA[hash_key]["URL"] = "git@github.com:zeroincombenze"
                     elif git_org == 'oca':
-                        self.DATA[hash_id]["URL"] = "https://github.com/OCA"
+                        self.DATA[hash_key]["URL"] = "https://github.com/OCA"
                     elif git_org == 'librerp':
-                        self.DATA[hash_id]["URL"] = "git@github.com:LibrERP-network"
+                        self.DATA[hash_key]["URL"] = "git@github.com:LibrERP-network"
                     if opt_args.config:
-                        self.DATA[hash_id]['CONFN'] = opt_args.config
-                    elif 'CONFN' not in self.DATA[hash_id]:
-                        self.DATA[hash_id]['CONFN'] = os.path.basename(build_odoo_param(
-                            "CONFN", odoo_vid=odoo_vid, multi=True))
+                        self.DATA[hash_key]['CONFN'] = opt_args.config
+                    elif 'CONFN' not in self.DATA[hash_key]:
+                        self.DATA[hash_key]['CONFN'] = os.path.basename(
+                            build_odoo_param("CONFN", odoo_vid=odoo_vid, multi=True))
 
     def list_data(self):
         for git_org in ODOO_VALID_GITORGS:
@@ -132,15 +132,15 @@ class OdooDeploy(object):
             for branch in ODOO_VALID_VERSIONS:
                 if self.opt_args.odoo_branch and branch != self.opt_args.odoo_branch:
                     continue
-                hash_id = git_org + branch.split(".")[0]
-                if hash_id not in self.DATA:
+                hash_key = git_org + branch.split(".")[0]
+                if hash_key not in self.DATA:
                     continue
-                print('[%s]' % hash_id)
-                if hash_id in sorted(self.DATA.keys()):
+                print('[%s]' % hash_key)
+                if hash_key in sorted(self.DATA.keys()):
                     for key in ('CONFN', 'PATH', "URL"):
-                        if key in self.DATA[hash_id]:
-                            print('  %-12.12s = "%s"' % (key, self.DATA[hash_id][key]))
-                    for key, item in sorted(self.DATA[hash_id].items()):
+                        if key in self.DATA[hash_key]:
+                            print('  %-12.12s = "%s"' % (key, self.DATA[hash_key][key]))
+                    for key, item in sorted(self.DATA[hash_key].items()):
                         if key in ('CONFN', 'PATH', "URL"):
                             continue
                         print('    %-20.20s = "%s"' % (key, item))
@@ -180,7 +180,7 @@ class OdooDeploy(object):
                     continue
                 content += ('/%s\n' % repo)
                 updated = True
-            if updated:
+            if updated and not self.opt_args.dry_run:
                 with open(gitignore_fn, "w") as fd:
                     fd.write(content)
 
@@ -190,19 +190,27 @@ class OdooDeploy(object):
             data_dir = self.find_data_dir(canonicalize=True)
             git_org = git_org or self.git_org
             branch = branch or self.opt_args.odoo_branch
-            hash_id = git_org + branch.split(".")[0]
-            with open("/etc/odoo/%s" % self.DATA[hash_id]["CONFN"], "r") as fd:
-                content = fd.read()
-            config = ''
-            for ln in content.split("\n"):
-                if ln.startswith("addons_path"):
-                    ln = 'addons_path = %s' % ','.join(addons_path)
-                elif ln.startswith("data_dir"):
-                    ln = 'data_dir = %s' % data_dir
-                config += ('%s\n' % ln)
-            if not self.opt_args.dry_run:
-                with open("/etc/odoo/%s" % self.DATA[hash_id]["CONFN"], "w") as fd:
-                    fd.write(config)
+            hash_key = git_org + branch.split(".")[0]
+            if hash_key not in self.DATA:
+                for git_org in self.opt_args.git_orgs:
+                    hash_key = git_org + branch.split(".")[0]
+                    if hash_key in self.DATA:
+                        break
+            if hash_key in self.DATA:
+                config_file = os.path.join("/etc/odoo",
+                                           self.DATA[hash_key]["CONFN"])
+                with open(config_file, "r") as fd:
+                    content = fd.read()
+                config = ''
+                for ln in content.split("\n"):
+                    if ln.startswith("addons_path"):
+                        ln = 'addons_path = %s' % ','.join(addons_path)
+                    elif ln.startswith("data_dir"):
+                        ln = 'data_dir = %s' % data_dir
+                    config += ('%s\n' % ln)
+                if not self.opt_args.dry_run:
+                    with open(config_file, "w") as fd:
+                        fd.write(config)
 
     def is_git_repo(self, repo):
         res = bool(repo)
@@ -244,11 +252,11 @@ class OdooDeploy(object):
     # def list_repo_info(self, git_org=None, branch=None):
     #     git_org = git_org or self.git_org
     #     branch = branch or self.opt_args.odoo_branch
-    #     hash_id = git_org + branch.split(".")[0]
+    #     hash_key = git_org + branch.split(".")[0]
     #     repos = []
-    #     if hash_id not in self.DATA:
+    #     if hash_key not in self.DATA:
     #         return repos
-    #     self.root = os.path.expanduser(self.DATA[hash_id]['PATH'])
+    #     self.root = os.path.expanduser(self.DATA[hash_key]['PATH'])
     #     repos = self.explore_root_dir(repos)
     #     result = {}
     #     for repo in repos:
@@ -258,10 +266,10 @@ class OdooDeploy(object):
     def get_root_from_addons(self, repos, git_org=None, branch=None):
         git_org = git_org or self.git_org
         branch = branch or self.opt_args.odoo_branch
-        hash_id = git_org + branch.split(".")[0]
+        hash_key = git_org + branch.split(".")[0]
         dirnames = {}
         HOME = os.environ["HOME"]
-        with open("/etc/odoo/%s" % self.DATA[hash_id]["CONFN"], "r") as fd:
+        with open("/etc/odoo/%s" % self.DATA[hash_key]["CONFN"], "r") as fd:
             content = fd.read()
         for ln in content.split("\n"):
             if ln.startswith("addons_path"):
@@ -286,12 +294,12 @@ class OdooDeploy(object):
                 ctr = dirnames[dname]
         return root, repos
 
-    def get_repo_info(self, git_org=None, branch=None):
+    def get_repo_info(self, git_org=None, branch=None, only_ocb=None):
         git_org = git_org or self.git_org
         branch = branch or self.opt_args.odoo_branch
-        hash_id = git_org + branch.split(".")[0]
+        hash_key = git_org + branch.split(".")[0]
         repos = []
-        if hash_id not in self.DATA:
+        if hash_key not in self.DATA:
             return repos
         with_ocb = False
         if self.opt_args.create_new:
@@ -313,11 +321,12 @@ class OdooDeploy(object):
                 }.get(git_org, git_org)
             )
             opts.append('--return-repos')
-            content = get_list_from_url(opts)
-            self.root = os.path.expanduser(self.DATA[hash_id]['PATH'])
+            if only_ocb:
+                content = ['OCB']
+            else:
+                content = get_list_from_url(opts)
+            self.root = os.path.expanduser(self.DATA[hash_key]['PATH'])
             for repo in content:
-                # if not self.is_git_repo(repo):
-                #     continue
                 if self.repo_is_ocb(repo):
                     with_ocb = True
                     continue
@@ -343,14 +352,14 @@ class OdooDeploy(object):
         git_org = git_org or self.git_org
         branch = branch or self.opt_args.odoo_branch
         odoo_master_branch = build_odoo_param("FULLVER", odoo_vid=branch, multi=True)
-        hash_id = git_org + branch.split(".")[0]
+        hash_key = git_org + branch.split(".")[0]
         if self.repo_is_ocb(repo) and not self.opt_args.keep_root_owner:
             git_url = 'https://github.com/odoo'
             repo = 'odoo'
-        elif repo in self.DATA[hash_id]:
-            git_url = self.DATA[hash_id][repo]
+        elif repo in self.DATA[hash_key]:
+            git_url = self.DATA[hash_key][repo]
         else:
-            git_url = self.DATA[hash_id]["URL"]
+            git_url = self.DATA[hash_key]["URL"]
         if not git_url:
             return 127
         git_url = "%s/%s.git" % (git_url, repo)
@@ -387,17 +396,18 @@ class OdooDeploy(object):
             sts = self.git_clone(
                 git_url, tgtdir, branch,
                 master_branch=odoo_master_branch,
-                compact=True if repo == 'oca' else False)
+                compact=True if git_org in ('odoo', 'oca') else False)
             self.result[repo] = {
                 'sts': sts,
                 'path': tgtdir,
                 'org': git_org,
             }
-            if not os.path.isdir(tgtdir):
-                sts = 0 if self.opt_args.dry_run else 1
-            if sts == 0:
+            if not os.path.isdir(tgtdir) and not self.opt_args.dry_run:
+                sts = 1
+            if os.path.isdir(tgtdir) or self.opt_args.dry_run:
                 cmd = "cd %s" % tgtdir
                 run_traced(self.opt_args, cmd)
+            if os.path.isdir(tgtdir):
                 if self.repo_is_ocb(repo) and bakdir and os.path.isdir(bakdir):
                     for fn in os.listdir(bakdir):
                         if fn.startswith('.') or fn.startswith('_'):
@@ -412,7 +422,7 @@ class OdooDeploy(object):
                         else:
                             cmd = "mv %s %s" % (path, tgtfn)
                             run_traced(self.opt_args, cmd)
-        if sts == 0 or repo == "OCB":
+        if os.path.isdir(tgtdir) or repo == "OCB" or self.opt_args.dry_run:
             self.add_addons_path(tgtdir, repo)
             run_traced(self.opt_args, "git branch")
         if sts:
@@ -463,6 +473,8 @@ class OdooDeploy(object):
         else:
             cmd = "git clone %s %s/" % (git_url, base)
         sts = run_traced(self.opt_args, cmd)
+        if self.opt_args.dry_run and 'devel' in branch:
+            sts = 1
         if sts:
             sts = self.use_alt_branch(cmd, branch, master_branch)
         if sts:
@@ -504,6 +516,27 @@ def run_traced(opt_args, cmd):
             return os.mkdir(tgtdir)
         return os.system(cmd)
     return 0
+
+
+def repo_of_gitorg(
+    opt_args, deploy, repos, addons_path, result, git_org, only_ocb=None
+):
+    loaded_repos = []
+    for repo in repos:
+        if repo == 'OCB' and not only_ocb:
+            continue
+        elif repo != 'OCB' and only_ocb:
+            continue
+        deploy.download_single_repo(repo, git_org=git_org)
+        loaded_repos.append(repo)
+    if loaded_repos:
+        addons_path = addons_path + deploy.addons_path
+        for repo in deploy.result.keys():
+            if repo not in result or deploy.result.get('sts', 255) == 0:
+                result[repo] = deploy.result[repo]
+        deploy.update_gitignore(loaded_repos)
+    opt_args.target_dir = deploy.root
+    return deploy, repos, addons_path, result
 
 
 def main(cli_args=None):
@@ -570,30 +603,45 @@ def main(cli_args=None):
     if ((opt_args.only_update and opt_args.create_new)
             or (opt_args.create_new and opt_args.reclone)
             or (opt_args.only_update and opt_args.reclone)):
-        print("Too switches -U or _N or -R!")
+        print("Too switches -U or -N or -R!")
         exit(1)
 
     addons_path = []
     result = {}
+    deploys = {}
     for git_org in opt_args.git_orgs:
+        deploys[git_org] = {}
         deploy = OdooDeploy(opt_args)
         repos = deploy.get_repo_info(git_org=git_org)
-        for repo in repos:
-            deploy.download_single_repo(repo, git_org=git_org)
-        deploy.update_gitignore(repos)
-        addons_path = addons_path + deploy.addons_path
-        for repo in deploy.result.keys():
-            if repo not in result or deploy.result.get('sts', 255) == 0:
-                result[repo] = deploy.result[repo]
+        deploy, repos, addons_path, result = repo_of_gitorg(
+            opt_args, deploy, repos, addons_path, result, git_org, only_ocb=True)
+        deploys[git_org]['obj'] = deploy
+        deploys[git_org]['repos'] = repos
+
+    if 'OCB' not in result:
+        git_org = 'oca'
+        deploys[git_org] = {}
+        deploy = OdooDeploy(opt_args)
+        repos = deploy.get_repo_info(git_org=git_org, only_ocb=True)
+        deploy, repos, addons_path, result = repo_of_gitorg(
+            opt_args, deploy, repos, addons_path, result, git_org, only_ocb=True)
+        deploys[git_org]['obj'] = deploy
+        deploys[git_org]['repos'] = repos
+
+    for git_org in opt_args.git_orgs:
+        deploy = deploys[git_org]['obj']
+        repos = deploys[git_org]['repos']
+        deploy, repos, addons_path, result = repo_of_gitorg(
+            opt_args, deploy, repos, addons_path, result, git_org, only_ocb=False)
         opt_args.skip_if_exist = True
-        opt_args.target_dir = deploy.root
+
     if opt_args.verbose and addons_path:
         print('addons_path = %s' % ','.join(addons_path))
     if opt_args.update_addons_conf:
         deploy.update_conf(addons_path=addons_path)
     if opt_args.verbose:
         for repo in sorted(result.keys()):
-            print('%-20.20s %s %s %s' % (repo,
+            print('%-30.30s %s %s %s' % (repo,
                                          result[repo]['org'],
                                          result[repo]['sts'],
                                          result[repo]['path']))

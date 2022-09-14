@@ -1,0 +1,70 @@
+#! /bin/bash
+
+cur_env() {
+    local v=$1
+    PYTHON=""
+    PYTHON_VER=""
+    PIP=""
+    PIP_VER=""
+    for p in /usr/local/bin /usr/bin; do
+        [[ -z $PYTHON && -x $p/python$v ]] && PYTHON=$p/python$v
+        [[ -z $PIP && -x $p/pip$v ]] && PIP=$p/pip$v
+    done
+    [[ -n $PYTHON ]] && PYTHON_VER=$($PYTHON --version 2>&1 | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
+    [[ -n $PIP ]] && PIP_VER=$($PIP --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+" | head -n1)
+}
+
+set_bins() {
+    local majver=$1
+    SRC_PY=$PYTHON
+    [[ -f ${SRC_PY}-config ]] && SRC_CNF=${SRC_PY}-config
+    SRC_PIP=$PIP
+    cur_env $majver
+    [[ -n $PYTHON ]] && TGT_PY=$PYTHON || TGT_PY="/usr/local/bin/python$majver"
+    [[ -n $SRC_CNF && -n $PYTHON ]] && TGT_CNF=${PYTHON}-config || TGT_CNF="/usr/local/bin/python$majver-config"
+    [[ -n $PIP ]] && TGT_PIP=$PIP || TGT_PIP="/usr/local/bin/pip$majver"
+    if [[ $SRC_PY != "$(readlink -e $TGT_PY)" ]]; then
+        [[ -L $TGT_PY ]] && echo rm -f $TGT_PY && [[ DRY_RUN -eq 0 ]] && rm -f $TGT_PY
+        [[ -x ${TGT_PY}~ ]] && echo rm -f ${TGT_PY}~ && [[ DRY_RUN -eq 0 ]] && rm -f ${TGT_PY}~
+        [[ -x $TGT_PY ]] && echo mv -f $TGT_PY ${TGT_PY}~ && [[ DRY_RUN -eq 0 ]] && mv -f $TGT_PY ${TGT_PY}~
+        echo ln -s $SRC_PY $TGT_PY && [[ DRY_RUN -eq 0 ]] && ln -s $SRC_PY $TGT_PY
+        if [[ -n $SRC_CNF && $SRC_CNF != "$(readlink -e $TGT_CNF)" ]]; then
+            [[ -L $TGT_CNF ]] && echo rm -f $TGT_CNF && [[ DRY_RUN -eq 0 ]] && rm -f $TGT_CNF
+            [[ -x ${TGT_CNF}~ ]] && echo rm -f ${TGT_CNF}~ && [[ DRY_RUN -eq 0 ]] && rm -f ${TGT_CNF}~
+            [[ -f $TGT_CNF ]] && echo mv -f $TGT_CNF ${TGT_CNF}~ && [[ DRY_RUN -eq 0 ]] && mv -f $TGT_CNF ${TGT_CNF}~
+            echo ln -s $SRC_CNF $TGT_CNF && [[ DRY_RUN -eq 0 ]] && ln -s $SRC_CNF $TGT_CNF
+        fi
+    fi
+    if [[ $SRC_PIP != "$(readlink -e $TGT_PIP)" ]]; then
+        [[ -L $TGT_PIP ]] && echo rm -f $TGT_PIP && [[ DRY_RUN -eq 0 ]] && rm -f $TGT_PIP
+        [[ -x ${TGT_PIP}~ ]] && echo rm -f ${TGT_PIP}~ && [[ DRY_RUN -eq 0 ]] && rm -f ${TGT_PIP}~
+        [[ -x $TGT_PIP ]] && echo mv -f $TGT_PIP ${TGT_PIP}~ && [[ DRY_RUN -eq 0 ]] && mv -f $TGT_PIP ${TGT_PIP}~
+        echo ln -s $SRC_PIP $TGT_PIP && [[ DRY_RUN -eq 0 ]] && ln -s $SRC_PIP $TGT_PIP
+    fi
+}
+
+VER=""
+ACTION="set"
+DRY_RUN=0
+cmd=$(basename $0)
+while [[ -n $1 ]]; do
+    [[ $1 =~ ^(2|3|2.7|3.5|3.6|3.7|3.8|3.9|3.10)$ ]] && VER=$1 && shift && continue
+    [[ $1 =~ -.*l ]] && ACTION="list" && shift && continue
+    [[ $1 =~ -.*n ]] && DRY_RUN=1 && shift && continue
+    [[ $1 =~ -.*h ]] && echo "$cmd [-h][-l][-n] python_version" && exit 0
+    echo "Invalid option $1" && exit 1
+done
+[[ $ACTION == "set" && -z $VER ]] && echo "Missed python version!" && exit 1
+[[ -n $VER ]] && MAJVER=$(echo $VER | grep --color=never -Eo "[23]" | head -n1)
+cur_env $VER
+if [[ $ACTION == "list" ]]; then
+    [[ -z $PYTHON ]] && echo "No python $VER found!" || echo "Current python $VER is $PYTHON ($PYTHON_VER)"
+    [[ -z $PIP ]] && echo "No pip $VER found!" || echo "Current pip $VER is $PIP ($($PIP --version)"
+    exit 0
+fi
+set_bins $MAJVER
+[[ $MAJVER -eq 2 ]] && set_bins
+[[ $MAJVER -eq 2 ]] && cur_env || cur_env $MAJVER
+[[ -z $PYTHON ]] && echo "No python $VER found!" || echo "Current python $VER is $PYTHON ($PYTHON_VER)"
+[[ -z $PIP ]] && echo "No pip $VER found!" || echo "Current pip $VER is $PIP ($($PIP --version)"
+exit 0

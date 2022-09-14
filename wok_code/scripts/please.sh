@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0
+__version__=2.0.0.2
 
 #
 # General Purpose options:
@@ -1641,7 +1641,6 @@ do_export() {
   odoo_fver=$(build_odoo_param FULLVER ".")
   m=$(build_odoo_param MAJVER ".")
   module=$(build_odoo_param PKGNAME ".")
-  [[ $module != $(basename $PWD) ]] && module=$1
   if [[ -z "$module" ]]; then
     echo "Invalid environment!"
     return $sts
@@ -1658,31 +1657,29 @@ do_export() {
     echo "File $pofile not found!"
     read -p "Create empty file $pofile (y/n)?" dummy
     [[ $dummy != "y" ]] && return $sts
-    # [[ ! -f $HOME_DEVEL/venv/bin/templates/it_IT.po ]] && "Template file $HOME_DEVEL/venv/bin/templates/it_IT.po not found!" && return $sts
-    # cp $HOME_DEVEL/venv/bin/templates/it_IT.po $pofile
     makepo_it.py -m $module -b $odoo_fver -f $pofile
   fi
-  db="$2"
+  db="$opt_db"
+  u=$(get_dbuser $m)
   if [[ -z "$db" ]]; then
-    u=$(get_dbuser $m)
     DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
     DBs="^(${DBs:0: -1})\$"
-    for x in tnl test demo; do
+    for x in test_openerp_ tnl test demo; do
+      [[ $x =~ $DBs ]] && db="$x" && break
       [[ $x$m =~ $DBs ]] && db="$x$m" && break
     done
   fi
   if [[ -z "$db" ]]; then
     echo "No DB matched! use:"
-    echo "$0 export 'DB'"
+    echo "$0 export -d DB"
     return $STS_FAILED
   fi
   stat=$(psql -U$u -Atc "select state from ir_module_module where name = '$module'" $db)
-  # [[ -z "$stat" || $stat == "uninstalled" ]] && run_traced "run_odoo_debug -b$odoo_fver -Ism $module -d $db"
   [[ -z "$stat" || $stat == "uninstalled" ]] && echo "Module $module not installed in $db!" && exit $sts
-  dbdt=$(psql -U$u -Atc "select write_date from ir_module_module where name='$module' and state='installed'" $db)
-  [[ -n "$dbdt" ]] && dbdt=$(date -d "$dbdt" +"%s") || dbdt="999999999999999999"
-  podt=$(stat -c "%Y" $pofile)
-  ((dbdt < podt)) && run_traced "run_odoo_debug -b$odoo_fver -usm $module -d $db"
+  # dbdt=$(psql -U$u -Atc "select write_date from ir_module_module where name='$module' and state='installed'" $db)
+  # [[ -n "$dbdt" ]] && dbdt=$(date -d "$dbdt" +"%s") || dbdt="999999999999999999"
+  # podt=$(stat -c "%Y" $pofile)
+  # ((dbdt < podt)) && run_traced "run_odoo_debug -b$odoo_fver -usm $module -d $db"
   run_traced "run_odoo_debug -b$odoo_fver -em $module -d $db"
   sts=$?
   return $sts
@@ -1757,7 +1754,6 @@ do_translate() {
   odoo_fver=$(build_odoo_param FULLVER ".")
   m=$(build_odoo_param MAJVER ".")
   module=$(build_odoo_param PKGNAME ".")
-  [[ $module != $(basename $PWD) ]] && module=$1
   if [[ -z "$module" ]]; then
     echo "Invalid environment!"
     return $sts
@@ -1769,18 +1765,19 @@ do_translate() {
   fi
   confn=$(readlink -f $HOME_DEVEL/../clodoo/confs)/${odoo_fver/./-}.conf
   [[ ! -f $confn ]] && echo "Configuration file $confn not found!" && return $sts
-  db="$2"
+  db="$opt_db"
+  u=$(get_dbuser $m)
   if [[ -z "$db" ]]; then
-    u=$(get_dbuser $m)
     DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
     DBs="^(${DBs:0: -1})\$"
-    for x in tnl test demo; do
+    for x in test_openerp_ tnl test demo; do
+      [[ $x =~ $DBs ]] && db="$x" && break
       [[ $x$m =~ $DBs ]] && db="$x$m" && break
     done
   fi
   if [[ -z "$db" ]]; then
     echo "No DB matched! use:"
-    echo "$0 export 'DB'"
+    echo "$0 translate -d DB"
     return $STS_FAILED
   fi
   [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
@@ -1791,30 +1788,46 @@ do_translate() {
 }
 
 do_lint() {
-  wlog "do_lint '$1' '$2' '$3'"
-  local sts=$STS_FAILED s
-  run_traced "flake8 --config=$HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg --extend-ignore=B006 --max-line-length=88 ./"
-  sts=$?
-  run_traced "pylint --rcfile=$HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg ./"
-  s=$?; [[ $s -ne 0 ]] && sts=$s
-  return $sts
+    wlog "do_lint '$1' '$2' '$3'"
+    local sts=$STS_FAILED s x
+    [[ -z $FLAKE8_CONFIG && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg)"
+    if [[ -z $FLAKE8_CONFIG ]]; then
+      x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
+      [[ -n $x ]] && run_traced "export FLAKE8_CONFIG=$($READLINK -f $x/zerobug/_travis/cfg/travis_run_flake8.cfg)"
+    fi
+    [[ -z $FLAKE8_CONFIG ]] && echo "Non flake8 configuration file found!" && return 1
+    run_traced "flake8 --config=$FLAKE8_CONFIG --extend-ignore=B006 --max-line-length=88 ./"
+    sts=$?
+    [[ -z $PYLINT_CONFIG_DIR && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg)"
+    if [[ -z $PYLINT_CONFIG_DIR ]]; then
+      x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
+      [[ -n $x ]] && run_traced "export PYLINT_CONFIG_DIR=$($READLINK -f $x/zerobug/_travis/cfg)"
+    fi
+    [[ -z $PYLINT_CONFIG_DIR ]] && echo "Non pylint configuration file found!" && return 1
+    run_traced "pylint --rcfile=$PYLINT_CONFIG_DIR/travis_run_pylint_beta.cfg ./"
+    s=$?; [[ $s -ne 0 ]] && sts=$s
+    return $sts
 }
 
 do_test() {
-  wlog "do_test '$1' '$2' '$3'"
-  local db module odoo_fver sts=$STS_FAILED x
-  odoo_fver=$(build_odoo_param FULLVER ".")
-  module=$(build_odoo_param PKGNAME ".")
-  [[ $module != $(basename $PWD) ]] && module=$1
-  if [[ -z "$module" ]]; then
-    echo "Missing parameters! use:"
-    echo "> please test -bBRANCH 'MODULE'"
-    return $STS_FAILED
-  fi
-  [[ $opt_dbg -ne 0 ]] && x="-B"
-  run_traced "run_odoo_debug -b $odoo_fver -Tm $module $x"
-  sts=$?
-  return $sts
+    wlog "do_test '$1' '$2' '$3'"
+    local db module odoo_fver sts=$STS_FAILED x
+    if [[ $PRJNAME != "Odoo" ]]; then
+      echo "This action can be issued only on Odoo projects"
+      return 1
+    fi
+    odoo_fver=$(build_odoo_param FULLVER ".")
+    m=$(build_odoo_param MAJVER ".")
+    module=$(build_odoo_param PKGNAME ".")
+    [[ $module != $(basename $PWD) ]] && module=$1
+    if [[ -z "$module" ]]; then
+      echo "Invalid environment!"
+      return $sts
+    fi
+    [[ $opt_dbg -ne 0 ]] && x="-B"
+    run_traced "run_odoo_debug -b $odoo_fver -Tm $module $x"
+    sts=$?
+    return $sts
 }
 
 do_lsearch() {
@@ -2199,17 +2212,18 @@ do_wep() {
     return 0
 }
 
-OPTOPTS=(h        B       b          c        d        f         j        k        L         m       n           o        O       p         q           r     s        t         u       V           v)
-OPTLONG=(help     debug   branch     conf     ""       force     ""       keep     log       ""      dry-run     ""       ""      ""        quiet       ""    ""       test      ""      version     verbose)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
-OPTACTI=("+"      1       "="        "="      "="      1         1        1        "="       1       1           "=>"     1       "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        0       ""         ""       ""       0         0        0        ""        0       0           ""       0       ""        0           0     ""       0         0       ""          -1)
-OPTMETA=("help"   ""      "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
+OPTOPTS=(h        B       b          c        D         d        f         j        k        L         m       n           o        O       p         q           r     s        t         u       V           v)
+OPTLONG=(help     debug   branch     conf     from-date database force     ""       keep     log       ""      dry-run     ""       ""      ""        quiet       ""    ""       test      ""      version     verbose)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date  opt_db   opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
+OPTACTI=("+"      1       "="        "="      "="       "="      1         1        1        "="       1       1           "=>"     1       "="       0           1     "="      1         1       "*"         "+")
+OPTDEFL=(1        0       ""         ""       ""        ""       0         0        0        ""        0       0           ""       0       ""        0           0     ""       0         0       ""          -1)
+OPTMETA=("help"   ""      "branch"   "file"   "diff"    "name"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"
   "debug mode"
   "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0"
   "configuration file (def .travis.conf)"
   "date to search in log"
+  "database name"
   "force copy (push) | build (publish) | set_exec (wep) | full (status)"
   "execute tests in project dir rather in test dir/old style synchro"
   "keep coverage statistics in annotate test/keep original repository | tests/ in publish"
