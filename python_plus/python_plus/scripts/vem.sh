@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0.2
+__version__=2.0.0.3
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -245,7 +245,7 @@ bin_install() {
           [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
           pkg=${pkg/==/@}
           pkg=$(echo $pkg | tr -d "'")
-          run_traced "npm install $pkg"
+          run_traced "npm install \"$pkg\""
           run_traced "npm install less-plugin-clean-css"
           x=$(find $(npm bin) -name lessc 2>/dev/null)
         fi
@@ -305,6 +305,8 @@ pip_install() {
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
   tmpdir=$VIRTUAL_ENV/tmp
   pkg="$(get_actual_pkg $1)"
+  pfn=$(get_pkg_wo_version $pkg)
+  [[ $pfn =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_}
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
@@ -312,23 +314,22 @@ pip_install() {
   [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
   [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER $popts ..." && PRINTED_PIPVER=1
-  if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
-    if [[ ! $pkg =~ $BIN_PKGS ]]; then
+  if [[ -z "$XPKGS_RE" || ! $pfn =~ ($XPKGS_RE) ]]; then
+    if [[ ! $pfn =~ $BIN_PKGS ]]; then
       srcdir=""
-      [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
       [[ $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/../tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/../tools/$pfn)
       if [[ $opt_debug -ge 3 ]]; then
         [[ -d $SAVED_HOME_DEVEL/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pfn)
       fi
-      if [[ $pkg =~ ^(odoo|openerp)$ ]]; then
+      if [[ $pfn =~ ^(odoo|openerp)$ ]]; then
         [[ -z $opt_oepath ]] && echo "Missed Odoo version to install (please use -O and -o switches)!" && exit 1
         [[ -d $opt_oepath/openerp && -f $opt_oepath/openerp/__init__.py ]] && srcdir=$opt_oepath/openerp
         [[ -d $opt_oepath/odoo && -f $opt_oepath/odoo/__init__.py ]] && srcdir=$opt_oepath/odoo
       fi
-      [[ -z $srcdir && $opt_debug -ge 2 && $pkg =~ $LOCAL_PKGS ]] && echo "Invalid or not found source path!" && exit 1
-      [[ -z $srcdir && $pkg =~ ^(odoo|openerp)$ ]] && echo "Odoo source not found!" && exit 1
+      [[ -z $srcdir && $opt_debug -ge 2 && $pfn =~ $LOCAL_PKGS ]] && echo "Invalid or not found source path!" && exit 1
+      [[ -z $srcdir && $pfn =~ ^(odoo|openerp)$ ]] && echo "Odoo source not found!" && exit 1
     fi
-    if [[ $pkg =~ $BIN_PKGS ]]; then
+    if [[ $pfn =~ $BIN_PKGS ]]; then
       bin_install "$pkg"
     elif [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
@@ -341,14 +342,14 @@ pip_install() {
         x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep --color=never -Eo "\./README.rst")
         # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
         run_traced "$PIP install $tmpdir/$pfn $popts"
-        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
         run_traced "rm -fR $tmpdir/$pfn"
       elif [[ $opt_debug -eq 3 ]]; then
-        run_traced "$PIP install $srcdir $popts"
-        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+        run_traced "$PIP install \"$srcdir\" $popts"
+        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
       else
         pushd $srcdir/.. >/dev/null
-        [[ $pkg =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
+        [[ $pfn =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
         v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
         popd >/dev/null
         x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
@@ -360,67 +361,67 @@ pip_install() {
           done
         fi
         run_traced "ln -s $srcdir $pypath/$pfn"
-        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
       fi
       # TODO> ?
       # set_hashbang "$pypath/${pfn}"
-      [[ -x $VIRTUAL_ENV/bin/${pkg}-info ]] && run_traced "$VIRTUAL_ENV/bin/${pkg}-info --copy-pkg-data"
-    elif [[ $pkg =~ $EI_PKGS ]]; then
-      run_traced "easy_install install $pkg"
-      run_traced "$PIP install $popts --upgrade $pkg"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-    elif [[ $pkg =~ $WGET_PKGS ]]; then
+      [[ -x $VIRTUAL_ENV/bin/${pfn}-info ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info --copy-pkg-data"
+    elif [[ $pfn =~ $EI_PKGS ]]; then
+      run_traced "easy_install install \"$pkg\""
+      run_traced "$PIP install $popts --upgrade \"$pkg\""
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+    elif [[ $pfn =~ $WGET_PKGS ]]; then
       d=""
-      [[ $pkg == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
-      [[ -z "$d" ]] && echo "Unknown URL for $pkg" && return
+      [[ $pfn == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
+      [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
       x=$(basename $d)
       run_traced "mkdir -p $VIRTUAL_ENV/tmp"
       run_traced "cd $VIRTUAL_ENV/tmp"
       [[ -f $x ]] && run_traced "rm -f $x"
       run_traced "wget $d"
       run_traced "$PIP install $popts $x"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-    elif [[ $pkg =~ $GIT_PKGS ]]; then
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+    elif [[ $pfn =~ $GIT_PKGS ]]; then
       d=""
-      [[ $pkg =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
-      [[ $pkg =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
-      [[ -z "$d" ]] && echo "Unknown URL for $pkg" && return
+      [[ $pfn =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
+      [[ $pfn =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
+      [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
       run_traced "$PIP install $d"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-    elif [[ $pkg =~ $BZR_PKGS ]]; then
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+    elif [[ $pfn =~ $BZR_PKGS ]]; then
       x=$(which bzr 2>/dev/null)
       if [[ -z "$x" ]]; then
-        echo "Package $pkg require bazar software but this software is not installed on your system"
+        echo "Package $pfn require bazar software but this software is not installed on your system"
         echo "You should install bazar ..."
         [[ $DISTO =~ ^fedora ]] && echo "dnf install bzr"
         [[ ! $DISTO =~ ^fedora && $FH == "RHEL" ]] && echo "yum install bzr"
         [[ $DISTO =~ ^debian ]] && echo "apt install bzr"
         [[ $DISTO =~ ^Ubuntu ]] && echo "add-apt-repository ppa:bzr/ppa"
         [[ $FH == "Debian" ]] && echo "apt update"
-        ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+        ERROR_PKGS="$ERROR_PKGS   '$pfn'"
       else
         run_traced "mkdir -p $HOME/bazar"
         run_traced "cd $HOME/bazar"
         run_traced "bzr branch lp:$pkg"
-        d=$(find $pkg -name setup.py | head -n1)
+        d=$(find $pfn -name setup.py | head -n1)
         [[ -n "$d" ]] && d=$(dirname $d) || d=""
         if [[ -n "$d" && -d "$d" ]]; then
           run_traced "cd $d"
           run_traced "python ./setup.py install"
-          [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+          [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
         else
           echo "Invalid bazar package: file setup.py not found!"
-          ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+          ERROR_PKGS="$ERROR_PKGS   '$pfn'"
         fi
       fi
     elif [[ $opt_debug -eq 1 ]]; then
-      [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
-      run_traced "$PIP install $popts --extra-index-url https://testpypi.python.org/pypi $pkg $2"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
+      run_traced "$PIP install $popts --extra-index-url https://testpypi.python.org/pypi \"$pkg\" $2"
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     else
-      [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
-      run_traced "$PIP install $popts $pkg $2"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
+      run_traced "$PIP install $popts \"$pkg\" $2"
+      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     fi
     x="${pkgs//+/.}"
     [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
@@ -793,9 +794,9 @@ check_installed_pkgs() {
     x=${p^^}
     [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
     p2=""
-    [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install $popts$p2 $p"
+    [[ $opt_verbose -gt 2 && -z "${!x}" ]] && echo ">>> $PIP install $popts$p2 \"$p\""
     [[ $opt_verbose -lt 2 ]] && echo -en "."
-    [[ -z "${!x}" ]] && $PIP install $popts$p2 $p
+    [[ -z "${!x}" ]] && $PIP install $popts$p2 "$p"
   done
   [[ $opt_verbose -lt 2 ]] && echo -en "\r"
   check_4_needing_pkgs

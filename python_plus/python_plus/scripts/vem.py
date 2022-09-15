@@ -23,7 +23,9 @@ def main(cli_args=None):
     if not os.path.isfile(cmd):
         print('Internal package error: file %s not found!' % cmd)
     for arg in cli_args:
-        if ' ' in arg:
+        if '<' in arg or '>' in arg:
+            arg = "'%s'" % arg.replace("'", r"\'")
+        elif ' ' in arg:
             if '"' in arg:
                 arg = '"%s"' % arg.replace('"', r'\"')
             else:

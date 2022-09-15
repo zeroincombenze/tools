@@ -13,7 +13,7 @@ import argparse
 import sys
 import os
 from time import sleep
-import shutil
+from z0lib import z0lib
 
 try:
     from wget_odoo_repositories import main as get_list_from_url
@@ -25,7 +25,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.0.2"
+__version__ = "2.0.0.3"
 
 ODOO_VALID_VERSIONS = (
     "16.0",
@@ -89,7 +89,7 @@ class OdooDeploy(object):
 
     def __init__(self, opt_args):
         self.opt_args = opt_args
-        self.git_org = opt_args.git_orgs[0]
+        self.git_org = opt_args.git_orgs[0] if opt_args.git_orgs else 'oca'
         self.root = opt_args.target_dir
         self.addons_path = []
         self.result = {}
@@ -124,6 +124,31 @@ class OdooDeploy(object):
                     elif 'CONFN' not in self.DATA[hash_key]:
                         self.DATA[hash_key]['CONFN'] = os.path.basename(
                             build_odoo_param("CONFN", odoo_vid=odoo_vid, multi=True))
+
+    def run_traced(self, cmd):
+        return z0lib.run_traced(cmd,
+                                verbose=self.opt_args.verbose,
+                                dry_run=self.opt_args.dry_run)
+
+    def print_result(self, result=None):
+        result = result or self.result
+        maxlen = {'repo': 0, 'org': 0, 'sts': 3, 'path': 0, 'branch': 0}
+        for repo in result.keys():
+            maxlen["repo"] = max(maxlen["repo"], len(repo))
+            for item in ('org', 'path', 'branch'):
+                maxlen[item] = max(maxlen[item], len(result[repo][item]))
+        linelen = sum([x for x in maxlen.values()])
+        for item in ('repo', 'org', 'sts', 'path', 'branch'):
+            maxlen[item] = int(maxlen[item] * 80 / linelen) + 1
+        fmt = ""
+        for item in ('repo', 'org', 'sts', 'path', 'branch'):
+            fmt += "%%-%d.%ds " % (maxlen[item], maxlen[item])
+        for repo in sorted(result.keys()):
+            print(fmt % (repo,
+                         result[repo]['org'],
+                         result[repo]['sts'],
+                         result[repo]['path'],
+                         result[repo]['branch'],))
 
     def list_data(self):
         for git_org in ODOO_VALID_GITORGS:
@@ -249,19 +274,47 @@ class OdooDeploy(object):
             tgtdir = os.path.join(self.root, repo)
         return tgtdir
 
-    # def list_repo_info(self, git_org=None, branch=None):
-    #     git_org = git_org or self.git_org
-    #     branch = branch or self.opt_args.odoo_branch
-    #     hash_key = git_org + branch.split(".")[0]
-    #     repos = []
-    #     if hash_key not in self.DATA:
-    #         return repos
-    #     self.root = os.path.expanduser(self.DATA[hash_key]['PATH'])
-    #     repos = self.explore_root_dir(repos)
-    #     result = {}
-    #     for repo in repos:
-    #         tgtdir = self.get_path_of_repo(repo)
-    #         run_traced("cd %s" % tgtdir)
+    def get_remote_info(self):
+        branch = url = None
+        sts2, stdout, stderr = self.run_traced("git branch")
+        if stdout:
+            for ln in stdout.split("\n"):
+                if ln.startswith("*"):
+                    branch = ln[2:]
+                    break
+        sts2, stdout, stderr = self.run_traced("git remote -v")
+        if stdout:
+            for ln in stdout.split("\n"):
+                lns = ln.split()
+                if lns[0] == "origin":
+                    url = lns[1][:-4]
+                    break
+        return branch, url
+
+    def list_repo_info(self, git_org=None, branch=None):
+        git_org = git_org or self.git_org
+        branch = branch or self.opt_args.odoo_branch
+        hash_key = git_org + branch.split(".")[0]
+        repos = []
+        if hash_key not in self.DATA:
+            return repos
+        self.root = os.path.expanduser(self.DATA[hash_key]['PATH'])
+        repos = self.explore_root_dir(repos)
+        self.result = {}
+        for repo in repos:
+            tgtdir = self.get_path_of_repo(repo)
+            self.run_traced("cd %s" % tgtdir)
+            self.result[repo] = {
+                'sts': 0,
+                'path': tgtdir,
+                'org': git_org,
+                'branch': branch,
+            }
+            branch, url = self.get_remote_info()
+            if branch:
+                self.result[repo]['branch'] = branch
+            if url:
+                self.result[repo]['org'] = url.split(":")[-1].split("/")[0]
 
     def get_root_from_addons(self, repos, git_org=None, branch=None):
         git_org = git_org or self.git_org
@@ -331,9 +384,10 @@ class OdooDeploy(object):
                     with_ocb = True
                     continue
                 repos.append(repo)
-        elif self.opt_args.update_addons_conf or self.opt_args.only_update:
-            self.root, repos = self.get_root_from_addons(
-                repos, git_org=git_org, branch=branch)
+        elif self.opt_args.only_update:
+            if hash_key not in self.DATA:
+                return []
+            self.root = os.path.expanduser(self.DATA[hash_key]['PATH'])
             repos = self.explore_root_dir(repos)
             if repos:
                 with_ocb = True
@@ -342,6 +396,10 @@ class OdooDeploy(object):
                 repos, git_org=git_org, branch=branch)
             if root:
                 self.root = root
+            if self.opt_args.update_addons_conf:
+                repos = self.explore_root_dir(repos)
+            if repos:
+                with_ocb = True
         if with_ocb:
             repos = ['OCB'] + sorted(repos)
         else:
@@ -353,7 +411,16 @@ class OdooDeploy(object):
         branch = branch or self.opt_args.odoo_branch
         odoo_master_branch = build_odoo_param("FULLVER", odoo_vid=branch, multi=True)
         hash_key = git_org + branch.split(".")[0]
-        if self.repo_is_ocb(repo) and not self.opt_args.keep_root_owner:
+        tgtdir = self.get_path_of_repo(repo)
+        if self.opt_args.only_update:
+            if not os.path.isdir(tgtdir):
+                return 127
+            if os.getcwd() != tgtdir:
+                self.run_traced("cd %s" % tgtdir)
+            repo_branch, git_url = self.get_remote_info()
+            repo = git_url.split("/")[-1]
+            git_url = "/".join(git_url.split("/")[0:-1])
+        elif self.repo_is_ocb(repo) and not self.opt_args.keep_root_owner:
             git_url = 'https://github.com/odoo'
             repo = 'odoo'
         elif repo in self.DATA[hash_key]:
@@ -362,12 +429,10 @@ class OdooDeploy(object):
             git_url = self.DATA[hash_key]["URL"]
         if not git_url:
             return 127
-        git_url = "%s/%s.git" % (git_url, repo)
+        if not git_url.endswith(".git"):
+            git_url = "%s/%s.git" % (git_url, repo)
         bakdir = ''
-        tgtdir = self.get_path_of_repo(repo)
-        if not os.path.isdir(tgtdir) and self.opt_args.only_update:
-            return 127
-        elif os.path.isdir(tgtdir) and not self.opt_args.only_update:
+        if os.path.isdir(tgtdir) and not self.opt_args.only_update:
             if self.opt_args.skip_if_exist:
                 return self.git_pull(tgtdir, branch, master_branch=odoo_master_branch)
             elif not self.opt_args.assume_yes:
@@ -379,18 +444,19 @@ class OdooDeploy(object):
                 bakdir = '%s~' % tgtdir
                 if os.path.isdir(bakdir):
                     cmd = "rm -fR %s" % bakdir
-                    run_traced(self.opt_args, cmd)
+                    self.run_traced(cmd)
                 cmd = "mv %s %s" % (tgtdir, bakdir)
-                run_traced(self.opt_args, cmd)
+                self.run_traced(cmd)
             else:
                 cmd = "rm -fR %s" % tgtdir
-                run_traced(self.opt_args, cmd)
+                self.run_traced(cmd)
         if os.path.isdir(tgtdir) and self.opt_args.only_update:
             sts = self.git_pull(tgtdir, branch, master_branch=odoo_master_branch)
             self.result[repo] = {
                 'sts': sts,
                 'path': tgtdir,
                 'org': git_org,
+                'branch': branch,
             }
         else:
             sts = self.git_clone(
@@ -401,12 +467,13 @@ class OdooDeploy(object):
                 'sts': sts,
                 'path': tgtdir,
                 'org': git_org,
+                'branch': branch,
             }
             if not os.path.isdir(tgtdir) and not self.opt_args.dry_run:
                 sts = 1
             if os.path.isdir(tgtdir) or self.opt_args.dry_run:
                 cmd = "cd %s" % tgtdir
-                run_traced(self.opt_args, cmd)
+                self.run_traced(cmd)
             if os.path.isdir(tgtdir):
                 if self.repo_is_ocb(repo) and bakdir and os.path.isdir(bakdir):
                     for fn in os.listdir(bakdir):
@@ -418,13 +485,17 @@ class OdooDeploy(object):
                             continue
                         if os.path.isdir(path):
                             cmd = "mv %s/ %s/" % (path, tgtfn)
-                            run_traced(self.opt_args, cmd)
+                            self.run_traced(cmd)
                         else:
                             cmd = "mv %s %s" % (path, tgtfn)
-                            run_traced(self.opt_args, cmd)
+                            self.run_traced(cmd)
         if os.path.isdir(tgtdir) or repo == "OCB" or self.opt_args.dry_run:
             self.add_addons_path(tgtdir, repo)
-            run_traced(self.opt_args, "git branch")
+            branch, url = self.get_remote_info()
+            if branch:
+                self.result[repo]['branch'] = branch
+            if url:
+                self.result[repo]['org'] = url.split(":")[-1].split("/")[0]
         if sts:
             print("*** Error ***")
             if not self.opt_args.verbose:
@@ -434,12 +505,12 @@ class OdooDeploy(object):
     def use_alt_branch(self, cmd, branch, master_branch):
         sts = 1
         if branch.endswith("-devel"):
-            sts = run_traced(self.opt_args, cmd.replace("-devel", "_devel"))
+            sts, stdout, stderr = self.run_traced(cmd.replace("-devel", "_devel"))
         elif branch.endswith("_devel"):
-            sts = run_traced(self.opt_args, cmd.replace("_devel", "-devel"))
+            sts, stdout, stderr = self.run_traced(cmd.replace("_devel", "-devel"))
         if sts and master_branch and branch != master_branch:
             cmd = cmd.replace(branch, master_branch)
-            sts = run_traced(self.opt_args, cmd)
+            sts, stdout, stderr = self.run_traced(cmd)
         return sts
 
     def add_addons_path(self, tgtdir, repo):
@@ -461,7 +532,7 @@ class OdooDeploy(object):
         base = os.path.basename(tgtdir)
         if os.getcwd() != root:
             cmd = "cd %s" % root
-            run_traced(self.opt_args, cmd)
+            self.run_traced(cmd)
         if git_url.startswith("git"):
             opts = "-b %s" % branch
         elif compact:
@@ -472,7 +543,7 @@ class OdooDeploy(object):
             cmd = "git clone %s %s/ %s" % (git_url, base, opts)
         else:
             cmd = "git clone %s %s/" % (git_url, base)
-        sts = run_traced(self.opt_args, cmd)
+        sts, stdout, stderr = self.run_traced(cmd)
         if self.opt_args.dry_run and 'devel' in branch:
             sts = 1
         if sts:
@@ -482,13 +553,13 @@ class OdooDeploy(object):
         return sts
 
     def git_pull(self, tgtdir, branch, master_branch=None):
-        cmd = "cd %s" % tgtdir
-        run_traced(self.opt_args, cmd)
+        if os.getcwd() != tgtdir:
+            self.run_traced("cd %s" % tgtdir)
         cmd = "git stash"
-        run_traced(self.opt_args, cmd)
+        self.run_traced(cmd)
         sleep(1)
-        cmd = "git checkout %s &>/dev/null" % branch
-        sts = run_traced(self.opt_args, cmd)
+        cmd = "git checkout %s" % branch
+        sts, stdout, stderr = self.run_traced(cmd)
         if sts:
             sleep(1)
             sts = self.use_alt_branch(cmd, branch, master_branch)
@@ -496,26 +567,7 @@ class OdooDeploy(object):
             print("Invalid branch %s" % branch)
         sleep(1)
         cmd = "git pull"
-        return run_traced(self.opt_args, cmd)
-
-
-def run_traced(opt_args, cmd):
-    if opt_args.verbose:
-        print('>>> %s' % cmd)
-    if cmd.startswith("cd "):
-        tgtdir = cmd[3:]
-        if not opt_args.dry_run or os.path.isdir(tgtdir):
-            return os.chdir(tgtdir)
-        return 0
-    elif not opt_args.dry_run:
-        if cmd.startswith("rm -fR "):
-            tgtdir = cmd[7:]
-            return shutil.rmtree(tgtdir)
-        elif cmd.startswith("mkdir "):
-            tgtdir = cmd[6:]
-            return os.mkdir(tgtdir)
-        return os.system(cmd)
-    return 0
+        return self.run_traced(cmd)[0]
 
 
 def repo_of_gitorg(
@@ -548,7 +600,7 @@ def main(cli_args=None):
     parser.add_argument('-A', '--update-addons-conf',
                         action='store_true',
                         help='Update addons_path in Odoo configuration file')
-    parser.add_argument('-b', '--odoo-branch', dest='odoo_branch')
+    parser.add_argument('-b', '--odoo-branch', dest='odoo_branch', default="12.0")
     parser.add_argument('-c', '--config',
                         help='Odoo configuration file')
     parser.add_argument('-D', '--default-gitorg', default='zero')
@@ -566,9 +618,15 @@ def main(cli_args=None):
                         action='store_true',
                         help='create all repositories of organization')
     parser.add_argument('-n', '--dry-run', action='store_true')
+    parser.add_argument('-O', '--link-oca',
+                        action='store_true',
+                        help='link to more OCA repositories')
     parser.add_argument('-R', '--reclone',
                         action='store_true',
                         help='reclone existent repositories')
+    parser.add_argument('-S', '--status',
+                        action='store_true',
+                        help='List repositoy info')
     parser.add_argument('-t', '--target-dir',
                         help='Local directory')
     parser.add_argument('-U', '--only-update',
@@ -578,25 +636,32 @@ def main(cli_args=None):
     parser.add_argument('-V', '--version', action="version", version=__version__)
     parser.add_argument('-y', '--assume-yes', action='store_true')
     opt_args = parser.parse_args(cli_args)
+
     opt_args.git_orgs = opt_args.git_orgs.split(',') if opt_args.git_orgs else []
     if opt_args.list:
         deploy = OdooDeploy(opt_args)
         deploy.list_data()
         return 0
+    elif opt_args.status:
+        deploy = OdooDeploy(opt_args)
+        deploy.list_repo_info()
+        deploy.print_result()
+        return 0
+
     odoo_master_branch = build_odoo_param(
         "FULLVER", odoo_vid=opt_args.odoo_branch, multi=True)
     if odoo_master_branch not in ODOO_VALID_VERSIONS:
         print("Invalid odoo version")
         exit(1)
-    if not opt_args.git_orgs:
-        opt_args.git_orgs = [
-            build_odoo_param(
-                "GIT_ORGID", odoo_vid=opt_args.odoo_branch, multi=True)
-        ]
-    for git_org in opt_args.git_orgs:
-        if git_org not in ODOO_VALID_GITORGS:
-            print("Invalid git organization: %s" % git_org)
+    if opt_args.only_update:
+        if opt_args.git_orgs:
+            print("Invalid git organization issued when update!")
             exit(1)
+    else:
+        for git_org in opt_args.git_orgs:
+            if git_org not in ODOO_VALID_GITORGS:
+                print("Invalid git organization: %s" % git_org)
+                exit(1)
     if not opt_args.only_update and not opt_args.create_new and not opt_args.reclone:
         print("No action issued! Please use -U or -N or -R switch")
         exit(1)
@@ -605,6 +670,11 @@ def main(cli_args=None):
             or (opt_args.only_update and opt_args.reclone)):
         print("Too switches -U or -N or -R!")
         exit(1)
+    if not opt_args.git_orgs:
+        opt_args.git_orgs = [
+            build_odoo_param(
+                "GIT_ORGID", odoo_vid=opt_args.odoo_branch, multi=True)
+        ]
 
     addons_path = []
     result = {}
@@ -617,6 +687,7 @@ def main(cli_args=None):
             opt_args, deploy, repos, addons_path, result, git_org, only_ocb=True)
         deploys[git_org]['obj'] = deploy
         deploys[git_org]['repos'] = repos
+        addons_path = []
 
     if 'OCB' not in result:
         git_org = 'oca'
@@ -635,16 +706,33 @@ def main(cli_args=None):
             opt_args, deploy, repos, addons_path, result, git_org, only_ocb=False)
         opt_args.skip_if_exist = True
 
+    if opt_args.link_oca:
+        for git_org in deploys.keys():
+            if git_org not in ("odoo", "oca"):
+                break
+        tgtroot = deploys[git_org]['obj'].root
+        git_org = 'oca'
+        deploys[git_org] = {}
+        deploy = OdooDeploy(opt_args)
+        branch = deploy.opt_args.odoo_branch
+        # hash_key = git_org + branch.split(".")[0]
+        deploy.root = build_odoo_param(
+            "ROOT", odoo_vid=branch, multi=True, git_org="oca")
+        repos = deploy.explore_root_dir([])
+        for repo in repos:
+            if repo == "OCB":
+                continue
+            srcdir = deploy.get_path_of_repo(repo)
+            tgtdir = os.path.join(tgtroot, os.path.basename(srcdir))
+            if not os.path.isdir(tgtdir):
+                deploy.run_traced("ln -s %s %s" % (srcdir, tgtdir))
+
     if opt_args.verbose and addons_path:
         print('addons_path = %s' % ','.join(addons_path))
     if opt_args.update_addons_conf:
         deploy.update_conf(addons_path=addons_path)
     if opt_args.verbose:
-        for repo in sorted(result.keys()):
-            print('%-30.30s %s %s %s' % (repo,
-                                         result[repo]['org'],
-                                         result[repo]['sts'],
-                                         result[repo]['path']))
+        deploy.print_result(result=result)
 
 
 if __name__ == "__main__":

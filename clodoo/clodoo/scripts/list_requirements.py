@@ -21,7 +21,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.0.1"
+__version__ = "2.0.0.2"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -280,7 +280,7 @@ PIP_BASE_PACKAGES = [
     "python-plus",
     "pydot",
     "pyparsing",
-    "pypdf",    # with PY3 becomes pyPDF2
+    "pypdf",  # with PY3 becomes pyPDF2
     "pyserial",
     "pytz",
     "reportlab",
@@ -333,14 +333,15 @@ except BaseException:
     PY3ID = "3"
 PY3_DEV = "python%s-dev" % PY3ID
 DEPS = {
-    "barcode": {"python": "python-Levenshtein"},
     "astroid": {"python": "six"},
-    "Pillow": {"python": "docutils"},
+    "barcode": {"python": "python-Levenshtein"},
     "gevent": {"bin": "libevent-dev"},
+    "Pillow": {"python": "docutils"},
     "pycups": {"bin": "libcups2-dev"},
     "shapely": {"bin": "libgeos-dev"},
 }
 DEPS2 = {
+    "invoice2data": {"python": "regex<2022.1.18"},
     "lxml": {"bin": ("python-dev", "libxml2-dev", "libxslt1-dev", "zlib1g-dev")},
     "python-psycopg2": {"bin": ("python-dev", "libpq-dev")},
     "python-ldap": {"bin": ("libsasl2-dev", "libldap2-dev", "libssl-dev")},
@@ -368,22 +369,27 @@ DEPS9 = [
 ]
 
 
+def fake_setup(**kwargs):
+    globals()["setup_args"] = kwargs
+
+
 def get_naked_pkgname(pkg):
     return re.split('[!<=>@#;]', pkg.replace("'", ""))[0].strip()
 
 
 def trim_pkgname(pkg):
-    pkg = pkg.replace(
-        " =", "=").replace(
-        " <", "<").replace(
-        " >", ">").replace(
-        " ;", ";").replace(
-        " @", "@").replace(
-        "= ", "=").replace(
-        "< ", "<").replace(
-        "> ", ">").replace(
-        "; ", ";").replace(
-        "@ ", "@")
+    pkg = (
+        pkg.replace(" =", "=")
+        .replace(" <", "<")
+        .replace(" >", ">")
+        .replace(" ;", ";")
+        .replace(" @", "@")
+        .replace("= ", "=")
+        .replace("< ", "<")
+        .replace("> ", ">")
+        .replace("; ", ";")
+        .replace("@ ", "@")
+    )
     return pkg.replace(" !", "!").strip()
 
 
@@ -396,6 +402,51 @@ def eval_requirement_cond(line, pyver=None):
     if eval(items[1], testenv):
         return get_naked_pkgname(line)
     return False
+
+
+def parse_setup(ctx, setup, pyver=None):
+    # reqlist = []
+    with open(setup, "r") as fd:
+        contents = ""
+        valid = False
+        for ln in fd.read().split("\n"):
+            if re.match(r"^ *[-\w]+ *= *[\w]", ln):
+                continue
+            if "**py2exe_options()" in ln:
+                continue
+            if ln.startswith("setuptools.setup"):
+                valid = True
+                ln = ln.replace("setuptools.setup(", "fake_setup(")
+            elif ln.startswith("setup"):
+                valid = True
+                ln = ln.replace("setup(", "fake_setup(")
+            ln = ln.replace("% lib_name:", "% '':")
+            if valid:
+                contents += ln
+                contents += "\n"
+        try:
+            exec(contents)
+            setup_args = globals()["setup_args"]
+        except BaseException:
+            setup_args = []
+    if (
+        "odoo_addon" in setup_args
+        and not isinstance(setup_args["odoo_addon"], bool)
+        and "external_dependencies_override" in setup_args["odoo_addon"]
+        and "python" in setup_args["odoo_addon"]["external_dependencies_override"]
+    ):
+        reqlist = []
+        for fn in setup_args["odoo_addon"]["external_dependencies_override"][
+            "python"
+        ].values():
+            reqlist.append(fn)
+    elif isinstance(setup_args, dict):
+        reqlist = [
+            x for x in setup_args.get("install_requires", []) if "-addon-" not in x
+        ]
+    else:
+        reqlist = []
+    return reqlist
 
 
 def parse_requirements(ctx, reqfile, pyver=None):
@@ -425,7 +476,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         item = item[:-4]
     if not filter(lambda x: item.startswith(x), PIP_WITH_DOT):
         if '.' in item:
-            full_item = full_item.replace('.'+item.split(".")[1], '')
+            full_item = full_item.replace('.' + item.split(".")[1], '')
             item = item.split(".")[0].lower()
     item_l = item.lower()
     if "openupgradelib" not in item_l and item_l in ALIAS:
@@ -695,35 +746,45 @@ def swap(deps, itm1, itm2):
 
 
 def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
-
     def parse_manifest(manifests, reqfiles, setups, root, files, no_deep, recurse):
+        if "/setup/" in root and "setup.py" in files:
+            fn = os.path.join(root, "setup.py")
+            if fn not in setups:
+                setups.append(os.path.join(root, "setup.py"))
         if root.startswith(no_deep):
-            return manifests, reqfiles, no_deep
+            return manifests, reqfiles, setups, no_deep
         basename = os.path.basename(root)
         if (
-            basename.startswith('.') or
-            basename.startswith('_') or
-            basename.endswith('~') or
-            basename in ("doc", "tmp", "setup", "venv_odoo")
+            basename.startswith('.')
+            or basename.startswith('_')
+            or basename.endswith('~')
+            or basename in ("doc", "tmp", "venv_odoo")
         ):
             no_deep = root
-            return manifests, reqfiles, no_deep
-        if not read_from_manifest and "__init__.py" in files and (
-            "__manifest__.py" in files or "__openerp__.py" in files
+            return manifests, reqfiles, setups, no_deep
+        if (
+            not read_from_manifest
+            and "__init__.py" in files
+            and ("__manifest__.py" in files or "__openerp__.py" in files)
         ):
             no_deep = root
-            return manifests, reqfiles, no_deep
-        manifests, reqfiles = add_manifest(
-            root, manifests, reqfiles, setups, files, read_from_manifest)
-        return manifests, reqfiles, no_deep
+            return manifests, reqfiles, setups, no_deep
+        manifests, reqfiles, setups = add_manifest(
+            root, manifests, reqfiles, setups, files, read_from_manifest
+        )
+        return manifests, reqfiles, setups, no_deep
 
     no_deep = " "
+    fn = os.path.join(cdir, "setup.py")
+    if os.path.isfile(fn):
+        setups.append(fn)
     for root, _dirs, files in os.walk(cdir):
-        manifests, reqfiles, no_deep = parse_manifest(
-            manifests, reqfiles, setups, root, files, no_deep, recurse)
+        manifests, reqfiles, setups, no_deep = parse_manifest(
+            manifests, reqfiles, setups, root, files, no_deep, recurse
+        )
         if not recurse and root != cdir and '.git' in _dirs:
             no_deep = root
-    return manifests, reqfiles
+    return manifests, reqfiles, setups
 
 
 def get_pyver(ctx):
@@ -754,9 +815,7 @@ def get_def_odoo_ver(ctx):
 
 def set_def_outfile(ctx):
     if not ctx["odoo_dir"]:
-        sys.stderr.write(
-            "Please, declare odoo path to write requirements.txt file!\n"
-        )
+        sys.stderr.write("Please, declare odoo path to write requirements.txt file!\n")
         sys.exit(1)
     ctx["sep"] = "\n"
     ctx["from_manifest"] = True
@@ -774,9 +833,7 @@ def set_def_outfile(ctx):
 def search_4_odoo_dir(ctx):
     for ldir in ("~/odoo/%s", "~/odoo_%s", "~/odoo-%s", "~/odoo%s", "~/%s"):
         if os.path.isdir(os.path.join(os.path.expanduser(ldir % ctx["odoo_ver"]))):
-            ctx["odoo_dir"] = os.path.join(
-                os.path.expanduser(ldir % ctx["odoo_ver"])
-            )
+            ctx["odoo_dir"] = os.path.join(os.path.expanduser(ldir % ctx["odoo_ver"]))
     if not ctx["odoo_dir"]:
         for ldir in sys.path + [os.path.join(os.path.expanduser("~/"))]:
             if os.path.isdir(os.path.join(ldir, "odoo")):
@@ -925,11 +982,17 @@ def main(cli_args=None):
     elif ctx["odoo_dir"]:
         if ctx["oca_dependencies"]:
             for cdir in ctx["oca_dependencies"].split(","):
-                manifests, reqfiles = walk_dir(
-                    cdir, manifests, reqfiles, setups, ctx['from_manifest'], False)
-        manifests, reqfiles = walk_dir(
-            ctx["odoo_dir"], manifests, reqfiles, setups,
-            ctx['from_manifest'], ctx['recurse'])
+                manifests, reqfiles, setups = walk_dir(
+                    cdir, manifests, reqfiles, setups, ctx['from_manifest'], False
+                )
+        manifests, reqfiles, setups = walk_dir(
+            ctx["odoo_dir"],
+            manifests,
+            reqfiles,
+            setups,
+            ctx['from_manifest'],
+            ctx['recurse'],
+        )
     deps_list = {}
     for kw in (
         "python",
@@ -942,6 +1005,16 @@ def main(cli_args=None):
         "modules",
     ):
         deps_list[kw] = []
+    for setup in setups:
+        requirements = parse_setup(ctx, setup, pyver=ctx["pyver"])
+        deps_list = package_from_list(
+            deps_list,
+            "python",
+            requirements,
+            with_version=ctx["with_version"],
+            odoo_ver=ctx["odoo_ver"],
+            pyver=ctx["pyver"],
+        )
     for reqfile in reqfiles:
         requirements = parse_requirements(ctx, reqfile, pyver=ctx["pyver"])
         deps_list = package_from_list(
@@ -1098,8 +1171,9 @@ def main(cli_args=None):
         for req_pkg in req_pkgs:
             pkg = get_naked_pkgname(req_pkg)
             if pkg not in [get_naked_pkgname(x) for x in pkgs]:
-                pkgs.append("%-49s # not found in any manifests"
-                            % req_pkg.split('#')[0].strip())
+                pkgs.append(
+                    "%-49s # not found in any manifests" % req_pkg.split('#')[0].strip()
+                )
         if len(pkgs):
             bakfile = '%s~' % ctx["opt_fn"]
             if os.path.isfile(bakfile):
@@ -1120,3 +1194,7 @@ def main(cli_args=None):
                         print("%s=%s" % (kw, ctx["sep"].join(deps_list[kw])))
                     else:
                         print(ctx["sep"].join(deps_list[kw]))
+
+
+if __name__ == "__main__":
+    exit(main())

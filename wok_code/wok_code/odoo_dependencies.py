@@ -113,7 +113,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '2.0.0.2'
+__version__ = '2.0.0.3'
 
 
 MANIFEST_FILES = ['__manifest__.py', '__odoo__.py', '__openerp__.py', '__terp__.py']

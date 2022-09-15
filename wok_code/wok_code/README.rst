@@ -1,6 +1,6 @@
 
 ================
-wok_code 2.0.0.2
+wok_code 2.0.0.3
 ================
 
 
@@ -845,6 +845,14 @@ Current development version
 History
 -------
 
+2.0.0.3 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] deploy_odoo: show actual branch and organization
+* [FIX] deploy_odoo: update read from directory
+* [IMP] deploy_odoo: new command list repo info
+* [IMP] deploy_odoo: new feature link to repositories
+
 2.0.0.2 (2022-09-10)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -887,7 +895,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-09-14
+Last Update / Ultimo aggiornamento: 2022-09-15
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
