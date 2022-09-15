@@ -11,7 +11,7 @@ import sys
 from zerobug import z0test
 
 
-__version__ = "2.0.0.3"
+__version__ = "2.0.0.2"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1
@@ -28,10 +28,10 @@ class RegressionTest:
         self.root = ''
 
     def test_01(self, z0ctx):
-        # sts = 0
-        # home = os.path.expanduser('~')
-        cmd = os.path.join(self.Z.rundir, 'do_migrate')
-        os.system('%s -V' % cmd)
+        res_pathname = os.path.join(self.Z.testdir, "res")
+        cmd = "mkdir %s" % res_pathname
+        sts, stdout, stderr = self.Z.run_traced(cmd)
+        sts = self.Z.test_result(z0ctx, cmd, 0, sts)
 
     def setup(self, z0ctx):
         pass

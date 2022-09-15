@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0.2
+__version__=2.0.0.3
 
 #
 # General Purpose options:
@@ -1745,7 +1745,7 @@ do_list() {
 
 do_translate() {
   wlog "do_translate '$1' '$2' '$3'"
-  local db dbdt dummy DBs m module odoo_fver path sts=$STS_FAILED u
+  local db dbdt dummy DBs m module odoo_fver path sts=$STS_FAILED u x
   local confn opts pofile
   if [[ $PRJNAME != "Odoo" ]]; then
     echo "This action can be issued only on Odoo projects"
@@ -1782,6 +1782,8 @@ do_translate() {
   fi
   [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
   [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
+  x=$(find $PKGPATH -type f -not -path "*/egg-info/*" -not -name "*.pyc" -anewer i18n/it.po)
+  [[ -n $x ]] && do_export "$1" "$2" "$3"
   run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -d $db -c $confn -p $pofile -AP"
   sts=$?
   return $sts

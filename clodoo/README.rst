@@ -1,6 +1,6 @@
 
 ==============
-clodoo 2.0.0.1
+clodoo 2.0.0.2
 ==============
 
 
@@ -327,6 +327,11 @@ Current development version
 History
 -------
 
+2.0.0.2 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: get data from setup.py od Odoo
+
 2.0.0.1 (2022-09-06)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -361,7 +366,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-09-07
+Last Update / Ultimo aggiornamento: 2022-09-15
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -33,7 +33,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "2.0.0.2"
+__version__ = "2.0.0.3"
 
 MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']
@@ -760,3 +760,7 @@ def main(cli_args=None):
         # if sts == 0 and ctx['db_prefix']:
         #     sts = upgrade_db(ctx)
     sys.exit(sts)
+
+
+if __name__ == "__main__":
+    exit(main())

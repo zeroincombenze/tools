@@ -9,7 +9,7 @@ Area managed:
                 functionalities to bash scripts
 - xuname:       platform recognition (only bash); return info about host
 - tracelog:     manage tracelog (only bash)
-- run_traced:   execute (or dry_run) shell command (only bash)
+- run_traced:   execute (or dry_run) shell command
 - findpkg:      find package in file system (only bash)
 - CFG:          manage a dictionay value from config file
                 like python ConfigParser (only bash)
@@ -26,8 +26,9 @@ import os
 from builtins import object
 from future import standard_library
 import shutil
-from subprocess import Popen
-from python_plus import qsplit
+import shlex
+from subprocess import PIPE, Popen
+# from python_plus import qsplit
 standard_library.install_aliases()  # noqa: E402
 
 
@@ -47,7 +48,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.0.1"
+__version__ = "2.0.0.2"
 
 
 def nakedname(path):
@@ -57,21 +58,28 @@ def nakedname(path):
 def run_traced(cmd, verbose=None, dry_run=None):
     if verbose:
         print('%s %s' % (">" if dry_run else "$", cmd))
-    args = qsplit(cmd)
+    # args = qsplit(cmd)
+    args = shlex.split(cmd)
+    sts = 0
+    prcout = prcerr = ""
     if cmd.startswith("cd "):
         tgtdir = cmd[3:].strip()
         if not dry_run or os.path.isdir(tgtdir):
-            return os.chdir(tgtdir)
-        return 0
+            os.chdir(tgtdir)
     elif not dry_run:
         if cmd.startswith("rm -fR "):
             tgtdir = cmd[7:].strip()
-            return shutil.rmtree(tgtdir)
+            shutil.rmtree(tgtdir)
         elif cmd.startswith("mkdir "):
             tgtdir = cmd[6:].strip()
-            return os.mkdir(tgtdir)
-        return Popen(args).wait()
-    return 0
+            os.mkdir(tgtdir)
+        else:
+            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                prcout, prcerr = proc.communicate()
+                sts = proc.returncode
+                prcout = prcout.decode("utf-8")
+                prcerr = prcerr.decode("utf-8")
+    return sts, prcout, prcerr
 
 
 class CountAction(argparse.Action):
