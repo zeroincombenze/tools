@@ -771,26 +771,6 @@ class Z0test(object):
         return ctx
 
     def _get_this_fqn(self):
-        # i = 1
-        # valid = False
-        # auto_this = False
-        # this_fqn = False
-        # while not valid and i < len(inspect.stack()):
-        #     this_fqn = os.path.abspath(inspect.stack()[i][1])
-        #     this = os.path.splitext(os.path.basename(this_fqn))[0]
-        #     if this[0] == '<' and this[-1] == '>':
-        #         i += 1
-        #     elif this in ("__init__", "pdb", "cmd", "z0testlib"):
-        #         i += 1
-        #         if this == "__init__":
-        #             auto_this = this_fqn
-        #     else:
-        #         valid = True
-        #         if this in ('pkgutil', 'runpy'):
-        #             this_fqn = os.path.dirname(auto_this)
-        #             id = 'test_%s.py' % os.path.basename(this_fqn)
-        #             this_fqn = os.path.join(this_fqn, id)
-        # return this_fqn
         return os.path.abspath(sys.argv[0])
 
     def parseoptest(self, arguments, version=None, tlog=None):
@@ -1279,6 +1259,14 @@ class Z0test(object):
                     print(success_msg)
                 else:
                     print(fail_msg)
+            if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
+                try:
+                    subprocess.call(
+                        ['coverage', 'report', '--show-missing'],
+                    )
+                except OSError:
+                    print('Coverage not found!')
+                    ctx['run4cover'] = False
         return sts
 
     def dbgmsg(self, ctx, msg, echo=None):
