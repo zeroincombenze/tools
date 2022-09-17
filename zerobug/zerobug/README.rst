@@ -369,7 +369,8 @@ History
 2.0.0.1 (2022-09-06)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] travis_intsall_env: minor fixes
+* [FIX] travis_install_env: minor fixes
+* [IMP] z0testlib: show coverage result
 
 
 2.0.0 (2022-08-10)
@@ -401,7 +402,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-09-07
+Last Update / Ultimo aggiornamento: 2022-09-16
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

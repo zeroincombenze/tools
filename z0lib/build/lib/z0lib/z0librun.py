@@ -56,29 +56,81 @@ def nakedname(path):
 
 
 def run_traced(cmd, verbose=None, dry_run=None):
+    def sh_rm(args):
+        ix = 1
+        opt_f = False
+        opt_R = False
+        opt_unk = False
+        while args[ix] and args[ix].startswith("-"):
+            if args[ix] == "-f":
+                opt_f = True
+            elif args[ix] in ("-fR", "-Rf"):
+                opt_f = True
+                opt_R = True
+            else:
+                opt_unk = True
+                break
+            ix += 1
+        if opt_unk or not opt_f:
+            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                proc.wait()
+                sts = proc.returncode
+        else:
+            sts = 0
+            tgtdir = args[ix]
+            if not os.path.exists(tgtdir):
+                sts = 1
+            elif opt_R:
+                shutil.rmtree(tgtdir)
+            else:
+                os.unlink(tgtdir)
+        return sts
+
+    def sh_mkdir(args):
+        ix = 1
+        opt_unk = False
+        if args[ix] and args[ix].startswith("-"):
+            opt_unk = True
+        if opt_unk:
+            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                proc.wait()
+                sts = proc.returncode
+        else:
+            sts = 0
+            tgtdir = args[ix]
+            if os.path.exists(tgtdir):
+                sts = 1
+            else:
+                os.mkdir(tgtdir)
+        return sts
+
     if verbose:
         print('%s %s' % (">" if dry_run else "$", cmd))
-    # args = qsplit(cmd)
     args = shlex.split(cmd)
     sts = 0
     prcout = prcerr = ""
-    if cmd.startswith("cd "):
-        tgtdir = cmd[3:].strip()
-        if not dry_run or os.path.isdir(tgtdir):
+    if args[0] == "cd":
+        tgtdir = args[1] if len(args) > 1 else os.environ["HOME"]
+        if os.path.isdir(tgtdir):
             os.chdir(tgtdir)
+        elif not dry_run:
+            sts = 1
     elif not dry_run:
-        if cmd.startswith("rm -fR "):
-            tgtdir = cmd[7:].strip()
-            shutil.rmtree(tgtdir)
+        if args[0] == "rm":
+            sts = sh_rm(args)
         elif cmd.startswith("mkdir "):
-            tgtdir = cmd[6:].strip()
-            os.mkdir(tgtdir)
+            sts = sh_mkdir(args)
         else:
-            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
-                prcout, prcerr = proc.communicate()
-                sts = proc.returncode
-                prcout = prcout.decode("utf-8")
-                prcerr = prcerr.decode("utf-8")
+            try:
+                with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                    prcout, prcerr = proc.communicate()
+                    sts = proc.returncode
+                    prcout = prcout.decode("utf-8")
+                    prcerr = prcerr.decode("utf-8")
+            except FileNotFoundError as e:
+                if verbose:
+                    print(e)
+                sts = 127
     return sts, prcout, prcerr
 
 
