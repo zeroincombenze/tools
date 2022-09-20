@@ -1,6 +1,6 @@
 
 ============
-lisa 2.0.0.1
+lisa 2.0.0.2
 ============
 
 
@@ -138,7 +138,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-09-14
+Last Update / Ultimo aggiornamento: 2022-09-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

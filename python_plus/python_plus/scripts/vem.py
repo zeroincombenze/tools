@@ -5,6 +5,7 @@ import sys
 
 
 def main(cli_args=None):
+    import pdb; pdb.set_trace()
     if not cli_args:
         cli_args = sys.argv[1:]
     cmd = os.path.abspath(
