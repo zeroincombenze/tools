@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 2.0.0 (RHEL)
+# version: 2.0.0.2 (RHEL)
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -240,7 +240,7 @@ checkpid() {
 check_4_venv() {
     local dt x
     x=$(which wsl.exe)
-    [[ -n $x ]] && ps -ef|grep -Eq "^postgres.* /.*/postgresql" || sleep 8
+    [[ -n $x && $(ps -ef|grep -Evq "^postgres.* /.*/postgresql") ]] && sleep 8
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     if [[ -n "$VENV_DIR" && -f $VENV_DIR/bin/activate ]]; then
         echo "$dt $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate" >> $LOGFILE
@@ -256,32 +256,51 @@ check_4_venv() {
 
 check_privsep_dir() {
     # Create the PrivSep empty dir if necessary
-    local ur ugr uu x
+    local d dt f ur ugr uu x
     local grp=$(id -g ${USER_RUN})
-    local PIDDIR=$(dirname $PIDFILE)
-    [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && ur=${USER_RUN} || ur=root
-    [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && ugr=${USER_RUN}:${grp} || ugr=root:root
+    dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+    [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && echo "$dt $$ DAEMON ? $0: Development Environment">>$LOGFILE
+    [[ -z "$HOSTNAME_DEV" || ! $HOSTNAME =~ $HOSTNAME_DEV ]] && echo "$dt $$ DAEMON ? $0: Production Environment">>$LOGFILE
+    for f in $LOGFILE $PIDFILE; do
+        ur=${USER_RUN}
+        ugr=${USER_RUN}:${grp}
+        d=$(dirname $f)
+        [[ ! -d $d ]] && echo "$dt $$ DAEMON ? $0: mkdir $d">>$LOGFILE && mkdir $d
+        uu=$(stat -c %U $d)
+        if [[ ${uu} != ${ur} ]]; then
+            echo "$dt $$ DAEMON ? $0: Invalid file $f owner $uu: expected ${ur}!">>$LOGFILE
+            echo "$dt $$ DAEMON ? $0: chown ${ugr} $d">>$LOGFILE && chown ${ugr} $d
+            [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0775 $d || chmod 0755 $d
+        fi
+        [[ $f == $PIDFILE ]] && ur=root && ugr=root:root
+        [[ $f != $PIDFILE ]] && ur=${USER_RUN} && ugr=${USER_RUN}:${grp}
+        [[ ! -f $f ]] && touch $f && chown ${ugr} $f
+        [[ ! -f $f ]] && continue
+        uu=$(stat -c %U $f)
+        if [[ ${uu} != ${ur} ]]; then
+            [[ "$uu" != "${USER_RUN}" ]] && echo "$x $$ DAEMON ? $0: Invalid file $f owner $uu: expected ${ur}!">>$LOGFILE
+            echo "$dt $$ DAEMON ? $0: chown ${ugr} $f">>$LOGFILE && chown ${ugr} $f
+            [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0664 $f || chmod 0644 $f
+        fi
+    done
+}
 
-    [[ "$PIDDIR" != "/var/run" && "$PIDDIR" != "/run" && ! -d $PIDDIR ]] && mkdir $PIDDIR
-    [[ ! -f "$PIDFILE" ]] && touch $PIDFILE && chown ${ugr} $PIDFILE
-    if [[ "$PIDDIR" != "/var/run" && "$PIDDIR" != "/run" ]]; then
-      uu=$(stat -c %U $PIDDIR)
-      if [[ ${uu} != ${ur} ]]; then
-        local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        echo "$x $$ DAEMON ? $0: Invalid pid directory owner ${uu}!">>$LOGFILE
-        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0775 $PIDDIR || chmod 0755 $PIDDIR
-        chown ${ugr} $PIDDIR
-      fi
-    fi
-    if [[ -f "$PIDFILE" ]]; then
-      uu=$(stat -c %U $PIDFILE)
-      if [[ "$uu" != "${USER_RUN}" ]]; then
-        local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        echo "$x $$ DAEMON ? $0: Invalid pid file $PIDFILE owner $uu: expected ${ur}!">>$LOGFILE
-      fi
-      [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0664 $PIDFILE || chmod 0644 $PIDFILE
-      chown ${ugr} $PIDFILE
-    fi
+
+set_publicsep_dir() {
+    # Create the PrivSep empty dir if necessary
+    local d dt f ur ugr uu x
+    local grp=$(id -g ${USER_RUN})
+    dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+    ur=${USER_RUN}
+    ugr=${USER_RUN}:${grp}
+    for f in $LOGFILE $PIDFILE; do
+        [[ ! -f $f ]] && continue
+        uu=$(stat -c %U $f)
+        if [[ ${uu} != ${ur} ]]; then
+            echo "$dt $$ DAEMON ? $0: chown ${ugr} $f">>$LOGFILE && chown ${ugr} $f
+            [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0664 $f || chmod 0644 $f
+        fi
+    done
 }
 
 
@@ -299,7 +318,6 @@ start_RHEL () {
         [ $RETVAL -ne 0 ] && return $RETVAL
     fi
 
-    check_privsep_dir
     if [ $DRY_RUN -gt 0 ]; then
       echo "> daemon --user ${USER_RUN} --check ${NAME} \"/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &\""
     else
@@ -310,13 +328,11 @@ start_RHEL () {
     RETVAL=$?
     echo
     [[ $DRY_RUN -eq 0 && $RETVAL -eq 0 ]] && touch $LOCKFILE
-    check_privsep_dir
     return $RETVAL
 }
 
 
 start_Debian () {
-    check_privsep_dir
     if [ -z "$USE_SUDO" ] || [ $USE_SUDO -eq 0 ]; then
       if [ $DRY_RUN -gt 0 ]; then
         echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER_RUN} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
@@ -334,7 +350,6 @@ start_Debian () {
       fi
       RETVAL=$?
     fi
-    check_privsep_dir
     return $RETVAL
 }
 
@@ -343,11 +358,12 @@ start() {
     if [ "$1" != "mute" ]; then
         echo "Starting ${DESC}: "
     fi
+    check_privsep_dir
     check_4_venv
     check_lessc
-    local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    [[ -n $ODOO_CONNECTOR_CHANNELS ]] && echo "$x $$ DAEMON ? $0: ODOO_CONNECTOR_CHANNELS=\"$ODOO_CONNECTOR_CHANNELS\"">>$LOGFILE
-    echo "$x $$ DAEMON ? $0: ${DAEMON} ${DAEMON_OPTS}">>$LOGFILE
+    local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+    [[ -n $ODOO_CONNECTOR_CHANNELS ]] && echo "$dt $$ DAEMON ? $0: ODOO_CONNECTOR_CHANNELS=\"$ODOO_CONNECTOR_CHANNELS\"">>$LOGFILE
+    echo "$dt $$ DAEMON ? $0: ${DAEMON} ${DAEMON_OPTS}">>$LOGFILE
     if [ "$FH" == "RHEL" ]; then
         start_RHEL
     elif [ "$FH" == "Debian" ]; then
@@ -422,8 +438,9 @@ stop() {
         stop_by_ps
     fi
     RETVAL=$?
-    local x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    echo "$x $$ DAEMON ? $0: stop process $PIDFILE">>$LOGFILE
+    local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+    echo "$dt $$ DAEMON ? $0: stop process $PIDFILE">>$LOGFILE
+    set_publicsep_dir
     return $RETVAL
 }
 
