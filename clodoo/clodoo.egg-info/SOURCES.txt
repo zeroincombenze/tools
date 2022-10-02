@@ -24,6 +24,5 @@ clodoo.egg-info/not-zip-safe
 clodoo.egg-info/requires.txt
 clodoo.egg-info/top_level.txt
 clodoo/scripts/__init__.py
-clodoo/scripts/list_requirements.py
 clodoo/scripts/main.py
 clodoo/scripts/setup.info

@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+import os
+import subprocess
+import sys
+
+from getaddons import get_modules
+
+
+__version__ = '2.0.0'
+
+
+def get_build_dir():
+    odoo_version = os.environ.get("VERSION")
+    travis_base_dir = os.environ.get("TRAVIS_BUILD_DIR", "../..")
+    tested_version = ''
+    for ldir in ('./server/openerp', './openerp', './odoo'):
+        if os.path.isdir(ldir) and os.path.isfile('%s/release.py' % ldir):
+            sys.path.append(ldir)
+            import release
+            tested_version = release.version
+            if odoo_version == "auto":
+                odoo_version = tested_version
+            travis_base_dir = os.path.abspath('%s/addons' % ldir)
+            break
+    return travis_base_dir, odoo_version
+
+
+
+root_dir = os.path.dirname(os.path.abspath(__file__))
+flake8_config_dir = os.path.join(root_dir, 'cfg')
+folders = (os.environ.get("INCLUDE_LINT", "").split() or
+           get_modules(os.path.abspath('.')))
+exclude_level = os.environ.get('LINT_CHECK_LEVEL', '')
+travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
+travis_base_dir, odoo_version = get_build_dir()
+status = 0
+
+for addon in folders:
+    specific_cfg = os.path.join(flake8_config_dir,
+                                'travis_run_flake8__init__%s-%s.cfg' %
+                                (exclude_level, odoo_version))
+    if not os.path.isfile(specific_cfg):
+        specific_cfg = os.path.join(flake8_config_dir,
+                                    'travis_run_flake8__init__%s.cfg' %
+                                    exclude_level)
+    if not os.path.isfile(specific_cfg):
+        specific_cfg = os.path.join(flake8_config_dir,
+                                    'travis_run_flake8__init__.cfg')
+    status += subprocess.call(['flake8', addon, '--config=%s' % specific_cfg])
+    specific_cfg = os.path.join(flake8_config_dir,
+                                'travis_run_flake8_%s-%s.cfg' %
+                                (exclude_level, odoo_version))
+    if not os.path.isfile(specific_cfg):
+        specific_cfg = os.path.join(flake8_config_dir,
+                                    'travis_run_flake8_%s.cfg' %
+                                    exclude_level)
+    if not os.path.isfile(specific_cfg):
+        specific_cfg = os.path.join(flake8_config_dir,
+                                    'travis_run_flake8.cfg')
+    if travis_debug_mode:
+        print('>>> %s' % ' '.join(['flake8', addon,
+                                   '--config=%s' % specific_cfg]))
+    status += subprocess.call(['flake8', addon, '--config=%s' % specific_cfg])
+
+sys.exit(0 if status == 0 else 1)

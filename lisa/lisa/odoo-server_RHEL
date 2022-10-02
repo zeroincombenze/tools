@@ -239,7 +239,7 @@ checkpid() {
 
 check_4_venv() {
     local dt x
-    x=$(which wsl.exe)
+    x=$(which wsl.exe 2>/dev/null)
     [[ -n $x && $(ps -ef|grep -Evq "^postgres.* /.*/postgresql") ]] && sleep 8
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     if [[ -n "$VENV_DIR" && -f $VENV_DIR/bin/activate ]]; then

@@ -147,8 +147,8 @@ update_odoo_conf() {
 OPTOPTS=(h        b         C       D        E        I         G       L        m         N        n            P       S        T        t        U        V           v)
 OPTDEST=(opt_help odoo_vid  opt_cfg opt_ucfg opt_osf  opt_id    opt_org opt_flog opt_multi opt_name opt_dry_run  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
 OPTACTI=("+"      "=>"      "=>"    1        "=>"     "=>"      "="     "=>"     1         "=>"     1            "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
-OPTDEFL=(1        "10"      ""      0        ""        ""        ""      ""       0         ""       0            ""      0        ""       ""       "odoo"   ""          0)
-OPTMETA=("help"   "vid"     "file"  ""       "linux"   "id-name" "id"    "file"   "mult"    "name"   "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
+OPTDEFL=(1        "10"      ""      0        ""       ""        ""      ""       0         ""       0            ""      0        ""       ""       "odoo"   ""          0)
+OPTMETA=("help"   "vid"     "file"  ""       "linux"  "id-name" "id"    "file"   "mult"    "name"   "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
  "select odoo version id: may be 6, 7, 8, 9, 10, 11, 12 or 13"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
@@ -179,7 +179,7 @@ if [[ $opt_help -gt 0 ]]; then
   "(C) 2015-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-discover_multi
+# discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 [ $opt_ucfg -ne 0 ] && update_odoo_conf $odoo_vid $opt_cfg

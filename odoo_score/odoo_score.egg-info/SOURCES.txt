@@ -16,6 +16,7 @@ odoo_score/odoo_score_9.py
 odoo_score/odoo_shell.py
 odoo_score/run_odoo_debug
 odoo_score/secure_db.py
+odoo_score/set_workers
 odoo_score.egg-info/PKG-INFO
 odoo_score.egg-info/SOURCES.txt
 odoo_score.egg-info/dependency_links.txt

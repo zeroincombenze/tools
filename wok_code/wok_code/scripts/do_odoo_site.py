@@ -15,6 +15,7 @@ TEMPLATE = """#############################################
 
     RemoteIPHeader X-Forwarded-For
     RemoteIPInternalProxy 127.0.0.0/8
+
     ProxyRequests Off
     ProxyPreserveHost On
     <Proxy *>
@@ -27,14 +28,15 @@ TEMPLATE = """#############################################
     ProxyPass / http://localhost:%(port)s/ timeout=600 keepalive=On retry=0
     ProxyPassReverse / http://localhost:%(port)s/
 
-    ErrorLog logs/%(domain)s-error.log
-    CustomLog logs/%(domain)s-access.log combined
+    ErrorLog ${APACHE_LOG_DIR}/%(domain)s-error.log
+    CustomLog ${APACHE_LOG_DIR}/%(domain)s-access.log combined
 
     RewriteEngine on
     RewriteCond %%{SERVER_NAME} =%(domain)s
     RewriteRule ^ https://%%{SERVER_NAME}%%{REQUEST_URI} [END,NE,R=permanent]
 </VirtualHost>
 """
+
 
 TEMPLATE_HTTPS = """#############################################
 # Odoo service
@@ -48,6 +50,7 @@ TEMPLATE_HTTPS = """#############################################
 
     RemoteIPHeader X-Forwarded-For
     RemoteIPInternalProxy 127.0.0.0/8
+
     ProxyRequests Off
     ProxyPreserveHost On
     <Proxy *>

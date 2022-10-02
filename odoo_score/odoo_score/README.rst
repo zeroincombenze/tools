@@ -1,6 +1,6 @@
 
 ==================
-odoo_score 2.0.0.1
+odoo_score 2.0.0.2
 ==================
 
 
@@ -150,6 +150,12 @@ Current development version
 History
 -------
 
+2.0.0.2 (2022-09-22)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odo_debug: test with random rpcport for multiple tests
+* [IMP] odoo_shell.py: new actions
+
 2.0.0.1 (2022-09-07)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -185,7 +191,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-09-14
+Last Update / Ultimo aggiornamento: 2022-10-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

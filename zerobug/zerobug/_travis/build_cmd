@@ -1,14 +1,30 @@
 #! /bin/bash
+# This script replaces or creates a command to test
+# \$1: source file to test
+# \$2: bin command (if not default or it does not exist)
 PYTHON=$(which python)
 PYVER=$(python --version 2>&1 | grep --color=never -Eo "[0-9]" | head -n1)
+SRCPATH=$(readlink -f "$1")
+CMD="$2"
 BASE=$(basename $1)
+[[ -z $CMD ]] && CMD=$(which "$BASE" 2>/dev/null)
 [[ $BASE =~ .py$ ]] && BASE=${BASE:0: -3}
-cmd=$(readlink -f $1)
+[[ -z $CMD ]] && CMD=$(which "$BASE" 2>/dev/null)
+[[ -z $CMD ]] && cmd="$SRCPATH" || cmd="$CMD"
+x=$(dirname $SRCPATH)
+FROM="$(basename $x).$BASE"
+while [[ -n "$x" ]]; do
+    x=$(dirname $x)
+    FROM="$(basename $x).$FROM"
+    [[ -f $x/__init__.py ]] && break
+done
+
 echo "#!$PYTHON">$cmd
 echo "# -*- coding: utf-8 -*-">>$cmd
+echo "# Created for test use on $(date '+%Y-%m-%d %H:%M:%S')">>$cmd
 echo "import re">>$cmd
 echo "import sys">>$cmd
-echo "from scripts.$BASE import main">>$cmd
+echo "from $FROM import main">>$cmd
 echo "if __name__ == '__main__':">>$cmd
 echo "    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])">>$cmd
 echo "    sys.exit(main())">>$cmd

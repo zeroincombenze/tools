@@ -302,7 +302,7 @@ pip_install() {
   [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
   [[ -n $opt_distro ]] && DISTO=${opt_distro,,} || DISTO=$(xuname -d)
   pypath=$(find $VIRTUAL_ENV/lib -type d -name "python$opt_pyver")
-  [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
+  [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON 2>/dev/null))/../lib) -type d -name site-packages)
   tmpdir=$VIRTUAL_ENV/tmp
   pkg="$(get_actual_pkg $1)"
   pfn=$(get_pkg_wo_version $pkg)
@@ -727,6 +727,7 @@ find_cur_py() {
       PIP=$(which pip 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     fi
+    [[ -n $PYTHON && ! $LIST_REQ =~ bin/python ]] && LIST_REQ="$PYTHON $LIST_REQ"
 }
 
 find_odoo_path() {
@@ -1116,7 +1117,7 @@ do_venv_create() {
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
   check_installed_pkgs
   pypath=$(find $VENV/lib -type d -name "python$opt_pyver")
-  [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON))/../lib) -type d -name site-packages)
+  [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON 2>/dev/null))/../lib) -type d -name site-packages)
   if [[ -n "$opt_oepath" && -n "$opt_oever" ]]; then
     BINPKGS=$(get_req_list "" "bin")
     [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' 'bin' 'debug')"
@@ -1201,7 +1202,7 @@ validate_py_oe_vers() {
 
 
 OPTOPTS=(h        a        B         C      D       d        E          f         F      k        I           i         l        n           O         o          p         q           r           s                    t          V           v           y)
-OPTLONG=(help     ""       ""        ""     devel   dep-path distro     force     ""     keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose     yes\)
+OPTLONG=(help     ""       ""        ""     devel   dep-path distro     force     ""     keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose     yes)
 OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_deps opt_distro opt_force opt_FH opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose opy_yes)
 OPTACTI=('+'      "="      "+"       1      1       "="      "="        1         "="    1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+"         1)
 OPTDEFL=(1        ""       0         0      0       ""       ""         0         ""     0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1          0)
@@ -1307,7 +1308,8 @@ PRINTED_PIPVER=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"
-LIST_REQ="$(which list_requirements.py)"
+[[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ="$(which list_requirements.py 2>/dev/null)"
+[[ -z $LIST_REQ ]] && echo "Command list_requirements.py not found!" && exit 1
 
 if [[ $action == "rm" ]]; then
   [[ $PWD == $(readlink -f $p2) ]] && cd

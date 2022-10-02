@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='odoo_score',
-    version='2.0.0.1',
+    version='2.0.0.2',
     description='Odoo super core',
     long_description="""
 Odoo supercore
@@ -33,7 +33,7 @@ and makes available a simple odoo shell.
     license='Affero GPL',
     install_requires=['z0lib', 'future'],
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-    package_data={'': ['scripts/setup.info', './run_odoo_debug']},
+    package_data={'': ['scripts/setup.info', './run_odoo_debug', './set_workers']},
     entry_points={
         'console_scripts': [
             'odoo_score-info = odoo_score.scripts.main:main',

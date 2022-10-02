@@ -65,6 +65,7 @@ The available tools are:
             './to_oca.2p8',
             './to_zero.2p8',
             './to_pep8.2p8',
+            './pypi.sh',
         ]
     },
     entry_points={

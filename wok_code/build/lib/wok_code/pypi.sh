@@ -3,6 +3,27 @@ __version__=2.0.0.3
 if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
+
+run_traced() {
+    local xcmd="$1"
+    local sts=0
+    local PMPT=
+    [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
+    [[ $opts =~ ^-.*q ]] || echo "$PMPT$xcmd"
+    [[ $opts =~ ^-.*n ]] || eval $xcmd
+    sts=$?
+    return $sts
+}
+
+do_replace() {
+    [[ $pkg == "tools" ]] && srcdir="$HOME_DEVEL/pypi/$fn" || srcdir="$HOME_DEVEL/pypi/$fn/$fn"
+    OPTS=""
+    [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
+    echo -e "\n===[$pkg]==="
+    run_traced "cd $srcdir"
+    run_traced "please $OPTS replace"
+}
+
 act=""
 pypi=""
 opts=""
@@ -29,7 +50,10 @@ while [[ -n $1 ]]; do
     fi
     shift
 done
-ACTLIST="diff|dir|docs|info|show|install|update|libdir|replace|replace-update|travis|travis-summary|version"
+[[ -n "$opts" ]] && opts="-$opts"
+ACTLIST="diff|dir|docs|info|install|libdir|list|meld|replace|show|travis|travis-summary|update|update+replace|version"
+ACT2VME="^(dir|info|show|install|libdir|update|update\+replace|update)$"
+ACT2TOOLS="^(docs|list|replace|travis|travis-summary|version)$"
 PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
 PKGS_LIST_RE="(${PKGS_LIST// /|})"
 PKGS_LIST_RE=${PKGS_LIST_RE//-/.}
@@ -40,16 +64,17 @@ b=$(basename $PWD)
 [[ -z "$pypi" && $(dirname $PWD) == $HOME_DEVEL/pypi/$b && $b =~ $PKGS_LIST_RE ]] && pypi=$b
 [[ -z "$pypi" ]] && pypi="$PKGS_LIST" || pypi="${pypi//,/ }"
 [[ -z "$tgtdir" ]] && tgtdir="$ODOO_ROOT/VME/* $HOME_DEVEL/venv" || tgtdir="$(readlink -f $tgtdir)/*"
-[[ -n "$opts" ]] && opts="-$opts"
 [[ $tgtdir =~ ^[~/.] ]] || tgtdir="$ODOO_ROOT/$tgtdir"
-[[ $act =~ (docs|replace|travis|travis-summary|version) ]] && tgtdir=$HOME_DEVEL/pypi/tools
+[[ $act =~ $ACT2TOOLS ]] && tgtdir=$HOME_DEVEL/pypi/tools
 [[ -n $branch ]] && branch="(${branch//,/|})"
 echo "$0 $act '$pypi' -d $tgtdir -b $branch $opts"
+act2=$act
 for d in $tgtdir; do
-    if [[ ! $act =~ (diff|docs|replace|travis|travis-summary|version) ]]; then
+    [[ $act =~ "list" ]] && echo "$PKGS_LIST" && run_traced "find $ODOO_ROOT/tools -maxdepth 1 -type d|grep -Ev \"(/|.git|docs|egg-info|license_text|templates|tests|z0tester)$\"|sort|cut -d/ -f5" && continue
+    if [[ $act =~ $ACT2VME || ( $act =~ (diff|meld) && -n $branch ) ]]; then
         [[ -d "$d" ]] || continue
         [[ -n "$branch" && ! $d =~ $branch ]] && continue
-        [[ $d =~ VME(3.5|3.6) ]] && continue
+        # [[ $d =~ VME(3.5|3.6) ]] && continue
         echo "[$d]"
         pypath=
         [[ -d $d/lib/python2.7/site-packages ]] && pypath=$d/lib/python2.7/site-packages
@@ -64,75 +89,56 @@ for d in $tgtdir; do
         fi
     fi
     for pkg in $pypi tools; do
-        [[ $pkg != "tools" || $act =~ (docs|replace|replace-update|version) ]] || continue
+        [[ $pkg != "tools" || $act =~ $ACT2TOOLS ]] || continue
         [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
-        if [[ $act =~ (info|show|install|replace-update|update) ]]; then
-            if [[ $act == "replace-update" ]]; then
-                [[ $pkg == "tools" ]] && srcdir="$HOME_DEVEL/pypi/$fn" || srcdir="$HOME_DEVEL/pypi/$fn/$fn"
-                OPTS=""
-                [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
-                echo -e "\n===[$pkg]==="
-                echo "cd $srcdir; please $OPTS replace"
-                cd $srcdir
-                [[ $opts =~ -.*n ]] || please $OPTS replace
-            fi
-            if [[ $opts =~ -.*B ]]; then
-                srcdir="$HOME_DEVEL/pypi/$fn/$fn"
-            else
-                srcdir="$ODOO_ROOT/tools/$fn"
-            fi
+        if [[ $act =~ (info|show|install|update+replace|update) ]]; then
+            [[ $opts =~ -.*B || $act == "update+replace" ]] && srcdir="$HOME_DEVEL/pypi/$fn/$fn" || srcdir="$ODOO_ROOT/tools/$fn"
             [[ ! -d "$srcdir" ]] && continue
-            [[ $act == "replace-update" ]] && act2="update" || act2=$act
-            [[ $act =~ (install|replace-update|update) ]] && pkg2=$srcdir || pkg2=$pkg
+            [[ $act == "update+replace" ]] && act2="update"
+            [[ ( $opts =~ -.*B && $act =~ (install|update) ) || $act == "update+replace" ]] && pkg2=$(dirname $srcdir) || pkg2="$pkg -BB"
             OPTS=""
             [[ $opts =~ -.*f ]] && OPTS="$OPTS -f"
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             [[ $opts =~ -.*I ]] && OPTS="$OPTS -I"
-            if [[ $act =~ (install|replace-update|update) && $opts =~ -.*f && -d $pypath/$fn && ! -L $pypath/$fn ]]; then
-                echo "vem $d uninstall $pkg $OPTS"
-                [[ $opts =~ -.*n ]] || vem $d uninstall $pkg $OPTS
-            elif [[ $act =~ (install|replace-update|update) && -n $pypath && -L $pypath/$fn  ]]; then
-                echo "rm -f $pypath/$fn"
-                [[ $opts =~ -.*n ]] || rm -f $pypath/$fn
+            if [[ $act =~ (install|update+replace|update) && $opts =~ -.*f && -d $pypath/$fn && ! -L $pypath/$fn ]]; then
+                run_traced "vem $d uninstall $pkg $OPTS"
+            elif [[ $act =~ (install|update+replace|update) && -n $pypath && -L $pypath/$fn  ]]; then
+                run_traced "rm -f $pypath/$fn"
                 [[ $act == "update" ]] && act2="install"
             fi
-            echo "vem $d $act2 $pkg2 $OPTS"
-            [[ $opts =~ -.*n ]] || vem $d $act2 $pkg2 $OPTS
+            run_traced "vem $d $act2 $pkg2 $OPTS"
         elif [[ $act == "dir" ]]; then
-            srcdir=$(vem $d show $pkg|grep "[Ll]ocation:"|awk -F: '{print " -- " $2}')
-            echo $srcdir/$fn
-            dir -lh $srcdir/$fn
+            srcdir=$(vem $d show $pkg 2>/dev/null|grep "[Ll]ocation:"|awk -F: '{print $2}')
+            [[ -n $srcdir ]] && run_traced "dir -lh $srcdir/$fn"|| echo "No ptah found for $pkg"
         elif [[ $act == "libdir" ]]; then
-            echo "libdir=$pypath"
-            dir -lhd $pypath/$fn
+            run_traced "ls -d $pypath/$fn"
 	      elif [[ $act =~ (travis|travis-summary) ]]; then
+	          [[ $pkg == "tools" ]] && continue
             srcdir="$HOME_DEVEL/pypi/$fn/$fn"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             [[ $opts =~ -.*B ]] && OPTS="$OPTS -Z"
             echo -e "\n===[$pkg]==="
             [[ $act == "travis" ]] && echo "cd $srcdir; travis $OPTS" || echo "cd $srcdir; travis $OPTS summary"
-            cd $srcdir
-            [[ $act == "travis" ]] && travis $OPTS || travis $OPTS summary
-        elif [[ $act == "diff" ]]; then
+            run_traced "cd $srcdir"
+            [[ $act == "travis" ]] && run_traced "travis $OPTS" || run_traced "travis $OPTS summary"
+        elif [[ $act =~ (diff|meld) ]]; then
             [[ $pkg == "tools" ]] && srcdir="$HOME_DEVEL/pypi/$fn" || srcdir="$HOME_DEVEL/pypi/$fn/$fn"
-            diff --suppress-common-line -y ""$srcdir"" "$ODOO_ROOT/tools/$fn" | less
+            [[ -n $branch ]] && tgtdir="$pypath/$fn" || tgtdir="$ODOO_ROOT/tools/$fn"
+            if [[ $act == "meld" ]]; then
+               [[ -n $(which meld.exe 2>/dev/null) ]] && run_traced "meld.exe \"$srcdir\" \"$tgtdir\"" || run_traced "meld \"$srcdir\" \"$tgtdir\""
+            else
+                run_traced "diff --suppress-common-line -y \"$srcdir\" \"$tgtdir\" | less"
+            fi
         elif [[ $act == "docs" ]]; then
             [[ $pkg == "tools" ]] && srcdir="$HOME_DEVEL/pypi/$fn" || srcdir="$HOME_DEVEL/pypi/$fn/$fn"
             OPTS=""
             [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
             echo -e "\n===[$pkg]==="
-            echo "cd $srcdir; please $OPTS docs"
-            cd $srcdir
-            [[ $opts =~ -.*n ]] || please $OPTS docs
-        elif [[ $act == "replace" ]]; then
-            [[ $pkg == "tools" ]] && srcdir="$HOME_DEVEL/pypi/$fn" || srcdir="$HOME_DEVEL/pypi/$fn/$fn"
-            OPTS=""
-            [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
-            echo -e "\n===[$pkg]==="
-            echo "cd $srcdir; please $OPTS replace"
-            cd $srcdir
-            [[ $opts =~ -.*n ]] || please $OPTS replace
+            run_traced "cd $srcdir"
+            run_traced "please $OPTS docs"
+        elif [[ $act =~ "replace" ]]; then
+            do_replace
         elif [[ $act == "version" ]]; then
             [[ $pkg == "tools" ]] && continue
             srcdir="$HOME_DEVEL/pypi/$fn/$fn"
@@ -145,4 +151,10 @@ for d in $tgtdir; do
             exit 1
         fi
     done
+    [[ ! $act =~ $ACT2VME ]] && break
 done
+if [[ $act == "update+replace" ]]; then
+    for pkg in $pypi tools; do
+        do_replace
+    done
+fi

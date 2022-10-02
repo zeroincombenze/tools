@@ -34,15 +34,16 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, zarlib):
-        self.Z = zarlib
+    def __init__(self, z):
+        self.Z = z
         self.venv_dir = os.path.join(self.Z.testdir, 'SAMPLE')
         os.chdir(os.environ['HOME'])
         self.SAVED_HOME = os.getcwd()
         self.SAVED_VENV = os.environ['VIRTUAL_ENV']
 
     def setup(self, z0ctx):
-        z0lib.run_traced("build_cmd vem.py")
+        z0lib.run_traced(
+            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "vem.py"))
 
     def clear_venv(self):
         if os.path.isdir(self.venv_dir):

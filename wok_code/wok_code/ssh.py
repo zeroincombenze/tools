@@ -5,6 +5,26 @@ import sys
 __version__ = '0.1.2'
 
 
+def get_remote_user():
+    local_user = os.environ['USER']
+    user = None
+    default_user = None
+    for key, item in DATA[host].items():
+        if "users" in item and local_user not in item["users"]:
+            continue
+        if not default_user or key == local_user:
+            default_user = key
+        if (
+            (not root_user and key == local_user) or
+            (root_user and key != local_user)
+        ):
+            user = key
+            break
+    if not user:
+        user = default_user
+    return user
+
+
 def get_cmd(host, user):
     param = DATA[host][user].get('param')
     passwd = DATA[host][user].get('passwd')
@@ -81,11 +101,14 @@ def show_host(sel_host=None):
                     valid_hosts.append(host)
     if not valid_hosts:
         print('')
-        print('Non host for this user!')
+        print('No host for this user!')
     else:
         print('You should type:')
         for host in valid_hosts:
-            print('$ ssh %s' % host)
+            if host in REV_ALIAS:
+                print('$ ssh %-30.30s # %s' % (host, REV_ALIAS[host]))
+            else:
+                print('$ ssh %s' % host)
 
 
 def show_alias():
@@ -95,20 +118,20 @@ def show_alias():
 
 
 def show_pwd():
+    user = get_remote_user()
     if host in DATA.keys():
-        for user in DATA[host].keys():
-            if os.environ['USER'] in DATA[host][user].get('users'):
-                passwd = DATA[host][user].get('passwd')
-                if passwd:
-                    print(passwd)
-                else:
-                    print("<certificate>")
-                break
+        if user in DATA[host]:
+            passwd = DATA[host][user].get('passwd')
+            if passwd:
+                print("%s (%s)" % (passwd, user))
+            else:
+                print("<certificate> (%s)" % user)
 
 
 # import pdb; pdb.set_trace()
 DATA = {}
 ALIAS = {}
+REV_ALIAS = {}
 confn = os.path.join(os.environ["HOME"], ".ssh", "my_network.dat")
 if os.path.isfile(confn):
     with open(confn, "r") as fd:
@@ -117,6 +140,8 @@ alias = os.path.join(os.environ["HOME"], ".ssh", "my_network_alias.dat")
 if os.path.isfile(alias):
     with open(alias, "r") as fd:
         ALIAS = eval(fd.read())
+    for key, item in ALIAS.items():
+        REV_ALIAS[item] = key
 
 host = None
 user = None
@@ -130,18 +155,21 @@ list_pwd = False
 scp = False
 rsync = False
 sh_alias = False
+do_dir = False
 root_user = False
 ctr = 0
 for param in sys.argv[1:]:
     if param.startswith('-'):
         if "h" in param:
-            print('ssh.py [-alnvwz] host [user]  # ssh')
+            print('ssh.py [-adlnvwz] host [user]  # ssh')
             print('ssh.py -[n][r]s[vz] host [user] source destination  # scp')
             print('ssh.py -[n][r]m[vz] host [user] source destination  # rsync')
             # show_host()
             exit(0)
         if "a" in param:
             sh_alias = True
+        if "d" in param:
+            do_dir = True
         if "l" in param:
             list_host = True
         if "m" in param:
@@ -192,24 +220,12 @@ if (scp or rsync) and user and source and not dest:
     dest = source
     source = user
     user = ""
+elif do_dir and user and not source:
+    source = user
+    user = ""
 
 if not user:
-    local_user = os.environ['USER']
-    user = None
-    default_user = None
-    for key, item in DATA[host].items():
-        if "users" in item and local_user not in item["users"]:
-            continue
-        if not default_user or key == local_user:
-            default_user = key
-        if (
-            (not root_user and key == local_user) or
-            (root_user and key != local_user)
-        ):
-            user = key
-            break
-    if not user:
-        user = default_user
+    user = get_remote_user()
 if not user:
     print('No user supplied!')
     show_host(sel_host=host)
@@ -223,7 +239,13 @@ if os.environ['USER'] not in DATA[host][user].get('users'):
     show_host(sel_host=host)
     exit(1)
 
-if scp or rsync:
+if do_dir:
+    if not source:
+        print('No source path supplied!')
+        exit(1)
+    cmd = get_cmd(host, user)
+    cmd = "%s dir '%s'" % (cmd, source)
+elif scp or rsync:
     if not source:
         print('No source path supplied!')
         exit(1)

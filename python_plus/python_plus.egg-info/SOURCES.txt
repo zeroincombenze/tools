@@ -11,6 +11,7 @@ python_plus.egg-info/not-zip-safe
 python_plus.egg-info/requires.txt
 python_plus.egg-info/top_level.txt
 python_plus/scripts/__init__.py
+python_plus/scripts/list_requirements.py
 python_plus/scripts/main.py
 python_plus/scripts/setup.info
 python_plus/scripts/vem.py

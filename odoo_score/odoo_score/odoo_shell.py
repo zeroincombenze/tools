@@ -33,7 +33,7 @@ import pdb  # pylint: disable=deprecated-module
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '2.0.0.1'
+__version__ = '2.0.0.2'
 
 
 MAX_DEEP = 20
@@ -865,31 +865,110 @@ def clean_translations(ctx):
 def close_sale_orders(ctx):
     print('Close sale orders with linked invoice')
     if ctx['param_1'] == 'help':
-        print('close_sale_orders {no|to invoice}')
+        print('close_sale_orders [no|to invoice] [SHIP_CODE]')
         return
-    if ctx['param_1'] in ('no', 'to invoice'):
+    if ctx['param_1'] in ('no', 'to invoice', 'both'):
         sel_state = ctx['param_1']
     else:
-        sel_state = 'no'
+        sel_state = 'both'
+    if ctx.get('param_2'):
+        prod = clodoo.searchL8(
+            ctx, 'product.product', [('default_code', '=', ctx['param_2'])]
+        )
+        if prod:
+            prod = clodoo.browseL8(ctx, 'product.product', prod[0])
     model = 'sale.order'
     ctr = 0
+    domain = [
+        ('state', '=', 'sale'),
+        ('invoice_count', '>', 0),
+    ]
+    if sel_state == 'both':
+        domain.append(('invoice_status', 'in', ['no', 'to invoice']))
+    else:
+        domain.append(('invoice_status', '=', sel_state))
     for so in clodoo.browseL8(
+        ctx,
+        model,
+        clodoo.searchL8(ctx, model, domain),
+    ):
+        if so.invoice_ids:
+            clodoo.writeL8(ctx, model, so.id, {'invoice_status': 'invoiced'})
+            ctr += 1
+        else:
+            invoiced = True
+            ships = []
+            for ln in so.order_line:
+                if ln.invoice_lines or not ln.product_id:
+                    continue
+                if ln.product_id == prod:
+                    ships.append(ln.id)
+                elif ln.product_id != prod:
+                    invoiced = False
+                    break
+            if invoiced:
+                for ln_id in ships:
+                    ln = clodoo.browseL8(ctx, 'sale.order.line', ln_id)
+                    clodoo.writeL8(ctx,
+                                   'sale.order.line',
+                                   ln_id,
+                                   {'qty_invoiced': ln.qty_to_invoice}
+                                   )
+                    ctr += 1
+                clodoo.writeL8(ctx, model, so.id, {'invoice_status': 'invoiced'})
+                ctr += 1
+    print('%d sale order updated!' % ctr)
+
+
+def close_ddts(ctx):
+    print('Close Delivery Document Type with linked invoice')
+    if ctx['param_1'] == 'help':
+        print('close_sale_orders')
+        return
+    model = 'stock.picking.package.preparation.line'
+    model1 = 'stock.picking.package.preparation'
+    ctr = 0
+    for ln in clodoo.browseL8(
+        ctx,
+        model1,
+        clodoo.searchL8(
+            ctx,
+            model1,
+            [
+                ('invoice_id', '!=', False),
+                ('to_be_invoiced', '=', True)
+            ],
+        ),
+    ):
+        msg_burst('%s ...' % ln.name)
+        clodoo.writeL8(ctx,
+                       model1,
+                       ln.id,
+                       {'to_be_invoiced': False})
+        ctr += 1
+    for ln in clodoo.browseL8(
         ctx,
         model,
         clodoo.searchL8(
             ctx,
             model,
             [
-                ('state', '=', 'sale'),
-                ('invoice_count', '>', 0),
-                ('invoice_status', '=', sel_state),
+                ('package_preparation_id.to_be_invoiced', '=', True),
+                '|',
+                ('invoice_line_id', '!=', False),
+                ('sale_line_id.order_id.invoice_status', '=', 'invoiced')
             ],
         ),
     ):
-        if so.invoice_ids:
-            clodoo.writeL8(ctx, model, so.id, {'invoice_status': 'invoiced'})
+        msg_burst('%s ...' % ln.package_preparation_id.name)
+        # Header may be updated by previous line, so test weather have to anything
+        if ln.package_preparation_id.to_be_invoiced:
+            clodoo.writeL8(ctx,
+                           model1,
+                           ln.package_preparation_id.id,
+                           {'to_be_invoiced': False})
             ctr += 1
-    print('%d sale order updated!' % ctr)
+    print('%d DdT updated!' % ctr)
 
 
 def close_purchase_orders(ctx):

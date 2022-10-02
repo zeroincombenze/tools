@@ -72,12 +72,24 @@ srcpath=$(readlink -e $srcpath)
 tgtpath=$(readlink -e $tgtpath)
 DIFFPATH="$HOME/tmp/diff"
 [[ ! -d $DIFFPATH ]] && mkdir -p $DIFFPATH
-LDIFFPATH=$DIFFPATH/left
-[[ -d $LDIFFPATH ]] && chmod -R +w $LDIFFPATH && rm -fR $LDIFFPATH
-mkdir $LDIFFPATH
-RDIFFPATH=$DIFFPATH/right
-[[ -d $RDIFFPATH ]] && chmod -R +w $RDIFFPATH && rm -fR $RDIFFPATH
-mkdir $RDIFFPATH
+xl=$srcpath
+xr=$tgtpath
+bl=""
+br=""
+while [[ -n $xl && -n $xr && $xr != $xl ]]; do
+    bl=$(basename $xl)
+    xl=$(dirname $xl)
+    br=$(basename $xr)
+    xr=$(dirname $xr)
+done
+[[ -z $bl ]] && bl="left"
+[[ -z $br ]] && bl="right"
+LDIFFPATH=$DIFFPATH/$bl
+[[ $dry_run -eq 0 && -d $LDIFFPATH ]] && chmod -R +w $LDIFFPATH && rm -fR $LDIFFPATH
+RDIFFPATH=$DIFFPATH/$br
+[[ $dry_run -eq 0 && -d $RDIFFPATH ]] && chmod -R +w $RDIFFPATH && rm -fR $RDIFFPATH
+[[ $dry_run -eq 0 ]] && mkdir $LDIFFPATH
+[[ $dry_run -eq 0 ]] && mkdir $RDIFFPATH
 matchdir "$srcpath" "$tgtpath"
 [[ $dry_run -ne 0 ]] && echo $diffcmd $LDIFFPATH $RDIFFPATH && exit 0
 black $LDIFFPATH

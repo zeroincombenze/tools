@@ -30,7 +30,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -d  use development branch not master"
     echo "  -D  create the development environment"
     echo "  -f  force creation of virtual environment even if exists"
-    echo "  -g  do not install hooks in git projects"
+    echo "  -g  do install hooks in git projects"
     echo "  -G  remove hooks from git projects"
     echo "  -k  keep current virtual environment if exists"
     echo "  -n  dry-run"
@@ -378,7 +378,7 @@ if [[ ! $opts =~ ^-.*n && $opts =~ ^-.*P ]]; then
     $(grep -q "\$HOME.*/activate_tools" $HOME/.bash_profile) && sed -e "s|\$HOME.*/activate_tools|$DSTPATH/activate_tools|" -i $HOME/.bash_profile || echo "[[ -f $DSTPATH/activate_tools ]] && . $DSTPATH/activate_tools -q" >>$HOME/.bash_profile
 fi
 
-if [[ ! $opts =~ ^-.*[gt] ]]; then
+if [[ ! $opts =~ ^-.*t && $opts =~ ^-.*[gG] ]]; then
     . $DSTPATH/venv/bin/clodoo/odoorc
     [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
     for d in $(find $HOME -not -path "*/.cache/*" -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do

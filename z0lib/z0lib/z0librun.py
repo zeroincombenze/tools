@@ -48,7 +48,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.0.2"
+__version__ = "2.0.0.3"
 
 
 def nakedname(path):
@@ -131,6 +131,8 @@ def run_traced(cmd, verbose=None, dry_run=None):
                 if verbose:
                     print(e)
                 sts = 127
+            except BaseException:
+                sts = 126
     return sts, prcout, prcerr
 
 

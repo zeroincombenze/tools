@@ -1,0 +1,217 @@
+#!/usr/bin/env python
+"""Usage: clone_oca_dependencies [<checkout_dir> <build_dir>]
+
+Arguments:
+
+deps_checkout_dir: the directory in which the dependency repositories
+will be cloned
+build_dir: the directory in which the tested repositories have been cloned
+
+If no arguments are provided, default to the layout used in the OCA travis
+configuration.
+
+The program will process the file oca_dependencies.txt at the root of the
+tested repository, and clone the dependency repositories in checkout_dir,
+before recursively processing the oca_dependencies.txt files of the
+dependencies.
+
+The expected format for oca_dependencies.txt:
+
+* comment lines start with # and are ignored
+* a dependency line contains:
+  - the name of the OCA project
+  - (optional) the URL to the git repository (defaulting to the OCA repository)
+  - (optional) the name of the branch to use (defaulting to ${VERSION})
+"""
+from __future__ import print_function
+import sys
+import os
+import os.path as osp
+import subprocess
+import logging
+from travis_helpers import print_flush
+
+_logger = logging.getLogger()
+__version__ = '2.0.0'
+
+
+def parse_depfile(depfile, owner=None):
+    owner = owner or 'OCA'
+    deps = []
+    for line in depfile:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        parts = line.split()
+        repo = parts[0]
+        # TODO: recall real owner if needed
+        if repo == 'l10n-italy-supplemental':
+            cur_owner = 'zeroincombenze'
+        elif repo != 'OCB' and owner == 'odoo':
+            cur_owner = 'OCA'
+        else:
+            cur_owner = owner
+        if len(parts) > 2:
+            branch = parts[2]
+        else:
+            branch = os.environ.get('VERSION', '12.0')
+        if len(parts) > 1:
+            url = parts[1]
+        else:
+            url = 'https://github.com/%s/%s.git' % (cur_owner, repo)
+        deps.append((repo, url, branch))
+    return deps
+
+
+def git_checkout(deps_checkout_dir, reponame, url, branch):
+    checkout_dir = osp.join(deps_checkout_dir, reponame)
+    # When running in local emulator does nothing
+    srcdir = False
+    if os.environ.get('TRAVIS', '') != 'true':
+        dep_root = os.environ.get('TRAVIS_HOME_BRANCH')
+        travis_home = os.environ.get('TRAVIS_SAVED_HOME', osp.expanduser('~'))
+        if dep_root:
+            for ldir in ('', '..', '../..'):
+                for sub in ('', 'extra', 'odoo', 'private-addons', 'axitec'):
+                    if not ldir:
+                        if not sub:
+                            path = osp.join(dep_root, reponame)
+                        else:
+                            path = osp.join(dep_root, sub, reponame)
+                    elif ldir == '../..':
+                        if not sub:
+                            path = osp.abspath(osp.join(
+                                dep_root, '..', '..', reponame))
+                        else:
+                            path = osp.abspath(osp.join(
+                                dep_root, '..', '..', sub, reponame))
+                    else:
+                        if not sub:
+                            path = osp.abspath(osp.join(
+                                dep_root, '..', reponame))
+                        else:
+                            path = osp.abspath(osp.join(
+                                dep_root, '..', sub, reponame))
+                    if osp.isdir(path):
+                        srcdir = path
+                        break
+                if srcdir:
+                    break
+        if not srcdir and osp.isdir(os.path.join(
+                travis_home, branch, reponame)):
+            srcdir = os.path.join(travis_home, branch, reponame)
+        if srcdir:
+            if not osp.isdir(checkout_dir):
+                command = ['ln', '-s', srcdir, checkout_dir]
+            else:
+                command = ['true', ]
+        else:
+            print_flush('WARNING: Repository %s not found in local!' %
+                        reponame)
+            _logger.info('WARNING: repository %s not found in local!' %
+                         reponame)
+    if os.environ.get('TRAVIS', '') == 'true' or not srcdir:
+        if not osp.isdir(checkout_dir):
+            command = ['git', 'clone', '-q', url, '-b', branch,
+                       '--single-branch', '--depth=1', checkout_dir]
+        else:
+            command = ['git', '--git-dir=' + os.path.join(checkout_dir, '.git'),
+                       '--work-tree=' + checkout_dir, 'pull', '--ff-only',
+                       url, branch]
+
+    if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
+        print_flush('INFO: calling %s' % ' '.join(command))
+    _logger.info('Calling %s', ' '.join(command))
+
+    if command[0] == 'git' and command[1] == 'clone':
+        # Check if repository exists
+        remote_url = url if not url.endswith('.git') else url[0: -4]
+        chk_command = ['wget', '-q', '%s/tree/%s' % (remote_url, branch),
+                       '--no-check-certificate', '-O', '/dev/null']
+        try:
+            subprocess.check_call(chk_command)
+        except:
+            print_flush('WARNING: remote repository %s not found!' % url)
+            oca_url = 'https://github.com/OCA/%s' % os.path.basename(url)
+            print_flush('INFO: try to download remote repository %s!' %
+                        oca_url)
+            command = ['git', 'clone', '-q', oca_url, '-b', branch,
+                       '--single-branch', '--depth=1', checkout_dir]
+    try:
+        subprocess.check_call(command)
+    except:
+        raise IOError('ERROR: git repository %s not found!' % url)
+    return checkout_dir
+
+
+def run(deps_checkout_dir, build_dir):
+    odoo_full = os.environ.get("ODOO_REPO", "odoo/odoo")
+    odoo_org, odoo_repo = odoo_full.split('/')
+    if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
+        print_flush('INFO: check_out="%s"; build="%s"; repo="%s"' % (
+            deps_checkout_dir, build_dir, odoo_org))
+    dependencies = []
+    processed = set()
+    depfilename = osp.join(build_dir, 'oca_dependencies.txt')
+    dependencies.append(depfilename)
+    reqfilenames = []
+    if osp.isfile(osp.join(build_dir, 'requirements.txt')):
+        reqfilenames.append(osp.join(build_dir, 'requirements.txt'))
+    for repo in os.listdir(deps_checkout_dir):
+        _logger.info('examining %s', repo)
+        processed.add(repo)
+        depfilename = osp.join(deps_checkout_dir, repo, 'oca_dependencies.txt')
+        dependencies.append(depfilename)
+        reqfilename = osp.join(deps_checkout_dir, repo, 'requirements.txt')
+        if osp.isfile(reqfilename):
+            reqfilenames.append(reqfilename)
+    for depfilename in dependencies:
+        try:
+            with open(depfilename) as depfile:
+                deps = parse_depfile(depfile, owner=odoo_org)
+        except IOError:
+            deps = []
+        for depname, url, branch in deps:
+            _logger.info('* processing %s', depname)
+            if depname in processed:
+                continue
+            processed.add(depname)
+            checkout_dir = git_checkout(deps_checkout_dir, depname,
+                                        url, branch)
+            new_dep_filename = osp.join(checkout_dir, 'oca_dependencies.txt')
+            reqfilename = osp.join(checkout_dir, 'requirements.txt')
+            if osp.isfile(reqfilename):
+                reqfilenames.append(reqfilename)
+            else:
+                print_flush(
+                    'WARNING: repository %s without requirement list!' %
+                    depname)
+            if new_dep_filename not in dependencies:
+                dependencies.append(new_dep_filename)
+    if (os.environ.get('TRAVIS_DEBUG_MODE', '0') and
+            os.environ.get('MQT_TEST_MODE', 'oca') != 'oca'):
+        print_flush(
+            'INFO: installing PYPI packages from "%s"' % str(reqfilenames))
+    for reqfilename in reqfilenames:
+        command = ['pip', 'install', '--no-binary', 'pycparser',
+                   '-Ur', reqfilename]
+        _logger.info('Calling %s', ' '.join(command))
+        try:
+            subprocess.check_call(command)
+        except:
+            print_flush('ERROR: cannot install/upgrade %s' % reqfilename)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        deps_checkout_dir = osp.join(os.environ['HOME'], 'dependencies')
+        if not osp.exists(deps_checkout_dir):
+            os.makedirs(deps_checkout_dir)
+        build_dir = os.environ['TRAVIS_BUILD_DIR']
+    elif len(sys.argv) == 2 or len(sys.argv) > 3:
+        print(__doc__)
+        sys.exit(1)
+    else:
+        deps_checkout_dir = sys.argv[1]
+        build_dir = sys.argv[2]
+    run(deps_checkout_dir, build_dir)
