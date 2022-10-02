@@ -239,6 +239,51 @@ Current development version
 History
 -------
 
+z0lib: 2.0.0.3 (2022-09-30)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* [FIX] run_traced return code
+
+
+lisa: 2.0.0.2 (2022-09-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lisa_bld: improvements
+
+
+odoo_score: 2.0.0.2 (2022-09-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odo_debug: test with random rpcport for multiple tests
+* [IMP] odoo_shell.py: new actions
+
+
+z0lib: 2.0.0.2 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_traced for python apps
+
+
+wok_code: 2.0.0.3 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] deploy_odoo: show actual branch and organization
+* [FIX] deploy_odoo: update read from directory
+* [IMP] deploy_odoo: new command list repo info
+* [IMP] deploy_odoo: new feature link to repositories
+
+
+python_plus: 2.0.0.3 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: install package with list_requirements.py
+
+
+clodoo: 2.0.0.2 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: get data from setup.py od Odoo
+
+
 wok_code: 2.0.0.2 (2022-09-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -276,7 +321,8 @@ odoo_score: 2.0.0.1 (2022-09-07)
 zerobug: 2.0.0.1 (2022-09-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] travis_intsall_env: minor fixes
+* [FIX] travis_install_env: minor fixes
+* [IMP] z0testlib: show coverage result
 
 
 
@@ -379,7 +425,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-09-14
+Last Update / Ultimo aggiornamento: 2022-10-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

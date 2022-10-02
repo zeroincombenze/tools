@@ -239,7 +239,7 @@ checkpid() {
 
 check_4_venv() {
     local dt x
-    x=$(which wsl.exe)
+    x=$(which wsl.exe 2>/dev/null)
     [[ -n $x && $(ps -ef|grep -Evq "^postgres.* /.*/postgresql") ]] && sleep 8
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     if [[ -n "$VENV_DIR" && -f $VENV_DIR/bin/activate ]]; then
@@ -272,8 +272,8 @@ check_privsep_dir() {
             echo "$dt $$ DAEMON ? $0: chown ${ugr} $d">>$LOGFILE && chown ${ugr} $d
             [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0775 $d || chmod 0755 $d
         fi
-        [[ $f == $PIDFILE ]] && ur=root && ugr=root:root
-        [[ $f != $PIDFILE ]] && ur=${USER_RUN} && ugr=${USER_RUN}:${grp}
+        [[ ${USE_SUDO:-0} -eq 0 && $f == $PIDFILE ]] && ur=root && ugr=root:root
+        [[ ${USE_SUDO:-0} -ne 0 || $f != $PIDFILE ]] && ur=${USER_RUN} && ugr=${USER_RUN}:${grp}
         [[ ! -f $f ]] && touch $f && chown ${ugr} $f
         [[ ! -f $f ]] && continue
         uu=$(stat -c %U $f)
@@ -355,9 +355,6 @@ start_Debian () {
 
 
 start() {
-    if [ "$1" != "mute" ]; then
-        echo "Starting ${DESC}: "
-    fi
     check_privsep_dir
     check_4_venv
     check_lessc
@@ -377,11 +374,21 @@ start() {
 }
 
 stop_by_ps() {
-      echo "Error during stopping .. try to stop process ..."
-      [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
-      local pid=$(ps -ef | grep "$py .*$DAEMON.*\.conf" | grep -v grep | awk '{print $2}' | head -n1)
-      [[ -n "$pid" ]] && kill $pid && echo "Killed process $pid!"
-      RETVAL=$?
+    local pid ctr
+    echo "Error during stopping .. try to stop process ..."
+    [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
+    ctr=3
+    pid=$(ps -ef | grep "$py .*$DAEMON.*conf" | grep -v grep | awk '{print $2}' | head -n1)
+    while [[ -n "$pid" ]]; do
+        kill $pid
+        echo "Killed process $pid!"
+        sleep 1
+        ((ctr--))
+        [[ $ctr -eq 0 ]] && break
+        pid=$(ps -ef | grep "$py .*$DAEMON.*conf" | grep -v grep | awk '{print $2}' | head -n1)
+    done
+    test -z "$pid"
+    return $?
 }
 
 stop_RHEL() {
@@ -394,6 +401,7 @@ stop_RHEL() {
     fi
     RETVAL=$?
     [[ $RETVAL -ne 0 ]] && stop_by_ps
+    RETVAL=$?
     if [[ $RETVAL -eq 0 ]]; then
         [[ $DRY_RUN -eq 0 ]] && rm -f $LOCKFILE
         # echo_success
@@ -419,6 +427,7 @@ stop_Debian () {
     fi
     RETVAL=$?
     [[ $RETVAL -ne 0 ]] && stop_by_ps
+    RETVAL=$?
     return $RETVAL
 }
 
@@ -455,12 +464,14 @@ restart() {
 
 
 status() {
+    RETVAL=1
     if [[ -s $PIDFILE ]] ; then
         checkpid $(cat $PIDFILE)
         RETVAL=$?
-    else
+    fi
+    if [[ $RETVAL -ne 0 ]] ; then
         [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
-        checkpid $(ps -ef | grep "$py .*$DAEMON.*\.conf" | grep -v grep | awk '{print $2}' | head -n1)
+        checkpid $(ps -ef | grep "$py .*$DAEMON.*conf" | grep -v grep | awk '{print $2}' | head -n1)
         RETVAL=$?
     fi
     if [[ $RETVAL -eq 0 ]] ; then

@@ -6,12 +6,10 @@
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 import os
-import stat
 import sys
 
-# from z0bug_odoo.travis.getaddons import is_module
-# from z0bug_odoo.travis.test_server import get_build_dir
 from python_plus import _c
+from z0lib import z0lib
 from zerobug import z0test, z0testodoo
 
 __version__ = "2.0.0.3"
@@ -89,17 +87,7 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
-        if os.path.basename(os.getcwd()) == 'tests':
-            travis_addons = os.path.abspath(
-                os.path.join(os.environ.get("TRAVIS_BUILD_DIR", ".."), 'travis')
-            )
-        else:
-            travis_addons = os.path.abspath(
-                os.path.join(os.environ.get("TRAVIS_BUILD_DIR", "."), 'travis')
-            )
-        if travis_addons not in sys.path:
-            sys.path.append(travis_addons)
+    def __init__(self, z):
         self.templatedir = os.path.join(
             os.path.expanduser('~'), 'devel', 'pypi', 'tools', 'templates'
         )
@@ -171,28 +159,11 @@ Acknoledges to
 """
                 )
             )
-        self.Z = z0bug
-        self.simulate_install_pypi('gen_readme.py')
+        self.Z = z
 
-    def simulate_install_pypi(self, cmd):
-        PYCODE = r"""#!%(exec)s
-# -*- coding: utf-8 -*-
-import re
-import sys
-from %(pypi)s.scripts.%(cmd)s import main
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit(main())"""
-        params = {
-            'exec': sys.executable,
-            'cmd': os.path.splitext(cmd)[0],
-            'pypi': os.path.basename(self.Z.rundir),
-        }
-        with open(os.path.join(self.Z.rundir, cmd), 'w') as fd:
-            fd.write(_c(PYCODE % params))
-            mode = os.fstat(fd.fileno()).st_mode
-            mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
-            os.fchmod(fd.fileno(), stat.S_IMODE(mode))
+    def setup(self, z0ctx):
+        z0lib.run_traced(
+            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "gen_readme.py"))
 
     def get_doc_path(self, odoo_path, gitorg):
         if gitorg == 'zero':
@@ -229,7 +200,7 @@ if __name__ == '__main__':
             fd.write(_c(CONTRIBUTORS_FN % odoo_version))
 
     def test_01(self, z0ctx):
-        # sts = 0
+        sts = 0
         # home = os.path.expanduser('~')
         cmd = os.path.join(self.Z.rundir, 'gen_readme.py')
         gitorg = 'zero'
@@ -247,7 +218,10 @@ if __name__ == '__main__':
                 self.create_authors_file(moduledir, odoo_version, gitorg)
                 self.create_contributors_file(moduledir, odoo_version, gitorg)
                 os.chdir(moduledir)
-                os.system('%s -B' % cmd)
+                # os.system('%s -B' % cmd)
+                sts, stdout, stderr = z0lib.run_traced('%s -Bw .G %s' % (cmd, gitorg))
+                if sts:
+                    break
 
 
 # Run main if executed as a script

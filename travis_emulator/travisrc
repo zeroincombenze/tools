@@ -328,12 +328,12 @@ create_virtual_env() {
   TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$BRANCH
   [[ $PRJNAME == "Odoo" && ! -d $TRAVIS_SRC_VME || $opt_force -ne 0 ]] && xp1=1
   [[ $PRJNAME == "Odoo" && $xp1 -eq 0 && opt_keep -eq 0 ]] && xp1=$(($(date "+%s") - $(stat -c%Y $TRAVIS_SRC_VME) > 10454400))
-  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp1 -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y \$TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 10454400"
+  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp1 -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y $TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 10454400"
   xp2=0
   TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION
   [[ ! -d $TRAVIS_SRC_VME || $opt_force -ne 0 ]] && xp2=1
   [[ $xp2 -eq 0 && opt_keep -eq 0 ]] && xp2=$(($(date "+%s") - $(stat -c%Y $TRAVIS_SRC_VME) > 8035100))
-  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp2 -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y \$TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 8035100"
+  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp2 -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y $TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 8035100"
   if [[ $xp1 -ne 0 ]]; then
     echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH not found or expired!${CLR}"
     echo -e "Now virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH will be (re)created."

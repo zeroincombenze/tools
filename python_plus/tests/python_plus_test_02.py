@@ -11,6 +11,7 @@ import os.path
 import shutil
 import sys
 
+from z0lib import z0lib
 from zerobug import z0test
 
 MODULE_ID = 'python_plus'
@@ -33,12 +34,16 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, zarlib):
-        self.Z = zarlib
-        self.venv_dir = '%s/SAMPLE' % self.Z.testdir
+    def __init__(self, z):
+        self.Z = z
+        self.venv_dir = os.path.join(self.Z.testdir, 'SAMPLE')
         os.chdir(os.environ['HOME'])
         self.SAVED_HOME = os.getcwd()
         self.SAVED_VENV = os.environ['VIRTUAL_ENV']
+
+    def setup(self, z0ctx):
+        z0lib.run_traced(
+            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "vem.py"))
 
     def clear_venv(self):
         if os.path.isdir(self.venv_dir):
@@ -47,35 +52,73 @@ class RegressionTest:
     def test_01(self, z0ctx):
         self.clear_venv()
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
-        cmd = '%s/scripts/vem.sh -qf -p%s create %s' % (
-            self.Z.rundir, pyver, self.venv_dir)
-        if not z0ctx['dry_run']:
-            os.system(cmd)
+        cmd = 'vem -qf -p%s create %s' % (pyver, self.venv_dir)
+        z0lib.run_traced(cmd)
         sts = self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
         for nm in ('bin', 'lib'):
             tgtdir = os.path.join(self.venv_dir, nm)
             sts += self.Z.test_result(
                 z0ctx, "- dir %s" % tgtdir, True, os.path.isdir(tgtdir)
             )
-
         tgtfile = os.path.join(self.venv_dir, 'bin', 'python%s' % pyver)
         sts += self.Z.test_result(
             z0ctx, "- file %s" % tgtfile, True, os.path.isfile(tgtfile)
         )
 
-        outfile = os.path.join(self.Z.testdir, 'home.log')
-        out = ''
-        cmd = r'%s/scripts/vem.sh %s -q exec "cd;pwd>%s"' % (
-            self.Z.rundir, self.venv_dir, outfile)
-        if not z0ctx['dry_run']:
-            os.system(cmd)
-            if not os.path.isfile(outfile):
-                self.Z.test_result(z0ctx, "- home", outfile, 'File not created')
-                out = ''
-            else:
-                with open(outfile, 'r') as fd:
-                    out = fd.read().split()[0]
-        sts = self.Z.test_result(z0ctx, "- home", self.SAVED_HOME, out)
+        cmd = 'vem %s -q exec "cd; pwd"' % (self.venv_dir)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts += self.Z.test_result(
+            z0ctx, "- home", self.SAVED_HOME, stdout.split("\n")[-1])
+
+        libdir = os.path.join(self.venv_dir, "lib", 'python%s' % pyver, "site-packages")
+        pypi = "Werkzeug"
+        tgtdir = os.path.join(libdir, pypi.lower())
+        cmd = 'vem %s -q install %s' % (self.venv_dir, pypi)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts += self.Z.test_result(
+            z0ctx, "- status %s" % cmd, 0, sts
+        )
+        sts += self.Z.test_result(
+            z0ctx, "- dir %s" % tgtdir, True, os.path.isdir(tgtdir)
+        )
+
+        cmd = 'vem %s -q info %s' % (self.venv_dir, pypi)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts += self.Z.test_result(
+            z0ctx, "- status %s" % cmd, 0, sts
+        )
+        res = ""
+        for ln in stdout.split("\n"):
+            if ln.startswith("Location:"):
+                res = ln.split(" ")[1].strip()
+                break
+        sts += self.Z.test_result(
+            z0ctx, "- info %s" % pypi, tgtdir, res
+        )
+
+        cmd = 'vem %s -q update %s==0.11.11' % (self.venv_dir, pypi)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts += self.Z.test_result(
+            z0ctx, "- status %s" % cmd, 0, sts
+        )
+        res = ""
+        for ln in stdout.split("\n"):
+            if ln.startswith("Version:"):
+                res = ln.split(" ")[1].strip()
+                break
+        sts += self.Z.test_result(
+            z0ctx, "- version %s" % pypi, "0.11.11", res
+        )
+
+        cmd = 'vem %s -q uninstall %s -y' % (self.venv_dir, pypi)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts += self.Z.test_result(
+            z0ctx, "- status %s" % cmd, 0, sts
+        )
+        sts += self.Z.test_result(
+            z0ctx, "- dir %s" % tgtdir, False, os.path.isdir(tgtdir)
+        )
+
         return sts
 
     def test_02(self, z0ctx):

@@ -81,7 +81,6 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
     entry_points={
         "console_scripts": [
             "clodoo-info = clodoo.scripts.main:main",
-            "list_requirements.py = clodoo.scripts.list_requirements:main",
         ]
     },
     zip_safe=False,

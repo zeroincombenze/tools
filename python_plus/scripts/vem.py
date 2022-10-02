@@ -5,21 +5,13 @@ import sys
 
 
 def main(cli_args=None):
+    # import pdb; pdb.set_trace()
     if not cli_args:
         cli_args = sys.argv[1:]
-    cmd = os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__), '%s.sh' % os.path.basename(__file__)[0:-3]
-        )
-    )
+    cmd = '%s.sh' % os.path.splitext(os.path.abspath(__file__))[0]
     if not os.path.isfile(cmd):
-        cmd = os.path.abspath(
-            os.path.join(
-                os.path.dirname(__file__),
-                '..',
-                '%s.sh' % os.path.basename(__file__)[0:-3]
-            )
-        )
+        cmd = os.path.split(cmd)
+        cmd = os.path.join(os.path.dirname(cmd[0]), cmd[1])
     if not os.path.isfile(cmd):
         print('Internal package error: file %s not found!' % cmd)
     for arg in cli_args:
@@ -38,3 +30,7 @@ def main(cli_args=None):
             arg = '%s' % arg
         cmd = '%s %s' % (cmd, arg)
     return os.system(cmd)
+
+
+if __name__ == "__main__":
+    exit(main())

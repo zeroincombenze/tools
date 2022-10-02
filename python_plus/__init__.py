@@ -5,8 +5,6 @@ from future.utils import PY2, PY3, with_metaclass
 from datetime import date, timedelta
 import calendar
 
-# import sys
-
 
 __title__ = 'python_plus'
 __author__ = 'Antonio Maria Vigliotti'
@@ -23,6 +21,7 @@ if PY3:
     text_type = unicode = str
     bytestr_type = bytes
 elif PY2:
+    # unicode exist only for python2
     text_type = unicode
     bytestr_type = str
 
@@ -145,16 +144,6 @@ def qsplit(*args, **kwargs):
     if isinstance(src, bytestr_type):
         return bstrings(result)
     return result
-
-
-# if PY3:
-#     def qsplit(src, sep=None, maxsplit=-1,
-#                 quotes=None, escape=None, enquote=None, strip=None):
-#         return __qsplit__(src, sep=sep, maxsplit=maxsplit, quotes=quotes,
-#                           escape=escape, enquote=enquote, strip=strip)
-# if PY2:
-#     def qsplit(*args, **kwargs):
-#         return __qsplit__(*args, **kwargs)
 
 
 def compute_date(value, refdate=None):

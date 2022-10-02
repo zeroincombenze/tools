@@ -25,6 +25,7 @@ This package is released with an nice command:
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Intended Audience :: Developers',
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',
@@ -40,13 +41,13 @@ This package is released with an nice command:
     author_email='antoniomaria.vigliotti@gmail.com',
     license='Affero GPL',
     install_requires=['z0lib'],
-    # install_requires=['clodoo'],        # circular dependency!!!
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={'': ['scripts/setup.info', 'scripts/vem.sh', './vem.man']},
     entry_points={
         'console_scripts': [
             'python-plus-info = python_plus.scripts.main:main',
             'vem = python_plus.scripts.vem:main',
+            "list_requirements.py = clodoo.scripts.list_requirements:main",
         ]
     },
     zip_safe=False,

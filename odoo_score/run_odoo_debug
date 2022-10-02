@@ -38,7 +38,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0.1
+__version__=2.0.0.2
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then
@@ -151,7 +151,7 @@ if [[ -n $opt_conf ]]; then
     [[ -n $opt_odir && $opt_odir != $odoo_root ]] && echo "Path mismatch $odoo_root (-c $opt_conf) <> -p $opt_odir" && exit 1
 elif [[ -n $opt_branch ]]; then
     odoo_fver=$(build_odoo_param FULLVER $opt_branch)
-    [[ -n "$opt_odir" ]] && odoo_root=$($READLINK -f $opt_odir) || odoo_root=$(build_odoo_param ROOT $opt_branch search)
+    [[ -n "$opt_odir" ]] && odoo_root=$(readlink -f $opt_odir) || odoo_root=$(build_odoo_param ROOT $opt_branch search)
     CONFN=$(build_odoo_param CONFN $odoo_fver search)
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
 fi
@@ -170,7 +170,8 @@ if [[ -n $opt_rport ]]; then
 elif [[ -z $opt_conf && $opt_web -ne 0 ]]; then
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGNM)
 elif [[ -z $opt_conf && $opt_test -ne 0 ]]; then
-    RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG)
+    # RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG)
+    RPCPORT=$((($(date +%s) % 46000) + 19000))
 elif [[ -z $opt_conf || ! -f $CONFN ]]; then
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver)
 elif [[ -f $CONFN ]]; then
@@ -258,7 +259,7 @@ if [[ -n "$opt_modules" ]]; then
         OPTSIU="$OPTI $OPTU"
         alt=
         if [[ $opt_exp -ne 0 && -n "$opt_ofile" ]]; then
-            src=$($READLINK -f $opt_ofile)
+            src=$(readlink -f $opt_ofile)
             OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
         elif [[ $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
             [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
@@ -267,9 +268,9 @@ if [[ -n "$opt_modules" ]]; then
                 echo "Translation file not found!!"
                 exit 1
             fi
-            src=$($READLINK -f $src)
+            src=$(readlink -f $src)
             [[ ! -d $src/i18n ]] && echo "No directory $src/i18n found!!" && exit 1
-            src="$src/1i8n/it.po"
+            src="$src/i18n/it.po"
             makepo_it.py -f -b$odoo_fver -m$opt_modules $src
             if [[ $opt_imp -ne 0 ]]; then
                 OPTS="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
@@ -325,7 +326,8 @@ if [[ $opt_touch -eq 0 ]]; then
     [[ $create_db -gt 0 && $odoo_ver -lt 10 ]] && run_traced "createdb $opts $opt_db"
     [[ -n "$VDIR" ]] && ve_root=$VDIR || ve_root=$HOME
     OPT_LLEV=
-    FULL_LCONFN="$ve_root/$LCONFN"
+    [[ $opt_test -ne 0 && ! -d $HOME/tmp ]] && mkdir $HOME/tmp
+    [[ $opt_test -ne 0 ]] && FULL_LCONFN="$HOME/tmp/$LCONFN$$" || FULL_LCONFN="$ve_root/$LCONFN"
     OPT_CONF="--config=$FULL_LCONFN"
     if [[ $opt_dry_run -eq 0 ]]; then
         for f in .openerp_serverrc .odoorc; do
@@ -429,16 +431,17 @@ if [[ $opt_touch -eq 0 ]]; then
         [ $opt_verbose -gt 0 ] && echo "$x $$ DAEMON ? $(basename $0): deactivate"
         [ $opt_dry_run -eq 0 ] && deactivate
     fi
-    if [ $drop_db -gt 0 ]; then
-        if [ -z "$opt_modules" -o $opt_stop -eq 0 ]; then
+    [[ $opt_test -ne 0 && -f $FULL_LCONFN ]] && rm -f FULL_LCONFN
+    if [[ $drop_db -gt 0 ]]; then
+        if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
             [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
             run_traced "dropdb $opts --if-exists $opt_db"
         fi
     fi
-    if [ $opt_exp -ne 0 ]; then
+    if [[ $opt_exp -ne 0 ]]; then
         makepo_it.py -b$odoo_fver -m$opt_modules $src
         echo "# Translation exported to '$src' file"
-    elif [ $opt_imp -ne 0 ]; then
+    elif [[ $opt_imp -ne 0 ]]; then
         echo "# Translation imported from '$src' file"
     fi
     if [[ -n $COVERAGE_RCFILE ]]; then
