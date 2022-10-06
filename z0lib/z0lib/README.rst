@@ -1,6 +1,6 @@
 
 =============
-z0lib 2.0.0.3
+z0lib 2.0.0.4
 =============
 
 
@@ -103,7 +103,13 @@ Current development version
 History
 -------
 
+2.0.0.4 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python2 tests
+
 2.0.0.3 (2022-09-30)
+~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_traced return code
 
@@ -147,7 +153,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-02
+Last Update / Ultimo aggiornamento: 2022-10-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
