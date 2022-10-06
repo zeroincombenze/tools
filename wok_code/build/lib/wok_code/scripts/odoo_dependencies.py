@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Return module list or dependencies list or module depending list of odoo modules.
+Return module list or dependencies list or depends list of odoo modules.
 
 usage: odoo_dependencies.py [-h] [-A {dep,help,jrq,mod,rev,tree}] [-a]
                             [-b version] [-B DEPENDS_BY] [-c file] [-D file]
@@ -65,16 +65,16 @@ dependencies in DEPENDS_BY.
 Action 'dep' returns children dependencies list from MODULES_TO_MATCH;
 MODULES_TO_MATCH is get from -M switch or else they are get from path_list.
 With -R switch, the search traverses directories.
-Returned modules in list depend on one or more MODULES_TO_MATCH.
+Returned modules in list depend from one or more MODULES_TO_MATCH.
 This is the default behavior or using -o switch.
-Modules in list may depend on all MODULES_TO_MATCH with -a switch (and).
+Modules in list may depend from all MODULES_TO_MATCH with -a switch (and).
 MODULES_TO_MATCH are includes in dependencies list.
 If you want to avoid this inclusion, use -P switch (pure).
 You can also limit list to modules supplied by -B switch.
 
 Action 'rev' return ancestor modules by list of modules to match
 supplied by -B switch or module base.
-With -1 switch, it does not traverse parent tree.
+With -1 switch, it does not traverses parent tree.
 
 Action 'jrq' is like 'rev' but returns strictly list of common ancestors.
 
@@ -100,6 +100,10 @@ import sys
 
 from six import string_types
 
+# try:
+#     from os0 import os0
+# except ImportError:
+#     import os0
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
@@ -109,7 +113,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '2.0.0.4'
+__version__ = '2.0.0.3'
 
 
 MANIFEST_FILES = ['__manifest__.py', '__odoo__.py', '__openerp__.py', '__terp__.py']
@@ -129,8 +133,8 @@ def get_test_dependencies(
     """
     Get the list of core and external modules dependencies
     for the modules to test.
-    @param addons_path: string with a comma separated list of addons paths
-    @param addons_list: list of the modules to test
+    :param addons_path: string with a comma separated list of addons paths
+    :param addons_list: list of the modules to test
     """
     depends_by = depends_by or []
     ao_list = ao_list or '|'
@@ -719,6 +723,99 @@ def retrieve_db_modules(ctx, do_login=None):
     return ctx
 
 
+def main(ctx):
+    ctx = retrieve_db_modules(ctx, do_login=True)
+    if ctx['action'] == 'mod':
+        res = get_modules_list(
+            ctx['path_list'],
+            depth=ctx['depth'],
+            matches=ctx['modules_to_match'],
+            depends_by=ctx['depends_by'],
+            ao_list=ctx['ao_list'],
+            only_missed=ctx['only-missed'],
+            modules_unstable=ctx['modules_unstable'],
+        )
+        if ctx['only_count']:
+            print(len(res))
+        else:
+            print(ctx['sep_list'].join(res))
+    elif ctx['action'] == 'dep':
+        res = get_dependencies_list(
+            ctx['path_list'],
+            matches=ctx['modules_to_match'],
+            depth=ctx['depth'],
+            depends_by=ctx['depends_by'],
+            ao_list=ctx['ao_list'],
+            pure_list=ctx['pure_list'],
+            external_dependencies=ctx['external_dependencies'],
+            external_bin_dependencies=ctx['external_bin_dependencies'],
+        )
+        if ctx['only_count']:
+            print(len(res))
+        else:
+            print(ctx['sep_list'].join(res))
+    elif ctx['action'] == 'rev':
+        res = get_dependents_list(
+            ctx['path_list'],
+            matches=ctx['modules_to_match'],
+            depth=ctx['depth'],
+            depends_by=ctx['depends_by'],
+            ao_list=ctx['ao_list'],
+        )
+        if ctx['only_count']:
+            print(len(res))
+        else:
+            print(ctx['sep_list'].join(res))
+    elif ctx['action'] == 'jrq':
+        res = get_just_dependents_list(
+            ctx['path_list'],
+            matches=ctx['modules_to_match'],
+            depth=ctx['depth'],
+            depends_by=ctx['depends_by'],
+            ao_list=ctx['ao_list'],
+            external_dependencies=ctx['external_dependencies'],
+            external_bin_dependencies=ctx['external_bin_dependencies'],
+        )
+        if ctx['only_count']:
+            print(len(res))
+        else:
+            print(ctx['sep_list'].join(res))
+    elif ctx['action'] == 'tree':
+        error, modules = build_module_tree(
+            ctx['path_list'], matches=ctx['modules_to_match'], depth=ctx['depth']
+        )
+        if error:
+            print('Broken tree structure')
+
+        rank_modules = {}
+        for module in modules:
+            level = modules[module].get('level', MISSED)
+            if level not in rank_modules:
+                rank_modules[level] = []
+            rank_modules[level].append(module)
+
+        for level in sorted(rank_modules.keys()):
+            if level == MISSED or (level <= MAX_DEEP and ctx['only-missed']):
+                continue
+            for module in sorted(rank_modules[level]):
+                if modules[module].get('level', MISSED) >= MAX_DEEP:
+                    print(
+                        '%s %s (%s)'
+                        % ('-' * MAX_DEEP, module, modules[module].get('status', ''))
+                    )
+                else:
+                    print('%2d %s%s' % (level, ' ' * level, module))
+        for module in sorted(rank_modules[MISSED]):
+            print(
+                '%s %s (%s)'
+                % ('*' * MAX_DEEP, module, modules[module].get('status', ''))
+            )
+    else:
+        print(__doc__)
+        return 1
+    return 0
+
+
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     ACTIONS = ('dep', 'help', 'jrq', 'mod', 'rev', 'tree')
@@ -837,97 +934,7 @@ def main(cli_args=None):
         print('Warning: configuration file without db name!')
     if ctx['db_name'] and ctx['modules_to_match']:
         print('Warning: -M switch disable -D switch!')
-
-    ctx = retrieve_db_modules(ctx, do_login=True)
-    if ctx['action'] == 'mod':
-        res = get_modules_list(
-            ctx['path_list'],
-            depth=ctx['depth'],
-            matches=ctx['modules_to_match'],
-            depends_by=ctx['depends_by'],
-            ao_list=ctx['ao_list'],
-            only_missed=ctx['only-missed'],
-            modules_unstable=ctx['modules_unstable'],
-        )
-        if ctx['only_count']:
-            print(len(res))
-        else:
-            print(ctx['sep_list'].join(res))
-    elif ctx['action'] == 'dep':
-        res = get_dependencies_list(
-            ctx['path_list'],
-            matches=ctx['modules_to_match'],
-            depth=ctx['depth'],
-            depends_by=ctx['depends_by'],
-            ao_list=ctx['ao_list'],
-            pure_list=ctx['pure_list'],
-            external_dependencies=ctx['external_dependencies'],
-            external_bin_dependencies=ctx['external_bin_dependencies'],
-        )
-        if ctx['only_count']:
-            print(len(res))
-        else:
-            print(ctx['sep_list'].join(res))
-    elif ctx['action'] == 'rev':
-        res = get_dependents_list(
-            ctx['path_list'],
-            matches=ctx['modules_to_match'],
-            depth=ctx['depth'],
-            depends_by=ctx['depends_by'],
-            ao_list=ctx['ao_list'],
-        )
-        if ctx['only_count']:
-            print(len(res))
-        else:
-            print(ctx['sep_list'].join(res))
-    elif ctx['action'] == 'jrq':
-        res = get_just_dependents_list(
-            ctx['path_list'],
-            matches=ctx['modules_to_match'],
-            depth=ctx['depth'],
-            depends_by=ctx['depends_by'],
-            ao_list=ctx['ao_list'],
-            external_dependencies=ctx['external_dependencies'],
-            external_bin_dependencies=ctx['external_bin_dependencies'],
-        )
-        if ctx['only_count']:
-            print(len(res))
-        else:
-            print(ctx['sep_list'].join(res))
-    elif ctx['action'] == 'tree':
-        error, modules = build_module_tree(
-            ctx['path_list'], matches=ctx['modules_to_match'], depth=ctx['depth']
-        )
-        if error:
-            print('Broken tree structure')
-
-        rank_modules = {}
-        for module in modules:
-            level = modules[module].get('level', MISSED)
-            if level not in rank_modules:
-                rank_modules[level] = []
-            rank_modules[level].append(module)
-
-        for level in sorted(rank_modules.keys()):
-            if level == MISSED or (level <= MAX_DEEP and ctx['only-missed']):
-                continue
-            for module in sorted(rank_modules[level]):
-                if modules[module].get('level', MISSED) >= MAX_DEEP:
-                    print(
-                        '%s %s (%s)'
-                        % ('-' * MAX_DEEP, module, modules[module].get('status', ''))
-                    )
-                else:
-                    print('%2d %s%s' % (level, ' ' * level, module))
-        for module in sorted(rank_modules[MISSED]):
-            print(
-                '%s %s (%s)'
-                % ('*' * MAX_DEEP, module, modules[module].get('status', ''))
-            )
-    else:
-        print(__doc__)
-        return 1
-    return 0
+    exit(main(ctx))
 
 
 if __name__ == "__main__":

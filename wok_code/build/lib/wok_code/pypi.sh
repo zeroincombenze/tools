@@ -39,27 +39,28 @@ while [[ -n $1 ]]; do
         [[ -z "$pypi" ]] && pypi=$1 && shift && continue
     else
         [[ $1 =~ -.*h ]] && act="help"
-        [[ $1 =~ -.*U ]] && act="update"
-        [[ $1 =~ -.*B ]] && opts=${opts}B
-        [[ $1 =~ -.*f ]] && opts=${opts}f
-        [[ $1 =~ -.*l ]] && opts=${opts}l
-        [[ $1 =~ -.*n ]] && opts=${opts}n
-        [[ $1 =~ -.*I ]] && opts=${opts}I
-        [[ $1 =~ -.*d ]] && prm="tgtdir"
         [[ $1 =~ -.*b ]] && prm="branch"
+        [[ $1 =~ -.*B ]] && opts=${opts}B
+        [[ $1 =~ -.*d ]] && prm="tgtdir"
+        [[ $1 =~ -.*f ]] && opts=${opts}f
+        [[ $1 =~ -.*i ]] && opts=${opts}i
+        [[ $1 =~ -.*I ]] && opts=${opts}I
+        [[ $1 =~ -.*n ]] && opts=${opts}n
+        [[ $1 =~ -.*U ]] && act="update"
+        [[ $1 =~ -.*y ]] && opts=${opts}y
     fi
     shift
 done
 [[ -n "$opts" ]] && opts="-$opts"
-ACTLIST="diff|dir|docs|info|install|libdir|list|meld|replace|show|travis|travis-summary|update|update+replace|version"
+ACTLIST="cvt_script|diff|dir|docs|git-add|info|install|libdir|list|meld|replace|show|travis|travis-summary|update|update+replace|version"
 ACT2VME="^(dir|info|show|install|libdir|update|update\+replace|update)$"
-ACT2TOOLS="^(docs|list|replace|travis|travis-summary|version)$"
+ACT2TOOLS="^(docs|git-add|list|replace|travis|travis-summary|version)$"
 PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
 PKGS_LIST_RE="(${PKGS_LIST// /|})"
 PKGS_LIST_RE=${PKGS_LIST_RE//-/.}
 ODOO_ROOT=$(dirname $HOME_DEVEL)
 [[ -z "$act" || ! $act =~ ($ACTLIST) ]] && act="help"
-[[ $act == "help" ]] && echo "$0 [-h|-B|-f|-I|-l|-n|-U] [-d VENV] [-b BRANCH] $ACTLIST|help [PYPI_PKG]" && exit 0
+[[ $act == "help" ]] && echo "$0 [-h|-B|-f|-I|-l|-n|-U|-y] [-d VENV] [-b BRANCH] $ACTLIST|help [PYPI_PKG]" && exit 0
 b=$(basename $PWD)
 [[ -z "$pypi" && $(dirname $PWD) == $HOME_DEVEL/pypi/$b && $b =~ $PKGS_LIST_RE ]] && pypi=$b
 [[ -z "$pypi" ]] && pypi="$PKGS_LIST" || pypi="${pypi//,/ }"
@@ -83,8 +84,9 @@ for d in $tgtdir; do
         [[ -d $d/lib/python3.7/site-packages ]] && pypath=$d/lib/python3.7/site-packages
         [[ -d $d/lib/python3.8/site-packages ]] && pypath=$d/lib/python3.8/site-packages
         [[ -d $d/lib/python3.9/site-packages ]] && pypath=$d/lib/python3.9/site-packages
-        if [[ $opts =~ -.*l && ! -d "$pypath" ]]; then
+        if [[ -z $pypath || ! -d "$pypath" ]]; then
             echo "Package directory not found"
+            [[ $opts =~ -.*i ]] && continue
             exit 1
         fi
     fi
@@ -146,6 +148,21 @@ for d in $tgtdir; do
             echo "cd $srcdir; please version"
             cd $srcdir
             [[ $opts =~ -.*n ]] || please version
+        elif [[ $act == "git-add" ]]; then
+            srcdir="$HOME_DEVEL/pypi"
+            [[ $PWD != $srcdir ]] && run_traced "cd $srcdir"
+            run_traced "git add ./$fn"
+        elif [[ $act == "cvt_script" ]]; then
+            [[ $pkg == "tools" ]] && continue
+            srcdir="$HOME_DEVEL/pypi/$fn/$fn"
+            OPTS="-k"
+            [[ $opts =~ -.*n ]] && OPTS="${OPTS}n"
+            [[ $opts =~ -.*y ]] && OPTS="${OPTS}y"
+            for f in $(find $srcdir -type f); do
+                mime=$(file --mime-type -b $f)
+                [[ $mime == "text/x-shellscript" || $f =~ .sh$ ]] || continue
+                run_traced "cvt_script $OPTS $f"
+            done
         else
             echo "Invalid command!"
             exit 1
@@ -157,4 +174,8 @@ if [[ $act == "update+replace" ]]; then
     for pkg in $pypi tools; do
         do_replace
     done
+elif [[ $act == "git-add" ]]; then
+    srcdir="$HOME_DEVEL/pypi"
+    [[ $PWD != $srcdir ]] && run_traced "cd $srcdir"
+    run_traced "git status"
 fi

@@ -6,7 +6,7 @@ import argparse
 
 from z0lib import z0lib
 
-__version__ = "2.0.0.4"
+__version__ = "2.0.0.3"
 
 
 def get_names(left_path, right_path):
@@ -23,44 +23,37 @@ def get_names(left_path, right_path):
     return left_base, right_base
 
 
-def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base):
-    if not base.endswith(".pyc") and (
-        not base.endswith(".po") or not opt_args.ignore_po
-    ):
-        if os.path.isfile(left_path):
-            z0lib.run_traced(
-                'cp %s %s' % (left_path, os.path.join(left_diff_path, base)),
-                verbose=opt_args.dry_run,
-                dry_run=opt_args.dry_run)
-        if os.path.isfile(right_path):
-            z0lib.run_traced(
-                'cp %s %s' % (right_path, os.path.join(right_diff_path, base)),
-                verbose=opt_args.dry_run,
-                dry_run=opt_args.dry_run)
-
-
 def match(opt_args, left_diff_path, right_diff_path, left_path, right_path):
-    if os.path.isfile(left_path):
+    if os.path.exists(left_path):
         base = os.path.basename(left_path)
-        cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base)
-    elif os.path.isfile(right_path):
+    else:
         base = os.path.basename(right_path)
-        cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base)
-
-
-def matchdir_based(opt_args, left_diff_path, right_diff_path, left_path, right_path,
-                   base):
-    left_diff_path = os.path.join(left_diff_path, base)
-    if not os.path.isdir(left_diff_path):
-        z0lib.run_traced('mkdir %s' % left_diff_path,
+    if os.path.isfile(left_path):
+        z0lib.run_traced('cp %s %s' % (left_path, os.path.join(left_diff_path, base)),
                          verbose=opt_args.dry_run,
                          dry_run=opt_args.dry_run)
-    right_diff_path = os.path.join(right_diff_path, base)
-    if not os.path.isdir(right_diff_path):
-        z0lib.run_traced('mkdir %s' % right_diff_path,
+    if os.path.isfile(right_path):
+        z0lib.run_traced('cp %s %s' % (right_path, os.path.join(right_diff_path, base)),
                          verbose=opt_args.dry_run,
                          dry_run=opt_args.dry_run)
+
+
+def matchdir(opt_args, left_diff_path, right_diff_path, left_path, right_path):
+    if os.path.exists(left_path):
+        base = os.path.basename(left_path)
+    else:
+        base = os.path.basename(right_path)
     if os.path.isdir(left_path):
+        left_diff_path = os.path.join(left_diff_path, base)
+        if not os.path.isdir(left_diff_path):
+            z0lib.run_traced('mkdir %s' % left_diff_path,
+                             verbose=opt_args.dry_run,
+                             dry_run=opt_args.dry_run)
+        right_diff_path = os.path.join(right_diff_path, base)
+        if not os.path.isdir(right_diff_path):
+            z0lib.run_traced('mkdir %s' % right_diff_path,
+                             verbose=opt_args.dry_run,
+                             dry_run=opt_args.dry_run)
         for fn in os.listdir(left_path):
             base = os.path.basename(fn)
             matchdir(opt_args,
@@ -68,7 +61,6 @@ def matchdir_based(opt_args, left_diff_path, right_diff_path, left_path, right_p
                      right_diff_path,
                      os.path.join(left_path, fn),
                      os.path.join(right_path, base))
-    if os.path.isdir(right_path):
         for fn in os.listdir(right_path):
             base = os.path.basename(fn)
             if not os.path.exists(os.path.join(left_path, base)):
@@ -76,21 +68,8 @@ def matchdir_based(opt_args, left_diff_path, right_diff_path, left_path, right_p
                          left_diff_path,
                          right_diff_path,
                          os.path.join(left_path, base),
-                         os.path.join(right_path, fn), )
-
-
-def matchdir(opt_args, left_diff_path, right_diff_path, left_path, right_path):
-    if os.path.isdir(left_path):
-        base = os.path.basename(left_path)
-        matchdir_based(
-            opt_args, left_diff_path, right_diff_path, left_path, right_path, base
-        )
-    elif os.path.isdir(right_path):
-        base = os.path.basename(right_path)
-        matchdir_based(
-            opt_args, left_diff_path, right_diff_path, left_path, right_path, base
-        )
-    else:
+                         os.path.join(right_path, fn),)
+    elif not right_path.endswith(".pyc"):
         match(opt_args, left_diff_path, right_diff_path, left_path, right_path)
 
 
@@ -131,7 +110,6 @@ def main(cli_args=None):
     parser.add_argument('-b', '--odoo-version')
     parser.add_argument('-c', '--cache', help="Use cached values")
     parser.add_argument("-e", "--no-remark", action="store_true")
-    parser.add_argument("-i", "--ignore-po", action="store_true")
     parser.add_argument("-m", "--meld", action="store_true", help='use meld')
     parser.add_argument("-n", "--dry-run", dest="dry_run", action="store_true")
     parser.add_argument('-v', '--verbose', action='count', default=0)
@@ -140,10 +118,7 @@ def main(cli_args=None):
     parser.add_argument('right_path', nargs='?')
     opt_args = parser.parse_args(cli_args)
     if not opt_args.right_path:
-        # When just 1 path is issued, current directory become teh left path
-        # that is the reference path
-        opt_args.right_path = os.path.abspath(opt_args.left_path)
-        opt_args.left_path = os.path.abspath(os.getcwd())
+        opt_args.right_path = os.path.abspath(os.getcwd())
     else:
         opt_args.right_path = os.path.abspath(opt_args.right_path)
     opt_args.left_path = os.path.abspath(opt_args.left_path)

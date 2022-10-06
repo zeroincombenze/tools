@@ -9,7 +9,6 @@ wok_code/do_gitignore.py
 wok_code/do_set_utf8.py
 wok_code/eval_gtin.py
 wok_code/gen_addons_table.py
-wok_code/odoo_dependencies.py
 wok_code/please.man
 wok_code/pypi.sh
 wok_code/rm_dir_with_space.py
@@ -35,8 +34,10 @@ wok_code/scripts/do_migrate.py
 wok_code/scripts/do_odoo_site.py
 wok_code/scripts/gen_readme.py
 wok_code/scripts/license_mgnt.py
+wok_code/scripts/lint_2_compare.py
 wok_code/scripts/main.py
 wok_code/scripts/makepo_it.py
+wok_code/scripts/odoo_dependencies.py
 wok_code/scripts/odoo_translation.py
 wok_code/scripts/please.py
 wok_code/scripts/please.sh

@@ -13,7 +13,7 @@ else:
 
 setup(
     name='wok_code',
-    version='2.0.0.3',
+    version='2.0.0.4',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.
@@ -83,6 +83,8 @@ The available tools are:
             'odoo_translation.py = wok_code.scripts.odoo_translation:main',
             'deploy_odoo = wok_code.scripts.deploy_odoo:main',
             'wget_odoo_repositories.py = wok_code.scripts.wget_odoo_repositories:main',
+            'odoo_dependencies.py = wok_code.odoo_dependencies:main',
+            'lint_2_compare = wok_code.scripts.lint_2_compare:main',
         ]
     },
     zip_safe=False,
