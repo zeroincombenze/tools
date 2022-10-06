@@ -1,3 +1,8 @@
+2.0.0.3 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odo_debug: test via pycharm
+
 2.0.0.2 (2022-09-22)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -8,7 +13,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odo_debug with debug
-* [IMP] run_odoo_debug: experimenatl debug via pycharm
+* [IMP] run_odoo_debug: experimental debug via pycharm
 
 2.0.0 (2022-08-10)
 ~~~~~~~~~~~~~~~~~~
