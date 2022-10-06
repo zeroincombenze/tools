@@ -244,6 +244,12 @@ z0lib: 2.0.0.3 (2022-09-30)
 * [FIX] run_traced return code
 
 
+lisa: 2.0.0.2 (2022-09-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lisa_bld: improvements
+
+
 odoo_score: 2.0.0.2 (2022-09-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -269,7 +275,7 @@ wok_code: 2.0.0.3 (2022-09-14)
 python_plus: 2.0.0.3 (2022-09-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] vem: install package with > and < filter
+* [FIX] vem: install package with list_requirements.py
 
 
 clodoo: 2.0.0.2 (2022-09-14)
@@ -419,7 +425,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-10-01
+Last Update / Ultimo aggiornamento: 2022-10-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

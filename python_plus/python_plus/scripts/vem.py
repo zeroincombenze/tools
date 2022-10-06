@@ -5,7 +5,6 @@ import sys
 
 
 def main(cli_args=None):
-    # import pdb; pdb.set_trace()
     if not cli_args:
         cli_args = sys.argv[1:]
     cmd = '%s.sh' % os.path.splitext(os.path.abspath(__file__))[0]
