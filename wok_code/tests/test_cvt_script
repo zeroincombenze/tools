@@ -142,9 +142,6 @@ for p in z0librc odoorc travisrc zarrc z0testrc; do
 done
 
 
-
-
-
 UT1_LIST=""
 UT_LIST=""
 [[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup

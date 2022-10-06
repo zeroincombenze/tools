@@ -816,7 +816,8 @@ def main(ctx):
     return 0
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    cli_args = cli_args or sys.argv[1:]
     ACTIONS = ('dep', 'help', 'jrq', 'mod', 'rev', 'tree')
     parser = z0lib.parseoptargs(
         "Odoo dependencies management",
@@ -882,7 +883,7 @@ if __name__ == "__main__":
     )
     parser.add_argument('-1', '--no-depth', action='store_true', dest='no_depth')
     parser.add_argument('path_list', nargs='*')
-    ctx = parser.parseoptargs(sys.argv[1:])
+    ctx = parser.parseoptargs(cli_args)
     if (
         ctx['action'] not in ACTIONS
         and ctx['path_list']
@@ -934,3 +935,7 @@ if __name__ == "__main__":
     if ctx['db_name'] and ctx['modules_to_match']:
         print('Warning: -M switch disable -D switch!')
     exit(main(ctx))
+
+
+if __name__ == "__main__":
+    exit(main())
