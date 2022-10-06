@@ -10,7 +10,7 @@ TDIR=$(readlink -f $(dirname $0))
 if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
 [[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
@@ -38,7 +38,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0.2
+__version__=2.0.0.3
 
 run_traced_debug() {
     if [ $opt_verbose -gt 1 ]; then
@@ -95,7 +95,7 @@ OPTHELP=("this help"
     "no use coverage to run test"
     "db name to test,translate o upgrade (require -m switch)"
     "export translation (conflict with -i -u -I)"
-    "force update or install modules or default parameters"
+    "force update or install modules or default parameters or create db template"
     "do not create new DB and keep it after run"
     "import translation (conflict with -e -u -I)"
     "install module (conflict with -e -i -u)"
@@ -169,9 +169,8 @@ if [[ -n $opt_rport ]]; then
     RPCPORT=$opt_rport
 elif [[ -z $opt_conf && $opt_web -ne 0 ]]; then
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGNM)
-elif [[ -z $opt_conf && $opt_test -ne 0 ]]; then
-    # RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG)
-    RPCPORT=$((($(date +%s) % 46000) + 19000))
+elif [[ $opt_test -ne 0 ]]; then
+    [[ opt_dbg -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
 elif [[ -z $opt_conf || ! -f $CONFN ]]; then
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver)
 elif [[ -f $CONFN ]]; then
@@ -327,7 +326,7 @@ if [[ $opt_touch -eq 0 ]]; then
     [[ -n "$VDIR" ]] && ve_root=$VDIR || ve_root=$HOME
     OPT_LLEV=
     [[ $opt_test -ne 0 && ! -d $HOME/tmp ]] && mkdir $HOME/tmp
-    [[ $opt_test -ne 0 ]] && FULL_LCONFN="$HOME/tmp/$LCONFN$$" || FULL_LCONFN="$ve_root/$LCONFN"
+    [[ $opt_test -eq 0 && opt_dbg -eq 1 ]] && FULL_LCONFN="$HOME/tmp/$LCONFN$$" || FULL_LCONFN="$ve_root/$LCONFN"
     OPT_CONF="--config=$FULL_LCONFN"
     if [[ $opt_dry_run -eq 0 ]]; then
         for f in .openerp_serverrc .odoorc; do
@@ -393,8 +392,16 @@ if [[ $opt_touch -eq 0 ]]; then
     run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $FULL_LCONFN"
     if [[ $create_db -gt 0 ]]; then
         if [[ -n "$depmods" && $opt_test -ne 0 ]]; then
-            # Create DB for test
-            run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error -i $depmods"
+            cmd="cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error -i $depmods"
+            [[ -f $0.log ]] && echo $cmd|diff -qw $0.log - && echo "Found DB template to create new DB" && psql -U$DB_USER template1 -c "create database $opt_db owner $DB_USER template template_openerp_$odoo_ver"
+            if [[ $? -ne 0 || $opt_force -ne 0 ]]; then
+              # Create DB for test
+              run_traced "$cmd"
+              psql -U$DB_USER template1 -c "drop database if exists template_openerp_$odoo_ver"
+              psql -U$DB_USER template1 -c "alter database $opt_db rename to template_openerp_$odoo_ver"
+              psql -U$DB_USER template1 -c "create database $opt_db owner $DB_USER template template_openerp_$odoo_ver"
+              echo $cmd > $0.log
+            fi
         else
             run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error"
         fi
@@ -419,9 +426,14 @@ if [[ $opt_touch -eq 0 ]]; then
       fi
     elif [[ opt_dbg -gt 1 ]]; then
       echo ""
-      echo "Now you can test module running from pycharm"
-      echo "Browse http://localhost:$RPCPORT"
+      echo "Now you can test module $opt_module from pycharm"
+      echo "Mode #1"
+      echo "Debug Odoo by pycharm after set configuration to: \"$script $OPT_CONF $OPT_LLEV $OPTS\""
+      echo "Mode #2"
+      echo "Debug Odoo by pycharm"
+      echo "Browse http://localhost:8069 or http://localhost:$(build_odoo_param RPCPORT $odoo_fver)"
       echo "DB=$opt_db login: admin/admin"
+      echo "Install module $opt_modules"
     else
       run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
     fi

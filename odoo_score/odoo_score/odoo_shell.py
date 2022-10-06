@@ -33,7 +33,7 @@ import pdb  # pylint: disable=deprecated-module
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '2.0.0.2'
+__version__ = '2.0.0.3'
 
 
 MAX_DEEP = 20
@@ -927,7 +927,30 @@ def close_ddts(ctx):
         return
     model = 'stock.picking.package.preparation.line'
     model1 = 'stock.picking.package.preparation'
+
     ctr = 0
+    transportation_reason = False
+    for ln in clodoo.browseL8(
+        ctx,
+        model1,
+        clodoo.searchL8(
+            ctx,
+            model1,
+            [
+                ('invoice_id', '=', False),
+            ],
+        ),
+    ):
+        msg_burst('%s ...' % ln.name)
+        if ln.transportation_reason_id != transportation_reason:
+            transportation_reason = ln.transportation_reason_id
+        if ln.to_be_invoiced != transportation_reason.to_be_invoiced:
+            clodoo.writeL8(ctx,
+                           model1,
+                           ln.id,
+                           {'to_be_invoiced': transportation_reason.to_be_invoiced})
+            ctr += 1
+
     for ln in clodoo.browseL8(
         ctx,
         model1,
@@ -946,6 +969,7 @@ def close_ddts(ctx):
                        ln.id,
                        {'to_be_invoiced': False})
         ctr += 1
+
     for ln in clodoo.browseL8(
         ctx,
         model,
