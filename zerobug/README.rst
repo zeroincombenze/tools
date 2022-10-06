@@ -1,6 +1,6 @@
 
 ===============
-zerobug 2.0.0.1
+zerobug 2.0.0.2
 ===============
 
 
@@ -366,6 +366,11 @@ Current development version
 History
 -------
 
+2.0.0.2 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis_install_env: python2 tests
+
 2.0.0.1 (2022-09-06)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -402,7 +407,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-02
+Last Update / Ultimo aggiornamento: 2022-10-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
