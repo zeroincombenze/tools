@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0.3
+__version__=2.0.0.4
 
 #
 # General Purpose options:
@@ -1813,11 +1813,13 @@ do_lint() {
 
 do_test() {
     wlog "do_test '$1' '$2' '$3'"
-    local db module odoo_fver sts=$STS_FAILED x
+    local db m module odoo_fver opts svcname sts=$STS_FAILED x
     if [[ $PRJNAME != "Odoo" ]]; then
       echo "This action can be issued only on Odoo projects"
       return 1
     fi
+    opt_multi=1
+    svcname=$(build_odoo_param SVCNAME $(readlink -f $PWD))
     odoo_fver=$(build_odoo_param FULLVER ".")
     m=$(build_odoo_param MAJVER ".")
     module=$(build_odoo_param PKGNAME ".")
@@ -1828,7 +1830,8 @@ do_test() {
     fi
     [[ $opt_dbg -ne 0 ]] && x="-B"
     [[ $opt_dbg -gt 1 ]] && x="-BB"
-    run_traced "run_odoo_debug -b $odoo_fver -Tm $module $x"
+    [[ -f /etc/odoo/${svcname}.conf ]] && opts="-c /etc/odoo/${svcname}.conf" || opts="-b $odoo_fver"
+    run_traced "run_odoo_debug $opts -Tm $module $x"
     sts=$?
     return $sts
 }

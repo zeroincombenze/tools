@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0.1
+__version__=2.0.0.2
 
 
 store_cfg_param_value() {
@@ -1122,7 +1122,7 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
           for db in openerp_template$sfx openerp_test$sfx; do
             [[ $opt_verbose -gt 0 ]] && echo "\$ dropdb -U$PGUSER $db"
             pg_db_active -wa $db
-            dropdb -U$PGUSER $db --if-exists &>/dev/null
+            run_traced "dropdb -U$PGUSER $db --if-exists &>/dev/null"
             ((done_db++))
           done
         fi
@@ -1134,10 +1134,10 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
     fi
   done
   if [[ -n $PGUSER && $all_dbs -ne 0 ]]; then
-    for db in $(psql -U$PGUSER -Atl | grep -E "(openerp_template|openerp_test)" | awk -F"|" '{print $1}'); do
+    for db in $(psql -U$PGUSER -Atl | grep -E "(openerp_template|openerp_test|test_openerp|template_openerp)[0-9]+" | awk -F"|" '{print $1}'); do
       [[ $opt_verbose -gt 0 ]] && echo "\$ dropdb -U$PGUSER $db"
       pg_db_active -wa $db
-      dropdb -U$PGUSER $db --if-exists &>/dev/null
+      run_traced "dropdb -U$PGUSER $db --if-exists &>/dev/null"
       ((done_db++))
     done
   fi

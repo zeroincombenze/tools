@@ -81,13 +81,37 @@ check_for_modules() {
     [[ -n $XXX ]] && echo "Modules $XXX not found!" && exit 1
 }
 
+coverage_set() {
+    if [[ $opt_dry_run -eq 0 && $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
+      [[ ! -d $HOME/coverage ]] && mkdir $HOME/coverage
+      COVERAGE_DATA_FILE="$HOME/coverage/${UMLI}"
+      COVERAGE_PROCESS_START="$HOME/coverage/${UMLI}rc"
+      # [[ -s $COVERAGE_PROCESS_START ]] || coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
+      coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
+      # [[ -n "$coverage_tmpl" ]] && cp $coverage_tmpl $COVERAGE_PROCESS_START
+      cp $coverage_tmpl $COVERAGE_PROCESS_START
+      grep -Eq "^data_file *=" $COVERAGE_PROCESS_START || sed -E "/^\[run\]/a\\\ndata_file=$COVERAGE_DATA_FILE\n" -i $COVERAGE_PROCESS_START
+    fi
+}
 
-OPTOPTS=(h        B       b          c        C           d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           s        T        t         U          u       V           v           w       W        x)
-OPTLONG=(help     debug   branch     conf     no-coverage database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
-OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1         "="        1       "*>"        "+"         1       1        "=")
-OPTDEFL=(1        0       ""         ""       0           ""       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0         ""         0       ""          -1          0       0        "")
-OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""          ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
+coverage_report() {
+     if [[ -n $COVERAGE_PROCESS_START ]]; then
+      opts=""
+      for m in ${opt_modules//,/ }; do
+        opts="$opts --include=$(find $odoo_root -type d -not -path "*/setup/*" -name $m)/*"
+      done
+      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
+      [[ $v -ge 6 ]] && coverage report --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $opts -m || coverage report --rcfile=$COVERAGE_PROCESS_START $opts -m
+    fi
+}
+
+
+OPTOPTS=(h        B       b          c        C           d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           S        s        T        t         U          u       V           v           w       W        x)
+OPTLONG=(help     debug   branch     conf     no-coverage database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stat     stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
+OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1        1         "="        1       "*>"        "+"         1       1        "=")
+OPTDEFL=(1        0       ""         ""       0           ""       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0        0         ""         0       ""          -1          0       0        "")
+OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""          ""       ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
 OPTHELP=("this help"
     "debug mode (-BB debug via pycharm)"
     "odoo branch (version id)"
@@ -109,6 +133,7 @@ OPTHELP=("this help"
     "odoo root path"
     "psql port"
     "silent mode"
+    "show coverage stats (do not run odoo)"
     "stop after init"
     "execute odoo test on module"
     "touch config file, do not run odoo"
@@ -137,6 +162,8 @@ CONFN=""
 opaths=""
 odoo_root=""
 odoo_fver=""
+[[ -z $MQT_TEMPLATE_DB ]] && MQT_TEMPLATE_DB="template_openerp"
+[[ -z $MQT_TEST_DB ]] && MQT_TEST_DB="test_openerp"
 if [[ -n $opt_conf ]]; then
     CONFN=$opt_conf
     [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
@@ -154,6 +181,11 @@ elif [[ -n $opt_branch ]]; then
     [[ -n "$opt_odir" ]] && odoo_root=$(readlink -f $opt_odir) || odoo_root=$(build_odoo_param ROOT $opt_branch search)
     CONFN=$(build_odoo_param CONFN $odoo_fver search)
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
+else
+    odoo_fver=$(build_odoo_param FULLVER $PWD)
+    odoo_root=$(build_odoo_param ROOT $opt_branch search)
+    CONFN=$(build_odoo_param CONFN $odoo_fver search)
+    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
 fi
 [[ -z $odoo_root || ! -d $odoo_root ]] && echo "Odoo path $odoo_root not found!" && exit 1
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
@@ -163,12 +195,15 @@ script=$(build_odoo_param BIN $odoo_root search)
 ODOO_RUNDIR=$(dirname $script)
 VDIR=$(build_odoo_param VDIR $odoo_root)
 [[ $opt_verbose -gt 0 && -n "$VDIR" ]] && echo "# Found $VDIR virtual directory"
-GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_root)
+GIT_ORGID=$(build_odoo_param GIT_ORGID $odoo_root)
+# Unique module log identifier & Unique log identifier
+ULI="${GIT_ORGID}${odoo_ver}"
+UMLI="${opt_modules//,/+}.${ULI}"
 manifest=$(build_odoo_param MANIFEST $odoo_fver)
 if [[ -n $opt_rport ]]; then
     RPCPORT=$opt_rport
 elif [[ -z $opt_conf && $opt_web -ne 0 ]]; then
-    RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGNM)
+    RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 elif [[ $opt_test -ne 0 ]]; then
     [[ opt_dbg -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
 elif [[ -z $opt_conf || ! -f $CONFN ]]; then
@@ -183,7 +218,7 @@ fi
 if [[ -n $opt_dbuser ]]; then
     DB_USER=$opt_dbuser
 elif [[ -z $opt_conf || ! -f $CONFN ]]; then
-    DB_USER=$(build_odoo_param DB_USER $odoo_fver $GIT_ORGNM)
+    DB_USER=$(build_odoo_param DB_USER $odoo_fver $GIT_ORGID)
 elif [[ -f $CONFN ]]; then
     DB_USER=$(grep ^db_user $CONFN | awk -F= '{print $2}' | tr -d " ")
 else
@@ -206,10 +241,13 @@ if [[ $opt_test -ne 0 ]]; then
     opt_upd=0 opt_stop=1
     opt_xtl=1
     [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
-    [[ -z "$opt_db" ]] && opt_db="test_openerp_$odoo_ver"
-    create_db=1 drop_db=1
+    [[ -z $opt_db && $opt_keep -eq 0 && $opt_dbg -gt 1 ]] && opt_db="${MQT_TEST_DB}_${ULI}"
+    [[ -z $opt_db && $opt_keep -eq 0 && $opt_dbg -lt 1 ]] && opt_db="${MQT_TEST_DB}$$"
+    [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}"
+    create_db=1
+    [[ $opt_keep -eq 0 ]] && drop_db=1 || drop_db=0
     [[ ! -d $HOME_DEVEL/travis_log ]] && run_traced "mkdir $HOME_DEVEL/travis_log"
-    LOGFILE="$HOME_DEVEL/travis_log/${opt_modules//,/-}.log"
+    LOGFILE="$HOME_DEVEL/travis_log/${UMLI}.log"
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
@@ -245,9 +283,7 @@ if [[ -n "$opt_modules" ]]; then
             if [[ "$opt_modules" != "all" ]]; then
                 depmods=$(odoo_dependencies.py -RA dep $opaths -PM $opt_modules)
             fi
-            if [[ -n "$depmods" && $opt_test -eq 0 ]]; then
-                opt_modules="$opt_modules,$depmods"
-            fi
+            [[ -n "$depmods" && $opt_test -eq 0 ]] && opt_modules="$opt_modules,$depmods"
         fi
         OPTS="-i $opt_modules"
         OPTDB=""
@@ -304,7 +340,7 @@ fi
 
 if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 || $opt_imp -ne 0 || $opt_lang -ne 0 ]]; then
     if [[ -z "$opt_db" ]]; then
-        opt_db="test_openerp"
+        opt_db="$MQT_TEST_DB"
         [[ $opt_stop -gt 0 && $opt_keep -eq 0 ]] && drop_db=1
     fi
 fi
@@ -319,14 +355,21 @@ if [[ -n "$opt_db" ]]; then
     OPTS="$OPTS -d $opt_db"
     OPTDB="$OPTDB -d $opt_db"
 fi
+if [[ $opt_stat -ne 0 ]]; then
+    if [[ -n "$VDIR" ]]; then
+        coverage_set
+        coverage_report
+    fi
+    exit 0
+fi
 if [[ $opt_touch -eq 0 ]]; then
     [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-    [[ $drop_db -gt 0 ]] && run_traced "pg_db_active -wa $opt_db; dropdb $opts --if-exists $opt_db"
+    [[ $create_db -gt 0 ]] && run_traced "pg_db_active -wa $opt_db; dropdb $opts --if-exists $opt_db"
     [[ $create_db -gt 0 && $odoo_ver -lt 10 ]] && run_traced "createdb $opts $opt_db"
     [[ -n "$VDIR" ]] && ve_root=$VDIR || ve_root=$HOME
     OPT_LLEV=
     [[ $opt_test -ne 0 && ! -d $HOME/tmp ]] && mkdir $HOME/tmp
-    [[ $opt_test -eq 0 && opt_dbg -eq 1 ]] && FULL_LCONFN="$HOME/tmp/$LCONFN$$" || FULL_LCONFN="$ve_root/$LCONFN"
+    [[ $opt_test -ne 0 ]] && FULL_LCONFN="$HOME/tmp/$LCONFN$$" || FULL_LCONFN="$ve_root/$LCONFN"
     OPT_CONF="--config=$FULL_LCONFN"
     if [[ $opt_dry_run -eq 0 ]]; then
         for f in .openerp_serverrc .odoorc; do
@@ -338,30 +381,22 @@ if [[ $opt_touch -eq 0 ]]; then
     [[ -f "$CONFN" ]] && run_traced "cp $CONFN $FULL_LCONFN"
     [[ $opt_verbose -gt 0 ]] && echo "===================================================================="
     if [[ -n "$VDIR" ]]; then
-        x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        [[ $opt_verbose -gt 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $VDIR; source ./bin/activate"
-        if [[ $opt_dry_run -eq 0 ]]; then
-          cd $VDIR
-          source ./bin/activate
-          if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-            cov=$(which coverage 2>/dev/null)
-            [[ -z $cov ]] && run_traced "pip install coverage"
-            cov=$(which coverage 2>/dev/null)
-            if [[ -n $cov ]]; then
-              v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-              [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
-              [[ ! -d $ODOO_RUNDIR/coverage ]] && mkdir $ODOO_RUNDIR/coverage
-              [[ -n $opt_modules ]] && export COVERAGE_FILE="${opt_modules}_${opt_branch}"
-              if [[ -n $COVERAGE_FILE ]]; then
-                export COVERAGE_FILE="$ODOO_RUNDIR/coverage/$COVERAGE_FILE"
-                COVERAGE_RCFILE="$ODOO_RUNDIR/coverage/${opt_modules}rc"
-                [[ -s $COVERAGE_RCFILE ]] || coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
-                [[ -n "$coverage_tmpl" ]] && cp $coverage_tmpl $COVERAGE_RCFILE
-                sed -E "s|^ *\*.py|    */$opt_modules/*|" -i $COVERAGE_RCFILE
-              fi
-            fi
+      coverage_set
+      x=$(date +"%Y-%m-%d %H:%M:%S,000")
+      [[ $opt_verbose -gt 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $VDIR; source ./bin/activate"
+      if [[ $opt_dry_run -eq 0 ]]; then
+        cd $VDIR
+        source ./bin/activate
+        if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
+          cov=$(which coverage 2>/dev/null)
+          [[ -z $cov || ! $cov =~ $HOME ]] && run_traced "pip install coverage"
+          cov=$(which coverage 2>/dev/null)
+          if [[ -n $cov ]]; then
+            v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
+            [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
           fi
         fi
+      fi
     fi
     [[ ! -f "$CONFN" ]] && run_traced "$script -s --stop-after-init"
     tty -s
@@ -393,16 +428,23 @@ if [[ $opt_touch -eq 0 ]]; then
     if [[ $create_db -gt 0 ]]; then
         if [[ -n "$depmods" && $opt_test -ne 0 ]]; then
             cmd="cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error -i $depmods"
-            [[ -f $0.log ]] && echo $cmd|diff -qw $0.log - && echo "Found DB template to create new DB" && psql -U$DB_USER template1 -c "create database $opt_db owner $DB_USER template template_openerp_$odoo_ver"
-            if [[ $? -ne 0 || $opt_force -ne 0 ]]; then
+            [[ $opt_opt_keep -ne 0 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${odoo_ver}" || [[ opt_dbg -gt 1 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${UMI}" || TEMPLATE="${opt_db/test/template}"
+            cmd="${cmd/$opt_db/$TEMPLATE}"
+            fnparam="${LOGFILE/.log/.tmp}"
+            if [[ $opt_force -eq 0 && ! -f $fnparam ]] || ! echo $cmd|diff -qw $fnparam - || ! psql -Atl -l|grep -q $TEMPLATE; then
               # Create DB for test
+              run_traced "pg_db_active -wa $TEMPLATE; dropdb $opts --if-exists $TEMPLATE"
               run_traced "$cmd"
-              psql -U$DB_USER template1 -c "drop database if exists template_openerp_$odoo_ver"
-              psql -U$DB_USER template1 -c "alter database $opt_db rename to template_openerp_$odoo_ver"
-              psql -U$DB_USER template1 -c "create database $opt_db owner $DB_USER template template_openerp_$odoo_ver"
-              echo $cmd > $0.log
             fi
-        else
+            if psql -Atl -l|grep -q $TEMPLATE; then
+              echo $cmd > $fnparam
+              run_traced "psql -U$DB_USER template1 -c \"create database $opt_db owner $DB_USER template $TEMPLATE\""
+            else
+              echo "Template $TEMPLATE not found!"
+              cmd="${cmd/$TEMPLATE$opt_db/}"
+              run_traced "$cmd"
+            fi
+       else
             run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error"
         fi
     fi
@@ -412,42 +454,49 @@ if [[ $opt_touch -eq 0 ]]; then
 
     if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
       [[ -f $LOGFILE ]] && rm -f $LOGFILE
-      if [[ -n $COVERAGE_RCFILE ]]; then
+      if [[ -n $COVERAGE_PROCESS_START ]]; then
         v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
         if [[ $v -ge 6 ]]; then
-          echo "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS"
-          cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
+          run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS"
         else
-          echo "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS"
-          cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_RCFILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
+          run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS"
         fi
       else
         run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
       fi
     elif [[ opt_dbg -gt 1 ]]; then
       echo ""
-      echo "Now you can test module $opt_module from pycharm"
-      echo "Mode #1"
-      echo "Debug Odoo by pycharm after set configuration to: \"$script $OPT_CONF $OPT_LLEV $OPTS\""
-      echo "Mode #2"
-      echo "Debug Odoo by pycharm"
-      echo "Browse http://localhost:8069 or http://localhost:$(build_odoo_param RPCPORT $odoo_fver)"
-      echo "DB=$opt_db login: admin/admin"
-      echo "Install module $opt_modules"
+      echo "Now you can test module $opt_module on pycharm"
+      echo ""
+      echo "Debug Odoo by pycharm after set configuration \"Debug Odoo $odoo_fver\""
+      echo -e "parameters=\"\e[33m$script\e[0m \e[31m$OPT_CONF $OPT_LLEV $OPTS\e[0m\""
+      echo ""
+      echo "If your test code contains the follow statements"
+      echo ""
+      echo -e "    \e[33mdef tearDown(self):\e[0m"
+      echo -e "        \e[33mself.env.cr.commit()\e[0m  # pylint: disable=invalid-commit"
+      echo ""
+      echo "you can browse test database from:"
+      echo -e "\e[33mhttp://localhost:8069\e[0m or \e[33mhttp://localhost:$(build_odoo_param RPCPORT $odoo_fver)\e[0m"
+      echo -e "DB=\e[31m$opt_db\e[0m login: admin/admin"
+      echo ""
     else
       run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
     fi
 
+    coverage_report
+
     if [[ -n "$VDIR" ]]; then
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        [ $opt_verbose -gt 0 ] && echo "$x $$ DAEMON ? $(basename $0): deactivate"
-        [ $opt_dry_run -eq 0 ] && deactivate
+        [[ $opt_verbose -gt 0 && opt_dbg -le 1 ]] && echo "$x $$ DAEMON ? $(basename $0): deactivate"
+        [[ $opt_dry_run -eq 0 ]] && deactivate
     fi
     [[ $opt_test -ne 0 && -f $FULL_LCONFN ]] && rm -f FULL_LCONFN
     if [[ $drop_db -gt 0 ]]; then
         if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
             [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-            run_traced "dropdb $opts --if-exists $opt_db"
+            run_traced "pg_db_active -wa $opt_db; dropdb $opts --if-exists $opt_db"
+            [[ opt_dbg -ne 1 ]] && run_traced "pg_db_active -wa $TEMPLATE; dropdb $opts --if-exists $TEMPLATE"
         fi
     fi
     if [[ $opt_exp -ne 0 ]]; then
@@ -455,9 +504,5 @@ if [[ $opt_touch -eq 0 ]]; then
         echo "# Translation exported to '$src' file"
     elif [[ $opt_imp -ne 0 ]]; then
         echo "# Translation imported from '$src' file"
-    fi
-    if [[ -n $COVERAGE_RCFILE ]]; then
-      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-      [[ $v -ge 6 ]] && coverage report --rcfile=$COVERAGE_RCFILE --data-file=$COVERAGE_FILE -m || coverage report --rcfile=$COVERAGE_RCFILE -m
     fi
 fi

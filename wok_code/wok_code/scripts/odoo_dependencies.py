@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Return module list or dependencies list or module depending list of odoo modules.
+Return module list or dependencies list or module dependents list of odoo modules.
 
 usage: odoo_dependencies.py [-h] [-A {dep,help,jrq,mod,rev,tree}] [-a]
                             [-b version] [-B DEPENDS_BY] [-c file] [-D file]
@@ -42,7 +42,7 @@ optional arguments:
   -x, --external-bin-dependencies
   -1, --no-depth
 
-© 2020-21 by SHS-AV s.r.l.
+© 2020-22 by SHS-AV s.r.l.
 
 
 This app can execute following actions:

@@ -1,6 +1,6 @@
 
 ================
-wok_code 2.0.0.3
+wok_code 2.0.0.4
 ================
 
 
@@ -845,6 +845,12 @@ Current development version
 History
 -------
 
+2.0.0.4 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New lint_2_compare command
+* [IMP] odoo_dependecies.py: minor upgrade
+
 2.0.0.3 (2022-09-14)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -895,7 +901,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-06
+Last Update / Ultimo aggiornamento: 2022-10-10
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
