@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0.2
+__version__=2.0.0.3
 # VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 # MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 VERSIONS_TO_TEST="12.0 10.0 8.0 7.0 6.1"
@@ -939,11 +939,10 @@ for p in z0librc odoorc travisrc zarrc z0testrc; do
 done
 
 
-
 UT1_LIST=
-UT_LIST=""
-if [[ ${opt_dry_run:-0} -ne 0 ]]; then
-  echo 6175
-  sts=0
-else
+UT_LIST=
 [[ "$(type -t Z0BUG_setup)" == "function" ]] && Z0BUG_setup
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+[[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
+exit $sts

@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0.2
+__version__=2.0.0.3
 
 
 test_01() {
@@ -513,8 +513,6 @@ for p in z0librc odoorc travisrc zarrc z0testrc; do
     [[ $p == "z0testrc" ]] && Z0TLIBDIR="$RUNDIR" && source $RUNDIR/$p
   fi
 done
-
-
 
 
 UT1_LIST=

@@ -1,6 +1,6 @@
 
 ==============
-clodoo 2.0.0.2
+clodoo 2.0.0.3
 ==============
 
 
@@ -327,6 +327,12 @@ Current development version
 History
 -------
 
+2.0.0.3 (2022-10-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: best virtual environment recognize
+* [FIX] odoorc: SVCNAME
+
 2.0.0.2 (2022-09-14)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -366,11 +372,11 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-02
+Last Update / Ultimo aggiornamento: 2022-10-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
-    :alt: 
+    :alt:
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
     :target: https://travis-ci.com/zeroincombenze/tools
     :alt: github.com
