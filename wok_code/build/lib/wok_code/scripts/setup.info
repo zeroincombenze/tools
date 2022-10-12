@@ -1,5 +1,4 @@
 import sys
-
 from setuptools import find_packages, setup
 
 if sys.version_info >= (3, 0):
@@ -13,7 +12,7 @@ else:
 
 setup(
     name='wok_code',
-    version='2.0.0.4',
+    version='2.0.1',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.
@@ -81,7 +80,7 @@ The available tools are:
             'gen_readme.py = wok_code.scripts.gen_readme:main',
             'lint_2_compare = wok_code.scripts.lint_2_compare:main',
             'makepo_it.py = wok_code.scripts.makepo_it:main',
-            'odoo_dependencies.py = wok_code.odoo_dependencies:main',
+            'odoo_dependencies.py = wok_code.scripts.odoo_dependencies:main',
             'odoo_translation.py = wok_code.scripts.odoo_translation:main',
             'please = wok_code.scripts.please:main',
             'to_pep8.py = wok_code.scripts.to_pep8:main',
