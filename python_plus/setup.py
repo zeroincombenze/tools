@@ -47,7 +47,7 @@ This package is released with an nice command:
         'console_scripts': [
             'python-plus-info = python_plus.scripts.main:main',
             'vem = python_plus.scripts.vem:main',
-            "list_requirements.py = clodoo.scripts.list_requirements:main",
+            "list_requirements.py = python_plus.scripts.list_requirements:main",
         ]
     },
     zip_safe=False,
