@@ -1,12 +1,95 @@
+zerobug: 2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+
+wok_code: 2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+
+travis_emulator: 2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+
+python_plus: 2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+
+odoo_score: 2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+
+lisa: 2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lisa_bld_ods: stable version
+
+
+clodoo: 2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+
+clodoo: 2.0.0.3 (2022-10-06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: best virtual environment recognize
+* [FIX] odoorc: SVCNAME
+
+
+zerobug: 2.0.0.2 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis_install_env: python2 tests
+
+
+z0lib: 2.0.0.4 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python2 tests
+
+
+wok_code: 2.0.0.4 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New lint_2_compare command
+* [IMP] odoo_dependecies.py: minor upgrade
+
+
+odoo_score: 2.0.0.3 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: test via pycharm
+* [FIX] run_odoo_debug: concurrent tests
+
+
+travis_emulator: 2.0.0.2 (2022-10-04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis: python2 tests
+
+
+
 z0lib: 2.0.0.3 (2022-09-30)
-~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 * [FIX] run_traced return code
 
 
 lisa: 2.0.0.2 (2022-09-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] lisa_bld: improvements
+* [IMP] lisa_bld_ods: improvements
 
 
 odoo_score: 2.0.0.2 (2022-09-22)
@@ -74,7 +157,8 @@ odoo_score: 2.0.0.1 (2022-09-07)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odo_debug with debug
-* [IMP] run_odoo_debug: experimenatl debug via pycharm
+* [IMP] run_odoo_debug: experimental debug via pycharm
+
 
 
 zerobug: 2.0.0.1 (2022-09-06)
@@ -112,61 +196,6 @@ clodoo: 2.0.0.1 (2022-09-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: new option -S for secure packages
-
-
-zerobug: 2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
-
-
-z0lib: 2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
-
-
-z0bug_odoo: 2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
-
-
-wok_code: 2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Refactoring
-
-
-travis_emulator: 2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
-
-
-python_plus: 2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-odoo_score: 2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
-
-
-
-lisa: 2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
-
-
-clodoo: 2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
 
 
 

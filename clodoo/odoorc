@@ -57,9 +57,10 @@
 # ODOO_GIT_HOSTNAME -> git hostname (def github.com)
 # ODOO_GIT_PROT     -> default protcocl (git|https) for default git organization
 # ODOO_GIT_SHORT    -> regex of git organizzations with short name (def /(oca)/)
+# ODOO_GIT_MULTI    -> multi version environment
 #
 
-#__version__=2.0.0.2
+#__version__=2.0.1
 
 
 ODOO_FVERS="16\.0|15\.0|14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
@@ -267,7 +268,9 @@ build_odoo_param() {
                 [[ -z "$PRJPATH" ]] && PRJPATH=$cdir
                 [[ -z "$PARENTDIR" ]] && PARENTDIR=$($READLINK -e $cdir/..)
                 odoo_vid=$(basename $cdir)
-                [[ $VENV -eq 0 ]] && [[ -f $cdir/../VENV-${odoo_vid}/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/../VENV-${odoo_vid})
+                [[ $VENV -eq 0 && -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/venv_odoo)
+                [[ $VENV -eq 0 && -f $cdir/../venv_odoo/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/../venv_odoo)
+                [[ $VENV -eq 0 && -f $cdir/../VENV-${odoo_vid}/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/../VENV-${odoo_vid})
                 [[ $odoo  == "odoo" ]] && cdir=$($READLINK -e $cdir/..) && odoo_vid=$(basename $cdir)
                 FULLVER=$(find_odoo_ver $cdir)
                 [[ -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
@@ -333,7 +336,7 @@ build_odoo_param() {
         $SETX
         return
     fi
-    [[ ${opt_multi:-0} -ne 0 ]] && MULTIVER=1 || MULTIVER=0
+    [[ -n $ODOO_ODOO_GIT_MULTI ]] && MULITVER=$ODOO_GIT_MULTI || [[ ${opt_multi:-0} -ne 0 ]] && MULTIVER=1 || MULTIVER=0
     ORGSFX=$(echo $noenv_vid | grep --color=never -Eo "[-_][a-z][a-z0-9]+$" | grep --color=never -Eo "[a-z0-9]+")
     if [[ -n $ORGSFX ]]; then
         [[ $ORGSFX =~ -git$ ]] && GIT_PROT="git" && ORGSFX=${ORGSFX:0: -4}
@@ -382,6 +385,7 @@ build_odoo_param() {
     [[ $GIT_ORGNM =~ ^(LibrERP-network|LibrERP) ]] && GIT_ORGID="librerp"
     [[ $GIT_ORGNM == "iw3hxn" ]] && GIT_ORGID="librerp6"
     [[ $GIT_ORGNM =~ ^(PowERP-cloud|powerp1) ]] && GIT_ORGID="powerp"
+    [[ -z $GIT_ORGID ]] && GIT_ORGID="$GIT_ORGNM"
     [[ -n $ODOO_GIT_ORGID && ( $GIT_ORGID == $ODOO_GIT_ORGID || $GIT_ORGID =~ ^$ODOO_GIT_ORGID$ ) ]] && GIT_PROT="git"
     [[ -n $ODOO_GIT_PROT ]] && GIT_PROT="$ODOO_GIT_PROT"
     if [[ "$ITEM" == "LICENSE" ]]; then
@@ -489,9 +493,9 @@ build_odoo_param() {
     elif [[ $ITEM == "RPCPORT" ]]; then
         if [[ $spec =~ (debug|DEBUG) ]]; then
             ((p = 18060 + $MAJVER))
-        elif [ $main -ne 0 -o $MULTIVER -eq 0 ]; then
+        elif [[ $main -ne 0 || $MULTIVER -eq 0 ]]; then
             p=8069
-        elif [ $MULTIVER -ne 0 ]; then
+        elif [[ $MULTIVER -ne 0 ]]; then
             if [ $exorg -eq 0 ]; then
                 ((p = 8160 + $MAJVER))
             elif [[ $GIT_ORGID == "oca" ]]; then
@@ -512,10 +516,10 @@ build_odoo_param() {
     elif [[ $ITEM == "LPPORT" ]]; then
         if [[ $spec =~ (debug|DEBUG) ]]; then
             ((p = 18160 + $MAJVER))
-        elif [ $main -ne 0 -o $MULTIVER -eq 0 ]; then
+        elif [[ $main -ne 0 || $MULTIVER -eq 0 ]]; then
             p=8072
-        elif [ $MULTIVER -ne 0 ]; then
-            if [ $exorg -eq 0 ]; then
+        elif [[ $MULTIVER -ne 0 ]]; then
+            if [[ $exorg -eq 0 ]]; then
                 ((p = 8130 + $MAJVER))
             elif [[ $GIT_ORGID == "oca" ]]; then
                 ((p = 8230 + $MAJVER))
@@ -611,13 +615,13 @@ build_odoo_param() {
             if [[ $exorg -ne 0 ]]; then
                 [[ -z $ORGSFX ]] && p3="-${GIT_ORGID}"
                 [[ -n $ORGSFX ]] && p3="-${GIT_ORGID}${ORGSFX}"
-            elif [ $exorg -eq 0 ]; then
-                [[ -n $ORGSFX ]] && p3="-${ORGSFX}"
+            elif [[ -n $ORGSFX ]]; then
+                p3="-${ORGSFX}"
+            elif [[ $GIT_ORGID != "odoo" && ( -z $ODOO_GIT_ORGID || ( $GIT_ORGID != $ODOO_GIT_ORGID && ! $GIT_ORGID =~ ^$ODOO_GIT_ORGID$ )) ]]; then
+                p3="-${GIT_ORGID}"
             fi
         fi
-        if [[ -z $p3 || $p3 == "-odoo" ]]; then
-            [[ $MAJVER -ge 10 ]] && p3="" || p3="-server"
-        fi
+        [[ ( -z $p3 || $p3 == "-odoo" ) && $MAJVER -lt 10 ]] && p3="-server"
         [[ $p3 == "-librerp6" ]] && p3="-librerp"
     elif [[ $MAJVER -ge 10 ]]; then
         [[ $ITEM == "BIN" ]] && p3=-bin || p3=

@@ -1,8 +1,8 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 setup(
     name='lisa',
-    version='2.0.0.2',
+    version='2.0.1',
     description='Linux Install Simplifier App',
     long_description="""
 Interactive tool to install, update, remove, query and manage software
@@ -29,6 +29,18 @@ over every Linux distribution.
     author='Antonio Maria Vigliotti',
     author_email='antoniomaria.vigliotti@gmail.com',
     license='Affero GPL',
-    packages=['lisa'],
+    packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
+    package_data={'': [
+        'scripts/setup.info',
+        'scripts/lisa_bld_ods.sh',
+        'scripts/odoo-server_Debian',
+        'scripts/odoo-server_RHEL',
+    ]},
+    entry_points={
+        'console_scripts': [
+            'lisa-info = lisa.scripts.main:main',
+            'lisa_bld_ods = lisa.scripts.lisa_bld_ods:main',
+        ]
+    },
     zip_safe=False,
 )

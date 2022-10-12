@@ -301,7 +301,7 @@ It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-02
+Last Update / Ultimo aggiornamento: 2022-10-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

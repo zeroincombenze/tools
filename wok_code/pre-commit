@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-#__version__=2.0.0.3
+#__version__=2.0.1
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK

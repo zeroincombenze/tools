@@ -1,7 +1,7 @@
 
-=======================
-travis_emulator 2.0.0.1
-=======================
+=====================
+travis_emulator 2.0.1
+=====================
 
 
 
@@ -275,6 +275,17 @@ Troubleshooting
 History
 -------
 
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.0.2 (2022-10-04)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis: python2 tests
+
+
 2.0.0.1 (2022-09-06)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -310,7 +321,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-02
+Last Update / Ultimo aggiornamento: 2022-10-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

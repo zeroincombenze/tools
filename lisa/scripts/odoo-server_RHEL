@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 2.0.0.2 (Debian)
+# version: 2.0.0.2 (RHEL)
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -41,6 +41,8 @@ xtl_sudo=0
 DRY_RUN=${xtl_test}
 # Use sudo to execute command instead of start-stop-daemon (only Debian)
 USE_SUDO=${xtl_sudo}
+# Run debug mode
+RUN_DEBUG=0
 # Recognize Linux distribution (Debian/Ubuntu or RHEL/CentOS/Fedora)
 OS=$(uname -s)
 FH=""
@@ -71,6 +73,8 @@ if [[ "$FH" == "Debian" ]]; then
     fi
 fi
 [[ -f /etc/profile.d/custom.sh ]] && . /etc/profile.d/custom.sh
+[[ -f /etc/profile.d/odoo.sh ]] && . /etc/profile.d/odoo.sh
+[[ $RUN_DEBUG -ne 0 ]] && DRY_RUN=1
 # Specify the user name (Default: odoo).
 USER_RUN=${xtl_user}
 USERHOME=$(eval echo ~$USER_RUN)
@@ -86,8 +90,7 @@ fi
 xtl_org=$(echo $(basename $0)|grep --color=never -Eo "(oca|librerp|zero|powerp)"|tail -n1)
 [[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
 mult=$(echo $(basename $0)|grep --color=never -Eo "(6|7|8|9|10|11|12|13|14|15|16)")
-[[ $DRY_RUN -gt 0 ]] && echo "mult=${mult}"
-[[ $DRY_RUN -gt 0 ]] && echo "ORG=$ORG"
+[[ $DRY_RUN -gt 0 ]] && echo "mult=${mult}" && echo "ORG=$ORG"
 DAEMON=""
 VENV_DIR=""
 [[ $DRY_RUN -gt 0 ]] && echo "find /usr/local/bin /usr/bin -maxdepth 1 -type f -executable -name \"${ORG}*${mult}*\" -o -name \"ODOO*${mult}*\" -o -name \"openerp*${mult}*\""
@@ -120,7 +123,7 @@ if [[ -z "$DAEMON" ]]; then
   fi
 fi
 [[ $DRY_RUN -gt 0 ]] && echo "DAEMON=$DAEMON"
-[[ -z "$DAEMON" ]] && exit 2
+[[ -z "$DAEMON" ]] && echo "Odoo executable not found!" && exit 2
 p=$(dirname ${DAEMON})
 [[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
 [[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
@@ -152,20 +155,25 @@ else
   DAEMON_OPTS="--pidfile=$PIDFILE --logfile=$LOGFILE"
 fi
 # check if the ${NAME} conf file is present, then use it
-if [[ -f $CONFIGFILE ]]; then
-  DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
-fi
+[[ -f $CONFIGFILE ]] && DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
 DAEMON_OPTS="$DAEMON_OPTS $2 $3 $4 $5 $6 $7 $8 $9"
 [[ -x $DAEMON ]] || exit 0
 RETVAL=0
-if [[ -f $CONFIGFILE ]]; then
-  modules=$(grep ^server_wide_modules $CONFIGFILE|awk -F= '{print $2}')
-  if [[ $modules =~ queue_job ]]; then
-    ch=$(grep ^channels $CONFIGFILE|awk -F= '{print $2}'|tr -d ' ')
-    [[ -z $ch ]] && ch="root:1"
-    export ODOO_CONNECTOR_CHANNELS="$ch"
-  fi
-fi
+
+
+set_queue() {
+    local dt p
+    if [[ -f $CONFIGFILE ]]; then
+      modules=$(grep ^server_wide_modules $CONFIGFILE|awk -F= '{print $2}')
+      if [[ $modules =~ queue_job ]]; then
+        ch=$(grep ^channels $CONFIGFILE|awk -F= '{print $2}'|tr -d ' ')
+        [[ -z $ch ]] && ch="root:1"
+        dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+        echo "$dt $$ DAEMON ? $0: export ODOO_CONNECTOR_CHANNELS=\"$ch\"">>$LOGFILE
+        export ODOO_CONNECTOR_CHANNELS="$ch"
+      fi
+    fi
+}
 
 
 set_lessc() {
@@ -247,6 +255,8 @@ check_4_venv() {
         [[ $DRY_RUN -gt 0 ]] && echo "cd $VENV_DIR" && echo "source ./bin/activate"
         cd $VENV_DIR
         source ./bin/activate
+        [[ ${xtl_version} -lt 11 ]] && echo "$dt $$ DAEMON ? $0: $(which python) $(python --version)" >> $LOGFILE
+        [[ ${xtl_version} -ge 11 ]] && echo "$dt $$ DAEMON ? $0: $(which python3) $(python3 --version)" >> $LOGFILE
     else
         VENV_DIR=""
         echo "$dt $$ DAEMON ? $0: No virtual environment found for ${DAEMON}!" >> $LOGFILE
@@ -272,8 +282,8 @@ check_privsep_dir() {
             echo "$dt $$ DAEMON ? $0: chown ${ugr} $d">>$LOGFILE && chown ${ugr} $d
             [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0775 $d || chmod 0755 $d
         fi
-        [[ ${USE_SUDO:-0} -eq 0 && $f == $PIDFILE ]] && ur=root && ugr=root:root
-        [[ ${USE_SUDO:-0} -ne 0 || $f != $PIDFILE ]] && ur=${USER_RUN} && ugr=${USER_RUN}:${grp}
+        # [[ ${USE_SUDO:-0} -eq 0 && $f == $PIDFILE ]] && ur=root && ugr=root:root
+        # [[ ${USE_SUDO:-0} -ne 0 || $f != $PIDFILE ]] && ur=${USER_RUN} && ugr=${USER_RUN}:${grp}
         [[ ! -f $f ]] && touch $f && chown ${ugr} $f
         [[ ! -f $f ]] && continue
         uu=$(stat -c %U $f)
@@ -305,25 +315,27 @@ set_publicsep_dir() {
 
 
 start_RHEL () {
-    # TODO: CentOS old code, could be removed?
-    if [ -d /etc/${xtl_id}/start.d ] ; then
-        echo -n "Preparing $DESC: "
-        if [ $DRY_RUN -gt 0 ]; then
+    if [[ -d /etc/${xtl_id}/start.d ]] ; then
+        if [[ $RUN_DEBUG -gt 0 ]]; then
+          echo "> run-parts --exit-on-error /etc/${xtl_id}/start.d"
+          run-parts --exit-on-error /etc/${xtl_id}/start.d
+        elif [[ $DRY_RUN -gt 0 ]]; then
           echo "> run-parts --exit-on-error /etc/${xtl_id}/start.d"
         else
           run-parts --exit-on-error /etc/${xtl_id}/start.d
         fi
         RETVAL=$?
         echo
-        [ $RETVAL -ne 0 ] && return $RETVAL
+        [[ $RETVAL -ne 0 ]] && return $RETVAL
     fi
 
-    if [ $DRY_RUN -gt 0 ]; then
+    if [[ $RUN_DEBUG -gt 0 ]]; then
+      echo "> daemon --user ${USER_RUN} --check ${NAME} \"/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &\""
+      daemon --user ${USER_RUN} --check ${NAME} "/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &"
+    elif [[ $DRY_RUN -gt 0 ]]; then
       echo "> daemon --user ${USER_RUN} --check ${NAME} \"/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &\""
     else
-      daemon --user ${USER_RUN} --check ${NAME} \
-      "/usr/bin/setsid ${DAEMON} \
-      ${DAEMON_OPTS} &"
+      daemon --user ${USER_RUN} --check ${NAME} "/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &"
     fi
     RETVAL=$?
     echo
@@ -333,17 +345,21 @@ start_RHEL () {
 
 
 start_Debian () {
-    if [ -z "$USE_SUDO" ] || [ $USE_SUDO -eq 0 ]; then
-      if [ $DRY_RUN -gt 0 ]; then
+    if [[ -z "$USE_SUDO" || $USE_SUDO -eq 0 ]]; then
+      if [[ $RUN_DEBUG -gt 0 ]]; then
+        echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER_RUN} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
+        start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER_RUN} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}
+      elif [[ $DRY_RUN -gt 0 ]]; then
         echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER_RUN} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
       else
-        start-stop-daemon --start --quiet --pidfile ${PIDFILE} \
-              --chuid ${USER_RUN} --background --make-pidfile \
-              --exec ${DAEMON} -- ${DAEMON_OPTS}
+        start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER_RUN} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}
       fi
       RETVAL=$?
     else
-      if [ $DRY_RUN -gt 0 ]; then
+      if [[ $RUN_DEBUG -gt 0 ]]; then
+        echo "> sudo -u ${USER_RUN} -bn ${DAEMON} ${DAEMON_OPTS}"
+        ${DAEMON} ${DAEMON_OPTS}
+      elif [[ $DRY_RUN -gt 0 ]]; then
         echo "> sudo -u ${USER_RUN} -bn ${DAEMON} ${DAEMON_OPTS}"
       else
         sudo -u ${USER_RUN} -bn ${DAEMON} ${DAEMON_OPTS}
@@ -355,9 +371,11 @@ start_Debian () {
 
 
 start() {
+    echo "Starting ${DESC}"
     check_privsep_dir
     check_4_venv
     check_lessc
+    set_queue
     local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     [[ -n $ODOO_CONNECTOR_CHANNELS ]] && echo "$dt $$ DAEMON ? $0: ODOO_CONNECTOR_CHANNELS=\"$ODOO_CONNECTOR_CHANNELS\"">>$LOGFILE
     echo "$dt $$ DAEMON ? $0: ${DAEMON} ${DAEMON_OPTS}">>$LOGFILE
@@ -370,18 +388,33 @@ start() {
         exit 1
     fi
     RETVAL=$?
+    [[ $RETVAL -ne 0 ]] && echo "$dt $$ DAEMON-ERROR ? $0: Start daemon return code = $RETVAL!">>$LOGFILE
+    if [[ $RUN_DEBUG -gt 0 ]]; then
+        local ctr=5 pid="1" x
+        while ((ctr--)); do
+          [[ ! -f $PIDFILE ]] && echo "PID file $PIDFILE not found!" || pid=$(cat $PIDFILE)
+          x=$(ps -ef|grep -E " $pid +[0-9]+ .*odoo-bin")
+          [[ -z $x ]] && echo "Process $pid not found!" || echo "$x"
+          sleep 1
+        done
+    fi
     return $RETVAL
 }
 
 stop_by_ps() {
-    local pid ctr
-    echo "Error during stopping .. try to stop process ..."
+    local pid ctr dt x
+    dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+    x="Stop daemon error! Searching for process to kill ..."
+    echo $x
+    echo "$dt $$ DAEMON-ERROR ? $0: $x">>$LOGFILE
     [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
     ctr=3
     pid=$(ps -ef | grep "$py .*$DAEMON.*conf" | grep -v grep | awk '{print $2}' | head -n1)
     while [[ -n "$pid" ]]; do
         kill $pid
-        echo "Killed process $pid!"
+        x="Killed process $pid!"
+        echo $x
+        echo "$dt $$ DAEMON-ERROR ? $0: $x">>$LOGFILE
         sleep 1
         ((ctr--))
         [[ $ctr -eq 0 ]] && break
@@ -433,6 +466,7 @@ stop_Debian () {
 
 
 stop() {
+    echo "Stopping ${DESC}"
     if [[ -f $PIDFILE ]]; then
         chown root:root $PIDFILE
         if [ "$FH" == "RHEL" ]; then
@@ -506,9 +540,9 @@ case "${1}" in
 
     *)
         if [ "$FH" == "RHEL" ]; then
-          echo "Usage: ${NAME} {start|stop|status|restart|reload}"
+          echo "Usage: ${NAME} {start|stop|status|restart}"
         elif [ "$FH" == "Debian" ]; then
-           echo "Usage: ${NAME} {start|stop|status|restart|force-reload}" >&2
+           echo "Usage: ${NAME} {start|stop|status|restart}" >&2
         else
           echo "Unrecognized Linux distribution"
         fi

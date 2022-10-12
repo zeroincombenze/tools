@@ -67,7 +67,7 @@ except ImportError:
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = "2.0.0.2"
+__version__ = "2.0.1"
 
 
 msg_time = time.time()

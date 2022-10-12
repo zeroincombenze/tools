@@ -16,7 +16,7 @@ TDIR=$(readlink -f $(dirname $0))
 if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON="python3"
+[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
 [[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0.2
+__version__=2.0.1
 
 
 get_arch () {
@@ -144,30 +144,27 @@ update_odoo_conf() {
 }
 
 
-OPTOPTS=(h        b         C       D        E        I         G       L        m         N        n            P       S        T        t        U        V           v)
-OPTDEST=(opt_help odoo_vid  opt_cfg opt_ucfg opt_osf  opt_id    opt_org opt_flog opt_multi opt_name opt_dry_run  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
-OPTACTI=("+"      "=>"      "=>"    1        "=>"     "=>"      "="     "=>"     1         "=>"     1            "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
-OPTDEFL=(1        "10"      ""      0        ""       ""        ""      ""       0         ""       0            ""      0        ""       ""       "odoo"   ""          0)
-OPTMETA=("help"   "vid"     "file"  ""       "linux"  "id-name" "id"    "file"   "mult"    "name"   "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
+OPTOPTS=(h        b         c         D        E       G       L        n            P       S        T        t        U        V           v)
+OPTDEST=(opt_help odoo_vid  opt_confn opt_ucfg opt_osf opt_org opt_flog opt_dry_run  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
+OPTACTI=("+"      "=>"      "=>"      1        "=>"    "="     "=>"     1            "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
+OPTDEFL=(1        ""        ""        0        ""      ""      ""       0            ""      0        ""       ""       "odoo"   ""          0)
+OPTMETA=("help"   "vid"     "file"    ""       "linux" "id"    "file"   "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
- "select odoo version id: may be 6, 7, 8, 9, 10, 11, 12 or 13"\
- "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
- "update default values in /etc configuration file before creating script"\
- "select linux distribution: RHEL or Debian (default is current platform)"\
- "set id name (odoo or openerp, default is odoo)"\
- "set id of Git repository in multi-version: may be oca,zero or librerp"
- "set odoo log filename (default /var/log/{id_name}/{id_name}-server).log"\
- "multiple version environment (append version to filenames)"\
- "set odoo service name (default {id_name}-server)"\
- "do nothing (dry-run)"\
- "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"\
+ "select odoo version id: may be 6, 7, 8, 9, 10, 11, 12 or 13"
+ "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"
+ "update default values in /etc configuration file before creating script"
+ "select linux distribution: RHEL or Debian (default is current platform)"
+ "set id name (odoo or openerp, default is odoo)"
+ "set odoo log filename (default /var/log/{id_name}/{id_name}-server).log"
+ "do nothing (dry-run)"
+ "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"
  "use sudo to execute command instead of start-stop-daemon (only Debian)"
- "created test script does nothing (used for debug)"\
- "use template (def /etc/lisa/odoo-server_{linux_dist})"\
- "odoo service username"\
- "show version"\
+ "created test script does nothing (used for debug)"
+ "use template (def /etc/lisa/odoo-server_{linux_dist})"
+ "odoo service username"
+ "show version"
  "verbose mode")
-OPTARGS=(script_name)
+OPTARGS=()
 
 parseoptargs "$@"
 if [[ "$opt_version" ]]; then
@@ -180,70 +177,81 @@ if [[ $opt_help -gt 0 ]]; then
   exit 0
 fi
 # discover_multi
-odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
-odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
-[ $opt_ucfg -ne 0 ] && update_odoo_conf $odoo_vid $opt_cfg
-if [ -z "$opt_org" ]; then
-  GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_vid)
-  [ "$GIT_ORGNM" == "zeroincombenze" ] && opt_org=""
-  [ "$GIT_ORGNM" == "OCA" ] && opt_org="oca"
-# else
-  # [ "$opt_org" == "oca" -a "${odoo_vid:0:3}" != "oca" ] && odoo_vid="oca$odoo_ver"
-  # [ "$opt_org" == "zero" -a "${odoo_vid:0:4}" != "zero" ] && odoo_vid="zero$odoo_ver"
-  # [ "$opt_org" == "librerp" -a "${odoo_vid:0:6}" != "librerp" ] && odoo_vid="librerp$odoo_ver"
+opt_multi=1
+[[ -z $opt_confn ]] && echo "Missed configuration file!" && exit 1
+script_name=$(basename $opt_confn)
+[[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
+if [[ -z $odoo_vid ]]; then
+  odoo_ver=$(echo $script_name|grep -Eo "(odoo|oca)[0-9]+"|grep -Eo "[0-9]+")
+  [[ ! $odoo_ver =~ (6|7|8|9|10|11|12|13|14|15|16) ]] && odoo_ver=12
+  odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
+else
+  odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
+  odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 fi
-xtl_org=$opt_org
-if [ -z "$opt_name" ]; then
-  opt_name=$(build_odoo_param SVCNAME $odoo_vid '' $opt_org)
+if [[ -z $opt_org ]]; then
+  xtl_org=$(echo $script_name|grep -Eo "[a-zA-Z0-9_]+-[a-zA-Z0-9_]*"|cut -d- -f2)
+else
+  xtl_org=$opt_org
 fi
-if [ -z "$opt_id" ]; then
-  if [ "${opt_name:0:7}" == "openerp" ]; then
-    opt_id="openerp"
-  else
-    opt_id="odoo"
-  fi
+if [[ -z $odoo_vid ]]; then
+  [[ -z $xtl_org || $xtl_org == "odoo" ]] && odoo_vid="${odoo_fver}"
+  [[ -n $xtl_org && $xtl_org =~ (oca|librerp|zero) ]] && odoo_vid="${xtl_org}${odoo_ver}"
+  [[ -n $xtl_org && ! $xtl_org =~ (odoo|oca|librerp|zero) ]] && odoo_vid="odoo${odoo_ver}-${xtl_org}"
 fi
-[[ -n "$opt_pid" ]] || opt_pid=$(build_odoo_param FPID $odoo_fver '' $opt_org)
-[[ -n "$opt_flog" ]] || opt_flog=$(build_odoo_param FLOG $odoo_fver '' $opt_org)
-[[ -n "$opt_cfg" ]] || opt_cfg=$(build_odoo_param CONFN $odoo_fver '' $opt_org)
-opt_cfg2="$(dirname $opt_cfg)"
-opt_cfg2="$(readlink -m $opt_cfg2/..)/$(basename $opt_cfg)"
-[[ -n "$script_name" ]] || script_name=$(build_odoo_param FULL_SVCNAME $odoo_fver '' $opt_org)
-if [ -n "$opt_osf" ]; then
+GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_vid)
+SVCNAME=$(build_odoo_param SVCNAME $odoo_vid)
+CONFN=$(build_odoo_param CONFN $odoo_vid)
+if [[ $script_name != $SVCNAME || $CONFN != $opt_confn ]]; then
+  echo "Data mismatch!"
+  echo "Odoo version=$odoo_fver"
+  echo "Odoo branch=$odoo_vid"
+  echo "Config=$opt_confn"
+  echo "Config=$CONFN (by Odoo branch)"
+  echo "Service name=$SVCNAME (by Odoo branch)"
+  echo "Service name=$script_name (from config file)"
+  exit 1
+fi
+# [ $opt_ucfg -ne 0 ] && update_odoo_conf $odoo_vid $opt_confn
+if [[ $SVCNAME =~ ^openerp ]]; then
+  opt_id="openerp"
+else
+  opt_id="odoo"
+fi
+[[ -n "$opt_pid" ]] || opt_pid=$(build_odoo_param FPID $odoo_vid)
+[[ -n "$opt_flog" ]] || opt_flog=$(build_odoo_param FLOG $odoo_vid)
+opt_confn2="$(dirname $opt_confn)"
+opt_confn2="$(readlink -m $opt_confn2/..)/$(basename $opt_confn)"
+if [[ -n $opt_osf ]]; then
   get_arch "$opt_osf"
-  if [ "$FH" != "RHEL" -a "$FH" != "Debian" ]; then
+  if [[ ! $FH =~ (RHEL|Debian) ]]; then
     echo "Invalid Linux distribution: use -d RHEL o -d Debian"
     exit 1
   fi
 else
   FH=$(xuname "-f")
 fi
-if [ -f "$opt_cfg" ]; then
-  CFG_FILE=$opt_cfg
-elif [ -f "$opt_cfg2" ]; then
-  CFG_FILE=$opt_cfg2
-else
-  CFG_FILE=
-fi
-if [ -n "$CFG_FILE" ]; then
-  cfg_pidfile=$(grep "^pidfile *=" $CFG_FILE|awk -F= '{print $2}')
-  cfg_pidfile=$(echo $cfg_pidfile)
-  cfg_logfile=$(grep "^logfile *=" $CFG_FILE|awk -F= '{print $2}')
-  cfg_logfile=$(echo $cfg_logfile)
-  if [ -n "$cfg_pidfile" -a "$cfg_pidfile" != "$opt_pid" ]; then
+if [[ -n "$CONFN" ]]; then
+  PIDFILE=$(grep "^pidfile *=" $CONFN|awk -F= '{print $2}')
+  PIDFILE=$(echo $PIDFILE)
+  [[ -z $PIDFILE ]] && PIDFILE="$opt_pid"
+  LOGFILE=$(grep "^logfile *=" $CONFN|awk -F= '{print $2}')
+  LOGFILE=$(echo $LOGFILE)
+  [[ -z $LOGFILE ]] && LOGFILE="$opt_flog"
+  if [[ $PIDFILE != $opt_pid ]]; then
     echo "??? Mismatch pidfile configuration!?!?!?"
-    echo "Found $cfg_pidfile in configuration file rather than $opt_pid"
+    echo "Found $PIDFILE in configuration file rather than $opt_pid"
   fi
-  if [ -n "$cfg_logfile" -a "$cfg_logfile" != "$opt_flog" ]; then
+  if [[ $LOGFILE != $opt_flog ]]; then
     echo "??? Mismatch logfile configuration!?!?!?"
-    echo "Found $cfg_logfile in configuration file rather than $opt_flog"
+    echo "Found $LOGFILE in configuration file rather than $opt_flog"
   fi
 fi
-echo "Building $script_name for $opt_name service under $FH Linux distribution"
-echo "- logfile is $opt_flog"
-echo "- pidfile is $opt_pid"
-echo "- def.conf.file is $opt_cfg"
-echo "- alt.conf.file is $opt_cfg2"
+echo "Building $script_name for $SVCNAME service under $FH Linux distribution"
+echo "- logfile is $LOGFILE"
+echo "- pidfile is $PIDFILE"
+echo "- def.conf.file is $CONFN"
+echo "- alt.conf.file is $opt_confn2"
 src_template=""
 [[ -n "$opt_tmpl" && -f $opt_tmpl ]] && src_template="$opt_tmpl"
 if [[ -z $src_template ]]; then
@@ -274,9 +282,7 @@ if [[ -z $src_template ]]; then
   exit 1
 fi
 
-if [ -f $script_name.tmp ]; then
-  rm -f $script_name.tmp
-fi
+[[ -f $script_name.tmp ]] && rm -f $script_name.tmp
 begin_scrpt=0
 prm_list="xtl_org"
 dbg=0
@@ -297,15 +303,15 @@ while IFS=\| read -r line; do
         declare $prm="$opt_id"
       fi
     elif [ "$prm" == "xtl_name" ]; then
-      declare $prm="$opt_name"
+      declare $prm="$SVCNAME"
     elif [ "$prm" == "xtl_logfile" ]; then
-      declare $prm="$opt_flog"
+      declare $prm="$LOGFILE"
     elif [ "$prm" == "xtl_pidfile" ]; then
-      declare $prm="$opt_pid"
+      declare $prm="$PIDFILE"
     elif [ "$prm" == "xtl_cfgfile" ]; then
-      declare $prm="$opt_cfg"
+      declare $prm="$CONFN"
     elif [ "$prm" == "xtl_altcfgfile" ]; then
-      declare $prm="$opt_cfg2"
+      declare $prm="$opt_confn2"
     elif [ "$prm" == "xtl_version" ]; then
       declare $prm="$odoo_ver"
     elif [ "$prm" == "xtl_fversion" ]; then

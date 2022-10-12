@@ -1,7 +1,7 @@
 
-===================
-python_plus 2.0.0.3
-===================
+=================
+python_plus 2.0.1
+=================
 
 
 
@@ -274,6 +274,11 @@ Current development version
 History
 -------
 
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
 2.0.0.3 (2022-09-14)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -321,7 +326,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-02
+Last Update / Ultimo aggiornamento: 2022-10-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

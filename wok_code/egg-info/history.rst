@@ -1,3 +1,14 @@
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.0.4 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New lint_2_compare command
+* [IMP] odoo_dependecies.py: minor upgrade
+
 2.0.0.3 (2022-09-14)
 ~~~~~~~~~~~~~~~~~~~~
 

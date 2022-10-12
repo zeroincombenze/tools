@@ -1,3 +1,14 @@
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.0.3 (2022-10-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: best virtual environment recognize
+* [FIX] odoorc: SVCNAME
+
 2.0.0.2 (2022-09-14)
 ~~~~~~~~~~~~~~~~~~~~
 
