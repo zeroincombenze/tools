@@ -4,3 +4,5 @@
 Code documentation
 ------------------
 
+.. automodule:: python_plus.scripts
+

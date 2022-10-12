@@ -1,6 +1,6 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-# Regression tests on clodoo
+# Regression tests
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK

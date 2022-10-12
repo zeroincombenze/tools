@@ -4,6 +4,7 @@ from past.builtins import basestring, long
 from future.utils import PY2, PY3, with_metaclass
 from datetime import date, timedelta
 import calendar
+from . import scripts
 
 
 __title__ = 'python_plus'
