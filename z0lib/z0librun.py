@@ -48,7 +48,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.0.3"
+__version__ = "2.0.0.4"
 
 
 def nakedname(path):
@@ -56,6 +56,22 @@ def nakedname(path):
 
 
 def run_traced(cmd, verbose=None, dry_run=None):
+    def sh_any(args):
+        prcout = prcerr = ""
+        try:
+            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                prcout, prcerr = proc.communicate()
+                sts = proc.returncode
+                prcout = prcout.decode("utf-8")
+                prcerr = prcerr.decode("utf-8")
+        except FileNotFoundError as e:
+            if verbose:
+                print(e)
+            sts = 127
+        except BaseException:
+            sts = 126
+        return sts, prcout, prcerr
+
     def sh_rm(args):
         ix = 1
         opt_f = False
@@ -84,7 +100,7 @@ def run_traced(cmd, verbose=None, dry_run=None):
                 shutil.rmtree(tgtdir)
             else:
                 os.unlink(tgtdir)
-        return sts
+        return sts, "", ""
 
     def sh_mkdir(args):
         ix = 1
@@ -102,7 +118,36 @@ def run_traced(cmd, verbose=None, dry_run=None):
                 sts = 1
             else:
                 os.mkdir(tgtdir)
-        return sts
+        return sts, "", ""
+
+    def cmd_ineffective_if(
+        args, params=None, switches=None, no_params=None, no_switches=None
+    ):
+        params = params or []
+        switches = switches or []
+        no_params = no_params or []
+        no_switches = no_switches or []
+        if (set(params) - set(args)):
+            return False
+        if no_params and not (set(no_params) - set(args)):
+            return False
+        if switches:
+            ctr = 0
+            for item in switches:
+                item = item[1:]
+                if any([x for x in args if x.startswith("-") and item in x]):
+                    ctr += 1
+            if ctr != len(switches):
+                return False
+        if no_switches:
+            ctr = 0
+            for item in no_switches:
+                item = item[1:]
+                if any([x for x in args if x.startswith("-") and item in x]):
+                    ctr += 1
+            if ctr == len(no_switches):
+                return False
+        return True
 
     if verbose:
         print('%s %s' % (">" if dry_run else "$", cmd))
@@ -115,24 +160,20 @@ def run_traced(cmd, verbose=None, dry_run=None):
             os.chdir(tgtdir)
         elif not dry_run:
             sts = 1
+    elif (
+        cmd_ineffective_if(args, params=['dir']) or
+        cmd_ineffective_if(args, params=['git', 'status']) or
+        cmd_ineffective_if(args, params=['git', 'branch'], no_switches=['-b']) or
+        cmd_ineffective_if(args, params=['git', 'remote'], switches=['-v'])
+    ):
+        sts, prcout, prcerr = sh_any(args)
     elif not dry_run:
         if args[0] == "rm":
-            sts = sh_rm(args)
+            sts, prcout, prcerr = sh_rm(args)
         elif cmd.startswith("mkdir "):
-            sts = sh_mkdir(args)
+            sts, prcout, prcerr = sh_mkdir(args)
         else:
-            try:
-                with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
-                    prcout, prcerr = proc.communicate()
-                    sts = proc.returncode
-                    prcout = prcout.decode("utf-8")
-                    prcerr = prcerr.decode("utf-8")
-            except FileNotFoundError as e:
-                if verbose:
-                    print(e)
-                sts = 127
-            except BaseException:
-                sts = 126
+            sts, prcout, prcerr = sh_any(args)
     return sts, prcout, prcerr
 
 
