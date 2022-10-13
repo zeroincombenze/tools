@@ -115,7 +115,7 @@ do_deactivate() {
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_deactivate($*)"
   if [[ -n "$VIRTUAL_ENV" ]]; then
     [[ $opt_verbose -ge 3 || ( ! $1 =~ q && $opt_verbose -ne 0 ) ]] && echo "$FLAG deactivate"
-    [[ "$(type -t deactivate)" == "function" ]] && deactivate
+    [[ $(type -t deactivate) == "function" ]] && deactivate
     pop_venv
   fi
 }
@@ -149,7 +149,6 @@ get_pkg_wo_version() {
   pkg=$(echo "$1"|grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
   echo $pkg
 }
-
 
 get_wkhtmltopdf_dwname() {
   #get_wkhtmltopdf_dwname(pkg FH DISTO MACHARCH)
@@ -299,15 +298,17 @@ bin_install_1() {
 pip_install() {
   #pip_install(pkg opts)
   local pkg d x srcdir pfn popts pypath v tmpdir DISTO  FH
+  [[ $1 =~ ^[\'\"] ]] && pkg="${1:1: -1}" || pkg="$1"
+  [[ $opt_verbose -gt 1 ]] && echo -e "  \e[32mpip install \"$1\" $2\e[0m"
   [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
   [[ -n $opt_distro ]] && DISTO=${opt_distro,,} || DISTO=$(xuname -d)
   pypath=$(find $VIRTUAL_ENV/lib -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON 2>/dev/null))/../lib) -type d -name site-packages)
   tmpdir=$VIRTUAL_ENV/tmp
-  pkg="$(get_actual_pkg $1)"
-  pfn=$(get_pkg_wo_version $pkg)
+  pkg=$(get_actual_pkg "$pkg")
+  pfn=$(get_pkg_wo_version "$pkg")
   [[ $pfn =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_}
-  [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
+  [[ $pkg =~ "-e " ]] && pkg="${pkg//-e /--editable=}"
   [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
@@ -326,7 +327,7 @@ pip_install() {
         [[ -d $opt_oepath/openerp && -f $opt_oepath/openerp/__init__.py ]] && srcdir=$opt_oepath/openerp
         [[ -d $opt_oepath/odoo && -f $opt_oepath/odoo/__init__.py ]] && srcdir=$opt_oepath/odoo
       fi
-      [[ -z $srcdir && $opt_debug -ge 2 && $pfn =~ $LOCAL_PKGS ]] && echo "Invalid or not found source path!" && exit 1
+      [[ -z $srcdir && $opt_debug -ge 2 && $pfn =~ $LOCAL_PKGS ]] && echo "Invalid or not found source path $srcdir!" && exit 1
       [[ -z $srcdir && $pfn =~ ^(odoo|openerp)$ ]] && echo "Odoo source not found!" && exit 1
     fi
     if [[ $pfn =~ $BIN_PKGS ]]; then
@@ -433,7 +434,7 @@ pip_install_1() {
   local pkg popts ll
   [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
   ll="$SUP_PKGS $SECURE_PKGS $DEV_PKGS $(get_req_list "" "python" "base")"
-  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing $ll\e[0m (1)"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m1 - Analyzing $ll\e[0m (1)"
   for pkg in $ll; do
     [[ $opt_verbose -lt 2 ]] && echo -en "."
     pip_install "$pkg" "$popts"
@@ -444,7 +445,7 @@ pip_install_1() {
 pip_install_2() {
   # pip_install_2(popts)
   local pkg
-  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m3 - Analyzing $OEPKGS\e[0m (2)"
+  [[ $opt_verbose -gt 0 ]] && echo -e "\e[1m2 - Analyzing $OEPKGS\e[0m (2)"
   for pkg in $OEPKGS; do
     pip_install "$pkg" "$1"
   done
@@ -481,7 +482,7 @@ pip_uninstall() {
     [[ -L $pypath/$pkg ]] && srcdir="$pypath/$pkg"
     if [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
-      [[ $pkg =~ ^(odoo|openerp)$ ]] && venv_mgr_check_oever "$(readlink -f $srcdir)" && x="$opt_oever"
+      [[ $pkg =~ ^(odoo|openerp)$ ]] && venv_mgr_check_oever $(readlink -f $srcdir) && x="$opt_oever"
       pushd $srcdir/.. >/dev/null
       [[ $pkg =~ ^(odoo|openerp)$ ]] || x=$(get_local_version $pfn)
       v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
@@ -567,7 +568,7 @@ bin_check_1() {
 check_package() {
   # check_package(pkg cmd)
   local op reqver xreqver sts curver vpkg x
-  local vpkg="$(get_actual_pkg $1)"
+  local vpkg=$(get_actual_pkg $1)
 
   op=$(echo "$vpkg" | grep --color=never -Eo '[!<=>]*' | head -n1)
   pkg=$(echo "$vpkg" | grep --color=never -Eo '[^!<=>\\[]*' | tr -d "'" | head -n1)
@@ -975,7 +976,7 @@ do_venv_mgr() {
         fi
         if [[ -n "$sitecustom" ]]; then
           x=$sitecustom
-          while [[ ! "$x" == "/" && ! "$(basename $x)" == "lib" ]]; do x=$(dirname $x); done
+          while [[ ! "$x" == "/" && ! $(basename $x) == "lib" ]]; do x=$(dirname $x); done
           x=$(dirname $x)
           x=$x/bin
           [[ ! :$PATH: =~ :$x: ]] && export PATH=$x:$PATH
@@ -1149,7 +1150,7 @@ do_venv_pip() {
   local SAVED_PATH=$PATH
   local cmd="$2"
   VENV="$1"
-  pkg="$(get_actual_pkg $3)"
+  pkg=$(get_actual_pkg $3)
   [[ $pkg =~ "-e " ]] && pkg=${pkg//-e /--editable=}
   if [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]]; then
     V=""
@@ -1203,7 +1204,7 @@ validate_py_oe_vers() {
 
 OPTOPTS=(h        a        B         C      D       d        E          f         F      k        I           i         l        n           O         o          p         q           r           s                    t          V           v           y)
 OPTLONG=(help     ""       ""        ""     devel   dep-path distro     force     ""     keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose     yes)
-OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_deps opt_distro opt_force opt_FH opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose opy_yes)
+OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_deps opt_distro opt_force opt_FH opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose opt_yes)
 OPTACTI=('+'      "="      "+"       1      1       "="      "="        1         "="    1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+"         1)
 OPTDEFL=(1        ""       0         0      0       ""       ""         0         ""     0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1          0)
 OPTMETA=("help"   "list"   ""        ""     ""      "paths"  "distro"   ""        "name" ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose"   "")
@@ -1252,7 +1253,7 @@ for x in 3 4 5 6; do
     eval $p=""
     [[ $action == "help" ]] && break
   elif [[ -d "${!p}" && -f ${!p}/bin/activate ]]; then
-    p2="$(readlink -e ${!p})"
+    p2=$(readlink -e ${!p})
     eval $p=""
   elif [[ $action == "create" ]]; then
     if [[ -z "$p2" && -n "${!p}" ]]; then
@@ -1268,7 +1269,7 @@ if [[ -z "$p2" && -n "$VIRTUAL_ENV" && -f $VIRTUAL_ENV/bin/activate ]]; then
   p2=$VIRTUAL_ENV
   VENV_STS="preinstalled"   # running inside a virtual environment
 elif [[ -z "$p2" && -f ./bin/activate ]]; then
-  p2="$(readlink -e ./)"
+  p2=$(readlink -e ./)
 fi
 [[ -z "$p8" && -n "$p9" ]] && p8="$p9" && p9=""
 [[ -z "$p7" && -n "$p8" ]] && p7="$p8" && p8=""
@@ -1280,9 +1281,13 @@ if [[ $opt_help -gt 0 ]]; then
   print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
-[[ ! $action =~ (help|create) && ( -z "$p2" || ! -f $p2/bin/activate ) ]] && echo -e "${RED}Virtual environment not issued! Use $0 <VENV> ...${CLR}" && exit 1
-# If it is running inside travis test environment
-[[ -z "$opt_pyver" && -n "$TRAVIS_PYTHON_VERSION" ]] && opt_pyver=$TRAVIS_PYTHON_VERSION
+if [[ $action =~ (help|create|python) ]]; then
+  # If it is running inside travis test environment
+  [[ -z "$opt_pyver" && -n "$TRAVIS_PYTHON_VERSION" ]] && opt_pyver=$TRAVIS_PYTHON_VERSION
+else
+  [[ -z "$p2" || ! -f $p2/bin/activate  ]] && echo -e "${RED}Virtual environment not issued! Use $0 <VENV> ...${CLR}" && exit 1
+  opt_pyver=""
+fi
 [[ -z $VENV_STACK ]] && declare -A VENV_STACK && export VENV_STACK
 [[ -n "$VIRTUAL_ENV" && -z "$VENV_STACK" ]] && push_venv "$VIRTUAL_ENV"
 [[ $opt_verbose -eq -1 ]] && opt_verbose=1
@@ -1308,7 +1313,7 @@ PRINTED_PIPVER=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"
-[[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ="$(which list_requirements.py 2>/dev/null)"
+[[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ=$(which list_requirements.py 2>/dev/null)
 [[ -z $LIST_REQ ]] && echo "Command list_requirements.py not found!" && exit 1
 
 if [[ $action == "rm" ]]; then

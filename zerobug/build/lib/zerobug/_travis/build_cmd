@@ -13,11 +13,12 @@ BASE=$(basename $1)
 [[ -z $CMD ]] && cmd="$SRCPATH" || cmd="$CMD"
 x=$(dirname $SRCPATH)
 FROM="$(basename $x).$BASE"
+PYPATH=""
 valid=0
 while [[ -n "$x" ]]; do
     x=$(dirname $x)
     FROM="$(basename $x).$FROM"
-    [[ -f $x/__init__.py ]] && valid=1 && break
+    [[ -f $x/__init__.py ]] && valid=1 && PYPATH=$(dirname $x) && break
     [[ $x == $HOME ]] && break
 done
 
@@ -32,6 +33,7 @@ echo "# -*- coding: utf-8 -*-">>$cmd
 echo "# Created for test use on $(date '+%Y-%m-%d %H:%M:%S')">>$cmd
 echo "import re">>$cmd
 echo "import sys">>$cmd
+echo "sys.path.insert(0, '$PYPATH')">>$cmd
 echo "from $FROM import main">>$cmd
 echo "if __name__ == '__main__':">>$cmd
 echo "    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])">>$cmd

@@ -119,9 +119,9 @@ fi
 [[ $opts =~ ^-.*v ]] && echo "# Virtual environment is $LOCAL_VENV ..."
 [[ $opts =~ ^-.*n ]] || find $SRCPATH -name "*.pyc" -delete
 [[ $opts =~ ^-.*o ]] && echo -e "${RED}# WARNING! The switch -o is not more supported!${CLR}"
-[[ -x $SRCPATH/python_plus/python_plus/vem ]] && VEM="$SRCPATH/python_plus/python_plus/vem"
+# [[ -x $SRCPATH/python_plus/python_plus/vem ]] && VEM="$SRCPATH/python_plus/python_plus/vem"
 [[ -x $SRCPATH/python_plus/python_plus/scripts/vem.sh ]] && VEM="$SRCPATH/python_plus/python_plus/scripts/vem.sh"
-[[ -z "$VEM" && -x $SRCPATH/python_plus/vem ]] && VEM="$SRCPATH/python_plus/vem"
+# [[ -z "$VEM" && -x $SRCPATH/python_plus/vem ]] && VEM="$SRCPATH/python_plus/vem"
 [[ -z "$VEM" && -x $SRCPATH/python_plus/scripts/vem.sh ]] && VEM="$SRCPATH/python_plus/scripts/vem.sh"
 if [[ -z "$VEM" ]]; then
     echo -e "${RED}# Invalid environment! Command vem not found!${CLR}"
@@ -135,17 +135,15 @@ if [[ ! $opts =~ ^-.*k ]]; then
     done
 fi
 
-if [[ -x $LOCAL_VENV/python ]]; then
-  x=$($LOCAL_VENV/python --version 2>&1 | grep --color=never -Eo "[0-9]" | head -n1)
-  [[ ! $opts =~ ^-.*2 && x -eq 2 ]] && opts="${opts} -f"
-  [[ $opts =~ ^-.*2 && x -ne 2 ]] && opts="${opts} -f"
-fi
-
-[[ $opts =~ ^-.*2 ]] && PYVER=$(python2 --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]+" | head -n1) || PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]+" | head -n1)
+VPYVER="0.0"
+[[ -x $LOCAL_VENV/python ]] && VPYVER=$($LOCAL_VENV/python --version 2>&1 | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
+[[ -x $LOCAL_VENV/bin/python ]] && VPYVER=$($LOCAL_VENV/bin/python --version 2>&1 | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
+[[ $opts =~ ^-.*2 ]] && PYVER=$(python2 --version 2>&1 | grep --color=never -Eo "[23]\.[0-9]+" | head -n1) || PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
 [[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1)
 [[ -z $PYVER && ! $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && echo "No python not found in path|" && exit 1
-if [[ ! $opts =~ ^-.*k && ( $DSTPATH == $LOCAL_VENV || $opts =~ ^-.*[fU] || ! -d $LOCAL_VENV/lib || ! -d $DSTPATH/venv/bin || ! -d $DSTPATH/bin ) ]]; then
+
+if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
     x="-iDBB"
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
@@ -244,19 +242,21 @@ if [[ ! $opts =~ ^-.*k ]]; then
         done
         # Tools PYPI installation
         [[ $pkg == "tools" ]] && continue
-        x=$(find $SRCPATH/$pfn -maxdepth 3 -name __manifest__.rst 2>/dev/null|head -n 1)
-        [[ -n "$x" ]] && x=$(grep -E "^\.\. .set no_pypi ." $x|grep --color=never -Eo "[0-9]")
-        if [[ -z "$x" || $x -eq 0 ]]; then
+#        x=$(find $SRCPATH/$pfn -maxdepth 3 -name __manifest__.rst 2>/dev/null|head -n 1)
+#        [[ -n "$x" ]] && x=$(grep -E "^\.\. .set no_pypi ." $x|grep --color=never -Eo "[0-9]")
+#        if [[ -z "$x" || $x -eq 0 ]]; then
             if [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info && -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then
-                run_traced "cp -r $SRCPATH/$pfn/ $LOCAL_VENV/tmp/"
+                # run_traced "cp -r $SRCPATH/$pfn/ $LOCAL_VENV/tmp/"
+                srcpath="$SRCPATH/$pfn"
             else
                 run_traced "mkdir $LOCAL_VENV/tmp/$pfn"
                 run_traced "cp -r $SRCPATH/$pfn/ $LOCAL_VENV/tmp/$pfn/"
                 run_traced "mv $LOCAL_VENV/tmp/$pfn/$pfn/setup.py $LOCAL_VENV/tmp/$pfn/setup.py"
+                srcpath="$LOCAL_VENV/tmp/$pfn"
             fi
-            run_traced "pip install $LOCAL_VENV/tmp/$pfn $popts"
+            run_traced "pip install $srcpath $popts"
             if [[ $pkg =~ (python-plus|python_plus) ]]; then
-                [[ -x $PYLIB/$pfn/vem ]] && VEM="$PYLIB/$pfn/vem"
+                [[ -x $PYLIB/$pfn/scripts/vem.sh ]] && VEM="$PYLIB/$pfn/scripts/vemsh"
             elif [[ $pkg == "clodoo" ]]; then
                 [[ -d $BINPATH/clodoo ]] && run_traced "rm -f $BINPATH/clodoo"
                 [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $BINPATH/clodoo"
@@ -268,7 +268,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
             if [[ -n $(which ${pkg}-info 2>/dev/null) ]]; then
                 run_traced "${pkg}-info --copy-pkg-data"
             fi
-        fi
+#        fi
     done
 fi
 if [[ -f $BINPATH/please ]]; then

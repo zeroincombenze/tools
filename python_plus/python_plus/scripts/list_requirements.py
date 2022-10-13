@@ -16,6 +16,10 @@ import sys
 from subprocess import PIPE, Popen
 
 try:
+    from python_plus import python_plus
+except ImportError:
+    import python_plus
+try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
@@ -374,7 +378,7 @@ def fake_setup(**kwargs):
 
 
 def get_naked_pkgname(pkg):
-    return re.split('[!<=>@#;]', pkg.replace("'", ""))[0].strip()
+    return re.split('[!<=>@#;]', python_plus.qsplit(pkg)[0])[0].strip()
 
 
 def trim_pkgname(pkg):
@@ -1172,7 +1176,7 @@ def main(cli_args=None):
             pkg = get_naked_pkgname(req_pkg)
             if pkg not in [get_naked_pkgname(x) for x in pkgs]:
                 pkgs.append(
-                    "%-49s # not found in any manifests" % req_pkg.split('#')[0].strip()
+                    "%-49s # not found in any manifests" % get_naked_pkgname(req_pkg)
                 )
         if len(pkgs):
             bakfile = '%s~' % ctx["opt_fn"]
