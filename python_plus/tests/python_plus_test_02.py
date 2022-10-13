@@ -49,58 +49,60 @@ class RegressionTest:
         if os.path.isdir(self.venv_dir):
             shutil.rmtree(self.venv_dir)
 
-    def test_01(self, z0ctx):
-        self.clear_venv()
+    def check_4_paths(self, z0ctx):
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
-        cmd = 'vem -qf -p%s create %s' % (pyver, self.venv_dir)
-        z0lib.run_traced(cmd)
-        sts = self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
         for nm in ('bin', 'lib'):
             tgtdir = os.path.join(self.venv_dir, nm)
-            sts += self.Z.test_result(
+            sts = self.Z.test_result(
                 z0ctx, "- dir %s" % tgtdir, True, os.path.isdir(tgtdir)
             )
+
         tgtfile = os.path.join(self.venv_dir, 'bin', 'python%s' % pyver)
         sts += self.Z.test_result(
             z0ctx, "- file %s" % tgtfile, True, os.path.isfile(tgtfile)
         )
+        return sts
 
-        cmd = 'vem %s -q exec "cd; pwd"' % (self.venv_dir)
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+    def check_4_homedir(self, z0ctx, homedir):
+        cmd = 'vem %s -q exec "cd; pwd"' % self.venv_dir
+        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         sts += self.Z.test_result(
-            z0ctx, "- home", self.SAVED_HOME, stdout.split("\n")[-1])
+            z0ctx,
+            "- home",
+            homedir,
+            stdout.split()[-1] if stdout else "<None>"
+        )
+        return sts
 
+    def check_4_install(self, z0ctx):
+        pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
         libdir = os.path.join(self.venv_dir, "lib", 'python%s' % pyver, "site-packages")
         pypi = "Werkzeug"
         tgtdir = os.path.join(libdir, pypi.lower())
         cmd = 'vem %s -q install %s' % (self.venv_dir, pypi)
-        sts, stdout, stderr = z0lib.run_traced(cmd)
-        sts += self.Z.test_result(
-            z0ctx, "- status %s" % cmd, 0, sts
-        )
+        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
         sts += self.Z.test_result(
             z0ctx, "- dir %s" % tgtdir, True, os.path.isdir(tgtdir)
         )
 
         cmd = 'vem %s -q info %s' % (self.venv_dir, pypi)
-        sts, stdout, stderr = z0lib.run_traced(cmd)
-        sts += self.Z.test_result(
-            z0ctx, "- status %s" % cmd, 0, sts
-        )
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts1)
         res = ""
         for ln in stdout.split("\n"):
             if ln.startswith("Location:"):
                 res = ln.split(" ")[1].strip()
                 break
         sts += self.Z.test_result(
-            z0ctx, "- info %s" % pypi, tgtdir, res
+            z0ctx, "- info %s" % pypi, os.path.dirname(tgtdir), res
         )
 
         cmd = 'vem %s -q update %s==0.11.11' % (self.venv_dir, pypi)
-        sts, stdout, stderr = z0lib.run_traced(cmd)
-        sts += self.Z.test_result(
-            z0ctx, "- status %s" % cmd, 0, sts
-        )
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts1)
+        cmd = 'vem %s -q info %s' % (self.venv_dir, pypi)
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         res = ""
         for ln in stdout.split("\n"):
             if ln.startswith("Version:"):
@@ -111,88 +113,71 @@ class RegressionTest:
         )
 
         cmd = 'vem %s -q uninstall %s -y' % (self.venv_dir, pypi)
-        sts, stdout, stderr = z0lib.run_traced(cmd)
-        sts += self.Z.test_result(
-            z0ctx, "- status %s" % cmd, 0, sts
-        )
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts1)
         sts += self.Z.test_result(
             z0ctx, "- dir %s" % tgtdir, False, os.path.isdir(tgtdir)
         )
+        return sts
+
+    def check_4_exec(self, z0ctx):
+        test_python = os.path.join(self.venv_dir, 'test.py')
+        if not z0ctx['dry_run']:
+            with open(test_python, 'w') as fd:
+                fd.write(TEST_PYTHON)
+        cmd = 'vem -qf %s exec "python %s"' % (self.venv_dir, test_python)
+        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(
+            z0ctx,
+            "- exec",
+            '1.2.3.4',
+            stdout.split()[-1] if stdout else "<None>"
+        )
+        return sts
+
+    def test_01(self, z0ctx):
+        self.clear_venv()
+        pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
+        # Not isolated nevironment
+        cmd = 'vem -qf -p%s create %s' % (pyver, self.venv_dir)
+        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
+        sts += self.check_4_paths(z0ctx)
+        sts += self.check_4_homedir(z0ctx, self.SAVED_HOME)
+        sts += self.check_4_install(z0ctx)
+        sts += self.check_4_exec(z0ctx)
 
         return sts
 
     def test_02(self, z0ctx):
         self.clear_venv()
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
-        cmd = '%s/scripts/vem.sh -qIf -p%s create %s' % (
-            self.Z.rundir, pyver, self.venv_dir)
-        if not z0ctx['dry_run']:
-            os.system(cmd)
-        sts = self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
-        for nm in ('bin', 'lib'):
-            tgtdir = os.path.join(self.venv_dir, nm)
-            sts += self.Z.test_result(
-                z0ctx, "- dir %s" % tgtdir, True, os.path.isdir(tgtdir)
-            )
+        # Isolated environment
+        cmd = 'vem -qIf -p%s create %s' % (pyver, self.venv_dir)
+        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
+        sts += self.check_4_paths(z0ctx)
+        sts += self.check_4_homedir(z0ctx, self.venv_dir)
+        sts += self.check_4_install(z0ctx)
+        sts += self.check_4_exec(z0ctx)
 
-        tgtfile = os.path.join(self.venv_dir, 'bin', 'python%s' % pyver)
-        sts += self.Z.test_result(
-            z0ctx, "- file %s" % tgtfile, True, os.path.isfile(tgtfile)
-        )
-
-        outfile = os.path.join(self.Z.testdir, 'home.log')
-        out = ''
-        cmd = r'%s/scripts/vem.sh %s -q exec "cd;pwd>%s"' % (
-            self.Z.rundir, self.venv_dir, outfile)
-        if not z0ctx['dry_run']:
-            os.system(cmd)
-            if not os.path.isfile(outfile):
-                self.Z.test_result(z0ctx, "- home", outfile, 'File not created')
-                out = ''
-            else:
-                with open(outfile, 'r') as fd:
-                    out = fd.read().split()[0]
-        sts = self.Z.test_result(z0ctx, "- home", self.venv_dir, out)
         return sts
 
     def test_03(self, z0ctx):
         self.clear_venv()
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
-        cmd = '%s/scripts/vem.sh -qDIf -p%s create %s' % (
-            self.Z.rundir, pyver, self.venv_dir)
-        if not z0ctx['dry_run']:
-            os.system(cmd)
-        sts = self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
+        # Isolated environment + devel packages
+        cmd = 'vem -qDIf -p%s create %s' % (pyver, self.venv_dir)
+        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
+        sts += self.check_4_paths(z0ctx)
+        sts += self.check_4_homedir(z0ctx, self.venv_dir)
+        sts += self.check_4_install(z0ctx)
+        sts += self.check_4_exec(z0ctx)
 
-        outfile = os.path.join(self.Z.testdir, 'home.log')
-        out = ''
-        test_python = os.path.join(self.venv_dir, 'test.py')
-        if not z0ctx['dry_run']:
-            with open(test_python, 'w') as fd:
-                fd.write(TEST_PYTHON)
-        cmd = '%s/scripts/vem.sh -qf %s exec "python %s &>%s"' % (
-            self.Z.rundir,
-            self.venv_dir,
-            test_python,
-            outfile,
-        )
-        if not z0ctx['dry_run']:
-            os.system(cmd)
-            if not os.path.isfile(outfile):
-                self.Z.test_result(z0ctx, "- exec", outfile, 'File not created')
-                out = ''
-            else:
-                with open(outfile, 'r') as fd:
-                    out = fd.read().split()[0]
-        sts += self.Z.test_result(z0ctx, "- exec", '1.2.3.4', out)
         return sts
-    #
-    # def test_04(self, z0ctx):
-    #     cmd = '%s/scripts/vem.sh %s install wkhtmltopdf -vn|grep Download' % (
-    #         self.Z.rundir, self.venv_dir)
-    #     if not z0ctx['dry_run']:
-    #         os.system(cmd)
-    #
 
 
 # Run main if executed as a script
