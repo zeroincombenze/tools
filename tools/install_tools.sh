@@ -256,7 +256,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
             fi
             run_traced "pip install $srcpath $popts"
             if [[ $pkg =~ (python-plus|python_plus) ]]; then
-                [[ -x $PYLIB/$pfn/scripts/vem.sh ]] && VEM="$PYLIB/$pfn/scripts/vemsh"
+                [[ -x $PYLIB/$pfn/scripts/vem.sh ]] && VEM="$PYLIB/$pfn/scripts/vem.sh"
             elif [[ $pkg == "clodoo" ]]; then
                 [[ -d $BINPATH/clodoo ]] && run_traced "rm -f $BINPATH/clodoo"
                 [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $BINPATH/clodoo"
@@ -359,7 +359,7 @@ done
 for pkg in babel lxml python-magic pyyaml python-plus z0lib z0bug-odoo zerobug; do
     echo -n "."
     pfn=$(echo "$pkg"| grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
-    x=$($VEM $LOCAL_VENV info $pkg 2>/dev/null|grep -E "^Location: .*")
+    x=$($VEM $LOCAL_VENV info $pkg 2>/dev/null|grep  --color=never -E "^Location: .*")
     [[ -z "$x" ]] && echo -e "${RED}Incomplete installation! Package $pkg non installed in $LOCAL_VENV!!${CLR}" && exit
 done
 echo ""
