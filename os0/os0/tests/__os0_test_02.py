@@ -14,8 +14,7 @@ from zerobug import z0test
 # from past.builtins import basestring
 
 
-
-__version__ = "1.0.3"
+__version__ = "2.0.0"
 
 MODULE_ID = 'os0'
 TEST_FAILED = 1

@@ -30,7 +30,7 @@ MODULE_ID = 'os0'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "1.0.3"
+__version__ = "2.0.0"
 
 TITLE = "os0 regression test. Version: " + __version__
 FLOGTMP = "os0_test.log"
@@ -74,7 +74,7 @@ class RegressionTest:
                 if tlog_fd.tell() == 0:
                     fzero = True
                 tlog_fd.close()
-            except:
+            except BaseException:
                 pass
         sts = self.Z.test_result(ctx, "new logfile (1)", True, fexts)
         sts = self.Z.test_result(ctx, "new logfile (2)", True, fzero)
@@ -92,7 +92,7 @@ class RegressionTest:
                 if tlog_fd.tell() == 0:
                     fzero = True
                 tlog_fd.close()
-            except:
+            except BaseException:
                 pass
         sts = self.Z.test_result(ctx, "new logfile (3)", True, fexts)
         sts = self.Z.test_result(ctx, "new logfile (4)", True, fzero)
@@ -128,7 +128,7 @@ class RegressionTest:
                 if tlog_fd.tell() == 0:
                     fzero = True
                 tlog_fd.close()
-            except:
+            except BaseException:
                 pass
         sts = self.Z.test_result(ctx, "Check for empty tracelog", True, fexts)
         if sts == TEST_SUCCESS:
@@ -216,7 +216,7 @@ class RegressionTest:
                 cmd = "dir " + os0.setlfilename(os.path.dirname(__file__))
             try:
                 os.remove(os0.setlfilename(os0.bgout_fn))
-            except:
+            except BaseException:
                 pass
             os0.muteshell(cmd, keepout=True)
             self.check_4_tkn_in_stdout(os.path.basename(__file__))
@@ -511,7 +511,7 @@ class RegressionTest:
             if f.find(token) >= 0:
                 found_chunk = True
             stdout_fd.close()
-        except:
+        except BaseException:
             pass
         if not found_chunk:
             os0.wlog("Test failed: muteshell did not work!!!")

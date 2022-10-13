@@ -14,7 +14,7 @@ name = 'os0'
 
 setup(
     name=name,
-    version='1.0.3',
+    version='2.0.0',
     description='OS indipendent interface',
     long_description_content_type='text/x-rst',
     long_description="""

@@ -71,7 +71,7 @@ from past.builtins import basestring, long
 # from datetime import datetime
 
 
-__version__ = "1.0.3"
+__version__ = "2.0.0"
 
 if sys.version_info[0] == 3:
     unicode = str  # This just to avoid lint error
@@ -385,7 +385,7 @@ class Os0:
                     txt = txt + sp + self.u(arg)
                 else:
                     txt = txt + sp + self.u(str(arg))
-            except:
+            except BaseException:
                 x = chr(0x3B1) + chr(0x3B2) + chr(0x3B3)
                 txt = txt + sp + x
             sp = ' '
@@ -401,7 +401,7 @@ class Os0:
                     txt = txt + sp + self.u(arg)
                 else:
                     txt = txt + sp + self.u(str(arg))
-            except:
+            except BaseException:
                 x = chr(0x3B1) + chr(0x3B2) + chr(0x3B3)
                 txt = txt + sp + x
             sp = ' '

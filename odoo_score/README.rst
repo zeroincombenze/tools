@@ -1,6 +1,6 @@
 
 ================
-odoo_score 1.0.8
+odoo_score 2.0.1
 ================
 
 
@@ -150,55 +150,33 @@ Current development version
 History
 -------
 
-1.0.8 (2022-07-30)
+2.0.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~
 
-* [IMP] New command rename_odoo_module
+* [IMP] stable version
 
-1.0.7.1 (2022-06-30)
+2.0.0.3 (2022-10-05)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] run_odoo_debug: log test result
+* [IMP] run_odoo_debug: test via pycharm
+* [FIX] run_odoo_debug: concurrent tests
 
-1.0.7 (2022-06-17)
+2.0.0.2 (2022-09-22)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odo_debug: test with random rpcport for multiple tests
+* [IMP] odoo_shell.py: new actions
+
+2.0.0.1 (2022-09-07)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odo_debug with debug
+* [IMP] run_odoo_debug: experimental debug via pycharm
+
+2.0.0 (2022-08-10)
 ~~~~~~~~~~~~~~~~~~
 
-* [IMP] run_odoo_debug: now may be supplied the odoo configuration file
-
-1.0.6 (2022-04-09)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: test with coverage
-
-1.0.5.2 (2022-03-25)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: minor improvements
-
-1.0.5.1 (2021-12-23)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] python3 compatibility
-
-1.0.5 (2021-12-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-1.0.2.1 (2021-08-30)
-~~~~~~~~~~~~~~~~~~~~
-
-[IMP] odoo_shell.py: minor updates
-
-1.0.2 (2021-08-26)
-~~~~~~~~~~~~~~~~~~
-
-[IMP] Stable version
-
-1.0.1.4 (2021-08-09)
-~~~~~~~~~~~~~~~~~~~~
-
-[FIX] run_odoo_debug: run in osx darwin
+* [REF] Stable version
 
 
 
@@ -224,7 +202,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-07-30
+Last Update / Ultimo aggiornamento: 2022-10-12
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -239,22 +217,22 @@ Last Update / Ultimo aggiornamento: 2022-07-30
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=2.0
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/2.0/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/2.0
     :alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0/dev
     :alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0/man
     :alt: Technical Documentation
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
-    :target: https://erp1.zeroincombenze.it
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
+    :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/2.0/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/2.0
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org
