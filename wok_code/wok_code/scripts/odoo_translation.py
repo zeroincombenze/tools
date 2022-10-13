@@ -15,13 +15,14 @@ import re
 import sys
 import time
 from builtins import input
-from subprocess import PIPE, Popen
+# from subprocess import PIPE, Popen
 
 from babel.messages import pofile
 from openpyxl import load_workbook
 
 from os0 import os0
 from python_plus import _c
+import makepo_it
 
 try:
     from z0lib.z0lib import z0lib
@@ -410,10 +411,7 @@ def rewrite_pofile(ctx, pofn, target, version):
     tmpfile = '%s.tmp' % pofn
     bakfile = '%s.bak' % pofn
     pofile.write_po(open(tmpfile, 'wb'), target)
-    cmd = ['makepo_it.py', '-b%s' % version, '-m%s' % ctx['module_name'], tmpfile]
-    out, err = Popen(
-        cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=False
-    ).communicate()
+    makepo_it.main(['-b', '%s' % version, '-m', '%s' % ctx['module_name'], tmpfile])
     with open(pofn, 'r') as fd:
         lefts = os0.u(fd.read()).split('\n')
     with open(tmpfile, 'r') as fd:
