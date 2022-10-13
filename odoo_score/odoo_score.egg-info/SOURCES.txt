@@ -14,7 +14,6 @@ odoo_score/odoo_score_7.py
 odoo_score/odoo_score_8.py
 odoo_score/odoo_score_9.py
 odoo_score/odoo_shell.py
-odoo_score/run_odoo_debug
 odoo_score/secure_db.py
 odoo_score/set_workers
 odoo_score.egg-info/PKG-INFO
@@ -28,4 +27,5 @@ odoo_score/scripts/__init__.py
 odoo_score/scripts/main.py
 odoo_score/scripts/rename_odoo_module.py
 odoo_score/scripts/run_odoo_debug.py
+odoo_score/scripts/run_odoo_debug.sh
 odoo_score/scripts/setup.info
