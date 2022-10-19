@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Usage: get-addons [-m] path1 [path2 ...][ -e exclude_modules]
           [ --only-applications ][ --exclude-applications]
@@ -12,15 +12,15 @@ import ast
 import os
 import sys
 
-if sys.version_info[0] == 2:
+try:
     from git_run import GitRun
-else:
+except ImportError:
     try:
         from .git_run import GitRun
     except ImportError:
         from git_run import GitRun
 
-__version__ = '2.0.0'
+__version__ = '2.0.0.1'
 
 MANIFEST_FILES = ['__manifest__.py', '__odoo__.py', '__openerp__.py', '__terp__.py']
 

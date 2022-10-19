@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://www.zeroincombenze.org>)
 #
@@ -25,7 +26,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "2.0.1"
+__version__ = "2.0.1.1"
 
 
 MODULE_ID = "clodoo"

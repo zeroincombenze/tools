@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Hi There!
 # You may be wondering what this giant blob of binary data here is, you might

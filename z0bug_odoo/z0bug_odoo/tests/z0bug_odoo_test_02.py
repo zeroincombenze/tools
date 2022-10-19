@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (C) 2015-2020 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
@@ -15,7 +15,7 @@ from zerobug import z0test, z0testodoo
 
 # from z0bug_odoo.travis.test_server import get_build_dir, get_server_script
 
-__version__ = "2.0.0"
+__version__ = "2.0.0.1"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1

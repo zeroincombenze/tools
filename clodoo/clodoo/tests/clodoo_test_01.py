@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://www.zeroincombenze.org>)
 #
@@ -49,7 +50,7 @@ except BaseException:
 
 from zerobug import z0test
 
-__version__ = "2.0.1"
+__version__ = "2.0.1.1"
 
 MODULE_ID = "clodoo"
 TEST_FAILED = 1

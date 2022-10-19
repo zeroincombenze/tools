@@ -1,4 +1,5 @@
-# template 18
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 General purpose bash and python library for zeroincombenze(R) tools
 

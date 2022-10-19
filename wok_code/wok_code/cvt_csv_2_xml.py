@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """usage: cvt_csv_2_xml.py [-h] [-b ODOO_VER] [-i ID_PREFIX] [-j ID_MODE]
                         [-m ODOO_MODEL] [-n] [-q] [-R CVT-RULE] [-V] [-v]
                         src_file [dst_file]
@@ -44,7 +44,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.1"
+__version__ = "2.0.1.1"
 
 msg_time = time.time()
 

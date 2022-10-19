@@ -1,4 +1,5 @@
-# template 18
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in
 local Linux machine and it is osx/darwin compatible.
@@ -43,7 +44,7 @@ import sys
 
 import pkg_resources
 
-__version__ = '2.0.1'
+__version__ = '2.0.1.1'
 
 
 def fake_setup(**kwargs):

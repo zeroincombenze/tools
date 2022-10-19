@@ -6,7 +6,7 @@ import argparse
 
 from z0lib import z0lib
 
-__version__ = "2.0.1"
+__version__ = "2.0.1.1"
 
 
 def get_names(left_path, right_path):

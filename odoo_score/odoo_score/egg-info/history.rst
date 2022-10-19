@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] run_odoo_debug: python stub
+* [FIX] run_odoo_debug: crash in sime rare cases
 
 2.0.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~~~

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # dummylib
 # Used to test searching library path in zerobug unit test
 

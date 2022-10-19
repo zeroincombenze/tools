@@ -12,23 +12,18 @@ import sys
 import click
 import pylint.lint
 
-if sys.version_info[0] == 2:
+try:
     import travis_helpers
+except ImportError:
+    from . import travis_helpers
+try:
     from getaddons import get_modules_changed, is_module
+except ImportError:
+    from .getaddons import get_modules_changed, is_module
+try:
     from git_run import GitRun
-else:
-    try:
-        from . import travis_helpers
-    except ImportError:
-        from z0bug_odoo.travis import travis_helpers
-    try:
-        from .getaddons import get_modules_changed, is_module
-    except ImportError:
-        from getaddons import get_modules_changed, is_module
-    try:
-        from .git_run import GitRun
-    except ImportError:
-        from git_run import GitRun
+except ImportError:
+    from .git_run import GitRun
 try:
     import ConfigParser
 except ImportError:

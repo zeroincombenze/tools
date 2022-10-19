@@ -84,11 +84,9 @@ check_for_modules() {
 coverage_set() {
     if [[ $opt_dry_run -eq 0 && $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
       [[ ! -d $HOME/coverage ]] && mkdir $HOME/coverage
-      COVERAGE_DATA_FILE="$HOME/coverage/${UMLI}"
-      COVERAGE_PROCESS_START="$HOME/coverage/${UMLI}rc"
-      # [[ -s $COVERAGE_PROCESS_START ]] || coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
+      COVERAGE_DATA_FILE="$HOME/coverage/${UDI}"
+      COVERAGE_PROCESS_START="$HOME/coverage/${UDI}rc"
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
-      # [[ -n "$coverage_tmpl" ]] && cp $coverage_tmpl $COVERAGE_PROCESS_START
       cp $coverage_tmpl $COVERAGE_PROCESS_START
       grep -Eq "^data_file *=" $COVERAGE_PROCESS_START || sed -E "/^\[run\]/a\\\ndata_file=$COVERAGE_DATA_FILE\n" -i $COVERAGE_PROCESS_START
     fi
@@ -103,6 +101,42 @@ coverage_report() {
       v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
       [[ $v -ge 6 ]] && coverage report --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $opts -m || coverage report --rcfile=$COVERAGE_PROCESS_START $opts -m
     fi
+}
+
+set_log_filename() {
+    # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
+    # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
+    # set -x  #debug
+    # local odoo_ver=$(build_odoo_param MAJVER ${BRANCH})
+    local m
+    [[ -n $opt_modules ]] && m="${opt_modules//,/+}" || m="$PKGNAME"
+    [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID '.')"
+    [[ -n $ODOO_GIT_ORGID && $GIT_ORGID =~ $ODOO_GIT_ORGID ]] && UDI="$m" || UDI="$m_${GIT_ORGID}"
+    [[ $PRJNAME == "Odoo" && -n $UDI ]] && UDI="${UDI}_${odoo_ver}"
+    [[ $PRJNAME == "Odoo" && -z $UDI ]] && UDI="${odoo_ver}"
+    [[ $PRJNAME == "Odoo" ]] && UMLI="${GIT_ORGID}${odoo_ver}" || UMLI="${GIT_ORGID}"
+    [[ -n "$REPOSNAME" && $REPOSNAME != "OCB" ]] && UMLI="${UMLI}.${REPOSNAME//,/+}"
+    [[ -n $m ]] && UMLI="${UMLI}.$m"
+#    if [[ -n $opt_flog ]]; then
+#      LOGDIR="$(dirname $opt_flog)"
+#      LOGFILE="$opt_flog"
+#    else
+      LOGDIR="$(get_cfg_value "" "LOGDIR")"
+      [[ -z $LOGDIR ]] && LOGDIR="$HOME_DEVEL/travis_log"
+      [[ -d $LOGDIR ]] || mkdir $LOGDIR
+      LOGFILE="$LOGDIR/${UMLI}.log"
+#    fi
+    OLD_LOGFILE=${LOGFILE/.log/_old.log}
+    # set +x  #debug
+}
+
+check_path_n_branch() {
+    # check_path_n_branch(path branch)
+    local x
+    [[ -n $1 ]] && odoo_fver=$(build_odoo_param FULLVER "$1") || odoo_fver=""
+    [[ -n $2 ]] && x=$(build_odoo_param FULLVER "$2") || x=""
+    [[ -n $odoo_fver && -n $x && $odoo_fver != $x ]] && echo "Version mismatch -p $1 != -b $2" && exit 1
+    [[ -z $odoo_fver ]] && odoo_fver=$x
 }
 
 
@@ -172,34 +206,51 @@ if [[ -n $opt_conf ]]; then
     for p in ${opaths//,/ }; do
         [[ -x $p/../odoo-bin || -x $p/../openerp-server ]] && odoo_root=$(readlink -f $p/..) && break
     done
-    [[ -n $odoo_root ]] && odoo_fver=$(build_odoo_param FULLVER $odoo_root)
-    [[ -n $opt_branch ]] && x=$(build_odoo_param FULLVER $odoo_fver) || x=$odoo_fver
-    [[ $odoo_fver != $x ]] && echo "Version mismatch -b $opt_branch <> -c $opt_conf" && exit 1
-    [[ -n $opt_odir && $opt_odir != $odoo_root ]] && echo "Path mismatch $odoo_root (-c $opt_conf) <> -p $opt_odir" && exit 1
-elif [[ -n $opt_branch ]]; then
-    odoo_fver=$(build_odoo_param FULLVER $opt_branch)
-    [[ -n "$opt_odir" ]] && odoo_root=$(readlink -f $opt_odir) || odoo_root=$(build_odoo_param ROOT $opt_branch search)
-    CONFN=$(build_odoo_param CONFN $odoo_fver search)
-    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
+    check_path_n_branch "$odoo_root" "$opt_branch"
+    REPOSNAME=""
+    PKGNAME=""
+    GIT_ORGID=$(build_odoo_param GIT_ORGID "$odoo_root")
+elif [[ -n $opt_odir ]]; then
+    [[ ! -d $opt_dir ]] && echo "Path $opt_dir not found!" && exit 1
+    odoo_root=$(readlink -f $opt_odir)
+    check_path_n_branch "$opt_dir" "$opt_branch"
+    PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
+    REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
+    GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search)
+    opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
+    [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
+elif [[ -n $opt_modules || $opt_branch ]]; then
+    odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
+    odoo_root=$(build_odoo_param ROOT "$opt_branch")
+    [[ -n $opt_modules ]] && opt_odir=$(find $odoo_root -type d -name $opt_modules)
+    [[ -z $opt_odir ]] && opt_odir="$odoo_root"
+    PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
+    REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
+    GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search)
+    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')" || opaths="odoo_root"
+    [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 else
-    odoo_fver=$(build_odoo_param FULLVER $PWD)
-    odoo_root=$(build_odoo_param ROOT $opt_branch search)
-    CONFN=$(build_odoo_param CONFN $odoo_fver search)
-    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
+    odoo_fver=$(build_odoo_param FULLVER "$PWD")
+    odoo_root=$(readlink -f $PWD)
+    [[ -z $opt_odir ]] && opt_odir="$odoo_root"
+    PKGNAME=$(build_odoo_param PKGNAME "$PWD")
+    REPOSNAME=$(build_odoo_param REPOS "$PWD")
+    GIT_ORGID=$(build_odoo_param GIT_ORGID "$PWD")
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search)
+    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')" || opaths="odoo_root"
+    [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 fi
 [[ -z $odoo_root || ! -d $odoo_root ]] && echo "Odoo path $odoo_root not found!" && exit 1
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 LCONFN=$(build_odoo_param LCONFN $odoo_fver)
-script=$(build_odoo_param BIN $odoo_root search)
+script=$(build_odoo_param BIN "$odoo_root" search)
 [[ -z "$script" ]] && echo "No odoo script found!!" && exit 1
 ODOO_RUNDIR=$(dirname $script)
-VDIR=$(build_odoo_param VDIR $odoo_root)
+VDIR=$(build_odoo_param VDIR "$odoo_root")
 [[ $opt_verbose -gt 0 && -n "$VDIR" ]] && echo "# Found $VDIR virtual directory"
-GIT_ORGID=$(build_odoo_param GIT_ORGID $odoo_root)
-# Unique module log identifier & Unique log identifier
-ULI="${GIT_ORGID}${odoo_ver}"
-UMLI="${opt_modules//,/+}.${ULI}"
-manifest=$(build_odoo_param MANIFEST $odoo_fver)
+set_log_filename
 if [[ -n $opt_rport ]]; then
     RPCPORT=$opt_rport
 elif [[ -z $opt_conf && $opt_web -ne 0 ]]; then
@@ -241,13 +292,14 @@ if [[ $opt_test -ne 0 ]]; then
     opt_upd=0 opt_stop=1
     opt_xtl=1
     [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
-    [[ -z $opt_db && $opt_keep -eq 0 && $opt_dbg -gt 1 ]] && opt_db="${MQT_TEST_DB}_${ULI}"
-    [[ -z $opt_db && $opt_keep -eq 0 && $opt_dbg -lt 1 ]] && opt_db="${MQT_TEST_DB}$$"
+    # [[ -z $opt_db && $opt_keep -eq 0 && $opt_dbg -gt 1 ]] && opt_db="${MQT_TEST_DB}_${UDI}"
+    # [[ -z $opt_db && $opt_keep -eq 0 && $opt_dbg -lt 1 ]] && opt_db="${MQT_TEST_DB}$$"
+    [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="${MQT_TEST_DB}_${UDI}"
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}"
     create_db=1
     [[ $opt_keep -eq 0 ]] && drop_db=1 || drop_db=0
     [[ ! -d $HOME_DEVEL/travis_log ]] && run_traced "mkdir $HOME_DEVEL/travis_log"
-    LOGFILE="$HOME_DEVEL/travis_log/${UMLI}.log"
+    # LOGFILE="$HOME_DEVEL/travis_log/${UMLI}.log"
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
@@ -268,7 +320,6 @@ fi
 
 if [[ -n "$opt_modules" ]]; then
     if [[ $create_db -ne 0 ]]; then
-        [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
         if [[ -z "$($which odoo_dependencies.py 2>/dev/null)" ]]; then
             echo "Test incomplete!"
             echo "File odoo_dependencies.py not found!"
@@ -297,7 +348,6 @@ if [[ -n "$opt_modules" ]]; then
             src=$(readlink -f $opt_ofile)
             OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
         elif [[ $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
-            [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
             src=$(find ${opaths//,/ } -maxdepth 1 -type d -name $opt_modules 2>/dev/null|head -n1)
             if [[ -z $src ]]; then
                 echo "Translation file not found!!"
@@ -428,9 +478,9 @@ if [[ $opt_touch -eq 0 ]]; then
     if [[ $create_db -gt 0 ]]; then
         if [[ -n "$depmods" && $opt_test -ne 0 ]]; then
             cmd="cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error -i $depmods"
-            [[ $opt_opt_keep -ne 0 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${odoo_ver}" || [[ opt_dbg -gt 1 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${UMI}" || TEMPLATE="${opt_db/test/template}"
+            [[ $opt_opt_keep -ne 0 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${odoo_ver}" || [[ opt_dbg -gt 1 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${UDI}" || TEMPLATE="${opt_db/test/template}"
             cmd="${cmd/$opt_db/$TEMPLATE}"
-            fnparam="${LOGFILE/.log/.tmp}"
+            fnparam="$LOGDIR/${UDI}.tmp"
             if [[ $opt_force -eq 0 && ! -f $fnparam ]] || ! echo $cmd|diff -qw $fnparam - || ! psql -Atl -l|grep -q $TEMPLATE; then
               # Create DB for test
               run_traced "pg_db_active -wa $TEMPLATE; dropdb $opts --if-exists $TEMPLATE"

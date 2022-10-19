@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import sys
 import os
 import argparse
@@ -74,7 +76,7 @@ TEMPLATE_HTTPS = """#############################################
 </IfModule>
 """
 
-__version__ = "2.0.1"
+__version__ = "2.0.1.1"
 
 
 class CreateConfig(object):

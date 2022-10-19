@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import sys
 import os
 import argparse
@@ -5,7 +7,7 @@ import re
 import lxml.etree as ET
 from python_plus import _b
 
-__version__ = "2.0.1"
+__version__ = "2.0.1.1"
 
 MIGRATE_TO_NEW = [
     (

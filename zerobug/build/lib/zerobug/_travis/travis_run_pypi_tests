@@ -46,7 +46,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.1
+__version__=2.0.1.1
 
 
 travis_test_bash() {
@@ -144,18 +144,15 @@ please_test_pylint() {
     return $sts
 }
 
-run_regression_test() {
-    echo "======== Running regression_test ========"
-    local x opts OPTS
-    local s sts
-    sts=0
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-        [[ $TRAVIS_PDB" == "true ]] && opts="${opts}B"
-        [[ $TRAVIS_DEBUG_MODE =~ [89] ]] && opts="${opts}n"
-        OPTS=$(inherits_travis_opts "$opts" "T")
-        run_traced "COVERAGE_PROCESS_START=$($READLINK -f .coveragerc)"
-        if [ ! -f $COVERAGE_PROCESS_START ]; then
-            cat << EOF > $COVERAGE_PROCESS_START
+coverage_set() {
+    if [[ $opt_dry_run -eq 0 ]]; then
+      [[ ! -d $HOME/coverage ]] && mkdir $HOME/coverage
+      coverage_tmpl=$($READLINK -f .coveragerc)
+      COVERAGE_DATA_FILE="$HOME/coverage/${UDI}"
+      COVERAGE_PROCESS_START="$HOME/coverage/${UDI}rc"
+      [[ -f "$coverage_tmpl" ]] && cp "$coverage_tmpl" "$COVERAGE_PROCESS_START"
+      if [[ ! -f $COVERAGE_PROCESS_START ]]; then
+          cat << EOF > $COVERAGE_PROCESS_START
 # Config file .coveragerc 2019-08-22
 [report]
 include =
@@ -200,9 +197,60 @@ exclude_lines =
     # Ignore unit test failure
     return TEST_FAILED
 EOF
-        fi
-        if [ -f ./tests/all_tests.py ]; then
-            if [ ${opt_dprj:-0} -gt 0 ]; then
+      fi
+      grep -Eq "^data_file *=" $COVERAGE_PROCESS_START || sed -E "/^\[run\]/a\\\ndata_file=$COVERAGE_DATA_FILE\n" -i $COVERAGE_PROCESS_START
+    fi
+}
+
+coverage_ensure_installed() {
+    cov=$(which coverage 2>/dev/null)
+    [[ -z $cov || ! $cov =~ $HOME ]] && run_traced "pip install coverage"
+    cov=$(which coverage 2>/dev/null)
+    if [[ -n $cov ]]; then
+      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
+      [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
+    fi
+}
+
+set_log_filename() {
+    # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
+    # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
+    # set -x  #debug
+    # local odoo_ver=$(build_odoo_param MAJVER ${BRANCH})
+    local m="$PKGNAME"
+    [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID '.')"
+    [[ -n $ODOO_GIT_ORGID && $GIT_ORGID =~ $ODOO_GIT_ORGID ]] && UDI="$m" || UDI="$m_${GIT_ORGID}"
+    [[ $PRJNAME == "Odoo" && -n $UDI ]] && UDI="${UDI}_${odoo_ver}"
+    [[ $PRJNAME == "Odoo" && -z $UDI ]] && UDI="${odoo_ver}"
+    [[ $PRJNAME == "Odoo" ]] && UMLI="${GIT_ORGID}${odoo_ver}" || UMLI="${GIT_ORGID}"
+    [[ -n "$REPOSNAME" && $REPOSNAME != "OCB" ]] && UMLI="${UMLI}.${REPOSNAME//,/+}"
+    [[ -n $m ]] && UMLI="${UMLI}.$m"
+#    if [[ -n $opt_flog ]]; then
+#      LOGDIR="$(dirname $opt_flog)"
+#      LOGFILE="$opt_flog"
+#    else
+      LOGDIR="$(get_cfg_value "" "LOGDIR")"
+      [[ -z $LOGDIR ]] && LOGDIR="$HOME_DEVEL/travis_log"
+      [[ -d $LOGDIR ]] || mkdir $LOGDIR
+      LOGFILE="$LOGDIR/${UMLI}.log"
+#    fi
+    OLD_LOGFILE=${LOGFILE/.log/_old.log}
+    # set +x  #debug
+}
+
+run_regression_test() {
+    echo "======== Running regression_test ========"
+    local x opts OPTS
+    local s sts
+    sts=0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+        [[ $TRAVIS_PDB == "true" ]] && opts="${opts}B"
+        [[ $TRAVIS_DEBUG_MODE =~ [89] ]] && opts="${opts}n"
+        OPTS=$(inherits_travis_opts "$opts" "T")
+        coverage_set
+        coverage_ensure_installed
+        if [[ -f ./tests/all_tests.py ]]; then
+            if [[ ${opt_dprj:-0} -gt 0 ]]; then
                 run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py $OPTS"
             else
                 run_traced "cd $PRJPATH/tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py $OPTS"
@@ -215,7 +263,7 @@ EOF
                 run_traced "cd $PRJPATH/tests; ./all_tests $OPTS"
             fi
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-        elif [ -f ./tests/test_$PRJNAME.py ]; then
+        elif [[ -f ./tests/test_$PRJNAME.py ]]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
                 run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py $OPTS"
             else
@@ -223,7 +271,7 @@ EOF
             fi
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         else
-            if [ ${opt_dprj:-0} -gt 0 ]; then
+            if [[ ${opt_dprj:-0} -gt 0 ]]; then
                 run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
             else
                 run_traced "cd $PRJPATH/tests; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
@@ -235,11 +283,11 @@ EOF
             run_traced "coverage run -m pytest -v ./tests/pytest*"
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
-        if [ ! -f .coverage ]; then
+        if [[ ! -f $COVERAGE_DATA_FILE ]]; then
             echo "Result coverage file not found!"
-        elif [ ${opt_dprj:-0} -eq 0 ]; then
-            run_traced "mv .coverage .."
-            run_traced "cd .."
+#        elif [ ${opt_dprj:-0} -eq 0 ]; then
+#            run_traced "mv .coverage .."
+#            run_traced "cd .."
         fi
     fi
     return $sts
@@ -414,6 +462,9 @@ else
 fi
 [[ -z "$PYPI_RUN_PYVER" ]] && PYPI_RUN_PYVER="(2.7|3.5|3.6|3.7|3.8)"
 [[ -f ./travis.ini && $(grep -qv "^#" ./travis.ini) ]] && export $(cat ./travis.ini|grep -v "^#"|tr -d "'"|tr -d '"')
+
+set_log_filename
+
 sts_bash=127
 sts_flake8=127
 sts_pylint=127

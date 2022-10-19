@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 
 import os
-import sys
+# import sys
 
 try:
     import ConfigParser
@@ -12,9 +13,9 @@ try:
     from clodoo import clodoo
 except ImportError:
     import clodoo
-if sys.version_info[0] == 2:
+try:
     from travis_helpers import print_flush
-else:
+except ImportError:
     from .travis_helpers import print_flush
 
 

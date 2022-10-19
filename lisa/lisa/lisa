@@ -77,7 +77,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.1
+__version__=2.0.1.1
 
 
 STS_FAILED=1
@@ -731,7 +731,6 @@ get_realname() {
         fi
       fi
     fi
-    set +x  #debug
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "  $pkgname=get_realname($1 $2 $3 '$4' '$5')">>~/$THIS.his
     echo $pkgname
 }

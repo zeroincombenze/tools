@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (C) 2013-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 r"""@mainpage
@@ -71,7 +71,7 @@ from past.builtins import basestring, long
 # from datetime import datetime
 
 
-__version__ = "2.0.0"
+__version__ = "2.0.0.1"
 
 if sys.version_info[0] == 3:
     unicode = str  # This just to avoid lint error

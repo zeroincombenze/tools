@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.1
+__version__=2.0.1.1
 
 
 store_cfg_param_value() {
@@ -952,6 +952,32 @@ travis_status() {
     return $sts
 }
 
+set_log_filename() {
+    # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
+    # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
+    # set -x  #debug
+    # local odoo_ver=$(build_odoo_param MAJVER ${BRANCH})
+    local m="$PKGNAME" odoo_ver=$(build_odoo_param MAJVER ${BRANCH})
+    [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID '.')"
+    [[ -n $ODOO_GIT_ORGID && $GIT_ORGID =~ $ODOO_GIT_ORGID ]] && UDI="$m" || UDI="$m_${GIT_ORGID}"
+    [[ $PRJNAME == "Odoo" && -n $UDI ]] && UDI="${UDI}_${odoo_ver}"
+    [[ $PRJNAME == "Odoo" && -z $UDI ]] && UDI="${odoo_ver}"
+    [[ $PRJNAME == "Odoo" ]] && UMLI="${GIT_ORGID}${odoo_ver}" || UMLI="${GIT_ORGID}"
+    [[ -n "$REPOSNAME" && $REPOSNAME != "OCB" ]] && UMLI="${UMLI}.${REPOSNAME//,/+}"
+    [[ -n $m ]] && UMLI="${UMLI}.$m"
+    if [[ -n $opt_flog ]]; then
+      LOGDIR="$(dirname $opt_flog)"
+      LOGFILE="$opt_flog"
+    else
+      LOGDIR="$(get_cfg_value "" "LOGDIR")"
+      [[ -z $LOGDIR ]] && LOGDIR="$HOME_DEVEL/travis_log"
+      [[ -d $LOGDIR ]] || mkdir $LOGDIR
+      LOGFILE="$LOGDIR/${UMLI}.log"
+    fi
+    OLD_LOGFILE=${LOGFILE/.log/_old.log}
+    # set +x  #debug
+}
+
 
 OPTOPTS=(h        A           B         C         c        D           E         e       F        f         j        k        L          l        M          m       n            O         P           p        q           r     S            T         V           v           X           Y             y       Z)
 OPTLONG=(help     trace-after debug     no-cache  conf     debug-level no-savenv locale  full     force     ''       keep     lint-level logdir   ''         missing dry-run      org       python-brk  pytest   quiet       ''    syspkg       trace     version     verbose     translation yaml-file     pyver   zero)
@@ -1021,18 +1047,7 @@ conf_default
 init_travis
 # prepare_env_travis
 
-[[ -n $opt_flog ]] && LOGDIR="$(dirname $opt_flog)" || LOGDIR="$(get_cfg_value "" "LOGDIR")"
-[[ -d $LOGDIR ]] || mkdir $LOGDIR
-if [[ -n $opt_flog ]]; then
-    LOGFILE="$opt_flog"
-else
-    [[ -n "$REPOSNAME" ]] && LOGFILE="$REPOSNAME" || LOGFILE=""
-    [[ -n "$PKGNAME" && ! $PKGNAME == $REPOSNAME ]] && LOGFILE="${LOGFILE}_$PKGNAME"
-    [[ "$PRJNAME" == "Odoo" ]] && LOGFILE="${LOGFILE}_$(build_odoo_param GIT_ORGNM '.')"
-    [[ -n "$BRANCH" ]] && LOGFILE="${LOGFILE}_$BRANCH"
-    LOGFILE="$LOGDIR/${LOGFILE}.log"
-fi
-OLD_LOGFILE=${LOGFILE/.log/_old.log}
+set_log_filename
 
 if [[ $action == "help" ]]; then
   man $0.man

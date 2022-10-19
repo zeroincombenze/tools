@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 This script replaces markers in the README.md files of an Odoo repository
 with the list of addons present in the repository. It preserves the marker
@@ -33,7 +33,7 @@ standard_library.install_aliases()  # noqa: E402
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'
 MANIFESTS = ('__openerp__.py', '__manifest__.py')
-__version__ = "2.0.1"
+__version__ = "2.0.1.1"
 
 
 class UserError(Exception):
