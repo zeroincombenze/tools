@@ -25,7 +25,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.1.1"
+__version__ = "2.0.2"
 
 ODOO_VALID_VERSIONS = (
     "16.0",

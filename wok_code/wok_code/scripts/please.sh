@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.1.1
+__version__=2.0.2
 
 #
 # General Purpose options:
@@ -1819,10 +1819,9 @@ do_test() {
       return 1
     fi
     opt_multi=1
-    svcname=$(build_odoo_param SVCNAME $(readlink -f $PWD))
-    odoo_fver=$(build_odoo_param FULLVER ".")
-    m=$(build_odoo_param MAJVER ".")
-    module=$(build_odoo_param PKGNAME ".")
+    odoo_fver=$(build_odoo_param FULLVER $PWD)
+    m=$(build_odoo_param MAJVER $PWD)
+    module=$(build_odoo_param PKGNAME $PWD)
     [[ $module != $(basename $PWD) ]] && module=$1
     if [[ -z "$module" ]]; then
       echo "Invalid environment!"
@@ -1830,7 +1829,10 @@ do_test() {
     fi
     [[ $opt_dbg -ne 0 ]] && x="-B"
     [[ $opt_dbg -gt 1 ]] && x="-BB"
-    [[ -f /etc/odoo/${svcname}.conf ]] && opts="-c /etc/odoo/${svcname}.conf" || opts="-b $odoo_fver"
+    [[ -n $opt_ocfn ]] && svcname=$(basename "$opt_ocfn") || svcname=$(build_odoo_param SVCNAME "$(readlink -f $PWD)")
+    opts="-b $odoo_fver"
+    [[ -f /etc/odoo/${svcname}.conf ]] && opts="-c /etc/odoo/${svcname}.conf"
+    [[ -n $opt_ocfn && -f "$opt_ocfn" ]] && opts="-c $opt_ocfn"
     run_traced "run_odoo_debug $opts -Tm $module $x"
     sts=$?
     return $sts
@@ -2218,16 +2220,17 @@ do_wep() {
     return 0
 }
 
-OPTOPTS=(h        B       b          c        D         d        f         j        k        L         m       n           o        O       p         q           r     s        t         u       V           v)
-OPTLONG=(help     debug   branch     conf     from-date database force     ""       keep     log       ""      dry-run     ""       ""      ""        quiet       ""    ""       test      ""      version     verbose)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_date  opt_db   opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
-OPTACTI=("+"      "+"     "="        "="      "="       "="      1         1        1        "="       1       1           "=>"     1       "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        0       ""         ""       ""        ""       0         0        0        ""        0       0           ""       0       ""        0           0     ""       0         0       ""          -1)
-OPTMETA=("help"   ""      "branch"   "file"   "diff"    "name"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
+OPTOPTS=(h        B       b          C        c         D         d        f         j        k        L         m       n           o        O       p         q           r     s        t         u       V           v)
+OPTLONG=(help     debug   branch     config   odoo-conf from-date database force     ""       keep     log       ""      dry-run     ""       ""      ""        quiet       ""    ""       test      ""      version     verbose)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_ocfn  opt_date  opt_db   opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
+OPTACTI=("+"      "+"     "="        "="      "="       "="       "="      1         1        1        "="       1       1           "=>"     1       "="       0           1     "="      1         1       "*"         "+")
+OPTDEFL=(1        0       ""         ""       ""        ""        ""       0         0        0        ""        0       0           ""       0       ""        0           0     ""       0         0       ""          -1)
+OPTMETA=("help"   ""      "branch"   "file"   "file"    "diff"    "name"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"
   "debug mode"
   "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0"
   "configuration file (def .travis.conf)"
+  "odoo configuration file"
   "date to search in log"
   "database name"
   "force copy (push) | build (publish) | set_exec (wep) | full (status)"

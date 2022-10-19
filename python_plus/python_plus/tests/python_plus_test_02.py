@@ -26,7 +26,7 @@ parser.add_argument('-V')
 ctx = parser.parseoptargs(['-V'])
 """
 
-__version__ = "2.0.1.1"
+__version__ = "2.0.2"
 
 
 def version():

@@ -40,7 +40,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.1.1"
+__version__ = "2.0.2"
 
 msg_time = time.time()
 
