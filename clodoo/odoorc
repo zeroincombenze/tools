@@ -60,7 +60,7 @@
 # ODOO_GIT_MULTI    -> multi version environment
 #
 
-#__version__=2.0.1
+#__version__=2.0.1.1
 
 
 ODOO_FVERS="16\.0|15\.0|14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
@@ -292,19 +292,18 @@ build_odoo_param() {
             elif [[ -z "$PKGNAME" ]]; then
                 IFS="|" read PKGNAME PKGPATH PARENTIDR REPOS PRJPATH <<< $(traverse "$cdir" "$PKGNAME" "$PKGPATH" "$PARENTIDR" "$REPOS" "$PRJPATH")
             fi
-            if [[ -z "$GIT_ORGNM" && -d $cdir/.git ]] && $(git status -s &>/dev/null); then
-                x=$(git rev-parse --show-toplevel 2>/dev/null)
+            if [[ -z "$GIT_ORGNM" && -d $cdir/.git ]] && $(cd $cdir && git status -s &>/dev/null); then
+                x=$(cd $cdir && git rev-parse --show-toplevel 2>/dev/null)
                 if [[ -z $x || $x == $cdir ]]; then
-                    GIT_URL=$(git remote get-url --push origin 2>/dev/null)
-                    RUPSTREAM=$(git remote get-url --push upstream 2>/dev/null)
-                    RORIGIN=$(git remote get-url --push origin 2>/dev/null)
+                    GIT_URL=$(cd $cdir && git remote get-url --push origin 2>/dev/null)
+                    RUPSTREAM=$(cd $cdir && git remote get-url --push upstream 2>/dev/null)
+                    RORIGIN=$(cd $cdir && git remote get-url --push origin 2>/dev/null)
                     if [[ -n "$GIT_URL" ]]; then
-                        GIT_ORGNM=$(basename $(dirname $(git remote -v|echo $GIT_URL|awk -F: '{print $2}')))
+                        GIT_ORGNM=$(basename $(dirname $(cd $cdir && git remote -v|echo $GIT_URL|awk -F: '{print $2}')))
                         GIT_PROT=$(echo $GIT_URL|awk -F: '{print $1}')
                         VCS="git"
                     fi
-                    # GIT_BRANCH=$(git branch --show-current)
-                    GIT_BRANCH=$(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+"|head -n1|tr -d "\n")
+                    GIT_BRANCH=$(cd $cdir && git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+"|head -n1|tr -d "\n")
                 fi
             fi
             [[ $cdir == $ODOO_ROOT ]] && break

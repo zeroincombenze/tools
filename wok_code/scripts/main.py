@@ -1,5 +1,5 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# template 19
 """
 Various tools at your fingertips.
 

@@ -120,7 +120,7 @@ def run_traced(cmd, verbose=None, dry_run=None):
                 os.mkdir(tgtdir)
         return sts, "", ""
 
-    def cmd_ineffective_if(
+    def cmd_neutral_if(
         args, params=None, switches=None, no_params=None, no_switches=None
     ):
         params = params or []
@@ -161,10 +161,10 @@ def run_traced(cmd, verbose=None, dry_run=None):
         elif not dry_run:
             sts = 1
     elif (
-        cmd_ineffective_if(args, params=['dir']) or
-        cmd_ineffective_if(args, params=['git', 'status']) or
-        cmd_ineffective_if(args, params=['git', 'branch'], no_switches=['-b']) or
-        cmd_ineffective_if(args, params=['git', 'remote'], switches=['-v'])
+        cmd_neutral_if(args, params=['dir']) or
+        cmd_neutral_if(args, params=['git', 'status']) or
+        cmd_neutral_if(args, params=['git', 'branch'], no_switches=['-b']) or
+        cmd_neutral_if(args, params=['git', 'remote'], switches=['-v'])
     ):
         sts, prcout, prcerr = sh_any(args)
     elif not dry_run:

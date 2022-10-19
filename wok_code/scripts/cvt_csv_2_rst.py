@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 usage: cvt_csv_2_rst.py [-h] [-b ODOO_VER] [-m MAX_COL_WIDTH] [-n] [-q] [-V]
                         [-v]

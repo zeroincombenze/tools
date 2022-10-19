@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from . import scripts
 from . import _travis
 from . import z0testlib

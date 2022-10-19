@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -11,7 +12,7 @@ from zerobug import Z0BUG
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '2.0.1'
+__version__ = '2.0.1.1'
 
 
 def test_version_zerobug(version_to_test):
