@@ -30,6 +30,7 @@ ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 # DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
 # TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
+# ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
@@ -41,9 +42,9 @@ CLR="\e[0m"
 __version__=2.0.2
 
 run_traced_debug() {
-    if [ $opt_verbose -gt 1 ]; then
+    if [[ $opt_verbose -gt 1 ]]; then
         run_traced "$1"
-    elif [ $opt_dry_run -eq 0 ]; then
+    elif [[ $opt_dry_run -eq 0 ]]; then
         eval $1
     fi
 }
@@ -122,7 +123,7 @@ set_log_filename() {
 #      LOGFILE="$opt_flog"
 #    else
       LOGDIR="$(get_cfg_value "" "LOGDIR")"
-      [[ -z $LOGDIR ]] && LOGDIR="$HOME_DEVEL/travis_log"
+      [[ -z $LOGDIR ]] && LOGDIR="$ODOO_ROOT/travis_log"
       [[ -d $LOGDIR ]] || mkdir $LOGDIR
       LOGFILE="$LOGDIR/${UMLI}.log"
 #    fi
@@ -249,32 +250,34 @@ script=$(build_odoo_param BIN "$odoo_root" search)
 [[ -z "$script" ]] && echo "No odoo script found!!" && exit 1
 ODOO_RUNDIR=$(dirname $script)
 VDIR=$(build_odoo_param VDIR "$odoo_root")
-[[ $opt_verbose -gt 0 && -n "$VDIR" ]] && echo "# Found $VDIR virtual directory"
+[[ $opt_verbose -gt 1 && -n "$VDIR" ]] && echo "# Found $VDIR virtual directory"
 set_log_filename
+
 if [[ -n $opt_rport ]]; then
     RPCPORT=$opt_rport
-elif [[ -z $opt_conf && $opt_web -ne 0 ]]; then
-    RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 elif [[ $opt_test -ne 0 ]]; then
     [[ opt_dbg -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
-elif [[ -z $opt_conf || ! -f $CONFN ]]; then
-    RPCPORT=$(build_odoo_param RPCPORT $odoo_fver)
+elif [[ -f $opt_conf ]]; then
+    RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
+    [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")
+elif [[ $opt_web -ne 0 ]]; then
+    RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 elif [[ -f $CONFN ]]; then
     RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
     [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")
 else
-    RPCPORT=$(build_odoo_param RPCPORT $odoo_fver)
+    RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 fi
-[[ -z "$RPCPORT" || $RPCPORT -eq 0 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver)
+[[ -z "$RPCPORT" || $RPCPORT -eq 0 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
+
 if [[ -n $opt_dbuser ]]; then
     DB_USER=$opt_dbuser
-elif [[ -z $opt_conf || ! -f $CONFN ]]; then
-    DB_USER=$(build_odoo_param DB_USER $odoo_fver $GIT_ORGID)
-elif [[ -f $CONFN ]]; then
+elif [[ -f $opt_conf || -f $CONFN ]]; then
     DB_USER=$(grep ^db_user $CONFN | awk -F= '{print $2}' | tr -d " ")
 else
-    DB_USER=$(build_odoo_param DB_USER $odoo_fver)
+    DB_USER=$(build_odoo_param DB_USER $odoo_fver $GIT_ORGID)
 fi
+
 if [[ -n "$opt_qport" ]]; then
     DB_PORT=$opt_qport
 elif [[ -f $CONFN ]]; then
@@ -292,14 +295,11 @@ if [[ $opt_test -ne 0 ]]; then
     opt_upd=0 opt_stop=1
     opt_xtl=1
     [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
-    # [[ -z $opt_db && $opt_keep -eq 0 && $opt_dbg -gt 1 ]] && opt_db="${MQT_TEST_DB}_${UDI}"
-    # [[ -z $opt_db && $opt_keep -eq 0 && $opt_dbg -lt 1 ]] && opt_db="${MQT_TEST_DB}$$"
-    [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="${MQT_TEST_DB}_${UDI}"
+    [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}"
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}"
     create_db=1
     [[ $opt_keep -eq 0 ]] && drop_db=1 || drop_db=0
-    [[ ! -d $HOME_DEVEL/travis_log ]] && run_traced "mkdir $HOME_DEVEL/travis_log"
-    # LOGFILE="$HOME_DEVEL/travis_log/${UMLI}.log"
+    [[ ! -d $ODOO_ROOT/travis_log ]] && run_traced "mkdir $ODOO_ROOT/travis_log"
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
@@ -324,7 +324,7 @@ if [[ -n "$opt_modules" ]]; then
             echo "Test incomplete!"
             echo "File odoo_dependencies.py not found!"
         else
-            [[ $opt_verbose -ne 0 ]] && echo "Searching for modules path ..."
+            [[ $opt_verbose -ne 0 ]] && echo "Searching for module paths ..."
             if [[ "$opt_modules" == "all" ]]; then
                 depmods=$(odoo_dependencies.py -RA mod "$opaths")
             else
@@ -412,14 +412,13 @@ if [[ $opt_stat -ne 0 ]]; then
     fi
     exit 0
 fi
+
 if [[ $opt_touch -eq 0 ]]; then
-    [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-    [[ $create_db -gt 0 ]] && run_traced "pg_db_active -wa $opt_db; dropdb $opts --if-exists $opt_db"
-    [[ $create_db -gt 0 && $odoo_ver -lt 10 ]] && run_traced "createdb $opts $opt_db"
     [[ -n "$VDIR" ]] && ve_root=$VDIR || ve_root=$HOME
     OPT_LLEV=
-    [[ $opt_test -ne 0 && ! -d $HOME/tmp ]] && mkdir $HOME/tmp
-    [[ $opt_test -ne 0 ]] && FULL_LCONFN="$HOME/tmp/$LCONFN$$" || FULL_LCONFN="$ve_root/$LCONFN"
+    # [[ $opt_test -ne 0 && ! -d $HOME/tmp ]] && mkdir $HOME/tmp
+    [[ $opt_test -ne 0 ]] && FULL_LCONFN="$LOGDIR/${UMLI}.conf" || FULL_LCONFN="$ve_root/$LCONFN"
+    [[ $opt_test -gt 1 ]] && FULL_LCONFN="$ve_root/pycharm_odoo.conf"
     OPT_CONF="--config=$FULL_LCONFN"
     if [[ $opt_dry_run -eq 0 ]]; then
         for f in .openerp_serverrc .odoorc; do
@@ -429,7 +428,35 @@ if [[ $opt_touch -eq 0 ]]; then
         done
     fi
     [[ -f "$CONFN" ]] && run_traced "cp $CONFN $FULL_LCONFN"
-    [[ $opt_verbose -gt 0 ]] && echo "===================================================================="
+    # [[ $opt_verbose -gt 0 ]] && echo "===================================================================="
+    [[ ! -f "$CONFN" ]] && run_traced "$script -s --stop-after-init"
+    tty -s
+    if [[ $? == 0 ]]; then
+        run_traced_debug "sed -e \"s|^logfile *=.*|logfile = False|\" -i $FULL_LCONFN"
+    else
+        run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $ve_root/$$.log|\" -i $FULL_LCONFN"
+    fi
+    if [[ $opt_dbg -ne 0 || $opt_test -ne 0 ]]; then
+        run_traced_debug "sed -e \"s|^limit_time_cpu *=.*|limit_time_cpu = 0|\" -i $FULL_LCONFN"
+        run_traced_debug "sed -e \"s|^limit_time_real *=.*|limit_time_real = 0|\" -i $FULL_LCONFN"
+    fi
+    if [[ $odoo_ver -le 10 ]]; then
+        run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = $RPCPORT|\" -i $FULL_LCONFN"
+        OPT_CONFPORT="--xmlrpc-port=$RPCPORT"
+    else
+        run_traced_debug "sed -e \"s|^http_port *=.*|http_port = $RPCPORT|\" -i $FULL_LCONFN"
+        OPT_CONFPORT="--http-port=$RPCPORT"
+    fi
+    if [[ -n "$DB_USER" ]]; then
+        run_traced_debug "sed -e \"s|^db_user *=.*|db_user = $DB_USER|\" -i $FULL_LCONFN"
+        [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --db_user=$DB_USER"
+    fi
+    if [[ -n "$opt_llvl" ]]; then
+        run_traced_debug "sed -e \"s|^log_level *=.*|log_level = $opt_llvl|\" -i $FULL_LCONFN"
+        OPT_LLEV="--log-level=$opt_llvl"
+    fi
+    run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $FULL_LCONFN"
+
     if [[ -n "$VDIR" ]]; then
       coverage_set
       x=$(date +"%Y-%m-%d %H:%M:%S,000")
@@ -448,47 +475,30 @@ if [[ $opt_touch -eq 0 ]]; then
         fi
       fi
     fi
-    [[ ! -f "$CONFN" ]] && run_traced "$script -s --stop-after-init"
-    tty -s
-    if [[ $? == 0 ]]; then
-        run_traced_debug "sed -e \"s|^logfile *=.*|logfile = False|\" -i $FULL_LCONFN"
-    else
-        run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $ve_root/$$.log|\" -i $FULL_LCONFN"
-    fi
-    if [[ $opt_dbg -ne 0 || $opt_test -ne 0 ]]; then
-        run_traced_debug "sed -e \"s|^limit_time_cpu *=.*|limit_time_cpu = 0|\" -i $FULL_LCONFN"
-        run_traced_debug "sed -e \"s|^limit_time_real *=.*|limit_time_real = 0|\" -i $FULL_LCONFN"
-    fi
-    if [[ $odoo_ver -le 10 ]]; then
-        run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = $RPCPORT|\" -i $FULL_LCONFN"
-        OPT_CONF="$OPT_CONF --xmlrpc-port=$RPCPORT"
-    else
-        run_traced_debug "sed -e \"s|^http_port *=.*|http_port = $RPCPORT|\" -i $FULL_LCONFN"
-        OPT_CONF="$OPT_CONF --http-port=$RPCPORT"
-    fi
-    if [[ -n "$DB_USER" ]]; then
-        run_traced_debug "sed -e \"s|^db_user *=.*|db_user = $DB_USER|\" -i $FULL_LCONFN"
-        [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --db_user=$DB_USER"
-    fi
-    if [[ -n "$opt_llvl" ]]; then
-        run_traced_debug "sed -e \"s|^log_level *=.*|log_level = $opt_llvl|\" -i $FULL_LCONFN"
-        OPT_LLEV="--log-level=$opt_llvl"
-    fi
-    run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $FULL_LCONFN"
+
     if [[ $create_db -gt 0 ]]; then
+        [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
         if [[ -n "$depmods" && $opt_test -ne 0 ]]; then
-            cmd="cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error -i $depmods"
-            [[ $opt_opt_keep -ne 0 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${odoo_ver}" || [[ opt_dbg -gt 1 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${UDI}" || TEMPLATE="${opt_db/test/template}"
+            c="cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error -i $depmods"
+            cmd="$c $OPT_CONFPORT"
+            TEMPLATE="${opt_db/test/template}"
+            [[ $opt_keep -ne 0 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${odoo_ver}"
+            [[ opt_dbg -gt 1 && $opt_keep -eq 0 ]] && TEMPLATE="template_${UDI}"
             cmd="${cmd/$opt_db/$TEMPLATE}"
-            fnparam="$LOGDIR/${UDI}.tmp"
-            if [[ $opt_force -eq 0 && ! -f $fnparam ]] || ! echo $cmd|diff -qw $fnparam - || ! psql -Atl -l|grep -q $TEMPLATE; then
+            fnparam="$LOGDIR/${UDI}.sh"
+            if [[ $opt_force -ne 0 || ! -f $fnparam ]] || ! echo $c|diff -qw $fnparam - || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
               # Create DB for test
-              run_traced "pg_db_active -wa $TEMPLATE; dropdb $opts --if-exists $TEMPLATE"
+              run_traced "pg_db_active -L -wa '$TEMPLATE' && dropdb $opts --if-exists '$TEMPLATE'"
+              psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database $TEMPLATE removal failed!" && exit 1
               run_traced "$cmd"
+              run_traced "pg_db_active -L '$TEMPLATE'"
             fi
-            if psql -Atl -l|grep -q $TEMPLATE; then
-              echo $cmd > $fnparam
-              run_traced "psql -U$DB_USER template1 -c \"create database $opt_db owner $DB_USER template $TEMPLATE\""
+            if psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
+              [[ $opt_dry_run -eq 0 ]] && echo $c > $fnparam
+              run_traced "pg_db_active -L -wa '$opt_db' && dropdb $opts --if-exists '$opt_db'"
+              psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database $opt_db removal failed!" && exit 1
+              run_traced "pg_db_active -L -wa '$TEMPLATE'"
+              run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
             else
               echo "Template $TEMPLATE not found!"
               cmd="${cmd/$TEMPLATE$opt_db/}"
@@ -496,11 +506,8 @@ if [[ $opt_touch -eq 0 ]]; then
             fi
        else
             run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error"
-        fi
+       fi
     fi
-    # if [[ $odoo_ver -lt 10 && $opt_dry_run -eq 0 && $opt_exp -eq 0 && $opt_imp -eq 0 && $opt_lang -eq 0 ]]; then
-    #     OPTS="--debug $OPTS"
-    # fi
 
     if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
       [[ -f $LOGFILE ]] && rm -f $LOGFILE
@@ -545,8 +552,8 @@ if [[ $opt_touch -eq 0 ]]; then
     if [[ $drop_db -gt 0 ]]; then
         if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
             [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-            run_traced "pg_db_active -wa $opt_db; dropdb $opts --if-exists $opt_db"
-            [[ opt_dbg -ne 1 ]] && run_traced "pg_db_active -wa $TEMPLATE; dropdb $opts --if-exists $TEMPLATE"
+            run_traced "pg_db_active -L -wa '$opt_db'; dropdb $opts --if-exists '$opt_db'"
+            [[ opt_dbg -ne 1 ]] && run_traced "pg_db_active -L -wa '$TEMPLATE'; dropdb $opts --if-exists '$TEMPLATE'"
         fi
     fi
     if [[ $opt_exp -ne 0 ]]; then

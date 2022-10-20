@@ -12,7 +12,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '2.0.1.1'
+__version__ = '2.0.2'
 
 
 def update_module_names(ctx, namespec, merge_modules=False):

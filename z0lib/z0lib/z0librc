@@ -582,7 +582,7 @@ run_traced() {
       fi
     elif [[ ! $1 =~ ^sleep[[:space:]] ]]; then
       [[ $verbose -gt 0 ]] && echo "$pfx$xcmd"
-      [[ $1 =~ ^(cd[[:space:]].*|cd)$ ]] && eval "$xcmd" 2>/dev/null
+      [[ $1 =~ ^(cd[[:space:]].*[\;\&\|]|cd)$ ]] && eval "$xcmd" 2>/dev/null
     fi
     echo -en "\e[0m"
     ((Z0_STACK=Z0_STACK-2))
@@ -1001,6 +1001,7 @@ CFG_init() {
       for tid in 0 1 2 3; do
         CFG_init $tid
       done
+      ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
     else
       [[ $1 =~ ^[0123]$ ]] && tid=$1 || tid="0"
       unset DEFDICT$tid DEFRULE$tid
