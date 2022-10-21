@@ -1,7 +1,12 @@
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: GITORGID and other value, sometimes are wrong
+
 2.0.1.1 (2022-10-15)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] Minor improovements
+* [IMP] Minor improvements
 
 2.0.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~

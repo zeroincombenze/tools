@@ -1,23 +1,110 @@
-zerobug: 2.0.1 (2022-10-12)
+zerobug: 2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+
+zar: 2.0.0 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+
+z0lib: 2.0.0.4.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced: wrong execution for "cd <path>; ..."
+* [IMP] CFG_init 'ALL': set ODOO_ROOT
+
+
+z0bug_odoo: 2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+
+wok_code: 2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Clearing code
+
+
+travis_emulator: 2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+
+python_plus: 2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: wrong behavior with > o < in version
+
+
+os0: 2.0.1 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+
+
+odoo_score: 2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug: test function improvements
+
+
+lisa: 2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] liba_bld_ods: fixes & improvements
+
+
+clodoo: 2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: GITORGID and other value, sometimes are wrong
+
+
+z0bug_odoo: 2.0.0.1 (2022-10-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Crash in travis
+
+
+clodoo: 2.0.1.1 (2022-10-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Minor improvements
+
+
+odoo_score: 2.0.1.1 (2022-10-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: python stub
+* [FIX] run_odoo_debug: crash in sime rare cases
+
+
+zerobug: 2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] stable version
 
 
 wok_code: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] stable version
 
 
 travis_emulator: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] stable version
 
 
 python_plus: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] stable version
 
@@ -35,7 +122,7 @@ lisa: 2.0.1 (2022-10-12)
 
 
 clodoo: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] stable version
 
@@ -158,7 +245,6 @@ odoo_score: 2.0.0.1 (2022-09-07)
 
 * [FIX] run_odo_debug with debug
 * [IMP] run_odoo_debug: experimental debug via pycharm
-
 
 
 zerobug: 2.0.0.1 (2022-09-06)

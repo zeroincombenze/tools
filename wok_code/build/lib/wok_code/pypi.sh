@@ -145,11 +145,12 @@ for d in $tgtdir; do
             do_replace
         elif [[ $act == "version" ]]; then
             [[ $pkg == "tools" ]] && continue
-            srcdir="$HOME_DEVEL/pypi/$fn/$fn"
+            srcdir="$HOME_DEVEL/pypi/$fn"
             echo -e "\n===[$pkg]==="
-            echo "cd $srcdir; please version"
-            cd $srcdir
-            [[ $opts =~ -.*n ]] || please version
+            [[ ! -f $srcdir/setup.py ]] && continue
+            python $srcdir/setup.py --version
+            echo ""
+            head -n5 $srcdir/$fn/egg-info/history.rst
         elif [[ $act == "git-add" ]]; then
             srcdir="$HOME_DEVEL/pypi"
             [[ $PWD != $srcdir ]] && run_traced "cd $srcdir"

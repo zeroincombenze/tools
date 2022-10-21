@@ -1,4 +1,4 @@
-# __version__=2.0.1
+# __version__=2.0.2
 if [[ -z $HOME_DEVEL ]]; then
     [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi

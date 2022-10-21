@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=2.0.1
+__version__=2.0.2
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -57,26 +56,28 @@ Notes:
    support for filename version
 """
 from __future__ import print_function, unicode_literals
-from past.builtins import basestring, long
-from builtins import chr
 
+import inspect
+import logging
 import os
 import os.path
 import sys
-import logging
-import inspect
-from sys import platform as _platform
+from builtins import chr
 from subprocess import call
+from sys import platform as _platform
+
+from past.builtins import basestring, long
+
 # from datetime import datetime
 
 
-__version__ = "1.0.3"
+__version__ = "2.0.1"
 
 if sys.version_info[0] == 3:
-    unicode = str               # This just to avoid lint error
+    unicode = str  # This just to avoid lint error
 
-class Os0():
 
+class Os0:
     def __init__(self, doinit=False):
         """Module initialization"""
         self.LFN_FLAT = 0
@@ -96,10 +97,12 @@ class Os0():
         i = bg.rfind('.py')
         if i >= 0:
             bg = bg[0:i]
-        self.bgout_fn = self.homedir + "/" + bg + \
-            "-{0:08x}".format(os.getpid()) + ".out"
-        self.bgerr_fn = self.homedir + "/" + bg + \
-            "-{0:08x}".format(os.getpid()) + ".err"
+        self.bgout_fn = (
+            self.homedir + "/" + bg + "-{:08x}".format(os.getpid()) + ".out"
+        )
+        self.bgerr_fn = (
+            self.homedir + "/" + bg + "-{:08x}".format(os.getpid()) + ".err"
+        )
         self.bginp_fn = os.devnull
         if doinit:
             self.set_logger("")
@@ -178,11 +181,14 @@ class Os0():
             if i >= 0:
                 x = filename.split('/')
                 d = x[1] + ":"
-                if len(x) > 1 and \
-                        x[0] == "" and \
-                        (os.path.exists(d) or
-                         (_platform == "OpenVMS" and
-                          os.path.exists(x[1]))):
+                if (
+                    len(x) > 1
+                    and x[0] == ""
+                    and (
+                        os.path.exists(d)
+                        or (_platform == "OpenVMS" and os.path.exists(x[1]))
+                    )
+                ):
                     dev = x[1] + ":"
                     filename = ""
                     for i in range(2, len(x)):
@@ -199,10 +205,10 @@ class Os0():
 
         filename = filename.replace('/', os.sep)
         if cnv_type == self.LFN_EXE:
-            if filename[0: -4] != ".exe" and filename[0: -4] != ".EXE":
+            if filename[0:-4] != ".exe" and filename[0:-4] != ".EXE":
                 filename = filename + ".exe"
         elif cnv_type == self.LFN_CMD:
-            if filename[0: -4] != ".bat" and filename[0: -4] != ".BAT":
+            if filename[0:-4] != ".bat" and filename[0:-4] != ".BAT":
                 filename = filename + ".bat"
         f = dev + filename
         return f
@@ -248,23 +254,23 @@ class Os0():
             i = fn.rfind('.')
             if i >= 0:
                 left = fn[0:i].replace('.', "^.")
-                right = fn[i + 1:]
+                right = fn[i + 1 :]
                 fn = left + '.' + right
             filename = p + fn
         else:
             i = filename.rfind('.')
             if i >= 0:
                 left = filename[0:i].replace('.', "^.")
-                right = filename[i + 1:]
+                right = filename[i + 1 :]
                 filename = left + '.' + right
         if cnv_type == self.LFN_EXE:
-            if filename[0: -4] != ".exe" and filename[0: -4] != ".EXE":
+            if filename[0:-4] != ".exe" and filename[0:-4] != ".EXE":
                 filename = filename + ".exe"
         elif cnv_type == self.LFN_CMD:
-            if filename[0: -4] != ".com" and filename[0: -4] != ".COM":
+            if filename[0:-4] != ".com" and filename[0:-4] != ".COM":
                 filename = filename + ".com"
         elif cnv_type == self.LFN_DIR:
-            if filename[0: -4] != ".dir" and filename[0: -4] != ".DIR":
+            if filename[0:-4] != ".dir" and filename[0:-4] != ".DIR":
                 filename = filename + ".DIR"
         f = dev + filename
         return f
@@ -275,10 +281,10 @@ class Os0():
             cnv_type = self.LFN_FLAT
         # Translate Linux filename into local OS
         if _platform == "win32":
-            return (self.setlfn_win(filename, cnv_type))
+            return self.setlfn_win(filename, cnv_type)
         elif _platform == "OpenVMS":
-            return (self.setlfn_vms(filename, cnv_type))
-        return (self.setlfn_linux(filename, cnv_type))
+            return self.setlfn_vms(filename, cnv_type)
+        return self.setlfn_linux(filename, cnv_type)
 
     def set_tlog_file(self, filename, new=False, dir4debug=None, echo=False):
         """Set tracelog filename
@@ -379,14 +385,14 @@ class Os0():
                     txt = txt + sp + self.u(arg)
                 else:
                     txt = txt + sp + self.u(str(arg))
-            except:
-                x = chr(0x3b1) + chr(0x3b2) + chr(0x3b3)
+            except BaseException:
+                x = chr(0x3B1) + chr(0x3B2) + chr(0x3B3)
                 txt = txt + sp + x
             sp = ' '
         self.trace_msg(txt, dbg_mode=False)
 
     def trace_debug(self, *args):
-        """Like wlog but only if debug mode is active """
+        """Like wlog but only if debug mode is active"""
         txt = ""
         sp = ''
         for arg in args:
@@ -395,8 +401,8 @@ class Os0():
                     txt = txt + sp + self.u(arg)
                 else:
                     txt = txt + sp + self.u(str(arg))
-            except:
-                x = chr(0x3b1) + chr(0x3b2) + chr(0x3b3)
+            except BaseException:
+                x = chr(0x3B1) + chr(0x3B2) + chr(0x3B3)
                 txt = txt + sp + x
             sp = ' '
         self.trace_msg(txt, dbg_mode=True)
@@ -415,7 +421,7 @@ class Os0():
                           (ignored if simulate)
         """
         if tlog:
-            self.wlog("> {0}".format(cmd))
+            self.wlog("> {}".format(cmd))
         if _platform == "OpenVMS":
             # !!debug temporary!!
             if simulate:

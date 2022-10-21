@@ -1,6 +1,6 @@
 
 =========
-os0 1.0.3
+os0 2.0.1
 =========
 
 
@@ -16,8 +16,7 @@ Overview
 Operating System indipendent interface
 --------------------------------------
 
-This module extends python os module with a few new functionality
-to interface operating system.
+This module is deprecated. It was born to extend python os module.
 
 It recognizes file name structure and manages both URI standard name
 both local name, as UNC and ODS5.
@@ -34,6 +33,21 @@ UNC example for the same of previous URI name is '\\home\\myfile'
 ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
 
 See https://en.wikipedia.org/wiki/Path_(computing)
+
+Migration path
+~~~~~~~~~~~~~~
+
+* isunicode -> python_plus.isunicode
+* isbytestr -> python_plus.isbytestr
+* b -> python_plus._b
+* u -> python_plus._u
+* nakedname -> z0lib.nakedname
+* muteshell -> z0lib.run_traced
+
+No yet migration path
+~~~~~~~~~~~~~~~~~~~~~
+
+* str2bool
 
 
 |
@@ -111,6 +125,11 @@ Current development version
 History
 -------
 
+2.0.1 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 1.0.3.1 (2021-12-23)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -120,6 +139,7 @@ History
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
+
 
 
 |
@@ -138,103 +158,13 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-|
-This module is part of tools project.
-Last Update / Ultimo aggiornamento: 2021-12-03
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
-:target: https://odoo-community.org/page/development-status
-:alt:
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
-:target: https://travis-ci.com/zeroincombenze/tools
-:alt: github.com
-.. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
-:target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
-:alt: License: AGPL-3
-.. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
-:target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
-:alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-:target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
-:alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
-:target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
-:alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-:target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
-:alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-:target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
-:target: https://erp1.zeroincombenze.it
-:alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
-:target: https://codecov.io/gh/OCA/tools/branch/1.0
-.. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
-:target: https://odoo-italia.org
-:alt: Odoo Italia Associazione
-.. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4
-:target: https://www.zeroincombenze.it/
-:alt: Zeroincombenze
-.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
-:target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
-.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
-.. |check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png
-.. |no_check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png
-.. |menu| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/menu.png
-.. |right_do| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/right_do.png
-.. |exclamation| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/exclamation.png
-.. |warning| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/warning.png
-.. |same| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/same.png
-.. |late| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/late.png
-.. |halt| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/halt.png
-.. |info| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/info.png
-.. |xml_schema| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/iso/icons/xml-schema.png
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
-.. |DesktopTelematico| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/DesktopTelematico.png
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
-.. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
-.. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-:target: https://t.me/Assitenza_clienti_powERP
-Last Update / Ultimo aggiornamento: 2021-12-04
-Last Update / Ultimo aggiornamento: 2021-12-05
-Last Update / Ultimo aggiornamento: 2021-12-17
-Last Update / Ultimo aggiornamento: 2021-12-18
-Last Update / Ultimo aggiornamento: 2021-12-19
-:target: https://odoo-community.org/page/development-status
-:alt:
-:target: https://travis-ci.com/zeroincombenze/tools
-:alt: github.com
-:target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
-:alt: License: AGPL-3
-:target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
-:alt: License: OPL
-:target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
-:alt: Coverage
-:target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
-:alt: Codecov
-:target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
-:alt: Technical Documentation
-:target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
-:target: https://erp1.zeroincombenze.it
-:alt: Try Me
-:target: https://codecov.io/gh/OCA/tools/branch/1.0
-:target: https://odoo-italia.org
-:alt: Odoo Italia Associazione
-:target: https://www.zeroincombenze.it/
-:alt: Zeroincombenze
-:target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md
-:target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
-:target: https://t.me/Assitenza_clienti_powERP
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2021-12-24
+Last Update / Ultimo aggiornamento: 2022-10-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -249,22 +179,22 @@ Last Update / Ultimo aggiornamento: 2021-12-24
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=1.0
+    :target: https://coveralls.io/github/zeroincombenze/tools?branch=2.0
     :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/1.0/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/1.0
+.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/2.0/graph/badge.svg
+    :target: https://codecov.io/gh/zeroincombenze/tools/branch/2.0
     :alt: Codecov
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-1.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/1.0/dev
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0/dev
     :alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-1.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/1.0/man
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0/man
     :alt: Technical Documentation
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-1.svg
-    :target: https://erp1.zeroincombenze.it
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
+    :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/1.0/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/1.0
+.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/2.0/graph/badge.svg
+    :target: https://codecov.io/gh/OCA/tools/branch/2.0
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

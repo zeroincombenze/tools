@@ -103,6 +103,11 @@ Current development version
 History
 -------
 
+2.0.1 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
 2.0.0.4.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -159,7 +164,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-20
+Last Update / Ultimo aggiornamento: 2022-10-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
