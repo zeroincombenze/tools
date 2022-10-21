@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (C) 2015-2021 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
@@ -10,7 +10,7 @@ import sys
 from z0bug_odoo import z0bugodoo
 from zerobug import z0test
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1

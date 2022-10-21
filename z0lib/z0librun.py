@@ -48,7 +48,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.0.4"
+__version__ = "2.0.1"
 
 
 def nakedname(path):

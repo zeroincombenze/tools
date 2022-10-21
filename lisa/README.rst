@@ -1,6 +1,6 @@
 
 ==========
-lisa 2.0.1
+lisa 2.0.2
 ==========
 
 
@@ -104,6 +104,11 @@ Current development version
 History
 -------
 
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] liba_bld_ods: fixes & improvements
+
 2.0.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~
 
@@ -148,7 +153,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-12
+Last Update / Ultimo aggiornamento: 2022-10-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

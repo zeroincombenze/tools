@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='lisa',
-    version='2.0.1',
+    version='2.0.2',
     description='Linux Install Simplifier App',
     long_description="""
 Interactive tool to install, update, remove, query and manage software

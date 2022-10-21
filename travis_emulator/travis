@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.1.1
+__version__=2.0.2
 
 
 store_cfg_param_value() {
@@ -970,7 +970,7 @@ set_log_filename() {
       LOGFILE="$opt_flog"
     else
       LOGDIR="$(get_cfg_value "" "LOGDIR")"
-      [[ -z $LOGDIR ]] && LOGDIR="$HOME_DEVEL/travis_log"
+      [[ -z $LOGDIR ]] && LOGDIR="$ODOO_ROOT/travis_log"
       [[ -d $LOGDIR ]] || mkdir $LOGDIR
       LOGFILE="$LOGDIR/${UMLI}.log"
     fi
@@ -998,7 +998,7 @@ OPTHELP=("this help"
   "deprecated: kept just for compatibility"
   "keep DB and virtual environment before and after tests"
   "lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml"
-  "log directory (def=$HOME/travis_log)"
+  "log directory (def=$ODOO_ROOT/travis_log)"
   "deprecated: kept just for compatibility"
   "show missing line in report coverage"
   "do nothing (dry-run)"

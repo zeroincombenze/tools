@@ -1,4 +1,5 @@
-# template 18
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Odoo super core by Zeroincombenze(R)
 """
@@ -9,7 +10,7 @@ import sys
 
 import pkg_resources
 
-__version__ = '2.0.1.1'
+__version__ = '2.0.2'
 
 
 def fake_setup(**kwargs):

@@ -1,4 +1,5 @@
-# template 18
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 General purpose bash and python library for zeroincombenze(R) tools
 
@@ -19,7 +20,7 @@ import sys
 
 import pkg_resources
 
-__version__ = '2.0.0.4'
+__version__ = '2.0.1'
 
 
 def fake_setup(**kwargs):

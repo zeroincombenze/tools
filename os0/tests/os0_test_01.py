@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2013-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
@@ -30,7 +31,7 @@ MODULE_ID = 'os0'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 TITLE = "os0 regression test. Version: " + __version__
 FLOGTMP = "os0_test.log"

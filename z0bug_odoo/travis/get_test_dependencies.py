@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Usage: get_test_dependencies.py -r|-m|-d|mod|dep -1 path_list [module_list]
 
@@ -14,17 +14,17 @@ from __future__ import print_function
 import os
 import sys
 
-if sys.version_info[0] == 2:
+try:
     from getaddons import (get_dependencies, get_dependents, get_modules,
                            get_modules_info)
     from test_server import get_test_dependencies
-else:
+except ImportError:
     from .getaddons import (get_dependencies, get_dependents, get_modules,
                             get_modules_info)
     from .test_server import get_test_dependencies
 
 
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 
 def get_module_list(paths):

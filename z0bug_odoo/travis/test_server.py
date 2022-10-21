@@ -14,23 +14,22 @@ from six import string_types
 
 from zerobug import z0testodoo
 
-if sys.version_info[0] == 2:
+try:
     from getaddons import (get_addons, get_applications_with_dependencies,
                            get_dependencies, get_localizations_with_dependents,
                            get_modules, get_modules_info)
     from travis_helpers import fail_msg, print_flush, success_msg
-else:
+except ImportError:
     from .getaddons import (get_addons, get_applications_with_dependencies,
-                            get_dependencies,
-                            get_localizations_with_dependents, get_modules,
-                            get_modules_info)
+                            get_dependencies, get_localizations_with_dependents,
+                            get_modules, get_modules_info)
     from .travis_helpers import fail_msg, print_flush, success_msg
 try:
     import ConfigParser
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 

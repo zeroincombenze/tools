@@ -1,7 +1,7 @@
 
-==================
-odoo_score 2.0.1.1
-==================
+================
+odoo_score 2.0.2
+================
 
 
 
@@ -150,6 +150,17 @@ Current development version
 History
 -------
 
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug: test function improvements
+
+2.0.1.1 (2022-10-13)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: python stub
+* [FIX] run_odoo_debug: crash in sime rare cases
+
 2.0.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~
 
@@ -202,7 +213,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-13
+Last Update / Ultimo aggiornamento: 2022-10-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

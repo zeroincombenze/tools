@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=2.0.0.4
+#__version__=2.0.1
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -582,7 +582,7 @@ run_traced() {
       fi
     elif [[ ! $1 =~ ^sleep[[:space:]] ]]; then
       [[ $verbose -gt 0 ]] && echo "$pfx$xcmd"
-      [[ $1 =~ ^(cd[[:space:]].*|cd)$ ]] && eval "$xcmd" 2>/dev/null
+      [[ $1 =~ ^(cd[[:space:]].*[\;\&\|]|cd)$ ]] && eval "$xcmd" 2>/dev/null
     fi
     echo -en "\e[0m"
     ((Z0_STACK=Z0_STACK-2))
@@ -1001,6 +1001,7 @@ CFG_init() {
       for tid in 0 1 2 3; do
         CFG_init $tid
       done
+      ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
     else
       [[ $1 =~ ^[0123]$ ]] && tid=$1 || tid="0"
       unset DEFDICT$tid DEFRULE$tid

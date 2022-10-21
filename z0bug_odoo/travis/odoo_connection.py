@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Odoo connection classes which describe how to connect to odoo to export PO
 files.

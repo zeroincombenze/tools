@@ -52,7 +52,7 @@ Action is one of:
 .br
 * synchro (deprecated)
 .br
-* test
+* test [-b BRANCH] [-B[B]] [-c FILE] [-d DB] [-f]
 .br
 * translate MODULE DB
 .br
@@ -264,6 +264,20 @@ Update documentation (please distribution), execute \fBgit commit\fR an then \fN
 This action is appliable just to PYPI projects. After this action, current project is pushed on to git repository.
 .br
 Deprecated
+.RE
+.P
+\fBtest\fR [-b BRANCH] [-B[B]] [-c FILE] [-d DB] [-f]
+.RS
+Run coverage test on Odoo module in current path
+.br
+This action is appliable just to Odoo projects. The coverage test, like travis, is executed.
+.br
+Coverage status is showed at the end of the test, if no debug mode.
+.br
+If the action is issued for debug (-B switch), the test is run under debug session (with pdb)
+or a template database is built to pycharm session test (-BB switch).
+.br
+The template database is kept for next test; swith -f force the template database creation.
 .RE
 .P
 \fBtranslate MODULE DB\fR

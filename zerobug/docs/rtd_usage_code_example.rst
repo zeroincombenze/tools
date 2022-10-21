@@ -143,7 +143,7 @@ Return odoo root directory
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-18
+Last Update / Ultimo aggiornamento: 2022-10-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

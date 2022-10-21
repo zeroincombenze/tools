@@ -266,7 +266,7 @@ check_4_venv() {
 
 check_privsep_dir() {
     # Create the PrivSep empty dir if necessary
-    local d dt f ur ugr uu x
+    local d dt f p ur ugr uu x xx
     local grp=$(id -g ${USER_RUN})
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && echo "$dt $$ DAEMON ? $0: Development Environment">>$LOGFILE
@@ -274,23 +274,31 @@ check_privsep_dir() {
     for f in $LOGFILE $PIDFILE; do
         ur=${USER_RUN}
         ugr=${USER_RUN}:${grp}
+        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && p=0775 || p=0755
         d=$(dirname $f)
         [[ ! -d $d ]] && echo "$dt $$ DAEMON ? $0: mkdir $d">>$LOGFILE && mkdir $d
         uu=$(stat -c %U $d)
         if [[ ${uu} != ${ur} ]]; then
-            echo "$dt $$ DAEMON ? $0: Invalid file $f owner $uu: expected ${ur}!">>$LOGFILE
+            echo "$dt $$ DAEMON ? $0: Invalid path $d owner $uu: expected ${ur}!">>$LOGFILE
             echo "$dt $$ DAEMON ? $0: chown ${ugr} $d">>$LOGFILE && chown ${ugr} $d
-            [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0775 $d || chmod 0755 $d
         fi
-        # [[ ${USE_SUDO:-0} -eq 0 && $f == $PIDFILE ]] && ur=root && ugr=root:root
-        # [[ ${USE_SUDO:-0} -ne 0 || $f != $PIDFILE ]] && ur=${USER_RUN} && ugr=${USER_RUN}:${grp}
+        xx="0$(stat -c %a $d)"
+        if [[ ${xx} != ${p} ]]; then
+            echo "$dt $$ DAEMON ? $0: Invalid path $d protection $xx: expected ${p}!">>$LOGFILE
+            echo "$dt $$ DAEMON ? $0: chmod ${p} $d">>$LOGFILE && chmod ${p} $d
+        fi
         [[ ! -f $f ]] && touch $f && chown ${ugr} $f
         [[ ! -f $f ]] && continue
         uu=$(stat -c %U $f)
+        [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && p=0664 || p=0644
         if [[ ${uu} != ${ur} ]]; then
             [[ "$uu" != "${USER_RUN}" ]] && echo "$x $$ DAEMON ? $0: Invalid file $f owner $uu: expected ${ur}!">>$LOGFILE
             echo "$dt $$ DAEMON ? $0: chown ${ugr} $f">>$LOGFILE && chown ${ugr} $f
-            [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0664 $f || chmod 0644 $f
+        fi
+        xx="0$(stat -c %a $f)"
+        if [[ ${xx} != ${p} ]]; then
+            echo "$dt $$ DAEMON ? $0: Invalid file $f protection $xx: expected ${p}!">>$LOGFILE
+            echo "$dt $$ DAEMON ? $0: chmod ${p} $f">>$LOGFILE && chmod ${p} $f
         fi
     done
 }

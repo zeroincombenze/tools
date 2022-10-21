@@ -1,4 +1,5 @@
-# template 18
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Interactive tool to install, update, remove, query and manage software
 for building a complete LAMP server or Odoo server.
@@ -16,7 +17,7 @@ import sys
 
 import pkg_resources
 
-__version__ = '2.0.1'
+__version__ = '2.0.2'
 
 
 def fake_setup(**kwargs):

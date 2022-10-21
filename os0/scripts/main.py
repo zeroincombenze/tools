@@ -1,4 +1,5 @@
-# template 18
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Python supplemental features
 ----------------------------
@@ -22,7 +23,7 @@ import sys
 
 import pkg_resources
 
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 
 def fake_setup(**kwargs):

@@ -7,7 +7,7 @@ import re
 import lxml.etree as ET
 from python_plus import _b
 
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 MIGRATE_TO_NEW = [
     (

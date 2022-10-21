@@ -1,3 +1,14 @@
+2.0.1 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+2.0.0.4.1 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced: wrong execution for "cd <path>; ..."
+* [IMP] CFG_init 'ALL': set ODOO_ROOT
+
 2.0.0.4 (2022-10-05)
 ~~~~~~~~~~~~~~~~~~~~
 

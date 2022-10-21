@@ -1,5 +1,5 @@
 # set -x
-__version__=2.0.1
+__version__=2.0.2
 if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
@@ -30,6 +30,7 @@ opts=""
 tgtdir=""
 branch=""
 prm=""
+
 while [[ -n $1 ]]; do
     if [[ -n "$prm" ]]; then
         eval $prm"=$1"
@@ -48,6 +49,7 @@ while [[ -n $1 ]]; do
         [[ $1 =~ -.*n ]] && opts=${opts}n
         [[ $1 =~ -.*U ]] && act="update"
         [[ $1 =~ -.*y ]] && opts=${opts}y
+        [[ $1 =~ -.*Z ]] && opts=${opts}Z
     fi
     shift
 done
@@ -60,7 +62,7 @@ PKGS_LIST_RE="(${PKGS_LIST// /|})"
 PKGS_LIST_RE=${PKGS_LIST_RE//-/.}
 ODOO_ROOT=$(dirname $HOME_DEVEL)
 [[ -z "$act" || ! $act =~ ($ACTLIST) ]] && act="help"
-[[ $act == "help" ]] && echo "$0 [-h|-B|-f|-I|-l|-n|-U|-y] [-d VENV] [-b BRANCH] $ACTLIST|help [PYPI_PKG]" && exit 0
+[[ $act == "help" ]] && echo "$0 [-h|-B|-f|-I|-l|-n|-U|-y|-Z] [-d VENV] [-b BRANCH] $ACTLIST|help [PYPI_PKG]" && exit 0
 b=$(basename $PWD)
 [[ -z "$pypi" && $(dirname $PWD) == $HOME_DEVEL/pypi/$b && $b =~ $PKGS_LIST_RE ]] && pypi=$b
 [[ -z "$pypi" ]] && pypi="$PKGS_LIST" || pypi="${pypi//,/ }"
@@ -143,11 +145,12 @@ for d in $tgtdir; do
             do_replace
         elif [[ $act == "version" ]]; then
             [[ $pkg == "tools" ]] && continue
-            srcdir="$HOME_DEVEL/pypi/$fn/$fn"
+            srcdir="$HOME_DEVEL/pypi/$fn"
             echo -e "\n===[$pkg]==="
-            echo "cd $srcdir; please version"
-            cd $srcdir
-            [[ $opts =~ -.*n ]] || please version
+            [[ ! -f $srcdir/setup.py ]] && continue
+            python $srcdir/setup.py --version
+            echo ""
+            head -n5 $srcdir/$fn/egg-info/history.rst
         elif [[ $act == "git-add" ]]; then
             srcdir="$HOME_DEVEL/pypi"
             [[ $PWD != $srcdir ]] && run_traced "cd $srcdir"
