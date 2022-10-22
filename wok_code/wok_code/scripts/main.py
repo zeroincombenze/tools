@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# template 20
 """
 Various tools at your fingertips.
 
@@ -22,7 +23,7 @@ import gzip
 import shutil
 
 
-__version__ = '2.0.2'
+__version__ = "2.0.2"
 
 
 def fake_setup(**kwargs):
@@ -101,6 +102,8 @@ def copy_pkg_data(setup_args, verbose):
                                 fd.write(help_text.encode("utf-8"))
                             else:
                                 fd.write(help_text)
+                        if verbose:
+                            print("$ gzip -c %s > %s" % (full_fn, tgt_fn))
                         continue
                     if lib_path:
                         tgt_fn = os.path.join(lib_path, base)

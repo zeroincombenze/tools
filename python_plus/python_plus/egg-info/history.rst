@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: wrong behavior with > o < in version
+* [IMP] list_requirements.py: "Crypto.Cipher": "pycrypto"
 
 2.0.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~

@@ -239,7 +239,7 @@ drop_test_db() {
   if [[ "$PRJNAME" == "Odoo" ]]; then
     [[ -n $PGUSER ]] || PGUSER=$USER
     [[ -n $MQT_TEMPLATE_DB ]] || MQT_TEMPLATE_DB="openerp_template"
-    [[ -n $MQT_TEST_DB ]] || MQT_TEST_DB="openerp_test"
+    [[ -n $MQT_TEST_DB ]] || MQT_TEST_DB="test_odoo"
     pg_db_active -wa $MQT_TEMPLATE_DB
     dropdb -U$PGUSER $MQT_TEMPLATE_DB --if-exists &>/dev/null
     pg_db_active -wa $MQT_TEST_DB
@@ -622,7 +622,7 @@ conf_default() {
   [[ -z $(get_cfg_value "" "RUN_travis_run_tests") ]] && CFG_set "RUN_travis_run_tests" "travis_run_tests"
   [[ -z $(get_cfg_value "" "RUN_travis_after_tests_success") ]] && CFG_set "RUN_travis_after_tests_success" "travis_after_tests_success"
   [[ -z $(get_cfg_value "" "MQT_TEMPLATE_DB") ]] && CFG_set "MQT_TEMPLATE_DB" "openerp_template"
-  [[ -z $(get_cfg_value "" "MQT_TEST_DB") ]] && CFG_set "MQT_TEST_DB" "openerp_test"
+  [[ -z $(get_cfg_value "" "MQT_TEST_DB") ]] && CFG_set "MQT_TEST_DB" "test_odoo"
   [[ -z $(get_cfg_value "" "MQT_DBUSER") ]] && CFG_set "MQT_DBUSER" ""
   [[ -z $(get_cfg_value "" "UNBUFFER") ]] && CFG_set "UNBUFFER" "0"
   [[ -z $(get_cfg_value "" "ME_BOS") ]] && CFG_set "ME_BOS" "test_nightly .test_nightly.conf.sample"

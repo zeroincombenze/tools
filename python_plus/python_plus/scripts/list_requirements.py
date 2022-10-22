@@ -317,6 +317,7 @@ MANIFEST_NAMES = {
         "/--editable=git+https://github.com/apache/"
         "chemistry-cmislib.git@py3_compat#egg=cmislib"
     ),
+    "Crypto.Cipher": "pycrypto",
     "facturx": "factur-x",
     "past": "future",
     "u2flib_server": "python-u2flib-server",

@@ -1,7 +1,7 @@
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
-* [IMP] stable version
+* [IMP] database name: (test|template)_odoo
 
 2.0.1.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~~~

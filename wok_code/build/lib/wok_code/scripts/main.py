@@ -101,6 +101,8 @@ def copy_pkg_data(setup_args, verbose):
                                 fd.write(help_text.encode("utf-8"))
                             else:
                                 fd.write(help_text)
+                        if verbose:
+                            print("$ gzip -c %s > %s" % (full_fn, tgt_fn))
                         continue
                     if lib_path:
                         tgt_fn = os.path.join(lib_path, base)

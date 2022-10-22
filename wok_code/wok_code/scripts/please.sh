@@ -1688,7 +1688,7 @@ do_export() {
   if [[ -z "$db" ]]; then
     DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
     DBs="^(${DBs:0: -1})\$"
-    for x in test_openerp_ tnl test demo; do
+    for x in test_odoo_ tnl test demo; do
       [[ $x =~ $DBs ]] && db="$x" && break
       [[ $x$m =~ $DBs ]] && db="$x$m" && break
     done
@@ -1794,7 +1794,7 @@ do_translate() {
   if [[ -z "$db" ]]; then
     DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
     DBs="^(${DBs:0: -1})\$"
-    for x in test_openerp_ tnl test demo; do
+    for x in test_odoo_ tnl test demo; do
       [[ $x =~ $DBs ]] && db="$x" && break
       [[ $x$m =~ $DBs ]] && db="$x$m" && break
     done

@@ -197,7 +197,7 @@ CONFN=""
 opaths=""
 odoo_root=""
 odoo_fver=""
-[[ -z $MQT_TEMPLATE_DB ]] && MQT_TEMPLATE_DB="template_openerp"
+[[ -z $MQT_TEMPLATE_DB ]] && MQT_TEMPLATE_DB="template_odoo"
 [[ -z $MQT_TEST_DB ]] && MQT_TEST_DB="test_openerp"
 if [[ -n $opt_conf ]]; then
     CONFN=$opt_conf

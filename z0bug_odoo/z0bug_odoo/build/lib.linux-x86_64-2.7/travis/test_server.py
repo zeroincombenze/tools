@@ -476,7 +476,7 @@ def get_environment():
     data_dir = os.path.expanduser(
         os.environ.get("DATA_DIR", os.path.expanduser('~/data_dir')))
     odoo_test_select = os.environ.get('ODOO_TEST_SELECT', 'ALL')
-    dbtemplate = os.environ.get('MQT_TEMPLATE_DB', 'openerp_template')
+    dbtemplate = os.environ.get('MQT_TEMPLATE_DB', 'template_odoo')
     database = os.environ.get('MQT_TEST_DB', 'openerp_test')
     travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
     if odoo_version == '6.1':

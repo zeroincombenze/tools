@@ -433,7 +433,7 @@ if [[ $TRAVIS != "false" ]]; then
 fi
 [ -z "${VERSION}" ] && VERSION="$opt_branch"
 [ -z "${ODOO_BRANCH}" ] && export ODOO_BRANCH=${VERSION}
-: ${MQT_TEMPLATE_DB:="openerp_template"}
+: ${MQT_TEMPLATE_DB:="template_odoo"}
 : ${MQT_TEST_DB:="openerp_test"}
 : ${ODOO_REPO:="odoo/odoo"}
 IFS="/" read -a REPO <<<"${ODOO_REPO}"
