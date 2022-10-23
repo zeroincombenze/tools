@@ -466,6 +466,8 @@ class Z0test(object):
         if self.autorun:
             self.ctx = self.parseoptest(argv, version=version)
             sys.exit(self.main())
+        self.home_devel = os.environ.get("HOME_DEVEL") or os.path.expanduser("~/devel")
+        self.odoo_root = os.path.dirname(self.home_devel)
 
     def _create_parser(self, version, ctx):
         """Standard test option parser; same funcionality of bash version
@@ -663,6 +665,19 @@ class Z0test(object):
         )
         return parser
 
+    def set_tlog_file(self, ctx):
+        # Old (deprecated) log management
+        os0.set_tlog_file(
+            ctx.get('logfn', None),
+            new=ctx.get('opt_new', False),
+            echo=ctx.get('opt_echo', False),
+        )
+        # Now set:
+        # - UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
+        # - UMLI (Unique Module Log Identifier):
+        #        format "{git_org}{major_version}.{repos}.{pkgname}"
+        pass
+
     def _create_params_dict(self, ctx):
         """Create all params dictionary"""
         ctx = self._create_def_params_dict(ctx)
@@ -696,7 +711,7 @@ class Z0test(object):
             else:
                 ctx['logfn'] = "~/" + ctx['this'] + ".log"
         if not ctx.get('WLOGCMD', None) and not ctx.get('_run_autotest', False):
-            os0.set_tlog_file(ctx['logfn'], new=ctx['opt_new'], echo=ctx['opt_echo'])
+            self.set_tlog_file(ctx)
         try:
             subprocess.call(
                 ['coverage', '--version'],
@@ -1159,18 +1174,9 @@ class Z0test(object):
             sts = TEST_SUCCESS
         else:
             if not ctx.get('_run_autotest', False):
-                os0.set_tlog_file(
-                    ctx.get('logfn', None),
-                    new=ctx.get('opt_new', False),
-                    echo=ctx.get('opt_echo', False),
-                )
+                self.set_tlog_file(ctx)
             sts = self._exec_all_tests(test_list, ctx, Test)
         return sts
-
-    #
-    # def main_file(self, ctx=None, Test=None, UT1=None, UT=None):
-    #     print('Deprecatede method: use main(..)')
-    #     self.main(ctx=ctx, Test=Test, UT1=UT1, UT=UT)
 
     def main(self, ctx=None, Test=None, UT1=None, UT=None):
         """Default main program for test execution
@@ -1180,8 +1186,7 @@ class Z0test(object):
         UT1: protected Unit Test list (w/o log)
         UT: Unit Test list (if None, search for files)
         """
-        if ctx is None:
-            ctx = self.ctx
+        ctx = ctx or self.ctx
         if (
             ctx.get('opt_debug', False)
             and ctx.get('run_on_top', False)
@@ -1216,7 +1221,7 @@ class Z0test(object):
                     print('Coverage not found!')
                     ctx['run4cover'] = False
         test_list = []
-        if UT is not None and isinstance(UT, list):
+        if isinstance(UT, (list, tuple)):
             self.dbgmsg(ctx, '>>> test_list=%s' % UT)
             test_list = UT
         elif not ctx.get('_run_autotest', False):
@@ -1248,11 +1253,7 @@ class Z0test(object):
             sts = TEST_SUCCESS
         else:
             if not ctx.get('_run_autotest', False):
-                os0.set_tlog_file(
-                    ctx.get('logfn', None),
-                    new=ctx.get('opt_new', False),
-                    echo=ctx.get('opt_echo', False),
-                )
+                self.set_tlog_file(ctx)
             sts = self._exec_all_tests(test_list, ctx, Test)
             if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
                 if sts == TEST_SUCCESS:

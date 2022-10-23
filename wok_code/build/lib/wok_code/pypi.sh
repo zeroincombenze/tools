@@ -16,11 +16,12 @@ run_traced() {
 }
 
 do_replace() {
+    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
     [[ $pkg == "tools" ]] && srcdir="$HOME_DEVEL/pypi/$fn" || srcdir="$HOME_DEVEL/pypi/$fn/$fn"
     OPTS=""
     [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
     echo -e "\n===[$pkg]==="
-    run_traced "cd $srcdir"
+    [[ $PWD != $srcdir ]] && run_traced "cd $srcdir"
     run_traced "please $OPTS replace"
 }
 

@@ -43,7 +43,7 @@ REQVERSION = {
     "beautifulsoup": {"6.1": "==3.2.1"},
     "codicefiscale": {"6.1": "==0.9"},
     "coverage": {"2.7": "<5.0.0", "3.5": ">=5.0.0"},
-    "cryptography": {"6.1": ">=2.2.2"},
+    "cryptography": {"2.7": ">=2.2.2", "3.7": ">=38.0"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
     "docutils": {"6.1": "==0.12", "0": "==0.14"},  # Version by test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},

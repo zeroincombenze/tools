@@ -72,12 +72,66 @@ def run_traced(cmd, verbose=None, dry_run=None):
             sts = 126
         return sts, prcout, prcerr
 
-    def sh_rm(args):
+    def sh_cd(args):
+        tgtdir = args[1] if len(args) > 1 else os.environ["HOME"]
+        if os.path.isdir(tgtdir):
+            sts = os.chdir(tgtdir)
+        elif not dry_run:
+            sts = 1
+        return sts, "", ""
+
+    # def sh_git(args):
+    #     opt_unk = False
+    #     opt_branch = False
+    #     ix = 1
+    #     while args[ix] and args[ix].startswith("-"):
+    #         if args[ix] == "-b" or args[ix] == "--branch":
+    #             ix += 1
+    #             opt_branch = args[ix]
+    #         else:
+    #             opt_unk = True
+    #         ix += 1
+    #     action = args[ix]
+    #     if action == "clone":
+    #         while args[ix] and args[ix].startswith("-"):
+    #             ix += 1
+    #         url = args[ix]
+    #         while args[ix] and args[ix].startswith("-"):
+    #             ix += 1
+    #         tgtdir = args[ix]
+    #         srcdir = None
+    #         if (url == "https://github.com/odoo/odoo.git" and
+    #             opt_branch.split(".")[0].isdigit()
+    #         ):
+    #             srcdir = os.path.join(os.environ["HOME"],
+    #                                   "oca%s" % opt_branch.split(".")[0])
+    #         if os.path.isdir(srcdir):
+    #             sts = os.system("cp -r %s %s" % (srcdir, tgtdir))
+
+    def sh_mkdir(args):
+        opt_unk = False
         ix = 1
+        while ix < len(args) and args[ix].startswith("-"):
+            opt_unk = True
+            ix += 1
+        tgtdir = args[ix]
+        if dry_run:
+            sts = 0
+        elif opt_unk:
+            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                proc.wait()
+                sts = proc.returncode
+        else:
+            os.mkdir(tgtdir)
+            sts = 0 if os.path.exists(tgtdir) else 1
+        return sts, "", ""
+
+    def sh_rm(args):
         opt_f = False
         opt_R = False
         opt_unk = False
-        while args[ix] and args[ix].startswith("-"):
+        ix = 1
+        while ix < len(args) and args[ix].startswith("-"):
             if args[ix] == "-f":
                 opt_f = True
             elif args[ix] in ("-fR", "-Rf"):
@@ -85,39 +139,19 @@ def run_traced(cmd, verbose=None, dry_run=None):
                 opt_R = True
             else:
                 opt_unk = True
-                break
             ix += 1
-        if opt_unk or not opt_f:
+        tgtdir = args[ix]
+        sts = 0 if os.path.exists(tgtdir) else 1
+        if dry_run or sts:
+            pass
+        elif opt_unk or not opt_f:
             with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
                 proc.wait()
                 sts = proc.returncode
+        elif opt_R:
+            shutil.rmtree(tgtdir)
         else:
-            sts = 0
-            tgtdir = args[ix]
-            if not os.path.exists(tgtdir):
-                sts = 1
-            elif opt_R:
-                shutil.rmtree(tgtdir)
-            else:
-                os.unlink(tgtdir)
-        return sts, "", ""
-
-    def sh_mkdir(args):
-        ix = 1
-        opt_unk = False
-        if args[ix] and args[ix].startswith("-"):
-            opt_unk = True
-        if opt_unk:
-            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
-                proc.wait()
-                sts = proc.returncode
-        else:
-            sts = 0
-            tgtdir = args[ix]
-            if os.path.exists(tgtdir):
-                sts = 1
-            else:
-                os.mkdir(tgtdir)
+            os.unlink(tgtdir)
         return sts, "", ""
 
     def cmd_neutral_if(
@@ -154,12 +188,14 @@ def run_traced(cmd, verbose=None, dry_run=None):
     args = shlex.split(cmd)
     sts = 0
     prcout = prcerr = ""
-    if args[0] == "cd":
-        tgtdir = args[1] if len(args) > 1 else os.environ["HOME"]
-        if os.path.isdir(tgtdir):
-            os.chdir(tgtdir)
-        elif not dry_run:
-            sts = 1
+
+    method = {
+        "cd": sh_cd,
+        "mkdir": sh_mkdir,
+        "rm": sh_rm,
+    }.get(args[0])
+    if method:
+        sts, prcout, prcerr = method(args)
     elif (
         cmd_neutral_if(args, params=['dir']) or
         cmd_neutral_if(args, params=['git', 'status']) or
@@ -168,12 +204,7 @@ def run_traced(cmd, verbose=None, dry_run=None):
     ):
         sts, prcout, prcerr = sh_any(args)
     elif not dry_run:
-        if args[0] == "rm":
-            sts, prcout, prcerr = sh_rm(args)
-        elif cmd.startswith("mkdir "):
-            sts, prcout, prcerr = sh_mkdir(args)
-        else:
-            sts, prcout, prcerr = sh_any(args)
+        sts, prcout, prcerr = sh_any(args)
     return sts, prcout, prcerr
 
 
@@ -280,30 +311,9 @@ class parseoptargs(object):
                 valid = True
         return this_fqn
 
-    # def create_params_dict(self, ctx):
-    #     """Create all params dictionary"""
-    #     ctx = self.create_def_params_dict(ctx)
-    #     return ctx
     def create_params_dict(self, ctx):
         """Create default params dictionary"""
         opt_obj = ctx.get('_opt_obj', None)
-        # conf_obj = ctx.get('_conf_obj', None)
-        # s = "options"
-        # if conf_obj:                                       # pragma: no cover
-        #     if not conf_obj.has_section(s):
-        #         conf_obj.add_section(s)
-        #     for p in LX_CFG_S:
-        #         ctx[p] = conf_obj.get(s, p)
-        #     for p in LX_CFG_B:
-        #         ctx[p] = conf_obj.getboolean(s, p)
-        # else:
-        #     DEFDCT = self.default_conf(ctx)
-        #     for p in LX_CFG_S:
-        #         if p in DEFDCT:
-        #             ctx[p] = DEFDCT[p]
-        #     for p in LX_CFG_B:
-        #         if p in DEFDCT:
-        #             ctx[p] = DEFDCT[p]
         if opt_obj:
             for p in self.param_list:
                 ctx[p] = getattr(opt_obj, p)
@@ -382,6 +392,4 @@ class parseoptargs(object):
                 ctx[p] = 1
             else:
                 ctx[p] = 0
-        # elif p in ctx and ctx[p] == -1:
-        #     ctx[0] = 0
         return ctx

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# template 20
 """
 Various tools at your fingertips.
 
@@ -22,7 +23,7 @@ import gzip
 import shutil
 
 
-__version__ = '2.0.2'
+__version__ = "2.0.2"
 
 
 def fake_setup(**kwargs):

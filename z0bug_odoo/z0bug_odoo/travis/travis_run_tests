@@ -4,9 +4,10 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 import os
-import subprocess
+# import subprocess
 # import shutil
 import sys
+from distutils.spawn import find_executable
 from travis_helpers import success_msg, fail_msg
 
 __version__ = '2.0.1'
@@ -32,15 +33,18 @@ def main(test_list):
             sys.stdout.flush()
         test_w_args = test + args
         test_file = test_w_args[0]
-        if test_file.endswith(".py"):
-            test_lib = test_file[:-3]
-            try:
-                res = __import__(test_lib).main(argv=test_w_args)
-            except Exception as e:
-                print(e)
-                res = 1
-        else:
-            res = subprocess.call(test_w_args)
+        full_test =  find_executable(test_file)
+        cmd = ("python %s %s" % (full_test, " ".join(test_w_args[1:]))).strip()
+        res = os.system(cmd)
+        # if test_file.endswith(".py"):
+        #     test_lib = test_file[:-3]
+        #     try:
+        #         res = __import__(test_lib).main(argv=test_w_args)
+        #     except Exception as e:
+        #         print(e)
+        #         res = 1
+        # else:
+        #     res = subprocess.call(test_w_args)
         results.append(res)
 
     print()

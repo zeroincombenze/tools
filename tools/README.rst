@@ -273,13 +273,14 @@ wok_code: 2.0.2 (2022-10-20)
 travis_emulator: 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] stable version
+* [IMP] database name: (test|template)_odoo
 
 
 python_plus: 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: wrong behavior with > o < in version
+* [IMP] list_requirements.py: "Crypto.Cipher": "pycrypto"
 
 
 os0: 2.0.1 (2022-10-20)
@@ -540,7 +541,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-10-21
+Last Update / Ultimo aggiornamento: 2022-10-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

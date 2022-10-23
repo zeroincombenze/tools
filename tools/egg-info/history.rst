@@ -32,13 +32,14 @@ wok_code: 2.0.2 (2022-10-20)
 travis_emulator: 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] stable version
+* [IMP] database name: (test|template)_odoo
 
 
 python_plus: 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: wrong behavior with > o < in version
+* [IMP] list_requirements.py: "Crypto.Cipher": "pycrypto"
 
 
 os0: 2.0.1 (2022-10-20)

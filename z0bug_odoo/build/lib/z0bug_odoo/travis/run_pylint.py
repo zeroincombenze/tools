@@ -4,10 +4,10 @@
 from __future__ import print_function
 
 import ast
-import inspect
 import os
-import re
+# import re
 import sys
+import inspect
 
 import click
 import pylint.lint
@@ -70,8 +70,8 @@ def get_extra_params(odoo_version):
     :param version: String to specify an Odoo's name or versio
     :return: List of extra pylint params
     """
-    is_version_number = re.match(r'\d+\.\d+', odoo_version)
-    beta_msgs = get_beta_msgs()
+    # is_version_number = re.match(r'\d+\.\d+', odoo_version)
+    # beta_msgs = get_beta_msgs()
     leverage_msgs = get_leverage_msgs()
     versioned_msgs = get_versioned_msgs(odoo_version)
 
@@ -80,19 +80,19 @@ def get_extra_params(odoo_version):
         os.path.join(
             os.path.dirname(os.path.realpath(__file__)), 'pylint_deprecated_modules'
         ),
-        '--extra-params',
-        '--load-plugins=pylint_odoo',
+        # '--extra-params',
+        # '--load-plugins=pylint_odoo',
     ]
 
     extra_params = list(extra_params_cmd)
-    if is_version_number:
-        extra_params.extend(
-            ['--extra-params', '--valid_odoo_versions=%s' % odoo_version]
-        )
-    for beta_msg in beta_msgs:
-        extra_params.extend(
-            ['--msgs-no-count', beta_msg, '--extra-params', '--enable=%s' % beta_msg]
-        )
+    # if is_version_number:
+    #     extra_params.extend(
+    #         ['--extra-params', '--valid_odoo_versions=%s' % odoo_version]
+    #     )
+    # for beta_msg in beta_msgs:
+    #     extra_params.extend(
+    #         ['--msgs-no-count', beta_msg, '--extra-params', '--enable=%s' % beta_msg]
+    #     )
     # [antoniov: 2018-09-12]
     for leverage_msg in leverage_msgs:
         extra_params.extend(
@@ -224,10 +224,15 @@ def pylint_run(is_pr, version, dir):
     cmd = conf + modules_cmd + extra_params_cmd
 
     real_errors = main(cmd, standalone_mode=False)
+    # res = {
+    #     key: value
+    #     for key, value in (real_errors.get('by_msg') or {}).items()
+    #     if key not in beta_msgs
+    # }
     res = {
         key: value
-        for key, value in (real_errors.get('by_msg') or {}).items()
-        if key not in beta_msgs
+        for key, value in (hasattr(real_errors, 'by_msg')
+                           and getattr(real_errors, 'by_msg') or {}).items()
     }
     count_errors = get_count_fails(real_errors, list(beta_msgs))
     count_info = "count_errors %s" % count_errors
@@ -249,10 +254,15 @@ def pylint_run(is_pr, version, dir):
         conf = ["--config-file=%s" % (pylint_rcfile_pr)]
         cmd = conf + modules_changed_cmd + extra_params_cmd
         pr_real_errors = main(cmd, standalone_mode=False)
+        # pr_stats = {
+        #     key: value
+        #     for key, value in (pr_real_errors.get('by_msg') or {}).items()
+        #     if key not in beta_msgs
+        # }
         pr_stats = {
             key: value
-            for key, value in (pr_real_errors.get('by_msg') or {}).items()
-            if key not in beta_msgs
+            for key, value in (hasattr(pr_real_errors, 'by_msg')
+                               and getattr(pr_real_errors, 'by_msg') or {}).items()
         }
         if pr_stats:
             pr_errors = get_count_fails(pr_real_errors, list(beta_msgs))
@@ -280,10 +290,15 @@ def get_count_fails(linter_stats, msgs_no_count=None):
     :return: Integer with quantity of fails found.
     """
     return sum(
+        # [
+        #     linter_stats['by_msg'][msg]
+        #     for msg in (linter_stats.get('by_msg') or {})
+        #     if msg not in msgs_no_count
+        # ]
         [
             linter_stats['by_msg'][msg]
-            for msg in (linter_stats.get('by_msg') or {})
-            if msg not in msgs_no_count
+            for msg in (hasattr(linter_stats, 'by_msg')
+                        and getattr(linter_stats, 'by_msg') or {})
         ]
     )
 
@@ -351,7 +366,14 @@ def run_pylint(paths, cfg, beta_msgs=None, sys_paths=None, extra_params=None):
     if not subpaths:
         return {'error': 0}
     cmd.extend(subpaths)
-    if 'do_exit' in inspect.getargspec(pylint.lint.Run.__init__)[0]:
+    if (
+        sys.version_info[0] == 2 and
+        'do_exit' in inspect.getargspec(pylint.lint.Run.__init__)[0]
+    ):
+        # pylint has renamed this keyword argument
+        pylint_res = pylint.lint.Run(cmd, do_exit=False)
+    elif (sys.version_info[0] > 2 and
+          'do_exit' in inspect.getfullargspec(pylint.lint.Run.__init__)[0]):
         # pylint has renamed this keyword argument
         pylint_res = pylint.lint.Run(cmd, do_exit=False)
     else:
