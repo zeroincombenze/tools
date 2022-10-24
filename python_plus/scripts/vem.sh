@@ -366,7 +366,8 @@ pip_install() {
       fi
       # TODO> ?
       # set_hashbang "$pypath/${pfn}"
-      [[ -x $VIRTUAL_ENV/bin/${pfn}-info ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info --copy-pkg-data"
+      [[ -x $VIRTUAL_ENV/bin/${pfn}-info && $opt_verbose -ne 0 ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info -v --copy-pkg-data"
+      [[ -x $VIRTUAL_ENV/bin/${pfn}-info && $opt_verbose -eq 0 ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info --copy-pkg-data"
     elif [[ $pfn =~ $EI_PKGS ]]; then
       run_traced "easy_install install \"$pkg\""
       run_traced "$PIP install $popts --upgrade \"$pkg\""

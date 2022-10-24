@@ -197,8 +197,8 @@ CONFN=""
 opaths=""
 odoo_root=""
 odoo_fver=""
-[[ -z $MQT_TEMPLATE_DB ]] && MQT_TEMPLATE_DB="template_openerp"
-[[ -z $MQT_TEST_DB ]] && MQT_TEST_DB="test_openerp"
+[[ -z $MQT_TEMPLATE_DB ]] && MQT_TEMPLATE_DB="template_odoo"
+[[ -z $MQT_TEST_DB ]] && MQT_TEST_DB="test_odoo"
 if [[ -n $opt_conf ]]; then
     CONFN=$opt_conf
     [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1

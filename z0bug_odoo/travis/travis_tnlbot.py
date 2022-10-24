@@ -57,5 +57,5 @@ def main(argv=None, database=None):
 
 
 if __name__ == "__main__":
-    database = os.environ.get('MQT_TEST_DB', 'openerp_test')
+    database = os.environ.get('MQT_TEST_DB', 'test_odoo')
     exit(main(database=database))

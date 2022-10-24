@@ -213,7 +213,7 @@ class MainTest(unittest.TestCase):
     def connection_test(self):
         username = "admin"
         password = "admin"
-        database_name = "openerp_test"
+        database_name = "test_odoo"
         port = 8069
         host = '127.0.0.1'
         sock_common = xmlrpclib.ServerProxy(

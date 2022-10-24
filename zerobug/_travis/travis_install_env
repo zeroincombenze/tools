@@ -271,13 +271,12 @@ set_pythonpath() {
 #}
 
 install_n_activate_tools() {
-    local x o
-    [[ $test_mode -ne 0 ]] && o="t"
+    local x
     [[ -z $ODOO_ROOT ]] && ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
     x=$(readlink -f $ODOO_ROOT/tools)
     [[ ! -d $x ]] && echo "Tools environment not found (path $ODOO_ROOT/tools)" && exit 1
-    x=$(readlink -f $ODOO_ROOT/devel)
-    [[ ! -d $x ]] && echo "Tools environment not found (path $ODOO_ROOT/devel)" && exit 1
+    x=$(readlink -f $HOME_DEVEL)
+    [[ ! -d $x ]] && echo "Tools environment not found (path $HOME_DEVEL)" && exit 1
 }
 
 check_4_needing_pkgs() {
@@ -368,42 +367,15 @@ fi
 
 export MQT_TEST_MODE=$mode
 set_pybin $TRAVIS_PYTHON_VERSION
-# export PYTHON PIP
 install_n_activate_tools
-# set_pythonpath "$HOME/tools" "$HOME/devel/sitecustomize.py" $PIP
 [[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]] && echo "PATH=$PATH"
 [[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]] && echo "PYTHONPATH=$PYTHONPATH"
-# check_pythonpath "$HOME/tools" $PYTHON
-# run_traced "$PIP install -q pip --upgrade" "nolocal"
-# PIPVER=$($PIP --version | grep --color=never -Eo [0-9]+ | head -n1)
 [[ $PIPVER -gt 18 ]] && PIP_OPTS="$PIP_OPTS --no-warn-conflicts"
 [[ $PIPVER -gt 19 ]] && PIP_OPTS="$PIP_OPTS --use-feature=2020-resolver"
-# check_installed_pkgs
 LISTREQ=$(which list_requirements.py 2>/dev/null)
-#if [[ -z "$LISTREQ" ]]; then
-#  if [[ -n "$YML_mgrodoo" ]]; then
-#    LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
-#  else
-#    [[ -f $HOME/tools/clodoo/list_requirements.py ]] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
-#  fi
-#fi
 LISA=$(which lisa 2>/dev/null)
-#if [[ -z "$LISA" ]]; then
-#  if [ -n "$YML_lisa" ]; then
-#    LISA=$YML_lisa
-#  else
-#    LISA=$HOME/tools/lisa/lisa
-#    [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
-#    [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
-#  fi
-#fi
 VEM=$(which vem 2>/dev/null)
-#if [[ -z "$VEM" ]]; then
-#  VEM=$HOME/tools/python_plus/vem
-#  [ -f $TDIR/../../python_plus/python_plus ] && VEM=$(readlink -e $TDIR/../../python_plus/python_plus)
-#  [ -f $TDIR/../python_plus/python_plus ] && VEM=$(readlink -e $TDIR/../python_plus/python_plus)
-# fi
-if [ $opt_verbose -gt 0 ]; then
+if [[ $opt_verbose -gt 1 ]]; then
   echo -e "\e[${PS_TXT_COLOR}m$0.$__version__"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$PIP.$($PIP --version)"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias vem=$VEM.$($VEM -V)"
@@ -428,13 +400,13 @@ for p in build-essential libssl-dev libffi-dev; do
 done
 if [[ $TRAVIS != "false" ]]; then
   for p in urllib3[secure] cryptography pyOpenSSL idna certifi; do
-    run_traced "$PIP install $PIP_OPTS $p --upgrade --ignore-installed" "nolocal"
+    run_traced "$VEM update \"$p\"" "nolocal"
   done
 fi
-[ -z "${VERSION}" ] && VERSION="$opt_branch"
-[ -z "${ODOO_BRANCH}" ] && export ODOO_BRANCH=${VERSION}
-: ${MQT_TEMPLATE_DB:="openerp_template"}
-: ${MQT_TEST_DB:="openerp_test"}
+[[ -z "${VERSION}" ]] && VERSION="$opt_branch"
+[[ -z "${ODOO_BRANCH}" ]] && export ODOO_BRANCH=${VERSION}
+: ${MQT_TEMPLATE_DB:="template_odoo"}
+: ${MQT_TEST_DB:="test_odoo"}
 : ${ODOO_REPO:="odoo/odoo"}
 IFS="/" read -a REPO <<<"${ODOO_REPO}"
 export REMOTE="${REPO[0],,}"
@@ -551,24 +523,6 @@ else
     fi
   fi
   if [[ $TESTS != "1" ]]; then
-#    [[ "$PKGNAME" == "OCB" ]] && ocb_dir='.' || ocb_dir=${ODOO_PATH}
-#    if [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]]; then
-#      # reqs=$(find $ocb_dir -name requirements.txt | tr "\n" ",")
-#      # run_traced "$VEM amend -DO $ODOO_BRANCH -r $reqs"
-#      run_traced "$VEM amend -DO $ODOO_BRANCH -o $ocb_dir"
-#    fi
-#    cp_coveragerc
-#    if [[ $TRAVIS =~ (true|emulate) ]]; then
-#      if [[ $opt_verbose -gt 0 ]]; then
-#        echo "- reqs=\$($LISTREQ -b$VERSION -p$ocb_dir -t python -s ' ' -qBTR)"
-#        reqs="$($LISTREQ -b$VERSION -p$ocb_dir -t python -s ' ' -qBTR)"
-#        reqs=$(echo "$reqs" | tr " " "\n" | sort | tr "\n" " ")
-#        for pkg in $reqs; do
-#          v=$($PIP show $pkg | grep "^[Vv]ersion" | awk '{print $2}')
-#          echo "-- $pkg $v"
-#        done
-#      fi
-#    fi
     cp_coveragerc
   else
     mkdir -p ${HOME}/dependencies
@@ -588,8 +542,6 @@ else
       dependencies_dir="$TRAVIS_BUILD_DIR ù,${HOME}/dependencies"
       run_traced "$VEM amend -D -O $ODOO_BRANCH -o ${ODOO_PATH} -p $dependencies_dir"
     fi
-    # run_traced "find $ocb_dir $dependencies_dir -name requirements.txt -exec cat '{}' \;|sort -u > $TRAVIS_BUILD_DIR/requirements.txt"
-    # run_traced "$VEM amend -DO $ODOO_BRANCH -o $TRAVIS_BUILD_DIR"
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
         run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"

@@ -5,8 +5,8 @@ EXCLUDE,,Modules to exclude from test
 INCLUDE,,Modules to test (all, if empty)
 INSTALL_OPTIONS,,Options passed to odoo-bin/openerp-server to install modules
 MQT_DBSUER,$USER,Database username
-MQT_TEMPLATE_DB,openerp_template,Read above
-MQT_TEST_DB,openerp_test,Read above
+MQT_TEMPLATE_DB,template_odoo,Read above
+MQT_TEST_DB,test_odoo,Read above
 NPM_CONFIG_PREFIX,\$HOME/.npm-global,N/D
 ODOO_REPO,odoo/odoo,OCB repository against test repository
 ODOO_SETUPS,__manifest__.py __openerp__.py __odoo__.py __terp__.py,Names of Odoo manifest files

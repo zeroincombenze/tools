@@ -607,8 +607,8 @@ def main(argv=None):
         os.environ.get("DATA_DIR", os.path.expanduser('~/data_dir'))
     )
     test_enable = str2bool(os.environ.get('TEST_ENABLE', True))
-    dbtemplate = os.environ.get('MQT_TEMPLATE_DB', 'openerp_template')
-    database = os.environ.get('MQT_TEST_DB', 'openerp_test')
+    dbtemplate = os.environ.get('MQT_TEMPLATE_DB', 'template_odoo')
+    database = os.environ.get('MQT_TEST_DB', 'test_odoo')
     opts, test_loglevel, test_loghandler = get_log_level(
         odoo_version, test_enable, travis_debug_mode
     )
@@ -759,7 +759,11 @@ def main(argv=None):
                 with open('stdout.log', 'wb') as stdout:
                     for line in iter(pipe.stdout.readline, b''):
                         stdout.write(line)
-                        print(line.strip().decode('UTF-8', errors='backslashreplace'))
+                        if sys.version_info[0] == 2:
+                            print(line.strip())
+                        else:
+                            print(line.strip().decode(
+                                'utf-8', errors='backslashreplace'))
                 returncode = pipe.wait()
                 # Find errors, except from failed mails
                 errors = has_test_errors(

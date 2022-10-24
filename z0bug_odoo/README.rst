@@ -590,9 +590,9 @@ You can highly customize you test: look at below table.
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
 | MQT_DBSUER             | $USER                                                  | Database username                                            |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| MQT_TEMPLATE_DB        | openerp_template                                       | Read above                                                   |
+| MQT_TEMPLATE_DB        | template_odoo                                          | Read above                                                   |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| MQT_TEST_DB            | openerp_test                                           | Read above                                                   |
+| MQT_TEST_DB            | test_odoo                                              | Read above                                                   |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
 | NPM_CONFIG_PREFIX      | \$HOME/.npm-global                                     | N/D                                                          |
 +------------------------+--------------------------------------------------------+--------------------------------------------------------------+
@@ -1087,7 +1087,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-21
+Last Update / Ultimo aggiornamento: 2022-10-24
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
