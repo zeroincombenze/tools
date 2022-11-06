@@ -1,8 +1,0 @@
-z0lib
-future
-Babel
-lxml
-openpyxl
-pyyaml
-babel
-twine

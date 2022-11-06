@@ -1,9 +1,0 @@
-future
-coverage
-coveralls
-codecov
-pylint-odoo
-python-magic
-python-plus
-os0
-z0lib

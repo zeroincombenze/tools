@@ -1,4 +1,0 @@
-[console_scripts]
-lisa-info = lisa.scripts.main:main
-lisa_bld_ods = lisa.scripts.lisa_bld_ods:main
-

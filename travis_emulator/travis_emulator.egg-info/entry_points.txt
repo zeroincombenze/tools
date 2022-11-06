@@ -1,4 +1,0 @@
-[console_scripts]
-make_travis_conf = travis_emulator.make_travis_conf:make_travis_conf
-travis_emulator-info = travis_emulator.scripts.main:main
-
