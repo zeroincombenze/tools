@@ -6,7 +6,10 @@ import argparse
 
 from z0lib import z0lib
 
-__version__ = "2.0.2"
+__version__ = "2.0.2.1"
+
+
+IGNORE_DIRS = (".idea", ".git", "egg-info", "setup")
 
 
 def get_names(left_path, right_path):
@@ -24,19 +27,22 @@ def get_names(left_path, right_path):
 
 
 def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base):
-    if not base.endswith(".pyc") and (
-        not base.endswith(".po") or not opt_args.ignore_po
+    if (
+        base.endswith(".pyc")
+        or ((base.endswith(".po") or base.endswith(".pot")) and opt_args.ignore_po)
+        or (base.startswith("README") and opt_args.ignore_doc)
     ):
-        if os.path.isfile(left_path):
-            z0lib.run_traced(
-                'cp %s %s' % (left_path, os.path.join(left_diff_path, base)),
-                verbose=opt_args.dry_run,
-                dry_run=opt_args.dry_run)
-        if os.path.isfile(right_path):
-            z0lib.run_traced(
-                'cp %s %s' % (right_path, os.path.join(right_diff_path, base)),
-                verbose=opt_args.dry_run,
-                dry_run=opt_args.dry_run)
+        return
+    if os.path.isfile(left_path):
+        z0lib.run_traced(
+            'cp %s %s' % (left_path, os.path.join(left_diff_path, base)),
+            verbose=opt_args.dry_run,
+            dry_run=opt_args.dry_run)
+    if os.path.isfile(right_path):
+        z0lib.run_traced(
+            'cp %s %s' % (right_path, os.path.join(right_diff_path, base)),
+            verbose=opt_args.dry_run,
+            dry_run=opt_args.dry_run)
 
 
 def match(opt_args, left_diff_path, right_diff_path, left_path, right_path):
@@ -82,14 +88,16 @@ def matchdir_based(opt_args, left_diff_path, right_diff_path, left_path, right_p
 def matchdir(opt_args, left_diff_path, right_diff_path, left_path, right_path):
     if os.path.isdir(left_path):
         base = os.path.basename(left_path)
-        matchdir_based(
-            opt_args, left_diff_path, right_diff_path, left_path, right_path, base
-        )
+        if base not in IGNORE_DIRS :
+            matchdir_based(
+                opt_args, left_diff_path, right_diff_path, left_path, right_path, base
+            )
     elif os.path.isdir(right_path):
         base = os.path.basename(right_path)
-        matchdir_based(
-            opt_args, left_diff_path, right_diff_path, left_path, right_path, base
-        )
+        if base not in IGNORE_DIRS :
+            matchdir_based(
+                opt_args, left_diff_path, right_diff_path, left_path, right_path, base
+            )
     else:
         match(opt_args, left_diff_path, right_diff_path, left_path, right_path)
 
@@ -115,7 +123,7 @@ def lintdir(opt_args, left_path, right_path):
     z0lib.run_traced('black %s' % right_path,
                      verbose=opt_args.dry_run,
                      dry_run=opt_args.dry_run)
-    if opt_args.no_remark:
+    if opt_args.ignore_doc:
         for root, _dirs, files in os.walk(left_path):
             remove_comment(root, files)
         for root, _dirs, files in os.walk(right_path):
@@ -130,7 +138,7 @@ def main(cli_args=None):
     )
     parser.add_argument('-b', '--odoo-version')
     parser.add_argument('-c', '--cache', help="Use cached values")
-    parser.add_argument("-e", "--no-remark", action="store_true")
+    parser.add_argument("-d", "--ignore-doc", action="store_true")
     parser.add_argument("-i", "--ignore-po", action="store_true")
     parser.add_argument("-m", "--meld", action="store_true", help='use meld')
     parser.add_argument("-n", "--dry-run", dest="dry_run", action="store_true")

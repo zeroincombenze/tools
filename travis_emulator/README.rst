@@ -1,6 +1,6 @@
 
 =====================
-travis_emulator 2.0.1
+travis_emulator 2.0.2
 =====================
 
 
@@ -158,9 +158,9 @@ Values in configuration file are:
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
 | ODOO_SETUPS       | Names of Odoo manifest files                       | __manifest__.py __openerp__.py __odoo__.py __terp__.py                                       |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
-| dbtemplate        | Default value for MQT_TEMPLATE_DB                  | openerp_template                                                                             |
+| dbtemplate        | Default value for MQT_TEMPLATE_DB                  | template_odoo                                                                                |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
-| dbname            | Default value for MQT_TEST_DB                      | openerp_test                                                                                 |
+| dbname            | Default value for MQT_TEST_DB                      | test_odoo                                                                                    |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
 | dbuser            | Postgresql user: default value for MQT_DBUSER      | $USER                                                                                        |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
@@ -275,6 +275,17 @@ Troubleshooting
 History
 -------
 
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] database name: (test|template)_odoo
+* [IMP] With -k switch set ODOO_COMMIT_TEST
+
+2.0.1.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis: change logfile name
+
 2.0.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~
 
@@ -321,7 +332,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-12
+Last Update / Ultimo aggiornamento: 2022-10-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

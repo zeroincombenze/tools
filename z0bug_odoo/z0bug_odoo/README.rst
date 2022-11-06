@@ -1,7 +1,7 @@
 
-================
-z0bug_odoo 2.0.1
-================
+==================
+z0bug_odoo 2.0.1.1
+==================
 
 
 
@@ -1048,7 +1048,12 @@ Current development version
 History
 -------
 
-2.0.2 (2022-10-20)
+2.0.1.1 (2022-11-03)
+~~~~~~~~~~~~~~~~~~~~
+
+* [REF] clone_oca_dependencies.py
+
+2.0.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
@@ -1087,7 +1092,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-24
+Last Update / Ultimo aggiornamento: 2022-11-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

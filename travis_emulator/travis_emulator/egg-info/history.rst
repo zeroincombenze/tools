@@ -1,7 +1,14 @@
+2.0.2.1 (2022-11-02)
+~~~~~~~~~~~~~~~~~~~~
+
+* [REF] travis: partial refactoring
+* [IMP] travis: recognition of local/librerp
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] database name: (test|template)_odoo
+* [IMP] With -k switch set ODOO_COMMIT_TEST
 
 2.0.1.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~~~

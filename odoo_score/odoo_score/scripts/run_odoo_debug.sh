@@ -39,7 +39,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.2.1
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -476,6 +476,8 @@ if [[ $opt_touch -eq 0 ]]; then
       fi
     fi
 
+    [[ $opt_keep -ne 0 ]] && export ODOO_COMMIT_TEST="1"
+    [[ $opt_keep -eq 0 && -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
     if [[ $create_db -gt 0 ]]; then
         [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
         if [[ -n "$depmods" && $opt_test -ne 0 ]]; then
@@ -538,6 +540,7 @@ if [[ $opt_touch -eq 0 ]]; then
       echo -e "DB=\e[31m$opt_db\e[0m login: admin/admin"
       echo ""
     else
+      [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
       run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
     fi
 

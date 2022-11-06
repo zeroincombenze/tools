@@ -73,6 +73,7 @@ def run_traced(cmd, verbose=None, dry_run=None):
         return sts, prcout, prcerr
 
     def sh_cd(args):
+        sts = 0
         tgtdir = args[1] if len(args) > 1 else os.environ["HOME"]
         if os.path.isdir(tgtdir):
             sts = os.chdir(tgtdir)

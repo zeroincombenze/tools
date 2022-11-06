@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.2.1
 
 #
 # General Purpose options:
@@ -918,7 +918,12 @@ do_edit_pofile() {
 do_edit_translation() {
   local xfile
   [[ -f "$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx"
-  [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
+  if [[ -n "$xfile" ]]; then
+    [[ -f /etc/wsl.conf ]] && xfile="z:$xfile"
+    run_traced "libreoffice $xfile"
+  else
+    echo "No file odoo_default_tnl.xlsx found!"
+  fi
   return $STS_STS_SUCCESS
 }
 
@@ -1806,8 +1811,8 @@ do_translate() {
   fi
   [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
   [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
-  x=$(find $PKGPATH -type f -not -path "*/egg-info/*" -not -name "*.pyc" -anewer i18n/it.po)
-  [[ -n $x ]] && do_export "$1" "$2" "$3"
+  # x=$(find $PKGPATH -type f -not -path "*/egg-info/*" -not -name "*.pyc" -anewer i18n/it.po)
+  # [[ -n $x ]] && do_export "$1" "$2" "$3"
   run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -d $db -c $confn -p $pofile -AP"
   sts=$?
   return $sts

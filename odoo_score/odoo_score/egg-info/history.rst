@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug: test function improvements
+* [IMP] run_odoo_debug: ODOO_COMMIT_TEST
 
 2.0.1.1 (2022-10-13)
 ~~~~~~~~~~~~~~~~~~~~

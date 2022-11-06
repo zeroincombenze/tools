@@ -1,7 +1,7 @@
 
-==============
-wok_code 2.0.2
-==============
+================
+wok_code 2.0.2.1
+================
 
 
 
@@ -845,6 +845,13 @@ Current development version
 History
 -------
 
+2.0.2.1 (2022-10-31)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lint_2_compare: ignoring .git .idea egg-info and setup directories
+* [IMP] lint_2_compare: new ignore switches
+* [FIX] please translate: do not execute export
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
@@ -916,7 +923,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-22
+Last Update / Ultimo aggiornamento: 2022-11-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

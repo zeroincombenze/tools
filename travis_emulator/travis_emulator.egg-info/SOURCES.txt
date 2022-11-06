@@ -2,6 +2,8 @@ README.rst
 setup.py
 travis_emulator/__init__.py
 travis_emulator/__main__.py
+travis_emulator/make_travis_conf.py
+travis_emulator/template_travis.yml
 travis_emulator/travis
 travis_emulator/travis.man
 travis_emulator/travisrc
