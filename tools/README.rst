@@ -239,6 +239,58 @@ Current development version
 History
 -------
 
+zerobug: 2.0.2.2 (2022-11-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] npm management
+
+
+travis_emulator: 2.0.2.2 (2022-11-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] npm management
+
+
+python_plus: 2.0.2.2 (2022-11-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] npm management
+
+
+z0bug_odoo: 2.0.1.1 (2022-11-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] clone_oca_dependencies.py
+
+
+travis_emulator: 2.0.2.1 (2022-11-02)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] travis: partial refactoring
+* [IMP] travis: recognition of local/librerp
+
+
+python_plus: 2.0.2.1 (2022-11-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Ensure coverage 5.0+
+
+
+zerobug: 2.0.2.1 (2022-10-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Odoo 11.0+
+* [FIX] Ensure coverage 5.0+
+
+
+wok_code: 2.0.2.1 (2022-10-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lint_2_compare: ignoring .git .idea egg-info and setup directories
+* [IMP] lint_2_compare: new ignore switches
+* [FIX] please translate: do not execute export
+
+
 zerobug: 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -258,7 +310,7 @@ z0lib: 2.0.0.4.1 (2022-10-20)
 * [IMP] CFG_init 'ALL': set ODOO_ROOT
 
 
-z0bug_odoo: 2.0.2 (2022-10-20)
+z0bug_odoo: 2.0.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
@@ -274,6 +326,7 @@ travis_emulator: 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] database name: (test|template)_odoo
+* [IMP] With -k switch set ODOO_COMMIT_TEST
 
 
 python_plus: 2.0.2 (2022-10-20)
@@ -294,6 +347,7 @@ odoo_score: 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug: test function improvements
+* [IMP] run_odoo_debug: ODOO_COMMIT_TEST
 
 
 lisa: 2.0.2 (2022-10-20)
@@ -476,56 +530,6 @@ lisa: 2.0.0.1 (2022-09-10)
 * [IMP] wsl2-systemd: experimental systemd for wsl2
 
 
-wok_code: 2.0.0.1 (2022-09-07)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] please test: with debug
-
-
-odoo_score: 2.0.0.1 (2022-09-07)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odo_debug with debug
-* [IMP] run_odoo_debug: experimental debug via pycharm
-
-
-zerobug: 2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis_install_env: minor fixes
-* [IMP] z0testlib: show coverage result
-
-
-
-z0lib: 2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] set_pybin accept filename
-* [IMP] check_pythonpath removed
-
-
-travis_emulator: 2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: new improvements (-f -k switches)
-
-
-
-python_plus: 2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] vem: new swith -d for Odoo dependencies path
-* [FIX] vem: create with best package list
-* [FIX] vem: install odoo/openerp
-
-
-
-clodoo: 2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: new option -S for secure packages
-
-
 
 
 
@@ -541,7 +545,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-10-22
+Last Update / Ultimo aggiornamento: 2022-11-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

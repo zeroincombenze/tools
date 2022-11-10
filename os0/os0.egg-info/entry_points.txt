@@ -1,0 +1,3 @@
+[console_scripts]
+os0-info = os0.scripts.main:main
+

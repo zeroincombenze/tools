@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.2.2
 
 
 run_traced() {
@@ -435,8 +435,8 @@ else
     fi
     echo -e "\e[${PS_HDR3_COLOR}m### Build Test Environment\e[${PS_TXT_COLOR}m"
     run_traced "$PIP install $PIP_OPTS --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git" "nolocal" # To use last version ever
-    if [[ $TRAVIS =~ (true|emulate) ]]; then
-      run_traced "npm install -g eslint"
+    if [[ $TRAVIS =~ (true|emulate) || -n $npm_config_prefix ]]; then
+      run_traced "npm -g install eslint"
     else
       run_traced "npm install eslint"
     fi
@@ -451,9 +451,9 @@ else
         run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/node"
         [[ $opt_verbose -gt 0 ]] && echo "3> node version: $(node --version)"
       fi
-      if [[ $TRAVIS =~ (true|emulate) ]]; then
-        run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
-        x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
+      if [[ $TRAVIS =~ (true|emulate) || -n $npm_config_prefix ]]; then
+        run_traced "npm -g install less@3.0.4 less-plugin-clean-css"
+        x=$(find $(npm -g bin -g 2>/dev/null) -name lessc 2>/dev/null)
         [[ -n "$x" ]] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
       else
         run_traced "npm install less@3.0.4 less-plugin-clean-css"

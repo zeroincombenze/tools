@@ -303,7 +303,7 @@ build_odoo_param() {
                         GIT_PROT=$(echo $GIT_URL|awk -F: '{print $1}')
                         VCS="git"
                     fi
-                    GIT_BRANCH=$(cd $cdir && git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+"|head -n1|tr -d "\n")
+                    GIT_BRANCH=$(cd $cdir && git branch --list|grep "^\* "|cut -d" " -f2|head -n1|tr -d "\n")
                 fi
             fi
             [[ $cdir == $ODOO_ROOT ]] && break

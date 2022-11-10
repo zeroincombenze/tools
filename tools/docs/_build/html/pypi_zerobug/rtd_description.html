@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zeroincombenze® continuous testing framework for python and bash programs &#8212; tools 1.0.6.9 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Features" href="rtd_features.html" />
+    <link rel="prev" title="Indices and tables" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_features.html" title="Features"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Indices and tables"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Indices and tables</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Zeroincombenze® continuous testing framework for python and bash programs</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<div class="section" id="zeroincombenze-continuous-testing-framework-for-python-and-bash-programs">
+<h1>Zeroincombenze® continuous testing framework for python and bash programs<a class="headerlink" href="#zeroincombenze-continuous-testing-framework-for-python-and-bash-programs" title="Permalink to this heading"></a></h1>
+<p>This library can run unit test of target package software.
+Supported languages are <em>python</em> (through z0testlib.py) and <em>bash</em> (through z0testrc)</p>
+<p><em>zerobug</em> supports test automation, aggregation of tests into collections
+and independence of the tests from the reporting framework.
+The <em>zerobug</em> module provides all code that make it easy to support testing
+both for python programs both for bash scripts.
+<em>zerobug</em> shows execution test with a message like “n/tot message”
+where <em>n</em> is current unit test and <em>tot</em> is the total unit test to execute,
+that is a sort of advancing test progress.</p>
+<p>You can use z0bug_odoo that is the odoo integration to test Odoo modules.</p>
+<p><em>zerobug</em> is built on follow concepts:</p>
+<ul class="simple">
+<li><p>test main - it is a main program to executes all test runners</p></li>
+<li><p>test runner - it is a program to executes one or more test suites</p></li>
+<li><p>test suite - it is a collection of test cases</p></li>
+<li><p>test case - it is a smallest unit test</p></li>
+</ul>
+<p>The main file is the command <strong>zerobug</strong> of this package; it searches for test runner files
+named <cite>[id_]test_</cite> where ‘id’ is the shor name of testing package.</p>
+<p>Test suite is a collection of test case named <cite>test_[0-9]+</cite> inside the runner file,
+executed in sorted order.</p>
+<p>Every suit can contains one or more test case, the smallest unit test;
+every unit test terminates with success or with failure.</p>
+<p>Because <strong>zerobug</strong> can show total number of unit test to execute, it runs tests
+in 2 passes. In the first pass it counts the number of test, in second pass executes really
+it. This behavior can be overridden by -0 switch.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2022-11-09</p>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">Indices and tables</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_features.html"
+                          title="next chapter">Features</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pypi_zerobug/rtd_description.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_features.html" title="Features"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Indices and tables"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Indices and tables</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Zeroincombenze® continuous testing framework for python and bash programs</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-20, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.2.3.
+    </div>
+  </body>
+</html>

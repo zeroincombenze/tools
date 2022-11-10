@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=2.0.2.1
+#__version__=2.0.2.2
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -190,12 +190,12 @@ init_travis() {
     export FLOG_ECHO=
   fi
   if [[ "$PRJNAME" == "Odoo" ]]; then
-    local npm_curpfx=$(npm config get prefix)
-    NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
-    if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
-      mkdir -p $NPM_CONFIG_PREFIX
-      npm config set prefix $NPM_CONFIG_PREFIX
-    fi
+#    local npm_curpfx=$(npm config get prefix)
+#    NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
+#    if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
+#      mkdir -p $NPM_CONFIG_PREFIX
+#      npm config set prefix $NPM_CONFIG_PREFIX
+#    fi
     [[ -z $REPOSNAME ]] && REPOSNAME=$(build_odoo_param REPOS ".")
     BRANCH=$(build_odoo_param FULLVER ".")
     SETUP=$MANIFEST
@@ -218,12 +218,14 @@ revaluate_travis() {
 
 get_dbuser() {
   # get_dbuser(suffix)
-  local u
+  local u x
+  [[ -n $1 ]] && x="$1"
+  [[ -z $x ]] && x=$(build_odoo_param MAJVER $BRANCH)
   for u in $USER odoo openerp postgresql; do
-    if [[ -n "$1" ]]; then
-      psql -U$u$1 -l &>/dev/null
+    if [[ -n "$x" ]]; then
+      psql -U$u$x -l &>/dev/null
       if [[ $? -eq 0 ]]; then
-        echo "$u$1"
+        echo "$u$x"
         break
       fi
     fi
@@ -301,7 +303,7 @@ create_virtual_env() {
   ((Z0_STACK=Z0_STACK+2))
   unset TOOLS_PATH
   init_travis
-  export TRAVIS_BRANCH=$BRANCH
+  export TRAVIS_BRANCH=$(git branch --list|grep "^\* "|cut -d" " -f2|head -n1|tr -d "\n")
   [[ -z "$HOME_DEVEL" ]] && echo "Zeroincombenze(R) tools not found!" && exit 1
   drop_test_db
   export TRAVIS_SAVED_HOME=$HOME

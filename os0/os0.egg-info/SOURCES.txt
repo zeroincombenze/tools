@@ -1,0 +1,15 @@
+README.rst
+setup.py
+os0/__init__.py
+os0/__main__.py
+os0/os0core.py
+os0.egg-info/PKG-INFO
+os0.egg-info/SOURCES.txt
+os0.egg-info/dependency_links.txt
+os0.egg-info/entry_points.txt
+os0.egg-info/not-zip-safe
+os0.egg-info/requires.txt
+os0.egg-info/top_level.txt
+os0/scripts/__init__.py
+os0/scripts/main.py
+os0/scripts/setup.info

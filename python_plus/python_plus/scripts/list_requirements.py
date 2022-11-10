@@ -25,7 +25,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.2"
+__version__ = "2.0.2.2"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -123,7 +123,7 @@ REQVERSION = {
     "restructuredtext_lint": {"6.1": "==0.12.2", "0": "==1.1.3"},
     "reportlab": {"6.1": "==3.1.44", "10.0": "==3.3.0"},
     "requests": {"6.1": "==2.6.0", "10.0": "==2.11.1"},
-    "simplejson": {"6.1": "==3.5.3"},
+    "simplejson": {"6.1": "==3.5.3", "10.0": ">=3.5.3"},
     "six": {"6.1": "==1.7.3", "7.0": "==1.9.0", "10.0": ">=1.10.0"},
     "Sphinx": {"2.7": "==1.2.3", "3.7": ">=2.4.0"},
     "suds": {"6.1": "==0.4"},

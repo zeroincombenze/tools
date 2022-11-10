@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usage &#8212; tools 1.0.6.9 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Code example" href="rtd_usage_code_example.html" />
+    <link rel="prev" title="Features" href="rtd_features.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage_code_example.html" title="Code example"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_features.html" title="Features"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Indices and tables</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">zerobug</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">B</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">C</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">J</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">k</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">l</span> <span class="n">file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">N</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">O</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">file_list</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">number</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">number</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">X</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">z</span> <span class="n">number</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="mi">0</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+
+<span class="n">Regression</span> <span class="n">test</span> <span class="n">on</span> <span class="n">z0bug_odoo</span>
+
+<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">B</span><span class="p">,</span> <span class="o">--</span><span class="n">debug</span>           <span class="n">trace</span> <span class="n">msgs</span> <span class="ow">in</span> <span class="n">zerobug</span><span class="o">.</span><span class="n">tracehis</span>
+  <span class="o">-</span><span class="n">C</span><span class="p">,</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">coverage</span>     <span class="n">run</span> <span class="n">tests</span> <span class="n">without</span> <span class="n">coverage</span>
+  <span class="o">-</span><span class="n">e</span><span class="p">,</span> <span class="o">--</span><span class="n">echo</span>            <span class="n">enable</span> <span class="n">echoing</span> <span class="n">even</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">interactive</span> <span class="n">tty</span>
+  <span class="o">-</span><span class="n">J</span>                    <span class="n">load</span> <span class="n">travisrc</span>
+  <span class="o">-</span><span class="n">k</span><span class="p">,</span> <span class="o">--</span><span class="n">keep</span>            <span class="n">keep</span> <span class="n">current</span> <span class="n">logfile</span>
+  <span class="o">-</span><span class="n">l</span> <span class="n">file</span><span class="p">,</span> <span class="o">--</span><span class="n">logname</span> <span class="n">file</span>
+                        <span class="nb">set</span> <span class="n">logfile</span> <span class="n">name</span>
+  <span class="o">-</span><span class="n">N</span><span class="p">,</span> <span class="o">--</span><span class="n">new</span>             <span class="n">create</span> <span class="n">new</span> <span class="n">logfile</span>
+  <span class="o">-</span><span class="n">n</span><span class="p">,</span> <span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span>         <span class="n">count</span> <span class="ow">and</span> <span class="n">display</span> <span class="c1"># unit tests</span>
+  <span class="o">-</span><span class="n">O</span>                    <span class="n">load</span> <span class="n">odoorc</span>
+  <span class="o">-</span><span class="n">p</span> <span class="n">file_list</span><span class="p">,</span> <span class="o">--</span><span class="n">search</span><span class="o">-</span><span class="n">pattern</span> <span class="n">file_list</span>
+                        <span class="n">test</span> <span class="n">file</span> <span class="n">pattern</span>
+  <span class="o">-</span><span class="n">q</span><span class="p">,</span> <span class="o">--</span><span class="n">quiet</span>           <span class="n">run</span> <span class="n">tests</span> <span class="n">without</span> <span class="n">output</span> <span class="p">(</span><span class="n">quiet</span> <span class="n">mode</span><span class="p">)</span>
+  <span class="o">-</span><span class="n">r</span> <span class="n">number</span><span class="p">,</span> <span class="o">--</span><span class="n">restart</span> <span class="n">number</span>
+                        <span class="nb">set</span> <span class="n">to</span> <span class="n">counted</span> <span class="n">tests</span><span class="p">,</span> <span class="mi">1</span><span class="n">st</span> <span class="n">one</span> <span class="nb">next</span> <span class="n">to</span> <span class="n">this</span>
+  <span class="o">-</span><span class="n">s</span> <span class="n">number</span><span class="p">,</span> <span class="o">--</span><span class="n">start</span> <span class="n">number</span>
+                        <span class="n">deprecated</span>
+  <span class="o">-</span><span class="n">V</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">verbose</span>         <span class="n">verbose</span> <span class="n">mode</span>
+  <span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="o">--</span><span class="n">qsanity</span>         <span class="n">like</span> <span class="o">-</span><span class="n">X</span> <span class="n">but</span> <span class="n">run</span> <span class="n">silently</span>
+  <span class="o">-</span><span class="n">X</span><span class="p">,</span> <span class="o">--</span><span class="n">esanity</span>         <span class="n">execute</span> <span class="n">test</span> <span class="n">library</span> <span class="n">sanity</span> <span class="n">check</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">z</span> <span class="n">number</span><span class="p">,</span> <span class="o">--</span><span class="n">end</span> <span class="n">number</span>
+                        <span class="n">display</span> <span class="n">total</span> <span class="c1"># tests when execute them</span>
+  <span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">count</span>        <span class="n">no</span> <span class="n">count</span> <span class="c1"># unit tests</span>
+  <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">--</span><span class="n">coverage</span>        <span class="n">run</span> <span class="n">tests</span> <span class="k">for</span> <span class="n">coverage</span> <span class="p">(</span><span class="n">obsolete</span><span class="p">)</span>
+  <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">--</span><span class="n">python3</span>         <span class="n">use</span> <span class="n">python3</span>
+</pre></div>
+</div>
+<div class="section" id="code-example">
+<h2>Code example<a class="headerlink" href="#code-example" title="Permalink to this heading"></a></h2>
+<p><em>zerobug</em> makes avaiable following functions to test:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.setup(ctx)</cite> (python)</p>
+<p><cite>Z0BUG_setup</cite> (bash)</p>
+<p>Setup for test. It is called before all tests.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.teardown(ctx)</cite> (python)</p>
+<p><cite>Z0BUG_teardown</cite> (bash)</p>
+<p>Setup for test. It is called after all tests.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.build_os_tree(ctx, list_of_paths)</cite> (python)</p>
+<p><cite>Z0BUG_build_os_tree list_of_paths</cite> (bash)</p>
+<p>Build a full os tree from supplied list.
+If python, list of paths is a list of strings.
+If bash, list is one string of paths separated by spaces.
+Function reads list of paths and then create all directories.
+If directory is an absolute path, it is created with the supplied path.
+If directory is a relative path, the directory is created under “tests/res” directory.</p>
+<p>Warning!
+To check is made is parent dir does not exit. Please, supply path from parent
+to children, if you want to build a nested tree.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
+<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+
+    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;10.0&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;10.0/addons&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;10.0/odoo&#39;</span><span class="p">,]</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span><span class="o">.</span><span class="n">build_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">os_tree</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (bash)</span>
+<span class="n">Z0BUG_setup</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">Z0BUG_build_os_tree</span> <span class="s2">&quot;10.0 10.0/addons 10.0/odoo&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.remove_os_tree(ctx, list_of_paths)</cite> (python)</p>
+<p><cite>Z0BUG_remove_os_tree list_of_paths</cite> (bash)</p>
+<p>Remove a full os tree created by <cite>build_os_tree</cite>
+If python, list of paths is a list of strings.
+If bash, list is a string of paths separated by spaces.
+Function reads list of paths and remove all directories.
+If directory is an absolute path, the supplied path is dropped.
+If directory is a relative path, the directory is dropped from tests/res directory.</p>
+<p>Warning!
+This function remove directory and all sub-directories without any control.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
+<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+
+    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;10.0&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;10.0/addons&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;10.0/odoo&#39;</span><span class="p">,]</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span><span class="o">.</span><span class="n">remove_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">os_tree</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.build_odoo_env(ctx, version)</cite> (python)</p>
+<p>Like build_os_tree but create a specific odoo os tree.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0testOdoo</span>
+<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+
+    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">Z0testOdoo</span><span class="o">.</span><span class="n">build_odoo_env</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s1">&#39;10.0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><cite>Z0BUG.git_clone(remote, reponame, branch, odoo_path, force=None)</cite> (python)</p>
+<p>Execute git clone of <cite>remote:reponame:branch</cite> into local directory <cite>odoo_path</cite>.
+In local travis emulation, if repository uses local repository, if exists.
+Return odoo root directory</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0testOdoo</span>
+
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
+<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+
+    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="n">remote</span> <span class="o">=</span> <span class="s1">&#39;OCA&#39;</span>
+        <span class="n">reponame</span> <span class="o">=</span> <span class="s1">&#39;OCB&#39;</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="s1">&#39;10.0&#39;</span>
+        <span class="n">odoo_path</span> <span class="o">=</span> <span class="s1">&#39;/opt/odoo/10.0&#39;</span>
+        <span class="n">Z0testOdoo</span><span class="o">.</span><span class="n">git_clone</span><span class="p">(</span><span class="n">remote</span><span class="p">,</span> <span class="n">reponame</span><span class="p">,</span> <span class="n">branch</span><span class="p">,</span> <span class="n">odoo_path</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Unit test can run in package directory or in ./tests directory of package.</p>
+<p>Every test can inquire internal context.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">this_fqn</span>      <span class="n">parent</span> <span class="n">caller</span> <span class="n">full</span> <span class="n">qualified</span> <span class="n">name</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">odoo</span><span class="o">/</span><span class="n">z0bug</span><span class="o">.</span><span class="n">pyc</span><span class="p">)</span>
+<span class="n">this</span>          <span class="n">parent</span> <span class="n">name</span><span class="p">,</span> <span class="n">w</span><span class="o">/</span><span class="n">o</span> <span class="n">extension</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">z0bug</span><span class="p">)</span>
+<span class="n">ctr</span>           <span class="n">test</span> <span class="n">counter</span> <span class="p">[</span><span class="n">both</span> <span class="n">bash</span> <span class="ow">and</span> <span class="n">python</span> <span class="n">tests</span><span class="p">]</span>
+<span class="n">dry_run</span>       <span class="n">dry</span><span class="o">-</span><span class="n">run</span> <span class="p">(</span><span class="n">do</span> <span class="n">nothing</span><span class="p">)</span> <span class="p">[</span><span class="n">opt_dry_run</span> <span class="ow">in</span> <span class="n">bash</span> <span class="n">test</span><span class="p">]</span>          <span class="s2">&quot;-n&quot;</span>
+<span class="n">esanity</span>       <span class="kc">True</span> <span class="k">if</span> <span class="n">required</span> <span class="n">sanity</span> <span class="n">check</span> <span class="k">with</span> <span class="n">echo</span>                  <span class="s2">&quot;-X&quot;</span>
+<span class="n">max_test</span>      <span class="c1"># of tests to execute [both bash and python tests]       &quot;-z&quot;</span>
+<span class="n">min_test</span>      <span class="c1"># of test executed before this one                       &quot;-r&quot;</span>
+<span class="n">on_error</span>      <span class="n">behavior</span> <span class="n">after</span> <span class="n">error</span><span class="p">,</span> <span class="s1">&#39;continue&#39;</span> <span class="ow">or</span> <span class="s1">&#39;raise&#39;</span> <span class="p">(</span><span class="n">default</span><span class="p">)</span>
+<span class="n">opt_echo</span>      <span class="kc">True</span> <span class="k">if</span> <span class="n">echo</span> <span class="n">test</span> <span class="n">result</span> <span class="n">onto</span> <span class="n">std</span> <span class="n">output</span>                 <span class="s2">&quot;-e&quot;</span>
+<span class="n">opt_new</span>       <span class="n">new</span> <span class="n">log</span> <span class="n">file</span> <span class="p">[</span><span class="n">both</span> <span class="n">bash</span> <span class="ow">and</span> <span class="n">python</span> <span class="n">tests</span><span class="p">]</span>                <span class="s2">&quot;-N&quot;</span>
+<span class="n">opt_noctr</span>     <span class="n">do</span> <span class="ow">not</span> <span class="n">count</span> <span class="c1"># tests [both bash and python tests]        &quot;-0&quot;</span>
+<span class="n">opt_verbose</span>   <span class="n">show</span> <span class="n">messages</span> <span class="n">during</span> <span class="n">execution</span>                           <span class="s2">&quot;-v&quot;</span>
+<span class="n">logfn</span>         <span class="n">real</span> <span class="n">trace</span> <span class="n">log</span> <span class="n">file</span> <span class="n">name</span> <span class="kn">from</span> <span class="nn">switch</span>                     <span class="s2">&quot;-l&quot;</span>
+<span class="n">qsanity</span>       <span class="kc">True</span> <span class="k">if</span> <span class="n">required</span> <span class="n">sanity</span> <span class="n">check</span> <span class="n">w</span><span class="o">/</span><span class="n">o</span> <span class="n">echo</span>                   <span class="s2">&quot;-x&quot;</span>
+<span class="n">run4cover</span>     <span class="n">Run</span> <span class="n">tests</span> <span class="k">for</span> <span class="n">coverage</span> <span class="p">(</span><span class="n">use</span> <span class="n">coverage</span> <span class="n">run</span> <span class="n">rather</span> <span class="n">python</span><span class="p">)</span>  <span class="s2">&quot;-C&quot;</span>
+<span class="n">python3</span>       <span class="n">Execute</span> <span class="n">test</span> <span class="ow">in</span> <span class="n">python3</span>                                  <span class="s2">&quot;-3&quot;</span>
+<span class="n">run_daemon</span>    <span class="kc">True</span> <span class="k">if</span> <span class="n">execution</span> <span class="n">w</span><span class="o">/</span><span class="n">o</span> <span class="n">tty</span> <span class="k">as</span> <span class="n">stdio</span>
+<span class="n">run_on_top</span>    <span class="n">Top</span> <span class="n">test</span> <span class="p">(</span><span class="ow">not</span> <span class="n">parent</span><span class="p">)</span>
+<span class="n">run_tty</span>       <span class="n">Opposite</span> <span class="n">of</span> <span class="n">run_daemon</span>
+<span class="n">tlog</span>          <span class="n">default</span> <span class="n">tracelog</span> <span class="n">file</span> <span class="n">name</span>
+<span class="n">_run_autotest</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">running</span> <span class="n">auto</span><span class="o">-</span><span class="n">test</span>
+<span class="n">_parser</span>       <span class="n">cmd</span> <span class="n">line</span> <span class="n">parser</span>
+<span class="n">_opt_obj</span>      <span class="n">parser</span> <span class="n">obj</span><span class="p">,</span> <span class="n">to</span> <span class="n">acquire</span> <span class="n">optional</span> <span class="n">switches</span>
+<span class="n">WLOGCMD</span>       <span class="n">override</span> <span class="n">opt_echo</span><span class="p">;</span> <span class="n">may</span> <span class="n">be</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;echo&#39;</span><span class="p">,</span> <span class="s1">&#39;echo-1&#39;</span><span class="p">,</span> <span class="s1">&#39;echo-0&#39;</span>
+<span class="n">Z0</span>            <span class="n">this</span> <span class="n">library</span> <span class="nb">object</span>
+</pre></div>
+</div>
+<p>Environment read:</p>
+<p>DEV_ENVIRONMENT Name of package; if set test is under travis emulator control</p>
+<dl class="simple">
+<dt>COVERAGE_PROCESS_START</dt><dd><p>Name of coverage conf file; if set test is running for coverage</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2022-11-09</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Usage</a><ul>
+<li><a class="reference internal" href="#code-example">Code example</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rtd_features.html"
+                          title="previous chapter">Features</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_usage_code_example.html"
+                          title="next chapter">Code example</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pypi_zerobug/rtd_usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage_code_example.html" title="Code example"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_features.html" title="Features"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 1.0.6.9 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Indices and tables</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-20, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.2.3.
+    </div>
+  </body>
+</html>

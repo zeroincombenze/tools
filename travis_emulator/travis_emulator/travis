@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2.1
+__version__=2.0.2.2
 
 
 store_cfg_param_value() {
@@ -98,7 +98,7 @@ process_yaml_init() {
   export TRAVIS_PULL_REQUEST="false"
   export MQT_TEMPLATE_DB="$(get_cfg_value "" "MQT_TEMPLATE_DB")$YML_pid"
   export MQT_TEST_DB="$(get_cfg_value "" "MQT_TEST_DB")$YML_pid"
-  export PGUSER="$(get_cfg_value "" "MQT_DBUSER")"
+  # export PGUSER="$(get_cfg_value "" "MQT_DBUSER")"
   [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
   python_ver_req=""
   python_ver_ena=""
@@ -360,7 +360,7 @@ process_yaml_file() {
   done <"$TRAVIS_YAML_FILE"
 }
 
-process_yaml_initialize() {
+process_yaml_defaults() {
   local sts=$STS_SUCCESS
   local i s line lne X
   opt_verbose=$TRAVIS_VERBOSE
@@ -827,6 +827,7 @@ process_yaml() {
 
     for TRAVIS_PYTHON_VERSION in $python_matrix; do
       [[ $sts -eq $STS_SUCCESS ]] || break
+      echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
       wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[0m"
       set_pybin $TRAVIS_PYTHON_VERSION "PYTHON_VERSION"
       TRAVIS_PYVER_1=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo "[0-9]" | head -n1)
@@ -867,6 +868,7 @@ process_yaml() {
           wlog "\e[${PS_HDR3_COLOR}mMatrix [$lne1] skipped because does not match the translate action\e[${PS_TXT_COLOR}m"
           continue
         fi
+        echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
         wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[0m"
         [[ -n $opt_trace && ::build =~ $opt_trace ]] && debug_shell "::build"
         create_virtual_env
@@ -894,7 +896,7 @@ process_yaml() {
         done
 
         if [[ $sts -eq $STS_SUCCESS ]]; then
-          process_yaml_initialize
+          process_yaml_defaults
           s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
         [[ -n $opt_tafter && ::build =~ $opt_tafter ]] && debug_shell
@@ -930,7 +932,8 @@ process_yaml() {
         if [[ $sts -eq $STS_SUCCESS ]]; then
           process_yaml_exit
           drop_virtual_env
-          [[ $TRAVIS_YAML_FILE =~ ^$HOME/tmp ]] && run_traced "rm -f $TRAVIS_YAML_FILE"
+          [[ $TRAVIS_YAML_FILE =~ ^$HOME/tmp ]] && run_traced "mv $TRAVIS_YAML_FILE ${LOGFILE/.log/.yml}"
+          [[ ! $TRAVIS_YAML_FILE =~ ^$HOME/tmp && -f ./travis.yml ]] && run_traced "cp .travis.yml ${LOGFILE/.log/.yml}"
         else
           break
         fi

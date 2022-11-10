@@ -125,6 +125,8 @@ class OdooDeploy(object):
         self.addons_path = []
 
         if self.opt_args.action == "create-new":
+            self.master_branch = build_odoo_param(
+                "FULLVER", odoo_vid=opt_args.odoo_branch)
             for git_org in opt_args.git_orgs:
                 self.get_repo_from_github(git_org=git_org)
             if "OCB" not in self.repo_list:
@@ -228,7 +230,7 @@ class OdooDeploy(object):
             self.target_path = build_odoo_param(
                 "ROOT",
                 odoo_vid=branch,
-                git_org=self.git_org,
+                git_org=git_org,
                 multi=self.opt_args.multi)
         hash_key = git_org + branch.split(".")[0]
         if self.opt_args.action == "create-new":

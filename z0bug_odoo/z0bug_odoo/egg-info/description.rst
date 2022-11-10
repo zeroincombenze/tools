@@ -7,7 +7,7 @@ It replaces OCA MQT with some nice additional features.
 
 *z0bug_odoo* is built on follow concepts:
 
-* Odoo version independent; it can test Odoo from 6.1 until 13.0
+* Odoo version independent; it can test Odoo from 6.1 until 16.0
 * It is designed to run in local environment too, using `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
 * It can run with full or reduced set of pylint tests
 * Test using ready-made database records
@@ -38,14 +38,14 @@ File .travis.yml
 ~~~~~~~~~~~~~~~~
 
 In order to setup TravisCI continuous integration for your project, just copy the
-content of the `sample_files <https://github.com/zeroincombenze/tools/tree/master/zerobug/sample_files/.travis.yml>`_
+content of the `sample_files <https://github.com/zeroincombenze/tools/tree/master/travis_emulator/template_travis.yml>`_
 to your project’s root directory.
 
 Then execute the command:
 
 ::
 
-    topep8 -b<odoo_version> .travis.yml
+    make_travis_conf.py <TOOLS_PATH>/travis_emulator/template_travis.yml .travis.yml
 
 You can check travis syntax with the `lint checker <http://lint.travis-ci.org/>`_ of travis, if available.
 
@@ -61,13 +61,14 @@ You can test against:
 * odoo/odoo
 * OCA/OCB
 * zeroincombenze/OCB
+* librerp/OCB
 
 You can test against specific Odoo core version with ODOO_BRANCH variable if differs from your project version:
 
 ::
 
-    # Odoo Branch 10.0
-    - VERSION="10.0" ODOO_REPO="odoo/odoo"
+    # Odoo Branch 16.0
+    - VERSION="16.0" ODOO_REPO="odoo/odoo"
 
     # Pull request odoo/odoo#143
     -  VERSION="pull/143" ODOO_REPO="OCA/OCB"
@@ -112,7 +113,7 @@ Python version
 ~~~~~~~~~~~~~~
 
 Odoo version from 6.1 to 10.0 are tested with python 2.7
-From Odoo 11.0, python3 is used. You can test against 3.5, 3.6 and 3.7 python versions.
+From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
 Currently, python 3.8 is not yet supported.
 This is the declaration:
 
@@ -122,9 +123,10 @@ This is the declaration:
       - "3.5"
       - "3.6"
       - "3.7"
+      - "3.8"
 
 Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
-Python 3.8 is no yet support by Odoo (2021), so use python 3.7
+Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7
 
 
 Deployment and setup environment

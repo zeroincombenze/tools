@@ -1,0 +1,465 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Development tools &#8212; wok_code 1.0.2.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage" href="rtd_usage.html" />
+    <link rel="prev" title="Welcome to wok_code 1.0.2.5 documentation!" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rtd_usage.html" title="Usage"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to wok_code 1.0.2.5 documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">wok_code 1.0.2.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Development tools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<div class="section" id="development-tools">
+<h1>Development tools<a class="headerlink" href="#development-tools" title="Permalink to this heading"></a></h1>
+<p>Various tools at your fingertips.</p>
+<p>The available tools are:</p>
+<ul class="simple">
+<li><p>cvt_csv_2_rst.py: convert csv file into rst file</p></li>
+<li><p>cvt_csv_2_xml.py: convert csv file into xml file</p></li>
+<li><p>cvt_script: parse bash script and convert to meet company standard</p></li>
+<li><p>gen_readme.py: generate documentation files, mainly README.rst</p></li>
+<li><p>odoo_dependency.py: show odoo dependencies and/or Odoo module tree</p></li>
+<li><p>odoo_translation.py: manage Odoo translation</p></li>
+<li><p>pep8: parse source .py file to meet pep8 and convert across Odoo versions</p></li>
+<li><p>please: developer shell</p></li>
+<li><p>wget_odoo_repositories.py: get repository names from github.com</p></li>
+</ul>
+<div class="section" id="please-developer-shell">
+<h2>please: developer shell<a class="headerlink" href="#please-developer-shell" title="Permalink to this heading"></a></h2>
+<p>please is an interactive developer shell aim to help development and testing software.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">please</span> <span class="p">[</span><span class="o">-</span><span class="n">hB</span><span class="p">][</span><span class="o">-</span><span class="n">b</span> <span class="n">branch</span><span class="p">][</span><span class="o">-</span><span class="n">c</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">d</span> <span class="n">diff</span><span class="p">][</span><span class="o">-</span><span class="n">fjk</span><span class="p">][</span><span class="o">-</span><span class="n">L</span> <span class="n">logfile</span><span class="p">][</span><span class="o">-</span><span class="n">mn</span><span class="p">][</span><span class="o">-</span><span class="n">o</span> <span class="n">prj_id</span><span class="p">][</span><span class="o">-</span><span class="n">O</span><span class="p">][</span><span class="o">-</span><span class="n">p</span> <span class="n">path</span><span class="p">][</span><span class="o">-</span><span class="n">qr</span><span class="p">][</span><span class="o">-</span><span class="n">s</span> <span class="n">files</span><span class="p">][</span><span class="o">-</span><span class="n">tuVv</span><span class="p">]</span> <span class="n">actions</span> <span class="n">sub1</span> <span class="n">sub3</span> <span class="n">sub3</span>
+<span class="n">Developer</span> <span class="n">shell</span>
+<span class="n">Action</span> <span class="n">may</span> <span class="n">be</span> <span class="n">on</span> <span class="n">of</span><span class="p">:</span>
+<span class="n">help</span><span class="o">|</span><span class="n">build</span><span class="o">|</span><span class="n">chkconfig</span><span class="o">|</span><span class="n">commit</span><span class="o">|</span><span class="n">config</span><span class="o">|</span><span class="n">distribution</span><span class="o">|</span><span class="n">docs</span><span class="o">|</span><span class="n">download_rep</span><span class="o">|</span><span class="n">duplicate</span><span class="o">|</span><span class="n">edit</span><span class="o">|</span><span class="n">export</span><span class="o">|</span><span class="n">import</span><span class="o">|</span><span class="nb">list</span><span class="o">|</span><span class="n">lsearch</span><span class="o">|</span><span class="n">publish</span><span class="o">|</span><span class="n">push</span><span class="o">|</span><span class="n">pythonhosted</span><span class="o">|</span><span class="n">synchro</span><span class="o">|</span><span class="n">replace</span><span class="o">|</span><span class="n">replica</span><span class="o">|</span><span class="n">show</span><span class="o">|</span><span class="n">status</span><span class="o">|</span><span class="n">test</span><span class="o">|</span><span class="n">translate</span><span class="o">|</span><span class="n">version</span><span class="o">|</span><span class="n">wep</span>
+<span class="o">-</span><span class="n">h</span>                   <span class="n">this</span> <span class="n">help</span><span class="p">,</span> <span class="nb">type</span> <span class="s1">&#39;please help&#39;</span> <span class="k">for</span> <span class="n">furthermore</span> <span class="n">info</span>
+<span class="o">-</span><span class="n">B</span>                   <span class="n">debug</span> <span class="n">mode</span>
+<span class="o">-</span><span class="n">b</span> <span class="n">branch</span>            <span class="n">branch</span><span class="p">:</span> <span class="n">must</span> <span class="n">be</span> <span class="mf">6.1</span> <span class="mf">7.0</span> <span class="mf">8.0</span> <span class="mf">9.0</span> <span class="mf">10.0</span> <span class="mf">11.0</span> <span class="mf">12.0</span> <span class="mf">13.0</span> <span class="ow">or</span> <span class="mf">14.0</span>
+<span class="o">-</span><span class="n">c</span> <span class="n">file</span>              <span class="n">configuration</span> <span class="n">file</span> <span class="p">(</span><span class="k">def</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">conf</span><span class="p">)</span>
+<span class="o">-</span><span class="n">d</span> <span class="n">diff</span>              <span class="n">date</span> <span class="n">to</span> <span class="n">search</span> <span class="ow">in</span> <span class="n">log</span>
+<span class="o">-</span><span class="n">f</span>                   <span class="n">force</span> <span class="n">copy</span> <span class="p">(</span><span class="n">of</span> <span class="n">commit</span><span class="o">/</span><span class="n">push</span><span class="p">)</span> <span class="o">|</span> <span class="n">build</span> <span class="p">(</span><span class="n">of</span> <span class="n">register</span><span class="o">/</span><span class="n">publish</span><span class="p">)</span> <span class="o">|</span> <span class="n">dup</span> <span class="n">doc</span> <span class="p">(</span><span class="n">of</span> <span class="n">distribution</span><span class="o">/</span><span class="n">synchro</span><span class="p">)</span> <span class="o">|</span> <span class="n">full</span> <span class="p">(</span><span class="n">status</span><span class="p">)</span>
+<span class="o">-</span><span class="n">j</span>                   <span class="n">execute</span> <span class="n">tests</span> <span class="ow">in</span> <span class="n">project</span> <span class="nb">dir</span> <span class="n">rather</span> <span class="ow">in</span> <span class="n">test</span> <span class="nb">dir</span><span class="o">/</span><span class="n">old</span> <span class="n">style</span> <span class="n">synchro</span>
+<span class="o">-</span><span class="n">k</span>                   <span class="n">keep</span> <span class="n">coverage</span> <span class="n">statistics</span> <span class="ow">in</span> <span class="n">annotate</span> <span class="n">test</span><span class="o">/</span><span class="n">keep</span> <span class="n">original</span> <span class="n">repository</span> <span class="o">|</span> <span class="n">tests</span><span class="o">/</span> <span class="ow">in</span> <span class="n">publish</span>
+<span class="o">-</span><span class="n">L</span> <span class="n">logfile</span>           <span class="n">log</span> <span class="n">file</span> <span class="n">name</span>
+<span class="o">-</span><span class="n">m</span>                   <span class="n">show</span> <span class="n">missing</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">report</span> <span class="n">coverage</span>
+<span class="o">-</span><span class="n">n</span>                   <span class="n">do</span> <span class="n">nothing</span> <span class="p">(</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span><span class="p">)</span>
+<span class="o">-</span><span class="n">o</span> <span class="n">prj_id</span>            <span class="n">push</span> <span class="n">only</span> <span class="n">external</span> <span class="n">project</span> <span class="n">ids</span> <span class="p">(</span><span class="n">of</span> <span class="n">push</span><span class="p">)</span>
+<span class="o">-</span><span class="n">O</span>                   <span class="n">pull</span> <span class="n">original</span> <span class="n">README</span> <span class="p">(</span><span class="ow">and</span> <span class="n">docs</span><span class="p">)</span> <span class="ow">in</span> <span class="n">distribution</span> <span class="p">(</span><span class="n">deprecated</span><span class="p">)</span>
+<span class="o">-</span><span class="n">p</span> <span class="n">path</span>              <span class="n">declare</span> <span class="n">local</span> <span class="n">destination</span> <span class="n">path</span>
+<span class="o">-</span><span class="n">q</span>                   <span class="n">silent</span> <span class="n">mode</span>
+<span class="o">-</span><span class="n">r</span>                   <span class="n">run</span> <span class="n">restricted</span> <span class="n">mode</span> <span class="p">(</span><span class="n">w</span><span class="o">/</span><span class="n">o</span> <span class="n">parsing</span> <span class="n">travis</span><span class="o">.</span><span class="n">yml</span> <span class="n">file</span><span class="p">)</span> <span class="o">|</span> <span class="n">recurse</span> <span class="n">distribution</span> <span class="n">OCB</span>
+<span class="o">-</span><span class="n">s</span> <span class="n">files</span>             <span class="n">files</span> <span class="n">to</span> <span class="n">include</span> <span class="ow">in</span> <span class="n">annotate</span> <span class="n">test</span>
+<span class="o">-</span><span class="n">t</span>                   <span class="n">test</span> <span class="n">mode</span> <span class="p">(</span><span class="n">implies</span> <span class="n">dry</span><span class="o">-</span><span class="n">run</span><span class="p">)</span>
+<span class="o">-</span><span class="n">u</span>                   <span class="n">check</span> <span class="k">for</span> <span class="n">unary</span> <span class="n">operator</span> <span class="n">W503</span> <span class="ow">or</span> <span class="n">no</span> <span class="n">OCA</span><span class="o">/</span><span class="n">zero</span> <span class="n">module</span> <span class="n">translation</span>
+<span class="o">-</span><span class="n">V</span>                   <span class="n">show</span> <span class="n">version</span> <span class="n">end</span> <span class="n">exit</span>
+<span class="o">-</span><span class="n">v</span>                   <span class="n">verbose</span> <span class="n">mode</span>
+</pre></div>
+</div>
+<p>Action is one of:</p>
+<ul class="simple">
+<li><p>help</p></li>
+<li><p>build</p></li>
+<li><p>chkconfig</p></li>
+<li><p>config</p></li>
+<li><p>docs</p></li>
+<li><p>duplicate</p></li>
+<li><p>export MODULE DB</p></li>
+<li><p>import</p></li>
+<li><p>list</p></li>
+<li><p>lsearch</p></li>
+<li><p>publish</p></li>
+<li><p>push</p></li>
+<li><p>pythonhosted</p></li>
+<li><p>replace</p></li>
+<li><p>replica</p></li>
+<li><p>show</p></li>
+<li><p>status</p></li>
+<li><p>test</p></li>
+<li><p>translate MODULE DB</p></li>
+<li><p>version</p></li>
+<li><p>wep</p></li>
+</ul>
+<p><em>build</em></p>
+<blockquote>
+<div><p>Build a tar file for current PYPI project</p>
+</div></blockquote>
+<p><em>chkconfig</em></p>
+<blockquote>
+<div><p>Display various values of current project.</p>
+</div></blockquote>
+<p><em>config global|local</em></p>
+<blockquote>
+<div><p>Set various parameter by edit with vim.
+Set various parameter editing with vim.
+Comments inside configuration file can aim to set values.</p>
+<p>Some variable are:</p>
+<ul class="simple">
+<li><p>GBL_EXCLUDE=test_impex -&gt; Module globally escluded by test because can fail locally</p></li>
+<li><p>PYTHON_MATRIX=”2.7 3.7” -&gt; python version to use in tests</p></li>
+</ul>
+</div></blockquote>
+<p><em>docs</em></p>
+<blockquote>
+<div><p>Prepare documentation to publish on readthedocs website (PYPI).
+Create / update README and index.html of Odoo module.
+Notice: README of repository history is tailored with last 60 days items;
+on README and index,html of module, history is tailored with last 180 days items;
+However max 12 items are added in README / index.html
+Summary showed to console are tailored with last 15 days.</p>
+</div></blockquote>
+<p><em>export MODULE DB [-bBRANCH]</em></p>
+<blockquote>
+<div><p>Export po file of Odoo project.
+If current directory is a module directory you can use ‘.’ (dot) for module name.</p>
+<p>To declare specific version use -b switch</p>
+</div></blockquote>
+<p><em>import MODULE DB</em></p>
+<blockquote>
+<div><p>Import po file of Odoo project.</p>
+<p>To declare target version use fB-bfR switch</p>
+</div></blockquote>
+<p><em>publish docs|download|pypi|svg|testpypi</em></p>
+<blockquote>
+<div><p>Publish documentation or package.</p>
+<ul class="simple">
+<li><p>publish docs     -&gt; publish generate docs to website (require system privileges)</p></li>
+<li><dl class="simple">
+<dt>publish download -&gt; publish tarball to download (require system privileges)</dt><dd><p>type fBplease buildfR to generate tarball file</p>
+</dd>
+</dl>
+</li>
+<li><p>publish pypi     -&gt; publish package to pypi website (from odoo user)</p></li>
+<li><p>publish svg      -&gt; publish test result svg file (require system privileges)</p></li>
+<li><p>publish tar      -&gt; write a tarball with package files</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="gen-readme-py-documentation-generator">
+<h2>gen_readme.py: documentation generator<a class="headerlink" href="#gen-readme-py-documentation-generator" title="Permalink to this heading"></a></h2>
+<p>Use this software to generate the project or module documentation.
+You can create the README.rst of OCB, repository and modules of Odoo projects.
+You can also generate the index.html of Odoo module.</p>
+<p>You can even create the README.rst of PYPI projects.
+This document was generated by this tool itself.</p>
+<p>The tool is supplied with follow templates:</p>
+<ul class="simple">
+<li><p>Odoo README.rst: to generare README of Odoo repository o module</p></li>
+<li><p>PYPI README.rst: to generate README of pypi package</p></li>
+<li><p>index.html: to generate Odoo module index.html</p></li>
+<li><p>__openerp__.py: to update __openerp__.py of Odoo &lt; 8.0 with description</p></li>
+</ul>
+</div>
+<div class="section" id="templates">
+<h2>templates<a class="headerlink" href="#templates" title="Permalink to this heading"></a></h2>
+<p>This tool read a template and write the document (usually named README.rst).
+The template can contains macro which format is {{macro_name}}.</p>
+<p>Currently, the follow macros are recognized:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 72%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>acknowledges</p></td>
+<td><p>Acknowledges list</p></td>
+</tr>
+<tr class="row-even"><td><p>authors</p></td>
+<td><p>Authors list</p></td>
+</tr>
+<tr class="row-odd"><td><p>available_addons</p></td>
+<td><p>N/D</p></td>
+</tr>
+<tr class="row-even"><td><p>branch</p></td>
+<td><p>Odoo version for this repository/module</p></td>
+</tr>
+<tr class="row-odd"><td><p>certifications</p></td>
+<td><p>Certificates list</p></td>
+</tr>
+<tr class="row-even"><td><p>contact_us</p></td>
+<td><p>Contact informations</p></td>
+</tr>
+<tr class="row-odd"><td><p>contributors</p></td>
+<td><p>Contributors list</p></td>
+</tr>
+<tr class="row-even"><td><p>configuration</p></td>
+<td><p>How to configure</p></td>
+</tr>
+<tr class="row-odd"><td><p>copyright_notes</p></td>
+<td><p>Copyright notes</p></td>
+</tr>
+<tr class="row-even"><td><p>description</p></td>
+<td><p>English description of the repository/module (mandatory)</p></td>
+</tr>
+<tr class="row-odd"><td><p>descrizione</p></td>
+<td><p>Descrizione modulo/progetto in italiano (obbligatoria)</p></td>
+</tr>
+<tr class="row-even"><td><p>doc-URL</p></td>
+<td><p>URL for button documentation</p></td>
+</tr>
+<tr class="row-odd"><td><p>faq</p></td>
+<td><p>Frequently asked questions</p></td>
+</tr>
+<tr class="row-even"><td><p>features</p></td>
+<td><p>Features of the repository/module</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPL</p></td>
+<td><p>same of gpl</p></td>
+</tr>
+<tr class="row-even"><td><p>git_orgid</p></td>
+<td><p>Git organization</p></td>
+</tr>
+<tr class="row-odd"><td><p>gpl</p></td>
+<td><p>License name: may be A-GPL or L-GPL</p></td>
+</tr>
+<tr class="row-even"><td><p>grymb_image_*</p></td>
+<td><p>Symbol imagae (suffix is a supported symbol name)</p></td>
+</tr>
+<tr class="row-odd"><td><p>help-URL</p></td>
+<td><p>URL for button help</p></td>
+</tr>
+<tr class="row-even"><td><p>history</p></td>
+<td><p>Changelog history</p></td>
+</tr>
+<tr class="row-odd"><td><p>known_issues</p></td>
+<td><p>Known issues</p></td>
+</tr>
+<tr class="row-even"><td><p>include</p></td>
+<td><p>files included (space separated) to read before writing document</p></td>
+</tr>
+<tr class="row-odd"><td><p>installation</p></td>
+<td><p>How to install</p></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>Module name (must be a python name)</p></td>
+</tr>
+<tr class="row-odd"><td><p>now</p></td>
+<td><p>Create timestamp</p></td>
+</tr>
+<tr class="row-even"><td><p>maintenance</p></td>
+<td><p>Maintenance information</p></td>
+</tr>
+<tr class="row-odd"><td><p>maturity</p></td>
+<td><p>Maturity status (alpha, beta, etc.)</p></td>
+</tr>
+<tr class="row-even"><td><p>module_name</p></td>
+<td><p>Module name</p></td>
+</tr>
+<tr class="row-odd"><td><p>OCA-URL</p></td>
+<td><p>URL to the same repository/module of OCA in github.com</p></td>
+</tr>
+<tr class="row-even"><td><p>oca_diff</p></td>
+<td><p>OCA comparation</p></td>
+</tr>
+<tr class="row-odd"><td><p>odoo_fver</p></td>
+<td><p>Odoo full version (deprecated)</p></td>
+</tr>
+<tr class="row-even"><td><p>odoo_majver</p></td>
+<td><p>Odoo major version; internal use to set some values</p></td>
+</tr>
+<tr class="row-odd"><td><p>odoo_layer</p></td>
+<td><p>Document layer, may be: ocb, module or repository</p></td>
+</tr>
+<tr class="row-even"><td><p>prerequisites</p></td>
+<td><p>Installation prerequisites</p></td>
+</tr>
+<tr class="row-odd"><td><p>prior_branch</p></td>
+<td><p>Previous Odoo version of this repository/module</p></td>
+</tr>
+<tr class="row-even"><td><p>prior2_branch</p></td>
+<td><p>Previous Odoo version of previous repository/module</p></td>
+</tr>
+<tr class="row-odd"><td><p>proposals_for_enhancement</p></td>
+<td><p>Proposals for enhancement text</p></td>
+</tr>
+<tr class="row-even"><td><p>pypi_modules</p></td>
+<td><p>pypi module list (may be set in __manifest__.rst)</p></td>
+</tr>
+<tr class="row-odd"><td><p>pypi_sects</p></td>
+<td><p>pypi section names to import (may be set in __manifest__.rst)</p></td>
+</tr>
+<tr class="row-even"><td><p>repos_name</p></td>
+<td><p>Repository/project name</p></td>
+</tr>
+<tr class="row-odd"><td><p>sponsor</p></td>
+<td><p>Sponsors list</p></td>
+</tr>
+<tr class="row-even"><td><p>sommario</p></td>
+<td><p>Traduzione italiana di summary</p></td>
+</tr>
+<tr class="row-odd"><td><p>submodules</p></td>
+<td><p>Sub module list (space separated) to document (only in pypi projects)</p></td>
+</tr>
+<tr class="row-even"><td><p>summary</p></td>
+<td><p>Repository/module summary (CR are translated into spaces)</p></td>
+</tr>
+<tr class="row-odd"><td><p>support</p></td>
+<td><p>Support informations</p></td>
+</tr>
+<tr class="row-even"><td><p>today</p></td>
+<td><p>Create date</p></td>
+</tr>
+<tr class="row-odd"><td><p>translators</p></td>
+<td><p>Translators list</p></td>
+</tr>
+<tr class="row-even"><td><p>troubleshooting</p></td>
+<td><p>Troubleshooting information</p></td>
+</tr>
+<tr class="row-odd"><td><p>try_me-URL</p></td>
+<td><p>URL for button try-me</p></td>
+</tr>
+<tr class="row-even"><td><p>upgrade</p></td>
+<td><p>How to upgrade</p></td>
+</tr>
+<tr class="row-odd"><td><p>usage</p></td>
+<td><p>How to usage</p></td>
+</tr>
+</tbody>
+</table>
+<p>Documentation may contains some graphical symbols in format |symbol|.
+Currently, follows symbols are recognized:</p>
+<ul class="simple">
+<li><p>check</p></li>
+<li><p>DesktopTelematico</p></li>
+<li><p>en</p></li>
+<li><p>exclamation</p></li>
+<li><p>FatturaPA</p></li>
+<li><p>halt</p></li>
+<li><p>info</p></li>
+<li><p>it</p></li>
+<li><p>late</p></li>
+<li><p>menu</p></li>
+<li><p>no_check</p></li>
+<li><p>right_do</p></li>
+<li><p>same</p></li>
+<li><p>warning</p></li>
+<li><p>xml_schema</p></li>
+</ul>
+</div>
+<div class="section" id="odoo-dependecies-py-show-odoo-dependencies">
+<h2>odoo_dependecies.py: show odoo dependencies<a class="headerlink" href="#odoo-dependecies-py-show-odoo-dependencies" title="Permalink to this heading"></a></h2>
+<p>Show information about odoo dependencies and module tree.</p>
+</div>
+<div class="section" id="pep8-python-edit-utility">
+<h2>pep8: python edit utility<a class="headerlink" href="#pep8-python-edit-utility" title="Permalink to this heading"></a></h2>
+<p>Parse source file to meet pep8 requirements.
+The pep8 utility makes some source transformation based on rules,
+then can execute autoflake8 and/or autopep8 utilities (if installed) to meet full pep8 requirements.</p>
+<p>It is an helper to meet z0bug_odoo LINT_LEVEL requirements.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2022-11-02</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Development tools</a><ul>
+<li><a class="reference internal" href="#please-developer-shell">please: developer shell</a></li>
+<li><a class="reference internal" href="#gen-readme-py-documentation-generator">gen_readme.py: documentation generator</a></li>
+<li><a class="reference internal" href="#templates">templates</a></li>
+<li><a class="reference internal" href="#odoo-dependecies-py-show-odoo-dependencies">odoo_dependecies.py: show odoo dependencies</a></li>
+<li><a class="reference internal" href="#pep8-python-edit-utility">pep8: python edit utility</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">Welcome to wok_code 1.0.2.5 documentation!</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_usage.html"
+                          title="next chapter">Usage</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_description.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rtd_usage.html" title="Usage"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to wok_code 1.0.2.5 documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">wok_code 1.0.2.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Development tools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-21, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.2.3.
+    </div>
+  </body>
+</html>

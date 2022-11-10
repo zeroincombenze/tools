@@ -540,7 +540,6 @@ if [[ $opt_touch -eq 0 ]]; then
       echo -e "DB=\e[31m$opt_db\e[0m login: admin/admin"
       echo ""
     else
-      [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
       run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
     fi
 
@@ -552,6 +551,7 @@ if [[ $opt_touch -eq 0 ]]; then
         [[ $opt_dry_run -eq 0 ]] && deactivate
     fi
     [[ $opt_test -ne 0 && -f $FULL_LCONFN ]] && rm -f FULL_LCONFN
+    [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
     if [[ $drop_db -gt 0 ]]; then
         if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
             [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
