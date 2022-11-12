@@ -34,6 +34,12 @@ def expand_macro(line, section, ctx):
                 and ctx["TRAVIS_PYTHON_VERSION"].startswith("3"))
         ):
             line = comment_line(line)
+    elif section == "before_install":
+        if re.match(r"^ *\- \$HOME/tools/install_tools.sh", line):
+            if ctx["TRAVIS_PYTHON_VERSION"].startswith("2"):
+                line = "  - $HOME/tools/install_tools.sh -qpt2"
+            else:
+                line = "  - $HOME/tools/install_tools.sh -qpt"
     elif section == "install":
         if re.match(r"^ *\- travis_install_env", line):
             if ctx["PRJNAME"] == "Odoo":

@@ -133,6 +133,7 @@ set_opts_4_action() {
     [[ -f /etc/odoo/${svcname}.conf ]] && opts="${opts} -c \"/etc/odoo/${svcname}.conf\""
     [[ -n $opt_ocfn && -f "$opt_ocfn" ]] && opts="${opts} -c \"$opt_ocfn\""
     [[ -n $opt_db ]] && opts="${opts} -d \"$opt_db\""
+    [[ $opt_keep -ne 0 ]] && opts="${opts} -k"
     [[ $opt_force -ne 0 ]] && opts="${opts} -f"
     [[ $opt_verbose -eq 0 ]] && opts="${opts} -q"
     [[ $opt_verbose -eq 1 ]] && opts="${opts} -v"

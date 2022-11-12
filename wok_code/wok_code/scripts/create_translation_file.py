@@ -15,10 +15,9 @@ from openpyxl import load_workbook
 __version__ = "2.0.2.1"
 
 REGEX_WORD = r"\w+"
-REGEX_HTML = r"<(/|\w+)[^>]*>"
+REGEX_HTML = r"(<(/|\w+)[^>]*>|%[^\w]*\w)"
 REGEX_SPACE = r"\s+"
-REGEX_PUNCT = r"[-\[\\\]!\"#$%&'()*+,./:;<=>?@^`{|}~]+"
-REGEX_OTHER = r"[^%s<\W\S]+" % REGEX_PUNCT[1: -1]
+REGEX_PUNCT = r"[<\W\S]+"
 
 TEST_DATA = [
     ("name", "nome"),
@@ -34,6 +33,12 @@ TEST_DATA = [
     ("<b>Invoice</b>", ""),
     ("<b>Invoice</b>", "<b>Fattura</b>"),
     ("Print <b>Invoice</b>!", "Stampa <b>Fattura</b>!"),
+    ("Order(s)", "Ordine/i"),
+    ("Invoice n.%s", ""),
+    ("Invoice n.%(number)s of %(date)s", ""),
+    ("Invoices", ""),
+    ("Credit", "Credito"),
+    ("Credit", "Avere", "l10n_it"),
 ]
 
 
@@ -65,43 +70,50 @@ class OdooTranslation(object):
     def is_punct(self, item):
         return bool(re.match(REGEX_PUNCT[: -1], item))
 
-    def hash_key(self, key):
+    def get_hash_key(self, key, module=None):
         kk = key.lower() if key.upper() != key else key
-        return kk
+        kk2 = ""
+        if module:
+            kk2 = module + "@:" + kk
+        return kk, kk2
 
-    def join(self, keys, is_key=None):
-        term = punct = ""
-        prior_alpha = False
-        for item in keys:
-            if punct:
-                term += punct
-            punct = ""
-            if self.is_html_tag(item):
-                term += item
-                prior_alpha = False
-            elif self.is_punct(item):
-                punct = item
-                prior_alpha = False
-            elif prior_alpha:
-                term += " %s" % item
+    def adjust_case(self, orig, tnxl):
+        if tnxl:
+            if orig == orig.upper():
+                tnxl = tnxl.upper()
+            elif len(tnxl) > 1 and orig[0] == orig[0].upper():
+                tnxl = tnxl[0].upper() + tnxl[1:]
+        return tnxl
+
+    def set_plural(self, term):
+        if term.endswith("ca") or term.endswith("ga"):
+            term = term[: -1] + "he"
+        elif term.endswith("cia") or term.endswith("gia"):
+            if term[-4] in ("a", "e", "i", "o", "u"):
+                term = term[: -1] + "ie"
             else:
-                term += item
-                prior_alpha = True
-        if punct and not is_key:
-            term += punct
+                term = term[: -1] + "e"
+        elif term.endswith("a"):
+            term = term[: -1] + "e"
+        elif term.endswith("e") or term.endswith("o"):
+            term = term[: -1] + "i"
         return term
 
-    def get_term(self, item):
-        term = item
-        if item:
-            hkey = self.hash_key(item)
-            if hkey in self.dict:
-                term = self.dict[hkey]
-                if item == item.upper():
-                    term = term.upper()
-                elif item[0] == item[0].upper():
-                    term = "%s%s" % (term[0].upper(), term[1:])
-        return term
+    def get_term(self, orig, module=None):
+        tnxl = orig
+        if orig:
+            hkey, hkey_mod = self.get_hash_key(orig, module=module)
+            if hkey_mod and hkey_mod in self.dict:
+                tnxl = self.adjust_case(orig, self.dict[hkey_mod][1])
+            elif hkey in self.dict:
+                tnxl = self.adjust_case(orig, self.dict[hkey][1])
+            elif orig.endswith("s"):
+                hkey, hkey_mod = self.get_hash_key(orig[: -1])
+                if hkey_mod and hkey_mod in self.dict:
+                    tnxl = self.adjust_case(orig, self.dict[hkey_mod][1])
+                elif hkey in self.dict:
+                    tnxl = self.set_plural(self.adjust_case(orig, self.dict[hkey][1]))
+        return tnxl
 
     def split_items(self, message):
         items = []
@@ -109,97 +121,152 @@ class OdooTranslation(object):
         while ix < len(message):
             for regex in (REGEX_WORD,
                           REGEX_HTML,
-                          REGEX_SPACE,
-                          REGEX_PUNCT,
-                          REGEX_OTHER):
+                          REGEX_SPACE):
                 match = re.match(regex, message[ix:])
+                if match:
+                    break
             if not match:
-                break
-            kk = message[ix : match.end() + ix]
-            items.append(kk)
-            ix += match.end()
+                ii = len(message) - ix
+                for regex in (REGEX_WORD,
+                              REGEX_HTML,
+                              REGEX_SPACE):
+                    match = re.search(regex, message[ix:])
+                    if match:
+                        ii = min(ii, match.start())
+                kk = message[ix: ii + ix]
+                items.append(kk)
+                ix += ii
+            else:
+                kk = message[ix: match.end() + ix]
+                items.append(kk)
+                ix += match.end()
         return items
 
-    def parse_items(self, items, is_key=None):
-        keys = []
-        texts = []
-        hkey = text = punct = ""
-        prior_alpha = False
-        for item in items:
-            if punct:
-                hkey += punct
-            punct = ""
-            if self.is_html_tag(item):
-                keys.append(hkey)
-                texts.append(text)
-                keys.append(item)
-                texts.append(item)
-                hkey = text = ""
-                prior_alpha = False
-            else:
-                key = self.hash_key(item)
-                if self.is_punct(item):
-                    punct = key
-                    text += item
-                    prior_alpha = False
-                elif prior_alpha:
-                    hkey += (" %s" % key) if hkey else key
-                    text += (" %s" % item) if text else item
-                else:
-                    hkey += key
-                    text += item
-                    prior_alpha = True
-        if punct and not is_key:
-            hkey += punct
-        if hkey or text:
-            keys.append(hkey)
-            texts.append(text)
-        return keys, texts
-
-    def store_1_item(self, key, message_str, override=None):
-        if key and (
-            key not in self.dict or override or key == self.hash_key(self.dict[key])
+    def store_1_item(self, msg_orig, msg_tnxl, override=None, module=None):
+        hash_key, hashkey_mod = self.get_hash_key(msg_orig, module=module)
+        if hashkey_mod and (
+            hashkey_mod not in self.dict
+            or override
+            or (msg_tnxl and self.dict[hashkey_mod][0] == self.dict[hashkey_mod][1])
         ):
-            self.dict[key] = message_str
+            self.dict[hashkey_mod] = (msg_orig, msg_tnxl)
+        elif hash_key and (
+            hash_key not in self.dict
+            or override
+            or (msg_tnxl and self.dict[hash_key][0] == self.dict[hash_key][1])
+        ):
+            self.dict[hash_key] = (msg_orig, msg_tnxl)
+        return self.get_term(msg_tnxl or msg_orig)
 
-    def store_item(self, msg_id, msg_str, override=None):
-        texts_id = self.split_items(msg_id)
-        texts_str = self.split_items(msg_str)
-        hash_key = hash_item =""
-        tnlstr_key = tnlstr_item = ""
-        ix_id = ix_str = 0
-        while ix_id < len(texts_id) and ix_str < len(texts_str):
-            termid = texts_id[ix_id] if ix_id < len(texts_id) else ""
-            termstr = texts_str[ix_id] if ix_str < len(texts_str) else ""
-            if self.is_word(termid):
-                if self.is_word(termstr):
-                    hash_key += self.hash_key(termid)
-                    tnlstr_key += termstr
-                    hash_item += self.hash_key(termid)
-                    tnlstr_item += termstr
-                    ix_id += 1
-                    ix_str += 1
+    def store_item(self, msg_orig, msg_tnxl, override=None, module=None):
+        def islast(ix, terms):
+            return ix == (len(terms) - 1)
+
+        # if 'First Name' in msg_orig:
+        #     import pdb; pdb.set_trace()
+        if not msg_tnxl:
+           msg_tnxl = msg_orig
+        texts_orig = self.split_items(msg_orig)
+        texts_tnxl = self.split_items(msg_tnxl)
+        fullterm_orig = fullterm_tnxl = ""
+        term_orig = term_tnxl = ""
+        ix_orig = ix_tnxl = 0
+        target = last_punct = ""
+        while ix_orig < len(texts_orig) or ix_tnxl < len(texts_tnxl):
+            item_orig = texts_orig[ix_orig] if ix_orig < len(texts_orig) else ""
+            item_tnxl = texts_tnxl[ix_tnxl] if ix_tnxl < len(texts_tnxl) else ""
+            if not item_orig:
+                if self.is_word(item_tnxl):
+                    term_tnxl += item_tnxl
+                    fullterm_tnxl += item_tnxl
                 else:
-                    hash_key += self.hash_key(termid)
-                    hash_item += self.hash_key(termid)
-                    ix_id += 1
-            elif self.is_html_tag(termid):
-                hash_key += termid
-                tnlstr_key += termstr
-                self.store_1_item(hash_item, tnlstr_item, override=override)
-                hash_item = ""
-                tnlstr_item = ""
-                ix_id += 1
-                ix_str += 1
-            elif self.is_punct(termid):
-                pass
-            elif self.is_space(termid):
-                pass
+                    if islast(ix_tnxl, texts_tnxl):
+                        last_punct = item_tnxl
+                    else:
+                        term_tnxl += item_tnxl
+                        fullterm_tnxl += item_tnxl
+                ix_tnxl += 1
+            elif self.is_word(item_orig):
+                term_orig += item_orig
+                fullterm_orig += item_orig
+                ix_orig += 1
+                if self.is_word(item_tnxl):
+                    item_tnxl = self.get_term(item_tnxl)
+                    term_tnxl += item_tnxl
+                    fullterm_tnxl += item_tnxl
+                    ix_tnxl += 1
+            elif self.is_space(item_orig):
+                if not islast(ix_orig, texts_orig):
+                    term_orig += item_orig
+                    fullterm_orig += item_orig
+                ix_orig += 1
+                if self.is_space(item_tnxl):
+                    if islast(ix_tnxl, texts_tnxl):
+                        last_punct = item_tnxl
+                    else:
+                        term_tnxl += item_tnxl
+                        fullterm_tnxl += item_tnxl
+                    ix_tnxl += 1
             else:
-                pass
+                while self.is_word(item_tnxl) or self.is_space(item_tnxl):
+                    fullterm_tnxl += item_tnxl
+                    ix_tnxl += 1
+                    item_tnxl = texts_tnxl[ix_tnxl] if ix_tnxl < len(texts_tnxl) else ""
+                if term_orig and self.is_word(term_orig):
+                    target += self.store_1_item(term_orig, term_tnxl, override=override)
+                    term_orig = term_tnxl = ""
+                if not islast(ix_orig, texts_orig) or self.is_html_tag(item_orig):
+                    term_orig += item_orig
+                    fullterm_orig += item_orig
+                if self.is_html_tag(item_orig) and self.is_html_tag(item_tnxl):
+                    term_tnxl += item_tnxl
+                    fullterm_tnxl += item_tnxl
+                    ix_tnxl += 1
+                elif self.is_punct(item_orig) and self.is_punct(item_tnxl):
+                    if islast(ix_tnxl, texts_tnxl):
+                        last_punct = item_tnxl
+                    else:
+                        term_tnxl += item_tnxl
+                        fullterm_tnxl += item_tnxl
+                    ix_tnxl += 1
+                ix_orig += 1
+        if term_orig:
+            if self.is_word(term_orig):
+                target += self.store_1_item(term_orig, term_tnxl, override=override)
+            elif term_tnxl:
+                target += term_tnxl
+        elif term_tnxl:
+            target += term_tnxl
+        if fullterm_orig:
+            self.store_1_item(
+                fullterm_orig, fullterm_tnxl, override=override, module=module)
+            return "%s%s" % (target, last_punct)
+        return ""
 
-    def translate_item(self, msg_id, msg_str):
-        return self.store_item(msg_id, msg_str, override=False)
+    def translate_item(self, msg_orig, msg_tnxl, module=None):
+        if (
+            (module
+             and self.get_hash_key(msg_orig, module=module)[1] in self.dict)
+            or self.get_hash_key(msg_orig)[0] in self.dict
+        ):
+            return self.get_term(msg_orig, module=module)
+        return self.store_item(msg_orig, msg_tnxl, override=False)
+
+    def translate_pofile(self, po_fn):
+        if os.path.isfile(po_fn):
+            module = self.opt_args.module
+            try:
+                catalog = pofile.read_po(open(po_fn, "r"))
+            except BaseException as e:
+                print("Error %s reading po file %s" % (e, po_fn))
+                return
+            for message in catalog:
+                if not message.id:
+                    continue
+                print("[%s]->[%s]" % (
+                    message.id,
+                    self.translate_item(message.id, message.string, module=module)
+                ))
 
     def load_terms_from_pofile(self, po_fn, override=None):
         if os.path.isfile(po_fn):
@@ -232,31 +299,39 @@ class OdooTranslation(object):
                     )
                 if not row["msgid"] or not row["msgstr"]:
                     continue
-                self.store_item(row["msgid"], row["msgstr"])
+                self.store_item(row["msgid"], row["msgstr"], module=row["module"])
 
     def load_terms_for_test(self):
-        for (message_id, message_str) in TEST_DATA:
-            self.store_item(message_id, message_str)
+        for items in TEST_DATA:
+            items = list(items) + [None]
+            message_id, message_str, module = items[0], items[1], items[2]
+            self.store_item(message_id, message_str, module=module)
+
+    def do_work_on_path(self, root, base, action=None):
+        action = action or "load_terms"
+        path = os.path.join(root, base) if base else root
+        if self.ismodule(path):
+            i18n_path = os.path.join(path, "i18n")
+            po_fn = os.path.join(i18n_path, "%s.po" % self.opt_args.lang)
+            if not os.path.isfile(po_fn):
+                po_fn = os.path.join(
+                    i18n_path, "%s.po" % self.opt_args.lang.split("_")[0]
+                )
+            if not os.path.isfile(po_fn):
+                print("Module %s without translation" % os.path.basename(path))
+                return
+            if action == "load_terms":
+                self.load_terms_from_pofile(po_fn)
+            elif action == "translate":
+                self.translate_pofile(po_fn)
+            else:
+                raise
 
     def build_dict(self):
-        def do_dir_work(root, base):
-            path = os.path.join(root, base) if base else root
-            if self.ismodule(path):
-                i18n_path = os.path.join(path, "i18n")
-                po_fn = os.path.join(i18n_path, "%s.po" % self.opt_args.lang)
-                if not os.path.isfile(po_fn):
-                    po_fn = os.path.join(
-                        i18n_path, "%s.po" % self.opt_args.lang.split("_")[0]
-                    )
-                if not os.path.isfile(po_fn):
-                    print("Module %s without translation" % os.path.basename(path))
-                    return
-                self.load_terms_from_pofile(po_fn)
-
         if self.opt_args.file_xslx:
             self.load_terms_from_xlsx(self.opt_args.file_xslx)
         target_path = os.path.abspath(self.opt_args.target_path)
-        do_dir_work(target_path, None)
+        self.do_work_on_path(target_path, None)
         for root, dirs, files in os.walk(target_path, topdown=True, followlinks=False):
             dirs[:] = [
                 d
@@ -264,11 +339,32 @@ class OdooTranslation(object):
                 if d not in (".git", "__to_remove", "doc", "setup", ".idea")
             ]
             for base in dirs:
-                do_dir_work(root, base)
+                self.do_work_on_path(root, base)
+
+    def translate_module(self):
+        module = self.opt_args.module
+        target_path = os.path.abspath(self.opt_args.target_path)
+        if module == "OCB" and os.path.isfile(os-path.join(target_path, "odoo-bin")):
+            self.do_work_on_path(target_path, None, action="translate")
+        elif module == os.path.basename(target_path):
+            self.do_work_on_path(target_path, None, action="translate")
+        else:
+            for root, dirs, files in os.walk(target_path,
+                                             topdown=True,
+                                             followlinks=False):
+                dirs[:] = [
+                    d
+                    for d in dirs
+                    if d not in (".git", "__to_remove", "doc", "setup", ".idea")
+                ]
+                for base in dirs:
+                    if module == base:
+                        self.do_work_on_path(root, base, action="translate")
+                        break
 
     def list_dict(self):
-        for kk, term in self.dict.items():
-            print("'%s'='%s'" % (kk, term))
+        for hash_key, terms in self.dict.items():
+            print("[%s]\n'%s'='%s'" % (hash_key, terms[0], terms[1]))
 
 
 def main(cli_args=None):
@@ -290,6 +386,7 @@ def main(cli_args=None):
         help="Git organizations, comma separated - " "May be: oca librerp or zero",
     )
     parser.add_argument("-l", "--lang", default="it_IT", help="Language")
+    parser.add_argument("-m", "--module")
     parser.add_argument("-n", "--dry-run", action="store_true")
     parser.add_argument("-p", "--target-path", help="Local directory")
     parser.add_argument("-T", "--test", action="store_true")
@@ -301,14 +398,19 @@ def main(cli_args=None):
         odoo_tnl.load_terms_for_test()
     else:
         odoo_tnl.build_dict()
-    odoo_tnl.list_dict()
+    # odoo_tnl.list_dict()
+    if odoo_tnl.opt_args.module:
+        odoo_tnl.translate_module()
     if odoo_tnl.opt_args.test:
         print("")
-        for (message_id, message_str) in TEST_DATA:
-            print(
-                "[%s]->[%s]"
-                % (message_id, odoo_tnl.translate_item(message_id, message_str))
-            )
+        print("")
+        for items in TEST_DATA:
+            items = list(items) + [None]
+            message_orig, message_tnxl, module = items[0], items[1], items[2]
+            print("[%s]->[%s]"  % (
+                message_orig,
+                odoo_tnl.translate_item(message_orig, message_tnxl, module=module)
+            ))
     sts = 0
     return sts
 

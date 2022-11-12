@@ -295,10 +295,10 @@ if [[ $opt_test -ne 0 ]]; then
     opt_upd=0 opt_stop=1
     opt_xtl=1
     [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
-    [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}"
-    [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}"
+    [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}" && drop_db=1
+    [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}" && drop_db=0
     create_db=1
-    [[ $opt_keep -eq 0 ]] && drop_db=1 || drop_db=0
+    # [[ $opt_keep -eq 0 ]] && drop_db=1 || drop_db=0
     [[ ! -d $ODOO_ROOT/travis_log ]] && run_traced "mkdir $ODOO_ROOT/travis_log"
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
