@@ -165,7 +165,7 @@ class OdooTranslation(object):
         # if 'First Name' in msg_orig:
         #     import pdb; pdb.set_trace()
         if not msg_tnxl:
-           msg_tnxl = msg_orig
+            msg_tnxl = msg_orig
         texts_orig = self.split_items(msg_orig)
         texts_tnxl = self.split_items(msg_tnxl)
         fullterm_orig = fullterm_tnxl = ""
@@ -344,7 +344,7 @@ class OdooTranslation(object):
     def translate_module(self):
         module = self.opt_args.module
         target_path = os.path.abspath(self.opt_args.target_path)
-        if module == "OCB" and os.path.isfile(os-path.join(target_path, "odoo-bin")):
+        if module == "OCB" and os.path.isfile(os.path.join(target_path, "odoo-bin")):
             self.do_work_on_path(target_path, None, action="translate")
         elif module == os.path.basename(target_path):
             self.do_work_on_path(target_path, None, action="translate")
@@ -407,7 +407,7 @@ def main(cli_args=None):
         for items in TEST_DATA:
             items = list(items) + [None]
             message_orig, message_tnxl, module = items[0], items[1], items[2]
-            print("[%s]->[%s]"  % (
+            print("[%s]->[%s]" % (
                 message_orig,
                 odoo_tnl.translate_item(message_orig, message_tnxl, module=module)
             ))

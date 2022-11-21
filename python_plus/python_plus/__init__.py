@@ -2,7 +2,7 @@
 from __future__ import print_function, unicode_literals
 from past.builtins import basestring, long
 from future.utils import PY2, PY3, with_metaclass
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta
 import calendar
 from . import scripts
 
@@ -195,6 +195,8 @@ def compute_date(value, refdate=None):
     if not value or not isinstance(value, (basestring, int, long)):
         return value
     refdate = refdate or date.today()
+    if isinstance(refdate, basestring):
+        refdate = datetime.strptime(refdate, "%Y-%m-%d")
     sep = tm = None
     if isinstance(value, basestring):
         if 'T' in value:
@@ -205,10 +207,8 @@ def compute_date(value, refdate=None):
             value, tm = value.split(sep)
     if isinstance(value, (int, long)):
         value = (refdate + timedelta(value)).strftime('%Y-%m-%d')
-    elif value.startswith('+'):
-        value = (refdate + timedelta(int(value[1:]))).strftime('%Y-%m-%d')
-    elif value.startswith('-'):
-        value = (refdate - timedelta(int(value[1:]))).strftime('%Y-%m-%d')
+    elif ((value.startswith('+') or value.startswith('-')) and value[1:].isdigit()):
+        value = (refdate + timedelta(int(value))).strftime('%Y-%m-%d')
     else:
         items = value.split('-')
         refs = [refdate.year, refdate.month, refdate.day]

@@ -278,6 +278,7 @@ History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] npm management
+* [IMP] compute_date: refdate may be a string
 
 2.0.2.1 (2022-11-01)
 ~~~~~~~~~~~~~~~~~~~~
@@ -342,7 +343,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-11-09
+Last Update / Ultimo aggiornamento: 2022-11-19
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

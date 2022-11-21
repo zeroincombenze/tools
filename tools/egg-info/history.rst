@@ -1,3 +1,9 @@
+odoo_score: 2.0.3 (2022-11-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
+
+
 zerobug: 2.0.2.2 (2022-11-08)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -14,6 +20,7 @@ python_plus: 2.0.2.2 (2022-11-08)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] npm management
+* [IMP] compute_date: refdate may be a string
 
 
 z0bug_odoo: 2.0.1.1 (2022-11-03)
@@ -239,54 +246,6 @@ odoo_score: 2.0.0.2 (2022-09-22)
 
 * [IMP] run_odo_debug: test with random rpcport for multiple tests
 * [IMP] odoo_shell.py: new actions
-
-
-z0lib: 2.0.0.2 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_traced for python apps
-
-
-wok_code: 2.0.0.3 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] deploy_odoo: show actual branch and organization
-* [FIX] deploy_odoo: update read from directory
-* [IMP] deploy_odoo: new command list repo info
-* [IMP] deploy_odoo: new feature link to repositories
-
-
-python_plus: 2.0.0.3 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: install package with list_requirements.py
-
-
-clodoo: 2.0.0.2 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: get data from setup.py od Odoo
-
-
-wok_code: 2.0.0.2 (2022-09-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] deploy_odoo: add path in addons_path of directory exists
-* [FIX] deploy_odoo: clone oca repositories with --single-branch option
-* [IMP] manage_pypi: improvements
-* [FIX] please lint|test
-
-
-python_plus: 2.0.0.2 (2022-09-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: no input inquire
-
-
-lisa: 2.0.0.1 (2022-09-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] wsl2-systemd: experimental systemd for wsl2
 
 
 

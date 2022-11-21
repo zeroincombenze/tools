@@ -275,6 +275,7 @@ cp_coveragerc() {
   run_traced "cp ${HOME}/tools/zerobug/_travis/cfg/coveragerc ./.coveragerc"
   run_traced "sed -Ee \"s|^#? *..TRAVIS_BUILD_DIR./|    $TRAVIS_BUILD_DIR/|\" -i ./.coveragerc"
   run_traced "sed -e \"s|^ *\*.py\$|#&|\" -i ./.coveragerc"
+  [[ $PKGNAME == "mk_test_env" || $REPO_NAME == "zerobug-test" ]] && run_traced "sed -e "/\/tests\//d" -i ./.coveragerc"
 }
 
 coverage_ensure_installed() {
@@ -497,7 +498,7 @@ else
         run_traced "google-chrome --version"
       fi
     fi
-    if [[ "$PKGNAME" == "OCB" ]]; then
+    if [[ $PKGNAME == "OCB" ]]; then
       echo -e "\e[${PS_HDR3_COLOR}m### Tested repository is OCB\e[${PS_TXT_COLOR}m"
       if [[ $TRAVIS =~ (true|emulate) ]]; then
         run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
@@ -519,7 +520,7 @@ else
       echo "- Error cloning dependencies"
       exit $sts
     fi
-    if [[ "$PKGNAME" == "OCB" ]]; then
+    if [[ $PKGNAME == "OCB" ]]; then
       ocb_dir='.'
       dependencies_dir=${HOME}/dependencies
       run_traced "$VEM amend -D -O $ODOO_BRANCH -o $ocb_dir"

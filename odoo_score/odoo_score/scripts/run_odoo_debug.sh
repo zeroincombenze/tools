@@ -39,7 +39,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2.1
+__version__=2.0.3
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -90,6 +90,7 @@ coverage_set() {
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
       cp $coverage_tmpl $COVERAGE_PROCESS_START
       grep -Eq "^data_file *=" $COVERAGE_PROCESS_START || sed -E "/^\[run\]/a\\\ndata_file=$COVERAGE_DATA_FILE\n" -i $COVERAGE_PROCESS_START
+      [[ $PKGNAME == "mk_test_env" || $REPOSNAME == "zerobug-test"  ]] && sed -e "/\/tests\//d" -i $COVERAGE_PROCESS_START
     fi
 }
 
@@ -208,8 +209,14 @@ if [[ -n $opt_conf ]]; then
         [[ -x $p/../odoo-bin || -x $p/../openerp-server ]] && odoo_root=$(readlink -f $p/..) && break
     done
     check_path_n_branch "$odoo_root" "$opt_branch"
-    REPOSNAME=""
-    PKGNAME=""
+    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -name $opt_modules)
+    if [[ -n $opt_odir ]]; then
+      PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
+      REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
+    else
+      REPOSNAME=""
+      PKGNAME=""
+    fi
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$odoo_root")
 elif [[ -n $opt_odir ]]; then
     [[ ! -d $opt_dir ]] && echo "Path $opt_dir not found!" && exit 1

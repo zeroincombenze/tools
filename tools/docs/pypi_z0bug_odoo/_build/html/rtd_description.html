@@ -52,7 +52,7 @@
 <p>It replaces OCA MQT with some nice additional features.</p>
 <p><em>z0bug_odoo</em> is built on follow concepts:</p>
 <ul class="simple">
-<li><p>Odoo version independent; it can test Odoo from 6.1 until 13.0</p></li>
+<li><p>Odoo version independent; it can test Odoo from 6.1 until 16.0</p></li>
 <li><p>It is designed to run in local environment too, using <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p></li>
 <li><p>It can run with full or reduced set of pylint tests</p></li>
 <li><p>Test using ready-made database records</p></li>
@@ -80,10 +80,10 @@ This package and OCA MQT differ by:</p>
 <div class="section" id="file-travis-yml">
 <h2>File .travis.yml<a class="headerlink" href="#file-travis-yml" title="Permalink to this heading"></a></h2>
 <p>In order to setup TravisCI continuous integration for your project, just copy the
-content of the <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/zerobug/sample_files/.travis.yml">sample_files</a>
+content of the <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator/template_travis.yml">sample_files</a>
 to your project’s root directory.</p>
 <p>Then execute the command:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">topep8</span> <span class="o">-</span><span class="n">b</span><span class="o">&lt;</span><span class="n">odoo_version</span><span class="o">&gt;</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">yml</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make_travis_conf</span><span class="o">.</span><span class="n">py</span> <span class="o">&lt;</span><span class="n">TOOLS_PATH</span><span class="o">&gt;/</span><span class="n">travis_emulator</span><span class="o">/</span><span class="n">template_travis</span><span class="o">.</span><span class="n">yml</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">yml</span>
 </pre></div>
 </div>
 <p>You can check travis syntax with the <a class="reference external" href="http://lint.travis-ci.org/">lint checker</a> of travis, if available.</p>
@@ -98,10 +98,11 @@ You can test against:</p>
 <li><p>odoo/odoo</p></li>
 <li><p>OCA/OCB</p></li>
 <li><p>zeroincombenze/OCB</p></li>
+<li><p>librerp/OCB</p></li>
 </ul>
 <p>You can test against specific Odoo core version with ODOO_BRANCH variable if differs from your project version:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Odoo Branch 10.0</span>
-<span class="o">-</span> <span class="n">VERSION</span><span class="o">=</span><span class="s2">&quot;10.0&quot;</span> <span class="n">ODOO_REPO</span><span class="o">=</span><span class="s2">&quot;odoo/odoo&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Odoo Branch 16.0</span>
+<span class="o">-</span> <span class="n">VERSION</span><span class="o">=</span><span class="s2">&quot;16.0&quot;</span> <span class="n">ODOO_REPO</span><span class="o">=</span><span class="s2">&quot;odoo/odoo&quot;</span>
 
 <span class="c1"># Pull request odoo/odoo#143</span>
 <span class="o">-</span>  <span class="n">VERSION</span><span class="o">=</span><span class="s2">&quot;pull/143&quot;</span> <span class="n">ODOO_REPO</span><span class="o">=</span><span class="s2">&quot;OCA/OCB&quot;</span>
@@ -137,17 +138,18 @@ You can avoid following directive in ODOO_TEST_SELECT=”APPLICATIONS”:</p>
 <div class="section" id="python-version">
 <h2>Python version<a class="headerlink" href="#python-version" title="Permalink to this heading"></a></h2>
 <p>Odoo version from 6.1 to 10.0 are tested with python 2.7
-From Odoo 11.0, python3 is used. You can test against 3.5, 3.6 and 3.7 python versions.
+From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
 Currently, python 3.8 is not yet supported.
 This is the declaration:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span><span class="p">:</span>
   <span class="o">-</span> <span class="s2">&quot;3.5&quot;</span>
   <span class="o">-</span> <span class="s2">&quot;3.6&quot;</span>
   <span class="o">-</span> <span class="s2">&quot;3.7&quot;</span>
+  <span class="o">-</span> <span class="s2">&quot;3.8&quot;</span>
 </pre></div>
 </div>
 <p>Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
-Python 3.8 is no yet support by Odoo (2021), so use python 3.7</p>
+Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7</p>
 </div>
 <div class="section" id="deployment-and-setup-environment">
 <h2>Deployment and setup environment<a class="headerlink" href="#deployment-and-setup-environment" title="Permalink to this heading"></a></h2>
@@ -1049,9 +1051,9 @@ If you do it, it will be simply ignored.</p>
 <p>You can highly customize you test: look at below table.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 17%" />
-<col style="width: 39%" />
-<col style="width: 44%" />
+<col style="width: 15%" />
+<col style="width: 36%" />
+<col style="width: 48%" />
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p>variable</p></td>
@@ -1094,95 +1096,99 @@ If you do it, it will be simply ignored.</p>
 <td><p>$HOME/.npm-global</p></td>
 <td><p>N/D</p></td>
 </tr>
-<tr class="row-odd"><td><p>ODOO_REPO</p></td>
+<tr class="row-odd"><td><p>ODOO_COMMIT_TEST</p></td>
+<td><p>0</p></td>
+<td><p>Test result will be committed; require specific code at tear_off function</p></td>
+</tr>
+<tr class="row-even"><td><p>ODOO_REPO</p></td>
 <td><p>odoo/odoo</p></td>
 <td><p>OCB repository against test repository</p></td>
 </tr>
-<tr class="row-even"><td><p>ODOO_SETUPS</p></td>
+<tr class="row-odd"><td><p>ODOO_SETUPS</p></td>
 <td><p>__manifest__.py __openerp__.py __odoo__.py __terp__.py</p></td>
 <td><p>Names of Odoo manifest files</p></td>
 </tr>
-<tr class="row-odd"><td><p>ODOO_TEST_SELECT</p></td>
+<tr class="row-even"><td><p>ODOO_TEST_SELECT</p></td>
 <td><p>ALL</p></td>
 <td><p>Read above</p></td>
 </tr>
-<tr class="row-even"><td><p>ODOO_TNLBOT</p></td>
+<tr class="row-odd"><td><p>ODOO_TNLBOT</p></td>
 <td><p>0</p></td>
 <td><p>Read above</p></td>
 </tr>
-<tr class="row-odd"><td><p>OPTIONS</p></td>
+<tr class="row-even"><td><p>OPTIONS</p></td>
 <td></td>
 <td><p>Options passed to odoo-bin/openerp-server to execute tests</p></td>
 </tr>
-<tr class="row-even"><td><p>PHANTOMJS_VERSION</p></td>
+<tr class="row-odd"><td><p>PHANTOMJS_VERSION</p></td>
 <td></td>
 <td><p>Version of PhantomJS</p></td>
 </tr>
-<tr class="row-odd"><td><p>PS_TXT_COLOR</p></td>
+<tr class="row-even"><td><p>PS_TXT_COLOR</p></td>
 <td><p>0;97;40</p></td>
 <td><p>N/D</p></td>
 </tr>
-<tr class="row-even"><td><p>PS_RUN_COLOR</p></td>
+<tr class="row-odd"><td><p>PS_RUN_COLOR</p></td>
 <td><p>1;37;44</p></td>
 <td><p>N/D</p></td>
 </tr>
-<tr class="row-odd"><td><p>PS_NOP_COLOR</p></td>
+<tr class="row-even"><td><p>PS_NOP_COLOR</p></td>
 <td><p>34;107</p></td>
 <td><p>N/D</p></td>
 </tr>
-<tr class="row-even"><td><p>PS_HDR1_COLOR</p></td>
+<tr class="row-odd"><td><p>PS_HDR1_COLOR</p></td>
 <td><p>97;42</p></td>
 <td><p>N/D</p></td>
 </tr>
-<tr class="row-odd"><td><p>PS_HDR2_COLOR</p></td>
+<tr class="row-even"><td><p>PS_HDR2_COLOR</p></td>
 <td><p>30;43</p></td>
 <td><p>N/D</p></td>
 </tr>
-<tr class="row-even"><td><p>PS_HDR3_COLOR</p></td>
+<tr class="row-odd"><td><p>PS_HDR3_COLOR</p></td>
 <td><p>30;45</p></td>
 <td><p>N/D</p></td>
 </tr>
-<tr class="row-odd"><td><p>PYPI_RUN_PYVER</p></td>
+<tr class="row-even"><td><p>PYPI_RUN_PYVER</p></td>
 <td><p>(2.7|3.5|3.6|3.7|3.8)</p></td>
 <td><p>python versions to run (only PYPI projects)</p></td>
 </tr>
-<tr class="row-even"><td><p>SERVER_EXPECTED_ERRORS</p></td>
+<tr class="row-odd"><td><p>SERVER_EXPECTED_ERRORS</p></td>
 <td></td>
 <td><p># of expected errors after tests</p></td>
 </tr>
-<tr class="row-odd"><td><p>TEST_DEPENDENCIES</p></td>
+<tr class="row-even"><td><p>TEST_DEPENDENCIES</p></td>
 <td><p>0</p></td>
 <td><p>Read above</p></td>
 </tr>
-<tr class="row-even"><td><p>TRAVIS_DEBUG_MODE</p></td>
+<tr class="row-odd"><td><p>TRAVIS_DEBUG_MODE</p></td>
 <td><p>0</p></td>
 <td><p>Read above</p></td>
 </tr>
-<tr class="row-odd"><td><p>TRAVIS_PDB</p></td>
+<tr class="row-even"><td><p>TRAVIS_PDB</p></td>
 <td></td>
 <td><p>The value ‘true’ activates pdb in local ‘travis -B’</p></td>
 </tr>
-<tr class="row-even"><td><p>UNBUFFER</p></td>
+<tr class="row-odd"><td><p>UNBUFFER</p></td>
 <td><p>1</p></td>
 <td><p>Use unbuffer (colors) to log results</p></td>
 </tr>
-<tr class="row-odd"><td><p>UNIT_TEST</p></td>
+<tr class="row-even"><td><p>UNIT_TEST</p></td>
 <td></td>
 <td><p>Read above</p></td>
 </tr>
-<tr class="row-even"><td><p>TEST</p></td>
+<tr class="row-odd"><td><p>TEST</p></td>
 <td></td>
 <td><p>Read above</p></td>
 </tr>
-<tr class="row-odd"><td><p>VERSION</p></td>
+<tr class="row-even"><td><p>VERSION</p></td>
 <td></td>
 <td><p>Odoo version to test (see above)</p></td>
 </tr>
-<tr class="row-even"><td><p>WEBSITE_REPO</p></td>
+<tr class="row-odd"><td><p>WEBSITE_REPO</p></td>
 <td></td>
 <td><p>Load package for website tests</p></td>
 </tr>
-<tr class="row-odd"><td><p>WKHTMLTOPDF_VERSION</p></td>
+<tr class="row-even"><td><p>WKHTMLTOPDF_VERSION</p></td>
 <td><p>0.12.5</p></td>
 <td><p>Version of wkhtmltopdf (value are 0.12.1</p></td>
 </tr>
@@ -1531,7 +1537,7 @@ If you do it, it will be simply ignored.</p>
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2022-11-04</p>
+<p>Last Update / Ultimo aggiornamento: 2022-11-20</p>
 </div>
 
 

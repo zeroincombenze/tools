@@ -3,7 +3,9 @@
 import os
 import sys
 import argparse
+from lxml import etree
 
+from python_plus import _b, _u
 from z0lib import z0lib
 
 __version__ = "2.0.2.1"
@@ -26,6 +28,32 @@ def get_names(left_path, right_path):
     return left_base, right_base
 
 
+def format_xml(opt_args, source, target):
+    with open(source, "r") as fd:
+        try:
+            root = etree.XML(_b(fd.read()))
+        except SyntaxError as e:
+            print("%s: ***** Error %s *****" % (source, e))
+            root = None
+            xml_text = None
+    if root is not None:
+        try:
+            xml_text = _u(etree.tostring(root, pretty_print=True))
+        except SyntaxError as e:
+            print("%s: ***** Error %s *****" % (source, e))
+            xml_text = None
+    if xml_text:
+        xml_text = xml_text.replace("\n\n", "\n")
+        with open(target, "w") as fd:
+            fd.write(xml_text)
+    else:
+        z0lib.run_traced(
+            'cp %s %s' % (source, target),
+            verbose=opt_args.dry_run,
+            dry_run=opt_args.dry_run
+        )
+
+
 def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base):
     if (
         base.endswith(".pyc")
@@ -33,16 +61,22 @@ def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, ba
         or (base.startswith("README") and opt_args.ignore_doc)
     ):
         return
-    if os.path.isfile(left_path):
-        z0lib.run_traced(
-            'cp %s %s' % (left_path, os.path.join(left_diff_path, base)),
-            verbose=opt_args.dry_run,
-            dry_run=opt_args.dry_run)
+    elif os.path.isfile(left_path):
+        if base.endswith(".xml"):
+            format_xml(opt_args, left_path, os.path.join(left_diff_path, base))
+        else:
+            z0lib.run_traced(
+                'cp %s %s' % (left_path, os.path.join(left_diff_path, base)),
+                verbose=opt_args.dry_run,
+                dry_run=opt_args.dry_run)
     if os.path.isfile(right_path):
-        z0lib.run_traced(
-            'cp %s %s' % (right_path, os.path.join(right_diff_path, base)),
-            verbose=opt_args.dry_run,
-            dry_run=opt_args.dry_run)
+        if base.endswith(".xml"):
+            format_xml(opt_args, right_path, os.path.join(right_diff_path, base))
+        else:
+            z0lib.run_traced(
+                'cp %s %s' % (right_path, os.path.join(right_diff_path, base)),
+                verbose=opt_args.dry_run,
+                dry_run=opt_args.dry_run)
 
 
 def match(opt_args, left_diff_path, right_diff_path, left_path, right_path):

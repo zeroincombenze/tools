@@ -1,3 +1,8 @@
+2.0.3 (2022-11-11)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
