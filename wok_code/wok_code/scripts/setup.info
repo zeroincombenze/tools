@@ -1,14 +1,13 @@
 import sys
 from setuptools import find_packages, setup
 
+install_requires = [
+    'z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'translators'
+]
 if sys.version_info >= (3, 0):
-    install_requires = (
-        ['z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'babel', 'twine'],
-    )
+    install_requires.append('twine')
 else:
-    install_requires = (
-        ['z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'twine==1.15.0'],
-    )
+    install_requires.append('twine==1.15.0')
 
 setup(
     name='wok_code',

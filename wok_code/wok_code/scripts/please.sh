@@ -1795,26 +1795,24 @@ do_translate() {
   fi
   confn=$(readlink -f $HOME_DEVEL/../clodoo/confs)/${odoo_fver/./-}.conf
   [[ ! -f $confn ]] && echo "Configuration file $confn not found!" && return $sts
-  db="$opt_db"
-  u=$(get_dbuser $m)
-  if [[ -z "$db" ]]; then
-    DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
-    DBs="^(${DBs:0: -1})\$"
-    for x in test_odoo_ tnl test demo; do
-      [[ $x =~ $DBs ]] && db="$x" && break
-      [[ $x$m =~ $DBs ]] && db="$x$m" && break
-    done
-  fi
-  if [[ -z "$db" ]]; then
-    echo "No DB matched! use:"
-    echo "$0 translate -d DB"
-    return $STS_FAILED
-  fi
+#  db="$opt_db"
+#  u=$(get_dbuser $m)
+#  if [[ -z "$db" ]]; then
+#    DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
+#    DBs="^(${DBs:0: -1})\$"
+#    for x in test_odoo_ tnl test demo; do
+#      [[ $x =~ $DBs ]] && db="$x" && break
+#      [[ $x$m =~ $DBs ]] && db="$x$m" && break
+#    done
+#  fi
+#  if [[ -z "$db" ]]; then
+#    echo "No DB matched! use:"
+#    echo "$0 translate -d DB"
+#    return $STS_FAILED
+#  fi
   [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
   [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
-  # x=$(find $PKGPATH -type f -not -path "*/egg-info/*" -not -name "*.pyc" -anewer i18n/it.po)
-  # [[ -n $x ]] && do_export "$1" "$2" "$3"
-  run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -d $db -c $confn -p $pofile -AP"
+  run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -c $confn -p $pofile"
   sts=$?
   return $sts
 }

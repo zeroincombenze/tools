@@ -77,7 +77,7 @@ class MainTest(SingleTransactionCase):
         self.uninstallable_modules = []
         self.tnxl_record = {}
 
-    def _default_company(self):
+    def default_company(self):
         return self.env.user.company_id
 
     def _is_xref(self, xref):
@@ -370,7 +370,7 @@ class MainTest(SingleTransactionCase):
             ftype = self.struct[resource][field]["type"]
             if field == "company_id":
                 if fmt and not value and resource not in RESOURCE_WO_COMPANY:
-                    values[field] = self._default_company().id
+                    values[field] = self.default_company().id
                 continue
             elif ftype == "boolean":
                 if isinstance(value, basestring):
@@ -475,6 +475,10 @@ class MainTest(SingleTransactionCase):
             # Key to search for child record
             x = x[-1]
             if x.isdigit():
+                while x.startswith("0"):
+                    x = x[1:]
+                if not x:
+                    return False
                 x = eval(x)
             domain = [(self.skeys[resource][0], "=", x)]
             x = self.resource_bind(
@@ -492,7 +496,7 @@ class MainTest(SingleTransactionCase):
             and "company_id" in self.struct[resource]
         ):
             domain.append("|")
-            domain.append(("company_id", "=", self._default_company().id))
+            domain.append(("company_id", "=", self.default_company().id))
             domain.append(("company_id", "=", False))
         obj = self.env[resource].search(domain)
         if len(obj) == 1:
@@ -703,7 +707,7 @@ class MainTest(SingleTransactionCase):
             for xref in self.get_resource_data_list(resource):
                 values = self.get_resource_data(resource, xref)
                 if values.get("months"):
-                    values["days"] = values["months"] * 30 -2
+                    values["days"] = values["months"] * 30 - 2
                     values["months"] = ""
                 self.store_resource_data(resource, xref, values)
 
@@ -796,12 +800,12 @@ class MainTest(SingleTransactionCase):
                 wizard = self.env[res_model].create(vals)
                 act_windows["res_id"] = wizard.id
         # Save wizard for furthermore use
-        act_windows["_wizard_"] = wizard
+        # act_windows["_wizard_"] = wizard
         if windows_break:
             return act_windows, wizard
         if act_windows.get("view_id"):
             # This code is just executed to test valid view structure
-            self.env["ir.ui.view"].browse(act_windows["view_id"][0])
+            self.env["ir.ui.view"].browse(act_windows["view_id"])
         return act_windows
 
     def wizard_launch_by_act_name(
@@ -966,9 +970,9 @@ class MainTest(SingleTransactionCase):
             if isinstance(act_windows.get("context"), basestring)
             else act_windows.get("context", {})
         )
-        if "_wizard_" in act_windows:
-            wizard = act_windows.pop("_wizard_")
-        elif isinstance(act_windows.get("res_id"), (int, long)):
+        # if "_wizard_" in act_windows:
+        #     wizard = act_windows.pop("_wizard_")
+        if isinstance(act_windows.get("res_id"), (int, long)):
             wizard = self.env[res_model].with_context(ctx).browse(act_windows["res_id"])
         else:
             raise (TypeError, "Invalid object/model")
