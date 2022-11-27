@@ -5,6 +5,7 @@ Create map of Odoo modules
 """
 import os
 import sys
+from time import sleep
 import argparse
 import re
 import collections
@@ -55,7 +56,8 @@ TEST_DATA = [
     ("Dear ${name}", "", None, "Gentile ${name}"),
     ("Purchase", "", None, "Acquistare"),
     ("&gt; 100%%", "", None, "&gt; 100%%"),
-    ("/usr/name/line", "", None, "/usr/name/line")
+    ("/usr/name/line", "", None, "/usr/name/line"),
+    ("%s invoice lines", "righe %s fattura", None, "righe %s fattura")
 ]
 
 
@@ -95,10 +97,17 @@ class OdooTranslation(object):
             ("punct", True, False, r"[.,:;!?]+", True),
             ("space", False, True, r"\s+", True),
             ("tag", False, False, r"(<(/|\w+)[^>]*>|%[^\w]*\w|\$\{.*\}|&\w+;)", False),
-            ("odoo_model", False, False,
-             r"^([a-z0-9]+[\._][a-z0-9]+([\._][a-z0-9]+)?|[0-9]+|/.*/.*)$", False)
+            ("odoo_model",
+             False,
+             False,
+             (
+                 r"^([a-z0-9]+[\._][a-z0-9]+([\._][a-z0-9]+)?"
+                 r"|[0-9]+|/[-\w._]+(/[-\w._]+)+)"
+             ),
+             False)
         ]
         self.re_word = self.types_decl[0][3]
+        self.re_space = self.types_decl[2][3]
         self.re_tag = self.types_decl[3][3]
 
         for (hash_key, msg_orig, msg_tnxl) in (
@@ -138,7 +147,7 @@ class OdooTranslation(object):
         os.rename(tmp_file, filename)
 
     def get_hash_key(self, key, ignore_case, module=None):
-        kk = key
+        kk = key.strip()
         if ignore_case:
             kk = key if key == key.upper() else key.lower()
         kk2 = ""
@@ -150,7 +159,7 @@ class OdooTranslation(object):
         if tnxl:
             if orig == orig.upper():
                 tnxl = tnxl.upper()
-            elif len(tnxl) > 1 and orig[0] == orig[0].upper():
+            elif len(tnxl) > 1 and orig[0] != orig[0].lower():
                 tnxl = tnxl[0].upper() + tnxl[1:]
         return tnxl
 
@@ -215,6 +224,19 @@ class OdooTranslation(object):
         return self.get_term(hash_key, msg_orig, msg_tnxl)
 
     def split_items(self, message):
+        def append_group(tokens, hash_keys, groups, hash_groups):
+            if re.search(self.re_space, groups[-1]):
+                tokens.append(groups[: -1])
+                tokens.append(groups[-1])
+                hash_keys.append(hash_groups[: -1])
+                hash_keys.append("")
+            else:
+                tokens.append(groups)
+                hash_keys.append(hash_groups)
+            groups = []
+            hash_groups = []
+            return tokens, hash_keys, groups, hash_groups
+
         tokens = []
         groups = []
         hash_keys = []
@@ -241,23 +263,24 @@ class OdooTranslation(object):
                 token = message[ix: ii + ix]
                 hash_key = self.get_hash_key(token, False)[0]
                 ix += ii
+            if re.search(self.re_space, token) and not groups:
+                grouped = False
+                # hash_key = ""
             if grouped:
                 groups.append(token)
                 hash_groups.append(hash_key)
             else:
                 if groups:
-                    tokens.append(groups)
-                    groups = []
-                    hash_keys.append(hash_groups)
-                    hash_groups = []
+                    tokens, hash_keys, groups, hash_groups = append_group(
+                        tokens, hash_keys, groups, hash_groups)
                 tokens.append(token)
                 if tok_type and tok_type[4] and ix >= len(message):
                     hash_keys.append("")
                 else:
                     hash_keys.append(hash_key)
         if groups:
-            tokens.append(groups)
-            hash_keys.append(hash_groups)
+            tokens, hash_keys, groups, hash_groups = append_group(
+                tokens, hash_keys, groups, hash_groups)
         return tokens, hash_keys
 
     def do_dict_item(
@@ -272,7 +295,7 @@ class OdooTranslation(object):
             msg_tnxl = msg_orig
         tokens_orig, hashes_orig = self.split_items(msg_orig)
         tokens_tnxl, hashes_tnxl = self.split_items(msg_tnxl)
-        fullterm_orig = fullterm_tnxl = fulltermhk_orig = fulltermhk_tnxl =""
+        fullterm_orig = fullterm_tnxl = fulltermhk_orig = fulltermhk_tnxl = ""
         hash_key = ""
         tok_orig = tokens_orig.pop(0) if tokens_orig else ""
         hash_orig = hashes_orig.pop(0) if hashes_orig else ""
@@ -286,59 +309,52 @@ class OdooTranslation(object):
                     hkey = self.get_hash_key(hkey, True, module=module)[1]
                 fullterm_orig += term_orig
                 hash_key += hkey
-                term_tnxl = self.get_hash_key(
-                    "".join(tok_tnxl) if isinstance(
-                        tok_tnxl, (list, tuple)) else term_orig,
-                    True,
-                    module=module)[0]
-                if (
-                    action == "build_dict"
-                    and hkey not in self.dict
-                    and self.get_hash_key(term_orig,
-                                          True, module=module)[0] != term_tnxl
-                ):
-                    self.store_1_item(hkey, term_orig, term_tnxl)
-                    fullterm_2_store = True
-                else:
-                    x = self.get_term(hkey, term_orig, term_tnxl)
-                    if x != term_tnxl:
-                        term_tnxl = x
+                fulltermhk_orig = fullterm_orig
+                if isinstance(tok_tnxl, (list, tuple)):
+                    term_tnxl = self.get_hash_key(
+                    "".join(tok_tnxl), True, module=module)[0]
+                    if (
+                        action == "build_dict"
+                        and hkey not in self.dict
+                        and self.get_hash_key(term_orig,
+                                              True, module=module)[0] != term_tnxl
+                    ):
+                        self.store_1_item(hkey, term_orig, term_tnxl)
                         fullterm_2_store = True
                     else:
-                        x = ""
-                        ctr = 0
-                        for ii, term in enumerate(tok_orig):
-                            if (
-                                len(term) > 3
-                                and re.match(self.re_word, term)
-                                and hash_orig[ii] in self.dict
-                            ):
-                                x += self.get_term(hash_orig[ii],
-                                                   term,
-                                                   term)
-                                ctr += 1
-                            else:
-                                x += term
-                        if ctr == 1:
+                        x = self.get_term(hkey, term_orig, term_tnxl)
+                        if x != term_tnxl:
                             term_tnxl = x
                             fullterm_2_store = True
-                fullterm_tnxl += term_tnxl
-                fulltermhk_orig = fullterm_orig
-                fulltermhk_tnxl = fullterm_tnxl
+                        else:
+                            x = ""
+                            ctr = 0
+                            for ii, term in enumerate(tok_orig):
+                                if (
+                                    len(term) > 3
+                                    and re.match(self.re_word, term)
+                                    and hash_orig[ii] in self.dict
+                                ):
+                                    x += self.get_term(hash_orig[ii],
+                                                       term,
+                                                       term)
+                                    ctr += 1
+                                else:
+                                    x += term
+                            if ctr == 1:
+                                term_tnxl = x
+                                fullterm_2_store = True
+                    fullterm_tnxl += term_tnxl
+                    fulltermhk_tnxl = fullterm_tnxl
+                    if isinstance(tok_tnxl, (list, tuple)):
+                        tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
                 tok_orig = tokens_orig.pop(0) if tokens_orig else ""
                 hash_orig = hashes_orig.pop(0) if hashes_orig else ""
-                if isinstance(tok_tnxl, (list, tuple)):
-                    tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
             elif tok_orig:
                 fullterm_orig += tok_orig
                 hash_key += hash_orig
-                if isinstance(tok_tnxl, (list, tuple)):
-                    fullterm_tnxl += tok_orig
-                else:
-                    if action == "build_dict":
-                        fullterm_tnxl += tok_tnxl
-                    else:
-                        fullterm_tnxl += tok_orig
+                while tok_tnxl and not isinstance(tok_tnxl, (list, tuple)):
+                    fullterm_tnxl += tok_tnxl
                     tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
                 if hash_orig:
                     fulltermhk_orig = fullterm_orig
@@ -346,7 +362,10 @@ class OdooTranslation(object):
                 tok_orig = tokens_orig.pop(0) if tokens_orig else ""
                 hash_orig = hashes_orig.pop(0) if hashes_orig else ""
             else:
-                fullterm_tnxl += tok_tnxl
+                if isinstance(tok_tnxl, (list, tuple)):
+                    fullterm_tnxl += "".join(tok_tnxl)
+                else:
+                    fullterm_tnxl += tok_tnxl
                 fulltermhk_tnxl = fullterm_tnxl
                 tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
                 fullterm_2_store = True
@@ -356,8 +375,12 @@ class OdooTranslation(object):
                 if re.fullmatch(tok_type[3], fullterm_orig):
                     return fullterm_orig
         if action == "build_dict":
-            if fullterm_tnxl.endswith("(s)"):
-                fulltermhk_tnxl =  self.set_plural(fullterm_orig, fullterm_tnxl[: -3])
+            if msg_orig != msg_tnxl and msg_tnxl:
+                return self.store_1_item(
+                    hash_key, msg_orig, msg_tnxl,
+                    override=override, module=module)
+            elif fullterm_tnxl.endswith("(s)"):
+                fulltermhk_tnxl = self.set_plural(fullterm_orig, fullterm_tnxl[: -3])
                 fullterm_2_store = True
             if fullterm_orig.lower() == fullterm_tnxl or not fullterm_tnxl:
                 if not re.search(self.re_tag, fullterm_orig):
@@ -367,7 +390,8 @@ class OdooTranslation(object):
                         ts.google(fullterm_orig,
                                   from_language='en',
                                   to_language=self.opt_args.lang[:2],
-                                  timeout=1))
+                                  timeout=5))
+                    sleep(0.2)
                 return self.store_1_item(
                     hash_key, fullterm_orig, fullterm_tnxl, override=override)
             elif fullterm_orig and fullterm_2_store:
@@ -549,7 +573,10 @@ class OdooTranslation(object):
             for message in catalog:
                 if not message.id:
                     continue
-                self.do_dict_item(message.id, message.string, override=override)
+                self.do_dict_item(message.id,
+                                  message.string,
+                                  action="build_dict",
+                                  override=override)
 
     def load_terms_from_xlsx(self, dict_fn):
         if os.path.isfile(dict_fn):
@@ -726,6 +753,10 @@ def main(cli_args=None):
             print("[%s]->[%s]" % (items[0], items[3]))
             if items[3] != res:
                 print("    **** TEST FAILED!!!! [" + items[3] + "]!=[" + res + "]")
+        print("")
+        for items in odoo_tnxl.dict.values():
+            if items[0] != items[0].strip():
+                print("    **** TEST FAILED!!!! [" + items[0] + "] with trailing space")
     return 0
 
 
