@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from . import main
-from . import create_translation_file
+# from . import create_translation_file
 from . import cvt_csv_2_rst
 from . import cvt_csv_coa
 from . import deploy_odoo

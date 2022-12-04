@@ -1,7 +1,7 @@
 
-===============
-zerobug 2.0.2.2
-===============
+=============
+zerobug 2.0.3
+=============
 
 
 
@@ -366,8 +366,8 @@ Current development version
 History
 -------
 
-2.0.2.2 (2022-11-08)
-~~~~~~~~~~~~~~~~~~~~
+2.0.3 (2022-11-08)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] npm management
 
@@ -433,7 +433,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-11-10
+Last Update / Ultimo aggiornamento: 2022-12-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -10,12 +10,11 @@ import argparse
 import re
 import collections
 from babel.messages import pofile
-import translators as ts
 from openpyxl import load_workbook, Workbook
 
 # from python_plus import unicodes
 
-__version__ = "2.0.2.1"
+__version__ = "2.0.3"
 
 
 MODULE_SEP = "\ufffa"
@@ -65,6 +64,8 @@ class OdooTranslation(object):
     """ """
 
     def __init__(self, opt_args):
+        import translators as ts
+        self.ts = ts
         self.opt_args = opt_args
         self.dict = {}
         if (
@@ -312,7 +313,7 @@ class OdooTranslation(object):
                 fulltermhk_orig = fullterm_orig
                 if isinstance(tok_tnxl, (list, tuple)):
                     term_tnxl = self.get_hash_key(
-                    "".join(tok_tnxl), True, module=module)[0]
+                        "".join(tok_tnxl), True, module=module)[0]
                     if (
                         action == "build_dict"
                         and hkey not in self.dict
@@ -384,14 +385,17 @@ class OdooTranslation(object):
                 fullterm_2_store = True
             if fullterm_orig.lower() == fullterm_tnxl or not fullterm_tnxl:
                 if not re.search(self.re_tag, fullterm_orig):
-                    # Use Google translator
-                    fullterm_tnxl = self.adjust_case(
-                        fullterm_orig,
-                        ts.google(fullterm_orig,
-                                  from_language='en',
-                                  to_language=self.opt_args.lang[:2],
-                                  timeout=5))
-                    sleep(0.2)
+                    try:
+                        # Use Google translator
+                        fullterm_tnxl = self.adjust_case(
+                            fullterm_orig,
+                            self.ts.google(fullterm_orig,
+                                           from_language='en',
+                                           to_language=self.opt_args.lang[:2],
+                                           timeout=5))
+                        sleep(0.2)
+                    except BaseException:
+                        pass
                 return self.store_1_item(
                     hash_key, fullterm_orig, fullterm_tnxl, override=override)
             elif fullterm_orig and fullterm_2_store:

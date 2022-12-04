@@ -1,5 +1,5 @@
-2.0.2.2 (2022-11-08)
-~~~~~~~~~~~~~~~~~~~~
+2.0.3 (2022-11-08)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] npm management
 * [IMP] compute_date: refdate may be a string

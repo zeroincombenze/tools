@@ -3,7 +3,7 @@
 # Manage virtual environment
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # -----------------------------------------------------------------------------
 # PIP features truth table depending on pip version (21.0 + only python3):
@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2.2
+__version__=2.0.3
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"

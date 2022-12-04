@@ -1,5 +1,5 @@
 #! /bin/bash
-# Copyright (C) 2015-2022 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2.2
+__version__=2.0.3
 
 OS_TREE="10.0 10.0/l10n-italy 10.0/l10n-italy/l10n_it_base /tmp/zerobug"
 

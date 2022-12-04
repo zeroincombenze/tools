@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.1.2
+"""Test Environment v2.0.2
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -44,6 +44,7 @@ For furthermore information, please:
 * Visit https://github.com/zeroincombenze/tools
 """
 from __future__ import unicode_literals
+from future.utils import PY2, PY3
 from past.builtins import basestring, long
 
 # import sys
@@ -60,11 +61,20 @@ from z0bug_odoo import z0bug_odoo_lib
 _logger = logging.getLogger(__name__)
 
 RESOURCE_WO_COMPANY = ("res.users",)
+if PY3:
+    text_type = unicode = str
+    bytestr_type = bytes
+elif PY2:
+    # unicode exist only for python2
+    text_type = unicode
+    bytestr_type = str
 
 
 class MainTest(SingleTransactionCase):
     def setUp(self):
         super(MainTest, self).setUp()
+        self.debug_level = 0
+        self.PYCODESET = 'utf-8'
         self._logger = _logger
         self.setup_data_list = {}
         self.setup_data = {}
@@ -76,6 +86,25 @@ class MainTest(SingleTransactionCase):
         self.childs_resource = {}
         self.uninstallable_modules = []
         self.tnxl_record = {}
+
+    def u(self, s):
+        if isinstance(s, bytestr_type):
+            if PY3:
+                return s.decode(self.PYCODESET)
+            return unicode(s, self.PYCODESET)
+        return s
+
+    def unicodes(self, src):
+        if isinstance(src, dict):
+            src2 = src.copy()
+            for x in src2.keys():
+                if isinstance(x, bytestr_type):
+                    del src[x]
+                src[self.u(x)] = self.u(src2[x])
+        elif isinstance(src, (list, tuple)):
+            for i, x in enumerate(src):
+                src[i] = self.u(x)
+        return src
 
     def default_company(self):
         return self.env.user.company_id
@@ -133,32 +162,53 @@ class MainTest(SingleTransactionCase):
         return python_plus.compute_date(date, refdate=refdate)
 
     def _search4parent(self, resource, parent_resource=None):
-        parent_resource = parent_resource or ".".join(resource.split(".")[:-1])
+        if resource == "product.product":
+            parent_resource = "product.template"
+        else:
+            parent_resource = parent_resource or ".".join(resource.split(".")[:-1])
         if parent_resource not in self.env:
             parent_resource = None
-        if parent_resource:
+        if parent_resource and resource not in self.parent_resource:
             for field in self.struct[resource].keys():
                 if self.struct[resource][field].get("relation", "/") == parent_resource:
                     self.parent_name[resource] = field
                     self.parent_resource[resource] = parent_resource
+                    if self.debug_level > 1:
+                        self._logger.info(
+                            "🐞 parent_resource[%s] = %s" % (
+                                resource, self.parent_resource[resource])
+                        )
+                        self._logger.info(
+                            "🐞 parent_name[%s] = %s" % (resource, field)
+                        )
                     break
 
     def _search4childs(self, resource, childs_resource=None):
+        childs_resource = childs_resource or []
         if not childs_resource:
-            childs_resource = [
-                resource + ".line",
-                resource + ".rate",
-                resource + ".state",
-            ]
+            if resource == "product.template":
+                childs_resource = ["product.product"]
+            else:
+                for suffix in (".line", ".rate", ".state"):
+                    childs_resource.append(resource + suffix)
         if not isinstance(childs_resource, (list, tuple)):
             childs_resource = [childs_resource]                      # pragma: no cover
-        for field in self.struct[resource].keys():
-            if self.struct[resource][field].get("relation", "/") in childs_resource:
-                self.childs_name[resource] = field
-                self.childs_resource[resource] = self.struct[resource][field][
-                    "relation"
-                ]
-                break
+        if resource not in self.childs_resource:
+            for field in self.struct[resource].keys():
+                if self.struct[resource][field].get("relation", "/") in childs_resource:
+                    self.childs_name[resource] = field
+                    self.childs_resource[resource] = self.struct[resource][field][
+                        "relation"
+                    ]
+                    if self.debug_level > 1:
+                        self._logger.info(
+                            "🐞 childs_resource[%s] = %s" % (
+                                resource, self.childs_resource[resource])
+                        )
+                        self._logger.info(
+                            "🐞 childs_name[%s] = %s" % (resource, field)
+                        )
+                    break
 
     def _load_field_struct(self, resource):
         """Load Odoo field definition"""
@@ -180,6 +230,7 @@ class MainTest(SingleTransactionCase):
                 "code",
                 "code_prefix",
                 "acc_number",
+                "default_code",
                 "login",
                 "description",
                 "depreciation_type_id",
@@ -202,6 +253,10 @@ class MainTest(SingleTransactionCase):
                     continue                                         # pragma: no cover
                 if field in self.struct[resource]:
                     self.skeys[resource] = [field]
+                    if self.debug_level > 1:
+                        self._logger.info(
+                            "🐞 skeys[%s] = %s" % (resource, self.skeys[resource])
+                        )
                     break
 
     def _add_xref(self, xref, xid, resource):
@@ -239,7 +294,7 @@ class MainTest(SingleTransactionCase):
             res = res.id if res else False if fmt else xref
         return res
 
-    def _cast_2many(self, resource, value, fmt=None):
+    def _cast_2many(self, resource, value, fmt=None, group=None):
         """"One2many and many2many may have more representations:
         * External reference (str) -> 1 value or None
         * list() or list (str)
@@ -283,7 +338,11 @@ class MainTest(SingleTransactionCase):
                         item[0],
                         item[1],
                         self.cast_types(
-                            resource, self.get_resource_data(resource, item[2]), fmt=fmt
+                            resource,
+                            self.get_resource_data(
+                                resource, item[2], group=group),
+                            fmt=fmt,
+                            group=group
                         ),
                     )
                 )
@@ -316,7 +375,7 @@ class MainTest(SingleTransactionCase):
             ):
                 res.append(item)
             elif isinstance(item, (list, tuple)):
-                res.append(self._cast_2many(resource, item))
+                res.append(self._cast_2many(resource, item, group=group))
                 is_cmd = False
             else:
                 res.append(item)
@@ -326,6 +385,7 @@ class MainTest(SingleTransactionCase):
                 res = [(6, 0, res)]
         else:
             res = False
+            self._logger.info("⚠ No *2many value for %s.%s" % (resource, value))
         return res
 
     def _check_4_selection(self, resource, field, value, fmt=None):
@@ -335,7 +395,7 @@ class MainTest(SingleTransactionCase):
                 value = None
         return value
 
-    def _add_child_records(self, resource, xref, values):
+    def _add_child_records(self, resource, xref, values, group=None):
         if resource not in self.childs_name:
             return values
         field = self.childs_name[resource]
@@ -343,10 +403,10 @@ class MainTest(SingleTransactionCase):
             return values
         values[field] = []
         childs_resource = self.childs_resource[resource]
-        for child_xref in self.get_resource_data_list(childs_resource):
+        for child_xref in self.get_resource_data_list(childs_resource, group=group):
             if child_xref.startswith(xref):
                 obj = self.resource_bind(
-                    child_xref, raise_if_not_found=False, resource=childs_resource
+                    child_xref, raise_if_not_found=False, resource=childs_resource,
                 )
                 if obj:
                     values[field].append((1, obj.id, child_xref))
@@ -354,7 +414,33 @@ class MainTest(SingleTransactionCase):
                     values[field].append((0, 0, child_xref))
         return values
 
-    def cast_types(self, resource, values, fmt=None):
+    def _get_depending_xref(self, resource, xref):
+        resource_child = xref_child = field_child = field_parent = False
+        if resource == "product.template":
+            xref_child = xref.replace("_template", "_product")
+            if xref_child == xref:
+                xref_child = xref.replace("template_", "product_")
+            if xref_child == xref:
+                xref_child = xref.replace("template", "product")
+            if xref_child == xref:
+                self._logger.info(
+                    (
+                        "⚠ wrong xref pattern '%s':"
+                        " please use something like 'z0bug.product_template_1"
+                    ) % xref
+                )
+                xref_child = False
+            else:
+                self._logger.info(
+                    "xref ('product.template') '%s' -> ('product.product') '%s'"
+                    % (xref, xref_child)
+                )
+                resource_child = self.childs_resource[resource]
+                field_child = self.childs_name[resource]
+                field_parent = "product_tmpl_id"
+        return resource_child, xref_child, field_child, field_parent
+
+    def cast_types(self, resource, values, fmt=None, group=None):
         self._load_field_struct(resource)
         for field in [x for x in values.keys()]:
             values[field] = self.tnxl_field_value(
@@ -362,10 +448,18 @@ class MainTest(SingleTransactionCase):
             value = values[field]
             if value is None or value in ("None", r"\N") or field == "id":
                 del values[field]
+                if self.debug_level > 1:
+                    self._logger.info(
+                        "🐞 del %s.vals[%s]" % (resource, field)
+                    )
                 continue
             if field not in self.struct[resource]:
                 if fmt:
                     del values[field]
+                    if self.debug_level > 1:
+                        self._logger.info(
+                            "🐞 field %s does not exist in %s" % (field, resource)
+                        )
                 continue
             ftype = self.struct[resource][field]["type"]
             if field == "company_id":
@@ -399,29 +493,57 @@ class MainTest(SingleTransactionCase):
                 )
                 if not values[field]:
                     del values[field]
+                    if self.debug_level > 1:
+                        self._logger.info(
+                            "🐞 no value for %s.%s" % (resource, field)
+                        )
                     continue
             elif ftype in ("one2many", "many2many"):
                 values[field] = self._cast_2many(
-                    self.struct[resource][field]["relation"], value, fmt=fmt
+                    self.struct[resource][field]["relation"],
+                    value,
+                    fmt=fmt,
+                    group=group
                 )
+                if not values[field]:
+                    del values[field]
+                    if self.debug_level > 1:
+                        self._logger.info(
+                            "🐞 no value for %s.%s" % (resource, field)
+                        )
+                    continue
             elif ftype == "selection":
                 values[field] = self._check_4_selection(resource, field, value, fmt=fmt)
                 if not values[field]:
                     del values[field]
+                    if self.debug_level > 1:
+                        self._logger.info(
+                            "🐞 no value for %s.%s" % (resource, field)
+                        )
                     continue
             values[field] = self.tnxl_field_value(
                 resource, field, values[field], fmt=fmt)
+        if self.debug_level > 1 and not values:
+            self._logger.info(
+                "🐞 cast_type(%s, %s) -> null" % (resource, values)
+            )
         return values
 
     def store_resource_data(self, resource, xref, values, group=None, name=None):
-        group = group or "base"
-        name = name or resource
+        group = self.u(group) or "base"
+        name = self.u(name) or self.u(resource)
         if group not in self.setup_data_list:
             self.setup_data_list[group] = []
             self.setup_data[group] = {}
         if name not in self.setup_data[group]:
             self.setup_data[group][name] = {}
-        self.setup_data[group][name][xref] = self.cast_types(resource, values)
+        self.setup_data[group][name][xref] = self.cast_types(
+            resource, values, group=group)
+        if self.debug_level > 1:
+            self._logger.info(
+                "🐞 Ext.Ref. %s stored for %s as %s (%s)" % (
+                    xref, resource, name, group)
+            )
         if name not in self.setup_data_list[group]:
             self.setup_data_list[group].append(name)
 
@@ -480,6 +602,8 @@ class MainTest(SingleTransactionCase):
                 if not x:
                     return False
                 x = eval(x)
+            if self.struct[resource][self.skeys[resource][0]]["type"] == "many2one":
+                pass
             domain = [(self.skeys[resource][0], "=", x)]
             x = self.resource_bind(
                 "%s.%s" % (module, name),
@@ -505,17 +629,17 @@ class MainTest(SingleTransactionCase):
             raise ValueError("External ID %s not found" % xref)      # pragma: no cover
         return False
 
-    def resource_create(self, resource, values=None, xref=None):
+    def resource_create(self, resource, values=None, xref=None, group=None):
         """Create a test record and set external ID to next tests"""
         self._load_field_struct(resource)
         if not values and xref:
-            values = self.get_resource_data(resource, xref)
-            values = self._add_child_records(resource, xref, values)
+            values = self.get_resource_data(resource, xref, group=group)
+            values = self._add_child_records(resource, xref, values, group=group)
         if not values:
             raise ValueError(                                        # pragma: no cover
                 "No value supplied for %s create" % resource         # pragma: no cover
             )                                                        # pragma: no cover
-        values = self.cast_types(resource, values, fmt="cmd")
+        values = self.cast_types(resource, values, fmt="cmd", group=group)
         if resource.startswith("account.move"):
             res = (
                 self.env[resource]
@@ -526,32 +650,44 @@ class MainTest(SingleTransactionCase):
             res = self.env[resource].create(values)
         if self._is_xref(xref):
             self._add_xref(xref, res.id, resource)
-            self.store_resource_data(resource, xref, values)
+            self.store_resource_data(resource, xref, values, group=group)
+            (
+                resource_child, xref_child, field_child, field_parent
+            ) = self._get_depending_xref(resource, xref)
+            if resource_child and xref_child:
+                self._add_xref(
+                    xref_child, getattr(res, field_child)[0].id, resource_child)
+                values_child = {k: v for (k, v) in values.items()}
+                values_child[field_parent] = res.id
+                self.store_resource_data(
+                    resource_child, xref_child, values_child, group=group)
         return res
 
-    def resource_write(self, resource, xref, values=None, raise_if_not_found=True):
+    def resource_write(
+        self, resource, xref, values=None, raise_if_not_found=True, group=None
+    ):
         """Update a test record with external"""
         obj = self.resource_bind(
             xref, resource=resource, raise_if_not_found=raise_if_not_found
         )
         if obj:
             if not values:
-                values = self.get_resource_data(resource, xref)
-            values = self._add_child_records(resource, xref, values)
-            values = self.cast_types(resource, values, fmt="cmd")
+                values = self.get_resource_data(resource, xref, group=group)
+            values = self._add_child_records(resource, xref, values, group=group)
+            values = self.cast_types(resource, values, fmt="cmd", group=group)
             if resource.startswith("account.move"):
                 obj.with_context(check_move_validity=False).write(values)
             else:
                 obj.write(values)
         return obj
 
-    def resource_make(self, resource, xref, values=None):
+    def resource_make(self, resource, xref, values=None, group=None):
         """Create or write a test record and set external ID to next tests"""
         obj = self.resource_write(
-            resource, xref, values=values, raise_if_not_found=False
+            resource, xref, values=values, raise_if_not_found=False, group=group
         )
         if not obj:
-            obj = self.resource_create(resource, values=values, xref=xref)
+            obj = self.resource_create(resource, values=values, xref=xref, group=group)
         return obj
 
     def declare_resource_data(self, resource, data, name=None, group=None, merge=None):
@@ -570,12 +706,14 @@ class MainTest(SingleTransactionCase):
             raise TypeError("Dictionary expected")                   # pragma: no cover
         if merge and merge != "zerobug":
             raise ValueError("Invalid merge value: use 'zerobug'")   # pragma: no cover
-        for xref in data.keys():
+        data = self.unicodes(data)
+        for xref in sorted(data.keys()):
             if merge == "zerobug":
                 zerobug = z0bug_odoo_lib.Z0bugOdoo().get_test_values(resource, xref)
                 for field in zerobug.keys():
                     if field not in data[xref]:
                         data[xref][field] = zerobug[field]
+            data[xref] = self.unicodes(data[xref])
             self.store_resource_data(resource, xref, data[xref], group=group, name=name)
 
     def declare_all_data(self, message, group=None, merge=None):
@@ -601,6 +739,10 @@ class MainTest(SingleTransactionCase):
             if item not in message:
                 raise TypeError("Key %s not found" % item)           # pragma: no cover
         for resource in message["TEST_SETUP_LIST"]:
+            if self.debug_level:
+                self._logger.info(
+                    "🐞 declare_all_data(%s, %s)" % (resource, group)
+                )
             item = "TEST_%s" % resource.upper().replace(".", "_")
             self.declare_resource_data(
                 resource, message[item], group=group, merge=merge
@@ -687,7 +829,7 @@ class MainTest(SingleTransactionCase):
             vals = {"lang": iso}
             self.env["base.update.translations"].create(vals).act_update()
 
-    def _adjust_test_data(self):
+    def _adjust_test_data(self, group=None):
         for (debug_xref, tnxl_xref) in (
             ("z0bug.partner_mycompany", "base.main_company"),
         ):
@@ -704,12 +846,12 @@ class MainTest(SingleTransactionCase):
              ("state", "=", "installed")]
         ):
             resource = "account.payment.term.line"
-            for xref in self.get_resource_data_list(resource):
-                values = self.get_resource_data(resource, xref)
+            for xref in self.get_resource_data_list(resource, group=group):
+                values = self.get_resource_data(resource, xref, group=group)
                 if values.get("months"):
                     values["days"] = values["months"] * 30 - 2
                     values["months"] = ""
-                self.store_resource_data(resource, xref, values)
+                self.store_resource_data(resource, xref, values, group=group)
 
     def setup_env(
         self,
@@ -731,7 +873,7 @@ class MainTest(SingleTransactionCase):
             self.set_locale(locale)
         if lang:
             self.install_language(lang)
-        self._adjust_test_data()
+        self._adjust_test_data(group=group)
         for resource in self.get_resource_list(group=group):
             for xref in self.get_resource_data_list(resource, group=group):
                 self.resource_make(resource, xref)
