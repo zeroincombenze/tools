@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='travis_emulator',
-    version='2.0.2',
+    version='2.0.3',
     description='Travis CI emulator for local develop environment',
     long_description="""
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine.
@@ -64,11 +64,18 @@ Read furthermore info read `travis-ci phase
     license='Affero GPL',
     install_requires=['z0lib', 'future'],
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-    package_data={'': ['scripts/setup.info', './travis', './travisrc', './travis.man']},
+    package_data={'': [
+        'scripts/setup.info',
+        './template_travis.yml',
+        './travis',
+        './travisrc',
+        './travis.man'
+    ]},
     entry_points={
         'console_scripts': [
             'travis_emulator-info = travis_emulator.scripts.main:main',
             # 'travis = travis_emulator.scripts.travis:main',
+            'make_travis_conf = travis_emulator.make_travis_conf:make_travis_conf',
         ]
     },
     zip_safe=False,

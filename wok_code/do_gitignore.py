@@ -20,27 +20,27 @@ def do_create_gitignore(path, submodules):
         return 2
     target = ''
     with open(template, 'r') as fd:
-        trig = False
+        trig = ""
         for line in fd.read().split('\n'):
-            if line in (
-                '/addons_kalamitica',
-                '/coverage',
-                '/generic',
-                '/nardo_modules',
-                '/venv_odoo'
-            ):
-                found = True
-            else:
-                found = False
-            if trig and not found:
+            found = line.startswith("!")
+            if trig == "odoo":
                 for x in submodules:
                     if x == line:
                         found = True
                         break
+            elif trig == "pypi":
+                if (
+                    "/docs/_build/" not in line
+                    and ".egg-info/" not in line
+                    and os.path.join(*[path] + [x for x in line.split("/") if x])
+                ):
+                    found = True
             if not trig or found:
                 target += ('%s\n' % line)
             if line.startswith('# odoo repositories'):
-                trig = True
+                trig = "odoo"
+            if line.startswith("# tools building path"):
+                trig = "pypi"
     if target:
         ffn = os.path.join(path, '.gitignore')
         bakfile = '%s~' % ffn
@@ -70,10 +70,18 @@ def main(argv):
             return 1
         submodules = []
         for fn in os.listdir(path):
+            if fn in (
+                'addons_kalamitica',
+                'coverage',
+                'generic',
+                'nardo_modules',
+                'venv_odoo'
+            ):
+                submodules.append('/%s' % fn)
+                continue
             ffn = os.path.join(path, fn)
             if os.path.isdir(os.path.join(ffn, '.git')):
-                if os.path.join(ffn, '.git'):
-                    submodules.append('/%s' % fn)
+                submodules.append('/%s' % fn)
         return do_create_gitignore(path, submodules)
     else:
         print('Path %s does not exist!' % sys.argv[0])

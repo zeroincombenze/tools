@@ -73,6 +73,7 @@ def run_traced(cmd, verbose=None, dry_run=None):
         return sts, prcout, prcerr
 
     def sh_cd(args):
+        sts = 0
         tgtdir = args[1] if len(args) > 1 else os.environ["HOME"]
         if os.path.isdir(tgtdir):
             sts = os.chdir(tgtdir)
@@ -311,30 +312,9 @@ class parseoptargs(object):
                 valid = True
         return this_fqn
 
-    # def create_params_dict(self, ctx):
-    #     """Create all params dictionary"""
-    #     ctx = self.create_def_params_dict(ctx)
-    #     return ctx
     def create_params_dict(self, ctx):
         """Create default params dictionary"""
         opt_obj = ctx.get('_opt_obj', None)
-        # conf_obj = ctx.get('_conf_obj', None)
-        # s = "options"
-        # if conf_obj:                                       # pragma: no cover
-        #     if not conf_obj.has_section(s):
-        #         conf_obj.add_section(s)
-        #     for p in LX_CFG_S:
-        #         ctx[p] = conf_obj.get(s, p)
-        #     for p in LX_CFG_B:
-        #         ctx[p] = conf_obj.getboolean(s, p)
-        # else:
-        #     DEFDCT = self.default_conf(ctx)
-        #     for p in LX_CFG_S:
-        #         if p in DEFDCT:
-        #             ctx[p] = DEFDCT[p]
-        #     for p in LX_CFG_B:
-        #         if p in DEFDCT:
-        #             ctx[p] = DEFDCT[p]
         if opt_obj:
             for p in self.param_list:
                 ctx[p] = getattr(opt_obj, p)
@@ -413,6 +393,4 @@ class parseoptargs(object):
                 ctx[p] = 1
             else:
                 ctx[p] = 0
-        # elif p in ctx and ctx[p] == -1:
-        #     ctx[0] = 0
         return ctx

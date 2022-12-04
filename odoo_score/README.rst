@@ -1,6 +1,6 @@
 
 ================
-odoo_score 2.0.2
+odoo_score 2.0.3
 ================
 
 
@@ -150,10 +150,16 @@ Current development version
 History
 -------
 
+2.0.3 (2022-11-11)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug: test function improvements
+* [IMP] run_odoo_debug: ODOO_COMMIT_TEST
 
 2.0.1.1 (2022-10-13)
 ~~~~~~~~~~~~~~~~~~~~
@@ -213,7 +219,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-22
+Last Update / Ultimo aggiornamento: 2022-11-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

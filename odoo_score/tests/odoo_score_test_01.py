@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2018-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -12,7 +12,7 @@ import sys
 
 from zerobug import z0test
 
-__version__ = '2.0.2'
+__version__ = '2.0.3'
 
 MODULE_ID = 'odoo_score'
 TEST_FAILED = 1

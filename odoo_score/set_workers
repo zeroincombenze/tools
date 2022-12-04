@@ -2,7 +2,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -41,7 +41,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.3
 
 
 evaluate_params() {
@@ -162,7 +162,7 @@ fi
 [[ $opt_verbose -eq -1 ]] && opt_verbose=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Update Odoo configuration file to best performance"\
-  "(C) 2018-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2018-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 discover_multi

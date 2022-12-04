@@ -1,3 +1,14 @@
+2.0.3 (2022-11-08)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] npm management
+* [IMP] compute_date: refdate may be a string
+
+2.0.2.1 (2022-11-01)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Ensure coverage 5.0+
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 

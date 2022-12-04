@@ -39,7 +39,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.3
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -90,6 +90,7 @@ coverage_set() {
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
       cp $coverage_tmpl $COVERAGE_PROCESS_START
       grep -Eq "^data_file *=" $COVERAGE_PROCESS_START || sed -E "/^\[run\]/a\\\ndata_file=$COVERAGE_DATA_FILE\n" -i $COVERAGE_PROCESS_START
+      [[ $PKGNAME == "mk_test_env" || $REPOSNAME == "zerobug-test"  ]] && sed -e "/\/tests\//d" -i $COVERAGE_PROCESS_START
     fi
 }
 
@@ -188,7 +189,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Run odoo for debug mode" \
-        "(C) 2015-2022 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2023 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
 
@@ -208,8 +209,14 @@ if [[ -n $opt_conf ]]; then
         [[ -x $p/../odoo-bin || -x $p/../openerp-server ]] && odoo_root=$(readlink -f $p/..) && break
     done
     check_path_n_branch "$odoo_root" "$opt_branch"
-    REPOSNAME=""
-    PKGNAME=""
+    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -name $opt_modules)
+    if [[ -n $opt_odir ]]; then
+      PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
+      REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
+    else
+      REPOSNAME=""
+      PKGNAME=""
+    fi
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$odoo_root")
 elif [[ -n $opt_odir ]]; then
     [[ ! -d $opt_dir ]] && echo "Path $opt_dir not found!" && exit 1
@@ -295,10 +302,10 @@ if [[ $opt_test -ne 0 ]]; then
     opt_upd=0 opt_stop=1
     opt_xtl=1
     [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
-    [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}"
-    [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}"
+    [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}" && drop_db=1
+    [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}" && drop_db=0
     create_db=1
-    [[ $opt_keep -eq 0 ]] && drop_db=1 || drop_db=0
+    # [[ $opt_keep -eq 0 ]] && drop_db=1 || drop_db=0
     [[ ! -d $ODOO_ROOT/travis_log ]] && run_traced "mkdir $ODOO_ROOT/travis_log"
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
@@ -476,6 +483,8 @@ if [[ $opt_touch -eq 0 ]]; then
       fi
     fi
 
+    [[ $opt_keep -ne 0 ]] && export ODOO_COMMIT_TEST="1"
+    [[ $opt_keep -eq 0 && -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
     if [[ $create_db -gt 0 ]]; then
         [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
         if [[ -n "$depmods" && $opt_test -ne 0 ]]; then
@@ -549,6 +558,7 @@ if [[ $opt_touch -eq 0 ]]; then
         [[ $opt_dry_run -eq 0 ]] && deactivate
     fi
     [[ $opt_test -ne 0 && -f $FULL_LCONFN ]] && rm -f FULL_LCONFN
+    [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
     if [[ $drop_db -gt 0 ]]; then
         if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
             [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"

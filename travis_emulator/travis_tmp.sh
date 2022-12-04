@@ -13,7 +13,7 @@ echo cd $V
 cd $V
 rm -f $V/*.log
 for v in 15.0 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
-  m=$(echo $v|grep -Eo [0-9]+|head -n1)
+  m=$(echo $v|grep --color=never -Eo '[0-9]+'|head -n1)
   for x in '' VENV OCB oca odoo ODOO v V powerp librerp; do
     [[ -d $V/${x}$v ]] && rm -fR $V/${x}$v
     [[ -d $V/${x}$m ]] && rm -fR $V/${x}$m

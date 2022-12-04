@@ -3,7 +3,7 @@
 # Manage virtual environment
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # -----------------------------------------------------------------------------
 # PIP features truth table depending on pip version (21.0 + only python3):
@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.3
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -220,8 +220,7 @@ get_req_list() {
 bin_install() {
   # bin_install(pkg)
   [[ $opt_verbose -gt 2 ]] && echo ">>> bin_install($*)"
-  local x FH DISTO
-  local reqver size
+  local NPM reqver size x FH DISTO
   [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
   local MACHARCH=$(xuname -m)
   [[ -n $opt_distro ]] && DISTO=${opt_distro,,} || DISTO=$(xuname -d)
@@ -240,13 +239,14 @@ bin_install() {
           [[ $DISTO =~ ^debian ]] && echo "apt install npm"
           ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         else
-          [[ ! -f package-lock.json ]] && run_traced "npm init -y"
+          [[ $opt_gbl -ne 0 ]] && NPM="npm -g" || NPM="npm"
+          [[ $NPM == "npm" && ! -f package-lock.json ]] && run_traced "$NPM init -y"
           [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
           pkg=${pkg/==/@}
           pkg=$(echo $pkg | tr -d "'")
-          run_traced "npm install \"$pkg\""
-          run_traced "npm install less-plugin-clean-css"
-          x=$(find $(npm bin) -name lessc 2>/dev/null)
+          run_traced "$NPM install \"$pkg\""
+          run_traced "$NPM install less-plugin-clean-css"
+          x=$(find $($NPM bin) -name lessc 2>/dev/null | head -n1)
         fi
         [[ -n "$x" ]] && run_traced "ln -s $x $VENV/bin" || ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       fi
@@ -1203,12 +1203,12 @@ validate_py_oe_vers() {
 }
 
 
-OPTOPTS=(h        a        B         C      D       d        E          f         F      k        I           i         l        n           O         o          p         q           r           s                    t          V           v           y)
-OPTLONG=(help     ""       ""        ""     devel   dep-path distro     force     ""     keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose     yes)
-OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_deps opt_distro opt_force opt_FH opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose opt_yes)
-OPTACTI=('+'      "="      "+"       1      1       "="      "="        1         "="    1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+"         1)
-OPTDEFL=(1        ""       0         0      0       ""       ""         0         ""     0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1          0)
-OPTMETA=("help"   "list"   ""        ""     ""      "paths"  "distro"   ""        "name" ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose"   "")
+OPTOPTS=(h        a        B         C      D       d        E          f         F      g       k        I           i         l        n           O         o          p         q           r           s                    t          V           v           y)
+OPTLONG=(help     ""       ""        ""     devel   dep-path distro     force     ""     global  keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose     yes)
+OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_deps opt_distro opt_force opt_FH opt_gbl opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose opt_yes)
+OPTACTI=('+'      "="      "+"       1      1       "="      "="        1         "="    1       1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+"         1)
+OPTDEFL=(1        ""       0         0      0       ""       ""         0         ""     0       0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1          0)
+OPTMETA=("help"   "list"   ""        ""     ""      "paths"  "distro"   ""        "name" ""      ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose"   "")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
   "use unstable packages: -B testpypi / -BB from ~/tools / -BBB from ~/pypi / -BBBB link to local ~/pypi"
@@ -1218,6 +1218,7 @@ OPTHELP=("this help"
   "simulate Linux distro: like Ubuntu20 Centos7 etc (requires -n switch)"
   "force v.environment create, even if exists or inside another virtual env"
   "simulate Linux family: may be RHEL or Debian (requires -n switch)"
+  "install npm packages globally"
   "keep python2 executable as python (deprecated)"
   "run pip in an isolated mode and set home virtual directory"
   "run pip in an isolated mode, ignoring environment variables and user configuration"

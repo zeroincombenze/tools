@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.3
 
 
 run_traced() {
@@ -225,7 +225,7 @@ set_pythonpath() {
           export PYTHONPATH=${x//::/:}
         fi
       done
-      [ "${PYTHONPATH:0:1}" == ":" ] && export $PYTHONPATH=${PYTHONPATH:1}
+      [[ ${PYTHONPATH:0:1} == ":" ]] && export $PYTHONPATH=${PYTHONPATH:1}
     fi
     if [[ -n "$FSITE" && -f $FSITE && -w $PYLIB ]]; then
       if [[ -f $PYLIB/sitecustomize.py ]]; then
@@ -241,34 +241,6 @@ set_pythonpath() {
     fi
   fi
 }
-
-#check_pythonpath() {
-#  # check_pythonpath(path python)
-#  local TOOLS_PATH="${1//,/ }"
-#  TOOLS_PATH="${TOOLS_PATH//:/ }"
-#  local PYTHON=${2:-python}
-#  local PYVER=$(${PYTHON} --version 2>&1 | grep --color=never -Eo "[0-9]+" | head -n1)
-#  local pth PYLIB
-#  for pth in $TOOLS_PATH; do
-#    if [[ $PYVER -eq 2 ]]; then
-#      echo -e "import sys\nfor x in sys.path:\n  print x," | $PYTHON | grep -q " $pth "
-#    else
-#      echo -e "import sys\nfor x in sys.path:\n  print(x,end=' ')" | $PYTHON | grep -q " $pth "
-#    fi
-#    if [[ $? -ne 0 ]]; then
-#      echo "Warning: sitecustomize.py without effect! Use PYTHONPATH method"
-#      [[ -n "$PYTHONPATH" ]] && export PYTHONPATH=$PYTHONPATH:$pth
-#      [[ -z "$PYTHONPATH" ]] && export PYTHONPATH=$pth
-#    fi
-#  done
-#  if [[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]]; then
-#    if [[ $PYVER -eq 2 ]]; then
-#      echo -e "import sys\nprint 'sys.path=%s' % sys.path\n" | $PYTHON
-#    else
-#      echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | $PYTHON
-#    fi
-#  fi
-#}
 
 install_n_activate_tools() {
     local x
@@ -303,7 +275,20 @@ cp_coveragerc() {
   run_traced "cp ${HOME}/tools/zerobug/_travis/cfg/coveragerc ./.coveragerc"
   run_traced "sed -Ee \"s|^#? *..TRAVIS_BUILD_DIR./|    $TRAVIS_BUILD_DIR/|\" -i ./.coveragerc"
   run_traced "sed -e \"s|^ *\*.py\$|#&|\" -i ./.coveragerc"
+  [[ $PKGNAME == "mk_test_env" || $REPO_NAME == "zerobug-test" ]] && run_traced "sed -e "/\/tests\//d" -i ./.coveragerc"
 }
+
+coverage_ensure_installed() {
+    cov=$(which coverage 2>/dev/null)
+    [[ -z $cov || ! $cov =~ $HOME ]] && run_traced "pip install \"coverage>=5.0\""
+    cov=$(which coverage 2>/dev/null)
+    if [[ -n $cov ]]; then
+      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
+      [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
+    fi
+}
+
+
 
 OPTOPTS=(h        b          j        K        H           n            q           T       t          V           v)
 OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_humdrum opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
@@ -330,7 +315,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Install packages to run travis tests\n if supplied 'oca' executes travis_install_nightly" \
-    "(C) 2016-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "(C) 2016-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -368,8 +353,7 @@ fi
 export MQT_TEST_MODE=$mode
 set_pybin $TRAVIS_PYTHON_VERSION
 install_n_activate_tools
-[[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]] && echo "PATH=$PATH"
-[[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]] && echo "PYTHONPATH=$PYTHONPATH"
+[[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ]] && echo "PATH=$PATH" && echo "PYTHONPATH=$PYTHONPATH"
 [[ $PIPVER -gt 18 ]] && PIP_OPTS="$PIP_OPTS --no-warn-conflicts"
 [[ $PIPVER -gt 19 ]] && PIP_OPTS="$PIP_OPTS --use-feature=2020-resolver"
 LISTREQ=$(which list_requirements.py 2>/dev/null)
@@ -399,10 +383,13 @@ for p in build-essential libssl-dev libffi-dev; do
   [[ $? -ne 0 ]] && run_traced "$LISA install $p" "nolocal"
 done
 if [[ $TRAVIS != "false" ]]; then
-  for p in urllib3[secure] cryptography pyOpenSSL idna certifi; do
+  for p in urllib3[secure] cryptography idna certifi; do
     run_traced "$VEM update \"$p\"" "nolocal"
   done
+  [[ "$MQT_TEST_MODE" == "tools" ]] && run_traced "$VEM update \"pyOpenSSL\"" "nolocal"
+  coverage_ensure_installed
 fi
+
 [[ -z "${VERSION}" ]] && VERSION="$opt_branch"
 [[ -z "${ODOO_BRANCH}" ]] && export ODOO_BRANCH=${VERSION}
 : ${MQT_TEMPLATE_DB:="template_odoo"}
@@ -449,8 +436,8 @@ else
     fi
     echo -e "\e[${PS_HDR3_COLOR}m### Build Test Environment\e[${PS_TXT_COLOR}m"
     run_traced "$PIP install $PIP_OPTS --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git" "nolocal" # To use last version ever
-    if [[ $TRAVIS =~ (true|emulate) ]]; then
-      run_traced "npm install -g eslint"
+    if [[ $TRAVIS =~ (true|emulate) || -n $npm_config_prefix ]]; then
+      run_traced "npm -g install eslint"
     else
       run_traced "npm install eslint"
     fi
@@ -465,9 +452,9 @@ else
         run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/node"
         [[ $opt_verbose -gt 0 ]] && echo "3> node version: $(node --version)"
       fi
-      if [[ $TRAVIS =~ (true|emulate) ]]; then
-        run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
-        x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
+      if [[ $TRAVIS =~ (true|emulate) || -n $npm_config_prefix ]]; then
+        run_traced "npm -g install less@3.0.4 less-plugin-clean-css"
+        x=$(find $(npm -g bin -g 2>/dev/null) -name lessc 2>/dev/null)
         [[ -n "$x" ]] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
       else
         run_traced "npm install less@3.0.4 less-plugin-clean-css"
@@ -511,7 +498,7 @@ else
         run_traced "google-chrome --version"
       fi
     fi
-    if [[ "$PKGNAME" == "OCB" ]]; then
+    if [[ $PKGNAME == "OCB" ]]; then
       echo -e "\e[${PS_HDR3_COLOR}m### Tested repository is OCB\e[${PS_TXT_COLOR}m"
       if [[ $TRAVIS =~ (true|emulate) ]]; then
         run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
@@ -533,15 +520,16 @@ else
       echo "- Error cloning dependencies"
       exit $sts
     fi
-    if [[ "$PKGNAME" == "OCB" ]]; then
+    if [[ $PKGNAME == "OCB" ]]; then
       ocb_dir='.'
       dependencies_dir=${HOME}/dependencies
       run_traced "$VEM amend -D -O $ODOO_BRANCH -o $ocb_dir"
     else
       ocb_dir=${ODOO_PATH}
-      dependencies_dir="$TRAVIS_BUILD_DIR ù,${HOME}/dependencies"
-      run_traced "$VEM amend -D -O $ODOO_BRANCH -o ${ODOO_PATH} -p $dependencies_dir"
+      dependencies_dir="$TRAVIS_BUILD_DIR,${HOME}/dependencies"
+      run_traced "$VEM amend -D -O $ODOO_BRANCH -o ${ODOO_PATH} -d $dependencies_dir"
     fi
+    run_traced "$VEM uninstall pyOpenSSL -y"  #debug
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
         run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"

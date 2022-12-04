@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.3
 
 #
 # General Purpose options:
@@ -133,6 +133,7 @@ set_opts_4_action() {
     [[ -f /etc/odoo/${svcname}.conf ]] && opts="${opts} -c \"/etc/odoo/${svcname}.conf\""
     [[ -n $opt_ocfn && -f "$opt_ocfn" ]] && opts="${opts} -c \"$opt_ocfn\""
     [[ -n $opt_db ]] && opts="${opts} -d \"$opt_db\""
+    [[ $opt_keep -ne 0 ]] && opts="${opts} -k"
     [[ $opt_force -ne 0 ]] && opts="${opts} -f"
     [[ $opt_verbose -eq 0 ]] && opts="${opts} -q"
     [[ $opt_verbose -eq 1 ]] && opts="${opts} -v"
@@ -918,7 +919,12 @@ do_edit_pofile() {
 do_edit_translation() {
   local xfile
   [[ -f "$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx"
-  [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
+  if [[ -n "$xfile" ]]; then
+    [[ -f /etc/wsl.conf ]] && xfile="z:$xfile"
+    run_traced "libreoffice $xfile"
+  else
+    echo "No file odoo_default_tnl.xlsx found!"
+  fi
   return $STS_STS_SUCCESS
 }
 
@@ -1789,26 +1795,24 @@ do_translate() {
   fi
   confn=$(readlink -f $HOME_DEVEL/../clodoo/confs)/${odoo_fver/./-}.conf
   [[ ! -f $confn ]] && echo "Configuration file $confn not found!" && return $sts
-  db="$opt_db"
-  u=$(get_dbuser $m)
-  if [[ -z "$db" ]]; then
-    DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
-    DBs="^(${DBs:0: -1})\$"
-    for x in test_odoo_ tnl test demo; do
-      [[ $x =~ $DBs ]] && db="$x" && break
-      [[ $x$m =~ $DBs ]] && db="$x$m" && break
-    done
-  fi
-  if [[ -z "$db" ]]; then
-    echo "No DB matched! use:"
-    echo "$0 translate -d DB"
-    return $STS_FAILED
-  fi
+#  db="$opt_db"
+#  u=$(get_dbuser $m)
+#  if [[ -z "$db" ]]; then
+#    DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
+#    DBs="^(${DBs:0: -1})\$"
+#    for x in test_odoo_ tnl test demo; do
+#      [[ $x =~ $DBs ]] && db="$x" && break
+#      [[ $x$m =~ $DBs ]] && db="$x$m" && break
+#    done
+#  fi
+#  if [[ -z "$db" ]]; then
+#    echo "No DB matched! use:"
+#    echo "$0 translate -d DB"
+#    return $STS_FAILED
+#  fi
   [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
   [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
-  x=$(find $PKGPATH -type f -not -path "*/egg-info/*" -not -name "*.pyc" -anewer i18n/it.po)
-  [[ -n $x ]] && do_export "$1" "$2" "$3"
-  run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -d $db -c $confn -p $pofile -AP"
+  run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -c $confn -p $pofile"
   sts=$?
   return $sts
 }

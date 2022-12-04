@@ -1,6 +1,6 @@
 
 =====================
-travis_emulator 2.0.2
+travis_emulator 2.0.3
 =====================
 
 
@@ -275,10 +275,22 @@ Troubleshooting
 History
 -------
 
+2.0.2.2 (2022-11-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] npm management
+
+2.0.2.1 (2022-11-02)
+~~~~~~~~~~~~~~~~~~~~
+
+* [REF] travis: partial refactoring
+* [IMP] travis: recognition of local/librerp
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] database name: (test|template)_odoo
+* [IMP] With -k switch set ODOO_COMMIT_TEST
 
 2.0.1.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~~~
@@ -331,7 +343,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-22
+Last Update / Ultimo aggiornamento: 2022-12-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -46,7 +46,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.3
 
 
 travis_test_bash() {
@@ -202,15 +202,15 @@ EOF
     fi
 }
 
-coverage_ensure_installed() {
-    cov=$(which coverage 2>/dev/null)
-    [[ -z $cov || ! $cov =~ $HOME ]] && run_traced "pip install coverage"
-    cov=$(which coverage 2>/dev/null)
-    if [[ -n $cov ]]; then
-      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-      [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
-    fi
-}
+#coverage_ensure_installed() {
+#    cov=$(which coverage 2>/dev/null)
+#    [[ -z $cov || ! $cov =~ $HOME ]] && run_traced "pip install coverage"
+#    cov=$(which coverage 2>/dev/null)
+#    if [[ -n $cov ]]; then
+#      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
+#      [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
+#    fi
+#}
 
 run_regression_test() {
     echo "======== Running regression_test ========"
@@ -222,7 +222,7 @@ run_regression_test() {
         [[ $TRAVIS_DEBUG_MODE =~ [89] ]] && opts="${opts}n"
         OPTS=$(inherits_travis_opts "$opts" "T")
         coverage_set
-        coverage_ensure_installed
+        # coverage_ensure_installed
         if [[ -f ./tests/all_tests.py ]]; then
             if [[ ${opt_dprj:-0} -gt 0 ]]; then
                 run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py $OPTS"

@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=2.0.2
+#__version__=2.0.3
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -190,12 +190,12 @@ init_travis() {
     export FLOG_ECHO=
   fi
   if [[ "$PRJNAME" == "Odoo" ]]; then
-    local npm_curpfx=$(npm config get prefix)
-    NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
-    if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
-      mkdir -p $NPM_CONFIG_PREFIX
-      npm config set prefix $NPM_CONFIG_PREFIX
-    fi
+#    local npm_curpfx=$(npm config get prefix)
+#    NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
+#    if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
+#      mkdir -p $NPM_CONFIG_PREFIX
+#      npm config set prefix $NPM_CONFIG_PREFIX
+#    fi
     [[ -z $REPOSNAME ]] && REPOSNAME=$(build_odoo_param REPOS ".")
     BRANCH=$(build_odoo_param FULLVER ".")
     SETUP=$MANIFEST
@@ -218,12 +218,14 @@ revaluate_travis() {
 
 get_dbuser() {
   # get_dbuser(suffix)
-  local u
+  local u x
+  [[ -n $1 ]] && x="$1"
+  [[ -z $x ]] && x=$(build_odoo_param MAJVER $BRANCH)
   for u in $USER odoo openerp postgresql; do
-    if [[ -n "$1" ]]; then
-      psql -U$u$1 -l &>/dev/null
+    if [[ -n "$x" ]]; then
+      psql -U$u$x -l &>/dev/null
       if [[ $? -eq 0 ]]; then
-        echo "$u$1"
+        echo "$u$x"
         break
       fi
     fi
@@ -301,7 +303,7 @@ create_virtual_env() {
   ((Z0_STACK=Z0_STACK+2))
   unset TOOLS_PATH
   init_travis
-  export TRAVIS_BRANCH=$BRANCH
+  export TRAVIS_BRANCH=$(git branch --list|grep "^\* "|cut -d" " -f2|head -n1|tr -d "\n")
   [[ -z "$HOME_DEVEL" ]] && echo "Zeroincombenze(R) tools not found!" && exit 1
   drop_test_db
   export TRAVIS_SAVED_HOME=$HOME
@@ -394,10 +396,8 @@ create_virtual_env() {
   [[ $sts -ne 0 ]] && return
 
   run_traced "source $TRAVIS_HOME/bin/activate"
+  [[ ${opt_keep:-0} -ne 0 ]] && run_traced "export ODOO_COMMIT_TEST=\"1\""
   set_pybin $TRAVIS_PYTHON_VERSION
-  # PYTHON=$(which python)
-  # [[ $TRAVIS_PYTHON_VERSION =~ ^3 ]] && PYTHON3=$(which python3)
-  # PIP=$(which pip)
   if [[ $opt_dbgmnt -ne 0 ]]; then
     # Install unstable packages to run them when needed
     for p in $(get_cfg_value "" "PKGS_LIST"); do
@@ -528,7 +528,7 @@ git_clone() {
 prepare_env_travis() {
   local action="$1"
   local v x
-  if [[ $action =~ ^(force-lint|lint|force-test|test|force-testdeps|testdeps|force-translate|translate|emulate)$ ]]; then
+  if [[ $action =~ ^(force-lint|lint|force-test|test|force-test-multi|test-multi|force-testdeps|testdeps|force-translate|translate|emulate)$ ]]; then
     if [[ -n "$TOOLS_PATH" ]]; then
       if [ ${opt_r:-0} -gt 0 ]; then
         if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
@@ -550,7 +550,7 @@ prepare_env_travis() {
     export TESTS="0"
     export TEST_DEPENDENCIES="0"
     export ODOO_TNLBOT="0"
-  elif [[ $action == "force-test" ]]; then
+  elif [[ $action =~ (force-test|force-test-multi) ]]; then
     export LINT_CHECK="0"
     export TESTS="1"
     export TEST_DEPENDENCIES="0"

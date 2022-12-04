@@ -1,3 +1,15 @@
+2.0.2.2 (2022-11-22)
+~~~~~~~~~~~~~~~~~~~~
+
+* [REF] odoo_transaltion
+
+2.0.2.1 (2022-10-31)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lint_2_compare: ignoring .git .idea egg-info and setup directories
+* [IMP] lint_2_compare: new ignore switches
+* [FIX] please translate: do not execute export
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~
 
