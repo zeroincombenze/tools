@@ -239,14 +239,32 @@ Current development version
 History
 -------
 
+z0lib: 2.0.1.1 (2022-12-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] python version recognition sometime fails
+
+
+python_plus: 2.0.3.1 (2022-12-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] vem: no python2 warning in linux kernel 3
+
+
+wok_code: 2.0.3 (2022-11-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] odoo_translation
+
+
 odoo_score: 2.0.3 (2022-11-11)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
 
 
-zerobug: 2.0.2.2 (2022-11-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+zerobug: 2.0.3 (2022-11-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] npm management
 
@@ -257,8 +275,8 @@ travis_emulator: 2.0.2.2 (2022-11-08)
 * [IMP] npm management
 
 
-python_plus: 2.0.2.2 (2022-11-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+python_plus: 2.0.3 (2022-11-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] npm management
 * [IMP] compute_date: refdate may be a string
@@ -430,65 +448,6 @@ clodoo: 2.0.1 (2022-10-12)
 * [IMP] stable version
 
 
-clodoo: 2.0.0.3 (2022-10-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoorc: best virtual environment recognize
-* [FIX] odoorc: SVCNAME
-
-
-zerobug: 2.0.0.2 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis_install_env: python2 tests
-
-
-z0lib: 2.0.0.4 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] python2 tests
-
-
-wok_code: 2.0.0.4 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New lint_2_compare command
-* [IMP] odoo_dependecies.py: minor upgrade
-
-
-odoo_score: 2.0.0.3 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: test via pycharm
-* [FIX] run_odoo_debug: concurrent tests
-
-
-travis_emulator: 2.0.0.2 (2022-10-04)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: python2 tests
-
-
-
-z0lib: 2.0.0.3 (2022-09-30)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_traced return code
-
-
-lisa: 2.0.0.2 (2022-09-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] lisa_bld_ods: improvements
-
-
-odoo_score: 2.0.0.2 (2022-09-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odo_debug: test with random rpcport for multiple tests
-* [IMP] odoo_shell.py: new actions
-
-
 
 
 
@@ -504,7 +463,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-11-21
+Last Update / Ultimo aggiornamento: 2022-12-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

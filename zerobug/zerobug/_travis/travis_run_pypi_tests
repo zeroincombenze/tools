@@ -331,7 +331,7 @@ check_pythonpath() {
     local PYPATH="${1//,/ }"
     PYPATH="${PYPATH//:/ }"
     local PYTHON=${2:-python}
-    local PYVER=$(python --version 2>&1|grep --color=never -Eo "[0-9]+"|head -n1)
+    local PYVER=$(python --version 2>/dev/null|grep --color=never -Eo "[0-9]+"|head -n1)
     local pth PYLIB
     for pth in $PYPATH; do
       if [ "$PYVER" == "2" ]; then

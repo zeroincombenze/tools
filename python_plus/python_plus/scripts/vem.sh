@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.3.1
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -295,6 +295,32 @@ bin_install_1() {
   fi
 }
 
+pip_install_wget() {
+# pip_install_wget(fn)
+    local d="" pfn="$1" x
+    pfn="$1"
+    [[ $pfn == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
+    [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
+    x=$(basename $d)
+    run_traced "mkdir -p $VIRTUAL_ENV/tmp"
+    run_traced "cd $VIRTUAL_ENV/tmp"
+    [[ -f $x ]] && run_traced "rm -f $x"
+    run_traced "wget $d"
+    run_traced "$PIP install $popts $x"
+    [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+}
+
+pip_install_git() {
+# pip_install_git(fn)
+    local d="" pfn="$1" x
+    [[ $pfn =~ "future" ]] && d="git+https://github.com/PythonCharmers/python-future.git"
+    [[ $pfn =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
+    [[ $pfn =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
+    [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
+    run_traced "$PIP install $d"
+    [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+}
+
 pip_install() {
   #pip_install(pkg opts)
   local pkg d x srcdir pfn popts pypath v tmpdir DISTO  FH
@@ -312,7 +338,8 @@ pip_install() {
   [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
-  [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
+  [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build"
+  [[ $opt_pyver =~ ^2 && $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
   [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER $popts ..." && PRINTED_PIPVER=1
   if [[ -z "$XPKGS_RE" || ! $pfn =~ ($XPKGS_RE) ]]; then
@@ -423,6 +450,7 @@ pip_install() {
     else
       [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
       run_traced "$PIP install $popts \"$pkg\" $2"
+      # [[ $? -ne 0 ]] && pip_install_git "$pfn"
       [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     fi
     x="${pkgs//+/.}"
@@ -720,12 +748,12 @@ find_cur_py() {
       [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
       PYTHON=$(which $PYTHON 2>/dev/null)
       [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>/dev/null | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
       PIP=$(which pip$opt_pyver 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     else
       PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>/dev/null | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
       PIP=$(which pip 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     fi
@@ -793,6 +821,7 @@ check_installed_pkgs() {
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
+  [[ $opt_pyver =~ ^2 && $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
   [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
@@ -1063,7 +1092,7 @@ do_venv_create() {
   PYTHON=""
   if [[ -x $opt_pyver ]]; then
     PYTHON=$opt_pyver
-    opt_pyver=$($PYTHON --version 2>&1 | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+    opt_pyver=$($PYTHON --version 2>/dev/null | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
     PIP=$(which pip$opt_pyver 2>/dev/null)
     [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
@@ -1168,6 +1197,7 @@ do_venv_pip() {
     [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
     [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
     [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
+    [[ $opt_pyver =~ ^2 && $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
     [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
     if [[ $cmd =~ (info|show) ]]; then
       pkg=$(get_pkg_wo_version $pkg)

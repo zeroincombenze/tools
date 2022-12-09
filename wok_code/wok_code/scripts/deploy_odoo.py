@@ -30,7 +30,9 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.3"
+__version__ = "2.0.3.1"
+
+MANIFEST_FILES = ['__manifest__.py', '__odoo__.py', '__openerp__.py', '__terp__.py']
 
 ODOO_VALID_VERSIONS = (
     "16.0",
@@ -123,6 +125,7 @@ class OdooDeploy(object):
         self.opt_args.git_orgs = self.opt_args.git_orgs or []
         self.get_addons_from_config_file()
         self.addons_path = []
+        self.master_branch = ""
 
         if self.opt_args.action == "create-new":
             self.master_branch = build_odoo_param(
@@ -156,15 +159,9 @@ class OdooDeploy(object):
                 self.repo_info[repo]["STS"] = sts
             if git_org and git_org not in self.opt_args.git_orgs:
                 self.opt_args.git_orgs.append(git_org)
-            repo = "OCB"
-            if (
-                repo not in self.repo_info.keys()
-                and os.path.isfile(os.path.join(path, "odoo-bin"))
-                or os.path.isfile(os.path.join(path, "openerp-server"))
-            ):
-                self.target_path = self.repo_info[repo]["PATH"] = path
-            self.master_branch = build_odoo_param(
-                "FULLVER", odoo_vid=self.repo_info[repo]["BRANCH"])
+            if repo == "OCB" or not self.master_branch:
+                self.master_branch = build_odoo_param(
+                    "FULLVER", odoo_vid=self.repo_info[repo]["BRANCH"])
             if opt_args.action in ("list", "status"):
                 self.add_addons_path(path, repo)
 
@@ -179,6 +176,16 @@ class OdooDeploy(object):
         return z0lib.run_traced(cmd,
                                 verbose=self.opt_args.verbose,
                                 dry_run=self.opt_args.dry_run)
+
+    def is_module(self, path):
+        if not os.path.isdir(path):
+            return False
+        files = os.listdir(path)
+        filtered = [x for x in files if x in (MANIFEST_FILES + ['__init__.py'])]
+        if len(filtered) == 2 and '__init__.py' in filtered:
+            return os.path.join(path, next(x for x in filtered if x != '__init__.py'))
+        else:
+            return False
 
     def get_repo_from_config(self):
         opt_args = self.opt_args
@@ -223,24 +230,58 @@ class OdooDeploy(object):
     def get_repo_from_path(self):
         if self.target_path:
             repo = "OCB"
-            if self.is_git_repo(repo, path=self.target_path):
-                self.repo_list.append(repo)
-                self.repo_info[repo] = {"PATH": self.target_path}
+            if self.is_git_repo(path=self.target_path):
+                self.repo_info[repo] = {"PATH": self.target_path, "#": 0}
             for root, dirs, files in os.walk(self.target_path,
                                              topdown=True,
                                              followlinks=False):
                 dirs[:] = [
                     d
                     for d in dirs
-                    if d not in (".git", "__to_remove", "doc", "setup", ".idea")
+                    if (
+                        not d.startswith(".")
+                        and not d.startswith("_")
+                        and d not in ("build",
+                                      "debian",
+                                      "dist",
+                                      "doc",
+                                      "docs",
+                                      "egg-info",
+                                      "filestore",
+                                      "history",
+                                      "howtos",
+                                      "images"
+                                      "migrations",
+                                      "redhat",
+                                      "reference",
+                                      "scripts",
+                                      "server",
+                                      "setup",
+                                      "venv_odoo",
+                                      "win32")
+                        )
                 ]
-                for repo in dirs:
-                    if self.is_git_repo(repo, path=root):
-                        path = os.path.join(root, repo)
-                        if repo == "odoo":
-                            repo = "OCB"
-                        self.repo_list.append(repo)
-                        self.repo_info[repo] = {"PATH": path}
+                for dir in dirs:
+                    path = os.path.join(root, dir)
+                    if self.path_is_ocb(path):
+                        self.repo_info["OCB"] = {"PATH": path, "#": 0}
+                    elif self.is_git_repo(path=path):
+                        self.repo_info[dir] = {"PATH": path, "#": 0}
+                    elif self.is_module(path):
+                        repo = os.path.basename(root)
+                        if repo == "addons":
+                            repo = os.path.basename(os.path.dirname(root))
+                            if repo == "odoo":
+                                repo = "OCB"
+                        if repo in self.repo_info:
+                            self.repo_info[repo]["#"] += 1
+            for repo in [x for x in self.repo_info.keys()]:
+                if self.repo_info[repo]["#"] == 0:
+                    del self.repo_info[repo]
+            self.repo_list = sorted(self.repo_info.keys())
+            if "OCB" in self.repo_list:
+                del self.repo_list[self.repo_list.index("OCB")]
+                self.repo_list = ["OCB"] + self.repo_list
 
     def get_repo_from_github(self, git_org=None, branch=None, only_ocb=None):
         git_org = git_org or self.git_org
@@ -399,19 +440,21 @@ class OdooDeploy(object):
     def is_git_repo(self, repo=None, path=None):
         res = bool(repo)
         if repo:
+            res = False
             if repo.startswith(".") or repo.startswith("_") or repo in INVALID_NAMES:
-                res = False
                 path = None
             elif not path:
                 path = self.get_path_of_repo(repo)
-        if repo and path:
-            res = os.path.isdir(os.path.join(path, repo, ".git"))
+        if path:
+            path = os.path.join(path, repo) if repo else path
             if (
-                not res
-                and self.repo_is_ocb(repo)
-                and self.path_is_ocb(os.path.join(path, repo))
+                os.path.isdir(os.path.join(path, ".git"))
+                or (not res
+                    and repo
+                    and self.repo_is_ocb(repo)
+                    and self.path_is_ocb(path))
             ):
-                res = os.path.join(path, repo)
+                res = path
         return res
 
     def get_alt_gitorg(self, git_org=None):
@@ -444,7 +487,8 @@ class OdooDeploy(object):
 
     def get_remote_info(self, verbose=True):
         verbose = verbose and self.opt_args.verbose
-        branch = url = None
+        branch = self.master_branch
+        url = None
         sts, stdout, stderr = z0lib.run_traced("git branch", verbose=verbose)
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
@@ -461,6 +505,11 @@ class OdooDeploy(object):
                 elif lns[0] == "origin":
                     url = lns[1]
                     break
+        else:
+            if self.path_is_ocb(os.getcwd()):
+                url = "https://github.com/odoo/odoo.git"
+            else:
+                url = "https://github.com/OCA/%s.git" % os.path.basename(os.getcwd())
         return sts, branch, url
 
     def get_root_from_addons(self, repos, git_org=None, branch=None):

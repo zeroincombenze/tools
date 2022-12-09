@@ -1,6 +1,6 @@
 #! /bin/bash
 PYTHON=$(which python)
-PYVER=$(python --version 2>&1 | grep- -color=never -Eo "[0-9]" | head -n1)
+PYVER=$(python --version 2>/dev/null | grep- -color=never -Eo "[0-9]" | head -n1)
 BASE=$(basename $1)
 [[ $BASE =~ .py$ ]] && BASE=${BASE:0: -3}
 cmd=$(readlink -f $1)
