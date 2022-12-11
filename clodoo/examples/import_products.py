@@ -54,7 +54,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 
 
 msg_time = time.time()
@@ -64,7 +64,7 @@ def msg_burst(text):
     global msg_time
     t = time.time() - msg_time
     if (t > 3):
-        print text
+        print(text)
         msg_time = time.time()
 
 
@@ -84,7 +84,7 @@ def write_log(msg):
     fd = open('./import_products.log', 'a')
     fd.write('%s\n' % msg)
     fd.close()
-    print msg
+    print(msg)
 
 
 def add_elem(row, ctx, MYDICT):
@@ -107,7 +107,7 @@ def add_elem(row, ctx, MYDICT):
         if field_name in MYDICT:
             idx = MYDICT[field_name]
             if idx >= len(row):
-                print 'Invalid translation field %d' % idx
+                print('Invalid translation field %d' % idx)
                 return
             vals[field_name] = cvt_val(ctx, field_name, row[idx])
         elif def_field_name in ctx:

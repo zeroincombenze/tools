@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 
 run_traced() {
@@ -279,12 +279,28 @@ cp_coveragerc() {
 }
 
 coverage_ensure_installed() {
-    cov=$(which coverage 2>/dev/null)
-    [[ -z $cov || ! $cov =~ $HOME ]] && run_traced "pip install \"coverage>=5.0\""
-    cov=$(which coverage 2>/dev/null)
+    local cov p pypath w
+    for p in ${PATH//:/ }; do
+      [[ $p =~ travis ]] && pypath="$p" && continue
+      cov=$(find "$p" -executable -name coverage 2>/dev/null | head -n1)
+      [[ -n $cov ]] && break
+    done
     if [[ -n $cov ]]; then
-      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-      [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
+      [[ -e $pypath/coverage ]] && run_traced "rm -f $pypath/coverage"
+      run_traced "ln -s $cov $pypath"
+    else
+      cov=$(which coverage 2>/dev/null)
+      pypath=$(dirname $(which python))
+      if [[ -z $cov || $(dirname $cov) != $pypath ]]; then
+        [[ -x $pypath/coverage ]] && run_traced "cp $pypath/coverage $cov"
+      fi
+      cov=$(which coverage 2>/dev/null)
+      [[ -z $cov ]] && run_traced "pip install \"coverage>=5.0\""
+      cov=$(which coverage 2>/dev/null)
+      if [[ -n $cov ]]; then
+        v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
+        [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
+      fi
     fi
 }
 
@@ -387,8 +403,8 @@ if [[ $TRAVIS != "false" ]]; then
     run_traced "$VEM update \"$p\"" "nolocal"
   done
   [[ "$MQT_TEST_MODE" == "tools" ]] && run_traced "$VEM update \"pyOpenSSL\"" "nolocal"
-  coverage_ensure_installed
 fi
+# coverage_ensure_installed
 
 [[ -z "${VERSION}" ]] && VERSION="$opt_branch"
 [[ -z "${ODOO_BRANCH}" ]] && export ODOO_BRANCH=${VERSION}

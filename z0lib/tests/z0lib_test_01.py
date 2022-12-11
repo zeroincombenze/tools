@@ -11,7 +11,7 @@ import sys
 from zerobug import z0test
 from z0lib import z0lib
 
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
@@ -42,7 +42,11 @@ class RegressionTest:
         return sts
 
     def test_01(self, z0ctx):
-        sts = self.run_test_cmd(z0ctx, "true")
+        sts = self.Z.test_result(z0ctx,
+                                 'python version',
+                                 os.getenv("TRAVIS_PYTHON_VERSION"),
+                                 "%d.%d" % (sys.version_info[0], sys.version_info[1]))
+        sts += self.run_test_cmd(z0ctx, "true")
         sts += self.run_test_cmd(z0ctx, "false")
         sts += self.run_test_cmd(z0ctx, "NOT_EXIST")
         fn = os.path.join(self.Z.testdir, "NOT_EXIST")

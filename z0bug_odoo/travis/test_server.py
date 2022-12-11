@@ -29,7 +29,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '2.0.1'
+__version__ = '2.0.2'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -371,7 +371,8 @@ def build_run_cmd_odoo(
     preinstall_modules = modules or []
     if os.environ.get('TRAVIS_PDB') == 'true':
         if scope == 'test':
-            cmd_odoo = ["python", "-m", "pdb"]
+            # cmd_odoo = ["python", "-m", "pdb"]
+            cmd_odoo = []
         else:
             cmd_odoo = []
     elif scope == 'test':
@@ -576,6 +577,7 @@ def set_sys_path():
 
 
 def main(argv=None):
+    # import pdb; pdb.set_trace()
     if argv is None:
         argv = sys.argv
     travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))

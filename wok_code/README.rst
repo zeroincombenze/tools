@@ -845,10 +845,17 @@ Current development version
 History
 -------
 
-2.0.2.2 (2022-11-22)
+2.0.3.1 (2022-10-31)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [REF] odoo_transaltion
+* [FIX] deploy_odoo: update from path
+* [FIX] build_cmd: best recognition of python version
+* [FIX] set_python_version.sh: best recognition of python version
+
+2.0.3 (2022-11-22)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] odoo_translation
 
 2.0.2.1 (2022-10-31)
 ~~~~~~~~~~~~~~~~~~~~
@@ -928,7 +935,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-04
+Last Update / Ultimo aggiornamento: 2022-12-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

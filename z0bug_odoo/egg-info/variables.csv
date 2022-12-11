@@ -8,6 +8,7 @@ MQT_DBSUER,$USER,Database username
 MQT_TEMPLATE_DB,template_odoo,Read above
 MQT_TEST_DB,test_odoo,Read above
 NPM_CONFIG_PREFIX,\$HOME/.npm-global,N/D
+ODOO_COMMIT_TEST,0,Test result will be committed; require specific code at tear_off function
 ODOO_REPO,odoo/odoo,OCB repository against test repository
 ODOO_SETUPS,__manifest__.py __openerp__.py __odoo__.py __terp__.py,Names of Odoo manifest files
 ODOO_TEST_SELECT,ALL,Read above

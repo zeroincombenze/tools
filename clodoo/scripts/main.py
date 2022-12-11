@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# template 19
+# template 20
 """
 This module extends python os module with a few new functionality
  to interface operating system.
@@ -24,7 +25,7 @@ import gzip
 import shutil
 
 
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 
 
 def fake_setup(**kwargs):
@@ -103,6 +104,8 @@ def copy_pkg_data(setup_args, verbose):
                                 fd.write(help_text.encode("utf-8"))
                             else:
                                 fd.write(help_text)
+                        if verbose:
+                            print("$ gzip -c %s > %s" % (full_fn, tgt_fn))
                         continue
                     if lib_path:
                         tgt_fn = os.path.join(lib_path, base)

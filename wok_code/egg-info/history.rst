@@ -1,7 +1,14 @@
-2.0.2.2 (2022-11-22)
-~~~~~~~~~~~~~~~~~~~~
+2.0.4 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
 
-* [REF] odoo_transaltion
+* [FIX] deploy_odoo: update from path
+* [FIX] build_cmd: best recognition of python version
+* [FIX] set_python_version.sh: best recognition of python version
+
+2.0.3 (2022-11-22)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] odoo_translation
 
 2.0.2.1 (2022-10-31)
 ~~~~~~~~~~~~~~~~~~~~

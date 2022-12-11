@@ -3,7 +3,7 @@
 # \$1: source file to test
 # \$2: bin command (if not default or it does not exist)
 PYTHON=$(which python)
-PYVER=$(python --version 2>&1 | grep --color=never -Eo "[0-9]" | head -n1)
+PYVER=$(python --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]" | head -n1)
 SRCPATH=$(readlink -f "$1")
 CMD="$2"
 BASE=$(basename $1)

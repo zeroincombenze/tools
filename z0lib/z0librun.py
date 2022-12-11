@@ -22,6 +22,7 @@ from __future__ import (absolute_import, division, print_function,
 import argparse
 import configparser
 import inspect
+import sys
 import os
 from builtins import object
 from future import standard_library
@@ -48,7 +49,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 
 def nakedname(path):
@@ -58,18 +59,32 @@ def nakedname(path):
 def run_traced(cmd, verbose=None, dry_run=None):
     def sh_any(args):
         prcout = prcerr = ""
-        try:
-            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+        if sys.version_info[0] == 2:
+            try:
+                proc = Popen(args, stderr=PIPE, stdout=PIPE)
                 prcout, prcerr = proc.communicate()
                 sts = proc.returncode
                 prcout = prcout.decode("utf-8")
                 prcerr = prcerr.decode("utf-8")
-        except FileNotFoundError as e:
-            if verbose:
-                print(e)
-            sts = 127
-        except BaseException:
-            sts = 126
+            except OSError as e:
+                if verbose:
+                    print(e)
+                sts = 127
+            except BaseException:
+                sts = 126
+        else:
+            try:
+                with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                    prcout, prcerr = proc.communicate()
+                    sts = proc.returncode
+                    prcout = prcout.decode("utf-8")
+                    prcerr = prcerr.decode("utf-8")
+            except FileNotFoundError as e:                                 # noqa: F821
+                if verbose:
+                    print(e)
+                sts = 127
+            except BaseException:
+                sts = 126
         return sts, prcout, prcerr
 
     def sh_cd(args):

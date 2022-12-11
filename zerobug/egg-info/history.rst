@@ -1,3 +1,10 @@
+2.0.3.1 (2022-12-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_pypi_test: best recognition of python version
+* [FIX] build_cmd: best recognition of python version
+* [FIX] travis_install_env: ensure coverage version
+
 2.0.3 (2022-11-08)
 ~~~~~~~~~~~~~~~~~~
 

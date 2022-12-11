@@ -30,86 +30,81 @@ import os.path as osp
 import subprocess
 import logging
 from travis_helpers import print_flush
+from z0lib import z0lib
 
 _logger = logging.getLogger()
-__version__ = '2.0.1'
+__version__ = '2.0.2'
 
 
-def parse_depfile(depfile, owner=None):
-    owner = owner or 'OCA'
-    deps = []
-    for line in depfile:
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-        parts = line.split()
-        repo = parts[0]
-        # TODO: recall real owner if needed
-        if repo == 'l10n-italy-supplemental':
-            cur_owner = 'zeroincombenze'
-        elif repo != 'OCB' and owner == 'odoo':
-            cur_owner = 'OCA'
+def create_deps():
+    return {
+        'reqfilenames': [],
+        'processed': set(),
+    }
+
+
+def split_repo_data(repo, git_org=None):
+    repo = repo.replace(" @ ", "@").strip()
+    parts = repo.split()
+    repo = parts[0]
+    url = parts[1] if len(parts) > 1 else None
+    branch = parts[2] if len(parts) > 2 else None
+    branch = branch or os.environ.get('VERSION', '12.0')
+    if "https:" in repo or repo.startswith("git@github.com:"):
+        url = repo
+        if "@" in repo and "git+https" in repo:
+            url = repo.split("@")[1].split("+")[1]
+        repo = osp.basename(repo.split("@")[1].split(":")[1])
+        repo = repo[: -4] if repo.endswith(".git") else repo
+    else:
+        if repo in ('l10n-italy-supplemental', 'zerobug-test'):
+            cur_git_org = 'zeroincombenze'
+        elif repo not in ('OCB', 'odoo') and git_org == 'odoo':
+            cur_git_org = 'OCA'
         else:
-            cur_owner = owner
-        if len(parts) > 2:
-            branch = parts[2]
-        else:
-            branch = os.environ.get('VERSION', '12.0')
-        if len(parts) > 1:
-            url = parts[1]
-        else:
-            url = 'https://github.com/%s/%s.git' % (cur_owner, repo)
-        deps.append((repo, url, branch))
-    return deps
+            cur_git_org = git_org or 'OCA'
+        url = url or 'https://github.com/%s/%s.git' % (cur_git_org, repo)
+    return repo, url, branch
 
 
-def git_checkout(deps_checkout_dir, reponame, url, branch):
-    checkout_dir = osp.join(deps_checkout_dir, reponame)
-    # When running in local emulator does nothing
+def run_traced(command):
+    if isinstance(command, (list, tuple)):
+        cmd = ' '.join(command)
+    else:
+        cmd = command
+    if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
+        print_flush('INFO: calling %s' % cmd)
+    _logger.info('Calling %s', cmd)
+    return z0lib.run_traced(cmd, verbose=False, dry_run=False)
+
+
+def git_checkout(repo_dir, repo, git_org=None):
+    repo, url, branch = split_repo_data(repo, git_org=git_org)
+    checkout_dir = osp.join(repo_dir, repo)
     srcdir = False
+    sts = 127
+    command = []
     if os.environ.get('TRAVIS', '') != 'true':
         dep_root = os.environ.get('TRAVIS_HOME_BRANCH')
         travis_home = os.environ.get('TRAVIS_SAVED_HOME', osp.expanduser('~'))
         if dep_root:
-            for ldir in ('', '..', '../..'):
-                for sub in ('', 'extra', 'odoo', 'private-addons', 'axitec'):
-                    if not ldir:
-                        if not sub:
-                            path = osp.join(dep_root, reponame)
-                        else:
-                            path = osp.join(dep_root, sub, reponame)
-                    elif ldir == '../..':
-                        if not sub:
-                            path = osp.abspath(osp.join(
-                                dep_root, '..', '..', reponame))
-                        else:
-                            path = osp.abspath(osp.join(
-                                dep_root, '..', '..', sub, reponame))
-                    else:
-                        if not sub:
-                            path = osp.abspath(osp.join(
-                                dep_root, '..', reponame))
-                        else:
-                            path = osp.abspath(osp.join(
-                                dep_root, '..', sub, reponame))
-                    if osp.isdir(path):
-                        srcdir = path
-                        break
-                if srcdir:
+            while not srcdir:
+                if osp.isdir(dep_root) and osp.isdir(osp.join(dep_root, repo, ".git")):
+                    srcdir = osp.join(dep_root, repo)
                     break
-        if not srcdir and osp.isdir(os.path.join(
-                travis_home, branch, reponame)):
-            srcdir = os.path.join(travis_home, branch, reponame)
+                if not dep_root or dep_root in ("/", travis_home):
+                    break
+                dep_root = osp.dirname(dep_root)
+        if not srcdir and osp.isdir(os.path.join(travis_home, branch, repo)):
+            srcdir = os.path.join(travis_home, branch, repo)
         if srcdir:
             if not osp.isdir(checkout_dir):
-                command = ['ln', '-s', srcdir, checkout_dir]
-            else:
-                command = ['true', ]
+                command = ['cp', '-r', srcdir, checkout_dir]
+                sts = run_traced(command)
         else:
-            print_flush('WARNING: Repository %s not found in local!' %
-                        reponame)
-            _logger.info('WARNING: repository %s not found in local!' %
-                         reponame)
+            print_flush('WARNING: Repository %s not found in local!' % repo)
+            _logger.info('WARNING: repository %s not found in local!' % repo)
+
     if os.environ.get('TRAVIS', '') == 'true' or not srcdir:
         if not osp.isdir(checkout_dir):
             command = ['git', 'clone', '-q', url, '-b', branch,
@@ -118,100 +113,90 @@ def git_checkout(deps_checkout_dir, reponame, url, branch):
             command = ['git', '--git-dir=' + os.path.join(checkout_dir, '.git'),
                        '--work-tree=' + checkout_dir, 'pull', '--ff-only',
                        url, branch]
+        sts = run_traced(command)
 
-    if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-        print_flush('INFO: calling %s' % ' '.join(command))
-    _logger.info('Calling %s', ' '.join(command))
-
-    if command[0] == 'git' and command[1] == 'clone':
-        # Check if repository exists
-        remote_url = url if not url.endswith('.git') else url[0: -4]
-        chk_command = ['wget', '-q', '%s/tree/%s' % (remote_url, branch),
-                       '--no-check-certificate', '-O', '/dev/null']
-        try:
-            subprocess.check_call(chk_command)
-        except:
-            print_flush('WARNING: remote repository %s not found!' % url)
-            oca_url = 'https://github.com/OCA/%s' % os.path.basename(url)
-            print_flush('INFO: try to download remote repository %s!' %
-                        oca_url)
-            command = ['git', 'clone', '-q', oca_url, '-b', branch,
-                       '--single-branch', '--depth=1', checkout_dir]
-    try:
-        subprocess.check_call(command)
-    except:
-        raise IOError('ERROR: git repository %s not found!' % url)
-    return checkout_dir
+    if sts != 0 and len(command) > 0 and command[0] == 'git' and command[1] == 'clone':
+        oca_url = 'https://github.com/OCA/%s' % os.path.basename(url)
+        command = ['git', 'clone', '-q', oca_url, '-b', branch,
+                   '--single-branch', '--depth=1', checkout_dir]
+        run_traced(command)
+    return repo, checkout_dir
 
 
-def run(deps_checkout_dir, build_dir):
-    odoo_full = os.environ.get("ODOO_REPO", "odoo/odoo")
-    odoo_org, odoo_repo = odoo_full.split('/')
-    if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-        print_flush('INFO: check_out="%s"; build="%s"; repo="%s"' % (
-            deps_checkout_dir, build_dir, odoo_org))
-    dependencies = []
-    processed = set()
-    depfilename = osp.join(build_dir, 'oca_dependencies.txt')
-    dependencies.append(depfilename)
-    reqfilenames = []
-    if osp.isfile(osp.join(build_dir, 'requirements.txt')):
-        reqfilenames.append(osp.join(build_dir, 'requirements.txt'))
-    for repo in os.listdir(deps_checkout_dir):
-        _logger.info('examining %s', repo)
-        processed.add(repo)
-        depfilename = osp.join(deps_checkout_dir, repo, 'oca_dependencies.txt')
-        dependencies.append(depfilename)
-        reqfilename = osp.join(deps_checkout_dir, repo, 'requirements.txt')
-        if osp.isfile(reqfilename):
-            reqfilenames.append(reqfilename)
-    for depfilename in dependencies:
-        try:
-            with open(depfilename) as depfile:
-                deps = parse_depfile(depfile, owner=odoo_org)
-        except IOError:
-            deps = []
-        for depname, url, branch in deps:
-            _logger.info('* processing %s', depname)
-            if depname in processed:
-                continue
-            processed.add(depname)
-            checkout_dir = git_checkout(deps_checkout_dir, depname,
-                                        url, branch)
-            new_dep_filename = osp.join(checkout_dir, 'oca_dependencies.txt')
-            reqfilename = osp.join(checkout_dir, 'requirements.txt')
-            if osp.isfile(reqfilename):
-                reqfilenames.append(reqfilename)
-            else:
-                print_flush(
-                    'WARNING: repository %s without requirement list!' %
-                    depname)
-            if new_dep_filename not in dependencies:
-                dependencies.append(new_dep_filename)
-    # if (os.environ.get('TRAVIS_DEBUG_MODE', '0') and
-    #         os.environ.get('MQT_TEST_MODE', 'oca') != 'oca'):
-    #     print_flush(
-    #         'INFO: installing PYPI packages from "%s"' % str(reqfilenames))
-    # for reqfilename in reqfilenames:
-    #     command = ['pip', 'install', '--no-binary', 'pycparser',
-    #                '-Ur', reqfilename]
-    #     _logger.info('Calling %s', ' '.join(command))
-    #     try:
-    #         subprocess.check_call(command)
-    #     except:
-    #         print_flush('ERROR: cannot install/upgrade %s' % reqfilename)
+def deps_process_repo(deps, repo, repo_dir, build_dir, git_org=None):
+    if repo not in deps['processed']:
+        deps['processed'].add(repo)
+        if repo:
+            repo, checkout_dir = git_checkout(repo_dir, repo, git_org=git_org)
+            _logger.info('processing %s', repo)
+        if repo:
+            fn_reqfilename = osp.join(repo_dir, repo, 'requirements.txt')
+        else:
+            fn_reqfilename = osp.join(build_dir, 'requirements.txt')
+        if osp.isfile(fn_reqfilename):
+            deps['reqfilenames'].append(fn_reqfilename)
+        else:
+            print_flush(
+                'WARNING: repository %s without requirement list!' % repo)
+            run_traced("list_requirements.py -p %s -O" % osp.dirname(fn_reqfilename))
+        if repo:
+            fn_oca_dependency = osp.join(repo_dir, repo, 'oca_dependencies.txt')
+        else:
+            fn_oca_dependency = osp.join(build_dir, 'oca_dependencies.txt')
+        if osp.isfile(fn_oca_dependency):
+            try:
+                with open(fn_oca_dependency) as fd:
+                    for repo in fd.read().split("\n"):
+                        if not repo or repo.startswith('#'):
+                            continue
+                        deps_process_repo(
+                            deps, repo, repo_dir, build_dir, git_org=git_org)
+            except IOError:
+                pass
+
+
+def prune_requirements(deps):
+    pypis = []
+    for reqfile in deps['reqfilenames']:
+        contents = ""
+        with open(reqfile, "r") as fd:
+            for pypi in fd.read().split("\n"):
+                if not pypi or pypi.startswith("#"):
+                    contents += ("%s\n" % pypi)
+                elif pypi not in pypis:
+                    pypis.append(pypi)
+                    contents += ("%s\n" % pypi)
+                else:
+                    contents += ("# %s\n" % pypi)
+        with open(reqfile, "w") as fd:
+            fd.write(contents)
+
+
+def main(repo_dir, build_dir):
+    repo_dir = repo_dir or osp.join(os.environ['HOME'], 'dependencies')
+    build_dir = build_dir or os.environ['TRAVIS_BUILD_DIR']
+    if not osp.exists(repo_dir):
+        os.makedirs(repo_dir)
+    git_org, odoo_repo = os.environ.get("ODOO_REPO", "odoo/odoo").split('/')
+    if eval(os.environ.get('TRAVIS_DEBUG_MODE', '0')):
+        print_flush('INFO: dependencies="%s"; build="%s"; git_org="%s"' % (
+            repo_dir, build_dir, git_org))
+    deps = create_deps()
+    deps_process_repo(deps, None, repo_dir, build_dir, git_org=git_org)
+    for repo in os.listdir(repo_dir):
+        deps_process_repo(deps, repo, repo_dir, build_dir, git_org=git_org)
+    prune_requirements(deps)
+    return 0
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        deps_checkout_dir = osp.join(os.environ['HOME'], 'dependencies')
-        if not osp.exists(deps_checkout_dir):
-            os.makedirs(deps_checkout_dir)
-        build_dir = os.environ['TRAVIS_BUILD_DIR']
-    elif len(sys.argv) == 2 or len(sys.argv) > 3:
+    if len(sys.argv) == 2 and sys.argv[1] == "-h":
         print(__doc__)
         sys.exit(1)
     else:
-        deps_checkout_dir = sys.argv[1]
-        build_dir = sys.argv[2]
-    run(deps_checkout_dir, build_dir)
+        sys.exit(
+            main(
+                sys.argv[1] if len(sys.argv) > 1 else None,
+                sys.argv[2] if len(sys.argv) > 2 else None,
+            )
+        )

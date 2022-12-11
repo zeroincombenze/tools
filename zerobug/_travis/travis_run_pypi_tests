@@ -46,7 +46,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 
 travis_test_bash() {
@@ -331,7 +331,7 @@ check_pythonpath() {
     local PYPATH="${1//,/ }"
     PYPATH="${PYPATH//:/ }"
     local PYTHON=${2:-python}
-    local PYVER=$(python --version 2>&1|grep --color=never -Eo "[0-9]+"|head -n1)
+    local PYVER=$(python --version 2>&1|grep "Python"|grep --color=never -Eo "[0-9]+"|head -n1)
     local pth PYLIB
     for pth in $PYPATH; do
       if [ "$PYVER" == "2" ]; then

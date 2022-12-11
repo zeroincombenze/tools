@@ -12,6 +12,7 @@ Functions with sql call are in test_common.py file.
 """
 
 from __future__ import print_function, unicode_literals
+from past.builtins import long
 
 # import sys
 import base64
@@ -20,10 +21,10 @@ import os
 
 from openpyxl import load_workbook
 
-# from past.builtins import basestring
+
 from python_plus import unicodes
 
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 
 class Z0bugOdoo(object):
@@ -61,6 +62,8 @@ class Z0bugOdoo(object):
                     del row[field]
                 elif row[field] == r'\\N':
                     row[field] = r'\N'
+            if model == "account_account" and isinstance(row["code"], (int, long)):
+                row["code"] = "%s" % row["code"]
             getattr(self, model)[row['id']] = unicodes(row)
 
     def get_data_file_xlsx(self, model, full_fn):

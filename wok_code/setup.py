@@ -2,7 +2,7 @@ import sys
 from setuptools import find_packages, setup
 
 install_requires = [
-    'z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'translators'
+    'z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'translators', 'vatnumber'
 ]
 if sys.version_info >= (3, 0):
     install_requires.append('twine')
@@ -11,7 +11,7 @@ else:
 
 setup(
     name='wok_code',
-    version='2.0.3',
+    version='2.0.4',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.

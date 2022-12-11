@@ -26,7 +26,7 @@ parser.add_argument('-V')
 ctx = parser.parseoptargs(['-V'])
 """
 
-__version__ = "2.0.3"
+__version__ = "2.0.4"
 
 
 def version():
@@ -68,7 +68,7 @@ class RegressionTest:
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         sts += self.Z.test_result(
             z0ctx,
-            "- home",
+            "- home %s" % homedir,
             homedir,
             stdout.split()[-1] if stdout else "<None>"
         )
@@ -81,26 +81,26 @@ class RegressionTest:
         tgtdir = os.path.join(libdir, pypi.lower())
         cmd = 'vem %s -q install %s' % (self.venv_dir, pypi)
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
-        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, 0, sts)
         sts += self.Z.test_result(
-            z0ctx, "- dir %s" % tgtdir, True, os.path.isdir(tgtdir)
+            z0ctx, "- pkgdir %s" % tgtdir, True, os.path.isdir(tgtdir)
         )
 
         cmd = 'vem %s -q info %s' % (self.venv_dir, pypi)
         sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
-        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts1)
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, 0, sts1)
         res = ""
         for ln in stdout.split("\n"):
             if ln.startswith("Location:"):
                 res = ln.split(" ")[1].strip()
                 break
         sts += self.Z.test_result(
-            z0ctx, "- info %s" % pypi, os.path.dirname(tgtdir), res
+            z0ctx, "- infodir %s" % pypi, os.path.dirname(tgtdir), res
         )
 
         cmd = 'vem %s -q update %s==0.11.11' % (self.venv_dir, pypi)
         sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
-        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts1)
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, 0, sts1)
         cmd = 'vem %s -q info %s' % (self.venv_dir, pypi)
         sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         res = ""
@@ -109,14 +109,14 @@ class RegressionTest:
                 res = ln.split(" ")[1].strip()
                 break
         sts += self.Z.test_result(
-            z0ctx, "- version %s" % pypi, "0.11.11", res
+            z0ctx, "- pkg version %s" % pypi, "0.11.11", res
         )
 
         cmd = 'vem %s -q uninstall %s -y' % (self.venv_dir, pypi)
         sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
-        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts1)
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, 0, sts1)
         sts += self.Z.test_result(
-            z0ctx, "- dir %s" % tgtdir, False, os.path.isdir(tgtdir)
+            z0ctx, "- rmdir %s" % tgtdir, False, os.path.isdir(tgtdir)
         )
         return sts
 
@@ -127,12 +127,21 @@ class RegressionTest:
                 fd.write(TEST_PYTHON)
         cmd = 'vem -qf %s exec "python %s"' % (self.venv_dir, test_python)
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
-        sts += self.Z.test_result(
-            z0ctx,
-            "- exec",
-            '1.2.3.4',
-            stdout.split()[-1] if stdout else "<None>"
-        )
+        if sys.version_info[0] == 2:
+            # Python2 version is issued on stderr
+            sts += self.Z.test_result(
+                z0ctx,
+                "- exec",
+                '1.2.3.4',
+                stderr.split()[-1] if stderr else "<None>"
+            )
+        else:
+            sts += self.Z.test_result(
+                z0ctx,
+                "- exec",
+                '1.2.3.4',
+                stdout.split()[-1] if stdout else "<None>"
+            )
         return sts
 
     def test_01(self, z0ctx):
@@ -141,8 +150,8 @@ class RegressionTest:
         # Not isolated nevironment
         cmd = 'vem -qf -p%s create %s' % (pyver, self.venv_dir)
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
-        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
         sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
         sts += self.check_4_paths(z0ctx)
         sts += self.check_4_homedir(z0ctx, self.SAVED_HOME)
         sts += self.check_4_install(z0ctx)
@@ -170,8 +179,8 @@ class RegressionTest:
         # Isolated environment + devel packages
         cmd = 'vem -qDIf -p%s create %s' % (pyver, self.venv_dir)
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
-        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
         sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
         sts += self.check_4_paths(z0ctx)
         sts += self.check_4_homedir(z0ctx, self.venv_dir)
         sts += self.check_4_install(z0ctx)

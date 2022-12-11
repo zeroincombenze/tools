@@ -1,3 +1,9 @@
+2.0.4 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] vem: no python2 warning in linux kernel 3
+* [FIX] vem: best recognition of python version
+
 2.0.3 (2022-11-08)
 ~~~~~~~~~~~~~~~~~~
 

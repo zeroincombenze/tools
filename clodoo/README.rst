@@ -1,6 +1,6 @@
 
 ============
-clodoo 2.0.2
+clodoo 2.0.3
 ============
 
 
@@ -327,6 +327,11 @@ Current development version
 History
 -------
 
+2.0.3 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: GIT_BRANCH sometimes fails
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
@@ -387,7 +392,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-21
+Last Update / Ultimo aggiornamento: 2022-12-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
