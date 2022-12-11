@@ -692,14 +692,25 @@ def package_from_list(
     deps_list, kw, pkg_list, with_version=None, odoo_ver=None, pyver=None
 ):
     for item in pkg_list:
-        deps_list = add_package(
-            deps_list,
-            kw,
-            item,
-            with_version=with_version,
-            odoo_ver=odoo_ver,
-            pyver=pyver,
-        )
+        if isinstance(item, (list, tuple)):
+            for sub in item:
+                deps_list = add_package(
+                    deps_list,
+                    kw,
+                    sub,
+                    with_version=with_version,
+                    odoo_ver=odoo_ver,
+                    pyver=pyver,
+                )
+        else:
+            deps_list = add_package(
+                deps_list,
+                kw,
+                item,
+                with_version=with_version,
+                odoo_ver=odoo_ver,
+                pyver=pyver,
+            )
     return deps_list
 
 
