@@ -1,7 +1,7 @@
 
-==================
-z0bug_odoo 2.0.1.1
-==================
+================
+z0bug_odoo 2.0.2
+================
 
 
 
@@ -1053,6 +1053,12 @@ Current development version
 History
 -------
 
+2.0.2 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Automatic conversion of integer into string for 'char' fields
+* [IMP] TestEnv
+
 2.0.1.1 (2022-11-03)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -1097,7 +1103,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-11-21
+Last Update / Ultimo aggiornamento: 2022-12-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -11,7 +11,7 @@ else:
 
 setup(
     name='wok_code',
-    version='2.0.3',
+    version='2.0.4',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.

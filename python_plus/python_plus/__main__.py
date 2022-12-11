@@ -11,7 +11,7 @@ import sys
 
 from zerobug import Z0BUG
 
-__version__ = "2.0.3"
+__version__ = "2.0.4"
 STS_FAILED = 1
 STS_SUCCESS = 0
 

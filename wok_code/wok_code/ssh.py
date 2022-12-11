@@ -3,7 +3,7 @@
 import os
 import sys
 
-__version__ = '0.1.2'
+__version__ = '2.0.4'
 
 
 def get_remote_user():

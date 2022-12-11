@@ -1,5 +1,5 @@
-2.0.3.1 (2022-10-31)
-~~~~~~~~~~~~~~~~~~~~
+2.0.4 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] deploy_odoo: update from path
 * [FIX] build_cmd: best recognition of python version
