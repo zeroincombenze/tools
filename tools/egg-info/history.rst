@@ -1,13 +1,50 @@
+z0bug_odoo: 2.0.2 (2022-12-09)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Automatic conversion of integer into string for 'char' fields
+* [IMP] TestEnv
+
+
+wok_code: 2.0.4 (2022-12-09)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] deploy_odoo: update from path
+* [FIX] build_cmd: best recognition of python version
+* [FIX] set_python_version.sh: best recognition of python version
+
+
+travis_emulator: 2.0.3 (2022-12-09)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] best python version recognition
+
+
+python_plus: 2.0.4 (2022-12-09)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] vem: no python2 warning in linux kernel 3
+* [FIX] vem: best recognition of python version
+
+
+clodoo: 2.0.3 (2022-12-09)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: GIT_BRANCH sometimes fails
+
+
+zerobug: 2.0.3.1 (2022-12-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_pypi_test: best recognition of python version
+* [FIX] build_cmd: best recognition of python version
+* [FIX] travis_install_env: ensure coverage version
+
+
 z0lib: 2.0.1.1 (2022-12-07)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] python version recognition sometime fails
-
-
-python_plus: 2.0.3.1 (2022-12-07)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] vem: no python2 warning in linux kernel 3
+* [FIX] best recognition of python version
+* [FIX] run_traced: fail with python 2
 
 
 wok_code: 2.0.3 (2022-11-22)

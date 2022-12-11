@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='tools',
-    version='2.0.2.1',
+    version='2.0.3',
     author="SHS-AV s.r.l.",
     description='Sparse python source code',
     license='Affero GPL',
