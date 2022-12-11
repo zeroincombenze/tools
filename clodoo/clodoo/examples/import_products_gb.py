@@ -7,7 +7,7 @@ from import_products import init_n_connect, add_elem
 # import pdb
 
 
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 
 MYDICT = {
     "default_code": 0,
