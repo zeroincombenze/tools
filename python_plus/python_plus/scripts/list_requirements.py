@@ -238,6 +238,7 @@ PIP_TEST_PACKAGES = [
     "rfc3986",
     "setuptools",
     "simplejson",
+    "translators",
     "unittest2",
     # "urllib3[secure]",
     "websocket-client",
@@ -257,6 +258,36 @@ BIN_TEST_PACKAGES = [
 ]
 RPC_PACKAGES = ["clodoo", "odoorpc", "oerplib", "os0"]
 PIP_BASE_PACKAGES = [
+    "Babel",
+    "chardet",
+    "configparser",
+    "decorator",
+    "docutils",
+    "feedparser",
+    "future",
+    "gdata",
+    "gevent",
+    "html2text",
+    "Jinja2",
+    "lxml",
+    "Mako",
+    "numpy",
+    "passlib",
+    "psutil",
+    "psycogreen",
+    "psycopg2-binary",
+    "python-ldap",
+    "python-dateutil",
+    "python-openid",
+    "python-plus",
+    "pydot",
+    "pyparsing",
+    "simplejson",
+    "six",
+    "stdnum",
+    "vatnumber",
+]
+PIP_ODOO_BASE_PACKAGES = [
     "Babel",
     "chardet",
     "configparser",
@@ -493,7 +524,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
     defver = False
-    if with_version and not item_ver:
+    if odoo_ver and with_version and not item_ver:
         if item in REQVERSION:
             min_v = False
             valid_ver = False
@@ -968,10 +999,10 @@ def main(cli_args=None):
         PY3_DEV = "python%s-dev" % ctx["pyver"]
     if ctx["odoo_ver"] and not ctx["pyver"]:
         ctx = get_pyver(ctx)
-    elif not ctx["odoo_ver"] and ctx["pyver"]:
-        ctx = get_def_odoo_ver(ctx)
-    if not ctx["odoo_ver"]:
-        ctx["odoo_ver"] = "12.0"
+    # elif not ctx["odoo_ver"] and ctx["pyver"]:
+    #     ctx = get_def_odoo_ver(ctx)
+    # if not ctx["odoo_ver"]:
+    #     ctx["odoo_ver"] = "12.0"
     if ctx["out_file"]:
         ctx = set_def_outfile(ctx)
     if not ctx["odoo_dir"] and ctx["odoo_ver"]:
@@ -1043,7 +1074,8 @@ def main(cli_args=None):
         deps_list = package_from_list(
             deps_list,
             "python",
-            PIP_BASE_PACKAGES + PIP_SECURE_PACKAGES,
+            PIP_ODOO_BASE_PACKAGES + PIP_SECURE_PACKAGES
+            if ctx["odoo_ver"] else PIP_BASE_PACKAGES + PIP_SECURE_PACKAGES,
             with_version=ctx["with_version"],
             odoo_ver=ctx["odoo_ver"],
             pyver=ctx["pyver"],

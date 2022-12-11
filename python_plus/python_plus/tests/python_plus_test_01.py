@@ -7,6 +7,7 @@
 from __future__ import print_function, unicode_literals
 
 import sys
+import os
 
 # from zerobug import Z0BUG
 from python_plus import (_b, _u, bstrings, bytestr_type, qsplit, text_type,
@@ -29,8 +30,10 @@ class RegressionTest:
         self.Z = zarlib
 
     def test_01(self, z0ctx):
-        res = sys.version_info[0]
-        sts = self.Z.test_result(z0ctx, "python%s" % res, res, res)
+        sts = self.Z.test_result(z0ctx,
+                                 'python version',
+                                 os.getenv("TRAVIS_PYTHON_VERSION"),
+                                 "%d.%d" % (sys.version_info[0], sys.version_info[1]))
 
         btext = b'abcdef'
         res = isinstance(btext, bytestr_type)

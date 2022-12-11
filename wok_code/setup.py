@@ -2,7 +2,7 @@ import sys
 from setuptools import find_packages, setup
 
 install_requires = [
-    'z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'translators'
+    'z0lib', 'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'translators', 'vatnumber'
 ]
 if sys.version_info >= (3, 0):
     install_requires.append('twine')

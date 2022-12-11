@@ -51,7 +51,7 @@ test_01() {
     RES=$(list_requirements.py -V 2>&1)
     test_result "list_requirements -V" "$__version__" "$RES"
     #
-    TRES="python=six,astroid,Click,codecov,configparser,coverage,coveralls,docopt,flake8,GitPython,isort,lazy_object_proxy,lxml,MarkupSafe,mock,pbr,polib,pycodestyle,pycparser,pyflakes,Pygments,pylint,pylint-mccabe,pylint-plugin-utils,pylint_odoo,pyserial,pytest,python-magic,PyWebDAV,PyYAML,QUnitSuite,restructuredtext_lint,rfc3986,setuptools,simplejson,unittest2,websocket-client,whichcraft,wrapt,z0bug_odoo,docutils,zerobug"
+    TRES="python=six,astroid,Click,codecov,configparser,coverage,coveralls,docopt,flake8,GitPython,isort,lazy_object_proxy,lxml,MarkupSafe,mock,pbr,polib,pycodestyle,pycparser,pyflakes,Pygments,pylint,pylint-mccabe,pylint-plugin-utils,pylint_odoo,pyserial,pytest,python-magic,PyWebDAV,PyYAML,QUnitSuite,restructuredtext_lint,rfc3986,setuptools,simplejson,translators,unittest2,websocket-client,whichcraft,wrapt,z0bug_odoo,docutils,zerobug"
     RES=$(list_requirements.py -b10.0 -tpython -T)
     test_result "list_requirements -b10.0 -tpython -T" "$TRES" "$RES"
     #

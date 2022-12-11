@@ -10,7 +10,7 @@ cur_env() {
         [[ -z $PYTHON && -x $p/python$v ]] && PYTHON=$p/python$v
         [[ -z $PIP && -x $p/pip$v ]] && PIP=$p/pip$v
     done
-    [[ -n $PYTHON ]] && PYTHON_VER=$($PYTHON --version 2>/dev/null | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
+    [[ -n $PYTHON ]] && PYTHON_VER=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
     [[ -n $PIP ]] && PIP_VER=$($PIP --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+" | head -n1)
 }
 

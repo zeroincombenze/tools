@@ -1,7 +1,8 @@
 2.0.1.1 (2022-12-07)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] python version recognition sometime fails
+* [FIX] best recognition of python version
+* [FIX] run_traced: fail with python 2
 
 2.0.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~

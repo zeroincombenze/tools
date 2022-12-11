@@ -681,7 +681,7 @@ Z0BUG_remove_os_tree() {
 Z0BUG_simulate_install_pypi() {
     local cmd PYTHON PYVER BASE
     PYTHON=$(which python)
-    PYVER=$(python --version 2>/dev/null | grep --color=never -Eo "[0-9]" | head -n1)
+    PYVER=$(python --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]" | head -n1)
     BASE=$(basename $1)
     [[ $BASE =~ .py$ ]] && BASE=${BASE:0: -3}
     cmd=$(readlink -f $1)

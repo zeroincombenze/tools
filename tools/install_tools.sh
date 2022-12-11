@@ -48,6 +48,8 @@ if [[ $opts =~ ^-.*h ]]; then
 elif [[ $opts =~ ^-.*V ]]; then
     echo $__version__
     exit 0
+elif [[ $opts =~ ^-.*t ]]; then
+    opts="$opts -$(echo $TRAVIS_PYTHON_VERSION|grep --color=never -Eo "[23]"|head -n1)"
 fi
 
 run_traced() {
@@ -90,7 +92,6 @@ RED="\e[31m"
 GREEN="\e[32m"
 CLR="\e[0m"
 
-# [[ $opts =~ ^-.*t ]] && HOME=$(readlink -e $(dirname $0)/..)
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
 [[ -d $TDIR/clodoo && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
 [[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
@@ -134,12 +135,12 @@ if [[ ! $opts =~ ^-.*k ]]; then
 fi
 
 VPYVER="0.0"
-[[ -x $LOCAL_VENV/python ]] && VPYVER=$($LOCAL_VENV/python --version 2>/dev/null | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
-[[ -x $LOCAL_VENV/bin/python ]] && VPYVER=$($LOCAL_VENV/bin/python --version 2>/dev/null | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
-[[ $opts =~ ^-.*2 ]] && PYVER=$(python2 --version 2>/dev/null | grep --color=never -Eo "2\.[0-9]+" | head -n1) || PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+[[ -x $LOCAL_VENV/python ]] && VPYVER=$($LOCAL_VENV/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
+[[ -x $LOCAL_VENV/bin/python ]] && VPYVER=$($LOCAL_VENV/bin/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
+[[ $opts =~ ^-.*2 ]] && PYVER=$(python2 --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1) || PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
-[[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>/dev/null | grep --color=never -Eo "2\.[0-9]+" | head -n1)
+[[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1)
 [[ -z $PYVER && ! $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && echo "No python not found in path|" && exit 1
 
@@ -170,7 +171,7 @@ TRAVIS_CMDS=""
 PKGS_LIST="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep --color=never -Eo '[0-9]+' | head -n1)
-PYVER=$($PYTHON --version 2>/dev/null | grep --color=never -Eo "[0-9]" | head -n1)
+PYVER=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]" | head -n1)
 popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PIPVER -gt 18 ]] && popts="$popts --no-warn-conflicts"
 [[ $PIPVER -eq 19 ]] && popts="$popts --use-feature=2020-resolver"
@@ -303,6 +304,7 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "BINDIR=\"$LOCAL_VENV/bin\"">>$DSTPATH/activate_tools
     echo "ACTIVATE=\"\$BINDIR/activate\"">>$DSTPATH/activate_tools
     echo "PYLIB=\"$PYLIB\"">>$DSTPATH/activate_tools
+
     echo "opts=\$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9 .)">>$DSTPATH/activate_tools
     echo "[[ \$opts =~ ^-.*h ]] && echo \$0 [-f][-t] && exit 0">>$DSTPATH/activate_tools
     if [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]]; then
@@ -313,7 +315,9 @@ if [[ ! $opts =~ ^-.*n ]]; then
       echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\"\$PYLIB/z0bug_odoo/travis:\$PATH\"">>$DSTPATH/activate_tools
     fi
     for fn in codecov coverage coverage3 coveralls flake8 pylint; do
-      echo "[[ ! -L \$PYLIB/zerobug/_travis/$fn ]] && ln -s \$BINDIR/$fn \$PYLIB/zerobug/_travis/$fn">>$DSTPATH/activate_tools
+      echo "p=\$(which $fn 2>/dev/null)">>$DSTPATH/activate_tools
+      echo "[[ -z \$p ]] && p=\$BINDIR/$fn">>$DSTPATH/activate_tools
+      echo "[[ ! -L \$PYLIB/zerobug/_travis/$fn ]] && ln -s \$p \$PYLIB/zerobug/_travis/$fn">>$DSTPATH/activate_tools
     done
     echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ ! \$opts =~ ^-.*f ]] && export PATH=\"\$PATH:\$BINDIR\"">>$DSTPATH/activate_tools
     echo "[[ -f \$ACTIVATE ]] && echo \":\$PATH:\"|grep -qv \":\$BINDIR:\" && [[ \$opts =~ ^-.*f ]] && export PATH=\$(echo \$PATH|sed -E \"s|:\$BINDIR|:|\")">>$DSTPATH/activate_tools

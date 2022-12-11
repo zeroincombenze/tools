@@ -1,7 +1,7 @@
 
-===================
-python_plus 2.0.2.2
-===================
+=================
+python_plus 2.0.3
+=================
 
 
 
@@ -274,8 +274,14 @@ Current development version
 History
 -------
 
-2.0.2.2 (2022-11-08)
+2.0.3.1 (2022-12-07)
 ~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] vem: no python2 warning in linux kernel 3
+* [FIX] vem: best recognition of python version
+
+2.0.3 (2022-11-08)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] npm management
 * [IMP] compute_date: refdate may be a string
@@ -343,7 +349,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-11-19
+Last Update / Ultimo aggiornamento: 2022-12-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

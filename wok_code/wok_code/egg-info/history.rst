@@ -2,6 +2,8 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] deploy_odoo: update from path
+* [FIX] build_cmd: best recognition of python version
+* [FIX] set_python_version.sh: best recognition of python version
 
 2.0.3 (2022-11-22)
 ~~~~~~~~~~~~~~~~~~

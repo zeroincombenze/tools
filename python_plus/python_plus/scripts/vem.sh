@@ -748,12 +748,12 @@ find_cur_py() {
       [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
       PYTHON=$(which $PYTHON 2>/dev/null)
       [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>/dev/null | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
       PIP=$(which pip$opt_pyver 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     else
       PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>/dev/null | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
       PIP=$(which pip 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     fi
@@ -1092,7 +1092,7 @@ do_venv_create() {
   PYTHON=""
   if [[ -x $opt_pyver ]]; then
     PYTHON=$opt_pyver
-    opt_pyver=$($PYTHON --version 2>/dev/null | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+    opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
     PIP=$(which pip$opt_pyver 2>/dev/null)
     [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
