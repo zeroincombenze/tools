@@ -29,7 +29,7 @@ class RegressionTest:
         sts = self.Z.test_result(z0ctx, "Version", z0lib.__version__, __version__)
         #
         parser = z0lib.parseoptargs(
-            "Unit Test", "© 2015-2022 by SHS-AV s.r.l.", version=__version__
+            "Unit Test", "© 2015-2023 by SHS-AV s.r.l.", version=__version__
         )
         parser.add_argument('-h')
         parser.add_argument('-n')
@@ -43,7 +43,7 @@ class RegressionTest:
     def test_02(self, z0ctx):
         # sts = TEST_SUCCESS
         parser = z0lib.parseoptargs(
-            "Unit Test", "© 2015-2022 by SHS-AV s.r.l.", version=__version__
+            "Unit Test", "© 2015-2023 by SHS-AV s.r.l.", version=__version__
         )
         parser.add_argument('-h')
         parser.add_argument('-n')
@@ -72,7 +72,7 @@ class RegressionTest:
         sts += self.Z.test_result(z0ctx, "cmd mytarget", 'mytarget', ctx['mytarget'])
 
         parser = z0lib.parseoptargs(
-            "Unit Test", "© 2015-2022 by SHS-AV s.r.l.", version=__version__
+            "Unit Test", "© 2015-2023 by SHS-AV s.r.l.", version=__version__
         )
         parser.add_argument('-h')
         parser.add_argument('-n')
@@ -92,7 +92,7 @@ class RegressionTest:
         sts += self.Z.test_result(z0ctx, "cmd mytarget -q", 0, ctx['opt_verbose'])
 
         parser = z0lib.parseoptargs(
-            "Unit Test", "© 2015-2022 by SHS-AV s.r.l.", version=__version__
+            "Unit Test", "© 2015-2023 by SHS-AV s.r.l.", version=__version__
         )
         parser.add_argument('-h')
         parser.add_argument('-n')

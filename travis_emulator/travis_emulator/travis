@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -814,7 +814,7 @@ process_yaml() {
     [[ -n $opt_trace && ::matrix =~ $opt_trace ]] && debug_shell "::matrix"
     [[ -z "$python_ver_req" ]] && python_ver_req=$(python --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]+\.[0-9]+")
     [[ -z "$opt_pyv" ]] && opt_pyv=$(get_cfg_value "" "PYTHON_MATRIX")
-    [[ -z "$opt_pyv" ]] && opt_pyv="(2.7|3.5|3.6|3.7|3.8)"
+    [[ -z "$opt_pyv" ]] && opt_pyv="(2.7|3.5|3.6|3.7|3.8|3.9)"
     opt_pyv="${opt_pyv//,/|}"
     opt_pyv="${opt_pyv// /|}"
     [[ $opt_pyv =~ ^\( ]] || opt_pyv="($opt_pyv)"

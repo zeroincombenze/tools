@@ -42,7 +42,7 @@ optional arguments:
   -x, --external-bin-dependencies
   -1, --no-depth
 
-© 2020-22 by SHS-AV s.r.l.
+© 2020-23 by SHS-AV s.r.l.
 
 
 This app can execute following actions:
@@ -109,7 +109,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '2.0.4'
+__version__ = '2.0.3.1'
 
 
 MANIFEST_FILES = ['__manifest__.py', '__odoo__.py', '__openerp__.py', '__terp__.py']

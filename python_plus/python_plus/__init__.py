@@ -10,7 +10,7 @@ from . import scripts
 __title__ = 'python_plus'
 __author__ = 'Antonio Maria Vigliotti'
 __license__ = 'L-GPL'
-__copyright__ = 'Copyright 2018-2020 SHS-AV srl'
+__copyright__ = 'Copyright 2018-2023 SHS-AV srl'
 __ver_major__ = 0
 __ver_minor__ = 1
 __ver_patch__ = 3

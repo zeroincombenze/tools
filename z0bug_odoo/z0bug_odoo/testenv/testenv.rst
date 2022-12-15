@@ -1,5 +1,5 @@
-Test Environment v2.0.1.2.a
-===========================
+Test Environment v2.0.2
+=======================
 
 Overview
 --------
@@ -26,6 +26,7 @@ How to use
 
 Copy this file in tests directory of your module.
 Please copy this documentation testenv.rst file in your module too.
+The __init__.py must import testenv.
 Your python test file have to contain some following example lines:
 
     import os
@@ -58,10 +59,19 @@ Your python test file have to contain some following example lines:
                 _logger.info("✨ Test data committed")
 
         def test_mytest(self):
+            _logger.info(
+                "🎺 Testing test_mytest"    # Use unicode char to best log reading
+            )
             ...
 
         def test_mywizard(self):
-            self.wizard(...)             # Test requires wizard simulator
+            self.wizard(...)                # Test requires wizard simulator
+
+An important helper to debug is self.debug_level. When you begins your test cycle,
+you are hinted to set self.debug_level = 3; then you can decrease the debug level
+when you are developing stable tests.
+Final code should have self.debug_level = 0.
+TestEnv logs debug message with symbol "🐞 " so you can easily recognize them.
 
 Requirements
 ------------
@@ -71,6 +81,11 @@ Ths TestEnv software requires:
 * python_plus PYPI package
 * z0bug_odoo PYPI package
 * python 2.7 / 3.6 / 3.7 / 3.8
+
+TestEnv is full integrated with Zeroincombenze(R) tools.
+See https://zeroincombenze-tools.readthedocs.io/
+and https://github.com/zeroincombenze/tools.git
+Zeroincombenze(R) tools help you to test Odoo module with pycharm.
 
 Model data declaration
 ----------------------

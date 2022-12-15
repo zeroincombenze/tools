@@ -1,7 +1,12 @@
+2.0.3.1 (2022-12-13)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Added python 3.9 to test
+
 2.0.3 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~
 
-* [FIX] best python version recognition
+* [FIX] Best python version recognition
 
 2.0.2.2 (2022-11-08)
 ~~~~~~~~~~~~~~~~~~~~

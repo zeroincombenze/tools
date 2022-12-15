@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2019-2022 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2019-2023 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -25,7 +25,7 @@ else:
 #     except ImportError:
 #         import z0lib
 
-__version__ = '2.0.4'
+__version__ = '2.0.3.1'
 
 ROOT_URL = 'https://api.github.com/repos/zeroincombenze/'
 USER_URL = 'https://api.github.com/users/'
@@ -630,7 +630,7 @@ def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Get repository list from github",
-        epilog="© 2019-2022 by SHS-AV s.r.l.",
+        epilog="© 2019-2023 by SHS-AV s.r.l.",
     )
     parser.add_argument(
         '-b',

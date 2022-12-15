@@ -3,6 +3,7 @@
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
+The __init__.py must import testenv.
 Your python test file should have to contain some following example lines:
 
     import os
@@ -18,25 +19,30 @@ Your python test file should have to contain some following example lines:
 
         def setUp(self):
             super().setUp()
+            # Add following statement just for get debug information
+            self.debug_level = 2
             data = {"TEST_SETUP_LIST": TEST_SETUP_LIST}
             for resource in TEST_SETUP_LIST:
                 item = "TEST_%s" % resource.upper().replace(".", "_")
                 data[item] = globals()[item]
-            self.declare_all_data(data)
-            self.setup_env()             # Create test environment
+            self.declare_all_data(data)     # TestEnv swallows the data
+            self.setup_env()                # Create test environment
 
         def tearDown(self):
             super().tearDown()
             if os.environ.get("ODOO_COMMIT_TEST", ""):
-                # Save test environment, so it is available to use
+                # Save test environment, so it is available to dump
                 self.env.cr.commit()     # pylint: disable=invalid-commit
                 _logger.info("✨ Test data committed")
 
         def test_mytest(self):
+            _logger.info(
+                "🎺 Testing test_mytest"    # Use unicode char to best log reading
+            )
             ...
 
         def test_mywizard(self):
-            self.wizard(...)             # Test requires wizard simulator
+            self.wizard(...)                # Test requires wizard simulator
 
 For furthermore information, please:
 * Read file testenv.rst in this directory (if supplied)
@@ -175,11 +181,11 @@ class MainTest(SingleTransactionCase):
                     self.parent_resource[resource] = parent_resource
                     if self.debug_level > 1:
                         self._logger.info(
-                            "🐞 parent_resource[%s] = %s" % (
+                            "🐞parent_resource[%s] = %s" % (
                                 resource, self.parent_resource[resource])
                         )
                         self._logger.info(
-                            "🐞 parent_name[%s] = %s" % (resource, field)
+                            "🐞parent_name[%s] = %s" % (resource, field)
                         )
                     break
 
@@ -202,11 +208,11 @@ class MainTest(SingleTransactionCase):
                     ]
                     if self.debug_level > 1:
                         self._logger.info(
-                            "🐞 childs_resource[%s] = %s" % (
+                            "🐞childs_resource[%s] = %s" % (
                                 resource, self.childs_resource[resource])
                         )
                         self._logger.info(
-                            "🐞 childs_name[%s] = %s" % (resource, field)
+                            "🐞childs_name[%s] = %s" % (resource, field)
                         )
                     break
 
@@ -248,6 +254,7 @@ class MainTest(SingleTransactionCase):
                     field == self.parent_name.get(resource)
                     or (field == "code" and resource == "product.product")
                     or (field == "description" and resource != "account.tax")
+                    or (field == "login" and resource != "res.users")
                     or (field == "sequence" and not multi_key)
                 ):
                     continue                                         # pragma: no cover
@@ -255,7 +262,7 @@ class MainTest(SingleTransactionCase):
                     self.skeys[resource] = [field]
                     if self.debug_level > 1:
                         self._logger.info(
-                            "🐞 skeys[%s] = %s" % (resource, self.skeys[resource])
+                            "🐞skeys[%s] = %s" % (resource, self.skeys[resource])
                         )
                     break
 
@@ -385,7 +392,8 @@ class MainTest(SingleTransactionCase):
                 res = [(6, 0, res)]
         else:
             res = False
-            self._logger.info("⚠ No *2many value for %s.%s" % (resource, value))
+            if fmt:
+                self._logger.info("⚠ No *2many value for %s.%s" % (resource, value))
         return res
 
     def _check_4_selection(self, resource, field, value, fmt=None):
@@ -440,6 +448,30 @@ class MainTest(SingleTransactionCase):
                 field_parent = "product_tmpl_id"
         return resource_child, xref_child, field_child, field_parent
 
+    def _adjust_test_data(self, group=None):
+        for (debug_xref, tnxl_xref) in (
+            ("z0bug.partner_mycompany", "base.main_company"),
+        ):
+            res = self.env.ref(debug_xref, raise_if_not_found=False)
+            if not res:
+                self.add_translation_xref(debug_xref, tnxl_xref)
+        if not self.env["ir.module.module"].search(
+            [("name", "=", "stock"), ("state", "=", "installed")]
+        ):
+            for resource in ("product.product", "product.template"):
+                self.add_translation(resource, "type", ["product", "consu"])
+        if not self.env["ir.module.module"].search(
+            [("name", "=", "account_payment_term_extension"),
+             ("state", "=", "installed")]
+        ):
+            resource = "account.payment.term.line"
+            for xref in self.get_resource_data_list(resource, group=group):
+                values = self.get_resource_data(resource, xref, group=group)
+                if values.get("months"):
+                    values["days"] = values["months"] * 30 - 2
+                    values["months"] = ""
+                self.store_resource_data(resource, xref, values, group=group)
+
     def cast_types(self, resource, values, fmt=None, group=None):
         self._load_field_struct(resource)
         for field in [x for x in values.keys()]:
@@ -450,7 +482,7 @@ class MainTest(SingleTransactionCase):
                 del values[field]
                 if self.debug_level > 1:
                     self._logger.info(
-                        "🐞 del %s.vals[%s]" % (resource, field)
+                        "🐞del %s.vals[%s]" % (resource, field)
                     )
                 continue
             if field not in self.struct[resource]:
@@ -458,7 +490,7 @@ class MainTest(SingleTransactionCase):
                     del values[field]
                     if self.debug_level > 1:
                         self._logger.info(
-                            "🐞 field %s does not exist in %s" % (field, resource)
+                            "🐞field %s does not exist in %s" % (field, resource)
                         )
                 continue
             ftype = self.struct[resource][field]["type"]
@@ -495,7 +527,7 @@ class MainTest(SingleTransactionCase):
                     del values[field]
                     if self.debug_level > 1:
                         self._logger.info(
-                            "🐞 no value for %s.%s" % (resource, field)
+                            "🐞no value for %s.%s" % (resource, field)
                         )
                     continue
             elif ftype in ("one2many", "many2many"):
@@ -509,7 +541,7 @@ class MainTest(SingleTransactionCase):
                     del values[field]
                     if self.debug_level > 1:
                         self._logger.info(
-                            "🐞 no value for %s.%s" % (resource, field)
+                            "🐞no value for %s.%s" % (resource, field)
                         )
                     continue
             elif ftype == "selection":
@@ -518,14 +550,14 @@ class MainTest(SingleTransactionCase):
                     del values[field]
                     if self.debug_level > 1:
                         self._logger.info(
-                            "🐞 no value for %s.%s" % (resource, field)
+                            "🐞no value for %s.%s" % (resource, field)
                         )
                     continue
             values[field] = self.tnxl_field_value(
                 resource, field, values[field], fmt=fmt)
         if self.debug_level > 1 and not values:
             self._logger.info(
-                "🐞 cast_type(%s, %s) -> null" % (resource, values)
+                "🐞cast_type(%s, %s) -> null" % (resource, values)
             )
         return values
 
@@ -541,8 +573,8 @@ class MainTest(SingleTransactionCase):
             resource, values, group=group)
         if self.debug_level > 1:
             self._logger.info(
-                "🐞 Ext.Ref. %s stored for %s as %s (%s)" % (
-                    xref, resource, name, group)
+                "🐞%s.store_resource_data(%s,%s,group=%s)" % (
+                    resource, xref, name, group)
             )
         if name not in self.setup_data_list[group]:
             self.setup_data_list[group].append(name)
@@ -562,6 +594,10 @@ class MainTest(SingleTransactionCase):
         Returns:
             obj: the Odoo model record
         """
+        if self.debug_level > 2:
+            self._logger.info(
+                "🐞%s.resource_bind(%s)" % (resource, xref)
+            )
         # Search for Odoo standard external reference
         obj = self.env.ref(xref, raise_if_not_found=False)
         if obj:
@@ -639,6 +675,10 @@ class MainTest(SingleTransactionCase):
             raise ValueError(                                        # pragma: no cover
                 "No value supplied for %s create" % resource         # pragma: no cover
             )                                                        # pragma: no cover
+        if self.debug_level > 2:
+            self._logger.info(
+                "🐞%s.resource_create(%s,%s)" % (resource, values, xref)
+            )
         values = self.cast_types(resource, values, fmt="cmd", group=group)
         if resource.startswith("account.move"):
             res = (
@@ -675,6 +715,10 @@ class MainTest(SingleTransactionCase):
                 values = self.get_resource_data(resource, xref, group=group)
             values = self._add_child_records(resource, xref, values, group=group)
             values = self.cast_types(resource, values, fmt="cmd", group=group)
+            if self.debug_level > 2:
+                self._logger.info(
+                    "🐞%s.resource_write(%s,%s)" % (resource, values, xref)
+                )
             if resource.startswith("account.move"):
                 obj.with_context(check_move_validity=False).write(values)
             else:
@@ -683,6 +727,10 @@ class MainTest(SingleTransactionCase):
 
     def resource_make(self, resource, xref, values=None, group=None):
         """Create or write a test record and set external ID to next tests"""
+        if self.debug_level > 2:
+            self._logger.info(
+                "🐞%s.resource_make(%s,%s)" % (resource, values, xref)
+            )
         obj = self.resource_write(
             resource, xref, values=values, raise_if_not_found=False, group=group
         )
@@ -741,7 +789,7 @@ class MainTest(SingleTransactionCase):
         for resource in message["TEST_SETUP_LIST"]:
             if self.debug_level:
                 self._logger.info(
-                    "🐞 declare_all_data(%s, %s)" % (resource, group)
+                    "🐞declare_all_data(%s, %s)" % (resource, group)
                 )
             item = "TEST_%s" % resource.upper().replace(".", "_")
             self.declare_resource_data(
@@ -829,35 +877,12 @@ class MainTest(SingleTransactionCase):
             vals = {"lang": iso}
             self.env["base.update.translations"].create(vals).act_update()
 
-    def _adjust_test_data(self, group=None):
-        for (debug_xref, tnxl_xref) in (
-            ("z0bug.partner_mycompany", "base.main_company"),
-        ):
-            res = self.env.ref(debug_xref, raise_if_not_found=False)
-            if not res:
-                self.add_translation_xref(debug_xref, tnxl_xref)
-        if not self.env["ir.module.module"].search(
-            [("name", "=", "stock"), ("state", "=", "installed")]
-        ):
-            for resource in ("product.product", "product.template"):
-                self.add_translation(resource, "type", ["product", "consu"])
-        if not self.env["ir.module.module"].search(
-            [("name", "=", "account_payment_term_extension"),
-             ("state", "=", "installed")]
-        ):
-            resource = "account.payment.term.line"
-            for xref in self.get_resource_data_list(resource, group=group):
-                values = self.get_resource_data(resource, xref, group=group)
-                if values.get("months"):
-                    values["days"] = values["months"] * 30 - 2
-                    values["months"] = ""
-                self.store_resource_data(resource, xref, values, group=group)
-
     def setup_env(
         self,
         lang=None,
         locale=None,
         group=None,
+        enable_cancel_journal=None
     ):
         """Create all record from declared data. See above doc
 
@@ -877,6 +902,32 @@ class MainTest(SingleTransactionCase):
         for resource in self.get_resource_list(group=group):
             for xref in self.get_resource_data_list(resource, group=group):
                 self.resource_make(resource, xref)
+        if enable_cancel_journal:
+            self.env["account.journal"].search([]).write({"update_posted": True})
+
+    def resource_edit(self, resource):
+        """Simulate web editing
+        Args:
+            resource (str or obj): if field is a string simulate create web behavior of
+                                   Odoo model issued in resource;
+                                   if field is an obj simulate write web behavior on the
+                                   issued record
+        """
+        resource_model = self.env[resource]
+        if isinstance(resource, basestring):
+            record = resource_model
+            for field in resource_model._fields.keys():
+                setattr(record, field, False)
+            for field in record._fields.values():
+                if field.default:
+                    field.default(record)
+        else:
+            record = resource
+        # Get all onchange method names and run them with None values
+        record = record if isinstance(record, (list, tuple)) else [record]
+        for field in resource_model._onchange_methods.values():
+            for method in field:
+                method(record)
 
     ########################################
     #     WIZARD ENVIRONMENT FUNCTIONS     #
@@ -912,6 +963,12 @@ class MainTest(SingleTransactionCase):
             Odoo windows action to pass to wizard execution
             If windows break return wizard image too
         """
+        if self.debug_level > 1:
+            self._logger.info(
+                "🐞wizard starting(%s,ctx=%s)" % (act_windows, ctx)
+            )
+        if not isinstance(act_windows, dict):
+            raise (TypeError, "Invalid act_windows")
         if isinstance(act_windows.get("context"), basestring):
             act_windows["context"] = safe_eval(
                 act_windows["context"],
@@ -937,9 +994,11 @@ class MainTest(SingleTransactionCase):
             vals = default or {}
             res_id = act_windows.get("res_id")
             if res_id:
-                wizard = self.env[res_model].browse(res_id)
+                wizard = self.env[res_model].with_context(
+                    act_windows["context"]).browse(res_id)
             else:
-                wizard = self.env[res_model].create(vals)
+                wizard = self.env[res_model].with_context(
+                    act_windows["context"]).create(vals)
                 act_windows["res_id"] = wizard.id
         # Save wizard for furthermore use
         # act_windows["_wizard_"] = wizard
@@ -1014,6 +1073,10 @@ class MainTest(SingleTransactionCase):
         Returns:
             None
         """
+        if self.debug_level > 2:
+            self._logger.info(
+                "🐞wizard.onchange(%s,%s=%s)" % (wizard, field, value)
+            )
         cur_vals = {}
         for name in wizard._fields.keys():
             cur_vals[name] = getattr(wizard, name)
@@ -1081,6 +1144,11 @@ class MainTest(SingleTransactionCase):
         Raises:
           TypeError: if invalid wizard image
         """
+
+        if self.debug_level > 1:
+            self._logger.info(
+                "🐞wizard running(%s)" % (act_windows)
+            )
         if act_windows["type"] == "ir.actions.server":
             if not records and "_wizard_" in act_windows:
                 records = act_windows.pop("_wizard_")
@@ -1136,6 +1204,10 @@ class MainTest(SingleTransactionCase):
         # Now simulate user confirmation
         # button_name = button_name or "process"
         if button_name and hasattr(wizard, button_name):
+            if self.debug_level > 1:
+                self._logger.info(
+                    "🐞%s.%s" % (res_model, button_name)
+                )
             result = getattr(wizard, button_name)()
             if isinstance(result, dict) and result.get("type") != "":
                 result.setdefault("type", "ir.actions.act_window_close")

@@ -33,7 +33,7 @@ python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 # - requests: oca-maintainers-tools -> '==2.3.0',
 #             codecov -> '>=2.7.9'
 # Here we assume: Odoo 11.0 use python 3.5, Odoo 12.0 uses python 3.7
-# If version is 2.7 or 3.5 or 3.6 or 3.7 or 3.8 then it refers to python version
+# If version is 2.7 or 3.5 or 3.6 or 3.7 or 3.8 or 3.9 then it refers to python version
 REQVERSION = {
     "acme_tiny": {"6.1": ">=4.0.3"},
     "argparse": {"0": "==1.2.1"},
@@ -42,11 +42,10 @@ REQVERSION = {
     "Babel": {"6.1": "==1.3", "8.0": "==2.3.4"},
     "beautifulsoup": {"6.1": "==3.2.1"},
     "codicefiscale": {"6.1": "==0.9"},
-    # "coverage": {"2.7": "<5.0.0", "3.5": ">=5.0.0"},
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
     "cryptography": {"2.7": ">=2.2.2", "3.7": ">=38.0"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
-    "docutils": {"6.1": "==0.12", "0": "==0.14"},  # Version by test pkgs
+    "docutils": {"6.1": "==0.12", "0": "==0.14", "3.7": "0.16"},        # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
     "ERPpeek": {"0": "==1.6.1"},
     "feedparser": {"6.1": "==5.1.3", "10.0": "==5.2.1"},
@@ -155,7 +154,6 @@ ALIAS = {
     "gitpython": "GitPython",
     "jinja2": "Jinja2",
     "ldap": "python-ldap",
-    # "lxml": "lxml",
     "mako": "Mako",
     "markupsafe": "MarkupSafe",
     "openid": "python-openid",
@@ -191,6 +189,7 @@ ALIAS3 = {
     "python-dev": "python3-dev",
 }
 FORCE_ALIAS = {"docutils==0.12": "docutils==0.14"}
+FORCE_ALIAS3 = {"docutils==0.12": "docutils==0.16"}
 PIP_SECURE_PACKAGES = [
     "urllib3[secure]",
     "cryptography",
@@ -226,8 +225,49 @@ PIP_TEST_PACKAGES = [
     "pylint-mccabe",
     "pylint_odoo",
     "pylint-plugin-utils",
-    # "pyopenssl",
-    # "python_plus",
+    "python-magic",
+    "pyserial",
+    "pytest",
+    "PyWebDAV",
+    "PyYAML",
+    "QUnitSuite",
+    "restructuredtext_lint",
+    "rfc3986",
+    "setuptools",
+    "simplejson",
+    "unittest2",
+    "websocket-client",
+    "whichcraft",
+    "wrapt",
+    "z0bug_odoo",
+    "zerobug",
+]
+PIP3_TEST_PACKAGES = [
+    "astroid",
+    "Click",
+    "configparser",
+    "codecov",
+    "coverage",
+    "coveralls",
+    "docopt",
+    "docutils",
+    "flake8",
+    "GitPython",
+    "isort",
+    "lazy_object_proxy",
+    "lxml",
+    "MarkupSafe",
+    "mock",
+    "pbr",
+    "polib",
+    "pycodestyle",
+    "pycparser",
+    "pyflakes",
+    "Pygments",
+    "pylint",
+    "pylint-mccabe",
+    "pylint_odoo",
+    "pylint-plugin-utils",
     "python-magic",
     "pyserial",
     "pytest",
@@ -240,7 +280,6 @@ PIP_TEST_PACKAGES = [
     "simplejson",
     "translators",
     "unittest2",
-    # "urllib3[secure]",
     "websocket-client",
     "whichcraft",
     "wrapt",
@@ -307,7 +346,6 @@ PIP_ODOO_BASE_PACKAGES = [
     "Pillow",
     "psutil",
     "psycogreen",
-    # 'psycopg2',
     "psycopg2-binary",
     "Python-Chart",
     "python-ldap",
@@ -323,7 +361,6 @@ PIP_ODOO_BASE_PACKAGES = [
     "simplejson",
     "six",
     "stdnum",
-    # "urllib3[secure]",
     "vatnumber",
     "Werkzeug",
 ]
@@ -531,7 +568,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
             if pyver in REQVERSION[item]:
                 min_v = pyver
             elif pyver and pyver.startswith("3"):
-                for v in ("3.8", "3.7", "3.6", "3.5"):
+                for v in ("3.9", "3.8", "3.7", "3.6", "3.5"):
                     if v in REQVERSION[item]:
                         min_v = v
                         break
@@ -566,7 +603,10 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
     if full_item.startswith("'"):
         full_item = full_item[1:-1]
     full_item = re.sub(' *([<=>]+) *', r'\1', full_item.strip())
-    full_item = FORCE_ALIAS.get(full_item, full_item)
+    if pyver and pyver.startswith("3"):
+        full_item = FORCE_ALIAS3.get(full_item, full_item)
+    else:
+        full_item = FORCE_ALIAS.get(full_item, full_item)
     return item, full_item, defver
 
 
@@ -1129,14 +1169,24 @@ def main(cli_args=None):
             pyver=ctx["pyver"],
         )
     if ctx["test_pkgs"]:
-        deps_list = package_from_list(
-            deps_list,
-            "python",
-            PIP_TEST_PACKAGES,
-            with_version=ctx["with_version"],
-            odoo_ver=ctx["odoo_ver"],
-            pyver=ctx["pyver"],
-        )
+        if ctx['pyver'] and int(ctx['pyver'].split('.')[0]) == 3:
+            deps_list = package_from_list(
+                deps_list,
+                "python",
+                PIP3_TEST_PACKAGES,
+                with_version=ctx["with_version"],
+                odoo_ver=ctx["odoo_ver"],
+                pyver=ctx["pyver"],
+            )
+        else:
+            deps_list = package_from_list(
+                deps_list,
+                "python",
+                PIP_TEST_PACKAGES,
+                with_version=ctx["with_version"],
+                odoo_ver=ctx["odoo_ver"],
+                pyver=ctx["pyver"],
+            )
         deps_list = package_from_list(
             deps_list,
             "bin",

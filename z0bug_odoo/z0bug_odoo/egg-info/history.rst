@@ -1,5 +1,11 @@
-2.0.2 (2022-12-09)
+2.0.2.1 (2022-12-14)
 ~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: more debug messages
+* [FIX] TestEnv: sometime crashes if default use context
+
+2.0.2 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] Automatic conversion of integer into string for 'char' fields
 * [IMP] TestEnv

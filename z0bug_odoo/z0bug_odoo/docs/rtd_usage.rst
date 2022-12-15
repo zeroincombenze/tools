@@ -9,7 +9,7 @@ Code example:
 
     # -*- coding: utf-8 -*-
     #
-    # Copyright 2017-19 - SHS-AV s.r.l. <https://www.zeroincombenze.it>
+    # Copyright 2017-23 - SHS-AV s.r.l. <https://www.zeroincombenze.it>
     #
     # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
     #
@@ -82,7 +82,7 @@ Function ref_value is used to retrieve values of each record (see above).
 
     # -*- coding: utf-8 -*-
     #
-    # Copyright 2017-19 - SHS-AV s.r.l. <https://www.zeroincombenze.it>
+    # Copyright 2017-23 - SHS-AV s.r.l. <https://www.zeroincombenze.it>
     #
     # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
     #
@@ -117,7 +117,7 @@ Last Update / Ultimo aggiornamento: 2022-12-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
-    :alt: 
+    :alt:
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
     :target: https://travis-ci.com/zeroincombenze/tools
     :alt: github.com

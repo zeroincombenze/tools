@@ -40,7 +40,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.4"
+__version__ = "2.0.3.1"
 
 msg_time = time.time()
 
@@ -165,7 +165,7 @@ def main(cli_args=None):
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
         "Convert csv file into xml file",
-        "© 2018-2022 by SHS-AV s.r.l.",
+        "© 2018-2023 by SHS-AV s.r.l.",
         version=__version__,
     )
     parser.add_argument('-h')

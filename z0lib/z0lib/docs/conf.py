@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'z0lib'
-copyright = '2019-21, Antonio Maria Vigliotti'
+copyright = '2019-23, Antonio Maria Vigliotti'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version

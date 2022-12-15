@@ -1479,7 +1479,7 @@ if __name__ == '__main__':
 
     def build_odoo_env(self, ctx, version, hierarchy=None, name=None, retodoodir=None):
         """Build a simplified Odoo directory tree
-        version: 15.0, 14.0, 13.0, ..., 7.0, 6.1
+        version: 16.0, 15.0, 14.0, 13.0, ..., 7.0, 6.1
         name: name of odoo dir (default equal to version)
         hierarchy: flat,tree,server (def=flat)
         """
@@ -1503,6 +1503,9 @@ if __name__ == '__main__':
             os.path.join(name, 'addons'),
             odoo_home,
             os.path.join(odoo_home, 'addons'),
+            os.path.join(odoo_home, 'osv'),
+            os.path.join(odoo_home, 'service'),
+            os.path.join(odoo_home, 'tools'),
             os.path.join(name, '.git'),
         ]
         root = Z0test().build_os_tree(ctx, os_tree)
@@ -1528,10 +1531,22 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
         with open(os.path.join(odoo_home, 'release.py'), 'w') as fd:
             versions = version.split('.')
             fd.write(RELEASE_PY % (versions[0], versions[1]))
-        with open(os.path.join(odoo_home, '__init__.py'), 'w') as fd:
-            fd.write('import release\n')
-        with open(os.path.join(odoo_root, script), 'w') as fd:
-            fd.write('print("Fake Odoo")\n')
+        for fn in ("osv", "service", "tools"):
+            with open(os.path.join(odoo_home, fn, "__init__.py"), 'w') as fd:
+                fd.write('print("Fake Odoo")\n')
+        init_py = ""
+        for fn in (script, "models.py", "fields.py", "api.py"):
+            if fn == "apy.py" and (version.startswith("6") or version.startswith("7")):
+                continue
+            if fn == script:
+                for fn2 in ("release", "osv", "service", "tools"):
+                    init_py += "import %s\n" % fn2
+            else:
+                init_py += "import %s\n" % fn[:-3]
+            with open(os.path.join(odoo_root, fn), 'w') as fd:
+                fd.write('print("Fake Odoo")\n')
+        with open(os.path.join(odoo_home, "__init__.py"), 'w') as fd:
+            fd.write(init_py)
         with open(os.path.join(odoo_root, '.travis.yml'), 'w') as fd:
             fd.write('\n')
         with open(os.path.join(odoo_root, 'README.rst'), 'w') as fd:
