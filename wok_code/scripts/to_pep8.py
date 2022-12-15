@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2018-22 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2018-23 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -82,7 +82,7 @@ try:
 except ImportError:
     from python_plus import _c, _u
 
-__version__ = "2.0.4"
+__version__ = "2.0.3.1"
 
 LICENSES = ('gpl', 'agpl', 'lgpl', 'opl', 'oee')
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0', '13.0', '14.0')
@@ -1781,7 +1781,7 @@ def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
-        "Topep8", "(C) 2015-2022 by SHS-AV s.r.l.", version=__version__
+        "Topep8", "(C) 2015-2023 by SHS-AV s.r.l.", version=__version__
     )
     parser.add_argument('-h')
     parser.add_argument(

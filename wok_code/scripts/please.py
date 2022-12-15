@@ -4,7 +4,7 @@ import os
 import sys
 import argparse
 
-__version__ = '2.0.4'
+__version__ = '2.0.3.1'
 
 
 def main(cli_args=None):
@@ -12,7 +12,7 @@ def main(cli_args=None):
         cli_args = sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Manage Odoo repositories",
-        epilog="© 2021-2022 by SHS-AV s.r.l."
+        epilog="© 2021-2023 by SHS-AV s.r.l."
     )
     parser.add_argument("-B", "--debug", action="count", default=0)
     parser.add_argument("-b", "--odoo-branch",

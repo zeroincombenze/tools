@@ -366,12 +366,13 @@ Current development version
 History
 -------
 
-2.0.3.1 (2022-12-08)
-~~~~~~~~~~~~~~~~~~~~
+2.0.4 (2022-12-08)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_pypi_test: best recognition of python version
 * [FIX] build_cmd: best recognition of python version
 * [FIX] travis_install_env: ensure coverage version
+* [IMP] odoo environment to test more precise
 
 2.0.3 (2022-11-08)
 ~~~~~~~~~~~~~~~~~~
@@ -440,7 +441,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-11
+Last Update / Ultimo aggiornamento: 2022-12-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

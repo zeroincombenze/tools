@@ -1,5 +1,5 @@
 # set -x
-__version__=2.0.4
+__version__=2.0.3.1
 if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi

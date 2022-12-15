@@ -7,7 +7,7 @@ import re
 import lxml.etree as ET
 from python_plus import _b
 
-__version__ = "2.0.4"
+__version__ = "2.0.3.1"
 
 MIGRATE_TO_NEW = [
     (
@@ -151,7 +151,7 @@ def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Migrate source file",
-        epilog="© 2021-2022 by SHS-AV s.r.l."
+        epilog="© 2021-2023 by SHS-AV s.r.l."
     )
     parser.add_argument('-b', '--to-version', default="12.0")
     parser.add_argument('-F', '--from-version')

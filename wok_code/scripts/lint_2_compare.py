@@ -8,7 +8,7 @@ from lxml import etree
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.0.4"
+__version__ = "2.0.3.1"
 
 
 IGNORE_DIRS = (".idea", ".git", "egg-info", "setup")
@@ -168,7 +168,7 @@ def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Compare 2 paths after formatted them",
-        epilog="© 2021-2022 by SHS-AV s.r.l."
+        epilog="© 2021-2023 by SHS-AV s.r.l."
     )
     parser.add_argument('-b', '--odoo-version')
     parser.add_argument('-c', '--cache', help="Use cached values")

@@ -14,7 +14,7 @@ from openpyxl import load_workbook, Workbook
 
 # from python_plus import unicodes
 
-__version__ = "2.0.4"
+__version__ = "2.0.3.1"
 
 
 MODULE_SEP = "\ufffa"
@@ -64,7 +64,10 @@ class OdooTranslation(object):
     """ """
 
     def __init__(self, opt_args):
-        import translators as ts
+        if sys.version_info[0] == 3:
+            import translators as ts
+        else:
+            ts = None
         self.ts = ts
         self.opt_args = opt_args
         self.dict = {}
@@ -384,7 +387,7 @@ class OdooTranslation(object):
                 fulltermhk_tnxl = self.set_plural(fullterm_orig, fullterm_tnxl[: -3])
                 fullterm_2_store = True
             if fullterm_orig.lower() == fullterm_tnxl or not fullterm_tnxl:
-                if not re.search(self.re_tag, fullterm_orig):
+                if self.ts and not re.search(self.re_tag, fullterm_orig):
                     try:
                         # Use Google translator
                         fullterm_tnxl = self.adjust_case(

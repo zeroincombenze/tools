@@ -10,7 +10,7 @@ import sys
 import argparse
 # import pdb
 
-__version__ = "2.0.4"
+__version__ = "2.0.3.1"
 
 PO_DEFAULT = """
 # Translation of Odoo Server.
@@ -44,7 +44,7 @@ def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Make or create a PO file",
-        epilog="© 2020-2022 by SHS-AV s.r.l.",
+        epilog="© 2020-2023 by SHS-AV s.r.l.",
     )
     parser.add_argument("-b", "--branch", default="12.0")
     parser.add_argument("-C", "--clear-base-tnl", dest="clear_base_tnl")

@@ -4,12 +4,13 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 try:
-    from odoo import models as odoo_models
+    from odoo import model as odoo_models                                  # noqa: F401
 except ImportError:
     try:
-        from openerp.osv.orm import model as odoo_models
+        from openerp.osv.orm import model as odoo_models                   # noqa: F401
     except ImportError:
-        raise RuntimeError('No odoo / openerp environment found!')  # pragma: no cover
+        pass
+        # raise RuntimeError('No odoo / openerp environment found!')  # pragma: no cover
 # import importlib
 # try:
 #     odoo_models = importlib.import_module(module)
@@ -17,25 +18,25 @@ except ImportError:
 #     raise RuntimeError('No %s found!' % module)  # pragma: no cover
 
 
-class MetaModel(odoo_models.MetaModel):
-    pass
-
-
-class NewId(odoo_models.NewId):
-    pass
-
-
-class BaseModel(odoo_models.BaseModel):
-    pass
-
-
-class RecordCache(odoo_models.RecordCache):
-    pass
-
-
-class Model(odoo_models.Model):
-    pass
-
-
-class TransientModel(odoo_models.Model):
-    pass
+# class MetaModel(odoo_models.MetaModel):
+#     pass
+#
+#
+# class NewId(odoo_models.NewId):
+#     pass
+#
+#
+# class BaseModel(odoo_models.BaseModel):
+#     pass
+#
+#
+# class RecordCache(odoo_models.RecordCache):
+#     pass
+#
+#
+# class Model(odoo_models.Model):
+#     pass
+#
+#
+# class TransientModel(odoo_models.Model):
+#     pass

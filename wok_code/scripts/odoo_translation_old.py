@@ -34,7 +34,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "2.0.4"
+__version__ = "2.0.3.1"
 
 MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']
@@ -700,7 +700,7 @@ def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
-        "Translate Odoo Package", "© 2018-2022 by SHS-AV s.r.l.", version=__version__
+        "Translate Odoo Package", "© 2018-2023 by SHS-AV s.r.l.", version=__version__
     )
     parser.add_argument(
         "-A", "--action", help="Action: Dict,Po,*", dest="action", metavar="name"
