@@ -11,7 +11,7 @@ import sys
 from zerobug import z0test
 from z0lib import z0lib
 
-__version__ = "2.0.2"
+__version__ = "2.0.2.1"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1

@@ -54,8 +54,8 @@ REQVERSION = {
     "gevent": {
         "6.1": "==1.0.1",
         "7.0": "==1.0.2",
-        "10.0": "==1.1.2",
-        "3.7": "==1.3.4",
+        "10.0": ">=1.1.2<=1.4.0",       # trying to test
+        "3.7": "==1.5.0",
     },
     "greenlet": {
         "6.1": "==0.4.2",
@@ -93,9 +93,25 @@ REQVERSION = {
     },
     "pycodestyle": {"0": "==2.3.1"},
     "pydot": {"6.1": "==1.0.2", "8.0": "==1.2.3"},
-    "Pygments": {"6.1": "==2.0.2", "0": "==2.2"},  # Version by test pkgs
-    "pylint": {"2.7": "==1.9.3", "3.5": "==2.3.0"},
-    "pylint-plugin-utils": {"2.7": "==0.4", "3.5": "==0.5"},
+    "Pygments": {
+        "2.7": "<2.6.0",
+        "3.5": ">=2.7.0"
+    },
+    "pylint": {
+        "2.7": "<2.0.0",
+        "3.5": "<2.7.0",
+        "3.6": "<2.14.0",
+        "3.7": ">=2.14.0",
+    },
+    "pylint-odoo": {
+        "2.7": "==3.5.0",
+        "3.5": ">=3.5.0",
+    },
+    "pylint-plugin-utils": {
+        "2.7": "==0.2.6",
+        "3.5": "==0.5",
+        "3.6": ">=0.7",
+    },
     "pyopenssl": {"0": ">=16.2.0"},  # by MQT
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
     "pyPDF2": {"2.7": "==1.28.4", "3.5": ">=2.0", "3.6": ">=2.0", "3.7": ">=2.0"},
@@ -119,6 +135,7 @@ REQVERSION = {
     "PyWebDAV": {"6.1": "<0.9.8"},
     "PyYAML": {"6.1": "==3.11", "8.0": "==3.12", "3.7": "==3.13"},
     "qrcode": {"6.1": "==5.0.1", "7.0": "==5.1", "10.0": "==5.3"},
+    "readme-renderer" : {"2.7": "<25.0", "3.5": "<29.0", "3.6": ">=30.0"},
     "restructuredtext_lint": {"6.1": "==0.12.2", "0": "==1.1.3"},
     "reportlab": {"6.1": "==3.1.44", "10.0": "==3.3.0"},
     "requests": {"6.1": "==2.6.0", "10.0": "==2.11.1"},
@@ -223,7 +240,7 @@ PIP_TEST_PACKAGES = [
     "Pygments",
     "pylint",
     "pylint-mccabe",
-    "pylint_odoo",
+    "pylint-odoo",
     "pylint-plugin-utils",
     "python-magic",
     "pyserial",
@@ -266,7 +283,7 @@ PIP3_TEST_PACKAGES = [
     "Pygments",
     "pylint",
     "pylint-mccabe",
-    "pylint_odoo",
+    "pylint-odoo",
     "pylint-plugin-utils",
     "python-magic",
     "pyserial",
@@ -434,11 +451,11 @@ DEPS9 = [
     "docutils==0.16",
     "Pillow==3.4.1",
     "Pygments==2.0.2",
-    "pylint==1.9.3",
-    "pylint==1.9.5",
-    "pylint==2.3.0",
-    "pylint==2.5.3",
-    "pylint-plugin-utils==0.4",
+    # "pylint==1.9.3",
+    # "pylint==1.9.5",
+    # "pylint==2.3.0",
+    # "pylint==2.5.3",
+    # "pylint-plugin-utils==0.4",
     "six==1.15.0",
 ]
 

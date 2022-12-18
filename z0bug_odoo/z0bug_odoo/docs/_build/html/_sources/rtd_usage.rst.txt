@@ -3,33 +3,57 @@
 
 Usage
 -----
-Code example:
+Copy the testenv.py file in tests directory of your module.
+You can locate testenv.py in testenv directory of this module (z0bug_odoo)
+Please copy the documentation testenv.rst file in your module too.
+The __init__.py must import testenv.
+Your python test file have to contain some following example lines:
 
 ::
 
-    # -*- coding: utf-8 -*-
-    #
-    # Copyright 2017-19 - SHS-AV s.r.l. <https://www.zeroincombenze.it>
-    #
-    # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-    #
-    from z0bug_odoo import test_common
+    import os
+    import logging
+    from .testenv import MainTest as SingleTransactionCase
 
-    class ExampleTest(test_common.SingleTransactionCase):
+    _logger = logging.getLogger(__name__)
+
+    TEST_RES_PARTNER = {...}
+    TEST_SETUP_LIST = ["res.partner", ]
+
+    class MyTest(SingleTransactionCase):
 
         def setUp(self):
-            super(ExampleTest, self).setUp()
-            self.set_test_company()
-            # Assure 2 res.partner records
-            self.build_model_data('res.partner', ['base.res_partner_2',
-                                                  'z0bug.res_partner_2'])
+            super().setUp()
+            # Add following statement just for get debug information
+            self.debug_level = 2
+            data = {"TEST_SETUP_LIST": TEST_SETUP_LIST}
+            for resource in TEST_SETUP_LIST:
+                item = "TEST_%s" % resource.upper().replace(".", "_")
+                data[item] = globals()[item]
+            self.declare_all_data(data)     # TestEnv swallows the data
+            self.setup_env()                # Create test environment
 
-        def test_example(self):
-            partner = self.browse_ref(self.ref612('base.res_partner_2'))
-            partner = self.browse_ref(self.ref612('z0bug.res_partner_2'))
+        def tearDown(self):
+            super().tearDown()
+            if os.environ.get("ODOO_COMMIT_TEST", ""):
+                # Save test environment, so it is available to dump
+                self.env.cr.commit()     # pylint: disable=invalid-commit
+                _logger.info("✨ Test data committed")
 
+        def test_mytest(self):
+            _logger.info(
+                "🎺 Testing test_mytest"    # Use unicode char to best log reading
+            )
+            ...
 
+        def test_mywizard(self):
+            self.wizard(...)                # Test requires wizard simulator
 
+An important helper to debug is self.debug_level. When you begins your test cycle,
+you are hinted to set self.debug_level = 3; then you can decrease the debug level
+when you are developing stable tests.
+Final code should have self.debug_level = 0.
+TestEnv logs debug message with symbol "🐞 " so you can easily recognize them.
 
 Following function are avaiable.
 
@@ -82,7 +106,7 @@ Function ref_value is used to retrieve values of each record (see above).
 
     # -*- coding: utf-8 -*-
     #
-    # Copyright 2017-19 - SHS-AV s.r.l. <https://www.zeroincombenze.it>
+    # Copyright 2017-23 - SHS-AV s.r.l. <https://www.zeroincombenze.it>
     #
     # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
     #
@@ -113,7 +137,7 @@ Load data of model from csv_fn. Internal use only.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-11
+Last Update / Ultimo aggiornamento: 2022-12-16
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

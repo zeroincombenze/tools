@@ -18,6 +18,8 @@ Area managed:
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from future import standard_library
+from past.builtins import basestring
 
 import argparse
 import configparser
@@ -25,7 +27,6 @@ import inspect
 import sys
 import os
 from builtins import object
-from future import standard_library
 import shutil
 import shlex
 from subprocess import PIPE, Popen
@@ -49,126 +50,14 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.2"
+__version__ = "2.0.2.1"
 
 
 def nakedname(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 
-def run_traced(cmd, verbose=None, dry_run=None):
-    def sh_any(args):
-        prcout = prcerr = ""
-        if sys.version_info[0] == 2:
-            try:
-                proc = Popen(args, stderr=PIPE, stdout=PIPE)
-                prcout, prcerr = proc.communicate()
-                sts = proc.returncode
-                prcout = prcout.decode("utf-8")
-                prcerr = prcerr.decode("utf-8")
-            except OSError as e:
-                if verbose:
-                    print(e)
-                sts = 127
-            except BaseException:
-                sts = 126
-        else:
-            try:
-                with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
-                    prcout, prcerr = proc.communicate()
-                    sts = proc.returncode
-                    prcout = prcout.decode("utf-8")
-                    prcerr = prcerr.decode("utf-8")
-            except FileNotFoundError as e:                                 # noqa: F821
-                if verbose:
-                    print(e)
-                sts = 127
-            except BaseException:
-                sts = 126
-        return sts, prcout, prcerr
-
-    def sh_cd(args):
-        sts = 0
-        tgtdir = args[1] if len(args) > 1 else os.environ["HOME"]
-        if os.path.isdir(tgtdir):
-            sts = os.chdir(tgtdir)
-        elif not dry_run:
-            sts = 1
-        return sts, "", ""
-
-    # def sh_git(args):
-    #     opt_unk = False
-    #     opt_branch = False
-    #     ix = 1
-    #     while args[ix] and args[ix].startswith("-"):
-    #         if args[ix] == "-b" or args[ix] == "--branch":
-    #             ix += 1
-    #             opt_branch = args[ix]
-    #         else:
-    #             opt_unk = True
-    #         ix += 1
-    #     action = args[ix]
-    #     if action == "clone":
-    #         while args[ix] and args[ix].startswith("-"):
-    #             ix += 1
-    #         url = args[ix]
-    #         while args[ix] and args[ix].startswith("-"):
-    #             ix += 1
-    #         tgtdir = args[ix]
-    #         srcdir = None
-    #         if (url == "https://github.com/odoo/odoo.git" and
-    #             opt_branch.split(".")[0].isdigit()
-    #         ):
-    #             srcdir = os.path.join(os.environ["HOME"],
-    #                                   "oca%s" % opt_branch.split(".")[0])
-    #         if os.path.isdir(srcdir):
-    #             sts = os.system("cp -r %s %s" % (srcdir, tgtdir))
-
-    def sh_mkdir(args):
-        opt_unk = False
-        ix = 1
-        while ix < len(args) and args[ix].startswith("-"):
-            opt_unk = True
-            ix += 1
-        tgtdir = args[ix]
-        if dry_run:
-            sts = 0
-        elif opt_unk:
-            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
-                proc.wait()
-                sts = proc.returncode
-        else:
-            os.mkdir(tgtdir)
-            sts = 0 if os.path.exists(tgtdir) else 1
-        return sts, "", ""
-
-    def sh_rm(args):
-        opt_f = False
-        opt_R = False
-        opt_unk = False
-        ix = 1
-        while ix < len(args) and args[ix].startswith("-"):
-            if args[ix] == "-f":
-                opt_f = True
-            elif args[ix] in ("-fR", "-Rf"):
-                opt_f = True
-                opt_R = True
-            else:
-                opt_unk = True
-            ix += 1
-        tgtdir = args[ix]
-        sts = 0 if os.path.exists(tgtdir) else 1
-        if dry_run or sts:
-            pass
-        elif opt_unk or not opt_f:
-            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
-                proc.wait()
-                sts = proc.returncode
-        elif opt_R:
-            shutil.rmtree(tgtdir)
-        else:
-            os.unlink(tgtdir)
-        return sts, "", ""
+def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=None):
 
     def cmd_neutral_if(
         args, params=None, switches=None, no_params=None, no_switches=None
@@ -199,29 +88,229 @@ def run_traced(cmd, verbose=None, dry_run=None):
                 return False
         return True
 
-    if verbose:
-        print('%s %s' % (">" if dry_run else "$", cmd))
-    args = shlex.split(cmd)
-    sts = 0
-    prcout = prcerr = ""
+    def simple_parse(args, params):
+        argv = []
+        opt_unk = False
+        action = ""
+        paths = []
+        while args:
+            arg = args.pop(0)
+            argv.append(arg)
+            if arg.startswith("--"):
+                arg2 = arg.split("=", 1)
+                if len(arg2) > 1:
+                    arg = arg2[0]
+                    if arg not in params:
+                        opt_unk = True
+                    params[arg] = arg2[1]
+                else:
+                    if arg not in params:
+                        opt_unk = True
+                    if arg not in params and isinstance(params[arg], basestring):
+                        arg2 = args.pop(0)
+                        params[arg] = arg2
+                        argv.append(arg2)
+            elif arg.startswith("-"):
+                res = arg[1:]
+                while res:
+                    arg = "-" + res[0]
+                    res = res[1:]
+                    if arg not in params:
+                        opt_unk = True
+                    if arg in params and isinstance(params[arg], basestring):
+                        if res:
+                            params[arg] = res
+                            res = ""
+                        else:
+                            arg2 = args.pop(0)
+                            argv.append(arg2)
+                            params[arg] = arg2
+                    else:
+                        params[arg] = True
+            elif not action:
+                action = arg
+            else:
+                paths.append(arg)
+        return argv, opt_unk, paths, params
 
-    method = {
-        "cd": sh_cd,
-        "mkdir": sh_mkdir,
-        "rm": sh_rm,
-    }.get(args[0])
-    if method:
-        sts, prcout, prcerr = method(args)
-    elif (
-        cmd_neutral_if(args, params=['dir']) or
-        cmd_neutral_if(args, params=['git', 'status']) or
-        cmd_neutral_if(args, params=['git', 'branch'], no_switches=['-b']) or
-        cmd_neutral_if(args, params=['git', 'remote'], switches=['-v'])
-    ):
-        sts, prcout, prcerr = sh_any(args)
-    elif not dry_run:
-        sts, prcout, prcerr = sh_any(args)
-    return sts, prcout, prcerr
+    def sh_any(args, verbose=None, dry_run=None):
+        prcout = prcerr = ""
+        if (
+            cmd_neutral_if(args, params=['dir'])
+            or cmd_neutral_if(args, params=['ls'])
+        ):
+            dry_run = False
+        if dry_run:
+            0, prcout, prcerr
+        if sys.version_info[0] == 2:
+            try:
+                proc = Popen(args, stderr=PIPE, stdout=PIPE)
+                prcout, prcerr = proc.communicate()
+                sts = proc.returncode
+                prcout = prcout.decode("utf-8")
+                prcerr = prcerr.decode("utf-8")
+            except OSError as e:
+                if verbose:
+                    print(e)
+                sts = 127
+            except BaseException:
+                sts = 126
+        else:
+            try:
+                with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                    prcout, prcerr = proc.communicate()
+                    sts = proc.returncode
+                    prcout = prcout.decode("utf-8")
+                    prcerr = prcerr.decode("utf-8")
+            except FileNotFoundError as e:                                 # noqa: F821
+                if verbose:
+                    print(e)
+                sts = 127
+            except BaseException:
+                sts = 126
+        return sts, prcout, prcerr
+
+    def sh_cd(args, verbose=None, dry_run=None):
+        argv, opt_unk, paths, params = simple_parse(args, {})
+        sts = 0
+        tgtpath = paths[0] if paths else os.environ["HOME"]
+        if os.path.isdir(tgtpath):
+            os.chdir(tgtpath)
+        elif not dry_run:
+            sts = 1
+        return sts, "", ""
+
+    def sh_cp(args, verbose=None, dry_run=None):
+        if dry_run:
+            return 0, "", ""
+        argv, opt_unk, paths, params = simple_parse(
+            args, {
+                "-r": False,
+                "-R": False,
+                "--recursive": False
+            }
+        )
+        if not opt_unk and paths[0] and paths[1]:
+            if params["-r"] or params["-R"] or params["--recursive"]:
+                shutil.copytree(paths[0], paths[1])
+            else:
+                shutil.copy2(paths[0], paths[1])
+            return 0, "", ""
+        return sh_any(argv)
+        return sh_any(argv)
+
+    def sh_git(args, verbose=None, dry_run=None):
+        if (
+            cmd_neutral_if(args, params=['git', 'status'])
+            or cmd_neutral_if(args, params=['git', 'branch'], no_switches=['-b'])
+            or cmd_neutral_if(args, params=['git', 'remote'], switches=['-v'])
+        ):
+            dry_run = False
+        if dry_run:
+            return 0, "", ""
+        argv, opt_unk, paths, params = simple_parse(
+            args, {
+                "-b": "",
+                "--branch": "",
+                "--depth": "",
+                "--single-branch": False,
+            }
+        )
+        srcpath = ""
+        if paths[0] == "clone":
+            opt_branch = params["-b"] or params["--branch"]
+            if opt_branch and opt_branch.split(".")[0].isdigit():
+                majver = opt_branch.split(".")[0]
+                repo = prefix = ""
+                if (
+                    paths[1].startswith("https://github.com/odoo/")
+                    or paths[1].startswith("https://github.com/OCA/")
+                ):
+                    repo = paths[1].split("/")[-1][: -4]
+                    prefix = "oca"
+                elif (
+                    paths[1].startswith("https://github.com/zeroincombenze/")
+                    or paths[1].startswith("https://github.com/LibrERP-network/")
+                ):
+                    repo = paths[1].split("/")[-1][: -4]
+                    prefix = ""
+                if repo:
+                    sts, prcout, prcerr = sh_any(["getent", "passwd", str(os.getuid())])
+                    if sts == 0 and prcout:
+                        home = prcout.split("\n")[0].split(":")[5]
+                        if repo in ("OCB", "odoo"):
+                            srcpath = os.path.join(home,
+                                                   "%s%s" % (prefix, majver))
+                        elif repo == "tools":
+                            srcpath = os.path.join(home, repo)
+                        else:
+                            srcpath = os.path.join(home,
+                                                   "%s%s" % (prefix, majver),
+                                                   repo)
+                        if not os.path.isdir(srcpath):
+                            srcpath = ""
+        if srcpath:
+            return run_traced("cp -r %s %s" % (srcpath,
+                                               paths[2] if len(paths) > 2 else "./"),
+                              verbose=verbose,
+                              dry_run=dry_run,
+                              is_alias=True)
+        return sh_any(argv, verbose=verbose, dry_run=dry_run)
+
+    def sh_mkdir(args, verbose=None, dry_run=None):
+        if dry_run:
+            return 0, "", ""
+        argv, opt_unk, paths, params = simple_parse(args, {})
+        if opt_unk:
+            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                proc.wait()
+                sts = proc.returncode
+        else:
+            os.mkdir(paths[0])
+            sts = 0 if os.path.exists(paths[0]) else 1
+        return sts, "", ""
+
+    def sh_rm(args, verbose=None, dry_run=None):
+        if dry_run:
+            return 0, "", ""
+        argv, opt_unk, paths, params = simple_parse(
+            args,
+            {
+                "-f": False,
+                "-R": False,
+            }
+        )
+        tgtpath = paths[0]
+        sts = 0 if os.path.exists(tgtpath) else 1
+        if sts:
+            pass
+        elif opt_unk or not params["-f"]:
+            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+                proc.wait()
+                sts = proc.returncode
+        elif params["-R"]:
+            shutil.rmtree(tgtpath)
+        else:
+            os.unlink(tgtpath)
+        return sts, "", ""
+
+    if verbose:
+        if is_alias:
+            print('%s %s' % ("  >" if dry_run else "  $", cmd))
+        else:
+            print('%s %s' % (">" if dry_run else "$", cmd))
+    args = shlex.split(cmd)
+    if not disable_alias:
+        method = {
+            "cd": sh_cd,
+            "cp": sh_cp,
+            "git": sh_git,
+            "mkdir": sh_mkdir,
+            "rm": sh_rm,
+        }.get(args[0])
+        if method:
+            return method(args, verbose=verbose, dry_run=dry_run)
+    return sh_any(args, verbose=verbose, dry_run=dry_run)
 
 
 class CountAction(argparse.Action):

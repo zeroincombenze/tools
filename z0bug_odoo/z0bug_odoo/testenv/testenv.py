@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.2
+"""Test Environment v2.0.2.1
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -55,10 +55,9 @@ from past.builtins import basestring, long
 
 # import sys
 import logging
+from collections import defaultdict
 
 from odoo.tools.safe_eval import safe_eval
-
-# from odoo.exceptions import Warning
 
 import python_plus
 from z0bug_odoo.test_common import SingleTransactionCase
@@ -905,29 +904,60 @@ class MainTest(SingleTransactionCase):
         if enable_cancel_journal:
             self.env["account.journal"].search([]).write({"update_posted": True})
 
-    def resource_edit(self, resource):
+    def resource_edit(
+        self, resource, default=None, web_changes=None, actions=None, save=None
+    ):
         """Simulate web editing
         Args:
             resource (str or obj): if field is a string simulate create web behavior of
                                    Odoo model issued in resource;
                                    if field is an obj simulate write web behavior on the
                                    issued record
+            default (dict): default value to assign
+            web_changes (list): list of tuples (field, value); see <wizard_edit>
         """
-        resource_model = self.env[resource]
+        default = default or {}
+        actions = actions or []
+        actions = actions if isinstance(actions, (list, tuple)) else [actions]
         if isinstance(resource, basestring):
-            record = resource_model
-            for field in resource_model._fields.keys():
-                setattr(record, field, False)
+            # TODO> record = self.env[resource].new(values=default)
+            resource_model = resource
+            record = object.__new__(self.env[resource].__class__)
+            record.env = self.env
+            record._ids = [0]
+            record._prefetch = defaultdict(set)
+            for field in self.env[resource]._fields.keys():
+                if field == "id":
+                    continue
+                setattr(record, field, default.get(field, False))
             for field in record._fields.values():
                 if field.default:
                     field.default(record)
         else:
+            resource_model = resource._name
             record = resource
         # Get all onchange method names and run them with None values
-        record = record if isinstance(record, (list, tuple)) else [record]
-        for field in resource_model._onchange_methods.values():
+        # record = record if isinstance(record, (list, tuple)) else [record]
+        for field in self.env[resource_model]._onchange_methods.values():
             for method in field:
                 method(record)
+        web_changes = web_changes or []
+        for args in web_changes:
+            self.wizard_edit(
+                record, args[0], args[1], args[2] if len(args) > 2 else None
+            )
+        for action in actions:
+            if action and hasattr(record, action):
+                if self.debug_level > 1:
+                    self._logger.info(
+                        "🐞%s.%s" % (resource_model, action)
+                    )
+                getattr(record, action)()
+        if save:
+            if record.id:
+                record.write({})
+            else:
+                record.create({})
 
     ########################################
     #     WIZARD ENVIRONMENT FUNCTIONS     #

@@ -1,3 +1,9 @@
+2.0.4.1 (2022-12-15)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Package version adjustment
+* [IMP] vem: amend show current package version
+
 2.0.4 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~
 

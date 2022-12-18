@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zeroincombenze® continuous testing for odoo &#8212; z0bug_odoo 1.0.5.2 documentation</title>
+    <title>Zeroincombenze® continuous testing for odoo &#8212; z0bug_odoo 2.0.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="index.html" title="Indices and tables"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 1.0.5.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Zeroincombenze® continuous testing for odoo</a></li> 
       </ul>
     </div>  
@@ -83,10 +83,12 @@ This package and OCA MQT differ by:</p>
 content of the <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator/template_travis.yml">sample_files</a>
 to your project’s root directory.</p>
 <p>Then execute the command:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make_travis_conf</span><span class="o">.</span><span class="n">py</span> <span class="o">&lt;</span><span class="n">TOOLS_PATH</span><span class="o">&gt;/</span><span class="n">travis_emulator</span><span class="o">/</span><span class="n">template_travis</span><span class="o">.</span><span class="n">yml</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">yml</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make_travis_conf</span> <span class="o">&lt;</span><span class="n">TOOLS_PATH</span><span class="o">&gt;/</span><span class="n">travis_emulator</span><span class="o">/</span><span class="n">template_travis</span><span class="o">.</span><span class="n">yml</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">yml</span>
 </pre></div>
 </div>
 <p>You can check travis syntax with the <a class="reference external" href="http://lint.travis-ci.org/">lint checker</a> of travis, if available.</p>
+<p>Notice: if you do not use travisCi web site, you can avoid to set .travis.yml file.
+Local travis emulator and z0bug_odoo create local .travis.yml dinamically.</p>
 </div>
 <div class="section" id="odoo-test-integration">
 <h2>Odoo test integration<a class="headerlink" href="#odoo-test-integration" title="Permalink to this heading"></a></h2>
@@ -1300,244 +1302,40 @@ If you do it, it will be simply ignored.</p>
 </div>
 </div>
 </div>
-<div class="section" id="qci">
-<h1>qci<a class="headerlink" href="#qci" title="Permalink to this heading"></a></h1>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 14%" />
-<col style="width: 86%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p>qci</p></td>
-<td><p>description</p></td>
-</tr>
-<tr class="row-even"><td><p>acc.uRB</p></td>
-<td><p>Insoluto RiBA</p></td>
-</tr>
-<tr class="row-odd"><td><p>acc.VAT_rc</p></td>
-<td><p>Reverse Charge / Inversione contabile</p></td>
-</tr>
-<tr class="row-even"><td><p>acc.VAT_sp</p></td>
-<td><p>Split Payment / Scissione pagamenti</p></td>
-</tr>
-<tr class="row-odd"><td><p>acc.VAT_wt</p></td>
-<td><p>Withholding tax / Ritenuta d’acconto</p></td>
-</tr>
-<tr class="row-even"><td><p>acc.VATpu</p></td>
-<td><p>Undeductible VAT / IVA parzialmente indetraibile</p></td>
-</tr>
-<tr class="row-odd"><td><p>acc.VATu</p></td>
-<td><p>Full Undeductible VAT / IVA totalmente indetraibile</p></td>
-</tr>
-<tr class="row-even"><td><p>einvo.ind</p></td>
-<td><p>E-invoice to individual / Fattura elettronica a privato</p></td>
-</tr>
-<tr class="row-odd"><td><p>einvo.stamp</p></td>
-<td><p>E-invoice with virtual stamp / Fattura elettronica con bollo virtuale</p></td>
-</tr>
-<tr class="row-even"><td><p>inv.asalem</p></td>
-<td><p>Corrispettivi misti</p></td>
-</tr>
-<tr class="row-odd"><td><p>inv.asalex</p></td>
-<td><p>Corrispettivi ripartiti (ventilazione)</p></td>
-</tr>
-<tr class="row-even"><td><p>inv.asset</p></td>
-<td><p>Invoice with asset/Fattura di beni strumentali</p></td>
-</tr>
-<tr class="row-odd"><td><p>invi.enas</p></td>
-<td><p>Purchase invoice with enasarco / Fattura da fornitore con ensarco</p></td>
-</tr>
-<tr class="row-even"><td><p>invi.eu</p></td>
-<td><p>Purchase invoice from EU partner / Fattura di acquisto intraUE</p></td>
-</tr>
-<tr class="row-odd"><td><p>invi.rc</p></td>
-<td><p>Purchase invoice with reverse charge / Fattura di acquisto con reverse charge</p></td>
-</tr>
-<tr class="row-even"><td><p>invi.sp</p></td>
-<td><p>Purchase invoice with split payment / Fattura di acquisto con split-payment</p></td>
-</tr>
-<tr class="row-odd"><td><p>invi.VAT_li</p></td>
-<td><p>Purchase invoice with lettera di intento / Fattura di acquisto lettera di intento</p></td>
-</tr>
-<tr class="row-even"><td><p>invi.wht</p></td>
-<td><p>Purchase invoice with withholding / Fattura da fornitore con ritenuta d’acconto</p></td>
-</tr>
-<tr class="row-odd"><td><p>invi.xeu</p></td>
-<td><p>Purchase invoice fromxEU partner / Fattura di acquisto extraUE</p></td>
-</tr>
-<tr class="row-even"><td><p>invo.enas</p></td>
-<td><p>Sale invoice with enasarco / Fattura di vendita con ensarco</p></td>
-</tr>
-<tr class="row-odd"><td><p>invo.eu</p></td>
-<td><p>Sale invoice to EU partner / Fattura di vendita intraUE</p></td>
-</tr>
-<tr class="row-even"><td><p>invo.li</p></td>
-<td><p>Sale invoice with lettera di intento / Fattura di vendita lettera di intento</p></td>
-</tr>
-<tr class="row-odd"><td><p>invo.long</p></td>
-<td><p>Sale invoice with 30+ lines (multipage-print)</p></td>
-</tr>
-<tr class="row-even"><td><p>invo.N1</p></td>
-<td><p>Sale invoice with out of vat / Fattura di vendita con FC art. 15</p></td>
-</tr>
-<tr class="row-odd"><td><p>invo.rc</p></td>
-<td><p>Sale invoice with reverse charge / Fattura di vendita con reverse charge</p></td>
-</tr>
-<tr class="row-even"><td><p>invo.sp</p></td>
-<td><p>Sale invoice with split payment / Fattura di vendita con split-payment</p></td>
-</tr>
-<tr class="row-odd"><td><p>invo.vat1</p></td>
-<td><p>Sale invoice with vat 4% / Fattura di vendita con IVA 4%</p></td>
-</tr>
-<tr class="row-even"><td><p>invo.vat2</p></td>
-<td><p>Sale invoice with vat 10% / Fattura di vendita con IVA 10%</p></td>
-</tr>
-<tr class="row-odd"><td><p>invo.vat3</p></td>
-<td><p>Sale invoice with vat 22% / Fattura di vendita con IVA 22%</p></td>
-</tr>
-<tr class="row-even"><td><p>invo.wh</p></td>
-<td><p>Sale invoice with withholding / Fattura di vendita ritenuta d’acconto</p></td>
-</tr>
-<tr class="row-odd"><td><p>invo.xeu</p></td>
-<td><p>Sale invoice to xEU partner / Fattura di vendita extraUE</p></td>
-</tr>
-<tr class="row-even"><td><p>part.eu</p></td>
-<td><p>EU partner / Cliente intraUE</p></td>
-</tr>
-<tr class="row-odd"><td><p>part.it</p></td>
-<td><p>Local partner (Italy) / Cliente italiano</p></td>
-</tr>
-<tr class="row-even"><td><p>part.PA</p></td>
-<td><p>Partner is PA</p></td>
-</tr>
-<tr class="row-odd"><td><p>part.pt1</p></td>
-<td><p>Partner with one date payment / Cliente con pagamento in unica soluzione</p></td>
-</tr>
-<tr class="row-even"><td><p>part.pt2</p></td>
-<td><p>Partner with multiple date payment / Cliente con pagamento di più scadenze</p></td>
-</tr>
-<tr class="row-odd"><td><p>part.xeu</p></td>
-<td><p>Extra-EU partner / Cliente extraUE</p></td>
-</tr>
-<tr class="row-even"><td><p>pay.RB</p></td>
-<td><p>RiBA payment / Pagamento RiBA (IT)</p></td>
-</tr>
-<tr class="row-odd"><td><p>pay.SCT</p></td>
-<td><p>Credit Transfer payment / Pagamento bonifico</p></td>
-</tr>
-<tr class="row-even"><td><p>pay.SDD</p></td>
-<td><p>Sepa Direct Debit / Pagamento Sepa DD</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="partner-qci">
-<h1>partner qci<a class="headerlink" href="#partner-qci" title="Permalink to this heading"></a></h1>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 21%" />
-<col style="width: 34%" />
-<col style="width: 18%" />
-<col style="width: 27%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p>id</p></td>
-<td><p>name</p></td>
-<td><p>side</p></td>
-<td><p>icq</p></td>
-</tr>
-<tr class="row-even"><td><p>z0bug.res_partner_1</p></td>
-<td><p>Prima Distribuzione S.p.A.</p></td>
-<td><p>customer/supplier</p></td>
-<td><p>icq_0002 icq_0006 icq_pa11</p></td>
-</tr>
-<tr class="row-odd"><td><p>z0bug.res_partner_10</p></td>
-<td><p>Notaio Libero Jackson</p></td>
-<td><p>supplier</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>z0bug.res_partner_11</p></td>
-<td><p>Nebula Caffè S.p.A.</p></td>
-<td><p>supplier</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>z0bug.res_partner_12</p></td>
-<td><p>Freie Universität Berlin</p></td>
-<td><p>supplier</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>z0bug.res_partner_13</p></td>
-<td><p>Axelor GmbH</p></td>
-<td><p>customer</p></td>
-<td><p>icq_pa12</p></td>
-</tr>
-<tr class="row-odd"><td><p>z0bug.res_partner_14</p></td>
-<td><p>SS Carrefur</p></td>
-<td><p>supplier</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>z0bug.res_partner_15</p></td>
-<td><p>Ente Porto</p></td>
-<td><p>customer</p></td>
-<td><p>icq_0002 icq_pa14 icq_pa16</p></td>
-</tr>
-<tr class="row-odd"><td><p>z0bug.res_partner_16</p></td>
-<td><p>Viking Office Depot Italia s.r.l.</p></td>
-<td><p>customer/supplier</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>z0bug.res_partner_17</p></td>
-<td><p>Vexor BV</p></td>
-<td><p>supplier</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>z0bug.res_partner_2</p></td>
-<td><p>Agro Latte Due  s.n.c.</p></td>
-<td><p>customer</p></td>
-<td><p>icq_0002 icq_0007</p></td>
-</tr>
-<tr class="row-even"><td><p>z0bug.res_partner_3</p></td>
-<td><p>Import Export Trifoglio s.r.l.</p></td>
-<td><p>customer</p></td>
-<td><p>icq_0001 icq_0006</p></td>
-</tr>
-<tr class="row-odd"><td><p>z0bug.res_partner_4</p></td>
-<td><p>Delta 4 s.r.l.</p></td>
-<td><p>supplier</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>z0bug.res_partner_5</p></td>
-<td><p>Five Stars Hotel</p></td>
-<td><p>supplier</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>z0bug.res_partner_6</p></td>
-<td><p>Esa Electronic S.p.A</p></td>
-<td><p>customer</p></td>
-<td><p>icq_0003</p></td>
-</tr>
-<tr class="row-even"><td><p>z0bug.res_partner_7</p></td>
-<td><p>Università della Svizzera Italiana</p></td>
-<td><p>customer</p></td>
-<td><p>icq_pa13</p></td>
-</tr>
-<tr class="row-odd"><td><p>z0bug.res_partner_8</p></td>
-<td><p>Global Solution s.r.l.</p></td>
-<td><p>customer</p></td>
-<td><p>icq_pa15</p></td>
-</tr>
-<tr class="row-even"><td><p>z0bug.res_partner_9</p></td>
-<td><p>Mario Rossi</p></td>
-<td><p>customer</p></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+<div class="section" id="testenv-the-test-environment">
+<h1>TestEnv: the test environment<a class="headerlink" href="#testenv-the-test-environment" title="Permalink to this heading"></a></h1>
+<p>TestEnv makes available a test environment ready to use in order to test your Odoo
+module in quick and easy way.</p>
+<p>The purpose of this software are:</p>
+<ul class="simple">
+<li><p>Create the Odoo test environment with records to use for your test</p></li>
+<li><p>Make available some useful functions to test your module (in z0bug_odoo)</p></li>
+<li><p>Simulate the wizard to test wizard functions (wizard simulator)</p></li>
+<li><p>Environment running different Odoo modules versions</p></li>
+</ul>
+<p>Please, pay attention to test data: TestEnv use internal unicode even for python 2
+based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
+Note, Odoo core uses unicode even on old Odoo version.</p>
+<p>Tests are based on test environment created by module mk_test_env in repository
+<a class="reference external" href="https://github.com/zeroincombenze/zerobug-test">https://github.com/zeroincombenze/zerobug-test</a></p>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading"></a></h2>
+<p>Ths TestEnv software requires:</p>
+<ul class="simple">
+<li><p>python_plus PYPI package</p></li>
+<li><p>z0bug_odoo PYPI package</p></li>
+<li><p>python 2.7 / 3.6 / 3.7 / 3.8</p></li>
+</ul>
+<p>TestEnv is full integrated with Zeroincombenze(R) tools.
+See <a class="reference external" href="https://zeroincombenze-tools.readthedocs.io/">https://zeroincombenze-tools.readthedocs.io/</a>
+and <a class="reference external" href="https://github.com/zeroincombenze/tools.git">https://github.com/zeroincombenze/tools.git</a>
+Zeroincombenze(R) tools help you to test Odoo module with pycharm.</p>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2022-12-11</p>
+<p>Last Update / Ultimo aggiornamento: 2022-12-16</p>
+</div>
 </div>
 
 
@@ -1576,8 +1374,10 @@ If you do it, it will be simply ignored.</p>
 <li><a class="reference internal" href="#tree-directory">Tree directory</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#qci">qci</a></li>
-<li><a class="reference internal" href="#partner-qci">partner qci</a></li>
+<li><a class="reference internal" href="#testenv-the-test-environment">TestEnv: the test environment</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+</ul>
+</li>
 </ul>
 
   </div>
@@ -1627,12 +1427,12 @@ If you do it, it will be simply ignored.</p>
         <li class="right" >
           <a href="index.html" title="Indices and tables"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 1.0.5.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Zeroincombenze® continuous testing for odoo</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2019-20, SHS-AV s.r.l..
+        &#169; Copyright 2019-23, SHS-AV s.r.l..
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>

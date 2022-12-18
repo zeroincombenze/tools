@@ -48,9 +48,12 @@ Then execute the command:
 
 ::
 
-    make_travis_conf.py <TOOLS_PATH>/travis_emulator/template_travis.yml .travis.yml
+    make_travis_conf <TOOLS_PATH>/travis_emulator/template_travis.yml .travis.yml
 
 You can check travis syntax with the `lint checker <http://lint.travis-ci.org/>`_ of travis, if available.
+
+Notice: if you do not use travisCi web site, you can avoid to set .travis.yml file.
+Local travis emulator and z0bug_odoo create local .travis.yml dinamically.
 
 
 Odoo test integration
@@ -716,143 +719,46 @@ While travis is running this is the tree directory:
         - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
         - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
 
-qci
----
+TestEnv: the test environment
+-----------------------------
 
-+-------------+-----------------------------------------------------------------------------------+
-| qci         | description                                                                       |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.uRB     | Insoluto RiBA                                                                     |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VAT_rc  | Reverse Charge / Inversione contabile                                             |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VAT_sp  | Split Payment / Scissione pagamenti                                               |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VAT_wt  | Withholding tax / Ritenuta d’acconto                                              |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VATpu   | Undeductible VAT / IVA parzialmente indetraibile                                  |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VATu    | Full Undeductible VAT / IVA totalmente indetraibile                               |
-+-------------+-----------------------------------------------------------------------------------+
-| einvo.ind   | E-invoice to individual / Fattura elettronica a privato                           |
-+-------------+-----------------------------------------------------------------------------------+
-| einvo.stamp | E-invoice with virtual stamp / Fattura elettronica con bollo virtuale             |
-+-------------+-----------------------------------------------------------------------------------+
-| inv.asalem  | Corrispettivi misti                                                               |
-+-------------+-----------------------------------------------------------------------------------+
-| inv.asalex  | Corrispettivi ripartiti (ventilazione)                                            |
-+-------------+-----------------------------------------------------------------------------------+
-| inv.asset   | Invoice with asset/Fattura di beni strumentali                                    |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.enas   | Purchase invoice with enasarco / Fattura da fornitore con ensarco                 |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.eu     | Purchase invoice from EU partner / Fattura di acquisto intraUE                    |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.rc     | Purchase invoice with reverse charge / Fattura di acquisto con reverse charge     |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.sp     | Purchase invoice with split payment / Fattura di acquisto con split-payment       |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.VAT_li | Purchase invoice with lettera di intento / Fattura di acquisto lettera di intento |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.wht    | Purchase invoice with withholding / Fattura da fornitore con ritenuta d'acconto   |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.xeu    | Purchase invoice fromxEU partner / Fattura di acquisto extraUE                    |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.enas   | Sale invoice with enasarco / Fattura di vendita con ensarco                       |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.eu     | Sale invoice to EU partner / Fattura di vendita intraUE                           |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.li     | Sale invoice with lettera di intento / Fattura di vendita lettera di intento      |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.long   | Sale invoice with 30+ lines (multipage-print)                                     |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.N1     | Sale invoice with out of vat / Fattura di vendita con FC art. 15                  |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.rc     | Sale invoice with reverse charge / Fattura di vendita con reverse charge          |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.sp     | Sale invoice with split payment / Fattura di vendita con split-payment            |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.vat1   | Sale invoice with vat 4% / Fattura di vendita con IVA 4%                          |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.vat2   | Sale invoice with vat 10% / Fattura di vendita con IVA 10%                        |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.vat3   | Sale invoice with vat 22% / Fattura di vendita con IVA 22%                        |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.wh     | Sale invoice with withholding / Fattura di vendita ritenuta d'acconto             |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.xeu    | Sale invoice to xEU partner / Fattura di vendita extraUE                          |
-+-------------+-----------------------------------------------------------------------------------+
-| part.eu     | EU partner / Cliente intraUE                                                      |
-+-------------+-----------------------------------------------------------------------------------+
-| part.it     | Local partner (Italy) / Cliente italiano                                          |
-+-------------+-----------------------------------------------------------------------------------+
-| part.PA     | Partner is PA                                                                     |
-+-------------+-----------------------------------------------------------------------------------+
-| part.pt1    | Partner with one date payment / Cliente con pagamento in unica soluzione          |
-+-------------+-----------------------------------------------------------------------------------+
-| part.pt2    | Partner with multiple date payment / Cliente con pagamento di più scadenze        |
-+-------------+-----------------------------------------------------------------------------------+
-| part.xeu    | Extra-EU partner / Cliente extraUE                                                |
-+-------------+-----------------------------------------------------------------------------------+
-| pay.RB      | RiBA payment / Pagamento RiBA (IT)                                                |
-+-------------+-----------------------------------------------------------------------------------+
-| pay.SCT     | Credit Transfer payment / Pagamento bonifico                                      |
-+-------------+-----------------------------------------------------------------------------------+
-| pay.SDD     | Sepa Direct Debit / Pagamento Sepa DD                                             |
-+-------------+-----------------------------------------------------------------------------------+
+TestEnv makes available a test environment ready to use in order to test your Odoo
+module in quick and easy way.
 
+The purpose of this software are:
 
+* Create the Odoo test environment with records to use for your test
+* Make available some useful functions to test your module (in z0bug_odoo)
+* Simulate the wizard to test wizard functions (wizard simulator)
+* Environment running different Odoo modules versions
 
+Please, pay attention to test data: TestEnv use internal unicode even for python 2
+based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
+Note, Odoo core uses unicode even on old Odoo version.
 
-partner qci
------------
+Tests are based on test environment created by module mk_test_env in repository
+https://github.com/zeroincombenze/zerobug-test
 
-+----------------------+------------------------------------+-------------------+----------------------------+
-| id                   | name                               | side              | icq                        |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_1  | Prima Distribuzione S.p.A.         | customer/supplier | icq_0002 icq_0006 icq_pa11 |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_10 | Notaio Libero Jackson              | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_11 | Nebula Caffè S.p.A.                | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_12 | Freie Universität Berlin           | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_13 | Axelor GmbH                        | customer          | icq_pa12                   |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_14 | SS Carrefur                        | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_15 | Ente Porto                         | customer          | icq_0002 icq_pa14 icq_pa16 |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_16 | Viking Office Depot Italia s.r.l.  | customer/supplier |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_17 | Vexor BV                           | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_2  | Agro Latte Due  s.n.c.             | customer          | icq_0002 icq_0007          |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_3  | Import Export Trifoglio s.r.l.     | customer          | icq_0001 icq_0006          |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_4  | Delta 4 s.r.l.                     | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_5  | Five Stars Hotel                   | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_6  | Esa Electronic S.p.A               | customer          | icq_0003                   |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_7  | Università della Svizzera Italiana | customer          | icq_pa13                   |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_8  | Global Solution s.r.l.             | customer          | icq_pa15                   |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_9  | Mario Rossi                        | customer          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
+Requirements
+~~~~~~~~~~~~
 
+Ths TestEnv software requires:
 
+* python_plus PYPI package
+* z0bug_odoo PYPI package
+* python 2.7 / 3.6 / 3.7 / 3.8
+
+TestEnv is full integrated with Zeroincombenze(R) tools.
+See https://zeroincombenze-tools.readthedocs.io/
+and https://github.com/zeroincombenze/tools.git
+Zeroincombenze(R) tools help you to test Odoo module with pycharm.
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-11
+Last Update / Ultimo aggiornamento: 2022-12-16
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

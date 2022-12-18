@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='z0lib',
-    version='2.0.2',
+    version='2.0.2.1',
     description='Bash zeroincombenze lib',
     long_description="""
 General purpose bash and python library for zeroincombenze(R) tools
@@ -23,6 +23,8 @@ Features:
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Intended Audience :: Developers',
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',
