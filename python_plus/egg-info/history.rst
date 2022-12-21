@@ -1,6 +1,8 @@
-2.0.4 (2022-12-09)
+2.0.4 (2022-12-15)
 ~~~~~~~~~~~~~~~~~~
 
+* [IMP] Package version adjustment
+* [IMP] vem: amend show current package version
 * [IMP] vem: no python2 warning in linux kernel 3
 * [FIX] vem: best recognition of python version
 

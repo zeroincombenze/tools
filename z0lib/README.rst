@@ -1,7 +1,7 @@
 
-===========
-z0lib 2.0.2
-===========
+=============
+z0lib 2.0.2.1
+=============
 
 
 
@@ -103,8 +103,13 @@ Current development version
 History
 -------
 
-2.0.1.1 (2022-12-07)
+2.0.2.1 (2022-12-15)
 ~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced: alias function
+
+2.0.2 (2022-12-07)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] best recognition of python version
 * [FIX] run_traced: fail with python 2
@@ -170,7 +175,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-11
+Last Update / Ultimo aggiornamento: 2022-12-18
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

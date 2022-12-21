@@ -540,11 +540,11 @@ check_bin_package() {
   reqver=$(echo "$vpkg" | grep --color=never -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
   [[ -n "$reqver" ]] && xreqver=$(echo $reqver | grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
   sts=0
-  curver=$($pkg --version 2>/dev/null | grep --color=never-Eo "[0-9]+\.[0-9]+\.?[0-9]*" | head -n1)
+  curver=$($pkg --version 2>/dev/null | grep --color=never -Eo "[0-9]+\.[0-9]+\.?[0-9]*" | head -n1)
   if [[ -n "$reqver" ]]; then
     if [[ -z "$curver" ]]; then
       echo "Package $pkg not installed!!!"
-      if [[ "$cmd" == "amend" ]]; then
+      if [[ $cmd == "amend" ]]; then
         bin_install "$vpkg"
         [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
@@ -554,19 +554,19 @@ check_bin_package() {
       [[ -n "$curver" ]] && xcurver=$(echo $curver | grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
       if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
         echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
-        if [[ "$cmd" == "amend" ]]; then
+        if [[ $cmd == "amend" ]]; then
           bin_install "$vpkg"
           [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         else
           ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         fi
       else
-        printf "Package %-40.40s OK\n" "${pkg}${op}${curver}........................................"
+        printf "Package %-40.40s OK %s\n" "${pkg}${op}${reqver}........................................" "${curver}"
       fi
     fi
   else
     if [[ -n "$curver" ]]; then
-      printf "Package %-40.40s OK\n" "${pkg}........................................"
+      printf "Package %-40.40s OK %s \n" "${pkg}........................................" "${curver}"
     else
       echo "Package $pkg not installed!!!"
       ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -607,10 +607,10 @@ check_package() {
   if [[ $pkg =~ $BIN_PKGS ]]; then
       check_bin_package "$pkg"
   elif [[ -n "$reqver" ]]; then
-    curver=$($PIP show $pkg  2>/dev/null| grep "^[Vv]ersion" | awk -F: '{print $2}' | tr -d ', \r\n\(\)') || curver=
+    curver=$($PIP show $pkg 2>/dev/null| grep "^[Vv]ersion" | awk -F: '{print $2}' | tr -d ', \r\n\(\)') || curver=
     if [[ -z "$curver" ]]; then
       echo "Package $pkg not installed!!!"
-      if [[ "$cmd" == "amend" ]]; then
+      if [[ $cmd == "amend" ]]; then
         pip_install "$vpkg"
         [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
@@ -620,23 +620,24 @@ check_package() {
       [[ -n "$curver" ]] && xcurver=$(echo $curver | grep --color=never -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)' | awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
       if [[ -z "$op" ]] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
         echo "Package $pkg version $curver but expected $pkg$op$reqver!!!"
-        if [[ "$cmd" == "amend" ]]; then
+        if [[ $cmd == "amend" ]]; then
           pip_install "$vpkg" "--upgrade"
           [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         else
           ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         fi
       else
-        printf "Package %-40.40s OK\n" "${pkg}${op}${reqver}........................................"
+        printf "Package %-40.40s OK %s\n" "${pkg}${op}${reqver}........................................" "${curver}"
       fi
     fi
   else
-    eval $PIP show $pkg &>/dev/null
-    if [ $? -eq 0 ]; then
-      printf "Package %-40.40s OK\n" "${pkg}........................................"
+    curver=$($PIP show $pkg 2>/dev/null| grep "^[Vv]ersion" | awk -F: '{print $2}' | tr -d ', \r\n\(\)') || curver=
+    # eval $PIP show $pkg &>/dev/null
+    if [[ -n "$curver" ]]; then
+      printf "Package %-40.40s OK %s\n" "${pkg}........................................" "${curver}"
     else
       echo "Package $pkg not installed!!!"
-      if [[ "$cmd" == "amend" ]]; then
+      if [[ $cmd == "amend" ]]; then
         pip_install "$vpkg"
         [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       else
@@ -866,6 +867,7 @@ do_venv_mgr_test() {
   do_deactivate
   do_activate $VENV
   [[ -z "$HOME" ]] && echo "Wrong environment (No HOME directory declared)!" && return
+  run_traced "pip check"
   [[ $opt_alone -eq 2 && "$HOME" == "$SAVED_HOME" ]] && echo -e "${RED}Virtual Environment $HOME not isolated!${CLR}"
   [[ $opt_verbose -gt 0 && "$HOME" != "$SAVED_HOME" ]] && echo "Isolated environment $HOME (-I switch, parent $SAVED_HOME)."
   if [[ $opt_verbose -gt 0 ]]; then

@@ -1398,9 +1398,10 @@ do_docs() {
       echo "Code documentation" >>./rtd_template.rst
       echo "------------------" >>./rtd_template.rst
       echo "" >>./rtd_template.rst
-      for b in $(cat __init__.py | grep "^from . import" | awk '{print $4}' | tr "\n" " "); do
+      for b in $(cat __init__.py | grep "^from . import" | awk '{print $4}' | grep -Ev "(scripts|_?travis)" | tr "\n" " "); do
         echo -e ".. automodule:: $PKGNAME.$b\n" >>./rtd_template.rst
       done
+      [[ -d ./testenv ]] && echo -e ".. automodule:: $PKGNAME.testenv.testenv\n" >>./rtd_template.rst
       run_traced "mv ./rtd_template.rst $docs_dir/rtd_automodule.rst"
     elif [[ $f =~ ^rtd_ ]]; then
       t=${f:4}
