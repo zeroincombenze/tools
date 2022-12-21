@@ -8,6 +8,7 @@
 #    All Rights Reserved
 #
 from __future__ import print_function, unicode_literals
+
 from builtins import input
 import argparse
 import sys
@@ -107,7 +108,16 @@ REPO_NAMES = {
     "oca": "OCA",
     "librerp": "LibrERP-network",
 }
-
+FMT_PARAMS = {
+    "repo": "%(repo)-30.30s",
+    "sts": "%(sts)3.3s",
+    "branch": "%(branch)-10.10s",
+    "dbranch": "%(branch)-10.10s",
+    "git_org": "%(git_org)-12.12s",
+    "git_url": "%(git_url)-60.60s",
+    "path": "%(path)-48.48s",
+    "stash": "%(stash)5.5s",
+}
 
 class OdooDeploy(object):
     """Odoo organization/branch repositories
@@ -126,6 +136,7 @@ class OdooDeploy(object):
         self.get_addons_from_config_file()
         self.addons_path = []
         self.master_branch = ""
+        self.target_path = ""
 
         if self.opt_args.action == "create-new":
             self.master_branch = build_odoo_param(
@@ -151,12 +162,15 @@ class OdooDeploy(object):
                        if self.opt_args.git_orgs else "oca")
             if os.path.isdir(path):
                 z0lib.run_traced("cd %s" % path, verbose=False, dry_run=False)
-                sts, branch, url = self.get_remote_info(verbose=False)
+                sts, repo_branch, git_url, stash_list = self.get_remote_info(verbose=False)
                 if sts == 0:
-                    url, rrepo, git_org = self.data_from_url(url)
+                    org_url, rrepo, git_org = self.data_from_url(git_url)
                 self.repo_info[repo]["GIT_ORG"] = git_org
-                self.repo_info[repo]["BRANCH"] = branch
+                self.repo_info[repo]["URL"] = git_url
+                self.repo_info[repo]["BRANCH"] = repo_branch
                 self.repo_info[repo]["STS"] = sts
+                if stash_list:
+                    self.repo_info[repo]["STASH"] = stash_list
             if git_org and git_org not in self.opt_args.git_orgs:
                 self.opt_args.git_orgs.append(git_org)
             if repo == "OCB" or not self.master_branch:
@@ -172,10 +186,9 @@ class OdooDeploy(object):
             else:
                 self.repo_list = sorted(self.repo_list)
 
-    def run_traced(self, cmd):
-        return z0lib.run_traced(cmd,
-                                verbose=self.opt_args.verbose,
-                                dry_run=self.opt_args.dry_run)
+    def run_traced(self, cmd, verbose=None):
+        verbose = verbose if isinstance(verbose, bool) else self.opt_args.verbose
+        return z0lib.run_traced(cmd, verbose=verbose, dry_run=self.opt_args.dry_run)
 
     def is_module(self, path):
         if not os.path.isdir(path):
@@ -347,6 +360,7 @@ class OdooDeploy(object):
         repo = os.path.basename(path)
         if repo.endswith(".git"):
             repo = repo[: -4]
+            url = os.path.dirname(url)
         if repo == "odoo":
             repo = "OCB"
         if uri.startswith("bzr"):
@@ -488,6 +502,7 @@ class OdooDeploy(object):
     def get_remote_info(self, verbose=True):
         verbose = verbose and self.opt_args.verbose
         branch = self.master_branch
+        stash_list = ""
         url = None
         sts, stdout, stderr = z0lib.run_traced("git branch", verbose=verbose)
         if sts == 0 and stdout:
@@ -499,18 +514,17 @@ class OdooDeploy(object):
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
                 lns = ln.split()
-                if lns[0] == "origin" and lns[0].endswith(".git"):
-                    url = lns[1][:-4]
-                    break
-                elif lns[0] == "origin":
+                if lns[0] == "origin":
                     url = lns[1]
                     break
+            sts, stdout, stderr = z0lib.run_traced("git stash list", verbose=False)
+            stash_list = stdout
         else:
             if self.path_is_ocb(os.getcwd()):
                 url = "https://github.com/odoo/odoo.git"
             else:
                 url = "https://github.com/OCA/%s.git" % os.path.basename(os.getcwd())
-        return sts, branch, url
+        return sts, branch, url, stash_list
 
     def get_root_from_addons(self, repos, git_org=None, branch=None):
         git_org = git_org or self.git_org
@@ -609,11 +623,11 @@ class OdooDeploy(object):
         if os.getcwd() != tgtdir:
             self.run_traced("cd %s" % tgtdir)
         cmd = "git stash"
-        self.run_traced(cmd)
+        self.run_traced(cmd, verbose=False)
         sleep(1)
-        sts, remote_branch, url = self.get_remote_info()
+        sts, repo_branch, git_url, stash_list = self.get_remote_info()
         alt_branches = self.get_alt_branches(branch, master_branch=master_branch)
-        if remote_branch != branch and remote_branch not in alt_branches:
+        if repo_branch != branch and repo_branch not in alt_branches:
             for alt_branch in [branch] + alt_branches:
                 cmd = "git checkout %s" % alt_branch
                 sts, stdout, stderr = self.run_traced(cmd)
@@ -625,20 +639,22 @@ class OdooDeploy(object):
             print("Invalid branch %s" % branch)
         sleep(1)
         cmd = "git pull"
-        return self.run_traced(cmd)[0], remote_branch
+        return self.run_traced(cmd)[0], repo_branch
 
     def download_single_repo(self, repo, git_org=None, branch=None):
         git_org = git_org or self.git_org
         branch = branch or self.opt_args.odoo_branch
         odoo_master_branch = build_odoo_param("FULLVER", odoo_vid=branch)
+        git_url = stash_list = ""
         tgtdir = self.get_path_of_repo(repo)
         if self.opt_args.action == "update":
             if not os.path.isdir(tgtdir):
                 return 127
             if os.getcwd() != tgtdir:
                 self.run_traced("cd %s" % tgtdir)
-            sts, repo_branch, git_url = self.get_remote_info()
-            git_url, repo, repo_org = self.data_from_url(git_url)
+            sts, repo_branch, git_url, stash_list = self.get_remote_info()
+            if sts == 0:
+                org_url, repo, repo_org = self.data_from_url(git_url)
         elif self.repo_is_ocb(repo) and not self.opt_args.keep_root_owner:
             git_url = "https://github.com/odoo/odoo.git"
             repo = "odoo"
@@ -653,8 +669,8 @@ class OdooDeploy(object):
                     git_org=git_org)
         if not git_url:
             return 127
-        if not git_url.endswith(".git"):
-            git_url = "%s/%s.git" % (git_url, repo)
+        # if not git_url.endswith(".git"):
+        #     git_url = "%s/%s.git" % (git_url, repo)
         bakdir = ""
         if os.path.isdir(tgtdir) and self.opt_args.action != "update":
             if self.opt_args.skip_if_exist:
@@ -686,10 +702,13 @@ class OdooDeploy(object):
             sts = 1
         if repo not in self.repo_list:
             self.repo_list.append(repo)
-        self.repo_info["STS"] = sts
-        self.repo_info["PATH"] = tgtdir
-        self.repo_info["GIT_ORG"] = git_org
-        self.repo_info["BRANCH"] = remote_branch
+        self.repo_info[repo]["STS"] = sts
+        self.repo_info[repo]["PATH"] = tgtdir
+        self.repo_info[repo]["GIT_ORG"] = git_org
+        self.repo_info[repo]["URL"] = git_url
+        self.repo_info[repo]["BRANCH"] = remote_branch
+        if stash_list:
+            self.repo_info[repo]["STASH"] = stash_list
         if os.path.isdir(tgtdir) or self.opt_args.dry_run:
             cmd = "cd %s" % tgtdir
             self.run_traced(cmd)
@@ -720,17 +739,27 @@ class OdooDeploy(object):
         print("Odoo main version..........: %s" % self.master_branch)
         if self.opt_args.config:
             print("Odoo configuration file....: %s" % self.opt_args.config)
-        fmt = "  %-10.10s %-12.12s %-42.42s %-40.40s"
-        print(fmt % ("BRANCH", "GIT_ORG", "URL", "PATH"))
+        fmt_list = self.opt_args.format.split(",")
+        fmt = ""
+        datas = {}
+        for item in fmt_list:
+            fmt += " " + FMT_PARAMS[item]
+            datas[item] = item.upper()
+        fmt = fmt.strip()
+        print(fmt % datas)
         for repo in self.repo_list:
-            print("[%s]" % repo)
-            print(fmt % (
-                self.repo_info[repo].get("BRANCH")
+            datas = {
+                "repo": repo,
+                "sts": self.repo_info[repo].get("STS"),
+                "branch": self.repo_info[repo].get("BRANCH"),
+                "dbranch": self.repo_info[repo].get("BRANCH")
                 if self.repo_info[repo].get("BRANCH") != self.master_branch else "",
-                self.repo_info[repo].get("GIT_ORG"),
-                self.repo_info[repo].get("URL"),
-                self.repo_info[repo].get("PATH"),
-            ))
+                "git_org": self.repo_info[repo].get("GIT_ORG"),
+                "git_url": self.repo_info[repo].get("URL"),
+                "path": self.repo_info[repo].get("PATH"),
+                "stash": "stash" if self.repo_info[repo].get("STASH") else "",
+            }
+            print(fmt % datas)
         print()
         print(",".join(self.addons_path))
 
@@ -738,22 +767,33 @@ class OdooDeploy(object):
         print("Odoo main version..........: %s" % self.master_branch)
         if self.opt_args.config:
             print("Odoo configuration file....: %s" % self.opt_args.config)
-        fmt = "  %s %-10.10s %-12.12s %-42.42s %-40.40s"
-        print(fmt % ("STS", "BRANCH", "GIT_ORG", "URL", "PATH"))
+        fmt_list = self.opt_args.format.split(",")
+        fmt = ""
+        datas = {}
+        for item in fmt_list:
+            fmt += " " + FMT_PARAMS[item]
+            datas[item] = item.upper()
+        fmt = fmt.strip()
+        print(fmt % datas)
         for repo in self.repo_list:
+            git_org = ""
             tgtdir = self.get_path_of_repo(repo)
-            self.run_traced("cd %s" % tgtdir)
-            sts, branch, url = self.get_remote_info(verbose=False)
-            url, repo, git_org = self.data_from_url(url)
-            if tgtdir.startswith(self.target_path) and tgtdir != self.target_path:
-                tgtdir = tgtdir.replace(self.target_path, "...")
-            if url.startswith("https://github.com/"):
-                url = url.replace("https://github.com/", "{gh}/")
-            elif url.startswith("git@github.com:"):
-                url = url.replace("git@github.com:", "gh:")
-            status = " " if self.repo_info.get("STS", sts) == 0 else "?"
-            print("[%s]" % repo)
-            print(fmt % (status, branch, git_org, url, tgtdir))
+            self.run_traced("cd %s" % tgtdir, verbose=False)
+            sts, repo_branch, git_url, stash_list = self.get_remote_info(verbose=False)
+            if sts == 0:
+                org_url, repo, git_org = self.data_from_url(git_url)
+
+            datas = {
+                "repo": repo,
+                "sts": sts,
+                "branch": repo_branch,
+                "dbranch": repo_branch if repo_branch != self.master_branch else "",
+                "git_org": git_org,
+                "git_url": git_url,
+                "path": tgtdir,
+                "stash": "stash" if self.repo_info[repo].get("STASH") else "",
+            }
+            print(fmt % datas)
         print()
         print(",".join(self.addons_path))
 
@@ -789,6 +829,10 @@ def main(cli_args=None):
     parser.add_argument("-D", "--default-gitorg", default="zero")
     # parser.add_argument("-d", "--deployment-mode", help="may be tree,server,odoo")
     parser.add_argument("-e", "--skip-if-exist", action="store_true")
+    parser.add_argument("-F",
+                        "--format",
+                        help="use 1 or + of sts,repo,branch,git_org,git_url,path,stash",
+                        default="sts,repo,branch,git_org,git_url,path,stash")
     parser.add_argument("-G", "--git-orgs",
                         help="Git organizations, comma separated - "
                              "May be: oca librerp or zero")

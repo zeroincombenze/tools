@@ -933,14 +933,14 @@ class MainTest(SingleTransactionCase):
             for field in record._fields.values():
                 if field.default:
                     field.default(record)
+            # Get all onchange method names and run them with None values
+            # record = record if isinstance(record, (list, tuple)) else [record]
+            for field in record._onchange_methods.values():
+                for method in field:
+                    method(record)
         else:
             resource_model = resource._name
             record = resource
-        # Get all onchange method names and run them with None values
-        # record = record if isinstance(record, (list, tuple)) else [record]
-        for field in self.env[resource_model]._onchange_methods.values():
-            for method in field:
-                method(record)
         web_changes = web_changes or []
         for args in web_changes:
             self.wizard_edit(

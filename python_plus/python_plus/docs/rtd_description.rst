@@ -4,24 +4,32 @@
 Python supplemental features
 ----------------------------
 
-python_plus adds various features to python 2 and python 3 programs.
+python-plus adds various features to python 2 and python 3 programs.
 It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
 
+
+list_requirements.py: list environment requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This command is an internal command of python-plus but may be used as own command.
+list_requirements.py dispays the pypi and binaries packages needed to create a virtual environment.
+It is specially designed to show Odoo requirements.
+Passing Odoo path it reads requirements.txt files in path and setup directories of OCA repositories.
 
 vem: virtual environment manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This packge is released with an nice command:
-**vem** that is an interactive tool with some nice features to manage standard virtual environment and it is osx/darwin compatible.
+This command is an interactive tool with some nice features to manage standard virtual environment.
+Mainly it works ad standard pip but inside a specific virtual environment.
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-17
+Last Update / Ultimo aggiornamento: 2022-12-21
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master

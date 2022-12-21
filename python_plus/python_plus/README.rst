@@ -16,15 +16,23 @@ Overview
 Python supplemental features
 ----------------------------
 
-python_plus adds various features to python 2 and python 3 programs.
+python-plus adds various features to python 2 and python 3 programs.
 It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
 
+
+list_requirements.py: list environment requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This command is an internal command of python-plus but may be used as own command.
+list_requirements.py dispays the pypi and binaries packages needed to create a virtual environment.
+It is specially designed to show Odoo requirements.
+Passing Odoo path it reads requirements.txt files in path and setup directories of OCA repositories.
 
 vem: virtual environment manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This packge is released with an nice command:
-**vem** that is an interactive tool with some nice features to manage standard virtual environment and it is osx/darwin compatible.
+This command is an interactive tool with some nice features to manage standard virtual environment.
+Mainly it works ad standard pip but inside a specific virtual environment.
 
 
 
@@ -117,23 +125,31 @@ vem: virtual environment manager
 
 ::
 
-    Usage: vem [-h][-a list][-BCDfkIin][-O version][-o dir][-p pyver][-q][-r file][-sVv] p1 p2 p3 p4 p5 p6 p7 p8 p9
+    Usage: vem.sh [-h][-a list][-BCD][-d paths][-E distro][-f][-F name][-gkIi][-l iso][-n][-O version][-o dir][-p pyver][-q][-r file][-stVvy] p3 p4 p5 p6 p7 p8 p9
     Manage virtual environment
-    action may be: help amend cp check create exec info install merge mv python shell rm show update test reset
+    action may be: help amend cp check create exec info inspect install merge mv python shell rm show uninstall update test
      -h --help            this help
      -a list              bin packages to install (* means wkhtmltopdf,lessc)
-     -B                   debug mode: use unstable packages (testpypi / local tools / local devel)
-     -C                   clear cache before execute pip command
+     -B                   use unstable packages: -B testpypi / -BB from ~/tools / -BBB from ~/pypi / -BBBB link to local ~/pypi
+     -C                   clear cache before executing pip command
      -D --devel           create v.environment with development packages
+     -d --dep-path paths
+                          odoo dependencies paths (comma separated)
+     -E --distro distro
+                          simulate Linux distro: like Ubuntu20 Centos7 etc (requires -n switch)
      -f --force           force v.environment create, even if exists or inside another virtual env
-     -k --keep            keep python2 executable as python
-     -I                   run pip in an isolated mode, set home virtual directory
+     -F name              simulate Linux family: may be RHEL or Debian (requires -n switch)
+     -g --global          install npm packages globally
+     -k --keep            keep python2 executable as python (deprecated)
+     -I --indipendent     run pip in an isolated mode and set home virtual directory
      -i --isolated        run pip in an isolated mode, ignoring environment variables and user configuration
+     -l --lang iso
+                          set default language
      -n --dry_run         do nothing (dry-run)
      -O --odoo-ver version
-                          install pypi required by odoo ver (amend, create or reset)
+                          install pypi required by odoo version (amend or create)
      -o --odoo-path dir
-                          odoo path:used to search odoo requirements and linked in venv
+                          odoo path used to search odoo requirements
      -p --python pyver
                           python version
      -q --quiet           silent mode
@@ -141,8 +157,10 @@ vem: virtual environment manager
                           after created v.environment install from the given requirements file
      -s --system-site-pack
                           create v.environment with access to the global site-packages
+     -t --travis          activate environment for travis test
      -V --version         show version
      -v --verbose         verbose mode
+     -y --yes             assume yes
 
 vem is an interactive tool with some nice features to manage standard virtual environment.
 
@@ -274,14 +292,11 @@ Current development version
 History
 -------
 
-2.0.4.1 (2022-12-15)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Package version adjustment
-
-2.0.4 (2022-12-09)
+2.0.4 (2022-12-15)
 ~~~~~~~~~~~~~~~~~~
 
+* [IMP] Package version adjustment
+* [IMP] vem: amend show current package version
 * [IMP] vem: no python2 warning in linux kernel 3
 * [FIX] vem: best recognition of python version
 
@@ -354,9 +369,9 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-17
+Last Update / Ultimo aggiornamento: 2022-12-21
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master

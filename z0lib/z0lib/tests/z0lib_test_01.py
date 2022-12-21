@@ -25,7 +25,6 @@ def version():
 class RegressionTest:
     def __init__(self, z0bug):
         self.Z = z0bug
-        self.root = ''
 
     def run_test_cmd(self, ctx, cmd):
         if ctx.get('dry_run', False):
@@ -66,6 +65,45 @@ class RegressionTest:
         sts += self.Z.test_result(
             z0ctx, 'dir %s removed' % fn, True, not os.path.isdir(fn))
         return sts
+
+    def test_02(self, z0ctx):
+        fn = os.path.expanduser("~/16.0")
+        self.run_test_cmd(z0ctx, "mkdir %s" % fn)
+        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "addons"))
+        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "odoo"))
+        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "odoo", "addons"))
+        self.run_test_cmd(z0ctx, "touch %s" % os.path.join(fn, "odoo", "release.py"))
+        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, ".git"))
+        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "repo1"))
+        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "repo1", ".git"))
+        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "repo1", "module_a"))
+        sts, stdout, stderr = z0lib.run_traced(
+            "git clone https://github.com/zeroincombenze/OCB.git %s -b16.0" % (
+                self.Z.testdir),
+            verbose=False)
+        tgtfn = os.path.join(self.Z.testdir, "16.0")
+        sts += self.Z.test_result(
+            z0ctx, 'dir %s created' % tgtfn, True, os.path.isdir(tgtfn))
+        sts += self.Z.test_result(
+            z0ctx, 'dir %s created' % os.path.join(tgtfn, "addons"),
+            True,
+            os.path.isdir(os.path.join(tgtfn, "addons")))
+        sts += self.Z.test_result(
+            z0ctx, 'dir %s created' % os.path.join(tgtfn, "odoo"),
+            True,
+            os.path.isdir(os.path.join(tgtfn, "odoo")))
+        sts += self.Z.test_result(
+            z0ctx, 'dir %s created' % os.path.join(tgtfn, "odoo", "addons"),
+            True,
+            os.path.isdir(os.path.join(tgtfn, "odoo", "addons")))
+        sts += self.Z.test_result(
+            z0ctx, 'file %s created' % os.path.join(tgtfn, "odoo", "release.py"),
+            True,
+            os.path.isfile(os.path.join(tgtfn, "odoo", "release.py")))
+        sts += self.Z.test_result(
+            z0ctx, 'dir %s not created' % os.path.join(tgtfn, "repo1"),
+            False,
+            os.path.isdir(os.path.join(tgtfn, "repo1")))
 
     def setup(self, z0ctx):
         pass
