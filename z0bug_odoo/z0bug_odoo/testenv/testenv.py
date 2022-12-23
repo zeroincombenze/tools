@@ -56,6 +56,7 @@ from past.builtins import basestring, long
 # import sys
 import logging
 from collections import defaultdict
+import base64
 
 from odoo.tools.safe_eval import safe_eval
 
@@ -67,12 +68,12 @@ _logger = logging.getLogger(__name__)
 
 RESOURCE_WO_COMPANY = ("res.users",)
 if PY3:
-    text_type = unicode = str
-    bytestr_type = bytes
+    text_type = unicode = str                                        # pragma: no cover
+    bytestr_type = bytes                                             # pragma: no cover
 elif PY2:
     # unicode exist only for python2
-    text_type = unicode
-    bytestr_type = str
+    text_type = unicode                                              # pragma: no cover
+    bytestr_type = str                                               # pragma: no cover
 
 
 class MainTest(SingleTransactionCase):
@@ -231,22 +232,23 @@ class MainTest(SingleTransactionCase):
                 self._load_field_struct(self.childs_resource[resource])
                 self._search4parent(self.childs_resource[resource])
             multi_key = True if self.parent_name.get(resource) else False
+            # Please, do not change fields order
             fields = (
-                "code",
-                "code_prefix",
                 "acc_number",
+                "code_prefix",
                 "default_code",
+                "sequence",
                 "login",
                 "description",
                 "depreciation_type_id",
-                "name",
                 "number",
                 "partner_id",
                 "product_id",
                 "product_tmpl_id",
-                "sequence",
                 "tax_src_id",
                 "tax_dest_id",
+                "code",
+                "name",
             )
             for field in fields:
                 if (
@@ -293,10 +295,12 @@ class MainTest(SingleTransactionCase):
                 res = self.resource_bind(
                     xref, raise_if_not_found=False, resource=resource
                 )
-                if not res:
+                if not res and not self.get_resource_data(resource, xref):
                     self._logger.info("⚠ External reference %s not found" % xref)
             else:
-                res = self.env.ref(xref, raise_if_not_found=False)
+                res = self.env.ref(
+                    self.tnxl_field_value(resource, None, xref),
+                    raise_if_not_found=False)
             res = res.id if res else False if fmt else xref
         return res
 
@@ -598,7 +602,8 @@ class MainTest(SingleTransactionCase):
                 "🐞%s.resource_bind(%s)" % (resource, xref)
             )
         # Search for Odoo standard external reference
-        obj = self.env.ref(xref, raise_if_not_found=False)
+        obj = self.env.ref(
+            self.tnxl_field_value(resource, None, xref), raise_if_not_found=False)
         if obj:
             return obj
         # Simulate external reference
@@ -959,6 +964,37 @@ class MainTest(SingleTransactionCase):
             else:
                 record.create({})
 
+    def resource_download(
+        self,
+        module=None,
+        action_name=None,
+        act_windows=None,
+        records=None,
+        default=None,
+        ctx=None,
+        button_name=None,
+        web_changes=None,
+        button_ctx=None,
+        field=None,
+    ):
+        act_windows = self.wizard(
+            module=module,
+            action_name=action_name,
+            act_windows=act_windows,
+            records=records,
+            default=default,
+            ctx=ctx,
+            button_name=button_name,
+            web_changes=web_changes,
+            button_ctx=button_ctx,
+        )
+        if field not in self.env[act_windows["res_model"]]:
+            raise ValueError(
+                "Filed %s not found in %s" % (field, act_windows["res_model"]))
+        return base64.decodestring(
+            getattr(self.env[act_windows["res_model"]].browse(act_windows["res_id"]),
+                    field))
+
     ########################################
     #     WIZARD ENVIRONMENT FUNCTIONS     #
     ########################################
@@ -1011,17 +1047,26 @@ class MainTest(SingleTransactionCase):
                 act_windows["context"] = ctx
             if ctx.get("res_id"):
                 act_windows["res_id"] = ctx.pop("res_id")
+        if records:
+            if records._name != act_windows.get(
+                "model_name", act_windows.get(
+                    "src_model", act_windows["res_model"])):
+                raise (TypeError, "Records model different from declared model")
+            if not iter(records):
+                records = [records]
         if act_windows["type"] == "ir.actions.server":
             if not records:
                 raise (TypeError, "No records supplied")
-            if records._name != act_windows["model_name"]:
-                raise (TypeError, "Records model different from declared model")
             wizard = records
         else:
             if records:
-                raise (TypeError, "Invalid records supplied")
+                act_windows["context"]["active_ids"] = [x.id for x in records]
+                if len(records) == 1:
+                    act_windows["context"]["active_id"] = records[0].id
+                else:
+                    act_windows["context"]["active_id"] = 0
             res_model = act_windows["res_model"]
-            vals = default or {}
+            vals = self.cast_types(res_model, default or {})
             res_id = act_windows.get("res_id")
             if res_id:
                 wizard = self.env[res_model].with_context(
@@ -1077,6 +1122,11 @@ class MainTest(SingleTransactionCase):
             Same of <wizard_start>
         """
         act_model = "ir.actions.act_window"
+        if module == ".":
+            for item in self.__module__.split("."):
+                if item not in ("odoo", "openerp", "addons"):
+                    module = item
+                    break
         act_windows = self.env[act_model].for_xml_id(module, action_name)
         return self.wizard_launch(
             act_windows,

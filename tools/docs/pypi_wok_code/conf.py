@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'wok_code'
-copyright = '2019-21, SHS-AV s.r.l.'
+copyright = '2019-23, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version

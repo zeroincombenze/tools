@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from past.builtins import long
 
 import csv
 import getpass
@@ -234,7 +235,7 @@ def _get_tax_record(ctx, code=None, company_id=None):
     return tax_id
 
 
-def param_date(param, model=None, date_field=None, domain=None, ctx=ctx):
+def param_date(param, date_field=None, ctx=ctx):
     """Return record ids of model by user request;
     param values:
         'yyyy-mm-dd': specific date
@@ -242,8 +243,7 @@ def param_date(param, model=None, date_field=None, domain=None, ctx=ctx):
         '': from current month (if day >= 15) or from prior month (if day < 15)
         'n': record n of model
         '[n,..]': records n ... of model
-    model: Odoo model
-    date_field: Odoo model field with date to manage
+    date_field: Odoo model field with date to manage (means return domain)
     """
     if param == '?':
         date_ids = False
@@ -264,20 +264,17 @@ def param_date(param, model=None, date_field=None, domain=None, ctx=ctx):
             day = 1
             from_date = '%04d-%02d-%02d' % (year, month, day)
             date_ids = param or from_date
-    if not date_ids:
-        date_ids = input('IDS to manage or date yyyy-mm-dd (empty means all)? ')
-    if model and date_field:
-        if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
-            if isinstance(domain, (list, tuple)):
-                where = [x for x in domain]
-                where.append((date_field, '>=', date_ids))
+
+        if date_field:
+            if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
+                domain = [(date_field, '>=', date_ids)]
             else:
-                where = [(date_field, '>=', date_ids)]
-            date_ids = clodoo.searchL8(ctx, model, where)
-        else:
-            date_ids = eval(date_ids)
-            if domain and isinstance(date_ids, int):
-                date_ids = [date_ids]
+                date_ids = eval(date_ids)
+                if isinstance(date_ids, (int, long)):
+                    domain = [('id', 'in', [date_ids])]
+                else:
+                    domain = [('id', 'in', date_ids)]
+            return domain
     return date_ids
 
 
@@ -304,15 +301,11 @@ def all_addr_same_customer(ctx):
     if ctx['param_1'] == 'help':
         print(
             'delivery_addr_same_customer '
-            '[from_date|+days|ids] [Inv|Del|Both] [partner_id]'
+            '[FROM_DATE|+DAYS|IDS] [Inv|Delivery|Both] [partner_id]'
         )
         return
-    model = 'sale.order'
-    date_ids = param_date(ctx['param_1'])
-    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
-        ids = clodoo.searchL8(ctx, model, [('date_order', '>=', date_ids)])
-    else:
-        ids = eval(date_ids)
+    resource_so = 'sale.order'
+    domain = param_date(ctx['param_1'], date_field='date_order')
     select = 'B'
     if ctx['param_2'] in ('I', 'D', 'B'):
         select = ctx['param_2']
@@ -321,678 +314,195 @@ def all_addr_same_customer(ctx):
     else:
         force_partner_id = False
     ctr = 0
-    for so in clodoo.browseL8(ctx, model, ids):
+    for so in clodoo.browseL8(ctx, resource_so, domain):
         vals = {}
         if force_partner_id:
-            vals['partner_id'] = force_partner_id
+            if so.partner_id != force_partner_id:
+                vals['partner_id'] = force_partner_id
         else:
             if select in ('B', 'D') and so.partner_shipping_id != so.partner_id:
                 vals['partner_shipping_id'] = so.partner_id.id
             if select in ('B', 'I') and so.partner_invoice_id != so.partner_id:
                 vals['partner_invoice_id'] = so.partner_id.id
         if vals:
-            clodoo.writeL8(ctx, model, so.id, vals)
+            clodoo.writeL8(ctx, resource_so, so.id, vals)
             print('so.number=%s' % so.name)
             ctr += 1
     print('%d sale orders updated' % ctr)
 
 
-def set_db_4_test(ctx):
-    print('Set database ready for tests')
-    if ctx['param_1'] == 'help':
-        print('set_db_4_test')
-        return
-    main_company = env_ref(ctx, 'base.main_company')
-    company_id = env_ref(ctx, 'z0bug.mycompany')
-    partner_company = env_ref(ctx, 'z0bug.partner_mycompany')
-    if not company_id or company_id == main_company:
-        model = 'res.company'
-        domain = [('id', '!=', main_company)]
-        if partner_company:
-            domain.append(('partner_id', '=', partner_company))
-        companies = clodoo.searchL8(ctx, model, domain)
-        if not companies and partner_company:
-            print('Wrong config! Company partner is not the declared one!')
-            domain = [('id', '!=', main_company)]
-            companies = clodoo.searchL8(ctx, model, domain)
-        if not companies:
-            raise IOError('!!No company to test!')
-        add_xref(ctx, 'z0bug.mycompany', 'res.company', companies[0])
-        print('Database set to test')
-    else:
-        print('Database is already set to test')
-    model = 'res.company'
-    company_id = env_ref(ctx, 'z0bug.mycompany')
-    partner_company_id = env_ref(ctx, 'z0bug.partner_mycompany')
-    company = clodoo.browseL8(ctx, model, company_id)
-    if company.partner_id != partner_company_id:
-        print('Wrong config! Company partner is not the declared one!')
-        valid_partner = False
-        if partner_company_id:
-            partner = clodoo.browseL8(ctx, 'res.partner', partner_company_id)
-            if partner.city == 'Ozzero':
-                valid_partner = True
-        if valid_partner:
-            clodoo.writeL8(ctx, model, company_id, {'partner_id': partner_company_id})
-        else:
-            add_xref(
-                ctx, 'z0bug.partner_mycompany', 'res.partner', company.partner_id.id
-            )
-
-
 def order_inv_group_by_partner(ctx):
-    print('Set order invoicing group by customer')
+    print('Set order invoicing group by customer setting')
     if ctx['param_1'] == 'help':
-        print('order_inv_group_by_partner' '[from_date|+days|ids]')
+        print('order_inv_group_by_partner' '[FROM_DATE|+DAYS|IDS]')
         return
-    model = 'sale.order'
-    date_ids = param_date(ctx['param_1'])
-    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
-        ids = clodoo.searchL8(ctx, model, [('date_order', '>=', date_ids)])
-    else:
-        ids = eval(date_ids)
-    if ids:
-        if isinstance(ids, int):
-            domain = [('order_id', '=', ids)]
-        else:
-            domain = [('order_id', 'in', ids)]
-    else:
-        domain = []
+    resource_so = 'sale.order'
+    domain = param_date(ctx['param_1'], date_field='date_order')
     ctr = 0
     for order in clodoo.browseL8(
-        ctx, model, clodoo.searchL8(ctx, model, domain, order='name desc,id')
-    ):
+        ctx, resource_so, clodoo.searchL8(
+            ctx, resource_so, domain, order='name desc,id')):
         msg_burst('%s ...' % order.name)
         partner_group = order.partner_id.ddt_invoicing_group
         sale_group = order.ddt_invoicing_group
         if sale_group != partner_group:
             print('Changing group of %s' % order.name)
-            clodoo.writeL8(ctx, model, order.id, {'ddt_invoicing_group': partner_group})
+            clodoo.writeL8(
+                ctx, resource_so, order.id, {'ddt_invoicing_group': partner_group})
             ctr += 1
     print('%d sale order updated' % ctr)
 
 
-def order_commission_by_partner(ctx):
-    print('If missed, set commission in order lines from customer')
-    if ctx['param_1'] == 'help':
-        print(
-            'order_commission_by_partner '
-            '[Add|Recalc|Check] [from_date|+days|ids]'
-            ' [Pproduct_id|Aagent_id]'
-        )
-        return
-    ord_model = 'sale.order'
-    ord_line_model = 'sale.order.line'
-    sale_agent_model = 'sale.order.line.agent'
-    mode = param_mode_commission(ctx['param_1'])
-    date_ids = param_date(ctx['param_2'])
-    product_id, agent_id = param_product_agent(ctx['param_3'])
-    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
-        ids = clodoo.searchL8(ctx, ord_model, [('date_order', '>=', date_ids)])
-    else:
-        ids = eval(date_ids)
-    if ids:
-        if isinstance(ids, int):
-            domain = [('order_id', '=', ids)]
-            domain1 = [('id', '=', ids)]
-        else:
-            domain = [('order_id', 'in', ids)]
-            domain1 = [('id', 'in', ids)]
-    else:
-        domain = []
-        domain1 = []
-    if product_id:
-        domain.append(('product_id', '=', product_id))
-    print('Starting mode %s from %s' % (mode, date_ids))
-    ctr = 0
-    for ord_line in clodoo.browseL8(
-        ctx,
-        ord_line_model,
-        clodoo.searchL8(ctx, ord_line_model, domain, order='order_id desc,id'),
-    ):
-        msg_burst('%s ...' % ord_line.order_id.name)
-        commission_free = ord_line.product_id.commission_free
-        if ord_line.agents and not commission_free:
-            if mode in ('A', 'C'):
-                continue
-            clodoo.unlinkL8(ctx, sale_agent_model, ord_line.agents.id)
-        if mode == 'C':
-            if not commission_free:
-                print(
-                    'Ord. %s to %-30.30s line %-30.30s w/o commission'
-                    % (
-                        ord_line.order_id.number,
-                        ord_line.order_id.partner_id.name,
-                        ord_line.name,
-                    )
-                )
-            continue
-        rec = {}
-        if not commission_free:
-            for agent in ord_line.order_id.partner_id.agents:
-                rec = {'agent': agent.id, 'commission': agent.commission.id}
-                break
-        vals = {}
-        if rec:
-            vals['agents'] = [(0, 0, rec)]
-        if commission_free:
-            vals['commission_free'] = commission_free
-        if vals:
-            clodoo.writeL8(ctx, ord_line_model, ord_line.id, vals)
-            ctr += 1
-    if mode != 'C':
-        # Force line update
-        for order in clodoo.browseL8(
-            ctx, ord_model, clodoo.searchL8(ctx, ord_model, domain1, order='id desc')
-        ):
-            msg_burst('%s ...' % order.name)
-            clodoo.writeL8(ctx, ord_model, order.id, {'name': order.name})
-    print('%d sale order lines updated' % ctr)
-
-
-def inv_commission_by_partner(ctx):
-    print('If missed, set commission in invoice lines from customer')
-    if ctx['param_1'] == 'help':
-        print('inv_commission_by_partner [Add,Recalc|Check] from_date|ids')
-        return
-    inv_model = 'account.invoice'
-    inv_line_model = 'account.invoice.line'
-    inv_agent_model = 'account.invoice.line.agent'
-    mode = param_mode_commission(ctx['param_1'])
-    date_ids = param_date(ctx['param_2'])
-    product_id, agent_id = param_product_agent(ctx['param_3'])
-    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
-        ids = clodoo.searchL8(ctx, inv_model, [('date_invoice', '>=', date_ids)])
-    else:
-        ids = eval(date_ids)
-    if ids:
-        if isinstance(ids, int):
-            domain = [('invoice_id', '=', ids)]
-            domain1 = [('id', '=', ids)]
-        else:
-            domain = [('invoice_id', 'in', ids)]
-            domain1 = [('id', 'in', ids)]
-    else:
-        domain = []
-        domain1 = []
-    if product_id:
-        domain.append(('product_id', '=', product_id))
-    domain.append(('invoice_id.type', 'in', ('out_invoice', 'out_refund')))
-    domain1.append(('type', 'in', ('out_invoice', 'out_refund')))
-    print('Starting mode %s from %s' % (mode, date_ids))
-    ctr = 0
-    for inv_line in clodoo.browseL8(
-        ctx,
-        inv_line_model,
-        clodoo.searchL8(ctx, inv_line_model, domain, order='invoice_id desc,id'),
-    ):
-        msg_burst('%s ...' % inv_line.invoice_id.number)
-        commission_free = False
-        if commission_free == inv_line.product_id:
-            commission_free = inv_line.product_id.commission_free
-        if inv_line.agents and not commission_free:
-            if mode in ('A', 'C'):
-                continue
-            clodoo.unlinkL8(ctx, inv_agent_model, inv_line.agents.id)
-        if mode == 'C':
-            if not commission_free:
-                print(
-                    'Inv. %s to %-30.30s line %-30.30s w/o commission'
-                    % (
-                        inv_line.invoice_id.number,
-                        inv_line.invoice_id.partner_id.name,
-                        inv_line.name,
-                    )
-                )
-            continue
-        rec = {}
-        if not commission_free:
-            for agent in inv_line.invoice_id.partner_id.agents:
-                rec = {'agent': agent.id, 'commission': agent.commission.id}
-                break
-        vals = {}
-        if rec:
-            vals['agents'] = [(0, 0, rec)]
-        if commission_free:
-            vals['commission_free'] = commission_free
-        if vals:
-            clodoo.writeL8(ctx, inv_line_model, inv_line.id, vals)
-            ctr += 1
-    if mode != 'C':
-        # Force line update
-        for invoice in clodoo.browseL8(
-            ctx, inv_model, clodoo.searchL8(ctx, inv_model, domain1, order='id desc')
-        ):
-            msg_burst('%s ...' % invoice.name)
-            clodoo.writeL8(ctx, inv_model, invoice.id, {'name': invoice.name})
-    print('%d account invoice lines updated' % ctr)
-
-
-def correct_invoice_entry_date(ctx):
-    print('Move old registration_date into date')
-    if ctx['param_1'] == 'help':
-        print('correct_invoice_entry_date from_date|ids')
-        return
-    inv_model = 'account.invoice'
-    ctr = 0
-    date_ids = param_date(ctx['param_1'])
-    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
-        ids = clodoo.searchL8(ctx, inv_model, [('date_invoice', '>=', date_ids)])
-    else:
-        ids = eval(date_ids)
-    query = "update account_invoice set date=registration_date"
-    query += " where type in ('in_invoice', 'in_refund')"
-    if ids:
-        query += " and id in %s" % ids
-    clodoo.exec_sql(ctx, query)
-    print('%d invoice lines updated' % ctr)
-
-
-def inv_commission_from_order(ctx):
-    print('If missed, copy commission in invoice lines from sale order lines')
-    if ctx['param_1'] == 'help':
-        print('inv_commission_from_order [Add,Recalc|Check] from_date|ids')
-        return
-    inv_model = 'account.invoice'
-    inv_line_model = 'account.invoice.line'
-    inv_agent_model = 'account.invoice.line.agent'
-    ctr = 0
-    mode = param_mode_commission(ctx['param_1'])
-    date_ids = param_date(ctx['param_2'])
-    product_id, agent_id = param_product_agent(ctx['param_3'])
-    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
-        ids = clodoo.searchL8(ctx, inv_model, [('date_invoice', '>=', date_ids)])
-    else:
-        ids = eval(date_ids)
-    if ids:
-        if isinstance(ids, int):
-            domain = [('invoice_id', '=', ids)]
-            domain1 = [('id', '=', ids)]
-        else:
-            domain = [('invoice_id', 'in', ids)]
-            domain1 = [('id', 'in', ids)]
-    else:
-        domain = []
-        domain1 = []
-    if product_id:
-        domain.append(('product_id', '=', product_id))
-    domain.append(('invoice_id.type', 'in', ('out_invoice', 'out_refund')))
-    domain1.append(('type', 'in', ('out_invoice', 'out_refund')))
-    for inv_line in clodoo.browseL8(
-        ctx,
-        inv_line_model,
-        clodoo.searchL8(ctx, inv_line_model, domain, order='invoice_id desc,id'),
-    ):
-        msg_burst('%s ...' % inv_line.invoice_id.number)
-        commission_free = False
-        if commission_free == inv_line.product_id:
-            commission_free = inv_line.product_id.commission_free
-        if inv_line.agents and not commission_free:
-            if mode in ('A', 'C'):
-                continue
-            clodoo.unlinkL8(ctx, inv_agent_model, inv_line.agents.id)
-        if mode == 'C':
-            if not commission_free:
-                print(
-                    'Inv. %s to %-30.30s line %-30.30s w/o commission'
-                    % (
-                        inv_line.invoice_id.number,
-                        inv_line.invoice_id.partner_id.name,
-                        inv_line.name,
-                    )
-                )
-            continue
-        for ord_line in inv_line.sale_line_ids:
-            if not ord_line.agents.amount:
-                continue
-            agents = [
-                (0, 0, {'agent': x.agent.id, 'commission': x.commission.id})
-                for x in ord_line.agents
-            ]
-            clodoo.writeL8(ctx, inv_line_model, inv_line.id, {'agents': agents})
-            ctr += 1
-    if mode != 'C':
-        for invoice in clodoo.browseL8(
-            ctx, inv_model, clodoo.searchL8(ctx, inv_model, domain1, order='id desc')
-        ):
-            msg_burst('%s ...' % invoice.number)
-            clodoo.writeL8(ctx, inv_model, invoice.id, {'number': invoice.number})
-    print('%d invoice lines updated' % ctr)
-
-
-def update_einvoice_out_attachment(ctx):
-    print('Update e-attachment of invoice')
-    model = 'account.invoice'
-    if ctx['param_1'] == 'help':
-        print('update_einvoice_out_attachment invoice_id [state]')
-        return
-    if ctx['param_1']:
-        inv_id = eval(ctx['param_1'])
-    else:
-        inv_id = input('Invoice id: ')
-        inv_id = eval(inv_id) if inv_id else 0
-    if inv_id:
-        inv = clodoo.browseL8(ctx, model, inv_id)
-        att = inv.fatturapa_attachment_out_id
-        if not att:
-            print('Invoice %s w/o attachment' % inv.number)
-            return
-        print('Processing invoice %s' % inv.number)
-        model_att = 'fatturapa.attachment.out'
-        att = clodoo.browseL8(ctx, model_att, att.id)
-        print('Attachment ID = %d, state=%s' % (att.id, att.state))
-        state = ctx['param_2']
-        while state not in (
-            'ready',
-            'sent',
-            'sender_error',
-            'recipient_error',
-            'rejected',
-            'validated',
-            'accepted',
-            'discarted',
-        ):
-            state = input(
-                'State (ready,sent,sender|recipient_error,reject,'
-                'validated,accepted,discarted): '
-            )
-        clodoo.writeL8(ctx, model_att, att.id, {'state': state})
-
-
-def unlink_einvoice_out_attachment(ctx):
-    print('Unlink e-attachment of invoice')
-    model = 'account.invoice'
-    if ctx['param_1'] == 'help':
-        print('unlink_einvoice_out_attachment invoice_id IN|OUT')
-        return
-    if ctx['param_1']:
-        inv_id = eval(ctx['param_1'])
-    else:
-        inv_id = input('Invoice id: ')
-        inv_id = eval(inv_id) if inv_id else 0
-    if ctx['param_2'] in ('IN', 'in', 'OUT', 'out'):
-        in_out = ctx['param_2'].lower()
-    else:
-        in_out = input('IN/OUT: ')
-        if in_out.lower() == 'in':
-            field = 'fatturapa_attachment_in_id'
-        else:
-            field = 'fatturapa_attachment_out_id'
-    if inv_id:
-        inv = clodoo.browseL8(ctx, model, inv_id)
-        print('Processing invoice %s' % inv.number)
-        clodoo.writeL8(ctx, model, inv.id, {field: False})
-
-
-def revaluate_due_date_in_invoces(ctx, inv_id=False):
-    print('Revaluate all due dates of invoices from xml')
-    model = 'account.invoice'
-    if not inv_id:
-        inv_id = input('Invoice id: ')
-        if inv_id:
-            inv_id = eval(inv_id)
-    if inv_id:
-        inv = clodoo.browseL8(ctx, model, inv_id)
-        att = inv.fatturapa_attachment_in_id
-        if not att:
-            print('Invoice %s w/o attachment' % inv.number)
-            return
-        print('Processing invoice %s' % inv.number)
-        inv_state = inv.state
-        if inv.state in INVOICES_STS_2_DRAFT:
-            reconcile_dict, move_dict = clodoo.get_reconcile_from_invoices(
-                [inv_id], ctx
-            )
-            clodoo.unreconcile_invoices(reconcile_dict, ctx)
-            try:
-                clodoo.upd_invoices_2_draft(move_dict, ctx)
-            except BaseException:
-                return
-        clodoo.executeL8(ctx, 'fatturapa.attachment.in', 'revaluate_due_date', att.id)
-        if inv_state in INVOICES_STS_2_DRAFT:
-            try:
-                clodoo.upd_invoices_2_posted(move_dict, ctx)
-            except BaseException:
-                return
-            reconciles = reconcile_dict[inv_id]
-            if len(reconciles):
-                cur_reconciles, cur_reconcile_dict = clodoo.refresh_reconcile_from_inv(
-                    inv_id, reconciles, ctx
-                )
-                clodoo.reconcile_invoices(cur_reconcile_dict, ctx)
-
-
-def set_tax_code_on_invoice(ctx):
-    print('Set tax code on invoice lines, if missed and if no line amount')
-    inv_model = 'account.invoice'
-    inv_line_model = 'account.invoice.line'
-    inv_id = input('Invoice id: ')
-    ctr = 0
-    if inv_id:
-        inv_id = eval(inv_id)
-        invoice = clodoo.browseL8(ctx, inv_model, inv_id)
-        tax_id = _get_tax_record(ctx, company_id=invoice.company_id.id)
-        if not tax_id:
-            print('Tax 22v not found!')
-        for inv_line in clodoo.browseL8(
-            ctx,
-            inv_line_model,
-            clodoo.searchL8(ctx, inv_line_model, [('invoice_id', '=', inv_id)]),
-        ):
-            msg_burst('%s ...' % inv_line.name)
-            if inv_line.invoice_line_tax_ids:
-                continue
-            if inv_line.price_subtotal != 0.0:
-                print('Line w/o tax but with total amount!')
-                continue
-            clodoo.writeL8(
-                ctx,
-                inv_line_model,
-                inv_line.id,
-                {'invoice_line_tax_ids': [(6, 0, [tax_id])]},
-            )
-            ctr += 1
-
-        clodoo.writeL8(ctx, inv_model, inv_id, {'number': invoice.number})
-    print('%d invoice lines updated' % ctr)
-
-
-def show_module_group(ctx):
-    print('Show group infos and external names')
-    model_grp = 'res.groups'
-    model_ctg = 'ir.module.category'
-    model_ir_md = 'ir.model.data'
-    gid = True
-    while gid:
-        gid = input('Res.groups id: ')
-        if gid:
-            gid = eval(gid)
-        if gid:
-            group = clodoo.browseL8(ctx, model_grp, gid, context={'lang': 'en_US'})
-            cid = group.category_id.id
-            categ = clodoo.browseL8(ctx, model_ctg, cid, context={'lang': 'en_US'})
-            print('%6d) Category %s' % (cid, categ.name))
-            uniq_field = []
-            grp_ids = clodoo.searchL8(ctx, model_grp, [('category_id', '=', cid)])
-            for group in clodoo.browseL8(ctx, model_grp, grp_ids):
-                if group.implied_ids:
-                    uniq_field.append(group.id)
-                    uniq_field += [x.id for x in group.implied_ids]
-            for group in clodoo.browseL8(
-                ctx, model_grp, grp_ids, context={'lang': 'en_US'}
-            ):
-                ir_md = clodoo.browseL8(
-                    ctx,
-                    model_ir_md,
-                    clodoo.searchL8(
-                        ctx,
-                        model_ir_md,
-                        [('model', '=', model_grp), ('res_id', '=', group.id)],
-                    ),
-                )
-                if group.id in uniq_field:
-                    tag = '*'
-                else:
-                    tag = ''
-                print(
-                    '%6d) -- Value [%-16.16s] > [%-32.32s] as "%s.%s" {%s}'
-                    % (
-                        group.id,
-                        group.name,
-                        group.full_name,
-                        ir_md.module,
-                        ir_md.name,
-                        tag,
-                    )
-                )
-
-
-def clean_translations(ctx):
-    print('Delete unuseful translations')
-    model = 'ir.translation'
-    domain = [
-        ('lang', '=', 'it_IT'),
-        '|',
-        ('name', '=', 'ir.module.module,description'),
-        ('name', '=', 'ir.module.module,shortdesc'),
-    ]
-    ids = clodoo.searchL8(ctx, model, domain)
-    print('unlink %s' % ids)
-    clodoo.unlinkL8(ctx, model, ids)
-    print('%d records deleted' % len(ids))
-
-
 def close_sale_orders(ctx):
     print('Close sale orders with linked invoice')
+    resource_so = 'sale.order'
+    resource_line = 'sale.order.line'
+    resource_carrier = 'delivery.carrier'
+    resource_company = 'res.company'
+
     if ctx['param_1'] == 'help':
-        print('close_sale_orders [no|to invoice] [SHIP_CODE]')
+        print('close_sale_orders [no|to invoice|invoiced] [FROM_DATE|+DAYS|IDS]')
         return
     if ctx['param_1'] in ('no', 'to invoice', 'both'):
         sel_state = ctx['param_1']
     else:
         sel_state = 'both'
-    if ctx.get('param_2'):
-        prod = clodoo.searchL8(
-            ctx, 'product.product', [('default_code', '=', ctx['param_2'])]
-        )
-        if prod:
-            prod = clodoo.browseL8(ctx, 'product.product', prod[0])
-    model = 'sale.order'
-    ctr = 0
-    domain = [
-        ('state', '=', 'sale'),
-        ('invoice_count', '>', 0),
-    ]
+    domain = param_date(ctx['param_2'], date_field='date_order')
+    domain.append(('state', '=', 'sale'))
+
+    shipping_ids = []
+    for delivery in clodoo.browseL8(ctx, resource_carrier,
+                                    clodoo.searchL8(ctx, resource_carrier, [])):
+        shipping_ids.append(delivery.product_id.id)
+    conai_product_ids = []
+    for company in clodoo.browseL8(ctx, resource_company,
+                                   clodoo.searchL8(ctx, resource_company, [])):
+        if (
+            hasattr(company, 'conai_product_id')
+            and not callable(company.conai_product_id)
+            and company.conai_product_id
+        ):
+            conai_product_ids.append(company.conai_product_id.id)
+
+    ctr_read = ctr_upd = 0
     if sel_state == 'both':
-        domain.append(('invoice_status', 'in', ['no', 'to invoice']))
+        domain.append(('invoice_status', 'in', ['no', 'to invoice', 'invoiced']))
     else:
         domain.append(('invoice_status', '=', sel_state))
-    for so in clodoo.browseL8(
-        ctx,
-        model,
-        clodoo.searchL8(ctx, model, domain),
-    ):
-        if so.invoice_ids:
-            clodoo.writeL8(ctx, model, so.id, {'invoice_status': 'invoiced'})
-            ctr += 1
-        else:
-            invoiced = True
-            ships = []
-            for ln in so.order_line:
-                if ln.invoice_lines or not ln.product_id:
-                    continue
-                if ln.product_id == prod:
-                    ships.append(ln.id)
-                elif ln.product_id != prod:
-                    invoiced = False
-                    break
-            if invoiced:
-                for ln_id in ships:
-                    ln = clodoo.browseL8(ctx, 'sale.order.line', ln_id)
+    for so in clodoo.browseL8(ctx, resource_so,
+                              clodoo.searchL8(ctx, resource_so, domain)):
+        msg_burst('%s (%d/%d) ...' % (so.name, ctr_upd, ctr_read))
+        ctr_read += 1
+        if so.state not in ("sale", "done"):
+            if so.invoice_status == "invoiced":
+                clodoo.writeL8(ctx,
+                               resource_so,
+                               so.id,
+                               {
+                                   'invoiced': 'no'
+                               })
+                print('Order %s -> %s' % (so.name, 'no'))
+                ctr_upd += 1
+            continue
+
+        invoice_status = 'invoiced'
+        for ln in so.order_line:
+            msg_burst('%s (%d/%d) ...' % (so.name, ctr_upd, ctr_read))
+            if (
+                ln.product_id and (
+                    ln.product_id.id in shipping_ids
+                    or ln.product_id.id in conai_product_ids)
+            ):
+                if ln.qty_invoiced != ln.product_qty:
                     clodoo.writeL8(ctx,
-                                   'sale.order.line',
-                                   ln_id,
-                                   {'qty_invoiced': ln.qty_to_invoice}
-                                   )
-                    ctr += 1
-                clodoo.writeL8(ctx, model, so.id, {'invoice_status': 'invoiced'})
-                ctr += 1
-    print('%d sale order updated!' % ctr)
+                                   resource_line,
+                                   ln.id,
+                                   {
+                                       'qty_invoiced': ln.product_qty,
+                                       'qty_to_invoice': 0.0,
+                                   })
+                    ctr_upd += 1
+                continue
+
+            if ln.invoice_lines:
+                continue
+            invoice_status = 'to invoice'
+            break
+
+        if so.invoice_status != invoice_status:
+            clodoo.writeL8(ctx,
+                           resource_so,
+                           so.id,
+                           {
+                               'invoice_status': invoice_status,
+                           })
+            print('Order %s -> %s' % (so.name, invoice_status))
+            ctr_upd += 1
+
+    print('%d sale order updated of %d read!' % (ctr_upd, ctr_read))
 
 
 def close_ddts(ctx):
     print('Close Delivery Document Type with linked invoice')
     if ctx['param_1'] == 'help':
-        print('close_sale_orders')
+        print('close_ddts [FROM_DATE|+DAYS|IDS]')
         return
-    model = 'stock.picking.package.preparation.line'
-    model1 = 'stock.picking.package.preparation'
+    domain = param_date(ctx['param_1'], date_field='date')
 
-    ctr = 0
+    resource_ddt = 'stock.picking.package.preparation'
+    resource_product = 'product.product'
+
+    ctr_read = ctr_upd = 0
     transportation_reason = False
-    for ln in clodoo.browseL8(
-        ctx,
-        model1,
-        clodoo.searchL8(
-            ctx,
-            model1,
-            [
-                ('invoice_id', '=', False),
-            ],
-        ),
-    ):
-        msg_burst('%s ...' % ln.name)
-        if ln.transportation_reason_id != transportation_reason:
-            transportation_reason = ln.transportation_reason_id
-        if ln.to_be_invoiced != transportation_reason.to_be_invoiced:
-            clodoo.writeL8(ctx,
-                           model1,
-                           ln.id,
-                           {'to_be_invoiced': transportation_reason.to_be_invoiced})
-            ctr += 1
+    for ddt in clodoo.browseL8(ctx, resource_ddt,
+                               clodoo.searchL8(ctx, resource_ddt, domain)):
+        msg_burst('%s (%d/%d) ...' % ((ddt.ddt_number or ddt.name), ctr_upd, ctr_read))
+        ctr_read += 1
+        if ddt.transportation_reason_id != transportation_reason:
+            transportation_reason = ddt.transportation_reason_id
+        if ddt.state != "done" or not transportation_reason.to_be_invoiced:
+            if ddt.to_be_invoiced != transportation_reason.to_be_invoiced:
+                clodoo.writeL8(ctx,
+                               resource_ddt,
+                               ddt.id,
+                               {
+                                   'to_be_invoiced':
+                                       transportation_reason.to_be_invoiced
+                               })
+                ctr_upd += 1
+            continue
 
-    for ln in clodoo.browseL8(
-        ctx,
-        model1,
-        clodoo.searchL8(
-            ctx,
-            model1,
-            [
-                ('invoice_id', '!=', False),
-                ('to_be_invoiced', '=', True)
-            ],
-        ),
-    ):
-        msg_burst('%s ...' % ln.name)
-        clodoo.writeL8(ctx,
-                       model1,
-                       ln.id,
-                       {'to_be_invoiced': False})
-        ctr += 1
-
-    for ln in clodoo.browseL8(
-        ctx,
-        model,
-        clodoo.searchL8(
-            ctx,
-            model,
-            [
-                ('package_preparation_id.to_be_invoiced', '=', True),
-                '|',
-                ('invoice_line_id', '!=', False),
-                ('sale_line_id.order_id.invoice_status', '=', 'invoiced')
-            ],
-        ),
-    ):
-        msg_burst('%s ...' % ln.package_preparation_id.name)
-        # Header may be updated by previous line, so test weather have to anything
-        if ln.package_preparation_id.to_be_invoiced:
+        invoice_id = to_be_invoiced = False
+        for ln in ddt.line_ids:
+            msg_burst('%s (%d/%d) ...' % (
+                (ddt.ddt_number or ddt.name), ctr_upd, ctr_read))
+            if ln.invoice_line_id:
+                if not invoice_id:
+                    invoice_id = ln.invoice_line_id.invoice_id.id
+                continue
+            if (
+                ln.sale_line_id
+                and ln.sale_line_id.order_id
+                and ln.sale_line_id.order_id.invoice_status == 'invoiced'
+            ):
+                continue
+            if ln.product_id:
+                product = clodoo.browseL8(ctx, resource_product, ln.product_id.id)
+                if product.type == 'service':
+                    continue
+            to_be_invoiced = True
+            break
+        if ddt.to_be_invoiced != to_be_invoiced:
             clodoo.writeL8(ctx,
-                           model1,
-                           ln.package_preparation_id.id,
-                           {'to_be_invoiced': False})
-            ctr += 1
-    print('%d DdT updated!' % ctr)
+                           resource_ddt,
+                           ddt.id,
+                           {
+                               'to_be_invoiced': to_be_invoiced,
+                               'invoice_id': invoice_id,
+                           })
+            ctr_upd += 1
+
+    print('%d DdT updated of %d read!' % (ctr_upd, ctr_read))
 
 
 def close_purchase_orders(ctx):
@@ -1012,7 +522,7 @@ def close_purchase_orders(ctx):
     else:
         ids = eval(date_ids)
     if ids:
-        if isinstance(ids, int):
+        if isinstance(ids, (int, long)):
             domain = [('order_id', '=', ids)]
             domain1 = [('id', '=', ids)]
         else:
@@ -1171,7 +681,7 @@ def manage_due_line(ctx):
         ids = clodoo.searchL8(ctx, model, [('date', '>=', date_ids)])
     else:
         ids = eval(date_ids)
-        if isinstance(ids, int):
+        if isinstance(ids, (int, long)):
             ids = [ids]
     for rec_id in ids:
         rec = clodoo.browseL8(ctx, model, rec_id)
@@ -1198,7 +708,7 @@ def manage_due_line(ctx):
             if not riba_lines:
                 continue
             riba_lines = eval(riba_lines)
-            if isinstance(riba_lines, int):
+            if isinstance(riba_lines, (int, long)):
                 riba_lines = [riba_lines]
             clodoo.writeL8(
                 ctx, model, rec_id, {'distinta_line_ids': [(6, 0, riba_lines)]}
@@ -1778,454 +1288,6 @@ def configure_email_template(ctx):
             'report_name': RPT_NAME[template.model_id.model],
         }
         clodoo.writeL8(ctx, model, template.id, vals)
-
-
-def configure_fiscal_position(ctx):
-    print('Configure Fiscal Position')
-    company_id = env_ref(ctx, 'z0bug.mycompany')
-    if not company_id:
-        raise IOError('!!Internal error: no company to test found!')
-    company_partner_id = env_ref(ctx, 'z0bug.partner_mycompany')
-
-    model = 'account.account'
-    vals = {
-        'code': '490050',
-        'name': 'Transitorio Reverse Charge',
-        'company_id': company_id,
-    }
-    if ctx['majver'] < 9:
-        vals['user_type'] = env_ref(ctx, 'account.data_account_type_expense')
-    else:
-        vals['user_type_id'] = env_ref(ctx, 'account.data_account_type_expenses')
-    account_rc_id = synchro(ctx, model, vals)
-
-    vals = {
-        'code': '153050',
-        'name': 'Integr. IVA da c/acquisti UE (L.427/93)',
-        'company_id': company_id,
-    }
-    if ctx['majver'] < 9:
-        vals['user_type'] = env_ref(ctx, 'account.data_account_type_asset')
-    else:
-        vals['user_type_id'] = env_ref(ctx, 'account.data_account_type_current_assets')
-    account_vat_eup_id = synchro(ctx, model, vals)
-
-    vals = {
-        'code': '260050',
-        'name': 'IVA autofatture da c/acquisti UE',
-        'company_id': company_id,
-    }
-    if ctx['majver'] < 9:
-        vals['user_type'] = env_ref(ctx, 'account.data_account_type_liability')
-    else:
-        vals['user_type_id'] = env_ref(
-            ctx, 'account.data_account_type_current_liabilities'
-        )
-    account_vat_eus_id = synchro(ctx, model, vals)
-
-    vals = {
-        'code': '260030',
-        'name': 'IVA n/deb. split-payment',
-        'company_id': company_id,
-    }
-    if ctx['majver'] < 9:
-        vals['user_type'] = env_ref(ctx, 'account.data_account_type_liability')
-    else:
-        vals['user_type_id'] = env_ref(
-            ctx, 'account.data_account_type_current_liabilities'
-        )
-    account_vat_sp_id = synchro(ctx, model, vals)
-
-    model = 'account.journal'
-    vals = {
-        'code': 'SAJ2',
-        'name': 'Integrazione acquisti UE',
-        'company_id': company_id,
-        'type': 'sale',
-        'reverse_charge': True,
-        'update_posted': True,
-        'show_on_dashboard': False,
-    }
-    journal_id = synchro(ctx, model, vals)
-
-    vals = {
-        'code': 'GCRC',
-        'name': 'G/conti reverse charge',
-        'company_id': company_id,
-        'type': 'general',
-        'update_posted': True,
-        'default_debit_account': account_rc_id,
-        'default_credit_account': account_rc_id,
-        'show_on_dashboard': False,
-    }
-    journal_gcrc_id = synchro(ctx, model, vals)
-
-    model = 'account.tax'
-    vat_a17c2a_id = _get_tax_record(ctx, code='a17c2a')
-    vals = {
-        'description': 'a17c2a',
-        'name': 'N.I. art.17 c.2 DPR633',
-        'type_tax_use': 'purchase',
-        'account_id': account_vat_eup_id,
-        'refund_account_id': account_vat_eup_id,
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': env_ref(ctx, 'l10n_it_ade.n6'),
-        'payability': 'I',
-        'law_reference': False,
-    }
-    if vat_a17c2a_id:
-        vals['id'] = vat_a17c2a_id
-    if ctx['majver'] < 9:
-        vals['amount'] = 0.22
-    else:
-        vals['amount'] = 22.0
-    vat_a17c2a_id = synchro(ctx, model, vals)
-
-    vat_a17c2v_id = _get_tax_record(ctx, code='a17c2v')
-    vals = {
-        'description': 'aa17c2v',
-        'name': 'Rev. charge art.17 c.2 DPR633',
-        'type_tax_use': 'sale',
-        'account_id': account_vat_eus_id,
-        'refund_account_id': account_vat_eus_id,
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'payability': 'I',
-        'law_reference': False,
-    }
-    if vat_a17c2v_id:
-        vals['id'] = vat_a17c2v_id
-    if ctx['majver'] < 9:
-        vals['amount'] = 0.22
-    else:
-        vals['amount'] = 22.0
-    vat_a17c2v_id = synchro(ctx, model, vals)
-
-    vals = {
-        'description': 'a17c6ba',
-        'name': 'N.I. art.17 c.6 lett. B DPR633 (Cellulari)',
-        'type_tax_use': 'purchase',
-        'account_id': account_vat_eup_id,
-        'refund_account_id': account_vat_eup_id,
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': env_ref(ctx, 'l10n_it_ade.n6'),
-        'payability': 'I',
-        'law_reference': False,
-    }
-    if ctx['majver'] < 9:
-        vals['amount'] = 0.22
-    else:
-        vals['amount'] = 22.0
-    vat_a17c6ba_id = synchro(ctx, model, vals)
-
-    vat_a17c6bv_id = _get_tax_record(ctx, code='a17c6bv')
-    vals = {
-        'description': 'aa17c6bv',
-        'name': 'Rev. Charge art.17 c.6 lett. B DPR633 (Cellulari)',
-        'type_tax_use': 'sale',
-        'account_id': account_vat_eus_id,
-        'refund_account_id': account_vat_eus_id,
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': False,
-        'payability': 'I',
-        'law_reference': False,
-    }
-    if vat_a17c6bv_id:
-        vals['id'] = vat_a17c6bv_id
-    if ctx['majver'] < 9:
-        vals['amount'] = 0.22
-    else:
-        vals['amount'] = 22.0
-    vat_a17c6bv_id = synchro(ctx, model, vals)
-
-    vals = {
-        'description': 'a17c6ca',
-        'name': 'N.I. Art.17 c.6 lett. C DPR633 (Elettronici)',
-        'type_tax_use': 'purchase',
-        'account_id': account_vat_eup_id,
-        'refund_account_id': account_vat_eup_id,
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': env_ref(ctx, 'l10n_it_ade.n6'),
-        'payability': 'I',
-        'law_reference': False,
-    }
-    if ctx['majver'] < 9:
-        vals['amount'] = 0.22
-    else:
-        vals['amount'] = 22.0
-    vat_a17c6ca_id = synchro(ctx, model, vals)
-
-    vat_a17c6cv_id = _get_tax_record(ctx, code='a17c6cv')
-    vals = {
-        'description': 'aa17c6cv',
-        'name': 'Rev. Charge Art.17 c.6 lett. C DPR633 (Elettronici)',
-        'type_tax_use': 'sale',
-        'account_id': account_vat_eus_id,
-        'refund_account_id': account_vat_eus_id,
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': False,
-        'payability': 'I',
-        'law_reference': False,
-    }
-    if vat_a17c6cv_id:
-        vals['id'] = vat_a17c6cv_id
-    if ctx['majver'] < 9:
-        vals['amount'] = 0.22
-    else:
-        vals['amount'] = 22.0
-    vat_a17c6cv_id = synchro(ctx, model, vals)
-
-    vat_22spv_id = _get_tax_record(ctx, code='22SPv')
-    vals = {
-        'description': '22SPv',
-        'name': 'Art. 17ter - split-payment',
-        'type_tax_use': 'sale',
-        'account_id': account_vat_eus_id,
-        'refund_account_id': account_vat_sp_id,
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': False,
-        'payability': 'S',
-        'law_reference': 'Art. 17ter DPR633- split-payment',
-    }
-    if vat_22spv_id:
-        vals['id'] = vat_22spv_id
-    if ctx['majver'] < 9:
-        vals['amount'] = 0.22
-    else:
-        vals['amount'] = 22.0
-    vat_22spv_id = synchro(ctx, model, vals)
-
-    vat_storno22spv_id = _get_tax_record(ctx, code='-22SPv')
-    vals = {
-        'description': '-22SPv',
-        'name': 'Storno split-payment',
-        'type_tax_use': 'sale',
-        'account_id': account_vat_eus_id,
-        'refund_account_id': account_vat_sp_id,
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': False,
-        'payability': 'S',
-        'law_reference': False,
-    }
-    if vat_storno22spv_id:
-        vals['id'] = vat_storno22spv_id
-    if ctx['majver'] < 9:
-        vals['amount'] = -0.22
-    else:
-        vals['amount'] = -22.0
-    vat_storno22spv_id = synchro(ctx, model, vals)
-
-    vals = {
-        'description': 'a8c2v',
-        'name': 'Vend.N.I. art.8c2 DPR633 (lett.Intento)',
-        'type_tax_use': 'sale',
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': env_ref(ctx, 'l10n_it_ade.n3'),
-        'law_reference': 'N.I. art.8c2 DPR633 (lett.Intento)',
-    }
-    vat_a8c2v_id = synchro(ctx, model, vals)
-
-    vals = {
-        'description': 'a41v',
-        'name': 'Vend.N.I. art.41 L.427/93',
-        'type_tax_use': 'sale',
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': env_ref(ctx, 'l10n_it_ade.n3'),
-        'law_reference': 'Vend.N.I. art.41 L.427/93',
-    }
-    vat_a41v_id = synchro(ctx, model, vals)
-
-    vals = {
-        'description': 'a8av',
-        'name': 'Vend.N.I. art.8a DPR633 (Dogana)',
-        'type_tax_use': 'sale',
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': env_ref(ctx, 'l10n_it_ade.n3'),
-        'law_reference': 'N.I. art.8a DPR633 (Dogana)',
-    }
-    vat_a8av_id = synchro(ctx, model, vals)
-
-    vals = {
-        'description': 'a7tv',
-        'name': 'Vend.NI art.7ter DPR633 (servizi xUE)',
-        'type_tax_use': 'sale',
-        'amount_type': 'percent',
-        'company_id': company_id,
-        'nature_id': env_ref(ctx, 'l10n_it_ade.n2'),
-        'law_reference': 'NI art.7ter DPR633 (servizi xUE)',
-    }
-    vat_a7tv_id = synchro(ctx, model, vals)
-
-    rc_type_id = False
-    if ctx['majver'] > 7:
-        model = 'account.rc.type'
-        rc_type_id = env_ref(ctx, 'l10n_it_reverse_charge.account_rc_type_1')
-        if rc_type_id:
-            # rc_type = clodoo.browseL8(ctx, model, rc_type_id)
-            vals = {
-                'name': 'Acquisti in reverse charge',
-                'description': 'Acquisti Intra-UE con autofattura',
-                'method': 'selfinvoice',
-                'partner_type': 'other',
-                'partner_id': company_partner_id,
-            }
-            if journal_id:
-                vals['journal_id'] = journal_id
-            if journal_gcrc_id:
-                vals['payment_journal_id'] = journal_gcrc_id
-            rc_type_id = synchro(ctx, model, vals)
-
-            model = 'account.rc.type.tax'
-            purchase_tax_id = _get_tax_record(ctx, code='a17c2a')
-            sale_tax_id = _get_tax_record(ctx, code='a17c2v')
-            vals = {
-                'rc_type_id': rc_type_id,
-                'purchase_tax_id': purchase_tax_id,
-                'sale_tax_id': sale_tax_id,
-            }
-            synchro(ctx, model, vals)
-            model = 'account.rc.type.tax'
-            purchase_tax_id = _get_tax_record(ctx, code='a17c6ba')
-            sale_tax_id = _get_tax_record(ctx, code='a17c6bv')
-            vals = {
-                'rc_type_id': rc_type_id,
-                'purchase_tax_id': purchase_tax_id,
-                'sale_tax_id': sale_tax_id,
-            }
-            synchro(ctx, model, vals)
-            purchase_tax_id = _get_tax_record(ctx, code='a17c6ca')
-            sale_tax_id = _get_tax_record(ctx, code='a17c6cv')
-            vals = {
-                'rc_type_id': rc_type_id,
-                'purchase_tax_id': purchase_tax_id,
-                'sale_tax_id': sale_tax_id,
-            }
-            synchro(ctx, model, vals)
-
-    model = 'account.fiscal.position'
-    vals = {'name': 'Reverse charge', 'company_id': company_id}
-    if ctx['majver'] > 7:
-        vals['rc_type_id'] = rc_type_id
-    fiscal_pos_id = synchro(ctx, model, vals)
-    if fiscal_pos_id:
-        model = 'account.fiscal.position.tax'
-        vals = {
-            'position_id': fiscal_pos_id,
-            'tax_src_id': _get_tax_record(ctx, code='22a'),
-            'tax_dest_id': vat_a17c6ba_id,
-        }
-        synchro(ctx, model, vals)
-        vals = {
-            'position_id': fiscal_pos_id,
-            'tax_src_id': _get_tax_record(ctx, code='22a'),
-            'tax_dest_id': vat_a17c6ba_id,
-        }
-        synchro(ctx, model, vals)
-        vals = {
-            'position_id': fiscal_pos_id,
-            'tax_src_id': _get_tax_record(ctx, code='22a'),
-            'tax_dest_id': vat_a17c6ca_id,
-        }
-        synchro(ctx, model, vals)
-
-    model = 'account.fiscal.position'
-    vals = {
-        'name': 'Split Payment',
-        'company_id': company_id,
-        'split_payment': True,
-        'note': 'Operazione effettuata ai sensi degli art. 17-ter comma 1 / '
-        '17-quater DPR 633/72 - scissione pagamenti (split payment)',
-    }
-    fiscal_pos_id = synchro(ctx, model, vals)
-    if fiscal_pos_id:
-        model = 'account.fiscal.position.tax'
-        vals = {
-            'position_id': fiscal_pos_id,
-            'tax_src_id': _get_tax_record(ctx),
-            'tax_dest_id': vat_22spv_id,
-        }
-        synchro(ctx, model, vals)
-
-    model = 'account.fiscal.position'
-    vals = {
-        'name': 'Lettera d\'intento',
-        'company_id': company_id,
-        'note': 'Operazione senza IVA Vs. lettera d\'intento n. ______ '
-        'del __/__/____',
-    }
-    fiscal_pos_id = synchro(ctx, model, vals)
-    if fiscal_pos_id:
-        model = 'account.fiscal.position.tax'
-        vals = {
-            'position_id': fiscal_pos_id,
-            'tax_src_id': _get_tax_record(ctx),
-            'tax_dest_id': vat_a8c2v_id,
-        }
-        synchro(ctx, model, vals)
-
-    model = 'account.fiscal.position'
-    vals = {'name': 'Regime Intra comunitario', 'company_id': company_id}
-    fiscal_pos_id = synchro(ctx, model, vals)
-    if fiscal_pos_id:
-        model = 'account.fiscal.position.tax'
-        vals = {
-            'position_id': fiscal_pos_id,
-            'tax_src_id': _get_tax_record(ctx),
-            'tax_dest_id': vat_a41v_id,
-        }
-        synchro(ctx, model, vals)
-
-    model = 'account.fiscal.position'
-    vals = {'name': 'Regime Extra comunitario', 'company_id': company_id}
-    fiscal_pos_id = synchro(ctx, model, vals)
-    if fiscal_pos_id:
-        model = 'account.fiscal.position.tax'
-        vals = {
-            'position_id': fiscal_pos_id,
-            'tax_src_id': _get_tax_record(ctx),
-            'tax_dest_id': vat_a8av_id,
-        }
-        synchro(ctx, model, vals)
-        vals = {
-            'position_id': fiscal_pos_id,
-            'tax_src_id': _get_tax_record(ctx),
-            'tax_dest_id': vat_a7tv_id,
-        }
-        synchro(ctx, model, vals)
-
-    model = 'account.fiscal.position'
-    vals = {'name': 'IVA al 4%', 'company_id': company_id}
-    ids = clodoo.searchL8(ctx, model, [('name', 'ilike', 'IVA%4')])
-    if len(ids) != 1:
-        ids = clodoo.searchL8(
-            ctx, model, [('name', 'ilike', 'IVA%4'), ('company_id', '=', company_id)]
-        )
-    if len(ids) == 1:
-        vals['id'] = ids[0]
-    fiscal_pos_id = synchro(ctx, model, vals)
-    if fiscal_pos_id:
-        model = 'account.fiscal.position.tax'
-        vals = {
-            'position_id': fiscal_pos_id,
-            'tax_src_id': _get_tax_record(ctx),
-            'tax_dest_id': _get_tax_record(ctx, code='4v'),
-        }
-        synchro(ctx, model, vals)
-
-    vals = {'sp_account_id': account_vat_sp_id, 'sp_tax_id': vat_storno22spv_id}
-    clodoo.writeL8(ctx, 'res.company', company_id, vals)
-
-    print('Set fiscal positions for RC, Split-payment, lett., EU, xEU and 4%')
 
 
 def simulate_user_profile(ctx):
@@ -2989,7 +2051,7 @@ def check_rec_links(ctx):
     else:
         ids = eval(inv_date_ids)
     if ids:
-        if isinstance(ids, int):
+        if isinstance(ids, (int, long)):
             # inv_domain = [('invoice_id', '=', ids)]
             inv_domain1 = [('id', '=', ids)]
         else:
@@ -3005,7 +2067,7 @@ def check_rec_links(ctx):
     else:
         ids = eval(ddt_date_ids)
     if ids:
-        if isinstance(ids, int):
+        if isinstance(ids, (int, long)):
             # ddt_domain = [('package_preparation_id', '=', ids)]
             ddt_domain1 = [('id', '=', ids)]
         else:
@@ -3711,7 +2773,7 @@ def reorder_invoice_lines(ctx):
     else:
         ids = eval(date_ids)
     if ids:
-        if isinstance(ids, int):
+        if isinstance(ids, (int, long)):
             domain = [('invoice_id', '=', ids)]
             domain1 = [('id', '=', ids)]
         else:
@@ -4378,7 +3440,7 @@ print(' - create_RA_config              DELIVERY/SHIPPING')
 print(' - manage_due_line               - change_ddt_number')
 print(' PARTNER/USER                    - create_delivery_env')
 print(' - check_integrity_by_vg7        - show_empty_ddt')
-print(' - configure_fiscal_position     RIBA')
+print('                                 RIBA')
 print(' - set_ppf_on_partner            - configure_RiBA')
 print(' - deduplicate_partner           - manage_riba')
 print(' - reset_email_admins             OTHER TABLES')

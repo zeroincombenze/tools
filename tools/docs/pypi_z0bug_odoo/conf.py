@@ -11,22 +11,23 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.expanduser("~"), "12.0"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.getcwd()), 'testenv'))
 # import sphinx_rtd_theme
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'z0bug_odoo'
-copyright = '2019-20, SHS-AV s.r.l.'
+copyright = '2019-23, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '1.0.5.2'
+version = '2.0.2'
 # The full version, including alpha/beta/rc tags
-release = '1.0.5.2'
+release = '2.0.2'
 
 
 # -- General configuration ---------------------------------------------------
@@ -43,6 +44,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
 ]
 
 
@@ -148,7 +150,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -160,3 +162,11 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 html_logo = 'logozero_180x46.png'
+#
+# autodoc_default_flags = ['members']
+autosummary_generate = True
+autodoc_default_options = {
+    'members': 'Z0bugOdoo, MainTest',
+    'undoc-members': True,
+    # 'exclude-members': 'Macro, SanityTest',
+}

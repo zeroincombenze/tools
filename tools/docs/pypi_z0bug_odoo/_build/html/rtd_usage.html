@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Usage &#8212; z0bug_odoo 1.0.5.2 documentation</title>
+    <title>Usage &#8212; z0bug_odoo 2.0.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="rtd_installation.html" title="&lt;no title&gt;"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 1.0.5.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
       </ul>
     </div>  
@@ -48,29 +48,55 @@
 </div>
 <div class="section" id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
-<p>Code example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="c1">#</span>
-<span class="c1"># Copyright 2017-19 - SHS-AV s.r.l. &lt;https://www.zeroincombenze.it&gt;</span>
-<span class="c1">#</span>
-<span class="c1"># License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).</span>
-<span class="c1">#</span>
-<span class="kn">from</span> <span class="nn">z0bug_odoo</span> <span class="kn">import</span> <span class="n">test_common</span>
+<p>Copy the testenv.py file in tests directory of your module.
+You can locate testenv.py in testenv directory of this module (z0bug_odoo)
+Please copy the documentation testenv.rst file in your module too.
+The __init__.py must import testenv.
+Your python test file have to contain some following example lines:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">.testenv</span> <span class="kn">import</span> <span class="n">MainTest</span> <span class="k">as</span> <span class="n">SingleTransactionCase</span>
 
-<span class="k">class</span> <span class="nc">ExampleTest</span><span class="p">(</span><span class="n">test_common</span><span class="o">.</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">TEST_RES_PARTNER</span> <span class="o">=</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
+<span class="n">TEST_SETUP_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;res.partner&quot;</span><span class="p">,</span> <span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ExampleTest</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_test_company</span><span class="p">()</span>
-        <span class="c1"># Assure 2 res.partner records</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">build_model_data</span><span class="p">(</span><span class="s1">&#39;res.partner&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;base.res_partner_2&#39;</span><span class="p">,</span>
-                                              <span class="s1">&#39;z0bug.res_partner_2&#39;</span><span class="p">])</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="c1"># Add following statement just for get debug information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;TEST_SETUP_LIST&quot;</span><span class="p">:</span> <span class="n">TEST_SETUP_LIST</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">resource</span> <span class="ow">in</span> <span class="n">TEST_SETUP_LIST</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="s2">&quot;TEST_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">resource</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">item</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_all_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>     <span class="c1"># TestEnv swallows the data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_env</span><span class="p">()</span>                <span class="c1"># Create test environment</span>
 
-    <span class="k">def</span> <span class="nf">test_example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">partner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">browse_ref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref612</span><span class="p">(</span><span class="s1">&#39;base.res_partner_2&#39;</span><span class="p">))</span>
-        <span class="n">partner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">browse_ref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref612</span><span class="p">(</span><span class="s1">&#39;z0bug.res_partner_2&#39;</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ODOO_COMMIT_TEST&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="c1"># Save test environment, so it is available to dump</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cr</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>     <span class="c1"># pylint: disable=invalid-commit</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;✨ Test data committed&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_mytest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;🎺 Testing test_mytest&quot;</span>    <span class="c1"># Use unicode char to best log reading</span>
+        <span class="p">)</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">test_mywizard</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wizard</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>                <span class="c1"># Test requires wizard simulator</span>
 </pre></div>
 </div>
+<p>An important helper to debug is self.debug_level. When you begins your test cycle,
+you are hinted to set self.debug_level = 3; then you can decrease the debug level
+when you are developing stable tests.
+Final code should have self.debug_level = 0.
+TestEnv logs debug message with symbol “🐞 ” so you can easily recognize them.</p>
 <p>Following function are avaiable.</p>
 <p><cite>set_test_company(self)</cite></p>
 <p>Create or update company to test and assign it to current user as default company. This function should be put in setUp().</p>
@@ -95,7 +121,7 @@ For every item of xrefs, a record is created o updated.
 Function ref_value is used to retrieve values of each record (see above).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1">#</span>
-<span class="c1"># Copyright 2017-19 - SHS-AV s.r.l. &lt;https://www.zeroincombenze.it&gt;</span>
+<span class="c1"># Copyright 2017-23 - SHS-AV s.r.l. &lt;https://www.zeroincombenze.it&gt;</span>
 <span class="c1">#</span>
 <span class="c1"># License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).</span>
 <span class="c1">#</span>
@@ -120,7 +146,7 @@ Warning: returned values may contain some field of uninstalled module.</p>
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2022-12-11</p>
+<p>Last Update / Ultimo aggiornamento: 2022-12-21</p>
 </div>
 
 
@@ -179,12 +205,12 @@ Warning: returned values may contain some field of uninstalled module.</p>
         <li class="right" >
           <a href="rtd_installation.html" title="&lt;no title&gt;"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 1.0.5.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2019-20, SHS-AV s.r.l..
+        &#169; Copyright 2019-23, SHS-AV s.r.l..
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>

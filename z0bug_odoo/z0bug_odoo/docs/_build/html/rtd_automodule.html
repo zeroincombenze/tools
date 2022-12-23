@@ -103,7 +103,7 @@ search or browse.</p>
 
 </dd></dl>
 
-<span class="target" id="module-z0bug_odoo.testenv.testenv"></span><p>Test Environment v2.0.2</p>
+<span class="target" id="module-z0bug_odoo.testenv.testenv"></span><p>Test Environment v2.0.2.1</p>
 <p>Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
 The __init__.py must import testenv.
@@ -300,7 +300,7 @@ raise_if_not_found (bool): raise exception if xref not found or</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.resource_edit">
-<span class="sig-name descname"><span class="pre">resource_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.resource_edit" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">resource_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">web_changes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.resource_edit" title="Permalink to this definition"></a></dt>
 <dd><p>Simulate web editing
 Args:</p>
 <blockquote>
@@ -310,6 +310,8 @@ if field is an obj simulate write web behavior on the
 issued record</p>
 </dd>
 </dl>
+<p>default (dict): default value to assign
+web_changes (list): list of tuples (field, value); see &lt;wizard_edit&gt;</p>
 </div></blockquote>
 </dd></dl>
 

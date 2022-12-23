@@ -988,7 +988,6 @@ History
 
 * [IMP] TestEnv: more debug messages
 * [FIX] TestEnv: sometime crashes if default use context
-* [IMP] Cancel DdT returns products / La cancellazione DdT ritorna i prodotti (ripristino giacenze)
 
 2.0.2 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~
@@ -1040,7 +1039,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-16
+Last Update / Ultimo aggiornamento: 2022-12-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
