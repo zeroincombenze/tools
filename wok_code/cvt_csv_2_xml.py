@@ -162,7 +162,7 @@ def convert_file(ctx):
 if __name__ == "__main__":
     parser = z0lib.parseoptargs(
         "Convert csv file into xml file",
-        "© 2018-2020 by SHS-AV s.r.l.",
+        "© 2018-2023 by SHS-AV s.r.l.",
         version=__version__,
     )
     parser.add_argument('-h')

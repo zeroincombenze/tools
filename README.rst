@@ -239,6 +239,42 @@ Current development version
 History
 -------
 
+z0lib: 2.0.2.1 (2022-12-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced: alias function
+
+
+python_plus: 2.0.4 (2022-12-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Package version adjustment
+* [IMP] vem: amend show current package version
+* [IMP] vem: no python2 warning in linux kernel 3
+* [FIX] vem: best recognition of python version
+
+
+z0bug_odoo: 2.0.2.1 (2022-12-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: more debug messages
+* [FIX] TestEnv: sometime crashes if default use context
+
+
+wok_code: 2.0.4.1 (2022-12-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] install_python_3_from_source.sh: now can install python 3.9
+* [IMP] please: action docs, minor improvements
+* [IMP] deply_odoo: format output list
+
+
+travis_emulator: 2.0.3.1 (2022-12-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Added python 3.9 to test
+
+
 z0bug_odoo: 2.0.2 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -257,14 +293,7 @@ wok_code: 2.0.4 (2022-12-09)
 travis_emulator: 2.0.3 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] best python version recognition
-
-
-python_plus: 2.0.4 (2022-12-09)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] vem: no python2 warning in linux kernel 3
-* [FIX] vem: best recognition of python version
+* [FIX] Best python version recognition
 
 
 clodoo: 2.0.3 (2022-12-09)
@@ -273,16 +302,17 @@ clodoo: 2.0.3 (2022-12-09)
 * [FIX] odoorc: GIT_BRANCH sometimes fails
 
 
-zerobug: 2.0.3.1 (2022-12-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+zerobug: 2.0.4 (2022-12-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_pypi_test: best recognition of python version
 * [FIX] build_cmd: best recognition of python version
 * [FIX] travis_install_env: ensure coverage version
+* [IMP] odoo environment to test more precise
 
 
-z0lib: 2.0.1.1 (2022-12-07)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+z0lib: 2.0.2 (2022-12-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] best recognition of python version
 * [FIX] run_traced: fail with python 2
@@ -298,6 +328,7 @@ odoo_score: 2.0.3 (2022-11-11)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
+
 
 
 zerobug: 2.0.3 (2022-11-08)
@@ -353,138 +384,6 @@ wok_code: 2.0.2.1 (2022-10-31)
 * [FIX] please translate: do not execute export
 
 
-zerobug: 2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-zar: 2.0.0 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-z0lib: 2.0.0.4.1 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_traced: wrong execution for "cd <path>; ..."
-* [IMP] CFG_init 'ALL': set ODOO_ROOT
-
-
-z0bug_odoo: 2.0.1 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-wok_code: 2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Clearing code
-
-
-travis_emulator: 2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] database name: (test|template)_odoo
-* [IMP] With -k switch set ODOO_COMMIT_TEST
-
-
-python_plus: 2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: wrong behavior with > o < in version
-* [IMP] list_requirements.py: "Crypto.Cipher": "pycrypto"
-
-
-os0: 2.0.1 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-
-
-odoo_score: 2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odoo_debug: test function improvements
-* [IMP] run_odoo_debug: ODOO_COMMIT_TEST
-
-
-lisa: 2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] liba_bld_ods: fixes & improvements
-
-
-clodoo: 2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: GITORGID and other value, sometimes are wrong
-
-
-z0bug_odoo: 2.0.0.1 (2022-10-15)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Crash in travis
-
-
-clodoo: 2.0.1.1 (2022-10-15)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Minor improvements
-
-
-odoo_score: 2.0.1.1 (2022-10-13)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: python stub
-* [FIX] run_odoo_debug: crash in sime rare cases
-
-
-zerobug: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-
-wok_code: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-
-travis_emulator: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-
-python_plus: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-
-odoo_score: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-
-lisa: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] lisa_bld_ods: stable version
-
-
-clodoo: 2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-
 
 
 
@@ -500,7 +399,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-12-11
+Last Update / Ultimo aggiornamento: 2022-12-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status
