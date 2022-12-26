@@ -100,9 +100,9 @@ process_yaml_init() {
   export MQT_TEST_DB="$(get_cfg_value "" "MQT_TEST_DB")$YML_pid"
   # export PGUSER="$(get_cfg_value "" "MQT_DBUSER")"
   [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
-  python_ver_req=""
-  python_ver_ena=""
-  [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep "^PYPI_RUN_PYVER"|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+"|head -n1)
+  python_ver_yaml=""
+  # python_ver_ena=""
+  # [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep "^PYPI_RUN_PYVER"|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
     [[ -d $HOME_DEVEL/pypi ]] && export YML_lisa=$HOME_DEVEL/pypi/lisa/lisa/lisa
     (($opt_debug)) && export TRAVIS_PDB="true"
@@ -205,7 +205,7 @@ process_yaml_do() {
     lne=$(process_yaml_unquote "$line")
   fi
   if [[ $YML_sect == "python" ]]; then
-    [[ -z $python_ver_ena || $lne == $python_ver_ena ]] && python_ver_req="$python_ver_req $lne"
+    python_ver_yaml="$python_ver_yaml $lne"
     lne="#"
   elif [[ $YML_sect == "addons.apt.packages" ]]; then
     YML_packages="$YML_packages $lne"
@@ -812,17 +812,30 @@ process_yaml() {
 
   if [[ $sts -eq $STS_SUCCESS ]]; then
     [[ -n $opt_trace && ::matrix =~ $opt_trace ]] && debug_shell "::matrix"
-    [[ -z "$python_ver_req" ]] && python_ver_req=$(python --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]+\.[0-9]+")
-    [[ -z "$opt_pyv" ]] && opt_pyv=$(get_cfg_value "" "PYTHON_MATRIX")
-    [[ -z "$opt_pyv" ]] && opt_pyv="(2.7|3.5|3.6|3.7|3.8|3.9)"
-    opt_pyv="${opt_pyv//,/|}"
-    opt_pyv="${opt_pyv// /|}"
-    [[ $opt_pyv =~ ^\( ]] || opt_pyv="($opt_pyv)"
+    [[ -z "$python_ver_yaml" ]] && python_ver_yaml="2.7 3.5 3.6 3.7 3.8 3.9 3.10 3.11"
+    if [[ -n $opt_pyv ]]; then
+      TRAVIS_PYTHON_MATRIX="${opt_pyv//,/ }"
+      python_ver_yaml="$TRAVIS_PYTHON_MATRIX"
+    elif [[ $PRJNAME == "Odoo" ]]; then
+      v=$(build_odoo_param "MAJVER" $BRANCH)
+      TRAVIS_PYTHON_MATRIX="3.7"
+      [[ $v -le 10 ]] && TRAVIS_PYTHON_MATRIX="2.7"
+      [[ $v -ge 15 ]] && TRAVIS_PYTHON_MATRIX="3.8"
+    else
+      TRAVIS_PYTHON_MATRIX=""
+      for v in "2.7" "3.5" "3.6" "3.7" "3.8" "3.9" "3.10" "3.11"; do
+          grep -q "^ *.Programming Language :: Python :: $v" $PKGPATH/setup.py && TRAVIS_PYTHON_MATRIX="$TRAVIS_PYTHON_MATRIX|$v"
+      done
+      TRAVIS_PYTHON_MATRIX="${TRAVIS_PYTHON_MATRIX:1}"
+    fi
+    TRAVIS_PYTHON_MATRIX="${TRAVIS_PYTHON_MATRIX//,/|}"
+    TRAVIS_PYTHON_MATRIX="${TRAVIS_PYTHON_MATRIX// /|}"
+    [[ $TRAVIS_PYTHON_MATRIX =~ ^\( ]] || TRAVIS_PYTHON_MATRIX="($TRAVIS_PYTHON_MATRIX)"
     python_matrix=""
-    for v in $python_ver_req; do
-      [[ $v =~ $opt_pyv ]] && python_matrix="$python_matrix $v"
+    for v in $python_ver_yaml; do
+      [[ $v =~ $TRAVIS_PYTHON_MATRIX ]] && python_matrix="$python_matrix $v"
     done
-    [[ -z $python_matrix && $opt_pyv =~ ^\([0-9.]+\) ]] && python_matrix=${opt_pyv:1: -1}
+    # [[ -z $python_matrix && $TRAVIS_PYTHON_MATRIX =~ ^\([0-9.]+\) ]] && python_matrix=${TRAVIS_PYTHON_MATRIX:1: -1}
     [[ -n "$python_matrix" ]] || python_matrix="3.8"
 
     for TRAVIS_PYTHON_VERSION in $python_matrix; do
@@ -877,12 +890,11 @@ process_yaml() {
         TODAY=$(date "+%Y-%m-%d %H:%M:%S")
         for p in TODAY job-id __version__ TCONF YML_lisa YML_mgrodoo YML_repo\
          BRANCH DIST HOME HOME_BRANCH HOME_DEVEL LOGFILE MQT_TEMPLATE_DB MQT_TEST_DB\
-          ODOO_ROOT PATH PKGNAME PKGPATH PIP PIPVER PRJNAME PRJPATH PGUSER\
-           PYPI_CACHED PYTHON PYTHONPATH REPOSNAME\
-            TRAVIS TRAVIS_BRANCH TRAVIS_BUILD_DIR TRAVIS_EMULATE_OSX\
-             TRAVIS_HOME TRAVIS_HOME_BRANCH TRAVIS_PDB TRAVIS_PYTHON_VERSION\
-              TRAVIS_REPO_SLUG TRAVIS_SAVED_HOME TRAVIS_SAVED_HOME_DEVEL\
-               TRAVIS_YAML_FILE SYSTEM_SITE_PACKAGES; do
+          ODOO_ROOT PATH PKGNAME PKGPATH PIP PIPVER PRJNAME PRJPATH PGUSER PYPI_CACHED\
+           PYTHON PYTHONPATH REPOSNAME TRAVIS TRAVIS_BRANCH TRAVIS_BUILD_DIR\
+             TRAVIS_HOME TRAVIS_HOME_BRANCH TRAVIS_PDB TRAVIS_PYTHON_MATRIX\
+              TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_SAVED_HOME\
+               TRAVIS_SAVED_HOME_DEVEL TRAVIS_YAML_FILE SYSTEM_SITE_PACKAGES; do
           if [[ $p == "job-id" ]]; then
             X=$$
           elif [[ $p == "DIST" ]]; then
@@ -1092,7 +1104,7 @@ elif [[ $action == "parseyaml" ]]; then
   process_yaml_file "$sub"
 
   echo "python:"
-  for v in $python_ver_req; do
+  for v in $python_ver_yaml; do
     echo "  - $v"
   done
   echo ""

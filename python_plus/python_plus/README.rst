@@ -292,6 +292,12 @@ Current development version
 History
 -------
 
+2.0.4.1 (2022-12-23)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: refactoring version control
+* [IMP] vem: now amend can check current version (with -f switch)
+
 2.0.4 (2022-12-15)
 ~~~~~~~~~~~~~~~~~~
 
@@ -369,7 +375,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-21
+Last Update / Ultimo aggiornamento: 2022-12-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

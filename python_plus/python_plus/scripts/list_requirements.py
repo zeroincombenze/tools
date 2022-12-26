@@ -5,7 +5,6 @@
 # list['python'] -> Result list
 # list['python1'] -> is the list with packages w/o version
 # list['python2'] -> is the list with versioned packages
-# list['python9'] -> special list with package with multiple versions
 #
 from __future__ import print_function, unicode_literals
 
@@ -25,7 +24,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.4"
+__version__ = "2.0.4.1"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -41,15 +40,20 @@ REQVERSION = {
     "autopep8": {"0": "==1.2"},
     "Babel": {"6.1": "==1.3", "8.0": "==2.3.4"},
     "beautifulsoup": {"6.1": "==3.2.1"},
+    "bokeh": {
+        "11.0": "==0.12.7", "12.0": "==1.1.0", "14.0": "==2.3.1", "15.0": "2.4.2"
+    },
     "codicefiscale": {"6.1": "==0.9"},
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
     "cryptography": {"2.7": ">=2.2.2", "3.7": ">=38.0"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
-    "docutils": {"6.1": "==0.12", "0": "==0.14", "3.7": "0.16"},        # By test pkgs
+    "docutils": {"6.1": "==0.12", "0": "==0.14", "3.7": "==0.16"},       # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
     "ERPpeek": {"0": "==1.6.1"},
     "feedparser": {"6.1": "==5.1.3", "10.0": "==5.2.1"},
-    "flake8": {"6.1": "==3.4.1"},  # Tested 3.5.0; 3.6.0 does not work
+    "flake8": {
+        "6.1": "==3.4.1"     # Tested 3.5.0; 3.6.0 does not work
+    },
     "gdata": {"6.1": "==2.0.18"},
     "gevent": {
         "6.1": "==1.0.1",
@@ -62,23 +66,38 @@ REQVERSION = {
         "7.0": "==0.4.10",
         "3.7": ">=0.4.13",
     },
+    "importlib-metadata": {"3.7": "==4.8.3"},
     "ipy": {"6.1": ">=0.83"},
     "isort": {"0": "==4.3.4"},  # Version by test pkgs
     "jcconv": {"6.1": "==0.2.3"},
     "Jinja2": {"6.1": "==2.7.3", "9.0": "==2.8.1", "10.0": "==2.10.1"},
+    "jupyter-server": {"0": "<1.20.0"},
     "lessc": {"0": ">=3.0.0"},
-    "lxml": {"6.1": ">=3.4.1", "0": ">=4.2.3"},
-    "Mako": {"6.1": "==1.0.0", "7.0": "==1.0.1", "8.0": "==1.0.4"},
+    "lxml": {"6.1": ">=3.4.1", "3.6": "==3.7.1", "3.7": "==4.2.3", "3.8": "==4.6.1"},
+    "mccabe": {"0": "<0.7.0,>=0.6.0"},
+    "Mako": {
+        "6.1": "==1.0.0", "7.0": "==1.0.1", "8.0": "==1.0.4", "10.0": ">=1.0.4",
+    },
     "MarkupSafe": {"6.1": ">=0.23", "0": "<2.1.0"},  # Tested 1.0
+    "matplotlib": {
+        "10.0": "==3.0.3",
+        "13.0": "==3.4.1",
+        # "3.6": "==3.0.3",
+        # "3.7": "==3.4.1"
+    },
     "mock": {"6.1": "==1.0.1", "8.0": "==2.0.0"},
+    "nbconvert": {"0": "==6.0.7"},
+    "odoo_score": {"6.1": "==1.0.1", "10.0": ">=2.0.0"},
     "ofxparse": {"6.1": "==0.16"},
+    "pandas": {"3.7": ">=0.22.0,<=1.1.0"},
     "passlib": {"6.1": "==1.6.2", "10.0": "==1.6.5"},
     "Pillow": {
         "6.1": "==3.4.1",
         "7.0": "==3.4.2",
         "8.0": "==3.4.1",
         "11.0": "==4.0.0",
-        "3.6": "==6.1.0",
+        "15.0": ">=7.0.0",
+        "3.6": "==4.0.0",
         "3.7": "==6.1.0",
         "3.8": ">=6.2.1",
     },
@@ -93,19 +112,22 @@ REQVERSION = {
     },
     "pycodestyle": {"0": "==2.3.1"},
     "pydot": {"6.1": "==1.0.2", "8.0": "==1.2.3"},
+    "pyflakes": {"0": "pyflakes<1.6.0,>=1.5.0"},
     "Pygments": {
         "2.7": "<2.6.0",
         "3.5": ">=2.7.0"
     },
+    "pygount": {"3.7": "==1.2.0"},
     "pylint": {
         "2.7": "<2.0.0",
         "3.5": "<2.7.0",
         "3.6": "<2.14.0",
-        "3.7": ">=2.14.0",
+        "3.7": "<2.15.0",
     },
     "pylint-odoo": {
         "2.7": "==3.5.0",
-        "3.5": ">=3.5.0",
+        "3.5": "<=8.0.0",
+        "3.8": ">=3.5.0",
     },
     "pylint-plugin-utils": {
         "2.7": "==0.2.6",
@@ -120,16 +142,19 @@ REQVERSION = {
     "pyPdf": {"6.1": "==1.13"},
     "pyserial": {"6.1": "==2.7", "10.0": ">=3.1.1"},
     "Python-Chart": {"6.1": "==1.39"},
-    "python-dateutil": {"6.1": "==1.5", "7.0": "==2.4.0", "8.0": "==2.5.3"},
+    "python-dateutil": {
+        "6.1": "==1.5", "7.0": "==2.4.0", "8.0": "==2.5.3", "11.0": "==2.5.3"
+    },
     "python-ldap": {
         "6.1": "==2.4.15",
         "7.0": "==2.4.19",
         "10.0": "==2.4.27",
         "11.0": "==2.5.28",
+        "13.0": "==3.1.0",
     },
     "python-openid": {"6.1": "==2.2.5"},
     "python-stdnum": {"6.1": ">=1.8.1"},
-    "pytz": {"6.1": "==2014.10", "10.0": "==2016.7"},
+    "pytz": {"6.1": ">=2014.10", "10.0": ">=2016.7"},
     "pyusb": {"6.1": ">=1.0.0b1", "10.0": "==1.0.0"},
     "pyxb": {"6.1": "==1.2.5", "12.0": "==1.2.6"},
     "PyWebDAV": {"6.1": "<0.9.8"},
@@ -144,6 +169,7 @@ REQVERSION = {
     "Sphinx": {"2.7": "==1.2.3", "3.7": ">=2.4.0"},
     "suds": {"6.1": "==0.4"},
     "suds-jurko": {"6.1": "==0.6"},
+    "translators": {"3.7": "<5.2.0"},
     "unicodecsv": {"6.1": ">=0.14.1"},
     "unidecode": {"6.1": "==0.4.17", "10.0": "<=1.2.0", "11.0": ">1.2.0"},
     "unittest2": {"6.1": "==0.5.1", "11.0": ">=1.0.0"},
@@ -161,6 +187,8 @@ REQVERSION = {
     "XlsxWriter": {"6.1": "==0.9.3"},  # Tested 1.0.2
     "xlrd": {"6.1": "==1.0.0"},
     "xlwt": {"6.1": "==0.7.5", "10.0": "==1.1.2", "12.0": "==1.3"},
+    "z0bug_odoo": {"6.1": "==1.0.1", "10.0": ">=2.0.0"},
+    "zerobug": {"6.1": "==1.0.1", "10.0": ">=2.0.0"},
 }
 ALIAS = {
     "babel": "Babel",
@@ -202,11 +230,40 @@ ALIAS = {
 ALIAS3 = {
     "PyWebDAV": "PyWebDAV3",
     "pyPdf": "pyPDF2",
-    "python-ldap": "pyldap",  # pyldap is a fork!
+    # "python-ldap": "pyldap",  # pyldap is a fork!
     "python-dev": "python3-dev",
+    "python3-ldap": "ldap3",
 }
-FORCE_ALIAS = {"docutils==0.12": "docutils==0.14"}
-FORCE_ALIAS3 = {"docutils==0.12": "docutils==0.16"}
+FORCE_ALIAS2 = {
+    "docutils==0.12": "docutils==0.14",
+    "pytz==2014.4": "pytz>=2014.4",
+    "pytz==2014.10": "pytz>=2014.10",
+    "pytz==2016.7": "pytz>=2016.7",
+    "zeep==4.0.0": "zeep==2.4.0",
+    "python-ldap": "python-ldap==3.1.0",
+    "Mako==1.0.4": "Mako>=1.0.4",
+    "rich": "rich<=12.0.0",
+    "importlib-metadata": "importlib-metadata==4.8.3",
+    "pygount": "pygount<=1.2.0",
+    "pandas": "pandas>=0.22.0,<=1.1.0",
+    "matplotlib": "matplotlib==3.4.1",
+}
+FORCE_ALIAS3 = {
+    "docutils==0.12": "docutils==0.16",
+    "pytz==2014.4": "pytz>=2014.4",
+    "pytz==2014.10": "pytz>=2014.10",
+    "pytz==2016.7": "pytz>=2016.7",
+    "pytz==2019.3": "pytz>=2019.3",
+    "zeep==4.0.0": "zeep==2.4.0",
+    "python-ldap": "python-ldap==3.1.0",
+    "translators": "translators<5.2.0",
+    "Mako==1.0.4": "Mako>=1.0.4",
+    "rich": "rich<=12.0.0",
+    "importlib-metadata": "importlib-metadata==4.8.3",
+    "pygount": "pygount<=1.2.0",
+    "pandas": "pandas>=0.22.0,<=1.1.0",
+    "matplotlib": "matplotlib==3.4.1",
+}
 PIP_SECURE_PACKAGES = [
     "urllib3[secure]",
     "cryptography",
@@ -312,7 +369,8 @@ BIN_TEST_PACKAGES = [
     "python-dev",
     "python-setuptools",
 ]
-RPC_PACKAGES = ["clodoo", "odoorpc", "oerplib", "os0"]
+RPC_PACKAGES2 = ["clodoo", "odoorpc", "oerplib", "os0"]
+RPC_PACKAGES3 = ["clodoo", "odoorpc", "os0"]
 PIP_BASE_PACKAGES = [
     "Babel",
     "chardet",
@@ -440,7 +498,7 @@ DEPS2 = {
 DEPS3 = {
     "lxml": {"bin": ("PY3_DEV", "libxml2-dev", "libxslt1-dev", "zlib1g-dev")},
     "python-psycopg2": {"bin": ("PY3_DEV", "libpq-dev")},
-    "python3-ldap": {"bin": ("libsasl2-dev", "libldap2-dev", "libssl-dev")},
+    # "python3-ldap": {"bin": ("libsasl2-dev", "libldap2-dev", "libssl-dev")},
 }
 DEPS9 = [
     "astroid==1.6.5",
@@ -558,10 +616,10 @@ def parse_requirements(ctx, reqfile, pyver=None):
 def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
     full_item = trim_pkgname(full_item)
     item = re.split("[!=<>]", full_item)
-    if len(item) == 1:
-        item_ver = ""
-    else:
-        item_ver = item[-1]
+    # if len(item) == 1:
+    #     item_ver = ""
+    # else:
+    #     item_ver = item[-1]
     item = os.path.basename(get_naked_pkgname(item[0]))
     if item.endswith(".git"):
         item = item[:-4]
@@ -577,8 +635,8 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
-    defver = False
-    if odoo_ver and with_version and not item_ver:
+    # if odoo_ver and with_version and not item_ver:
+    if odoo_ver and with_version:
         if item in REQVERSION:
             min_v = False
             valid_ver = False
@@ -613,42 +671,129 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
                         if min_v:
                             break
             if min_v:
-                full_item = "%s%s" % (item, REQVERSION[item][min_v])
-                defver = True
-    if item.startswith("'"):
-        item = item[1:-1]
-    if full_item.startswith("'"):
-        full_item = full_item[1:-1]
+                full_item = merge_item_version(
+                    full_item, "%s%s" % (item, REQVERSION[item][min_v]))
+    item = python_plus.qsplit(item)[0].strip()
+    full_item = python_plus.qsplit(full_item)[0].strip()
     full_item = re.sub(' *([<=>]+) *', r'\1', full_item.strip())
-    if pyver and pyver.startswith("3"):
-        full_item = FORCE_ALIAS3.get(full_item, full_item)
+    if pyver and pyver.startswith("2"):
+        if full_item in FORCE_ALIAS2:
+            full_item = FORCE_ALIAS2[full_item]
+        else:
+            full_item = FORCE_ALIAS2.get(full_item, full_item)
     else:
-        full_item = FORCE_ALIAS.get(full_item, full_item)
-    return item, full_item, defver
+        if full_item in FORCE_ALIAS3:
+            full_item = FORCE_ALIAS3[full_item]
+        else:
+            full_item = FORCE_ALIAS3.get(item, full_item)
+    if not re.search("[<=>]+", full_item):
+        full_item = ""
+    return item, full_item
+
+
+def version_comparable(version):
+    return [int(x) if x.isdigit() else x
+            for x in python_plus.qsplit(version)[0].strip().split(".")]
+
+
+def maxver(left, right):
+    return right if version_comparable(right) > version_comparable(left) else left
+
+
+def minver(left, right):
+    return right if version_comparable(right) < version_comparable(left) else left
+
+
+def split_versions(full_item):
+    full_item = python_plus.qsplit(
+        python_plus.qsplit(full_item, "#", strip=True)[0])[0]
+    ix = 0
+    items = []
+    while ix < len(full_item):
+        x = re.search("([!=<>]+|,)", full_item[ix:])
+        if x:
+            if x.start():
+                items.append(full_item[ix: x.start() + ix])
+            items.append(full_item[x.start() + ix: x.end() + ix])
+            ix += x.end()
+        else:
+            items.append(full_item[ix:])
+            ix = len(full_item)
+    return items
+
+
+def merge_item_version(left, right):
+    split_left = split_versions(left)
+    split_right = split_versions(right)
+    ix_right = 1
+    while ix_right < len(split_right):
+        op = split_right[ix_right]
+        if op not in split_left:
+            split_left.append(op)
+            ix_right += 1
+            split_left.append(split_right[ix_right])
+            ix_right += 1
+            if ix_right < len(split_right) and split_right[ix_right] == ",":
+                split_left.append(split_right[ix_right])
+                ix_right += 1
+        else:
+            ix_right += 1
+            ver_right = split_right[ix_right]
+            ix_right += 2
+            ix_left = split_left.index(op) + 1
+            ver_left = split_left[ix_left]
+
+            if op == "==":
+                if ver_left != ver_right:
+                    sys.stderr.write("Version mismatch: %s %s\n" % (left, right))
+
+            elif "<" in op:
+                split_left[ix_left] = maxver(ver_left, ver_right)
+
+            else:
+                split_left[ix_left] = minver(ver_left, ver_right)
+
+    if split_left[-1] == ",":
+        split_left = split_left[: -1]
+    return "".join(split_left)
 
 
 def add_package(deps_list, kw, item, with_version=None, odoo_ver=None, pyver=None):
+
+    def add_full_item(deps_list, kw, with_version, full_item):
+        kw1 = "%s1" % kw
+        kw2 = "%s2" % kw
+        if with_version and full_item:
+            found = False
+            for ix, kk in enumerate(deps_list[kw2]):
+                if kk.startswith(item):
+                    deps_list[kw2][ix] = merge_item_version(kk, full_item)
+                    found = True
+                    break
+            if not found:
+                deps_list[kw2].append(full_item)
+            if item in deps_list[kw1]:
+                del deps_list[kw1][deps_list[kw1].index(item)]
+        elif item not in deps_list[kw1]:
+            deps_list[kw1].append(item)
+        return deps_list
+
     if item in BUILTIN:
         return deps_list
     if item == "PY3_DEV":
         item = PY3_DEV
-    item, full_item, defver = name_n_version(
+
+    item, full_item = name_n_version(
         item, with_version=with_version, odoo_ver=odoo_ver, pyver=pyver
     )
     if item in BIN_PACKAGES or item in BIN_BASE_PACKAGES or item in BIN_TEST_PACKAGES:
         kw = "bin"
+
     if item not in deps_list[kw]:
         deps_list[kw].append(item)
         if kw == "python":
-            if with_version and full_item:
-                if full_item in DEPS9:
-                    kw = "python9"
-                else:
-                    kw = "python2"
-                deps_list[kw].append(full_item)
-            else:
-                kw = "python1"
-                deps_list[kw].append(item)
+            deps_list = add_full_item(deps_list, kw, with_version, full_item)
+
             if item in DEPS:
                 for kw1 in ("python", "bin"):
                     if kw1 not in DEPS[item]:
@@ -719,29 +864,8 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None, pyver=Non
                             pyver=pyver,
                         )
         elif kw == "bin":
-            if with_version and full_item:
-                kw = "bin2"
-                deps_list[kw].append(full_item)
-            else:
-                kw = "bin1"
-                deps_list[kw].append(item)
-    elif kw == "python" and full_item:
-        if item in deps_list["python1"]:
-            ii = deps_list["python1"].index(item)
-            del deps_list["python1"][ii]
-            if full_item in DEPS9:
-                deps_list["python9"].append(full_item)
-            else:
-                deps_list["python2"].append(full_item)
-        elif not defver and full_item not in deps_list["python2"]:
-            sys.stderr.write("Version mismatch: package %s\n" % full_item)
-    elif kw == "bin" and full_item:
-        if item in deps_list["bin1"]:
-            ii = deps_list["bin1"].index(item)
-            del deps_list["bin1"][ii]
-            deps_list["bin2"].append(full_item)
-        elif not defver and full_item not in deps_list["bin2"]:
-            sys.stderr.write("Version mismatch: package %s\n" % full_item)
+            deps_list = add_full_item(deps_list, kw, with_version, full_item)
+
     return deps_list
 
 
@@ -851,22 +975,23 @@ def swap(deps, itm1, itm2):
 
 
 def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
-    def parse_manifest(manifests, reqfiles, setups, root, files, no_deep, recurse):
+
+    def parse_manifest(manifests, reqfiles, setups, root, files, no_deep):
         if "/setup/" in root and "setup.py" in files:
             fn = os.path.join(root, "setup.py")
             if fn not in setups:
                 setups.append(os.path.join(root, "setup.py"))
         if root.startswith(no_deep):
             return manifests, reqfiles, setups, no_deep
-        basename = os.path.basename(root)
-        if (
-            basename.startswith('.')
-            or basename.startswith('_')
-            or basename.endswith('~')
-            or basename in ("doc", "tmp", "venv_odoo")
-        ):
-            no_deep = root
-            return manifests, reqfiles, setups, no_deep
+        # basename = os.path.basename(root)
+        # if (
+        #     basename.startswith('.')
+        #     or basename.startswith('_')
+        #     or basename.endswith('~')
+        #     or basename in ("doc", "tmp", "venv_odoo")
+        # ):
+        #     no_deep = root
+        #     return manifests, reqfiles, setups, no_deep
         if (
             not read_from_manifest
             and "__init__.py" in files
@@ -883,11 +1008,42 @@ def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
     fn = os.path.join(cdir, "setup.py")
     if os.path.isfile(fn):
         setups.append(fn)
-    for root, _dirs, files in os.walk(cdir):
+
+    for root, dirs, files in os.walk(cdir,
+                                     topdown=True,
+                                     followlinks=False):
+        dirs[:] = [
+            d
+            for d in dirs
+            if (
+                not d.startswith(".")
+                and not d.startswith("_")
+                and not d.endswith('~')
+                and d not in ("build",
+                              "debian",
+                              "dist",
+                              "doc",
+                              "docs",
+                              "egg-info",
+                              "filestore",
+                              "history",
+                              "howtos",
+                              "images"
+                              "migrations",
+                              "redhat",
+                              "reference",
+                              "scripts",
+                              "server",
+                              # "setup",
+                              "tmp",
+                              "venv_odoo",
+                              "win32")
+            )
+        ]
         manifests, reqfiles, setups, no_deep = parse_manifest(
-            manifests, reqfiles, setups, root, files, no_deep, recurse
+            manifests, reqfiles, setups, root, files, no_deep
         )
-        if not recurse and root != cdir and '.git' in _dirs:
+        if not recurse and root != cdir and '.git' in dirs:
             no_deep = root
     return manifests, reqfiles, setups
 
@@ -962,9 +1118,16 @@ def main(cli_args=None):
         dest="base_pkgs",
     )
     parser.add_argument(
+        "-C",
+        "--check-current-packages",
+        help="Check for current installed packages",
+        action="store_true",
+        dest="current_pkgs",
+    )
+    parser.add_argument(
         "-d",
         "--dependencies-path",
-        help="Follow oca_dependencies.txt in directory",
+        help="Follow oca dependency repositories in directory list",
         metavar="directory list (comma separated)",
         dest="oca_dependencies",
     )
@@ -1024,7 +1187,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-R",
         "--rpc-packages",
-        help="Add packages for xmlrpc/jsonrpc",
+        help="Add packages for xmlrpc/jsonrpc management",
         action="store_true",
         dest="rpc_pkgs",
     )
@@ -1067,10 +1230,6 @@ def main(cli_args=None):
         PY3_DEV = "python%s-dev" % ctx["pyver"]
     if ctx["odoo_ver"] and not ctx["pyver"]:
         ctx = get_pyver(ctx)
-    # elif not ctx["odoo_ver"] and ctx["pyver"]:
-    #     ctx = get_def_odoo_ver(ctx)
-    # if not ctx["odoo_ver"]:
-    #     ctx["odoo_ver"] = "12.0"
     if ctx["out_file"]:
         ctx = set_def_outfile(ctx)
     if not ctx["odoo_dir"] and ctx["odoo_ver"]:
@@ -1103,13 +1262,32 @@ def main(cli_args=None):
         "python",
         "python1",
         "python2",
-        "python9",
         "bin",
         "bin1",
         "bin2",
         "modules",
     ):
         deps_list[kw] = []
+
+    if ctx["current_pkgs"]:
+        sts, stdout, stderr = z0lib.run_traced(
+            "pip list", verbose=False, dry_run=ctx['dry_run'])
+        if sts == 0:
+            hdr = 2
+            for ln in stdout.split("\n"):
+                if hdr:
+                    hdr -= 1
+                    continue
+                if not ln:
+                    continue
+                pkg = ln.split()[0]
+                add_package(deps_list,
+                            "python",
+                            pkg,
+                            with_version=ctx["with_version"],
+                            odoo_ver=ctx["odoo_ver"],
+                            pyver=ctx["pyver"])
+
     for setup in setups:
         requirements = parse_setup(ctx, setup, pyver=ctx["pyver"])
         deps_list = package_from_list(
@@ -1213,32 +1391,34 @@ def main(cli_args=None):
             pyver=ctx["pyver"],
         )
     if ctx["rpc_pkgs"]:
-        deps_list = package_from_list(
-            deps_list,
-            "python",
-            RPC_PACKAGES,
-            with_version=ctx["with_version"],
-            odoo_ver=ctx["odoo_ver"],
-            pyver=ctx["pyver"],
-        )
+        if ctx["odoo_ver"] and ctx["odoo_ver"].startswith("2"):
+            deps_list = package_from_list(
+                deps_list,
+                "python",
+                RPC_PACKAGES2,
+                with_version=ctx["with_version"],
+                odoo_ver=ctx["odoo_ver"],
+                pyver=ctx["pyver"],
+            )
+        else:
+            deps_list = package_from_list(
+                deps_list,
+                "python",
+                RPC_PACKAGES3,
+                with_version=ctx["with_version"],
+                odoo_ver=ctx["odoo_ver"],
+                pyver=ctx["pyver"],
+            )
 
-    deps_list["python"] = (
-        sorted(
-            sorted(deps_list["python1"], key=lambda s: s.lower())
-            + deps_list["python2"],
-            key=lambda s: s.lower(),
-        )
-        + deps_list["python9"]
-    )
+    deps_list["python"] = sorted(
+        deps_list["python1"] + deps_list["python2"], key=lambda s: s.lower())
     for ii, dep_pkg in enumerate(deps_list["python"]):
-        if dep_pkg.find(">") >= 0 or dep_pkg.find("<") >= 0 or dep_pkg.find(" ") >= 0:
+        if ">" in dep_pkg or "<" in dep_pkg or " " in dep_pkg:
             deps_list["python"][ii] = "'%s'" % dep_pkg
     deps_list["bin"] = sorted(
-        sorted(deps_list["bin1"], key=lambda s: s.lower()) + deps_list["bin2"],
-        key=lambda s: s.lower(),
-    )
+        deps_list["bin1"] + deps_list["bin2"], key=lambda s: s.lower())
     for ii, dep_pkg in enumerate(deps_list["bin"]):
-        if dep_pkg.find(">") >= 0 or dep_pkg.find("<") >= 0 or dep_pkg.find(" ") >= 0:
+        if ">" in dep_pkg or "<" in dep_pkg or " " in dep_pkg:
             deps_list["bin"][ii] = "'%s'" % dep_pkg
     for item in DEPS:
         if "python" in DEPS[item]:

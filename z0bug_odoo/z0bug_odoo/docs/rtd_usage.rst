@@ -137,7 +137,7 @@ Load data of model from csv_fn. Internal use only.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-21
+Last Update / Ultimo aggiornamento: 2022-12-25
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

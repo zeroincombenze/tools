@@ -50,7 +50,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.2.1"
+__version__ = "2.0.2.2"
 
 
 def nakedname(path):
@@ -106,10 +106,12 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
                 else:
                     if arg not in params:
                         opt_unk = True
-                    if arg not in params and isinstance(params[arg], basestring):
+                    if arg in params and isinstance(params[arg], basestring):
                         arg2 = args.pop(0)
                         params[arg] = arg2
                         argv.append(arg2)
+                    else:
+                        params[arg] = True
             elif arg.startswith("-"):
                 res = arg[1:]
                 while res:
@@ -187,7 +189,9 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
             args, {
                 "-r": False,
                 "-R": False,
-                "--recursive": False
+                "--recursive": False,
+                "-L": False,
+                "--dereference": False,
             }
         )
         if not opt_unk and paths[0] and paths[1]:
@@ -197,7 +201,10 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
             ):
                 paths[1] = os.path.join(paths[1], os.path.basename(paths[0]))
             if params["-r"] or params["-R"] or params["--recursive"]:
-                shutil.copytree(paths[0], paths[1])
+                if params["-L"] or params["--dereference"]:
+                    shutil.copytree(paths[0], paths[1], symlinks=True)
+                else:
+                    shutil.copytree(paths[0], paths[1], symlinks=False)
             else:
                 shutil.copy2(paths[0], paths[1])
             return 0, "", ""

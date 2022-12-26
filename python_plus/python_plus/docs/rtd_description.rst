@@ -27,7 +27,7 @@ Mainly it works ad standard pip but inside a specific virtual environment.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-21
+Last Update / Ultimo aggiornamento: 2022-12-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

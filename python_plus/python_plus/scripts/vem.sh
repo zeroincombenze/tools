@@ -195,7 +195,7 @@ set_hashbang() {
 }
 
 get_req_list() {
-# get_req_list(req_file type [debug|all|base|dev|oe])
+# get_req_list(req_file type [debug|all|base|dev|oe|cur])
     local cmd fn mime tt wh x
     fn="$1"
     tt="$2"
@@ -204,6 +204,7 @@ get_req_list() {
     cmd="$LIST_REQ"
     [[ -n $tt ]] && cmd="$cmd -qt $tt -BP" || cmd="$cmd -qt python -BP"
     [[ $opt_dev -ne 0 && $wh =~ (all|dev)  ]] && cmd="${cmd}TR"
+    [[ $wh =~ "cur" ]] && cmd="${cmd}C"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
     [[ -n "$opt_oever" && $wh =~ (all|oe) ]] && cmd="$cmd -b$opt_oever"
     [[ -n "$opt_oepath" && $wh =~ (all|oe) ]] && cmd="$cmd -p$opt_oepath"
@@ -213,7 +214,7 @@ get_req_list() {
     [[ -d $HOME/maintainer-quality-tools ]] && x="$x,${HOME}/maintainer-quality-tools"
     [[ -n $x && $x =~ ^, ]] && x="${x:1}"
     [[ -n $x  && $wh =~ (all|oe) ]] && cmd="$cmd -d${x}"
-    [[ -n $fn ]] && cmd="$cmd -m $pfn"
+    [[ -n $fn ]] && cmd="$cmd -m $fn"
     [[ $wh =~ debug ]] && echo $cmd -qs "" || $cmd -qs" "
 }
 
@@ -758,7 +759,7 @@ find_cur_py() {
       PIP=$(which pip 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     fi
-    [[ -n $PYTHON && ! $LIST_REQ =~ bin/python ]] && LIST_REQ="$PYTHON $LIST_REQ"
+    # [[ -n $PYTHON && ! $LIST_REQ =~ bin/python ]] && LIST_REQ="$PYTHON $LIST_REQ"
 }
 
 find_odoo_path() {
@@ -910,13 +911,13 @@ do_venv_mgr() {
   if [[ $cmd =~ (amend) ]]; then
     if grep -q "^ *\[ -x \$f -a ! -d \$f ] " $VENV/bin/activate &>/dev/null; then
       echo "Wrong activation script $VENV/bin/activate"
-      sed -Ee "s|^ *\[ -x \\\$f -a ! -d \\\$f ] |    [[ -x \$f \&\& ! -d \$f ]] \&\& grep -q \"^#\!.*[ /]python\" \$f \&>/dev/null |" -i $VENV/bin/activate
+      sed -Ee "s|^ *\[ -x \\\$f -a ! -d \\\$f ] | [[ -x \$f \&\& ! -d \$f ]] \&\& grep -q \"^#\!.*[ /]python\" \$f \&>/dev/null |" -i $VENV/bin/activate
     fi
   fi
   BINPKGS=$(get_req_list "" "bin")
-  [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' 'bin' 'debug')"
-  OEPKGS=$(get_req_list "" "python" "oe")
-  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug,oe')"
+  [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #\$(get_req_list '' 'bin' 'debug')"
+  OEPKGS=$(get_req_list "" "python" "oe,cur")
+  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #\$(get_req_list '' 'python' 'debug,oe,cur')"
   if [[ $cmd =~ (amend|check|test|inspect) ]]; then
     V=$VENV
   elif [[ "$cmd" == "cp" ]]; then
@@ -1248,7 +1249,7 @@ OPTHELP=("this help"
   "create v.environment with development packages"
   "odoo dependencies paths (comma separated)"
   "simulate Linux distro: like Ubuntu20 Centos7 etc (requires -n switch)"
-  "force v.environment create, even if exists or inside another virtual env"
+  "force v.environment create, if exists or inside another virtual env; amend current packages"
   "simulate Linux family: may be RHEL or Debian (requires -n switch)"
   "install npm packages globally"
   "keep python2 executable as python (deprecated)"
@@ -1365,7 +1366,7 @@ elif [[ ! $action =~ (help|create) ]]; then
   validate_py_oe_vers
 fi
 [[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
-if [[ $action =~ (help|create|exec|python|shell) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" || -z $(which list_requirements.py 2>/dev/null) ]]; then
+if [[ $action =~ (help|create|exec|python|shell) || $opt_dev -eq 0 || -z "$FUTURE" || -z "$CONFIGPARSER" || -z "$Z0LIB" || -z "$OS0" ]]; then
   [[ $opt_dev -eq 0 ]] && DEV_PKGS=""
 else
   DEV_PKGS=$(get_req_list "" "" "dev")

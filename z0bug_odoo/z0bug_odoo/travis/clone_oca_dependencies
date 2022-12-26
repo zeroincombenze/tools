@@ -99,7 +99,7 @@ def git_checkout(repo_dir, repo, git_org=None):
             srcdir = os.path.join(travis_home, branch, repo)
         if srcdir:
             if not osp.isdir(checkout_dir):
-                command = ['cp', '-r', srcdir, checkout_dir]
+                command = ['cp', '-r', '-L', srcdir, checkout_dir]
                 sts = run_traced(command)
         else:
             print_flush('WARNING: Repository %s not found in local!' % repo)

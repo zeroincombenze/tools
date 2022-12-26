@@ -86,6 +86,18 @@ def unicodes(src):
 
 
 def qsplit(*args, **kwargs):
+    """quoted split
+    Like python split but manage quoted strings
+    Args:
+        item (str): text to split
+        sep (str|list|tuple): separators characters (default spaces)
+        max (int): max splitting
+
+        quotes (list|tuple): quote character (default ["\"", "'"])
+        escape (bool): enable escape char "\"
+        enquote (bool): add quoted characters in split fields
+        strip (bool): strip results
+    """
     src = args[0]
     if len(args) > 1 and args[1]:
         sep = args[1]

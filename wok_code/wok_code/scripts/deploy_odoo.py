@@ -119,6 +119,7 @@ FMT_PARAMS = {
     "stash": "%(stash)5.5s",
 }
 
+
 class OdooDeploy(object):
     """Odoo organization/branch repositories
     self.repo_list is the reposiotries list of self.repo_info
@@ -162,7 +163,8 @@ class OdooDeploy(object):
                        if self.opt_args.git_orgs else "oca")
             if os.path.isdir(path):
                 z0lib.run_traced("cd %s" % path, verbose=False, dry_run=False)
-                sts, repo_branch, git_url, stash_list = self.get_remote_info(verbose=False)
+                sts, repo_branch, git_url, stash_list = self.get_remote_info(
+                    verbose=False)
                 if sts == 0:
                     org_url, rrepo, git_org = self.data_from_url(git_url)
                 self.repo_info[repo]["GIT_ORG"] = git_org
@@ -254,6 +256,7 @@ class OdooDeploy(object):
                     if (
                         not d.startswith(".")
                         and not d.startswith("_")
+                        and not d.endswith('~')
                         and d not in ("build",
                                       "debian",
                                       "dist",
@@ -270,6 +273,7 @@ class OdooDeploy(object):
                                       "scripts",
                                       "server",
                                       "setup",
+                                      "tmp",
                                       "venv_odoo",
                                       "win32")
                         )
@@ -632,7 +636,7 @@ class OdooDeploy(object):
                 cmd = "git checkout %s" % alt_branch
                 sts, stdout, stderr = self.run_traced(cmd)
                 if sts == 0:
-                    remote_branch = alt_branch
+                    # remote_branch = alt_branch
                     break
                 sleep(1)
         if sts:
@@ -657,7 +661,7 @@ class OdooDeploy(object):
                 org_url, repo, repo_org = self.data_from_url(git_url)
         elif self.repo_is_ocb(repo) and not self.opt_args.keep_root_owner:
             git_url = "https://github.com/odoo/odoo.git"
-            repo = "odoo"
+            # repo = "odoo"
         elif repo in self.repo_list:
             repo_branch = self.repo_info[repo].get("BRANCH", branch)
             git_url = self.repo_info[repo].get("URL")

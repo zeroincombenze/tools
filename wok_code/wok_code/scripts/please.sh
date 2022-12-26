@@ -2087,9 +2087,9 @@ fi
 HLPCMDLIST="help|build|chkconfig|config|docs|duplicate|edit|export|import|lint|list|lsearch|publish|push|pythonhosted|replace|replica|show|test|translate|version|wep"
 if [[ $opt_help -gt 0 ]]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST" \
-
+    "© 2015-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
-fi"© 2015-2022 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+fi
 
 opts_travis
 conf_default
