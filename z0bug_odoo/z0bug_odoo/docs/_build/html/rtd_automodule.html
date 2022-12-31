@@ -103,7 +103,7 @@ search or browse.</p>
 
 </dd></dl>
 
-<span class="target" id="module-z0bug_odoo.testenv.testenv"></span><p>Test Environment v2.0.2.1</p>
+<span class="target" id="module-z0bug_odoo.testenv.testenv"></span><p>Test Environment v2.0.3</p>
 <p>Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
 The __init__.py must import testenv.
@@ -127,14 +127,14 @@ for resource in TEST_SETUP_LIST:</p>
 <div><p>item = “TEST_%s” % resource.upper().replace(“.”, “_”)
 data[item] = globals()[item]</p>
 </div></blockquote>
-<p>self.declare_all_data(data)     # TestEnv swallows the data
-self.setup_env()                # Create test environment</p>
+<p>self.declare_all_data(data)                 # TestEnv swallows the data
+self.setup_env()                            # Create test environment</p>
 </dd>
 <dt>def tearDown(self):</dt><dd><p>super().tearDown()
-if os.environ.get(“ODOO_COMMIT_TEST”, “”):</p>
+if os.environ.get(“ODOO_COMMIT_TEST”, “”):  # pragma: no cover</p>
 <blockquote>
 <div><p># Save test environment, so it is available to dump
-self.env.cr.commit()     # pylint: disable=invalid-commit
+self.env.cr.commit()                    # pylint: disable=invalid-commit
 _logger.info(“✨ Test data committed”)</p>
 </div></blockquote>
 </dd>
@@ -162,7 +162,12 @@ _logger.info(“✨ Test data committed”)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.add_translation_xref">
-<span class="sig-name descname"><span class="pre">add_translation_xref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xref_tnxl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.add_translation_xref" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">add_translation_xref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tnxl_xref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.add_translation_xref" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.cast_field">
+<span class="sig-name descname"><span class="pre">cast_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.cast_field" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -226,6 +231,21 @@ merge (str): merge data with public data (currently just “zerobug”)</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.get_binary_contents">
+<span class="sig-name descname"><span class="pre">get_binary_contents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.get_binary_contents" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.get_binary_filename">
+<span class="sig-name descname"><span class="pre">get_binary_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.get_binary_filename" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.get_model_from_act_windows">
+<span class="sig-name descname"><span class="pre">get_model_from_act_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">act_windows</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.get_model_from_act_windows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.get_resource_data">
 <span class="sig-name descname"><span class="pre">get_resource_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.get_resource_data" title="Permalink to this definition"></a></dt>
 <dd><p>Get declared resource data; may be used to test compare.</p>
@@ -273,6 +293,11 @@ group (str): if supplied select specific group data; default is “base”</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.move_translated_xref">
+<span class="sig-name descname"><span class="pre">move_translated_xref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tnxl_xref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.move_translated_xref" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.resource_bind">
 <span class="sig-name descname"><span class="pre">resource_bind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_if_not_found</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.resource_bind" title="Permalink to this definition"></a></dt>
 <dd><p>Simulate External Reference
@@ -305,7 +330,7 @@ raise_if_not_found (bool): raise exception if xref not found or</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.resource_edit">
-<span class="sig-name descname"><span class="pre">resource_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">web_changes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.resource_edit" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">resource_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">web_changes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.resource_edit" title="Permalink to this definition"></a></dt>
 <dd><p>Simulate web editing
 Args:</p>
 <blockquote>
@@ -341,6 +366,11 @@ web_changes (list): list of tuples (field, value); see &lt;wizard_edit&gt;</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.set_locale">
 <span class="sig-name descname"><span class="pre">set_locale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">locale_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_if_not_found</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.set_locale" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.setup_company">
+<span class="sig-name descname"><span class="pre">setup_company</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">company</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partner_xref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.setup_company" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -398,7 +428,7 @@ If windows break return wizard image too</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.wizard_edit">
-<span class="sig-name descname"><span class="pre">wizard_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wizard</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onchange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.wizard_edit" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">wizard_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wizard</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onchange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.wizard_edit" title="Permalink to this definition"></a></dt>
 <dd><p>Simulate view editing on a field.</p>
 <p>Assign value to field, then engage all onchange functions on current field and
 on all updated fields.
@@ -417,7 +447,7 @@ onchange (str): onchange function to execute after assignment</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.wizard_execution">
-<span class="sig-name descname"><span class="pre">wizard_execution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">act_windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">records</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">web_changes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button_ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows_break</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.wizard_execution" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">wizard_execution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">act_windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">records</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">web_changes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button_ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.wizard_execution" title="Permalink to this definition"></a></dt>
 <dd><p>Simulate wizard execution issued by an action.</p>
 <p>Wizard is created by &lt;wizard_start&gt; with default values.
 First, execute onchange methods without values.
@@ -450,11 +480,7 @@ web_changes=[</p>
 records (obj): objects supplied for action server
 button_name (str): function name to execute at the end of then wizard
 web_changes (list): list of tuples (field, value); see above &lt;wizard_edit&gt;
-button_ctx (dict): context to pass to button_name function
-windows_break (bool): if True breaks chain and avoid view test</p>
-<blockquote>
-<div><p>Warning: returns wizard image too</p>
-</div></blockquote>
+button_ctx (dict): context to pass to button_name function</p>
 </dd>
 <dt>Returns:</dt><dd><p>Odoo wizard result; may be a windows action to engage another wizard
 If windows break return wizard image too</p>
@@ -466,7 +492,7 @@ If windows break return wizard image too</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.wizard_launch">
-<span class="sig-name descname"><span class="pre">wizard_launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">act_windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">records</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows_break</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.wizard_launch" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">wizard_launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">act_windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">records</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.wizard_launch" title="Permalink to this definition"></a></dt>
 <dd><p>Start a wizard from a windows action.</p>
 <p>This function simulates the wizard or action server starting web interface.
 It creates the wizard record with default values.
@@ -478,15 +504,11 @@ It is useful to test:</p>
 <li><p>wizard code</p></li>
 </ul>
 </div></blockquote>
-<dl>
+<dl class="simple">
 <dt>Args:</dt><dd><p>act_windows (dict): Odoo windows action
 records (obj): objects required by action server
 default (dict): default value to assign
-ctx (dict): context to pass to wizard during execution
-windows_break (bool): if True breaks chain and avoid view test</p>
-<blockquote>
-<div><p>Warning: returns wizard image too</p>
-</div></blockquote>
+ctx (dict): context to pass to wizard during execution</p>
 </dd>
 <dt>Returns:</dt><dd><p>Odoo windows action to pass to wizard execution
 If windows break return wizard image too</p>
@@ -496,7 +518,7 @@ If windows break return wizard image too</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="z0bug_odoo.testenv.testenv.MainTest.wizard_launch_by_act_name">
-<span class="sig-name descname"><span class="pre">wizard_launch_by_act_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">records</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows_break</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.wizard_launch_by_act_name" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">wizard_launch_by_act_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">records</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#z0bug_odoo.testenv.testenv.MainTest.wizard_launch_by_act_name" title="Permalink to this definition"></a></dt>
 <dd><p>Start a wizard from an action name.</p>
 <p>Validate the action name for xml view file, then call &lt;wizard_start&gt;</p>
 <p><strong>* Example *</strong></p>
@@ -518,7 +540,6 @@ If windows break return wizard image too</p>
 </dd>
 <dt>Args:</dt><dd><p>module (str): module name with wizard to test
 action_name (str): action name
-default (dict), ctx (dict), windows_break (bool): see above &lt;wizard_start&gt;
 records (obj): objects supplied for action server</p>
 </dd>
 <dt>Returns:</dt><dd><p>Same of &lt;wizard_start&gt;</p>
@@ -559,16 +580,21 @@ records (obj): objects supplied for action server</p>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest"><code class="docutils literal notranslate"><span class="pre">MainTest</span></code></a><ul>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.add_translation"><code class="docutils literal notranslate"><span class="pre">MainTest.add_translation()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.add_translation_xref"><code class="docutils literal notranslate"><span class="pre">MainTest.add_translation_xref()</span></code></a></li>
+<li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.cast_field"><code class="docutils literal notranslate"><span class="pre">MainTest.cast_field()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.cast_types"><code class="docutils literal notranslate"><span class="pre">MainTest.cast_types()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.compute_date"><code class="docutils literal notranslate"><span class="pre">MainTest.compute_date()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.declare_all_data"><code class="docutils literal notranslate"><span class="pre">MainTest.declare_all_data()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.declare_resource_data"><code class="docutils literal notranslate"><span class="pre">MainTest.declare_resource_data()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.default_company"><code class="docutils literal notranslate"><span class="pre">MainTest.default_company()</span></code></a></li>
+<li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.get_binary_contents"><code class="docutils literal notranslate"><span class="pre">MainTest.get_binary_contents()</span></code></a></li>
+<li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.get_binary_filename"><code class="docutils literal notranslate"><span class="pre">MainTest.get_binary_filename()</span></code></a></li>
+<li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.get_model_from_act_windows"><code class="docutils literal notranslate"><span class="pre">MainTest.get_model_from_act_windows()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.get_resource_data"><code class="docutils literal notranslate"><span class="pre">MainTest.get_resource_data()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.get_resource_data_list"><code class="docutils literal notranslate"><span class="pre">MainTest.get_resource_data_list()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.get_resource_list"><code class="docutils literal notranslate"><span class="pre">MainTest.get_resource_list()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.install_language"><code class="docutils literal notranslate"><span class="pre">MainTest.install_language()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.is_action"><code class="docutils literal notranslate"><span class="pre">MainTest.is_action()</span></code></a></li>
+<li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.move_translated_xref"><code class="docutils literal notranslate"><span class="pre">MainTest.move_translated_xref()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.resource_bind"><code class="docutils literal notranslate"><span class="pre">MainTest.resource_bind()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.resource_create"><code class="docutils literal notranslate"><span class="pre">MainTest.resource_create()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.resource_download"><code class="docutils literal notranslate"><span class="pre">MainTest.resource_download()</span></code></a></li>
@@ -577,6 +603,7 @@ records (obj): objects supplied for action server</p>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.resource_write"><code class="docutils literal notranslate"><span class="pre">MainTest.resource_write()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.setUp"><code class="docutils literal notranslate"><span class="pre">MainTest.setUp()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.set_locale"><code class="docutils literal notranslate"><span class="pre">MainTest.set_locale()</span></code></a></li>
+<li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.setup_company"><code class="docutils literal notranslate"><span class="pre">MainTest.setup_company()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.setup_env"><code class="docutils literal notranslate"><span class="pre">MainTest.setup_env()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.store_resource_data"><code class="docutils literal notranslate"><span class="pre">MainTest.store_resource_data()</span></code></a></li>
 <li><a class="reference internal" href="#z0bug_odoo.testenv.testenv.MainTest.tnxl_field_value"><code class="docutils literal notranslate"><span class="pre">MainTest.tnxl_field_value()</span></code></a></li>

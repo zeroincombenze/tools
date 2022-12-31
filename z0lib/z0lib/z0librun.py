@@ -346,7 +346,7 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
     if not disable_alias:
         method = {
             "cd": sh_cd,
-            "cp": sh_cp,
+            # "cp": sh_cp,
             "git": sh_git,
             "mkdir": sh_mkdir,
             "rm": sh_rm,

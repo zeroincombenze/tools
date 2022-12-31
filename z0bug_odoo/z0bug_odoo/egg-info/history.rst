@@ -1,8 +1,10 @@
-2.0.2.1 (2022-12-14)
-~~~~~~~~~~~~~~~~~~~~
+2.0.3 (2022-12-29)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] TestEnv: more debug messages
+* [IMP] TestEnv: more improvements
 * [FIX] TestEnv: sometime crashes if default use context
+* [FIX] TestEnv: bug fixes
 
 2.0.2 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~
