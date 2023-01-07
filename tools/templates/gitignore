@@ -223,6 +223,7 @@ stdout.log
 /helpdesk
 /hr
 /hr-timesheet
+/infrastructure
 /infrastructure-dns
 /interface-github
 /intrastat

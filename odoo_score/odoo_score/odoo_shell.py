@@ -13,6 +13,7 @@ import time
 from builtins import *  # noqa
 from builtins import input
 from datetime import date, datetime, timedelta
+import itertools
 
 from future import standard_library
 from openpyxl import load_workbook
@@ -355,6 +356,7 @@ def order_inv_group_by_partner(ctx):
 
 def close_sale_orders(ctx):
     print('Close sale orders with linked invoice')
+
     resource_so = 'sale.order'
     resource_line = 'sale.order.line'
     resource_carrier = 'delivery.carrier'
@@ -385,9 +387,7 @@ def close_sale_orders(ctx):
             conai_product_ids.append(company.conai_product_id.id)
 
     ctr_read = ctr_upd = 0
-    if sel_state == 'both':
-        domain.append(('invoice_status', 'in', ['no', 'to invoice', 'invoiced']))
-    else:
+    if sel_state != 'both':
         domain.append(('invoice_status', '=', sel_state))
     for so in clodoo.browseL8(ctx, resource_so,
                               clodoo.searchL8(ctx, resource_so, domain)):
@@ -406,28 +406,30 @@ def close_sale_orders(ctx):
             continue
 
         invoice_status = 'invoiced'
-        for ln in so.order_line:
-            msg_burst('%s (%d/%d) ...' % (so.name, ctr_upd, ctr_read))
-            if (
-                ln.product_id and (
-                    ln.product_id.id in shipping_ids
-                    or ln.product_id.id in conai_product_ids)
-            ):
-                if ln.qty_invoiced != ln.product_qty:
-                    clodoo.writeL8(ctx,
-                                   resource_line,
-                                   ln.id,
-                                   {
-                                       'qty_invoiced': ln.product_qty,
-                                       'qty_to_invoice': 0.0,
-                                   })
-                    ctr_upd += 1
-                continue
+        if not so.force_invoiced:
+            for ln in so.order_line:
+                msg_burst('%s (%d/%d) ...' % (so.name, ctr_upd, ctr_read))
+                if (
+                    ln.product_id and (
+                        ln.product_id.id in shipping_ids
+                        or ln.product_id.id in conai_product_ids)
+                ):
+                    if ln.qty_invoiced != ln.product_qty:
+                        clodoo.writeL8(ctx,
+                                       resource_line,
+                                       ln.id,
+                                       {
+                                           'qty_invoiced': ln.product_qty,
+                                           'qty_to_invoice': 0.0,
+                                       })
+                        ctr_upd += 1
+                    continue
 
-            if ln.invoice_lines:
-                continue
-            invoice_status = 'to invoice'
-            break
+                if ln.invoice_lines:
+                    continue
+                print("\nSO=%s - %s\n" % (so.name, ln.name))
+                invoice_status = 'to invoice'
+                break
 
         if so.invoice_status != invoice_status:
             clodoo.writeL8(ctx,
