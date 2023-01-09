@@ -45,9 +45,12 @@ Then execute the command:
 
 ::
 
-    make_travis_conf.py <TOOLS_PATH>/travis_emulator/template_travis.yml .travis.yml
+    make_travis_conf <TOOLS_PATH>/travis_emulator/template_travis.yml .travis.yml
 
 You can check travis syntax with the `lint checker <http://lint.travis-ci.org/>`_ of travis, if available.
+
+Notice: if you do not use travisCi web site, you can avoid to set .travis.yml file.
+Local travis emulator and z0bug_odoo create local .travis.yml dinamically.
 
 
 Odoo test integration
@@ -449,13 +452,36 @@ While travis is running this is the tree directory:
         - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
         - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
 
-qci
----
+TestEnv: the test environment
+-----------------------------
 
-.. $include description_qci.csv
+TestEnv makes available a test environment ready to use in order to test your Odoo
+module in quick and easy way.
 
+The purpose of this software are:
 
-partner qci
------------
+* Create the Odoo test environment with records to use for your test
+* Make available some useful functions to test your module (in z0bug_odoo)
+* Simulate the wizard to test wizard functions (wizard simulator)
+* Environment running different Odoo modules versions
 
-.. $include description_qci_partner.csv
+Please, pay attention to test data: TestEnv use internal unicode even for python 2
+based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
+Note, Odoo core uses unicode even on old Odoo version.
+
+Tests are based on test environment created by module mk_test_env in repository
+https://github.com/zeroincombenze/zerobug-test
+
+Requirements
+~~~~~~~~~~~~
+
+Ths TestEnv software requires:
+
+* python_plus PYPI package
+* z0bug_odoo PYPI package
+* python 2.7 / 3.6 / 3.7 / 3.8
+
+TestEnv is full integrated with Zeroincombenze(R) tools.
+See https://zeroincombenze-tools.readthedocs.io/
+and https://github.com/zeroincombenze/tools.git
+Zeroincombenze(R) tools help you to test Odoo module with pycharm.

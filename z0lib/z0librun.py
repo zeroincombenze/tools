@@ -50,7 +50,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.2.1"
+__version__ = "2.0.2.2"
 
 
 def nakedname(path):
@@ -106,10 +106,12 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
                 else:
                     if arg not in params:
                         opt_unk = True
-                    if arg not in params and isinstance(params[arg], basestring):
+                    if arg in params and isinstance(params[arg], basestring):
                         arg2 = args.pop(0)
                         params[arg] = arg2
                         argv.append(arg2)
+                    else:
+                        params[arg] = True
             elif arg.startswith("-"):
                 res = arg[1:]
                 while res:
@@ -187,16 +189,25 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
             args, {
                 "-r": False,
                 "-R": False,
-                "--recursive": False
+                "--recursive": False,
+                "-L": False,
+                "--dereference": False,
             }
         )
         if not opt_unk and paths[0] and paths[1]:
+            if (
+                paths[1]
+                and os.path.basename(paths[1]) != os.path.basename(paths[0])
+            ):
+                paths[1] = os.path.join(paths[1], os.path.basename(paths[0]))
             if params["-r"] or params["-R"] or params["--recursive"]:
-                shutil.copytree(paths[0], paths[1])
+                if params["-L"] or params["--dereference"]:
+                    shutil.copytree(paths[0], paths[1], symlinks=True)
+                else:
+                    shutil.copytree(paths[0], paths[1], symlinks=False)
             else:
                 shutil.copy2(paths[0], paths[1])
             return 0, "", ""
-        return sh_any(argv)
         return sh_any(argv)
 
     def sh_git(args, verbose=None, dry_run=None):
@@ -214,47 +225,79 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
                 "--branch": "",
                 "--depth": "",
                 "--single-branch": False,
+                "--no-single-branch": False,
             }
         )
-        srcpath = ""
+        srcpath = repo = ""
         if paths[0] == "clone":
             opt_branch = params["-b"] or params["--branch"]
             if opt_branch and opt_branch.split(".")[0].isdigit():
                 majver = opt_branch.split(".")[0]
-                repo = prefix = ""
+                repo = odoo_root = ""
                 if (
                     paths[1].startswith("https://github.com/odoo/")
                     or paths[1].startswith("https://github.com/OCA/")
                 ):
                     repo = paths[1].split("/")[-1][: -4]
-                    prefix = "oca"
+                    odoo_root = "oca" + majver
                 elif (
                     paths[1].startswith("https://github.com/zeroincombenze/")
                     or paths[1].startswith("https://github.com/LibrERP-network/")
                 ):
                     repo = paths[1].split("/")[-1][: -4]
-                    prefix = ""
+                    odoo_root = opt_branch
                 if repo:
-                    sts, prcout, prcerr = sh_any(["getent", "passwd", str(os.getuid())])
+                    homes = [os.path.expanduser("~")]
+                    if os.environ.get("TRAVIS_SAVED_HOME_DEVEL"):
+                        homes.append(
+                            os.path.dirname(os.environ["TRAVIS_SAVED_HOME_DEVEL"]))
+                    if os.environ.get("HOME_DEVEL"):
+                        homes.append(
+                            os.path.dirname(os.environ["HOME_DEVEL"]))
+                    sts, prcout, prcerr = sh_any(
+                        ["getent", "passwd", str(os.getuid())])
                     if sts == 0 and prcout:
-                        home = prcout.split("\n")[0].split(":")[5]
-                        if repo in ("OCB", "odoo"):
-                            srcpath = os.path.join(home,
-                                                   "%s%s" % (prefix, majver))
-                        elif repo == "tools":
+                        homes.append(prcout.split("\n")[0].split(":")[5])
+                    for home in homes:
+                        if repo == "tools":
                             srcpath = os.path.join(home, repo)
+                        elif repo in ("OCB", "odoo"):
+                            srcpath = os.path.join(home, odoo_root)
                         else:
-                            srcpath = os.path.join(home,
-                                                   "%s%s" % (prefix, majver),
-                                                   repo)
-                        if not os.path.isdir(srcpath):
-                            srcpath = ""
+                            srcpath = os.path.join(home, odoo_root, repo)
+                        if os.path.isdir(srcpath):
+                            break
+                        srcpath = ""
         if srcpath:
-            return run_traced("cp -r %s %s" % (srcpath,
-                                               paths[2] if len(paths) > 2 else "./"),
-                              verbose=verbose,
-                              dry_run=dry_run,
-                              is_alias=True)
+            tgt = os.path.join(paths[2] if len(paths) > 2 else "./",
+                               os.path.basename(srcpath))
+            if os.path.isdir(tgt):
+                return 1, "", ""
+            os.mkdir(tgt)
+            if repo in ("OCB", "odoo"):
+                for fn in os.listdir(srcpath):
+                    if os.path.isdir(os.path.join(srcpath, fn, ".git")):
+                        continue
+                    ffn = os.path.join(srcpath, fn)
+                    if os.path.isdir(ffn):
+                        run_traced(
+                            "cp -r %s %s" % (ffn, tgt),
+                            verbose=verbose,
+                            dry_run=dry_run,
+                            is_alias=True)
+                    else:
+                        run_traced(
+                            "cp %s %s" % (ffn, tgt),
+                            verbose=verbose,
+                            dry_run=dry_run,
+                            is_alias=True)
+                return 0, "", ""
+            else:
+                return run_traced(
+                    "cp -r %s %s" % (srcpath, tgt),
+                    verbose=verbose,
+                    dry_run=dry_run,
+                    is_alias=True)
         return sh_any(argv, verbose=verbose, dry_run=dry_run)
 
     def sh_mkdir(args, verbose=None, dry_run=None):
@@ -303,7 +346,7 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
     if not disable_alias:
         method = {
             "cd": sh_cd,
-            "cp": sh_cp,
+            # "cp": sh_cp,
             "git": sh_git,
             "mkdir": sh_mkdir,
             "rm": sh_rm,

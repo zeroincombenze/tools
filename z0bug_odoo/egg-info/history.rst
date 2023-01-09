@@ -1,5 +1,13 @@
+2.0.3 (2022-12-29)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: more debug messages
+* [IMP] TestEnv: more improvements
+* [FIX] TestEnv: sometime crashes if default use context
+* [FIX] TestEnv: bug fixes
+
 2.0.2 (2022-12-09)
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] Automatic conversion of integer into string for 'char' fields
 * [IMP] TestEnv

@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Added python 3.9 to test
+* [IMP] Detect python versions from setup.py
 
 2.0.3 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~

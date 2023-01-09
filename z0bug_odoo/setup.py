@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='z0bug_odoo',
-    version='2.0.2',
+    version='2.0.3',
     description='Odoo testing framework',
     long_description="""
 Zeroincombenze(R) continuous testing framework for Odoo modules.
@@ -16,6 +16,8 @@ Make avaiable test functions indipendent by Odoo version.
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        # 'Programming Language :: Python :: 3.9',
         'Intended Audience :: Developers',
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',
