@@ -24,7 +24,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.4.1"
+__version__ = "2.0.5"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #

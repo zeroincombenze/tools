@@ -6,6 +6,8 @@ Please copy the documentation testenv.rst file too in your module.
 The __init__.py must import testenv.
 Your python test file should have to contain some following example lines:
 
+::
+
     import os
     import logging
     from .testenv import MainTest as SingleTransactionCase
@@ -44,10 +46,47 @@ Your python test file should have to contain some following example lines:
         def test_mywizard(self):
             self.wizard(...)                # Test requires wizard simulator
 
+External reference
+~~~~~~~~~~~~~~~~~~
+
+Every record is tagged by an external reference.
+The external reference may be:
+
+* Ordinary Odoo external reference (a), format "module.name"
+* Test reference, format "z0bug.name" (b)
+* Key value, format "external.key" (c)
+* 2 keys reference, for header/detail relationship (d)
+* Magic reference for 'product.template' / 'product.product' (e)
+
+Ordinary Odoo external reference (a) is a record of 'ir.model.data';
+you can see them from Odoo GUI interface.
+
+Test reference (b) are visible just in the test environment.
+They are identified by "z0bug." prefix module name.
+
+External key reference (c) is identified by "external." prefix followed by
+the key value used to retrieve the record.
+The field "code" or "name" are used to search record;
+for account.tax the "description" field is used.
+Please set self.debug_level = 2 (or more) to log these field keys.
+
+The 2 keys reference (d) needs to address child record inside header record
+at 2 level model (header/detail) relationship.
+The key MUST BE the same key of the parent record,
+plus "_", plus line identifier (usually 'sequence' field).
+i.e. "z0bug.move_1_3" means: line with sequence 3 of 'account.move.line'
+which is child of record "z0bug.move_1" of 'account.move'.
+Please set self.debug_level = 2 (or more) to log these relationships.
+
+For 'product.template' (product) you must use '_template' text in reference (e).
+TestEnv inherit 'product.product' (variant) external reference.
+
 For furthermore information, please:
+
 * Read file testenv.rst in this directory (if supplied)
 * Visit https://zeroincombenze-tools.readthedocs.io
 * Visit https://github.com/zeroincombenze/tools
+* Visit https://github.com/zeroincombenze/zerobug-test
 """
 from __future__ import unicode_literals
 
@@ -56,8 +95,6 @@ import os
 from future.utils import PY2, PY3
 from past.builtins import basestring, long
 
-# import sys
-# from time import sleep
 from datetime import datetime
 import json
 import logging
@@ -298,9 +335,9 @@ class MainTest(SingleTransactionCase):
                     values["months"] = ""
                 self.store_resource_data(resource, xref, values, group=group)
 
-    # ---------------------------
-    # --  Hierarchy functions  --
-    # ---------------------------
+    # ------------------------------
+    # --  Hierarchical functions  --
+    # ------------------------------
 
     def _search4parent(self, resource, parent_resource=None):
         if resource == "product.product":
@@ -929,7 +966,14 @@ class MainTest(SingleTransactionCase):
                 resource_model,
                 args[0], args[1], args[2] if len(args) > 2 else None,
             )
-        if action and hasattr(record, action):
+        if action == "save":
+            return record.write({})
+        elif action == "create":
+            return record.create(
+                self._convert_to_write(record, new=True))            # pragma: no cover
+        elif action == "discard":
+            return False                                             # pragma: no cover
+        elif action and hasattr(record, action):
             self.log_lvl_2("🐞  %s.%s()" % (resource_model, action))
             act_windows = getattr(record, action)()
             # Weird bug: this is a workaround!!!
@@ -1211,6 +1255,20 @@ class MainTest(SingleTransactionCase):
     #############################################
 
     def store_resource_data(self, resource, xref, values, group=None, name=None):
+        """Store a record data definition for furthermore use.
+        Data stored is used by setup_env() function and/or by:
+
+        * resource_create() without values
+        * resource_write() without values
+        * resource_make() without values
+
+        Args:
+            resource (str): Odoo model name
+            xref (str): external reference
+            values (dict): record data
+            group (str): used to manager group data; default is "base"
+            name (str): label of dataset; default is resource name
+        """
         group = self.u(group) or "base"
         name = self.u(name) or self.u(resource)
         xref = self._get_conveyed_value(resource, None, xref)
@@ -1230,7 +1288,7 @@ class MainTest(SingleTransactionCase):
         return self.env.user.company_id
 
     def compute_date(self, date, refdate=None):
-        """Compute data
+        """Compute date
 
         Args:
             date (date or string or integer): formula
@@ -1238,24 +1296,30 @@ class MainTest(SingleTransactionCase):
 
         Returns:
             ISO format string with result date
-
         """
         return python_plus.compute_date(self.u(date), refdate=self.u(refdate))
 
     def resource_bind(self, xref, raise_if_not_found=True, resource=None):
-        """Simulate External Reference
-        This function simulates self.env.ref() searching for resource record.
-        Ordinary xref is formatted as "MODULE.NAME"; when MODULE == "external"
-        this function is engaged.
+        """Bind record by xref or searching it or browsing it.
+        This function returns a record using issued parameters. It works in follow ways:
+
+        * With valid xref it work exactly like self.env.ref()
+        * If xref is an integer it works exactly like self.browse()
+        * I xref is invalid, xref is used to search record
+            * xref is searched in stored data
+            * xref ("MODULE.NAME"): if MODULE == "external", NAME is the record key
 
         Args:
             xref (str): external reference
             raise_if_not_found (bool): raise exception if xref not found or
                                        if more records found
-            resource (str): Odoo model name
+            resource (str): Odoo model name, i.e. "res.partner"
 
         Returns:
             obj: the Odoo model record
+
+        Raises:
+            ValueError: if invalid parameters issued
         """
         self.log_lvl_3(
             "🐞%s.resource_bind(%s)" % (resource, xref)
@@ -1337,7 +1401,21 @@ class MainTest(SingleTransactionCase):
         return False
 
     def resource_create(self, resource, values=None, xref=None, group=None):
-        """Create a test record and set external ID to next tests"""
+        """Create a test record and set external ID to next tests.
+        This function works as standard Odoo create() with follow improvements:
+
+        * It can create external reference too
+        * It can use stored data if no values supplied
+
+        Args:
+            resource (str): Odoo model name, i.e. "res.partner"
+            values (dict): record data (default stored data)
+            xref (str): external reference to create
+            group (str): used to manager group data; default is "base"
+
+        Returns:
+            obj: the Odoo model record, if created
+        """
         self._load_field_struct(resource)
         xref = self._get_conveyed_value(resource, None, xref)
         values = self.unicodes(values)
@@ -1379,7 +1457,27 @@ class MainTest(SingleTransactionCase):
     def resource_write(
         self, resource, xref=None, values=None, raise_if_not_found=True, group=None
     ):
-        """Update a test record with external"""
+        """Update a test record.
+        This function works as standard Odoo write() with follow improvements:
+
+        * If resource is a record, xref is ignored (it should be None)
+        * It resource is a string, xref must be a valid xref or an integer
+        * If values is not supplied, record is restored to stored data values
+
+        Args:
+            resource (str|obj): Odoo model name or record to update
+            xref (str): external reference to update: required id resource is string
+            values (dict): record data (default stored data)
+            raise_if_not_found (bool): raise exception if xref not found or
+                           if more records found
+            group (str): used to manager group data; default is "base"
+
+        Returns:
+            obj: the Odoo model record
+
+        Raises:
+            ValueError: if invalid parameters issued
+        """
         if isinstance(resource, basestring):
             record = self.resource_bind(
                 xref, resource=resource, raise_if_not_found=raise_if_not_found
@@ -1407,7 +1505,9 @@ class MainTest(SingleTransactionCase):
         return record
 
     def resource_make(self, resource, xref, values=None, group=None):
-        """Create or write a test record and set external ID to next tests"""
+        """Create or write a test record.
+        This function is a hook to resource_write() or resource_create().
+        """
         self.log_lvl_3(
             "🐞%s.resource_make(%s,xref=%s)"
             % (resource, self.dict_2_print(values), xref)
@@ -1429,6 +1529,7 @@ class MainTest(SingleTransactionCase):
             name (str): label of dataset; default is resource name
             group (str): used to manager group data; default is "base"
             merge (str): merge data with public data (currently just "zerobug")
+
         Raises:
             TypeError: if invalid parameters issued
         """
@@ -1473,6 +1574,7 @@ class MainTest(SingleTransactionCase):
                                dot are replaced by "_"; (see declare_resource_data)
             group (str): used to manager group data; default is "base"
             merge (str): merge data with public data (currently just "zerobug")
+
         Raises:
             TypeError: if invalid parameters issued
         """
@@ -1501,7 +1603,7 @@ class MainTest(SingleTransactionCase):
             group (str): if supplied select specific group data; default is "base"
 
         Returns:
-            dictionary with data
+            dictionary with data or empty dictionary
         """
         group = group or "base"
         xref = self._get_conveyed_value(resource, None, xref)
@@ -1577,6 +1679,26 @@ class MainTest(SingleTransactionCase):
     def setup_company(
         self, company, xref=None, partner_xref=None, values={}, group=None
     ):
+        """Setup company values for current user.
+        This function assigns company to current user and / or can create xref aliases
+        and /or can update company values.
+        This function is useful in multi companies tests where different company values
+        will be used in different tests. May be used in more simple test where company
+        data will be updated in different tests.
+        You can assign partner_xref to company base by group; then all tests executed
+        after setup_env(), use the assigned partner data for company of the group.
+        You can also create more companies and assign one of them to test by group.
+
+        Args:
+            company (obj): company to update; if not supplied a new company is created
+            xref (str): external reference or alias for main company
+            partner_xref (str): external reference or alias for main company partner
+            values (dict): company data to update immediately
+            group (str): if supplied select specific group data; default is "base"
+
+        Returns:
+            default company for user
+        """
         add_alias = True
         if not company:                                              # pragma: no cover
             company = self.env["res.company"].create(values)
@@ -1606,11 +1728,24 @@ class MainTest(SingleTransactionCase):
         locale=None,
         group=None,
     ):
-        """Create all record from declared data. See above doc
+        """Create all record from declared data.
+        This function starts the test workflow creating the test environment.
+        Test data must be declared before engage this function with declare_all_data()
+        function (see above).
+        setup_env may be called more times with different group value.
+        If it is called with the same group, it recreates the test environment with
+        declared values; however this feature might do not work for some reason: i.e.
+        if test creates a paid invoice, the setup_env() cannot unlink invoice.
+        If you want to recreate the same test environment, assure the conditions for
+        unlink of all created and tested records.
+        If you create more test environment with different group you can use all data,
+        even record created by different group.
+        In this way you can test a complex process the evolved scenario.
 
         Args:
             lang (str): install & load specific language
             locale (str): install locale module with CoA; i.e l10n_it
+            group (str): if supplied select specific group data; default is "base"
 
         Returns:
             None
@@ -1636,28 +1771,68 @@ class MainTest(SingleTransactionCase):
     ############################################
 
     def resource_edit(
-        self, resource, default={}, web_changes=[], actions=[], discard=None, ctx={}
+        self, resource, default={}, web_changes=[], actions=[], ctx={}
     ):
-        """Simulate web editing
+        """Server-side web form editing.
+        Ordinary Odoo test use the primitive create() and write() function to manage
+        test data. These methods create an update records, but they do not properly
+        reflect the behaviour of user editing form with GUI interface.
+
+        This function simulates the client-side form editing in the server-side.
+        It works in the follow way:
+
+        * It can simulate the form create record
+        * It can simulate the form update record
+        * It can simulate the user data input
+        * It calls the onchange functions automatically
+        * It may be used to call button in the form
+
+        User action simulation:
+        The parameter <web_changes> is a list of user actions to execute sequentially.
+        Every element of the list is another list with 2 or 3 values:
+        * Field name to assign value
+        * Value to assign
+        * Optional function to execute (i.e. specific onchange)
+        If field is associate to an onchange function the relative onchange functions
+        are execute after value assignment. If onchange set another field with another
+        onchange the relative another onchange are executed until all onchange are
+        exhausted. This behavior is the same of the form editing.
+
+        Warning: because function are always executed at the server side the behavior
+        may be slightly different from actual form editing. Please take note of
+        following limitations:
+
+        * update form cannot simulate discard button
+        * required data in create must be supplied by default
+        * form inconsistency cannot be detected by this function
+        * nested function must be managed by test code (i.e. wizard from form)
+
+        See test_testenv module for test examples
+        https://github.com/zeroincombenze/zerobug-test/tree/12.0/test_testenv
+
         Args:
             resource (str or obj): if field is a string simulate create web behavior of
                                    Odoo model issued in resource;
                                    if field is an obj simulate write web behavior on the
                                    issued record
             default (dict): default value to assign
-            web_changes (list): list of tuples (field, value); see <wizard_edit>
+            web_changes (list): list of tuples (field, value); see <wiz_edit>
+
+        Returns:
+            windows action to execute or obj record
         """
+        actions = actions or (
+            ["create"] if isinstance(resource, basestring) else ["save"])
+        actions = actions if isinstance(actions, (list, tuple)) else [actions]
         self.log_lvl_2("🐞%s.resource_edit(%s)" % (resource, actions), strict=True)
         self.log_lvl_3(
-            "🐞%s.resource_edit(def=%s,chng=%s,act=%s,disc=%sctx=%s)" % (
+            "🐞%s.resource_edit(def=%s,chng=%s,act=%s,ctx=%s)" % (
                 resource,
                 self.dict_2_print(default),
                 self.dict_2_print(web_changes),
                 actions,
-                discard,
                 self.dict_2_print(ctx))
         )
-        actions = actions if isinstance(actions, (list, tuple)) else [actions]
         if isinstance(resource, basestring):
             resource_model = resource
             vals = self.cast_types(resource_model, default or {}, fmt="cmd")
@@ -1669,26 +1844,17 @@ class MainTest(SingleTransactionCase):
                                             ctx=ctx),
                         new=True)))
         elif is_iterable(resource):
-            # resource_model = resource[0]._name
             record = resource
         else:
-            # resource_model = resource._name
             if ctx:
                 record = resource.with_context(ctx)
             else:
                 record = resource
         for action in actions:
             result = self._exec_action(record, action, web_changes=web_changes)
-            if self.is_action(result):
-                return result
-        if not discard:
-            if record.id:
-                return record.write({})
-            else:
-                return record.create(
-                    self._convert_to_write(record, new=True)
-                )
-        return True
+            # Web changes execute, clear them
+            web_changes = []
+        return result
 
     def resource_download(
         self,
@@ -1703,6 +1869,37 @@ class MainTest(SingleTransactionCase):
         button_ctx={},
         field=None,
     ):
+        """Execute the data downlod.
+        Engage the specific download wizard and return the downloaded data.
+        Both parameters <module> and <action_name> must be issued in order to
+        call <wiz_by_action_name>; they are alternative to act_windows.
+
+        User action simulation:
+        The parameter <web_changes> is a list of user actions to execute sequentially.
+        Every element of the list is another list with 2 or 3 values:
+        * Field name to assign value
+        * Value to assign
+        * Optional function to execute (i.e. specific onchange)
+        If field is associate to an onchange function the relative onchange functions
+        are execute after value assignment. If onchange set another field with another
+        onchange the relative another onchange are executed until all onchange are
+        exhausted. This behavior is the same of the form editing.
+
+        Args:
+            module (str): module name for wizard to test; if "." use current module name
+            action_name (str): action name
+            act_windows (dict): Odoo windows action (do not issue module & action_name)
+            records (obj): objects required by the download wizard
+            default (dict): default value to assign
+            ctx (dict): context to pass to wizard during execution
+            button_name (str): function name to execute at the end of then wizard
+            web_changes (list): list of tuples (field, value); see above
+            button_ctx (dict): context to pass to button_name function
+            field (str): field name to download
+
+        Returns:
+            binary obj downloaded form field
+        """
         act_windows = self.wizard(
             module=module,
             action_name=action_name,
@@ -1740,22 +1937,61 @@ class MainTest(SingleTransactionCase):
         web_changes=[],
         button_ctx={},
     ):
-        """Execute full wizard in 1 step.
+        """Execute a full wizard.
 
-        Call <wizard_launch> or <wizard_launch_by_action_name>, then <wizard_execution>.
-        All parameters are passed to specific functions.
+        Engage the specific wizard, simulate user actions and return the wizard result,
+        usually a windows action.
+
+        It is useful to test:
+            * view names
+            * wizard structure
+            * wizard code
+
         Both parameters <module> and <action_name> must be issued in order to
-        call <wizard_by_action_name>.
+        call <wiz_by_action_name>; they are alternative to act_windows.
+
+        *** Example of use ***
+
+        XML view file:
+            <record id="action_example" model="ir.actions.act_window">
+                <field name="name">Example</field>
+                <field name="res_model">wizard.example</field>
+                [...]
+            </record>
+
+        Python code:
+            act_windows = self.wizard(module="module_example",
+                action_name="action_example", ...)
+            if self.is_action(act_windows):
+                act_windows = self.wizard(act_windows=act_windows, ...)
+
+        User action simulation:
+        The parameter <web_changes> is a list of user actions to execute sequentially.
+        Every element of the list is another list with 2 or 3 values:
+        * Field name to assign value
+        * Value to assign
+        * Optional function to execute (i.e. specific onchange)
+        If field is associate to an onchange function the relative onchange functions
+        are execute after value assignment. If onchange set another field with another
+        onchange the relative another onchange are executed until all onchange are
+        exhausted. This behavior is the same of the form editing.
 
         Args:
-            see above <wizard_launch>, <wizard_launch_by_action_name> and
-            <wizard_execution>
+            module (str): module name for wizard to test; if "." use current module name
+            action_name (str): action name
+            act_windows (dict): Odoo windows action (do not issue module & action_name)
+            records (obj): objects required by the download wizard
+            default (dict): default value to assign
+            ctx (dict): context to pass to wizard during execution
+            button_name (str): function name to execute at the end of then wizard
+            web_changes (list): list of tuples (field, value); see above
+            button_ctx (dict): context to pass to button_name function
 
         Returns:
-            Odoo wizard result; may be a windows action to engage another wizard
+            result of the wizard
 
         Raises:
-          ValueError: if invalid parameters issued
+            ValueError: if invalid parameters issued
         """
         if module and action_name:
             act_windows = self._wiz_launch_by_act_name(

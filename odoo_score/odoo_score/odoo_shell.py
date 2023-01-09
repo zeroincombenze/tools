@@ -13,7 +13,7 @@ import time
 from builtins import *  # noqa
 from builtins import input
 from datetime import date, datetime, timedelta
-import itertools
+# import itertools
 
 from future import standard_library
 from openpyxl import load_workbook

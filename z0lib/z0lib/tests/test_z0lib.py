@@ -10,7 +10,7 @@ import os
 # from zerobug import Z0test
 from z0lib import z0lib
 
-__version__ = "2.0.2.1"
+__version__ = "2.0.3"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1

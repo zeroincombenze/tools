@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio Maria Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-22 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-23 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -40,7 +40,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3.1
+__version__=2.0.4
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -149,8 +149,8 @@ cvt_file() {
         while [[ "${line: -1}" == " " ]]; do line="${line:0:-1}"; done
         [[ susp -lt 0 && $line =~ $break_susp ]] && ((susp=-susp)) && break_susp=""
         [[ susp -gt 0 ]] && ((susp--)) && continue
-        # line="${line/2021/2022}"
-        # line="${line/-21/-22}"
+        # line="${line/2021/2023}"
+        # line="${line/-21/-23}"
         if [[ $prc -lt 10 && $line =~ ^__version__=.* ]]; then
           if [[ $opt_keep -ne 0 ]]; then
             line_ver="$line"
@@ -583,14 +583,14 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Update bash script" \
-    "© 2016-22 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "© 2016-23 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
 [[ $opt_verbose -gt 1 ]] && set -x
 declare -A COPY
-COPY[z0lib]="© 2015-22 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
-COPY[travis_em]="© 2015-22 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+COPY[z0lib]="© 2015-23 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+COPY[travis_em]="© 2015-23 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
 [[ -z "$opt_id" ]] && opt_id=$(basename $(dirname $(readlink -f $bashscript)))
 [[ $opt_id == "tests" ]] && opt_id=$(basename $(dirname $(dirname $(readlink -f $bashscript))))
 ToRepeat=

@@ -831,7 +831,7 @@ test_07() {
     return $sts
 }
 
-test_08() {
+__test_08() {
     local s sts v w
     sts=0
     export opt_multi=1

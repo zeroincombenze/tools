@@ -4,7 +4,7 @@ import os
 import sys
 import argparse
 
-__version__ = '2.0.3.1'
+__version__ = '2.0.4'
 
 
 def main(cli_args=None):

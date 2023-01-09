@@ -1,5 +1,5 @@
-2.0.4.1 (2022-12-13)
-~~~~~~~~~~~~~~~~~~~~
+2.0.5 (2022-12-13)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] install_python_3_from_source.sh: now can install python 3.9
 * [IMP] please: action docs, minor improvements

@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3.1
+__version__=2.0.4
 
 #
 # General Purpose options:
@@ -1272,7 +1272,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = '$PRJNAME'
-copyright = '2022, $author'
+copyright = '2015-2023, $author'
 author = '$author'
 
 # The short X.Y version

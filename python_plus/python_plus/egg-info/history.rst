@@ -1,5 +1,5 @@
-2.0.4.1 (2022-12-23)
-~~~~~~~~~~~~~~~~~~~~
+2.0.5 (2022-12-23)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: refactoring version control
 * [IMP] vem: now amend can check current version (with -f switch)

@@ -14,7 +14,7 @@ from openpyxl import load_workbook, Workbook
 
 # from python_plus import unicodes
 
-__version__ = "2.0.3.1"
+__version__ = "2.0.4"
 
 
 MODULE_SEP = "\ufffa"
