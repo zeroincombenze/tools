@@ -1515,9 +1515,10 @@ do_export() {
   if [[ -z "$db" ]]; then
     DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
     DBs="^(${DBs:0: -1})\$"
-    for x in test_odoo_ tnl test demo; do
-      [[ $x =~ $DBs ]] && db="$x" && break
+    for x in "test_${module}" test_odoo_ tnl test demo; do
+      [[ ${x}_$m =~ $DBs ]] && db="${x}_$m" && break
       [[ $x$m =~ $DBs ]] && db="$x$m" && break
+      [[ $x =~ $DBs ]] && db="$x" && break
     done
   fi
   if [[ -z "$db" ]]; then
@@ -1531,7 +1532,9 @@ do_export() {
   # [[ -n "$dbdt" ]] && dbdt=$(date -d "$dbdt" +"%s") || dbdt="999999999999999999"
   # podt=$(stat -c "%Y" $pofile)
   # ((dbdt < podt)) && run_traced "run_odoo_debug -b$odoo_fver -usm $module -d $db"
-  run_traced "run_odoo_debug -b$odoo_fver -em $module -d $db"
+  dbdt=$(psql -U$u -Atc "select value from ir_config_parameter where key='database.create_date'" $db)
+  podt=$(grep "PO-Revision-Date:" $pofile | grep -Eo "[0-9]{4}-[0-9]{2}-[0-9]{2}.[0-9]{2}:[0-9]{2}")
+  [[ $opt_force -ne 0 || $dbdt > $podt ]] && run_traced "run_odoo_debug -b$odoo_fver -em $module -d $db" || echo "PO file more recent of DB: use -f to force export or choise another DB"
   sts=$?
   return $sts
 }
@@ -1616,21 +1619,8 @@ do_translate() {
   fi
   confn=$(readlink -f $HOME_DEVEL/../clodoo/confs)/${odoo_fver/./-}.conf
   [[ ! -f $confn ]] && echo "Configuration file $confn not found!" && return $sts
-#  db="$opt_db"
-#  u=$(get_dbuser $m)
-#  if [[ -z "$db" ]]; then
-#    DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
-#    DBs="^(${DBs:0: -1})\$"
-#    for x in test_odoo_ tnl test demo; do
-#      [[ $x =~ $DBs ]] && db="$x" && break
-#      [[ $x$m =~ $DBs ]] && db="$x$m" && break
-#    done
-#  fi
-#  if [[ -z "$db" ]]; then
-#    echo "No DB matched! use:"
-#    echo "$0 translate -d DB"
-#    return $STS_FAILED
-#  fi
+  echo "$0 translate -d DB"
+  do_export
   [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
   [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
   run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -c $confn -p $pofile"

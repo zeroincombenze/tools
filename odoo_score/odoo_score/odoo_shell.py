@@ -247,36 +247,34 @@ def param_date(param, date_field=None, ctx=ctx):
     date_field: Odoo model field with date to manage (means return domain)
     """
     if param == '?':
-        date_ids = False
+        domain = False
+    elif not param:
+        day = datetime.now().day
+        month = datetime.now().month
+        year = datetime.now().year
+        if day < 15:
+            month -= 1
+            if month < 1:
+                month = 12
+                year -= 1
+        day = 1
+        from_date = '%04d-%02d-%02d' % (year, month, day)
+        domain = [(date_field, '>=', from_date)]
+    elif param.isdigit():
+        domain = [('id', '=', int(param))]
+    elif "," in param:
+        domain = [('id', 'in', [int(x) for x in param.split(",")])]
+    elif param and param.startswith('+'):
+        date_ids = date.strftime(
+            date.today() - timedelta(eval(param)), '%04Y-%02m-%02d'
+        )
+        domain = [(date_field, '>=', date_ids)]
+    elif ".." in param:
+        domain = [(date_field, '>=', param.split("..")[0]),
+                  (date_field, '<=', param.split("..")[1])]
     else:
-        if param and param.startswith('+'):
-            date_ids = date.strftime(
-                date.today() - timedelta(eval(param)), '%04Y-%02m-%02d'
-            )
-        else:
-            day = datetime.now().day
-            month = datetime.now().month
-            year = datetime.now().year
-            if day < 15:
-                month -= 1
-                if month < 1:
-                    month = 12
-                    year -= 1
-            day = 1
-            from_date = '%04d-%02d-%02d' % (year, month, day)
-            date_ids = param or from_date
-
-        if date_field:
-            if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
-                domain = [(date_field, '>=', date_ids)]
-            else:
-                date_ids = eval(date_ids)
-                if isinstance(date_ids, (int, long)):
-                    domain = [('id', 'in', [date_ids])]
-                else:
-                    domain = [('id', 'in', date_ids)]
-            return domain
-    return date_ids
+        domain = [(date_field, '>=', param)]
+    return domain
 
 
 def param_mode_commission(param):
@@ -354,6 +352,112 @@ def order_inv_group_by_partner(ctx):
     print('%d sale order updated' % ctr)
 
 
+def make_refund_for_wrong_delivery(ctx):
+    print('Make refund from wrong delivery')
+
+    resource_inv = 'account.invoice'
+    # resource_invline = 'account.invoice.line'
+    # resource_so = 'sale.order'
+    # resource_soline = 'sale.order.line'
+    resource_carrier = 'delivery.carrier'
+    resource_company = 'res.company'
+
+    if ctx['param_1'] == 'help':
+        print('Make refund from wrong delivery [FROM_DATE|+DAYS|IDS]')
+        return
+    domain = param_date(ctx['param_1'], date_field='date_invoice')
+    domain.append(('type', '=', 'out_invoice'))
+
+    shipping_ids = []
+    for delivery in clodoo.browseL8(ctx, resource_carrier,
+                                    clodoo.searchL8(ctx, resource_carrier, [])):
+        shipping_ids.append(delivery.product_id.id)
+    conai_product_ids = []
+    for company in clodoo.browseL8(ctx, resource_company,
+                                   clodoo.searchL8(ctx, resource_company, [])):
+        if (
+            hasattr(company, 'conai_product_id')
+            and not callable(company.conai_product_id)
+            and company.conai_product_id
+        ):
+            conai_product_ids.append(company.conai_product_id.id)
+
+    ctr_read = ctr_upd = ctr_wrong = 0
+    invoices = {}
+    for inv in clodoo.browseL8(ctx, resource_inv,
+                               clodoo.searchL8(ctx, resource_inv, domain)):
+        msg_burst('%s (%d/%d) ...' % (inv.number, ctr_upd, ctr_read))
+        ctr_read += 1
+        has_ddt = True
+        for ln in inv.invoice_line_ids:
+            msg_burst('%s (%d/%d) - %s ...'
+                      % (inv.number, ctr_upd, ctr_read, ln.name[:40]))
+            if (
+                ln.product_id
+                and ln.product_id.id not in shipping_ids
+                and ln.product_id.id not in conai_product_ids
+                and not ln.ddt_line_id
+            ):
+                has_ddt = False
+                break
+        if not has_ddt:
+            continue
+
+        ddts = {}
+        last_ddt_id = False
+        for ln in inv.invoice_line_ids:
+            msg_burst('%s (%d/%d) - %s ...'
+                      % (inv.number, ctr_upd, ctr_read, ln.name[:40]))
+            if (
+                ln.product_id and (
+                    ln.product_id.id in shipping_ids
+                    or ln.product_id.id in conai_product_ids)
+            ):
+                ctr_read += 1
+                if ddts[last_ddt_id]:
+                    if inv.partner_id.id not in invoices:
+                        invoices[inv.partner_id.id] = []
+                    invoices[inv.partner_id.id].append(ln)
+                    ctr_wrong += 1
+                ddts[last_ddt_id] = True
+            else:
+                if ln.ddt_line_id.package_preparation_id:
+                    last_ddt_id = ln.ddt_line_id.package_preparation_id.id
+                    if last_ddt_id not in ddts:
+                        ddts[last_ddt_id] = False
+
+    for line_ids in invoices.values():
+        inv = False
+        vals = {}
+        for ln in line_ids:
+            if not inv:
+                inv = ln.invoice_id
+                vals['type'] = 'out_refund'
+                vals['account_id'] = inv.account_id.id
+                vals['company_id'] = inv.company_id.id
+                vals['fiscal_position_id'] = inv.fiscal_position_id.id or False
+                vals['journal_id'] = inv.journal_id.id
+                vals['partner_id'] = inv.partner_id.id
+                vals['invoice_line_ids'] = []
+                vals['origin'] = ''
+            vals['origin'] += (' %s' % inv.number)
+            line_vals = {
+                'account_id': ln.account_id.id,
+                'product_id': ln.product_id.id,
+                'discount': ln.discount,
+                'invoice_line_tax_ids': [6, 0, [x.id for x in ln.invoice_line_tax_ids]],
+                'name': ln.name,
+                'origin': inv.number,
+                'price_unit': ln.price_unit,
+                'quantity': ln.quantity,
+                'uom_id': ln.uom_id.id,
+            }
+            vals['invoice_line_ids'].append((0, 0, line_vals))
+        clodoo.createL8(ctx, resource_inv, vals)
+        ctr_upd += 1
+    print('%d sale order updated of %d read!' % (ctr_upd, ctr_read))
+
+
 def close_sale_orders(ctx):
     print('Close sale orders with linked invoice')
 
@@ -386,7 +490,7 @@ def close_sale_orders(ctx):
         ):
             conai_product_ids.append(company.conai_product_id.id)
 
-    ctr_read = ctr_upd = 0
+    ctr_read = ctr_upd = ctr_wrong = 0
     if sel_state != 'both':
         domain.append(('invoice_status', '=', sel_state))
     for so in clodoo.browseL8(ctx, resource_so,
@@ -414,6 +518,14 @@ def close_sale_orders(ctx):
                         ln.product_id.id in shipping_ids
                         or ln.product_id.id in conai_product_ids)
                 ):
+                    if not so.carrier_id or so.carrier_id.product_id != ln.product_id:
+                        print("*** Order %s - '%s' - Inv. %s - multiple amount %s ***"
+                              % (so.name,
+                                 ln.name[:40],
+                                 (ln.invoice_lines
+                                  and ln.invoice_lines[0].invoice_id.number),
+                                 ln.price_subtotal))
+                        ctr_wrong += 1
                     if ln.qty_invoiced != ln.product_qty:
                         clodoo.writeL8(ctx,
                                        resource_line,
@@ -427,8 +539,9 @@ def close_sale_orders(ctx):
 
                 if ln.invoice_lines:
                     continue
-                print("\nSO=%s - %s\n" % (so.name, ln.name))
                 invoice_status = 'to invoice'
+                if so.invoice_status != invoice_status:
+                    print("\nSO=%s - %s\n" % (so.name, ln.name[:40]))
                 break
 
         if so.invoice_status != invoice_status:

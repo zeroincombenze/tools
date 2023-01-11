@@ -1,7 +1,7 @@
 
-================
-wok_code 2.0.3.1
-================
+==============
+wok_code 2.0.4
+==============
 
 
 
@@ -845,8 +845,8 @@ Current development version
 History
 -------
 
-2.0.4.1 (2022-12-13)
-~~~~~~~~~~~~~~~~~~~~
+2.0.5 (2022-12-13)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] install_python_3_from_source.sh: now can install python 3.9
 * [IMP] please: action docs, minor improvements
@@ -942,7 +942,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-08
+Last Update / Ultimo aggiornamento: 2023-01-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

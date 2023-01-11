@@ -144,11 +144,11 @@ update_odoo_conf() {
 }
 
 
-OPTOPTS=(h        b         c         D        E       G       L        n            P       S        T        t        U        V           v)
-OPTDEST=(opt_help odoo_vid  opt_confn opt_ucfg opt_osf opt_org opt_flog opt_dry_run  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
-OPTACTI=("+"      "=>"      "=>"      1        "=>"    "="     "=>"     1            "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
-OPTDEFL=(1        ""        ""        0        ""      ""      ""       0            ""      0        ""       ""       "odoo"   ""          0)
-OPTMETA=("help"   "vid"     "file"    ""       "linux" "id"    "file"   "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
+OPTOPTS=(h        b         c         D        E       G       L        M        n            P       S        T        t        U        V           v)
+OPTDEST=(opt_help odoo_vid  opt_confn opt_ucfg opt_osf opt_org opt_flog opt_main opt_dry_run  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
+OPTACTI=("+"      "=>"      "=>"      1        "=>"    "="     "=>"     1        1            "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
+OPTDEFL=(1        ""        ""        0        ""      ""      ""       0        0            ""      0        ""       ""       "odoo"   ""          0)
+OPTMETA=("help"   "vid"     "file"    ""       "linux" "id"    "file"   ""       "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
  "select odoo version id: may be 6, 7, 8, 9, 10, 11, 12 or 13"
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"
@@ -156,6 +156,7 @@ OPTHELP=("this help"\
  "select linux distribution: RHEL or Debian (default is current platform)"
  "set id name (odoo or openerp, default is odoo)"
  "set odoo log filename (default /var/log/{id_name}/{id_name}-server).log"
+ "mono-version Odoo instance"
  "do nothing (dry-run)"
  "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"
  "use sudo to execute command instead of start-stop-daemon (only Debian)"
@@ -177,7 +178,7 @@ if [[ $opt_help -gt 0 ]]; then
   exit 0
 fi
 # discover_multi
-opt_multi=1
+[[ $opt_main -ne 0 ]] && opt_multi=0 || opt_multi=1
 [[ -z $opt_confn ]] && echo "Missed configuration file!" && exit 1
 script_name=$(basename $opt_confn)
 [[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
