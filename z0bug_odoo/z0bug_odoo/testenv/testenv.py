@@ -290,7 +290,7 @@ class MainTest(SingleTransactionCase):
             self.convey_record[resource] = {}
         self.convey_record[resource][field] = convey
 
-    def _add_conveyed_xref(self, xref, conveyed_xref, resource=None, group=None):
+    def add_alias_xref(self, xref, conveyed_xref, resource=None, group=None):
         self._logger.info(
             "⚠ xref '%s' -> '%s'" % (xref, conveyed_xref)
         )
@@ -592,7 +592,7 @@ class MainTest(SingleTransactionCase):
     # --------------------------------
 
     def _cast_field_integer(self, resource, field, value, fmt=None, group=None):
-        if isinstance(value, basestring):
+        if value and isinstance(value, basestring):
             value = int(value)
         return value
 
@@ -604,7 +604,7 @@ class MainTest(SingleTransactionCase):
     # ------------------------------
 
     def _cast_field_float(self, resource, field, value, fmt=None, group=None):
-        if isinstance(value, basestring):
+        if value and isinstance(value, basestring):
             value = eval(value)
         return value
 
@@ -1709,13 +1709,13 @@ class MainTest(SingleTransactionCase):
             if not add_alias:
                 self.add_xref(xref, "res.company", company.id)       # pragma: no cover
             elif not self.env.ref(xref, raise_if_not_found=False):
-                self._add_conveyed_xref(
+                self.add_alias_xref(
                     xref, "base.main_company", resource="res.company", group=group)
         if partner_xref:
             if not add_alias:                                        # pragma: no cover
                 self.add_xref(partner_xref, "res.partner", company.partner_id.id)
             elif not self.env.ref(partner_xref, raise_if_not_found=False):
-                self._add_conveyed_xref(
+                self.add_alias_xref(
                     partner_xref, "base.main_partner",
                     resource="res.partner", group=group)
         if self.env.user.company_id != company:

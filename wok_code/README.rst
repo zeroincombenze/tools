@@ -1,6 +1,6 @@
 
 ==============
-wok_code 2.0.2
+wok_code 2.0.4
 ==============
 
 
@@ -845,6 +845,32 @@ Current development version
 History
 -------
 
+2.0.5 (2022-12-13)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] install_python_3_from_source.sh: now can install python 3.9
+* [IMP] please: action docs, minor improvements
+* [IMP] deply_odoo: format output list
+
+2.0.4 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] deploy_odoo: update from path
+* [FIX] build_cmd: best recognition of python version
+* [FIX] set_python_version.sh: best recognition of python version
+
+2.0.3 (2022-11-22)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] odoo_translation
+
+2.0.2.1 (2022-10-31)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lint_2_compare: ignoring .git .idea egg-info and setup directories
+* [IMP] lint_2_compare: new ignore switches
+* [FIX] please translate: do not execute export
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
@@ -916,7 +942,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-31
+Last Update / Ultimo aggiornamento: 2023-01-13
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

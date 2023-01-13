@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Usage &#8212; z0bug_odoo 2.0.2 documentation</title>
+    <title>Usage &#8212; z0bug_odoo 2.0.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="rtd_installation.html" title="&lt;no title&gt;"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
       </ul>
     </div>  
@@ -97,56 +97,790 @@ you are hinted to set self.debug_level = 3; then you can decrease the debug leve
 when you are developing stable tests.
 Final code should have self.debug_level = 0.
 TestEnv logs debug message with symbol “🐞 ” so you can easily recognize them.</p>
-<p>Following function are avaiable.</p>
-<p><cite>set_test_company(self)</cite></p>
-<p>Create or update company to test and assign it to current user as default company. This function should be put in setUp().</p>
-<p><cite>create_id(model, values)</cite></p>
-<p>Create a record of the model and return id (like Odoo 7.0- API).</p>
-<p><cite>create_rec(model, values)</cite></p>
-<p>Create a record of the model and return record itself (like Odoo 8.0+ API).</p>
-<p><cite>write_rec(model, id, values)</cite></p>
-<p>Write the record of model with passed id and return record itself.</p>
-<p><cite>browse_rec(model, id)</cite></p>
-<p>Return the record of model with passed id.</p>
-<p><cite>env612(model)</cite></p>
-<p>Return env/pool of model (like pool of Odoo 7.0- API or env of Odoo 8.0+ API)</p>
-<p><cite>ref_value(model, xid)</cite></p>
-<p>Return values of specific xid. If xid is Odoo standard xid, i.e. “base.res_partner_1”,
-return current record values that may be different from original demo data.
-If xid begins with “z0bug.” return default values even if they are update form previous tests.
-See valid xid from this document.</p>
-<p><cite>build_model_data(model, xrefs)</cite></p>
-<p>Assure records of model with reference list xrefs.
-For every item of xrefs, a record is created o updated.
-Function ref_value is used to retrieve values of each record (see above).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="c1">#</span>
-<span class="c1"># Copyright 2017-23 - SHS-AV s.r.l. &lt;https://www.zeroincombenze.it&gt;</span>
-<span class="c1">#</span>
-<span class="c1"># License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).</span>
-<span class="c1">#</span>
-<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0testOdoo</span>
-
-<span class="k">class</span> <span class="nc">ExampleTest</span><span class="p">():</span>
-
-    <span class="k">def</span> <span class="nf">test_example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">Z0bugOdoo</span><span class="p">()</span><span class="o">.</span><span class="n">get_test_values</span><span class="p">(</span>
-            <span class="s1">&#39;res.partner&#39;</span><span class="p">,</span><span class="s1">&#39;z0bug.res_partner_1&#39;</span><span class="p">)</span>
+<p>Ths TestEnv software requires:</p>
+<ul class="simple">
+<li><p>python_plus PYPI package</p></li>
+<li><p>z0bug_odoo PYPI package</p></li>
+<li><p>python 2.7 / 3.6 / 3.7 / 3.8</p></li>
+</ul>
+<div class="section" id="model-data-declaration">
+<h2>Model data declaration<a class="headerlink" href="#model-data-declaration" title="Permalink to this heading"></a></h2>
+<p>Each model is declared in a dictionary which key which is the external
+reference used to retrieve the record.
+i.e. the following record is named ‘z0bug.partner1’ in res.partner:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST_RES_PARTNER</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alpha&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;street&quot;</span><span class="p">:</span> <span class="s2">&quot;1, First Avenue&quot;</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+<span class="p">)</span>
 </pre></div>
 </div>
-<p><cite>get_test_values(self, model, xid)</cite></p>
-<p>Return values of specific xid. If xid is Odoo standard xid, i.e. “base.res_partner_1”,
-return empty dictionary.
-If xid begins with “z0bug.” return default values to use in test.
-This function is used by <cite>ref_value</cite> to get default values.
-Warning: returned values may contain some field of uninstalled module.</p>
-<p><cite>get_data_file(self, model, csv_fn)</cite></p>
-<p>Load data of model from csv_fn. Internal use only.</p>
+<p>Please, do not to declare ‘product.product’ records: they are automatically
+created as child of ‘product.template’. The external reference must contain
+the pattern ‘_template’ (see below).</p>
+</div>
+<div class="section" id="magic-relationship">
+<h2>Magic relationship<a class="headerlink" href="#magic-relationship" title="Permalink to this heading"></a></h2>
+<p>Some models/tables should be managed together, i.e. ‘account.move’ and ‘account.move.line’.
+TestEnv manages these models/tables, called header/detail, just as a single object.
+Where header record is created, all detail lines are created with header.
+To do this job you must declare external reference as explained below (external reference).</p>
+<p>Warning: you must declare header and lines data before create header record.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST_SALE_ORDER</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.order_1&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">TEST_SALE_ORDER_LINE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.order_1_1&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">TEST_SETUP_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;sale.order&quot;</span><span class="p">,</span> <span class="s2">&quot;sale.order.line&quot;</span><span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;TEST_SETUP_LIST&quot;</span><span class="p">:</span> <span class="n">TEST_SETUP_LIST</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">resource</span> <span class="ow">in</span> <span class="n">TEST_SETUP_LIST</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="s2">&quot;TEST_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">resource</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">item</span><span class="p">]</span>
+        <span class="c1"># Declare order data in specific group to isolate data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_all_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s2">&quot;order&quot;</span><span class="p">)</span>
+        <span class="c1"># Create the full sale order with lines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resource_make</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xref</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s2">&quot;order&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Another magic relationship is the ‘product.template’ (product) / ‘product.product’ (variant) relationship.
+Whenever a ‘product.template’ (product) record is created,
+Odoo automatically creates one variant (child) record for ‘product.product’.
+If your test module does not need to manage product variants you can avoid to declare
+‘product.product’ data even if this model is used in your test data.</p>
+<p>For example, you have to test ‘sale.order.line’ which refers to ‘product.product’.
+You simply declare a ‘product.template’ record with external reference user “_template”
+magic text.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST_PRODUCT_TEMPLATE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.product_template_1&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Product alpha&quot;</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="n">TEST_SALE_ORDER_LINE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.order_1_1&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="s2">&quot;z0bug.product_product_1&quot;</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="c1"># Get &#39;product.template&#39; record</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">resource_bind</span><span class="p">(</span><span class="s2">&quot;z0bug.product_template_1&quot;</span><span class="p">)</span>
+<span class="c1"># Get &#39;product.product&#39; record</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">resource_bind</span><span class="p">(</span><span class="s2">&quot;z0bug.product_product_1&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="external-reference">
+<h2>External reference<a class="headerlink" href="#external-reference" title="Permalink to this heading"></a></h2>
+<p>Every record is tagged by an external reference.
+The external reference may be:</p>
+<ul class="simple">
+<li><p>Ordinary Odoo external reference (a), format “module.name”</p></li>
+<li><p>Test reference, format “z0bug.name” (b)</p></li>
+<li><p>Key value, format “external.key” (c)</p></li>
+<li><p>2 keys reference, for header/detail relationship (d)</p></li>
+<li><p>Magic reference for ‘product.template’ / ‘product.product’ (e)</p></li>
+</ul>
+<p>Ordinary Odoo external reference (a) is a record of ‘ir.model.data’;
+you can see them from Odoo GUI interface.</p>
+<p>Test reference (b) are visible just in the test environment.
+They are identified by “z0bug.” prefix module name.</p>
+<p>External key reference (c) is identified by “external.” prefix followed by
+the key value used to retrieve the record.
+The field “code” or “name” are used to search record;
+for account.tax the “description” field is used.
+Please set self.debug_level = 2 (or more) to log these field keys.</p>
+<p>The 2 keys reference (d) needs to address child record inside header record
+at 2 level model (header/detail) relationship.
+The key MUST BE the same key of the parent record,
+plus “_”, plus line identifier (usually ‘sequence’ field).
+i.e. “z0bug.move_1_3” means: line with sequence 3 of ‘account.move.line’
+which is child of record “z0bug.move_1” of ‘account.move’.
+Please set self.debug_level = 2 (or more) to log these relationships.</p>
+<p>For ‘product.template’ (product) you must use ‘_template’ text in reference (e).
+TestEnv inherit ‘product.product’ (variant) external reference (read above ‘Magic relationship).</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST_ACCOUNT_ACCOUNT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.customer_account&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="n">ext_ref</span> <span class="o">=</span> <span class="s2">&quot;external.</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">[</span><span class="s2">&quot;account.account].search(...)[0].id</span>
+
+<span class="bp">self</span><span class="o">.</span><span class="n">resource_edit</span><span class="p">(</span>
+    <span class="n">partner</span><span class="p">,</span>
+    <span class="n">web_changes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;country_id&quot;</span><span class="p">,</span> <span class="s2">&quot;base.it&quot;</span><span class="p">),</span>       <span class="c1"># Odoo external reference (a)</span>
+        <span class="p">(</span><span class="s2">&quot;property_account_receivable_id&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;z0bug.customer_account&quot;</span><span class="p">),</span>      <span class="c1"># Test reference (b)</span>
+        <span class="p">(</span><span class="s2">&quot;property_account_payable_id&quot;</span><span class="p">,</span>
+         <span class="n">ext_ref</span><span class="p">),</span>                       <span class="c1"># External key (c)</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="module-test-execution-workflow">
+<h2>Module test execution workflow<a class="headerlink" href="#module-test-execution-workflow" title="Permalink to this heading"></a></h2>
+<p>Module test execution workflow should be:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Data declaration, in setUp() function</p></li>
+<li><p>Base data creation, in setUp() function</p></li>
+<li><p>Supplemental data declaration</p></li>
+<li><p>Supplemental data creation</p></li>
+</ol>
+</div></blockquote>
+<p>Test data may be managed by one or more data group; if not declared,
+“base” group name is used. The “base” group must be created at the setUp()
+level: it is the base test data.
+Testing function may declare and manage other group data. Look at the
+following example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">.testenv</span> <span class="kn">import</span> <span class="n">MainTest</span> <span class="k">as</span> <span class="n">SingleTransactionCase</span>
+
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">TEST_PRODUCT_TEMPLATE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.product_template_1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
+<span class="p">}</span>
+<span class="n">TEST_RES_PARTNER</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="n">TEST_SETUP_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;res.partner&quot;</span><span class="p">,</span> <span class="s2">&quot;product.template&quot;</span><span class="p">]</span>
+
+<span class="n">TEST_SALE_ORDER</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.order_1&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;partner_id&quot;</span><span class="p">:</span> <span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">TEST_SALE_ORDER_LINE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;z0bug.order_1_1&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="s2">&quot;z0bug.product_product_1&quot;</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="c1"># Add following statement just for get debug information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;TEST_SETUP_LIST&quot;</span><span class="p">:</span> <span class="n">TEST_SETUP_LIST</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">resource</span> <span class="ow">in</span> <span class="n">TEST_SETUP_LIST</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="s2">&quot;TEST_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">resource</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">item</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_all_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>     <span class="c1"># TestEnv swallows the data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_env</span><span class="p">()</span>                <span class="c1"># Create test environment</span>
+
+    <span class="k">def</span> <span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;TEST_SETUP_LIST&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;sale.order&quot;</span><span class="p">,</span> <span class="s2">&quot;sale.order.line&quot;</span><span class="p">]}</span>
+        <span class="k">for</span> <span class="n">resource</span> <span class="ow">in</span> <span class="n">TEST_SETUP_LIST</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="s2">&quot;TEST_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">resource</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">item</span><span class="p">]</span>
+        <span class="c1"># Declare order data in specific group to isolate data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_all_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s2">&quot;order&quot;</span><span class="p">)</span>
+        <span class="c1"># Create the full sale order with lines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resource_make</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xref</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s2">&quot;order&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note the external reference are globals and they are visible from any group
+while the data is visible just inside group.
+You can manage specific table/model data or table/model data group.</p>
+</div>
+<div class="section" id="data-values">
+<h2>Data values<a class="headerlink" href="#data-values" title="Permalink to this heading"></a></h2>
+<p>Data values may be raw data (string, number, dates, etc.) or external reference
+or some macro.
+You can declare data value on your own but you can discover th full test environment
+in <a class="reference external" href="https://github.com/zeroincombenze/zerobug-test/mk_test_env/">https://github.com/zeroincombenze/zerobug-test/mk_test_env/</a> and get data
+from this environment.</p>
+</div>
+<div class="section" id="company-id">
+<h2>company_id<a class="headerlink" href="#company-id" title="Permalink to this heading"></a></h2>
+<p>If value is empty, user company is used. This behavior is
+not applied on “res.users” models.
+Fot the “product.product”, “product.template” and “res.partner” is searched
+for company or null value.</p>
+</div>
+<div class="section" id="boolean">
+<h2>boolean<a class="headerlink" href="#boolean" title="Permalink to this heading"></a></h2>
+<p>You can declare boolean value:</p>
+<ul class="simple">
+<li><p>by python boolean False or True</p></li>
+<li><p>by integer 0 o 1</p></li>
+<li><p>by string “0” / “False” or “1” / “True”</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
+    <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
+    <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">{</span>
+         <span class="p">{</span>
+            <span class="o">...</span>
+            <span class="s2">&quot;supplier&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;customer&quot;</span><span class="p">:</span> <span class="s2">&quot;True&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;is_company&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="char-text">
+<h2>char / text<a class="headerlink" href="#char-text" title="Permalink to this heading"></a></h2>
+<p>Char and Text values are python string; please use unicode whenever is possible.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
+    <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
+    <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">{</span>
+         <span class="p">{</span>
+            <span class="o">...</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alpha&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;street&quot;</span><span class="p">:</span> <span class="s2">&quot;1, First Avenue&quot;</span><span class="p">,</span>
+            <span class="o">...</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="integer-float-monetary">
+<h2>integer / float / monetary<a class="headerlink" href="#integer-float-monetary" title="Permalink to this heading"></a></h2>
+<p>Integer, Floating and Monetary values are python integer or float.
+If numeric value is issued as string, it is internally converted
+as integer/float.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
+    <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
+    <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">{</span>
+         <span class="p">{</span>
+            <span class="o">...</span>
+            <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;credit_limit&quot;</span><span class="p">:</span> <span class="mf">500.0</span><span class="p">,</span>
+            <span class="s2">&quot;payment_token_count&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="date-datetime">
+<h2>date / datetime<a class="headerlink" href="#date-datetime" title="Permalink to this heading"></a></h2>
+<p>Date and Datetime value are managed in special way.
+They are processed by compute_date() function (read below).
+You can issue a single value or a 2 values list, 1st is the date,
+2nd is the reference date.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
+    <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
+    <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">{</span>
+         <span class="p">{</span>
+            <span class="o">...</span>
+            <span class="s2">&quot;activity_date_deadline&quot;</span><span class="p">:</span> <span class="s2">&quot;####-1&gt;-##&quot;</span><span class="p">,</span>    <span class="c1"># Next month</span>
+            <span class="s2">&quot;signup_expiration&quot;</span><span class="p">:</span> <span class="s2">&quot;###&gt;-##-##&quot;</span><span class="p">,</span>         <span class="c1"># Next year</span>
+            <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>                                <span class="c1"># Yesterday</span>
+            <span class="s2">&quot;last_time_entries_checked&quot;</span><span class="p">:</span>
+                <span class="p">[</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">another_date</span><span class="p">],</span>                    <span class="c1"># 2 days after another day</span>
+            <span class="s2">&quot;message_last_post&quot;</span><span class="p">:</span> <span class="s2">&quot;2023-06-26&quot;</span><span class="p">,</span>         <span class="c1"># Specific date</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="many2one">
+<h2>many2one<a class="headerlink" href="#many2one" title="Permalink to this heading"></a></h2>
+<p>You can issue an integer (if you exactly know the ID)
+or an external reference. Read above about external reference.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
+    <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
+    <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">{</span>
+         <span class="p">{</span>
+            <span class="o">...</span>
+            <span class="s2">&quot;country_id&quot;</span><span class="p">:</span> <span class="s2">&quot;base.it&quot;</span><span class="p">,</span>                   <span class="c1"># Odoo external reference</span>
+            <span class="s2">&quot;property_account_payable_id&quot;</span><span class="p">:</span>
+                <span class="s2">&quot;z0bug.customer_account&quot;</span><span class="p">,</span>              <span class="c1"># Test record</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;external.Mister&quot;</span>                 <span class="c1"># Record with name==&quot;Mister&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="one2many-many2many">
+<h2>one2many / many2many<a class="headerlink" href="#one2many-many2many" title="Permalink to this heading"></a></h2>
+<p>The one2many and many2many field may contains one or more ID;
+every ID use the many2one notation using external reference.
+Value may be a string (just 1 value) or a list.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
+    <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
+    <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">{</span>
+         <span class="p">{</span>
+            <span class="o">...</span>
+            <span class="s2">&quot;bank_ids&quot;</span><span class="p">:</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;base.bank_partner_demo&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;base_iban.bank_iban_china_export&quot;</span><span class="p">,</span>
+                <span class="p">],</span>
+            <span class="s2">&quot;category_id&quot;</span><span class="p">:</span> <span class="s2">&quot;base.res_partner_category_0&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="binary">
+<h2>binary<a class="headerlink" href="#binary" title="Permalink to this heading"></a></h2>
+<p>Binary file are supplied with os file name. Test environment load file and
+get binary value. File must be located in ./tests/data directrory.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
+    <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
+    <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">{</span>
+         <span class="p">{</span>
+            <span class="o">...</span>
+            <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="s2">&quot;z0bug.partner1.png&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="functions">
+<h1>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h1>
+<div class="section" id="store-resource-data">
+<h2>store_resource_data<a class="headerlink" href="#store-resource-data" title="Permalink to this heading"></a></h2>
+<p>Store a record data definition for furthermore use.
+Data stored is used by setup_env() function and/or by:</p>
+<ul class="simple">
+<li><p>resource_create() without values</p></li>
+<li><p>resource_write() without values</p></li>
+<li><p>resource_make() without values</p></li>
+</ul>
+<p>def store_resource_data(self, resource, xref, values, group=None, name=None):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>resource (str): Odoo model name
+xref (str): external reference
+values (dict): record data
+group (str): used to manager group data; default is “base”
+name (str): label of dataset; default is resource name</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="compute-date">
+<h2>compute_date<a class="headerlink" href="#compute-date" title="Permalink to this heading"></a></h2>
+<p>Compute date or datetime against today or a reference date. Date may be:</p>
+<ul class="simple">
+<li><p>python date/datetime value</p></li>
+<li><p>string with ISO format “YYYY-MM-DD” / “YYYY-MM-DD HH:MM:SS”</p></li>
+<li><p>string value that is a relative date against today / reference date</p></li>
+</ul>
+<p>Relative string format is like ISO, with 3 groups separated by ‘-‘ (dash).
+Every group may be an integer or a special notation:</p>
+<ul class="simple">
+<li><p>starting with ‘&lt;’ meas subtract; i.e. ‘&lt;2’ means minus 2</p></li>
+<li><p>ending with ‘&gt;’ meas add; i.e. ‘2&gt;’ means plus 2</p></li>
+<li><p>‘#’ with ‘&lt;’ or ‘&gt;’ means 1; i.e. ‘&lt;###’ means minus 1</p></li>
+<li><p>all ‘#’ means same value of reference date</p></li>
+</ul>
+<p>A special notation ‘+N’ and ‘-N’, where N is an integer means add N days
+or subtract N day from reference date.
+Here, in following examples, are used python iso date convention:</p>
+<ul class="simple">
+<li><p>‘+N’: return date + N days to refdate (python timedelta)</p></li>
+<li><p>‘-N’: return date - N days from refdate (python timedelta)</p></li>
+<li><p>‘%Y-%m-%d’: strftime of issued value</p></li>
+<li><p>‘%Y-%m-%dT%H:%M:%S’: same datetime</p></li>
+<li><p>‘%Y-%m-%d %H:%M:%S’: same datetime</p></li>
+<li><p>‘####-%m-%d’: year from refdate (or today), month ‘%m’, day ‘%d’</p></li>
+<li><p>‘####-##-%d’: year and month from refdate (or today), day ‘%d’</p></li>
+<li><p>‘2022-##-##’: year 2022, month and day from refdate (or today)</p></li>
+<li><p>‘&lt;###-%m-%d’: year -1  from refdate (or today), month ‘%m’, day ‘%d’</p></li>
+<li><p>‘&lt;001-%m-%d’: year -1  from refdate (or today), month ‘%m’, day ‘%d’</p></li>
+<li><p>‘&lt;###-#&gt;-%d’: year -1  from refdate, month +1 from refdate, day ‘%d’</p></li>
+<li><p>‘&lt;005-2&gt;-##’: year -5, month +2 and day from refdate</p></li>
+</ul>
+<dl class="simple">
+<dt>Notes:</dt><dd><p>Returns a ISO format string.
+Returned date is always a valid date; i.e. ‘####-#&gt;-31’,
+with ref month January result ‘####-02-31’ becomes ‘####-03-03’
+To force last day of month, set ‘99’: i.e. ‘####-&lt;#-99’ becomes the
+last day of previous month of refdate</p>
+</dd>
+</dl>
+<p>def compute_date(self, date, refdate=None):</p>
+<blockquote>
+<div><p>date (date or string or integer): formula; read aboove
+refdate (date or string): reference date</p>
+</div></blockquote>
+</div>
+<div class="section" id="resource-bind">
+<h2>resource_bind<a class="headerlink" href="#resource-bind" title="Permalink to this heading"></a></h2>
+<p>Bind record by xref or searching it or browsing it.
+This function returns a record using issued parameters. It works in follow ways:</p>
+<ul class="simple">
+<li><p>With valid xref it work exactly like self.env.ref()</p></li>
+<li><p>If xref is an integer it works exactly like self.browse()</p></li>
+<li><dl class="simple">
+<dt>I xref is invalid, xref is used to search record</dt><dd><ul>
+<li><p>xref is searched in stored data</p></li>
+<li><p>xref (“MODULE.NAME”): if MODULE == “external”, NAME is the record key</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>def resource_bind(self, xref, raise_if_not_found=True, resource=None):</p>
+<blockquote>
+<div><dl>
+<dt>Args:</dt><dd><p>xref (str): external reference
+raise_if_not_found (bool): raise exception if xref not found or</p>
+<blockquote>
+<div><p>if more records found</p>
+</div></blockquote>
+<p>resource (str): Odoo model name, i.e. “res.partner”</p>
+</dd>
+<dt>Returns:</dt><dd><p>obj: the Odoo model record</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: if invalid parameters issued</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="resource-create">
+<h2>resource_create<a class="headerlink" href="#resource-create" title="Permalink to this heading"></a></h2>
+<p>Create a test record and set external ID to next tests.
+This function works as standard Odoo create() with follow improvements:</p>
+<ul class="simple">
+<li><p>It can create external reference too</p></li>
+<li><p>It can use stored data if no values supplied</p></li>
+</ul>
+<p>def resource_create(self, resource, values=None, xref=None, group=None):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>resource (str): Odoo model name, i.e. “res.partner”
+values (dict): record data (default stored data)
+xref (str): external reference to create
+group (str): used to manager group data; default is “base”</p>
+</dd>
+<dt>Returns:</dt><dd><p>obj: the Odoo model record, if created</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="resource-write">
+<h2>resource_write<a class="headerlink" href="#resource-write" title="Permalink to this heading"></a></h2>
+<p>Update a test record.
+This function works as standard Odoo write() with follow improvements:</p>
+<ul class="simple">
+<li><p>If resource is a record, xref is ignored (it should be None)</p></li>
+<li><p>It resource is a string, xref must be a valid xref or an integer</p></li>
+<li><p>If values is not supplied, record is restored to stored data values</p></li>
+</ul>
+<p>def resource_write(self, resource, xref=None, values=None, raise_if_not_found=True, group=None):</p>
+<blockquote>
+<div><dl>
+<dt>Args:</dt><dd><p>resource (str|obj): Odoo model name or record to update
+xref (str): external reference to update: required id resource is string
+values (dict): record data (default stored data)
+raise_if_not_found (bool): raise exception if xref not found or</p>
+<blockquote>
+<div><p>if more records found</p>
+</div></blockquote>
+<p>group (str): used to manager group data; default is “base”</p>
+</dd>
+<dt>Returns:</dt><dd><p>obj: the Odoo model record</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: if invalid parameters issued</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="resource-make">
+<h2>resource_make<a class="headerlink" href="#resource-make" title="Permalink to this heading"></a></h2>
+<p>Create or write a test record.
+This function is a hook to resource_write() or resource_create().</p>
+<p>def resource_make(self, resource, xref, values=None, group=None):</p>
+</div>
+<div class="section" id="declare-resource-data">
+<h2>declare_resource_data<a class="headerlink" href="#declare-resource-data" title="Permalink to this heading"></a></h2>
+<p>Declare data to load on setup_env().</p>
+<p>def declare_resource_data(self, resource, data, name=None, group=None, merge=None)</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>resource (str): Odoo model name, i.e. “res.partner”
+data (dict): record data
+name (str): label of dataset; default is resource name
+group (str): used to manager group data; default is “base”
+merge (str): merge data with public data (currently just “zerobug”)</p>
+</dd>
+<dt>Raises:</dt><dd><p>TypeError: if invalid parameters issued</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="declare-all-data">
+<h2>declare_all_data<a class="headerlink" href="#declare-all-data" title="Permalink to this heading"></a></h2>
+<p>Declare all data to load on setup_env().</p>
+<p>def declare_resource_data(self, resource, data, name=None, group=None, merge=None)</p>
+<blockquote>
+<div><dl>
+<dt>Args:</dt><dd><dl>
+<dt>message (dict): data message</dt><dd><p>TEST_SETUP_LIST (list): resource list to load
+TEST_* (dict): resource data; * is the uppercase resource name where</p>
+<blockquote>
+<div><p>dot are replaced by “_”; (see declare_resource_data)</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>group (str): used to manager group data; default is “base”
+merge (str): merge data with public data (currently just “zerobug”)</p>
+</dd>
+<dt>Raises:</dt><dd><p>TypeError: if invalid parameters issuedd</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="get-resource-data">
+<h2>get_resource_data<a class="headerlink" href="#get-resource-data" title="Permalink to this heading"></a></h2>
+<p>Get declared resource data; may be used to test compare.</p>
+<p>def get_resource_data(self, resource, xref, group=None):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>resource (str): Odoo model name or name assigned, i.e. “res.partner”
+xref (str): external reference
+group (str): if supplied select specific group data; default is “base”</p>
+</dd>
+<dt>Returns:</dt><dd><p>dictionary with data or empty dictionary</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="get-resource-data-list">
+<h2>get_resource_data_list<a class="headerlink" href="#get-resource-data-list" title="Permalink to this heading"></a></h2>
+<p>Get declared resource data list.</p>
+<p>def get_resource_data_list(self, resource, group=None):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>resource (str): Odoo model name or name assigned, i.e. “res.partner”
+group (str): if supplied select specific group data; default is “base”</p>
+</dd>
+<dt>Returns:</dt><dd><p>list of data</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="get-resource-list">
+<h2>get_resource_list<a class="headerlink" href="#get-resource-list" title="Permalink to this heading"></a></h2>
+<p>Get declared resource list.</p>
+<p>def get_resource_list(self, group=None):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>group (str): if supplied select specific group data; default is “base”</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="setup-company">
+<h2>setup_company<a class="headerlink" href="#setup-company" title="Permalink to this heading"></a></h2>
+<p>Setup company values for current user.</p>
+<p>This function assigns company to current user and / or can create xref aliases
+and /or can update company values.
+This function is useful in multi companies tests where different company values
+will be used in different tests. May be used in more simple test where company
+data will be updated in different tests.
+You can assign partner_xref to company base by group; then all tests executed
+after setup_env(), use the assigned partner data for company of the group.
+You can also create more companies and assign one of them to test by group.</p>
+<p>def setup_company(self, company, xref=None, partner_xref=None, values={}, group=None):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>company (obj): company to update; if not supplied a new company is created
+xref (str): external reference or alias for main company
+partner_xref (str): external reference or alias for main company partner
+values (dict): company data to update immediately
+group (str): if supplied select specific group data; default is “base”</p>
+</dd>
+<dt>Returns:</dt><dd><p>default company for user</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="setup-env">
+<h2>setup_env<a class="headerlink" href="#setup-env" title="Permalink to this heading"></a></h2>
+<p>Create all record from declared data.</p>
+<p>This function starts the test workflow creating the test environment.
+Test data must be declared before engage this function with declare_all_data()
+function (see above).
+setup_env may be called more times with different group value.
+If it is called with the same group, it recreates the test environment with
+declared values; however this feature might do not work for some reason: i.e.
+if test creates a paid invoice, the setup_env() cannot unlink invoice.
+If you want to recreate the same test environment, assure the conditions for
+unlink of all created and tested records.
+If you create more test environment with different group you can use all data,
+even record created by different group.
+In this way you can test a complex process the evolved scenario.</p>
+<p>def setup_env(self, lang=None, locale=None, group=None):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>lang (str): install &amp; load specific language
+locale (str): install locale module with CoA; i.e l10n_it
+group (str): if supplied select specific group data; default is “base”</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="resource-edit">
+<h2>resource_edit<a class="headerlink" href="#resource-edit" title="Permalink to this heading"></a></h2>
+<p>Server-side web form editing.</p>
+<p>Ordinary Odoo test use the primitive create() and write() function to manage
+test data. These methods create an update records, but they do not properly
+reflect the behaviour of user editing form with GUI interface.</p>
+<p>This function simulates the client-side form editing in the server-side.
+It works in the follow way:</p>
+<ul class="simple">
+<li><p>It can simulate the form create record</p></li>
+<li><p>It can simulate the form update record</p></li>
+<li><p>It can simulate the user data input</p></li>
+<li><p>It calls the onchange functions automatically</p></li>
+<li><p>It may be used to call button in the form</p></li>
+</ul>
+<p>User action simulation:
+The parameter &lt;web_changes&gt; is a list of user actions to execute sequentially.
+Every element of the list is another list with 2 or 3 values:
+* Field name to assign value
+* Value to assign
+* Optional function to execute (i.e. specific onchange)
+If field is associate to an onchange function the relative onchange functions
+are execute after value assignment. If onchange set another field with another
+onchange the relative another onchange are executed until all onchange are
+exhausted. This behavior is the same of the form editing.</p>
+<p>Warning: because function are always executed at the server side the behavior
+may be slightly different from actual form editing. Please take note of
+following limitations:</p>
+<ul class="simple">
+<li><p>update form cannot simulate discard button</p></li>
+<li><p>required data in create must be supplied by default</p></li>
+<li><p>form inconsistency cannot be detected by this function</p></li>
+<li><p>nested function must be managed by test code (i.e. wizard from form)</p></li>
+</ul>
+<p>See test_testenv module for test examples
+<a class="reference external" href="https://github.com/zeroincombenze/zerobug-test/tree/12.0/test_testenv">https://github.com/zeroincombenze/zerobug-test/tree/12.0/test_testenv</a></p>
+<p>def resource_edit(self, resource, default={}, web_changes=[], actions=[], ctx={}):</p>
+<blockquote>
+<div><dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>resource (str or obj): if field is a string simulate create web behavior of</dt><dd><p>Odoo model issued in resource;
+if field is an obj simulate write web behavior on the
+issued record</p>
+</dd>
+</dl>
+<p>default (dict): default value to assign
+web_changes (list): list of tuples (field, value); see &lt;wiz_edit&gt;</p>
+</dd>
+<dt>Returns:</dt><dd><p>windows action to execute or obj record</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="wizard">
+<h2>wizard<a class="headerlink" href="#wizard" title="Permalink to this heading"></a></h2>
+<p>Execute a full wizard.</p>
+<p>Engage the specific wizard, simulate user actions and return the wizard result,
+usually a windows action.</p>
+<p>It is useful to test:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>view names</p></li>
+<li><p>wizard structure</p></li>
+<li><p>wizard code</p></li>
+</ul>
+</div></blockquote>
+<p>Both parameters &lt;module&gt; and &lt;action_name&gt; must be issued in order to
+call &lt;wiz_by_action_name&gt;; they are alternative to act_windows.</p>
+<p><strong>* Example of use *</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">XML</span> <span class="n">view</span> <span class="n">file</span><span class="p">:</span>
+    <span class="o">&lt;</span><span class="n">record</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;action_example&quot;</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;ir.actions.act_window&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">field</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="o">&gt;</span><span class="n">Example</span><span class="o">&lt;/</span><span class="n">field</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">field</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;res_model&quot;</span><span class="o">&gt;</span><span class="n">wizard</span><span class="o">.</span><span class="n">example</span><span class="o">&lt;/</span><span class="n">field</span><span class="o">&gt;</span>
+        <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+    <span class="o">&lt;/</span><span class="n">record</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Python code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">act_windows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wizard</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="s2">&quot;module_example&quot;</span><span class="p">,</span>
+    <span class="n">action_name</span><span class="o">=</span><span class="s2">&quot;action_example&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_action</span><span class="p">(</span><span class="n">act_windows</span><span class="p">):</span>
+    <span class="n">act_windows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wizard</span><span class="p">(</span><span class="n">act_windows</span><span class="o">=</span><span class="n">act_windows</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>User action simulation:
+The parameter &lt;web_changes&gt; is a list of user actions to execute sequentially.
+Every element of the list is another list with 2 or 3 values:
+* Field name to assign value
+* Value to assign
+* Optional function to execute (i.e. specific onchange)
+If field is associate to an onchange function the relative onchange functions
+are execute after value assignment. If onchange set another field with another
+onchange the relative another onchange are executed until all onchange are
+exhausted. This behavior is the same of the form editing.</p>
+<p>def wizard(self, module=None, action_name=None, act_windows=None, records=None, default=None, ctx={}, button_name=None, web_changes=[], button_ctx={},):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>module (str): module name for wizard to test; if “.” use current module name
+action_name (str): action name
+act_windows (dict): Odoo windows action (do not issue module &amp; action_name)
+records (obj): objects required by the download wizard
+default (dict): default value to assign
+ctx (dict): context to pass to wizard during execution
+button_name (str): function name to execute at the end of then wizard
+web_changes (list): list of tuples (field, value); see above
+button_ctx (dict): context to pass to button_name function</p>
+</dd>
+<dt>Returns:</dt><dd><p>result of the wizard</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: if invalid parameters issued</p>
+</dd>
+</dl>
+</div></blockquote>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2022-12-21</p>
+<p>Last Update / Ultimo aggiornamento: 2023-01-08</p>
+</div>
 </div>
 
 
@@ -159,6 +893,46 @@ Warning: returned values may contain some field of uninstalled module.</p>
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
             </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Usage</a><ul>
+<li><a class="reference internal" href="#model-data-declaration">Model data declaration</a></li>
+<li><a class="reference internal" href="#magic-relationship">Magic relationship</a></li>
+<li><a class="reference internal" href="#external-reference">External reference</a></li>
+<li><a class="reference internal" href="#module-test-execution-workflow">Module test execution workflow</a></li>
+<li><a class="reference internal" href="#data-values">Data values</a></li>
+<li><a class="reference internal" href="#company-id">company_id</a></li>
+<li><a class="reference internal" href="#boolean">boolean</a></li>
+<li><a class="reference internal" href="#char-text">char / text</a></li>
+<li><a class="reference internal" href="#integer-float-monetary">integer / float / monetary</a></li>
+<li><a class="reference internal" href="#date-datetime">date / datetime</a></li>
+<li><a class="reference internal" href="#many2one">many2one</a></li>
+<li><a class="reference internal" href="#one2many-many2many">one2many / many2many</a></li>
+<li><a class="reference internal" href="#binary">binary</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a><ul>
+<li><a class="reference internal" href="#store-resource-data">store_resource_data</a></li>
+<li><a class="reference internal" href="#compute-date">compute_date</a></li>
+<li><a class="reference internal" href="#resource-bind">resource_bind</a></li>
+<li><a class="reference internal" href="#resource-create">resource_create</a></li>
+<li><a class="reference internal" href="#resource-write">resource_write</a></li>
+<li><a class="reference internal" href="#resource-make">resource_make</a></li>
+<li><a class="reference internal" href="#declare-resource-data">declare_resource_data</a></li>
+<li><a class="reference internal" href="#declare-all-data">declare_all_data</a></li>
+<li><a class="reference internal" href="#get-resource-data">get_resource_data</a></li>
+<li><a class="reference internal" href="#get-resource-data-list">get_resource_data_list</a></li>
+<li><a class="reference internal" href="#get-resource-list">get_resource_list</a></li>
+<li><a class="reference internal" href="#setup-company">setup_company</a></li>
+<li><a class="reference internal" href="#setup-env">setup_env</a></li>
+<li><a class="reference internal" href="#resource-edit">resource_edit</a></li>
+<li><a class="reference internal" href="#wizard">wizard</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="rtd_installation.html"
@@ -205,7 +979,7 @@ Warning: returned values may contain some field of uninstalled module.</p>
         <li class="right" >
           <a href="rtd_installation.html" title="&lt;no title&gt;"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
       </ul>
     </div>

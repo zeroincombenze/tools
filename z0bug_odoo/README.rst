@@ -1,6 +1,6 @@
 
 ================
-z0bug_odoo 2.0.1
+z0bug_odoo 2.0.3
 ================
 
 
@@ -22,7 +22,7 @@ It replaces OCA MQT with some nice additional features.
 
 *z0bug_odoo* is built on follow concepts:
 
-* Odoo version independent; it can test Odoo from 6.1 until 13.0
+* Odoo version independent; it can test Odoo from 6.1 until 16.0
 * It is designed to run in local environment too, using `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
 * It can run with full or reduced set of pylint tests
 * Test using ready-made database records
@@ -53,16 +53,19 @@ File .travis.yml
 ~~~~~~~~~~~~~~~~
 
 In order to setup TravisCI continuous integration for your project, just copy the
-content of the `sample_files <https://github.com/zeroincombenze/tools/tree/master/zerobug/sample_files/.travis.yml>`_
+content of the `sample_files <https://github.com/zeroincombenze/tools/tree/master/travis_emulator/template_travis.yml>`_
 to your project’s root directory.
 
 Then execute the command:
 
 ::
 
-    topep8 -b<odoo_version> .travis.yml
+    make_travis_conf <TOOLS_PATH>/travis_emulator/template_travis.yml .travis.yml
 
 You can check travis syntax with the `lint checker <http://lint.travis-ci.org/>`_ of travis, if available.
+
+Notice: if you do not use travisCi web site, you can avoid to set .travis.yml file.
+Local travis emulator and z0bug_odoo create local .travis.yml dinamically.
 
 
 Odoo test integration
@@ -76,13 +79,14 @@ You can test against:
 * odoo/odoo
 * OCA/OCB
 * zeroincombenze/OCB
+* librerp/OCB
 
 You can test against specific Odoo core version with ODOO_BRANCH variable if differs from your project version:
 
 ::
 
-    # Odoo Branch 10.0
-    - VERSION="10.0" ODOO_REPO="odoo/odoo"
+    # Odoo Branch 16.0
+    - VERSION="16.0" ODOO_REPO="odoo/odoo"
 
     # Pull request odoo/odoo#143
     -  VERSION="pull/143" ODOO_REPO="OCA/OCB"
@@ -127,7 +131,7 @@ Python version
 ~~~~~~~~~~~~~~
 
 Odoo version from 6.1 to 10.0 are tested with python 2.7
-From Odoo 11.0, python3 is used. You can test against 3.5, 3.6 and 3.7 python versions.
+From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
 Currently, python 3.8 is not yet supported.
 This is the declaration:
 
@@ -137,9 +141,10 @@ This is the declaration:
       - "3.5"
       - "3.6"
       - "3.7"
+      - "3.8"
 
 Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
-Python 3.8 is no yet support by Odoo (2021), so use python 3.7
+Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7
 
 
 Deployment and setup environment
@@ -575,73 +580,75 @@ Other configurations
 
 You can highly customize you test: look at below table.
 
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| variable               | default value                                          | meaning                                                      |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| CHROME_TEST            |                                                        | Set value to 1 to use chrome client to test                  |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| DATA_DIR               | ~/data_dir                                             | Odoo data directory (data_dir in config file)                |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| EXCLUDE                |                                                        | Modules to exclude from test                                 |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| INCLUDE                |                                                        | Modules to test (all                                         |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| INSTALL_OPTIONS        |                                                        | Options passed to odoo-bin/openerp-server to install modules |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| MQT_DBSUER             | $USER                                                  | Database username                                            |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| MQT_TEMPLATE_DB        | template_odoo                                          | Read above                                                   |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| MQT_TEST_DB            | test_odoo                                              | Read above                                                   |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| NPM_CONFIG_PREFIX      | \$HOME/.npm-global                                     | N/D                                                          |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| ODOO_REPO              | odoo/odoo                                              | OCB repository against test repository                       |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| ODOO_SETUPS            | __manifest__.py __openerp__.py __odoo__.py __terp__.py | Names of Odoo manifest files                                 |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| ODOO_TEST_SELECT       | ALL                                                    | Read above                                                   |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| ODOO_TNLBOT            | 0                                                      | Read above                                                   |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| OPTIONS                |                                                        | Options passed to odoo-bin/openerp-server to execute tests   |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| PHANTOMJS_VERSION      |                                                        | Version of PhantomJS                                         |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| PS_TXT_COLOR           | 0;97;40                                                | N/D                                                          |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| PS_RUN_COLOR           | 1;37;44                                                | N/D                                                          |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| PS_NOP_COLOR           | 34;107                                                 | N/D                                                          |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| PS_HDR1_COLOR          | 97;42                                                  | N/D                                                          |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| PS_HDR2_COLOR          | 30;43                                                  | N/D                                                          |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| PS_HDR3_COLOR          | 30;45                                                  | N/D                                                          |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| PYPI_RUN_PYVER         | (2.7|3.5|3.6|3.7|3.8)                                  | python versions to run (only PYPI projects)                  |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| SERVER_EXPECTED_ERRORS |                                                        | # of expected errors after tests                             |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| TEST_DEPENDENCIES      | 0                                                      | Read above                                                   |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| TRAVIS_DEBUG_MODE      | 0                                                      | Read above                                                   |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| TRAVIS_PDB             |                                                        | The value 'true' activates pdb in local 'travis -B'          |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| UNBUFFER               | 1                                                      | Use unbuffer (colors) to log results                         |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| UNIT_TEST              |                                                        | Read above                                                   |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| TEST                   |                                                        | Read above                                                   |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| VERSION                |                                                        | Odoo version to test (see above)                             |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| WEBSITE_REPO           |                                                        | Load package for website tests                               |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
-| WKHTMLTOPDF_VERSION    | 0.12.5                                                 | Version of wkhtmltopdf (value are 0.12.1                     |
-+------------------------+--------------------------------------------------------+--------------------------------------------------------------+
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| variable               | default value                                          | meaning                                                                   |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| CHROME_TEST            |                                                        | Set value to 1 to use chrome client to test                               |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| DATA_DIR               | ~/data_dir                                             | Odoo data directory (data_dir in config file)                             |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| EXCLUDE                |                                                        | Modules to exclude from test                                              |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| INCLUDE                |                                                        | Modules to test (all                                                      |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| INSTALL_OPTIONS        |                                                        | Options passed to odoo-bin/openerp-server to install modules              |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| MQT_DBSUER             | $USER                                                  | Database username                                                         |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| MQT_TEMPLATE_DB        | template_odoo                                          | Read above                                                                |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| MQT_TEST_DB            | test_odoo                                              | Read above                                                                |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| NPM_CONFIG_PREFIX      | \$HOME/.npm-global                                     | N/D                                                                       |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| ODOO_COMMIT_TEST       | 0                                                      | Test result will be committed; require specific code at tear_off function |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| ODOO_REPO              | odoo/odoo                                              | OCB repository against test repository                                    |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| ODOO_SETUPS            | __manifest__.py __openerp__.py __odoo__.py __terp__.py | Names of Odoo manifest files                                              |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| ODOO_TEST_SELECT       | ALL                                                    | Read above                                                                |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| ODOO_TNLBOT            | 0                                                      | Read above                                                                |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| OPTIONS                |                                                        | Options passed to odoo-bin/openerp-server to execute tests                |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| PHANTOMJS_VERSION      |                                                        | Version of PhantomJS                                                      |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| PS_TXT_COLOR           | 0;97;40                                                | N/D                                                                       |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| PS_RUN_COLOR           | 1;37;44                                                | N/D                                                                       |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| PS_NOP_COLOR           | 34;107                                                 | N/D                                                                       |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| PS_HDR1_COLOR          | 97;42                                                  | N/D                                                                       |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| PS_HDR2_COLOR          | 30;43                                                  | N/D                                                                       |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| PS_HDR3_COLOR          | 30;45                                                  | N/D                                                                       |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| PYPI_RUN_PYVER         | (2.7|3.5|3.6|3.7|3.8)                                  | python versions to run (only PYPI projects)                               |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| SERVER_EXPECTED_ERRORS |                                                        | # of expected errors after tests                                          |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| TEST_DEPENDENCIES      | 0                                                      | Read above                                                                |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| TRAVIS_DEBUG_MODE      | 0                                                      | Read above                                                                |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| TRAVIS_PDB             |                                                        | The value 'true' activates pdb in local 'travis -B'                       |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| UNBUFFER               | 1                                                      | Use unbuffer (colors) to log results                                      |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| UNIT_TEST              |                                                        | Read above                                                                |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| TEST                   |                                                        | Read above                                                                |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| VERSION                |                                                        | Odoo version to test (see above)                                          |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| WEBSITE_REPO           |                                                        | Load package for website tests                                            |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
+| WKHTMLTOPDF_VERSION    | 0.12.5                                                 | Version of wkhtmltopdf (value are 0.12.1                                  |
++------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
 
 
 
@@ -724,135 +731,39 @@ While travis is running this is the tree directory:
         - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
         - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
 
-qci
----
+TestEnv: the test environment
+-----------------------------
 
-+-------------+-----------------------------------------------------------------------------------+
-| qci         | description                                                                       |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.uRB     | Insoluto RiBA                                                                     |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VAT_rc  | Reverse Charge / Inversione contabile                                             |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VAT_sp  | Split Payment / Scissione pagamenti                                               |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VAT_wt  | Withholding tax / Ritenuta d’acconto                                              |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VATpu   | Undeductible VAT / IVA parzialmente indetraibile                                  |
-+-------------+-----------------------------------------------------------------------------------+
-| acc.VATu    | Full Undeductible VAT / IVA totalmente indetraibile                               |
-+-------------+-----------------------------------------------------------------------------------+
-| einvo.ind   | E-invoice to individual / Fattura elettronica a privato                           |
-+-------------+-----------------------------------------------------------------------------------+
-| einvo.stamp | E-invoice with virtual stamp / Fattura elettronica con bollo virtuale             |
-+-------------+-----------------------------------------------------------------------------------+
-| inv.asalem  | Corrispettivi misti                                                               |
-+-------------+-----------------------------------------------------------------------------------+
-| inv.asalex  | Corrispettivi ripartiti (ventilazione)                                            |
-+-------------+-----------------------------------------------------------------------------------+
-| inv.asset   | Invoice with asset/Fattura di beni strumentali                                    |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.enas   | Purchase invoice with enasarco / Fattura da fornitore con ensarco                 |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.eu     | Purchase invoice from EU partner / Fattura di acquisto intraUE                    |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.rc     | Purchase invoice with reverse charge / Fattura di acquisto con reverse charge     |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.sp     | Purchase invoice with split payment / Fattura di acquisto con split-payment       |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.VAT_li | Purchase invoice with lettera di intento / Fattura di acquisto lettera di intento |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.wht    | Purchase invoice with withholding / Fattura da fornitore con ritenuta d'acconto   |
-+-------------+-----------------------------------------------------------------------------------+
-| invi.xeu    | Purchase invoice fromxEU partner / Fattura di acquisto extraUE                    |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.enas   | Sale invoice with enasarco / Fattura di vendita con ensarco                       |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.eu     | Sale invoice to EU partner / Fattura di vendita intraUE                           |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.li     | Sale invoice with lettera di intento / Fattura di vendita lettera di intento      |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.long   | Sale invoice with 30+ lines (multipage-print)                                     |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.N1     | Sale invoice with out of vat / Fattura di vendita con FC art. 15                  |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.rc     | Sale invoice with reverse charge / Fattura di vendita con reverse charge          |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.sp     | Sale invoice with split payment / Fattura di vendita con split-payment            |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.vat1   | Sale invoice with vat 4% / Fattura di vendita con IVA 4%                          |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.vat2   | Sale invoice with vat 10% / Fattura di vendita con IVA 10%                        |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.vat3   | Sale invoice with vat 22% / Fattura di vendita con IVA 22%                        |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.wh     | Sale invoice with withholding / Fattura di vendita ritenuta d'acconto             |
-+-------------+-----------------------------------------------------------------------------------+
-| invo.xeu    | Sale invoice to xEU partner / Fattura di vendita extraUE                          |
-+-------------+-----------------------------------------------------------------------------------+
-| part.eu     | EU partner / Cliente intraUE                                                      |
-+-------------+-----------------------------------------------------------------------------------+
-| part.it     | Local partner (Italy) / Cliente italiano                                          |
-+-------------+-----------------------------------------------------------------------------------+
-| part.PA     | Partner is PA                                                                     |
-+-------------+-----------------------------------------------------------------------------------+
-| part.pt1    | Partner with one date payment / Cliente con pagamento in unica soluzione          |
-+-------------+-----------------------------------------------------------------------------------+
-| part.pt2    | Partner with multiple date payment / Cliente con pagamento di più scadenze        |
-+-------------+-----------------------------------------------------------------------------------+
-| part.xeu    | Extra-EU partner / Cliente extraUE                                                |
-+-------------+-----------------------------------------------------------------------------------+
-| pay.RB      | RiBA payment / Pagamento RiBA (IT)                                                |
-+-------------+-----------------------------------------------------------------------------------+
-| pay.SCT     | Credit Transfer payment / Pagamento bonifico                                      |
-+-------------+-----------------------------------------------------------------------------------+
-| pay.SDD     | Sepa Direct Debit / Pagamento Sepa DD                                             |
-+-------------+-----------------------------------------------------------------------------------+
+TestEnv makes available a test environment ready to use in order to test your Odoo
+module in quick and easy way.
 
+The purpose of this software are:
 
+* Create the Odoo test environment with records to use for your test
+* Make available some useful functions to test your module (in z0bug_odoo)
+* Simulate the wizard to test wizard functions (wizard simulator)
+* Environment running different Odoo modules versions
 
+Please, pay attention to test data: TestEnv use internal unicode even for python 2
+based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
+Note, Odoo core uses unicode even on old Odoo version.
 
-partner qci
------------
+Tests are based on test environment created by module mk_test_env in repository
+https://github.com/zeroincombenze/zerobug-test
 
-+----------------------+------------------------------------+-------------------+----------------------------+
-| id                   | name                               | side              | icq                        |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_1  | Prima Distribuzione S.p.A.         | customer/supplier | icq_0002 icq_0006 icq_pa11 |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_10 | Notaio Libero Jackson              | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_11 | Nebula Caffè S.p.A.                | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_12 | Freie Universität Berlin           | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_13 | Axelor GmbH                        | customer          | icq_pa12                   |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_14 | SS Carrefur                        | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_15 | Ente Porto                         | customer          | icq_0002 icq_pa14 icq_pa16 |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_16 | Viking Office Depot Italia s.r.l.  | customer/supplier |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_17 | Vexor BV                           | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_2  | Agro Latte Due  s.n.c.             | customer          | icq_0002 icq_0007          |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_3  | Import Export Trifoglio s.r.l.     | customer          | icq_0001 icq_0006          |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_4  | Delta 4 s.r.l.                     | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_5  | Five Stars Hotel                   | supplier          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_6  | Esa Electronic S.p.A               | customer          | icq_0003                   |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_7  | Università della Svizzera Italiana | customer          | icq_pa13                   |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_8  | Global Solution s.r.l.             | customer          | icq_pa15                   |
-+----------------------+------------------------------------+-------------------+----------------------------+
-| z0bug.res_partner_9  | Mario Rossi                        | customer          |                            |
-+----------------------+------------------------------------+-------------------+----------------------------+
+Requirements
+~~~~~~~~~~~~
 
+Ths TestEnv software requires:
+
+* python_plus PYPI package
+* z0bug_odoo PYPI package
+* python 2.7 / 3.6 / 3.7 / 3.8
+
+TestEnv is full integrated with Zeroincombenze(R) tools.
+See https://zeroincombenze-tools.readthedocs.io/
+and https://github.com/zeroincombenze/tools.git
+Zeroincombenze(R) tools help you to test Odoo module with pycharm.
 
 
 
@@ -883,110 +794,868 @@ For type data, datetime: value may be a constant or relative date
 Usage
 =====
 
-Code example:
+Copy the testenv.py file in tests directory of your module.
+You can locate testenv.py in testenv directory of this module (z0bug_odoo)
+Please copy the documentation testenv.rst file in your module too.
+The __init__.py must import testenv.
+Your python test file have to contain some following example lines:
 
 ::
 
-    # -*- coding: utf-8 -*-
-    #
-    # Copyright 2017-19 - SHS-AV s.r.l. <https://www.zeroincombenze.it>
-    #
-    # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-    #
-    from z0bug_odoo import test_common
+    import os
+    import logging
+    from .testenv import MainTest as SingleTransactionCase
 
-    class ExampleTest(test_common.SingleTransactionCase):
+    _logger = logging.getLogger(__name__)
+
+    TEST_RES_PARTNER = {...}
+    TEST_SETUP_LIST = ["res.partner", ]
+
+    class MyTest(SingleTransactionCase):
 
         def setUp(self):
-            super(ExampleTest, self).setUp()
-            self.set_test_company()
-            # Assure 2 res.partner records
-            self.build_model_data('res.partner', ['base.res_partner_2',
-                                                  'z0bug.res_partner_2'])
+            super().setUp()
+            # Add following statement just for get debug information
+            self.debug_level = 2
+            data = {"TEST_SETUP_LIST": TEST_SETUP_LIST}
+            for resource in TEST_SETUP_LIST:
+                item = "TEST_%s" % resource.upper().replace(".", "_")
+                data[item] = globals()[item]
+            self.declare_all_data(data)     # TestEnv swallows the data
+            self.setup_env()                # Create test environment
 
-        def test_example(self):
-            partner = self.browse_ref(self.ref612('base.res_partner_2'))
-            partner = self.browse_ref(self.ref612('z0bug.res_partner_2'))
+        def tearDown(self):
+            super().tearDown()
+            if os.environ.get("ODOO_COMMIT_TEST", ""):
+                # Save test environment, so it is available to dump
+                self.env.cr.commit()     # pylint: disable=invalid-commit
+                _logger.info("✨ Test data committed")
 
+        def test_mytest(self):
+            _logger.info(
+                "🎺 Testing test_mytest"    # Use unicode char to best log reading
+            )
+            ...
 
+        def test_mywizard(self):
+            self.wizard(...)                # Test requires wizard simulator
 
+An important helper to debug is self.debug_level. When you begins your test cycle,
+you are hinted to set self.debug_level = 3; then you can decrease the debug level
+when you are developing stable tests.
+Final code should have self.debug_level = 0.
+TestEnv logs debug message with symbol "🐞 " so you can easily recognize them.
 
-Following function are avaiable.
+Ths TestEnv software requires:
 
-`set_test_company(self)`
-
-Create or update company to test and assign it to current user as default company. This function should be put in setUp().
-
-
-`create_id(model, values)`
-
-Create a record of the model and return id (like Odoo 7.0- API).
-
-
-`create_rec(model, values)`
-
-Create a record of the model and return record itself (like Odoo 8.0+ API).
-
-
-`write_rec(model, id, values)`
-
-Write the record of model with passed id and return record itself.
-
-
-`browse_rec(model, id)`
-
-Return the record of model with passed id.
-
-
-`env612(model)`
-
-Return env/pool of model (like pool of Odoo 7.0- API or env of Odoo 8.0+ API)
+* python_plus PYPI package
+* z0bug_odoo PYPI package
+* python 2.7 / 3.6 / 3.7 / 3.8
 
 
-`ref_value(model, xid)`
+Model data declaration
+~~~~~~~~~~~~~~~~~~~~~~
 
-Return values of specific xid. If xid is Odoo standard xid, i.e. "base.res_partner_1",
-return current record values that may be different from original demo data.
-If xid begins with "z0bug." return default values even if they are update form previous tests.
-See valid xid from this document.
-
-
-`build_model_data(model, xrefs)`
-
-Assure records of model with reference list xrefs.
-For every item of xrefs, a record is created o updated.
-Function ref_value is used to retrieve values of each record (see above).
-
+Each model is declared in a dictionary which key which is the external
+reference used to retrieve the record.
+i.e. the following record is named 'z0bug.partner1' in res.partner:
 
 ::
 
-    # -*- coding: utf-8 -*-
-    #
-    # Copyright 2017-19 - SHS-AV s.r.l. <https://www.zeroincombenze.it>
-    #
-    # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-    #
-    from zerobug import Z0testOdoo
+    TEST_RES_PARTNER = {
+        "z0bug.partner1": {
+            "name": "Alpha",
+            "street": "1, First Avenue",
+            ...
+        }
+    )
 
-    class ExampleTest():
+Please, do not to declare 'product.product' records: they are automatically
+created as child of 'product.template'. The external reference must contain
+the pattern '_template' (see below).
 
-        def test_example(self):
-            res = Z0bugOdoo().get_test_values(
-                'res.partner','z0bug.res_partner_1')
+Magic relationship
+~~~~~~~~~~~~~~~~~~
+
+Some models/tables should be managed together, i.e. 'account.move' and 'account.move.line'.
+TestEnv manages these models/tables, called header/detail, just as a single object.
+Where header record is created, all detail lines are created with header.
+To do this job you must declare external reference as explained below (external reference).
+
+Warning: you must declare header and lines data before create header record.
+
+::
+
+    TEST_SALE_ORDER = {
+        "z0bug.order_1": {
+            ...
+        }
+    }
+
+    TEST_SALE_ORDER_LINE = {
+        "z0bug.order_1_1": {
+            ...
+        }
+    }
+
+    TEST_SETUP_LIST = ["sale.order", "sale.order.line"]
+
+    class MyTest(SingleTransactionCase):
+
+        def test_something(self):
+            data = {"TEST_SETUP_LIST": TEST_SETUP_LIST}
+            for resource in TEST_SETUP_LIST:
+                item = "TEST_%s" % resource.upper().replace(".", "_")
+                data[item] = globals()[item]
+            # Declare order data in specific group to isolate data
+            self.declare_all_data(data, group="order")
+            # Create the full sale order with lines
+            self.resource_make(model, xref, group="order")
+
+Another magic relationship is the 'product.template' (product) / 'product.product' (variant) relationship.
+Whenever a 'product.template' (product) record is created,
+Odoo automatically creates one variant (child) record for 'product.product'.
+If your test module does not need to manage product variants you can avoid to declare
+'product.product' data even if this model is used in your test data.
+
+For example, you have to test 'sale.order.line' which refers to 'product.product'.
+You simply declare a 'product.template' record with external reference user "_template"
+magic text.
+
+::
+
+    TEST_PRODUCT_TEMPLATE = {
+        "z0bug.product_template_1": {
+            "name": "Product alpha",
+            ...
+        }
+    )
+
+    ...
+
+    TEST_SALE_ORDER_LINE = {
+        "z0bug.order_1_1": {
+            "product_id": "z0bug.product_product_1",
+            ...
+        }
+    )
+
+    ...
+
+    # Get 'product.template' record
+    self.resource_bind("z0bug.product_template_1")
+    # Get 'product.product' record
+    self.resource_bind("z0bug.product_product_1")
+
+External reference
+~~~~~~~~~~~~~~~~~~
+
+Every record is tagged by an external reference.
+The external reference may be:
+
+* Ordinary Odoo external reference (a), format "module.name"
+* Test reference, format "z0bug.name" (b)
+* Key value, format "external.key" (c)
+* 2 keys reference, for header/detail relationship (d)
+* Magic reference for 'product.template' / 'product.product' (e)
+
+Ordinary Odoo external reference (a) is a record of 'ir.model.data';
+you can see them from Odoo GUI interface.
+
+Test reference (b) are visible just in the test environment.
+They are identified by "z0bug." prefix module name.
+
+External key reference (c) is identified by "external." prefix followed by
+the key value used to retrieve the record.
+The field "code" or "name" are used to search record;
+for account.tax the "description" field is used.
+Please set self.debug_level = 2 (or more) to log these field keys.
+
+The 2 keys reference (d) needs to address child record inside header record
+at 2 level model (header/detail) relationship.
+The key MUST BE the same key of the parent record,
+plus "_", plus line identifier (usually 'sequence' field).
+i.e. "z0bug.move_1_3" means: line with sequence 3 of 'account.move.line'
+which is child of record "z0bug.move_1" of 'account.move'.
+Please set self.debug_level = 2 (or more) to log these relationships.
+
+For 'product.template' (product) you must use '_template' text in reference (e).
+TestEnv inherit 'product.product' (variant) external reference (read above 'Magic relationship).
+
+Examples:
+
+::
+
+    TEST_ACCOUNT_ACCOUNT = {
+        "z0bug.customer_account": {
+            ...
+        }
+    )
+
+    ...
+
+    ext_ref = "external.%d" % self.env["account.account].search(...)[0].id
+
+    self.resource_edit(
+        partner,
+        web_changes = [
+            ("country_id", "base.it"),       # Odoo external reference (a)
+            ("property_account_receivable_id",
+             "z0bug.customer_account"),      # Test reference (b)
+            ("property_account_payable_id",
+             ext_ref),                       # External key (c)
+        ],
+    )
+
+Module test execution workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Module test execution workflow should be:
+
+    #. Data declaration, in setUp() function
+    #. Base data creation, in setUp() function
+    #. Supplemental data declaration
+    #. Supplemental data creation
+
+Test data may be managed by one or more data group; if not declared,
+"base" group name is used. The "base" group must be created at the setUp()
+level: it is the base test data.
+Testing function may declare and manage other group data. Look at the
+following example:
+
+::
+
+    import os
+    import logging
+    from .testenv import MainTest as SingleTransactionCase
+
+    _logger = logging.getLogger(__name__)
+
+    TEST_PRODUCT_TEMPLATE = {
+        "z0bug.product_template_1": {...}
+    }
+    TEST_RES_PARTNER = {
+        "z0bug.partner1": {...}
+    )
+    TEST_SETUP_LIST = ["res.partner", "product.template"]
+
+    TEST_SALE_ORDER = {
+        "z0bug.order_1": {
+            "partner_id": "z0bug.partner1",
+            ...
+        }
+    }
+    TEST_SALE_ORDER_LINE = {
+        "z0bug.order_1_1": {
+            "product_id": "z0bug.product_product_1",
+            ...
+        }
+    )
+
+    class MyTest(SingleTransactionCase):
+
+        def setUp(self):
+            super().setUp()
+            # Add following statement just for get debug information
+            self.debug_level = 2
+            data = {"TEST_SETUP_LIST": TEST_SETUP_LIST}
+            for resource in TEST_SETUP_LIST:
+                item = "TEST_%s" % resource.upper().replace(".", "_")
+                data[item] = globals()[item]
+            self.declare_all_data(data)     # TestEnv swallows the data
+            self.setup_env()                # Create test environment
+
+        def test_something(self):
+            data = {"TEST_SETUP_LIST": ["sale.order", "sale.order.line"]}
+            for resource in TEST_SETUP_LIST:
+                item = "TEST_%s" % resource.upper().replace(".", "_")
+                data[item] = globals()[item]
+            # Declare order data in specific group to isolate data
+            self.declare_all_data(data, group="order")
+            # Create the full sale order with lines
+            self.resource_make(model, xref, group="order")
+
+Note the external reference are globals and they are visible from any group
+while the data is visible just inside group.
+You can manage specific table/model data or table/model data group.
+
+Data values
+~~~~~~~~~~~
+
+Data values may be raw data (string, number, dates, etc.) or external reference
+or some macro.
+You can declare data value on your own but you can discover th full test environment
+in https://github.com/zeroincombenze/zerobug-test/mk_test_env/ and get data
+from this environment.
+
+company_id
+~~~~~~~~~~
+
+If value is empty, user company is used. This behavior is
+not applied on "res.users" models.
+Fot the "product.product", "product.template" and "res.partner" is searched
+for company or null value.
+
+boolean
+~~~~~~~
+
+You can declare boolean value:
+
+* by python boolean False or True
+* by integer 0 o 1
+* by string "0" / "False" or "1" / "True"
+
+::
 
 
-`get_test_values(self, model, xid)`
+    self.resource_create(
+        "res.partner",
+        xref="z0bug.partner1",
+        values={
+             {
+                ...
+                "supplier": False,
+                "customer": "True",
+                "is_company": 1,
+            }
+        }
+    )
 
-Return values of specific xid. If xid is Odoo standard xid, i.e. "base.res_partner_1",
-return empty dictionary.
-If xid begins with "z0bug." return default values to use in test.
-This function is used by `ref_value` to get default values.
-Warning: returned values may contain some field of uninstalled module.
+char / text
+~~~~~~~~~~~
+
+Char and Text values are python string; please use unicode whenever is possible.
+
+::
 
 
-`get_data_file(self, model, csv_fn)`
+    self.resource_create(
+        "res.partner",
+        xref="z0bug.partner1",
+        values={
+             {
+                ...
+                "name": "Alpha",
+                "street": "1, First Avenue",
+                ...
+            }
+        }
+    )
 
-Load data of model from csv_fn. Internal use only.
+integer / float / monetary
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Integer, Floating and Monetary values are python integer or float.
+If numeric value is issued as string, it is internally converted
+as integer/float.
+
+::
+
+
+    self.resource_create(
+        "res.partner",
+        xref="z0bug.partner1",
+        values={
+             {
+                ...
+                "color": 1,
+                "credit_limit": 500.0,
+                "payment_token_count": "0",
+            }
+        }
+    )
+
+date / datetime
+~~~~~~~~~~~~~~~
+
+Date and Datetime value are managed in special way.
+They are processed by compute_date() function (read below).
+You can issue a single value or a 2 values list, 1st is the date,
+2nd is the reference date.
+
+::
+
+
+    self.resource_create(
+        "res.partner",
+        xref="z0bug.partner1",
+        values={
+             {
+                ...
+                "activity_date_deadline": "####-1>-##",    # Next month
+                "signup_expiration": "###>-##-##",         # Next year
+                "date": -1,                                # Yesterday
+                "last_time_entries_checked":
+                    [+2, another_date],                    # 2 days after another day
+                "message_last_post": "2023-06-26",         # Specific date
+            }
+        }
+    )
+
+many2one
+~~~~~~~~
+
+You can issue an integer (if you exactly know the ID)
+or an external reference. Read above about external reference.
+
+::
+
+
+    self.resource_create(
+        "res.partner",
+        xref="z0bug.partner1",
+        values={
+             {
+                ...
+                "country_id": "base.it",                   # Odoo external reference
+                "property_account_payable_id":
+                    "z0bug.customer_account",              # Test record
+                "title": "external.Mister"                 # Record with name=="Mister"
+            }
+        }
+    )
+
+one2many / many2many
+~~~~~~~~~~~~~~~~~~~~
+
+The one2many and many2many field may contains one or more ID;
+every ID use the many2one notation using external reference.
+Value may be a string (just 1 value) or a list.
+
+::
+
+    self.resource_create(
+        "res.partner",
+        xref="z0bug.partner1",
+        values={
+             {
+                ...
+                "bank_ids":
+                    [
+                        "base.bank_partner_demo",
+                        "base_iban.bank_iban_china_export",
+                    ],
+                "category_id": "base.res_partner_category_0",
+            }
+        }
+    )
+
+binary
+~~~~~~
+
+Binary file are supplied with os file name. Test environment load file and
+get binary value. File must be located in ./tests/data directrory.
+::
+
+    self.resource_create(
+        "res.partner",
+        xref="z0bug.partner1",
+        values={
+             {
+                ...
+                "image": "z0bug.partner1.png"
+            }
+        }
+    )
+
+
+Functions
+---------
+
+store_resource_data
+~~~~~~~~~~~~~~~~~~~
+
+Store a record data definition for furthermore use.
+Data stored is used by setup_env() function and/or by:
+
+* resource_create() without values
+* resource_write() without values
+* resource_make() without values
+
+def store_resource_data(self, resource, xref, values, group=None, name=None):
+
+    Args:
+        resource (str): Odoo model name
+        xref (str): external reference
+        values (dict): record data
+        group (str): used to manager group data; default is "base"
+        name (str): label of dataset; default is resource name
+
+compute_date
+~~~~~~~~~~~~
+
+Compute date or datetime against today or a reference date. Date may be:
+
+* python date/datetime value
+* string with ISO format "YYYY-MM-DD" / "YYYY-MM-DD HH:MM:SS"
+* string value that is a relative date against today / reference date
+
+Relative string format is like ISO, with 3 groups separated by '-' (dash).
+Every group may be an integer or a special notation:
+
+* starting with '<' meas subtract; i.e. '<2' means minus 2
+* ending with '>' meas add; i.e. '2>' means plus 2
+* '#' with '<' or '>' means 1; i.e. '<###' means minus 1
+* all '#' means same value of reference date
+
+A special notation '+N' and '-N', where N is an integer means add N days
+or subtract N day from reference date.
+Here, in following examples, are used python iso date convention:
+
+* '+N': return date + N days to refdate (python timedelta)
+* '-N': return date - N days from refdate (python timedelta)
+* '%Y-%m-%d': strftime of issued value
+* '%Y-%m-%dT%H:%M:%S': same datetime
+* '%Y-%m-%d %H:%M:%S': same datetime
+* '####-%m-%d': year from refdate (or today), month '%m', day '%d'
+* '####-##-%d': year and month from refdate (or today), day '%d'
+* '2022-##-##': year 2022, month and day from refdate (or today)
+* '<###-%m-%d': year -1  from refdate (or today), month '%m', day '%d'
+* '<001-%m-%d': year -1  from refdate (or today), month '%m', day '%d'
+* '<###-#>-%d': year -1  from refdate, month +1 from refdate, day '%d'
+* '<005-2>-##': year -5, month +2 and day from refdate
+
+Notes:
+    Returns a ISO format string.
+    Returned date is always a valid date; i.e. '####-#>-31',
+    with ref month January result '####-02-31' becomes '####-03-03'
+    To force last day of month, set '99': i.e. '####-<#-99' becomes the
+    last day of previous month of refdate
+
+def compute_date(self, date, refdate=None):
+
+    date (date or string or integer): formula; read aboove
+    refdate (date or string): reference date
+
+resource_bind
+~~~~~~~~~~~~~
+
+Bind record by xref or searching it or browsing it.
+This function returns a record using issued parameters. It works in follow ways:
+
+* With valid xref it work exactly like self.env.ref()
+* If xref is an integer it works exactly like self.browse()
+* I xref is invalid, xref is used to search record
+    * xref is searched in stored data
+    * xref ("MODULE.NAME"): if MODULE == "external", NAME is the record key
+
+def resource_bind(self, xref, raise_if_not_found=True, resource=None):
+
+    Args:
+        xref (str): external reference
+        raise_if_not_found (bool): raise exception if xref not found or
+                                   if more records found
+        resource (str): Odoo model name, i.e. "res.partner"
+
+    Returns:
+        obj: the Odoo model record
+
+    Raises:
+        ValueError: if invalid parameters issued
+
+resource_create
+~~~~~~~~~~~~~~~
+
+Create a test record and set external ID to next tests.
+This function works as standard Odoo create() with follow improvements:
+
+* It can create external reference too
+* It can use stored data if no values supplied
+
+def resource_create(self, resource, values=None, xref=None, group=None):
+
+    Args:
+        resource (str): Odoo model name, i.e. "res.partner"
+        values (dict): record data (default stored data)
+        xref (str): external reference to create
+        group (str): used to manager group data; default is "base"
+
+    Returns:
+        obj: the Odoo model record, if created
+
+resource_write
+~~~~~~~~~~~~~~
+
+Update a test record.
+This function works as standard Odoo write() with follow improvements:
+
+* If resource is a record, xref is ignored (it should be None)
+* It resource is a string, xref must be a valid xref or an integer
+* If values is not supplied, record is restored to stored data values
+
+def resource_write(self, resource, xref=None, values=None, raise_if_not_found=True, group=None):
+
+    Args:
+        resource (str|obj): Odoo model name or record to update
+        xref (str): external reference to update: required id resource is string
+        values (dict): record data (default stored data)
+        raise_if_not_found (bool): raise exception if xref not found or
+                       if more records found
+        group (str): used to manager group data; default is "base"
+
+    Returns:
+        obj: the Odoo model record
+
+    Raises:
+        ValueError: if invalid parameters issued
+
+resource_make
+~~~~~~~~~~~~~
+
+Create or write a test record.
+This function is a hook to resource_write() or resource_create().
+
+def resource_make(self, resource, xref, values=None, group=None):
+
+declare_resource_data
+~~~~~~~~~~~~~~~~~~~~~
+
+Declare data to load on setup_env().
+
+def declare_resource_data(self, resource, data, name=None, group=None, merge=None)
+
+    Args:
+        resource (str): Odoo model name, i.e. "res.partner"
+        data (dict): record data
+        name (str): label of dataset; default is resource name
+        group (str): used to manager group data; default is "base"
+        merge (str): merge data with public data (currently just "zerobug")
+
+    Raises:
+        TypeError: if invalid parameters issued
+
+declare_all_data
+~~~~~~~~~~~~~~~~
+
+Declare all data to load on setup_env().
+
+def declare_resource_data(self, resource, data, name=None, group=None, merge=None)
+
+    Args:
+        message (dict): data message
+            TEST_SETUP_LIST (list): resource list to load
+            TEST_* (dict): resource data; * is the uppercase resource name where
+                           dot are replaced by "_"; (see declare_resource_data)
+        group (str): used to manager group data; default is "base"
+        merge (str): merge data with public data (currently just "zerobug")
+
+    Raises:
+        TypeError: if invalid parameters issuedd
+
+get_resource_data
+~~~~~~~~~~~~~~~~~
+
+Get declared resource data; may be used to test compare.
+
+def get_resource_data(self, resource, xref, group=None):
+
+    Args:
+        resource (str): Odoo model name or name assigned, i.e. "res.partner"
+        xref (str): external reference
+        group (str): if supplied select specific group data; default is "base"
+
+    Returns:
+        dictionary with data or empty dictionary
+
+get_resource_data_list
+~~~~~~~~~~~~~~~~~~~~~~
+
+Get declared resource data list.
+
+def get_resource_data_list(self, resource, group=None):
+
+    Args:
+        resource (str): Odoo model name or name assigned, i.e. "res.partner"
+        group (str): if supplied select specific group data; default is "base"
+
+    Returns:
+        list of data
+
+get_resource_list
+~~~~~~~~~~~~~~~~~
+
+Get declared resource list.
+
+def get_resource_list(self, group=None):
+
+    Args:
+        group (str): if supplied select specific group data; default is "base"
+
+setup_company
+~~~~~~~~~~~~~
+
+Setup company values for current user.
+
+This function assigns company to current user and / or can create xref aliases
+and /or can update company values.
+This function is useful in multi companies tests where different company values
+will be used in different tests. May be used in more simple test where company
+data will be updated in different tests.
+You can assign partner_xref to company base by group; then all tests executed
+after setup_env(), use the assigned partner data for company of the group.
+You can also create more companies and assign one of them to test by group.
+
+def setup_company(self, company, xref=None, partner_xref=None, values={}, group=None):
+
+    Args:
+        company (obj): company to update; if not supplied a new company is created
+        xref (str): external reference or alias for main company
+        partner_xref (str): external reference or alias for main company partner
+        values (dict): company data to update immediately
+        group (str): if supplied select specific group data; default is "base"
+
+    Returns:
+        default company for user
+
+setup_env
+~~~~~~~~~
+
+Create all record from declared data.
+
+This function starts the test workflow creating the test environment.
+Test data must be declared before engage this function with declare_all_data()
+function (see above).
+setup_env may be called more times with different group value.
+If it is called with the same group, it recreates the test environment with
+declared values; however this feature might do not work for some reason: i.e.
+if test creates a paid invoice, the setup_env() cannot unlink invoice.
+If you want to recreate the same test environment, assure the conditions for
+unlink of all created and tested records.
+If you create more test environment with different group you can use all data,
+even record created by different group.
+In this way you can test a complex process the evolved scenario.
+
+def setup_env(self, lang=None, locale=None, group=None):
+
+    Args:
+        lang (str): install & load specific language
+        locale (str): install locale module with CoA; i.e l10n_it
+        group (str): if supplied select specific group data; default is "base"
+
+    Returns:
+        None
+
+resource_edit
+~~~~~~~~~~~~~
+
+Server-side web form editing.
+
+Ordinary Odoo test use the primitive create() and write() function to manage
+test data. These methods create an update records, but they do not properly
+reflect the behaviour of user editing form with GUI interface.
+
+This function simulates the client-side form editing in the server-side.
+It works in the follow way:
+
+* It can simulate the form create record
+* It can simulate the form update record
+* It can simulate the user data input
+* It calls the onchange functions automatically
+* It may be used to call button in the form
+
+User action simulation:
+The parameter <web_changes> is a list of user actions to execute sequentially.
+Every element of the list is another list with 2 or 3 values:
+* Field name to assign value
+* Value to assign
+* Optional function to execute (i.e. specific onchange)
+If field is associate to an onchange function the relative onchange functions
+are execute after value assignment. If onchange set another field with another
+onchange the relative another onchange are executed until all onchange are
+exhausted. This behavior is the same of the form editing.
+
+Warning: because function are always executed at the server side the behavior
+may be slightly different from actual form editing. Please take note of
+following limitations:
+
+* update form cannot simulate discard button
+* required data in create must be supplied by default
+* form inconsistency cannot be detected by this function
+* nested function must be managed by test code (i.e. wizard from form)
+
+See test_testenv module for test examples
+https://github.com/zeroincombenze/zerobug-test/tree/12.0/test_testenv
+
+def resource_edit(self, resource, default={}, web_changes=[], actions=[], ctx={}):
+
+    Args:
+        resource (str or obj): if field is a string simulate create web behavior of
+                               Odoo model issued in resource;
+                               if field is an obj simulate write web behavior on the
+                               issued record
+        default (dict): default value to assign
+        web_changes (list): list of tuples (field, value); see <wiz_edit>
+
+    Returns:
+        windows action to execute or obj record
+
+wizard
+~~~~~~
+
+Execute a full wizard.
+
+Engage the specific wizard, simulate user actions and return the wizard result,
+usually a windows action.
+
+It is useful to test:
+
+    * view names
+    * wizard structure
+    * wizard code
+
+Both parameters <module> and <action_name> must be issued in order to
+call <wiz_by_action_name>; they are alternative to act_windows.
+
+*** Example of use ***
+
+::
+
+  XML view file:
+      <record id="action_example" model="ir.actions.act_window">
+          <field name="name">Example</field>
+          <field name="res_model">wizard.example</field>
+          [...]
+      </record>
+
+Python code:
+
+::
+
+    act_windows = self.wizard(module="module_example",
+        action_name="action_example", ...)
+    if self.is_action(act_windows):
+        act_windows = self.wizard(act_windows=act_windows, ...)
+
+User action simulation:
+The parameter <web_changes> is a list of user actions to execute sequentially.
+Every element of the list is another list with 2 or 3 values:
+* Field name to assign value
+* Value to assign
+* Optional function to execute (i.e. specific onchange)
+If field is associate to an onchange function the relative onchange functions
+are execute after value assignment. If onchange set another field with another
+onchange the relative another onchange are executed until all onchange are
+exhausted. This behavior is the same of the form editing.
+
+
+def wizard(self, module=None, action_name=None, act_windows=None, records=None, default=None, ctx={}, button_name=None, web_changes=[], button_ctx={},):
+
+    Args:
+        module (str): module name for wizard to test; if "." use current module name
+        action_name (str): action name
+        act_windows (dict): Odoo windows action (do not issue module & action_name)
+        records (obj): objects required by the download wizard
+        default (dict): default value to assign
+        ctx (dict): context to pass to wizard during execution
+        button_name (str): function name to execute at the end of then wizard
+        web_changes (list): list of tuples (field, value); see above
+        button_ctx (dict): context to pass to button_name function
+
+    Returns:
+        result of the wizard
+
+    Raises:
+        ValueError: if invalid parameters issued
 
 
 |
@@ -1048,7 +1717,26 @@ Current development version
 History
 -------
 
-2.0.2 (2022-10-20)
+2.0.3 (2022-12-29)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: more debug messages
+* [IMP] TestEnv: more improvements
+* [FIX] TestEnv: sometime crashes if default use context
+* [FIX] TestEnv: bug fixes
+
+2.0.2 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Automatic conversion of integer into string for 'char' fields
+* [IMP] TestEnv
+
+2.0.1.1 (2022-11-03)
+~~~~~~~~~~~~~~~~~~~~
+
+* [REF] clone_oca_dependencies.py
+
+2.0.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
@@ -1087,7 +1775,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-24
+Last Update / Ultimo aggiornamento: 2023-01-08
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

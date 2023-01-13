@@ -1,8 +1,46 @@
-.. toctree::
-   :maxdepth: 2
+
+=================
+python_plus 2.0.4
+=================
+
+
+
+|Maturity| |Build Status| |Coverage Status| |license gpl|
+
+
+
+
+Overview
+========
+
+Python supplemental features
+----------------------------
+
+python-plus adds various features to python 2 and python 3 programs.
+It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
+
+
+list_requirements.py: list environment requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This command is an internal command of python-plus but may be used as own command.
+list_requirements.py dispays the pypi and binaries packages needed to create a virtual environment.
+It is specially designed to show Odoo requirements.
+Passing Odoo path it reads requirements.txt files in path and setup directories of OCA repositories.
+
+vem: virtual environment manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This command is an interactive tool with some nice features to manage standard virtual environment.
+Mainly it works ad standard pip but inside a specific virtual environment.
+
+
+
+|
 
 Usage
------
+=====
+
 Code example
 ------------
 
@@ -183,6 +221,154 @@ uninstall [OPTIONS] [SRC_VENV] PKG
 update [OPTIONS] [SRC_VENV] PKG
       Upgrade pypi package in virtual environment.
 
+
+
+|
+|
+
+Getting started
+===============
+
+
+|
+
+Installation
+------------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install python_plus
+
+
+|
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -p
+    source /opt/odoo/devel/activate_tools
+
+
+Upgrade
+-------
+
+Upgrade
+-------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    pip install python_plus -U
+
+|
+
+Current stable version
+~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -U
+    source /opt/odoo/devel/activate_tools
+
+Current development version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -Ud
+    source /opt/odoo/devel/activate_tools
+
+
+History
+-------
+
+2.0.4.1 (2022-12-23)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: refactoring version control
+* [IMP] vem: now amend can check current version (with -f switch)
+
+2.0.4 (2022-12-15)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Package version adjustment
+* [IMP] vem: amend show current package version
+* [IMP] vem: no python2 warning in linux kernel 3
+* [FIX] vem: best recognition of python version
+
+2.0.3 (2022-11-08)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] npm management
+* [IMP] compute_date: refdate may be a string
+
+2.0.2.1 (2022-11-01)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Ensure coverage 5.0+
+
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: wrong behavior with > o < in version
+* [IMP] list_requirements.py: "Crypto.Cipher": "pycrypto"
+
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.0.3 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: install package with list_requirements.py
+
+2.0.0.2 (2022-09-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: no input inquire
+
+2.0.0.1 (2022-09-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] vem: new swith -d for Odoo dependencies path
+* [FIX] vem: create with best package list
+* [FIX] vem: install odoo/openerp
+
+
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+
+
+|
+|
+
+Credits
+=======
+
+Copyright
+---------
+
+SHS-AV s.r.l. <https://www.shs-av.com/>
+
+
+Contributors
+------------
+
+* Antonio Maria Vigliotti <info@shs-av.com>
 
 
 |
