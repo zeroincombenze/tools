@@ -123,12 +123,16 @@ set_log_filename() {
 #      LOGDIR="$(dirname $opt_flog)"
 #      LOGFILE="$opt_flog"
 #    else
-      LOGDIR="$(get_cfg_value "" "LOGDIR")"
-      [[ -z $LOGDIR ]] && LOGDIR="$ODOO_ROOT/travis_log"
-      [[ -d $LOGDIR ]] || mkdir $LOGDIR
-      LOGFILE="$LOGDIR/${UMLI}.log"
+#      LOGDIR="$(get_cfg_value "" "LOGDIR")"
+#      [[ -z $LOGDIR ]] && LOGDIR="$ODOO_ROOT/travis_log"
+#      [[ -d $LOGDIR ]] || mkdir $LOGDIR
+#      LOGFILE="$LOGDIR/${UMLI}.log"
 #    fi
-    OLD_LOGFILE=${LOGFILE/.log/_old.log}
+    LOGDIR="$PKGPATH/tests/logs"
+    [[ -d $LOGDIR ]] || mkdir $LOGDIR
+    LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%d%m).log"
+    [[ -f $LOGFILE ]] && rm -f $LOGFILE
+    # OLD_LOGFILE=${LOGFILE/.log/_old.log}
     # set +x  #debug
 }
 
@@ -467,7 +471,8 @@ if [[ $opt_touch -eq 0 ]]; then
     if [[ -n "$VDIR" ]]; then
       coverage_set
       x=$(date +"%Y-%m-%d %H:%M:%S,000")
-      [[ $opt_verbose -gt 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $VDIR; source ./bin/activate"
+      [[ $opt_verbose -gt 0 && $opt_test -eq 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $VDIR; source ./bin/activate"
+      [[ $opt_verbose -gt 0 && $opt_test -ne 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $VDIR; source ./bin/activate" | tee -a $LOGFILE
       if [[ $opt_dry_run -eq 0 ]]; then
         cd $VDIR
         source ./bin/activate
@@ -498,16 +503,20 @@ if [[ $opt_touch -eq 0 ]]; then
             if [[ $opt_force -ne 0 || ! -f $fnparam ]] || ! echo $c|diff -qw $fnparam - || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
               # Create DB for test
               run_traced "pg_db_active -L -wa '$TEMPLATE' && dropdb $opts --if-exists '$TEMPLATE'"
-              psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database $TEMPLATE removal failed!" && exit 1
-              run_traced "$cmd"
-              run_traced "pg_db_active -L '$TEMPLATE'"
+              if [[ $opt_dry_run -eq 0 ]]; then
+                psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database $TEMPLATE removal failed!" && exit 1
+                run_traced "$cmd"
+                run_traced "pg_db_active -L '$TEMPLATE'"
+              fi
             fi
             if psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
               [[ $opt_dry_run -eq 0 ]] && echo $c > $fnparam
               run_traced "pg_db_active -L -wa '$opt_db' && dropdb $opts --if-exists '$opt_db'"
-              psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database $opt_db removal failed!" && exit 1
-              run_traced "pg_db_active -L -wa '$TEMPLATE'"
-              run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
+              if [[ $opt_dry_run -eq 0 ]]; then
+                psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database $opt_db removal failed!" && exit 1
+                run_traced "pg_db_active -L -wa '$TEMPLATE'"
+                run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
+              fi
             else
               echo "Template $TEMPLATE not found!"
               cmd="${cmd/$TEMPLATE$opt_db/}"
@@ -519,38 +528,36 @@ if [[ $opt_touch -eq 0 ]]; then
     fi
 
     if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
-      [[ -f $LOGFILE ]] && rm -f $LOGFILE
-      if [[ -n $COVERAGE_PROCESS_START ]]; then
-        v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-        if [[ $v -ge 6 ]]; then
-          run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS"
+        run_traced "pip list --format=freeze > $LOGDIR/requirements.txt"
+        if [[ -n $COVERAGE_PROCESS_START ]]; then
+            v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
+            if [[ $v -ge 6 ]]; then
+                run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            else
+                run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            fi
         else
-          run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS"
+            run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
         fi
-      else
-        run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
-      fi
     elif [[ opt_dbg -gt 1 ]]; then
-      echo ""
-      echo "Now you can test module $opt_module on pycharm"
-      echo ""
-      echo "Debug Odoo by pycharm after set configuration \"Debug Odoo $odoo_fver\""
-      echo -e "parameters=\"\e[33m$script\e[0m \e[31m$OPT_CONF $OPT_LLEV $OPTS\e[0m\""
-      echo ""
-      echo "If your test code contains the follow statements"
-      echo ""
-      echo -e "    \e[33mdef tearDown(self):\e[0m"
-      echo -e "        \e[33mself.env.cr.commit()\e[0m  # pylint: disable=invalid-commit"
-      echo ""
-      echo "you can browse test database from:"
-      echo -e "\e[33mhttp://localhost:8069\e[0m or \e[33mhttp://localhost:$(build_odoo_param RPCPORT $odoo_fver)\e[0m"
-      echo -e "DB=\e[31m$opt_db\e[0m login: admin/admin"
-      echo ""
+        echo ""
+        echo "Now you can test module $opt_modules on pycharm"
+        echo ""
+        echo "Debug Odoo by pycharm after set configuration \"Debug Odoo $odoo_fver\""
+        echo -e "parameters=\"\e[33m$script\e[0m \e[31m$OPT_CONF $OPT_LLEV $OPTS\e[0m\""
+        echo ""
+        echo "If your test code contains the follow statements"
+        echo ""
+        echo -e "    \e[33mdef tearDown(self):\e[0m"
+        echo -e "        \e[33mself.env.cr.commit()\e[0m  # pylint: disable=invalid-commit"
+        echo ""
+        echo "you can browse test database from:"
+        echo -e "\e[33mhttp://localhost:8069\e[0m or \e[33mhttp://localhost:$(build_odoo_param RPCPORT $odoo_fver)\e[0m"
+        echo -e "DB=\e[31m$opt_db\e[0m login: admin/admin"
+        echo ""
     else
-      run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
+        run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
     fi
-
-    coverage_report
 
     if [[ -n "$VDIR" ]]; then
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
@@ -559,11 +566,18 @@ if [[ $opt_touch -eq 0 ]]; then
     fi
     [[ $opt_test -ne 0 && -f $FULL_LCONFN ]] && rm -f FULL_LCONFN
     [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
-    if [[ $drop_db -gt 0 ]]; then
-        if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
-            [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-            run_traced "pg_db_active -L -wa '$opt_db'; dropdb $opts --if-exists '$opt_db'"
-            [[ opt_dbg -ne 1 ]] && run_traced "pg_db_active -L -wa '$TEMPLATE'; dropdb $opts --if-exists '$TEMPLATE'"
+
+    if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
+        if [[ $opt_dry_run -eq 0 ]]; then
+            echo -e "\n+===================================================================" | tee -a $LOGFILE
+            grep -Eq " (ERROR|CRITICAL) " $LOGFILE && x="\e[31mFAILED!\e[0m" || x="\e[32mSUCCESS!\e[0m"
+            echo -e "| please test \e[36m${opt_modules}\e[0m (${odoo_fver}): $x" | tee -a $LOGFILE
+            echo -e "+===================================================================\n"  | tee -a $LOGFILE
+            coverage_report | tee -a $LOGFILE
+            echo "less -R $LOGFILE" > $LOGDIR/show-log.sh
+            chmod +x $LOGDIR/show-log.sh
+        else
+            run_traced "coverage_report | tee -a $LOGFILE"
         fi
     fi
     if [[ $opt_exp -ne 0 ]]; then
@@ -571,5 +585,13 @@ if [[ $opt_touch -eq 0 ]]; then
         echo "# Translation exported to '$src' file"
     elif [[ $opt_imp -ne 0 ]]; then
         echo "# Translation imported from '$src' file"
+    fi
+
+    if [[ $drop_db -gt 0 ]]; then
+        if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
+            [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
+            run_traced "pg_db_active -L -wa '$opt_db'; dropdb $opts --if-exists '$opt_db'"
+            [[ opt_dbg -ne 1 ]] && run_traced "pg_db_active -L -wa '$TEMPLATE'; dropdb $opts --if-exists '$TEMPLATE'"
+        fi
     fi
 fi
