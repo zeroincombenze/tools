@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # git report to origin
 # git fetch origin , poi, git reset --hard origin/8.0-ddt-based-on-packaging-preparation_fa
@@ -50,7 +50,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3.1
+__version__=2.0.4
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -87,7 +87,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Copy package files"\
-  "© 2015-2022 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "© 2015-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 

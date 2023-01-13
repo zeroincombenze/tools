@@ -239,6 +239,28 @@ Current development version
 History
 -------
 
+z0bug_odoo: 2.0.3 (2022-12-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: more debug messages
+* [IMP] TestEnv: more improvements
+* [FIX] TestEnv: sometime crashes if default use context
+* [FIX] TestEnv: bug fixes
+
+
+python_plus: 2.0.5 (2022-12-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: refactoring version control
+* [IMP] vem: now amend can check current version (with -f switch)
+
+
+z0lib: 2.0.3 (2022-12-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced: --switch sometime crashes
+
+
 z0lib: 2.0.2.1 (2022-12-15)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -254,15 +276,8 @@ python_plus: 2.0.4 (2022-12-15)
 * [FIX] vem: best recognition of python version
 
 
-z0bug_odoo: 2.0.2.1 (2022-12-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: more debug messages
-* [FIX] TestEnv: sometime crashes if default use context
-
-
-wok_code: 2.0.4.1 (2022-12-13)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 2.0.5 (2022-12-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] install_python_3_from_source.sh: now can install python 3.9
 * [IMP] please: action docs, minor improvements
@@ -273,6 +288,7 @@ travis_emulator: 2.0.3.1 (2022-12-13)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Added python 3.9 to test
+* [IMP] Detect python versions from setup.py
 
 
 z0bug_odoo: 2.0.2 (2022-12-09)
@@ -324,65 +340,6 @@ wok_code: 2.0.3 (2022-11-22)
 * [REF] odoo_translation
 
 
-odoo_score: 2.0.3 (2022-11-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
-
-
-
-zerobug: 2.0.3 (2022-11-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] npm management
-
-
-travis_emulator: 2.0.2.2 (2022-11-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] npm management
-
-
-python_plus: 2.0.3 (2022-11-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] npm management
-* [IMP] compute_date: refdate may be a string
-
-
-z0bug_odoo: 2.0.1.1 (2022-11-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] clone_oca_dependencies.py
-
-
-travis_emulator: 2.0.2.1 (2022-11-02)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] travis: partial refactoring
-* [IMP] travis: recognition of local/librerp
-
-
-python_plus: 2.0.2.1 (2022-11-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Ensure coverage 5.0+
-
-
-zerobug: 2.0.2.1 (2022-10-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Odoo 11.0+
-* [FIX] Ensure coverage 5.0+
-
-
-wok_code: 2.0.2.1 (2022-10-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] lint_2_compare: ignoring .git .idea egg-info and setup directories
-* [IMP] lint_2_compare: new ignore switches
-* [FIX] please translate: do not execute export
-
 
 
 
@@ -399,7 +356,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2022-12-21
+Last Update / Ultimo aggiornamento: 2023-01-13
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

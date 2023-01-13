@@ -13,8 +13,9 @@
 #
 import os
 import sys
+# Follow sys.path load odoo core, needed to import testenv
 sys.path.insert(0, os.path.join(os.path.expanduser("~"), "12.0"))
-sys.path.insert(0, os.path.join(os.path.dirname(os.getcwd()), 'testenv'))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.getcwd())))
 # import sphinx_rtd_theme
 
 
@@ -25,9 +26,9 @@ copyright = '2019-23, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '2.0.2'
+version = '2.0.3'
 # The full version, including alpha/beta/rc tags
-release = '2.0.2'
+release = '2.0.3'
 
 
 # -- General configuration ---------------------------------------------------
@@ -163,10 +164,13 @@ html_theme_options = {
 # html_sidebars = {}
 html_logo = 'logozero_180x46.png'
 #
-# autodoc_default_flags = ['members']
 autosummary_generate = True
+autodoc_class_signature = 'separated'
 autodoc_default_options = {
-    'members': 'Z0bugOdoo, MainTest',
+    'autoclass': 'Z0bugOdoo, MainTest',
+    # 'members': 'Z0bugOdoo, MainTest',
     'undoc-members': True,
-    # 'exclude-members': 'Macro, SanityTest',
+    # 'suppress_warnings': 'autodoc.import_object',
+    'member-order': 'bysource',
+    # 'exclude-members': '__docs__'
 }

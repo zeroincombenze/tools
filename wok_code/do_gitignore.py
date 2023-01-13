@@ -30,8 +30,8 @@ def do_create_gitignore(path, submodules):
                         break
             elif trig == "pypi":
                 if (
-                    "/docs/_build/" not in line
-                    and ".egg-info/" not in line
+                    # "/docs/_build/" not in line
+                    ".egg-info/" not in line
                     and os.path.join(*[path] + [x for x in line.split("/") if x])
                 ):
                     found = True
