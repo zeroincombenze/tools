@@ -19,7 +19,7 @@ __version__ = "2.0.4"
 
 MODULE_SEP = "\ufffa"
 
-# (<en>, <it>, <module>, <result>)
+# (<en>, <it>, <module>, <result>, ovverride)
 TEST_DATA = [
     ("name", "nome", None, "nome"),
     ("Name", "Nome", None, "Nome"),
@@ -28,9 +28,10 @@ TEST_DATA = [
     ("First Name", "Nome di battesimo", None, "Nome di battesimo"),
     ("Last Name", "Cognome", None, "Cognome"),
     ("Name s.r.l.", None, None, "Nome s.r.l."),
-    ("account", "contabilità", None, "contabilità"),
+    ("account", "conto", None, "conto"),
     ("tax", "IVA", None, "IVA"),
     ("UE", "EU", None, "EU"),
+    ("Customer", "Cliente", None, "Cliente"),
     ("Invoice", "Fattura", None, "Fattura"),
     ("invoice", "", None, "fattura"),
     ("<b>Invoice</b>", "<b>Invoice</b>", None, "<b>Fattura</b>"),
@@ -61,10 +62,18 @@ TEST_DATA = [
     ("&gt; 100%%", "", None, "&gt; 100%%"),
     ("/usr/name/line", "", None, "/usr/name/line"),
     ("%s invoice lines", "righe %s fattura", None, "righe %s fattura"),
-    ("# invoice lines", None, None, "Linee n.invoice"),
+    ("# invoice lines", None, None, "N.fattura righe"),
     ("Acceptance Account", "Conto RI.BA. all'incasso", None,
      "Conto RiBA all'incasso"),
     ("Ri.Ba. Bank", "Banca Ri.Ba", None, "Banca RiBA"),
+    ("Created by", "Creato da", None, "Creato da"),
+    ("Created by", "Creato da", None, "Creato da"),
+    ("Customer SEPA account", None, None, "Conto cliente SEPA"),
+    ("Customer SEPA account", "Conto cliente SEPA", None, "Conto cliente SEPA", True),
+    ("Account (Credit)", "Conto (avere)", None, "Conto (avere)"),
+    ("Account (Credit)", None, "l10n_it", "Conto (Avere)"),
+    ("Other Info", "Altre informazioni", None, "Altre informazioni"),
+    ("Other Info", "Altre info", "l10n_it", "Altre info"),
 ]
 msg_time = time()
 
@@ -117,9 +126,9 @@ class OdooTranslation(object):
              False),
             ("word", True, True, (
                 r"([a-zA-Z]{1,2}[./]([a-zA-Z]{1,2}[./])*([a-zA-Z]{1,2})*"
-                r"|(\w|# )(-?\w|\w| # |`)*)"),
+                r"|(\w|# )([-/]?\w| # |`)*)"),
              False),
-            ("punct", True, False, r"[.,:;!?()]+", True),
+            ("punct", True, False, r"[.,:;!?]+", True),
             ("space", False, True, r"\s+", True),
             ("tag", False, False, (
                 r"(</?\w+[^/>]*/?>|%[a-zA-Z]|%\(\w+\)[a-zA-Z]"
@@ -136,6 +145,7 @@ class OdooTranslation(object):
                 self.re_space2 = item[3]
             elif item[0] == "tag":
                 self.re_tag = item[3]
+        self.re_to_upper = r".*[-.(]$"
         self.build_alias_dict()
 
     def get_home_devel(self):
@@ -158,10 +168,13 @@ class OdooTranslation(object):
                 return True
         return False
 
-    def isplural(selfself, term):
+    def isplural(self, term):
         return (term.endswith("s")
                 and not term.endswith("%s")
                 and not term.endswith(")s")) or term.endswith("(s)")
+
+    def isfullupper(self, term):
+        return (term == term.upper())
 
     def get_filenames(self, filename=None):
         filename = filename or self.opt_args.file_xlsx
@@ -180,20 +193,23 @@ class OdooTranslation(object):
     def get_hash_key(self, key, ignore_case, module=None):
         kk = key.strip()
         if ignore_case:
-            kk = key if key == key.upper() else key.lower()
-        kk2 = ""
+            kk = key if self.isfullupper(key) else key.lower()
         if module:
-            kk2 = module + MODULE_SEP + kk
-        return kk, kk2
+            kk = module + MODULE_SEP + kk
+        return kk
 
     def adjust_case(self, orig, tnxl):
         if tnxl:
-            if orig == orig.upper():
+            if self.isfullupper(orig):
                 tnxl = tnxl.upper()
             elif len(tnxl) > 1:
                 if orig[0].isupper() and tnxl[0].islower():
                     tnxl = tnxl[0].upper() + tnxl[1:]
-                elif orig[0].islower() and tnxl[0].isupper() and tnxl != tnxl.upper():
+                elif (
+                    orig[0].islower()
+                    and tnxl[0].isupper()
+                    and not self.isfullupper(tnxl)
+                ):
                     tnxl = tnxl[0].lower() + tnxl[1:]
         return tnxl
 
@@ -221,7 +237,7 @@ class OdooTranslation(object):
 
     def set_plural_if(self, hash_key, orig, tnxl, adjust_case=None):
         if self.isplural(orig):
-            hkey = hash_key[: -1]
+            hkey = hash_key[: -3] if hash_key.endswith("(s)") else hash_key[: -1]
             if hkey in self.dict:
                 tnxl = self.adjust_case(
                     orig,
@@ -262,14 +278,8 @@ class OdooTranslation(object):
                 rtoken = " %s" % tnxls[1]
                 if msg_tnxl.endswith(ltoken):
                     msg_tnxl = msg_tnxl[0: -len(ltoken)] + rtoken
-        hash_key, hashkey_mod = self.get_hash_key(hash_key, False, module=module)
-        if hashkey_mod and (
-            hashkey_mod not in self.dict
-            or override
-            or (msg_tnxl and self.dict[hashkey_mod][0] == self.dict[hashkey_mod][1])
-        ):
-            self.dict[hashkey_mod] = (msg_orig, msg_tnxl)
-        elif hash_key and (
+        hash_key = self.get_hash_key(hash_key, False, module=module)
+        if hash_key and (
             hash_key not in self.dict
             or override
             or is_tag
@@ -306,11 +316,11 @@ class OdooTranslation(object):
                     token = message[ix: match.end() + ix]
                     if token.startswith("# "):
                         token = "N."
-                        hash_key = self.get_hash_key(token, tok_type[0])[0]
+                        hash_key = self.get_hash_key(token, tok_type[0])
                         grouped = tok_type[2]
                         ix += 2
                     else:
-                        hash_key = self.get_hash_key(token, tok_type[0])[0]
+                        hash_key = self.get_hash_key(token, tok_type[0])
                         grouped = tok_type[2]
                         ix += match.end()
                     break
@@ -324,7 +334,7 @@ class OdooTranslation(object):
                         break
                 tok_type = None
                 token = message[ix: ii + ix]
-                hash_key = self.get_hash_key(token, False)[0]
+                hash_key = self.get_hash_key(token, False)
                 ix += ii
             if (
                 (re.search(self.re_space, token) or re.search(self.re_space2, token))
@@ -348,110 +358,136 @@ class OdooTranslation(object):
                 tokens, hash_keys, groups, hash_groups)
         return tokens, hash_keys
 
-    def do_dict_item(
-        self, msg_orig, msg_tnxl, action=None, override=None, module=None, is_tag=None,
-    ):
-        action = action or ("build_dict" if override else "translate")
+    def get_untransable_token(self, msg_orig):
         for tok_type in self.types_decl:
             if not tok_type[1]:
                 if re.fullmatch(tok_type[3], msg_orig):
                     return msg_orig
+        return False
+
+    def check_if_transable(self, hashes_orig, hashes_tnxl):
+        learn_about = False if len(hashes_orig) == len(hashes_tnxl) else True
+        if hashes_orig != hashes_tnxl:
+            ix = 0
+            while not learn_about and ix < len(hashes_orig):
+                if (
+                    (
+                        isinstance(hashes_orig[ix], (list, tuple))
+                        and not isinstance(hashes_tnxl[ix], (list, tuple))
+                    )
+                    or
+                    (
+                        not isinstance(hashes_orig[ix], (list, tuple))
+                        and isinstance(hashes_tnxl[ix], (list, tuple))
+                    )
+                    or
+                    (
+                        isinstance(hashes_orig[ix], (list, tuple))
+                        and isinstance(hashes_tnxl[ix], (list, tuple))
+                        and (
+                            len(hashes_orig[ix]) != len(hashes_tnxl[ix])
+                            or any(
+                                [
+                                    (len(hashes_orig[ix][x]) > 2
+                                     and hashes_orig[ix][x] != hashes_tnxl[ix][x]
+                                     and not self.isfullupper(hashes_orig[ix][x]))
+                                    for x in range(len(hashes_orig[ix]))
+                                ])
+                        )
+                    )
+                ):
+                    learn_about = True
+                ix += 1
+        return learn_about
+
+    def get_transated_tokens(self, tok_orig, module=None, adjust_case=None):
+        hkey_orig = self.get_hash_key(
+            "".join(tok_orig), True, module=module)
+        if hkey_orig in self.dict:
+            return (
+                self.get_term(
+                    hkey_orig,
+                    "".join(tok_orig),
+                    None,
+                    adjust_case=adjust_case),
+                hkey_orig)
+        return False, False
+
+    def process_transable_tokens(self, tok_orig, hash_orig, tok_tnxl, adjust_case=None):
+        term_tnxl = ""
+        hash_key = ""
+        ix = 0
+        while ix < len(tok_orig):
+            cur_tok = tok_orig[ix]
+            if re.match(self.re_word, cur_tok):
+                x = self.get_term(hash_orig[ix], cur_tok, None, adjust_case=adjust_case)
+                if x != cur_tok:
+                    term_tnxl += x
+                else:
+                    term_tnxl += tok_tnxl[ix]
+                hash_key += hash_orig[ix]
+            else:
+                term_tnxl += tok_tnxl[ix]
+                hash_key += hash_orig[ix]
+            ix += 1
+        return term_tnxl, hash_key
+
+    def do_dict_item(
+        self, msg_orig, msg_tnxl, action=None, override=None, module=None, is_tag=None,
+    ):
+        action = action or ("build_dict" if override else "translate")
+        if self.get_untransable_token(msg_orig):
+            return msg_orig
         if not msg_tnxl:
             msg_tnxl = msg_orig
         msg_orig = msg_orig.replace("’", "'")
         msg_tnxl = msg_tnxl.replace("’", "'")
         tokens_orig, hashes_orig = self.split_items(msg_orig)
         tokens_tnxl, hashes_tnxl = self.split_items(msg_tnxl)
-        try_to_translate = True if len(hashes_orig) == len(hashes_tnxl) else False
-        ix = 0
-        while try_to_translate and ix < len(hashes_orig):
-            if (
-                (
-                    isinstance(hashes_orig[ix], (list, tuple))
-                    and not isinstance(hashes_tnxl[ix], (list, tuple))
-                )
-                or
-                (
-                    not isinstance(hashes_orig[ix], (list, tuple))
-                    and isinstance(hashes_tnxl[ix], (list, tuple))
-                )
-                or
-                (
-                    len(hashes_orig[ix]) != len(hashes_tnxl[ix])
-                )
-                or
-                (
-                    all([
-                        (len(hashes_orig[ix][x]) <= 2
-                         or hashes_orig[ix][x] != hashes_tnxl[ix][x])
-                        for x in range(len(hashes_orig[ix]))])
-                )
-            ):
-                try_to_translate = False
-            ix += 1
+        learn_about = True if is_tag else self.check_if_transable(
+            hashes_orig, hashes_tnxl)
         fullterm_orig = fullterm_tnxl = fulltermhk_orig = fulltermhk_tnxl = ""
+        fullterm_2_store = False
         hash_key = ""
+        hash_key_orig = "".join(
+            ["".join(x) if isinstance(x, (list, tuple)) else x for x in hashes_orig]
+        )
+        if module:
+            hash_key_orig = self.get_hash_key(hash_key_orig, False, module=module)
+
         tok_orig = tokens_orig.pop(0) if tokens_orig else ""
         hash_orig = hashes_orig.pop(0) if hashes_orig else ""
         tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
-        fullterm_2_store = False
-        adjust_case = True
-        while tok_orig or tok_tnxl:
+        adjust_case = not is_tag
+        while (tok_orig or tok_tnxl) and (action == "build_dict" or not learn_about):
             if isinstance(tok_orig, (list, tuple)):
                 term_orig = "".join(tok_orig)
-                hkey = "".join(hash_orig)
-                if module:
-                    hkey = self.get_hash_key(hkey, True, module=module)[1]
+                term_tnxl = "".join(tok_tnxl)
+                term_hkey = "".join(hash_orig)
+                if not learn_about:
+                    term_tnxl, term_hkey = self.get_transated_tokens(
+                        tok_orig, module=module, adjust_case=adjust_case)
+                    if not term_tnxl:
+                        term_tnxl, term_hkey = self.process_transable_tokens(
+                            tok_orig, hash_orig, tok_tnxl, adjust_case=adjust_case)
+                if learn_about or (action == "build_dict"
+                                   and term_tnxl != "".join(tok_orig)):
+                    self.store_1_item(
+                        term_hkey, term_orig, term_tnxl,
+                        override=override, module=module, is_tag=is_tag)
+                    fullterm_2_store = True
+
+                hash_key += term_hkey
                 fullterm_orig += term_orig
-                hash_key += hkey
                 fulltermhk_orig = fullterm_orig
+                fullterm_tnxl += term_tnxl
+                fulltermhk_tnxl = fullterm_tnxl
                 if isinstance(tok_tnxl, (list, tuple)):
-                    term_tnxl = self.get_hash_key(
-                        "".join(tok_tnxl), not adjust_case, module=module)[0]
-                    if (
-                        (action == "build_dict" or not try_to_translate)
-                        and hkey not in self.dict
-                        and self.get_hash_key(term_orig,
-                                              not adjust_case,
-                                              module=module)[0] != term_tnxl
-                    ):
-                        self.store_1_item(hkey, term_orig, term_tnxl)
-                        fullterm_2_store = True
-                    else:
-                        x = self.get_term(
-                            hkey, term_orig, term_tnxl, adjust_case=adjust_case)
-                        if x.lower() != term_tnxl.lower():
-                            term_tnxl = x
-                            fullterm_2_store = True
-                        else:
-                            x = ""
-                            ctr = 0
-                            for ii, term in enumerate(tok_orig):
-                                if (
-                                    len(term) > 3
-                                    and re.match(self.re_word, term)
-                                    and hash_orig[ii] in self.dict
-                                ):
-                                    x += self.get_term(hash_orig[ii],
-                                                       term,
-                                                       term,
-                                                       adjust_case=adjust_case)
-                                    adjust_case = False
-                                    ctr += 1
-                                else:
-                                    x += term
-                            if ctr == 1:
-                                term_tnxl = x
-                                fullterm_2_store = True
-                        adjust_case = False
-                    fullterm_tnxl += term_tnxl
-                    fulltermhk_tnxl = fullterm_tnxl
-                    if isinstance(tok_tnxl, (list, tuple)):
-                        tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
+                    tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
                 tok_orig = tokens_orig.pop(0) if tokens_orig else ""
                 hash_orig = hashes_orig.pop(0) if hashes_orig else ""
             elif tok_orig:
-                if tok_orig.endswith(".") or tok_orig.endswith("-"):
+                if re.match(self.re_to_upper, tok_orig):
                     adjust_case = True
                 fullterm_orig += tok_orig
                 hash_key += hash_orig
@@ -472,19 +508,18 @@ class OdooTranslation(object):
                 tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
                 fullterm_2_store = True
 
-        for tok_type in self.types_decl:
-            if not tok_type[1]:
-                if re.fullmatch(tok_type[3], fullterm_orig):
-                    return fullterm_orig
+        if learn_about:
+            fullterm_orig = msg_orig
+            fulltermhk_tnxl = fullterm_tnxl = msg_tnxl
+            fullterm_2_store = True
+            fulltermhk_orig = hash_key = hash_key_orig
+
+        if self.get_untransable_token(fullterm_orig):
+            return fullterm_orig
+
         if action == "build_dict":
-            if is_tag or (msg_orig != msg_tnxl and msg_tnxl):
-                return self.store_1_item(
-                    hash_key, msg_orig, msg_tnxl,
-                    override=override, module=module, is_tag=is_tag)
-            elif self.isplural(fullterm_tnxl):
-                fulltermhk_tnxl = self.set_plural(fullterm_orig, fullterm_tnxl[: -3])
-                fullterm_2_store = True
-            if fullterm_orig.lower() == fullterm_tnxl.lower() or not fullterm_tnxl:
+            if not is_tag and (fullterm_orig.lower() == fullterm_tnxl.lower()
+                               or not fullterm_tnxl):
                 if self.ts and not re.search(self.re_tag, fullterm_orig):
                     try:
                         # Use Google translator
@@ -495,23 +530,27 @@ class OdooTranslation(object):
                                            to_language=self.opt_args.lang[:2],
                                            timeout=5))
                         sleep(0.2)
+                        return self.store_1_item(
+                            hash_key, fullterm_orig, fullterm_tnxl, override=override)
                     except BaseException:
                         pass
+            elif (fullterm_orig and fullterm_2_store) or self.isplural(fulltermhk_orig):
                 return self.store_1_item(
-                    hash_key, fullterm_orig, fullterm_tnxl, override=override)
-            elif fullterm_orig and fullterm_2_store:
-                return self.store_1_item(
-                    hash_key, fulltermhk_orig, fulltermhk_tnxl,
-                    override=override, module=module)
-        elif (
-            action == "translate"
-            and fullterm_tnxl == fulltermhk_tnxl
+                    hash_key, fullterm_orig,
+                    fullterm_tnxl.replace(
+                        fulltermhk_tnxl,
+                        self.set_plural_if(
+                            hash_key, fulltermhk_orig, fulltermhk_tnxl,
+                            adjust_case=not is_tag)),
+                    override=override,
+                    module=module,
+                    is_tag=is_tag)
+        elif fullterm_2_store or (
+            fullterm_tnxl == fulltermhk_tnxl
             and hash_key in self.dict
         ):
             return self.get_term(hash_key, fullterm_orig, fullterm_tnxl)
-        elif fullterm_2_store or action == "translate":
-            return self.set_plural_if(hash_key, fullterm_orig, fullterm_tnxl)
-        return fullterm_orig
+        return fullterm_tnxl
 
     def translate_item(self, msg_orig, msg_tnxl, module=None):
         return self.do_dict_item(msg_orig, msg_tnxl, action="translate", module=module)
@@ -556,9 +595,8 @@ class OdooTranslation(object):
                 if (
                     left_lines[left_ix] == right_lines[right_ix]
                     or (
-                    re.match(r"^\".*\"$", left_lines[left_ix])
-                    and re.match(r"^\".*\"$", right_lines[right_ix])
-                )):
+                        re.match(r"^\".*\"$", left_lines[left_ix])
+                        and re.match(r"^\".*\"$", right_lines[right_ix]))):
                     left_ix += 1
                     right_ix += 1
                     continue
@@ -630,8 +668,7 @@ class OdooTranslation(object):
                     and (not right_lines[right_ix].startswith("#:")
                          or left_lines[left_ix].split(":")[1]
                          !=
-                         right_lines[right_ix].split(":")[1])
-                ):
+                         right_lines[right_ix].split(":")[1])):
                     updated = True
                     right_lines.insert(right_ix, left_lines[left_ix])
                 else:
@@ -756,7 +793,9 @@ class OdooTranslation(object):
 
     def load_terms_for_test(self):
         for items in TEST_DATA:
-            self.do_dict_item(items[0], items[1], action="build_dict", module=items[2])
+            self.do_dict_item(
+                items[0], items[1], action="build_dict", module=items[2],
+                override=items[4] if len(items) > 4 else None)
 
     def do_work_on_path(self, root, base, action=None):
         action = action or "translate"
@@ -786,6 +825,7 @@ class OdooTranslation(object):
             ("iva", "IVA", True),
             ("sepa", "SEPA", True),
             ("UE", "EU", True),
+            ("iban", "IBAN", True),
             ("Ri.Ba.", "RiBA", True),
             ("Ri.Ba", "RiBA", True),
             ("RI.BA.", "RiBA", True),
@@ -795,7 +835,7 @@ class OdooTranslation(object):
             self.do_dict_item(msg_orig,
                               msg_tnxl,
                               action="build_dict",
-                              is_tag=True)
+                              is_tag=is_tag)
 
     def build_dict(self):
         if self.opt_args.file_xlsx:
