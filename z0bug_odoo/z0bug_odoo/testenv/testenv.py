@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.3
+"""Test Environment v2.0.4
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -95,7 +95,7 @@ import os
 from future.utils import PY2, PY3
 from past.builtins import basestring, long
 
-from datetime import datetime
+# from datetime import datetime
 import json
 import logging
 import base64
@@ -435,8 +435,8 @@ class MainTest(SingleTransactionCase):
         xrefs = ir_model.search([("module", "=", module), ("name", "=", name)])
         if not xrefs:
             return ir_model.create(values)
-        xrefs[0].write(values)
-        return xrefs[0]
+        xrefs[0].write(values)                                       # pragma: no cover
+        return xrefs[0]                                              # pragma: no cover
 
     def _get_xref_id(self, resource, xref, fmt=None):
         res = xref
@@ -520,7 +520,7 @@ class MainTest(SingleTransactionCase):
 
     def _cast_field(self, resource, field, value, fmt=None, group=None):
         ftype = self.struct[resource][field]["type"]
-        if ftype != "binary":
+        if ftype not in ("text", "binary", "html"):
             value = self._get_conveyed_value(resource, field, value, fmt=fmt)
         if value is None or value in ("None", r"\N") or field == "id":
             value = None
@@ -584,8 +584,8 @@ class MainTest(SingleTransactionCase):
                 value = True
         return value
 
-    def _upgrade_field_boolean(self, record, field, value):
-        return self._cast_field_boolean(record, field, value)
+    # def _upgrade_field_boolean(self, record, field, value):
+    #     return self._cast_field_boolean(record, field, value)
 
     # --------------------------------
     # --  Type <integer> functions  --
@@ -596,8 +596,8 @@ class MainTest(SingleTransactionCase):
             value = int(value)
         return value
 
-    def _upgrade_field_integer(self, record, field, value):
-        return self._cast_field_integer(record, field, value)
+    # def _upgrade_field_integer(self, record, field, value):
+    #     return self._cast_field_integer(record, field, value)
 
     # ------------------------------
     # --  Type <float> functions  --
@@ -608,8 +608,8 @@ class MainTest(SingleTransactionCase):
             value = eval(value)
         return value
 
-    def _upgrade_field_float(self, record, field, value):
-        return self._cast_field_float(record, field, value)
+    # def _upgrade_field_float(self, record, field, value):
+    #     return self._cast_field_float(record, field, value)
 
     # ---------------------------------
     # --  Type <monetary> functions  --
@@ -618,8 +618,8 @@ class MainTest(SingleTransactionCase):
     def _cast_field_monetary(self, resource, field, value, fmt=None, group=None):
         return self._cast_field_float(resource, field, value, fmt=fmt, group=group)
 
-    def _upgrade_field_monetary(self, record, field, value):
-        return self._cast_field_monetary(record, field, value)
+    # def _upgrade_field_monetary(self, record, field, value):
+    #     return self._cast_field_monetary(record, field, value)
 
     # ---------------------------------
     # --  Type <datetime> functions  --
@@ -628,10 +628,10 @@ class MainTest(SingleTransactionCase):
     def _cast_field_datetime(self, resource, field, value, fmt=None, group=None):
         return self._cast_field_date(resource, field, value, fmt=fmt, group=group)
 
-    def _upgrade_field_datetime(self, record, field, value):
-        if isinstance(value, basestring):
-            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-        return value
+    # def _upgrade_field_datetime(self, record, field, value):
+    #     if isinstance(value, basestring):
+    #         return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+    #     return value
 
     def _convert_datetime_to_write(self, record, field, value):
         return str(value)
@@ -647,10 +647,10 @@ class MainTest(SingleTransactionCase):
             value = self.compute_date(value)
         return value
 
-    def _upgrade_field_date(self, record, field, value):
-        if isinstance(value, basestring):
-            return datetime.strptime(value, "%Y-%m-%d")
-        return value
+    # def _upgrade_field_date(self, record, field, value):
+    #     if isinstance(value, basestring):
+    #         return datetime.strptime(value, "%Y-%m-%d")
+    #     return value
 
     def _convert_date_to_write(self, record, field, value):
         return str(value)
@@ -667,12 +667,12 @@ class MainTest(SingleTransactionCase):
                 return binary_file
         bin_types = bin_types or ["png", "jpg", "xml"]
         if not is_iterable(bin_types):
-            bin_types = [bin_types]
+            bin_types = [bin_types]                                  # pragma: no cover
         for btype in bin_types:
             binary_file = os.path.join(binary_root, "%s.%s" % (xref, btype))
             if os.path.isfile(binary_file):
                 return binary_file
-        return False
+        return False                                                 # pragma: no cover
 
     def _get_binary_contents(self, value):
         if (
@@ -686,7 +686,7 @@ class MainTest(SingleTransactionCase):
             with open(bin_file, 'rb') as fd:
                 bin_contents = python_plus._b(fd.read())
             return base64.b64encode(bin_contents)
-        return False
+        return False                                                 # pragma: no cover
 
     def _cast_field_binary(self, resource, field, value, fmt=None, group=None):
         bin_contents = self._get_binary_contents(value)
@@ -711,8 +711,8 @@ class MainTest(SingleTransactionCase):
             value = None
         return value
 
-    def _upgrade_field_many2one(self, record, field, value):
-        return self._cast_field_many2one(record, field, value)
+    # def _upgrade_field_many2one(self, record, field, value):
+    #     return self._cast_field_many2one(record, field, value)
 
     def _convert_many2one_to_write(self, record, field, value):
         return value.id
@@ -829,11 +829,11 @@ class MainTest(SingleTransactionCase):
     def _cast_field_many2many(self, resource, field, value, fmt=None, group=None):
         return self._cast_field_one2many(resource, field, value, fmt=fmt, group=group)
 
-    def _upgrade_field_one2many(self, record, field, value):
-        return self._cast_2many(record, value)
+    # def _upgrade_field_one2many(self, record, field, value):
+    #     return self._cast_2many(record, value)
 
-    def _upgrade_field_many2many(self, record, field, value):
-        return self._cast_2many(record, value)
+    # def _upgrade_field_many2many(self, record, field, value):
+    #     return self._cast_2many(record, value)
 
     def _convert_one2many_to_write(self, record, field, value):
         if value:
@@ -874,29 +874,29 @@ class MainTest(SingleTransactionCase):
 
         return values
 
-    def _convert_to_write(self, record, new=None):
+    def _convert_to_write(self, record, new=None, orig=None):
         values = {}
         for field in list(record._fields.keys()):
             if (
                 field in BLACKLIST_COLUMNS
                 or record._fields[field].readonly
-                or record._fields[field].type == "binary"
+                # or record._fields[field].type == "binary"
             ):
                 continue
             value = self._convert_field_to_write(record, field)
-            if value is None:
+            if value is None:                                        # pragma: no cover
                 continue
             elif value is False:
-                if new:
+                if new or (orig and value == self._convert_field_to_write(orig, field)):
                     continue
                 values[field] = value
-            else:
+            elif not orig or value != self._convert_field_to_write(orig, field):
                 values[field] = value
         return values
 
     def _upgrade_record(self, record, values, default={}):
         for field in list(values.keys()):
-            if field in SUPERMAGIC_COLUMNS:
+            if field in SUPERMAGIC_COLUMNS:                          # pragma: no cover
                 continue
             method = "_upgrade_field_%s" % record._fields[field].type
             method = method if hasattr(self, method) else "_upgrade_field_base"
@@ -911,7 +911,7 @@ class MainTest(SingleTransactionCase):
         for field in BITTER_COLUMNS:
             if field in values:
                 del values[field]
-        if timed:
+        if timed:                                                    # pragma: no cover
             for field in LOG_ACCESS_COLUMNS:
                 if field in values:
                     del values[field]
@@ -956,9 +956,30 @@ class MainTest(SingleTransactionCase):
                 method(record)
         return record
 
-    def _exec_action(self, record, action, web_changes=[]):
-        resource_model = record[0]._name if isinstance(
-            record, (list, tuple)) else record._name
+    def _exec_action(self, record, action, default={}, web_changes=[], ctx={}):
+        if isinstance(record, basestring):
+            resource_model = record
+            record = self._create_object(
+                resource_model,
+                default=self.cast_types(resource_model, default or {}, fmt="cmd"),
+                ctx=ctx)
+            orig = self.env[resource_model]
+        elif isinstance(record, (list, tuple)):
+            resource_model = record[0]._name
+            orig = self.env[resource_model]
+            if len(record) == 1:
+                orig = self._create_object(
+                    resource_model,
+                    default=self._convert_to_write(record[0], new=True),
+                    ctx=ctx)
+        else:
+            resource_model = record._name
+            if ctx:
+                record = record.with_context(ctx)
+            orig = self._create_object(
+                resource_model,
+                default=self._convert_to_write(record, new=True),
+                ctx=ctx)
         self._load_field_struct(resource_model)
         for args in web_changes:
             self._wiz_edit(
@@ -967,10 +988,13 @@ class MainTest(SingleTransactionCase):
                 args[0], args[1], args[2] if len(args) > 2 else None,
             )
         if action == "save":
-            return record.write({})
+            vals = self._convert_to_write(record, orig=orig)
+            record.write(vals)
+            return record
         elif action == "create":
-            return record.create(
-                self._convert_to_write(record, new=True))            # pragma: no cover
+            vals = self._convert_to_write(record, new=True)
+            record.unlink()
+            return self.env[resource_model].create(vals)
         elif action == "discard":
             return False                                             # pragma: no cover
         elif action and hasattr(record, action):
@@ -1751,7 +1775,7 @@ class MainTest(SingleTransactionCase):
             None
         """
         self._logger.info(
-            "🎺 Starting test v2.0.3 (debug_level=%s)" % (self.debug_level))
+            "🎺 Starting test v2.0.4 (debug_level=%s)" % (self.debug_level))
         if locale:
             self.set_locale(locale)
         if lang:
@@ -1833,28 +1857,29 @@ class MainTest(SingleTransactionCase):
                 actions,
                 self.dict_2_print(ctx))
         )
-        if isinstance(resource, basestring):
-            resource_model = resource
-            vals = self.cast_types(resource_model, default or {}, fmt="cmd")
-            record = self.env[resource_model].with_context(ctx).create(
-                self._purge_values(
-                    self._convert_to_write(
-                        self._create_object(resource_model,
-                                            default=vals,
-                                            ctx=ctx),
-                        new=True)))
-        elif is_iterable(resource):
-            record = resource
-        else:
-            if ctx:
-                record = resource.with_context(ctx)
-            else:
-                record = resource
         for action in actions:
-            result = self._exec_action(record, action, web_changes=web_changes)
-            # Web changes execute, clear them
+            result = self._exec_action(
+                resource, action, default=default, web_changes=web_changes, ctx=ctx)
+            # Web changes executed, clear them, same for default
             web_changes = []
+            default = {}
+            resource = result
         return result
+
+    def field_download(self, record, field):
+        """Execute the data download from a binary field.
+
+        Args:
+            record (obj): record object
+            field (str): field name to download
+
+        Returns:
+            binary obj downloaded from field
+        """
+        if field not in record:
+            raise ValueError(
+                "Field %s not found in %s" % (field, record._name))
+        return base64.b64decode(getattr(record, field))
 
     def resource_download(
         self,
@@ -1869,7 +1894,7 @@ class MainTest(SingleTransactionCase):
         button_ctx={},
         field=None,
     ):
-        """Execute the data downlod.
+        """Execute the data download.
         Engage the specific download wizard and return the downloaded data.
         Both parameters <module> and <action_name> must be issued in order to
         call <wiz_by_action_name>; they are alternative to act_windows.
@@ -1898,7 +1923,7 @@ class MainTest(SingleTransactionCase):
             field (str): field name to download
 
         Returns:
-            binary obj downloaded form field
+            binary obj downloaded from field
         """
         act_windows = self.wizard(
             module=module,
@@ -1914,8 +1939,8 @@ class MainTest(SingleTransactionCase):
         res_model = self._get_model_from_act_windows(act_windows)
         if field not in self.env[res_model]:
             raise ValueError(
-                "Filed %s not found in %s" % (field, res_model))
-        return base64.decodestring(
+                "Field %s not found in %s" % (field, res_model))
+        return base64.b64decode(
             getattr(self.env[res_model].browse(act_windows["res_id"]),
                     field))
 

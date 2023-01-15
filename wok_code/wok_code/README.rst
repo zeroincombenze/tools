@@ -1,6 +1,6 @@
 
 ==============
-wok_code 2.0.4
+wok_code 2.0.5
 ==============
 
 
@@ -845,9 +845,10 @@ Current development version
 History
 -------
 
-2.0.5 (2022-12-13)
+2.0.5 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~
 
+* [IMP] please: wep now delete old travis-emulator logs
 * [IMP] install_python_3_from_source.sh: now can install python 3.9
 * [IMP] please: action docs, minor improvements
 * [IMP] deply_odoo: format output list
@@ -942,7 +943,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-13
+Last Update / Ultimo aggiornamento: 2023-01-15
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

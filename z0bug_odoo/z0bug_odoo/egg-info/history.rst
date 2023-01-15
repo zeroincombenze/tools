@@ -1,3 +1,12 @@
+2.0.4 (2023-01-13)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: resource_create does not duplicate record
+* [FIX] TestEnv: resource_write after save calls write() exactly like Odoo behavior
+* [FIX] TestEnv: new function field_download
+* [IMP] TestEnv: convert_to_write converte binary fields too
+* [IMP] TestEnv: minor improvements
+
 2.0.3 (2022-12-29)
 ~~~~~~~~~~~~~~~~~~
 

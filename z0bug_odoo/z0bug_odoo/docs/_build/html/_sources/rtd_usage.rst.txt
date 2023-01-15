@@ -552,8 +552,7 @@ def resource_bind(self, xref, raise_if_not_found=True, resource=None):
 
     Args:
         xref (str): external reference
-        raise_if_not_found (bool): raise exception if xref not found or
-                                   if more records found
+        raise_if_not_found (bool): raise exception if xref not found or if more records found
         resource (str): Odoo model name, i.e. "res.partner"
 
     Returns:
@@ -871,7 +870,7 @@ def wizard(self, module=None, action_name=None, act_windows=None, records=None, 
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-08
+Last Update / Ultimo aggiornamento: 2023-01-15
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

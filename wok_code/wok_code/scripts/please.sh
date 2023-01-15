@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.4.1
 
 #
 # General Purpose options:
@@ -2034,9 +2034,19 @@ do_config() {
 }
 
 do_wep() {
+    local f l
     wlog "do_wep '$1' '$2' '$3'"
     clean_dirs "$PKGPATH"
     [[ $opt_force -ne 0 ]] && set_executable
+    if [[ $PRJNAME == "Odoo" && -d $PKGPATH/tests/logs ]]; then
+      l="!"
+      for f in $PKGPATH/tests/logs/*; do
+        echo "$f" | grep -Eq ".*${PKGNAME}_[0-9]{8}.txt$" && [[ $f > $l ]] && l="$f"
+      done
+      for f in $PKGPATH/tests/logs/*; do
+        echo "$f" | grep -Eq ".*${PKGNAME}_[0-9]{8}.txt$" && [[ $f != $l ]] && run_traced "rm -f $f"
+      done
+    fi
     return 0
 }
 
