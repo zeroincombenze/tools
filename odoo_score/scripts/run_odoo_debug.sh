@@ -39,7 +39,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -130,7 +130,7 @@ set_log_filename() {
 #    fi
     LOGDIR="$PKGPATH/tests/logs"
     [[ -d $LOGDIR ]] || mkdir $LOGDIR
-    LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%d%m).log"
+    LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
     [[ -f $LOGFILE ]] && rm -f $LOGFILE
     # OLD_LOGFILE=${LOGFILE/.log/_old.log}
     # set +x  #debug

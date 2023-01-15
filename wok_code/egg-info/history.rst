@@ -1,6 +1,7 @@
-2.0.5 (2022-12-13)
+2.0.5 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~
 
+* [IMP] please: wep now delete old travis-emulator logs
 * [IMP] install_python_3_from_source.sh: now can install python 3.9
 * [IMP] please: action docs, minor improvements
 * [IMP] deply_odoo: format output list
