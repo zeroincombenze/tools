@@ -138,7 +138,9 @@ LOG_ACCESS_COLUMNS = ["create_uid", "create_date", "write_uid", "write_date"]
 MAGIC_COLUMNS = ["id"] + LOG_ACCESS_COLUMNS
 SUPERMAGIC_COLUMNS = MAGIC_COLUMNS + BITTER_COLUMNS
 BLACKLIST_COLUMNS = SUPERMAGIC_COLUMNS + ["parent_left", "parent_right", "state"]
-RESOURCE_WO_COMPANY = ("res.users",)
+RESOURCE_WO_COMPANY = (
+    "res.users", "res.partner", "product.template", "product.product"
+)
 # Please, do not change fields order
 KEY_CANDIDATE = (
     "acc_number",
@@ -252,6 +254,10 @@ class MainTest(SingleTransactionCase):
     def log_lvl_1(self, mesg, strict=None):                          # pragma: no cover
         if (self.debug_level >= 1 and not strict) or self.debug_level == 1:
             self._logger.info(mesg)
+
+    def raise_error(self, mesg):                                     # pragma: no cover
+        self._logger.info("🛑 " + mesg)
+        raise ValueError(mesg)
 
     # ----------------------------
     # --  Conveyance functions  --
@@ -419,6 +425,11 @@ class MainTest(SingleTransactionCase):
                 and " " not in xref
                 and len(xref.split(".")) == 2)
 
+    def _is_transient(self, resource):
+        if isinstance(resource, basestring):
+            return self.env[resource]._transient
+        return resource._transient
+
     def _add_xref(self, xref, xid, resource):
         """Add external reference ID that will be used in next tests.
         If xref exist, result ID will be upgraded"""
@@ -486,7 +497,7 @@ class MainTest(SingleTransactionCase):
         """Load Odoo field definition"""
         if resource not in self.struct:
             if resource not in self.env:
-                raise ValueError(                                    # pragma: no cover
+                self.raise_error(
                     "Model %s not found in the system" % resource)   # pragma: no cover
             self.struct[resource] = self.env[resource].fields_get()
             self._search4parent(resource)
@@ -957,6 +968,11 @@ class MainTest(SingleTransactionCase):
         return record
 
     def _exec_action(self, record, action, default={}, web_changes=[], ctx={}):
+        resource_model = self._get_model_from_records(record)
+        orig = self.env[resource_model]
+        if self._is_transient(orig) and action in ("save", "create", "discard"):
+            self.raise_error("Invalid action %s for %s!" % (         # pragma: no cover
+                action, resource_model))
         if isinstance(record, basestring):
             resource_model = record
             record = self._create_object(
@@ -965,21 +981,19 @@ class MainTest(SingleTransactionCase):
                 ctx=ctx)
             orig = self.env[resource_model]
         elif isinstance(record, (list, tuple)):
-            resource_model = record[0]._name
-            orig = self.env[resource_model]
-            if len(record) == 1:
+            if len(record) == 1 and not self._is_transient(orig):
                 orig = self._create_object(
                     resource_model,
                     default=self._convert_to_write(record[0], new=True),
                     ctx=ctx)
         else:
-            resource_model = record._name
             if ctx:
                 record = record.with_context(ctx)
-            orig = self._create_object(
-                resource_model,
-                default=self._convert_to_write(record, new=True),
-                ctx=ctx)
+            if not self._is_transient(orig):
+                orig = self._create_object(
+                    resource_model,
+                    default=self._convert_to_write(record, new=True),
+                    ctx=ctx)
         self._load_field_struct(resource_model)
         for args in web_changes:
             self._wiz_edit(
@@ -1011,12 +1025,23 @@ class MainTest(SingleTransactionCase):
             self.log_lvl_2("🐞  act_windows(%s)" % action)
             self._finalize_ctx_act_windows(record, act_windows)
         else:                                                        # pragma: no cover
-            raise (ValueError, "Invalid button/action %s for %s!" % (
+            self.raise_error("Invalid action %s for %s!" % (  # pragma: no cover
                 action, resource_model))
         return act_windows
 
     def _get_model_from_act_windows(self, act_windows):
         return act_windows.get("res_model", act_windows.get("model"))
+
+    def _get_model_from_records(self, records):
+        if not records:
+            resource_model = None
+        elif isinstance(records, basestring):
+            resource_model = records
+        elif isinstance(records, (list, tuple)):
+            resource_model = records[0]._name
+        else:
+            resource_model = records._name
+        return resource_model
 
     def _wiz_launch(
         self, act_windows, records=None, default=None, ctx={}
@@ -1041,15 +1066,22 @@ class MainTest(SingleTransactionCase):
         """
         self.log_lvl_2("🐞wizard starting(%s)" % act_windows.get("name"), strict=True)
         self.log_lvl_3(
-            "🐞wizard starting(%s,%s,def=%s,ctx=%s)" % (
+            "🐞wizard starting(%s,%s,\nrec=%s,\ndef=%s,\nctx=%s)" % (
                 act_windows.get("name"),
                 self.dict_2_print(act_windows),
+                self.dict_2_print(records),
                 self.dict_2_print(default),
                 self.dict_2_print(ctx)),
             strict=True
         )
         if not isinstance(act_windows, dict):                        # pragma: no cover
-            raise (ValueError, "Invalid act_windows")
+            self.raise_error("Invalid act_windows")
+        if (                                                         # pragma: no cover
+            records
+            and isinstance(records, (list, tuple))
+            and any([isinstance(x, (list, tuple)) for x in records])
+        ):
+            self.raise_error("Invalid records type issued!")
         self._finalize_ctx_act_windows(records, act_windows, ctx)
         if ctx and ctx.get("res_id"):
             act_windows["res_id"] = ctx.pop("res_id")
@@ -1069,7 +1101,7 @@ class MainTest(SingleTransactionCase):
                 records = [records]
         if act_windows["type"] == "ir.actions.server":               # pragma: no cover
             if not records:
-                raise (ValueError, "No records supplied")
+                self.raise_error("No any records supplied")
         else:
             res_model = self._get_model_from_act_windows(act_windows)
             vals = self.cast_types(res_model, default or {}, fmt="cmd")
@@ -1351,9 +1383,7 @@ class MainTest(SingleTransactionCase):
         # Search for Odoo standard external reference
         if isinstance(xref, (int, long)):
             if not resource:                                         # pragma: no cover
-                raise ValueError(
-                    "No model issued for binding"
-                )
+                self.raise_error("No model issued for binding")
                 return False
             record = self.env[resource].browse(xref)
         else:
@@ -1364,22 +1394,16 @@ class MainTest(SingleTransactionCase):
         # Simulate external reference
         if not resource:
             if raise_if_not_found:                                   # pragma: no cover
-                raise ValueError(
-                    "No model issued for binding"
-                )
+                self.raise_error("No model issued for binding")
             return False
         if resource not in self.env:                                 # pragma: no cover
             if raise_if_not_found:
-                raise ValueError(
-                    "Model %s not found in the system" % resource
-                )
+                self.raise_error("Model %s not found in the system" % resource)
             return False
         self._load_field_struct(resource)
         if resource not in self.skeys:                               # pragma: no cover
             if raise_if_not_found:
-                raise ValueError(
-                    "Model %s without search key" % resource
-                )
+                self.raise_error("Model %s without search key" % resource)
             self._logger.info("⚠ Model %s without search key" % resource)
             return False
 
@@ -1421,7 +1445,7 @@ class MainTest(SingleTransactionCase):
             # return record[0]
             return self.env[resource].browse(record[0].id)
         if raise_if_not_found:
-            raise ValueError("External ID %s not found" % xref)      # pragma: no cover
+            self.raise_error("External ID %s not found" % xref)      # pragma: no cover
         return False
 
     def resource_create(self, resource, values=None, xref=None, group=None):
@@ -1447,9 +1471,7 @@ class MainTest(SingleTransactionCase):
             values = self.get_resource_data(resource, xref, group=group)
             values = self._add_child_records(resource, xref, values, group=group)
         if not values:                                       # pragma: no cover
-            raise ValueError(
-                "No value supplied for %s create" % resource
-            )
+            self.raise_error("No values supplied for %s create" % resource)
         self.log_lvl_3(
             "🐞%s.resource_create(%s,xref=%s)"
             % (resource, self.dict_2_print(values), xref)
@@ -1558,9 +1580,9 @@ class MainTest(SingleTransactionCase):
             TypeError: if invalid parameters issued
         """
         if not isinstance(data, dict):                               # pragma: no cover
-            raise ValueError("Dictionary expected")
+            self.raise_error("Dictionary expected")
         if merge and merge != "zerobug":                             # pragma: no cover
-            raise ValueError("Invalid merge value: use 'zerobug'")
+            self.raise_error("Invalid merge value: please use 'zerobug'")
         data = self.unicodes(data)
         for xref in list(sorted(data.keys())):
             if merge == "zerobug":
@@ -1603,14 +1625,14 @@ class MainTest(SingleTransactionCase):
             TypeError: if invalid parameters issued
         """
         if not isinstance(message, dict):                            # pragma: no cover
-            raise ValueError("Dictionary expected")
+            self.raise_error("Dictionary expected")
         if "TEST_SETUP_LIST" not in message:                         # pragma: no cover
-            raise ValueError("Key TEST_SETUP_LIST not found")
+            self.raise_error("Key TEST_SETUP_LIST not found")
         group = group or "base"
         for resource in message["TEST_SETUP_LIST"]:
             item = "TEST_%s" % resource.upper().replace(".", "_")
             if item not in message:                                  # pragma: no cover
-                raise ValueError("Key %s not found" % item)
+                self.raise_error("Key %s not found" % item)
         for resource in message["TEST_SETUP_LIST"]:
             self.log_lvl_1("🐞declare_all_data(%s,group=%s)" % (resource, group))
             item = "TEST_%s" % resource.upper().replace(".", "_")
@@ -1677,7 +1699,7 @@ class MainTest(SingleTransactionCase):
             )
         else:
             if raise_if_not_found:
-                raise ValueError("Module %s not found in the system" % locale_name)
+                self.raise_error("Module %s not found in the system" % locale_name)
 
     def install_language(self, iso, overwrite=None, force_translation=None):
         iso = iso or "en_US"
@@ -1798,7 +1820,7 @@ class MainTest(SingleTransactionCase):
         self, resource, default={}, web_changes=[], actions=[], ctx={}
     ):
         """Server-side web form editing.
-        Ordinary Odoo test use the primitive create() and write() function to manage
+        Ordinary Odoo test use the primitive create() and write() functions to manage
         test data. These methods create an update records, but they do not properly
         reflect the behaviour of user editing form with GUI interface.
 
@@ -1809,14 +1831,17 @@ class MainTest(SingleTransactionCase):
         * It can simulate the form update record
         * It can simulate the user data input
         * It calls the onchange functions automatically
-        * It may be used to call button in the form
+        * It may be used to call button on the form
 
         User action simulation:
+
         The parameter <web_changes> is a list of user actions to execute sequentially.
         Every element of the list is another list with 2 or 3 values:
+
         * Field name to assign value
         * Value to assign
         * Optional function to execute (i.e. specific onchange)
+
         If field is associate to an onchange function the relative onchange functions
         are execute after value assignment. If onchange set another field with another
         onchange the relative another onchange are executed until all onchange are
@@ -1827,7 +1852,7 @@ class MainTest(SingleTransactionCase):
         following limitations:
 
         * update form cannot simulate discard button
-        * required data in create must be supplied by default
+        * some required data in create must be supplied by default parameter
         * form inconsistency cannot be detected by this function
         * nested function must be managed by test code (i.e. wizard from form)
 
@@ -1900,11 +1925,14 @@ class MainTest(SingleTransactionCase):
         call <wiz_by_action_name>; they are alternative to act_windows.
 
         User action simulation:
+
         The parameter <web_changes> is a list of user actions to execute sequentially.
         Every element of the list is another list with 2 or 3 values:
+
         * Field name to assign value
         * Value to assign
         * Optional function to execute (i.e. specific onchange)
+
         If field is associate to an onchange function the relative onchange functions
         are execute after value assignment. If onchange set another field with another
         onchange the relative another onchange are executed until all onchange are
@@ -1938,8 +1966,7 @@ class MainTest(SingleTransactionCase):
         )
         res_model = self._get_model_from_act_windows(act_windows)
         if field not in self.env[res_model]:
-            raise ValueError(
-                "Field %s not found in %s" % (field, res_model))
+            self.raise_error("Field %s not found in %s" % (field, res_model))
         return base64.b64decode(
             getattr(self.env[res_model].browse(act_windows["res_id"]),
                     field))
@@ -2027,7 +2054,7 @@ class MainTest(SingleTransactionCase):
                 act_windows, records=records, default=default, ctx=ctx
             )
         else:                                                        # pragma: no cover
-            raise (ValueError, "Invalid action!")
+            self.raise_error("Invalid action!")
         return self._wiz_execution(
             act_windows,
             button_name=button_name,

@@ -14,7 +14,7 @@ from openpyxl import load_workbook, Workbook
 
 # from python_plus import unicodes
 
-__version__ = "2.0.5"
+__version__ = "2.0.5.1"
 
 
 MODULE_SEP = "\ufffa"
@@ -838,14 +838,14 @@ class OdooTranslation(object):
                               is_tag=is_tag)
 
     def build_dict(self):
-        if self.opt_args.file_xlsx:
-            root = self.get_home_devel()
-            if root:
-                dict_name = os.path.join(
-                    root, 'pypi', 'tools', 'odoo_template_tnl.xlsx')
-                if os.path.isfile(dict_name):
-                    self.load_terms_from_xlsx(dict_name)
-            self.load_terms_from_xlsx(self.opt_args.file_xlsx)
+        # if self.opt_args.file_xlsx:
+        #     root = self.get_home_devel()
+        #     if root:
+        #         dict_name = os.path.join(
+        #             root, 'pypi', 'tools', 'odoo_template_tnl.xlsx')
+        #         if os.path.isfile(dict_name):
+        #             self.load_terms_from_xlsx(dict_name)
+        #     self.load_terms_from_xlsx(self.opt_args.file_xlsx)
         if not self.opt_args.module_name:
             target_path = os.path.abspath(self.opt_args.target_path)
             self.do_work_on_path(target_path, None)
@@ -937,6 +937,7 @@ def main(cli_args=None):
     parser.add_argument("-m", "--module-name")
     parser.add_argument("-n", "--dry-run", action="store_true")
     parser.add_argument("-p", "--target-path", help="Local directory")
+    parser.add_argument("-q", "--quite", action="store_false")
     parser.add_argument("-T", "--test", action="store_true")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-V", "--version", action="version", version=__version__)
