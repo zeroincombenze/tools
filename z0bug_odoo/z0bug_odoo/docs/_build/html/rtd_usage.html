@@ -161,7 +161,7 @@ Odoo automatically creates one variant (child) record for ‘product.product’.
 If your test module does not need to manage product variants you can avoid to declare
 ‘product.product’ data even if this model is used in your test data.</p>
 <p>For example, you have to test ‘sale.order.line’ which refers to ‘product.product’.
-You simply declare a ‘product.template’ record with external reference user “_template”
+You simply declare a ‘product.template’ record with external reference uses “_template”
 magic text.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST_PRODUCT_TEMPLATE</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;z0bug.product_template_1&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -205,6 +205,7 @@ you can see them from Odoo GUI interface.</p>
 They are identified by “z0bug.” prefix module name.</p>
 <p>External key reference (c) is identified by “external.” prefix followed by
 the key value used to retrieve the record.
+If key value is an integer it is the record “id”.
 The field “code” or “name” are used to search record;
 for account.tax the “description” field is used.
 Please set self.debug_level = 2 (or more) to log these field keys.</p>
@@ -220,29 +221,30 @@ TestEnv inherit ‘product.product’ (variant) external reference (read above �
 <p>Examples:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST_ACCOUNT_ACCOUNT</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;z0bug.customer_account&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="o">...</span>
+        <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">...</span>
+    <span class="p">}</span>
+    <span class="s2">&quot;z0bug.supplier_account&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;111100&quot;</span><span class="p">,</span> <span class="o">...</span>
     <span class="p">}</span>
 <span class="p">)</span>
 
 <span class="o">...</span>
 
-<span class="n">ext_ref</span> <span class="o">=</span> <span class="s2">&quot;external.</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">[</span><span class="s2">&quot;account.account].search(...)[0].id</span>
-
 <span class="bp">self</span><span class="o">.</span><span class="n">resource_edit</span><span class="p">(</span>
     <span class="n">partner</span><span class="p">,</span>
     <span class="n">web_changes</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="s2">&quot;country_id&quot;</span><span class="p">,</span> <span class="s2">&quot;base.it&quot;</span><span class="p">),</span>       <span class="c1"># Odoo external reference (a)</span>
+        <span class="p">(</span><span class="s2">&quot;country_id&quot;</span><span class="p">,</span> <span class="s2">&quot;base.it&quot;</span><span class="p">),</span>       <span class="c1"># Odoo external reference (type a)</span>
         <span class="p">(</span><span class="s2">&quot;property_account_receivable_id&quot;</span><span class="p">,</span>
-         <span class="s2">&quot;z0bug.customer_account&quot;</span><span class="p">),</span>      <span class="c1"># Test reference (b)</span>
+         <span class="s2">&quot;z0bug.customer_account&quot;</span><span class="p">),</span>      <span class="c1"># Test reference (type b)</span>
         <span class="p">(</span><span class="s2">&quot;property_account_payable_id&quot;</span><span class="p">,</span>
-         <span class="n">ext_ref</span><span class="p">),</span>                       <span class="c1"># External key (c)</span>
+         <span class="s2">&quot;external.111100&quot;</span><span class="p">),</span>             <span class="c1"># External key (type c)</span>
     <span class="p">],</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="module-test-execution-workflow">
-<h2>Module test execution workflow<a class="headerlink" href="#module-test-execution-workflow" title="Permalink to this heading"></a></h2>
+<div class="section" id="module-test-execution-session">
+<h2>Module test execution session<a class="headerlink" href="#module-test-execution-session" title="Permalink to this heading"></a></h2>
 <p>Module test execution workflow should be:</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -305,12 +307,77 @@ following example:</p>
         <span class="c1"># Declare order data in specific group to isolate data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">declare_all_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s2">&quot;order&quot;</span><span class="p">)</span>
         <span class="c1"># Create the full sale order with lines</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">resource_make</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xref</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s2">&quot;order&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_env</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s2">&quot;order&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Note the external reference are globals and they are visible from any group
-while the data is visible just inside group.
-You can manage specific table/model data or table/model data group.</p>
+<p>Note the external reference are globals and they are visible from any groups.
+After base data is created it starts the real test session. You can simulate
+various situation; the most common are:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Simulate web form create record</p></li>
+<li><p>Simulate web form update record</p></li>
+<li><p>Simulate the multi-record windows action</p></li>
+<li><p>Download any binary data created by test</p></li>
+<li><p>Engage wizard</p></li>
+</ol>
+</div></blockquote>
+<p>Notice: you can also create / update record with usually create() / write()
+Odoo function but they do not really simulate the user behavior.
+They do not engage the onchange methods, they do not load any view and so on.</p>
+<p>The real best way to test a create session is like the follow example
+based on res,partner model:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resource_edit</span><span class="p">(</span>
+    <span class="n">resource</span><span class="o">=</span><span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
+    <span class="n">web_changes</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;Adam&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;country_id&quot;</span><span class="p">,</span> <span class="s2">&quot;base.us&quot;</span><span class="p">),</span>
+        <span class="o">...</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also simulate the update session, issuing the record:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resource_edit</span><span class="p">(</span>
+    <span class="n">resource</span><span class="o">=</span><span class="n">record</span><span class="p">,</span>
+    <span class="n">web_changes</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;Adam Prime&quot;</span><span class="p">),</span>
+        <span class="o">...</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Look at resource_edit() documentation for furthermore details.</p>
+<p>In you test session you should need to test a wizard. This test is very easy
+to execute as in the follow example that engage the standard language install
+wizard:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># We engage language translation wizard with &quot;it_IT&quot; language</span>
+<span class="c1"># see &quot;&lt;ODOO_PATH&gt;/addons/base/module/wizard/base_language_install*&quot;</span>
+<span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;🎺 Testing wizard.lang_install()&quot;</span><span class="p">)</span>
+<span class="n">act_windows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wizard</span><span class="p">(</span>
+    <span class="n">module</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">,</span>
+    <span class="n">action_name</span><span class="o">=</span><span class="s2">&quot;action_view_base_language_install&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;lang&quot;</span><span class="p">:</span> <span class="s2">&quot;it_IT&quot;</span>
+        <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">button_name</span><span class="o">=</span><span class="s2">&quot;lang_install&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">is_action</span><span class="p">(</span><span class="n">act_windows</span><span class="p">),</span>
+    <span class="s2">&quot;No action returned by language install&quot;</span>
+<span class="p">)</span>
+<span class="c1"># Now we test the close message</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">wizard</span><span class="p">(</span>
+    <span class="n">act_windows</span><span class="o">=</span><span class="n">act_windows</span>
+<span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">[</span><span class="s2">&quot;res.lang&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">search</span><span class="p">([(</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="s2">&quot;it_IT&quot;</span><span class="p">)]),</span>
+    <span class="s2">&quot;No language </span><span class="si">%s</span><span class="s2"> loaded!&quot;</span> <span class="o">%</span> <span class="s2">&quot;it_IT&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Look at wizard() documentation for furthermore details.</p>
 </div>
 <div class="section" id="data-values">
 <h2>Data values<a class="headerlink" href="#data-values" title="Permalink to this heading"></a></h2>
@@ -322,10 +389,14 @@ from this environment.</p>
 </div>
 <div class="section" id="company-id">
 <h2>company_id<a class="headerlink" href="#company-id" title="Permalink to this heading"></a></h2>
-<p>If value is empty, user company is used. This behavior is
-not applied on “res.users” models.
-Fot the “product.product”, “product.template” and “res.partner” is searched
-for company or null value.</p>
+<p>If value is empty, user company is used.
+When data is searched by resource_bind() function the “company_id” field
+is automatically filled and added to search domain.
+This behavior is not applied on
+“res.users”, “res.partner”,”product.template” and “product.product” models.
+For these models you must fill the “company_id” field.
+For these models resource_bind() function searches for record with company_id
+null or equal to current user company.</p>
 </div>
 <div class="section" id="boolean">
 <h2>boolean<a class="headerlink" href="#boolean" title="Permalink to this heading"></a></h2>
@@ -352,7 +423,8 @@ for company or null value.</p>
 </div>
 <div class="section" id="char-text">
 <h2>char / text<a class="headerlink" href="#char-text" title="Permalink to this heading"></a></h2>
-<p>Char and Text values are python string; please use unicode whenever is possible.</p>
+<p>Char and Text values are python string; please use unicode whenever is possible
+even when you test Odoo 10.0 or less.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
     <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
     <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
@@ -774,13 +846,15 @@ It works in the follow way:</p>
 <li><p>It calls the onchange functions automatically</p></li>
 <li><p>It may be used to call button in the form</p></li>
 </ul>
-<p>User action simulation:
-The parameter &lt;web_changes&gt; is a list of user actions to execute sequentially.
-Every element of the list is another list with 2 or 3 values:
-* Field name to assign value
-* Value to assign
-* Optional function to execute (i.e. specific onchange)
-If field is associate to an onchange function the relative onchange functions
+<p>User action simulation:</p>
+<p>The parameter &lt;web_changes&gt; is a list of user actions to execute sequentially.
+Every element of the list is another list with 2 or 3 values:</p>
+<ul class="simple">
+<li><p>Field name to assign value</p></li>
+<li><p>Value to assign</p></li>
+<li><p>Optional function to execute (i.e. specific onchange)</p></li>
+</ul>
+<p>If field is associate to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
 exhausted. This behavior is the same of the form editing.</p>
@@ -789,7 +863,7 @@ may be slightly different from actual form editing. Please take note of
 following limitations:</p>
 <ul class="simple">
 <li><p>update form cannot simulate discard button</p></li>
-<li><p>required data in create must be supplied by default</p></li>
+<li><p>some required data in create must be supplied by default parameter</p></li>
 <li><p>form inconsistency cannot be detected by this function</p></li>
 <li><p>nested function must be managed by test code (i.e. wizard from form)</p></li>
 </ul>
@@ -843,13 +917,15 @@ call &lt;wiz_by_action_name&gt;; they are alternative to act_windows.</p>
     <span class="n">act_windows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wizard</span><span class="p">(</span><span class="n">act_windows</span><span class="o">=</span><span class="n">act_windows</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>User action simulation:
-The parameter &lt;web_changes&gt; is a list of user actions to execute sequentially.
-Every element of the list is another list with 2 or 3 values:
-* Field name to assign value
-* Value to assign
-* Optional function to execute (i.e. specific onchange)
-If field is associate to an onchange function the relative onchange functions
+<p>User action simulation:</p>
+<p>The parameter &lt;web_changes&gt; is a list of user actions to execute sequentially.
+Every element of the list is another list with 2 or 3 values:</p>
+<ul class="simple">
+<li><p>Field name to assign value</p></li>
+<li><p>Value to assign</p></li>
+<li><p>Optional function to execute (i.e. specific onchange)</p></li>
+</ul>
+<p>If field is associate to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
 exhausted. This behavior is the same of the form editing.</p>
@@ -876,7 +952,7 @@ button_ctx (dict): context to pass to button_name function</p>
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2023-01-15</p>
+<p>Last Update / Ultimo aggiornamento: 2023-01-19</p>
 </div>
 </div>
 
@@ -897,7 +973,7 @@ button_ctx (dict): context to pass to button_name function</p>
 <li><a class="reference internal" href="#model-data-declaration">Model data declaration</a></li>
 <li><a class="reference internal" href="#magic-relationship">Magic relationship</a></li>
 <li><a class="reference internal" href="#external-reference">External reference</a></li>
-<li><a class="reference internal" href="#module-test-execution-workflow">Module test execution workflow</a></li>
+<li><a class="reference internal" href="#module-test-execution-session">Module test execution session</a></li>
 <li><a class="reference internal" href="#data-values">Data values</a></li>
 <li><a class="reference internal" href="#company-id">company_id</a></li>
 <li><a class="reference internal" href="#boolean">boolean</a></li>

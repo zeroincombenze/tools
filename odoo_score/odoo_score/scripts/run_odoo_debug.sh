@@ -574,7 +574,7 @@ if [[ $opt_touch -eq 0 ]]; then
             echo -e "| please test \e[36m${opt_modules}\e[0m (${odoo_fver}): $x" | tee -a $LOGFILE
             echo -e "+===================================================================\n"  | tee -a $LOGFILE
             coverage_report | tee -a $LOGFILE
-            echo "less -R $LOGFILE" > $LOGDIR/show-log.sh
+            echo "less -R \$(readlink -f \$(dirname \$0))/$(basename $LOGFILE)" > $LOGDIR/show-log.sh
             chmod +x $LOGDIR/show-log.sh
         else
             run_traced "coverage_report | tee -a $LOGFILE"
