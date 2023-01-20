@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.4
+"""Test Environment v2.0.4.1
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -289,9 +289,21 @@ class MainTest(SingleTransactionCase):
                 del self.setup_data[group][resource][xref]
 
     def _add_conveyance(self, resource, field, convey):
-        self._logger.info(
-            "⚠ %s[%s]: '%s' -> '%s'" % (resource, field, convey[0], convey[1])
-        )
+        if isinstance(convey, basestring):
+            self._logger.info(
+                "⚠ %s.%s(%s)" % (resource, convey, field)
+            )
+        else:
+            self._logger.info(
+                "⚠ %s[%s]: '%s' -> '%s'" % (resource, field, convey[0], convey[1])
+            )
+        if (
+            field == "all"
+            and (not isinstance(convey, basestring)
+                 or convey != ("_cvt_%s" % resource.replace(".", "_"))
+                 or not hasattr(self, convey))
+        ):                                                           # pragma: no cover
+            self.raise_error("Invalid name %s or function not found!" % convey)
         if resource not in self.convey_record:
             self.convey_record[resource] = {}
         self.convey_record[resource][field] = convey
@@ -308,6 +320,14 @@ class MainTest(SingleTransactionCase):
 
     def _get_conveyed_value(self, resource, field, value, fmt=None):
         if (
+            resource in self.convey_record
+            and field == "all"
+            and field in self.convey_record[resource]
+            and isinstance(value, dict)
+            and hasattr(self, self.convey_record[resource][field])
+        ):
+            value = getattr(self, self.convey_record[resource][field])(value)
+        elif (
             resource in self.convey_record
             and field in self.convey_record[resource]
             and value == self.convey_record[resource][field][0]
@@ -333,13 +353,17 @@ class MainTest(SingleTransactionCase):
             [("name", "=", "account_payment_term_extension"),
              ("state", "=", "installed")]
         ):
-            resource = "account.payment.term.line"
-            for xref in self.get_resource_data_list(resource, group=group):
-                values = self.get_resource_data(resource, xref, group=group)
-                if values.get("months"):
-                    values["days"] = values["months"] * 30 - 2
-                    values["months"] = ""
-                self.store_resource_data(resource, xref, values, group=group)
+            self._add_conveyance(
+                "account.payment.term.line", "all", "_cvt_account_payment_term_line")
+
+    def _cvt_account_payment_term_line(self, values):
+        if values.get("months"):
+            values["days"] = values["months"] * 30
+            values["months"] = ""
+            if values.get("option") in ("fix_day_following_month",
+                                        "after_invoice_month"):      # pragma: no cover
+                values["days"] -= 2
+        return values
 
     # ------------------------------
     # --  Hierarchical functions  --
@@ -427,7 +451,7 @@ class MainTest(SingleTransactionCase):
 
     def _is_transient(self, resource):
         if isinstance(resource, basestring):
-            return self.env[resource]._transient
+            return self.env[resource]._transient                     # pragma: no cover
         return resource._transient
 
     def _add_xref(self, xref, xid, resource):
@@ -861,13 +885,14 @@ class MainTest(SingleTransactionCase):
     def cast_types(self, resource, values, fmt=None, group=None):
         if values:
             self._load_field_struct(resource)
+            values = self._get_conveyed_value(resource, "all", values, fmt=fmt)
             for field in [x for x in list(values.keys())]:
                 if field not in self.struct[resource]:
-                    if fmt:
-                        del values[field]
-                        self.log_lvl_2(
-                            "🐞field %s does not exist in %s" % (field, resource)
-                        )
+                    # if fmt:
+                    del values[field]
+                    self.log_lvl_2(
+                        "🐞field %s does not exist in %s" % (field, resource)
+                    )
                     continue
 
                 value = self._cast_field(
@@ -974,12 +999,10 @@ class MainTest(SingleTransactionCase):
             self.raise_error("Invalid action %s for %s!" % (         # pragma: no cover
                 action, resource_model))
         if isinstance(record, basestring):
-            resource_model = record
             record = self._create_object(
                 resource_model,
                 default=self.cast_types(resource_model, default or {}, fmt="cmd"),
                 ctx=ctx)
-            orig = self.env[resource_model]
         elif isinstance(record, (list, tuple)):
             if len(record) == 1 and not self._is_transient(orig):
                 orig = self._create_object(
@@ -1030,7 +1053,20 @@ class MainTest(SingleTransactionCase):
         return act_windows
 
     def _get_model_from_act_windows(self, act_windows):
-        return act_windows.get("res_model", act_windows.get("model"))
+        return act_windows.get(
+            "model_name", act_windows.get(
+                "res_model", act_windows.get("model")))
+
+    def _get_src_model_from_act_windows(self, act_windows):
+        model_name = act_windows.get(
+            "src_model", self._get_model_from_act_windows(act_windows))
+        if not model_name or self._is_transient(model_name):
+            model_name = None
+            value = "%s,%d" % (act_windows["type"], act_windows["id"])
+            records = self.env["ir.values"].search([("value", "=", value)])
+            if len(records) == 1:
+                model_name = records[0].model
+        return model_name
 
     def _get_model_from_records(self, records):
         if not records:
@@ -1090,10 +1126,24 @@ class MainTest(SingleTransactionCase):
             # Warning: action windows may not contain any model declaration
             # Please, do not remove test, because if model is declared in action windows
             # must match with record model type
-            if records._name != act_windows.get(                     # pragma: no cover
-                "model_name", act_windows.get(
-                    "src_model", act_windows.get("res_model", records._name))):
-                raise (ValueError, "Records model different from declared model")
+            rec_model = self._get_model_from_records(records)
+            act_model = self._get_model_from_act_windows(act_windows)
+            src_model = self._get_src_model_from_act_windows(act_windows)
+            if rec_model != src_model:                               # pragma: no cover
+                self.raise_error(
+                    "Records model %s differs from declared model %s in %s" % (
+                        rec_model, src_model, act_model
+                    )
+                )
+            if (
+                act_model != src_model
+                and self._is_transient(act_model)
+                and not act_windows.get("src_model")
+            ):
+                self.log_lvl_1(
+                    "💡 You should specify the src_model %s for the action %s" % (
+                        src_model, act_windows.get("name")))
+                act_windows["src_model"] = src_model
             if "active_ids" not in act_windows["context"]:
                 act_windows["context"].update(
                     self._ctx_active_ids(records, ctx=act_windows["context"]))
@@ -2061,3 +2111,80 @@ class MainTest(SingleTransactionCase):
             web_changes=web_changes,
             button_ctx=button_ctx,
         )
+
+    ###############################
+    #                             #
+    #     DATA VALIDATION API     #
+    #                             #
+    ###############################
+
+    def _validate_1_record(self, tmpl, rec, resource, childs_name):
+        tmpl["_CHECK"] = tmpl.get("_CHECK", {})
+        tmpl["_CHECK"][rec] = tmpl["_CHECK"].get(rec, {})
+        tmpl["_CHECK"][rec]["_COUNT"] = len(
+            [x for x in tmpl.keys() if x != childs_name and not x.startswith("_")]
+        )
+        tmpl["_CHECK"][rec]["_MATCH"] = 0
+        for field in tmpl.keys():
+            if field == childs_name or field.startswith("_"):
+                continue
+            if (
+                self._cast_field(resource, field, tmpl[field])
+                ==
+                self._convert_field_to_write(rec, field)
+            ):
+                tmpl["_CHECK"][rec]["_MATCH"] += 1
+            else:
+                break
+        return tmpl
+
+    def validate_records(self, template, records):
+        if not isinstance(template, (list, tuple)):
+            self.raise_error("Function validate_records() 1° param must be list!")
+        if not is_iterable(records):
+            self.raise_error("Function validate_records() 1° param must be iterable!")
+        resource = self._get_model_from_records(records)
+        childs_name = self.childs_name.get(resource)
+        for rec in records:
+            if not is_iterable(rec):
+                self.raise_error("Function validate_records() w/o iterable")
+            for tmpl in template:
+                if not isinstance(tmpl, dict):
+                    self.raise_error("Function validate_records() w/o iterable")
+                tmpl = self._validate_1_record(tmpl, rec, resource, childs_name)
+                if (
+                    childs_name
+                    and tmpl["_CHECK"][rec]["_MATCH"] == tmpl["_CHECK"][rec]["_COUNT"]
+                ):
+                    matches = self.validate_records(tmpl[childs_name], rec[childs_name])
+                    if matches:
+                        tmpl["_CHECK"][rec]["_MATCH"] += 1
+                        tmpl["_CHECK"][rec]["_COUNT"] += 1
+                if tmpl["_CHECK"][rec]["_MATCH"] == tmpl["_CHECK"][rec]["_COUNT"]:
+                    break
+
+        for rec in records:
+            for tmpl in template:
+                if (
+                    tmpl["_CHECK"].get(rec, {}).get("_MATCH", 0)
+                    !=
+                    tmpl["_CHECK"].get(rec, {}).get("_COUNT", 1)
+                    and rec in tmpl["_CHECK"]
+                ):
+                    del tmpl["_CHECK"][rec]
+
+        matches = []
+        for tmpl in template:
+            if not tmpl["_CHECK"]:
+                self.raise_error("validate_record(%s) does not match any record!"
+                                 % self.dict_2_print(tmpl))
+            for rec in tmpl["_CHECK"]:
+                matches.append((tmpl, rec))
+                for field in tmpl.keys():
+                    if field == childs_name or field.startswith("_"):
+                        continue
+                    self.assertEqual(
+                        tmpl[field],
+                        rec[field]
+                    )
+        return matches
