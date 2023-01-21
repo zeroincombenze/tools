@@ -239,6 +239,38 @@ Current development version
 History
 -------
 
+python_plus: 2.0.5.1 (2023-01-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: cryptography, pypdf2, requests & urllib3 version adjustment
+
+
+z0bug_odoo: 2.0.4 (2023-01-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: resource_create does not duplicate record
+* [FIX] TestEnv: resource_write after save calls write() exactly like Odoo behavior
+* [FIX] TestEnv: new function field_download
+* [IMP] TestEnv: convert_to_write converte binary fields too
+* [IMP] TestEnv: minor improvements
+
+
+wok_code: 2.0.5 (2023-01-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] please: wep now delete old travis-emulator logs
+* [IMP] install_python_3_from_source.sh: now can install python 3.9
+* [IMP] please: action docs, minor improvements
+* [IMP] deply_odoo: format output list
+
+
+odoo_score: 2.0.4 (2023-01-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug.sh: test creates log
+
+
+
 z0bug_odoo: 2.0.3 (2022-12-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -274,14 +306,6 @@ python_plus: 2.0.4 (2022-12-15)
 * [IMP] vem: amend show current package version
 * [IMP] vem: no python2 warning in linux kernel 3
 * [FIX] vem: best recognition of python version
-
-
-wok_code: 2.0.5 (2022-12-13)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] install_python_3_from_source.sh: now can install python 3.9
-* [IMP] please: action docs, minor improvements
-* [IMP] deply_odoo: format output list
 
 
 travis_emulator: 2.0.3.1 (2022-12-13)
@@ -343,7 +367,6 @@ wok_code: 2.0.3 (2022-11-22)
 
 
 
-
 Credits
 =======
 
@@ -356,7 +379,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-01-13
+Last Update / Ultimo aggiornamento: 2023-01-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

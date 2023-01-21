@@ -129,7 +129,7 @@ set_log_filename() {
 #      LOGFILE="$LOGDIR/${UMLI}.log"
 #    fi
     LOGDIR="$PKGPATH/tests/logs"
-    [[ -d $LOGDIR ]] || mkdir $LOGDIR
+    # [[ -d $LOGDIR ]] || mkdir $LOGDIR
     LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
     [[ -f $LOGFILE ]] && rm -f $LOGFILE
     # OLD_LOGFILE=${LOGFILE/.log/_old.log}
@@ -428,6 +428,7 @@ if [[ $opt_touch -eq 0 ]]; then
     [[ -n "$VDIR" ]] && ve_root=$VDIR || ve_root=$HOME
     OPT_LLEV=
     # [[ $opt_test -ne 0 && ! -d $HOME/tmp ]] && mkdir $HOME/tmp
+    [[ $opt_test -ne 0 && ! -d $LOGDIR ]] && mkdir $LOGDIR
     [[ $opt_test -ne 0 ]] && FULL_LCONFN="$LOGDIR/${UMLI}.conf" || FULL_LCONFN="$ve_root/$LCONFN"
     [[ $opt_test -gt 1 ]] && FULL_LCONFN="$ve_root/pycharm_odoo.conf"
     OPT_CONF="--config=$FULL_LCONFN"

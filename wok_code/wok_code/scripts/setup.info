@@ -12,7 +12,7 @@ else:
 
 setup(
     name='wok_code',
-    version='2.0.5',
+    version='2.0.5.1',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.
@@ -67,6 +67,7 @@ The available tools are:
             './to_zero.2p8',
             './to_pep8.2p8',
             './pypi.sh',
+            './install_python_3_from_source.sh',
         ]
     },
     entry_points={

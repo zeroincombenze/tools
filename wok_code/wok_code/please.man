@@ -2,7 +2,7 @@
 .\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
 .TH please 8
 .SH NAME
-please \- develeoper shell
+please \- developer shell
 .SH SYNOPSIS
 please [options] action [package]
 .SH DESCRIPTION
@@ -11,8 +11,6 @@ please [options] action [package]
 Action is one of:
 .br
 * help
-.br
-* build
 .br
 * chkconfig
 .br
@@ -31,6 +29,8 @@ Action is one of:
 * export MODULE DB
 .br
 * import
+.br
+* install
 .br
 * list
 .br
@@ -59,14 +59,8 @@ Action is one of:
 * version
 .br
 * wep
-.P
-\fBbuild\fR
-.RS
-Build a tar file for current PYPI project
 .br
-This action is appliable just to PYPI projects. The tar file is created on project root directory (i.e. ~/dev/pypi/my_project).
-Look at \fBplease status\fR to see projects tree.
-.RE
+* z0bug
 .P
 \fBchkconfig\fR
 .RS
@@ -137,6 +131,12 @@ Example: please export . demo
 Import po file of Odoo project.
 .br
 To declare target version use \fB-b\fR switch
+.RE
+.P
+\fBinstall MODULE\fR
+.RS
+Install some components (currently just python3)
+.br
 .RE
 .P
 \fBlist\fR
@@ -286,6 +286,15 @@ Translate po file of Odoo project.
 In order to access to database a configuratione file must be supplied with \fB-c\fR switch.
 .br
 To declare target version use \fB-b\fR switch
+.RE
+.P
+\fBz0bug\fR
+.RS
+Execute lint and tests.
+.br
+This command executes the lint and the regression tests.
+In previous version of please this command were called travis;
+travis is now deprecated
 .RE
 .SH OPTIONS
 .TP

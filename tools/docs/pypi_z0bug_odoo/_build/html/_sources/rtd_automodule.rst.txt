@@ -4,7 +4,7 @@
 Code documentation
 ------------------
 
-.. automodule:: z0bug_odoo.z0bug_odoo_lib
+.. automodule:: pypi.z0bug_odoo_lib
 
-.. automodule:: z0bug_odoo.testenv.testenv
+.. automodule:: pypi.testenv.testenv
 

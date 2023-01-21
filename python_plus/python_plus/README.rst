@@ -1,6 +1,6 @@
 
 =================
-python_plus 2.0.4
+python_plus 2.0.5
 =================
 
 
@@ -292,8 +292,13 @@ Current development version
 History
 -------
 
-2.0.4.1 (2022-12-23)
+2.0.5.1 (2023-01-20)
 ~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: cryptography, pypdf2, requests & urllib3 version adjustment
+
+2.0.5 (2022-12-23)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: refactoring version control
 * [IMP] vem: now amend can check current version (with -f switch)
@@ -375,7 +380,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-12-26
+Last Update / Ultimo aggiornamento: 2023-01-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status

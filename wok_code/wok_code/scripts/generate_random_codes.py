@@ -7,7 +7,7 @@ from random import random, randint
 import vatnumber
 
 
-__version__ = "2.0.5"
+__version__ = "2.0.5.1"
 
 
 def gen_vatnumber(opt_args):

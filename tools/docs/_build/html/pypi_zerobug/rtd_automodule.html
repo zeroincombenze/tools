@@ -25,9 +25,6 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="rtd_usage_code_reference.html" title="&lt;no title&gt;"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">tools 2.0.3 documentation</a> &#187;</li>
@@ -43,169 +40,8 @@
             
   <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="module-zerobug.z0testlib">
-<span id="code-documentation"></span><h1>Code documentation<a class="headerlink" href="#module-zerobug.z0testlib" title="Permalink to this heading"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">zerobug.z0testlib.</span></span><span class="sig-name descname"><span class="pre">Z0test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autorun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test" title="Permalink to this definition"></a></dt>
-<dd><p>The command line program to execute all tests in professional way.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.build_os_tree">
-<span class="sig-name descname"><span class="pre">build_os_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">os_tree</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.build_os_tree" title="Permalink to this definition"></a></dt>
-<dd><p>Create a filesytem tree to test</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.dbgmsg">
-<span class="sig-name descname"><span class="pre">dbgmsg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">echo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.dbgmsg" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.default_conf">
-<span class="sig-name descname"><span class="pre">default_conf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.default_conf" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.doctest">
-<span class="sig-name descname"><span class="pre">doctest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.doctest" title="Permalink to this definition"></a></dt>
-<dd><p>testname format is ‘__doctest_FILE’ where:
-FILE: pathfile to execute doctest (macro expanded)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.main">
-<span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UT1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.main" title="Permalink to this definition"></a></dt>
-<dd><p>Default main program for test execution
-ctx: context
-Test: test class for internal tests;</p>
-<blockquote>
-<div><p>if supplied only internal tests are executed</p>
-</div></blockquote>
-<p>UT1: protected Unit Test list (w/o log)
-UT: Unit Test list (if None, search for files)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.main_local">
-<span class="sig-name descname"><span class="pre">main_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UT1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.main_local" title="Permalink to this definition"></a></dt>
-<dd><p>Default main program for local tests</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.msg_test">
-<span class="sig-name descname"><span class="pre">msg_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.msg_test" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.parseoptest">
-<span class="sig-name descname"><span class="pre">parseoptest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arguments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.parseoptest" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.remove_os_tree">
-<span class="sig-name descname"><span class="pre">remove_os_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">os_tree</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.remove_os_tree" title="Permalink to this definition"></a></dt>
-<dd><p>Remove a filesytem tree created to test</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.sanity_check">
-<span class="sig-name descname"><span class="pre">sanity_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opt_echo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.sanity_check" title="Permalink to this definition"></a></dt>
-<dd><p>Internal regression test
-Module z0testlib is needed to run regression tests
-This function run auto validation tests for z0testlib functions</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.set_shabang">
-<span class="sig-name descname"><span class="pre">set_shabang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.set_shabang" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.set_tlog_file">
-<span class="sig-name descname"><span class="pre">set_tlog_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.set_tlog_file" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.test_result">
-<span class="sig-name descname"><span class="pre">test_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_val</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.test_result" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.test_version">
-<span class="sig-name descname"><span class="pre">test_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.test_version" title="Permalink to this definition"></a></dt>
-<dd><p>testname format is ‘__version_T_VVVVFILE’ where:
-T: type - May be:</p>
-<blockquote>
-<div><p>‘V’ = exec ‘testfile -V’
-‘v’ = exec ‘testfile -v’
-‘P’ = exec ‘testfile –version’
-‘1’ = use VVVV
-‘0’ = use internal value __version__</p>
-</div></blockquote>
-<p>VVVV: version - Version to match (must be {0-9.}+)
-FILE: pathfile to execute to match version (macro expanded)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.version">
-<span class="sig-name descname"><span class="pre">version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.version" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">zerobug.z0testlib.</span></span><span class="sig-name descname"><span class="pre">Z0testOdoo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo" title="Permalink to this definition"></a></dt>
-<dd><dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.build_odoo_env">
-<span class="sig-name descname"><span class="pre">build_odoo_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retodoodir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.build_odoo_env" title="Permalink to this definition"></a></dt>
-<dd><p>Build a simplified Odoo directory tree
-version: 16.0, 15.0, 14.0, 13.0, …, 7.0, 6.1
-name: name of odoo dir (default equal to version)
-hierarchy: flat,tree,server (def=flat)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.create_module">
-<span class="sig-name descname"><span class="pre">create_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repo_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moduletype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependencies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.create_module" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.create_repo">
-<span class="sig-name descname"><span class="pre">create_repo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reponame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repotype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.create_repo" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.get_local_odoo_path">
-<span class="sig-name descname"><span class="pre">get_local_odoo_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">git_org</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reponame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">home</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.get_local_odoo_path" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.get_outer_dir">
-<span class="sig-name descname"><span class="pre">get_outer_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.get_outer_dir" title="Permalink to this definition"></a></dt>
-<dd><p>Get dir out of current virtual environment
-In local tests it serves to find local Odoo repositories to avoid
-git clone or wget from web.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.git_clone">
-<span class="sig-name descname"><span class="pre">git_clone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reponame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">odoo_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.git_clone" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.real_git_clone">
-<span class="sig-name descname"><span class="pre">real_git_clone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reponame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">odoo_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.real_git_clone" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.simulate_install_pypi">
-<span class="sig-name descname"><span class="pre">simulate_install_pypi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.simulate_install_pypi" title="Permalink to this definition"></a></dt>
-<dd><p>Simulate pip post installation for</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="code-documentation">
+<h1>Code documentation<a class="headerlink" href="#code-documentation" title="Permalink to this heading"></a></h1>
 </div>
 
 
@@ -218,44 +54,6 @@ git clone or wget from web.</p>
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/logozero_180x46.png" alt="Logo"/>
             </a></p>
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Code documentation</a><ul>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test"><code class="docutils literal notranslate"><span class="pre">Z0test</span></code></a><ul>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.build_os_tree"><code class="docutils literal notranslate"><span class="pre">Z0test.build_os_tree()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.dbgmsg"><code class="docutils literal notranslate"><span class="pre">Z0test.dbgmsg()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.default_conf"><code class="docutils literal notranslate"><span class="pre">Z0test.default_conf()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.doctest"><code class="docutils literal notranslate"><span class="pre">Z0test.doctest()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.main"><code class="docutils literal notranslate"><span class="pre">Z0test.main()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.main_local"><code class="docutils literal notranslate"><span class="pre">Z0test.main_local()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.msg_test"><code class="docutils literal notranslate"><span class="pre">Z0test.msg_test()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.parseoptest"><code class="docutils literal notranslate"><span class="pre">Z0test.parseoptest()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.remove_os_tree"><code class="docutils literal notranslate"><span class="pre">Z0test.remove_os_tree()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.sanity_check"><code class="docutils literal notranslate"><span class="pre">Z0test.sanity_check()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.set_shabang"><code class="docutils literal notranslate"><span class="pre">Z0test.set_shabang()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.set_tlog_file"><code class="docutils literal notranslate"><span class="pre">Z0test.set_tlog_file()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.test_result"><code class="docutils literal notranslate"><span class="pre">Z0test.test_result()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.test_version"><code class="docutils literal notranslate"><span class="pre">Z0test.test_version()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.version"><code class="docutils literal notranslate"><span class="pre">Z0test.version()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0testOdoo"><code class="docutils literal notranslate"><span class="pre">Z0testOdoo</span></code></a><ul>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0testOdoo.build_odoo_env"><code class="docutils literal notranslate"><span class="pre">Z0testOdoo.build_odoo_env()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0testOdoo.create_module"><code class="docutils literal notranslate"><span class="pre">Z0testOdoo.create_module()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0testOdoo.create_repo"><code class="docutils literal notranslate"><span class="pre">Z0testOdoo.create_repo()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0testOdoo.get_local_odoo_path"><code class="docutils literal notranslate"><span class="pre">Z0testOdoo.get_local_odoo_path()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0testOdoo.get_outer_dir"><code class="docutils literal notranslate"><span class="pre">Z0testOdoo.get_outer_dir()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0testOdoo.git_clone"><code class="docutils literal notranslate"><span class="pre">Z0testOdoo.git_clone()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0testOdoo.real_git_clone"><code class="docutils literal notranslate"><span class="pre">Z0testOdoo.real_git_clone()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0testOdoo.simulate_install_pypi"><code class="docutils literal notranslate"><span class="pre">Z0testOdoo.simulate_install_pypi()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="rtd_usage_code_reference.html"
@@ -288,9 +86,6 @@ git clone or wget from web.</p>
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
         <li class="right" >
           <a href="rtd_usage_code_reference.html" title="&lt;no title&gt;"
              >previous</a> |</li>

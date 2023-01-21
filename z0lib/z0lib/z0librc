@@ -582,7 +582,7 @@ run_traced() {
       fi
     elif [[ ! $1 =~ ^sleep[[:space:]] ]]; then
       [[ $verbose -gt 0 ]] && echo "$pfx$xcmd"
-      [[ $1 =~ ^(cd[[:space:]].*[\;\&\|]|cd)$ ]] && eval "$xcmd" 2>/dev/null
+      [[ $1 =~ ^(cd[[:space:]].*[\;\&\|]?|cd|pushd[[:space:]].*[\;\&\|]?|popd|export[[:space:]].*)$ ]] && eval "$xcmd" 2>/dev/null
     fi
     echo -en "\e[0m"
     ((Z0_STACK=Z0_STACK-2))

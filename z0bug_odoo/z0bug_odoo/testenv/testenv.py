@@ -1003,19 +1003,15 @@ class MainTest(SingleTransactionCase):
                 resource_model,
                 default=self.cast_types(resource_model, default or {}, fmt="cmd"),
                 ctx=ctx)
-        elif isinstance(record, (list, tuple)):
+        elif is_iterable(record):
+            if not isinstance(record, (list, tuple)):
+                _ctx = self.env["ir.actions.actions"]._get_eval_context()
+                _ctx.update(self._ctx_active_ids(record, ctx))
+                record = record.with_context(_ctx)
             if len(record) == 1 and not self._is_transient(orig):
                 orig = self._create_object(
                     resource_model,
                     default=self._convert_to_write(record[0], new=True),
-                    ctx=ctx)
-        else:
-            if ctx:
-                record = record.with_context(ctx)
-            if not self._is_transient(orig):
-                orig = self._create_object(
-                    resource_model,
-                    default=self._convert_to_write(record, new=True),
                     ctx=ctx)
         self._load_field_struct(resource_model)
         for args in web_changes:
@@ -1059,7 +1055,8 @@ class MainTest(SingleTransactionCase):
 
     def _get_src_model_from_act_windows(self, act_windows):
         model_name = act_windows.get(
-            "src_model", self._get_model_from_act_windows(act_windows))
+            "src_model", act_windows.get(
+                "binding_model_id", self._get_model_from_act_windows(act_windows)))
         if not model_name or self._is_transient(model_name):
             model_name = None
             value = "%s,%d" % (act_windows["type"], act_windows["id"])
@@ -2139,17 +2136,17 @@ class MainTest(SingleTransactionCase):
         return tmpl
 
     def validate_records(self, template, records):
-        if not isinstance(template, (list, tuple)):
+        if not isinstance(template, (list, tuple)):                  # pragma: no cover
             self.raise_error("Function validate_records() 1° param must be list!")
-        if not is_iterable(records):
+        if not is_iterable(records):                                 # pragma: no cover
             self.raise_error("Function validate_records() 1° param must be iterable!")
         resource = self._get_model_from_records(records)
         childs_name = self.childs_name.get(resource)
         for rec in records:
-            if not is_iterable(rec):
+            if not is_iterable(rec):                                 # pragma: no cover
                 self.raise_error("Function validate_records() w/o iterable")
             for tmpl in template:
-                if not isinstance(tmpl, dict):
+                if not isinstance(tmpl, dict):                       # pragma: no cover
                     self.raise_error("Function validate_records() w/o iterable")
                 tmpl = self._validate_1_record(tmpl, rec, resource, childs_name)
                 if (
@@ -2173,9 +2170,20 @@ class MainTest(SingleTransactionCase):
                 ):
                     del tmpl["_CHECK"][rec]
 
+        for rec in records:
+            found = False
+            for tmpl in template:
+                if "_CHECK" in tmpl and rec in tmpl["_CHECK"]:
+                    found = True
+                    break
+            if not found:                                            # pragma: no cover
+                for tmpl in template:
+                    if "_CHECK" not in tmpl:
+                        tmpl["_CHECK"][rec] = {}
+                        break
         matches = []
         for tmpl in template:
-            if not tmpl["_CHECK"]:
+            if "_CHECK" not in tmpl:                                 # pragma: no cover
                 self.raise_error("validate_record(%s) does not match any record!"
                                  % self.dict_2_print(tmpl))
             for rec in tmpl["_CHECK"]:

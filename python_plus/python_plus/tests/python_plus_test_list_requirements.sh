@@ -63,7 +63,7 @@ test_01() {
     RES=$(list_requirements.py -b10.0 -tpython -BP)
     test_result "list_requirements -b10.0 -tpython -BP" "$TRES" "$RES"
     #
-    TRES="python=asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=38.0',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,gevent==1.5.0,html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0',lxml==4.2.3,'Mako>=1.0.4',num2words,numpy,passlib==1.6.5,Pillow==6.1.0,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,pyOpenSSL,pyparsing==2.1.10,'pyPDF2>=2.0','pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.14.1"
+    TRES="python=asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=38.0<39.0',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,gevent==1.5.0,html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0',lxml==4.2.3,'Mako>=1.0.4',num2words,numpy,passlib==1.6.5,Pillow==6.1.0,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,pyOpenSSL,pyparsing==2.1.10,'pyPDF2<2.0','pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.14.1"
     RES=$(list_requirements.py -b12.0 -tpython -BP)
     test_result "list_requirements -b12.0 -tpython -BP" "$TRES" "$RES"
 }

@@ -1,7 +1,7 @@
 
-==============
-wok_code 2.0.5
-==============
+================
+wok_code 2.0.5.1
+================
 
 
 
@@ -943,7 +943,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-17
+Last Update / Ultimo aggiornamento: 2023-01-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

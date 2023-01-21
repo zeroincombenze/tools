@@ -1,3 +1,8 @@
+2.0.5.1 (2023-01-20)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: cryptography, pypdf2, requests & urllib3 version adjustment
+
 2.0.5 (2022-12-23)
 ~~~~~~~~~~~~~~~~~~
 

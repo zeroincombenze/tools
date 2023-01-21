@@ -25,9 +25,6 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="rtd_usage.html" title="Usage"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.3 documentation</a> &#187;</li>
@@ -42,95 +39,8 @@
             
   <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="module-z0bug_odoo.z0bug_odoo_lib">
-<span id="code-documentation"></span><h1>Code documentation<a class="headerlink" href="#module-z0bug_odoo.z0bug_odoo_lib" title="Permalink to this heading"></a></h1>
-<p>Base library for continuous test of Odoo apps
-This module is Odoo version independent and may be used outside Odoo app (i.e.
-with odoorc package).
-For this reason, this software does not contain functions with sql call, like
-search or browse.</p>
-<p>Functions with sql call are in test_common.py file.</p>
-<span class="target" id="module-z0bug_odoo.testenv.testenv"></span><p>Test Environment v2.0.4.1</p>
-<p>Copy this file in tests directory of your module.
-Please copy the documentation testenv.rst file too in your module.
-The __init__.py must import testenv.
-Your python test file should have to contain some following example lines:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">.testenv</span> <span class="kn">import</span> <span class="n">MainTest</span> <span class="k">as</span> <span class="n">SingleTransactionCase</span>
-
-<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-
-<span class="n">TEST_RES_PARTNER</span> <span class="o">=</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
-<span class="n">TEST_SETUP_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;res.partner&quot;</span><span class="p">,</span> <span class="p">]</span>
-
-<span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
-        <span class="c1"># Add following statement just for get debug information</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;TEST_SETUP_LIST&quot;</span><span class="p">:</span> <span class="n">TEST_SETUP_LIST</span><span class="p">}</span>
-        <span class="k">for</span> <span class="n">resource</span> <span class="ow">in</span> <span class="n">TEST_SETUP_LIST</span><span class="p">:</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="s2">&quot;TEST_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">resource</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
-            <span class="n">data</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">item</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">declare_all_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>                 <span class="c1"># TestEnv swallows the data</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setup_env</span><span class="p">()</span>                            <span class="c1"># Create test environment</span>
-
-    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ODOO_COMMIT_TEST&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-            <span class="c1"># Save test environment, so it is available to dump</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cr</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>                    <span class="c1"># pylint: disable=invalid-commit</span>
-            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;✨ Test data committed&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">test_mytest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">&quot;🎺 Testing test_mytest&quot;</span>    <span class="c1"># Use unicode char to best log reading</span>
-        <span class="p">)</span>
-        <span class="o">...</span>
-
-    <span class="k">def</span> <span class="nf">test_mywizard</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">wizard</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>                <span class="c1"># Test requires wizard simulator</span>
-</pre></div>
-</div>
-<div class="section" id="external-reference">
-<h2>External reference<a class="headerlink" href="#external-reference" title="Permalink to this heading"></a></h2>
-<p>Every record is tagged by an external reference.
-The external reference may be:</p>
-<ul class="simple">
-<li><p>Ordinary Odoo external reference (a), format “module.name”</p></li>
-<li><p>Test reference, format “z0bug.name” (b)</p></li>
-<li><p>Key value, format “external.key” (c)</p></li>
-<li><p>2 keys reference, for header/detail relationship (d)</p></li>
-<li><p>Magic reference for ‘product.template’ / ‘product.product’ (e)</p></li>
-</ul>
-<p>Ordinary Odoo external reference (a) is a record of ‘ir.model.data’;
-you can see them from Odoo GUI interface.</p>
-<p>Test reference (b) are visible just in the test environment.
-They are identified by “z0bug.” prefix module name.</p>
-<p>External key reference (c) is identified by “external.” prefix followed by
-the key value used to retrieve the record.
-The field “code” or “name” are used to search record;
-for account.tax the “description” field is used.
-Please set self.debug_level = 2 (or more) to log these field keys.</p>
-<p>The 2 keys reference (d) needs to address child record inside header record
-at 2 level model (header/detail) relationship.
-The key MUST BE the same key of the parent record,
-plus “_”, plus line identifier (usually ‘sequence’ field).
-i.e. “z0bug.move_1_3” means: line with sequence 3 of ‘account.move.line’
-which is child of record “z0bug.move_1” of ‘account.move’.
-Please set self.debug_level = 2 (or more) to log these relationships.</p>
-<p>For ‘product.template’ (product) you must use ‘_template’ text in reference (e).
-TestEnv inherit ‘product.product’ (variant) external reference.</p>
-<p>For furthermore information, please:</p>
-<ul class="simple">
-<li><p>Read file testenv.rst in this directory (if supplied)</p></li>
-<li><p>Visit <a class="reference external" href="https://zeroincombenze-tools.readthedocs.io">https://zeroincombenze-tools.readthedocs.io</a></p></li>
-<li><p>Visit <a class="reference external" href="https://github.com/zeroincombenze/tools">https://github.com/zeroincombenze/tools</a></p></li>
-<li><p>Visit <a class="reference external" href="https://github.com/zeroincombenze/zerobug-test">https://github.com/zeroincombenze/zerobug-test</a></p></li>
-</ul>
-</div>
+<div class="section" id="code-documentation">
+<h1>Code documentation<a class="headerlink" href="#code-documentation" title="Permalink to this heading"></a></h1>
 </div>
 
 
@@ -143,16 +53,6 @@ TestEnv inherit ‘product.product’ (variant) external reference.</p>
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
             </a></p>
-  <div>
-    <h3><a href="index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Code documentation</a><ul>
-<li><a class="reference internal" href="#external-reference">External reference</a></li>
-</ul>
-</li>
-</ul>
-
-  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="rtd_usage.html"
@@ -185,9 +85,6 @@ TestEnv inherit ‘product.product’ (variant) external reference.</p>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
         <li class="right" >
           <a href="rtd_usage.html" title="Usage"
              >previous</a> |</li>

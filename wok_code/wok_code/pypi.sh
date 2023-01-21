@@ -1,5 +1,5 @@
 # set -x
-__version__=2.0.5
+__version__=2.0.5.1
 if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
@@ -55,15 +55,15 @@ while [[ -n $1 ]]; do
     shift
 done
 [[ -n "$opts" ]] && opts="-$opts"
-ACTLIST="cvt_script|diff|dir|docs|git-add|info|install|libdir|list|meld|replace|show|travis|travis-summary|update|update+replace|version"
+HLPCMDLIST="cvt_script|diff|dir|docs|git-add|info|install|libdir|list|meld|replace|show|travis|travis-summary|update|update+replace|version"
 ACT2VME="^(dir|info|show|install|libdir|update|update\+replace|update)$"
 ACT2TOOLS="^(docs|git-add|list|replace|travis|travis-summary|version)$"
 PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
 PKGS_LIST_RE="(${PKGS_LIST// /|})"
 PKGS_LIST_RE=${PKGS_LIST_RE//-/.}
 ODOO_ROOT=$(dirname $HOME_DEVEL)
-[[ -z "$act" || ! $act =~ ($ACTLIST) ]] && act="help"
-[[ $act == "help" ]] && echo "$0 [-h|-B|-f|-I|-l|-n|-U|-y|-Z] [-d VENV] [-b BRANCH] $ACTLIST|help [PYPI_PKG]" && exit 0
+[[ -z "$act" || ! $act =~ ($HLPCMDLIST) ]] && act="help"
+[[ $act == "help" ]] && echo "$0 [-h|-B|-f|-I|-l|-n|-U|-y|-Z] [-d VENV] [-b BRANCH] $HLPCMDLIST|help [PYPI_PKG]" && exit 0
 b=$(basename $PWD)
 [[ -z "$pypi" && $(dirname $PWD) == $HOME_DEVEL/pypi/$b && $b =~ $PKGS_LIST_RE ]] && pypi=$b
 [[ -z "$pypi" ]] && pypi="$PKGS_LIST" || pypi="${pypi//,/ }"

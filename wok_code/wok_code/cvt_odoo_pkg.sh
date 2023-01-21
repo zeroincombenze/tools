@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.5
+__version__=2.0.5.1
 
 cvt_dir() {
     # echo "cvt_dir ($1,$2)"
