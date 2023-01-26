@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Usage &#8212; tools 2.0.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
@@ -26,6 +27,9 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="rtd_automodule.html" title="Code documentation"
              accesskey="N">next</a> |</li>
         <li class="right" >
@@ -44,12 +48,12 @@
             
   <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="usage">
+<section id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
-</div>
-<div class="section" id="code-example">
+</section>
+<section id="code-example">
 <h1>Code example<a class="headerlink" href="#code-example" title="Permalink to this heading"></a></h1>
-<div class="section" id="class-type-test">
+<section id="class-type-test">
 <h2>class / type test<a class="headerlink" href="#class-type-test" title="Permalink to this heading"></a></h2>
 <p>Test if a string is unicode.</p>
 <p>On Py2, this gives us:</p>
@@ -71,8 +75,8 @@
 <span class="go">True</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="quoted-string">
+</section>
+<section id="quoted-string">
 <h2>quoted string<a class="headerlink" href="#quoted-string" title="Permalink to this heading"></a></h2>
 <p>Using class __:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">python_plus</span> <span class="kn">import</span> <span class="n">__</span>
@@ -97,8 +101,8 @@
 <span class="go">[&#39;abc&#39;, &#39;d,e&#39;, &#39;fgh&#39;]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="code-reference">
+</section>
+<section id="code-reference">
 <h2>Code reference<a class="headerlink" href="#code-reference" title="Permalink to this heading"></a></h2>
 <p>`` str.qslit(sep=None, maxsplit=-1, quotes=[‘”’, ‘”’], escape=None, enquote=None, strip=None)``</p>
 <p>Like split function return a list of the words in the string, using sep as the delimiter string. If maxsplit is given, at most maxsplit splits are done (thus, the list will have at most maxsplit+1 elements). If maxsplit is not specified or -1, then there is no limit on the number of splits (all possible splits are made).</p>
@@ -113,8 +117,8 @@
 <span class="go">[&#39;abc&#39;, &#39;d,e&#39;, &#39;fgh&#39;]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="vem-virtual-environment-manager">
+</section>
+<section id="vem-virtual-environment-manager">
 <h2>vem: virtual environment manager<a class="headerlink" href="#vem-virtual-environment-manager" title="Permalink to this heading"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">vem</span><span class="o">.</span><span class="n">sh</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">][</span><span class="o">-</span><span class="n">a</span> <span class="nb">list</span><span class="p">][</span><span class="o">-</span><span class="n">BCD</span><span class="p">][</span><span class="o">-</span><span class="n">d</span> <span class="n">paths</span><span class="p">][</span><span class="o">-</span><span class="n">E</span> <span class="n">distro</span><span class="p">][</span><span class="o">-</span><span class="n">f</span><span class="p">][</span><span class="o">-</span><span class="n">F</span> <span class="n">name</span><span class="p">][</span><span class="o">-</span><span class="n">gkIi</span><span class="p">][</span><span class="o">-</span><span class="n">l</span> <span class="n">iso</span><span class="p">][</span><span class="o">-</span><span class="n">n</span><span class="p">][</span><span class="o">-</span><span class="n">O</span> <span class="n">version</span><span class="p">][</span><span class="o">-</span><span class="n">o</span> <span class="nb">dir</span><span class="p">][</span><span class="o">-</span><span class="n">p</span> <span class="n">pyver</span><span class="p">][</span><span class="o">-</span><span class="n">q</span><span class="p">][</span><span class="o">-</span><span class="n">r</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">stVvy</span><span class="p">]</span> <span class="n">p3</span> <span class="n">p4</span> <span class="n">p5</span> <span class="n">p6</span> <span class="n">p7</span> <span class="n">p8</span> <span class="n">p9</span>
 <span class="n">Manage</span> <span class="n">virtual</span> <span class="n">environment</span>
@@ -208,9 +212,9 @@ Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2023-01-21</p>
-</div>
-</div>
+<p>Last Update / Ultimo aggiornamento: 2023-01-22</p>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -273,6 +277,9 @@ Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="rtd_automodule.html" title="Code documentation"
              >next</a> |</li>

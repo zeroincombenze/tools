@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Introduction &#8212; tools 2.0.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
@@ -26,6 +27,9 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="../pypi_travis_emulator/index.html" title="travis_emulator 1.0.2.1"
              accesskey="N">next</a> |</li>
         <li class="right" >
@@ -44,7 +48,7 @@
             
   <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="introduction">
+<section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h1>
 <p>Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.</p>
 <p>With clodoo you can do massive operations on 1 or more Odoo databases based on
@@ -105,7 +109,7 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)</p>
 </tr>
 </tbody>
 </table>
-<div class="section" id="clodoo-py-general-purpose-rpc">
+<section id="clodoo-py-general-purpose-rpc">
 <h2>clodoo.py: general Purpose RPC<a class="headerlink" href="#clodoo-py-general-purpose-rpc" title="Permalink to this heading"></a></h2>
 <p>clodoo.py ia general purpose xmlrpc / json interface.
 It is called by bash console, there is no funcional web/GUI interface.</p>
@@ -170,7 +174,7 @@ It is called by bash console, there is no funcional web/GUI interface.</p>
 </dd>
 </dl>
 </div></blockquote>
-<div class="section" id="import-file">
+<section id="import-file">
 <h3>Import_file<a class="headerlink" href="#import-file" title="Permalink to this heading"></a></h3>
 <p>Import file loads data from a csv file into DB. This action works as standard
 Odoo but has some enhanced features.
@@ -251,9 +255,9 @@ default field to search is ‘name’ or ‘id’, if passed.</p>
     <span class="n">i</span><span class="o">.</span><span class="n">e</span>  <span class="o">-</span><span class="mf">6.1</span><span class="o">-</span><span class="mf">7.0</span> <span class="o">=&gt;</span> <span class="n">select</span> <span class="n">record</span> <span class="k">if</span> <span class="n">Odoo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="mf">6.1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">7.0</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="odoo-install-repository-manage-repositories">
+</section>
+</section>
+<section id="odoo-install-repository-manage-repositories">
 <h2>odoo_install_repository: manage repositories<a class="headerlink" href="#odoo-install-repository-manage-repositories" title="Permalink to this heading"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">odoo_install_repository</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">][</span><span class="o">-</span><span class="n">b</span> <span class="n">branch</span><span class="p">][</span><span class="o">-</span><span class="n">c</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">CDjLmn</span><span class="p">][</span><span class="o">-</span><span class="n">O</span> <span class="n">git</span><span class="o">-</span><span class="n">org</span><span class="p">][</span><span class="o">-</span><span class="n">o</span> <span class="n">path</span><span class="p">][</span><span class="o">-</span><span class="n">qrU</span><span class="p">][</span><span class="o">-</span><span class="n">u</span> <span class="n">username</span><span class="p">][</span><span class="o">-</span><span class="n">Vvy1</span><span class="p">]</span> <span class="n">git_repo</span> <span class="n">odoo_vid</span> <span class="n">new_odoo_vid</span>
 <span class="n">Add</span> <span class="ow">or</span> <span class="n">duplicate</span> <span class="n">odoo</span> <span class="n">repository</span> <span class="n">into</span> <span class="n">local</span> <span class="n">filesystem</span>
@@ -278,8 +282,8 @@ default field to search is ‘name’ or ‘id’, if passed.</p>
  <span class="o">-</span><span class="mi">1</span>              <span class="k">if</span> <span class="n">clone</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="odoorc-general-purpose-bash-function">
+</section>
+<section id="odoorc-general-purpose-bash-function">
 <h2>odoorc: general purpose bash function<a class="headerlink" href="#odoorc-general-purpose-bash-function" title="Permalink to this heading"></a></h2>
 <p>The bash file odoorc is a general purpose Odoo library. It supplies some Odoo values from odoo_vid or from odoo directory.
 Some values may depends by environment:</p>
@@ -302,9 +306,9 @@ RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|&lt;rpt
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2023-01-21</p>
-</div>
-</div>
+<p>Last Update / Ultimo aggiornamento: 2023-01-22</p>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -368,6 +372,9 @@ RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|&lt;rpt
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="../pypi_travis_emulator/index.html" title="travis_emulator 1.0.2.1"
              >next</a> |</li>

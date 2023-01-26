@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Multi-purpose python &amp; bash tools &#8212; tools 2.0.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css" />
@@ -26,6 +27,9 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="rtd_description_structure.html" title="Odoo structure"
              accesskey="N">next</a> |</li>
         <li class="right" >
@@ -43,7 +47,7 @@
             
   <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="multi-purpose-python-bash-tools">
+<section id="multi-purpose-python-bash-tools">
 <h1>Multi-purpose python &amp; bash tools<a class="headerlink" href="#multi-purpose-python-bash-tools" title="Permalink to this heading"></a></h1>
 <p>Multi-purpose python and bash source code.</p>
 <p>These tools help to cover the following areas of software:</p>
@@ -57,7 +61,7 @@
 <li><p>Testing</p></li>
 </ul>
 <p>You can find more info at <a class="reference external" href="https://zeroincombenze-tools.readthedocs.io/">https://zeroincombenze-tools.readthedocs.io/</a></p>
-<div class="section" id="compatibility">
+<section id="compatibility">
 <h2>Compatibility<a class="headerlink" href="#compatibility" title="Permalink to this heading"></a></h2>
 <p>These tools are designed to be used on Linux platforms.
 They are tested on following distros:
@@ -65,8 +69,8 @@ They are tested on following distros:
 * Debian: from 8.0 to 10.0
 * CentOS: from 7 to 8
 Currently the osx Darwin is in testing.</p>
-</div>
-<div class="section" id="components">
+</section>
+<section id="components">
 <h2>Components<a class="headerlink" href="#components" title="Permalink to this heading"></a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -233,38 +237,42 @@ Currently the osx Darwin is in testing.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="odoo-vid">
+</section>
+<section id="odoo-vid">
 <h2>Odoo vid<a class="headerlink" href="#odoo-vid" title="Permalink to this heading"></a></h2>
-<p>The odoo_vid is mainly the directory with a specific Odoo instance in multi instance environment.
-Imagine a scenario with different Odoo instance running on the same host.
+<p>The odoo_vid is the name of one specific Odoo configuration in multi instances
+environment. It is mainly the directory for the specific Odoo instance.
+Imagine a scenario with different Odoo instances running on the same host.
 This is the development environment or the test environment.
-Every instance of Odoo must have a own configuration file and packages.
-Based on configuration file, every Odoo instance must have a own xmlrcp port, db user, log file, pid file, etcetera.</p>
+Every instance of Odoo must have an own configuration file and packages.
+Based on configuration file, every Odoo instance must have a own xmlrcp port,
+db user, log file, pid file, etcetera.</p>
 <p>The odoo_vid provides a simple way to manage multiple Odoo instance.
 Supplying odoo_vid you select the specific parameters values just in one item.</p>
 <p>The odoo_vid item is composed by:</p>
 <ul class="simple">
-<li><p>Prefix “VENV” if virtual environment</p></li>
-<li><p>Prefix V to identify main instance</p></li>
-<li><p>Odoo distribution (for organizations with short name)</p></li>
+<li><p>Prefix “VENV” if virtual environment (deprecated)</p></li>
+<li><p>Prefix V to identify main instance (deprecated)</p></li>
+<li><p>Odoo distribution (for organizations which have short name)</p></li>
 <li><p>Odoo version (full version or major version)</p></li>
-<li><p>Odoo distribution (all organizzations)</p></li>
+<li><p>Odoo distribution (all organizations)</p></li>
 <li><p>User specific identification</p></li>
 </ul>
-<p>Odoo distribution is on of: flectra,librerp,oca,powerp,zero or nothing</p>
-<p>Odoo version is the Odoo specific version; it is one value of: 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1</p>
+<p>Odoo distribution may be one of: librerp,oca,zero or nothing</p>
+<p>Odoo version is the Odoo specific version; it is one value of:
+16.0 15.0 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1</p>
 <p>Examples of valid odoo_vid:</p>
 <ul class="simple">
 <li><p>12.0 -&gt; Odoo 12.0, unidentified distribution</p></li>
 <li><p>oca14 -&gt; Odoo 14.0, distribution oca (short name)</p></li>
 <li><p>librerp6 -&gt; Odoo 6.1, distribution librerp (short name)</p></li>
 <li><p>odoo14-oca -&gt; Odoo 14.0, distribution oca (full name)</p></li>
-<li><p>odoo12-devel -&gt; Odoo 12.0, odoo ditribution, user identification “devel”</p></li>
+<li><p>odoo12-devel -&gt; Odoo 12.0, odoo distribution, user identification “devel”</p></li>
 </ul>
 <p>Based on above information, tool software can assume the right value of specific Odoo instance.</p>
 <p>This table shows the Odoo parameter values based on odoo_vid;
-notice the symbol %M meaans Odoo major version and %V Odoo version.</p>
+please notice the symbol PUID is the personal user identification,
+symbol %M means Odoo major version and %V Odoo full version.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 16%" />
@@ -278,10 +286,10 @@ notice the symbol %M meaans Odoo major version and %V Odoo version.</p>
 <tbody>
 <tr class="row-odd"><td><p>Parameter name</p></td>
 <td><p>standard value</p></td>
-<td><p>anonymous distro</p></td>
-<td><p>zeroincombenze d</p></td>
+<td><p>unidentified distro</p></td>
+<td><p>zeroincombenze(R</p></td>
 <td><p>oca distro</p></td>
-<td><p>axitec distro</p></td>
+<td><p>personal distro</p></td>
 <td><p>Note</p></td>
 </tr>
 <tr class="row-even"><td><p>ROOT (Odoo root)</p></td>
@@ -297,7 +305,7 @@ notice the symbol %M meaans Odoo major version and %V Odoo version.</p>
 <td><p>odoo%M-server.conf</p></td>
 <td><p>odoo%M-zero.conf</p></td>
 <td><p>odoo%M-oca.conf</p></td>
-<td><p>odoo%M-axi.conf</p></td>
+<td><p>odoo%M-PUID.conf</p></td>
 <td><p>Directory /etc/odoo (see Odoo structure)</p></td>
 </tr>
 <tr class="row-even"><td><p>USER (db user)</p></td>
@@ -313,7 +321,7 @@ notice the symbol %M meaans Odoo major version and %V Odoo version.</p>
 <td><p>odoo%M-server.log</p></td>
 <td><p>odoo%M-zero.log</p></td>
 <td><p>odoo%M-oca.log</p></td>
-<td><p>odoo%M-axi.log</p></td>
+<td><p>odoo%M-PUID.log</p></td>
 <td><p>Directory /var/log/odoo</p></td>
 </tr>
 <tr class="row-even"><td><p>FPID (pid file)</p></td>
@@ -321,7 +329,7 @@ notice the symbol %M meaans Odoo major version and %V Odoo version.</p>
 <td><p>odoo%M-server.pid</p></td>
 <td><p>odoo%M-zero.pid</p></td>
 <td><p>odoo%M-oca.pid</p></td>
-<td><p>odoo%M-axi.pid</p></td>
+<td><p>odoo%M-PUID.pid</p></td>
 <td><p>Directory /var/run/odoo</p></td>
 </tr>
 <tr class="row-odd"><td><p>RPCPORT (xmlrpc port)</p></td>
@@ -345,7 +353,7 @@ notice the symbol %M meaans Odoo major version and %V Odoo version.</p>
 <td><p>odoo%M odoo%M-server</p></td>
 <td><p>odoo%M-zero</p></td>
 <td><p>odoo%M-oca</p></td>
-<td><p>odoo%M-axi</p></td>
+<td><p>odoo%M-PUID</p></td>
 <td></td>
 </tr>
 </tbody>
@@ -353,9 +361,9 @@ notice the symbol %M meaans Odoo major version and %V Odoo version.</p>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<p>Last Update / Ultimo aggiornamento: 2023-01-21</p>
-</div>
-</div>
+<p>Last Update / Ultimo aggiornamento: 2023-01-22</p>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -416,6 +424,9 @@ notice the symbol %M meaans Odoo major version and %V Odoo version.</p>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="rtd_description_structure.html" title="Odoo structure"
              >next</a> |</li>

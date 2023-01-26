@@ -1,10 +1,25 @@
+2.0.5 (2023-01-25)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: in some rare cases, wizard crashes
+* [NEW] TestEnv: get_records_from_act_windows()
+* [IMP] TestEnv: resource_make now capture demo record if available
+* [IMP] TestEnv: resource is not required for declared xref
+* [IMP] TestEnv: self.module has all information about current testing module
+* [IMP] TestEnv: conveyance functions for all fields (currenly jsust for account.payment.line)
+* [IMP] TestEnv: fields many2one accept object as value
+* [IMP] TestEnv: function validate_records() improvements
+* [FIX] TestEnv: company_setup, now you can declare bank account
+* [IMP] TesEnv: minor improvements
+
 2.0.4 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] TestEnv: resource_create does not duplicate record
 * [FIX] TestEnv: resource_write after save calls write() exactly like Odoo behavior
-* [FIX] TestEnv: new function field_download
-* [IMP] TestEnv: convert_to_write converte binary fields too
+* [NEW] TestEnv: new function field_download()
+* [NEW] TestEnv: new function validate_records()
+* [IMP] TestEnv: convert_to_write convert binary fields too
 * [IMP] TestEnv: minor improvements
 
 2.0.3 (2022-12-29)

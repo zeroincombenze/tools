@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>maintainer-quality-tools 0.2.3.7 &#8212; tools 2.0.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
@@ -36,13 +37,13 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="maintainer-quality-tools-0-2-3-7">
+  <section id="maintainer-quality-tools-0-2-3-7">
 <h1>maintainer-quality-tools 0.2.3.7<a class="headerlink" href="#maintainer-quality-tools-0-2-3-7" title="Permalink to this heading"></a></h1>
 <p><a class="reference external" href="https://odoo-community.org/page/development-status"><img alt="Alpha" src="https://img.shields.io/badge/maturity-Alfa-black.png" /></a> <a class="reference external" href="https://travis-ci.org/zeroincombenze/tools"><img alt="github.com" src="https://travis-ci.org/zeroincombenze/tools.svg?branch=0.2.3.7" /></a> <a class="reference external" href="https://coveralls.io/github/zeroincombenze/tools?branch=0.2.3.7"><img alt="Coverage" src="https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=0.2.3.7" /></a> <a class="reference external" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.svg" /></a></p>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h2>
-</div>
-<div class="section" id="qa-tools-for-odoo-maintainers-mqt">
+</section>
+<section id="qa-tools-for-odoo-maintainers-mqt">
 <h2>QA Tools for Odoo maintainers (MQT)<a class="headerlink" href="#qa-tools-for-odoo-maintainers-mqt" title="Permalink to this heading"></a></h2>
 <p>The goal of Maintainer Quality Tools (MQT) is to provide helpers to ensure the quality of Odoo addons.</p>
 <p>Differences between this Zeroincombenze® MQT and standard OCA version:</p>
@@ -59,7 +60,7 @@
 <blockquote>
 <div><p>export MQT_TEST_MODE=oca</p>
 </div></blockquote>
-<div class="section" id="sample-travis-configuration-file">
+<section id="sample-travis-configuration-file">
 <h3>Sample travis configuration file<a class="headerlink" href="#sample-travis-configuration-file" title="Permalink to this heading"></a></h3>
 <p>In order to setup TravisCI continuous integration for your project, just copy the
 content of the <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/maintainer-quality-tools/sample_files">sample_files</a>
@@ -71,13 +72,13 @@ to your project’s root directory.</p>
 <p>During testbed setup, MQT will automatically download and place these repositories accordingly into the addon path.
 Note on addons path ordering: They will be placed after your own repo, but before the odoo core repo.</p>
 <p>Warning: if missed optional_repository_url, OCA MQT loads OCA repository while Zeroincombenze® MQT searches for repository with the same owner of tested project.</p>
-</div>
-<div class="section" id="check-your-travis-file-for-syntax-issues">
+</section>
+<section id="check-your-travis-file-for-syntax-issues">
 <h3>Check your .travis file for syntax issues.<a class="headerlink" href="#check-your-travis-file-for-syntax-issues" title="Permalink to this heading"></a></h3>
 <p>The <a class="reference external" href="http://lint.travis-ci.org/">lint checker</a> of travis is off-line.</p>
 <p>If you downloaded <a class="reference external" href="https://github.com/zeroincombenze/tools">Zeroincombenze® tools</a>, you can create .travis.yml using <cite>topep8</cite> command.</p>
-</div>
-<div class="section" id="multiple-values-for-environment-variable-version">
+</section>
+<section id="multiple-values-for-environment-variable-version">
 <h3>Multiple values for environment variable VERSION<a class="headerlink" href="#multiple-values-for-environment-variable-version" title="Permalink to this heading"></a></h3>
 <p>You can use branch or pull request into environment variable VERSION:</p>
 <blockquote>
@@ -86,16 +87,16 @@ Note on addons path ordering: They will be placed after your own repo, but befor
 <p>Pull request odoo/odoo#143</p>
 <p>-  VERSION=”pull/143” ODOO_REPO=”odoo/odoo”</p>
 </div></blockquote>
-</div>
-<div class="section" id="using-custom-branch-inside-odoo-repository-using-odoo-branch">
+</section>
+<section id="using-custom-branch-inside-odoo-repository-using-odoo-branch">
 <h3>Using custom branch inside odoo repository using ODOO_BRANCH<a class="headerlink" href="#using-custom-branch-inside-odoo-repository-using-odoo-branch" title="Permalink to this heading"></a></h3>
 <p>You can use the custom branch into the ODOO_REPO using the environment variable ODOO_BRANCH:</p>
 <blockquote>
 <div><p>Branch saas-17</p>
 <p>- ODOO_REPO=”odoo/odoo” ODOO_BRANCH=”saas-17”</p>
 </div></blockquote>
-</div>
-<div class="section" id="module-unit-tests">
+</section>
+<section id="module-unit-tests">
 <h3>Module unit tests<a class="headerlink" href="#module-unit-tests" title="Permalink to this heading"></a></h3>
 <p>MQT is also capable to test each module individually.
 The intention is to check if all dependencies are correctly defined.
@@ -105,8 +106,8 @@ similar to this one:</p>
 <blockquote>
 <div><p>- VERSION=”8.0” UNIT_TEST=”1”</p>
 </div></blockquote>
-</div>
-<div class="section" id="coveralls-codecov-configuration-file">
+</section>
+<section id="coveralls-codecov-configuration-file">
 <h3>Coveralls/Codecov configuration file<a class="headerlink" href="#coveralls-codecov-configuration-file" title="Permalink to this heading"></a></h3>
 <p><a class="reference external" href="https://coveralls.io/">Coveralls</a> and <a class="reference external" href="https://codecov.io/">Codecov</a> services provide information on the test coverage of your modules.
 Currently both configurations are automatic (check default configuration <a class="reference external" href="cfg/.coveragerc">here</a>.
@@ -115,8 +116,8 @@ If you do it, it will be simply ignored.</p>
 <p><strong>NOTE:</strong> the current configuration automatically ignores <cite>*_example</cite> modules
 from coverage check.
 See <a class="reference external" href="https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md#tests">maintainer-tools CONTRIBUTING doc</a> for further info on tests.</p>
-</div>
-<div class="section" id="names-used-for-the-test-databases">
+</section>
+<section id="names-used-for-the-test-databases">
 <h3>Names used for the test databases<a class="headerlink" href="#names-used-for-the-test-databases" title="Permalink to this heading"></a></h3>
 <p>MQT has a nice feature of organizing your testing databases.
 You might want to do that if you want to double them up as
@@ -126,8 +127,8 @@ Just specify at will:</p>
 <p><cite>MQT_TEMPLATE_DB=’mqt_odoo_template’ MQT_TEST_DB=’mqt_odoo_test’</cite>.</p>
 <p>Give us feedback on you experiences, and if you could share findings
 from your use case, there might be some grateful people around.</p>
-</div>
-<div class="section" id="isolated-pylint-flake8-checks">
+</section>
+<section id="isolated-pylint-flake8-checks">
 <h3>Isolated pylint+flake8 checks<a class="headerlink" href="#isolated-pylint-flake8-checks" title="Permalink to this heading"></a></h3>
 <p>If you want to make a build exclusive for these checks, you can add a line
 on the <cite>env:</cite> section of the .travis.yml file with this content:</p>
@@ -141,8 +142,8 @@ LINT_CHECK=”0” variable on the line:</p>
 <blockquote>
 <div><p>- VERSION=”7.0” ODOO_REPO=”odoo/odoo” LINT_CHECK=”0”</p>
 </div></blockquote>
-</div>
-<div class="section" id="reduced-set-of-check">
+</section>
+<section id="reduced-set-of-check">
 <h3>Reduced set of check<a class="headerlink" href="#reduced-set-of-check" title="Permalink to this heading"></a></h3>
 <p>You can execute reduced set of check, in order to gradually evolve your code quality
 when you meet too many errors.</p>
@@ -814,8 +815,8 @@ when you meet too many errors.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="reduced-set-of-modules-test">
+</section>
+<section id="reduced-set-of-modules-test">
 <h3>Reduced set of modules test<a class="headerlink" href="#reduced-set-of-modules-test" title="Permalink to this heading"></a></h3>
 <p>Last Odoo packages may fail in Travis CI or in local environment.
 Currently Odoo OCB core tests fail; we are investigating for causes.
@@ -889,8 +890,8 @@ OCA workaround is following example statement:
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="disable-pylint-and-or-flake8-checks">
+</section>
+<section id="disable-pylint-and-or-flake8-checks">
 <h3>Disable pylint and/or flake8 checks<a class="headerlink" href="#disable-pylint-and-or-flake8-checks" title="Permalink to this heading"></a></h3>
 <p>You can disable some specific test or some file from lint checks.</p>
 <p>To disable flake8 checks on specific file you can add following line at the beginning of python file:</p>
@@ -903,15 +904,15 @@ OCA workaround is following example statement:
 <p><cite>&lt;!– pylint:disable=deprecated-data-xml-node –&gt;</cite></p>
 <p>You can also disable specific pylint check in some source part of python file adding a comment at the same statement to disable check. Here an example to disable sql error (notice comment must be at beginning of the statement):</p>
 <p><cite>self._cr.execute(      # pylint: disable=E8103</cite></p>
-</div>
-<div class="section" id="disable-test">
+</section>
+<section id="disable-test">
 <h3>Disable test<a class="headerlink" href="#disable-test" title="Permalink to this heading"></a></h3>
 <p>If you want to make a build without tests, you can use the following directive:
 <cite>TEST_ENABLE=”0”</cite></p>
 <p>You will simply get the databases with packages installed,
 but without running any tests.</p>
-</div>
-<div class="section" id="other-configurations">
+</section>
+<section id="other-configurations">
 <h3>Other configurations<a class="headerlink" href="#other-configurations" title="Permalink to this heading"></a></h3>
 <p>You can highly customize you test: look at below table.</p>
 <table class="docutils align-default">
@@ -1011,8 +1012,8 @@ but without running any tests.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="mqt-debug-informations">
+</section>
+<section id="mqt-debug-informations">
 <h3>MQT debug informations<a class="headerlink" href="#mqt-debug-informations" title="Permalink to this heading"></a></h3>
 <p>If you declare the following directive in &lt;env global&gt; section:
 <cite>TRAVIS_DEBUG_MODE=”n”</cite></p>
@@ -1076,8 +1077,8 @@ but without running any tests.</p>
 <cite>TRAVIS_DEBUG_MODE=”9”</cite></p>
 <p>does not execute unit test. It is used to debug MQT itself.</p>
 <p>See <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p>
-</div>
-<div class="section" id="some-differences-between-mqts">
+</section>
+<section id="some-differences-between-mqts">
 <h3>Some differences between MQTs<a class="headerlink" href="#some-differences-between-mqts" title="Permalink to this heading"></a></h3>
 <p>Zeroincombenze® MQT and standard MQT OCA have some different behaviour;
 see following sections documentation:</p>
@@ -1096,8 +1097,8 @@ When ODOO_TEST_SELECT=”APPLICATIONS”:
 <cite># sed -i “s/self.url_open(url)/self.url_open(url, timeout=100)/g” ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py;</cite>
 When ODOO_TEST_SELECT=”LOCALIZATION”:
 <cite># sed -i “/’_auto_install_l10n’/d” ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py</cite></p>
-</div>
-<div class="section" id="tree-directory">
+</section>
+<section id="tree-directory">
 <h3>Tree directory<a class="headerlink" href="#tree-directory" title="Permalink to this heading"></a></h3>
 <p>While travis is running this is the tree directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>${HOME}
@@ -1152,16 +1153,16 @@ When ODOO_TEST_SELECT=”LOCALIZATION”:
 <div class="line"><br /></div>
 <div class="line"><br /></div>
 </div>
-</div>
-</div>
-<div class="section" id="getting-started">
+</section>
+</section>
+<section id="getting-started">
 <h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h2>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<div class="section" id="installation">
+<section id="installation">
 <h3>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h3>
-<div class="section" id="stable-version-via-python-package">
+<section id="stable-version-via-python-package">
 <h4>Stable version via Python Package<a class="headerlink" href="#stable-version-via-python-package" title="Permalink to this heading"></a></h4>
 <dl class="simple">
 <dt>::</dt><dd><p>pip install maintainer-quality-tools</p>
@@ -1170,8 +1171,8 @@ When ODOO_TEST_SELECT=”LOCALIZATION”:
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-</div>
-<div class="section" id="current-version-via-git">
+</section>
+<section id="current-version-via-git">
 <h4>Current version via Git<a class="headerlink" href="#current-version-via-git" title="Permalink to this heading"></a></h4>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $HOME
 git clone https://github.com/zeroincombenze/tools.git
@@ -1184,16 +1185,16 @@ source /opt/odoo/devel/activate_tools
 <div class="line"><br /></div>
 <div class="line"><br /></div>
 </div>
-</div>
-</div>
-</div>
-<div class="section" id="credits">
+</section>
+</section>
+</section>
+<section id="credits">
 <h2>Credits<a class="headerlink" href="#credits" title="Permalink to this heading"></a></h2>
-<div class="section" id="copyright">
+<section id="copyright">
 <h3>Copyright<a class="headerlink" href="#copyright" title="Permalink to this heading"></a></h3>
 <p>SHS-AV s.r.l. &lt;<a class="reference external" href="https://www.shs-av.com/">https://www.shs-av.com/</a>&gt;</p>
-</div>
-<div class="section" id="contributors">
+</section>
+<section id="contributors">
 <h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Antonio Maria Vigliotti &lt;<a class="reference external" href="mailto:antoniomaria&#46;vigliotti&#37;&#52;&#48;gmail&#46;com">antoniomaria<span>&#46;</span>vigliotti<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p></li>
@@ -1203,9 +1204,9 @@ source /opt/odoo/devel/activate_tools
 </div>
 <p>This module is part of tools project.</p>
 <p>Last Update / Ultimo aggiornamento: 2020-07-31</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
             <div class="clearer"></div>

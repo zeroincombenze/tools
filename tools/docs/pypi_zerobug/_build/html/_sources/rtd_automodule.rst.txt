@@ -4,5 +4,5 @@
 Code documentation
 ------------------
 
-.. automodule:: pypi.z0testlib
+.. automodule:: zerobug.z0testlib
 

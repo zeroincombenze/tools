@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Zeroincombenze® continuous testing for odoo &#8212; z0bug_odoo 2.0.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css" />
@@ -26,6 +27,9 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="rtd_installation.html" title="&lt;no title&gt;"
              accesskey="N">next</a> |</li>
         <li class="right" >
@@ -43,7 +47,7 @@
             
   <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="zeroincombenze-continuous-testing-for-odoo">
+<section id="zeroincombenze-continuous-testing-for-odoo">
 <h1>Zeroincombenze® continuous testing for odoo<a class="headerlink" href="#zeroincombenze-continuous-testing-for-odoo" title="Permalink to this heading"></a></h1>
 <p>This package is an plug-in of <strong>zerobug</strong> package and aim to easily create odoo tests.</p>
 <p>It replaces OCA MQT with some nice additional features.</p>
@@ -55,8 +59,8 @@
 <li><p>Test using ready-made database records</p></li>
 <li><p>Quality Check Id</p></li>
 </ul>
-</div>
-<div class="section" id="travis-ci-support">
+</section>
+<section id="travis-ci-support">
 <h1>travis ci support<a class="headerlink" href="#travis-ci-support" title="Permalink to this heading"></a></h1>
 <p>The goal of z0bug_odoo is to provide helpers to ensure the quality of Odoo addons.
 The code was forked from OCA MQT but some improvements were added.
@@ -74,7 +78,7 @@ This package and OCA MQT differ by:</p>
 <li><p>requirements.txt</p></li>
 <li><p>oca_dependencies.txt</p></li>
 </ul>
-<div class="section" id="file-travis-yml">
+<section id="file-travis-yml">
 <h2>File .travis.yml<a class="headerlink" href="#file-travis-yml" title="Permalink to this heading"></a></h2>
 <p>In order to setup TravisCI continuous integration for your project, just copy the
 content of the <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator/template_travis.yml">sample_files</a>
@@ -86,8 +90,8 @@ to your project’s root directory.</p>
 <p>You can check travis syntax with the <a class="reference external" href="http://lint.travis-ci.org/">lint checker</a> of travis, if available.</p>
 <p>Notice: if you do not use travisCi web site, you can avoid to set .travis.yml file.
 Local travis emulator and z0bug_odoo create local .travis.yml dinamically.</p>
-</div>
-<div class="section" id="odoo-test-integration">
+</section>
+<section id="odoo-test-integration">
 <h2>Odoo test integration<a class="headerlink" href="#odoo-test-integration" title="Permalink to this heading"></a></h2>
 <p>Current Odoo project version is declared by <strong>VERSION</strong> variable.
 If your Odoo module must be tested against Odoo core,
@@ -110,8 +114,8 @@ You can test against:</p>
 <span class="o">-</span> <span class="n">ODOO_REPO</span><span class="o">=</span><span class="s2">&quot;odoo/odoo&quot;</span> <span class="n">ODOO_BRANCH</span><span class="o">=</span><span class="s2">&quot;saas-17&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="ocb-core-test">
+</section>
+<section id="ocb-core-test">
 <h2>OCB / core test<a class="headerlink" href="#ocb-core-test" title="Permalink to this heading"></a></h2>
 <p>Zeroincombenze® OCB uses submodules. When test is starting, travis-ci upgrades repository and submodules.
 To avoid submodules upgrade use this directive compatible with OCA MQT:</p>
@@ -133,8 +137,8 @@ You can avoid following directive in ODOO_TEST_SELECT=”APPLICATIONS”:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>- sed -i &quot;/&#39;_auto_install_l10n&#39;/d&quot; ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py
 </pre></div>
 </div>
-</div>
-<div class="section" id="python-version">
+</section>
+<section id="python-version">
 <h2>Python version<a class="headerlink" href="#python-version" title="Permalink to this heading"></a></h2>
 <p>Odoo version from 6.1 to 10.0 are tested with python 2.7
 From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
@@ -149,8 +153,8 @@ This is the declaration:</p>
 </div>
 <p>Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
 Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7</p>
-</div>
-<div class="section" id="deployment-and-setup-environment">
+</section>
+<section id="deployment-and-setup-environment">
 <h2>Deployment and setup environment<a class="headerlink" href="#deployment-and-setup-environment" title="Permalink to this heading"></a></h2>
 <p>In order to deploy test environment and setup code you have to declare some .travis.yml directives divides in following 3 parts:</p>
 <ul class="simple">
@@ -173,8 +177,8 @@ Note on addons path ordering: they will be placed after your own repo, but befor
 Please note this behaviour differs from OCA MQT.
 OCA MQT always loads OCA repository while z0bug_odoo searches for current owner repository.
 So you will test both with z0bug_ood and both OCA MQT, always insert the full repository URL.</p>
-</div>
-<div class="section" id="test-execution">
+</section>
+<section id="test-execution">
 <h2>Test execution<a class="headerlink" href="#test-execution" title="Permalink to this heading"></a></h2>
 <p>Tests run by travis_run_test command. The script is deployed in _travis directory of <strong>zerobug</strong> package.
 Command have to be in <cite>&lt;script&gt;</cite> section of .travis.yml file:</p>
@@ -182,8 +186,8 @@ Command have to be in <cite>&lt;script&gt;</cite> section of .travis.yml file:</
     <span class="o">-</span> <span class="n">travis_run_tests</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="isolated-pylint-flake8-checks">
+</section>
+<section id="isolated-pylint-flake8-checks">
 <h2>Isolated pylint+flake8 checks<a class="headerlink" href="#isolated-pylint-flake8-checks" title="Permalink to this heading"></a></h2>
 <p>If you want to make a build for these checks, you can add a line
 on the <cite>&lt;env&gt;</cite> section of the .travis.yml file with this content:</p>
@@ -196,8 +200,8 @@ LINT_CHECK=”0” variable on the line:</p>
 </pre></div>
 </div>
 <p>You can superset above options in local travis emulator.</p>
-</div>
-<div class="section" id="reduced-set-of-lint-check">
+</section>
+<section id="reduced-set-of-lint-check">
 <h2>Reduced set of lint check<a class="headerlink" href="#reduced-set-of-lint-check" title="Permalink to this heading"></a></h2>
 <p>You can execute reduced set of check, in order to gradually evolve your code quality
 when you meet too many errors.</p>
@@ -311,7 +315,7 @@ So if some dependecies module does not meet this test, then the full travis test
 <td></td>
 <td></td>
 <td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
-<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E201.html">Whitespace after ‘(‘</a></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E201.html">Whitespace after ‘(’</a></p></td>
 </tr>
 <tr class="row-even"><td><p>E202</p></td>
 <td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
@@ -335,7 +339,7 @@ So if some dependecies module does not meet this test, then the full travis test
 <td></td>
 <td></td>
 <td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
-<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E211.html">whitespace before ‘(‘</a></p></td>
+<td><p><a class="reference external" href="https://lintlyci.github.io/Flake8Rules/rules/E211.html">whitespace before ‘(’</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>E221</p></td>
 <td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
@@ -873,8 +877,8 @@ So if some dependecies module does not meet this test, then the full travis test
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="disable-some-pylint-and-or-flake8-checks">
+</section>
+<section id="disable-some-pylint-and-or-flake8-checks">
 <h2>Disable some pylint and/or flake8 checks<a class="headerlink" href="#disable-some-pylint-and-or-flake8-checks" title="Permalink to this heading"></a></h2>
 <p>You can disable some specific test or some file from lint checks.</p>
 <p>To disable flake8 checks on specific file you can add following line at the beginning of python file:</p>
@@ -905,15 +909,15 @@ So if some dependecies module does not meet this test, then the full travis test
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_cr</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>      <span class="c1"># pylint: disable=E8103</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="disable-unit-test">
+</section>
+<section id="disable-unit-test">
 <h2>Disable unit test<a class="headerlink" href="#disable-unit-test" title="Permalink to this heading"></a></h2>
 <p>If you want to make a build without tests, you can use the following directive:
 <cite>TEST_ENABLE=”0”</cite></p>
 <p>You will simply get the databases with packages installed,
 but without running any tests.</p>
-</div>
-<div class="section" id="reduced-set-of-unit-test">
+</section>
+<section id="reduced-set-of-unit-test">
 <h2>Reduced set of unit test<a class="headerlink" href="#reduced-set-of-unit-test" title="Permalink to this heading"></a></h2>
 <p>Odoo modules may fail in Travis CI or in local environment.
 Currently Odoo OCB core tests fail; we are investigating for the causes.
@@ -997,16 +1001,16 @@ To avoid these test on web travis-ci you have to set EXCLUDE value in .travis.ym
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="dependencies-test">
+</section>
+<section id="dependencies-test">
 <h2>Dependencies test<a class="headerlink" href="#dependencies-test" title="Permalink to this heading"></a></h2>
 <p>Since late Summer 2021, z0bug_odoo checks for dependencies.
 This test is a sub test of unit test. This is the directive:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">TESTS</span><span class="o">=</span><span class="s2">&quot;1&quot;</span> <span class="n">TEST_DEPENDENCIES</span><span class="o">=</span><span class="s2">&quot;1&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="module-unit-tests">
+</section>
+<section id="module-unit-tests">
 <h2>Module unit tests<a class="headerlink" href="#module-unit-tests" title="Permalink to this heading"></a></h2>
 <p>z0bug_odoo is also capable to test each module individually.
 The intention is to check if all dependencies are correctly defined.
@@ -1016,8 +1020,8 @@ similar to this one:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">VERSION</span><span class="o">=</span><span class="s2">&quot;12.0&quot;</span> <span class="n">UNIT_TEST</span><span class="o">=</span><span class="s2">&quot;1&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="automatic-module-translation">
+</section>
+<section id="automatic-module-translation">
 <h2>Automatic module translation<a class="headerlink" href="#automatic-module-translation" title="Permalink to this heading"></a></h2>
 <p>Since late Summer 2021, z0bug_odoo activate automatic module translation after test ended with success.
 This is the directive:</p>
@@ -1025,8 +1029,8 @@ This is the directive:</p>
 </pre></div>
 </div>
 <p>This feature is still experimental.</p>
-</div>
-<div class="section" id="names-used-for-the-test-databases">
+</section>
+<section id="names-used-for-the-test-databases">
 <h2>Names used for the test databases<a class="headerlink" href="#names-used-for-the-test-databases" title="Permalink to this heading"></a></h2>
 <p>z0bug_odoo has a nice feature of organizing your testing databases.
 You might want to do that if you want to double them up as
@@ -1037,15 +1041,15 @@ Just specify at will:</p>
 <p>In your local travis you can declare the default value but these values are not applied in web TravisCi web site.</p>
 <p>Database user is the current username. This behavior works both in local test both in TravisCi web site.
 However, sometimes, local user and db username can be different. You can set the default value in travis emulator.</p>
-</div>
-<div class="section" id="coveralls-codecov-configuration-file">
+</section>
+<section id="coveralls-codecov-configuration-file">
 <h2>Coveralls/Codecov configuration file<a class="headerlink" href="#coveralls-codecov-configuration-file" title="Permalink to this heading"></a></h2>
 <p><a class="reference external" href="https://coveralls.io/">Coveralls</a> and <a class="reference external" href="https://codecov.io/">Codecov</a> services provide information on the test coverage of your modules.
 Currently both configurations are automatic (check default configuration <a class="reference external" href="cfg/.coveragerc">here</a>.
 So, as of today, you don’t need to include a <cite>.coveragerc</cite> into the repository,
 If you do it, it will be simply ignored.</p>
-</div>
-<div class="section" id="other-configurations">
+</section>
+<section id="other-configurations">
 <h2>Other configurations<a class="headerlink" href="#other-configurations" title="Permalink to this heading"></a></h2>
 <p>You can highly customize you test: look at below table.</p>
 <table class="docutils align-default">
@@ -1193,8 +1197,8 @@ If you do it, it will be simply ignored.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="debug-information">
+</section>
+<section id="debug-information">
 <h2>Debug information<a class="headerlink" href="#debug-information" title="Permalink to this heading"></a></h2>
 <p>If you declare the following directive in &lt;env global&gt; section:</p>
 <p><cite>TRAVIS_DEBUG_MODE=”n”</cite></p>
@@ -1258,8 +1262,8 @@ If you do it, it will be simply ignored.</p>
 <p><cite>TRAVIS_DEBUG_MODE=”9”</cite></p>
 <p>does not execute unit test. It is used to debug MQT itself.</p>
 <p>See <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p>
-</div>
-<div class="section" id="tree-directory">
+</section>
+<section id="tree-directory">
 <h2>Tree directory<a class="headerlink" href="#tree-directory" title="Permalink to this heading"></a></h2>
 <p>While travis is running this is the tree directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>${HOME}                         # home of virtual environment (by TravisCI)
@@ -1297,9 +1301,9 @@ If you do it, it will be simply ignored.</p>
     - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="testenv-the-test-environment">
+</section>
+</section>
+<section id="testenv-the-test-environment">
 <h1>TestEnv: the test environment<a class="headerlink" href="#testenv-the-test-environment" title="Permalink to this heading"></a></h1>
 <p>TestEnv makes available a test environment ready to use in order to test your Odoo
 module in quick and easy way.</p>
@@ -1315,7 +1319,7 @@ based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
 Note, Odoo core uses unicode even on old Odoo version.</p>
 <p>Tests are based on test environment created by module mk_test_env in repository
 <a class="reference external" href="https://github.com/zeroincombenze/zerobug-test">https://github.com/zeroincombenze/zerobug-test</a></p>
-<div class="section" id="requirements">
+<section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading"></a></h2>
 <p>Ths TestEnv software requires:</p>
 <ul class="simple">
@@ -1331,9 +1335,9 @@ Zeroincombenze(R) tools help you to test Odoo module with pycharm.</p>
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2023-01-21</p>
-</div>
-</div>
+<p>Last Update / Ultimo aggiornamento: 2023-01-26</p>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -1415,6 +1419,9 @@ Zeroincombenze(R) tools help you to test Odoo module with pycharm.</p>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="rtd_installation.html" title="&lt;no title&gt;"
              >next</a> |</li>

@@ -13,7 +13,7 @@ import sys
 from wok_code import license_mgnt
 from zerobug import z0test, z0testodoo
 
-__version__ = "2.0.5.1"
+__version__ = "2.0.5"
 
 MODULE_ID = 'devel_tool'
 TEST_FAILED = 1

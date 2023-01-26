@@ -117,10 +117,4 @@ z0lib: 2.0.2 (2022-12-07)
 * [FIX] run_traced: fail with python 2
 
 
-wok_code: 2.0.3 (2022-11-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] odoo_translation
-
-
 

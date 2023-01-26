@@ -1,7 +1,7 @@
 
-================
-wok_code 2.0.5.1
-================
+==============
+wok_code 2.0.5
+==============
 
 
 
@@ -372,7 +372,7 @@ Examples:
 ::
 
     # Update Odoo module documentation
-    cd ~/odoo_12/axitec/l10n_it_balance     # Odoo project directory
+    cd ~/odoo_12/l10n-italy/l10n_it_balance # Odoo project directory
     dir egg-info
     >>> authors.txt contributors.txt description.rst __init__.txt known_issues.rst
     gen_readme.py                           # Generate README.rst of project
@@ -943,7 +943,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-21
+Last Update / Ultimo aggiornamento: 2023-01-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

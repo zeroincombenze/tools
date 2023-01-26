@@ -36,7 +36,7 @@ import itertools
 from z0lib import z0lib
 
 
-__version__ = "2.0.5.1"
+__version__ = "2.0.5"
 
 
 class Please(object):

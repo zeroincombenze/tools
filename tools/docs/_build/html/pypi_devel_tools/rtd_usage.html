@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Usage &#8212; tools 2.0.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
@@ -38,12 +39,12 @@
             
   <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="usage">
+<section id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
-</div>
-<div class="section" id="module-usage">
+</section>
+<section id="module-usage">
 <h1>Module usage<a class="headerlink" href="#module-usage" title="Permalink to this heading"></a></h1>
-<div class="section" id="gen-readme-py-usage">
+<section id="gen-readme-py-usage">
 <h2>gen_readme.py usage<a class="headerlink" href="#gen-readme-py-usage" title="Permalink to this heading"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gen_readme</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">ODOO_VID</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">B</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">G</span> <span class="n">GIT_ORGID</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">H</span><span class="p">]</span>
                      <span class="p">[</span><span class="o">-</span><span class="n">l</span> <span class="n">ODOO_LAYER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MODULE_NAME</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT_FILE</span><span class="p">]</span>
@@ -98,8 +99,8 @@
 <span class="n">gen_readme</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="files-and-directories">
+</section>
+<section id="files-and-directories">
 <h2>Files and directories<a class="headerlink" href="#files-and-directories" title="Permalink to this heading"></a></h2>
 <p>Document structure is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>docs                              (1)
@@ -190,8 +191,8 @@ Notes:
          ┗━ repository_mainpage.rst
 </pre></div>
 </div>
-</div>
-<div class="section" id="statements">
+</section>
+<section id="statements">
 <h2>Statements<a class="headerlink" href="#statements" title="Permalink to this heading"></a></h2>
 <p>Every document or template can contains some control statement.
 A statement starts with “.. $” (dot dot space and dollar).</p>
@@ -227,8 +228,8 @@ i.e.
     .. $include my_table.csv
 </pre></div>
 </div>
-</div>
-<div class="section" id="macro">
+</section>
+<section id="macro">
 <h2>Macro<a class="headerlink" href="#macro" title="Permalink to this heading"></a></h2>
 <p>Macro currently supported:</p>
 <table class="docutils align-default">
@@ -447,8 +448,8 @@ Currently follows symbols are supported:</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="macro-used-in-documentation-templates">
+</section>
+<section id="macro-used-in-documentation-templates">
 <h2>Macro used in documentation templates<a class="headerlink" href="#macro-used-in-documentation-templates" title="Permalink to this heading"></a></h2>
 <p>Following macroes may be declared in package documentation, mainly in __init__.txt or in __manifest__.rst file with $set statement.</p>
 <table class="docutils align-default">
@@ -471,8 +472,8 @@ Currently follows symbols are supported:</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="odoo-dependecies-py-usage">
+</section>
+<section id="odoo-dependecies-py-usage">
 <h2>odoo_dependecies.py usage<a class="headerlink" href="#odoo-dependecies-py-usage" title="Permalink to this heading"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">odoo_dependencies</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">A</span> <span class="p">{</span><span class="n">dep</span><span class="p">,</span><span class="n">help</span><span class="p">,</span><span class="n">jrq</span><span class="p">,</span><span class="n">mod</span><span class="p">,</span><span class="n">rev</span><span class="p">,</span><span class="n">tree</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span>
                             <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">version</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">B</span> <span class="n">DEPENDS_BY</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">D</span> <span class="n">file</span><span class="p">]</span>
@@ -515,8 +516,8 @@ Currently follows symbols are supported:</p>
   <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">depth</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="topep8-usage">
+</section>
+<section id="topep8-usage">
 <h2>topep8 usage<a class="headerlink" href="#topep8-usage" title="Permalink to this heading"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">topep8</span> <span class="p">[</span><span class="o">-</span><span class="n">haAB</span><span class="p">][</span><span class="o">-</span><span class="n">b</span> <span class="n">version</span><span class="p">][</span><span class="o">-</span><span class="n">c</span><span class="p">][</span><span class="o">-</span><span class="n">C</span> <span class="n">org</span><span class="p">][</span><span class="o">-</span><span class="n">Dde</span><span class="p">][</span><span class="o">-</span><span class="n">F</span> <span class="n">ver</span><span class="p">][</span><span class="o">-</span><span class="n">f</span><span class="p">][</span><span class="o">-</span><span class="n">G</span> <span class="n">gpl</span><span class="p">][</span><span class="o">-</span><span class="n">iLnN</span><span class="p">][</span><span class="o">-</span><span class="n">o</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">O</span><span class="p">][</span><span class="o">-</span><span class="n">R</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">quVvX01</span><span class="p">]</span> <span class="n">fullname</span>
 <span class="n">PEP8</span> <span class="n">source</span> <span class="n">python</span> <span class="n">file</span>
@@ -556,8 +557,8 @@ Currently follows symbols are supported:</p>
 </div>
 <p>This module is part of tools project.</p>
 <p>Last Update / Ultimo aggiornamento: 2021-08-06</p>
-</div>
-</div>
+</section>
+</section>
 
 
             <div class="clearer"></div>

@@ -987,3 +987,47 @@ def wizard(self, module=None, action_name=None, act_windows=None, records=None, 
 
     Raises:
         ValueError: if invalid parameters issued
+
+validate_record
+~~~~~~~~~~~~~~~
+
+Validate records against template values.
+During the test will be necessary to check result record values.
+This function aim to validate all the important values with one step.
+You have to issue 2 params: template with expected values and record to check.
+You can declare just some field value in template which are important for you.
+Both template and record are lists, record may be a record set too.
+This function do following steps:
+
+* matches templates and record, based on template supplied data
+* check if all template are matched with 1 record to validate
+* execute self.assertEqual() for every field in template
+* check for every template record has matched with assert
+
+def validate_records(self, template, records):
+
+    Args:
+         template (list of dict): list of dictionaries with expected values
+         records (list or set): records to validate values
+
+    Returns:
+        list of matched coupled (template, record) + # of assertions
+
+    Raises:
+        ValueError: if no enough assertions or one assertion is failed
+
+get_records_from_act_windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get records from a windows message.
+
+def get_records_from_act_windows(self, act_windows):
+
+    Args:
+        act_windows (dict): Odoo windows action returned by a wizard
+
+    Returns:
+        records or False
+
+    Raises:
+        ValueError: if invalid parameters issued
