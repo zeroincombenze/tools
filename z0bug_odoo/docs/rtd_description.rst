@@ -758,7 +758,7 @@ Zeroincombenze(R) tools help you to test Odoo module with pycharm.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-19
+Last Update / Ultimo aggiornamento: 2023-01-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
