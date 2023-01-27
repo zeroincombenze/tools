@@ -2202,8 +2202,8 @@ class MainTest(SingleTransactionCase):
                 resource, field, tmpl[field]
             ) == self._convert_field_to_write(rec, field):
                 tmpl["_CHECK"][rec]["_MATCH"] += 1
-            else:
-                break
+            # else:
+            #     break
         return tmpl
 
     def validate_records(self, template, records):

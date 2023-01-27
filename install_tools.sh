@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=2.0.3
+__version__=2.0.4
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
@@ -300,7 +300,8 @@ done
 if [[ ! $opts =~ ^-.*n ]]; then
     echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
-    echo "HOME_DEVEL=\"$DSTPATH\"">>$DSTPATH/activate_tools
+    echo "[ \"\${BASH_SOURCE-}\" == \"\$0\" ] && echo \"Please use: source \${BASH_SOURCE-}\" && exit 1">>$DSTPATH/activate_tools
+    echo "export HOME_DEVEL=\"\$(readlink -f \$(dirname \${BASH_SOURCE-}))\"">>$DSTPATH/activate_tools
     echo "BINDIR=\"$LOCAL_VENV/bin\"">>$DSTPATH/activate_tools
     echo "ACTIVATE=\"\$BINDIR/activate\"">>$DSTPATH/activate_tools
     echo "PYLIB=\"$PYLIB\"">>$DSTPATH/activate_tools

@@ -111,27 +111,30 @@ Components
 Odoo vid
 ~~~~~~~~
 
-The odoo_vid is mainly the directory with a specific Odoo instance in multi instance environment.
-Imagine a scenario with different Odoo instance running on the same host.
+The odoo_vid is the name of one specific Odoo configuration in multi instances
+environment. It is mainly the directory for the specific Odoo instance.
+Imagine a scenario with different Odoo instances running on the same host.
 This is the development environment or the test environment.
-Every instance of Odoo must have a own configuration file and packages.
-Based on configuration file, every Odoo instance must have a own xmlrcp port, db user, log file, pid file, etcetera.
+Every instance of Odoo must have an own configuration file and packages.
+Based on configuration file, every Odoo instance must have a own xmlrcp port,
+db user, log file, pid file, etcetera.
 
 The odoo_vid provides a simple way to manage multiple Odoo instance.
 Supplying odoo_vid you select the specific parameters values just in one item.
 
 The odoo_vid item is composed by:
 
-* Prefix "VENV" if virtual environment
-* Prefix V to identify main instance
-* Odoo distribution (for organizations with short name)
+* Prefix "VENV" if virtual environment (deprecated)
+* Prefix V to identify main instance (deprecated)
+* Odoo distribution (for organizations which have short name)
 * Odoo version (full version or major version)
-* Odoo distribution (all organizzations)
+* Odoo distribution (all organizations)
 * User specific identification
 
-Odoo distribution is on of: flectra,librerp,oca,powerp,zero or nothing
+Odoo distribution may be one of: librerp,oca,zero or nothing
 
-Odoo version is the Odoo specific version; it is one value of: 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1
+Odoo version is the Odoo specific version; it is one value of:
+16.0 15.0 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1
 
 Examples of valid odoo_vid:
 
@@ -139,32 +142,33 @@ Examples of valid odoo_vid:
 * oca14 -> Odoo 14.0, distribution oca (short name)
 * librerp6 -> Odoo 6.1, distribution librerp (short name)
 * odoo14-oca -> Odoo 14.0, distribution oca (full name)
-* odoo12-devel -> Odoo 12.0, odoo ditribution, user identification "devel"
+* odoo12-devel -> Odoo 12.0, odoo distribution, user identification "devel"
 
 Based on above information, tool software can assume the right value of specific Odoo instance.
 
 This table shows the Odoo parameter values based on odoo_vid;
-notice the symbol %M meaans Odoo major version and %V Odoo version.
+please notice the symbol PUID is the personal user identification,
+symbol %M means Odoo major version and %V Odoo full version.
 
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
-| Parameter name             | standard value             | anonymous distro     | zeroincombenze d | oca distro      | axitec distro   | Note                                     |
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
-| ROOT (Odoo root)           |                            | ~/%V                 | ~/zero%M         | ~/oca%M         | ~/odoo_%M       | i.e. ~/oca14                             |
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
-| CONFN (configuration file) | odoo.conf odoo-server.conf | odoo%M-server.conf   | odoo%M-zero.conf | odoo%M-oca.conf | odoo%M-axi.conf | Directory /etc/odoo (see Odoo structure) |
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
-| USER (db user)             | odoo                       | odoo%M               | odoo%M           | odoo%M          | odoo%M          | i.e odoo12                               |
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
-| FLOG (log file)            | odoo.log odoo-server.log   | odoo%M-server.log    | odoo%M-zero.log  | odoo%M-oca.log  | odoo%M-axi.log  | Directory /var/log/odoo                  |
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
-| FPID (pid file)            | odoo.pid odoo-server.pid   | odoo%M-server.pid    | odoo%M-zero.pid  | odoo%M-oca.pid  | odoo%M-axi.pid  | Directory /var/run/odoo                  |
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
-| RPCPORT (xmlrpc port)      | 8069                       | 8160 + %M            | 8460 + %M        | 8260 + %M       | 8360 + %M       |                                          |
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
-| LPPORT (longpolling)       | 8072                       | 8130 + %M            | 8430 + %M        | 8230 + %M       | 8330 + %M       |                                          |
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
-| SVCNAME (service name)     | odoo odoo-server           | odoo%M odoo%M-server | odoo%M-zero      | odoo%M-oca      | odoo%M-axi      |                                          |
-+----------------------------+----------------------------+----------------------+------------------+-----------------+-----------------+------------------------------------------+
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
+| Parameter name             | standard value             | unidentified distro  | zeroincombenze(R | oca distro      | personal distro  | Note                                     |
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
+| ROOT (Odoo root)           |                            | ~/%V                 | ~/zero%M         | ~/oca%M         | ~/odoo_%M        | i.e. ~/oca14                             |
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
+| CONFN (configuration file) | odoo.conf odoo-server.conf | odoo%M-server.conf   | odoo%M-zero.conf | odoo%M-oca.conf | odoo%M-PUID.conf | Directory /etc/odoo (see Odoo structure) |
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
+| USER (db user)             | odoo                       | odoo%M               | odoo%M           | odoo%M          | odoo%M           | i.e odoo12                               |
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
+| FLOG (log file)            | odoo.log odoo-server.log   | odoo%M-server.log    | odoo%M-zero.log  | odoo%M-oca.log  | odoo%M-PUID.log  | Directory /var/log/odoo                  |
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
+| FPID (pid file)            | odoo.pid odoo-server.pid   | odoo%M-server.pid    | odoo%M-zero.pid  | odoo%M-oca.pid  | odoo%M-PUID.pid  | Directory /var/run/odoo                  |
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
+| RPCPORT (xmlrpc port)      | 8069                       | 8160 + %M            | 8460 + %M        | 8260 + %M       | 8360 + %M        |                                          |
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
+| LPPORT (longpolling)       | 8072                       | 8130 + %M            | 8430 + %M        | 8230 + %M       | 8330 + %M        |                                          |
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
+| SVCNAME (service name)     | odoo odoo-server           | odoo%M odoo%M-server | odoo%M-zero      | odoo%M-oca      | odoo%M-PUID      |                                          |
++----------------------------+----------------------------+----------------------+------------------+-----------------+------------------+------------------------------------------+
 
 
 
@@ -239,6 +243,54 @@ Current development version
 History
 -------
 
+z0bug_odoo: 2.0.5 (2023-01-25)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: in some rare cases, wizard crashes
+* [NEW] TestEnv: get_records_from_act_windows()
+* [IMP] TestEnv: resource_make now capture demo record if available
+* [IMP] TestEnv: resource is not required for declared xref
+* [IMP] TestEnv: self.module has all information about current testing module
+* [IMP] TestEnv: conveyance functions for all fields (currenly jsust for account.payment.line)
+* [IMP] TestEnv: fields many2one accept object as value
+* [IMP] TestEnv: function validate_records() improvements
+* [FIX] TestEnv: company_setup, now you can declare bank account
+* [IMP] TesEnv: minor improvements
+
+
+python_plus: 2.0.5.1 (2023-01-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: cryptography, pypdf2, requests & urllib3 version adjustment
+
+
+z0bug_odoo: 2.0.4 (2023-01-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: resource_create does not duplicate record
+* [FIX] TestEnv: resource_write after save calls write() exactly like Odoo behavior
+* [NEW] TestEnv: new function field_download()
+* [NEW] TestEnv: new function validate_records()
+* [IMP] TestEnv: convert_to_write convert binary fields too
+* [IMP] TestEnv: minor improvements
+
+
+wok_code: 2.0.5 (2023-01-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] please: wep now delete old travis-emulator logs
+* [IMP] install_python_3_from_source.sh: now can install python 3.9
+* [IMP] please: action docs, minor improvements
+* [IMP] deploy_odoo: format output list
+
+
+odoo_score: 2.0.4 (2023-01-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug.sh: test creates log
+
+
+
 z0bug_odoo: 2.0.3 (2022-12-29)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -274,14 +326,6 @@ python_plus: 2.0.4 (2022-12-15)
 * [IMP] vem: amend show current package version
 * [IMP] vem: no python2 warning in linux kernel 3
 * [FIX] vem: best recognition of python version
-
-
-wok_code: 2.0.5 (2022-12-13)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] install_python_3_from_source.sh: now can install python 3.9
-* [IMP] please: action docs, minor improvements
-* [IMP] deply_odoo: format output list
 
 
 travis_emulator: 2.0.3.1 (2022-12-13)
@@ -334,13 +378,6 @@ z0lib: 2.0.2 (2022-12-07)
 * [FIX] run_traced: fail with python 2
 
 
-wok_code: 2.0.3 (2022-11-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] odoo_translation
-
-
-
 
 
 
@@ -356,7 +393,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-01-13
+Last Update / Ultimo aggiornamento: 2023-01-27
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

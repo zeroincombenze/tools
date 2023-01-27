@@ -128,7 +128,7 @@ If your test module does not need to manage product variants you can avoid to de
 'product.product' data even if this model is used in your test data.
 
 For example, you have to test 'sale.order.line' which refers to 'product.product'.
-You simply declare a 'product.template' record with external reference user "_template"
+You simply declare a 'product.template' record with external reference uses "_template"
 magic text.
 
 ::
@@ -176,6 +176,7 @@ They are identified by "z0bug." prefix module name.
 
 External key reference (c) is identified by "external." prefix followed by
 the key value used to retrieve the record.
+If key value is an integer it is the record "id".
 The field "code" or "name" are used to search record;
 for account.tax the "description" field is used.
 Please set self.debug_level = 2 (or more) to log these field keys.
@@ -197,27 +198,28 @@ Examples:
 
     TEST_ACCOUNT_ACCOUNT = {
         "z0bug.customer_account": {
-            ...
+            "code": "", ...
+        }
+        "z0bug.supplier_account": {
+            "code": "111100", ...
         }
     )
 
     ...
 
-    ext_ref = "external.%d" % self.env["account.account].search(...)[0].id
-
     self.resource_edit(
         partner,
         web_changes = [
-            ("country_id", "base.it"),       # Odoo external reference (a)
+            ("country_id", "base.it"),       # Odoo external reference (type a)
             ("property_account_receivable_id",
-             "z0bug.customer_account"),      # Test reference (b)
+             "z0bug.customer_account"),      # Test reference (type b)
             ("property_account_payable_id",
-             ext_ref),                       # External key (c)
+             "external.111100"),             # External key (type c)
         ],
     )
 
-Module test execution workflow
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Module test execution session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Module test execution workflow should be:
 
@@ -282,11 +284,82 @@ following example:
             # Declare order data in specific group to isolate data
             self.declare_all_data(data, group="order")
             # Create the full sale order with lines
-            self.resource_make(model, xref, group="order")
+            self.setup_env(group="order")
 
-Note the external reference are globals and they are visible from any group
-while the data is visible just inside group.
-You can manage specific table/model data or table/model data group.
+Note the external reference are globals and they are visible from any groups.
+After base data is created it starts the real test session. You can simulate
+various situation; the most common are:
+
+    #. Simulate web form create record
+    #. Simulate web form update record
+    #. Simulate the multi-record windows action
+    #. Download any binary data created by test
+    #. Engage wizard
+
+Notice: you can also create / update record with usually create() / write()
+Odoo function but they do not really simulate the user behavior.
+They do not engage the onchange methods, they do not load any view and so on.
+
+The real best way to test a create session is like the follow example
+based on res,partner model:
+
+::
+
+        record = self.resource_edit(
+            resource="res.partner",
+            web_changes=[
+                ("name", "Adam"),
+                ("country_id", "base.us"),
+                ...
+            ],
+        )
+
+You can also simulate the update session, issuing the record:
+
+::
+
+        record = self.resource_edit(
+            resource=record,
+            web_changes=[
+                ("name", "Adam Prime"),
+                ...
+            ],
+        )
+
+Look at resource_edit() documentation for furthermore details.
+
+In you test session you should need to test a wizard. This test is very easy
+to execute as in the follow example that engage the standard language install
+wizard:
+
+::
+
+        # We engage language translation wizard with "it_IT" language
+        # see "<ODOO_PATH>/addons/base/module/wizard/base_language_install*"
+        _logger.info("🎺 Testing wizard.lang_install()")
+        act_windows = self.wizard(
+            module="base",
+            action_name="action_view_base_language_install",
+            default={
+                "lang": "it_IT"
+                "overwrite": False,
+            },
+            button_name="lang_install",
+        )
+        self.assertTrue(
+            self.is_action(act_windows),
+            "No action returned by language install"
+        )
+        # Now we test the close message
+        self.wizard(
+            act_windows=act_windows
+        )
+        self.assertTrue(
+            self.env["res.lang"].search([("code", "=", "it_IT")]),
+            "No language %s loaded!" % "it_IT"
+        )
+
+Look at wizard() documentation for furthermore details.
 
 Data values
 ~~~~~~~~~~~
@@ -300,10 +373,14 @@ from this environment.
 company_id
 ~~~~~~~~~~
 
-If value is empty, user company is used. This behavior is
-not applied on "res.users" models.
-Fot the "product.product", "product.template" and "res.partner" is searched
-for company or null value.
+If value is empty, user company is used.
+When data is searched by resource_bind() function the "company_id" field
+is automatically filled and added to search domain.
+This behavior is not applied on
+"res.users", "res.partner","product.template" and "product.product" models.
+For these models you must fill the "company_id" field.
+For these models resource_bind() function searches for record with company_id
+null or equal to current user company.
 
 boolean
 ~~~~~~~
@@ -333,7 +410,8 @@ You can declare boolean value:
 char / text
 ~~~~~~~~~~~
 
-Char and Text values are python string; please use unicode whenever is possible.
+Char and Text values are python string; please use unicode whenever is possible
+even when you test Odoo 10.0 or less.
 
 ::
 
@@ -552,8 +630,7 @@ def resource_bind(self, xref, raise_if_not_found=True, resource=None):
 
     Args:
         xref (str): external reference
-        raise_if_not_found (bool): raise exception if xref not found or
-                                   if more records found
+        raise_if_not_found (bool): raise exception if xref not found or if more records found
         resource (str): Odoo model name, i.e. "res.partner"
 
     Returns:
@@ -763,11 +840,14 @@ It works in the follow way:
 * It may be used to call button in the form
 
 User action simulation:
+
 The parameter <web_changes> is a list of user actions to execute sequentially.
 Every element of the list is another list with 2 or 3 values:
+
 * Field name to assign value
 * Value to assign
 * Optional function to execute (i.e. specific onchange)
+
 If field is associate to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
@@ -778,7 +858,7 @@ may be slightly different from actual form editing. Please take note of
 following limitations:
 
 * update form cannot simulate discard button
-* required data in create must be supplied by default
+* some required data in create must be supplied by default parameter
 * form inconsistency cannot be detected by this function
 * nested function must be managed by test code (i.e. wizard from form)
 
@@ -836,16 +916,18 @@ Python code:
         act_windows = self.wizard(act_windows=act_windows, ...)
 
 User action simulation:
+
 The parameter <web_changes> is a list of user actions to execute sequentially.
 Every element of the list is another list with 2 or 3 values:
+
 * Field name to assign value
 * Value to assign
 * Optional function to execute (i.e. specific onchange)
+
 If field is associate to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
 exhausted. This behavior is the same of the form editing.
-
 
 def wizard(self, module=None, action_name=None, act_windows=None, records=None, default=None, ctx={}, button_name=None, web_changes=[], button_ctx={},):
 
@@ -866,12 +948,56 @@ def wizard(self, module=None, action_name=None, act_windows=None, records=None, 
     Raises:
         ValueError: if invalid parameters issued
 
+validate_record
+~~~~~~~~~~~~~~~
+
+Validate records against template values.
+During the test will be necessary to check result record values.
+This function aim to validate all the important values with one step.
+You have to issue 2 params: template with expected values and record to check.
+You can declare just some field value in template which are important for you.
+Both template and record are lists, record may be a record set too.
+This function do following steps:
+
+* matches templates and record, based on template supplied data
+* check if all template are matched with 1 record to validate
+* execute self.assertEqual() for every field in template
+* check for every template record has matched with assert
+
+def validate_records(self, template, records):
+
+    Args:
+         template (list of dict): list of dictionaries with expected values
+         records (list or set): records to validate values
+
+    Returns:
+        list of matched coupled (template, record) + # of assertions
+
+    Raises:
+        ValueError: if no enough assertions or one assertion is failed
+
+get_records_from_act_windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get records from a windows message.
+
+def get_records_from_act_windows(self, act_windows):
+
+    Args:
+        act_windows (dict): Odoo windows action returned by a wizard
+
+    Returns:
+        records or False
+
+    Raises:
+        ValueError: if invalid parameters issued
+
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-08
+Last Update / Ultimo aggiornamento: 2023-01-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
