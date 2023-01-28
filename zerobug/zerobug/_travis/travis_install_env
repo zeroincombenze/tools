@@ -373,6 +373,7 @@ install_n_activate_tools
 [[ $PIPVER -gt 18 ]] && PIP_OPTS="$PIP_OPTS --no-warn-conflicts"
 [[ $PIPVER -gt 19 ]] && PIP_OPTS="$PIP_OPTS --use-feature=2020-resolver"
 LISTREQ=$(which list_requirements.py 2>/dev/null)
+chmod -c +x $LISTREQ
 LISA=$(which lisa 2>/dev/null)
 VEM=$(which vem 2>/dev/null)
 if [[ $opt_verbose -gt 1 ]]; then

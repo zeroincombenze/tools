@@ -57,11 +57,6 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.dbgmsg">
-<span class="sig-name descname"><span class="pre">dbgmsg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">echo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.dbgmsg" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.default_conf">
 <span class="sig-name descname"><span class="pre">default_conf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.default_conf" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -75,7 +70,7 @@ FILE: pathfile to execute doctest (macro expanded)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.main">
-<span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UT1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.main" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UT1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.main" title="Permalink to this definition"></a></dt>
 <dd><p>Default main program for test execution
 ctx: context
 Test: test class for internal tests;</p>
@@ -110,7 +105,7 @@ UT: Unit Test list (if None, search for files)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.sanity_check">
-<span class="sig-name descname"><span class="pre">sanity_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opt_echo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.sanity_check" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sanity_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opt_echo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.sanity_check" title="Permalink to this definition"></a></dt>
 <dd><p>Internal regression test
 Module z0testlib is needed to run regression tests
 This function run auto validation tests for z0testlib functions</p>
@@ -225,7 +220,6 @@ git clone or wget from web.</p>
 <li><a class="reference internal" href="#">Code documentation</a><ul>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test"><code class="docutils literal notranslate"><span class="pre">Z0test</span></code></a><ul>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.build_os_tree"><code class="docutils literal notranslate"><span class="pre">Z0test.build_os_tree()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.dbgmsg"><code class="docutils literal notranslate"><span class="pre">Z0test.dbgmsg()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.default_conf"><code class="docutils literal notranslate"><span class="pre">Z0test.default_conf()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.doctest"><code class="docutils literal notranslate"><span class="pre">Z0test.doctest()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.main"><code class="docutils literal notranslate"><span class="pre">Z0test.main()</span></code></a></li>

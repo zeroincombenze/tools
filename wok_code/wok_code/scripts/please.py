@@ -15,7 +15,7 @@ DESCRIPTION
     * help - show this help or specific action help
     * install - install some components (currently just python3)
     * z0bug - execute lint and tests
-
+    * zerobug - execute lint and tests
 
 OPTIONS
     -n      Do nothing (dry-run)
@@ -35,23 +35,138 @@ import argparse
 import itertools
 from z0lib import z0lib
 
+from .please_z0bug import PleaseZ0bug                                      # noqa: F401
+
 
 __version__ = "2.0.5"
 
 
 class Please(object):
 
-    def __init__(self, opt_args, cli_args, home_devel=None, odoo_root=None):
-        self.opt_args = opt_args
+    def __init__(self, cli_args=[]):
+        self.cli_args = []
+        self.store_actions_n_aliases()
+        actions, param, self.opt_with_help = self.get_1st_no_switch(cli_args=cli_args)
+        self.actions = self.get_actions_list(actions=actions)
+        self.param = param
+        for action in self.actions:
+            if action not in self.valid_actions:
+                print("Unknown action %s" % action)
+                sys.exit(126)
+        self.opt_args = self.get_parser().parse_args([])
         self.cli_args = cli_args
-        params = self.pickle_params()
-        self.params = params
-        home_devel = home_devel or opt_args.home_devel or os.environ.get(
-            "HOME_DEVEL", os.path.expanduser("~/devel"))
-        self.home_devel = home_devel
-        odoo_root = odoo_root or os.path.dirname(home_devel)
-        self.odoo_root = odoo_root
+        self.home_devel = self.opt_args.home_devel or os.environ.get(
+            "HOME_DEVEL", os.path.expanduser("~/devel")
+        )
+        self.odoo_root = os.path.dirname(self.home_devel)
         self.pypi_list = self.get_pypi_list(act_tools=False)
+        self.sh_subcmd = self.pickle_params()
+
+    def store_actions_n_aliases(self):
+        self.valid_actions = ["help"]
+        self.aliases = {}
+        for action in ("z0bug", ):
+            self.valid_actions.append(action)
+            cls = self.get_cls_of_action(action)
+            if hasattr(cls, "get_aliases"):
+                for alias in getattr(cls, "get_aliases")():
+                    # for alias in getattr(cls(self), "get_aliases")():
+                    self.valid_actions.append(alias)
+                    self.aliases[alias] = action
+
+    def clsname_of_action(self, action=None):
+        if action == "help":
+            return "Please"
+        if action in self.aliases:
+            action = self.aliases[action]
+        return "".join(["Please", action[0].upper(), action[1:].lower()])
+
+    def get_cls_of_action(self, action=None):
+        clsname = self.clsname_of_action(action)
+        if clsname == "Please":
+            return self
+        return globals()[clsname](self)
+
+    def get_parser(self, action=None):
+        parser = self.common_opts()
+        if action:
+            cls = self.get_cls_of_action(action)
+            if hasattr(cls, "action_opts"):
+                parser = getattr(cls, "action_opts")(parser)
+        return parser
+
+    def merge_action_parser(self, action, cli_args):
+        parser = self.get_parser(action)
+        self.opt_args = parser.parse_args(cli_args)
+
+    def run_traced(self, cmd):
+        if not self.opt_args.dry_run and self.opt_args.verbose:
+            print(">", cmd)
+        return os.system(cmd)
+
+    def common_opts(self):
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            description="Zeroincombenze® developer shell",
+            epilog=(
+                "Help available issuing: please help ACTION\n"
+                "© 2015-2023 by SHS-AV s.r.l.\n"
+                "Author: antoniomaria.vigliotti@gmail.com\n"
+                "Full documentation at: https://zeroincombenze-tools.readthedocs.io/\n"
+            ),
+        )
+        parser.add_argument(
+            "-B", "--debug", action="count", default=0, help="debug mode"
+        )
+        parser.add_argument(
+            "-b", "--odoo-branch", default="12.0",
+            metavar="BRANCH_OR_VERSION",
+            help="default Odoo version"
+        )
+        parser.add_argument(
+            "-c", "--odoo-config", metavar="FILE",
+            help="Odoo configuration file"
+        )
+        parser.add_argument("--from-date diff", help="date to search in log")
+        parser.add_argument("-d", "--database", metavar="NAME",)
+        # parser.add_argument(
+        #     "-f",
+        #     "--force",
+        #     action="store_true",
+        #     help=(
+        #         "force copy (push) | build (publish/test) | set_exec (wep) |"
+        #         " full (status)"
+        #     ),
+        # )
+        parser.add_argument(
+            "-k",
+            "--keep",
+            action="store_true",
+            help=(
+                "keep coverage statistics in annotate test/keep original repository |"
+                " tests/ in publish"
+            ),
+        )
+        parser.add_argument("-H", "--home-devel",  metavar="PATH",
+                            help="Home devel directory")
+        parser.add_argument("-l", "--log", metavar="FILE", help="log file name")
+        parser.add_argument("-n", "--dry-run", action="store_true")
+        parser.add_argument("-p", "--target-path",  metavar="PATH",
+                            help="Local directory")
+        parser.add_argument("-Q", "--tools-config", metavar="FILE",
+                            help="Configuration file")
+        parser.add_argument(
+            "-q", "--quiet", action="store_false", dest="verbose", help="silent mode"
+        )
+        parser.add_argument("-v", "--verbose", action="count", default=0)
+        parser.add_argument("-V", "--version", action="version", version=__version__)
+        parser.add_argument("-y", "--assume-yes", action="store_true")
+        parser.add_argument("action", nargs="?")
+        parser.add_argument("sub1", nargs="?")
+        parser.add_argument("sub2", nargs="?")
+        parser.add_argument("sub3", nargs="?")
+        parser.add_argument("sub4", nargs="?")
+        return parser
 
     def pickle_params(self, cmd_subst=None):
         params = ""
@@ -75,30 +190,73 @@ class Please(object):
             params += arg + " "
         return params.strip()
 
+    def actions_args(self, action):
+        args = []
+        for arg in self.cli_args:
+            if action and not arg.startswith("-"):
+                args.append(action)
+                action = None
+            else:
+                args.append(arg)
+        return args
+
+    def get_1st_no_switch(self, cli_args=[]):
+        cmd = param = ""
+        opt_with_help = False
+        cli_args = cli_args or self.cli_args
+        for arg in cli_args:
+            if arg.startswith("-"):
+                if arg in ("-h", "--help"):
+                    opt_with_help = True
+            else:
+                if not cmd:
+                    cmd = arg
+                else:
+                    param = arg
+            if cmd and (param or opt_with_help):
+                break
+        return cmd, param, opt_with_help
+
     def get_home_pypi(self):
         return os.path.join(self.home_devel, "pypi")
 
-    def get_home_tools(self):
-        return os.path.join(self.home_devel, "tools")
-
     def get_home_pypi_pkg(self, pkgname):
-        root = self.get_home_pypi() if self.opt_args.debug else self.get_home_tools()
+        root = self.get_home_pypi()
         if pkgname == "tools":
             return os.path.join(root, pkgname)
-        elif self.opt_args.debug:
-            return os.path.join(root, pkgname, pkgname)
         else:
-            return os.path.join(root, pkgname)
+            return os.path.join(root, pkgname, pkgname)
+
+    def get_home_tools(self):
+        return os.path.join(self.odoo_root, "tools")
+
+    def get_home_tools_pkg(self, pkgname):
+        root = self.get_home_tools()
+        return os.path.join(root, pkgname)
 
     def is_pypi_pkg(self, path=None):
         path = path or os.getcwd()
         pkgname = os.path.basename(path)
+        while pkgname in ("tests",
+                          "travis",
+                          "_travis",
+                          "docs",
+                          "examples",
+                          "egg-info",
+                          "junk"):
+            path = os.path.dirname(path)
+            pkgname = os.path.basename(path)
         pkgpath = self.get_home_pypi_pkg(pkgname)
-        root = pkgpath if pkgname != "tools" else os.path.dirname(pkgpath)
+        root = pkgpath if pkgname == "tools" else os.path.dirname(pkgpath)
+        pkgpath2 = self.get_home_tools_pkg(pkgname)
         return (
-            path.startswith(root)
+            os.path.isdir(pkgpath)
+            and path.startswith(root)
             and os.path.isfile(os.path.join(root, "setup.py"))
-            and os.path.isdir(pkgpath)
+        ) or (
+            os.path.isdir(pkgpath2)
+            and path.startswith(pkgpath2)
+            and os.path.isfile(os.path.join(pkgpath2, "setup.py"))
         )
 
     def is_all_pypi(self, path=None):
@@ -143,33 +301,27 @@ class Please(object):
 
     def get_pypi_list(self, path=None, act_tools=True):
         path = path or (
-            self.get_home_pypi() if self.opt_args.debug else self.get_home_tools())
+            self.get_home_pypi()
+            if os.path.isdir(self.get_home_pypi())
+            else self.get_home_tools()
+        )
         pypi_list = []
         if os.path.isdir(path):
             for fn in os.listdir(path):
+                fqn = os.path.join(path, fn)
                 if fn == "tools" and not act_tools:
                     continue
-                if self.is_pypi_pkg(path=os.path.join(path, fn)):
+                if not os.path.isdir(fqn):
+                    continue
+                if self.is_pypi_pkg(path=fqn):
                     pypi_list.append(fn)
         return sorted(pypi_list)
 
-    def get_1st_no_switch(self):
-        cmd = param = ""
-        for arg in self.cli_args:
-            if not arg.startswith("-"):
-                if not cmd:
-                    cmd = arg
-                else:
-                    param = arg
-                    break
-        return cmd, param
-
-    def get_actions_list(self):
-        actions = self.opt_args.action.split("+") if self.opt_args.action else ""
+    def get_actions_list(self, actions=None):
+        actions = actions.split("+") if actions else ""
         return list(itertools.chain.from_iterable([x.split(",") for x in actions]))
 
-    def build_cmd(self, params=None):
-        params = params or self.params
+    def build_sh_me_cmd(self, params=None):
         cmd = "%s.sh" % os.path.splitext(os.path.abspath(__file__))[0]
         if not os.path.isfile(cmd):
             cmd = os.path.split(cmd)
@@ -177,14 +329,14 @@ class Please(object):
         if not os.path.isfile(cmd):
             print("Internal package error: file %s not found!" % cmd)
             return ""
-        cmd += " " + params
+        cmd += " " + (params or self.sh_subcmd)
         return cmd
 
     def do_external_cmd(self):
-        cmd = self.build_cmd()
+        cmd = self.build_sh_me_cmd()
         if not cmd:
             return 1
-        return os.system(cmd)
+        return self.run_traced(cmd)
 
     def do_action_pypipkg(self, action, pkg, path=None):
         path = path or os.path.join(self.home_devel, "pypi", pkg, pkg)
@@ -218,50 +370,79 @@ class Please(object):
             or self.is_repo_odoo(path=path)
             or self.is_repo_ocb(path=path)
         ):
-            return os.system(self.params)
+            return self.run_traced(self.sh_subcmd)
         return 126
 
-    def do_travis(self):
-        if self.is_odoo_pkg():
-            params = self.pickle_params(cmd_subst="lint")
-            cmd = self.build_cmd(params=params)
-            sts = os.system(cmd)
-            if sts == 0:
-                params = self.pickle_params(cmd_subst="test")
-                cmd = self.build_cmd(params=params)
-                sts = os.system(cmd)
-            return sts
-        return self.do_iter_action("do_travis", act_all_pypi=True, act_tools=False)
+    ##########################
+    # -----  Commands  ----- #
+    ##########################
 
-    def do_z0bug(self):
-        """"
-NAME
-    please z0bug - execute lint and tests
-
-SYNOPSIS
-    please [options] z0bug
-
-DESCRIPTION
-    This command executes the lint and the regression tests.
-    In previous version of please this command were called travis;
-    travis is now deprecated
-
-OPTIONS
-    -n      Do nothing (dry-run)
-
-EXAMPLES
-    please z0bug
-
-BUGS
-    No known bugs.
-
-AUTHOR
-    Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)
-"""
-        return self.do_travis()
+    def travis_opts(self, parser):
+        parser.add_argument(
+            "-A", "--trace-after",
+            metavar="REGEX",
+            help="travis stops after executed yaml statement"
+        )
+        parser.add_argument(
+            "-C", "--no-cache", action="store_true", help="do not use stored PYPI"
+        )
+        parser.add_argument(
+            "-D",
+            "--debug-level",
+            help="travis_debug_mode: may be 0,1,2,3,8 or 9 (def yaml dependents)",
+        )
+        parser.add_argument(
+            "-E", "--no-savenv", action="store_true",
+            help="do not save virtual environment into ~/VME/... if does not exist"
+        )
+        parser.add_argument(
+            "-e", "--locale", help="use locale"
+        )
+        parser.add_argument(
+            "-f",
+            "--full",
+            action="store_true",
+            help="run final travis with full features",
+        )
+        parser.add_argument(
+            "-L",
+            "--lint-level",
+            help=("lint_check_level; may be: "
+                  "minimal,reduced,average,nearby,oca; def value from .travis.yml"),
+        )
+        parser.add_argument(
+            "-m",
+            "--missing",
+            action="store_true",
+            help="show missing line in report coverage after test",
+        )
+        parser.add_argument(
+            "-S", "--syspkg", metavar="true|false",
+            help="use python system packages (def yaml dependents)"
+        )
+        parser.add_argument(
+            "-T", "--trace",
+            metavar="REGEX",
+            help="trace stops before executing yaml statement"
+        )
+        parser.add_argument(
+            "-X", "--translation",
+            metavar="true|false",
+            help="enable translation test (def yaml dependents)"
+        )
+        parser.add_argument(
+            "-Y", "--yaml-file",
+            metavar="PATH",
+            help="file yaml to process (def .travis.yml)"
+        )
+        parser.add_argument(
+            "-Z", "--zero", action="store_true",
+            help="use local zeroincombenze tools"
+        )
+        return parser
 
     def do_install_python3(self):
-        """"
+        """
 NAME
     please install python3 - install a specific python version
 
@@ -270,7 +451,8 @@ SYNOPSIS
 
 DESCRIPTION
     This command installs a specific python version on system from source.
-    To install python you must be the root usre o you must have the admin privileges.
+    To install python you must be the root user o you must have the admin
+    privileges.
 
 OPTIONS
     -n      Do nothing (dry-run)
@@ -279,14 +461,10 @@ EXAMPLES
     please python3 3.9
 
 BUGS
-    No known bugs.
-
-AUTHOR
-    Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)
-"""
+    No known bugs."""
         cmd = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "install_python_3_from_source.sh"
+            "install_python_3_from_source.sh",
         )
         if not os.path.isfile(cmd):
             print("Internal package error: file %s not found!" % cmd)
@@ -297,112 +475,55 @@ AUTHOR
         cmd += " " + self.opt_args.sub2
         if self.opt_args.dry_run:
             z0lib.run_traced(
-                cmd, verbose=self.opt_args.verbose, dry_run=self.opt_args.dry_run)
+                cmd, verbose=self.opt_args.verbose, dry_run=self.opt_args.dry_run
+            )
             return 0
-        return os.system(cmd)
+        return self.run_traced(cmd)
 
-    def do_help_z0bug(self):
-        print(self.do_travis.__doc__)
-        return 0
+    def do_help_action(self):
+        cls = self.get_cls_of_action(self.param)
+        action = "do_action"
+        if hasattr(cls, action):
+            print(getattr(cls, action).__doc__)
+            return 0
+        return 1
 
     def do_help(self):
+        if self.param:
+            return self.do_help_action()
         print(__doc__)
         return 0
 
 
-def main(cli_args=None):
+def main(cli_args=[]):
     if not cli_args:
         cli_args = sys.argv[1:]
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="Zeroincombenze® developer shell",
-        epilog=(
-            "© 2015-2023 by SHS-AV s.r.l.\n"
-            "Author: antoniomaria.vigliotti@gmail.com\n"
-            "Full documentation at: https://zeroincombenze-tools.readthedocs.io/\n"
-        ),
-    )
-    parser.add_argument(
-        "-A", "--trace-after", help="travis stops after executed yaml statement"
-    )
-    parser.add_argument("-B", "--debug", action="count", default=0, help="debug mode")
-    parser.add_argument(
-        "-b", "--odoo-branch", default="12.0", help="default Odoo version"
-    )
-    parser.add_argument(
-        "-C", "--no-cache", action="store_true", help="do not use stored PYPI"
-    )
-    # parser.add_argument("-C", "--config",
-    #                     help="Configuration file")
-    parser.add_argument("-c", "--odoo-config", help="Odoo configuration file")
-    parser.add_argument(
-        "-D",
-        "--debug-level",
-        help="travis_debug_mode: may be 0,1,2,3,8 or 9 (def yaml dependents)",
-    )
-    parser.add_argument("--from-date diff", help="date to search in log")
-    parser.add_argument("-d", "--database")
-    parser.add_argument(
-        "-f",
-        "--force",
-        action="store_true",
-        help=(
-            "force copy (push) | build (publish/test) | set_exec (wep) |"
-            " full (status)"
-        ),
-    )
-    parser.add_argument(
-        "-k",
-        "--keep",
-        action="store_true",
-        help=(
-            "keep coverage statistics in annotate test/keep original repository |"
-            " tests/ in publish"
-        ),
-    )
-    parser.add_argument("-H", "--home-devel", help="Home devel directory")
-    parser.add_argument("-L", "--log", help="log file name")
-    parser.add_argument(
-        "-m",
-        "--missing",
-        action="store_true",
-        help="show missing line in report coverage after test",
-    )
-    parser.add_argument("-n", "--dry-run", action="store_true")
-    parser.add_argument("-p", "--target-path", help="Local directory")
-    parser.add_argument(
-        "-q", "--quiet", action="store_false", dest="verbose", help="silent mode"
-    )
-    parser.add_argument("-v", "--verbose", action="count", default=0)
-    parser.add_argument("-V", "--version", action="version", version=__version__)
-    parser.add_argument("-y", "--assume-yes", action="store_true")
-    parser.add_argument("action", nargs="?")
-    parser.add_argument("sub1", nargs="?")
-    parser.add_argument("sub2", nargs="?")
-    parser.add_argument("sub3", nargs="?")
-    parser.add_argument("sub4", nargs="?")
-    opt_args = parser.parse_args(cli_args)
-
-    please = Please(opt_args, cli_args)
-    actions, param = please.get_1st_no_switch()
-    actions = please.get_actions_list()
-
+    please = Please(cli_args)
     done = False
-    for action in actions:
-        cmd2 = "do_%s_%s" % (action, param)
-        cmd = "do_%s" % action
-        xcmd = "do_external_cmd"
-        if hasattr(please, cmd2):
-            sts = getattr(please, cmd2)()
-        elif hasattr(please, cmd):
-            sts = getattr(please, cmd)()
-        else:
-            sts = getattr(please, xcmd)()
-        if sts:
-            return sts
-        done = True
+    if not please.opt_with_help:
+        for action in please.actions:
+            cls = please.get_cls_of_action(action)
+            cmd2 = "do_%s_%s" % (action, please.param)
+            cmd = "do_%s" % action
+            xcmd = "do_external_cmd"
+            if hasattr(cls, "do_action"):
+                please.merge_action_parser(action, please.actions_args(action))
+                please.sh_subcmd = please.pickle_params(cmd_subst=action)
+                sts = getattr(cls, "do_action")()
+            elif hasattr(please, cmd2):
+                sts = getattr(please, cmd2)()
+            elif hasattr(please, cmd):
+                sts = getattr(please, cmd)()
+            else:
+                sts = getattr(please, xcmd)()
+            if sts:
+                return sts
+            done = True
     if not done:
-        parser.print_help()
+        if cli_args and not please.opt_with_help:
+            please.get_parser().parse_args(cli_args)
+        else:
+            please.get_parser().print_help()
     return 0
 
 

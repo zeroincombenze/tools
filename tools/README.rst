@@ -243,6 +243,21 @@ Current development version
 History
 -------
 
+z0bug_odoo: 2.0.5 (2023-01-25)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: in some rare cases, wizard crashes
+* [NEW] TestEnv: get_records_from_act_windows()
+* [IMP] TestEnv: resource_make now capture demo record if available
+* [IMP] TestEnv: resource is not required for declared xref
+* [IMP] TestEnv: self.module has all information about current testing module
+* [IMP] TestEnv: conveyance functions for all fields (currenly jsust for account.payment.line)
+* [IMP] TestEnv: fields many2one accept object as value
+* [IMP] TestEnv: function validate_records() improvements
+* [FIX] TestEnv: company_setup, now you can declare bank account
+* [IMP] TesEnv: minor improvements
+
+
 python_plus: 2.0.5.1 (2023-01-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -254,8 +269,9 @@ z0bug_odoo: 2.0.4 (2023-01-13)
 
 * [FIX] TestEnv: resource_create does not duplicate record
 * [FIX] TestEnv: resource_write after save calls write() exactly like Odoo behavior
-* [FIX] TestEnv: new function field_download
-* [IMP] TestEnv: convert_to_write converte binary fields too
+* [NEW] TestEnv: new function field_download()
+* [NEW] TestEnv: new function validate_records()
+* [IMP] TestEnv: convert_to_write convert binary fields too
 * [IMP] TestEnv: minor improvements
 
 
@@ -265,7 +281,7 @@ wok_code: 2.0.5 (2023-01-13)
 * [IMP] please: wep now delete old travis-emulator logs
 * [IMP] install_python_3_from_source.sh: now can install python 3.9
 * [IMP] please: action docs, minor improvements
-* [IMP] deply_odoo: format output list
+* [IMP] deploy_odoo: format output list
 
 
 odoo_score: 2.0.4 (2023-01-13)
@@ -377,7 +393,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-01-22
+Last Update / Ultimo aggiornamento: 2023-01-27
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

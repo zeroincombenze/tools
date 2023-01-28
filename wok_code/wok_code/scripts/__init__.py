@@ -15,5 +15,6 @@ from . import makepo_it
 from . import odoo_dependencies
 from . import odoo_translation
 from . import please
+from . import please_z0bug
 from . import to_pep8
 from . import wget_odoo_repositories

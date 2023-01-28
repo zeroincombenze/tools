@@ -949,11 +949,54 @@ button_ctx (dict): context to pass to button_name function</p>
 </dd>
 </dl>
 </div></blockquote>
+</section>
+<section id="validate-record">
+<h2>validate_record<a class="headerlink" href="#validate-record" title="Permalink to this heading"></a></h2>
+<p>Validate records against template values.
+During the test will be necessary to check result record values.
+This function aim to validate all the important values with one step.
+You have to issue 2 params: template with expected values and record to check.
+You can declare just some field value in template which are important for you.
+Both template and record are lists, record may be a record set too.
+This function do following steps:</p>
+<ul class="simple">
+<li><p>matches templates and record, based on template supplied data</p></li>
+<li><p>check if all template are matched with 1 record to validate</p></li>
+<li><p>execute self.assertEqual() for every field in template</p></li>
+<li><p>check for every template record has matched with assert</p></li>
+</ul>
+<p>def validate_records(self, template, records):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>template (list of dict): list of dictionaries with expected values
+records (list or set): records to validate values</p>
+</dd>
+<dt>Returns:</dt><dd><p>list of matched coupled (template, record) + # of assertions</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: if no enough assertions or one assertion is failed</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="get-records-from-act-windows">
+<h2>get_records_from_act_windows<a class="headerlink" href="#get-records-from-act-windows" title="Permalink to this heading"></a></h2>
+<p>Get records from a windows message.</p>
+<p>def get_records_from_act_windows(self, act_windows):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>act_windows (dict): Odoo windows action returned by a wizard</p>
+</dd>
+<dt>Returns:</dt><dd><p>records or False</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: if invalid parameters issued</p>
+</dd>
+</dl>
+</div></blockquote>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2023-01-22</p>
+<p>Last Update / Ultimo aggiornamento: 2023-01-26</p>
 </section>
 </section>
 
@@ -1002,6 +1045,8 @@ button_ctx (dict): context to pass to button_name function</p>
 <li><a class="reference internal" href="#setup-env">setup_env</a></li>
 <li><a class="reference internal" href="#resource-edit">resource_edit</a></li>
 <li><a class="reference internal" href="#wizard">wizard</a></li>
+<li><a class="reference internal" href="#validate-record">validate_record</a></li>
+<li><a class="reference internal" href="#get-records-from-act-windows">get_records_from_act_windows</a></li>
 </ul>
 </li>
 </ul>
