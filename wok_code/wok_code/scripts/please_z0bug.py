@@ -35,10 +35,14 @@ class PleaseZ0bug(object):
             "-e", "--locale", help="use locale"
         )
         parser.add_argument(
-            "-f",
             "--full",
             action="store_true",
             help="run final travis with full features",
+        )
+        parser.add_argument(
+            "-j",
+            "--python",
+            help=("test with specific python versions (comma separated)"),
         )
         parser.add_argument(
             "-L",

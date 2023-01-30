@@ -35,7 +35,10 @@ import argparse
 import itertools
 from z0lib import z0lib
 
-from .please_z0bug import PleaseZ0bug                                      # noqa: F401
+try:
+    from .please_z0bug import PleaseZ0bug                                  # noqa: F401
+except ImportError:
+    from wok_code.scripts.please import PleaseZ0bug                        # noqa: F401
 
 
 __version__ = "2.0.5"
@@ -129,15 +132,15 @@ class Please(object):
         )
         parser.add_argument("--from-date diff", help="date to search in log")
         parser.add_argument("-d", "--database", metavar="NAME",)
-        # parser.add_argument(
-        #     "-f",
-        #     "--force",
-        #     action="store_true",
-        #     help=(
-        #         "force copy (push) | build (publish/test) | set_exec (wep) |"
-        #         " full (status)"
-        #     ),
-        # )
+        parser.add_argument(
+            "-f",
+            "--force",
+            action="store_true",
+            help=(
+                "force copy (push) | build (publish/test) | set_exec (wep) |"
+                " full (status)"
+            ),
+        )
         parser.add_argument(
             "-k",
             "--keep",
@@ -265,10 +268,10 @@ class Please(object):
 
     def is_odoo_pkg(self, path=None):
         path = path or os.getcwd()
-        return (
-            os.path.isfile(os.path.join(path, "__manifest__.py"))
-            or os.path.isfile(os.path.join(path, "__openerp__.py"))
-        ) and os.path.isfile(os.path.join(path, "__init__.py"))
+        files = os.listdir(path)
+        filtered = [x for x in files
+                    if x in ("__manifest__.py",  "__openerp__.py", "__init__.py")]
+        return len(filtered) == 2 and "__init__.py" in filtered
 
     def is_repo_ocb(self, path=None):
         path = path or os.getcwd()

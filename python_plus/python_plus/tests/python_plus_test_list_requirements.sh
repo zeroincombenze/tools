@@ -69,6 +69,7 @@ test_01() {
 }
 
 Z0BUG_setup() {
+    chmod -c +x $RUNDIR/scripts/list_requirements.py
     build_cmd $RUNDIR/scripts/list_requirements.py
 }
 

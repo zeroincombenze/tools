@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: cryptography, pypdf2, requests & urllib3 version adjustment
+* [IMP] vem: set list_requirements.py executable
 
 2.0.5 (2022-12-23)
 ~~~~~~~~~~~~~~~~~~

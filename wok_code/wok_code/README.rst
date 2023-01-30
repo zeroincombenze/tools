@@ -851,7 +851,7 @@ History
 * [IMP] please: wep now delete old travis-emulator logs
 * [IMP] install_python_3_from_source.sh: now can install python 3.9
 * [IMP] please: action docs, minor improvements
-* [IMP] deply_odoo: format output list
+* [IMP] deploy_odoo: format output list
 
 2.0.4 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~
@@ -937,13 +937,16 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+Contributors
+------------
+
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-22
+Last Update / Ultimo aggiornamento: 2023-01-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

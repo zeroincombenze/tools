@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.3.1
 
 
 store_cfg_param_value() {
@@ -963,13 +963,8 @@ process_yaml_echo() {
   local lm="            "
   lm=${lm:0:$lev}
   local lne="$2"
-  if [ $opt_dprj -ne 0 ]; then
-    echo -n "$lm- "
-    process_yaml_run_cmd "$lne"
-  else
-    local line="- $(process_yaml_quote_xtl $lne)"
-    echo "$lm$line"
-  fi
+  local line="- $(process_yaml_quote_xtl $lne)"
+  echo "$lm$line"
 }
 
 load_colors() {
@@ -1019,12 +1014,12 @@ set_log_filename() {
 }
 
 
-OPTOPTS=(h        A           B         C         D           E         e       F        f         j        k        L          l        M          m       n            O         P           p        Q        q           r     S            T         V           v           X           Y         y       Z)
-OPTLONG=(help     trace-after debug     no-cache  debug-level no-savenv locale  full     force     ''       keep     lint-level logdir   ''         missing dry-run      org       python-brk  pytest   conf     quiet       ''    syspkg       trace     version     verbose     translation yaml-file pyver   zero)
-OPTDEST=(opt_help opt_tafter  opt_debug opt_cache opt_dlvl    opt_keepE opt_loc opt_full opt_force opt_dprj opt_keep opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pybrk   opt_pyth opt_tcfg opt_verbose opt_r  opt_syspkg  opt_trace opt_version opt_verbose opt_tnl     opt_fyaml opt_pyv opt_dbgmnt)
-OPTACTI=('+'      "="         1         0         "="         0         "="     1        1         1        1        "="        "="      1          1       "1>"         "="       "="         1        "="      0           1     "="          "="       "*>"        "+"         "="         "="       "="     1)
-OPTDEFL=(0        ""          0         1         ""          1         ""      0        0         0        0        ""         ""       0          0       0            "local"   ""          0        ""       0           0     ""           ""        ""          -1          ""          ""        ""      0)
-OPTMETA=("help"   "regex"     "version" ""        "number"    ""        "iso"   ""       ""        "dprj"   ""       "number"   "dir"    ""         ""      "do nothing" "git-org" "file:line" ""       "file"   "verbose"   "res" "false|true" "regex"   "version"   "verbose"   "0|1"       "file"    "pyver" "")
+OPTOPTS=(h        A           B         C         D           E         e       F        f         k        j       L          l        M          m       n            O         P           p        Q        q           r     S            T         V           v           X           Y         Z)
+OPTLONG=(help     trace-after debug     no-cache  debug-level no-savenv locale  full     force     keep     pyver   lint-level logdir   ''         missing dry-run      org       python-brk  pytest   conf     quiet       ''    syspkg       trace     version     verbose     translation yaml-file zero)
+OPTDEST=(opt_help opt_tafter  opt_debug opt_cache opt_dlvl    opt_keepE opt_loc opt_full opt_force opt_keep opt_pyv opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pybrk   opt_pyth opt_tcfg opt_verbose opt_r  opt_syspkg  opt_trace opt_version opt_verbose opt_tnl     opt_fyaml opt_dbgmnt)
+OPTACTI=('+'      "="         1         0         "="         0         "="     1        1         1        "="     "="        "="      1          1       "1>"         "="       "="         1        "="      0           1     "="          "="       "*>"        "+"         "="         "="       1)
+OPTDEFL=(0        ""          0         1         ""          1         ""      0        0         0        ""      ""         ""       0          0       0            "local"   ""          0        ""       0           0     ""           ""        ""          -1          ""          ""        0)
+OPTMETA=("help"   "regex"     "version" ""        "number"    ""        "iso"   ""       ""        ""       "pyver" "number"   "dir"    ""         ""      "do nothing" "git-org" "file:line" ""       "file"   "verbose"   "res" "false|true" "regex"   "version"   "verbose"   "0|1"       "file"    "")
 OPTHELP=("this help"
   "travis stops after executed yaml statement"
   "debug mode: do not create log"
@@ -1034,8 +1029,8 @@ OPTHELP=("this help"
   "use locale"
   "run final travis with full features"
   "force to create stored VME or remove recent log (wep-db)"
-  "deprecated: kept just for compatibility"
   "keep DB and virtual environment before and after tests"
+  "test with specific python versions (comma separated)"
   "lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml"
   "log directory (def=$ODOO_ROOT/travis_log)"
   "deprecated: kept just for compatibility"
@@ -1053,7 +1048,6 @@ OPTHELP=("this help"
   "verbose mode"
   "enable translation test (def yaml dependents)"
   "file yaml to process (def .travis.yml)"
-  "test with specific python versions (comma separated)"
   "use local zero-tools")
 OPTARGS=(action sub sub2)
 

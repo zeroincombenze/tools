@@ -1350,6 +1350,7 @@ FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"
 [[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ=$(which list_requirements.py 2>/dev/null)
 [[ -z $LIST_REQ ]] && echo "Command list_requirements.py not found!" && exit 1
+chmod -c +x $LIST_REQ
 
 if [[ $action == "rm" ]]; then
   [[ $PWD == $(readlink -f $p2) ]] && cd

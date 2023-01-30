@@ -122,7 +122,7 @@ FMT_PARAMS = {
 
 class OdooDeploy(object):
     """Odoo organization/branch repositories
-    self.repo_list is the reposiotries list of self.repo_info
+    self.repo_list is the repositories list of self.repo_info
     self.repo_info contains repository information
     * BRANCH: git branch
     * PATH: repository path
@@ -250,6 +250,7 @@ class OdooDeploy(object):
             for root, dirs, files in os.walk(self.target_path,
                                              topdown=True,
                                              followlinks=False):
+                links = [d for d in dirs if os.path.islink(os.path.join(root, d))]
                 dirs[:] = [
                     d
                     for d in dirs
@@ -276,14 +277,17 @@ class OdooDeploy(object):
                                       "tmp",
                                       "venv_odoo",
                                       "win32")
+                        and not os.path.islink(os.path.join(root, d))
                         )
                 ]
-                for dir in dirs:
+                for dir in dirs + links:
                     path = os.path.join(root, dir)
                     if self.path_is_ocb(path):
                         self.repo_info["OCB"] = {"PATH": path, "#": 0}
                     elif self.is_git_repo(path=path):
                         self.repo_info[dir] = {"PATH": path, "#": 0}
+                        if os.path.islink(path):
+                            self.repo_info[dir]["#"] = 1
                     elif self.is_module(path):
                         repo = os.path.basename(root)
                         if repo == "addons":
@@ -488,8 +492,17 @@ class OdooDeploy(object):
 
     def path_is_ocb(self, path):
         if (
-            os.path.isfile(os.path.join(path, "odoo-bin"))
-            or os.path.isfile(os.path.join(path, "openerp-server"))
+            os.path.isdir(os.path.join(path, ".git"))
+            and (
+                os.path.isfile(os.path.join(path, "odoo-bin"))
+                or os.path.isfile(os.path.join(path, "openerp-server"))
+            )
+            and os.path.isfile(os.path.join(path, "__init__.py"))
+            and os.path.isdir(os.path.join(path, "addons"))
+            and (
+                os.path.isdir(os.path.join(path, "odoo"))
+                or os.path.isdir(os.path.join(path, "openerp"))
+            )
         ):
             return True
         return False
@@ -626,6 +639,9 @@ class OdooDeploy(object):
     def git_pull(self, tgtdir, branch, master_branch=None):
         if os.getcwd() != tgtdir:
             self.run_traced("cd %s" % tgtdir)
+        if os.path.islink(tgtdir):
+            sts, repo_branch, git_url, stash_list = self.get_remote_info()
+            return sts, repo_branch
         cmd = "git stash"
         self.run_traced(cmd, verbose=False)
         sleep(1)
@@ -691,7 +707,7 @@ class OdooDeploy(object):
                     self.run_traced(cmd)
                 cmd = "mv %s %s" % (tgtdir, bakdir)
                 self.run_traced(cmd)
-            else:
+            elif not os.path.islink(tgtdir):
                 cmd = "rm -fR %s" % tgtdir
                 self.run_traced(cmd)
         if os.path.isdir(tgtdir) and self.opt_args.action == "update":
