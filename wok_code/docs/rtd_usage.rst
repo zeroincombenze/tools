@@ -60,7 +60,7 @@ Examples:
 ::
 
     # Update Odoo module documentation
-    cd ~/odoo_12/axitec/l10n_it_balance     # Odoo project directory
+    cd ~/odoo_12/l10n-italy/l10n_it_balance # Odoo project directory
     dir egg-info
     >>> authors.txt contributors.txt description.rst __init__.txt known_issues.rst
     gen_readme.py                           # Generate README.rst of project
@@ -476,7 +476,7 @@ topep8 usage
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-17
+Last Update / Ultimo aggiornamento: 2023-01-29
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

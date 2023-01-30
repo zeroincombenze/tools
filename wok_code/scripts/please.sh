@@ -8,6 +8,7 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+# set -x  #debug
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 # Based on template 2.0.0
@@ -53,42 +54,8 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4.1
+__version__=2.0.4.2
 
-#
-# General Purpose options:
-# -A dont exec odoo test
-# -B exec bash test
-# -b branch: must be 6.1 7.0, 8.0, 9.0 10.0 11.0 12.0 13.0 or 14.0
-# -C commit & push | dont exc clodoo test
-# -c configuration file
-# -D duplicate odoo to another version
-# -d diff
-# -F fetch
-# -f force
-# -H use virtualenv
-# -k keep files
-# -K exec bash, flake8 and pylint tests | run cron environ
-# -j exec tests in project dir rather in test dir
-# -m show missing line in report
-# -n do nothing (dry-run)
-# -o limit push to ids
-# -O run odoo burst
-# -O replace odoo distribution
-# -o OCA directives
-# -P push
-# -p local path
-# -q silent mode
-# -R replace | replica
-# -r rescricted mode (w/o parsing travis.yml file)
-# -S status
-# -T exec regression test
-# -t do nothing (test-mode)
-# -u dont update newer files
-# -V show version
-# -v verbose mode
-# -W whatis
-# -w wep
 
 FIND_EXCL="-not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*'"
 
@@ -141,7 +108,6 @@ set_opts_4_action() {
     [[ $opt_verbose -eq 3 ]] && opts="${opts} -vvv"
 }
 
-
 move() {
   # move(src dst)
   if [ -f "$2" ]; then rm -f $2; fi
@@ -176,244 +142,6 @@ search_pofile() {
     fi
   done
 }
-#
-#add_copyright() {
-#  #add_copyright(file rst zero|oca|powerp)
-#  if [[ "$PRJNAME" == "Odoo" ]]; then
-#    if [[ $2 -eq 1 ]]; then
-#      echo ".. [//]: # (copyright)" >>$1
-#    else
-#      echo "[//]: # (copyright)" >>$1
-#    fi
-#    echo "" >>$1
-#    echo "----" >>$1
-#    echo "" >>$1
-#    if [[ $2 -eq 1 ]]; then
-#      echo "**Odoo** is a trademark of  \`Odoo S.A." >>$1
-#      echo "<https://www.odoo.com/>\`_." >>$1
-#      echo "(formerly OpenERP, formerly TinyERP)" >>$1
-#    else
-#      echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)" >>$1
-#    fi
-#    echo "" >>$1
-#    if [[ $2 -eq 1 ]]; then
-#      echo "**OCA**, or the  \`Odoo Community Association" >>$1
-#      echo "<http://odoo-community.org/>\`_." >>$1
-#      echo "is a nonprofit organization whose" >>$1
-#    else
-#      echo "**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose" >>$1
-#    fi
-#    echo "mission is to support the collaborative development of Odoo features and" >>$1
-#    echo "promote its widespread use." >>$1
-#    echo "" >>$1
-#    if [[ "$3" == "powerp" ]]; then
-#      echo "**powERP**, or the [powERP enterprise network](https://www.powerp.it/)" >>$1
-#      echo "is an Italian enterprise network whose mission is to develop high-level" >>$1
-#      echo "addons designed for Italian enterprise companies." >>$1
-#      echo "The powER software, released under Odoo Proprietary License," >>$1
-#      echo "adds new enhanced features to Italian localization." >>$1
-#      echo "La rete di imprese [powERP](https://www.powerp.it/)" >>$1
-#      echo "fornisce, sotto licenza OPL, estensioni evolute della localizzazine italiana." >>$1
-#      echo "Il software è progettato per medie e grandi imprese italiane" >>$1
-#      echo "che richiedono caratteristiche non disponibili nella versione Odoo CE" >>$1
-#      echo "" >>$1
-#    else
-#      if [ $2 -eq 1 ]; then
-#        echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l." >>$1
-#        echo "<http://www.shs-av.com/>\`_." >>$1
-#      else
-#        echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)" >>$1
-#      fi
-#      echo "which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure." >>$1
-#      echo "[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)" >>$1
-#      echo "is mainly designed for Italian law and markeplace." >>$1
-#      echo "Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server." >>$1
-#      echo "" >>$1
-#    fi
-#    if [ $2 -eq 1 ]; then
-#      echo "" >>$1
-#      echo ".. [//]: # (end copyright)" >>$1
-#    else
-#      echo "[//]: # (end copyright)" >>$1
-#    fi
-#  else
-#    if [ $2 -eq 1 ]; then
-#      echo ".. [//]: # (copyright)" >>$1
-#    else
-#      echo "[//]: # (copyright)" >>$1
-#    fi
-#    echo "" >>$1
-#    echo "----" >>$1
-#    echo "" >>$1
-#    if [ $2 -eq 1 ]; then
-#      echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l." >>$1
-#      echo "<http://www.shs-av.com/>\`_." >>$1
-#    else
-#      echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)" >>$1
-#    fi
-#    echo "which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure." >>$1
-#    echo "" >>$1
-#    echo "Odoo is a trademark of Odoo S.A." >>$1
-#    if [ $2 -eq 1 ]; then
-#      echo "" >>$1
-#      echo ".. [//]: # (end copyright)" >>$1
-#    else
-#      echo "[//]: # (end copyright)" >>$1
-#    fi
-#  fi
-#}
-
-#add_addons() {
-#  #add_addons(file rst zero|oca|oia ORIG)
-#  if [ "$PRJNAME" == "Odoo" ]; then
-#    if [ $2 -eq 1 ]; then
-#      echo ".. [//]: # (addons)" >>$1
-#    else
-#      echo "[//]: # (addons)" >>$1
-#    fi
-#    $TDIR/gen_addons_table.py addons $4 >>$1
-#    if [ $2 -eq 1 ]; then
-#      echo "" >>$1
-#      echo ".. [//]: # (end addons)" >>$1
-#    else
-#      echo "[//]: # (end addons)" >>$1
-#    fi
-#  fi
-#}
-
-#add_install() {
-#  #add_install(file rst zero|oca|oia ORIG)
-#  if [ "$PRJNAME" == "Odoo" ]; then
-#    local pkgs
-#    local gitorg=$3
-#    [ "$3" == "zero" -o "$3" == "oia" ] && gitorg=${3}-http
-#    if [ -z "$REPOSNAME" ]; then
-#      local REPOS=$PKGNAME
-#      local url=$(build_odoo_param GIT_URL '.' "" "$gitorg")
-#      local root=$(build_odoo_param HOME '.')
-#    else
-#      pushd .. >/dev/null
-#      local REPOS=$REPOSNAME
-#      local url=$(build_odoo_param GIT_URL '.' "" "$gitorg")
-#      local root=$(build_odoo_param HOME '.')
-#      popd >/dev/null
-#    fi
-#    if [ $2 -eq 1 ]; then
-#      echo ".. [//]: # (install)" >>$1
-#    else
-#      echo "[//]: # (install)" >>$1
-#    fi
-#    echo "    ODOO_DIR=$root  # here your Odoo dir" >>$1
-#    echo "    BACKUP_DIR=$HOME/backup  # here your backup dir" >>$1
-#    pkgs=$(list_requirements.py -p $PWD -s' ' -P -t python)
-#    pkgs="${pkgs:7}"
-#    if [ -n "$pkgs" ]; then
-#      echo "    for pkg in $pkgs; do" >>$1
-#      echo "        pip install \$pkg" >>$1
-#      echo "    done" >>$1
-#    fi
-#    pkgs=$(list_requirements.py -p $PWD -s' ' -P -t modules)
-#    pkgs="${pkgs:8}"
-#    if [ -n "$pkgs" ]; then
-#      echo "    # Check for <$pkgs> modules" >>$1
-#    fi
-#    echo "    cd /tmp" >>$1
-#    echo "    git clone $url $REPOS" >>$1
-#    echo "    mv \$ODOO_DIR/$REPOS/$PKGNAME/ \$BACKUP_DIR/" >>$1
-#    echo "    mv /tmp/$REPOS/$PKGNAME/ \$ODOO_DIR/" >>$1
-#    if [ $2 -eq 1 ]; then
-#      echo "" >>$1
-#      echo ".. [//]: # (end install)" >>$1
-#    else
-#      echo "[//]: # (end install)" >>$1
-#    fi
-#  fi
-#}
-
-#restore_owner() {
-#  if [ "$USER" != "odoo" ]; then
-#    local fown="odoo:odoo"
-#    # [ "$USER" == "travis" ] && fown="travis:odoo"
-#    if sudo -v &>/dev/null; then
-#      run_traced "sudo chown -R $fown .git"
-#    elif [ "$USER" != "travis" ]; then
-#      run_traced "chown -R $fown .git"
-#    fi
-#  fi
-#}
-
-#expand_macro() {
-#  local t p v lne lne1
-#  lne="$1"
-#  for t in {1..9} LNK_DOCS BTN_DOCS LNK_HELP BTN_HELP; do
-#    p=\${$t}
-#    v=${M[$t]}
-#    lne1="${lne//$p/$v}"
-#    lne="$lne1"
-#  done
-#  echo -n "$lne"
-#}
-
-#get_ver() {
-#  local ver=
-#  if [ -n "$BRANCH" ]; then
-#    if [ "$BRANCH" == "master" ]; then
-#      ver=$BRANCH
-#    else
-#      ver=$(echo $BRANCH | grep --color=never -Eo '[0-9]+' | head -n1)
-#    fi
-#  else
-#    ver=master
-#  fi
-#  [ -n "$1" -a "$ver" == "master" ] && ver=0
-#  echo $ver
-#}
-
-#build_line() {
-#  # build_line(flag replmnt act)
-#  local v w x line
-#  v=${1^^}
-#  w="LNK_${v:1}"
-#  v="BTN_${v:1}"
-#  line="$2"
-#  if [[ "$3" =~ md_BTN ]]; then
-#    if [ -n "${M[$v]}" ]; then
-#      x="${M[$v]}"
-#      line="$line($x)]"
-#    fi
-#    if [ -n "${M[$w]}" ]; then
-#      x="${M[$w]}"
-#      line="$line($x)"
-#    fi
-#  elif [[ "$3" =~ rstBTN_.*/1 ]]; then
-#    if [ -z "$2" ]; then
-#      line=".. image::"
-#    else
-#      line=".. ${line:0:-1} image::"
-#    fi
-#    if [ -n "${M[$v]}" ]; then
-#      x="${M[$v]}"
-#      line="$line $x"
-#    fi
-#  elif [[ "$3" =~ rstBTN_.*/2 ]]; then
-#    if [ -z "$2" ]; then
-#      line="   :target:"
-#    else
-#      line=".. _${line:1:-2}:"
-#    fi
-#    if [ -n "${M[$w]}" ]; then
-#      x="${M[$w]}"
-#      line="$line $x"
-#    fi
-#  elif [ "$3" == "CHPT_lang_en" ]; then
-#    line="[![en](https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)](https://www.facebook.com/groups/openerp.italia/)"
-#  elif [ "$3" == "CHPT_lang_it" ]; then
-#    line="[![it](https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)](https://www.facebook.com/groups/openerp.italia/)"
-#  elif [[ $3 =~ CHPT_ ]]; then
-#    :
-#  fi
-#  echo "$line"
-#}
 
 #cvt_doxygenconf() {
 #  local fn=$1
@@ -460,150 +188,6 @@ search_pofile() {
 #    else
 #      rm -f $fntmp
 #    fi
-#  fi
-#}
-
-#cvt_gitmodule() {
-#  #cvt_gitmodule(oca|zero)
-#  if [ -f .gitmodules ]; then
-#    local fn=.gitmodules
-#    local fntmp=$fn.tmp
-#    local urlty=zero-http
-#    rm -f $fntmp
-#    local line lne submod url p v
-#    while IFS= read -r line r || [ -n "$line" ]; do
-#      if [ "${line:0:1}" == "[" -a "${line: -1}" == "]" ]; then
-#        lne="${line:1:-1}"
-#        read p v <<<"$lne"
-#        submod=${v//\"/}
-#      else
-#        lne=$(echo $line)
-#        IFS== read p v <<<$lne
-#        lne=$(echo $p)
-#        if [ "$lne" == "url" ]; then
-#          url=$(build_odoo_param URL '' $submod $urlty)
-#          lne=$(echo $v)
-#          if [ "$lne" != "$url" ]; then
-#            v="${line//$lne/$url}"
-#            line="$v"
-#          fi
-#        fi
-#      fi
-#      echo "$line" >>$fntmp
-#    done <"$fn"
-#    if [ -n "$(diff -q $fn $fntmp)" ]; then
-#      move_n_bak $fntmp $fn
-#    else
-#      rm -f $fntmp
-#    fi
-#  fi
-#}
-
-#cvt_travis() {
-#  # cvt_travis(file_travis oca|zero|oia currpt ORIG)
-#  local fn=$1
-#  local fntmp=$fn.tmp
-#  ORGNM=$(build_odoo_param GIT_ORGNM '' '' $2)
-#  run_traced "tope8 -B -b $odoo_fver $fn"
-#  run_traced "sed -e \"s|ODOO_REPO=.[^/]*|ODOO_REPO=\\\"$ORGNM|\" -i $fn"
-#}
-
-#cvt_file() {
-#  # cvt_file(file oca|zero|powerp travis|readme|manifest currpt ORIG)
-#  local f1=$1
-#  local sts=$STS_SUCCESS
-#  if [ -n "$f1" ]; then
-#    if [ -f "$1" ]; then
-#      local b=$(basename $f1)
-#      local d=$(dirname $f1)
-#      if [[ $f1 =~ $PWD ]]; then
-#        local l=${#PWD}
-#        ((l++))
-#        local ft=${f1:l}
-#      elif [ "${f1:0:2}" == "./" ]; then
-#        local ft=${f1:2}
-#      else
-#        local ft=$f1
-#      fi
-#      local f1_oca=$(dirname $f1)/${b}.oca
-#      local f1_z0i=$(dirname $f1)/${b}.z0i
-#      local f1_oia=$(dirname $f1)/${b}.oia
-#      if [ "$2" == "zero" -o -z "$2" ]; then
-#        local f1_new=$f1_z0i
-#      else
-#        local f1_new=$(dirname $f1)/${b}.$2
-#      fi
-#      if [ "$4" == "zero" -o -z "$4" ]; then
-#        local f1_cur=$f1_z0i
-#      else
-#        local f1_cur=$(dirname $f1)/${b}.$4
-#      fi
-#      if [ "$2" == "$4" -a $opt_force -eq 0 ]; then
-#        local do_proc=0
-#      else
-#        local do_proc=1
-#      fi
-#      local fntmp=$f1.tmp
-#      if [ -f $f1_new ]; then
-#        if [ -f "$f1_oca" -a -f "$f1_oia" -a -f "$f1_zoi" ]; then
-#          :
-#        else
-#          move $f1 $f1_cur
-#        fi
-#        move $f1_new $f1
-#        do_proc=1
-#      elif [ $opt_force -ne 0 -a ! -f $f1_cur -a "$3" != "graph" -a "$3" != "xml" -a "$3" != "css" -a "$3" != "sass" ]; then
-#        if [ -f "$f1_cur" ]; then rm -f $f1_cur; fi
-#        run_traced "cp -p $f1 $f1_cur"
-#        do_proc=1
-#      fi
-##      if [ $opt_orig -gt 0 -a -f ./tmp/$ft ]; then
-##        run_traced "mv -f $f1 ${f1}.bak"
-##        run_traced "cp -p ./tmp/$ft $f1"
-##      fi
-#      if [ "$3" == "travis" ]; then
-#        cvt_travis $f1 "$2" "$4" "$5"
-#      elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
-#        # cvt_readme $f1 "$2" "$4" "$5"
-#        :
-#      fi
-#      if [ -f $f1_cur ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
-#        diff -q $f1 $f1_cur &>/dev/null
-#        if [ $? -eq 0 ]; then
-#          run_traced "rm -f $f1_cur"
-#        fi
-#      fi
-#    else
-#      echo "File $f1 not found!"
-#    fi
-#  else
-#    local f1=
-#    echo "Missed parameter! use:"
-#    echo "\$ please distribution oca|zero|oia"
-#    sts=$STS_FAILED
-#  fi
-#  return $sts
-#}
-
-#set_remote_info() {
-#  #set_remote_info (REPOSNAME odoo_vid odoo_org)
-#  local REPOSNAME=$1
-#  if [ "$(build_odoo_param VCS $2)" == "git" ]; then
-#    local odoo_fver=$(build_odoo_param FULLVER "$2")
-#    local DUPSTREAM=$(build_odoo_param RUPSTREAM "$2" "default" $3)
-#    local RUPSTREAM=$(build_odoo_param RUPSTREAM "$2" "" $3)
-#    local DORIGIN=$(build_odoo_param RORIGIN "$2" "default" $3)
-#    local RORIGIN=$(build_odoo_param RORIGIN "$2" "" $3)
-#    if [[ ! "$DUPSTREAM" == "$RUPSTREAM" ]]; then
-#      [[ -n "$RUPSTREAM" ]] && run_traced "git remote remove upstream"
-#      [[ -n "$DUPSTREAM" ]] && run_traced "git remote add upstream $DUPSTREAM"
-#    fi
-#    if [[ ! "$DORIGIN" == "$RORIGIN" ]]; then
-#      [[ -n "$RORIGIN" ]] && run_traced "git remote remove origin"
-#      [[ -n "$DORIGIN" ]] && run_traced "git remote add origin $DORIGIN"
-#    fi
-#  elif [ ${test_mode:-0} -eq 0 ]; then
-#    echo "No git repositoy $REPOSNAME!"
 #  fi
 #}
 
@@ -1038,109 +622,109 @@ add_file_2_pkg() {
   return $s
 }
 
-do_build() {
-  #do_build pgkname tar
-  local sts=$STS_SUCCESS
-  local rpt=pypi
-  local f i l n p s v x y PKGLIST invalid PASSED
-  local SETUP=./setup.sh
-  local xx="$(get_cfg_value 0 filedel)"
-  local yy="$(get_cfg_value 0 fileignore)"
-  if [ $opt_keep -ne 0 ]; then
-    xx="$xx $yy"
-  else
-    xx="$xx $yy tests/"
-  fi
-  if [ "$PRJNAME" != "Odoo" ]; then
-    run_traced "cd $PKGPATH"
-    # run_traced "mkdir -p tmp"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep --color=never -Eo '[a-zA-Z0-9_-]+' | head -n1)
-    v=$(cat setup.py | grep version | grep --color=never -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
-    if [ ! -f "$n*$v*tar.gz" -o $opt_force -gt 0 ]; then
-      PKGLIST=$(cat setup.py | grep "# PKGLIST=" | awk -F= '{print $2}')
-      if [ -n "$PKGLIST" ]; then
-        PKGLIST=${PKGLIST//,/ }
-      else
-        if [ "$PRJNAME" == "lisa" ]; then
-          cp ../../clodoo/clodoo/odoorc ./
-          cp ../../z0lib/z0lib/z0librc ./
-        fi
-        x="find . -type f"
-        for f in $xx "setup.*"; do
-          if [ "${f: -1}" == "/" ]; then
-            x="$x -not -path '*/$f*'"
-          else
-            x="$x -not -name '*$f'"
-          fi
-        done
-        eval $x >./tmp.log
-        PKGLIST="$(cat ./tmp.log)"
-        rm -f ./tmp.log
-      fi
-      invalid=
-      for f in $PKGLIST; do
-        if [ -f $f ]; then
-          :
-          #cp $f $PKGPATH/tmp
-        else
-          invalid=$f
-        fi
-      done
-      if [ -n "$invalid" ]; then
-        echo "File $f not found"
-        return 1
-      fi
-      p="$n-$v.tar.gz"
-      if [ -f $p ]; then
-        run_traced "rm -f $p"
-      fi
-      echo "# $p" >$SETUP
-      f=
-      for i in {2..9}; do
-        x=$(echo $PRJPATH | awk -F/ '{print $'$i'}')
-        if [ -n "$x" ]; then
-          f=$f/$x
-          if [ $i -gt 3 ]; then
-            echo "mkdir -p $f" >>$SETUP
-          fi
-        fi
-      done
-      l=${#PKGPATH}
-      f=".${PRJPATH:l}" # subroot
-      l=${#f}
-      ((l++))
-      PASSED=
-      x="-cf"
-      for f in $PKGLIST; do
-        y=$(dirname ./${f:l})
-        if [ "$y" != "." ]; then
-          y=$(dirname ${f:l})
-          if [[ " $PASSED " =~ [[:space:]]$y[[:space:]] ]]; then
-            :
-          else
-            echo "mkdir -p $PRJPATH/$y" >>$SETUP
-            PASSED="$PASSED $y"
-          fi
-          y=$y/
-        else
-          y=
-        fi
-        run_traced "tar $x $p $f"
-        x=${x/c/r}
-        # if [ -f "$f" ]; then rm -f $f; fi
-        echo "cp -p $f $PKGPATH/$y" >>$SETUP
-      done
-      chmod +x $SETUP
-      if [ -x $PRJPATH/setup.sh ]; then
-        run_traced "cp $PRJPATH/setup.sh $SETUP"
-      fi
-      run_traced "tar $x $p $SETUP"
-      run_traced "rm -f $SETUP"
-    fi
-  fi
-  return $sts
-}
+#do_build() {
+#  #do_build pgkname tar
+#  local sts=$STS_SUCCESS
+#  local rpt=pypi
+#  local f i l n p s v x y PKGLIST invalid PASSED
+#  local SETUP=./setup.sh
+#  local xx="$(get_cfg_value 0 filedel)"
+#  local yy="$(get_cfg_value 0 fileignore)"
+#  if [ $opt_keep -ne 0 ]; then
+#    xx="$xx $yy"
+#  else
+#    xx="$xx $yy tests/"
+#  fi
+#  if [ "$PRJNAME" != "Odoo" ]; then
+#    run_traced "cd $PKGPATH"
+#    # run_traced "mkdir -p tmp"
+#    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+#    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep --color=never -Eo '[a-zA-Z0-9_-]+' | head -n1)
+#    v=$(cat setup.py | grep version | grep --color=never -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+#    if [ ! -f "$n*$v*tar.gz" -o $opt_force -gt 0 ]; then
+#      PKGLIST=$(cat setup.py | grep "# PKGLIST=" | awk -F= '{print $2}')
+#      if [ -n "$PKGLIST" ]; then
+#        PKGLIST=${PKGLIST//,/ }
+#      else
+#        if [ "$PRJNAME" == "lisa" ]; then
+#          cp ../../clodoo/clodoo/odoorc ./
+#          cp ../../z0lib/z0lib/z0librc ./
+#        fi
+#        x="find . -type f"
+#        for f in $xx "setup.*"; do
+#          if [ "${f: -1}" == "/" ]; then
+#            x="$x -not -path '*/$f*'"
+#          else
+#            x="$x -not -name '*$f'"
+#          fi
+#        done
+#        eval $x >./tmp.log
+#        PKGLIST="$(cat ./tmp.log)"
+#        rm -f ./tmp.log
+#      fi
+#      invalid=
+#      for f in $PKGLIST; do
+#        if [ -f $f ]; then
+#          :
+#          #cp $f $PKGPATH/tmp
+#        else
+#          invalid=$f
+#        fi
+#      done
+#      if [ -n "$invalid" ]; then
+#        echo "File $f not found"
+#        return 1
+#      fi
+#      p="$n-$v.tar.gz"
+#      if [ -f $p ]; then
+#        run_traced "rm -f $p"
+#      fi
+#      echo "# $p" >$SETUP
+#      f=
+#      for i in {2..9}; do
+#        x=$(echo $PRJPATH | awk -F/ '{print $'$i'}')
+#        if [ -n "$x" ]; then
+#          f=$f/$x
+#          if [ $i -gt 3 ]; then
+#            echo "mkdir -p $f" >>$SETUP
+#          fi
+#        fi
+#      done
+#      l=${#PKGPATH}
+#      f=".${PRJPATH:l}" # subroot
+#      l=${#f}
+#      ((l++))
+#      PASSED=
+#      x="-cf"
+#      for f in $PKGLIST; do
+#        y=$(dirname ./${f:l})
+#        if [ "$y" != "." ]; then
+#          y=$(dirname ${f:l})
+#          if [[ " $PASSED " =~ [[:space:]]$y[[:space:]] ]]; then
+#            :
+#          else
+#            echo "mkdir -p $PRJPATH/$y" >>$SETUP
+#            PASSED="$PASSED $y"
+#          fi
+#          y=$y/
+#        else
+#          y=
+#        fi
+#        run_traced "tar $x $p $f"
+#        x=${x/c/r}
+#        # if [ -f "$f" ]; then rm -f $f; fi
+#        echo "cp -p $f $PKGPATH/$y" >>$SETUP
+#      done
+#      chmod +x $SETUP
+#      if [ -x $PRJPATH/setup.sh ]; then
+#        run_traced "cp $PRJPATH/setup.sh $SETUP"
+#      fi
+#      run_traced "tar $x $p $SETUP"
+#      run_traced "rm -f $SETUP"
+#    fi
+#  fi
+#  return $sts
+#}
 
 
 do_docs() {
@@ -1853,7 +1437,7 @@ do_show() {
     echo "> please show (docs|licence)"
     echo "show docs        -> show docs using local browser"
     echo "show license     -> show licenses of modules of current Odoo repository"
-    echo "show status      -> show component status"
+    # echo "show status      -> show component status"
     sts=$STS_FAILED
   fi
   return $sts
@@ -1887,60 +1471,60 @@ do_show_license() {
   fi
   return 0
 }
-
-do_show_status() {
-  local s v1 v2 v x y
-  local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
-  pushd $HOME/tools >/dev/null
-  local PKGS=$(git status -s | grep -E "^ M" | awk '{print $2}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
-  local PKGS_V=$(git diff -G__version__ --compact-summary | awk '{print $1}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
-  [[ -n "$PKGS" ]] && PKGS="(${PKGS:0:-1})" || PKGS="()"
-  [[ -n "$PKGS_V" ]] && PKGS_V="(${PKGS_V:0:-1})" || PKGS_V="()"
-  popd >/dev/null
-  for pkg in $PKGS_LIST tools; do
-    x=""
-    [[ $opt_force -ne 0 ]] && echo -e "\e[1m[ $pkg ]\e[0m"
-    [[ $opt_force -eq 0 ]] && echo -e "[ $pkg ]"
-    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg="${pkg//-/_}"
-    if [[ $pkg == "tools" ]]; then
-      for fn in egg-info licence_text templates .travis.yml install_tools.sh odoo_default_tnl.xlsx setup.py; do
-        vfdiff -X diff $HOME/$pkg/$fn $HOME_DEVEL/pypi/$pkg/$fn -q >/dev/null
-        if [[ $? -ne 0 ]]; then
-          x="R"
-          [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/$pkg/$fn $HOME_DEVEL/pypi/$pkg/$fn
-          break
-        fi
-      done
-    else
-      vfdiff -X diff $HOME/tools/$pkg $HOME_DEVEL/pypi/$pkg/$pkg -q >/dev/null
-      if [[ $? -ne 0 ]]; then
-        x="R"
-        [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/tools/$pkg $HOME_DEVEL/pypi/$pkg/$pkg
-      fi
-    fi
-    [[ $PKGS != "()" && $pkg =~ $PKGS ]] && x="$x G"
-    [[ $PKGS_V != "()" && $pkg =~ $PKGS_V ]] && x="$x V"
-    if [[ $pkg == "tools" ]]; then
-      v1=$(grep -E "version" $HOME/tools/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
-      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
-    else
-      v1=$(grep -E "version" $HOME/tools/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
-      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
-    fi
-    if [[ $x =~ "R" ]]; then
-      [[ $pkg == "tools" ]] && s="$HOME_DEVEL/pypi/$pkg" || s="$HOME_DEVEL/pypi/$pkg/$pkg"
-      if [[ $v1 == $v2 && ! $x =~ "V" ]]; then
-        v=$(echo $v2 | awk -F. '{if ($NF == 3) {OFS="."; print $1,$2,int($3)+1} else {OFS="."; print $1,$2,$3,int($4)+1}}')
-        echo -e "\e[1m    Execute: cd $s; please version $v2 $v; travis && please replace\e[0m"
-      else
-        echo -e "\e[1m    Execute: cd $s; travis && please replace\e[0m"
-      fi
-    fi
-    [[ $x =~ "G" && $x =~ "V" ]] && echo -e "\e[1m    Package $pkg (new version $v1) have to be pushed on github.com\e[0m"
-    [[ $x =~ "G" && ! $x =~ "V" ]] && echo -e "\e[1m    Package $pkg differs from github.com but it has the same version $v1!!\e[0m"
-  done
-  [[ -f $HOME/tools/egg-info/history.rst ]] && head $HOME/tools/egg-info/history.rst
-}
+#
+#do_show_status() {
+#  local s v1 v2 v x y
+#  local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
+#  pushd $HOME/tools >/dev/null
+#  local PKGS=$(git status -s | grep -E "^ M" | awk '{print $2}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
+#  local PKGS_V=$(git diff -G__version__ --compact-summary | awk '{print $1}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
+#  [[ -n "$PKGS" ]] && PKGS="(${PKGS:0:-1})" || PKGS="()"
+#  [[ -n "$PKGS_V" ]] && PKGS_V="(${PKGS_V:0:-1})" || PKGS_V="()"
+#  popd >/dev/null
+#  for pkg in $PKGS_LIST tools; do
+#    x=""
+#    [[ $opt_force -ne 0 ]] && echo -e "\e[1m[ $pkg ]\e[0m"
+#    [[ $opt_force -eq 0 ]] && echo -e "[ $pkg ]"
+#    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pkg="${pkg//-/_}"
+#    if [[ $pkg == "tools" ]]; then
+#      for fn in egg-info licence_text templates .travis.yml install_tools.sh odoo_default_tnl.xlsx setup.py; do
+#        vfdiff -X diff $HOME/$pkg/$fn $HOME_DEVEL/pypi/$pkg/$fn -q >/dev/null
+#        if [[ $? -ne 0 ]]; then
+#          x="R"
+#          [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/$pkg/$fn $HOME_DEVEL/pypi/$pkg/$fn
+#          break
+#        fi
+#      done
+#    else
+#      vfdiff -X diff $HOME/tools/$pkg $HOME_DEVEL/pypi/$pkg/$pkg -q >/dev/null
+#      if [[ $? -ne 0 ]]; then
+#        x="R"
+#        [[ $opt_force -ne 0 ]] && vfdiff -X diff $HOME/tools/$pkg $HOME_DEVEL/pypi/$pkg/$pkg
+#      fi
+#    fi
+#    [[ $PKGS != "()" && $pkg =~ $PKGS ]] && x="$x G"
+#    [[ $PKGS_V != "()" && $pkg =~ $PKGS_V ]] && x="$x V"
+#    if [[ $pkg == "tools" ]]; then
+#      v1=$(grep -E "version" $HOME/tools/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
+#      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
+#    else
+#      v1=$(grep -E "version" $HOME/tools/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
+#      v2=$(grep -E "version" $HOME_DEVEL/pypi/$pkg/setup.py|head -n1|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+")
+#    fi
+#    if [[ $x =~ "R" ]]; then
+#      [[ $pkg == "tools" ]] && s="$HOME_DEVEL/pypi/$pkg" || s="$HOME_DEVEL/pypi/$pkg/$pkg"
+#      if [[ $v1 == $v2 && ! $x =~ "V" ]]; then
+#        v=$(echo $v2 | awk -F. '{if ($NF == 3) {OFS="."; print $1,$2,int($3)+1} else {OFS="."; print $1,$2,$3,int($4)+1}}')
+#        echo -e "\e[1m    Execute: cd $s; please version $v2 $v; travis && please replace\e[0m"
+#      else
+#        echo -e "\e[1m    Execute: cd $s; travis && please replace\e[0m"
+#      fi
+#    fi
+#    [[ $x =~ "G" && $x =~ "V" ]] && echo -e "\e[1m    Package $pkg (new version $v1) have to be pushed on github.com\e[0m"
+#    [[ $x =~ "G" && ! $x =~ "V" ]] && echo -e "\e[1m    Package $pkg differs from github.com but it has the same version $v1!!\e[0m"
+#  done
+#  [[ -f $HOME/tools/egg-info/history.rst ]] && head $HOME/tools/egg-info/history.rst
+#}
 
 do_version() {
   # do_version([cur_ver [new_ver]])
@@ -2084,18 +1668,23 @@ if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|build|chkconfig|config|docs|duplicate|edit|export|import|lint|list|lsearch|publish|push|pythonhosted|replace|replica|show|test|translate|version|wep"
+HLPCMDLIST="help|chkconfig|config|docs|duplicate|edit|export|import|lint|list|lsearch|publish|push|pythonhosted|replace|replica|show|test|translate|version|wep"
 if [[ $opt_help -gt 0 ]]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST" \
     "© 2015-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
-opts_travis
+ACT2VME="^(dir|info|show|install|libdir|update|update\+replace|update)$"
+ACT2PYPI="^(docs|git-add|list|replace|travis|travis-summary|version)$"
+ACT2TOOLS="^(docs|git-add|list|replace|travis|travis-summary|version)$"
+PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
+PKGS_LIST_RE="(${PKGS_LIST// /|})"
+PKGS_LIST_RE=${PKGS_LIST_RE//-/.}
+
+# opts_travis
 conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
-# init_travis
-# prepare_env_travis
 
 sts=$STS_SUCCESS
 sts_bash=127
@@ -2117,15 +1706,25 @@ else
   actions=${actions//+/ }
   actions=${actions//,/ }
   for action in $actions; do
-    if [[ "${action:0:3}" == "if-" ]]; then
-      opt_dry_run=1
-      cmd="do_${action:3}"
-    else
-      cmd="do_${action/-/_}"
-    fi
+    [[ "${action:0:3}" == "if-" ]] && opt_dry_run=1 && cmd="do_${action:3}"
+    cmd="do_${action/-/_}"
     if [[ "$(type -t $cmd)" == "function" ]]; then
-      eval $cmd "'$sub1'" "'$sub2'" "'$sub3'"
-      sts=$?
+      if [[ $PRJNAME == "pypi" && $PKGNAME == "pypi" ]]; then
+        [[ ! $action =~ $ACT2PYPI ]] && echo "Action $action not applicable on this directory" && continue
+        [[ $action =~ $ACT2TOOLS ]] && pkgs_list="$PKGS_LIST tools" || pkgs_list="$PKGS_LIST"
+        for fn in $pkgs_list; do
+          echo -e "\n===[$fn]==="
+          pfn="${fn/-/_}"
+          [[ $fn == "tools" ]] && run_traced "pushd $HOME_DEVEL/pypi/$pfn >/dev/null" || run_traced "pushd $HOME_DEVEL/pypi/$pfn/$pfn >/dev/null"
+          eval $cmd "'$sub1'" "'$sub2'" "'$sub3'"
+          sts=$?
+          run_traced "popd >/dev/null"
+          [[ $sts -ne $STS_SUCCESS ]] && break
+        done
+      else
+        eval $cmd "'$sub1'" "'$sub2'" "'$sub3'"
+        sts=$?
+      fi
     else
       echo "Invalid action!"
       echo "Use $THIS $HLPCMDLIST"

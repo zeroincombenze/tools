@@ -5,12 +5,10 @@
 """
     Devel Tools unit test library for python programs Regression Test Suite
 """
-
-# import pdb
 import os
 import sys
 
-from wok_code import license_mgnt
+from wok_code.scripts import license_mgnt
 from zerobug import z0test, z0testodoo
 
 __version__ = "2.0.5"
@@ -47,32 +45,32 @@ class RegressionTest:
 
     def create_file_author_1(self, path):
         fn = os.path.join(path, 'authors.txt')
-        with open(fn, 'wb') as fd:
+        with open(fn, 'w') as fd:
             fd.write("""* Powerp <http://www.powerp.it/>""")
 
     def create_file_contributor_1(self, path):
         fn = os.path.join(path, 'contributors.txt')
-        with open(fn, 'wb') as fd:
+        with open(fn, 'w') as fd:
             fd.write("""* <antonio.vigliotti@libero.it>""")
 
     def create_file_manifest_1(self, path):
         fn = os.path.join(path, '__manifest__.py')
-        with open(fn, 'wb') as fd:
+        with open(fn, 'w') as fd:
             fd.write(MANIFEST_1)
 
     def create_file_author_2(self, path):
         fn = os.path.join(path, 'authors.txt')
-        with open(fn, 'wb') as fd:
+        with open(fn, 'w') as fd:
             fd.write(AUTHOR_2)
 
     def create_file_contributor_2(self, path):
         fn = os.path.join(path, 'contributors.txt')
-        with open(fn, 'wb') as fd:
+        with open(fn, 'w') as fd:
             fd.write(CONTRIBUTORS_2)
 
     def create_file_manifest_2(self, path):
         fn = os.path.join(path, '__manifest__.py')
-        with open(fn, 'wb') as fd:
+        with open(fn, 'w') as fd:
             fd.write(MANIFEST_2)
 
     def prepare_env(self, z0ctx, odoo_ver=None, step=None):

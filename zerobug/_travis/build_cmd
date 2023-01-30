@@ -1,12 +1,12 @@
 #! /bin/bash
 # This script replaces or creates a command to test
 # \$1: source file to test
-# \$2: bin command (if not default or it does not exist)
+# \$2: fqn bin command (if not default or it does not exist)
 PYTHON=$(which python)
 PYVER=$(python --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]" | head -n1)
 SRCPATH=$(readlink -f "$1")
 CMD="$2"
-BASE=$(basename $1)
+BASE=$(basename "$1")
 [[ -z $CMD ]] && CMD=$(which "$BASE" 2>/dev/null)
 [[ $BASE =~ .py$ ]] && BASE=${BASE:0: -3}
 [[ -z $CMD ]] && CMD=$(which "$BASE" 2>/dev/null)
@@ -28,6 +28,7 @@ if [[ $valid -eq 0 ]]; then
     chmod +x $cmd
     exit 1
 fi
+[[ $SRCPATH == $CMD ]] && chmod -c +x $SRCPATH
 echo "#!$PYTHON">$cmd
 echo "# -*- coding: utf-8 -*-">>$cmd
 echo "# Created for test use on $(date '+%Y-%m-%d %H:%M:%S')">>$cmd

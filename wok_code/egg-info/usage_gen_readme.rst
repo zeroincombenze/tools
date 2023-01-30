@@ -49,7 +49,7 @@ Examples:
 ::
 
     # Update Odoo module documentation
-    cd ~/odoo_12/axitec/l10n_it_balance     # Odoo project directory
+    cd ~/odoo_12/l10n-italy/l10n_it_balance # Odoo project directory
     dir egg-info
     >>> authors.txt contributors.txt description.rst __init__.txt known_issues.rst
     gen_readme.py                           # Generate README.rst of project

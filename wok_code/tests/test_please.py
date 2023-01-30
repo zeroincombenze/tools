@@ -8,6 +8,8 @@
 from __future__ import print_function, unicode_literals
 import os
 import sys
+
+from z0lib import z0lib
 from zerobug import z0test
 
 
@@ -28,13 +30,29 @@ class RegressionTest:
         self.root = ''
 
     def test_01(self, z0ctx):
-        # sts = 0
-        # home = os.path.expanduser('~')
-        cmd = os.path.join(self.Z.rundir, 'do_migrate')
-        os.system('%s -V' % cmd)
+        sts, stdout, stderr = z0lib.run_traced("please --version")
+        if sts:
+            self.Z.test_result(
+                z0ctx, "please --version", 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx, "please --version", __version__, (stdout or stderr).split("\n")[0])
+        return sts
+
+    def test_02(self, z0ctx):
+        os.chdir(os.path.expanduser("~/tools/wok_code"))
+        sts, stdout, stderr = z0lib.run_traced("please z0bug -vn")
+        if sts:
+            self.Z.test_result(
+                z0ctx, "please z0bug -vn", 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx, "please z0bug -vn", "> travis", stdout[:8])
+        return sts
 
     def setup(self, z0ctx):
-        pass
+        z0lib.run_traced(
+            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "please.py"))
 
     def tearoff(self, z0ctx):
         pass
