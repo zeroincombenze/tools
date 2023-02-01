@@ -32,9 +32,11 @@ class RegressionTest:
     def test_01(self, z0ctx):
         sts, stdout, stderr = z0lib.run_traced("do_migrate --version")
         if sts:
+            self.Z.test_result(
+                z0ctx, "do_migrate --version", 0, sts)
             return sts
-        self.Z.test_result(
-            z0ctx, "please --version", __version__, stdout.split("\n")[0])
+        self.Z.test_result(z0ctx, "do_migrate --version", __version__,
+                           (stdout + stderr).split("\n")[0])
         return sts
 
     def setup(self, z0ctx):

@@ -36,7 +36,7 @@ class RegressionTest:
                 z0ctx, "please --version", 0, sts)
             return sts
         self.Z.test_result(
-            z0ctx, "please --version", __version__, (stdout or stderr).split("\n")[0])
+            z0ctx, "please --version", __version__, (stdout + stderr).split("\n")[0])
         return sts
 
     def test_02(self, z0ctx):

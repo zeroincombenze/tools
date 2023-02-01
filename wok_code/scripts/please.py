@@ -35,7 +35,10 @@ import argparse
 import itertools
 from z0lib import z0lib
 
-from .please_z0bug import PleaseZ0bug                                      # noqa: F401
+try:
+    from .please_z0bug import PleaseZ0bug                                  # noqa: F401
+except ImportError:
+    from wok_code.scripts.please import PleaseZ0bug                        # noqa: F401
 
 
 __version__ = "2.0.5"
@@ -63,7 +66,27 @@ class Please(object):
         self.sh_subcmd = self.pickle_params()
 
     def store_actions_n_aliases(self):
-        self.valid_actions = ["help"]
+        self.valid_actions = ["help",
+                              "chkconfig",
+                              "config",
+                              "docs",
+                              "duplicate",
+                              "edit",
+                              "export",
+                              "import",
+                              "lint",
+                              "list",
+                              "lsearch",
+                              "publish",
+                              "push",
+                              "pythonhosted",
+                              "replace",
+                              "replica",
+                              "show",
+                              "test",
+                              "translate",
+                              "version",
+                              "wep"]
         self.aliases = {}
         for action in ("z0bug", ):
             self.valid_actions.append(action)
@@ -83,7 +106,7 @@ class Please(object):
 
     def get_cls_of_action(self, action=None):
         clsname = self.clsname_of_action(action)
-        if clsname == "Please":
+        if clsname not in globals():
             return self
         return globals()[clsname](self)
 
@@ -129,15 +152,15 @@ class Please(object):
         )
         parser.add_argument("--from-date diff", help="date to search in log")
         parser.add_argument("-d", "--database", metavar="NAME",)
-        # parser.add_argument(
-        #     "-f",
-        #     "--force",
-        #     action="store_true",
-        #     help=(
-        #         "force copy (push) | build (publish/test) | set_exec (wep) |"
-        #         " full (status)"
-        #     ),
-        # )
+        parser.add_argument(
+            "-f",
+            "--force",
+            action="store_true",
+            help=(
+                "force copy (push) | build (publish/test) | set_exec (wep) |"
+                " full (status)"
+            ),
+        )
         parser.add_argument(
             "-k",
             "--keep",
@@ -265,10 +288,10 @@ class Please(object):
 
     def is_odoo_pkg(self, path=None):
         path = path or os.getcwd()
-        return (
-            os.path.isfile(os.path.join(path, "__manifest__.py"))
-            or os.path.isfile(os.path.join(path, "__openerp__.py"))
-        ) and os.path.isfile(os.path.join(path, "__init__.py"))
+        files = os.listdir(path)
+        filtered = [x for x in files
+                    if x in ("__manifest__.py",  "__openerp__.py", "__init__.py")]
+        return len(filtered) == 2 and "__init__.py" in filtered
 
     def is_repo_ocb(self, path=None):
         path = path or os.getcwd()

@@ -95,7 +95,7 @@ import os
 from future.utils import PY2, PY3
 from past.builtins import basestring, long
 
-# from datetime import datetime
+from datetime import datetime, date
 import json
 import logging
 import base64
@@ -163,6 +163,7 @@ KEY_CANDIDATE = (
     "code",
     "name",
 )
+REC_KEY_NAME = {"id", "code", "name"}
 if PY3:  # pragma: no cover
     text_type = unicode = str
     bytestr_type = bytes
@@ -564,6 +565,7 @@ class MainTest(SingleTransactionCase):
     # ---------------------------------------------
     # --  Type <char> / <text> / base functions  --
     # ---------------------------------------------
+    # Return unicode even on python2
 
     def _cast_field(self, resource, field, value, fmt=None, group=None):
         ftype = self.struct[resource][field]["type"]
@@ -607,6 +609,7 @@ class MainTest(SingleTransactionCase):
     # ----------------------------------
     # --  Type <selection> functions  --
     # ----------------------------------
+    # Return unicode even on python2
 
     def _cast_field_selection(self, resource, field, value, fmt=None, group=None):
         if fmt and resource == "res.partner" and field == "lang":
@@ -618,6 +621,7 @@ class MainTest(SingleTransactionCase):
     # --------------------------------
     # --  Type <boolean> functions  --
     # --------------------------------
+    # Return boolean
 
     def _cast_field_boolean(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, basestring):
@@ -639,6 +643,7 @@ class MainTest(SingleTransactionCase):
     # --------------------------------
     # --  Type <integer> functions  --
     # --------------------------------
+    # Return integer and/or long on python2
 
     def _cast_field_integer(self, resource, field, value, fmt=None, group=None):
         if value and isinstance(value, basestring):
@@ -651,6 +656,7 @@ class MainTest(SingleTransactionCase):
     # ------------------------------
     # --  Type <float> functions  --
     # ------------------------------
+    # Return float
 
     def _cast_field_float(self, resource, field, value, fmt=None, group=None):
         if value and isinstance(value, basestring):
@@ -663,6 +669,7 @@ class MainTest(SingleTransactionCase):
     # ---------------------------------
     # --  Type <monetary> functions  --
     # ---------------------------------
+    # Return float
 
     def _cast_field_monetary(self, resource, field, value, fmt=None, group=None):
         return self._cast_field_float(resource, field, value, fmt=fmt, group=group)
@@ -673,9 +680,34 @@ class MainTest(SingleTransactionCase):
     # ---------------------------------
     # --  Type <datetime> functions  --
     # ---------------------------------
+    # Return datetime (cast / upgrade)
+    # Return datetime (convert Odoo 11+) or string (convert Odoo 10-)
+
+    def _cvt_to_datetime(self, value):
+        if isinstance(value, date):
+            if isinstance(value, datetime):
+                value = datetime(value.year,
+                                 value.month,
+                                 value.day,
+                                 value.hour,
+                                 value.minute,
+                                 value.second)
+            else:
+                value = datetime(value.year, value.month, value.day, 0, 0, 0)
+        elif isinstance(value, basestring):
+            if len(value) <= 10:
+                value += " 00:00:00"
+            value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+        return value
 
     def _cast_field_datetime(self, resource, field, value, fmt=None, group=None):
-        return self._cast_field_date(resource, field, value, fmt=fmt, group=group)
+        if isinstance(value, (list, tuple)) and fmt:
+            value = self._cvt_to_datetime(self.compute_date(value[0], refdate=value[1]))
+        else:
+            value = self._cvt_to_datetime(self.compute_date(value))
+        if PY2 and isinstance(value, datetime) and fmt == "cmd":
+            value = datetime.strftime(value, "%Y-%m-%d %H:%M:%S")
+        return value
 
     # def _upgrade_field_datetime(self, record, field, value):
     #     if isinstance(value, basestring):
@@ -683,17 +715,28 @@ class MainTest(SingleTransactionCase):
     #     return value
 
     def _convert_datetime_to_write(self, record, field, value):
-        return str(value)
+        return self._cvt_to_datetime(value)
 
     # -----------------------------
     # --  Type <date> functions  --
     # -----------------------------
+    # Return date (cast / upgrade)
+    # Return date (convert Odoo 11+) or string (convert Odoo 10-)
+
+    def _cvt_to_date(self, value):
+        if isinstance(value, datetime):
+            value = value.date()
+        elif isinstance(value, basestring):
+            value = datetime.strptime(value[:10], "%Y-%m-%d").date()
+        return value
 
     def _cast_field_date(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, (list, tuple)) and fmt:
-            value = self.compute_date(value[0], refdate=value[1])
+            value = self._cvt_to_date(self.compute_date(value[0], refdate=value[1]))
         else:
-            value = self.compute_date(value)
+            value = self._cvt_to_date(self.compute_date(value))
+        if PY2 and isinstance(value, date) and fmt == "cmd":
+            value = datetime.strftime(value, "%Y-%m-%d")
         return value
 
     # def _upgrade_field_date(self, record, field, value):
@@ -702,11 +745,12 @@ class MainTest(SingleTransactionCase):
     #     return value
 
     def _convert_date_to_write(self, record, field, value):
-        return str(value)
+        return self._cvt_to_date(value)
 
     # -------------------------------
     # --  Type <binary> functions  --
     # -------------------------------
+    # Return base64 (binary data) or string (filename with len<=64)
 
     def _get_binary_filename(self, xref, bin_types=None):
         binary_root = get_module_resource(self.module.name, "tests", "data")
@@ -748,6 +792,7 @@ class MainTest(SingleTransactionCase):
     # ---------------------------------
     # --  Type <many2one> functions  --
     # ---------------------------------
+    # Return int (fmt), string (for xref before bind)
 
     def _cast_field_many2one(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, basestring):
@@ -758,7 +803,7 @@ class MainTest(SingleTransactionCase):
                 group=group,
             )
         elif (
-            fmt == "cmd"
+            fmt in ("cmd", "py")
             and not isinstance(value, (int, long))
             and is_iterable(value)
             and "id" in value
@@ -770,11 +815,12 @@ class MainTest(SingleTransactionCase):
     #     return self._cast_field_many2one(record, field, value)
 
     def _convert_many2one_to_write(self, record, field, value):
-        return value.id
+        return value.id if value else None
 
     # -----------------------------------------------
     # --  Type <one2many> / <many2many> functions  --
     # -----------------------------------------------
+    # Return [*] (fmt), string (for xref before bind)
 
     def _cast_2many(self, resource, value, fmt=None, group=None):
         """ "One2many and many2many may have more representations:
@@ -863,6 +909,11 @@ class MainTest(SingleTransactionCase):
         if len(res):
             if fmt == "cmd" and not is_cmd:
                 res = [(6, 0, res)]
+            elif fmt == "py":
+                ids = res[2:] if is_cmd and res[0] in (0, 1, 6) else res
+                res = self.env[resource]
+                for id in ids:
+                    res |= self.env[resource].browse(id)
         else:
             res = False
             if fmt:
@@ -902,6 +953,30 @@ class MainTest(SingleTransactionCase):
     # -------------------------------------
 
     def cast_types(self, resource, values, fmt=None, group=None):
+        """Convert resource fields in appropriate type, based on Odoo type.
+        The parameter fmt declares the purpose of casting: 'cmd' means convert to Odoo
+        API format and 'py' means convert to native python format.
+        When no format is required (fmt=None), some conversion may be not applicable:
+        * many2one field will be leave unchanged if invalid xref is issued
+        * 2many field me will be leave unchanged if one or more invalid xref is issued
+
+        When Odoo API format (fmt='cmd') is required:
+        * date & datetime fields will be returned as ISO string format for Odoo 10.0-
+
+        The fmt='py' may be useful for comparison.
+
+        Args:
+            resource (str): Odoo model name
+            values (dict): record data
+            fmt (selection): output format:
+            - "": read above
+            - "cmd": format in order to swallow by Odoo API
+            - "py": writable data to store directly in object
+            group (str): used to manager group data; default is "base"
+
+        Returns:
+            Dictionary values
+        """
         if values:
             self._load_field_struct(resource)
             values = self._get_conveyed_value(resource, "all", values, fmt=fmt)
@@ -1175,9 +1250,9 @@ class MainTest(SingleTransactionCase):
                 act_windows["context"].update(
                     self._ctx_active_ids(records, ctx=act_windows["context"])
                 )
-            if not is_iterable(records):
+            if not is_iterable(records):                             # pragma: no cover
                 records = [records]
-        if act_windows["type"] == "ir.actions.server":  # pragma: no cover
+        if act_windows["type"] == "ir.actions.server":               # pragma: no cover
             if not records:
                 self.raise_error("No any records supplied")
         else:
@@ -2188,25 +2263,163 @@ class MainTest(SingleTransactionCase):
     #                             #
     ###############################
 
-    def _validate_1_record(self, tmpl, rec, resource, childs_name):
-        tmpl["_CHECK"] = tmpl.get("_CHECK", {})
-        tmpl["_CHECK"][rec] = tmpl["_CHECK"].get(rec, {})
-        tmpl["_CHECK"][rec]["_COUNT"] = len(
-            [x for x in tmpl.keys() if x != childs_name and not x.startswith("_")]
+    def tmpl_repr(self, tmpl=[]):
+        return "".join(
+            [
+                "template(",
+                ",".join(
+                    [
+                        str(x.get("id", x.get("code", x.get("name", "<...>"))))
+                        for x in tmpl
+                    ]
+                ),
+                ")",
+            ]
         )
-        tmpl["_CHECK"][rec]["_MATCH"] = 0
-        for field in tmpl.keys():
-            if field == childs_name or field.startswith("_"):
-                continue
-            if self._cast_field(
-                resource, field, tmpl[field]
-            ) == self._convert_field_to_write(rec, field):
-                tmpl["_CHECK"][rec]["_MATCH"] += 1
-            # else:
-            #     break
-        return tmpl
 
-    def validate_records(self, template, records):
+    def tmpl_init_zero(self, tmpl, records, records_parent=None):
+        if not is_iterable(records):  # pragma: no cover
+            self.raise_error(
+                "Function validate_records(): right param is not iterable!"
+            )
+        resource = self._get_model_from_records(records)
+        self._load_field_struct(resource)
+        childs_name = self.childs_name.get(resource)
+        resource_child = self.childs_resource.get(resource)
+        if resource_child:
+            self._load_field_struct(resource_child)
+        tmpl["_CHECK"] = tmpl.get("_CHECK", {})
+        for rec in records:
+            key = (records_parent, rec)
+            tmpl["_CHECK"][key] = {}
+            tmpl["_CHECK"][key]["_COUNT"] = len(
+                [
+                    x
+                    for x in tmpl.keys()
+                    if x not in (childs_name, "id") and not x.startswith("_")
+                ]
+            )
+            tmpl["_CHECK"][key]["_MATCH"] = 0
+            if childs_name:
+                if tmpl.get("id"):
+                    nr = tmpl["id"] + 100
+                    repr = ""
+                else:
+                    repr = tmpl.get("code", tmpl.get("name", "")) + ".line_"
+                    nr = 0
+                for tmpl_child in tmpl[childs_name]:
+                    if not REC_KEY_NAME & set(tmpl_child.keys()):
+                        nr += 1
+                        tmpl_child["id"] = repr + str(nr)
+                    self.tmpl_init_zero(
+                        tmpl_child, rec[childs_name], records_parent=rec
+                    )
+
+    def tmpl_init(self, template, records):
+        if not isinstance(template, (list, tuple)):  # pragma: no cover
+            self.raise_error("Function validate_records(): left param is not list!")
+        for nr, tmpl in enumerate(template):
+            if not REC_KEY_NAME & set(tmpl.keys()):
+                tmpl["id"] = nr + 1
+            self.tmpl_init_zero(tmpl, records)
+
+    def tmpl_build_match_submatrix(self, tmpl, records, records_parent=None):
+        resource = self._get_model_from_records(records)
+        childs_name = self.childs_name.get(resource)
+        for rec in records:
+            key = (records_parent, rec)
+            if childs_name:
+                for tmpl_child in tmpl[childs_name]:
+                    self.tmpl_build_match_submatrix(
+                        tmpl_child, rec[childs_name], records_parent=rec
+                    )
+            for field in tmpl.keys():
+                if field in (childs_name, "id") or field.startswith("_"):
+                    continue
+                if self._cast_field(
+                    resource, field, tmpl[field]
+                ) == self._convert_field_to_write(rec, field):
+                    tmpl["_CHECK"][key]["_MATCH"] += 1
+
+    def tmpl_build_match_matrix(self, template, records):
+        for tmpl in template:
+            self.tmpl_build_match_submatrix(tmpl, records)
+
+    def tmpl_purge_submatrix(self, tmpl, records, records_parent=None):
+        resource = self._get_model_from_records(records)
+        childs_name = self.childs_name.get(resource)
+        match = None
+        ctr = -1
+        for rec in records:
+            key = (records_parent, rec)
+            if key not in tmpl["_CHECK"]:
+                continue
+            if childs_name:
+                for tmpl_child in tmpl[childs_name]:
+                    self.tmpl_purge_submatrix(
+                        tmpl_child, rec[childs_name], records_parent=rec
+                    )
+                key_child = [x for x in tmpl_child["_CHECK"]][0]
+                if key[1] == key_child[0]:
+                    tmpl["_CHECK"][key]["_COUNT"] += tmpl_child["_CHECK"][key_child][
+                        "_COUNT"
+                    ]
+                    tmpl["_CHECK"][key]["_MATCH"] += tmpl_child["_CHECK"][key_child][
+                        "_MATCH"
+                    ]
+            if tmpl["_CHECK"][key]["_MATCH"] > ctr:
+                match = rec
+                ctr = tmpl["_CHECK"][key]["_MATCH"]
+        if match:
+            for key in tmpl["_CHECK"].copy().keys():
+                if key[0] != records_parent or key[1] != match:
+                    del tmpl["_CHECK"][key]
+        return match
+
+    def tmpl_purge_matrix(self, template, records):
+        matched = []
+        for tmpl in template:
+            for rec in matched:
+                key = (None, rec)
+                del tmpl["_CHECK"][key]
+            matched.append(self.tmpl_purge_submatrix(tmpl, records))
+
+    def validate_1_record(self, tmpl):
+        resource = childs_name = ""
+        ctr_assertion = 0
+        for key in tmpl["_CHECK"]:
+            rec = key[1]
+            if not resource:
+                resource = self._get_model_from_records(rec)
+                childs_name = self.childs_name.get(resource)
+            for field in tmpl.keys():
+                if field in (childs_name, "id") or field.startswith("_"):
+                    continue
+                self.log_lvl_2(
+                    "🐞 ... assertEqual(%s.%s:'%s', %s:'%s')"
+                    % (
+                        self.tmpl_repr([tmpl]),
+                        field,
+                        tmpl[field],
+                        "rec(%d)" % rec.id,
+                        rec[field],
+                    )
+                )
+                # ftype = self.struct[resource][field]["type"]
+                # if ftype in ("datetime", "date"):
+                #     self.assertEqual(
+                #         str(self._cast_field(resource, field, tmpl[field])),
+                #         self._convert_field_to_write(rec, field),
+                #     )
+                # else:
+                self.assertEqual(
+                    self._cast_field(resource, field, tmpl[field], fmt="py"),
+                    self._cast_field(resource, field, rec[field], fmt="py")
+                )
+                ctr_assertion += 1
+        return ctr_assertion
+
+    def validate_records(self, template, records, raise_if_not_match=True):
         """Validate records against template values.
         During the test will be necessary to check result record values.
         This function aim to validate all the important values with one step.
@@ -2230,91 +2443,24 @@ class MainTest(SingleTransactionCase):
         Raises:
             ValueError: if no enough assertions or one assertion is failed
         """
-        if not isinstance(template, (list, tuple)):  # pragma: no cover
-            self.raise_error("Function validate_records() 1° param must be list!")
-        if not is_iterable(records):  # pragma: no cover
-            self.raise_error("Function validate_records() 1° param must be iterable!")
-        resource = self._get_model_from_records(records)
-        self._load_field_struct(resource)
-        childs_name = self.childs_name.get(resource)
-        resource_child = self.childs_resource.get(resource)
-        if resource_child:
-            self._load_field_struct(resource_child)
+
+        self.tmpl_init(template, records)
         self.log_lvl_2(
-            "🐞validate_records(%s, %s)"
-            % ([x.get("code", x.get("name", "<...>")) for x in template], records)
+            "🐞validate_records(%s, %s)" % (self.tmpl_repr(template), records)
         )
+        self.tmpl_build_match_matrix(template, records)
+        self.tmpl_purge_matrix(template, records)
+
+        resource = self._get_model_from_records(records)
+        childs_name = self.childs_name.get(resource)
         ctr_assertion = 0
-        for rec in records:
-            if not is_iterable(rec):  # pragma: no cover
-                self.raise_error("Function validate_records() w/o iterable")
-            for tmpl in template:
-                if not isinstance(tmpl, dict):  # pragma: no cover
-                    self.raise_error("Function validate_records() w/o iterable")
-                tmpl = self._validate_1_record(tmpl, rec, resource, childs_name)
-                if (
-                    childs_name
-                    and tmpl["_CHECK"][rec]["_MATCH"] == tmpl["_CHECK"][rec]["_COUNT"]
-                ):
-                    matches, ctr = self.validate_records(
-                        tmpl[childs_name], rec[childs_name]
-                    )
-                    if matches:
-                        tmpl["_CHECK"][rec]["_MATCH"] += ctr
-                        tmpl["_CHECK"][rec]["_COUNT"] += ctr
-                    ctr_assertion += ctr
-
-        for rec in records:
-            match = None
-            ctr = -1
-            for tmpl in template:
-                if tmpl["_CHECK"].get(rec, {}).get("_MATCH", 0) != tmpl["_CHECK"].get(
-                    rec, {}
-                ).get("_COUNT", 1):
-                    if rec in tmpl["_CHECK"]:
-                        del tmpl["_CHECK"][rec]
-                else:
-                    if (
-                        rec in tmpl["_CHECK"]
-                        and tmpl["_CHECK"].get(rec, {}).get("_MATCH", 0) > ctr
-                    ):
-                        match = tmpl
-                        ctr = tmpl["_CHECK"].get(rec, {}).get("_MATCH", 0)
-            for tmpl in template:
-                if rec in tmpl["_CHECK"] and tmpl != match:
-                    del tmpl["_CHECK"][rec]
-
-        for rec in records:
-            found = False
-            for tmpl in template:
-                if "_CHECK" in tmpl and rec in tmpl["_CHECK"]:
-                    found = True
-                    break
-            if not found:  # pragma: no cover
-                for tmpl in template:
-                    if "_CHECK" not in tmpl:
-                        tmpl["_CHECK"][rec] = {}
-                        break
-        matches = []
         for tmpl in template:
-            if "_CHECK" not in tmpl:  # pragma: no cover
-                self.raise_error(
-                    "validate_record(%s) does not match any record!"
-                    % self.dict_2_print(tmpl)
-                )
-            for rec in tmpl["_CHECK"]:
-                matches.append((tmpl, rec))
-                for field in tmpl.keys():
-                    if field == childs_name or field.startswith("_"):
-                        continue
-                    self.assertEqual(
-                        self._cast_field(resource, field, tmpl[field]),
-                        self._convert_field_to_write(rec, field),
-                    )
-                    ctr_assertion += 1
-        self.assertTrue(ctr_assertion >= len(tmpl), "No enough assertion validated!")
+            ctr_assertion += self.validate_1_record(tmpl)
+            if childs_name:
+                for tmpl_child in tmpl[childs_name]:
+                    ctr_assertion += self.validate_1_record(tmpl_child)
+
         self.log_lvl_1(
             "🐞%d assertion validated for validate_records(%s, %s)"
-            % (ctr_assertion, self.dict_2_print(template), records),
+            % (ctr_assertion, self.tmpl_repr(template), records),
         )
-        return matches, ctr_assertion
