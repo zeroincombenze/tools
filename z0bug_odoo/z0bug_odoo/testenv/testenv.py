@@ -683,8 +683,31 @@ class MainTest(SingleTransactionCase):
     # Return datetime (cast / upgrade)
     # Return datetime (convert Odoo 11+) or string (convert Odoo 10-)
 
+    def _cvt_to_datetime(self, value):
+        if isinstance(value, date):
+            if isinstance(value, datetime):
+                value = datetime(value.year,
+                                 value.month,
+                                 value.day,
+                                 value.hour,
+                                 value.minute,
+                                 value.second)
+            else:
+                value = datetime(value.year, value.month, value.day, 0, 0, 0)
+        elif isinstance(value, basestring):
+            if len(value) <= 10:
+                value += " 00:00:00"
+            value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+        return value
+
     def _cast_field_datetime(self, resource, field, value, fmt=None, group=None):
-        return self._cast_field_date(resource, field, value, fmt=fmt, group=group)
+        if isinstance(value, (list, tuple)) and fmt:
+            value = self._cvt_to_datetime(self.compute_date(value[0], refdate=value[1]))
+        else:
+            value = self._cvt_to_datetime(self.compute_date(value))
+        if PY2 and isinstance(value, datetime) and fmt == "cmd":
+            value = datetime.strftime(value, "%Y-%m-%d %H:%M:%S")
+        return value
 
     # def _upgrade_field_datetime(self, record, field, value):
     #     if isinstance(value, basestring):
@@ -692,12 +715,7 @@ class MainTest(SingleTransactionCase):
     #     return value
 
     def _convert_datetime_to_write(self, record, field, value):
-        # if isinstance(value, datetime):
-        #     return datetime.strftime(value, "%Y-%m-%d %H:%M:%S")
-        # elif isinstance(value, date):
-        #     return datetime.strftime(value, "%Y-%m-%d 00:00:00")
-        # return value
-        return str(value)
+        return self._cvt_to_datetime(value)
 
     # -----------------------------
     # --  Type <date> functions  --
@@ -705,11 +723,20 @@ class MainTest(SingleTransactionCase):
     # Return date (cast / upgrade)
     # Return date (convert Odoo 11+) or string (convert Odoo 10-)
 
+    def _cvt_to_date(self, value):
+        if isinstance(value, datetime):
+            value = value.date()
+        elif isinstance(value, basestring):
+            value = datetime.strptime(value[:10], "%Y-%m-%d").date()
+        return value
+
     def _cast_field_date(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, (list, tuple)) and fmt:
-            value = self.compute_date(value[0], refdate=value[1])
+            value = self._cvt_to_date(self.compute_date(value[0], refdate=value[1]))
         else:
-            value = self.compute_date(value)
+            value = self._cvt_to_date(self.compute_date(value))
+        if PY2 and isinstance(value, date) and fmt == "cmd":
+            value = datetime.strftime(value, "%Y-%m-%d")
         return value
 
     # def _upgrade_field_date(self, record, field, value):
@@ -718,10 +745,7 @@ class MainTest(SingleTransactionCase):
     #     return value
 
     def _convert_date_to_write(self, record, field, value):
-        # if isinstance(value, date):
-        #     return datetime.strftime(value, "%Y-%m-%d")
-        # return value
-        return str(value)
+        return self._cvt_to_date(value)
 
     # -------------------------------
     # --  Type <binary> functions  --
@@ -779,7 +803,7 @@ class MainTest(SingleTransactionCase):
                 group=group,
             )
         elif (
-            fmt in ("cmd", "wrt")
+            fmt in ("cmd", "py")
             and not isinstance(value, (int, long))
             and is_iterable(value)
             and "id" in value
@@ -885,8 +909,11 @@ class MainTest(SingleTransactionCase):
         if len(res):
             if fmt == "cmd" and not is_cmd:
                 res = [(6, 0, res)]
-            elif fmt == "wrt" and is_cmd and res[0] in (0, 1, 6):
-                res = res[2:]
+            elif fmt == "py":
+                ids = res[2:] if is_cmd and res[0] in (0, 1, 6) else res
+                res = self.env[resource]
+                for id in ids:
+                    res |= self.env[resource].browse(id)
         else:
             res = False
             if fmt:
@@ -926,15 +953,25 @@ class MainTest(SingleTransactionCase):
     # -------------------------------------
 
     def cast_types(self, resource, values, fmt=None, group=None):
-        """Convert resource fields in internal type, if needing.
+        """Convert resource fields in appropriate type, based on Odoo type.
+        The parameter fmt declares the purpose of casting: 'cmd' means convert to Odoo
+        API format and 'py' means convert to native python format.
+        When no format is required (fmt=None), some conversion may be not applicable:
+        * many2one field will be leave unchanged if invalid xref is issued
+        * 2many field me will be leave unchanged if one or more invalid xref is issued
+
+        When Odoo API format (fmt='cmd') is required:
+        * date & datetime fields will be returned as ISO string format for Odoo 10.0-
+
+        The fmt='py' may be useful for comparison.
 
         Args:
             resource (str): Odoo model name
             values (dict): record data
-            fmt (selection): format of some field (*many*)
-            - "": keep *many* field as is (example xref string)
-            - "cmd": format in order to issue for Odoo API
-            - "wrt": writable data to store directly in object (useful for comparison)
+            fmt (selection): output format:
+            - "": read above
+            - "cmd": format in order to swallow by Odoo API
+            - "py": writable data to store directly in object
             group (str): used to manager group data; default is "base"
 
         Returns:
@@ -1213,9 +1250,9 @@ class MainTest(SingleTransactionCase):
                 act_windows["context"].update(
                     self._ctx_active_ids(records, ctx=act_windows["context"])
                 )
-            if not is_iterable(records):
+            if not is_iterable(records):                             # pragma: no cover
                 records = [records]
-        if act_windows["type"] == "ir.actions.server":  # pragma: no cover
+        if act_windows["type"] == "ir.actions.server":               # pragma: no cover
             if not records:
                 self.raise_error("No any records supplied")
         else:
@@ -2351,7 +2388,7 @@ class MainTest(SingleTransactionCase):
         resource = childs_name = ""
         ctr_assertion = 0
         for key in tmpl["_CHECK"]:
-            (parent, rec) = (key[0], key[1])
+            rec = key[1]
             if not resource:
                 resource = self._get_model_from_records(rec)
                 childs_name = self.childs_name.get(resource)
@@ -2359,7 +2396,7 @@ class MainTest(SingleTransactionCase):
                 if field in (childs_name, "id") or field.startswith("_"):
                     continue
                 self.log_lvl_2(
-                    "🐞 ... assertEqual(%s.%s:<%s>, %s:<%s>)"
+                    "🐞 ... assertEqual(%s.%s:'%s', %s:'%s')"
                     % (
                         self.tmpl_repr([tmpl]),
                         field,
@@ -2368,17 +2405,17 @@ class MainTest(SingleTransactionCase):
                         rec[field],
                     )
                 )
-                ftype = self.struct[resource][field]["type"]
-                if ftype in ("datetime", "date"):
-                    self.assertEqual(
-                        str(self._cast_field(resource, field, tmpl[field])),
-                        self._convert_field_to_write(rec, field),
-                    )
-                else:
-                    self.assertEqual(
-                        self._cast_field(resource, field, tmpl[field], fmt="wrt"),
-                        self._convert_field_to_write(rec, field),
-                    )
+                # ftype = self.struct[resource][field]["type"]
+                # if ftype in ("datetime", "date"):
+                #     self.assertEqual(
+                #         str(self._cast_field(resource, field, tmpl[field])),
+                #         self._convert_field_to_write(rec, field),
+                #     )
+                # else:
+                self.assertEqual(
+                    self._cast_field(resource, field, tmpl[field], fmt="py"),
+                    self._cast_field(resource, field, rec[field], fmt="py")
+                )
                 ctr_assertion += 1
         return ctr_assertion
 

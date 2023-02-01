@@ -66,7 +66,27 @@ class Please(object):
         self.sh_subcmd = self.pickle_params()
 
     def store_actions_n_aliases(self):
-        self.valid_actions = ["help"]
+        self.valid_actions = ["help",
+                              "chkconfig",
+                              "config",
+                              "docs",
+                              "duplicate",
+                              "edit",
+                              "export",
+                              "import",
+                              "lint",
+                              "list",
+                              "lsearch",
+                              "publish",
+                              "push",
+                              "pythonhosted",
+                              "replace",
+                              "replica",
+                              "show",
+                              "test",
+                              "translate",
+                              "version",
+                              "wep"]
         self.aliases = {}
         for action in ("z0bug", ):
             self.valid_actions.append(action)
@@ -86,7 +106,7 @@ class Please(object):
 
     def get_cls_of_action(self, action=None):
         clsname = self.clsname_of_action(action)
-        if clsname == "Please":
+        if clsname not in globals():
             return self
         return globals()[clsname](self)
 
