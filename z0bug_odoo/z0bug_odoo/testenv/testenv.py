@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.5
+"""Test Environment v2.0.5.1
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -178,6 +178,7 @@ def is_iterable(obj):
 
 
 class MainTest(SingleTransactionCase):
+
     def setUp(self):
         super(MainTest, self).setUp()
         self.debug_level = 0
@@ -456,6 +457,19 @@ class MainTest(SingleTransactionCase):
             and len(xref.split(".")) == 2
         )
 
+    def _unpack_xref(self, xref):
+        # This is a 3 level external reference for header/detail relationship
+        ln = xref.split("_")
+        # Actual external reference for parent record
+        xref = "_".join(ln[:-1])
+        # Key to search for child record
+        ln = ln[-1]
+        if ln.isdigit():
+            ln = int(ln)
+            if not ln:
+                return xref, False  # pragma: no cove
+        return xref, ln
+
     def _is_transient(self, resource):
         if isinstance(resource, basestring):
             return self.env[resource]._transient  # pragma: no cover
@@ -495,12 +509,34 @@ class MainTest(SingleTransactionCase):
                 if not res and not self.get_resource_data(resource, xref):
                     self._logger.info("⚠ External reference %s not found" % xref)
             else:
+                if not resource:
+                    resource = self._get_model_of_xref(xref)
                 res = self.env.ref(
                     self._get_conveyed_value(resource, None, xref),
                     raise_if_not_found=False,
                 )
             res = res.id if res else False if fmt else xref
         return res
+
+    def _get_model_of_xref(self, xref):
+        resource = name = ln = None
+        if xref in self.setup_xrefs:
+            group, resource = self.setup_xrefs[xref]
+        if not resource:
+            name, ln = self._unpack_xref(xref)
+            if ln and name in self.setup_xrefs:
+                group, resource = self.setup_xrefs[name]
+                resource = self.childs_resource.get(resource, resource)
+        if not resource:
+            resource, res_id = self.env['ir.model.data'].xmlid_to_res_model_res_id(
+                xref, raise_if_not_found=False)
+            if not resource and name and ln:
+                resource, res_id = self.env['ir.model.data'].xmlid_to_res_model_res_id(
+                    name, raise_if_not_found=False)
+                resource = self.childs_resource.get(resource, resource)
+            if resource:
+                self.setup_xrefs[xref] = (None, resource)
+        return resource
 
     def _get_depending_xref(self, resource, xref):
         resource_child = xref_child = field_child = field_parent = False
@@ -637,9 +673,6 @@ class MainTest(SingleTransactionCase):
                 value = True
         return value
 
-    # def _upgrade_field_boolean(self, record, field, value):
-    #     return self._cast_field_boolean(record, field, value)
-
     # --------------------------------
     # --  Type <integer> functions  --
     # --------------------------------
@@ -649,9 +682,6 @@ class MainTest(SingleTransactionCase):
         if value and isinstance(value, basestring):
             value = int(value)
         return value
-
-    # def _upgrade_field_integer(self, record, field, value):
-    #     return self._cast_field_integer(record, field, value)
 
     # ------------------------------
     # --  Type <float> functions  --
@@ -663,9 +693,6 @@ class MainTest(SingleTransactionCase):
             value = eval(value)
         return value
 
-    # def _upgrade_field_float(self, record, field, value):
-    #     return self._cast_field_float(record, field, value)
-
     # ---------------------------------
     # --  Type <monetary> functions  --
     # ---------------------------------
@@ -673,9 +700,6 @@ class MainTest(SingleTransactionCase):
 
     def _cast_field_monetary(self, resource, field, value, fmt=None, group=None):
         return self._cast_field_float(resource, field, value, fmt=fmt, group=group)
-
-    # def _upgrade_field_monetary(self, record, field, value):
-    #     return self._cast_field_monetary(record, field, value)
 
     # ---------------------------------
     # --  Type <datetime> functions  --
@@ -709,11 +733,6 @@ class MainTest(SingleTransactionCase):
             value = datetime.strftime(value, "%Y-%m-%d %H:%M:%S")
         return value
 
-    # def _upgrade_field_datetime(self, record, field, value):
-    #     if isinstance(value, basestring):
-    #         return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-    #     return value
-
     def _convert_datetime_to_write(self, record, field, value):
         return self._cvt_to_datetime(value)
 
@@ -738,11 +757,6 @@ class MainTest(SingleTransactionCase):
         if PY2 and isinstance(value, date) and fmt == "cmd":
             value = datetime.strftime(value, "%Y-%m-%d")
         return value
-
-    # def _upgrade_field_date(self, record, field, value):
-    #     if isinstance(value, basestring):
-    #         return datetime.strptime(value, "%Y-%m-%d")
-    #     return value
 
     def _convert_date_to_write(self, record, field, value):
         return self._cvt_to_date(value)
@@ -803,16 +817,13 @@ class MainTest(SingleTransactionCase):
                 group=group,
             )
         elif (
-            fmt in ("cmd", "py")
+            fmt in ("cmd", "py", "id")
             and not isinstance(value, (int, long))
             and is_iterable(value)
             and "id" in value
         ):
             value = value.id
         return value if value else None
-
-    # def _upgrade_field_many2one(self, record, field, value):
-    #     return self._cast_field_many2one(record, field, value)
 
     def _convert_many2one_to_write(self, record, field, value):
         return value.id if value else None
@@ -822,7 +833,19 @@ class MainTest(SingleTransactionCase):
     # -----------------------------------------------
     # Return [*] (fmt), string (for xref before bind)
 
-    def _cast_2many(self, resource, value, fmt=None, group=None):
+    def _value2dict(self, resource, value, fmt=None, group=None):
+        if isinstance(value, dict):
+            return value
+        elif isinstance(value, basestring):
+            return self.cast_types(
+                resource,
+                self.get_resource_data(resource, value, group=group),
+                fmt=fmt,
+                group=group,
+            )
+        return value
+
+    def _cast_2many(self, resource, field, value, fmt=None, group=None):
         """ "One2many and many2many may have more representations:
         * External reference (str) -> 1 value or None
         * list() or list (str)
@@ -849,6 +872,8 @@ class MainTest(SingleTransactionCase):
         for item in items:
             if isinstance(item, basestring):
                 xid = self._get_xref_id(resource, item, fmt=fmt, group=group)
+                if xid == item and fmt:                              # pragma: no cover
+                    self.raise_error("Unknown value %s of %s" % (item, items))
                 if xid:
                     res.append(xid)
                 is_cmd = False
@@ -857,19 +882,14 @@ class MainTest(SingleTransactionCase):
                 and is_cmd
                 and isinstance(item, (list, tuple))
                 and len(item) == 3
-                and item[0] in (0, 1)
-                and isinstance(item[2], basestring)
+                and (item[0] == 0
+                     or (item[0] == 1 and isinstance(item[1], (int, long))))
             ):
                 res.append(
                     (
                         item[0],
                         item[1],
-                        self.cast_types(
-                            resource,
-                            self.get_resource_data(resource, item[2], group=group),
-                            fmt=fmt,
-                            group=group,
-                        ),
+                        self._value2dict(resource, item[2], fmt="id", group=group),
                     )
                 )
             elif (
@@ -877,31 +897,42 @@ class MainTest(SingleTransactionCase):
                 and is_cmd
                 and isinstance(item, (list, tuple))
                 and len(item) in (2, 3)
-                and (
-                    (len(item) == 3 and item[0] == 0 and isinstance(item[2], dict))
-                    or (
-                        len(item) == 3
-                        and item[0] == 1
-                        and isinstance(item[1], (int, long))
-                        and isinstance(item[2], dict)
-                    )
-                    or (
-                        len(item) == 2
-                        and item[0] in (2, 3, 4)
-                        and isinstance(item[1], (int, long))
-                    )
-                    or item[0] == 5
-                    or (
-                        len(item) == 3
-                        and item[0] == 6
-                        and isinstance(item[1], (int, long))
-                        and isinstance(item[2], (list, tuple))
+                and item[0] in (2, 3, 4)
+                and isinstance(item[1], (int, long, basestring))
+            ):
+                res.append(
+                    (
+                        item[0],
+                        self._cast_field_many2one(
+                            resource, field, item[1], fmt="id", group=None)
                     )
                 )
+            elif (
+                fmt
+                and is_cmd
+                and isinstance(item, (list, tuple))
+                and len(item) == 2
+                and item[0] == 5
             ):
                 res.append(item)
+            elif (
+                fmt
+                and is_cmd
+                and isinstance(item, (list, tuple))
+                and len(item) == 3
+                and item[0] == 6
+            ):
+                res.append(
+                    (
+                        item[0],
+                        item[1],
+                        self._cast_2many(
+                            resource, field, item[2], fmt="id", group=group)
+                    )
+                )
             elif isinstance(item, (list, tuple)):
-                res.append(self._cast_2many(resource, item, group=group))
+                res.append(self._cast_2many(
+                    resource, field, item, fmt="id" if fmt else None, group=group))
                 is_cmd = False
             else:
                 res.append(item)
@@ -923,6 +954,7 @@ class MainTest(SingleTransactionCase):
     def _cast_field_one2many(self, resource, field, value, fmt=None, group=None):
         value = self._cast_2many(
             self.struct[resource][field]["relation"],
+            field,
             value,
             fmt=fmt,
             group=group,
@@ -932,13 +964,13 @@ class MainTest(SingleTransactionCase):
         return value
 
     def _cast_field_many2many(self, resource, field, value, fmt=None, group=None):
-        return self._cast_field_one2many(resource, field, value, fmt=fmt, group=group)
-
-    # def _upgrade_field_one2many(self, record, field, value):
-    #     return self._cast_2many(record, value)
-
-    # def _upgrade_field_many2many(self, record, field, value):
-    #     return self._cast_2many(record, value)
+        return self._cast_2many(
+            self.struct[resource][field]["relation"],
+            field,
+            value,
+            fmt=fmt,
+            group=group
+        )
 
     def _convert_one2many_to_write(self, record, field, value):
         if value:
@@ -962,6 +994,7 @@ class MainTest(SingleTransactionCase):
 
         When Odoo API format (fmt='cmd') is required:
         * date & datetime fields will be returned as ISO string format for Odoo 10.0-
+        * 2many fields are checked for Odoo API prefixes (see 2many functions)
 
         The fmt='py' may be useful for comparison.
 
@@ -972,6 +1005,7 @@ class MainTest(SingleTransactionCase):
             - "": read above
             - "cmd": format in order to swallow by Odoo API
             - "py": writable data to store directly in object
+            - "id": like 'cmd' but does not add prefixes for Odoo API
             group (str): used to manager group data; default is "base"
 
         Returns:
@@ -982,7 +1016,6 @@ class MainTest(SingleTransactionCase):
             values = self._get_conveyed_value(resource, "all", values, fmt=fmt)
             for field in [x for x in list(values.keys())]:
                 if field not in self.struct[resource]:
-                    # if fmt:
                     del values[field]
                     self.log_lvl_2("🐞field %s does not exist in %s" % (field, resource))
                     continue
@@ -1007,7 +1040,6 @@ class MainTest(SingleTransactionCase):
             if (
                 field in BLACKLIST_COLUMNS
                 or record._fields[field].readonly
-                # or record._fields[field].type == "binary"
             ):
                 continue
             value = self._convert_field_to_write(record, field)
@@ -1509,9 +1541,9 @@ class MainTest(SingleTransactionCase):
         if record:
             return record
         # Simulate external reference
-        if not resource and not group and xref in self.setup_xrefs:
-            group, resource = self.setup_xrefs[xref]
-        if not resource:  # pragma: no cover
+        if not resource and not group:
+            resource = self._get_model_of_xref(xref)
+        if not resource:                                             # pragma: no cover
             if raise_if_not_found:
                 self.raise_error("No model issued for binding")
             return False
@@ -1531,19 +1563,13 @@ class MainTest(SingleTransactionCase):
         key_field = self.skeys[resource][0]
         parent_name = self.parent_name.get(resource)
         if parent_name and self.parent_resource[resource] in self.childs_resource:
-            # This is a 3 level external reference for header/detail relationship
-            x = name.split("_")
-            # Actual external reference for parent record
-            name = "_".join(x[:-1])
-            # Key to search for child record
-            x = x[-1]
-            if x.isdigit():
-                x = int(x)
-                if not x:
-                    return False  # pragma: no cover
+            name, x = self._unpack_xref(name)
+            if not x:
+                return False  # pragma: no cover
             # if self.struct[resource][self.skeys[resource][0]]["type"] == "many2one":
             #     pass
             domain = [(key_field, "=", x)]
+            # self._get_xref_id(resource=resource, xref=".".join([module, name]))
             x = self.resource_bind(
                 "%s.%s" % (module, name),
                 resource=self.parent_resource[resource],
@@ -1566,7 +1592,6 @@ class MainTest(SingleTransactionCase):
             domain.append(("company_id", "=", False))
         record = self.env[resource].search(domain)
         if len(record) == 1:
-            # return record[0]
             return self.env[resource].browse(record[0].id)
         if raise_if_not_found:
             self.raise_error("External ID %s not found" % xref)  # pragma: no cover
@@ -1679,7 +1704,6 @@ class MainTest(SingleTransactionCase):
                 record.with_context(check_move_validity=False).write(values)
             else:
                 record.write(values)
-            # record.clear_caches()
         return record
 
     def resource_make(self, resource, xref, values=None, group=None):
@@ -1726,13 +1750,6 @@ class MainTest(SingleTransactionCase):
                         and zerobug[field]
                         and zerobug[field] not in ("None", r"\N")
                     ):
-                        # tnxl_field = self.translate(resource, field)
-                        # data[xref][tnxl_field] = self.translate(
-                        #     resource,
-                        #     zerobug[field],
-                        #     ttype="value",
-                        #     fld_name=field,
-                        # )
                         data[xref][field] = zerobug[field]
             tnxl_xref = self._get_conveyed_value(None, None, xref)
             if tnxl_xref != xref:
@@ -1960,7 +1977,7 @@ class MainTest(SingleTransactionCase):
             None
         """
         self._logger.info(
-            "🎺 Starting test v2.0.5 (debug_level=%s)" % (self.debug_level)
+            "🎺 Starting test v2.0.5.1 (debug_level=%s)" % (self.debug_level)
         )
         self._logger.info(
             "🎺 Testing module: %s (%s)"
@@ -2405,13 +2422,6 @@ class MainTest(SingleTransactionCase):
                         rec[field],
                     )
                 )
-                # ftype = self.struct[resource][field]["type"]
-                # if ftype in ("datetime", "date"):
-                #     self.assertEqual(
-                #         str(self._cast_field(resource, field, tmpl[field])),
-                #         self._convert_field_to_write(rec, field),
-                #     )
-                # else:
                 self.assertEqual(
                     self._cast_field(resource, field, tmpl[field], fmt="py"),
                     self._cast_field(resource, field, rec[field], fmt="py")
