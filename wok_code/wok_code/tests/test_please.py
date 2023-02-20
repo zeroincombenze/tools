@@ -50,6 +50,19 @@ class RegressionTest:
             z0ctx, "please z0bug -vn", "> travis", stdout[:8])
         return sts
 
+    def test_03(self, z0ctx):
+        sts, stdout, stderr = z0lib.run_traced(
+            "please create apache erp.example.com -qn")
+        if sts:
+            self.Z.test_result(
+                z0ctx, "please create apache erp.example.com -qn", 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx, "please create apache erp.example.com -qn",
+            "File ~/erp.example.com.conf will be created",
+            stdout.split("\n")[0])
+        return sts
+
     def setup(self, z0ctx):
         z0lib.run_traced(
             "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "please.py"))

@@ -13,6 +13,9 @@ class PleaseZ0bug(object):
     def get_aliases(self):
         return ["zerobug", "travis"]
 
+    def get_actions(self):
+        return ["lint", "show", "summary", "test", "z0bug"]
+
     def action_opts(self, parser):
         parser.add_argument(
             "-A", "--trace-after",

@@ -1,6 +1,6 @@
 
 ================
-z0bug_odoo 2.0.4
+z0bug_odoo 2.0.5
 ================
 
 
@@ -1739,6 +1739,50 @@ def wizard(self, module=None, action_name=None, act_windows=None, records=None, 
     Raises:
         ValueError: if invalid parameters issued
 
+validate_record
+~~~~~~~~~~~~~~~
+
+Validate records against template values.
+During the test will be necessary to check result record values.
+This function aim to validate all the important values with one step.
+You have to issue 2 params: template with expected values and record to check.
+You can declare just some field value in template which are important for you.
+Both template and record are lists, record may be a record set too.
+This function do following steps:
+
+* matches templates and record, based on template supplied data
+* check if all template are matched with 1 record to validate
+* execute self.assertEqual() for every field in template
+* check for every template record has matched with assert
+
+def validate_records(self, template, records):
+
+    Args:
+         template (list of dict): list of dictionaries with expected values
+         records (list or set): records to validate values
+
+    Returns:
+        list of matched coupled (template, record) + # of assertions
+
+    Raises:
+        ValueError: if no enough assertions or one assertion is failed
+
+get_records_from_act_windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get records from a windows message.
+
+def get_records_from_act_windows(self, act_windows):
+
+    Args:
+        act_windows (dict): Odoo windows action returned by a wizard
+
+    Returns:
+        records or False
+
+    Raises:
+        ValueError: if invalid parameters issued
+
 
 |
 |
@@ -1799,13 +1843,28 @@ Current development version
 History
 -------
 
+2.0.5 (2023-01-25)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: in some rare cases, wizard crashes
+* [NEW] TestEnv: get_records_from_act_windows()
+* [IMP] TestEnv: resource_make now capture demo record if available
+* [IMP] TestEnv: resource is not required for declared xref
+* [IMP] TestEnv: self.module has all information about current testing module
+* [IMP] TestEnv: conveyance functions for all fields (currenly jsust for account.payment.line)
+* [IMP] TestEnv: fields many2one accept object as value
+* [IMP] TestEnv: function validate_records() improvements
+* [FIX] TestEnv: company_setup, now you can declare bank account
+* [IMP] TesEnv: minor improvements
+
 2.0.4 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] TestEnv: resource_create does not duplicate record
 * [FIX] TestEnv: resource_write after save calls write() exactly like Odoo behavior
-* [FIX] TestEnv: new function field_download
-* [IMP] TestEnv: convert_to_write converte binary fields too
+* [NEW] TestEnv: new function field_download()
+* [NEW] TestEnv: new function validate_records()
+* [IMP] TestEnv: convert_to_write convert binary fields too
 * [IMP] TestEnv: minor improvements
 
 2.0.3 (2022-12-29)
@@ -1860,13 +1919,16 @@ Contributors
 ------------
 
 * Antonio M. Vigliotti <info@shs-av.com>
+Contributors
+------------
+
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-19
+Last Update / Ultimo aggiornamento: 2023-02-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -139,9 +139,18 @@ class OdooDeploy(object):
         self.master_branch = ""
         self.target_path = ""
 
+        if self.opt_args.action in ("create-new", "reclone"):
+            if not self.opt_args.odoo_branch:
+                print("***** Missing Odoo branch: 12.0 will be used!")
+                self.opt_args.odoo_branch = "12.0"
+            if not self.opt_args.git_orgs:
+                print("***** Missing git orgs: oca will be used!")
+                self.opt_args.git_orgs = ["oca"]
+
         if self.opt_args.action == "create-new":
             self.master_branch = build_odoo_param(
                 "FULLVER", odoo_vid=opt_args.odoo_branch)
+        if self.opt_args.action in ("create-new", "reclone"):
             for git_org in opt_args.git_orgs:
                 self.get_repo_from_github(git_org=git_org)
             if "OCB" not in self.repo_list:
@@ -154,7 +163,7 @@ class OdooDeploy(object):
             self.get_repo_from_config()
 
         if not self.repo_list:
-            self.target_path = self.opt_args.target_path
+            self.target_path = os.path.expanduser(self.opt_args.target_path)
             self.get_repo_from_path()
 
         for repo in self.repo_list:
@@ -183,6 +192,9 @@ class OdooDeploy(object):
 
         self.git_org = opt_args.git_orgs[0] if opt_args.git_orgs else "oca"
         if self.repo_list:
+            if "OCB" in self.repo_list and self.repo_list[0] != "OCB":
+                del self.repo_list[self.repo_list.index("OCB")]
+                self.repo_list.insert(0, "OCB")
             if self.repo_list[0] == "OCB":
                 self.repo_list = ["OCB"] + sorted(self.repo_list[1:])
             else:
@@ -190,7 +202,8 @@ class OdooDeploy(object):
 
     def run_traced(self, cmd, verbose=None):
         verbose = verbose if isinstance(verbose, bool) else self.opt_args.verbose
-        return z0lib.run_traced(cmd, verbose=verbose, dry_run=self.opt_args.dry_run)
+        return z0lib.run_traced(
+            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, disable_alias=True)
 
     def is_module(self, path):
         if not os.path.isdir(path):
@@ -308,7 +321,7 @@ class OdooDeploy(object):
         git_org = git_org or self.git_org
         branch = branch or self.opt_args.odoo_branch
         if self.opt_args.target_path:
-            self.target_path = self.opt_args.target_path
+            self.target_path = os.path.expanduser(self.opt_args.target_path)
         else:
             self.target_path = build_odoo_param(
                 "ROOT",
@@ -316,7 +329,7 @@ class OdooDeploy(object):
                 git_org=git_org,
                 multi=self.opt_args.multi)
         hash_key = git_org + branch.split(".")[0]
-        if self.opt_args.action == "create-new":
+        if self.opt_args.action in ("create-new", "reclone"):
             opts = []
             if self.opt_args.verbose:
                 opts.append("-v")
