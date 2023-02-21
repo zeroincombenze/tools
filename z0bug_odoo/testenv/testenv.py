@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.5
+"""Test Environment v2.0.5.2
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -99,6 +99,7 @@ from datetime import datetime, date
 import json
 import logging
 import base64
+import inspect
 
 from odoo.tools.safe_eval import safe_eval
 from odoo.modules.module import get_module_resource
@@ -155,6 +156,7 @@ KEY_CANDIDATE = (
     "description",
     "depreciation_type_id",
     "number",
+    "move_name",
     "partner_id",
     "product_id",
     "product_tmpl_id",
@@ -163,6 +165,10 @@ KEY_CANDIDATE = (
     "code",
     "name",
 )
+KEY_OF_RESOURCE = {
+    "res.users": "login",
+    "account.tax": "description",
+}
 REC_KEY_NAME = {"id", "code", "name"}
 if PY3:  # pragma: no cover
     text_type = unicode = str
@@ -178,6 +184,7 @@ def is_iterable(obj):
 
 
 class MainTest(SingleTransactionCase):
+
     def setUp(self):
         super(MainTest, self).setUp()
         self.debug_level = 0
@@ -262,6 +269,22 @@ class MainTest(SingleTransactionCase):
     def log_lvl_1(self, mesg, strict=None):  # pragma: no cover
         if (self.debug_level >= 1 and not strict) or self.debug_level == 1:
             self._logger.info(mesg)
+
+    def log_stack(self):
+        stack = inspect.stack()
+        ctr = 0
+        for ix in range(10):
+            if os.path.basename(stack[ix][1]).startswith("testenv"):
+                continue
+            self.log_lvl_2("🚧 %s(%s)/%s()\n%s" % (
+                os.path.basename(stack[ix][1]),
+                stack[ix][2],
+                stack[ix][3],
+                stack[ix][4]
+            ))
+            ctr += 1
+            if ctr > 0:
+                break
 
     def raise_error(self, mesg):  # pragma: no cover
         self._logger.info("🛑 " + mesg)
@@ -390,10 +413,10 @@ class MainTest(SingleTransactionCase):
                     self.parent_name[resource] = field
                     self.parent_resource[resource] = parent_resource
                     self.log_lvl_2(
-                        "🐞  parent_resource[%s] = %s"
+                        " 🌍 parent_resource[%s] = %s"
                         % (resource, self.parent_resource[resource])
                     )
-                    self.log_lvl_2("🐞  parent_name[%s] = %s" % (resource, field))
+                    self.log_lvl_2(" 🌍 parent_name[%s] = %s" % (resource, field))
                     break
 
     def _search4childs(self, resource, childs_resource=None):
@@ -417,10 +440,10 @@ class MainTest(SingleTransactionCase):
                             "relation"
                         ]
                         self.log_lvl_2(
-                            "🐞childs_resource[%s] = %s"
+                            " 🌍 childs_resource[%s] = %s"
                             % (resource, self.childs_resource[resource])
                         )
-                        self.log_lvl_2("🐞childs_name[%s] = %s" % (resource, field))
+                        self.log_lvl_2(" 🌍 childs_name[%s] = %s" % (resource, field))
 
     def _add_child_records(self, resource, xref, values, group=None):
         if resource not in self.childs_name:
@@ -455,6 +478,19 @@ class MainTest(SingleTransactionCase):
             and " " not in xref
             and len(xref.split(".")) == 2
         )
+
+    def _unpack_xref(self, xref):
+        # This is a 3 level external reference for header/detail relationship
+        ln = xref.split("_")
+        # Actual external reference for parent record
+        xref = "_".join(ln[:-1])
+        # Key to search for child record
+        ln = ln[-1]
+        if ln.isdigit():
+            ln = int(ln)
+            if not ln:
+                return xref, False  # pragma: no cove
+        return xref, ln
 
     def _is_transient(self, resource):
         if isinstance(resource, basestring):
@@ -495,12 +531,34 @@ class MainTest(SingleTransactionCase):
                 if not res and not self.get_resource_data(resource, xref):
                     self._logger.info("⚠ External reference %s not found" % xref)
             else:
+                if not resource:
+                    resource = self._get_model_of_xref(xref)
                 res = self.env.ref(
                     self._get_conveyed_value(resource, None, xref),
                     raise_if_not_found=False,
                 )
             res = res.id if res else False if fmt else xref
         return res
+
+    def _get_model_of_xref(self, xref):
+        resource = name = ln = None
+        if xref in self.setup_xrefs:
+            group, resource = self.setup_xrefs[xref]
+        if not resource:
+            name, ln = self._unpack_xref(xref)
+            if ln and name in self.setup_xrefs:
+                group, resource = self.setup_xrefs[name]
+                resource = self.childs_resource.get(resource, resource)
+        if not resource:
+            resource, res_id = self.env['ir.model.data'].xmlid_to_res_model_res_id(
+                xref, raise_if_not_found=False)
+            if not resource and name and ln:
+                resource, res_id = self.env['ir.model.data'].xmlid_to_res_model_res_id(
+                    name, raise_if_not_found=False)
+                resource = self.childs_resource.get(resource, resource)
+            if resource:
+                self.setup_xrefs[xref] = (None, resource)
+        return resource
 
     def _get_depending_xref(self, resource, xref):
         resource_child = xref_child = field_child = field_parent = False
@@ -545,22 +603,29 @@ class MainTest(SingleTransactionCase):
             if resource in self.childs_resource:
                 self._load_field_struct(self.childs_resource[resource])
                 self._search4parent(self.childs_resource[resource])
-            multi_key = True if self.parent_name.get(resource) else False
-            for field in KEY_CANDIDATE:
-                if (
-                    field == self.parent_name.get(resource)
-                    or (field == "code" and resource == "product.product")
-                    or (field == "description" and resource != "account.tax")
-                    or (field == "login" and resource != "res.users")
-                    or (field == "sequence" and not multi_key)
-                ):
-                    continue  # pragma: no cover
-                if field in self.struct[resource]:
-                    self.skeys[resource] = [field]
-                    self.log_lvl_2(
-                        "🐞  skeys[%s] = %s" % (resource, self.skeys[resource])
-                    )
-                    break
+            if resource in KEY_OF_RESOURCE:
+                field = KEY_OF_RESOURCE[resource]
+                self.skeys[resource] = [field]
+                self.log_lvl_2(
+                    " 🌍 skeys[%s] = %s" % (resource, self.skeys[resource])
+                )
+            else:
+                multi_key = True if self.parent_name.get(resource) else False
+                hdr_key = True if self.childs_name.get(resource) else False
+                for field in KEY_CANDIDATE:
+                    if (
+                        field == self.parent_name.get(resource)
+                        or field in ("product_id", "partner_id") and hdr_key
+                        or (field == "sequence" and not multi_key)
+                        or (field == "code" and resource == "product.product")
+                    ):
+                        continue  # pragma: no cover
+                    if field in self.struct[resource]:
+                        self.skeys[resource] = [field]
+                        self.log_lvl_2(
+                            " 🌍 skeys[%s] = %s" % (resource, self.skeys[resource])
+                        )
+                        break
 
     # ---------------------------------------------
     # --  Type <char> / <text> / base functions  --
@@ -637,9 +702,6 @@ class MainTest(SingleTransactionCase):
                 value = True
         return value
 
-    # def _upgrade_field_boolean(self, record, field, value):
-    #     return self._cast_field_boolean(record, field, value)
-
     # --------------------------------
     # --  Type <integer> functions  --
     # --------------------------------
@@ -649,9 +711,6 @@ class MainTest(SingleTransactionCase):
         if value and isinstance(value, basestring):
             value = int(value)
         return value
-
-    # def _upgrade_field_integer(self, record, field, value):
-    #     return self._cast_field_integer(record, field, value)
 
     # ------------------------------
     # --  Type <float> functions  --
@@ -663,9 +722,6 @@ class MainTest(SingleTransactionCase):
             value = eval(value)
         return value
 
-    # def _upgrade_field_float(self, record, field, value):
-    #     return self._cast_field_float(record, field, value)
-
     # ---------------------------------
     # --  Type <monetary> functions  --
     # ---------------------------------
@@ -673,9 +729,6 @@ class MainTest(SingleTransactionCase):
 
     def _cast_field_monetary(self, resource, field, value, fmt=None, group=None):
         return self._cast_field_float(resource, field, value, fmt=fmt, group=group)
-
-    # def _upgrade_field_monetary(self, record, field, value):
-    #     return self._cast_field_monetary(record, field, value)
 
     # ---------------------------------
     # --  Type <datetime> functions  --
@@ -709,11 +762,6 @@ class MainTest(SingleTransactionCase):
             value = datetime.strftime(value, "%Y-%m-%d %H:%M:%S")
         return value
 
-    # def _upgrade_field_datetime(self, record, field, value):
-    #     if isinstance(value, basestring):
-    #         return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-    #     return value
-
     def _convert_datetime_to_write(self, record, field, value):
         return self._cvt_to_datetime(value)
 
@@ -738,11 +786,6 @@ class MainTest(SingleTransactionCase):
         if PY2 and isinstance(value, date) and fmt == "cmd":
             value = datetime.strftime(value, "%Y-%m-%d")
         return value
-
-    # def _upgrade_field_date(self, record, field, value):
-    #     if isinstance(value, basestring):
-    #         return datetime.strptime(value, "%Y-%m-%d")
-    #     return value
 
     def _convert_date_to_write(self, record, field, value):
         return self._cvt_to_date(value)
@@ -803,16 +846,13 @@ class MainTest(SingleTransactionCase):
                 group=group,
             )
         elif (
-            fmt in ("cmd", "py")
+            fmt in ("cmd", "py", "id")
             and not isinstance(value, (int, long))
             and is_iterable(value)
             and "id" in value
         ):
             value = value.id
         return value if value else None
-
-    # def _upgrade_field_many2one(self, record, field, value):
-    #     return self._cast_field_many2one(record, field, value)
 
     def _convert_many2one_to_write(self, record, field, value):
         return value.id if value else None
@@ -822,7 +862,19 @@ class MainTest(SingleTransactionCase):
     # -----------------------------------------------
     # Return [*] (fmt), string (for xref before bind)
 
-    def _cast_2many(self, resource, value, fmt=None, group=None):
+    def _value2dict(self, resource, value, fmt=None, group=None):
+        if isinstance(value, dict):
+            return self.cast_types(resource, value, fmt=fmt)
+        elif isinstance(value, basestring):
+            return self.cast_types(
+                resource,
+                self.get_resource_data(resource, value, group=group),
+                fmt=fmt,
+                group=group,
+            )
+        return value
+
+    def _cast_2many(self, resource, field, value, fmt=None, group=None):
         """ "One2many and many2many may have more representations:
         * External reference (str) -> 1 value or None
         * list() or list (str)
@@ -848,28 +900,37 @@ class MainTest(SingleTransactionCase):
         items = value2list(value)
         for item in items:
             if isinstance(item, basestring):
-                xid = self._get_xref_id(resource, item, fmt=fmt, group=group)
-                if xid:
-                    res.append(xid)
                 is_cmd = False
+                xid = self._get_xref_id(resource, item, fmt=fmt, group=group)
+                if not xid and fmt and self.get_resource_data(resource, item):
+                    res.append(
+                        (0, 0, self.cast_types(
+                            resource, self.get_resource_data(resource, item), fmt=fmt))
+                    )
+                    is_cmd = True
+                elif xid == item and fmt:                            # pragma: no cover
+                    self.raise_error("Unknown value %s of %s" % (item, items))
+                elif xid:
+                    res.append(xid)
+            elif isinstance(item, dict):
+                if fmt == "cmd":
+                    res.append((0, 0, self.cast_types(resource, item, fmt=fmt)))
+                    is_cmd = True
+                else:
+                    res.append(self.cast_types(resource, item, fmt=fmt))
             elif (
                 fmt
                 and is_cmd
                 and isinstance(item, (list, tuple))
                 and len(item) == 3
-                and item[0] in (0, 1)
-                and isinstance(item[2], basestring)
+                and (item[0] == 0
+                     or (item[0] == 1 and isinstance(item[1], (int, long))))
             ):
                 res.append(
                     (
                         item[0],
                         item[1],
-                        self.cast_types(
-                            resource,
-                            self.get_resource_data(resource, item[2], group=group),
-                            fmt=fmt,
-                            group=group,
-                        ),
+                        self._value2dict(resource, item[2], fmt="id", group=group),
                     )
                 )
             elif (
@@ -877,31 +938,42 @@ class MainTest(SingleTransactionCase):
                 and is_cmd
                 and isinstance(item, (list, tuple))
                 and len(item) in (2, 3)
-                and (
-                    (len(item) == 3 and item[0] == 0 and isinstance(item[2], dict))
-                    or (
-                        len(item) == 3
-                        and item[0] == 1
-                        and isinstance(item[1], (int, long))
-                        and isinstance(item[2], dict)
-                    )
-                    or (
-                        len(item) == 2
-                        and item[0] in (2, 3, 4)
-                        and isinstance(item[1], (int, long))
-                    )
-                    or item[0] == 5
-                    or (
-                        len(item) == 3
-                        and item[0] == 6
-                        and isinstance(item[1], (int, long))
-                        and isinstance(item[2], (list, tuple))
+                and item[0] in (2, 3, 4)
+                and isinstance(item[1], (int, long, basestring))
+            ):
+                res.append(
+                    (
+                        item[0],
+                        self._cast_field_many2one(
+                            resource, field, item[1], fmt="id", group=None)
                     )
                 )
+            elif (
+                fmt
+                and is_cmd
+                and isinstance(item, (list, tuple))
+                and len(item) == 2
+                and item[0] == 5
             ):
                 res.append(item)
+            elif (
+                fmt
+                and is_cmd
+                and isinstance(item, (list, tuple))
+                and len(item) == 3
+                and item[0] == 6
+            ):
+                res.append(
+                    (
+                        item[0],
+                        item[1],
+                        self._cast_2many(
+                            resource, field, item[2], fmt="id", group=group)
+                    )
+                )
             elif isinstance(item, (list, tuple)):
-                res.append(self._cast_2many(resource, item, group=group))
+                res.append(self._cast_2many(
+                    resource, field, item, fmt="id" if fmt else None, group=group))
                 is_cmd = False
             else:
                 res.append(item)
@@ -923,6 +995,7 @@ class MainTest(SingleTransactionCase):
     def _cast_field_one2many(self, resource, field, value, fmt=None, group=None):
         value = self._cast_2many(
             self.struct[resource][field]["relation"],
+            field,
             value,
             fmt=fmt,
             group=group,
@@ -932,13 +1005,13 @@ class MainTest(SingleTransactionCase):
         return value
 
     def _cast_field_many2many(self, resource, field, value, fmt=None, group=None):
-        return self._cast_field_one2many(resource, field, value, fmt=fmt, group=group)
-
-    # def _upgrade_field_one2many(self, record, field, value):
-    #     return self._cast_2many(record, value)
-
-    # def _upgrade_field_many2many(self, record, field, value):
-    #     return self._cast_2many(record, value)
+        return self._cast_2many(
+            self.struct[resource][field]["relation"],
+            field,
+            value,
+            fmt=fmt,
+            group=group
+        )
 
     def _convert_one2many_to_write(self, record, field, value):
         if value:
@@ -962,6 +1035,7 @@ class MainTest(SingleTransactionCase):
 
         When Odoo API format (fmt='cmd') is required:
         * date & datetime fields will be returned as ISO string format for Odoo 10.0-
+        * 2many fields are checked for Odoo API prefixes (see 2many functions)
 
         The fmt='py' may be useful for comparison.
 
@@ -972,6 +1046,7 @@ class MainTest(SingleTransactionCase):
             - "": read above
             - "cmd": format in order to swallow by Odoo API
             - "py": writable data to store directly in object
+            - "id": like 'cmd' but does not add prefixes for Odoo API
             group (str): used to manager group data; default is "base"
 
         Returns:
@@ -982,9 +1057,9 @@ class MainTest(SingleTransactionCase):
             values = self._get_conveyed_value(resource, "all", values, fmt=fmt)
             for field in [x for x in list(values.keys())]:
                 if field not in self.struct[resource]:
-                    # if fmt:
                     del values[field]
-                    self.log_lvl_2("🐞field %s does not exist in %s" % (field, resource))
+                    self.log_lvl_2(
+                        " 🕶️ field %s does not exist in %s" % (field, resource))
                     continue
 
                 value = self._cast_field(
@@ -993,11 +1068,11 @@ class MainTest(SingleTransactionCase):
                 if value is None:
                     del values[field]
                     if field != "id":
-                        self.log_lvl_3("🐞del %s.vals[%s]" % (resource, field))
+                        self.log_lvl_3(" 🕶️ del %s.vals[%s]" % (resource, field))
                     continue
                 values[field] = value
             if not values:  # pragma: no cover
-                self.log_lvl_2("🐞%s.cast_type() = {}" % resource)
+                self.log_lvl_2(" 🕶️ %s.cast_type() = {}" % resource)
 
         return values
 
@@ -1007,7 +1082,6 @@ class MainTest(SingleTransactionCase):
             if (
                 field in BLACKLIST_COLUMNS
                 or record._fields[field].readonly
-                # or record._fields[field].type == "binary"
             ):
                 continue
             value = self._convert_field_to_write(record, field)
@@ -1071,11 +1145,15 @@ class MainTest(SingleTransactionCase):
         elif "context" not in act_windows:
             act_windows["context"] = {}
 
-    def _create_object(self, resource, default={}, ctx={}):
+    def _create_object(self, resource, default={}, origin=None, ctx={}):
         if ctx:
             record = self.env[resource].with_context(ctx).new(values=default)
         else:
             record = self.env[resource].new(values=default)
+        if origin:
+            record._origin = origin
+        else:
+            record._origin = self.env[resource].with_context(ctx)
         if hasattr(record, "default_get"):
             self._upgrade_record(
                 record, record.default_get(record.fields_get_keys()), default
@@ -1087,8 +1165,8 @@ class MainTest(SingleTransactionCase):
 
     def _exec_action(self, record, action, default={}, web_changes=[], ctx={}):
         resource_model = self._get_model_from_records(record)
-        orig = self.env[resource_model]
-        if self._is_transient(orig) and action in ("save", "create", "discard"):
+        origin = self.env[resource_model]
+        if self._is_transient(origin) and action in ("save", "create", "discard"):
             self.raise_error(
                 "Invalid action %s for %s!"
                 % (action, resource_model)  # pragma: no cover
@@ -1097,20 +1175,22 @@ class MainTest(SingleTransactionCase):
             record = self._create_object(
                 resource_model,
                 default=self.cast_types(resource_model, default or {}, fmt="cmd"),
+                origin=origin,
                 ctx=ctx,
             )
         elif is_iterable(record):
-            if not self._is_transient(orig):
+            if not self._is_transient(origin):
                 if not isinstance(record, (list, tuple)):
                     _ctx = self.env["ir.actions.actions"]._get_eval_context()
                     _ctx.update(self._ctx_active_ids(record, ctx))
                     record = record.with_context(_ctx)
                 if len(record) == 1:
-                    orig = self._create_object(
+                    origin = self._create_object(
                         resource_model,
                         default=self._convert_to_write(record[0], new=True),
                         ctx=ctx,
                     )
+                    record._origin = origin
         self._load_field_struct(resource_model)
         for args in web_changes:
             self._wiz_edit(
@@ -1121,7 +1201,7 @@ class MainTest(SingleTransactionCase):
                 args[2] if len(args) > 2 else None,
             )
         if action == "save":
-            vals = self._convert_to_write(record, orig=orig)
+            vals = self._convert_to_write(record, orig=origin)
             record.write(vals)
             return record
         elif action == "create":
@@ -1131,7 +1211,7 @@ class MainTest(SingleTransactionCase):
         elif action == "discard":
             return False  # pragma: no cover
         elif action and hasattr(record, action):
-            self.log_lvl_2("🐞  %s.%s()" % (resource_model, action))
+            self.log_lvl_2("🚴‍♂️  %s.%s()" % (resource_model, action))
             act_windows = getattr(record, action)()
             # Weird bug: this is a workaround!!!
             if action == "action_invoice_draft" and record.state != "draft":
@@ -1141,7 +1221,7 @@ class MainTest(SingleTransactionCase):
         elif self._is_xref(action):
             module, name = action.split(".", 1)
             act_windows = self.env["ir.actions.act_window"].for_xml_id(module, name)
-            self.log_lvl_2("🐞  act_windows(%s)" % action)
+            self.log_lvl_2("🐜  act_windows(%s)" % action)
             self._finalize_ctx_act_windows(record, act_windows)
         else:  # pragma: no cover
             self.raise_error(
@@ -1351,7 +1431,7 @@ class MainTest(SingleTransactionCase):
         Returns:
             None
         """
-        self.log_lvl_3("🐞  %s.onchange(%s=%s)" % (wizard, field, value))
+        self.log_lvl_3("🐜  %s.onchange(%s=%s)" % (wizard, field, value))
         cur_vals = {}
         for name in wizard._fields.keys():
             if name not in SUPERMAGIC_COLUMNS:
@@ -1384,7 +1464,7 @@ class MainTest(SingleTransactionCase):
     ):
         """Simulate wizard execution issued by an action."""
         self.log_lvl_3(
-            "🐞wizard running(%s, %s)"
+            " 🐜 wizard running(%s, %s)"
             % (act_windows.get("name"), self.dict_2_print(act_windows))
         )
         # if act_windows["type"] == "ir.actions.server":
@@ -1446,13 +1526,36 @@ class MainTest(SingleTransactionCase):
             self.setup_data[group] = {}
         if name not in self.setup_data[group]:
             self.setup_data[group][name] = {}
+        resource_child = self.childs_resource.get(resource)
+        if resource_child:
+            field_child = self.childs_name.get(resource)
+            child_values = [
+                x for x in self.get_resource_data_list(resource_child, group=group)
+                if x.startswith(xref)
+            ]
+            if child_values:
+                values[field_child] = child_values
         self.setup_data[group][name][xref] = self.cast_types(
             resource, values, group=group
         )
         self.log_lvl_2(
-            "🐞%s.store_resource_data(%s,name=%s,group=%s)"
+            "💼 %s.store_resource_data(%s,name=%s,group=%s)"
             % (resource, xref, name, group)
         )
+        resource_parent = self.parent_resource.get(resource)
+        if (
+            resource_parent
+            and resource_parent in self.setup_data[group]
+            and self.childs_name.get(resource_parent)
+        ):
+            field_child = self.childs_name[resource_parent]
+            xref_parent, ln = self._unpack_xref(xref)
+            if xref_parent in self.setup_data[group][resource_parent]:
+                parent = self.setup_data[group][resource_parent][xref_parent]
+                if field_child not in parent:
+                    parent[field_child] = []
+                if xref not in parent[field_child]:
+                    parent[field_child].append(xref)
         if name not in self.setup_data_list[group]:
             self.setup_data_list[group].append(name)
         self.setup_xrefs[xref] = (group, resource)
@@ -1495,23 +1598,25 @@ class MainTest(SingleTransactionCase):
         Raises:
             ValueError: if invalid parameters issued
         """
+        self.log_stack()
         self.log_lvl_3("🐞%s.resource_bind(%s)" % (resource, xref))
         # Search for Odoo standard external reference
+        record = None
         if isinstance(xref, (int, long)):
             if not resource:  # pragma: no cover
                 self.raise_error("No model issued for binding")
                 return False
             record = self.env[resource].browse(xref)
-        else:
+        elif isinstance(xref, basestring):
             record = self.env.ref(
                 self._get_conveyed_value(None, None, xref), raise_if_not_found=False
             )
         if record:
             return record
         # Simulate external reference
-        if not resource and not group and xref in self.setup_xrefs:
-            group, resource = self.setup_xrefs[xref]
-        if not resource:  # pragma: no cover
+        if not resource and not group:
+            resource = self._get_model_of_xref(xref)
+        if not resource:                                             # pragma: no cover
             if raise_if_not_found:
                 self.raise_error("No model issued for binding")
             return False
@@ -1531,19 +1636,13 @@ class MainTest(SingleTransactionCase):
         key_field = self.skeys[resource][0]
         parent_name = self.parent_name.get(resource)
         if parent_name and self.parent_resource[resource] in self.childs_resource:
-            # This is a 3 level external reference for header/detail relationship
-            x = name.split("_")
-            # Actual external reference for parent record
-            name = "_".join(x[:-1])
-            # Key to search for child record
-            x = x[-1]
-            if x.isdigit():
-                x = int(x)
-                if not x:
-                    return False  # pragma: no cover
+            name, x = self._unpack_xref(name)
+            if not x:
+                return False  # pragma: no cover
             # if self.struct[resource][self.skeys[resource][0]]["type"] == "many2one":
             #     pass
             domain = [(key_field, "=", x)]
+            # self._get_xref_id(resource=resource, xref=".".join([module, name]))
             x = self.resource_bind(
                 "%s.%s" % (module, name),
                 resource=self.parent_resource[resource],
@@ -1566,7 +1665,6 @@ class MainTest(SingleTransactionCase):
             domain.append(("company_id", "=", False))
         record = self.env[resource].search(domain)
         if len(record) == 1:
-            # return record[0]
             return self.env[resource].browse(record[0].id)
         if raise_if_not_found:
             self.raise_error("External ID %s not found" % xref)  # pragma: no cover
@@ -1588,6 +1686,7 @@ class MainTest(SingleTransactionCase):
         Returns:
             obj: the Odoo model record, if created
         """
+        self.log_stack()
         self._load_field_struct(resource)
         xref = self._get_conveyed_value(resource, None, xref)
         values = self.unicodes(values)
@@ -1653,7 +1752,10 @@ class MainTest(SingleTransactionCase):
         Raises:
             ValueError: if invalid parameters issued
         """
+        self.log_stack()
         if resource is None or isinstance(resource, basestring):
+            if not xref and not values:                              # pragma: no cover
+                self.raise_error("%s.write() without values and xref" % resource)
             record = self.resource_bind(
                 xref,
                 resource=resource,
@@ -1679,13 +1781,13 @@ class MainTest(SingleTransactionCase):
                 record.with_context(check_move_validity=False).write(values)
             else:
                 record.write(values)
-            # record.clear_caches()
         return record
 
     def resource_make(self, resource, xref, values=None, group=None):
         """Create or write a test record.
         This function is a hook to resource_write() or resource_create().
         """
+        self.log_stack()
         self.log_lvl_3(
             "🐞%s.resource_make(%s,xref=%s)"
             % (resource, self.dict_2_print(values), xref)
@@ -1726,13 +1828,6 @@ class MainTest(SingleTransactionCase):
                         and zerobug[field]
                         and zerobug[field] not in ("None", r"\N")
                     ):
-                        # tnxl_field = self.translate(resource, field)
-                        # data[xref][tnxl_field] = self.translate(
-                        #     resource,
-                        #     zerobug[field],
-                        #     ttype="value",
-                        #     fld_name=field,
-                        # )
                         data[xref][field] = zerobug[field]
             tnxl_xref = self._get_conveyed_value(None, None, xref)
             if tnxl_xref != xref:
@@ -1758,6 +1853,7 @@ class MainTest(SingleTransactionCase):
         Raises:
             TypeError: if invalid parameters issued
         """
+        self.log_stack()
         if not isinstance(message, dict):  # pragma: no cover
             self.raise_error("Dictionary expected")
         if "TEST_SETUP_LIST" not in message:  # pragma: no cover
@@ -1768,7 +1864,7 @@ class MainTest(SingleTransactionCase):
             if item not in message:  # pragma: no cover
                 self.raise_error("Key %s not found" % item)
         for resource in message["TEST_SETUP_LIST"]:
-            self.log_lvl_1("🐞declare_all_data(%s,group=%s)" % (resource, group))
+            self.log_lvl_1(" 🐜 declare_all_data(%s,group=%s)" % (resource, group))
             item = "TEST_%s" % resource.upper().replace(".", "_")
             self.declare_resource_data(
                 resource, message[item], group=group, merge=merge
@@ -1786,7 +1882,7 @@ class MainTest(SingleTransactionCase):
             dictionary with data or empty dictionary
         """
         xref = self._get_conveyed_value(resource, None, xref)
-        if not resource and not group and xref in self.setup_xrefs:
+        if (not resource or not group) and xref in self.setup_xrefs:
             group, resource = self.setup_xrefs[xref]
         group = group or "base"
         if (
@@ -1888,6 +1984,7 @@ class MainTest(SingleTransactionCase):
         Returns:
             default company for user
         """
+        self.log_stack()
         add_alias = True
         if not company:  # pragma: no cover
             company = self.env["res.company"].create(values)
@@ -1960,12 +2057,13 @@ class MainTest(SingleTransactionCase):
             None
         """
         self._logger.info(
-            "🎺 Starting test v2.0.5 (debug_level=%s)" % (self.debug_level)
+            "🎺🎺🎺 Starting test v2.0.5.2 (debug_level=%s)" % (self.debug_level)
         )
         self._logger.info(
-            "🎺 Testing module: %s (%s)"
+            "🎺🎺 Testing module: %s (%s)"
             % (self.module.name, self.module.installed_version)
         )
+        self.log_stack()
         if locale:  # pragma: no cover
             self.set_locale(locale)
         if lang:  # pragma: no cover
@@ -2036,6 +2134,7 @@ class MainTest(SingleTransactionCase):
         Returns:
             windows action to execute or obj record
         """
+        self.log_stack()
         actions = actions or (
             ["create"] if isinstance(resource, basestring) else ["save"]
         )
@@ -2071,6 +2170,7 @@ class MainTest(SingleTransactionCase):
         Returns:
             binary obj downloaded from field
         """
+        self.log_stack()
         if field not in record:  # pragma: no cover
             raise ValueError("Field %s not found in %s" % (field, record._name))
         return base64.b64decode(getattr(record, field))
@@ -2122,6 +2222,7 @@ class MainTest(SingleTransactionCase):
         Returns:
             binary obj downloaded from field
         """
+        self.log_stack()
         act_windows = self.wizard(
             module=module,
             action_name=action_name,
@@ -2214,6 +2315,7 @@ class MainTest(SingleTransactionCase):
         Raises:
             ValueError: if invalid parameters issued
         """
+        self.log_stack()
         if module and action_name:
             act_windows = self._wiz_launch_by_act_name(
                 module, action_name, records=records, default=default, ctx=ctx
@@ -2263,13 +2365,30 @@ class MainTest(SingleTransactionCase):
     #                             #
     ###############################
 
-    def tmpl_repr(self, tmpl=[]):
-        return "".join(
+    def tmpl_repr(self, tmpl=[], level=None, match=None):
+        def get_item(template, match=None):
+            if isinstance(template, (list, tuple)):
+                item = ""
+                for tmpl in template:
+                    item += get_item(tmpl, match=match) + " "
+                return item.strip()
+            item = str(template.get("id", template.get("code", template.get(
+                "name", "<...>"))))
+            if match and "_MATCH" in template:
+                item += "{"
+                item += ", ".join(
+                    ["%s=%d" % (k, v) for (k, v) in template["_MATCH"].items()])
+                item += "}"
+            return item
+
+        level = level or 0
+        indent = level * "  "
+        return indent + "".join(
             [
                 "template(",
-                ",".join(
+                ", ".join(
                     [
-                        str(x.get("id", x.get("code", x.get("name", "<...>"))))
+                        get_item(x, match=match)
                         for x in tmpl
                     ]
                 ),
@@ -2277,146 +2396,195 @@ class MainTest(SingleTransactionCase):
             ]
         )
 
-    def tmpl_init_zero(self, tmpl, records, records_parent=None):
-        if not is_iterable(records):  # pragma: no cover
+    def tmpl_init(self, template, record, nr=0, repr="", rec_parent=None):
+        def merge_match(match, submatch, is_child=False):
+            for kk in submatch:
+                key = (rec_parent, kk[0]) if is_child else kk
+                if key not in match:
+                    match[key] = 0
+                match[key] += submatch[kk]
+
+        if not is_iterable(record):  # pragma: no cover
             self.raise_error(
                 "Function validate_records(): right param is not iterable!"
             )
-        resource = self._get_model_from_records(records)
+
+        if isinstance(template, (list, tuple)):
+            match = {}
+            for ix, tmpl in enumerate(template):
+                if (
+                    isinstance(tmpl, (list, tuple))
+                    and isinstance(tmpl[0], (int, long))
+                    and isinstance(tmpl[1], (int, long))
+                    and isinstance(tmpl[2], dict)
+                ):
+                    tmpl = tmpl[2]
+                    template[ix] = tmpl
+                if not isinstance(tmpl, dict):
+                    self.raise_error(
+                        ("Function validate_records(): "
+                         "invalid structure: %s must be a dictionary!" % tmpl)
+                    )
+                if REC_KEY_NAME & set(tmpl.keys()):
+                    if rec_parent:
+                        repr = "line." + tmpl.get("code", tmpl.get("name", ""))[0:20]
+                    else:
+                        repr = tmpl.get("code", tmpl.get("name", ""))[0:20]
+                else:
+                    if rec_parent:
+                        repr = "line."
+                    nr += 1
+                    tmpl["id"] = repr + str(nr)
+                merge_match(
+                    match,
+                    self.tmpl_init(
+                        tmpl, record, nr=nr, repr=repr, rec_parent=rec_parent))
+            return match
+
+        if len(record) > 1 or isinstance(record, (list, tuple)):
+            for rec in record:
+                match = self.tmpl_init(
+                    template, rec, nr=nr, repr=repr, rec_parent=rec_parent)
+            return match
+
+        resource = self._get_model_from_records(record)
         self._load_field_struct(resource)
         childs_name = self.childs_name.get(resource)
         resource_child = self.childs_resource.get(resource)
         if resource_child:
             self._load_field_struct(resource_child)
-        tmpl["_CHECK"] = tmpl.get("_CHECK", {})
-        for rec in records:
-            key = (records_parent, rec)
-            tmpl["_CHECK"][key] = {}
-            tmpl["_CHECK"][key]["_COUNT"] = len(
-                [
-                    x
-                    for x in tmpl.keys()
-                    if x not in (childs_name, "id") and not x.startswith("_")
-                ]
-            )
-            tmpl["_CHECK"][key]["_MATCH"] = 0
-            if childs_name:
-                if tmpl.get("id"):
-                    nr = tmpl["id"] + 100
-                    repr = ""
-                else:
-                    repr = tmpl.get("code", tmpl.get("name", "")) + ".line_"
-                    nr = 0
-                for tmpl_child in tmpl[childs_name]:
-                    if not REC_KEY_NAME & set(tmpl_child.keys()):
-                        nr += 1
-                        tmpl_child["id"] = repr + str(nr)
-                    self.tmpl_init_zero(
-                        tmpl_child, rec[childs_name], records_parent=rec
-                    )
-
-    def tmpl_init(self, template, records):
-        if not isinstance(template, (list, tuple)):  # pragma: no cover
-            self.raise_error("Function validate_records(): left param is not list!")
-        for nr, tmpl in enumerate(template):
-            if not REC_KEY_NAME & set(tmpl.keys()):
-                tmpl["id"] = nr + 1
-            self.tmpl_init_zero(tmpl, records)
-
-    def tmpl_build_match_submatrix(self, tmpl, records, records_parent=None):
-        resource = self._get_model_from_records(records)
-        childs_name = self.childs_name.get(resource)
-        for rec in records:
-            key = (records_parent, rec)
-            if childs_name:
-                for tmpl_child in tmpl[childs_name]:
-                    self.tmpl_build_match_submatrix(
-                        tmpl_child, rec[childs_name], records_parent=rec
-                    )
-            for field in tmpl.keys():
-                if field in (childs_name, "id") or field.startswith("_"):
-                    continue
-                if self._cast_field(
-                    resource, field, tmpl[field]
-                ) == self._convert_field_to_write(rec, field):
-                    tmpl["_CHECK"][key]["_MATCH"] += 1
-
-    def tmpl_build_match_matrix(self, template, records):
-        for tmpl in template:
-            self.tmpl_build_match_submatrix(tmpl, records)
-
-    def tmpl_purge_submatrix(self, tmpl, records, records_parent=None):
-        resource = self._get_model_from_records(records)
-        childs_name = self.childs_name.get(resource)
-        match = None
-        ctr = -1
-        for rec in records:
-            key = (records_parent, rec)
-            if key not in tmpl["_CHECK"]:
+        key = (rec_parent, record)
+        template["_MATCH"] = template.get("_MATCH", {})
+        template["_MATCH"][key] = 0
+        for field in template.keys():
+            if field in (childs_name, "id") or field.startswith("_"):
                 continue
+            if self._cast_field(
+                resource, field, template[field]
+            ) == self._convert_field_to_write(record, field):
+                template["_MATCH"][key] += 1
+        if childs_name:
+            merge_match(template["_MATCH"],
+                        self.tmpl_init(
+                            template[childs_name],
+                            record[childs_name],
+                            nr=nr + 100,
+                            repr=repr,
+                            rec_parent=record),
+                        is_child=True)
+        return template["_MATCH"]
+
+    def tmpl_purge_matrix(self, template, record, rec_parent=None):
+        def get_score(template, record, ctr=-1, rec_parent=None):
+            key = (rec_parent, record)
+            match = None
+            if key in template["_MATCH"] and template["_MATCH"][key] > ctr:
+                match = key
+                ctr = template["_MATCH"][key]
+            return template, match, ctr
+
+        def get_best_score(template, record, rec_parent=None, matched=[], childs=False):
+            resource = self._get_model_from_records(record)
+            childs_name = self.childs_name.get(resource)
+            if childs and not childs_name:
+                return None, None
+            ctr = -1
+            match_key = match_tmpl = None
+            for rec in record:
+                for tmpl in template:
+                    if (tmpl, (rec_parent, rec)) in matched:
+                        continue
+                    tmpl, key, ctr = get_score(
+                        tmpl, rec, ctr=ctr, rec_parent=rec_parent)
+                    if key:
+                        match_key = key
+                        match_tmpl = tmpl
+            return match_tmpl, match_key
+
+        if (
+            isinstance(template, (list, tuple))
+            or len(record) > 1
+            or isinstance(record, (list, tuple))
+        ):
+            template = template if isinstance(template, (list, tuple)) else [template]
+            resource = self._get_model_from_records(record)
+            childs_name = self.childs_name.get(resource)
             if childs_name:
-                for tmpl_child in tmpl[childs_name]:
-                    self.tmpl_purge_submatrix(
-                        tmpl_child, rec[childs_name], records_parent=rec
-                    )
-                key_child = [x for x in tmpl_child["_CHECK"]][0]
-                if key[1] == key_child[0]:
-                    tmpl["_CHECK"][key]["_COUNT"] += tmpl_child["_CHECK"][key_child][
-                        "_COUNT"
-                    ]
-                    tmpl["_CHECK"][key]["_MATCH"] += tmpl_child["_CHECK"][key_child][
-                        "_MATCH"
-                    ]
-            if tmpl["_CHECK"][key]["_MATCH"] > ctr:
-                match = rec
-                ctr = tmpl["_CHECK"][key]["_MATCH"]
-        if match:
-            for key in tmpl["_CHECK"].copy().keys():
-                if key[0] != records_parent or key[1] != match:
-                    del tmpl["_CHECK"][key]
-        return match
+                matched = []
+                while True:
+                    ctr = -1
+                    match_tmpl = match_key = None
+                    for rec in record:
+                        for tmpl in template:
+                            for child_rec in rec[childs_name]:
+                                for child_tmpl in tmpl[childs_name]:
+                                    if (child_tmpl, (rec, child_rec)) in matched:
+                                        continue
+                                    child_tmpl, child_key, ctr = get_score(
+                                        child_tmpl, child_rec,
+                                        ctr=ctr, rec_parent=rec)
+                                    if child_key:
+                                        match_tmpl = child_tmpl
+                                        match_key = child_key
+                    if not match_key:
+                        break
+                    matched.append((match_tmpl, match_key))
+                    self.tmpl_purge_matrix(
+                        match_tmpl, match_key[1], rec_parent=match_key[0])
 
-    def tmpl_purge_matrix(self, template, records):
-        matched = []
-        for tmpl in template:
-            for rec in matched:
-                key = (None, rec)
-                del tmpl["_CHECK"][key]
-            matched.append(self.tmpl_purge_submatrix(tmpl, records))
+            max_recs = len(template) * len(record)
+            matched = []
+            while len(matched) < max_recs:
+                match_tmpl, match_key = get_best_score(
+                    template, record, rec_parent=rec_parent, matched=matched)
+                if not match_key:
+                    break
+                matched.append((match_tmpl, match_key))
+                self.tmpl_purge_matrix(
+                    match_tmpl, match_key[1], rec_parent=match_key[0])
+            return matched
 
-    def validate_1_record(self, tmpl):
-        resource = childs_name = ""
+        for key in template["_MATCH"].copy().keys():
+            if key[0] != rec_parent or key[1] != record:
+                del template["_MATCH"][key]
+
+    def tmpl_validate_record(self, template, record):
+        resource = self._get_model_from_records(record)
+        childs_name = self.childs_name.get(resource)
         ctr_assertion = 0
-        for key in tmpl["_CHECK"]:
-            rec = key[1]
-            if not resource:
-                resource = self._get_model_from_records(rec)
-                childs_name = self.childs_name.get(resource)
-            for field in tmpl.keys():
+
+        if isinstance(template, (list, tuple)):
+            for tmpl in template:
+                ctr_assertion += self.tmpl_validate_record(tmpl, record)
+            return ctr_assertion
+
+        if len(record) > 1 or isinstance(record, (list, tuple)):
+            for rec in record:
+                ctr_assertion += self.tmpl_validate_record(template, rec)
+            return ctr_assertion
+
+        if [key for key in template["_MATCH"]][0][1] == record:
+            for field in template.keys():
                 if field in (childs_name, "id") or field.startswith("_"):
                     continue
                 self.log_lvl_2(
                     "🐞 ... assertEqual(%s.%s:'%s', %s:'%s')"
                     % (
-                        self.tmpl_repr([tmpl]),
+                        self.tmpl_repr([template]),
                         field,
-                        tmpl[field],
-                        "rec(%d)" % rec.id,
-                        rec[field],
+                        template[field],
+                        "rec(%d)" % record.id,
+                        record[field],
                     )
                 )
-                # ftype = self.struct[resource][field]["type"]
-                # if ftype in ("datetime", "date"):
-                #     self.assertEqual(
-                #         str(self._cast_field(resource, field, tmpl[field])),
-                #         self._convert_field_to_write(rec, field),
-                #     )
-                # else:
                 self.assertEqual(
-                    self._cast_field(resource, field, tmpl[field], fmt="py"),
-                    self._cast_field(resource, field, rec[field], fmt="py")
+                    self._cast_field(resource, field, template[field], fmt="py"),
+                    self._cast_field(resource, field, record[field], fmt="py")
                 )
                 ctr_assertion += 1
+            if childs_name:
+                ctr_assertion += self.tmpl_validate_record(
+                    template[childs_name], record[childs_name])
         return ctr_assertion
 
     def validate_records(self, template, records, raise_if_not_match=True):
@@ -2443,24 +2611,14 @@ class MainTest(SingleTransactionCase):
         Raises:
             ValueError: if no enough assertions or one assertion is failed
         """
-
+        self.log_stack()
         self.tmpl_init(template, records)
         self.log_lvl_2(
             "🐞validate_records(%s, %s)" % (self.tmpl_repr(template), records)
         )
-        self.tmpl_build_match_matrix(template, records)
         self.tmpl_purge_matrix(template, records)
-
-        resource = self._get_model_from_records(records)
-        childs_name = self.childs_name.get(resource)
-        ctr_assertion = 0
-        for tmpl in template:
-            ctr_assertion += self.validate_1_record(tmpl)
-            if childs_name:
-                for tmpl_child in tmpl[childs_name]:
-                    ctr_assertion += self.validate_1_record(tmpl_child)
-
+        ctr_assertion = self.tmpl_validate_record(template, records)
         self.log_lvl_1(
-            "🐞%d assertion validated for validate_records(%s, %s)"
-            % (ctr_assertion, self.tmpl_repr(template), records),
+            "🐞%d assertion validated for validate_records(%s)"
+            % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
