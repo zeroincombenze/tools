@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.5.2
+"""Test Environment v2.0.6
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -141,6 +141,8 @@ MAGIC_COLUMNS = ["id"] + LOG_ACCESS_COLUMNS
 SUPERMAGIC_COLUMNS = MAGIC_COLUMNS + BITTER_COLUMNS
 BLACKLIST_COLUMNS = SUPERMAGIC_COLUMNS + ["parent_left", "parent_right", "state"]
 RESOURCE_WO_COMPANY = (
+    "res.currency",
+    "res.currency.rate",
     "res.users",
     "res.partner",
     "product.template",
@@ -488,13 +490,13 @@ class MainTest(SingleTransactionCase):
         ln = ln[-1]
         if ln.isdigit():
             ln = int(ln)
-            if not ln:
+            if not ln:                                               # pragma: no cover
                 return xref, False  # pragma: no cove
         return xref, ln
 
     def _is_transient(self, resource):
         if isinstance(resource, basestring):
-            return self.env[resource]._transient  # pragma: no cover
+            return self.env[resource]._transient                     # pragma: no cover
         return resource._transient
 
     def _add_xref(self, xref, xid, resource):
@@ -531,8 +533,8 @@ class MainTest(SingleTransactionCase):
                 if not res and not self.get_resource_data(resource, xref):
                     self._logger.info("⚠ External reference %s not found" % xref)
             else:
-                if not resource:
-                    resource = self._get_model_of_xref(xref)
+                # if not resource:
+                #     resource = self._get_model_of_xref(xref)
                 res = self.env.ref(
                     self._get_conveyed_value(resource, None, xref),
                     raise_if_not_found=False,
@@ -758,7 +760,7 @@ class MainTest(SingleTransactionCase):
             value = self._cvt_to_datetime(self.compute_date(value[0], refdate=value[1]))
         else:
             value = self._cvt_to_datetime(self.compute_date(value))
-        if PY2 and isinstance(value, datetime) and fmt == "cmd":
+        if PY2 and isinstance(value, datetime) and fmt == "cmd":     # pragma: no cover
             value = datetime.strftime(value, "%Y-%m-%d %H:%M:%S")
         return value
 
@@ -783,7 +785,7 @@ class MainTest(SingleTransactionCase):
             value = self._cvt_to_date(self.compute_date(value[0], refdate=value[1]))
         else:
             value = self._cvt_to_date(self.compute_date(value))
-        if PY2 and isinstance(value, date) and fmt == "cmd":
+        if PY2 and isinstance(value, date) and fmt == "cmd":         # pragma: no cover
             value = datetime.strftime(value, "%Y-%m-%d")
         return value
 
@@ -872,19 +874,19 @@ class MainTest(SingleTransactionCase):
                 fmt=fmt,
                 group=group,
             )
-        return value
+        return value                                                 # pragma: no cover
 
     def _cast_2many(self, resource, field, value, fmt=None, group=None):
         """ "One2many and many2many may have more representations:
         * External reference (str) -> 1 value or None
         * list() or list (str)
-        * - [0, 0, values (dict)]
-        * - [1, ID (int), values (dict)]
-        * - [2, ID (int)]
-        * - [3, ID (int)]
-        * - [4, ID (int)]
-        * - [5, x]
-        * - [6, x, IDs (list)]
+        * - [0, 0, values (dict)]           # CREATE record and link
+        * - [1, ID (int), values (dict)]    # UPDATE linked record
+        * - [2, ID (int)]                   # DELETE linked record by ID
+        * - [3, ID (int)]                   # UNLINK record ID (do not delete record)
+        * - [4, ID (int)]                   # LINK record by ID
+        * - [5, x]                          # CLEAR unlink all record IDs
+        * - [6, x, IDs (list)]              # SET link record IDs
         * - External reference (str) -> 1 value or None
         """
 
@@ -1620,12 +1622,12 @@ class MainTest(SingleTransactionCase):
             if raise_if_not_found:
                 self.raise_error("No model issued for binding")
             return False
-        if resource not in self.env:  # pragma: no cover
+        if resource not in self.env:                                 # pragma: no cover
             if raise_if_not_found:
                 self.raise_error("Model %s not found in the system" % resource)
             return False
         self._load_field_struct(resource)
-        if resource not in self.skeys:  # pragma: no cover
+        if resource not in self.skeys:                               # pragma: no cover
             if raise_if_not_found:
                 self.raise_error("Model %s without search key" % resource)
             self._logger.info("⚠ Model %s without search key" % resource)
@@ -1637,19 +1639,16 @@ class MainTest(SingleTransactionCase):
         parent_name = self.parent_name.get(resource)
         if parent_name and self.parent_resource[resource] in self.childs_resource:
             name, x = self._unpack_xref(name)
-            if not x:
-                return False  # pragma: no cover
-            # if self.struct[resource][self.skeys[resource][0]]["type"] == "many2one":
-            #     pass
+            if not x:                                                # pragma: no cover
+                return False
             domain = [(key_field, "=", x)]
-            # self._get_xref_id(resource=resource, xref=".".join([module, name]))
             x = self.resource_bind(
                 "%s.%s" % (module, name),
                 resource=self.parent_resource[resource],
                 raise_if_not_found=False,
                 group=group,
             )
-            if not x:  # pragma: no cover
+            if not x:                                                # pragma: no cover
                 return False
             domain.append((parent_name, "=", x.id))
         else:
@@ -2057,7 +2056,7 @@ class MainTest(SingleTransactionCase):
             None
         """
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.5.2 (debug_level=%s)" % (self.debug_level)
+            "🎺🎺🎺 Starting test v2.0.6 (debug_level=%s)" % (self.debug_level)
         )
         self._logger.info(
             "🎺🎺 Testing module: %s (%s)"

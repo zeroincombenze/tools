@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='z0bug_odoo',
-    version='2.0.5',
+    version='2.0.6',
     description='Odoo testing framework',
     long_description="""
 Zeroincombenze(R) continuous testing framework for Odoo modules.

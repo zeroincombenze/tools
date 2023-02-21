@@ -33,7 +33,7 @@ from travis_helpers import print_flush
 from z0lib import z0lib
 
 _logger = logging.getLogger()
-__version__ = '2.0.5'
+__version__ = '2.0.6'
 
 
 def create_deps():
