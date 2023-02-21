@@ -10,7 +10,7 @@ import sys
 from distutils.spawn import find_executable
 from travis_helpers import success_msg, fail_msg
 
-__version__ = '2.0.5'
+__version__ = '2.0.6'
 
 
 def main(test_list):
