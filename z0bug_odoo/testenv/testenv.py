@@ -1523,6 +1523,10 @@ class MainTest(SingleTransactionCase):
         group = self.u(group) or "base"
         name = self.u(name) or self.u(resource)
         xref = self._get_conveyed_value(resource, None, xref)
+        if resource == "account.account" and "code" not in values:
+            record = self.env.ref(xref, raise_if_not_found=False)
+            if record:
+                values["code"] = record.code
         if group not in self.setup_data_list:
             self.setup_data_list[group] = []
             self.setup_data[group] = {}
@@ -1958,6 +1962,8 @@ class MainTest(SingleTransactionCase):
         company,
         xref=None,
         partner_xref=None,
+        recv_xref=None,
+        pay_xref=None,
         bnk1_xref=None,
         values={},
         group=None,
@@ -1983,6 +1989,23 @@ class MainTest(SingleTransactionCase):
         Returns:
             default company for user
         """
+        def store_acc_alias(xref, acc_type, chart_name):
+            if chart_name.endswith("_prefix"):
+                acc_code = getattr(chart_template, chart_name)
+            else:
+                acc_code = getattr(chart_template, chart_name).code
+            acc_ids = self.env["account.account"].search(
+                [
+                    (
+                        "user_type_id",
+                        "=",
+                        self.env.ref(acc_type).id,
+                    ),
+                    ("code", "like", acc_code),
+                ]
+            )
+            self._add_xref(xref, acc_ids[0].id, "account.account")
+
         self.log_stack()
         add_alias = True
         if not company:  # pragma: no cover
@@ -2010,19 +2033,18 @@ class MainTest(SingleTransactionCase):
                     resource="res.partner",
                     group=group,
                 )
+        if recv_xref:
+            store_acc_alias(recv_xref,
+                            "account.data_account_type_receivable",
+                            "property_account_receivable_id")
+        if pay_xref:
+            store_acc_alias(pay_xref,
+                            "account.data_account_type_payable",
+                            "property_account_payable_id")
         if bnk1_xref:
-            bank_prefix = chart_template.bank_account_code_prefix
-            banks = self.env["account.account"].search(
-                [
-                    (
-                        "user_type_id",
-                        "=",
-                        self.env.ref("account.data_account_type_liquidity").id,
-                    ),
-                    ("code", "like", bank_prefix),
-                ]
-            )
-            self._add_xref(bnk1_xref, banks[0].id, "account.account")
+            store_acc_alias(bnk1_xref,
+                            "account.data_account_type_liquidity",
+                            "bank_account_code_prefix")
         if self.env.user.company_id != company:
             self.env.user.company_id = company  # pragma: no cover
         return self.default_company()
