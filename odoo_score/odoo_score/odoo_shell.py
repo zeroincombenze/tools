@@ -3533,7 +3533,6 @@ def reconfigure_warehouse(ctx):
             clodoo.writeL8(ctx, model, wl.id, {'name': name})
 
 
-
 def rebuild_database(ctx):
     def check_move_type(ctx, move, journal=None):
         msg_burst('Reading %s ...' % move.name)
@@ -3602,7 +3601,7 @@ def rebuild_database(ctx):
         for move in ir_seq.date_range_ids:
             clodoo.writeL8(
                 ctx, resource_sequence_range, move.id, {"number_next": 1,
-                                                       "number_next_actual": 1})
+                                                        "number_next_actual": 1})
             ctr += 1
 
     print("Checking for sequences ...")
@@ -3653,7 +3652,7 @@ def rebuild_database(ctx):
             try:
                 clodoo.unlinkL8(ctx, m, jid)
                 ctr += 1
-            except:
+            except BaseException:
                 pass
         print("Deleting partial reconcilations ....")
         m = "account.partial.reconcile"
@@ -3661,20 +3660,20 @@ def rebuild_database(ctx):
             try:
                 clodoo.unlinkL8(ctx, m, jid)
                 ctr += 1
-            except:
+            except BaseException:
                 pass
 
     if "no-inv" not in ctx['param_1']:
         print("Canceling invoices ...")
         for jid in clodoo.searchL8(ctx,
-                                  resource_invoice,
-                                  [("state", "!=", "cancel")],
-                                  order="id"):
+                                   resource_invoice,
+                                   [("state", "!=", "cancel")],
+                                   order="id"):
             msg_burst('Cancelling inv id %d ...' % jid)
             try:
                 clodoo.executeL8(ctx, resource_invoice, "action_invoice_cancel", jid)
                 ctr += 1
-            except:
+            except BaseException:
                 print("Cannot cancel invoice id %d" % jid)
 
     print("Canceling moves ...")
@@ -3684,32 +3683,32 @@ def rebuild_database(ctx):
         try:
             clodoo.executeL8(ctx, resource_move, "button_cancel", jid)
             ctr += 1
-        except:
+        except BaseException:
             print("Cannot cancel move id %d" % jid)
 
     if "no-inv" not in ctx['param_1']:
         print("Drafting invoices ...")
         for jid in clodoo.searchL8(ctx,
-                                  resource_invoice,
-                                  [("state", "=", "cancel")],
-                                  order="id"):
+                                   resource_invoice,
+                                   [("state", "=", "cancel")],
+                                   order="id"):
             msg_burst('Drafting inv id %d ...' % jid)
             try:
                 clodoo.executeL8(ctx, resource_invoice, "action_invoice_draft", jid)
                 ctr += 1
-            except:
+            except BaseException:
                 print("Cannot set invoice id %d to draft" % jid)
 
         print("Validation invoices ...")
         for jid in clodoo.searchL8(ctx,
-                                  resource_invoice,
-                                  [("state", "=", "draft")],
-                                  order="date"):
+                                   resource_invoice,
+                                   [("state", "=", "draft")],
+                                   order="date"):
             msg_burst('Validating inv id %d ...' % jid)
             try:
                 clodoo.executeL8(ctx, resource_invoice, "action_invoice_open", jid)
                 ctr += 1
-            except:
+            except BaseException:
                 print("Cannot validate invoice id %d" % jid)
 
     print("Validation moves ...")
@@ -3720,12 +3719,12 @@ def rebuild_database(ctx):
         msg_burst('Validating move id %d ...' % jid)
         try:
             clodoo.writeL8(ctx, resource_move, move.id, {"name": "/"})
-        except:
+        except BaseException:
             print("Cannot removing entry name %d" % jid)
         try:
             clodoo.executeL8(ctx, resource_invoice, "post", move.id)
             ctr += 1
-        except:
+        except BaseException:
             print("Cannot post move id %d" % move.id)
 
     for jid in journal_no_vat_ids:

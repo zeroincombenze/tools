@@ -309,7 +309,6 @@ if [[ $opt_test -ne 0 ]]; then
     [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}" && drop_db=1
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}" && drop_db=0
     create_db=1
-    # [[ $opt_keep -eq 0 ]] && drop_db=1 || drop_db=0
     [[ ! -d $ODOO_ROOT/travis_log ]] && run_traced "mkdir $ODOO_ROOT/travis_log"
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
@@ -428,7 +427,7 @@ if [[ $opt_touch -eq 0 ]]; then
     [[ -n "$VDIR" ]] && ve_root=$VDIR || ve_root=$HOME
     OPT_LLEV=
     # [[ $opt_test -ne 0 && ! -d $HOME/tmp ]] && mkdir $HOME/tmp
-    [[ $opt_test -ne 0 && ! -d $LOGDIR ]] && mkdir $LOGDIR
+    [[ $opt_test -ne 0 && ! -d $LOGDIR ]] && mkdir -p $LOGDIR
     [[ $opt_test -ne 0 ]] && FULL_LCONFN="$LOGDIR/${UMLI}.conf" || FULL_LCONFN="$ve_root/$LCONFN"
     [[ $opt_test -gt 1 ]] && FULL_LCONFN="$ve_root/pycharm_odoo.conf"
     OPT_CONF="--config=$FULL_LCONFN"
