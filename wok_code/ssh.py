@@ -41,7 +41,7 @@ def get_cmd_rsync(host, user, source, dest, recurse):
     param = DATA[host][user].get('param', "")
     port = ""
     if param.startswith("-p"):
-        port = param.split(" ")[0]
+        port = param.split(" ")[1]
         param = ""
     passwd = DATA[host][user].get('passwd')
     if recurse and not source.endswith("/"):
@@ -49,18 +49,14 @@ def get_cmd_rsync(host, user, source, dest, recurse):
     if recurse and not dest.endswith("/"):
         dest = "%s/" % dest
     if source.startswith("@"):
-        if port:
-            source = "%s@%s:%s:%s" % (user, host, source[1:], port)
-        else:
-            source = "%s@%s:%s" % (user, host, source[1:])
+        source = "%s@%s:%s" % (user, host, source[1:])
     elif dest.startswith("@"):
-        if port:
-            dest = "%s@%s:%s:%s" % (user, host, dest[1:], port)
-        else:
-            dest = "%s@%s:%s" % (user, host, dest[1:])
+        dest = "%s@%s:%s" % (user, host, dest[1:])
     if passwd:
         os.environ['SSHPASS'] = passwd
         return 'sshpass -e rsync -avz %s %s %s' % (param, source, dest)
+    if port:
+        return 'rsync -avz -e \'ssh -p %s\' %s %s %s' % (port, param, source, dest)
     return 'rsync -avz %s %s %s' % (param, source, dest)
 
 
@@ -200,6 +196,34 @@ for param in sys.argv[1:]:
         dest = param
         ctr += 1
 
+if (scp or rsync) and user and not source and not dest:
+    # ssh.py -m|s user@host:source dest
+    # ssh.py -m|s source user@host:dest
+    source = host
+    host = ""
+    dest = user
+    user = ""
+    if ":" in source and ":" not in dest:
+        host, source = source.split(":", 1)
+        source = "@" + source
+    elif ":" not in source and ":" in dest:
+        host, dest = dest.split(":", 1)
+        dest = "@" + dest
+    else:
+        print("Invalid params! Use:")
+        print("ssh.py -m|s user@host:source dest")
+        print("ssh.py -m|s source user@host:dest")
+        exit(1)
+    if "@" in host:
+        user, host = host.split("@", 1)
+elif (scp or rsync) and user and source and not dest:
+    dest = source
+    source = user
+    user = ""
+elif do_dir and user and not source:
+    source = user
+    user = ""
+
 if host not in DATA and host in ALIAS:
     host = ALIAS[host]
 if list_host:
@@ -216,14 +240,6 @@ if host not in DATA:
         print('Host %s not found!' % host)
     show_host()
     exit(1)
-
-if (scp or rsync) and user and source and not dest:
-    dest = source
-    source = user
-    user = ""
-elif do_dir and user and not source:
-    source = user
-    user = ""
 
 if not user:
     user = get_remote_user()

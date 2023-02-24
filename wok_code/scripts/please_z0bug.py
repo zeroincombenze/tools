@@ -48,6 +48,14 @@ class PleaseZ0bug(object):
             help=("test with specific python versions (comma separated)"),
         )
         parser.add_argument(
+            "-k",
+            "--keep",
+            action="store_true",
+            help=(
+                "keep database test"
+            ),
+        )
+        parser.add_argument(
             "-L",
             "--lint-level",
             help=("lint_check_level; may be: "

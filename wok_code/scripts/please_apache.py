@@ -48,10 +48,10 @@ APACHE_HTTP_PROXY_BLOCK = """
 """
 
 APACHE_HTTPS_BLOCK = """
-    SSLCertificateFile
-    SSLCertificateKeyFile
+    SSLCertificateFile %(SSLCertificateFile)s
+    SSLCertificateKeyFile %(SSLCertificateKeyFile)s
     Include /etc/letsencrypt/options-ssl-apache.conf
-    SSLCertificateChainFile
+    # SSLCertificateChainFile
 """
 
 
@@ -132,19 +132,29 @@ class PleaseApache(object):
             params["domain"] = please.opt_args.sub1
         else:
             params["domain"] = "zeroincombenze.it"
-        params["email"] = "postmaster@%s" % ".".join(params["domain"].split(".")[-2:])
+        params["domain_2L"] = ".".join(params["domain"].split(".")[-2:])
+        params["email"] = "postmaster@%s" % params["domain_2L"]
         if please.opt_args.log:
             params["logs"] = please.opt_args.log
         else:
             params["logs"] = "${APACHE_LOG_DIR}"
         params["protocol"] = please.opt_args.protocol
         params["apache_port"] = "443" if params["protocol"] == "https" else "80"
+        params["SSLCertificateFile"] = ""
+        params["SSLCertificateKeyFile"] = ""
+        certificatefile = "/etc/letsencrypt/live/%s/fullchain.pem" % params["domain"]
+        if os.path.isfile(certificatefile):
+            params["SSLCertificateFile"] = certificatefile
+        certificatekeyfile = "/etc/letsencrypt/live/%s/privkey.pem" % params["domain"]
+        if os.path.isfile(certificatekeyfile):
+            params["SSLCertificateKeyFile"] = certificatekeyfile
+
         if please.opt_args.https_proxy:
-            params["http_proxy_block"] = APACHE_HTTP_PROXY_BLOCK
+            params["http_proxy_block"] = APACHE_HTTP_PROXY_BLOCK % params
         else:
             params["http_proxy_block"] = ""
         if params["protocol"] == "https":
-            params["https_block"] = APACHE_HTTPS_BLOCK
+            params["https_block"] = APACHE_HTTPS_BLOCK % params
         else:
             params["https_block"] = ""
         content = APACHE_TEMPLATE % params

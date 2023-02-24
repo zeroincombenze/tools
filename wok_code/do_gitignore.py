@@ -75,7 +75,8 @@ def main(argv):
                 'coverage',
                 'generic',
                 'nardo_modules',
-                'venv_odoo'
+                'venv_odoo',
+                'website-themes',
             ):
                 submodules.append('/%s' % fn)
                 continue
