@@ -3533,6 +3533,210 @@ def reconfigure_warehouse(ctx):
             clodoo.writeL8(ctx, model, wl.id, {'name': name})
 
 
+def rebuild_database(ctx):
+    def check_move_type(ctx, move, journal=None):
+        msg_burst('Reading %s ...' % move.name)
+        resource_invoice = "account.invoice"
+        resource_move = "account.move"
+        if not journal:
+            journal = move.journal_id
+        invs = clodoo.searchL8(ctx, resource_invoice, [("move_id", "=", move.id)])
+        if invs:
+            move_type = move_type_match[clodoo.browseL8(
+                ctx, resource_invoice, invs[0]).type]
+        elif journal.type in move_type_match:
+            move_type = move_type_match[journal.type]
+        elif journal.type in ("sale", "purchase"):
+            print("Invalid move %d (%s)" % (move.id, move.name))
+            move_type = move.move_type
+            if move.line_ids:
+                print("*** Please recover move %d" % move.id)
+            else:
+                if move.state == "post":
+                    clodoo.executeL8(ctx, resource_move, "button_cancel", move.id)
+                clodoo.unlinkL8(ctx, resource_move, move.id)
+                return False
+        else:
+            move_type = "other"
+        if move_type != move.move_type:
+            print("Invalid move type of id %d" % move.id)
+            clodoo.writeL8(ctx, resource_move, move.id, {"move_type": move_type})
+            return True
+
+    print('🎺🎺🎺 Rebuild database')
+    if ctx['param_1'] == 'help':
+        print('rebuild database [no-invoice|no-reconcile]')
+        return
+
+    move_type_match = {
+        "out_invoice": "receivable",
+        "out_refund": "receivable_refund",
+        "in_invoice": "payable",
+        "in_refund": "payable_refund",
+        "bank": "liquidity",
+        "cash": "liquidity",
+    }
+    resource_invoice = "account.invoice"
+    resource_move = "account.move"
+    resource_journal = "account.journal"
+    resource_sequence = "ir.sequence"
+    resource_sequence_range = "ir.sequence.date_range"
+    ctr = 0
+
+    print("Canceling sequences ...")
+    journal_no_vat_ids = clodoo.searchL8(ctx,
+                                         resource_journal,
+                                         [("type", "not in", ["sale", "purchase"])])
+    for jid in clodoo.searchL8(ctx,
+                               resource_journal,
+                               [("id", "in", journal_no_vat_ids)]):
+        journal = clodoo.browseL8(ctx, resource_journal, jid)
+        msg_burst('Cancelling %s ...' % journal.name)
+        ir_seq = clodoo.browseL8(ctx, resource_sequence, journal.sequence_id.id)
+        clodoo.writeL8(
+            ctx, resource_sequence, journal.sequence_id.id, {
+                "use_date_range": True, "number_next": 1, "number_next_actual": 1
+            })
+        ctr += 1
+        for move in ir_seq.date_range_ids:
+            clodoo.writeL8(
+                ctx, resource_sequence_range, move.id, {"number_next": 1,
+                                                        "number_next_actual": 1})
+            ctr += 1
+
+    print("Checking for sequences ...")
+    for jid in clodoo.searchL8(ctx,
+                               resource_journal,
+                               [("id", "not in", journal_no_vat_ids)]):
+        journal = clodoo.browseL8(ctx, resource_journal, jid)
+        ir_seq = clodoo.browseL8(ctx, resource_sequence, journal.sequence_id.id)
+        prefix = ir_seq.prefix.replace("%(year)s", "%(range_year)s")
+        if prefix != ir_seq.prefix:
+            clodoo.writeL8(ctx, resource_sequence, jid, {"prefix": prefix})
+            ctr += 1
+        matrix = {}
+        for move in clodoo.browseL8(
+            ctx, resource_move, clodoo.searchL8(
+                ctx, resource_move, [("journal_id", "=", jid),
+                                     ("name", "not in", [("/", "")])], order="name")):
+            if not check_move_type(ctx, move, journal=journal):
+                continue
+            parts = move.name.split("/")
+            if len(parts) == 3 and len(parts[1]) == 4:
+                matrix[parts[1]] = parts[2]
+            elif len(parts) == 2 and len(parts[0]) == 4:
+                matrix[parts[0]] = parts[1]
+        for (year, value) in matrix.items():
+            range_ids = clodoo.searchL8(
+                ctx, resource_sequence_range, [
+                    ("sequence_id", "=", journal.sequence_id.id),
+                    ("date_from", ">=", "%s-01-01" % year),
+                    ("date_to", "<=", "%s-12-31" % year),
+                ])
+            if range_ids != 1:
+                print("Invalid sequence range %s for id %d" % (year, jid))
+            else:
+                clodoo.writeL8(ctx,
+                               resource_sequence_range,
+                               range_ids[0],
+                               {
+                                   "number_next": int(value) + 1,
+                                   "number_next_actual": int(value) + 1
+                               })
+                ctr += 1
+
+    if "no-rec" not in ctx['param_1']:
+        print("Deleting full reconcilations ....")
+        m = "account.full.reconcile"
+        for jid in clodoo.searchL8(ctx, m, []):
+            try:
+                clodoo.unlinkL8(ctx, m, jid)
+                ctr += 1
+            except BaseException:
+                pass
+        print("Deleting partial reconcilations ....")
+        m = "account.partial.reconcile"
+        for jid in clodoo.searchL8(ctx, m, []):
+            try:
+                clodoo.unlinkL8(ctx, m, jid)
+                ctr += 1
+            except BaseException:
+                pass
+
+    if "no-inv" not in ctx['param_1']:
+        print("Canceling invoices ...")
+        for jid in clodoo.searchL8(ctx,
+                                   resource_invoice,
+                                   [("state", "!=", "cancel")],
+                                   order="id"):
+            msg_burst('Cancelling inv id %d ...' % jid)
+            try:
+                clodoo.executeL8(ctx, resource_invoice, "action_invoice_cancel", jid)
+                ctr += 1
+            except BaseException:
+                print("Cannot cancel invoice id %d" % jid)
+
+    print("Canceling moves ...")
+    domain = [("state", "=", "posted"), ("journal_id", "in", journal_no_vat_ids)]
+    for jid in clodoo.searchL8(ctx, resource_move, domain, order="id"):
+        msg_burst('Cancelling move id %d ...' % jid)
+        try:
+            clodoo.executeL8(ctx, resource_move, "button_cancel", jid)
+            ctr += 1
+        except BaseException:
+            print("Cannot cancel move id %d" % jid)
+
+    if "no-inv" not in ctx['param_1']:
+        print("Drafting invoices ...")
+        for jid in clodoo.searchL8(ctx,
+                                   resource_invoice,
+                                   [("state", "=", "cancel")],
+                                   order="id"):
+            msg_burst('Drafting inv id %d ...' % jid)
+            try:
+                clodoo.executeL8(ctx, resource_invoice, "action_invoice_draft", jid)
+                ctr += 1
+            except BaseException:
+                print("Cannot set invoice id %d to draft" % jid)
+
+        print("Validation invoices ...")
+        for jid in clodoo.searchL8(ctx,
+                                   resource_invoice,
+                                   [("state", "=", "draft")],
+                                   order="date"):
+            msg_burst('Validating inv id %d ...' % jid)
+            try:
+                clodoo.executeL8(ctx, resource_invoice, "action_invoice_open", jid)
+                ctr += 1
+            except BaseException:
+                print("Cannot validate invoice id %d" % jid)
+
+    print("Validation moves ...")
+    domain = [("state", "=", "draft"), ("journal_id", "in", journal_no_vat_ids)]
+    for jid in clodoo.searchL8(ctx, resource_move, domain, order="date"):
+        move = clodoo.browseL8(ctx, resource_move, jid)
+        check_move_type(ctx, move)
+        msg_burst('Validating move id %d ...' % jid)
+        try:
+            clodoo.writeL8(ctx, resource_move, move.id, {"name": "/"})
+        except BaseException:
+            print("Cannot removing entry name %d" % jid)
+        try:
+            clodoo.executeL8(ctx, resource_invoice, "post", move.id)
+            ctr += 1
+        except BaseException:
+            print("Cannot post move id %d" % move.id)
+
+    for jid in journal_no_vat_ids:
+        journal = clodoo.browseL8(ctx, resource_journal, jid)
+        if journal.prefix:
+            prefix = journal.prefix.replace("%(year)s", "%(range_year)s")
+            clodoo.writeL8(ctx, resource_journal, jid, {"prefix": prefix})
+        ctr += 1
+
+    print("%d records update!" % ctr)
+
+
 if ctx['function']:
     function = ctx['function']
     globals()[function](ctx)
