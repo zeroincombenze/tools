@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=2.0.0
+#__version__=2.0.1
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -72,14 +72,14 @@ conf_default() {
       x=DBF$sfx
       XDB=${!x}
       CFG_set "DB${sfx}_filter" "$XDB"
-      CFG_set "DB${sfx}_keep_recent" "30"
-      CFG_set "DB${sfx}_keep_monthly" "12"
+      CFG_set "DB${sfx}_keep_recent" "7"
+      CFG_set "DB${sfx}_keep_monthly" "3"
     done
     CFG_set "wait_4_prod" "60"
     CFG_set "odoo_rpc_host" "localhost"
     CFG_set "odoo_rpc_protocol" "xmlrpc"
     CFG_set "odoo_rpc_xmlport" "8069"
-    CFG_set "odoo_version" "7.0"
+    CFG_set "odoo_version" "12.0"
     CFG_set "odoo_rpc_pwd" "admin"
     if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
       test_mode=1
@@ -111,7 +111,7 @@ conf_default() {
 
 init_vars() {
 #init_vars(dbsel)
-    local x
+    local x r
     dbsel=$1
     declare -g PGDIR RMTBCKDIR DBCKDIR HOST_PRD HOST_DEV URL_PRD URL_DEV
     declare -g BCKFORMAT TAR_EXT TAR_OPT PG_DUMP_OPT ORIG_OWN
@@ -142,22 +142,10 @@ init_vars() {
       URL_DEV=$HOST_DEV
     fi
     x=$(get_cfg_value 0 bckdir)
-    if [ -z "$x" ]; then
-      x="$PGDIR/backups"
-    fi
-    if [ "${x:0:1}" == "/" ]; then
-      DBCKDIR=$x
-      RMTBCKDIR=$DBCKDIR
-    elif [ "${x:0:2}" == "./" ]; then
-      DBCKDIR="$HOME/${x:1}"
-      RMTBCKDIR="~/${x:1}"
-    elif [ "${x:0:1}" == "~" ]; then
-      DBCKDIR="$HOME/${x:2}"
-      RMTBCKDIR="$x"
-    else
-      DBCKDIR="$PGDIR/$x"
-      RMTBCKDIR=$DBCKDIR
-    fi
+    r=$(get_cfg_value 0 remote_bckdir)
+    [ -z "$x" ] && x="$PGDIR/backups"
+    DBCKDIR=$(readlink -f $x)
+    [ -z "$r" ] && RMTBCKDIR=$DBCKDIR || RMTBCKDIR=$r
     BCKFORMAT="$(get_cfg_value 0 bckformat)"
     TAR_EXT=$(get_cfg_value 0 tar_ext)
     TAR_OPT=$(get_cfg_value 0 tar_opt)
