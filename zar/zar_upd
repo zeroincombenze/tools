@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0
+__version__=2.0.1
 
 
 detached_login() {
@@ -203,7 +203,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Update zar suite\naction if issued, may be build|build_last"\
-  "(C) 2015-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -z "$opt_log" ]; then
@@ -275,17 +275,6 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   tar $x $GZFN cronow
   if [  -n "$opt_tar" ]; then
     mv $GZFN $opt_tar
-  elif [ $EUID -eq 0 ]; then
-    if [ -d /var/www/html/mw/download/ ]; then
-      echo "\$ cp $PWD/$GZFN /var/www/html/mw/download/"
-      wlog "\$ cp $GZFN /var/www/html/mw/download/"
-      chown apache:apache $GZFN
-      mv $GZFN /var/www/html/mw/download/
-      rm -fR $HOME/tmp
-    else
-      echo "Missed http download directory!"
-      echo "See $HOME/tmp/$GZFN file ..."
-    fi
   else
     for f in $FLIST z0librc cronow; do
       if [ -f $HOME/tmp/$f ]; then

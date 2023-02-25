@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='zar',
-    version='2.0.0',
+    version='2.0.1',
     description='Zeroincombenze Archive Replica',
     long_description="""
 ZAR stand for Zeroincombenze® Archive Replica.
@@ -19,6 +19,8 @@ ZAR manages easily backup for Odoo database, keeps last nth copies and purges ol
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Intended Audience :: Developers',
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',

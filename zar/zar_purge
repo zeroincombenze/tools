@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.0
+__version__=2.0.1
 
 
 OPTOPTS=(h        c        e      i      I       K        k          l       m          n            T         U          V           v)
@@ -82,7 +82,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Purge postgres DB"\
-  "(C) 2015-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 CFG_init
