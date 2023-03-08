@@ -3533,6 +3533,73 @@ def reconfigure_warehouse(ctx):
             clodoo.writeL8(ctx, model, wl.id, {'name': name})
 
 
+def recalc_group_left_right(ctx):
+    resorce_group = "account.group"
+    ctr = 0
+    for group in clodoo.browseL8(
+        ctx, resorce_group, clodoo.searchL8(
+            ctx, resorce_group, [("parent_id", "=", False)], order="code_prefix")):
+        ctr += 1
+        print("%s.group.parent_left %s -> %s, level %s -> %s " % (
+            group.code_prefix, group.parent_left, ctr, group.level, 1))
+        clodoo.writeL8(ctx, resorce_group, group.id, {"parent_left": ctr})
+        for group1 in clodoo.browseL8(
+            ctx, resorce_group, clodoo.searchL8(
+                ctx, resorce_group, [("parent_id", "=", group.id)],
+                order="code_prefix")):
+            ctr += 1
+            print("%s.group.parent_left %s -> %s, level %s -> %s " % (
+                group1.code_prefix, group1.parent_left, ctr, group1.level, 2))
+            clodoo.writeL8(ctx, resorce_group, group1.id, {"parent_left": ctr})
+            for group2 in clodoo.browseL8(
+                ctx, resorce_group, clodoo.searchL8(
+                    ctx, resorce_group, [("parent_id", "=", group1.id)],
+                    order="code_prefix")):
+                ctr += 1
+                print("%s.group.parent_left %s -> %s, level %s -> %s " % (
+                    group2.code_prefix, group2.parent_left, ctr, group2.level, 3))
+                clodoo.writeL8(ctx, resorce_group, group2.id, {"parent_left": ctr})
+                for group3 in clodoo.browseL8(
+                    ctx, resorce_group, clodoo.searchL8(
+                        ctx, resorce_group, [("parent_id", "=", group2.id)],
+                        order="code_prefix")):
+                    ctr += 1
+                    print("%s.group.parent_left %s -> %s, level %s -> %s " % (
+                        group3.code_prefix, group3.parent_left, ctr, group3.level, 4))
+                    clodoo.writeL8(ctx, resorce_group, group3.id, {"parent_left": ctr})
+                    for group4 in clodoo.browseL8(
+                        ctx, resorce_group, clodoo.searchL8(
+                            ctx, resorce_group, [("parent_id", "=", group3.id)],
+                            order="code_prefix")):
+                        ctr += 1
+                        print("%s.group.parent_left %s -> %s, level %s -> %s " % (
+                            group4.code_prefix, group4.parent_left, ctr, group4.level,
+                            5))
+                        clodoo.writeL8(ctx, resorce_group, group4.id,
+                                       {"parent_left": ctr})
+                        ctr += 1
+                        print("%s.group.parent_right %s -> %s" % (
+                            group4.code_prefix, group4.parent_right, ctr))
+                        clodoo.writeL8(ctx, resorce_group, group4.id,
+                                       {"parent_right": ctr})
+                    ctr += 1
+                    print("%s.group.parent_right %s -> %s" % (
+                        group3.code_prefix, group3.parent_right, ctr))
+                    clodoo.writeL8(ctx, resorce_group, group3.id, {"parent_right": ctr})
+                ctr += 1
+                print("%s.group.parent_right %s -> %s" % (
+                    group2.code_prefix, group2.parent_right, ctr))
+                clodoo.writeL8(ctx, resorce_group, group2.id, {"parent_right": ctr})
+            ctr += 1
+            print("%s.group.parent_right %s -> %s" % (
+                group1.code_prefix, group1.parent_right, ctr))
+            clodoo.writeL8(ctx, resorce_group, group1.id, {"parent_right": ctr})
+        ctr += 1
+        print("%s.group.parent_right %s -> %s" % (
+            group.code_prefix, group.parent_right, ctr))
+        clodoo.writeL8(ctx, resorce_group, group.id, {"parent_right": ctr})
+
+
 def rebuild_database(ctx):
     def check_move_type(ctx, move, journal=None):
         msg_burst('Reading %s ...' % move.name)

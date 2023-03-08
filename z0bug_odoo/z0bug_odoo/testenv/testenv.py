@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.6
+"""Test Environment v2.0.6.1
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -96,6 +96,7 @@ from future.utils import PY2, PY3
 from past.builtins import basestring, long
 
 from datetime import datetime, date
+import re
 import json
 import logging
 import base64
@@ -162,7 +163,7 @@ KEY_CANDIDATE = (
     "default_code",
     "sequence",
     "login",
-    "description",
+    # "description",
     "depreciation_type_id",
     "number",
     "move_name",
@@ -177,6 +178,7 @@ KEY_CANDIDATE = (
 KEY_OF_RESOURCE = {
     "res.users": "login",
     "account.tax": "description",
+    "account.rc.type.tax": "purchase_tax_id",
 }
 REC_KEY_NAME = {"id", "code", "name"}
 if PY3:  # pragma: no cover
@@ -211,6 +213,7 @@ class MainTest(SingleTransactionCase):
         self.childs_resource = {}
         self.uninstallable_modules = []
         self.convey_record = {}
+        self.assert_counter = 0
         for item in self.__module__.split("."):
             if item not in ("odoo", "openerp", "addons"):
                 self.module = self.env["ir.module.module"].search(
@@ -233,6 +236,10 @@ class MainTest(SingleTransactionCase):
         #             self.odoo_version = "%" % release.version_info[0]
         #         except ImportError:
         #             self.odoo_version = "16"
+
+    def tearDown(self):
+        super(MainTest, self).tearDown()
+        self._logger.info("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
 
     # ---------------------------------------
     # --  Unicode encode/decode functions  --
@@ -299,6 +306,78 @@ class MainTest(SingleTransactionCase):
     def raise_error(self, mesg):  # pragma: no cover
         self._logger.info("🛑 " + mesg)
         raise ValueError(mesg)
+
+    # ----------------------------------
+    # --  Counted assertion functions --
+    # ----------------------------------
+
+    def assertFalse(self, expr, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertFalse(expr, msg=msg)
+
+    def assertTrue(self, expr, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertTrue(expr, msg=msg)
+
+    def assertRaises(self, expected_exception, *args, **kwargs):
+        self.assert_counter += 1
+        return super(MainTest, self).assertRaises(expected_exception, *args, **kwargs)
+
+    def assertEqual(self, first, second, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertEqual(first, second, msg=msg)
+
+    def assertNotEqual(self, first, second, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertNotEqual(first, second, msg=msg)
+
+    def assertIn(self, member, container, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIn(member, container, msg=msg)
+
+    def assertNotIn(self, member, container, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertNotIn(member, container, msg=msg)
+
+    def assertIs(self, expr1, expr2, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIs(expr1, expr2, msg=msg)
+
+    def assertIsNot(self, expr1, expr2, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIsNot(expr1, expr2, msg=msg)
+
+    def assertLess(self, a, b, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertLess(a, b, msg=msg)
+
+    def assertLessEqual(self, a, b, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertLessEqual(a, b, msg=msg)
+
+    def assertGreater(self, a, b, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertGreater(a, b, msg=msg)
+
+    def assertGreaterEqual(self, a, b, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertGreaterEqual(a, b, msg=msg)
+
+    def assertIsNone(self, obj, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIsNone(obj, msg=msg)
+
+    def assertIsNotNone(self, obj, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIsNotNone(obj, msg=msg)
+
+    def assertIsInstance(self, obj, cls, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIsInstance(obj, cls, msg=msg)
+
+    def assertNotIsInstance(self, obj, cls, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertNotIsInstance(obj, cls, msg=msg)
 
     # ----------------------------
     # --  Conveyance functions  --
@@ -432,25 +511,32 @@ class MainTest(SingleTransactionCase):
                     break
 
     def _search4childs(self, resource, childs_resource=None):
+        def _relation_prio(resource):
+            return childs_resource.index(resource)
+
         childs_resource = childs_resource or []
         if not childs_resource:
             if resource == "product.template":
                 childs_resource = ["product.product"]
             else:
-                for suffix in (".line", ".rate", ".state"):
+                for suffix in (".line", ".rate", ".state", ".tax"):
                     childs_resource.append(resource + suffix)
         if not isinstance(childs_resource, (list, tuple)):
             childs_resource = [childs_resource]  # pragma: no cover
         if resource not in self.childs_resource:
             for field in self.struct[resource].keys():
                 if self.struct[resource][field].get("relation", "/") in childs_resource:
-                    if resource not in self.childs_name or len(field) < len(
-                        self.childs_name[resource]
+                    candidate = self.struct[resource][field]["relation"]
+                    if (
+                        resource not in self.childs_name
+                        or _relation_prio(candidate) < _relation_prio(
+                            self.childs_resource[resource])
+                        or (_relation_prio(candidate) == _relation_prio(
+                            self.childs_resource[resource])
+                            and len(field) < len(self.childs_name[resource]))
                     ):
                         self.childs_name[resource] = field
-                        self.childs_resource[resource] = self.struct[resource][field][
-                            "relation"
-                        ]
+                        self.childs_resource[resource] = candidate
                         self.log_lvl_2(
                             " 🌍 childs_resource[%s] = %s"
                             % (resource, self.childs_resource[resource])
@@ -488,9 +574,7 @@ class MainTest(SingleTransactionCase):
     def _is_xref(self, xref):
         return (
             isinstance(xref, basestring)
-            and "." in xref
-            and " " not in xref
-            and len(xref.split(".")) == 2
+            and re.match(r"[\w]+\.[\w][^\s]+$", xref)
         )
 
     @api.model
@@ -502,9 +586,9 @@ class MainTest(SingleTransactionCase):
         # Key to search for child record
         ln = ln[-1]
         if ln.isdigit():
-            ln = int(ln)
-            if not ln:                                               # pragma: no cover
-                return xref, False  # pragma: no cove
+            ln = int(ln) or False
+        elif isinstance(ln, basestring) and self._is_xref(ln):
+            ln = self._get_xref_id(self._get_model_of_xref(xref), xref=ln, fmt="id")
         return xref, ln
 
     @api.model
@@ -930,7 +1014,7 @@ class MainTest(SingleTransactionCase):
         * - [2, ID (int)]                   # DELETE linked record by ID
         * - [3, ID (int)]                   # UNLINK record ID (do not delete record)
         * - [4, ID (int)]                   # LINK record by ID
-        * - [5, x]                          # CLEAR unlink all record IDs
+        * - [5, x] or [5]                   # CLEAR unlink all record IDs
         * - [6, x, IDs (list)]              # SET link record IDs
         * - External reference (str) -> 1 value or None
         """
@@ -1106,6 +1190,11 @@ class MainTest(SingleTransactionCase):
         Returns:
             Dictionary values
         """
+        if not isinstance(values, dict):
+            self.raise_error(
+                "Invalid dict %s for %s!"
+                % (values, resource)  # pragma: no cover
+            )
         if values:
             self._load_field_struct(resource)
             values = self._get_conveyed_value(resource, "all", values, fmt=fmt)
@@ -2181,7 +2270,7 @@ class MainTest(SingleTransactionCase):
             None
         """
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.6 (debug_level=%s)" % (self.debug_level)
+            "🎺🎺🎺 Starting test v2.0.6.1 (debug_level=%s)" % (self.debug_level)
         )
         self._logger.info(
             "🎺🎺 Testing module: %s (%s)"

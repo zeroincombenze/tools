@@ -1,3 +1,11 @@
+2.0.6.1 (2023-03-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [NEW] TestEnv: assertion counter
+* [IMP] TestEnv: is_xref recognizes dot name, i.e "zobug.external.10"
+* [IMP] TestEnv: the field <description> is not mode key (only acount.tax)
+* [IMP] TestEnv: 3th level xref may be a many2one field type
+
 2.0.6 (2023-02-20)
 ~~~~~~~~~~~~~~~~~~
 
