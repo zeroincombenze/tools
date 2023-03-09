@@ -269,7 +269,7 @@ class MainTest(SingleTransactionCase):
     def dict_2_print(self, values):  # pragma: no cover
         def to_str(obj):
             x = str(obj)
-            return x if (hasattr(obj, "len") and len(x) < 120) else "[...]"
+            return x if (hasattr(obj, "len") and len(x) < 150) else "[...]"
 
         if isinstance(values, dict):
             return json.dumps(values, default=to_str, indent=4)
@@ -319,7 +319,7 @@ class MainTest(SingleTransactionCase):
         self.assert_counter += 1
         return super(MainTest, self).assertTrue(expr, msg=msg)
 
-    def assertRaises(self, expected_exception, *args, **kwargs):
+    def assertRaises(self, expected_exception, *args, **kwargs):     # pragma: no cover
         self.assert_counter += 1
         return super(MainTest, self).assertRaises(expected_exception, *args, **kwargs)
 

@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2021 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -55,13 +55,13 @@ get_dbuser() {
   local u
   for u in $USER odoo openerp postgresql; do
     if [[ -n "$1" ]]; then
-      psql -U$u$1 -l &>/dev/null
+      psql -p $opt_port -U$u$1 -l &>/dev/null
       if [[ $? -eq 0 ]]; then
         echo "$u$1"
         break
       fi
     fi
-    psql -U$u -l &>/dev/null
+    psql -p $opt_port -U$u -l &>/dev/null
     if [[ $? -eq 0 ]]; then
       echo "$u"
       break
@@ -69,17 +69,18 @@ get_dbuser() {
   done
 }
 
-OPTOPTS=(h        b          d        k         m         n            q           u        U          V           v)
-OPTDEST=(opt_help opt_branch opt_db   opt_crypt opt_multi opt_dry_run  opt_verbose opt_user opt_dbuser opt_version opt_verbose)
-OPTACTI=("+"      "="        "="      1         1         1            0           "="      "="        "*>"        "+")
-OPTDEFL=(0        ""         ""       -1        0         0            -1          ""       ""         ""          1)
-OPTMETA=("help"   "branch"   "dbname" ""        ""        "do nothing" "verbose"   "user"   "user"     "version"   "verbose")
+OPTOPTS=(h        b          d        k         m         n            p        q           u        U          V           v)
+OPTDEST=(opt_help opt_branch opt_db   opt_crypt opt_multi opt_dry_run  opt_port opt_verbose opt_user opt_dbuser opt_version opt_verbose)
+OPTACTI=("+"      "="        "="      1         1         1            "="      0           "="      "="        "*>"        "+")
+OPTDEFL=(0        ""         ""       -1        0         0            "5432"   -1          ""       ""         ""          1)
+OPTMETA=("help"   "branch"   "dbname" ""        ""        "do nothing" "port"   "verbose"   "user"   "user"     "version"   "verbose")
 OPTHELP=("this help"
   "odoo version"
   "dbname"
   "use crypt password"
   "multi-version odoo environment"
   "do nothing (dry-run)"
+  "psql port (def 5432)"
   "silent mode"
   "username to change password"
   "postgres db role"
@@ -96,7 +97,7 @@ fi
 [ -z "$opt_user" ] && opt_help=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Install odoo theme" \
-    "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -109,10 +110,10 @@ discover_multi
 odoo_ver=$(build_odoo_param MAJVER $opt_branch)
 
 [[ -n $opt_dbuser ]] && db_user=$opt_dbuser || db_user=$(get_dbuser)
-userid=$(psql -U$db_user -tc "select id from res_users where login='$opt_user';" $opt_db)
-userid=$(echo $userid)
+userid=$(psql -p $opt_port -U$db_user -Atc "select id from res_users where login='$opt_user';" "$opt_db")
 if [ -z "$userid" ]; then
   echo "User $opt_user not found!"
+  psql -p $opt_port -U$db_user -Atc "select id,login from res_users" "$opt_db"
   exit 1
 fi
 if [[ $odoo_ver -ge 8 ]]; then
@@ -139,11 +140,11 @@ if [ $opt_crypt -ne 0 ]; then
   crypt=$(echo -e "from passlib.context import CryptContext\nprint CryptContext(['pbkdf2_sha512']).encrypt('$pwd1')\n" | python)
   crypt="${crypt//\$/\\\$}"
   if [[ $odoo_ver -lt 12 ]]; then
-    run_traced "psql -U$db_user -c \"update res_users set password='',password_crypt='$crypt' where id=$userid;\" $opt_db"
+    run_traced "psql -p $opt_port -U$db_user -c \"update res_users set password='',password_crypt='$crypt' where id=$userid;\" \"$opt_db\""
   else
-    run_traced "psql -U$db_user -c \"update res_users set password='$crypt' where id=$userid;\" $opt_db"
+    run_traced "psql -p $opt_port -U$db_user -c \"update res_users set password='$crypt' where id=$userid;\" \"$opt_db\""
   fi
 else
-  run_traced "psql -c \"update res_users set password='$pwd1' where id=$userid;\" $opt_db"
+  run_traced "psql -p $opt_port -c \"update res_users set password='$pwd1' where id=$userid;\" \"$opt_db\""
 fi
 echo "Restart Odoo Service"
