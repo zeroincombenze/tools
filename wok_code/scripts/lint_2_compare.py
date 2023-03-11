@@ -32,7 +32,7 @@ def format_xml(opt_args, source, target):
     with open(source, "r") as fd:
         try:
             root = etree.XML(_b(fd.read()))
-        except SyntaxError as e:
+        except BaseException as e:
             print("%s: ***** Error %s *****" % (source, e))
             root = None
             xml_text = None
