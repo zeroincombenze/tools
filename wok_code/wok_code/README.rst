@@ -849,6 +849,7 @@ History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] ssh.py: -m -s switches accept path with user and host
+* [IMP] deploy_odoo: new property status to display
 
 2.0.5 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~
@@ -946,7 +947,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-03-03
+Last Update / Ultimo aggiornamento: 2023-03-11
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

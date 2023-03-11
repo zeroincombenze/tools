@@ -103,6 +103,11 @@ Current development version
 History
 -------
 
+2.0.3.1 (2023-03-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced: cd does not work w/o alias
+
 2.0.3 (2022-12-22)
 ~~~~~~~~~~~~~~~~~~
 
@@ -174,13 +179,16 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <info@shs-av.com>
+Contributors
+------------
+
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-22
+Last Update / Ultimo aggiornamento: 2023-03-10
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

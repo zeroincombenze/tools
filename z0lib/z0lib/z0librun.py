@@ -50,7 +50,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.3"
+__version__ = "2.0.3.1"
 
 
 def nakedname(path):
@@ -144,32 +144,47 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
             dry_run = False
         if dry_run:
             0, prcout, prcerr
-        if sys.version_info[0] == 2:
-            try:
-                proc = Popen(args, stderr=PIPE, stdout=PIPE)
-                prcout, prcerr = proc.communicate()
-                sts = proc.returncode
-                prcout = prcout.decode("utf-8")
-                prcerr = prcerr.decode("utf-8")
-            except OSError as e:
-                if verbose:
-                    print(e)
-                sts = 127
-            except BaseException:
-                sts = 126
-        else:
-            try:
-                with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+        with_shell = False
+        while 1:
+            if sys.version_info[0] == 2:
+                try:
+                    proc = Popen(
+                        args if not with_shell else " ".join(args),
+                        stderr=PIPE,
+                        stdout=PIPE,
+                        shell=with_shell)
                     prcout, prcerr = proc.communicate()
                     sts = proc.returncode
                     prcout = prcout.decode("utf-8")
                     prcerr = prcerr.decode("utf-8")
-            except FileNotFoundError as e:                                 # noqa: F821
-                if verbose:
-                    print(e)
-                sts = 127
-            except BaseException:
-                sts = 126
+                except OSError as e:
+                    if verbose:
+                        print(e)
+                    sts = 127
+                except BaseException:
+                    sts = 126
+            else:
+                try:
+                    with Popen(
+                            args if not with_shell else " ".join(args),
+                            stdin=PIPE,
+                            stdout=PIPE,
+                            stderr=PIPE,
+                            shell=with_shell
+                    ) as proc:
+                        prcout, prcerr = proc.communicate()
+                        sts = proc.returncode
+                        prcout = prcout.decode("utf-8")
+                        prcerr = prcerr.decode("utf-8")
+                except FileNotFoundError as e:                             # noqa: F821
+                    if verbose:
+                        print(e)
+                    sts = 127
+                except BaseException:
+                    sts = 126
+            if sts == 0 or with_shell:
+                break
+            with_shell = True
         return sts, prcout, prcerr
 
     def sh_cd(args, verbose=None, dry_run=None):
@@ -351,8 +366,12 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
             "mkdir": sh_mkdir,
             "rm": sh_rm,
         }.get(args[0])
-        if method:
-            return method(args, verbose=verbose, dry_run=dry_run)
+    else:
+        method = {
+            "cd": sh_cd,
+        }.get(args[0])
+    if method:
+        return method(args, verbose=verbose, dry_run=dry_run)
     return sh_any(args, verbose=verbose, dry_run=dry_run)
 
 

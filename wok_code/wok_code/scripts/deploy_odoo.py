@@ -117,6 +117,7 @@ FMT_PARAMS = {
     "git_url": "%(git_url)-60.60s",
     "path": "%(path)-48.48s",
     "stash": "%(stash)5.5s",
+    "status": "%(status)s"
 }
 
 
@@ -809,12 +810,15 @@ class OdooDeploy(object):
         fmt = fmt.strip()
         print(fmt % datas)
         for repo in self.repo_list:
-            git_org = ""
+            git_org = git_stat = ""
             tgtdir = self.get_path_of_repo(repo)
             self.run_traced("cd %s" % tgtdir, verbose=False)
             sts, repo_branch, git_url, stash_list = self.get_remote_info(verbose=False)
             if sts == 0:
                 org_url, repo, git_org = self.data_from_url(git_url)
+                sts, stdout, stderr = self.run_traced("git status", verbose=False)
+                if sts == 0:
+                    git_stat = stdout
 
             datas = {
                 "repo": repo,
@@ -825,6 +829,7 @@ class OdooDeploy(object):
                 "git_url": git_url,
                 "path": tgtdir,
                 "stash": "stash" if self.repo_info[repo].get("STASH") else "",
+                "status": git_stat,
             }
             print(fmt % datas)
         print()
@@ -864,7 +869,8 @@ def main(cli_args=None):
     parser.add_argument("-e", "--skip-if-exist", action="store_true")
     parser.add_argument("-F",
                         "--format",
-                        help="use 1 or + of sts,repo,branch,git_org,git_url,path,stash",
+                        help=("use 1 or + of "
+                              "sts,repo,branch,git_org,git_url,path,stash, status"),
                         default="sts,repo,branch,git_org,git_url,path,stash")
     parser.add_argument("-G", "--git-orgs",
                         help="Git organizations, comma separated - "
