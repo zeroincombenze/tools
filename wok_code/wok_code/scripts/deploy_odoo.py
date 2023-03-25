@@ -219,6 +219,32 @@ class OdooDeploy(object):
         else:
             return False
 
+    def get_git_org_n_url(self, git_org):
+        git_org = git_org or "oca"
+        if git_org.startswith("https:") or git_org.startswith("http:"):
+            git_url = git_org
+            item = git_org.split(":", 1)[1]
+            if item.endswith(".git"):
+                git_org = os.path.basename(os.path.dirname(item))
+            else:
+                git_org = os.path.basename(item)
+            if git_org == "OCA":
+                git_org = "oca"
+        else:
+            if git_org == "zero":
+                git_org = "zeroincombenze"
+            elif git_org == "librerp" and self.opt_args.odoo_branch == "12.0":
+                git_org = "LibrERP-network"
+            elif git_org == "librerp" and self.opt_args.odoo_branch == "6.0":
+                git_org = "iw3hxn"
+            if self.opt_args.use_git:
+                git_url = "git@github.com:%s" % git_org
+            elif git_org == "oca":
+                git_url = "https://github.com/%s" % git_org.upper()
+            else:
+                git_url = "https://github.com/%s" % git_org
+        return git_url, git_org
+
     def get_repo_from_config(self):
         opt_args = self.opt_args
         self.master_branch = build_odoo_param("FULLVER", odoo_vid=opt_args.odoo_branch)
@@ -720,14 +746,17 @@ class OdooDeploy(object):
             # repo = "odoo"
         elif repo in self.repo_list:
             repo_branch = self.repo_info[repo].get("BRANCH", branch)
-            git_url = self.repo_info[repo].get("URL")
-            if not git_url:
-                git_url = build_odoo_param(
-                    "GIT_URL",
-                    odoo_vid=repo_branch,
-                    multi=self.opt_args.multi,
-                    git_org=git_org,
-                )
+            if repo_branch == "12.0" and git_org == "librerp" and repo == "OCB":
+                git_url = DEFAULT_DATA["librerp12"]["URL"] + "/odoo.git"
+            else:
+                git_url = self.repo_info[repo].get("URL")
+                if not git_url:
+                    git_url = build_odoo_param(
+                        "GIT_URL",
+                        odoo_vid=repo_branch,
+                        multi=self.opt_args.multi,
+                        git_org=git_org,
+                    )
         if not git_url:
             return 127
         # if not git_url.endswith(".git"):
@@ -826,8 +855,9 @@ class OdooDeploy(object):
                 "stash": "stash" if self.repo_info[repo].get("STASH") else "",
             }
             print(fmt % datas)
-        print()
-        print(",".join(self.addons_path))
+        if self.opt_args.show_addons:
+            print()
+            print(",".join(self.addons_path))
 
     def list_repo_info(self):
         print("Odoo main version..........: %s" % self.master_branch)
@@ -864,8 +894,9 @@ class OdooDeploy(object):
                 "status": git_stat,
             }
             print(fmt % datas)
-        print()
-        print(",".join(self.addons_path))
+        if self.opt_args.show_addons:
+            print()
+            print(",".join(self.addons_path))
 
     def download_or_pull_repo(self):
         print("Odoo main version..........: %s" % self.master_branch)
@@ -889,6 +920,12 @@ def main(cli_args=None):
     parser.add_argument(
         "-A",
         "--update-addons-conf",
+        action="store_true",
+        help="Update addons_path in Odoo configuration file",
+    )
+    parser.add_argument(
+        "-a",
+        "--show-addons",
         action="store_true",
         help="Update addons_path in Odoo configuration file",
     )
@@ -918,7 +955,7 @@ def main(cli_args=None):
         "-g",
         "--use-git",
         action="store_true",
-        help="When create-new use git protocol insetad of https",
+        help="When create-new use git protocol instead of https",
     )
     parser.add_argument(
         "-K",

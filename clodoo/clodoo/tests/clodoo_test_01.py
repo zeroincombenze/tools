@@ -857,7 +857,7 @@ class RegressionTest:
         ctx = create_act_list(ctx)
         sts = TEST_SUCCESS
         lx = ctx["_lx_act"]
-        if isaction(oerp, ctx, lx[0]):
+        if isaction(ctx, lx[0]):
             ctx["actions_db"] = lx[0]
             ctx["actions_mc"] = lx[1]
         else:
@@ -872,10 +872,10 @@ class RegressionTest:
             ctx["actions_mc"] = "unit_test"
             sts = self.Z.test_result(z0ctx, msg, True, check_4_actions(ctx))
         if sts == TEST_SUCCESS:
-            sts = do_single_action(oerp, ctx, "unit_test")
+            sts = do_single_action(ctx, "unit_test")
             sts = self.Z.test_result(z0ctx, msg, TEST_SUCCESS, sts)
         if sts == TEST_SUCCESS:
-            sts = do_single_action(oerp, ctx, MY_ACT)
+            sts = do_single_action(ctx, MY_ACT)
             sts = self.Z.test_result(z0ctx, msg, TEST_SUCCESS, sts)
         return sts
 

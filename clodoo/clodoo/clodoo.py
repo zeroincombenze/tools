@@ -743,7 +743,7 @@ def action_id(lexec):
 
 def do_group_action(ctx, action):
     """Do group actions (recursive)"""
-    if ctx['dbg_mode'] or 'test_unit_mode' not in ctx:
+    if ctx.get('dbg_mode') or 'test_unit_mode' not in ctx:
         msg = "> do_group_action(%s)" % action
         msg_log(ctx, ctx['level'] + 1, msg)
     conf_obj = ctx['_conf_obj']
@@ -785,7 +785,7 @@ def do_single_action(ctx, action):
     if isaction(ctx, action):
         if action == '' or action is False or action is None:
             return STS_SUCCESS
-        if ctx['dbg_mode']:
+        if ctx.get('dbg_mode'):
             msg = "> do_single_action(%s)" % action
             msg_log(ctx, ctx['level'] + 1, msg)
         if ctx.get('db_name', '') == 'auto':
@@ -1138,7 +1138,7 @@ def act_show_user_params(ctx):
 
 def act_unit_test(ctx):
     """This function does nothing, it acts just for unit test"""
-    msg_log(ctx, ctx['level'], globals()[inspect.stack()[0][3]].__doc__)
+    msg_log(ctx, ctx.get('level', 0), globals()[inspect.stack()[0][3]].__doc__)
     return STS_SUCCESS
 
 
