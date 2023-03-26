@@ -13,7 +13,7 @@ from z0lib import z0lib
 from zerobug import z0test
 
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1
