@@ -24,7 +24,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.4.1"
+__version__ = "2.0.6"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -38,17 +38,18 @@ REQVERSION = {
     "argparse": {"0": "==1.2.1"},
     "astroid": {"2.7": "==1.6.5", "3.5": "==2.2.0"},  # Version by test pkgs
     "autopep8": {"0": "==1.2"},
-    "Babel": {"6.1": "==1.3", "8.0": "==2.3.4"},
+    "Babel": {"6.1": "==1.3", "8.0": "==2.3.4", "16.0": ">=2.6.0<=2.9.1"},
     "beautifulsoup": {"6.1": "==3.2.1"},
     "bokeh": {
         "11.0": "==0.12.7", "12.0": "==1.1.0", "14.0": "==2.3.1", "15.0": "2.4.2"
     },
     "codicefiscale": {"6.1": "==0.9"},
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
-    "cryptography": {"2.7": ">=2.2.2", "3.7": ">=38.0"},
+    "cryptography": {"2.7": ">=2.2.2", "3.7": ">=38.0<39.0"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
     "docutils": {"6.1": "==0.12", "0": "==0.14", "3.7": "==0.16"},       # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
+    "email_validator": {"10.0": "<1.3.0", "12.0": ">=1.3"},
     "ERPpeek": {"0": "==1.6.1"},
     "feedparser": {"6.1": "==5.1.3", "10.0": "==5.2.1"},
     "flake8": {
@@ -78,19 +79,20 @@ REQVERSION = {
     "Mako": {
         "6.1": "==1.0.0", "7.0": "==1.0.1", "8.0": "==1.0.4", "10.0": ">=1.0.4",
     },
-    "MarkupSafe": {"6.1": ">=0.23", "0": "<2.1.0"},  # Tested 1.0
+    "MarkupSafe": {"6.1": "==0.23", "14.0": "==1.1.0", "0": "<2.1.0"},  # Tested 1.0
     "matplotlib": {
         "10.0": "==3.0.3",
-        "13.0": "==3.4.1",
-        # "3.6": "==3.0.3",
+        # "13.0": "==3.4.1",
+        "3.6": "==3.0.3",
         # "3.7": "==3.4.1"
+        "3.7": "<3.4.0"     # Experimental!
     },
     "mock": {"6.1": "==1.0.1", "8.0": "==2.0.0"},
     "nbconvert": {"0": "==6.0.7"},
     "odoo_score": {"6.1": "==1.0.1", "10.0": ">=2.0.0"},
     "ofxparse": {"6.1": "==0.16"},
     "pandas": {"3.7": ">=0.22.0,<=1.1.0"},
-    "passlib": {"6.1": "==1.6.2", "10.0": "==1.6.5"},
+    "passlib": {"6.1": "==1.6.2", "10.0": "==1.6.5", "16.0": ">=1.7.0"},
     "Pillow": {
         "6.1": "==3.4.1",
         "7.0": "==3.4.2",
@@ -127,7 +129,7 @@ REQVERSION = {
     "pylint-odoo": {
         "2.7": "==3.5.0",
         "3.5": "<=8.0.0",
-        "3.8": ">=3.5.0",
+        "3.8": ">=3.5.0<=8.0.0",
     },
     "pylint-plugin-utils": {
         "2.7": "==0.2.6",
@@ -136,7 +138,7 @@ REQVERSION = {
     },
     "pyopenssl": {"0": ">=16.2.0"},  # by MQT
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
-    "pyPDF2": {"2.7": "==1.28.4", "3.5": ">=2.0", "3.6": ">=2.0", "3.7": ">=2.0"},
+    "pyPDF2": {"2.7": "==1.28.4", "3.5": "<2.0"},
     "pysftp": {"6.1": ">=0.2.9"},
     "pyparsing": {"6.1": "==1.5.7", "7.0": "==2.0.3", "10.0": "==2.1.10"},
     "pyPdf": {"6.1": "==1.13"},
@@ -163,16 +165,18 @@ REQVERSION = {
     "readme-renderer" : {"2.7": "<25.0", "3.5": "<29.0", "3.6": ">=30.0"},
     "restructuredtext_lint": {"6.1": "==0.12.2", "0": "==1.1.3"},
     "reportlab": {"6.1": "==3.1.44", "10.0": "==3.3.0"},
-    "requests": {"6.1": "==2.6.0", "10.0": "==2.11.1"},
+    "requests": {"6.1": "==2.6.0", "10.0": ">=2.11.1"},
+    "sentry-sdk": {"0": "<1.12.0"},
     "simplejson": {"6.1": "==3.5.3", "10.0": ">=3.5.3"},
     "six": {"6.1": "==1.7.3", "7.0": "==1.9.0", "10.0": ">=1.10.0"},
     "Sphinx": {"2.7": "==1.2.3", "3.7": ">=2.4.0"},
     "suds": {"6.1": "==0.4"},
     "suds-jurko": {"6.1": "==0.6"},
-    "translators": {"3.7": "<5.2.0"},
+    "translators": {"0": "<5.1.0"},
     "unicodecsv": {"6.1": ">=0.14.1"},
     "unidecode": {"6.1": "==0.4.17", "10.0": "<=1.2.0", "11.0": ">1.2.0"},
     "unittest2": {"6.1": "==0.5.1", "11.0": ">=1.0.0"},
+    "urllib3": {"3.5": "<1.26"},
     "validate_email": {"6.1": ">=1.3"},
     "vatnumber": {"6.1": "==1.2"},
     "vobject": {"6.1": "==0.6.6", "7.0": "==0.9.3"},  # Tested 0.9.5
@@ -188,6 +192,7 @@ REQVERSION = {
     "xlrd": {"6.1": "==1.0.0"},
     "xlwt": {"6.1": "==0.7.5", "10.0": "==1.1.2", "12.0": "==1.3"},
     "z0bug_odoo": {"6.1": "==1.0.1", "10.0": ">=2.0.0"},
+    "zeep": {"0": "==2.4.0"},
     "zerobug": {"6.1": "==1.0.1", "10.0": ">=2.0.0"},
 }
 ALIAS = {
@@ -229,7 +234,7 @@ ALIAS = {
 }
 ALIAS3 = {
     "PyWebDAV": "PyWebDAV3",
-    "pyPdf": "pyPDF2",
+    # "pyPdf": "pyPDF2",
     # "python-ldap": "pyldap",  # pyldap is a fork!
     "python-dev": "python3-dev",
     "python3-ldap": "ldap3",
@@ -246,7 +251,6 @@ FORCE_ALIAS2 = {
     "importlib-metadata": "importlib-metadata==4.8.3",
     "pygount": "pygount<=1.2.0",
     "pandas": "pandas>=0.22.0,<=1.1.0",
-    "matplotlib": "matplotlib==3.4.1",
 }
 FORCE_ALIAS3 = {
     "docutils==0.12": "docutils==0.16",
@@ -256,13 +260,11 @@ FORCE_ALIAS3 = {
     "pytz==2019.3": "pytz>=2019.3",
     "zeep==4.0.0": "zeep==2.4.0",
     "python-ldap": "python-ldap==3.1.0",
-    "translators": "translators<5.2.0",
     "Mako==1.0.4": "Mako>=1.0.4",
     "rich": "rich<=12.0.0",
     "importlib-metadata": "importlib-metadata==4.8.3",
     "pygount": "pygount<=1.2.0",
     "pandas": "pandas>=0.22.0,<=1.1.0",
-    "matplotlib": "matplotlib==3.4.1",
 }
 PIP_SECURE_PACKAGES = [
     "urllib3[secure]",
@@ -429,7 +431,7 @@ PIP_ODOO_BASE_PACKAGES = [
     "python-plus",
     "pydot",
     "pyparsing",
-    "pypdf",  # with PY3 becomes pyPDF2
+    "pyPdf",
     "pyserial",
     "pytz",
     "reportlab",
@@ -672,7 +674,9 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
                             break
             if min_v:
                 full_item = merge_item_version(
-                    full_item, "%s%s" % (item, REQVERSION[item][min_v]))
+                    full_item,
+                    "%s%s" % (item, REQVERSION[item][min_v]),
+                    ignore_error=True)
     item = python_plus.qsplit(item)[0].strip()
     full_item = python_plus.qsplit(full_item)[0].strip()
     full_item = re.sub(' *([<=>]+) *', r'\1', full_item.strip())
@@ -722,16 +726,22 @@ def split_versions(full_item):
     return items
 
 
-def merge_item_version(left, right):
+def merge_item_version(left, right, ignore_error=False):
     split_left = split_versions(left)
     split_right = split_versions(right)
     ix_right = 1
     while ix_right < len(split_right):
         op = split_right[ix_right]
         if op not in split_left:
-            split_left.append(op)
-            ix_right += 1
-            split_left.append(split_right[ix_right])
+            if op == "==" and any([x for x in split_left if ("<" in x or ">" in x)]):
+                ix_right += 1
+                split_left = [split_left[0], op, split_right[ix_right]]
+            elif (">" not in op and "<" not in op) or "==" not in split_left:
+                split_left.append(op)
+                ix_right += 1
+                split_left.append(split_right[ix_right])
+            else:
+                ix_right += 1
             ix_right += 1
             if ix_right < len(split_right) and split_right[ix_right] == ",":
                 split_left.append(split_right[ix_right])
@@ -745,8 +755,12 @@ def merge_item_version(left, right):
 
             if op == "==":
                 if ver_left != ver_right:
-                    sys.stderr.write("Version mismatch: %s %s\n" % (left, right))
-
+                    if not ignore_error:
+                        sys.stderr.write(
+                            "Modules version requirements mismatch: <%s> <%s>\n"
+                            % (left, right))
+                    if ver_right > ver_left:
+                        split_left[ix_left] = ver_right
             elif "<" in op:
                 split_left[ix_left] = maxver(ver_left, ver_right)
 
@@ -1087,7 +1101,10 @@ def set_def_outfile(ctx):
     ctx["rpc_pkgs"] = False
     ctx["test_pkgs"] = False
     ctx["oca_dependencies"] = False
-    ctx["opt_fn"] = "/".join([ctx["odoo_dir"], "requirements.txt"])
+    if os.path.isdir(os.path.join(ctx["odoo_dir"], "venv_odoo")):
+        ctx["opt_fn"] = os.path.join(ctx["odoo_dir"], "venv_odoo", "requirements.txt")
+    else:
+        ctx["opt_fn"] = os.path.join(ctx["odoo_dir"], "requirements.txt")
     return ctx
 
 

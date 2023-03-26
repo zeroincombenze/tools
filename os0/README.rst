@@ -130,16 +130,6 @@ History
 
 * [IMP] Stable version
 
-1.0.3.1 (2021-12-23)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] python compatibility
-
-1.0.3 (2021-12-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
 
 
 |
@@ -158,13 +148,16 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+Contributors
+------------
+
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-21
+Last Update / Ultimo aggiornamento: 2023-03-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

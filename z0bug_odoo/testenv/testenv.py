@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.6
+"""Test Environment v2.0.6.1
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -96,14 +96,22 @@ from future.utils import PY2, PY3
 from past.builtins import basestring, long
 
 from datetime import datetime, date
+import re
 import json
 import logging
 import base64
 import inspect
 
+from odoo import api
 from odoo.tools.safe_eval import safe_eval
 from odoo.modules.module import get_module_resource
-
+try:
+    import odoo.release as release
+except ImportError:
+    try:
+        import openerp.release as release
+    except ImportError:
+        release = None
 import python_plus
 from z0bug_odoo.test_common import SingleTransactionCase
 from z0bug_odoo import z0bug_odoo_lib
@@ -155,7 +163,7 @@ KEY_CANDIDATE = (
     "default_code",
     "sequence",
     "login",
-    "description",
+    # "description",
     "depreciation_type_id",
     "number",
     "move_name",
@@ -170,6 +178,7 @@ KEY_CANDIDATE = (
 KEY_OF_RESOURCE = {
     "res.users": "login",
     "account.tax": "description",
+    "account.rc.type.tax": "purchase_tax_id",
 }
 REC_KEY_NAME = {"id", "code", "name"}
 if PY3:  # pragma: no cover
@@ -189,6 +198,7 @@ class MainTest(SingleTransactionCase):
 
     def setUp(self):
         super(MainTest, self).setUp()
+        self.odoo_major_version = release.version_info[0] if release else 0
         self.debug_level = 0
         self.PYCODESET = "utf-8"
         self._logger = _logger
@@ -203,6 +213,7 @@ class MainTest(SingleTransactionCase):
         self.childs_resource = {}
         self.uninstallable_modules = []
         self.convey_record = {}
+        self.assert_counter = 0
         for item in self.__module__.split("."):
             if item not in ("odoo", "openerp", "addons"):
                 self.module = self.env["ir.module.module"].search(
@@ -225,6 +236,10 @@ class MainTest(SingleTransactionCase):
         #             self.odoo_version = "%" % release.version_info[0]
         #         except ImportError:
         #             self.odoo_version = "16"
+
+    def tearDown(self):
+        super(MainTest, self).tearDown()
+        self._logger.info("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
 
     # ---------------------------------------
     # --  Unicode encode/decode functions  --
@@ -254,7 +269,7 @@ class MainTest(SingleTransactionCase):
     def dict_2_print(self, values):  # pragma: no cover
         def to_str(obj):
             x = str(obj)
-            return x if (hasattr(obj, "len") and len(x) < 120) else "[...]"
+            return x if (hasattr(obj, "len") and len(x) < 150) else "[...]"
 
         if isinstance(values, dict):
             return json.dumps(values, default=to_str, indent=4)
@@ -291,6 +306,78 @@ class MainTest(SingleTransactionCase):
     def raise_error(self, mesg):  # pragma: no cover
         self._logger.info("🛑 " + mesg)
         raise ValueError(mesg)
+
+    # ----------------------------------
+    # --  Counted assertion functions --
+    # ----------------------------------
+
+    def assertFalse(self, expr, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertFalse(expr, msg=msg)
+
+    def assertTrue(self, expr, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertTrue(expr, msg=msg)
+
+    def assertRaises(self, expected_exception, *args, **kwargs):     # pragma: no cover
+        self.assert_counter += 1
+        return super(MainTest, self).assertRaises(expected_exception, *args, **kwargs)
+
+    def assertEqual(self, first, second, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertEqual(first, second, msg=msg)
+
+    def assertNotEqual(self, first, second, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertNotEqual(first, second, msg=msg)
+
+    def assertIn(self, member, container, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIn(member, container, msg=msg)
+
+    def assertNotIn(self, member, container, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertNotIn(member, container, msg=msg)
+
+    def assertIs(self, expr1, expr2, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIs(expr1, expr2, msg=msg)
+
+    def assertIsNot(self, expr1, expr2, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIsNot(expr1, expr2, msg=msg)
+
+    def assertLess(self, a, b, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertLess(a, b, msg=msg)
+
+    def assertLessEqual(self, a, b, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertLessEqual(a, b, msg=msg)
+
+    def assertGreater(self, a, b, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertGreater(a, b, msg=msg)
+
+    def assertGreaterEqual(self, a, b, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertGreaterEqual(a, b, msg=msg)
+
+    def assertIsNone(self, obj, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIsNone(obj, msg=msg)
+
+    def assertIsNotNone(self, obj, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIsNotNone(obj, msg=msg)
+
+    def assertIsInstance(self, obj, cls, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertIsInstance(obj, cls, msg=msg)
+
+    def assertNotIsInstance(self, obj, cls, msg=None):
+        self.assert_counter += 1
+        return super(MainTest, self).assertNotIsInstance(obj, cls, msg=msg)
 
     # ----------------------------
     # --  Conveyance functions  --
@@ -346,6 +433,7 @@ class MainTest(SingleTransactionCase):
         self.convey_record[ir_resource][xref] = conveyed_xref
         self._move_conveyed_xref(resource, xref, conveyed_xref, group=group)
 
+    @api.model
     def _get_conveyed_value(self, resource, field, value, fmt=None):
         if (
             resource in self.convey_record
@@ -387,6 +475,7 @@ class MainTest(SingleTransactionCase):
                 "account.payment.term.line", "all", "_cvt_account_payment_term_line"
             )
 
+    @api.model
     def _cvt_account_payment_term_line(self, values):
         if values.get("months"):
             values["days"] = values["months"] * 30
@@ -422,31 +511,39 @@ class MainTest(SingleTransactionCase):
                     break
 
     def _search4childs(self, resource, childs_resource=None):
+        def _relation_prio(resource):
+            return childs_resource.index(resource)
+
         childs_resource = childs_resource or []
         if not childs_resource:
             if resource == "product.template":
                 childs_resource = ["product.product"]
             else:
-                for suffix in (".line", ".rate", ".state"):
+                for suffix in (".line", ".rate", ".state", ".tax"):
                     childs_resource.append(resource + suffix)
         if not isinstance(childs_resource, (list, tuple)):
             childs_resource = [childs_resource]  # pragma: no cover
         if resource not in self.childs_resource:
             for field in self.struct[resource].keys():
                 if self.struct[resource][field].get("relation", "/") in childs_resource:
-                    if resource not in self.childs_name or len(field) < len(
-                        self.childs_name[resource]
+                    candidate = self.struct[resource][field]["relation"]
+                    if (
+                        resource not in self.childs_name
+                        or _relation_prio(candidate) < _relation_prio(
+                            self.childs_resource[resource])
+                        or (_relation_prio(candidate) == _relation_prio(
+                            self.childs_resource[resource])
+                            and len(field) < len(self.childs_name[resource]))
                     ):
                         self.childs_name[resource] = field
-                        self.childs_resource[resource] = self.struct[resource][field][
-                            "relation"
-                        ]
+                        self.childs_resource[resource] = candidate
                         self.log_lvl_2(
                             " 🌍 childs_resource[%s] = %s"
                             % (resource, self.childs_resource[resource])
                         )
                         self.log_lvl_2(" 🌍 childs_name[%s] = %s" % (resource, field))
 
+    @api.model
     def _add_child_records(self, resource, xref, values, group=None):
         if resource not in self.childs_name:
             return values
@@ -457,7 +554,7 @@ class MainTest(SingleTransactionCase):
         childs_resource = self.childs_resource[resource]
         for child_xref in self.get_resource_data_list(childs_resource, group=group):
             if child_xref.startswith(xref):
-                record = self.resource_bind(
+                record = self.resource_browse(
                     child_xref,
                     raise_if_not_found=False,
                     resource=childs_resource,
@@ -473,14 +570,14 @@ class MainTest(SingleTransactionCase):
     # --  Data structure functions  --
     # --------------------------------
 
+    @api.model
     def _is_xref(self, xref):
         return (
             isinstance(xref, basestring)
-            and "." in xref
-            and " " not in xref
-            and len(xref.split(".")) == 2
+            and re.match(r"[\w]+\.[\w][^\s]+$", xref)
         )
 
+    @api.model
     def _unpack_xref(self, xref):
         # This is a 3 level external reference for header/detail relationship
         ln = xref.split("_")
@@ -489,16 +586,18 @@ class MainTest(SingleTransactionCase):
         # Key to search for child record
         ln = ln[-1]
         if ln.isdigit():
-            ln = int(ln)
-            if not ln:                                               # pragma: no cover
-                return xref, False  # pragma: no cove
+            ln = int(ln) or False
+        elif isinstance(ln, basestring) and self._is_xref(ln):
+            ln = self._get_xref_id(self._get_model_of_xref(xref), xref=ln, fmt="id")
         return xref, ln
 
+    @api.model
     def _is_transient(self, resource):
         if isinstance(resource, basestring):
             return self.env[resource]._transient                     # pragma: no cover
         return resource._transient
 
+    @api.model
     def _add_xref(self, xref, xid, resource):
         """Add external reference ID that will be used in next tests.
         If xref exist, result ID will be upgraded"""
@@ -518,13 +617,14 @@ class MainTest(SingleTransactionCase):
         xrefs[0].write(values)  # pragma: no cover
         return xrefs[0]  # pragma: no cover
 
+    @api.model
     def _get_xref_id(self, resource, xref, fmt=None, group=None):
         res = xref
         if xref.isdigit() or (xref.startswith("-") and xref[1:].isdigit()):
             res = int(xref)
         elif self._is_xref(xref):
             if fmt:
-                res = self.resource_bind(
+                res = self.resource_browse(
                     xref,
                     raise_if_not_found=False,
                     resource=resource,
@@ -542,6 +642,7 @@ class MainTest(SingleTransactionCase):
             res = res.id if res else False if fmt else xref
         return res
 
+    @api.model
     def _get_model_of_xref(self, xref):
         resource = name = ln = None
         if xref in self.setup_xrefs:
@@ -562,6 +663,7 @@ class MainTest(SingleTransactionCase):
                 self.setup_xrefs[xref] = (None, resource)
         return resource
 
+    @api.model
     def _get_depending_xref(self, resource, xref):
         resource_child = xref_child = field_child = field_parent = False
         if resource == "product.template":
@@ -634,6 +736,7 @@ class MainTest(SingleTransactionCase):
     # ---------------------------------------------
     # Return unicode even on python2
 
+    @api.model
     def _cast_field(self, resource, field, value, fmt=None, group=None):
         ftype = self.struct[resource][field]["type"]
         if ftype not in ("text", "binary", "html"):
@@ -656,6 +759,7 @@ class MainTest(SingleTransactionCase):
             value = getattr(self, method)(resource, field, value, fmt=fmt, group=group)
         return value
 
+    @api.model
     def _convert_field_to_write(self, record, field):
         value = record[field]
         if value is not None and value is not False:
@@ -664,12 +768,15 @@ class MainTest(SingleTransactionCase):
             value = getattr(self, method)(record, field, value)
         return value
 
+    @api.model
     def _cast_field_base(self, resource, field, value, fmt=None, group=None):
         return value
 
+    @api.model
     def _upgrade_field_base(self, record, field, value):
         return value
 
+    @api.model
     def _convert_base_to_write(self, record, field, value):
         return value
 
@@ -678,6 +785,7 @@ class MainTest(SingleTransactionCase):
     # ----------------------------------
     # Return unicode even on python2
 
+    @api.model
     def _cast_field_selection(self, resource, field, value, fmt=None, group=None):
         if fmt and resource == "res.partner" and field == "lang":
             if not self.env["res.lang"].search([("code", "=", value)]):
@@ -690,6 +798,7 @@ class MainTest(SingleTransactionCase):
     # --------------------------------
     # Return boolean
 
+    @api.model
     def _cast_field_boolean(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, basestring):
             if value.isdigit():
@@ -709,6 +818,7 @@ class MainTest(SingleTransactionCase):
     # --------------------------------
     # Return integer and/or long on python2
 
+    @api.model
     def _cast_field_integer(self, resource, field, value, fmt=None, group=None):
         if value and isinstance(value, basestring):
             value = int(value)
@@ -719,6 +829,7 @@ class MainTest(SingleTransactionCase):
     # ------------------------------
     # Return float
 
+    @api.model
     def _cast_field_float(self, resource, field, value, fmt=None, group=None):
         if value and isinstance(value, basestring):
             value = eval(value)
@@ -729,6 +840,7 @@ class MainTest(SingleTransactionCase):
     # ---------------------------------
     # Return float
 
+    @api.model
     def _cast_field_monetary(self, resource, field, value, fmt=None, group=None):
         return self._cast_field_float(resource, field, value, fmt=fmt, group=group)
 
@@ -738,6 +850,7 @@ class MainTest(SingleTransactionCase):
     # Return datetime (cast / upgrade)
     # Return datetime (convert Odoo 11+) or string (convert Odoo 10-)
 
+    @api.model
     def _cvt_to_datetime(self, value):
         if isinstance(value, date):
             if isinstance(value, datetime):
@@ -755,6 +868,7 @@ class MainTest(SingleTransactionCase):
             value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
         return value
 
+    @api.model
     def _cast_field_datetime(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, (list, tuple)) and fmt:
             value = self._cvt_to_datetime(self.compute_date(value[0], refdate=value[1]))
@@ -764,6 +878,7 @@ class MainTest(SingleTransactionCase):
             value = datetime.strftime(value, "%Y-%m-%d %H:%M:%S")
         return value
 
+    @api.model
     def _convert_datetime_to_write(self, record, field, value):
         return self._cvt_to_datetime(value)
 
@@ -773,6 +888,7 @@ class MainTest(SingleTransactionCase):
     # Return date (cast / upgrade)
     # Return date (convert Odoo 11+) or string (convert Odoo 10-)
 
+    @api.model
     def _cvt_to_date(self, value):
         if isinstance(value, datetime):
             value = value.date()
@@ -780,6 +896,7 @@ class MainTest(SingleTransactionCase):
             value = datetime.strptime(value[:10], "%Y-%m-%d").date()
         return value
 
+    @api.model
     def _cast_field_date(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, (list, tuple)) and fmt:
             value = self._cvt_to_date(self.compute_date(value[0], refdate=value[1]))
@@ -789,6 +906,7 @@ class MainTest(SingleTransactionCase):
             value = datetime.strftime(value, "%Y-%m-%d")
         return value
 
+    @api.model
     def _convert_date_to_write(self, record, field, value):
         return self._cvt_to_date(value)
 
@@ -797,6 +915,7 @@ class MainTest(SingleTransactionCase):
     # -------------------------------
     # Return base64 (binary data) or string (filename with len<=64)
 
+    @api.model
     def _get_binary_filename(self, xref, bin_types=None):
         binary_root = get_module_resource(self.module.name, "tests", "data")
         if not bin_types:
@@ -812,6 +931,7 @@ class MainTest(SingleTransactionCase):
                 return binary_file
         return False  # pragma: no cover
 
+    @api.model
     def _get_binary_contents(self, value):
         if (
             not isinstance(value, basestring)
@@ -826,6 +946,7 @@ class MainTest(SingleTransactionCase):
             return base64.b64encode(bin_contents)
         return False  # pragma: no cover
 
+    @api.model
     def _cast_field_binary(self, resource, field, value, fmt=None, group=None):
         bin_contents = self._get_binary_contents(value)
         if bin_contents:
@@ -839,6 +960,7 @@ class MainTest(SingleTransactionCase):
     # ---------------------------------
     # Return int (fmt), string (for xref before bind)
 
+    @api.model
     def _cast_field_many2one(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, basestring):
             value = self._get_xref_id(
@@ -853,17 +975,23 @@ class MainTest(SingleTransactionCase):
             and is_iterable(value)
             and "id" in value
         ):
-            value = value.id
+            # Odoo 14.0 NewId requires origin
+            value = value.id if isinstance(value.id, (int, long)) else value.id.origin
         return value if value else None
 
+    @api.model
     def _convert_many2one_to_write(self, record, field, value):
-        return value.id if value else None
+        if not value:
+            return None
+        # Odoo 14.0 NewId requires origin
+        return value.id if isinstance(value.id, (int, long)) else value.id.origin
 
     # -----------------------------------------------
     # --  Type <one2many> / <many2many> functions  --
     # -----------------------------------------------
     # Return [*] (fmt), string (for xref before bind)
 
+    @api.model
     def _value2dict(self, resource, value, fmt=None, group=None):
         if isinstance(value, dict):
             return self.cast_types(resource, value, fmt=fmt)
@@ -876,6 +1004,7 @@ class MainTest(SingleTransactionCase):
             )
         return value                                                 # pragma: no cover
 
+    @api.model
     def _cast_2many(self, resource, field, value, fmt=None, group=None):
         """ "One2many and many2many may have more representations:
         * External reference (str) -> 1 value or None
@@ -885,7 +1014,7 @@ class MainTest(SingleTransactionCase):
         * - [2, ID (int)]                   # DELETE linked record by ID
         * - [3, ID (int)]                   # UNLINK record ID (do not delete record)
         * - [4, ID (int)]                   # LINK record by ID
-        * - [5, x]                          # CLEAR unlink all record IDs
+        * - [5, x] or [5]                   # CLEAR unlink all record IDs
         * - [6, x, IDs (list)]              # SET link record IDs
         * - External reference (str) -> 1 value or None
         """
@@ -994,6 +1123,7 @@ class MainTest(SingleTransactionCase):
                 self._logger.info("⚠ No *2many value for %s.%s" % (resource, value))
         return res
 
+    @api.model
     def _cast_field_one2many(self, resource, field, value, fmt=None, group=None):
         value = self._cast_2many(
             self.struct[resource][field]["relation"],
@@ -1006,6 +1136,7 @@ class MainTest(SingleTransactionCase):
             value = None
         return value
 
+    @api.model
     def _cast_field_many2many(self, resource, field, value, fmt=None, group=None):
         return self._cast_2many(
             self.struct[resource][field]["relation"],
@@ -1015,11 +1146,15 @@ class MainTest(SingleTransactionCase):
             group=group
         )
 
+    @api.model
     def _convert_one2many_to_write(self, record, field, value):
         if value:
-            return [(6, 0, [x.id for x in value])]
+            return [(6, 0, [
+                x.id if isinstance(x.id, (int, long)) else x.id.origin
+                for x in value])]
         return False
 
+    @api.model
     def _convert_many2many_to_write(self, record, field, value):
         return self._convert_one2many_to_write(record, field, value)
 
@@ -1027,6 +1162,7 @@ class MainTest(SingleTransactionCase):
     # --  ir.model / resource functions  --
     # -------------------------------------
 
+    @api.model
     def cast_types(self, resource, values, fmt=None, group=None):
         """Convert resource fields in appropriate type, based on Odoo type.
         The parameter fmt declares the purpose of casting: 'cmd' means convert to Odoo
@@ -1054,6 +1190,11 @@ class MainTest(SingleTransactionCase):
         Returns:
             Dictionary values
         """
+        if not isinstance(values, dict):
+            self.raise_error(
+                "Invalid dict %s for %s!"
+                % (values, resource)  # pragma: no cover
+            )
         if values:
             self._load_field_struct(resource)
             values = self._get_conveyed_value(resource, "all", values, fmt=fmt)
@@ -1078,6 +1219,7 @@ class MainTest(SingleTransactionCase):
 
         return values
 
+    @api.model
     def _convert_to_write(self, record, new=None, orig=None):
         values = {}
         for field in list(record._fields.keys()):
@@ -1097,6 +1239,7 @@ class MainTest(SingleTransactionCase):
                 values[field] = value
         return values
 
+    @api.model
     def _upgrade_record(self, record, values, default={}):
         for field in list(values.keys()):
             if field in SUPERMAGIC_COLUMNS:  # pragma: no cover
@@ -1110,6 +1253,7 @@ class MainTest(SingleTransactionCase):
                 setattr(record, field, value)
         return record
 
+    @api.model
     def _purge_values(self, values, timed=None):
         for field in BITTER_COLUMNS:
             if field in values:
@@ -1124,6 +1268,7 @@ class MainTest(SingleTransactionCase):
     # --  Wizard/Form internal functions  --
     # --------------------------------------
 
+    @api.model
     def _ctx_active_ids(self, records, ctx={}):
         if records:
             if is_iterable(records):
@@ -1142,20 +1287,34 @@ class MainTest(SingleTransactionCase):
             _ctx.update(self._ctx_active_ids(records, ctx))
             _ctx.update(safe_eval(act_windows["context"], _ctx))
             act_windows["context"] = _ctx
-            if isinstance(records, (int, long)) != act_windows["multi"]:
+            if (
+                self.odoo_major_version < 13
+                and isinstance(records, (int, long)) != act_windows["multi"]
+            ):
                 self._logger.info("⚠ act_windows['multi'] does not match # of records!")
         elif "context" not in act_windows:
             act_windows["context"] = {}
 
+    @api.model
     def _create_object(self, resource, default={}, origin=None, ctx={}):
-        if ctx:
-            record = self.env[resource].with_context(ctx).new(values=default)
+        if self.odoo_major_version < 13:
+            if ctx:
+                record = self.env[resource].with_context(ctx).new(values=default)
+            else:
+                record = self.env[resource].new(values=default)
+            if origin:
+                record._origin = origin
+            else:
+                record._origin = self.env[resource].with_context(ctx)
         else:
-            record = self.env[resource].new(values=default)
-        if origin:
-            record._origin = origin
-        else:
-            record._origin = self.env[resource].with_context(ctx)
+            if ctx:
+                record = self.env[resource].with_context(ctx).new(
+                    values=default,
+                    origin=origin or self.env[resource].with_context(ctx))
+            else:
+                record = self.env[resource].new(
+                    values=default,
+                    origin=origin or self.env[resource].with_context(ctx))
         if hasattr(record, "default_get"):
             self._upgrade_record(
                 record, record.default_get(record.fields_get_keys()), default
@@ -1165,6 +1324,15 @@ class MainTest(SingleTransactionCase):
                 method(record)
         return record
 
+    @api.model
+    def for_xml_id(self, module, name):
+        if self.odoo_major_version < 13:
+            return self.env["ir.actions.act_window"].for_xml_id(module, name)
+        else:
+            record = self.env.ref("%s.%s" % (module, name))
+            return record.read()[0]
+
+    @api.model
     def _exec_action(self, record, action, default={}, web_changes=[], ctx={}):
         resource_model = self._get_model_from_records(record)
         origin = self.env[resource_model]
@@ -1190,9 +1358,9 @@ class MainTest(SingleTransactionCase):
                     origin = self._create_object(
                         resource_model,
                         default=self._convert_to_write(record[0], new=True),
+                        origin=origin,
                         ctx=ctx,
                     )
-                    record._origin = origin
         self._load_field_struct(resource_model)
         for args in web_changes:
             self._wiz_edit(
@@ -1222,7 +1390,7 @@ class MainTest(SingleTransactionCase):
                 record.state = "open"
         elif self._is_xref(action):
             module, name = action.split(".", 1)
-            act_windows = self.env["ir.actions.act_window"].for_xml_id(module, name)
+            act_windows = self.for_xml_id(module, name)
             self.log_lvl_2("🐜  act_windows(%s)" % action)
             self._finalize_ctx_act_windows(record, act_windows)
         else:  # pragma: no cover
@@ -1232,11 +1400,13 @@ class MainTest(SingleTransactionCase):
             )
         return act_windows
 
+    @api.model
     def _get_model_from_act_windows(self, act_windows):
         return act_windows.get(
             "model_name", act_windows.get("res_model", act_windows.get("model"))
         )
 
+    @api.model
     def _get_src_model_from_act_windows(self, act_windows):
         model_name = act_windows.get(
             "src_model",
@@ -1252,6 +1422,7 @@ class MainTest(SingleTransactionCase):
                 model_name = records[0].model
         return model_name
 
+    @api.model
     def _get_model_from_records(self, records):
         if not records:  # pragma: no cover
             resource_model = None
@@ -1263,6 +1434,7 @@ class MainTest(SingleTransactionCase):
             resource_model = records._name
         return resource_model
 
+    @api.model
     def _wiz_launch(self, act_windows, records=None, default=None, ctx={}):
         """Start a wizard from a windows action.
 
@@ -1371,6 +1543,7 @@ class MainTest(SingleTransactionCase):
             self.env["ir.ui.view"].browse(act_windows["view_id"])  # pragma: no cover
         return act_windows
 
+    @api.model
     def _wiz_launch_by_act_name(
         self,
         module,
@@ -1406,9 +1579,9 @@ class MainTest(SingleTransactionCase):
         Returns:
             Same of <wizard_start>
         """
-        act_model = "ir.actions.act_window"
+        # act_model = "ir.actions.act_window"
         module = self.module.name if module == "." else module
-        act_windows = self.env[act_model].for_xml_id(module, action_name)
+        act_windows = self.for_xml_id(module, action_name)
         return self._wiz_launch(
             act_windows,
             default=default,
@@ -1416,6 +1589,7 @@ class MainTest(SingleTransactionCase):
             records=records,
         )
 
+    @api.model
     def _wiz_edit(self, wizard, resource, field, value, onchange=None):
         """Simulate view editing on a field.
 
@@ -1457,6 +1631,7 @@ class MainTest(SingleTransactionCase):
         if onchange:  # pragma: no cover
             getattr(wizard, onchange)()
 
+    @api.model
     def _wiz_execution(
         self,
         act_windows,
@@ -1566,6 +1741,7 @@ class MainTest(SingleTransactionCase):
             self.setup_data_list[group].append(name)
         self.setup_xrefs[xref] = (group, resource)
 
+    @api.model
     def default_company(self):
         return self.env.user.company_id
 
@@ -1581,7 +1757,16 @@ class MainTest(SingleTransactionCase):
         """
         return python_plus.compute_date(self.u(date), refdate=self.u(refdate))
 
+    @api.model
     def resource_bind(self, xref, raise_if_not_found=True, resource=None, group=None):
+        self.log_lvl_1("resource_bind() is deprecated: please use resource_browse()")
+        return self.resource_browse(xref=xref,
+                                    raise_if_not_found=raise_if_not_found,
+                                    resource=resource,
+                                    group=group)
+
+    @api.model
+    def resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None):
         """Bind record by xref or searching it or browsing it.
         This function returns a record using issued parameters. It works in follow ways:
 
@@ -1605,7 +1790,7 @@ class MainTest(SingleTransactionCase):
             ValueError: if invalid parameters issued
         """
         self.log_stack()
-        self.log_lvl_3("🐞%s.resource_bind(%s)" % (resource, xref))
+        self.log_lvl_3("🐞%s.resource_browse(%s)" % (resource, xref))
         # Search for Odoo standard external reference
         record = None
         if isinstance(xref, (int, long)):
@@ -1646,7 +1831,7 @@ class MainTest(SingleTransactionCase):
             if not x:                                                # pragma: no cover
                 return False
             domain = [(key_field, "=", x)]
-            x = self.resource_bind(
+            x = self.resource_browse(
                 "%s.%s" % (module, name),
                 resource=self.parent_resource[resource],
                 raise_if_not_found=False,
@@ -1673,6 +1858,7 @@ class MainTest(SingleTransactionCase):
             self.raise_error("External ID %s not found" % xref)  # pragma: no cover
         return False
 
+    @api.model
     def resource_create(self, resource, values=None, xref=None, group=None):
         """Create a test record and set external ID to next tests.
         This function works as standard Odoo create() with follow improvements:
@@ -1731,6 +1917,7 @@ class MainTest(SingleTransactionCase):
                 )
         return res
 
+    @api.model
     def resource_write(
         self, resource, xref=None, values=None, raise_if_not_found=True, group=None
     ):
@@ -1759,7 +1946,7 @@ class MainTest(SingleTransactionCase):
         if resource is None or isinstance(resource, basestring):
             if not xref and not values:                              # pragma: no cover
                 self.raise_error("%s.write() without values and xref" % resource)
-            record = self.resource_bind(
+            record = self.resource_browse(
                 xref,
                 resource=resource,
                 raise_if_not_found=raise_if_not_found,
@@ -1786,6 +1973,7 @@ class MainTest(SingleTransactionCase):
                 record.write(values)
         return record
 
+    @api.model
     def resource_make(self, resource, xref, values=None, group=None):
         """Create or write a test record.
         This function is a hook to resource_write() or resource_create().
@@ -1873,6 +2061,7 @@ class MainTest(SingleTransactionCase):
                 resource, message[item], group=group, merge=merge
             )
 
+    @api.model
     def get_resource_data(self, resource, xref, group=None):
         """Get declared resource data; may be used to test compare.
 
@@ -1896,6 +2085,7 @@ class MainTest(SingleTransactionCase):
             return self.setup_data[group][resource][xref]
         return {}  # pragma: no cover
 
+    @api.model
     def get_resource_data_list(self, resource, group=None):
         """Get declared resource data list.
 
@@ -1911,6 +2101,7 @@ class MainTest(SingleTransactionCase):
             return list(self.setup_data[group][resource].keys())
         return []  # pragma: no cover
 
+    @api.model
     def get_resource_list(self, group=None):
         """Get declared resource list.
 
@@ -1957,6 +2148,7 @@ class MainTest(SingleTransactionCase):
             vals = {"lang": iso}
             self.env["base.update.translations"].create(vals).act_update()
 
+    @api.model
     def setup_company(
         self,
         company,
@@ -2078,7 +2270,7 @@ class MainTest(SingleTransactionCase):
             None
         """
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.6 (debug_level=%s)" % (self.debug_level)
+            "🎺🎺🎺 Starting test v2.0.6.1 (debug_level=%s)" % (self.debug_level)
         )
         self._logger.info(
             "🎺🎺 Testing module: %s (%s)"
@@ -2093,9 +2285,10 @@ class MainTest(SingleTransactionCase):
         for resource in self.get_resource_list(group=group):
             for xref in self.get_resource_data_list(resource, group=group):
                 self.resource_make(resource, xref, group=group)
-        self.env["account.journal"].search([("update_posted", "!=", True)]).write(
-            {"update_posted": True}
-        )
+        if self.odoo_major_version < 13:
+            self.env["account.journal"].search([("update_posted", "!=", True)]).write(
+                {"update_posted": True}
+            )
 
     ############################################
     #                                          #
@@ -2103,6 +2296,7 @@ class MainTest(SingleTransactionCase):
     #                                          #
     ############################################
 
+    @api.model
     def resource_edit(self, resource, default={}, web_changes=[], actions=[], ctx={}):
         """Server-side web form editing.
         Ordinary Odoo test use the primitive create() and write() functions to manage
@@ -2181,6 +2375,7 @@ class MainTest(SingleTransactionCase):
             resource = result
         return result
 
+    @api.model
     def field_download(self, record, field):
         """Execute the data download from a binary field.
 
@@ -2196,6 +2391,7 @@ class MainTest(SingleTransactionCase):
             raise ValueError("Field %s not found in %s" % (field, record._name))
         return base64.b64decode(getattr(record, field))
 
+    @api.model
     def resource_download(
         self,
         module=None,
@@ -2262,12 +2458,14 @@ class MainTest(SingleTransactionCase):
             getattr(self.env[res_model].browse(act_windows["res_id"]), field)
         )
 
+    @api.model
     def is_action(self, act_windows):
         return isinstance(act_windows, dict) and act_windows.get("type") in (
             "ir.actions.act_window",
             "ir.actions.client",
         )
 
+    @api.model
     def wizard(
         self,
         module=None,
@@ -2354,6 +2552,7 @@ class MainTest(SingleTransactionCase):
             button_ctx=button_ctx,
         )
 
+    @api.model
     def get_records_from_act_windows(self, act_windows):
         """Get records from a windows message.
 

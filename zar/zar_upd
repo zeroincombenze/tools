@@ -245,6 +245,7 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   if [ "$action" == "build_last" ]; then
     cp $odoo_home/devel/pypi/z0lib/z0lib/z0librc $HOME/tmp
     cp $odoo_home/devel/pypi/travis_emulator/travis_emulator/cronow $HOME/tmp
+    cp $odoo_home/devel/pypi/clodoo/clodoo/odoorc $HOME/tmp
   else
     [[ -f /etc/z0librc ]] && cp /etc/z0librc $HOME/tmp || cp $odoo_home/tools/z0lib/z0librc $HOME/tmp
     if [[ -f $odoo_home/bin/cronow ]]; then
@@ -255,6 +256,7 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
       x=$(which cronow)
       [[ -n "$x" ]] && cp $x $HOME/tmp
     fi
+    cp $odoo_home/tools/clodoo/odoorc $HOME/tmp
   fi
   CWD=$PWD
   cd $HOME/tmp
@@ -272,11 +274,12 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   tar $x $GZFN $FLIST
   x=${x/c/r}
   tar $x $GZFN z0librc
+  tar $x $GZFN odoorc
   tar $x $GZFN cronow
   if [  -n "$opt_tar" ]; then
     mv $GZFN $opt_tar
   else
-    for f in $FLIST z0librc cronow; do
+    for f in $FLIST z0librc odoorc cronow; do
       if [ -f $HOME/tmp/$f ]; then
         rm -f $HOME/tmp/$f
       fi
@@ -356,7 +359,6 @@ for f in $FLIST cronow; do
     echo "No file $f downloaded"
   fi
 done
-# _install_z0librc
 for f in bckdb-v1 purgedb dup4test restdb-v1; do
   if [ -f $PGHOME/$f ]; then
     rm -f $PGHOME/$f

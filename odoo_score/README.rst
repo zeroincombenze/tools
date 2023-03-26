@@ -1,6 +1,6 @@
 
 ================
-odoo_score 2.0.4
+odoo_score 2.0.5
 ================
 
 
@@ -150,8 +150,8 @@ Current development version
 History
 -------
 
-2.0.4.1 (2023-03-03)
-~~~~~~~~~~~~~~~~~~~~
+2.0.5 (2023-03-23)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug.sh: ODOO_COMMIT TEST not set when build template
 
@@ -232,7 +232,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-03-05
+Last Update / Ultimo aggiornamento: 2023-03-26
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

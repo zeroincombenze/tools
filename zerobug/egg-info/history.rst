@@ -1,3 +1,9 @@
+2.0.5 (2023-03-24)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis_install_env: ensure list_requirements is executable
+* [IMP] flake8 configuration
+
 2.0.4 (2022-12-08)
 ~~~~~~~~~~~~~~~~~~
 

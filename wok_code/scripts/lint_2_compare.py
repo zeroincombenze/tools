@@ -8,7 +8,7 @@ from lxml import etree
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 
 
 IGNORE_DIRS = (".idea", ".git", "egg-info", "setup")

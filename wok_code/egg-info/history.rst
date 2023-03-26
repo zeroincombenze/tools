@@ -1,8 +1,9 @@
-2.0.5.1 (2023-02-23)
-~~~~~~~~~~~~~~~~~~~~
+2.0.6 (2023-02-23)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] ssh.py: -m -s switches accept path with user and host
 * [IMP] deploy_odoo: new property status to display
+* [NEW] do_git_checkout_new_branch.py
 
 2.0.5 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~

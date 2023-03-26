@@ -39,7 +39,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4.1
+__version__=2.0.5
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then

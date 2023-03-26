@@ -42,6 +42,7 @@
 # RORIGIN      Remote git origin of Odoo repository (actual value|default)
 # RPCPORT      Xmlrpc port in multi-version environment
 # RUPSTREAM    Remote git upstream of Odoo repository (actual value|default)
+# SESS_PATH    Werkzeug session path
 # SVCNAME      Service name to start/stop Odoo service
 # URL          URL to source git project (default value, deprecated: use GIT_URL)
 # URL_BRANCH   URL tp specific version of source git project (default value)
@@ -74,7 +75,7 @@ DEFMLIST="OCB account-analytic account-budgeting account-closing
  credit-control crm currency data-protection ddmrp delivery-carrier department
  dms donation e-commerce edi event field-service fleet geospatial helpdesk
  hr hr-attendance hr-expense hr-holidays infrastructure intrastat-extrastat
- iot knowledge l10n-italy maintenance management-system
+ iot knowledge l10n-italy maintenance management-system mgmtsystem
  manufacture manufacture-reporting margin-analysis
  mis-builder mis-builder-contrib multi-company operating-unit partner-contact
  payroll pms pos product-attribute product-configurator product-kitting
@@ -201,7 +202,7 @@ traverse() {
 }
 
 build_odoo_param() {
-    # build_odoo_param(ALL|BIN|CONFN|DB_USER|DDIR|DIRLEVEL|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|LPPORT|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV
+    # build_odoo_param(ALL|BIN|CONFN|DB_USER|DDIR|DIRLEVEL|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|LPPORT|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SESS_PATH|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV
     #                  vid [(search|DEBUG|default|tree|SERVER|<rptname>|<modname>)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER)])
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
@@ -539,18 +540,19 @@ build_odoo_param() {
         [[ $MAJVER -ge 10 ]] && echo ".odoorc" || echo ".openerp_serverrc"
         $SETX
         return
-    elif [[ $ITEM == "DDIR" ]]; then
-        [[ $VENV -ne 0 ]] && p="$(dirname $ROOT)/$odoo_vid/.local/share" || p="$(dirname $ROOT)/.local/share"
+    elif [[ $ITEM =~ (DDIR|SESS_PATH) ]]; then
+        # [[ $VENV -ne 0 ]] && p="$(dirname $ROOT)/$odoo_vid/.local/share" || p="$(dirname $ROOT)/.local/share"
+        p="$(dirname $ROOT)/.local/share"
         if [[ $MAJVER -lt 8 ]]; then
-            p="$ROOT/openerp/filestore"
-        elif [[ $odoo_vid =~ ^($ODOO_ROOT/)?VENV ]]; then
-            p="$ODOO_ROOT/VENV-$FULLVER/.local/share/Odoo"
+            [[ $ITEM == "DDIR" ]] && p="$ROOT/openerp/filestore" || p="/tmp/oe-sessions-odoo"
+        # elif [[ $odoo_vid =~ ^($ODOO_ROOT/)?VENV ]]; then
+        #     p="$ODOO_ROOT/VENV-$FULLVER/.local/share/Odoo"
         elif [[ $noenv_vid =~ ^(v|V) ]]; then
-            p="$p/Odoo"
+            [[ $ITEM == "DDIR" ]] && p="$p/Odoo" || p="$p/Odoo/sessions"
         elif [[ $MULTIVER -ne 0 && $VENV -eq 0 ]]; then
-            p="$p/Odoo$MAJVER"
+            [[ $ITEM == "DDIR" ]] && p="$p/Odoo$MAJVER" || p="$p/Odoo$MAJVER/sessions"
         else
-            p="$p/Odoo"
+            [[ $ITEM == "DDIR" ]] && p="$p/Odoo" || p="$p/Odoo/sessions"
         fi
         if [[ $spec =~ search ]]; then
             pd=$p

@@ -178,6 +178,7 @@ def get_build_dir(odoo_full, version=None):
         return lpath
 
     VERSIONS = (
+        '16.0',
         '15.0',
         '14.0',
         '13.0',

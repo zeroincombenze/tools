@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.6
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
@@ -203,7 +203,7 @@ get_req_list() {
 
     cmd="$LIST_REQ"
     [[ -n $tt ]] && cmd="$cmd -qt $tt -BP" || cmd="$cmd -qt python -BP"
-    [[ $opt_dev -ne 0 && $wh =~ (all|dev)  ]] && cmd="${cmd}TR"
+    [[ $opt_dev -ne 0 && $wh =~ (all|dev) ]] && cmd="${cmd}TR"
     [[ $wh =~ "cur" ]] && cmd="${cmd}C"
     [[ -n "$opt_pyver" ]] && cmd="$cmd -y$opt_pyver"
     [[ -n "$opt_oever" && $wh =~ (all|oe) ]] && cmd="$cmd -b$opt_oever"
@@ -1348,8 +1348,9 @@ PRINTED_PIPVER=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"
-[[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ=$(which list_requirements.py 2>/dev/null)
+[[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ=$(whereis list_requirements.py|head -n1|cut -d: -f2|tr -d " ")
 [[ -z $LIST_REQ ]] && echo "Command list_requirements.py not found!" && exit 1
+chmod -c +x $LIST_REQ
 
 if [[ $action == "rm" ]]; then
   [[ $PWD == $(readlink -f $p2) ]] && cd

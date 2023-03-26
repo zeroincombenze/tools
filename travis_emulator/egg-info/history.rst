@@ -1,8 +1,9 @@
-2.0.3.1 (2022-12-13)
-~~~~~~~~~~~~~~~~~~~~
+2.0.4 (2023-02-24)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] Added python 3.9 to test
 * [IMP] Detect python versions from setup.py
+* [IMP] Option switch for python version become -j
 
 2.0.3 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~
