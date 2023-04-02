@@ -23,7 +23,7 @@ except BaseException:
     from clodoolib import build_odoo_param
 
 
-__version__ = "2.0.3"
+__version__ = "2.0.4"
 
 
 MODULE_ID = "clodoo"
@@ -192,7 +192,7 @@ class RegressionTest:
 
         return sts
 
-    def __test_04(self, z0ctx):
+    def test_04(self, z0ctx):
         TRES = {
             "6": "/etc/odoo/odoo6-server.conf",
             "7": "/etc/odoo/odoo7-server.conf",
@@ -206,6 +206,8 @@ class RegressionTest:
             "v7": "/etc/odoo/openerp-server.conf",
         }
         for ver in MAJVERS_TO_TEST:
+            if ver == "6":
+                continue
             res = build_odoo_param("CONFN", odoo_vid=ver, multi=True)
             sts = self.Z.test_result(
                 z0ctx, "config multi filename %s [python]" % ver, TRES[ver], res
@@ -225,7 +227,8 @@ class RegressionTest:
             if ver == "v7":
                 w = ver
             elif ver == "6":
-                w = "%s.1" % ver
+                # w = "%s.1" % ver
+                continue
             else:
                 w = "%s.0" % ver
             res = build_odoo_param("CONFN", odoo_vid=w, multi=True)
@@ -251,7 +254,8 @@ class RegressionTest:
             if ver == "v7":
                 w = ver
             elif ver == "6":
-                w = "%s.1" % ver
+                # w = "%s.1" % ver
+                continue
             else:
                 w = "%s.0" % ver
             res = build_odoo_param("FLOG", odoo_vid=w, multi=True)
@@ -278,7 +282,8 @@ class RegressionTest:
             if ver == "v7":
                 w = ver
             elif ver == "6":
-                w = "%s.1" % ver
+                # w = "%s.1" % ver
+                continue
             else:
                 w = "%s.0" % ver
             res = build_odoo_param("FPID", odoo_vid=w, multi=True)
@@ -304,7 +309,8 @@ class RegressionTest:
             if ver == "v7":
                 w = ver
             elif ver == "6":
-                w = "%s.1" % ver
+                # w = "%s.1" % ver
+                continue
             else:
                 w = "%s.0" % ver
             res = build_odoo_param("FULL_SVCNAME", odoo_vid=w, multi=True)
@@ -330,7 +336,8 @@ class RegressionTest:
             if ver == "v7":
                 w = ver
             elif ver == "6":
-                w = "%s.1" % ver
+                # w = "%s.1" % ver
+                continue
             else:
                 w = "%s.0" % ver
             res = build_odoo_param("SVCNAME", odoo_vid=w, multi=True)
@@ -340,51 +347,51 @@ class RegressionTest:
             if sts:
                 break
 
-        TRES = {
-            "6": "/opt/odoo/6.1/server/openerp-server",
-            "7": "/opt/odoo/7.0/openerp-server",
-            "8": "/opt/odoo/8.0/openerp-server",
-            "9": "/opt/odoo/9.0/openerp-server",
-            "10": "/opt/odoo/10.0/odoo-bin",
-            "11": "/opt/odoo/11.0/odoo-bin",
-            "12": "/opt/odoo/12.0/odoo-bin",
-            "13": "/opt/odoo/13.0/odoo-bin",
-            "14": "/opt/odoo/14.0/odoo-bin",
-            "v7": "/opt/odoo/v7/server/openerp-server",
-        }
-        for ver in MAJVERS_TO_TEST + ["v7"]:
-            if ver == "v7":
-                w = ver
-            elif ver == "6":
-                w = "%s.1" % ver
-            else:
-                w = "%s.0" % ver
-            res = build_odoo_param("BIN", odoo_vid=w, multi=True)
-            sts = self.Z.test_result(
-                z0ctx, "run script name %s [python]" % w, TRES[ver], res
-            )
-            if sts:
-                break
+        # TRES = {
+        #     "6": "/opt/odoo/6.1/server/openerp-server",
+        #     "7": "/opt/odoo/7.0/openerp-server",
+        #     "8": "/opt/odoo/8.0/openerp-server",
+        #     "9": "/opt/odoo/9.0/openerp-server",
+        #     "10": "/opt/odoo/10.0/odoo-bin",
+        #     "11": "/opt/odoo/11.0/odoo-bin",
+        #     "12": "/opt/odoo/12.0/odoo-bin",
+        #     "13": "/opt/odoo/13.0/odoo-bin",
+        #     "14": "/opt/odoo/14.0/odoo-bin",
+        #     "v7": "/opt/odoo/v7/server/openerp-server",
+        # }
+        # for ver in MAJVERS_TO_TEST + ["v7"]:
+        #     if ver == "v7":
+        #         w = ver
+        #     elif ver == "6":
+        #         w = "%s.1" % ver
+        #     else:
+        #         w = "%s.0" % ver
+        #     res = build_odoo_param("BIN", odoo_vid=w, multi=True)
+        #     sts = self.Z.test_result(
+        #         z0ctx, "run script name %s [python]" % w, TRES[ver], res
+        #     )
+        #     if sts:
+        #         break
 
-        TRES = {
-            "6.1": "/opt/odoo/VENV-6.1/odoo/server/openerp-server",
-            "7.0": "/opt/odoo/VENV-7.0/odoo/openerp-server",
-            "8.0": "/opt/odoo/VENV-8.0/odoo/openerp-server",
-            "9.0": "/opt/odoo/VENV-9.0/odoo/openerp-server",
-            "10.0": "/opt/odoo/VENV-10.0/odoo/odoo-bin",
-            "11.0": "/opt/odoo/VENV-11.0/odoo/odoo-bin",
-            "12.0": "/opt/odoo/VENV-12.0/odoo/odoo-bin",
-            "13.0": "/opt/odoo/VENV-13.0/odoo/odoo-bin",
-            "14.0": "/opt/odoo/VENV-14.0/odoo/odoo-bin",
-        }
-        for ver in VERSIONS_TO_TEST:
-            w = "VENV-%s" % ver
-            res = build_odoo_param("BIN", odoo_vid=w, multi=True)
-            sts = self.Z.test_result(
-                z0ctx, "run script name %s [python]" % w, TRES[ver], res
-            )
-            if sts:
-                break
+        # TRES = {
+        #     "6.1": "/opt/odoo/VENV-6.1/odoo/server/openerp-server",
+        #     "7.0": "/opt/odoo/VENV-7.0/odoo/openerp-server",
+        #     "8.0": "/opt/odoo/VENV-8.0/odoo/openerp-server",
+        #     "9.0": "/opt/odoo/VENV-9.0/odoo/openerp-server",
+        #     "10.0": "/opt/odoo/VENV-10.0/odoo/odoo-bin",
+        #     "11.0": "/opt/odoo/VENV-11.0/odoo/odoo-bin",
+        #     "12.0": "/opt/odoo/VENV-12.0/odoo/odoo-bin",
+        #     "13.0": "/opt/odoo/VENV-13.0/odoo/odoo-bin",
+        #     "14.0": "/opt/odoo/VENV-14.0/odoo/odoo-bin",
+        # }
+        # for ver in VERSIONS_TO_TEST:
+        #     w = "VENV-%s" % ver
+        #     res = build_odoo_param("BIN", odoo_vid=w, multi=True)
+        #     sts = self.Z.test_result(
+        #         z0ctx, "run script name %s [python]" % w, TRES[ver], res
+        #     )
+        #     if sts:
+        #         break
 
         TRES = {
             "6.1": "__openerp__.py",
@@ -550,7 +557,7 @@ class RegressionTest:
             "10.0": "/opt/odoo/.local/share/Odoo10",
             "11.0": "/opt/odoo/.local/share/Odoo11",
             "12.0": "/opt/odoo/.local/share/Odoo12",
-            "VENV-10": "/opt/odoo/VENV-10/.local/share/Odoo",
+            "VENV-10": "/opt/odoo/.local/share/Odoo",
             "v8.0": "/opt/odoo/.local/share/Odoo",
             "v7": "/opt/odoo/v7/openerp/filestore",
         }

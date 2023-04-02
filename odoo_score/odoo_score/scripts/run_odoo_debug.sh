@@ -145,6 +145,37 @@ check_path_n_branch() {
     [[ -z $odoo_fver ]] && odoo_fver=$x
 }
 
+replace_web_module() {
+    # replace_web_module()
+    local l m param z w woca
+    woca="$ODOO_RUNDIR/addons/_web_oca"
+    w="$ODOO_RUNDIR/addons/web"
+    if [[ $odoo_ver -le 7 ]]; then
+        z=""
+        l=""
+        param=$(grep -E "^server_wide_modules *=.*" $FULL_LCONFN|cut -d"=" -f2|tr -d " ")
+        [[ $param == "Non" ]] && param=""
+        if [[ -n $param ]]; then
+          for m in ${param//,/ }; do
+              [[ $m =~ ^(web|web_kanban)$ ]] && continue
+              [[ $m == "web_zeroincombenze" ]] && z=$m || l="$l,$m"
+          done
+          [[ -n $l ]] && OPTS="$OPTS --load=\"${l:1}\""
+        fi
+        if [[ -z $z ]]; then
+            [[ -L $w ]] && rm -f $w
+            [[ -d $woca ]] && mv $woca $w
+        else
+            z=$(find $ODOO_RUNDIR -type f -path "*/$z/*" -not -path "*/doc/*" -name "__openerp__.py"|head -n 1)
+            if [[ -n $z ]]; then
+                z=$(dirname $z)
+                [[ ! -d $woca ]] && mv $w $woca
+                [[ ! -L $w ]] && ln -s $z $w
+            fi
+        fi
+    fi
+}
+
 
 OPTOPTS=(h        B       b          c        C           d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           S        s        T        t         U          u       V           v           w       W        x)
 OPTLONG=(help     debug   branch     conf     no-coverage database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stat     stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
@@ -439,6 +470,7 @@ if [[ $opt_touch -eq 0 ]]; then
         done
     fi
     [[ -f "$CONFN" ]] && run_traced "cp $CONFN $FULL_LCONFN"
+    replace_web_module
     # [[ $opt_verbose -gt 0 ]] && echo "===================================================================="
     [[ ! -f "$CONFN" ]] && run_traced "$script -s --stop-after-init"
     tty -s

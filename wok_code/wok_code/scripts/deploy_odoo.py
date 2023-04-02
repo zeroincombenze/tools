@@ -380,9 +380,13 @@ class OdooDeploy(object):
                 opts.append("-b")
                 opts.append(branch)
             opts.append("-l")
-            opts.append("l10n-italy,l10n-italy-supplemental")
+            opts.append(self.opt_args.local_reps)
+            # opts.append("l10n-italy,l10n-italy-supplemental")
             opts.append("-G")
             opts.append(SHORT_NAMES.get(git_org, git_org))
+            if self.opt_args.extra:
+                opts.append("-x")
+                opts.append(self.opt_args.extra)
             opts.append("--return-repos")
             if only_ocb:
                 content = ["OCB"]
@@ -967,6 +971,11 @@ def main(cli_args=None):
         "-L", "--list", action="store_true", help="deprecated: use 'list' action!"
     )
     parser.add_argument(
+        "-l", "--local-reps",
+        default="l10n-italy,l10n-italy-supplemental",
+        help="local repositories to load; default: l10n-italy,l10n-italy-supplemental"
+    )
+    parser.add_argument(
         "-m", "--multi", action="store_true", help="Multi version environment"
     )
     parser.add_argument(
@@ -994,6 +1003,10 @@ def main(cli_args=None):
     )
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-V", "--version", action="version", version=__version__)
+    parser.add_argument(
+        "-x", "--extra",
+        help="May be: all,none,connector,devel,maintainer,oca,odoo,vertical"
+    )
     parser.add_argument("-y", "--assume-yes", action="store_true")
     parser.add_argument(
         "action", nargs="?", help="may be create-new,list,reclone,status,update"

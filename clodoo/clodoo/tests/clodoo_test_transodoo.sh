@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 
 test_01() {
@@ -342,9 +342,9 @@ test_07() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     #
-    TRES[6.1]="['account_financial_report_qweb', 'account_journal_report']"
-    TRES[7.0]="['account_financial_report_qweb', 'account_journal_report']"
-    TRES[8.0]="['account_financial_report_qweb', 'account_journal_report']"
+    TRES[6.1]="['account_financial_report_qweb', 'account_financial_report_webkit_xls', 'account_journal_report']"
+    TRES[7.0]="['account_financial_report_qweb', 'account_financial_report_webkit_xls', 'account_journal_report']"
+    TRES[8.0]="['account_financial_report_qweb', 'account_financial_report_webkit_xls', 'account_journal_report']"
     TRES[9.0]="['account_financial_report_qweb', 'account_journal_report']"
     TRES[10.0]="account_financial_report_qweb"
     TRES[11.0]="account_financial_report_qweb"

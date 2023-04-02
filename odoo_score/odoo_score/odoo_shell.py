@@ -458,6 +458,53 @@ def make_refund_for_wrong_delivery(ctx):
     print('%d sale order updated of %d read!' % (ctr_upd, ctr_read))
 
 
+def recalc_delivery_price(ctx):
+    print('Recalculate delivery price on DdT')
+
+    resource_ddt = 'stock.picking.package.preparation'
+    resource_line = 'stock.picking.package.preparation.line'
+    resource_soline = 'sale.order.line'
+    resource_carrier = 'delivery.carrier'
+    if ctx['param_1'] == 'help':
+        print('recalc_delivery_price [FROM_DATE|+DAYS|IDS]')
+        return
+    shipping_ids = []
+    for delivery in clodoo.browseL8(ctx, resource_carrier,
+                                    clodoo.searchL8(ctx, resource_carrier, [])):
+        shipping_ids.append(delivery.product_id.id)
+    domain = param_date(ctx['param_1'], date_field='date')
+    domain.append(("carrier_id", "!=", False))
+    ctr_read = ctr_upd = 0
+    for ddt in clodoo.browseL8(
+        ctx, resource_ddt, clodoo.searchL8(
+            ctx, resource_ddt, domain)):
+        msg_burst('%s ...' % ddt.id)
+        clodoo.executeL8(ctx, resource_ddt, "delivery_set", ddt.id)
+        ctr_read += 1
+        ddt = clodoo.browseL8(ctx, resource_ddt, ddt.id)
+        sale_id = False
+        delivery_price = 0.0
+        if ddt.delivery_price == 0.0:
+            for line in clodoo.browseL8(
+                ctx, resource_line, clodoo.searchL8(
+                    ctx, resource_line, [("package_preparation_id", "=", ddt.id)])):
+                if line.sale_id:
+                    sale_id = line.sale_id.id
+                    break
+        if sale_id:
+            for soline in clodoo.browseL8(
+                ctx, resource_soline, clodoo.searchL8(
+                    ctx, resource_soline, [("order_id", "=", sale_id),
+                                           ("product_id", "in", shipping_ids)])):
+                delivery_price += soline.price_subtotal
+        if delivery_price:
+            clodoo.writeL8(
+                ctx, resource_ddt, ddt.id, {"delivery_price": delivery_price})
+            ctr_upd += 1
+
+    print('%d delivery notes read, %d written' % (ctr_read, ctr_upd))
+
+
 def close_sale_orders(ctx):
     print('Close sale orders with linked invoice')
 
@@ -4157,6 +4204,84 @@ def rebuild_database(ctx):
     ctr += validate_moves(ctx)
 
     print("%d records update!" % ctr)
+
+
+def move_database_by_postgres(ctx):
+    print('🎺🎺🎺 Move database from postgres version to another')
+    if ctx['param_1'] == 'help':
+        print('move_database_by_postgres pg_port_orig pg_port_dest role')
+        return
+    if not ctx.get('param_1'):
+        print("Missed postgres port of orig")
+        print('move_database_by_postgres pg_port_orig pg_port_dest role')
+        return
+    if not ctx.get('param_2'):
+        print("Missed postgres port of dest")
+        print('move_database_by_postgres pg_port_orig pg_port_dest role')
+        return
+    if not ctx.get('param_3'):
+        print("Missed postgres role")
+        print('move_database_by_postgres pg_port_orig pg_port_dest role')
+        return
+    if not ctx['_cr']:
+        print("Cannot connect via SQL")
+        return
+    pg_port_orig = ctx['param_1']
+    pg_port_dest = ctx['param_2']
+    role = ctx['param_3']
+    response = clodoo.exec_sql(
+        ctx,
+        ("SELECT d.datname,pg_catalog.pg_get_userbyid(d.datdba)"
+         " FROM pg_catalog.pg_database d order by d.datname"),
+        response=True)
+    dry_run = False
+    sqlfn = os.path.expanduser("~/db.sql")
+    ctr = 0
+    for rec in response:
+        db = rec[0]
+        if (
+            db.startswith("template")
+            or db.startswith("test")
+            or db.startswith("postgres")
+            or db.startswith("demo")
+            or db.startswith("oca")
+        ):
+            continue
+        owner = rec[1]
+        if owner != role:
+            continue
+        if os.path.isfile(sqlfn):
+            os.unlink(sqlfn)
+        sts, stdout, stderr = z0lib.run_traced(
+            "pg_dump -p%s -d \"%s\" -U%s -Fp -f %s" % (pg_port_orig, db, role, sqlfn),
+            verbose=True, dry_run=dry_run)
+        print(stdout)
+        if not dry_run and sts:
+            print("Error %d" % sts)
+            print(stderr)
+            return
+        if not os.path.isfile(sqlfn):
+            print("Non sql file %s found" % sqlfn)
+            return
+        sts, stdout, stderr = z0lib.run_traced(
+            "createdb -p%s -U%s \"%s\"" % (pg_port_dest, role, db),
+            verbose=True, dry_run=dry_run)
+        print(stdout)
+        if not dry_run and sts:
+            print("Error %d" % sts)
+            print(stderr)
+            return
+        sts, stdout, stderr = z0lib.run_traced(
+            "psql -p%s -U%s \"%s\" -f %s" % (pg_port_dest, role, db, sqlfn),
+            verbose=True, dry_run=dry_run)
+        # print(stdout)
+        if not dry_run and sts:
+            print("Error %d" % sts)
+            print(stderr)
+            return
+        os.unlink(sqlfn)
+        ctr += 1
+    print("%d databases moved")
 
 
 if ctx['function']:
