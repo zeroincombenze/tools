@@ -140,7 +140,7 @@ class OdooDeploy(object):
         self.master_branch = ""
         self.target_path = ""
 
-        if self.opt_args.action in ("create-new", "reclone"):
+        if self.opt_args.action in ("clone", "reclone"):
             if not self.opt_args.odoo_branch:
                 print("***** Missing Odoo branch: 12.0 will be used!")
                 self.opt_args.odoo_branch = "12.0"
@@ -148,11 +148,14 @@ class OdooDeploy(object):
                 print("***** Missing git orgs: oca will be used!")
                 self.opt_args.git_orgs = ["oca"]
 
-        if self.opt_args.action == "create-new":
+        if self.opt_args.action == "clone":
             self.master_branch = build_odoo_param(
                 "FULLVER", odoo_vid=opt_args.odoo_branch
             )
-        if self.opt_args.action in ("create-new", "reclone"):
+        if (
+            self.opt_args.action in ("clone", "reclone")
+            and not self.opt_args.repos
+        ):
             for git_org in opt_args.git_orgs:
                 self.get_repo_from_github(git_org=git_org)
             if "OCB" not in self.repo_list:
@@ -160,6 +163,9 @@ class OdooDeploy(object):
                 self.get_repo_from_github(git_org=git_org, only_ocb=True)
             if opt_args.link_oca and "oca" not in self.opt_args.git_orgs:
                 self.get_repo_from_github(git_org="oca")
+
+        if self.opt_args.repos:
+            self.get_repo_from_switch()
 
         if not self.repo_list and not self.opt_args.target_path:
             self.get_repo_from_config()
@@ -244,6 +250,17 @@ class OdooDeploy(object):
             else:
                 git_url = "https://github.com/%s" % git_org
         return git_url, git_org
+
+    def get_repo_from_switch(self):
+        for repo in self.opt_args.repos.split(","):
+            self.repo_info[repo] = {
+                "PATH": self.get_path_of_repo(repo),
+                "#": 1
+            }
+        self.repo_list = sorted(self.repo_info.keys())
+        if "OCB" in self.repo_list:
+            del self.repo_list[self.repo_list.index("OCB")]
+            self.repo_list = ["OCB"] + self.repo_list
 
     def get_repo_from_config(self):
         opt_args = self.opt_args
@@ -370,45 +387,48 @@ class OdooDeploy(object):
                 "ROOT", odoo_vid=branch, git_org=git_org, multi=self.opt_args.multi
             )
         hash_key = git_org + branch.split(".")[0]
-        if self.opt_args.action in ("create-new", "reclone"):
-            opts = []
-            if self.opt_args.verbose:
-                opts.append("-v")
-            if self.opt_args.dry_run:
-                opts.append("-D")
-            if branch:
-                opts.append("-b")
-                opts.append(branch)
-            opts.append("-l")
-            opts.append("l10n-italy,l10n-italy-supplemental")
-            opts.append("-G")
-            opts.append(SHORT_NAMES.get(git_org, git_org))
-            opts.append("--return-repos")
-            if only_ocb:
-                content = ["OCB"]
-            else:
-                content = get_list_from_url(opts)
-            for repo in content:
-                if repo not in self.repo_list:
-                    url = DEFAULT_DATA.get(hash_key, {}).get(repo)
-                    if not url:
-                        url = DEFAULT_DATA.get(hash_key, {}).get("URL")
-                    if not url:
-                        if self.opt_args.use_git:
-                            url = "git@github.com:%s" % REPO_NAMES.get(git_org, git_org)
-                        else:
-                            url = "https://github.com/%s" % REPO_NAMES.get(
-                                git_org, git_org
-                            )
-                    url = "%s/%s.git" % (url, repo)
-                    tgtdir = self.get_path_of_repo(repo)
-                    self.repo_list.append(repo)
-                    self.repo_info[repo] = {
-                        "GIT_ORG": git_org,
-                        "BRANCH": branch,
-                        "URL": url,
-                        "PATH": tgtdir,
-                    }
+        opts = []
+        if self.opt_args.verbose:
+            opts.append("-v")
+        if self.opt_args.dry_run:
+            opts.append("-D")
+        if branch:
+            opts.append("-b")
+            opts.append(branch)
+        opts.append("-l")
+        opts.append(self.opt_args.local_reps)
+        # opts.append("l10n-italy,l10n-italy-supplemental")
+        opts.append("-G")
+        opts.append(SHORT_NAMES.get(git_org, git_org))
+        if self.opt_args.extra:
+            opts.append("-x")
+            opts.append(self.opt_args.extra)
+        opts.append("--return-repos")
+        if only_ocb:
+            content = ["OCB"]
+        else:
+            content = get_list_from_url(opts)
+        for repo in content:
+            if repo not in self.repo_list:
+                url = DEFAULT_DATA.get(hash_key, {}).get(repo)
+                if not url:
+                    url = DEFAULT_DATA.get(hash_key, {}).get("URL")
+                if not url:
+                    if self.opt_args.use_git:
+                        url = "git@github.com:%s" % REPO_NAMES.get(git_org, git_org)
+                    else:
+                        url = "https://github.com/%s" % REPO_NAMES.get(
+                            git_org, git_org
+                        )
+                url = "%s/%s.git" % (url, repo)
+                tgtdir = self.get_path_of_repo(repo)
+                self.repo_list.append(repo)
+                self.repo_info[repo] = {
+                    "GIT_ORG": git_org,
+                    "BRANCH": branch,
+                    "URL": url,
+                    "PATH": tgtdir,
+                }
 
     def data_from_url(self, url):
         if "git@github.com:" in url:
@@ -570,7 +590,8 @@ class OdooDeploy(object):
             if self.repo_is_ocb(repo):
                 tgtdir = self.target_path
             else:
-                tgtdir = os.path.join(self.target_path, repo)
+                tgtdir = os.path.join(self.target_path or self.opt_args.target_path,
+                                      repo)
         return tgtdir
 
     def get_remote_info(self, verbose=True):
@@ -751,16 +772,10 @@ class OdooDeploy(object):
             else:
                 git_url = self.repo_info[repo].get("URL")
                 if not git_url:
-                    git_url = build_odoo_param(
-                        "GIT_URL",
-                        odoo_vid=repo_branch,
-                        multi=self.opt_args.multi,
-                        git_org=git_org,
-                    )
+                    git_url, git_org = self.get_git_org_n_url(git_org)
+                    git_url = git_url + "/" + repo + ".git"
         if not git_url:
             return 127
-        # if not git_url.endswith(".git"):
-        #     git_url = "%s/%s.git" % (git_url, repo)
         bakdir = ""
         if os.path.isdir(tgtdir) and self.opt_args.action != "update":
             if self.opt_args.skip_if_exist:
@@ -939,11 +954,15 @@ def main(cli_args=None):
     parser.add_argument("-c", "--config", help="Odoo configuration file")
     parser.add_argument("-D", "--default-gitorg", default="zero")
     # parser.add_argument("-d", "--deployment-mode", help="may be tree,server,odoo")
-    parser.add_argument("-e", "--skip-if-exist", action="store_true")
+    parser.add_argument(
+        "-e", "--skip-if-exist",
+        action="store_true",
+        help="Use this switch  to add missed repositories when you reclone"
+    )
     parser.add_argument(
         "-F",
         "--format",
-        help=("use 1 or + of " "sts,repo,branch,git_org,git_url,path,stash, status"),
+        help=("Use 1 or + of " "sts,repo,branch,git_org,git_url,path,stash, status"),
         default="sts,repo,branch,git_org,git_url,path,stash",
     )
     parser.add_argument(
@@ -955,54 +974,67 @@ def main(cli_args=None):
         "-g",
         "--use-git",
         action="store_true",
-        help="When create-new use git protocol instead of https",
+        help="When clone use git protocol instead of https",
     )
     parser.add_argument(
         "-K",
         "--keep-root-owner",
         action="store_true",
-        help="keep OCB/odoo organization owner",
+        help="Keep OCB/odoo organization owner",
     )
     parser.add_argument(
-        "-L", "--list", action="store_true", help="deprecated: use 'list' action!"
+        "-L", "--list", action="store_true", help="Deprecated: use 'list' action!"
+    )
+    parser.add_argument(
+        "-l", "--local-reps",
+        default="l10n-italy,l10n-italy-supplemental",
+        help="Local repositories to load; default: l10n-italy,l10n-italy-supplemental"
     )
     parser.add_argument(
         "-m", "--multi", action="store_true", help="Multi version environment"
     )
     parser.add_argument(
         "-N",
-        "--create-new",
+        "--clone",
         action="store_true",
-        help="deprecated: use 'create-new' action!",
+        help="Deprecated: use 'clone' action!",
     )
     parser.add_argument("-n", "--dry-run", action="store_true")
     parser.add_argument(
-        "-O", "--link-oca", action="store_true", help="link to more OCA repositories"
+        "-O", "--link-oca", action="store_true", help="Link to more OCA repositories"
     )
     parser.add_argument("-p", "--target-path", help="Local directory")
     parser.add_argument(
-        "-R", "--reclone", action="store_true", help="deprecated: use 'reclone' action!"
+        "-R", "--reclone", action="store_true", help="Deprecated: use 'reclone' action!"
     )
     parser.add_argument(
-        "-S", "--status", action="store_true", help="deprecated: use 'status' action!"
+        "-r", "--repos",
+        help="Declare specific repositories to managa, comma separated"
+    )
+    parser.add_argument(
+        "-S", "--status", action="store_true", help="Deprecated: use 'status' action!"
     )
     parser.add_argument(
         "-U",
         "--only-update",
         action="store_true",
-        help="deprecated: use 'update' action!",
+        help="Deprecated: use 'update' action!",
     )
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-V", "--version", action="version", version=__version__)
+    parser.add_argument(
+        "-x", "--extra",
+        help="May be: all,none,connector,devel,maintainer,oca,odoo,vertical"
+    )
     parser.add_argument("-y", "--assume-yes", action="store_true")
     parser.add_argument(
-        "action", nargs="?", help="may be create-new,list,reclone,status,update"
+        "action", nargs="?", help="May be clone,list,reclone,status,update"
     )
     opt_args = parser.parse_args(cli_args)
 
     if not opt_args.action:
         if opt_args.create_new:
-            opt_args.action = "create-new"
+            opt_args.action = "clone"
         elif opt_args.list:
             opt_args.action = "list"
         elif opt_args.reclone:
@@ -1015,12 +1047,16 @@ def main(cli_args=None):
 
     if (
         opt_args.action != "update"
-        and opt_args.action != "create-new"
+        and opt_args.action != "clone"
         and opt_args.action != "reclone"
         and opt_args.action != "list"
         and opt_args.action != "status"
     ):
         print("No action issued! Please use -U or -N or -R or -L or -S switch")
+        exit(1)
+
+    if opt_args.repos and not opt_args.target_path:
+        print("No path issued for declared repositories")
         exit(1)
 
     deploy = OdooDeploy(opt_args)

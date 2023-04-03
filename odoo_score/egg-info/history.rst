@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug.sh: ODOO_COMMIT TEST not set when build template
+* [IMP] run_odoo_debug.sh: simulate server_wide
 
 2.0.4 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~

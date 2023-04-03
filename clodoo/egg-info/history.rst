@@ -1,3 +1,9 @@
+2.0.4 (2023-03-29)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: minor improvements
+* [IMP] transodoo.py: minor improvements
+
 2.0.3 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~
 

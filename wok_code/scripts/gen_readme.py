@@ -9,7 +9,7 @@ It also generates the index.html of the module.
 Document may contains macro which format is {{macro_name}}.
 Currently, the follow macros are recognized:
 
-acknowledges
+acknowledges    People acknowledge list
 authors         Authors list
 available_addons
 branch          Odoo version for this repository/module
@@ -21,7 +21,7 @@ copyright_notes
 description     English description of the repository/module (mandatory)
 descrizione     Descrizione modulo/progetto in italiano (obbligatoria)
 doc-URL         URL for button documentation
-faq             FAG
+faq             FAQ
 features        Features of the repository/module
 GPL             same of gpl
 git_orgid       Git organization

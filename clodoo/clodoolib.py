@@ -198,7 +198,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "2.0.3"
+__version__ = "2.0.4"
 
 
 #############################################################################
@@ -815,9 +815,22 @@ def get_odoo_full_ver(odoo_vid):
     return odoo_fver
 
 
+def build_odoo_VER(
+    item, odoo_vid=None, debug=None, suppl=None, git_org=None, multi=None
+):
+    return __version__
+
+
 def build_odoo_param(
     item, odoo_vid=None, debug=None, suppl=None, git_org=None, multi=None
 ):
+    fct = "build_odoo_%s" % item
+    if fct in globals():
+        return globals()[fct](odoo_vid=odoo_vid,
+                              debug=debug,
+                              suppl=suppl,
+                              git_org=git_org,
+                              multi=multi)
     odoorc = os.path.join(os.path.dirname(__file__), "odoorc")
     if multi:
         cmd = 'opt_multi=1 %s %s "%s" "%s" "%s"' % (

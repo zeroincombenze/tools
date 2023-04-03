@@ -15,7 +15,7 @@ Developer companies are / I soci sviluppatori sono:
 .. $if git_orgid == 'zero'
 |Zeroincombenze| This project is mainly maintained by the `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__
 
-.. $elif git_orgid == 'powerp'
+.. $elif git_orgid == 'librerp'
 This module is maintained by the / Questo modulo è mantenuto dalla rete di imprese `Powerp <http://www.powerp.it/>`__
 
 Developer companies are / I soci sviluppatori sono:

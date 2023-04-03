@@ -50,6 +50,8 @@
 # VCS          If GIT repository return "git" otherwise return ""
 # VDIR         Virtual directory
 # VENV         Return 1 if path is in virtualenv
+# _VER         odoorc version
+# _FILE        odoorc file
 #
 # -------------------------------
 # Environment variables
@@ -61,7 +63,7 @@
 # ODOO_GIT_MULTI    -> multi version environment
 #
 
-#__version__=2.0.3
+__version__=2.0.4
 
 
 ODOO_FVERS="16\.0|15\.0|14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
@@ -210,6 +212,8 @@ build_odoo_param() {
         $SETX
         return
     fi
+    [[ $1 == "_VER" ]] && echo $__version__ && return
+    [[ $1 == "_FILE" ]] && echo ${BASH_SOURCE-} && return
     READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local ODOO_ROOT
     local VENV=0 main exorg spec
@@ -274,7 +278,7 @@ build_odoo_param() {
                 [[ $VENV -eq 0 && -f $cdir/../VENV-${odoo_vid}/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/../VENV-${odoo_vid})
                 [[ $odoo  == "odoo" ]] && cdir=$($READLINK -e $cdir/..) && odoo_vid=$(basename $cdir)
                 FULLVER=$(find_odoo_ver $cdir)
-                [[ -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
+                [[ $VENV -eq 0 && -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
             elif $(is_repos "$cdir"); then
                 r=$(basename $cdir)
                 [[ ! $r =~ $rex ]] && REPOS=$r && PRJPATH=$cdir
@@ -293,6 +297,7 @@ build_odoo_param() {
             elif [[ -z "$PKGNAME" ]]; then
                 IFS="|" read PKGNAME PKGPATH PARENTIDR REPOS PRJPATH <<< $(traverse "$cdir" "$PKGNAME" "$PKGPATH" "$PARENTIDR" "$REPOS" "$PRJPATH")
             fi
+            [[ $VENV -eq 0 && -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/venv_odoo)
             if [[ -z "$GIT_ORGNM" && -d $cdir/.git ]] && $(cd $cdir && git status -s &>/dev/null); then
                 x=$(cd $cdir && git rev-parse --show-toplevel 2>/dev/null)
                 if [[ -z $x || $x == $cdir ]]; then
@@ -308,6 +313,7 @@ build_odoo_param() {
                 fi
             fi
             [[ $cdir == $ODOO_ROOT ]] && break
+            [[ $ITEM == "VDIR" && -n $VDIR ]] && break
             [[ ! $cdir == "/" ]] && cdir=$($READLINK -e $cdir/..) || cdir=
         done
     else
@@ -401,7 +407,7 @@ build_odoo_param() {
         return
     fi
     if [[ -z $ROOT ]]; then
-        if [[ $MULTIVER -eq 0 || $exorg -eq 0 || $main -ne 0 || ( -z $GIT_ORGID && $odoo_vid =~ $ref ) || ( -n $ODOO_GIT_ORGID && ( $GIT_ORGID == $ODOO_GIT_ORGID || $GIT_ORGID =~ ^$ODOO_GIT_ORGID$ ) && $odoo_vid =~ $ref ) || $odoo_vid =~ $reo ]]; then
+        if [[ -n $odoo_vid && ( $MULTIVER -eq 0 || $exorg -eq 0 || $main -ne 0 || ( -z $GIT_ORGID && $odoo_vid =~ $ref ) || ( -n $ODOO_GIT_ORGID && ( $GIT_ORGID == $ODOO_GIT_ORGID || $GIT_ORGID =~ ^$ODOO_GIT_ORGID$ ) && $odoo_vid =~ $ref ) || $odoo_vid =~ $reo ) ]]; then
             [[ $VENV -ne 0 ]] && ROOT=$ODOO_ROOT/$odoo_vid/odoo || ROOT=$ODOO_ROOT/$odoo_vid
         elif [[ $GIT_ORGID == "librerp6" ]]; then
             [[ $VENV -ne 0 ]] && ROOT=$ODOO_ROOT/${GIT_ORGID}/odoo || ROOT=$ODOO_ROOT/${GIT_ORGID}
@@ -472,7 +478,7 @@ build_odoo_param() {
     else
         DB_USER="odoo"
     fi
-    [[ -z "$VDIR" ]] && VDIR="$ODOO_ROOT/$FULLVER/venv_odoo"
+    [[ -z "$VDIR" ]] && VDIR="$ROOT/venv_odoo"
     if [[ "$ITEM" =~ ^(DB_USER|FULLVER|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|MAJVER|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RUPSTREAM|URL|URL_BRANCH|VCS|VDIR|VENV)$ ]]; then
         echo "${!ITEM}"
         $SETX
@@ -542,7 +548,9 @@ build_odoo_param() {
         return
     elif [[ $ITEM =~ (DDIR|SESS_PATH) ]]; then
         # [[ $VENV -ne 0 ]] && p="$(dirname $ROOT)/$odoo_vid/.local/share" || p="$(dirname $ROOT)/.local/share"
-        p="$(dirname $ROOT)/.local/share"
+        p="$(dirname $ROOT)"
+        [[ $(basename $p) == "odoo" ]] && p="$(dirname $p)"
+        p="$p/.local/share"
         if [[ $MAJVER -lt 8 ]]; then
             [[ $ITEM == "DDIR" ]] && p="$ROOT/openerp/filestore" || p="/tmp/oe-sessions-odoo"
         # elif [[ $odoo_vid =~ ^($ODOO_ROOT/)?VENV ]]; then
