@@ -39,6 +39,7 @@ DEVEL_REPS = [
     'interface-github',
     'odoorpc',
     'openupgradelib',
+    'project-agile',
     'pylint-odoo',
     'python-plus',
     'rest-framework',
@@ -614,7 +615,7 @@ def get_list_from_url(opt_args, git_org):
                         continue
                 add_repo(name)
             elif opt_args.verbose:
-                print('discaded %s' % name)
+                print('discarded %s' % name)
 
     if repositories:
         cache[git_org] = cache.get(git_org, {})

@@ -8,7 +8,7 @@
 +----------------------------------+-------------------------------------------+
 
 .. $if odoo_layer == 'module'
-``run_odoo_debug {{branch}} -um {{module_name}} -s -d MYDB``
+``run_odoo_debug -b {{branch}} -um {{module_name}} -s -d MYDB``
 .. $else
-``run_odoo_debug {{branch}} -um all -s -d MYDB``
+``run_odoo_debug -b {{branch}} -um all -s -d MYDB``
 .. $fi

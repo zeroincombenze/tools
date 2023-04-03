@@ -348,9 +348,9 @@ test_07() {
     TRES[9.0]="['account_financial_report_qweb', 'account_journal_report']"
     TRES[10.0]="account_financial_report_qweb"
     TRES[11.0]="account_financial_report_qweb"
-    TRES[12.0]="account_financial_report_qweb"
-    TRES[13.0]="account_financial_report_qweb"
-    TRES[14.0]="account_financial_report_qweb"
+    TRES[12.0]="['account_financial_report', 'account_financial_report_qweb']"
+    TRES[13.0]="['account_financial_report', 'account_financial_report_qweb']"
+    TRES[14.0]="['account_financial_report', 'account_financial_report_qweb']"
     #
     for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0; do
       RES=$($RUNDIR/transodoo.py translate -m ir.module.module -k merge -s account_financial_report_qweb -f 10.0 -b$v)

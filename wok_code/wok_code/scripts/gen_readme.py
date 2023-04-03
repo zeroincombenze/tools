@@ -9,7 +9,7 @@ It also generates the index.html of the module.
 Document may contains macro which format is {{macro_name}}.
 Currently, the follow macros are recognized:
 
-acknowledges
+acknowledges    People acknowledge list
 authors         Authors list
 available_addons
 branch          Odoo version for this repository/module
@@ -21,7 +21,7 @@ copyright_notes
 description     English description of the repository/module (mandatory)
 descrizione     Descrizione modulo/progetto in italiano (obbligatoria)
 doc-URL         URL for button documentation
-faq             FAG
+faq             FAQ
 features        Features of the repository/module
 GPL             same of gpl
 git_orgid       Git organization
@@ -2231,6 +2231,7 @@ def main(cli_args=None):
         "-Y", "--write-man-page", action="store_true", dest="write_man_page"
     )
     ctx = unicodes(parser.parseoptargs(sys.argv[1:]))
+
     ctx["path_name"] = os.path.abspath(ctx["path_name"])
     if not ctx["product_doc"]:
         if "/pypi/" in ctx["path_name"] or ctx["path_name"].endswith("/tools"):
@@ -2313,3 +2314,7 @@ def main(cli_args=None):
             else:
                 ctx["odoo_layer"] = "repository"
     return generate_readme(ctx)
+
+
+if __name__ == "__main__":
+    exit(main())
