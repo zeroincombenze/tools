@@ -69,11 +69,11 @@ get_dbuser() {
   done
 }
 
-OPTOPTS=(h        b          d        k         m         n            p        q           u        U          V           v)
-OPTDEST=(opt_help opt_branch opt_db   opt_crypt opt_multi opt_dry_run  opt_port opt_verbose opt_user opt_dbuser opt_version opt_verbose)
-OPTACTI=("+"      "="        "="      1         1         1            "="      0           "="      "="        "*>"        "+")
-OPTDEFL=(0        ""         ""       -1        0         0            "5432"   -1          ""       ""         ""          1)
-OPTMETA=("help"   "branch"   "dbname" ""        ""        "do nothing" "port"   "verbose"   "user"   "user"     "version"   "verbose")
+OPTOPTS=(h        b          d        k         m         n            p        q           u        U          V           v           w)
+OPTDEST=(opt_help opt_branch opt_db   opt_crypt opt_multi opt_dry_run  opt_port opt_verbose opt_user opt_dbuser opt_version opt_verbose opt_pwd)
+OPTACTI=("+"      "="        "="      1         1         1            "="      0           "="      "="        "*>"        "+"         "=")
+OPTDEFL=(0        ""         ""       -1        0         0            "5432"   -1          ""       ""         ""          1           "")
+OPTMETA=("help"   "branch"   "dbname" ""        ""        "do nothing" "port"   "verbose"   "user"   "user"     "version"   "verbose"   "pwd")
 OPTHELP=("this help"
   "odoo version"
   "dbname"
@@ -85,7 +85,8 @@ OPTHELP=("this help"
   "username to change password"
   "postgres db role"
   "show version"
-  "verbose mode")
+  "verbose mode"
+  "password (do not use this option: password is cleared stored in history)")
 OPTARGS=()
 
 parseoptargs "$@"
@@ -123,6 +124,7 @@ elif [[ $opt_crypt -eq -1 ]]; then
 fi
 pwd1=''
 pwd2=''
+[[ -n "$opt_pwd " ]] && pwd1="$opt_pwd" && pwd2="$pwd1"
 while [ -z "$pwd1" -o "$pwd1" != "$pwd2" ]; do
   pwd1=''
   while [ -z "$pwd1" ]; do

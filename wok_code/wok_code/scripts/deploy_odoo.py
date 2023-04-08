@@ -942,7 +942,7 @@ def main(cli_args=None):
         "-a",
         "--show-addons",
         action="store_true",
-        help="Update addons_path in Odoo configuration file",
+        help="Show addons_path after action",
     )
     parser.add_argument(
         "-b",
@@ -962,7 +962,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-F",
         "--format",
-        help=("Use 1 or + of " "sts,repo,branch,git_org,git_url,path,stash, status"),
+        help=("Use 1 or + of " "sts,repo,branch,git_org,git_url,path,stash,status"),
         default="sts,repo,branch,git_org,git_url,path,stash",
     )
     parser.add_argument(
