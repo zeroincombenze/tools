@@ -13,8 +13,8 @@ __version__ = "2.0.6"
 # 1. element is the regex to apply: if regex matches line all the next elements
 #    of the rule list are applied on current source line.
 #    The "!" (exclamation point) at the beginning of the line means negation
-#    If exclamation point is followed by "(TEXT)" and TEXT is in line, rule is skipped
-#    i.e:  !my_text^import
+#    If exclamation point is followed by "(REGEX)" and line matches REGEX,
+#    rule is skipped; i.e:  !my_text^import
 #    Rule is applied on every line beginning with "import" but not on "import my_text"
 #    If "(" does not follow exclamation point, the regex is negated
 #    i.e.  !^import
@@ -33,6 +33,22 @@ __version__ = "2.0.6"
 #
 RULES_GLOBALS = [
     (
+        r"^# -\*- coding: utf-8 -\*-",
+        "matches_utf8",
+    ),
+    (
+        "^# (flake8|pylint):",
+        "matches_lint",
+    ),
+    (
+        "!(coding|flake8|pylint)^#",
+        "matches_no_lint",
+    ),
+    (
+        "!^#",
+        "matches_no_lint",
+    ),
+    (
         r"^ *class [^(]+\(",
         "matches_class",
     ),
@@ -43,6 +59,10 @@ RULES_GLOBALS = [
     (
         r"!^(from [\w.]+ )?import",
         "no_matches_import",
+    ),
+    (
+        r"^# -\*- encoding: utf-8 -\*-",
+        "do_rm_line",
     ),
 ]
 RULES_GLOBALS_XML = [
@@ -177,8 +197,6 @@ RULES_TO_PYPI_FUTURE = [
         (r"super\(\)", "super(%(classname)s, self)"),
     ),
 ]
-TAG_UTF8 = "# -*- coding: utf-8 -*-"
-UNTAG_UTF8 = "# -*- encoding: utf-8 -*-"
 
 
 class MigrateFile(object):
@@ -320,6 +338,43 @@ class MigrateFile(object):
             self.ctr_tag_odoo -= 1
         return True, offset
 
+    def matches_utf8(self, nro):
+        offset = 0
+        if (
+            self.opt_args.python_ver
+            and self.opt_args.python_ver.startswith("2")
+            and self.utf8_decl_nro < 0
+        ):
+            self.utf8_decl_nro = nro
+        else:
+            del self.lines[nro]
+            offset = -1
+        return False, offset
+
+    def do_rm_line(self, nro):
+        del self.lines[nro]
+        offset = -1
+        return False, offset
+
+    def matches_lint(self, nro):
+        offset = 0
+        if self.utf8_decl_nro >= 0:
+            del self.lines[self.utf8_decl_nro]
+            self.utf8_decl_nro = -1
+            offset = -1
+        return False, offset
+
+    def matches_no_lint(self, nro):
+        offset = 0
+        if (
+            not self.utf8_decl_nro >= 0
+            and self.opt_args.python_ver
+            and self.opt_args.python_ver.startswith("2")
+        ):
+            self.lines.insert(nro, "# -*- coding: utf-8 -*-")
+            self.utf8_decl_nro = nro
+        return False, offset
+
     def update_line(self, nro, item):
         if isinstance(item, (list, tuple)):
             self.lines[nro] = re.sub(item[0],
@@ -338,11 +393,10 @@ class MigrateFile(object):
             self.ctr_tag_data = 0
             self.ctr_tag_odoo = 0
             self.ctr_tag_openerp = 0
-            self.ctr_tag_utf8 = False
             self.classname = ""
             self.in_import = False
             self.UserError = False
-            self.coding_line = -1
+            self.utf8_decl_nro = -1
             self.lines_2_rm = []
             TARGET = RULES_GLOBALS_XML if self.is_xml else RULES_GLOBALS
             if self.opt_args.pypi_package:
@@ -376,14 +430,14 @@ class MigrateFile(object):
         def rule_matches(rule, nro):
             not_expr = False
             if rule[0].startswith("!"):
-                x = re.match(r"!\([\w.]*\)+", rule[0])
+                x = re.match(r"!\([^)]+\)+", rule[0])
                 if x:
                     token = rule[0][x.start() + 2: x.end() - 1].strip()
-                    if token in self.lines[nro]:
+                    if re.search(token, self.lines[nro]):
                         return False
                     regex = rule[0][x.end():]
                 else:
-                    regex = rule[0][2:]
+                    regex = rule[0][1:]
                     not_expr = True
             else:
                 regex = rule[0]
@@ -398,61 +452,36 @@ class MigrateFile(object):
         nro = 0
         while nro < len(self.lines):
             next_nro = nro + 1
-            if not self.lines[nro]:
-                nro += 1
-                continue
-
             do_continue = False
-            if self.lines[nro] == TAG_UTF8:
-                if self.coding_line < 0:
-                    self.found_tag = True
-                    self.coding_line = nro
-                else:
-                    del self.lines[nro]
-                    continue
-            elif self.lines[nro] == UNTAG_UTF8:
-                del self.lines[nro]
-                continue
-            elif (
-                self.lines[nro].startswith("# flake8:")
-                or self.lines[nro].startswith("# pylint:")
-            ):
-                if self.coding_line >= 0:
-                    del self.lines[self.coding_line]
-                    self.found_tag = False
-                    self.coding_line = -1
-                    nro -= 1
-                    continue
-            for rule in TGT_RULES:
-                if not isinstance(rule[1:], (list, tuple)):
-                    print("Invalid rule")
-                    print(rule)
-                    return
-                regex = rule_matches(rule, nro)
-                if not regex:
-                    continue
-                for subrule in rule[1:]:
-                    if isinstance(subrule[0], (list, tuple)):
-                        for item in subrule:
-                            do_break, offset = self.update_line(nro, item)
-                    else:
-                        do_break, offset = self.update_line(nro, subrule)
-                    if offset:
-                        next_nro = nro + 1 + offset
-                        if offset < 0:
-                            do_continue = True
+            if not self.lines[nro]:
+                do_continue = True
+            else:
+                for rule in TGT_RULES:
+                    if not isinstance(rule[1:], (list, tuple)):
+                        print("Invalid rule")
+                        print(rule)
+                        return
+                    regex = rule_matches(rule, nro)
+                    if not regex:
+                        continue
+                    for subrule in rule[1:]:
+                        if isinstance(subrule[0], (list, tuple)):
+                            for item in subrule:
+                                do_break, offset = self.update_line(nro, item)
+                        else:
+                            do_break, offset = self.update_line(nro, subrule)
+                        if offset:
+                            next_nro = nro + 1 + offset
+                            if offset < 0:
+                                do_continue = True
+                                break
+                        elif do_break:
                             break
-                    elif do_break:
+                    if do_continue or do_break:
                         break
-                if do_continue or do_break:
-                    break
             if do_continue:
                 nro = next_nro
                 continue
-
-            # if not self.is_xml:
-            #     if self.matches_class(nro):
-            #         pass
             nro += 1
 
     def write_xml(self, out_ffn):

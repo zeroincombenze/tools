@@ -1,4 +1,5 @@
 # flake8: noqa - pylint: skip-file
+# -*- coding: utf-8 -*-
 from openerp.osv import fields, orm
 
 class ResExample(orm.Model):
