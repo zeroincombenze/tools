@@ -5,196 +5,224 @@ import os
 import argparse
 import re
 import lxml.etree as ET
+import yaml
 from python_plus import _b
 
 __version__ = "2.0.6"
 
-# RULES: every rule is list:
-# 1. element is the regex to apply: if regex matches line all the next elements
-#    of the rule list are applied on current source line.
-#    The "!" (exclamation point) at the beginning of the line means negation
-#    If exclamation point is followed by "(REGEX)" and line matches REGEX,
-#    rule is skipped; i.e:  !my_text^import
-#    Rule is applied on every line beginning with "import" but not on "import my_text"
-#    If "(" does not follow exclamation point, the regex is negated
-#    i.e.  !^import
-#    Rule is applied on every line which does not begin with "import"
-# 2. Every element (from 2.nd) may be a text or a list
-#    If element is a list, it contains a couple of item for substitution
-#    - The 1.st item is the regex to search for replace
-#    - The 2.nd item is the text to replace; item cna contains macros like %(classname)s
-#   If the element is a text, it is a function to apply.
-#   All functions have the format:  def my_fun(self, nro)
-#                                       [...]
-#                                       return do_break, offset
-#   Function may ask for break: this means no other rules will be executed.
-#   Function must return the offset for next line (default is 0)
-#   The value -1 re-read the current line, +1 skip next line, and so on
+# RULES: every rule is list has the following format:
+# EREGEX, (ACTION, PARAMETERS), ...
+# where
+# - EREGEX is an enhanced regular expression to apply the rule.
+# - ACTION is the action to apply on current line
+# - PARAMETERS are the values to supply on action
+# - the list/tuple (ACTION, PARAMETERS) can be repeated more than once
 #
-RULES_GLOBALS = [
+# EREGEX
+# EREGEX is an enhanced regular expression; the format are
+# - REGEX is a python re: current line is processed if it matches REGEX
+# - !REGEX is a python re: current line is processes if it does not match REGEX
+#   If you will match "!" (exclamation point) user escape char "\": i.e. "\!match"
+#   Escape before "!" is neede just at the beginning of the REGEX
+# - !(RE)REGEX are two python re; if current line matches (BY search) the RE, rule is
+#   skipped otherwise current line is processed if IT matches REGEX; i.e:  !pkg^import
+#   Rule is applied on every line beginning with "import" but not on "import pkg"
+# - {{EXPR}}EREGEX is double expression; EREGEX is validated if pythonic EXPR is true
+#   Some test are useful, like:
+#   * self.to_major_version -> to process rule against specific Odoo major version
+#   * self.from_major_version -> to process rule against source Odoo major version
+#   * self.python_version -> to proces rule against python version
+#   * self.py23 -> to proces rule against python major version
+# ACTION is the action will be executed: it can be prefixed by some simple expression
+# if action begins with "/" (slash) it will be executed if EREGEX fails
+# usually ACTION is executed when EREGEX is True
+# i.e. ("s", "a", "b"), ("/d") -> If EREGEX, replace "a" with "b" else delete line
+# ACTION can submitted to Odoo or python version:
+# +[0-9] means from Odoo/python version
+# -[0-9] means Odoo/version and older
+# +[23]\.[0-9] means from python version
+# -[23]\.[0-9] means python version and older
+# i.e: ("+10s", "a", "b"), ("-7s", "b", "a") -> From Odoo 10.0 replace "a" with "b",
+# with Odoo version 7.0 and older replace "b" with "a"
+# ("+10-14s", "a", "b") -> From Odoo 10.0 to Odoo 14.0, replace "a" with "b"
+# ACTION values:
+# - "s": substitute REGEX REPLACE_TEXT
+#   - The 1.st item is the EREGEX to search for replace (negate is not applied)
+#   - The 2.nd item is the text to replace which can contain macros like %(classname)s
+# - "d": delete line; stop immediately rule processing and re-read the line
+# - "$": execute FUNCTION
+#        All functions must have the format:    def my_fun(self, nro)
+#                                                   [...]
+#                                                   return do_break, offset
+#        Function may ask for break: this means no other rules will be processed.
+#        Function returns the offset for next line: the value 0 means read next line,
+#        the value -1 re-read the current line, +1 skip next line, and so on
+# - "=": execute python code
+#
+_RULES_GLOBALS = [
     (
         r"^# -\*- coding: utf-8 -\*-",
-        "matches_utf8",
+        ("$", "matches_utf8"),
     ),
     (
         "^# (flake8|pylint):",
-        "matches_lint",
+        ("$", "matches_lint"),
     ),
     (
         "!(coding|flake8|pylint)^#",
-        "matches_no_lint",
+        ("$", "matches_no_lint"),
     ),
     (
         "!^#",
-        "matches_no_lint",
+        ("$", "matches_no_lint"),
     ),
     (
         r"^ *class [^(]+\(",
-        "matches_class",
+        ("$", "matches_class"),
     ),
     (
         r"^(from [\w.]+ )?import",
-        "matches_import",
+        ("$", "matches_import"),
     ),
     (
         r"!^(from [\w.]+ )?import",
-        "no_matches_import",
+        ("$", "no_matches_import"),
     ),
     (
         r"^# -\*- encoding: utf-8 -\*-",
-        "do_rm_line",
+        ("d",),
     ),
 ]
 RULES_GLOBALS_XML = [
 ]
-RULES_TO_NEW_API = [
+_RULES_TO_NEW_API = [
     (
         "^from openerp.osv import",
-        ("from openerp.osv import", "from odoo import"),
-        ("orm", "models"),
+        ("s", "from openerp.osv import", "from odoo import"),
+        ("s", "orm", "models"),
     ),
     (
         r"^ *class [^(]+\([^)]*\)",
-        ("orm.Model", "models.Model"),
-        ("osv.osv_memory", "models.TransientModel"),
+        ("s", "orm.Model", "models.Model"),
+        ("s", "osv.osv_memory", "models.TransientModel"),
     ),
     (
         r"^ *def [^(]+\(self, *cr, *uid, [^)]*\)",
-        (r"\(self, *cr, *uid,", "(self,"),
-        (r", *context=[^)]+", ""),
+        ("s", r"\(self, *cr, *uid,", "(self,"),
+        ("s", r", *context=[^)]+", ""),
     ),
-    ("^from openerp", ("openerp", "odoo")),
-    ("!(import).*osv.except_osv", ("osv.except_osv", "UserError")),
+    ("^from openerp", ("s", "openerp", "odoo")),
+    ("!(import).*osv.except_osv", ("s", "osv.except_osv", "UserError")),
 ]
 RULES_TO_OLD_API = [
     (
         "^from odoo import",
         (
-            ("models", "orm"),
-            ("odoo", "openerp.osv"),
-            ("models.TransientModel", "osv.osv_memory"),
+            ("s", "models", "orm"),
+            ("s", "odoo", "openerp.osv"),
+            ("s", "models.TransientModel", "osv.osv_memory"),
         )
     ),
     (
         r"^ *class [^(]+\([^)]*\)",
-        ("models.Model", "orm.Model"),
+        ("s", "models.Model", "orm.Model"),
     ),
     (
         r"^ *def [^(]+\(self, [^)]*\)",
-        (r"\(self,", "(self, cr, uid,"),
-        (r"\)", ", context=None)"),
+        ("s", r"\(self,", "(self, cr, uid,"),
+        ("s", r"\)", ", context=None)"),
     ),
     (
         "^from odoo.exceptions import UserError",
-        ("import UserError", "import Warning as UserError"),
+        ("s", "import UserError", "import Warning as UserError"),
     ),
-    ("^from odoo", ("odoo", "openerp")),
-    ("!(import).*UserError", ("UserError", "osv.except_osv")),
+    ("^from odoo", ("s", "odoo", "openerp")),
+    ("!(import).*UserError", ("s", "UserError", "osv.except_osv")),
 ]
 RULES_TO_ODOO_PY3 = [
     (
         r"^ *super\([^)]*\)",
-        (r"super\([^)]*\)", "super()"),
-        (r"\(cr, *uid, *", "("),
-        (r", *context=[^)]+", ""),
+        ("s", r"super\([^)]*\)", "super()"),
+        ("s", r"\(cr, *uid, *", "("),
+        ("s", r", *context=[^)]+", ""),
     ),
 ]
 RULES_TO_ODOO_PY2 = [
     (
         r"^ *super\([^)]*\)",
-        (r"super\(\)", "super(%(classname)s, self)"),
-        (r"(\)\.[^(]+)\(", r"\1(cr, uid, "),
-        (r"(super[^)]+\)[^)]+)", r"\1, context=context"),
+        ("s", r"super\(\)", "super(%(classname)s, self)"),
+        ("-8s", r"(\)\.[^(]+)\(", r"\1(cr, uid, "),
+        ("-8s", r"(super[^)]+\)[^)]+)", r"\1, context=context"),
     ),
 ]
 RULES_TO_XML_NEW = [
     (
         "^ *<openerp",
-        "matches_openerp_tag",
+        ("$", "matches_openerp_tag"),
     ),
     (
         "^ *</openerp>",
-        "matches_openerp_endtag",
+        ("$", "matches_openerp_endtag"),
     ),
     (
         "^ *<data",
-        "matches_data_tag",
+        ("$", "matches_data_tag"),
     ),
     (
         "^ *</data>",
-        "matches_data_endtag",
+        ("$", "matches_data_endtag"),
     ),
     (
         "^ *<odoo",
-        "matches_odoo_tag",
+        ("$", "matches_odoo_tag"),
     ),
     (
         "^ *</odoo>",
-        "matches_odoo_endtag",
+        ("$", "matches_odoo_endtag"),
     ),
 ]
 RULES_TO_XML_OLD = [
     (
         "^ *<odoo",
-        "matches_odoo_tag",
+        ("$", "matches_odoo_tag"),
     ),
     (
         "^ *</odoo>",
-        "matches_odoo_endtag",
+        ("$", "matches_odoo_endtag"),
     ),
     (
         "^ *<openerp",
-        "matches_openerp_tag",
+        ("$", "matches_openerp_tag"),
     ),
     (
         "^ *</openerp>",
-        "matches_openerp_endtag",
+        ("$", "matches_openerp_endtag"),
     ),
     (
         "^ *<data",
-        "matches_data_tag",
+        ("$", "matches_data_tag"),
     ),
     (
         "^ *</data>",
-        "matches_data_endtag",
+        ("$", "matches_data_endtag"),
     ),
 ]
 RULES_TO_PYPI_PY3 = [
     (
         r"^ *super\([^)]*\)",
-        (r"super\([^)]*\)", "super()"),
+        ("s", r"super\([^)]*\)", "super()"),
     ),
 ]
 RULES_TO_PYPI_PY2 = [
     (
         r"^ *super\(\)",
-        (r"super\(\)", "super(%(classname)s, self)"),
+        ("s", r"super\(\)", "super(%(classname)s, self)"),
     ),
 ]
 RULES_TO_PYPI_FUTURE = [
     (
         r"^ *super\(\)",
-        (r"super\(\)", "super(%(classname)s, self)"),
+        ("s", r"super\(\)", "super(%(classname)s, self)"),
     ),
 ]
 
@@ -218,6 +246,12 @@ class MigrateFile(object):
                 opt_args.python_ver = "3.7"
             else:
                 opt_args.python_ver = "3.8"
+        if opt_args.python_ver:
+            self.python_version = opt_args.python_ver
+            self.py23 = int(opt_args.python_ver.split(".")[0])
+        else:
+            self.python_version = "3.7"
+            self.py23 = 3
         self.opt_args = opt_args
         self.lines = []
         with open(ffn, 'r') as fd:
@@ -229,6 +263,13 @@ class MigrateFile(object):
         self.python_future = False
         if "from __future__ import" in self.source:
             self.python_future = True
+        self.ignore_file = False
+        if (
+            not self.opt_args.force
+            and ("# flake8: noqa" in self.source
+                 or "# pylint: skip-file" in self.source)
+        ):
+            self.ignore_file = True
         self.except_osv = False
         if self.from_major_version <= 8:
             if "osv.except_osv" in self.source:
@@ -351,11 +392,6 @@ class MigrateFile(object):
             offset = -1
         return False, offset
 
-    def do_rm_line(self, nro):
-        del self.lines[nro]
-        offset = -1
-        return False, offset
-
     def matches_lint(self, nro):
         offset = 0
         if self.utf8_decl_nro >= 0:
@@ -375,80 +411,190 @@ class MigrateFile(object):
             self.utf8_decl_nro = nro
         return False, offset
 
-    def update_line(self, nro, item):
-        if isinstance(item, (list, tuple)):
-            self.lines[nro] = re.sub(item[0],
-                                     item[1] % self.__dict__,
-                                     self.lines[nro])
+    def comparable_version(self, version):
+        return ".".join(
+            [
+                "%03d" % int(x)
+                for x in version.split(".")
+            ]
+        )
+
+    def update_line(self, nro, items, regex):
+        if not isinstance(items, (list, tuple)):
+            print("Invalid rule param %s" % items)
             return False, 0
-        if not hasattr(self, item):
-            print("Function %s not found!" % item)
+        if items[0].startswith("/"):
+            not_expr = True
+            item = items[0][1:]
+        else:
+            not_expr = False
+            item = items[0]
+        if (
+            (not_expr and regex)
+            or (not not_expr and not regex)
+        ):
             return False, 0
-        do_break, offset = getattr(self, item)(nro)
-        return do_break, offset
+        if item.startswith("+"):
+            x = re.match(r"\+[0-9]+\.[0-9]")
+            if x:
+                ver = item[x.start():x.end()]
+                if (
+                    self.comparable_version(self.opt_args.python_ver)
+                    < self.comparable_version(ver)
+                ):
+                    return False, 0
+            else:
+                x = re.match(r"\+[0-9]+")
+                ver = int(item[x.start() + 1:x.end()])
+                if ver and ver < 6 and self.py23 < ver:
+                    return False, 0
+                if ver and ver >= 6 and self.to_major_version < ver:
+                    return False, 0
+            item = item[x.end():]
+        if item.startswith("-"):
+            x = re.match(r"\-[0-9]+\.[0-9]", item)
+            if x:
+                ver = item[x.start():x.end()]
+                if (
+                    self.comparable_version(self.opt_args.python_ver)
+                    > self.comparable_version(ver)
+                ):
+                    return False, 0
+            else:
+                x = re.match(r"-[0-9]+", item)
+                ver = int(item[x.start() + 1:x.end()])
+                if ver and ver < 6 and self.py23 > ver:
+                    return False, 0
+                if ver and ver >= 6 and self.to_major_version > ver:
+                    return False, 0
+            item = item[x.end():]
+        action = item
+        if action == "s":
+            rule, expr, res, regex, not_expr, sre = self.split_py_re_rules(items[1])
+            if sre and re.search(sre, self.lines[nro]):
+                return False, 0
+            if regex:
+                self.lines[nro] = re.sub(regex,
+                                         items[2] % self.__dict__,
+                                         self.lines[nro])
+            return False, 0
+        elif action == "d":
+            del self.lines[nro]
+            return False, -1
+        elif action == "$":
+            if not hasattr(self, items[1]):
+                print("Function %s not found!" % items[1])
+                return False, 0
+            do_break, offset = getattr(self, items[1])(nro)
+            return do_break, offset
+        elif action == "=":
+            try:
+                eval(items[1])
+            except BaseException as e:
+                print("Invalid expression %s" % items[1])
+                print(e)
+            return False, 0
+        else:
+            print("Invalid rule action %s" % action)
+        return False, 0
+
+    def split_py_re_rules(self, rule):
+        x = re.match(r"\{\{.*\}\}", rule)
+        if x:
+            expr = rule[x.start() + 2: x.end() - 2].strip()
+            rule = rule[x.end()]
+            try:
+                res = eval(expr)
+            except BaseException as e:
+                print("Invalid expression %s" % expr)
+                print(e)
+                res = False
+        else:
+            rule = rule
+            expr = ""
+            res = True
+
+        not_expr = False
+        sre = ""
+        if rule.startswith("!"):
+            x = re.match(r"!\([^)]+\)+", rule)
+            if x:
+                sre = rule[x.start() + 2: x.end() - 1].strip()
+                regex = rule[x.end():]
+            else:
+                regex = rule[1:]
+                not_expr = True
+        elif rule.startswith(r"\!"):
+            regex = rule[1:]
+        else:
+            regex = rule
+
+        return rule, expr, res, regex, not_expr, sre
+
+    def rule_matches(self, rule, nro):
+        rule, expr, res, regex, not_expr, sre = self.split_py_re_rules(rule)
+        if not res:
+            return res
+
+        if sre and re.search(sre, self.lines[nro]):
+            return False
+
+        if (
+            (not not_expr and not re.match(regex, self.lines[nro]))
+            or (not_expr and re.match(regex, self.lines[nro]))
+        ):
+            return False
+        return regex
+
+    def load_config(self, confname):
+        configpath = os.path.join(os.path.expanduser(os.path.dirname(__file__)),
+                                  "conf",
+                                  confname + ".yml")
+        if os.path.isfile(configpath):
+            with open(configpath, "r") as fd:
+                return yaml.safe_load(fd)
+        internal_name = "RULES_%s" % confname.upper()
+        if internal_name not in globals():
+            print("File %s not found!" % configpath)
+            return []
+        return globals()[internal_name]
+
+    def init_env(self):
+        self.property_noupdate = False
+        self.ctr_tag_data = 0
+        self.ctr_tag_odoo = 0
+        self.ctr_tag_openerp = 0
+        self.classname = ""
+        self.in_import = False
+        self.UserError = False
+        self.utf8_decl_nro = -1
+        self.lines_2_rm = []
+
+        TARGET = self.load_config("globals_xml" if self.is_xml else "globals")
+        if self.opt_args.pypi_package:
+            if self.python_future:
+                TARGET += self.load_config("to_pypi_future")
+            TARGET += self.load_config("to_pypi_py2" if self.py23 == 2
+                                       else "to_pypi_py3")
+        elif self.is_xml:
+            TARGET += self.load_config("to_xml_old" if self.to_major_version < 8
+                                       else "to_xml_new")
+        elif self.from_major_version:
+            if self.from_major_version < 8 and self.to_major_version >= 8:
+                TARGET += self.load_config("to_new_api")
+            elif self.from_major_version >= 8 and self.to_major_version < 8:
+                TARGET += self.load_config("to_old_api")
+            TARGET += self.load_config("to_odoo_py2" if self.to_major_version <= 10
+                                       else "to_odoo_py3")
+        else:
+            TARGET += self.load_config("to_odoo_py2" if self.to_major_version <= 10
+                                       else "to_odoo_py3")
+        return TARGET
 
     def do_migrate_source(self):
-        def init_env():
-            self.property_noupdate = False
-            self.ctr_tag_data = 0
-            self.ctr_tag_odoo = 0
-            self.ctr_tag_openerp = 0
-            self.classname = ""
-            self.in_import = False
-            self.UserError = False
-            self.utf8_decl_nro = -1
-            self.lines_2_rm = []
-            TARGET = RULES_GLOBALS_XML if self.is_xml else RULES_GLOBALS
-            if self.opt_args.pypi_package:
-                if self.python_future:
-                    TARGET += RULES_TO_PYPI_FUTURE
-                if self.opt_args.python_ver:
-                    TARGET += (
-                        RULES_TO_PYPI_PY2
-                        if (int(self.opt_args.python_ver.split(".")[0]) == 2)
-                        else RULES_TO_PYPI_PY3
-                    )
-            elif self.is_xml:
-                TARGET += (RULES_TO_XML_OLD
-                           if self.to_major_version < 8 else RULES_TO_XML_NEW)
-            elif self.from_major_version:
-                if self.from_major_version < 8 and self.to_major_version >= 8:
-                    TARGET += RULES_TO_NEW_API
-                elif self.from_major_version >= 8 and self.to_major_version < 8:
-                    TARGET += RULES_TO_OLD_API
-                TARGET += (
-                    RULES_TO_ODOO_PY2
-                    if self.to_major_version <= 10 else RULES_TO_ODOO_PY3
-                )
-            else:
-                TARGET += (
-                    RULES_TO_ODOO_PY2
-                    if self.to_major_version <= 10 else RULES_TO_ODOO_PY3
-                )
-            return TARGET
-
-        def rule_matches(rule, nro):
-            not_expr = False
-            if rule[0].startswith("!"):
-                x = re.match(r"!\([^)]+\)+", rule[0])
-                if x:
-                    token = rule[0][x.start() + 2: x.end() - 1].strip()
-                    if re.search(token, self.lines[nro]):
-                        return False
-                    regex = rule[0][x.end():]
-                else:
-                    regex = rule[0][1:]
-                    not_expr = True
-            else:
-                regex = rule[0]
-            if (
-                (not not_expr and not re.match(regex, self.lines[nro]))
-                or (not_expr and re.match(regex, self.lines[nro]))
-            ):
-                return False
-            return regex
-
-        TGT_RULES = init_env()
+        if self.ignore_file:
+            return
+        TGT_RULES = self.init_env()
         nro = 0
         while nro < len(self.lines):
             next_nro = nro + 1
@@ -461,15 +607,15 @@ class MigrateFile(object):
                         print("Invalid rule")
                         print(rule)
                         return
-                    regex = rule_matches(rule, nro)
-                    if not regex:
-                        continue
+                    regex = self.rule_matches(rule[0], nro)
+                    # if not regex:
+                    #     continue
                     for subrule in rule[1:]:
                         if isinstance(subrule[0], (list, tuple)):
                             for item in subrule:
-                                do_break, offset = self.update_line(nro, item)
+                                do_break, offset = self.update_line(nro, item, regex)
                         else:
-                            do_break, offset = self.update_line(nro, subrule)
+                            do_break, offset = self.update_line(nro, subrule, regex)
                         if offset:
                             next_nro = nro + 1 + offset
                             if offset < 0:
@@ -498,7 +644,7 @@ class MigrateFile(object):
             )
 
     def close(self):
-        if self.source != "\n".join(self.lines):
+        if not self.ignore_file and self.source != "\n".join(self.lines):
             if self.opt_args.output:
                 if os.path.isdir(self.opt_args.output):
                     out_ffn = os.path.join(self.opt_args.output,
@@ -530,6 +676,11 @@ def main(cli_args=None):
     )
     parser.add_argument('-b', '--to-version', default="12.0")
     parser.add_argument('-F', '--from-version')
+    parser.add_argument(
+        '-f', '--force',
+        action='store_true',
+        help="Parse file containing '# flake8: noqa' or '# pylint: skip-file'"
+    )
     parser.add_argument('-o', '--output')
     parser.add_argument('-P', '--pypi-package', action='store_true')
     parser.add_argument('-v', '--verbose', action='count', default=0)

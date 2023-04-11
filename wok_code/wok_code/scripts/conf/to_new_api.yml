@@ -1,0 +1,42 @@
+-
+  - '^from openerp.osv import'
+  -
+    - 's'
+    - 'from openerp.osv import'
+    - 'from odoo import'
+  -
+    - 's'
+    - 'orm'
+    - 'models'
+-
+  - '^ *class [^(]+\([^)]*\)'
+  -
+    - 's'
+    - 'orm.Model'
+    - 'models.Model'
+  -
+    - 's'
+    - 'osv.osv_memory'
+    - 'models.TransientModel'
+-
+  - '^ *def [^(]+\(self, *cr, *uid, [^)]*\)'
+  -
+    - 's'
+    - '\(self, *cr, *uid,'
+    -  '(self,'
+  -
+    - 's'
+    - ', *context=[^)]+'
+    - ''
+-
+  - '^from openerp'
+  -
+    - 's'
+    - 'openerp'
+    - 'odoo'
+-
+  - '!(import).*osv.except_osv'
+  -
+    - 's'
+    - 'osv.except_osv'
+    - 'UserError'
