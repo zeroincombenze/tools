@@ -88,7 +88,7 @@ class RegressionTest:
     def test_02(self, z0ctx):
         src_ffn = self.get_fullname("old_api_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
-        cmd = "do_migrate -f -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
+        cmd = "do_migrate -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -102,7 +102,7 @@ class RegressionTest:
 
         src_ffn = self.get_fullname("new_api_py3_02.py")
         tgt_ffn = self.get_test_fullname("old_api_02.py")
-        cmd = "do_migrate -f -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
+        cmd = "do_migrate -fw -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -115,7 +115,7 @@ class RegressionTest:
 
         src_ffn = self.get_fullname("new_api_py2_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
-        cmd = "do_migrate -f -F10.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
+        cmd = "do_migrate -fw -F10.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -129,7 +129,7 @@ class RegressionTest:
 
         src_ffn = self.get_fullname("new_api_py3_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py2_02.py")
-        cmd = "do_migrate -f -F12.0 -b10.0 %s -o %s" % (src_ffn, tgt_ffn)
+        cmd = "do_migrate -fw -F12.0 -b10.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -141,10 +141,24 @@ class RegressionTest:
             self.compare_fn(tgt_ffn, self.get_fullname("new_api_py2_02.py")),
             True)
 
+        src_ffn = self.get_fullname("old_api_b_02.py")
+        tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
+        cmd = "do_migrate -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            print("Error %d file %s" % (sts, src_ffn))
+            print(stderr)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            cmd.replace(self.Z.testdir, "."),
+            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")),
+            True)
+
     def test_03(self, z0ctx):
         src_ffn = self.get_fullname("old_api_03.xml")
         tgt_ffn = self.get_test_fullname("new_api_03.xml")
-        cmd = "do_migrate -f -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
+        cmd = "do_migrate -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -158,7 +172,7 @@ class RegressionTest:
 
         src_ffn = self.get_fullname("new_api_03.xml")
         tgt_ffn = self.get_test_fullname("old_api_03.xml")
-        cmd = "do_migrate -f -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
+        cmd = "do_migrate -fw -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -173,7 +187,7 @@ class RegressionTest:
     def test_04(self, z0ctx):
         src_ffn = self.get_fullname("old_api_04.xml")
         tgt_ffn = self.get_test_fullname("new_api_04.xml")
-        cmd = "do_migrate -f -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
+        cmd = "do_migrate -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -187,7 +201,7 @@ class RegressionTest:
 
         src_ffn = self.get_fullname("new_api_04.xml")
         tgt_ffn = self.get_test_fullname("old_api_04.xml")
-        cmd = "do_migrate -f -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
+        cmd = "do_migrate -fw -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -197,6 +211,37 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_xmlfn(tgt_ffn, self.get_fullname("old_api_04.xml")),
+            True)
+
+    def test_05(self, z0ctx):
+        src_ffn = self.get_fullname("pkg_py2_05.py")
+        tgt_ffn = self.get_test_fullname("pkg_py3_05.py")
+        cmd = "do_migrate -fw --pypi-package --python-ver=3 %s -o %s" % (src_ffn,
+                                                                         tgt_ffn)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            print("Error %d file %s" % (sts, src_ffn))
+            print(stderr)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            cmd.replace(self.Z.testdir, "."),
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py3_05.py")),
+            True)
+
+        src_ffn = self.get_fullname("pkg_py3_05.py")
+        tgt_ffn = self.get_test_fullname("pkg_py2_05.py")
+        cmd = "do_migrate -fw --pypi-package --python-ver=2 %s -o %s" % (src_ffn,
+                                                                         tgt_ffn)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            print("Error %d file %s" % (sts, src_ffn))
+            print(stderr)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            cmd.replace(self.Z.testdir, "."),
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")),
             True)
 
     def setup(self, z0ctx):

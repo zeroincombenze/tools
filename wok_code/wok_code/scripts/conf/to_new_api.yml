@@ -1,4 +1,16 @@
 -
+  - 'from openerp.osv.osv import except_osv'
+  -
+    - 's'
+    - 'from openerp.osv.osv import except_osv'
+    - 'from odoo.exceptions import UserError'
+-
+  - 'from openerp.osv import osv'
+  -
+    - 's'
+    - 'from openerp.osv import osv'
+    - 'from odoo.exceptions import UserError'
+-
   - '^from openerp.osv import'
   -
     - 's'
@@ -8,6 +20,18 @@
     - 's'
     - 'orm'
     - 'models'
+-
+  - '^from openerp'
+  -
+    - 's'
+    - 'openerp'
+    - 'odoo'
+-
+  - '^ *raise (osv.)?except_osv'
+  -
+    - 's'
+    - '(osv.)?except_osv'
+    - 'UserError'
 -
   - '^ *class [^(]+\([^)]*\)'
   -
@@ -28,15 +52,3 @@
     - 's'
     - ', *context=[^)]+'
     - ''
--
-  - '^from openerp'
-  -
-    - 's'
-    - 'openerp'
-    - 'odoo'
--
-  - '!(import).*osv.except_osv'
-  -
-    - 's'
-    - 'osv.except_osv'
-    - 'UserError'

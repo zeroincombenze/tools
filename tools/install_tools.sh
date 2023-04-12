@@ -345,6 +345,8 @@ if [[ $PYVER -eq 3 ]]; then
         for pkg in sphinx sphinx_rtd_theme; do
             run_traced "pip install $pkg $popts"
         done
+        run_traced "npm install --save-dev --save-exact prettier@2.1.2"
+        run_traced "npm install --save-dev --save-exact prettier@prettier/plugin-xml@0.12.0"
     fi
     run_traced "git clone $x https://github.com/OCA/maintainer-quality-tools.git"
 fi

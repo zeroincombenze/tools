@@ -1,0 +1,14 @@
+-
+  - '^ *super\([^)]*\)'
+  -
+    - 's'
+    - 'super\(\)'
+    - 'super(%(classname)s, self)'
+  -
+    - '-8s'
+    - '(\)\.[^(]+)\('
+    - '\1(cr, uid, '
+  -
+    - '-8s'
+    - '(super[^)]+\)[^)]+)'
+    - '\1, context=context'
