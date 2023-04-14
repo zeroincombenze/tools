@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='z0lib',
-    version='2.0.3',
+    version='2.0.4',
     description='Bash zeroincombenze lib',
     long_description="""
 General purpose bash and python library for zeroincombenze(R) tools

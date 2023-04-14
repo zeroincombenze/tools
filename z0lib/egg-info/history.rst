@@ -1,7 +1,8 @@
-2.0.4 (2023-03-10)
+2.0.4 (2023-04-10)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_traced: cd does not work w/o alias
+* [IMP] coveralls and codecov are not more dependencies
 
 2.0.3 (2022-12-22)
 ~~~~~~~~~~~~~~~~~~
