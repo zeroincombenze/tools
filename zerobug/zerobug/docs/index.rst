@@ -1,18 +1,20 @@
 .. zerobug documentation master file, created by
-   sphinx-quickstart on 2019-11-01 17:49:31
+   sphinx-quickstart on 2023-04-14 19:08:45
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
+
+===========================================
+Welcome to zerobug  documentation!
+===========================================
+
+|Maturity| |Build Status| |Coverage Status| |license gpl|
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   rtd_description
-   rtd_features
-   rtd_usage
-   rtd_usage_code_example
-   rtd_usage_code_reference
-   rtd_automodule
+.. include:: MAINPAGE.rst
+
 
 Indices and tables
 ==================
