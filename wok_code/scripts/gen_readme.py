@@ -2231,6 +2231,7 @@ def main(cli_args=None):
         "-Y", "--write-man-page", action="store_true", dest="write_man_page"
     )
     ctx = unicodes(parser.parseoptargs(sys.argv[1:]))
+
     ctx["path_name"] = os.path.abspath(ctx["path_name"])
     if not ctx["product_doc"]:
         if "/pypi/" in ctx["path_name"] or ctx["path_name"].endswith("/tools"):
@@ -2313,3 +2314,7 @@ def main(cli_args=None):
             else:
                 ctx["odoo_layer"] = "repository"
     return generate_readme(ctx)
+
+
+if __name__ == "__main__":
+    exit(main())

@@ -1,0 +1,54 @@
+-
+  - 'from openerp.osv.osv import except_osv'
+  -
+    - 's'
+    - 'from openerp.osv.osv import except_osv'
+    - 'from odoo.exceptions import UserError'
+-
+  - 'from openerp.osv import osv'
+  -
+    - 's'
+    - 'from openerp.osv import osv'
+    - 'from odoo.exceptions import UserError'
+-
+  - '^from openerp.osv import'
+  -
+    - 's'
+    - 'from openerp.osv import'
+    - 'from odoo import'
+  -
+    - 's'
+    - 'orm'
+    - 'models'
+-
+  - '^from openerp'
+  -
+    - 's'
+    - 'openerp'
+    - 'odoo'
+-
+  - '^ *raise (osv.)?except_osv'
+  -
+    - 's'
+    - '(osv.)?except_osv'
+    - 'UserError'
+-
+  - '^ *class [^(]+\([^)]*\)'
+  -
+    - 's'
+    - 'orm.Model'
+    - 'models.Model'
+  -
+    - 's'
+    - 'osv.osv_memory'
+    - 'models.TransientModel'
+-
+  - '^ *def [^(]+\(self, *cr, *uid, [^)]*\)'
+  -
+    - 's'
+    - '\(self, *cr, *uid,'
+    -  '(self,'
+  -
+    - 's'
+    - ', *context=[^)]+'
+    - ''

@@ -1,0 +1,29 @@
+-
+  - '^# -\*- coding: utf-8 -\*-'
+  -
+    - '$'
+    - matches_utf8
+-
+  - '^# (flake8|pylint):'
+  -
+    - '$'
+    - matches_lint
+-
+  - '!(coding|flake8|pylint|python|/bin/env)^#'
+  -
+    - '$'
+    - matches_no_lint
+-
+  - '!^#'
+  -
+    - '$'
+    - matches_no_lint
+-
+  - '^ *class [^(]+\('
+  -
+    - '$'
+    - matches_class
+-
+  - '^# -\*- encoding: utf-8 -\*-'
+  -
+    - 'd'

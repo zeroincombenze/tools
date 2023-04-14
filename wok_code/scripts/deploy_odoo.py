@@ -942,7 +942,7 @@ def main(cli_args=None):
         "-a",
         "--show-addons",
         action="store_true",
-        help="Update addons_path in Odoo configuration file",
+        help="Show addons_path after action",
     )
     parser.add_argument(
         "-b",
@@ -962,7 +962,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-F",
         "--format",
-        help=("Use 1 or + of " "sts,repo,branch,git_org,git_url,path,stash, status"),
+        help=("Use 1 or + of " "sts,repo,branch,git_org,git_url,path,stash,status"),
         default="sts,repo,branch,git_org,git_url,path,stash",
     )
     parser.add_argument(
@@ -1033,7 +1033,7 @@ def main(cli_args=None):
     opt_args = parser.parse_args(cli_args)
 
     if not opt_args.action:
-        if opt_args.create_new:
+        if opt_args.clone:
             opt_args.action = "clone"
         elif opt_args.list:
             opt_args.action = "list"
@@ -1052,7 +1052,7 @@ def main(cli_args=None):
         and opt_args.action != "list"
         and opt_args.action != "status"
     ):
-        print("No action issued! Please use -U or -N or -R or -L or -S switch")
+        print("No valid action issued!")
         exit(1)
 
     if opt_args.repos and not opt_args.target_path:
