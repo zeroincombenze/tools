@@ -53,7 +53,7 @@ __version__=2.0.6
 
 declare -A PY3_PKGS
 NEEDING_PKGS="future clodoo configparser os0 z0lib"
-DEV_PKGS="click coveralls codecov flake8 pycodestyle pylint"
+DEV_PKGS="click flake8 pycodestyle pylint"
 SUP_PKGS="future python-plus"
 SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi asn1crypto pyasn1"
 EI_PKGS="(distribute)"
