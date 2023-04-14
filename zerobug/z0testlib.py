@@ -39,11 +39,11 @@ success_msg = GREEN + "Test successfully terminated" + CLEAR
 MAX_TEST_NUM = 10
 # Apply for configuration file (True/False)
 APPLY_CONF = False
-# Default configuration file (i.e. myfile.conf or False for default)
+# Default configuration file (i.e. myfile.config or False for default)
 CONF_FN = None
-# Read Odoo configuration file (False or /etc/odoo-server.conf)
+# Read Odoo configuration file (False or /etc/odoo-server.config)
 ODOO_CONF = False
-# Read Odoo configuration file (False or /etc/openerp-server.conf)
+# Read Odoo configuration file (False or /etc/openerp-server.config)
 OE_CONF = False
 # Warning: set all LXs with no values -> LX=(), with 1 value -> LX=(value,)
 # List of string parameters in [options] of config file

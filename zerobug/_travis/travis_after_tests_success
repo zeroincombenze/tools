@@ -6,8 +6,8 @@ import os
 import sys
 
 from coverage.cmdline import main as coverage_main
-from coveralls import cli as coveralls_cli
-from codecov import main as codecov_main
+# from coveralls import cli as coveralls_cli
+# from codecov import main as codecov_main
 
 
 def print_flush(msg):
@@ -41,13 +41,13 @@ if __name__ == '__main__':
             if travis_debug_mode > 1:
                 print_flush('DEBUG: coverage report')
             coverage_main(["report"])
-        print_flush('DEBUG: sending result to coveralls / codecov')
-        if os.environ['TRAVIS'] == "true":
-            try:
-                coveralls_cli.main(argv=None)
-            except:
-                pass
-            try:
-                codecov_main(argv=None)
-            except:
-                pass
+        # print_flush('DEBUG: sending result to coveralls / codecov')
+        # if os.environ['TRAVIS'] == "true":
+        #     try:
+        #         coveralls_cli.main(argv=None)
+        #     except:
+        #         pass
+        #     try:
+        #         codecov_main(argv=None)
+        #     except:
+        #         pass
