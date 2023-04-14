@@ -5,6 +5,7 @@
 * [IMP] deploy_odoo: new property status to display
 * [IMP] deploy_odoo: new switches -l and -x
 * [NEW] do_git_checkout_new_branch.py
+* [IMP] do_migrate.py: new features
 
 2.0.5 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~

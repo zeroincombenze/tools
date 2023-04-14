@@ -9,7 +9,7 @@
     - '$'
     - matches_lint
 -
-  - '!(coding|flake8|pylint)^#'
+  - '!(coding|flake8|pylint|python|/bin/env)^#'
   -
     - '$'
     - matches_no_lint

@@ -136,7 +136,7 @@ _RULES_TO_OLD_API = [
             "from odoo.exceptions import UserError",
             "from openerp.osv.osv import except_osv"
         ),
-     ),
+    ),
 ]
 _RULES_TO_ODOO_PY3 = [
     (
@@ -268,7 +268,7 @@ class MigrateFile(object):
         try:
             x = re.match(regex, line)
         except BaseException as e:
-            self.raise_error("Invalid regex: match('%s','%s')" % (regex, line))
+            self.raise_error("Invalid regex: match('%s','%s') -> %s" % (regex, line, e))
             x = None
         return x
 
@@ -532,9 +532,10 @@ class MigrateFile(object):
         return regex
 
     def load_config2(self, confname):
-        configpath = os.path.join(os.path.expanduser(os.path.dirname(__file__)),
-                                  "conf",
-                                  confname + ".yml")
+        configpath = os.path.join(
+            os.path.dirname(os.path.abspath(os.path.expanduser(__file__))),
+            "config",
+            confname + ".yml")
         if os.path.isfile(configpath):
             with open(configpath, "r") as fd:
                 return yaml.safe_load(fd)
@@ -644,13 +645,13 @@ class MigrateFile(object):
     def format_file(self, out_ffn):
         prettier_config = False
         black_config = False
-        path = os.path.dirname(out_ffn)
+        path = os.path.dirname(os.path.abspath(os.path.expanduser(out_ffn)))
         while not prettier_config and not black_config:
             if os.path.isfile(os.path.join(path, ".pre-commit-config.yaml")):
                 black_config = os.path.join(path, ".pre-commit-config.yaml")
             if os.path.isfile(os.path.join(path, ".prettierrc.yml")):
                 prettier_config = os.path.join(path, ".prettierrc.yml")
-            if path == os.path.expanduser("~") or path == "/":
+            if path == os.path.abspath(os.path.expanduser("~")) or path == "/":
                 break
             path = os.path.dirname(path)
         if self.is_xml:
@@ -659,7 +660,7 @@ class MigrateFile(object):
                        % prettier_config)
             else:
                 cmd = "npx prettier --plugin=@prettier/plugin-xml --print-width=88"
-            cmd = cmd + "--no-xml-self-closing-space --tab-width=4 --write "
+            cmd = cmd + " --no-xml-self-closing-space --tab-width=4 --write "
             cmd += out_ffn
             z0lib.run_traced(cmd)
         else:
@@ -691,6 +692,7 @@ class MigrateFile(object):
                 print('👽 %s' % out_ffn)
             if not self.opt_args.no_parse_with_formatter:
                 self.format_file(out_ffn)
+
 
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]

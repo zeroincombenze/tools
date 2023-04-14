@@ -59,6 +59,7 @@ The available tools are:
             'scripts/setup.info',
             'scripts/dist_pkg.sh',
             'scripts/please.sh',
+            'scripts/config/*',
             './please.man',
             './cvt_script',
             './cvt_script.man',

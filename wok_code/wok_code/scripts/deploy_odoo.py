@@ -1033,7 +1033,7 @@ def main(cli_args=None):
     opt_args = parser.parse_args(cli_args)
 
     if not opt_args.action:
-        if opt_args.create_new:
+        if opt_args.clone:
             opt_args.action = "clone"
         elif opt_args.list:
             opt_args.action = "list"
@@ -1052,7 +1052,7 @@ def main(cli_args=None):
         and opt_args.action != "list"
         and opt_args.action != "status"
     ):
-        print("No action issued! Please use -U or -N or -R or -L or -S switch")
+        print("No valid action issued!")
         exit(1)
 
     if opt_args.repos and not opt_args.target_path:
