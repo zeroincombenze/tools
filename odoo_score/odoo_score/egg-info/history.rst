@@ -1,4 +1,4 @@
-2.0.5 (2023-03-23)
+git 2.0.5 (2023-03-23)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug.sh: ODOO_COMMIT TEST not set when build template

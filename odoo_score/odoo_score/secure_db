@@ -1,6 +1,6 @@
 #!/bin/bash
 for db in $(psql -Atl|grep odoo10|grep -v "^odoo10"|cut -f1 -d"|"); do
-    # echo ~/VENV-10.0/bin/python ~/devel/pypi/odoo_score/odoo_score/secure_db.py -c /etc/odoo/odoo10.conf -d $db
+    # echo ~/VENV-10.0/bin/python ~/devel/pypi/odoo_score/odoo_score/secure_db.py -c /etc/odoo/odoo10.config -d $db
     ~/VENV-10.0/bin/python ~/devel/pypi/odoo_score/odoo_score/secure_db.py -c /etc/odoo/odoo10.conf -d $db
-    # ~/10.0/venv_odoo/bin/python ~/devel/pypi/odoo_score/odoo_score/secure_db.py -c /etc/odoo/odoo10.conf -d $db
+    # ~/10.0/venv_odoo/bin/python ~/devel/pypi/odoo_score/odoo_score/secure_db.py -c /etc/odoo/odoo10.config -d $db
 done
