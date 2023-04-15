@@ -110,7 +110,7 @@ process_yaml_init() {
     export YML_lisa=lisa
     export YML_mgrodoo=manage_odoo
   fi
-  export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
+  # export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
   [[ $TRAVIS_DEBUG_MODE -gt 1 ]] && export VERBOSE_MODE=$TRAVIS_DEBUG_MODE
   [[ $osx_d -ne 0 ]] && export TRAVIS_EMULATE_OSX="true"
   ODOO_TNLBOT="${opt_tnl:-0}"
@@ -780,27 +780,30 @@ process_yaml() {
   local i s p v X x
   local line lne line1 lne1
   load_colors
+  export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
   if [[ -n $opt_fyaml ]]; then
-    export TRAVIS_YAML_FILE=$opt_fyaml
+      export TRAVIS_YAML_FILE=$opt_fyaml
   else
-    export TRAVIS_YAML_FILE="$PWD/.travis.yml"
-    [[ ! -f $TRAVIS_YAML_FILE ]] && export TRAVIS_YAML_FILE="$PRJPATH/.travis.yml"
-    if [[ ! -f $TRAVIS_YAML_FILE ]]; then
-      [[ ! -d $HOME/tmp ]] && mkdir $HOME/tmp
-      export TRAVIS_YAML_FILE=$HOME/tmp/travis$$.yml
-      mk_travis_conf=$(find $PYPATH -name make_travis_conf.py|head -n1)
-      python $mk_travis_conf $(find $PYPATH -name template_travis.yml|head -n1) $TRAVIS_YAML_FILE
-    fi
+      export TRAVIS_YAML_FILE="$PWD/.travis.yml"
+      [[ ! -f $TRAVIS_YAML_FILE ]] && export TRAVIS_YAML_FILE="$PRJPATH/.travis.yml"
+      if [[ ! -f $TRAVIS_YAML_FILE ]]; then
+          [[ ! -d $HOME/tmp ]] && mkdir $HOME/tmp
+          export TRAVIS_YAML_FILE=$HOME/tmp/travis$$.yml
+          mk_travis_conf=$(readlink -e $TDIR/make_travis_conf.py)
+          [[ -z $mk_travis_conf ]] && mk_travis_conf=$(find $PYPATH -name make_travis_conf.py|head -n1)
+          export TRAVIS_YAML_ORIG=$(find $PYPATH -name template_travis.yml|head -n1)
+          python $mk_travis_conf "$TRAVIS_YAML_ORIG" "$TRAVIS_YAML_FILE"
+      fi
   fi
   if [[ $action == "chkconfig" ]]; then
-    if [[ ! -f $TRAVIS_YAML_FILE ]]; then
-      do_chkconfig
-      return $STS_SUCCESS
-    fi
+      if [[ ! -f $TRAVIS_YAML_FILE ]]; then
+        do_chkconfig
+        return $STS_SUCCESS
+      fi
   fi
   if [[ ! -f $TRAVIS_YAML_FILE ]]; then
-    echo -e "\e[${PS_HDR3_COLOR}mNo configuration file $TRAVIS_YAML_FILE found!\e[${PS_TXT_COLOR}m"
-    return 127
+      echo -e "\e[${PS_HDR3_COLOR}mNo configuration file $TRAVIS_YAML_FILE found!\e[${PS_TXT_COLOR}m"
+      return 127
   fi
 
   echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
@@ -894,7 +897,8 @@ process_yaml() {
            PYTHON PYTHONPATH REPOSNAME TRAVIS TRAVIS_BRANCH TRAVIS_BUILD_DIR\
              TRAVIS_HOME TRAVIS_HOME_BRANCH TRAVIS_PDB TRAVIS_PYTHON_MATRIX\
               TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_SAVED_HOME\
-               TRAVIS_SAVED_HOME_DEVEL TRAVIS_YAML_FILE SYSTEM_SITE_PACKAGES; do
+               TRAVIS_SAVED_HOME_DEVEL TRAVIS_YAML_FILE TRAVIS_YAML_ORIG\
+                SYSTEM_SITE_PACKAGES; do
           if [[ $p == "job-id" ]]; then
             X=$$
           elif [[ $p == "DIST" ]]; then
@@ -1015,7 +1019,7 @@ set_log_filename() {
 
 
 OPTOPTS=(h        A           B         C         D           E         e       F        f         k        j       L          l        M          m       n            O         P           p        Q        q           r     S            T         V           v           X           Y         Z)
-OPTLONG=(help     trace-after debug     no-cache  debug-level no-savenv locale  full     force     keep     pyver   lint-level logdir   ''         missing dry-run      org       python-brk  pytest   conf     quiet       ''    syspkg       trace     version     verbose     translation yaml-file zero)
+OPTLONG=(help     trace-after debug     no-cache  debug-level no-savenv locale  full     force     keep     pyver   lint-level logdir   ''         missing dry-run      org       python-brk  pytest   config   quiet       ''    syspkg       trace     version     verbose     translation yaml-file zero)
 OPTDEST=(opt_help opt_tafter  opt_debug opt_cache opt_dlvl    opt_keepE opt_loc opt_full opt_force opt_keep opt_pyv opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pybrk   opt_pyth opt_tcfg opt_verbose opt_r  opt_syspkg  opt_trace opt_version opt_verbose opt_tnl     opt_fyaml opt_dbgmnt)
 OPTACTI=('+'      "="         1         0         "="         0         "="     1        1         1        "="     "="        "="      1          1       "1>"         "="       "="         1        "="      0           1     "="          "="       "*>"        "+"         "="         "="       1)
 OPTDEFL=(0        ""          0         1         ""          1         ""      0        0         0        ""      ""         ""       0          0       0            "local"   ""          0        ""       0           0     ""           ""        ""          -1          ""          ""        0)
