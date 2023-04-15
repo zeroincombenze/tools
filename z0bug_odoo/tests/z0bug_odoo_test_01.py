@@ -10,7 +10,7 @@ import sys
 from z0bug_odoo import z0bugodoo
 from zerobug import z0test
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1

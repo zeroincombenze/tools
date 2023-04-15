@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.6.1
+"""Test Environment v2.0.7
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -2270,7 +2270,7 @@ class MainTest(SingleTransactionCase):
             None
         """
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.6.1 (debug_level=%s)" % (self.debug_level)
+            "🎺🎺🎺 Starting test v2.0.7 (debug_level=%s)" % (self.debug_level)
         )
         self._logger.info(
             "🎺🎺 Testing module: %s (%s)"
