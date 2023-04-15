@@ -1,8 +1,8 @@
-2.0.5 (2023-03-23)
+git 2.0.5 (2023-03-23)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug.sh: ODOO_COMMIT TEST not set when build template
-* [IMP] run_odoo_debug.sh: simulate server_wide
+* [IMP] run_odoo_debug.sh: simulate server_wide_modules parameter for Odoo 7.0-
 
 2.0.4 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~

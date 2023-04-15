@@ -3580,6 +3580,26 @@ def reconfigure_warehouse(ctx):
             clodoo.writeL8(ctx, model, wl.id, {'name': name})
 
 
+def rename_user(ctx):
+    print('rename_user')
+    if ctx['param_1'] == 'help':
+        print('rename_user prior_name new_name')
+        return
+    prior_user = ctx['param_1']
+    new_user = ctx['param_2']
+    if not prior_user or not new_user or prior_user == new_user:
+        print('Missed or invalid user names')
+        print('rename_user prior_name new_name')
+        return
+    _res_user = "res.users"
+    user_ids = clodoo.searchL8(ctx, _res_user, [("login", "=", prior_user)])
+    if len(user_ids) != 1:
+        print('User %s not found' % prior_user)
+        return
+    clodoo.writeL8(ctx, _res_user, user_ids, {"login": new_user})
+    print("🎺 User %s renamed to %s" % (prior_user, new_user))
+
+
 def recalc_group_left_right(ctx):
     resorce_group = "account.group"
     ctr = 0
