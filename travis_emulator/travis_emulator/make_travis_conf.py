@@ -36,10 +36,11 @@ def expand_macro(line, section, ctx):
             line = comment_line(line)
     elif section == "before_install":
         if re.match(r"^ *\- \$HOME/tools/install_tools.sh", line):
+            verbose = "q" if int(ctx["TRAVIS_DEBUG_MODE"]) < 3 else "vv"
             if ctx["TRAVIS_PYTHON_VERSION"].startswith("2"):
-                line = "  - $HOME/tools/install_tools.sh -qpt2"
+                line = "  - $HOME/tools/install_tools.sh -%spt2" % verbose
             else:
-                line = "  - $HOME/tools/install_tools.sh -qpt"
+                line = "  - $HOME/tools/install_tools.sh -%spt" % verbose
     elif section == "install":
         if re.match(r"^ *\- travis_install_env", line):
             if ctx["PRJNAME"] == "Odoo":
@@ -90,6 +91,7 @@ def make_travis_conf(cli_args=None):
         "PRJNAME": os_env("PRJNAME"),
         "REPOSNAME": os_env("REPOSNAME"),
         "TRAVIS_BRANCH": os_env("TRAVIS_BRANCH", os_env("BRANCH")),
+        "TRAVIS_DEBUG_MODE": os_env("TRAVIS_DEBUG_MODE", "0"),
         "TRAVIS_BUILD_DIR": os_env("TRAVIS_BUILD_DIR", os.getcwd()),
         "TRAVIS_PYTHON_VERSION": os_env("TRAVIS_PYTHON_VERSION"),
         "TRAVIS_REPO_SLUG":
@@ -104,6 +106,8 @@ def make_travis_conf(cli_args=None):
             ctx["GIT_ORG"] = "librerp"
         if odoo_main_version <= 10:
             ctx["TRAVIS_PYTHON_VERSION"] = "2.7"
+        elif odoo_main_version < 14:
+            ctx["TRAVIS_PYTHON_VERSION"] = "3.8"
         else:
             ctx["TRAVIS_PYTHON_VERSION"] = "3.7"
     else:
