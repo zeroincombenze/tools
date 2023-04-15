@@ -27,22 +27,22 @@ CLICK_DIR = click.Path(exists=True, dir_okay=True, resolve_path=True)
 
 def get_extra_params(odoo_version):
     """Get extra pylint params by odoo version
-    Transform a pseudo-pylint-conf to params,
-    to overwrite base-pylint-conf values.
+    Transform a pseudo-pylint-config to params,
+    to overwrite base-pylint-config values.
     Use a seudo-inherit of configuration file.
-    To avoid having 2 config files (stable and pr-conf) by each odoo-version
+    To avoid having 2 config files (stable and pr-config) by each odoo-version
     Example:
 
-        pylint_master.conf
-        pylint_master_pr.conf
-        pylint_90.conf
-        pylint_90_pr.conf
-        pylint_80.conf
-        pylint_80_pr.conf
-        pylint_70.conf
-        pylint_70_pr.conf
-        pylint_61.conf
-        pylint_61_pr.conf
+        pylint_master.config
+        pylint_master_pr.config
+        pylint_90.config
+        pylint_90_pr.config
+        pylint_80.config
+        pylint_80_pr.config
+        pylint_70.config
+        pylint_70_pr.config
+        pylint_61.config
+        pylint_61_pr.config
         ... and new future versions.
 
     If you need to add new conventions in all versions,
@@ -51,13 +51,13 @@ def get_extra_params(odoo_version):
 
     With this method you can use:
 
-        pylint_lastest.conf
-        pylint_lastest_pr.conf
-        pylint_disabling_70.conf <- Overwrite params of pylint_lastest*.conf
-        pylint_disabling_61.conf <- Overwrite params of pylint_lastest*.conf
+        pylint_lastest.config
+        pylint_lastest_pr.config
+        pylint_disabling_70.config <- Overwrite params of pylint_lastest*.config
+        pylint_disabling_61.config <- Overwrite params of pylint_lastest*.config
 
     If you need to add new conventions in all versions, you will only need to
-    change pylint_lastest_pr.conf or pylint_lastest.conf, similar to inherit.
+    change pylint_lastest_pr.config or pylint_lastest.config, similar to inherit.
 
     :param version: String to specify an Odoo's name or versio
     :return: List of extra pylint params

@@ -19,7 +19,7 @@ def main(argv=None, database=None):
         src_confn = os.path.expanduser('~/.openerp_serverrc')
     else:
         src_confn = os.path.expanduser('~/.odoorc')
-    fname_conf = os.path.expanduser('./clodoo.conf')
+    fname_conf = os.path.expanduser('./clodoo.config')
     config = ConfigParser.ConfigParser()
     config.read(src_confn)
     if not config.has_section('options'):

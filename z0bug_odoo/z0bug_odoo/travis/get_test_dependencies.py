@@ -24,7 +24,7 @@ except ImportError:
     from .test_server import get_test_dependencies
 
 
-__version__ = '2.0.6'
+__version__ = '2.0.7'
 
 
 def get_module_list(paths):
