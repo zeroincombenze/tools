@@ -275,7 +275,7 @@ Troubleshooting
 History
 -------
 
-2.0.4 (2023-02-24)
+2.0.4 (2023-03-24)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] Added python 3.9 to test

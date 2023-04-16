@@ -371,7 +371,7 @@ History
 
 * [FIX] travis_install_env: ensure list_requirements is executable
 * [IMP] flake8 configuration
-* [IMP] coveralls and codecov are not more dependenciesple  
+* [IMP] coveralls and codecov are not more dependenciesple
 
 2.0.4 (2022-12-08)
 ~~~~~~~~~~~~~~~~~~
@@ -451,7 +451,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-04-14
+Last Update / Ultimo aggiornamento: 2023-04-15
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

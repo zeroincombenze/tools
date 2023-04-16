@@ -7,8 +7,6 @@ if sys.version_info >= (3, 0):
         [
             'future',
             'coverage',
-            'coveralls',
-            'codecov',
             'pylint-odoo',
             'python-magic',
             'python-plus',
@@ -21,8 +19,6 @@ else:
         [
             'future',
             'coverage',
-            'coveralls',
-            'codecov',
             'pylint-odoo<=5.0.0',
             'python-magic',
             'python-plus',

@@ -27,8 +27,6 @@ ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
-# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 # ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
 link_cfg_def

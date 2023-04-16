@@ -3,7 +3,7 @@
 
 * [FIX] travis_install_env: ensure list_requirements is executable
 * [IMP] flake8 configuration
-* [IMP] coveralls and codecov are not more dependenciesple  
+* [IMP] coveralls and codecov are not more dependenciesple
 
 2.0.4 (2022-12-08)
 ~~~~~~~~~~~~~~~~~~

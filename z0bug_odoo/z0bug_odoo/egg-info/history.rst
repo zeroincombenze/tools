@@ -1,5 +1,5 @@
-2.0.6.1 (2023-03-08)
-~~~~~~~~~~~~~~~~~~~~
+2.0.7 (2023-04-08)
+~~~~~~~~~~~~~~~~~~
 
 * [NEW] TestEnv: assertion counter
 * [IMP] TestEnv: is_xref recognizes dot name, i.e "zobug.external.10"

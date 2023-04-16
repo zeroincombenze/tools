@@ -34,8 +34,8 @@ Z0TLIBDIR=$(findpkg z0testrc "$PYPATH" "zerobug")
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0TLIBDIR=$Z0TLIBDIR"
 
-# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
-# TCONF="$HOME/.z0tools.conf"
+# DIST_CONF=$(findpkg ".z0tools.config" "$PYPATH")
+# TCONF="$HOME/.z0tools.config"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -174,7 +174,7 @@ EOF
 > cd /opt/odoo/dev/pypi/lisa/lisa
 > rm -f lisa.tar.gz
 EOF
-  # for f in lisa.conf lisa.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
+  # for f in lisa.config lisa.config.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
   #   if [ -f $RUNDIR/$f ]; then
   #     echo "> cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa.06.test
   #  fi

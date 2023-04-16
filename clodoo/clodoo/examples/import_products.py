@@ -169,7 +169,7 @@ def init_n_connect(flavour=None):
                         help="configuration command file",
                         dest="conf_fn",
                         metavar="file",
-                        default='./import_products.conf')
+                        default='./import_products.config')
     parser.add_argument("-d", "--dbname",
                         help="DB name",
                         dest="db_name",

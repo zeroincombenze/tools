@@ -306,7 +306,7 @@ class RegressionTest:
                     "oe_version": "*",
                     "no_login": True,
                     "xmlrpc_port": self.rpcport,
-                    "conf_fn": "./no_filename.conf",
+                    "conf_fn": "./no_filename.config",
                 },
             )
         else:
@@ -331,7 +331,7 @@ class RegressionTest:
                 ctx={
                     "oe_version": self.ctx["oe_version"],
                     "xmlrpc_port": self.rpcport,
-                    "conf_fn": "./no_filename.conf",
+                    "conf_fn": "./no_filename.config",
                 },
             )
             self.ctx["test_unit_mode"] = True

@@ -33,8 +33,8 @@ ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
 
-# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
-# TCONF="$HOME/.z0tools.conf"
+# DIST_CONF=$(findpkg ".z0tools.config" "$PYPATH")
+# TCONF="$HOME/.z0tools.config"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -181,7 +181,7 @@ fi
 [[ $opt_main -ne 0 ]] && opt_multi=0 || opt_multi=1
 [[ -z $opt_confn ]] && echo "Missed configuration file!" && exit 1
 script_name=$(basename $opt_confn)
-[[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
+[[ $script_name =~ \.config$ ]] && script_name=${script_name:0: -5}
 if [[ -z $odoo_vid ]]; then
   odoo_ver=$(echo $script_name|grep -Eo "(odoo|oca)[0-9]+"|grep -Eo "[0-9]+")
   [[ ! $odoo_ver =~ (6|7|8|9|10|11|12|13|14|15|16) ]] && odoo_ver=12

@@ -111,12 +111,12 @@ name2          if present, is merged with name
 name_first     if present with name last, are merged to compose name
 name_last      if present with name first, are merged to compose name
 street2        if present and just numeric, is merged with street
-zeroadm_mail   default user mail from conf file or <def_mail> if -D switch
-zeroadm_login  default admin username from conf file
-oneadm_mail    default user2 mail from conf file or <def_mail> if -D switch
-oneadm_login   default admin2 username from conf file
-botadm_mail    default bot user mail from conf file or <def_mail> if -D switch
-botadm_login   default bot username from conf file
+zeroadm_mail   default user mail from config file or <def_mail> if -D switch
+zeroadm_login  default admin username from config file
+oneadm_mail    default user2 mail from config file or <def_mail> if -D switch
+oneadm_login   default admin2 username from config file
+botadm_mail    default bot user mail from config file or <def_mail> if -D switch
+botadm_login   default bot username from config file
 _today         date.today()
 _current_year  date.today().year
 _last_year'    date.today().year - 1
@@ -5598,7 +5598,7 @@ def create_zero_db(ctx):
     db_name = values['name']
     setup_id = executeL8(ctx, setup_model, 'create', values)
     executeL8(ctx, setup_model, 'execute', [setup_id], None)
-    fd = open('clodoo_last.conf', 'w')
+    fd = open('clodoo_last.config', 'w')
     fd.write('db_name=%s\n' % db_name)
     fd.close()
     return db_name
@@ -5611,7 +5611,7 @@ def get_dbname(ctx, action):
         elif action == 'new_db':
             dbname = ctx['db_name']
         else:
-            fd = open('clodoo_last.conf', 'r')
+            fd = open('clodoo_last.config', 'r')
             line = fd.readline()
             fd.close()
             dbname = line.split('=')[1].split()[0]

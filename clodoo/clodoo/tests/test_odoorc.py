@@ -149,16 +149,16 @@ class RegressionTest:
 
     def test_03(self, z0ctx):
         TRES = {
-            "6": "/etc/odoo/openerp-server.conf",
-            "7": "/etc/odoo/odoo-server.conf",
-            "8": "/etc/odoo/odoo-server.conf",
-            "9": "/etc/odoo/odoo-server.conf",
-            "10": "/etc/odoo/odoo.conf",
-            "11": "/etc/odoo/odoo.conf",
-            "12": "/etc/odoo/odoo.conf",
-            "13": "/etc/odoo/odoo.conf",
-            "14": "/etc/odoo/odoo.conf",
-            "v7": "/etc/odoo/openerp-server.conf",
+            "6": "/etc/odoo/openerp-server.config",
+            "7": "/etc/odoo/odoo-server.config",
+            "8": "/etc/odoo/odoo-server.config",
+            "9": "/etc/odoo/odoo-server.config",
+            "10": "/etc/odoo/odoo.config",
+            "11": "/etc/odoo/odoo.config",
+            "12": "/etc/odoo/odoo.config",
+            "13": "/etc/odoo/odoo.config",
+            "14": "/etc/odoo/odoo.config",
+            "v7": "/etc/odoo/openerp-server.config",
         }
         for ver in MAJVERS_TO_TEST:
             res = build_odoo_param("CONFN", odoo_vid=ver)
@@ -194,16 +194,16 @@ class RegressionTest:
 
     def test_04(self, z0ctx):
         TRES = {
-            "6": "/etc/odoo/odoo6-server.conf",
-            "7": "/etc/odoo/odoo7-server.conf",
-            "8": "/etc/odoo/odoo8-server.conf",
-            "9": "/etc/odoo/odoo9-server.conf",
-            "10": "/etc/odoo/odoo10.conf",
-            "11": "/etc/odoo/odoo11.conf",
-            "12": "/etc/odoo/odoo12.conf",
-            "13": "/etc/odoo/odoo13.conf",
-            "14": "/etc/odoo/odoo14.conf",
-            "v7": "/etc/odoo/openerp-server.conf",
+            "6": "/etc/odoo/odoo6-server.config",
+            "7": "/etc/odoo/odoo7-server.config",
+            "8": "/etc/odoo/odoo8-server.config",
+            "9": "/etc/odoo/odoo9-server.config",
+            "10": "/etc/odoo/odoo10.config",
+            "11": "/etc/odoo/odoo11.config",
+            "12": "/etc/odoo/odoo12.config",
+            "13": "/etc/odoo/odoo13.config",
+            "14": "/etc/odoo/odoo14.config",
+            "v7": "/etc/odoo/openerp-server.config",
         }
         for ver in MAJVERS_TO_TEST:
             if ver == "6":

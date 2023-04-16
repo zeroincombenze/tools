@@ -675,6 +675,8 @@ class MigrateFile(object):
                                            os.path.basename(self.ffn))
                 else:
                     out_ffn = self.opt_args.output
+                if not os.path.isdir(os.path.dirname(out_ffn)):
+                    os.mkdir(os.path.isdir(os.path.dirname(out_ffn)))
             else:
                 out_ffn = self.ffn
 

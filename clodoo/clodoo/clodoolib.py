@@ -39,19 +39,19 @@ standard_library.install_aliases()  # noqa: E402
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
-# Default configuration file (i.e. myfile.conf or False for default)
-CONF_FN = "./clodoo.conf"
-# Read Odoo configuration file (False or /etc/odoo-server.conf)
+# Default configuration file (i.e. myfile.config or False for default)
+CONF_FN = "./clodoo.config"
+# Read Odoo configuration file (False or /etc/odoo-server.config)
 ODOO_CONF = [
-    "/etc/odoo/odoo-server.conf",
-    "/etc/odoo/odoo.conf",
-    "/etc/odoo-server.conf",
-    "/etc/odoo.conf",
-    "/etc/openerp/openerp-server.conf",
-    "/etc/openerp-server.conf",
-    "/etc/odoo/openerp-server.conf",
+    "/etc/odoo/odoo-server.config",
+    "/etc/odoo/odoo.config",
+    "/etc/odoo-server.config",
+    "/etc/odoo.config",
+    "/etc/openerp/openerp-server.config",
+    "/etc/openerp-server.config",
+    "/etc/odoo/openerp-server.config",
 ]
-# Read Odoo configuration file (False or /etc/openerp-server.conf)
+# Read Odoo configuration file (False or /etc/openerp-server.config)
 OE_CONF = False
 # Warning: if following LX have no values LX=(), if have 1 value LX=(value,)
 # list of string parameters in [options] of config file
@@ -543,7 +543,7 @@ def fullname_conf(ctx):
         confs = []
         for confn in ctx["conf_fn"].split(","):
             if not os.path.isfile(confn):
-                for path in (".", "./confs", "./conf", "./code"):
+                for path in (".", "./confs", "./config", "./code"):
                     if os.path.isfile("%s/%s" % (path, confn)):
                         confn = "%s/%s" % (path, confn)
                         break
@@ -574,7 +574,7 @@ def read_config(ctx):
         return ctx, version_is_set
 
     if not ctx.get("conf_fn", None):
-        ctx["conf_fn"] = ctx.get("caller", "clodoo") + ".conf"
+        ctx["conf_fn"] = ctx.get("caller", "clodoo") + ".config"
     ctx = fullname_conf(ctx)
     ctx["conf_fns"] = ctx["conf_fn"].split(",")
     ctx, version_is_set = set_confs(ctx)

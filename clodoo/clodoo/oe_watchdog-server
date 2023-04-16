@@ -6,7 +6,7 @@
 # description: oe_watchdog-server server
 # version: 0.1.27
 # pidfile: /var/run/odoo/oe_watchdog.pid
-# config: /etc/odoo/oe_watchdog.conf
+# config: /etc/odoo/oe_watchdog.config
 ### BEGIN INIT INFO
 # Provides:             oe_wathdog-server
 # Should-Start:         $network

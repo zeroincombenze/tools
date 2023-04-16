@@ -338,7 +338,7 @@ def init_n_connect(flavour=None):
         help="configuration command file",
         dest="conf_fn",
         metavar="file",
-        default="./import_records.conf",
+        default="./import_records.config",
     )
     parser.add_argument(
         "-d",
