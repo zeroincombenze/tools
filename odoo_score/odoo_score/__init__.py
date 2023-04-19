@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from . import scripts
+## from . import scripts
 # # Comment follow lines if package version < 2.0.4
 # from odoo.tools.translate import _                                         # noqa: F403
 # try:
@@ -27,3 +27,23 @@ from . import scripts
 # from . import models
 # from . import fields
 # from . import api
+try:
+    _o = "odoo."
+    _release = __import__(_o + "release", fromlist=[None])
+except ImportError:
+    try:
+        _o = "openerp."
+        _release = __import__(_o + "release", fromlist=[None])
+    except ImportError:
+        _o = _release = ""
+        _suffix = "barely"
+else:
+    _suffix = _release.major_version.split(".")[0]
+#
+try:
+    odoo_models = __import__("odoo_score.models_" + _suffix, fromlist=[None]).models
+except ImportError:
+    odoo_models = __import__("odoo_score.models_barely", fromlist=[None]).models
+for name in odoo_models.__dict__:
+    if callable(getattr(odoo_models, name)):
+        globals()[name] = getattr(odoo_models, name)
