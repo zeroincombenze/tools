@@ -30,8 +30,8 @@ except ImportError:
 #     pass
 #
 #
-class Model(models.Model):
-    pass
+# class Model(models.Model):
+#     pass
 #
 #
 # class TransientModel(odoo_models.Model):

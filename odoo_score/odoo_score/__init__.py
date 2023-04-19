@@ -41,9 +41,9 @@ else:
     _suffix = _release.major_version.split(".")[0]
 #
 try:
-    odoo_models = __import__("odoo_score.models_" + _suffix, fromlist=[None]).models
+    models = __import__("odoo_score.models_" + _suffix, fromlist=[None]).models
 except ImportError:
-    odoo_models = __import__("odoo_score.models_barely", fromlist=[None]).models
-for name in odoo_models.__dict__:
-    if callable(getattr(odoo_models, name)):
-        globals()[name] = getattr(odoo_models, name)
+    models = __import__("odoo_score.models_barely", fromlist=[None]).models
+for name in models.__dict__:
+    if callable(getattr(models, name)):
+        globals()[name] = getattr(models, name)

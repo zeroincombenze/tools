@@ -38,7 +38,9 @@ and makes available a simple odoo shell.
     package_data={'': [
         'scripts/setup.info',
         'scripts/run_odoo_debug.sh',
-        './set_workers']},
+        './set_workers',
+        './models_barely',
+    ]},
     entry_points={
         'console_scripts': [
             'odoo_score-info = odoo_score.scripts.main:main',
