@@ -191,19 +191,19 @@ class RegressionTest:
 
     def test_04(self, ctx):
         if _platform == "win32":
-            self.test_path_win(ctx)
+            self._test_path_win(ctx)
         elif _platform == "OpenVMS":
-            self.test_path_vms(ctx)
+            self._test_path_vms(ctx)
         else:
-            self.test_path_linux(ctx)
+            self._test_path_linux(ctx)
 
     def test_05(self, ctx):
         if _platform == "win32":
-            sts = self.test_fn_win(ctx)
+            sts = self._test_fn_win(ctx)
         elif _platform == "OpenVMS":
-            sts = self.test_fn_vms(ctx)
+            sts = self._test_fn_vms(ctx)
         else:
-            sts = self.test_fn_linux(ctx)
+            sts = self._test_fn_linux(ctx)
         return sts
 
     def test_06(self, ctx):
@@ -244,7 +244,7 @@ class RegressionTest:
             )
         return sts
 
-    def test_path_splitdrive(self, txtid, fsrc, dtgt, ftgt, ctx):
+    def _test_path_splitdrive(self, txtid, fsrc, dtgt, ftgt, ctx):
         d, p = os.path.splitdrive(fsrc)
         if d != dtgt or p != ftgt:
             res = False
@@ -255,12 +255,12 @@ class RegressionTest:
         )
         return sts
 
-    def test_path_linux(self, ctx):
-        self.test_path_splitdrive("0.12", "myFile.ext", "", "myFile.ext", ctx)
-        self.test_path_splitdrive(
+    def _test_path_linux(self, ctx):
+        self._test_path_splitdrive("0.12", "myFile.ext", "", "myFile.ext", ctx)
+        self._test_path_splitdrive(
             "0.13", "/usr1/lib/myFile.ext", "", "/usr1/lib/myFile.ext", ctx
         )
-        self.test_path_splitdrive(
+        self._test_path_splitdrive(
             "0.14",
             "//machine/usr1/lib/myFile.ext",
             "",
@@ -269,21 +269,21 @@ class RegressionTest:
         )
 
     #
-    def test_path_vms(self, ctx):
-        self.test_path_splitdrive("0.12", "myFile.ext", "", "myFile.ext")
-        self.test_path_splitdrive(
+    def _test_path_vms(self, ctx):
+        self._test_path_splitdrive("0.12", "myFile.ext", "", "myFile.ext")
+        self._test_path_splitdrive(
             "0.13", "[usr1.lib]myFile.ext", "", "[usr1.lib]myFile.ext"
         )
-        self.test_path_splitdrive(
+        self._test_path_splitdrive(
             "0.14", "/usr1/lib/myFile.ext", "", "/usr1/lib/myFile.ext"
         )
-        self.test_path_splitdrive(
+        self._test_path_splitdrive(
             "0.15", "machine::[usr1.lib]myFile.ext", "", "machine::[usr1.lib]myFile.ext"
         )
-        self.test_path_splitdrive(
+        self._test_path_splitdrive(
             "0.16", "//machine/usr1/lib/myFile.ext", "", "//machine/usr1/lib/myFile.ext"
         )
-        self.test_path_splitdrive(
+        self._test_path_splitdrive(
             "0.17",
             "sys$sysdevice:[usr1.lib]myFile.ext",
             "sys$sysdevice:",
@@ -291,24 +291,24 @@ class RegressionTest:
         )
 
     #
-    def test_path_win(self, ctx):
-        self.test_path_splitdrive("0.12", "myFile.ext", "", "myFile.ext")
-        self.test_path_splitdrive(
+    def _test_path_win(self, ctx):
+        self._test_path_splitdrive("0.12", "myFile.ext", "", "myFile.ext")
+        self._test_path_splitdrive(
             "0.13", "\\usr1\\lib\\myFile.ext", "", "\\usr1\\lib\\myFile.ext"
         )
-        self.test_path_splitdrive(
+        self._test_path_splitdrive(
             "0.14", "/usr1/lib/myFile.ext", "", "/usr1/lib/myFile.ext"
         )
-        self.test_path_splitdrive(
+        self._test_path_splitdrive(
             "0.15",
             "\\\\machine\\usr1\\lib\\myFile.ext",
             "",
             "\\\\machine\\usr1\\lib\\myFile.ext",
         )
-        self.test_path_splitdrive(
+        self._test_path_splitdrive(
             "0.16", "//machine/usr1/lib/myFile.ext", "", "//machine/usr1/lib/myFile.ext"
         )
-        self.test_path_splitdrive(
+        self._test_path_splitdrive(
             "0.17", "c:\\usr1\\lib\\myFile.ext", "c:", "\\usr1\\lib\\myFile.ext"
         )
 
@@ -340,13 +340,13 @@ class RegressionTest:
         else:
             return True
 
-    def test_fn(self, txtid, fsrc, ftgt, ctx):
+    def _test_fn(self, txtid, fsrc, ftgt, ctx):
         sts = self.Z.test_result(ctx, txtid, True, self.check_4_lfile(fsrc, ftgt))
         return sts
 
     #
-    def test_fn_linux(self, ctx):
-        sts = self.test_fn("1.01", "myFile", "myFile", ctx)
+    def _test_fn_linux(self, ctx):
+        sts = self._test_fn("1.01", "myFile", "myFile", ctx)
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(
                 ctx,
@@ -370,49 +370,49 @@ class RegressionTest:
                 self.check_4_lfile_dir("myFile", "myFile"),
             )
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.05", "myFile.py", "myFile.py", ctx)
+            sts = self._test_fn("1.05", "myFile.py", "myFile.py", ctx)
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.06", "/root/myFile.py", "/root/myFile.py", ctx)
+            sts = self._test_fn("1.06", "/root/myFile.py", "/root/myFile.py", ctx)
         if sts == TEST_SUCCESS:
-            sts = self.test_fn(
+            sts = self._test_fn(
                 "1.07", "/usr1/lib/myFile.py", "/usr1/lib/myFile.py", ctx
             )
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.08", "lib/myFile.py", "lib/myFile.py", ctx)
+            sts = self._test_fn("1.08", "lib/myFile.py", "lib/myFile.py", ctx)
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.09", "./myFile.py", "./myFile.py", ctx)
+            sts = self._test_fn("1.09", "./myFile.py", "./myFile.py", ctx)
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.10", "../myFile.py", "../myFile.py", ctx)
+            sts = self._test_fn("1.10", "../myFile.py", "../myFile.py", ctx)
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.11", "../lib/myFile.py", "../lib/myFile.py", ctx)
+            sts = self._test_fn("1.11", "../lib/myFile.py", "../lib/myFile.py", ctx)
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.12", "../../myFile.py", "../../myFile.py", ctx)
+            sts = self._test_fn("1.12", "../../myFile.py", "../../myFile.py", ctx)
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.13", "/myFile.py", "/myFile.py", ctx)
+            sts = self._test_fn("1.13", "/myFile.py", "/myFile.py", ctx)
         if sts == TEST_SUCCESS:
-            sts = self.test_fn(
+            sts = self._test_fn(
                 "1.20",
                 "/usr1/lib/python.2.7/myFile.py",
                 "/usr1/lib/python.2.7/myFile.py",
                 ctx,
             )
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.21", "not.myFile.py", "not.myFile.py", ctx)
+            sts = self._test_fn("1.21", "not.myFile.py", "not.myFile.py", ctx)
         if sts == TEST_SUCCESS:
-            sts = self.test_fn(
+            sts = self._test_fn(
                 "1.22",
                 "/usr1/lib/python.2.7/not.myFile.py",
                 "/usr1/lib/python.2.7/not.myFile.py",
                 ctx,
             )
         if sts == TEST_SUCCESS:
-            sts = self.test_fn("1.30", "/dev/null", "/dev/null", ctx)
+            sts = self._test_fn("1.30", "/dev/null", "/dev/null", ctx)
         return sts
 
     #
-    def test_fn_vms(self, ctx):
+    def _test_fn_vms(self, ctx):
 
-        self.test_fn("1.01", "myFile", "myFile")
+        self._test_fn("1.01", "myFile", "myFile")
 
         os0.wlog("Test 1.02 setlfilename(myFile, exe)")
         if not self.check_4_lfile_exe("myFile", "myFile.exe"):
@@ -427,33 +427,34 @@ class RegressionTest:
             os0.wlog("Test 1.04 failed")
             raise Exception("Test 1.04 failed: !!!")
 
-        self.test_fn("1.05", "myFile.py", "myFile.py")
-        self.test_fn("1.06", "/root/myFile.py", "[root]myFile.py")
-        self.test_fn("1.07", "/usr1/lib/myFile.py", "[usr1.lib]myFile.py")
-        self.test_fn("1.08", "lib/myFile.py", "[.lib]myFile.py")
-        self.test_fn("1.09", "./myFile.py", "[]myFile.py")
-        self.test_fn("1.10", "../myFile.py", "[-]myFile.py")
-        self.test_fn("1.11", "../lib/myFile.py", "[-.lib]myFile.py")
-        self.test_fn("1.12", "../../myFile.py", "[-.-]myFile.py")
-        self.test_fn("1.13", "/myFile.py", "[000000]myFile.py")
+        self._test_fn("1.05", "myFile.py", "myFile.py")
+        self._test_fn("1.06", "/root/myFile.py", "[root]myFile.py")
+        self._test_fn("1.07", "/usr1/lib/myFile.py", "[usr1.lib]myFile.py")
+        self._test_fn("1.08", "lib/myFile.py", "[.lib]myFile.py")
+        self._test_fn("1.09", "./myFile.py", "[]myFile.py")
+        self._test_fn("1.10", "../myFile.py", "[-]myFile.py")
+        self._test_fn("1.11", "../lib/myFile.py", "[-.lib]myFile.py")
+        self._test_fn("1.12", "../../myFile.py", "[-.-]myFile.py")
+        self._test_fn("1.13", "/myFile.py", "[000000]myFile.py")
 
-        self.test_fn(
+        self._test_fn(
             "1.20", "/usr1/lib/python.2.7/myFile.py", "[usr1.lib.python^.2^.7]myFile.py"
         )
-        self.test_fn("1.21", "not.myFile.py", "not^.myFile.py")
-        self.test_fn(
+        self._test_fn("1.21", "not.myFile.py", "not^.myFile.py")
+        self._test_fn(
             "1.22",
             "/usr1/lib/python.2.7/not.myFile.py",
             "[usr1.lib.python^.2^.7]not^.myFile.py",
         )
 
-        self.test_fn("1.30", "/dev/null", "NL0:")
+        self._test_fn("1.30", "/dev/null", "NL0:")
 
-        self.test_fn("1.90", "/sys$sysdevice/myfile", "sys$sysdevice:[000000]myfile")
-        self.test_fn("1.91", "/sys$sysdevice/usr1/myfile", "sys$sysdevice:[usr1]myfile")
+        self._test_fn("1.90", "/sys$sysdevice/myfile", "sys$sysdevice:[000000]myfile")
+        self._test_fn(
+            "1.91", "/sys$sysdevice/usr1/myfile", "sys$sysdevice:[usr1]myfile")
 
     #
-    def test_fn_win(self, ctx):
+    def _test_fn_win(self, ctx):
         os0.wlog("- Specific test for Windows platform")
 
         os0.wlog("Test 1.01 setlfilename(myFile)")
@@ -474,32 +475,32 @@ class RegressionTest:
             raise Exception("Test 1.04 failed: !!!")
 
         #
-        self.test_fn("1.05", "myFile.py", "myFile.py")
-        self.test_fn("1.06", "/root/myFile.py", "\\root\\myFile.py")
-        self.test_fn("1.07", "/usr1/lib/myFile.py", "\\usr1\\lib\\myFile.py")
-        self.test_fn("1.08", "lib/myFile.py", "lib\\myFile.py")
-        self.test_fn("1.09", "./myFile.py", ".\\myFile.py")
-        self.test_fn("1.10", "../myFile.py", "..\\myFile.py")
-        self.test_fn("1.11", "../lib/myFile.py", "..\\lib\\myFile.py")
-        self.test_fn("1.12", "../../myFile.py", "..\\..\\myFile.py")
-        self.test_fn("1.13", "/myFile.py", "\\myFile.py")
+        self._test_fn("1.05", "myFile.py", "myFile.py")
+        self._test_fn("1.06", "/root/myFile.py", "\\root\\myFile.py")
+        self._test_fn("1.07", "/usr1/lib/myFile.py", "\\usr1\\lib\\myFile.py")
+        self._test_fn("1.08", "lib/myFile.py", "lib\\myFile.py")
+        self._test_fn("1.09", "./myFile.py", ".\\myFile.py")
+        self._test_fn("1.10", "../myFile.py", "..\\myFile.py")
+        self._test_fn("1.11", "../lib/myFile.py", "..\\lib\\myFile.py")
+        self._test_fn("1.12", "../../myFile.py", "..\\..\\myFile.py")
+        self._test_fn("1.13", "/myFile.py", "\\myFile.py")
 
-        self.test_fn(
+        self._test_fn(
             "1.20",
             "/usr1/lib/python.2.7/myFile.py",
             "\\usr1\\lib\\python.2.7\\myFile.py",
         )
-        self.test_fn("1.21", "not.myFile.py", "not.myFile.py")
-        self.test_fn(
+        self._test_fn("1.21", "not.myFile.py", "not.myFile.py")
+        self._test_fn(
             "1.22",
             "/usr1/lib/python.2.7/not.myFile.py",
             "\\usr1\\lib\\python.2.7\\not.myFile.py",
         )
 
-        self.test_fn("1.30", "/dev/null", "nul")
+        self._test_fn("1.30", "/dev/null", "nul")
 
-        self.test_fn("1.90", "/c/myfile", "c:\\myfile")
-        self.test_fn("1.91", "/c/usr1/myfile", "c:\\usr1\\myfile")
+        self._test_fn("1.90", "/c/myfile", "c:\\myfile")
+        self._test_fn("1.91", "/c/usr1/myfile", "c:\\usr1\\myfile")
 
     #
     def check_4_tkn_in_stdout(self, token):

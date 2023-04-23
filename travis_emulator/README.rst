@@ -275,7 +275,7 @@ Troubleshooting
 History
 -------
 
-2.0.4 (2023-02-24)
+2.0.4 (2023-03-24)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] Added python 3.9 to test
@@ -359,7 +359,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-04-15
+Last Update / Ultimo aggiornamento: 2023-04-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

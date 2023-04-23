@@ -66,8 +66,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
-# TCONF="$HOME/.z0tools.conf"
+# DIST_CONF=$(findpkg ".z0tools.config" "$PYPATH")
+# TCONF="$HOME/.z0tools.config"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -198,12 +198,12 @@ conf_default() {
     # TCP & UDP Ports
     CFG_set "TCP_odoo" "8069" "0"
     # Configuration files
-    # p="/etc/httpd /etc/apache2; conf"
+    # p="/etc/httpd /etc/apache2; config"
     # p="/var/lib /etc/postgres;postgresql pgsql;9.4 9.3 9.2 9.1 9.0 8.4;data main"
     # CFG_set "postgresql_FINDCFN" "$p" "0" "Debian"
-    # CFG_set "postgresql_confn" "pg_hba.conf" "0" "Debian"
+    # CFG_set "postgresql_confn" "pg_hba.config" "0" "Debian"
     # CFG_set "postgresql-server_FINDCFN" "$p" "0" "RHEL"
-    # CFG_set "postgresql-server_confn" "pg_hba.conf" "0" "RHEL"
+    # CFG_set "postgresql-server_confn" "pg_hba.config" "0" "RHEL"
     p="/etc/odoo /etc/openerp;"
     CFG_set "odoo_FINDCFN" "$p" "0"
     CFG_set "odoo_confn" "odoo-server.conf" "0"

@@ -88,6 +88,7 @@ The available tools are:
             'please = wok_code.scripts.please:main',
             'to_pep8.py = wok_code.scripts.to_pep8:main',
             'wget_odoo_repositories.py = wok_code.scripts.wget_odoo_repositories:main',
+            'run_odoo_debug = odoo_score.scripts.run_odoo_debug:main',
         ]
     },
     zip_safe=False,

@@ -36,8 +36,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
-# TCONF="$HOME/.z0tools.conf"
+# DIST_CONF=$(findpkg ".z0tools.config" "$PYPATH")
+# TCONF="$HOME/.z0tools.config"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF

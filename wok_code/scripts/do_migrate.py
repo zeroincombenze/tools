@@ -668,16 +668,17 @@ class MigrateFile(object):
             z0lib.run_traced(cmd)
 
     def close(self):
-        if not self.ignore_file and self.source != "\n".join(self.lines):
-            if self.opt_args.output:
-                if os.path.isdir(self.opt_args.output):
-                    out_ffn = os.path.join(self.opt_args.output,
-                                           os.path.basename(self.ffn))
-                else:
-                    out_ffn = self.opt_args.output
+        if self.opt_args.output:
+            if os.path.isdir(self.opt_args.output):
+                out_ffn = os.path.join(self.opt_args.output,
+                                       os.path.basename(self.ffn))
             else:
-                out_ffn = self.ffn
-
+                out_ffn = self.opt_args.output
+            if not os.path.isdir(os.path.dirname(out_ffn)):
+                os.mkdir(os.path.isdir(os.path.dirname(out_ffn)))
+        else:
+            out_ffn = self.ffn
+        if not self.ignore_file and self.source != "\n".join(self.lines):
             bakfile = '%s.bak' % out_ffn
             if os.path.isfile(bakfile):
                 os.remove(bakfile)
@@ -692,6 +693,8 @@ class MigrateFile(object):
                 print('👽 %s' % out_ffn)
             if not self.opt_args.no_parse_with_formatter:
                 self.format_file(out_ffn)
+        elif self.opt_args.lint_anyway:
+            self.format_file(out_ffn)
 
 
 def main(cli_args=None):
@@ -700,6 +703,7 @@ def main(cli_args=None):
         description="Migrate source file",
         epilog="© 2021-2023 by SHS-AV s.r.l."
     )
+    parser.add_argument('-a', '--lint-anyway', action='store_true')
     parser.add_argument('-b', '--to-version', default="12.0")
     parser.add_argument('-F', '--from-version')
     parser.add_argument(

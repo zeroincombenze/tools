@@ -195,7 +195,7 @@ parser.add_argument(
     help="configuration command file",
     dest="conf_fn",
     metavar="file",
-    default="./clodoo.conf",
+    default="./clodoo.config",
 )
 parser.add_argument(
     "-d",

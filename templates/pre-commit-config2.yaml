@@ -88,6 +88,7 @@ repos:
           - "@prettier/plugin-xml@0.12.0"
         args:
           - --plugin=@prettier/plugin-xml
+          - --no-xml-self-closing-space
         files: \.(css|htm|html|js|json|jsx|less|md|scss|toml|ts|xml|yaml|yml)$
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v7.8.1
