@@ -1,32 +1,6 @@
 # -*- coding: utf-8 -*-
-## from . import scripts
-# # Comment follow lines if package version < 2.0.4
-# from odoo.tools.translate import _                                         # noqa: F403
-# try:
-#     from odoo.models import *                                              # noqa: F403
-# except ImportError:
-#     try:
-#         from openerp.osv.orm.model import *                                # noqa: F403
-#     except ImportError:
-#         pass
-#
-# try:
-#     from odoo.fields import *                                              # noqa: F403
-# except ImportError:
-#     try:
-#         from openerp.osv.orm.fields import *                               # noqa: F403
-#     except ImportError:
-#         pass
-#
-# try:
-#     from odoo.api import *                                                 # noqa: F403
-# except ImportError:
-#     pass
-#     # raise RuntimeError('No odoo / openerp environment found!')  # pragma: no cover
-#
-# from . import models
-# from . import fields
-# from . import api
+import sys
+from . import scripts
 try:
     _o = "odoo."
     _release = __import__(_o + "release", fromlist=[None])
@@ -36,14 +10,15 @@ except ImportError:
         _release = __import__(_o + "release", fromlist=[None])
     except ImportError:
         _o = _release = ""
-        _suffix = "barely"
+        _suffix = str(sys.version_info[0])
 else:
     _suffix = _release.major_version.split(".")[0]
 #
 try:
-    models = __import__("odoo_score.models_" + _suffix, fromlist=[None]).models
+    models = __import__("odoo_score.models_" + _suffix, fromlist=[None]).odoo_models
 except ImportError:
-    models = __import__("odoo_score.models_barely", fromlist=[None]).models
+    _suffix = str(sys.version_info[0])
+    models = __import__("odoo_score.models_" + _suffix, fromlist=[None]).odoo_models
 for name in models.__dict__:
     if callable(getattr(models, name)):
         globals()[name] = getattr(models, name)

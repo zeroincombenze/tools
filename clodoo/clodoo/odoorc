@@ -566,7 +566,7 @@ build_odoo_param() {
             pd=$p
             p1=/etc/odoo/
             p11=/etc/
-            p4=.config
+            p4=.conf
         else
             echo $p
             $SETX
@@ -575,7 +575,7 @@ build_odoo_param() {
     elif [[ $ITEM == "CONFN" ]]; then
         p1=/etc/odoo/
         p11=/etc/
-        p4=.config
+        p4=.conf
     elif [[ $ITEM == "FULL_SVCNAME" || "$ITEM" == "SVCNAME" ]]; then
         p1=/etc/init.d/
         p11=

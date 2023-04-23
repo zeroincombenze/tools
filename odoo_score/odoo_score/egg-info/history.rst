@@ -1,8 +1,12 @@
-git 2.0.5 (2023-03-23)
+2.0.6 (2023-04-16)
 ~~~~~~~~~~~~~~~~~~
 
-* [FIX] run_odoo_debug.sh: ODOO_COMMIT TEST not set when build template
-* [IMP] run_odoo_debug.sh: simulate server_wide_modules parameter for Odoo 7.0-
+* [FIX] Import class models.Model
+
+2.0.5 (2023-03-23)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug.sh: moved to package wok_code
 
 2.0.4 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~

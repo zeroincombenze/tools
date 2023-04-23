@@ -243,6 +243,12 @@ Current development version
 History
 -------
 
+odoo_score: 2.0.6 (2023-04-16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Import class models.Model
+
+
 z0lib: 2.0.4 (2023-04-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -292,6 +298,14 @@ python_plus: 2.0.6 (2023-03-24)
 * [IMP] vem: set list_requirements.py executable
 
 
+odoo_score: 2.0.5 (2023-03-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug.sh: ODOO_COMMIT TEST not set when build template
+* [IMP] run_odoo_debug.sh: simulate server_wide_modules parameter for Odoo 7.0-
+
+
+
 zar: 2.0.1 (2023-02-25)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -306,25 +320,6 @@ wok_code: 2.0.6 (2023-02-23)
 * [IMP] deploy_odoo: new switches -l and -x
 * [NEW] do_git_checkout_new_branch.py
 * [IMP] do_migrate.py: new features
-
-git 2.0.5 (2023-03-23)
-~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odoo_debug.sh: ODOO_COMMIT TEST not set when build template
-* [IMP] run_odoo_debug.sh: simulate server_wide_modules parameter for Odoo 7.0-
-
-
-
-z0bug_odoo: 2.0.6 (2023-02-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: _get_xref_id recognize any group
-* [FIX] TestEnv: datetime field more precise (always with time)
-* [FIX] TestEnv: resource_make / resource_write fall in crash if repeated on headr/detail models
-* [NEW] TestEnv: 2many fields accepts more xref values
-* [IMP] TestEnv: debug message with more icons and more readable
-* [IMP] TestEnv: cast_types with formatting for python objects
-* [IMP] TestEnv: validate_record now uses intelligent algorithm to match pattern templates and records
 
 
 
@@ -342,7 +337,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-04-16
+Last Update / Ultimo aggiornamento: 2023-04-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

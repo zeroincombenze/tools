@@ -853,6 +853,10 @@ History
 * [IMP] deploy_odoo: new switches -l and -x
 * [NEW] do_git_checkout_new_branch.py
 * [IMP] do_migrate.py: new features
+* [IMP] run_odoo_debug.sh imported from odoo_score
+* [FIX] run_odoo_debug.sh: ODOO_COMMIT TEST not set when build template
+* [IMP] run_odoo_debug.sh: simulate server_wide_modules parameter for Odoo 7.0-
+
 
 2.0.5 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~
@@ -950,7 +954,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-04-16
+Last Update / Ultimo aggiornamento: 2023-04-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

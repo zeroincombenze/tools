@@ -45,7 +45,7 @@ and makes available a simple odoo shell.
         'console_scripts': [
             'odoo_score-info = odoo_score.scripts.main:main',
             'rename_odoo_module = odoo_score.scripts.rename_odoo_module:main',
-            'run_odoo_debug = odoo_score.scripts.run_odoo_debug:main',
+            # 'run_odoo_debug = odoo_score.scripts.run_odoo_debug:main',
         ]
     },
     zip_safe=False,

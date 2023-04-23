@@ -155,7 +155,7 @@ replace_web_module() {
         [[ $param == "Non" ]] && param=""
         if [[ -n $param ]]; then
           for m in ${param//,/ }; do
-              [[ $m =~ ^(web|web_kanban)$ ]] && continue
+              [[ $m =~ ^(web|web_kanban|None)$ ]] && continue
               [[ $m == "web_zeroincombenze" ]] && z=$m || l="$l,$m"
           done
           [[ -n $l ]] && OPTS="$OPTS --load=\"${l:1}\""
@@ -176,7 +176,7 @@ replace_web_module() {
 
 
 OPTOPTS=(h        B       b          c        C           d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           S        s        T        t         U          u       V           v           w       W        x)
-OPTLONG=(help     debug   branch     config     no-coverage database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stat     stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
+OPTLONG=(help     debug   branch     config   no-coverage database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stat     stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
 OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
 OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1        1         "="        1       "*>"        "+"         1       1        "=")
 OPTDEFL=(1        0       ""         ""       0           ""       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0        0         ""         0       ""          -1          0       0        "")
