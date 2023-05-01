@@ -7,7 +7,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -220,22 +220,21 @@ run_regression_test() {
         [[ $TRAVIS_DEBUG_MODE =~ [89] ]] && opts="${opts}n"
         OPTS=$(inherits_travis_opts "$opts" "T")
         coverage_set
-        # coverage_ensure_installed
-        if [[ -f ./tests/all_tests.py ]]; then
-            if [[ ${opt_dprj:-0} -gt 0 ]]; then
-                run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py $OPTS"
-            else
-                run_traced "cd $PRJPATH/tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py $OPTS"
-            fi
-            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-        elif [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 ]]; then
-            if [ ${opt_dprj:-0} -gt 0 ]; then
-                run_traced "$PRJPATH/tests/all_tests $OPTS"
-            else
-                run_traced "cd $PRJPATH/tests; ./all_tests $OPTS"
-            fi
-            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-        elif [[ -f ./tests/test_$PRJNAME.py ]]; then
+#        if [[ -f ./tests/all_tests.py ]]; then
+#            if [[ ${opt_dprj:-0} -gt 0 ]]; then
+#                run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py $OPTS"
+#            else
+#                run_traced "cd $PRJPATH/tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py $OPTS"
+#            fi
+#            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
+#        elif [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 ]]; then
+#            if [ ${opt_dprj:-0} -gt 0 ]; then
+#                run_traced "$PRJPATH/tests/all_tests $OPTS"
+#            else
+#                run_traced "cd $PRJPATH/tests; ./all_tests $OPTS"
+#            fi
+#            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
+        if [[ -f ./tests/test_$PRJNAME.py ]]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
                 run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py $OPTS"
             else
@@ -372,7 +371,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Run test in travis environment" \
-               "(C) 2015-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+               "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
 
@@ -385,7 +384,6 @@ opts_travis
 conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
-# prepare_env_travis
 prepare_env_travis
 
 sts=0

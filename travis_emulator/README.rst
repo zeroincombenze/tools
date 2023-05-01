@@ -1,6 +1,6 @@
 
 =====================
-travis_emulator 2.0.2
+travis_emulator 2.0.4
 =====================
 
 
@@ -275,6 +275,30 @@ Troubleshooting
 History
 -------
 
+2.0.4 (2023-03-24)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Added python 3.9 to test
+* [IMP] Detect python versions from setup.py
+* [IMP] Option switch for python version become -j
+* [IMP} make_travis recognizes verbose option
+
+2.0.3 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Best python version recognition
+
+2.0.2.2 (2022-11-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] npm management
+
+2.0.2.1 (2022-11-02)
+~~~~~~~~~~~~~~~~~~~~
+
+* [REF] travis: partial refactoring
+* [IMP] travis: recognition of local/librerp
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
@@ -326,13 +350,16 @@ Contributors
 ------------
 
 * Antonio M. Vigliotti <info@shs-av.com>
+Contributors
+------------
+
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2022-10-31
+Last Update / Ultimo aggiornamento: 2023-04-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

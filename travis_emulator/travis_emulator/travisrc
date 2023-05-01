@@ -697,7 +697,7 @@ robocopy_init() {
     else
       a_append "setup.py" ""
       if [ "$2" == "OCB" ]; then
-        local p=$(echo $PWD | grep --color=never -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0|15.0)" | head -n1)
+        local p=$(echo $PWD | grep --color=never -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0|15.0|16.0)" | head -n1)
         if [ -n "$p" ]; then
           a_append "$p" "/"
         fi

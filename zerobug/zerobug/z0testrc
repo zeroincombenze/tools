@@ -7,7 +7,7 @@
 #
 # Package, test environment and deployment are:
 #   ./pkg                   $RUNDIR - Package directory (may be pypi packge or Odoo module);
-#   ./pkg/tests             $TESTDIR - Unit test directory (must contains one of 'all_tests' or 'test_PKG');
+#   ./pkg/tests             $TESTDIR - Unit test directory (must contains 'test_PKG');
 #   ./pkg/tests/z0testrc    $Z0TLIBDIR - This unit test bash script library; usually does not exist;
 #                           may be a real file (when is under test), or a link to ~/dev/z0testrc,
 #                           or a link to $PYTHONPATH/zerobug/z0testrc;
@@ -20,7 +20,6 @@
 #                           in future, on github, could be become a test project for all packages.
 #
 # Unit test can run in package directory or in ./tests directory of package
-# Main unit test (all_tests script) calls sequentially all unit test scripts
 # Every unit test check for cmdline which is:
 # > unit_test [-hek][-l file][-Nnq][-s number][-Vv][-z number][-0]
 # where:
@@ -377,8 +376,8 @@ Z0BUG_init() {
     export Z0BUG_run_autotest=0
     if [ "${THIS:0:5}" == "test_" ]; then
       module_id=${THIS:5}
-    elif [ "$THIS" == "all_tests" ]; then
-      module_id=$(basename $RUNDIR)
+    # elif [ "$THIS" == "all_tests" ]; then
+    #   module_id=$(basename $RUNDIR)
     else
       module_id=$THIS
     fi
@@ -709,7 +708,7 @@ Z0BUG_build_odoo_env() {
     [[ -n $x ]] && x=$(echo $odoo_vid | grep --color=never -Eo "^.*$x")
     [[ -n $x ]] && w=${odoo_vid/$x/} || w=$odoo_vid
     [[ $odoo_vid =~ ^($HOME/)?VENV ]] && h="$odoo_vid/odoo" || h=$odoo_vid
-    v=$(echo $w|grep --color=never -Eo "(6|7|8|9|10|11|12|13|14)"|head -n1)
+    v=$(echo $w|grep --color=never -Eo "(6|7|8|9|10|11|12|13|14|15|16)"|head -n1)
     if [[ -n $v ]]; then
         [ $v -ge 10 ] && odoo_home="$h/odoo" || odoo_home="$h/openerp"
         [[ $hy == "tree" ]] && odoo_home="$odoo_vid/odoo/odoo"

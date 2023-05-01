@@ -37,8 +37,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-# DIST_CONF=$(findpkg ".z0tools.config" "$PYPATH")
-# TCONF="$HOME/.z0tools.config"
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -130,7 +130,7 @@ wep_other_branches() {
                 elif [ $PARSE -gt 0 ]; then
                     lne="$(echo $lne)"
                     IFS=" " read v x <<<"$lne"
-                    if [[ ! $v =~ (6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0) ]]; then
+                    if [[ ! $v =~ (6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0|14.0|15.0|16.0) ]]; then
                         run_traced "git push origin --delete $v" "$RUN_USER"
                     fi
                 fi

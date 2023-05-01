@@ -331,6 +331,7 @@ History
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] odoorc: minor improvements
+* [IMP] odoorc: test for Odoo 16.0
 * [IMP] transodoo.py: minor improvements
 
 2.0.3 (2022-12-09)
@@ -401,7 +402,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-04-23
+Last Update / Ultimo aggiornamento: 2023-05-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

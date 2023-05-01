@@ -510,46 +510,46 @@ do_edit_translation() {
   return $STS_STS_SUCCESS
 }
 
-do_edit_translation_from_pofile() {
-  local xfile
-  local confn db module odoo_fver sts=$STS_FAILED opts pyv pofile
-  if [[ ! "$PRJNAME" == "Odoo" ]]; then
-    echo "No Odoo module"
-    return $STS_FAILED
-  fi
-  module="."
-  odoo_fver=$(build_odoo_param FULLVER '.')
-  pofile="$(build_odoo_param PKGPATH '.')/i18n/it.po"
-  module=$(build_odoo_param PKGNAME '.')
-  if [[ -z "$odoo_fver" || -z "$module" ]]; then
-    echo "Invalid Odoo environment!"
-    return $STS_FAILED
-  fi
-  odoo_ver=$(echo $odoo_fver | grep --color=never -Eo '[0-9]+' | head -n1)
-  if [[ ! -f "$pofile" ]]; then
-    echo "File $pofile not found!"
-    return $STS_FAILED
-  fi
-  pyv=$(python3 --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+")
-  [[ -n "$pyv" ]] && pyver="-p $pyv"
-  pyver="-p 2.7" #debug
-  [[ ! -d $HOME/clodoo/venv ]] && \
-    run_traced "vem $pyver create $HOME/clodoo/venv" && \
-    run_traced "vem $HOME/clodoo/venv install xlrd" && \
-    run_traced "vem $HOME/clodoo/venv install Babel" && \
-    run_traced "vem $HOME/clodoo/venv install clodoo"
-  run_traced "pushd $HOME/clodoo >/dev/null"
-  [ $opt_verbose -ne 0 ] && opts="-v" || opts="-q"
-  [ $opt_dbg -ne 0 ] && opts="${opts}B"
-  run_traced "vem $HOME/clodoo/venv exec \"odoo_translation.py $opts -b$odoo_fver -m $module -R $pofile\""
-  sts=$?
-  run_traced "popd >/dev/null"
-  return $sts
-
-  [[ -f "$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx"
-  [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
-  return $STS_STS_SUCCESS
-}
+#do_edit_translation_from_pofile() {
+#  local xfile
+#  local confn db module odoo_fver sts=$STS_FAILED opts pyv pofile
+#  if [[ ! "$PRJNAME" == "Odoo" ]]; then
+#    echo "No Odoo module"
+#    return $STS_FAILED
+#  fi
+#  module="."
+#  odoo_fver=$(build_odoo_param FULLVER '.')
+#  pofile="$(build_odoo_param PKGPATH '.')/i18n/it.po"
+#  module=$(build_odoo_param PKGNAME '.')
+#  if [[ -z "$odoo_fver" || -z "$module" ]]; then
+#    echo "Invalid Odoo environment!"
+#    return $STS_FAILED
+#  fi
+#  odoo_ver=$(echo $odoo_fver | grep --color=never -Eo '[0-9]+' | head -n1)
+#  if [[ ! -f "$pofile" ]]; then
+#    echo "File $pofile not found!"
+#    return $STS_FAILED
+#  fi
+#  pyv=$(python3 --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+")
+#  [[ -n "$pyv" ]] && pyver="-p $pyv"
+#  pyver="-p 2.7" #debug
+#  [[ ! -d $HOME/clodoo/venv ]] && \
+#    run_traced "vem $pyver create $HOME/clodoo/venv" && \
+#    run_traced "vem $HOME/clodoo/venv install xlrd" && \
+#    run_traced "vem $HOME/clodoo/venv install Babel" && \
+#    run_traced "vem $HOME/clodoo/venv install clodoo"
+#  run_traced "pushd $HOME/clodoo >/dev/null"
+#  [ $opt_verbose -ne 0 ] && opts="-v" || opts="-q"
+#  [ $opt_dbg -ne 0 ] && opts="${opts}B"
+#  run_traced "vem $HOME/clodoo/venv exec \"odoo_translation.py $opts -b$odoo_fver -m $module -R $pofile\""
+#  sts=$?
+#  run_traced "popd >/dev/null"
+#  return $sts
+#
+#  [[ -f "$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx"
+#  [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
+#  return $STS_STS_SUCCESS
+#}
 
 do_edit_untranslated() {
   local xfile
@@ -1045,7 +1045,7 @@ do_duplicate() {
       exit 1
     fi
     cur_ver=""
-    for ver in 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
+    for ver in 16.0 15.0 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
       if [[ $PWD =~ $HOME/$ver ]]; then
         cur_ver="$ver"
         break
@@ -1110,13 +1110,9 @@ do_export() {
   fi
   stat=$(psql -U$u -Atc "select state from ir_module_module where name = '$module'" $db)
   [[ -z "$stat" || $stat == "uninstalled" ]] && echo "Module $module not installed in $db!" && exit $sts
-  # dbdt=$(psql -U$u -Atc "select write_date from ir_module_module where name='$module' and state='installed'" $db)
-  # [[ -n "$dbdt" ]] && dbdt=$(date -d "$dbdt" +"%s") || dbdt="999999999999999999"
-  # podt=$(stat -c "%Y" $pofile)
-  # ((dbdt < podt)) && run_traced "run_odoo_debug -b$odoo_fver -usm $module -d $db"
   dbdt=$(psql -U$u -Atc "select value from ir_config_parameter where key='database.create_date'" $db)
   podt=$(grep "PO-Revision-Date:" $pofile | grep -Eo "[0-9]{4}-[0-9]{2}-[0-9]{2}.[0-9]{2}:[0-9]{2}")
-  [[ $opt_force -ne 0 || $dbdt > $podt ]] && run_traced "run_odoo_debug -b$odoo_fver -em $module -d $db" || echo "PO file more recent of DB: use -f to force export or choise another DB"
+  [[ $opt_force -ne 0 || $dbdt > $podt ]] && run_traced "run_odoo_debug -b$odoo_fver -em $module -d $db" || echo "PO file more recent of DB: use -f to force export or choice another DB"
   sts=$?
   return $sts
 }
@@ -1182,11 +1178,12 @@ do_list() {
 do_translate() {
   wlog "do_translate '$1' '$2' '$3'"
   local db dbdt dummy DBs m module odoo_fver path sts=$STS_FAILED u x
-  local confn opts pofile
+  local opt_multi confn opts pofile
   if [[ $PRJNAME != "Odoo" ]]; then
     echo "This action can be issued only on Odoo projects"
     return $sts
   fi
+  opt_multi=1
   odoo_fver=$(build_odoo_param FULLVER ".")
   m=$(build_odoo_param MAJVER ".")
   module=$(build_odoo_param PKGNAME ".")
@@ -1199,13 +1196,30 @@ do_translate() {
     echo "File $pofile not found!"
     return $sts
   fi
-  confn=$(readlink -f $HOME_DEVEL/../clodoo/confs)/${odoo_fver/./-}.conf
+  # confn=$(readlink -f $HOME_DEVEL/../clodoo/confs)/${odoo_fver/./-}.conf
+  confn=$(build_odoo_param CONFN ".")
   [[ ! -f $confn ]] && echo "Configuration file $confn not found!" && return $sts
-  echo "$0 translate -d DB"
-  do_export
   [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
   [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
-  run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -c $confn -p $pofile"
+  db="$opt_db"
+  u=$(get_dbuser $m)
+  if [[ -z "$db" ]]; then
+    DBs=$(psql -U$u -Atl | awk -F'|' '{print $1}' | tr "\n" '|')
+    DBs="^(${DBs:0: -1})\$"
+    for x in "test_${module}" test_odoo_ tnl test demo; do
+      [[ ${x}_$m =~ $DBs ]] && db="${x}_$m" && break
+      [[ $x$m =~ $DBs ]] && db="$x$m" && break
+      [[ $x =~ $DBs ]] && db="$x" && break
+    done
+  fi
+  if [[ -z "$db" ]]; then
+    echo "No DB matched! use:"
+    echo "$0 translate -d DB"
+    return $STS_FAILED
+  fi
+  run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -c $confn -d$db"
+  do_export
+  # run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -c $confn -p $pofile"
   sts=$?
   return $sts
 }
@@ -1370,7 +1384,7 @@ do_replica() {
   local cur_ver fn srcfn tp ver
   if [[ $PRJNAME == "Odoo" ]]; then
     cur_ver=""
-    for ver in 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
+    for ver in 16.0 15.0 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
       if [[ $PWD =~ $HOME/$ver ]]; then
         cur_ver="$ver"
         break
@@ -1389,7 +1403,7 @@ do_replica() {
       exit 1
     fi
     srcfn=$(readlink -f $fn)
-    for ver in 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
+    for ver in 16.0 15.0 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
       if [ "$ver" != "$cur_ver" ]; then
         tgtfn="${srcfn/$cur_ver/$ver}"
         if [ "$tp" == "f" ]; then
@@ -1640,7 +1654,7 @@ OPTDEFL=(1        0       ""         ""       ""        ""        ""       0    
 OPTMETA=("help"   ""      "branch"   "file"   "file"    "diff"    "name"   ""       "keep"   "logfile" ""      "noop"       "prj_id" ""      "path"    "quiet"     "rxt" "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"
   "debug mode"
-  "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 or 14.0"
+  "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 or 16.0"
   "configuration file (def .travis.conf)"
   "odoo configuration file"
   "date to search in log"

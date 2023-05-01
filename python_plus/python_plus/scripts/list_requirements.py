@@ -38,7 +38,7 @@ REQVERSION = {
     "argparse": {"0": "==1.2.1"},
     "astroid": {"2.7": "==1.6.5", "3.5": "==2.2.0"},  # Version by test pkgs
     "autopep8": {"0": "==1.2"},
-    "Babel": {"6.1": "==1.3", "8.0": "==2.3.4", "16.0": ">=2.6.0<=2.9.1"},
+    "Babel": {"6.1": "==1.3", "8.0": "==2.3.4", "16.0": ">=2.6.0,<=2.9.1"},
     "beautifulsoup": {"6.1": "==3.2.1"},
     "bokeh": {
         "10.0": "bokeh<1.4.0",
@@ -49,7 +49,7 @@ REQVERSION = {
     },
     "codicefiscale": {"6.1": "==0.9"},
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
-    "cryptography": {"2.7": ">=2.2.2", "3.7": ">=38.0<39.0"},
+    "cryptography": {"2.7": ">=2.2.2,<3.4", "3.7": ">=38.0,<39.0"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
     "docutils": {"6.1": "==0.12", "0": "==0.14", "3.7": "==0.16"},       # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
@@ -63,7 +63,7 @@ REQVERSION = {
     "gevent": {
         "6.1": "==1.0.1",
         "7.0": "==1.0.2",
-        "10.0": ">=1.1.2<=1.4.0",       # trying to test
+        "10.0": ">=1.1.2,<=1.4.0",       # trying to test
         "3.7": "==1.5.0",
     },
     "greenlet": {
@@ -89,7 +89,7 @@ REQVERSION = {
         # "13.0": "==3.4.1",
         "3.6": "==3.0.3",
         # "3.7": "==3.4.1"
-        "3.7": "<3.4.0"     # Experimental!
+        "3.7": "<3.3.0"     # Experimental!
     },
     "mock": {"6.1": "==1.0.1", "8.0": "==2.0.0"},
     "nbconvert": {"0": "==6.0.7"},
@@ -110,8 +110,8 @@ REQVERSION = {
     "psutil": {"6.1": "==2.1.1", "7.0": "==2.2.0", "8.0": "==4.3.1"},
     "psycogreen": {"6.1": "==1.0"},
     "psycopg2-binary": {
-        "6.1": ">=2.0.0<2.8.0",
-        "8.0": ">=2.5.4<2.8.0",
+        "6.1": ">=2.0.0,<2.8.0",
+        "8.0": ">=2.5.4,<2.8.0",
         "10.0": ">=2.7.4",
         "12.0": ">=2.8.3",
         "0": ">=2.7.4",
@@ -133,14 +133,14 @@ REQVERSION = {
     "pylint-odoo": {
         "2.7": "==3.5.0",
         "3.5": "<=8.0.0",
-        "3.8": ">=3.5.0<=8.0.0",
+        "3.8": ">=3.5.0,<=8.0.0",
     },
     "pylint-plugin-utils": {
         "2.7": "==0.2.6",
         "3.5": "==0.5",
         "3.6": ">=0.7",
     },
-    "pyopenssl": {"0": ">=16.2.0"},  # by MQT
+    "pyOpenSSL": {"0": ">=16.2.0"},  # by MQT
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
     "pyPDF2": {"2.7": "==1.28.4", "3.5": "<2.0"},
     "pysftp": {"6.1": ">=0.2.9"},
@@ -622,10 +622,6 @@ def parse_requirements(ctx, reqfile, pyver=None):
 def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
     full_item = trim_pkgname(full_item)
     item = re.split("[!=<>]", full_item)
-    # if len(item) == 1:
-    #     item_ver = ""
-    # else:
-    #     item_ver = item[-1]
     item = os.path.basename(get_naked_pkgname(item[0]))
     if item.endswith(".git"):
         item = item[:-4]
@@ -765,7 +761,7 @@ def merge_item_version(left, right, ignore_error=False):
                             % (left, right))
                     if ver_right > ver_left:
                         split_left[ix_left] = ver_right
-            elif "<" in op:
+            elif ">" in op:
                 split_left[ix_left] = maxver(ver_left, ver_right)
 
             else:
@@ -1127,7 +1123,7 @@ def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
-        "List Odoo requirements", "© 2017-2022 by SHS-AV s.r.l.", version=__version__
+        "List Odoo requirements", "© 2017-2023 by SHS-AV s.r.l.", version=__version__
     )
     parser.add_argument("-h")
     parser.add_argument("-b", "--odoo-branch", action="store", dest="odoo_ver")
@@ -1143,7 +1139,7 @@ def main(cli_args=None):
         "--check-current-packages",
         help="Check for current installed packages",
         action="store_true",
-        dest="current_pkgs",
+        dest="check_current_packages",
     )
     parser.add_argument(
         "-d",
@@ -1151,6 +1147,12 @@ def main(cli_args=None):
         help="Follow oca dependency repositories in directory list",
         metavar="directory list (comma separated)",
         dest="oca_dependencies",
+    )
+    parser.add_argument(
+        "-j",
+        "--just-package",
+        help="Return just info od supplied package",
+        dest="pypi_name",
     )
     parser.add_argument(
         "-k",
@@ -1255,10 +1257,30 @@ def main(cli_args=None):
         ctx = set_def_outfile(ctx)
     if not ctx["odoo_dir"] and ctx["odoo_ver"]:
         ctx = search_4_odoo_dir(ctx)
+
+    deps_list = {}
+    for kw in (
+        "python",
+        "python1",
+        "python2",
+        "bin",
+        "bin1",
+        "bin2",
+        "modules",
+    ):
+        deps_list[kw] = []
     manifests = []
     reqfiles = []
     setups = []
-    if ctx["manifests"]:
+    if ctx["pypi_name"]:
+        ctx["itypes"] = "python"
+        add_package(deps_list,
+                    ctx["itypes"],
+                    ctx["pypi_name"],
+                    with_version=ctx["with_version"],
+                    odoo_ver=ctx["odoo_ver"],
+                    pyver=ctx["pyver"])
+    elif ctx["manifests"]:
         for item in ctx["manifests"].split(","):
             if item.endswith(".py"):
                 manifests.append(os.path.expanduser(item))
@@ -1278,19 +1300,8 @@ def main(cli_args=None):
             ctx['from_manifest'],
             ctx['recurse'],
         )
-    deps_list = {}
-    for kw in (
-        "python",
-        "python1",
-        "python2",
-        "bin",
-        "bin1",
-        "bin2",
-        "modules",
-    ):
-        deps_list[kw] = []
 
-    if ctx["current_pkgs"]:
+    if ctx["check_current_packages"]:
         sts, stdout, stderr = z0lib.run_traced(
             "pip list", verbose=False, dry_run=ctx['dry_run'])
         if sts == 0:

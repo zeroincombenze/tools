@@ -37,9 +37,7 @@ and makes available a simple odoo shell.
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={'': [
         'scripts/setup.info',
-        'scripts/run_odoo_debug.sh',
         './set_workers',
-        './models_barely',
     ]},
     entry_points={
         'console_scripts': [

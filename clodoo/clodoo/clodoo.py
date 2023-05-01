@@ -5598,7 +5598,7 @@ def create_zero_db(ctx):
     db_name = values['name']
     setup_id = executeL8(ctx, setup_model, 'create', values)
     executeL8(ctx, setup_model, 'execute', [setup_id], None)
-    fd = open('clodoo_last.config', 'w')
+    fd = open('clodoo_last.conf', 'w')
     fd.write('db_name=%s\n' % db_name)
     fd.close()
     return db_name
@@ -5611,7 +5611,7 @@ def get_dbname(ctx, action):
         elif action == 'new_db':
             dbname = ctx['db_name']
         else:
-            fd = open('clodoo_last.config', 'r')
+            fd = open('clodoo_last.conf', 'r')
             line = fd.readline()
             fd.close()
             dbname = line.split('=')[1].split()[0]
@@ -5645,6 +5645,10 @@ def get_real_actname(ctx, actv):
         '_10.0',
         '_11.0',
         '_12.0',
+        '_13.0',
+        '_14.0',
+        '_15.0',
+        '_16.0',
     ):
         if actv[-3:] == ctx['oe_version']:
             act = actv[0:-4]

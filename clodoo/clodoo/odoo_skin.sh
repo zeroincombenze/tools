@@ -58,8 +58,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-# DIST_CONF=$(findpkg ".z0tools.config" "$PYPATH")
-# TCONF="$HOME/.z0tools.config"
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -365,7 +365,7 @@ else
 fi
 COLORFILE="skin_colors.def"
 if [ -z "$opt_conf" -a $test_mode -ne 0 ]; then
-  opt_conf=~/dev/pypi/travis_emulator/travis_emulator/.travis.config
+  opt_conf=~/dev/pypi/travis_emulator/travis_emulator/.travis.conf
 fi
 CFG_init
 link_cfg $TCONF

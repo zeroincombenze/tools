@@ -41,7 +41,7 @@ parser.add_argument(
     help="configuration command file",
     dest="conf_fn",
     metavar="file",
-    default="./inv2draft_n_restore.config",
+    default="./inv2draft_n_restore.conf",
 )
 parser.add_argument(
     "-d", "--dbname", help="DB name", dest="db_name", metavar="file", default="demo"

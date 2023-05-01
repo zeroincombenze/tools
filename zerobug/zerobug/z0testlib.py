@@ -424,8 +424,8 @@ class Z0test(object):
             if this.startswith('test_'):
                 id = this[5:]
             elif (
-                this.startswith('all_tests')
-                or this.startswith('zerobug')
+                # this.startswith('all_tests')
+                this.startswith('zerobug')
                 or this == '__main__'
             ):
                 id = os.path.basename(self.rundir)

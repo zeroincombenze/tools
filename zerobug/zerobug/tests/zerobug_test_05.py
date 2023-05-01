@@ -51,9 +51,9 @@ class RegressionTest:
 
     def setup(self, z0ctx):
         self.os_tree = [
-            '14.0',
-            '14.0/l10n-italy',
-            '14.0/l10n-italy/l10n_it_base',
+            '16.0',
+            '16.0/l10n-italy',
+            '16.0/l10n-italy/l10n_it_base',
             '/tmp/zerobug',
         ]
 

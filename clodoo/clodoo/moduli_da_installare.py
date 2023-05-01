@@ -103,7 +103,7 @@ parser.add_argument(
     help="configuration command file",
     dest="conf_fn",
     metavar="file",
-    default="./clodoo.config",
+    default="./clodoo.conf",
 )
 parser.add_argument(
     "-d",
@@ -183,7 +183,7 @@ with open("moduli_da_installare_vg7.csv", "rb") as f:
         # print row[1]
         add_elem(mod2xtl, "vg7", get_realname(row[1]))
 
-with open("code/z0_install_10.config", "rb") as f:
+with open("code/z0_install_10.conf", "rb") as f:
     lines = f.read().split("\n")
     for line in lines:
         if line.startswith("install_modules_"):

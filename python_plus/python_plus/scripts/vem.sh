@@ -322,7 +322,7 @@ pip_install_git() {
 
 pip_install() {
   #pip_install(pkg opts)
-  local pkg d x srcdir pfn popts pypath v tmpdir DISTO  FH
+  local d pfn pkg popts pypath srcdir tmpdir v vpkg x DISTO FH
   [[ $1 =~ ^[\'\"] ]] && pkg="${1:1: -1}" || pkg="$1"
   [[ $opt_verbose -gt 1 ]] && echo -e "  \e[32mpip install \"$1\" $2\e[0m"
   [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
@@ -332,6 +332,11 @@ pip_install() {
   tmpdir=$VIRTUAL_ENV/tmp
   pkg=$(get_actual_pkg "$pkg")
   pfn=$(get_pkg_wo_version "$pkg")
+  x="-qP"
+  [[ -n "$opt_pyver" ]] && x="$x -y$opt_pyver"
+  [[ -n "$opt_oever" ]] && x="$x -b$opt_oever"
+  vpkg=$($LIST_REQ $x -j $pkg)
+  [[ $vpkg =~ ^[\'\"] ]] && vpkg="${vpkg:1: -1}"
   [[ $pfn =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_}
   [[ $pkg =~ "-e " ]] && pkg="${pkg//-e /--editable=}"
   [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
@@ -444,12 +449,11 @@ pip_install() {
       fi
     elif [[ $opt_debug -eq 1 ]]; then
       [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
-      run_traced "$PIP install $popts --extra-index-url https://testpypi.python.org/pypi \"$pkg\" $2"
+      run_traced "$PIP install $popts --extra-index-url https://testpypi.python.org/pypi \"$vpkg\" $2"
       [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     else
       [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
-      run_traced "$PIP install $popts \"$pkg\" $2"
-      # [[ $? -ne 0 ]] && pip_install_git "$pfn"
+      run_traced "$PIP install $popts \"$vpkg\" $2"
       [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     fi
     x="${pkgs//+/.}"
@@ -1311,7 +1315,7 @@ fi
 [[ -z "$p4" && -n "$p5" ]] && p4="$p5" && p5=""
 [[ -z "$p3" && -n "$p4" ]] && p3="$p4" && p4=""
 if [[ $opt_help -gt 0 ]]; then
-  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2021 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2023 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [[ $action =~ (help|create|python) ]]; then

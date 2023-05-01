@@ -60,6 +60,7 @@ The available tools are:
             'scripts/dist_pkg.sh',
             'scripts/please.sh',
             'scripts/config/*',
+            'scripts/run_odoo_debug.sh',
             './please.man',
             './cvt_script',
             './cvt_script.man',

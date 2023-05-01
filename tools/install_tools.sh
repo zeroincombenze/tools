@@ -83,7 +83,7 @@ RFLIST__wok_code="cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""
-MOVED_FILES_RE="(cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|makepo_it.py|odoo_translation.py|please.man|topep8|topep8.py|transodoo.py|transodoo.xlsx|travis|travisrc)"
+# MOVED_FILES_RE="(cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|makepo_it.py|odoo_translation.py|please.man|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|travis|travisrc)"
 FILES_2_DELETE="addsubm.sh clodoo clodoocore.py clodoolib.py devel_tools export_db_model.py kbase oca-autopep8 odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn test_tools.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib z0lib.py z0librun.py"
 
 SRCPATH=

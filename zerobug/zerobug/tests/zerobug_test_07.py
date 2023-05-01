@@ -16,7 +16,7 @@ __version__ = "2.0.5"
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
-VERSIONS = ('12.0', '10.0', '7.0', '8.0')
+VERSIONS = ('16.0', '12.0', '10.0', '7.0', '8.0')
 
 
 def version():

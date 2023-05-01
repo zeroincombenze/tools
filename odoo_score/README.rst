@@ -1,6 +1,6 @@
 
 ================
-odoo_score 2.0.3
+odoo_score 2.0.5
 ================
 
 
@@ -15,8 +15,12 @@ Overview
 
 Odoo supercore
 
-odoo_score is a library that extends the odoo orm functionality and makes available a simple odoo shell.
+odoo_score is a library that extends the odoo orm functionality and makes available
+a simple odoo shell even for older Odoo version.
 
+In order to complete all full tests, it required to test the
+Odoo module test_odoo_score-* in repository
+`zerobug_test <https://github.com/zeroincombenze/zerobug-test.git>`
 
 
 odoo_shell
@@ -150,6 +154,21 @@ Current development version
 History
 -------
 
+2.0.6 (2023-04-16)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Import class models.Model
+
+2.0.5 (2023-03-23)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug.sh: moved to package wok_code
+
+2.0.4 (2023-01-13)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug.sh: test creates log
+
 2.0.3 (2022-11-11)
 ~~~~~~~~~~~~~~~~~~
 
@@ -213,13 +232,16 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+Contributors
+------------
+
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-13
+Last Update / Ultimo aggiornamento: 2023-04-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

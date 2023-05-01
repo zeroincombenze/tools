@@ -11,7 +11,7 @@ if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
 [[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -164,7 +164,7 @@ replace_web_module() {
             [[ -L $w ]] && rm -f $w
             [[ -d $woca ]] && mv $woca $w
         else
-            z=$(find $ODOO_RUNDIR -type f -path "*/$z/*" -not -path "*/doc/*" -name "__openerp__.py"|head -n 1)
+            z=$(find $ODOO_RUNDIR -type f -path "*/$z/*" -not -path "*/doc/*" -not -path "*/setup/*" -name "__openerp__.py"|head -n 1)
             if [[ -n $z ]]; then
                 z=$(dirname $z)
                 [[ ! -d $woca ]] && mv $w $woca
@@ -242,13 +242,15 @@ if [[ -n $opt_conf ]]; then
         [[ -x $p/../odoo-bin || -x $p/../openerp-server ]] && odoo_root=$(readlink -f $p/..) && break
     done
     check_path_n_branch "$odoo_root" "$opt_branch"
-    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -name $opt_modules)
+    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -name $opt_modules)
     if [[ -n $opt_odir ]]; then
       PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
+      PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
       REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     else
       REPOSNAME=""
       PKGNAME=""
+      PKGPATH=""
     fi
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$odoo_root")
 elif [[ -n $opt_odir ]]; then
@@ -256,6 +258,7 @@ elif [[ -n $opt_odir ]]; then
     odoo_root=$(readlink -f $opt_odir)
     check_path_n_branch "$opt_dir" "$opt_branch"
     PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
+    PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)
@@ -264,9 +267,10 @@ elif [[ -n $opt_odir ]]; then
 elif [[ -n $opt_modules || $opt_branch ]]; then
     odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
     odoo_root=$(build_odoo_param ROOT "$opt_branch")
-    [[ -n $opt_modules ]] && opt_odir=$(find $odoo_root -type d -name $opt_modules)
+    [[ -n $opt_modules ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -name $opt_modules)
     [[ -z $opt_odir ]] && opt_odir="$odoo_root"
     PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
+    PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)
@@ -277,6 +281,7 @@ else
     odoo_root=$(readlink -f $PWD)
     [[ -z $opt_odir ]] && opt_odir="$odoo_root"
     PKGNAME=$(build_odoo_param PKGNAME "$PWD")
+    PKGPATH=$(build_odoo_param PKGPATH "$PWD")
     REPOSNAME=$(build_odoo_param REPOS "$PWD")
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$PWD")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)

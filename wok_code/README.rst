@@ -1,6 +1,6 @@
 
 ==============
-wok_code 2.0.4
+wok_code 2.0.6
 ==============
 
 
@@ -372,7 +372,7 @@ Examples:
 ::
 
     # Update Odoo module documentation
-    cd ~/odoo_12/axitec/l10n_it_balance     # Odoo project directory
+    cd ~/odoo_12/l10n-italy/l10n_it_balance # Odoo project directory
     dir egg-info
     >>> authors.txt contributors.txt description.rst __init__.txt known_issues.rst
     gen_readme.py                           # Generate README.rst of project
@@ -845,12 +845,26 @@ Current development version
 History
 -------
 
-2.0.5 (2022-12-13)
+2.0.6 (2023-02-23)
 ~~~~~~~~~~~~~~~~~~
 
+* [IMP] ssh.py: -m -s switches accept path with user and host
+* [IMP] deploy_odoo: new property status to display
+* [IMP] deploy_odoo: new switches -l and -x
+* [NEW] do_git_checkout_new_branch.py
+* [IMP] do_migrate.py: new features
+* [IMP] run_odoo_debug.sh imported from odoo_score
+* [FIX] run_odoo_debug.sh: ODOO_COMMIT TEST not set when build template
+* [IMP] run_odoo_debug.sh: simulate server_wide_modules parameter for Odoo 7.0-
+
+
+2.0.5 (2023-01-13)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] please: wep now delete old travis-emulator logs
 * [IMP] install_python_3_from_source.sh: now can install python 3.9
 * [IMP] please: action docs, minor improvements
-* [IMP] deply_odoo: format output list
+* [IMP] deploy_odoo: format output list
 
 2.0.4 (2022-12-09)
 ~~~~~~~~~~~~~~~~~~
@@ -913,11 +927,6 @@ History
 
 * [FIX] please test: with debug
 
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Refactoring
-
 
 
 |
@@ -936,13 +945,16 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+Contributors
+------------
+
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-01-13
+Last Update / Ultimo aggiornamento: 2023-04-23
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

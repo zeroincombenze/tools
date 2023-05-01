@@ -5,8 +5,10 @@
 try:
     from odoo import models as odoo_models                                 # noqa: F401
 except ImportError:
-    from openerp.osv.orm import models as odoo_models                      # noqa: F401
-
+    try:
+        from openerp.osv.orm import models as odoo_models                  # noqa: F401
+    except ImportError:
+        pass
 
 # class BaseModel(odoo_models.BaseModel):
 #     __metaclass__ = odoo_models.BaseModel

@@ -1795,7 +1795,7 @@ def shift_ctx(src_ctx, tgt_ctx, phase=None):
 
 def prepare_config_file(ctx, src_config, ou_ver_path=None, paths=None):
     if ou_ver_path:
-        src_lconf = 'openupgrade.config'
+        src_lconf = 'openupgrade.conf'
         full_lconf = os.path.join(ou_ver_path, src_lconf)
     else:
         src_lconf = clodoo.build_odoo_param(
