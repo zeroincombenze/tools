@@ -21,12 +21,12 @@ class RepoCheckout(object):
             print("Invalid Odoo branch")
             exit(2)
         if (
-            not opt_args.oca_path
-            or not os.path.isdir(os.path.expanduser(opt_args.oca_path))
+            not opt_args.origin_path
+            or not os.path.isdir(os.path.expanduser(opt_args.origin_path))
         ):
             print("Missed OCA path: use -o PATH!")
             exit(2)
-        self.opt_args.oca_path = os.path.expanduser(opt_args.oca_path)
+        self.opt_args.origin_path = os.path.expanduser(opt_args.origin_path)
         if not opt_args.target_path:
             print("Missed target path: use -p PATH!")
             exit(2)
@@ -68,7 +68,7 @@ class RepoCheckout(object):
     def is_git_repo(self, path):
         return os.path.isdir(os.path.join(path, ".git"))
 
-    def build_new_repo(self, repo, oca_path):
+    def build_new_repo(self, repo, origin_path):
         target_path = self.opt_args.target_path if repo == "OCB" else os.path.join(
             self.opt_args.target_path, repo)
         if os.path.isdir(target_path):
@@ -109,27 +109,32 @@ class RepoCheckout(object):
             z0lib.run_traced("git branch -D %s" % ln.strip(),
                              verbose=self.opt_args.verbose,
                              dry_run=self.opt_args.dry_run)
+        exclude_path = self.opt_args.exclude_path.split(",")
+        exclude_opt = "--exclude \".*/\""
+        for p in exclude_path:
+            exclude_opt += " --exclude \"/%s\"" % p
         if repo == "OCB":
-            for p in os.listdir(oca_path):
+            for p in os.listdir(origin_path):
                 if (
                     p.startswith(".")
                     or p.startswith("_")
-                    or os.path.isdir(os.path.join(oca_path, p, ".git"))
+                    or os.path.isdir(os.path.join(origin_path, p, ".git"))
+                    or p in exclude_path
                 ):
                     continue
-                src = os.path.join(oca_path, p)
+                src = os.path.join(origin_path, p)
                 if os.path.isfile(src):
                     z0lib.run_traced("cp %s %s" % (src, target_path),
                                      verbose=self.opt_args.verbose,
                                      dry_run=self.opt_args.dry_run)
                 else:
-                    z0lib.run_traced("rsync -avzC --delete  --exclude \".*/\" %s/ %s/"
-                                     % (src, os.path.join(target_path, p)),
+                    z0lib.run_traced("rsync -avz --delete %s %s/ %s/"
+                                     % (exclude_opt, src, os.path.join(target_path, p)),
                                      verbose=self.opt_args.verbose,
                                      dry_run=self.opt_args.dry_run)
         else:
-            z0lib.run_traced("rsync -avzC --delete  --exclude \".*/\" %s/ %s/"
-                             % (oca_path, target_path),
+            z0lib.run_traced("rsync -avz --delete %s %s/ %s/"
+                             % (exclude_opt, origin_path, target_path),
                              verbose=self.opt_args.verbose,
                              dry_run=self.opt_args.dry_run)
         for p in os.listdir(target_path):
@@ -137,11 +142,11 @@ class RepoCheckout(object):
                 p.startswith(".")
                 or p.startswith("_")
                 or p in ("egg-info", "readme")
-                or os.path.isdir(os.path.join(oca_path, p, ".git"))
+                or os.path.isdir(os.path.join(origin_path, p, ".git"))
             ):
                 continue
             src = os.path.join(target_path, p)
-            if not os.path.exists(os.path.join(oca_path, p)):
+            if not os.path.exists(os.path.join(origin_path, p)):
                 if os.path.isfile(src):
                     z0lib.run_traced("rm -f %s" % src,
                                      verbose=self.opt_args.verbose,
@@ -150,9 +155,10 @@ class RepoCheckout(object):
                     z0lib.run_traced("rm -fR %s" % src,
                                      verbose=self.opt_args.verbose,
                                      dry_run=self.opt_args.dry_run)
-        z0lib.run_traced("cd %s" % oca_path,
-                         verbose=self.opt_args.verbose,
-                         dry_run=self.opt_args.dry_run)
+        if os.getcwd() != origin_path:
+            z0lib.run_traced("cd %s" % origin_path,
+                             verbose=self.opt_args.verbose,
+                             dry_run=self.opt_args.dry_run)
         sts, stdout, stderr = z0lib.run_traced("git remote -v",
                                                verbose=self.opt_args.verbose,
                                                dry_run=self.opt_args.dry_run)
@@ -160,7 +166,9 @@ class RepoCheckout(object):
             url = ""
             for ln in stdout.split("\n"):
                 lns = ln.split()
-                if lns[0] == "origin":
+                if len(lns) < 2:
+                    continue
+                elif lns[0] == "origin":
                     url = lns[1]
                     break
             if url:
@@ -168,53 +176,66 @@ class RepoCheckout(object):
                     z0lib.run_traced("cd %s" % target_path,
                                      verbose=self.opt_args.verbose,
                                      dry_run=self.opt_args.dry_run)
+                url_oca = ""
+                for ln in stdout.split("\n"):
+                    lns = ln.split()
+                    if len(lns) < 2:
+                        continue
+                    elif lns[0] == "oca":
+                        url_oca = lns[1]
+                        break
+                if url_oca:
+                    z0lib.run_traced("git remote remove oca",
+                                     verbose=self.opt_args.verbose,
+                                     dry_run=self.opt_args.dry_run)
                 z0lib.run_traced("git remote add oca %s" % url,
                                  verbose=self.opt_args.verbose,
                                  dry_run=self.opt_args.dry_run)
-        if sts == 0 and self.opt_args.save_git:
+        if sts == 0:
             if os.getcwd() != target_path:
                 z0lib.run_traced("cd %s" % target_path,
                                  verbose=self.opt_args.verbose,
                                  dry_run=self.opt_args.dry_run)
-            found = False
-            sts, stdout, stderr = z0lib.run_traced("git branch")
-            if sts == 0 and stdout:
-                regex = r"^[*]* +" + self.opt_args.odoo_branch + r" *$"
-                for ln in stdout.split("\n"):
-                    if re.match(regex, ln):
-                        found = True
-                        break
-            if found and self.opt_args.remove_remote_branch:
-                z0lib.run_traced("git push origin delete %s"
-                                 % self.opt_args.odoo_branch,
+                z0lib.run_traced("git add ./",
                                  verbose=self.opt_args.verbose,
                                  dry_run=self.opt_args.dry_run)
+            if self.opt_args.save_git:
                 found = False
-            z0lib.run_traced("git add ./",
-                             verbose=self.opt_args.verbose,
-                             dry_run=self.opt_args.dry_run)
-            z0lib.run_traced("git commit --no-verify -m \"[NEW] Initial setup %s\""
-                             % self.opt_args.odoo_branch,
-                             verbose=self.opt_args.verbose,
-                             dry_run=self.opt_args.dry_run)
-            if found:
-                z0lib.run_traced("git push",
-                                 verbose=self.opt_args.verbose,
-                                 dry_run=self.opt_args.dry_run)
-            else:
-                z0lib.run_traced("git push --set-upstream origin %s"
+                sts, stdout, stderr = z0lib.run_traced("git branch")
+                if sts == 0 and stdout:
+                    regex = r"^[*]* +" + self.opt_args.odoo_branch + r" *$"
+                    for ln in stdout.split("\n"):
+                        if re.match(regex, ln):
+                            found = True
+                            break
+                if found and self.opt_args.remove_remote_branch:
+                    z0lib.run_traced("git push origin delete %s"
+                                     % self.opt_args.odoo_branch,
+                                     verbose=self.opt_args.verbose,
+                                     dry_run=self.opt_args.dry_run)
+                    found = False
+                z0lib.run_traced("git commit --no-verify -m \"[NEW] Initial setup %s\""
                                  % self.opt_args.odoo_branch,
                                  verbose=self.opt_args.verbose,
                                  dry_run=self.opt_args.dry_run)
+                if found:
+                    z0lib.run_traced("git push",
+                                     verbose=self.opt_args.verbose,
+                                     dry_run=self.opt_args.dry_run)
+                else:
+                    z0lib.run_traced("git push --set-upstream origin %s"
+                                     % self.opt_args.odoo_branch,
+                                     verbose=self.opt_args.verbose,
+                                     dry_run=self.opt_args.dry_run)
         return 0
 
     def git_checkout(self):
-        path = self.opt_args.oca_path
+        path = self.opt_args.origin_path
         if self.is_git_repo(path):
             sts = self.build_new_repo("OCB", path)
         if sts == 0:
-            for repo in sorted(os.listdir(self.opt_args.oca_path)):
-                path = os.path.join(self.opt_args.oca_path, repo)
+            for repo in sorted(os.listdir(self.opt_args.origin_path)):
+                path = os.path.join(self.opt_args.origin_path, repo)
                 if self.is_git_repo(path):
                     sts = self.build_new_repo(repo, path)
                     if sts:
@@ -232,17 +253,27 @@ def main(cli_args=None):
                         dest="odoo_branch",
                         help="New Odoo branch")
     parser.add_argument("-G", "--git-org",
-                        help="Git organization")
+                        help="Git organization to checkout")
     parser.add_argument("-n", "--dry-run", action="store_true")
-    parser.add_argument("-o", "--oca-path",
-                        help="Local directory")
+    parser.add_argument("-o", "--origin-path",
+                        help="Local origin directory to merge (best is OCA path)")
     parser.add_argument("-p", "--target-path",
-                        help="Local directory")
-    parser.add_argument("-R", "--remove-remote-branch", action="store_true")
-    parser.add_argument("-S", "--save-git", action="store_true")
-    parser.add_argument("-U", "--update", action="store_true")
+                        help="Local directory for checkout")
+    parser.add_argument("-R",  "--remove-remote-branch",
+                        help="Remove not required remote branch from local directory",
+                        action="store_true")
+    parser.add_argument("-S",  "--save-git",
+                        help="Execute git pull after checkout",
+                        action="store_true")
+    parser.add_argument("-U",
+                        "--update",
+                        help="Update target directory if exists",
+                        action="store_true")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-V", "--version", action="version", version=__version__)
+    parser.add_argument("-x", "--exclude-path",
+                        help="Directories to exclude (comma separated)",
+                        default="setup,venv_odoo")
     opt_args = parser.parse_args(cli_args)
     repo = RepoCheckout(opt_args)
     return repo.git_checkout()

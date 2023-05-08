@@ -122,7 +122,7 @@ FMT_PARAMS = {
 
 
 class OdooDeploy(object):
-    """Odoo organization/branch repositories
+    """Odoo's organization/branch repositories
     self.repo_list is the repositories list of self.repo_info
     self.repo_info contains repository information
     * BRANCH: git branch
@@ -135,10 +135,10 @@ class OdooDeploy(object):
     def __init__(self, opt_args):
         self.opt_args = opt_args
         self.opt_args.git_orgs = self.opt_args.git_orgs or []
-        self.get_addons_from_config_file()
         self.addons_path = []
         self.master_branch = ""
         self.target_path = ""
+        self.get_addons_from_config_file()
 
         if self.opt_args.action in ("clone", "reclone"):
             if not self.opt_args.odoo_branch:
@@ -173,6 +173,9 @@ class OdooDeploy(object):
         if not self.repo_list:
             self.target_path = os.path.expanduser(self.opt_args.target_path)
             self.get_repo_from_path()
+
+        if not self.repo_list:
+            print("***** No repositories found!")
 
         for repo in self.repo_list:
             path = self.repo_info[repo]["PATH"]
@@ -400,9 +403,9 @@ class OdooDeploy(object):
         # opts.append("l10n-italy,l10n-italy-supplemental")
         opts.append("-G")
         opts.append(SHORT_NAMES.get(git_org, git_org))
-        if self.opt_args.extra:
+        if self.opt_args.extra_repo:
             opts.append("-x")
-            opts.append(self.opt_args.extra)
+            opts.append(self.opt_args.extra_repo)
         opts.append("--return-repos")
         if only_ocb:
             content = ["OCB"]
@@ -844,7 +847,7 @@ class OdooDeploy(object):
                 dummy = input("Press RET to continue ...")
         return sts
 
-    def list_data(self):
+    def action_list(self):
         print("Odoo main version..........: %s" % self.master_branch)
         if self.opt_args.config:
             print("Odoo configuration file....: %s" % self.opt_args.config)
@@ -874,7 +877,7 @@ class OdooDeploy(object):
             print()
             print(",".join(self.addons_path))
 
-    def list_repo_info(self):
+    def action_status(self):
         print("Odoo main version..........: %s" % self.master_branch)
         if self.opt_args.config:
             print("Odoo configuration file....: %s" % self.opt_args.config)
@@ -913,7 +916,7 @@ class OdooDeploy(object):
             print()
             print(",".join(self.addons_path))
 
-    def download_or_pull_repo(self):
+    def action_download_or_pull_repo(self):
         print("Odoo main version..........: %s" % self.master_branch)
         if self.opt_args.config:
             print("Odoo configuration file....: %s" % self.opt_args.config)
@@ -924,7 +927,7 @@ class OdooDeploy(object):
         if self.opt_args.update_addons_conf:
             self.update_conf()
         if self.opt_args.verbose:
-            self.list_repo_info()
+            self.action_status()
 
 
 def main(cli_args=None):
@@ -957,7 +960,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-e", "--skip-if-exist",
         action="store_true",
-        help="Use this switch  to add missed repositories when you reclone"
+        help="Use this switch to add missed repositories when you reclone"
     )
     parser.add_argument(
         "-F",
@@ -1001,6 +1004,10 @@ def main(cli_args=None):
     )
     parser.add_argument("-n", "--dry-run", action="store_true")
     parser.add_argument(
+        "-o", "--origin",
+        help="Declare origin repo for 'merge' actioncd"
+    )
+    parser.add_argument(
         "-O", "--link-oca", action="store_true", help="Link to more OCA repositories"
     )
     parser.add_argument("-p", "--target-path", help="Local directory")
@@ -1009,7 +1016,7 @@ def main(cli_args=None):
     )
     parser.add_argument(
         "-r", "--repos",
-        help="Declare specific repositories to managa, comma separated"
+        help="Declare specific repositories to manage, comma separated"
     )
     parser.add_argument(
         "-S", "--status", action="store_true", help="Deprecated: use 'status' action!"
@@ -1023,7 +1030,7 @@ def main(cli_args=None):
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-V", "--version", action="version", version=__version__)
     parser.add_argument(
-        "-x", "--extra",
+        "-x", "--extra-repo",
         help="May be: all,none,connector,devel,maintainer,oca,odoo,vertical"
     )
     parser.add_argument("-y", "--assume-yes", action="store_true")
@@ -1061,11 +1068,11 @@ def main(cli_args=None):
 
     deploy = OdooDeploy(opt_args)
     if opt_args.action == "list":
-        deploy.list_data()
+        deploy.action_list()
     elif opt_args.action == "status":
-        deploy.list_repo_info()
+        deploy.action_status()
     else:
-        deploy.download_or_pull_repo()
+        deploy.action_download_or_pull_repo()
     return 0
 
 

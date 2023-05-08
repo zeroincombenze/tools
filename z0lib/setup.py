@@ -39,7 +39,7 @@ Features:
     author='Antonio Maria Vigliotti',
     author_email='antoniomaria.vigliotti@gmail.com',
     license='Affero GPL',
-    install_requires=['future'],
+    install_requires=['future', 'configparser'],
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={'': ['scripts/setup.info', './optargs', './xuname', './z0librc']},
     entry_points={'console_scripts': ['z0lib-info = z0lib.scripts.main:main']},

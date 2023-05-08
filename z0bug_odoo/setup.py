@@ -32,8 +32,7 @@ Make avaiable test functions indipendent by Odoo version.
     author='Antonio Maria Vigliotti',
     author_email='antoniomaria.vigliotti@gmail.com',
     license='Affero GPL',
-    # install_requires=['future', 'python-magic', 'clodoo', 'zerobug', 'gitPython'],
-    install_requires=['future', 'python-magic', 'zerobug', 'gitPython'],
+    install_requires=['future', 'python-magic', 'zerobug', 'gitPython', 'Click'],
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={
         '': [

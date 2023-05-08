@@ -118,6 +118,67 @@ class RegressionTest:
         sts += self.Z.test_result(
             z0ctx, "- rmdir %s" % tgtdir, False, os.path.isdir(tgtdir)
         )
+
+        pypi = "zar"
+        cmd = 'vem %s -q install %s' % (
+            self.venv_dir,
+            os.path.join(os.environ["TRAVIS_SAVED_HOME_DEVEL"], "pypi", pypi))
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, 0, sts1)
+        cmd = 'vem %s -q info %s' % (self.venv_dir, pypi)
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        res = ""
+        for ln in stdout.split("\n"):
+            if ln.startswith("Location:"):
+                res = ln.split(" ")[1].strip()
+                break
+        sts += self.Z.test_result(
+            z0ctx, "- infodir %s" % pypi, os.path.dirname(tgtdir), res
+        )
+
+        cmd = 'vem %s -q uninstall %s -y' % (self.venv_dir, pypi)
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, 0, sts1)
+        sts += self.Z.test_result(
+            z0ctx, "- rmdir %s" % tgtdir, False, os.path.isdir(tgtdir)
+        )
+
+        cmd = 'vem %s -q install %s -BBB' % (self.venv_dir, pypi)
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, 0, sts1)
+        cmd = 'vem %s -q info %s' % (self.venv_dir, pypi)
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        res = ""
+        for ln in stdout.split("\n"):
+            if ln.startswith("Location:"):
+                res = ln.split(" ")[1].strip()
+                break
+        sts += self.Z.test_result(
+            z0ctx, "- infodir %s" % pypi, os.path.dirname(tgtdir), res
+        )
+
+        return sts
+
+    def check_installed(self, z0ctx, pypi):
+        pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
+        libdir = os.path.join(self.venv_dir, "lib", 'python%s' % pyver, "site-packages")
+        tgtdir = os.path.join(libdir, pypi.lower())
+        cmd = 'vem %s -q info %s' % (self.venv_dir, pypi)
+        sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts = self.Z.test_result(z0ctx, "%s" % cmd, 0, sts1)
+        res = ""
+        for ln in stdout.split("\n"):
+            if ln.startswith("Location:"):
+                res = ln.split(" ")[1].strip()
+                break
+        if pypi == "lessc":
+            sts += self.Z.test_result(
+                z0ctx, "- infodir %s" % pypi, tgtdir != "", True
+            )
+        else:
+            sts += self.Z.test_result(
+                z0ctx, "- infodir %s" % pypi, os.path.dirname(tgtdir), res
+            )
         return sts
 
     def check_4_exec(self, z0ctx):
@@ -147,7 +208,7 @@ class RegressionTest:
     def test_01(self, z0ctx):
         self.clear_venv()
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
-        # Not isolated nevironment
+        # Not isolated environment
         cmd = 'vem -qf -p%s create %s' % (pyver, self.venv_dir)
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
@@ -166,6 +227,7 @@ class RegressionTest:
         cmd = 'vem -qIf -p%s create %s' % (pyver, self.venv_dir)
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
         sts += self.check_4_paths(z0ctx)
         sts += self.check_4_homedir(z0ctx, self.venv_dir)
         sts += self.check_4_install(z0ctx)
@@ -184,6 +246,39 @@ class RegressionTest:
         sts += self.check_4_paths(z0ctx)
         sts += self.check_4_homedir(z0ctx, self.venv_dir)
         sts += self.check_4_install(z0ctx)
+        sts += self.check_4_exec(z0ctx)
+
+        return sts
+
+    def test_04(self, z0ctx):
+        self.clear_venv()
+        pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
+        if sys.version_info[0] == 2:
+            odoo_ver = "10.0"
+        elif sys.version_info[1] <= 7:
+            odoo_ver = "12.0"
+        else:
+            odoo_ver = "16.0"
+        # Isolated environment + devel packages + Odoo
+        cmd = 'vem -qDIf -p%s create %s -O %s' % (pyver, self.venv_dir, odoo_ver)
+        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
+        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
+        sts += self.check_4_paths(z0ctx)
+        sts += self.check_4_homedir(z0ctx, self.venv_dir)
+        for pypi in ("Babel",
+                     "gevent",
+                     "lessc",
+                     "Pillow",
+                     "pylint",
+                     "pyPdf",
+                     "Python-Chart",
+                     "zeep"):
+            if pypi == "zeep" and odoo_ver != "16.0":
+                continue
+            elif pypi == "lessc" and int(odoo_ver.split(".")[0]) < 10:
+                continue
+            sts += self.check_installed(z0ctx, pypi)
         sts += self.check_4_exec(z0ctx)
 
         return sts
