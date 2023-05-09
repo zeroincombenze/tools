@@ -29,7 +29,7 @@ else:
 
 setup(
     name='zerobug',
-    version='2.0.5',
+    version='2.0.6',
     description='Zeroincombenze continuous testing framework'
     ' and tools for python and bash programs',
     long_description="""

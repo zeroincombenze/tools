@@ -4,12 +4,11 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
-    You can use this file as main all_tests.py too
 """
 import sys
 from . import z0test
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 
 
 def version():

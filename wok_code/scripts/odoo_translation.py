@@ -12,9 +12,14 @@ import collections
 from babel.messages import pofile
 from openpyxl import load_workbook, Workbook
 
+try:
+    from clodoo import clodoo
+except ImportError:
+    import clodoo
+
 # from python_plus import unicodes
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 
 MODULE_SEP = "\ufffa"
@@ -75,6 +80,19 @@ TEST_DATA = [
     ("Other Info", "Altre informazioni", None, "Altre informazioni"),
     ("Other Info", "Altre info", "l10n_it", "Altre info"),
 ]
+
+TNL_TYPES = (
+    'ir.actions.act_window,name',
+    'ir.model,name',
+    'ir.model.fields.field_description',
+    'ir.module.category,name',
+    'ir.module.module,description'
+    'ir.module.module,shortdesc',
+    'ir.module.module,summary',
+    'ir.ui.menu,name',
+    'ir.ui.view,arch_db',
+)
+
 msg_time = time()
 
 
@@ -435,6 +453,8 @@ class OdooTranslation(object):
     def do_dict_item(
         self, msg_orig, msg_tnxl, action=None, override=None, module=None, is_tag=None,
     ):
+        if not msg_orig:
+            return msg_orig
         action = action or ("build_dict" if override else "translate")
         if self.get_untransable_token(msg_orig):
             return msg_orig
@@ -781,7 +801,8 @@ class OdooTranslation(object):
                     )
                 if not row["msgid"] or not row["msgstr"]:
                     continue
-                msg_burst('%s ...' % row["msgid"])
+                if self.opt_args.verbose:
+                    msg_burst('%s ...' % row["msgid"])
                 if "hashkey" in row and row["hashkey"]:
                     if row["hashkey"] not in self.dict:
                         self.dict[row["hashkey"]] = (row["msgid"], row["msgstr"])
@@ -838,15 +859,9 @@ class OdooTranslation(object):
                               is_tag=is_tag)
 
     def build_dict(self):
-        # if self.opt_args.file_xlsx:
-        #     root = self.get_home_devel()
-        #     if root:
-        #         dict_name = os.path.join(
-        #             root, 'pypi', 'tools', 'odoo_template_tnl.xlsx')
-        #         if os.path.isfile(dict_name):
-        #             self.load_terms_from_xlsx(dict_name)
-        #     self.load_terms_from_xlsx(self.opt_args.file_xlsx)
-        if not self.opt_args.module_name:
+        if self.opt_args.database and self.opt_args.file_xlsx:
+            self.load_terms_from_xlsx(self.opt_args.file_xlsx)
+        elif not self.opt_args.module_name:
             target_path = os.path.abspath(self.opt_args.target_path)
             self.do_work_on_path(target_path, None)
             for root, dirs, files in os.walk(target_path,
@@ -859,6 +874,135 @@ class OdooTranslation(object):
                 ]
                 for base in dirs:
                     self.do_work_on_path(root, base, action="build_dict")
+
+    def install_lang(self, lang, ctx):
+        model = 'res.lang'
+        vals = {
+            'lang': lang,
+        }
+        ids = clodoo.searchL8(ctx, model, [('code', '=', lang)])
+        if not ids:
+            if self.opt_args.verbose:
+                print('Language %s not installed: installing it now' % lang)
+            id = clodoo.createL8(ctx, 'base.language.install', vals)
+            clodoo.executeL8(ctx, 'base.language.install', 'lang_install', [id])
+            clodoo.writeL8(ctx, "res.users", ctx["user_id"], {"lang": lang})
+        elif self.opt_args.verbose:
+            print('Found language %s' % lang)
+        if not clodoo.searchL8(ctx, "ir.translation", [("lang", "=", lang)]):
+            if self.opt_args.verbose:
+                print('No term found for language %s: loading translation' % lang)
+            id = clodoo.createL8(ctx, 'base.update.translations', vals)
+            clodoo.executeL8(ctx, 'base.update.translations', 'act_update', [id])
+
+    def connect_db(self, database):
+        try:
+            uid, ctx = clodoo.oerp_set_env(
+                confn=self.opt_args.config,
+                db=database,
+                oe_version=self.opt_args.odoo_branch)
+        except BaseException:
+            print("No DB %s found" % self.opt_args.database)
+            ctx = None
+        return ctx
+
+    def translate_db(self):
+        # ir.translation contains Odoo translation terms
+        # @src: original (english) term
+        # @source: evaluated field with source code information
+        # @value: translated term
+        # @name: is environment name; value may be:
+        #   - type model: "model name,field name"
+        #   - type code: "source file name", format 'addons/MODULE_PATH'
+        #   - type selection: "MODULE_PATH,field name"
+        # @type: may be [code,constraint,model,selection,sql_constraint]
+        # @module: module which added term
+        # @state: may be [translated, to_translate]
+        # @res_id: id of term means:
+        #   - type model: record id of model in name
+        #   - type code: line number in source code (in name)
+        # Report translations are in ir.ui.view model
+        #
+        def write_term(term):
+            ctr_write = 0
+            term_tnl = term
+            if term.lang != self.opt_args.lang:
+                domain = [
+                    ("lang", "=", self.opt_args.lang),
+                    ("src", "=", term.src),
+                    ("type", "=", term.type),
+                    ("name", "=", term.name),
+                    ("module", "=", term.module),
+                ]
+                term_tnl = clodoo.browseL8(
+                    ctx, model_translation, clodoo.searchL8(
+                        ctx, model_translation, domain))
+                if len(term_tnl):
+                    term_tnl = term_tnl[0]
+            value = self.translate_item(term.src, term.value)
+            if not term_tnl:
+                if value != term.value:
+                    vals = {
+                        "lang": self.opt_args.lang,
+                        "value": value,
+                        "state": "translated",
+                        "res_id": term.res_id,
+                    }
+                    for name in ("src", "source", "type", "name", "module"):
+                        vals[name] = term[name]
+                    clodoo.createL8(ctx, model_translation, vals)
+                    ctr_write += 1
+            elif value != term_tnl.value:
+                try:
+                    clodoo.writeL8(ctx, model_translation, term.id,
+                                   {"value": value, "state": "translated"})
+                except BaseException as e:
+                    print("Error %s for term %s" % (e, term.src))
+                ctr_write += 1
+            return ctr_write
+
+        if not os.path.isfile(self.opt_args.config):
+            print("File %s not found!" % self.opt_args.config)
+            return 1
+        ctr_read = ctr_write = 0
+        for database in self.opt_args.database.split(","):
+            ctx = self.connect_db(database)
+            if ctx is None:
+                continue
+            ctx["lang"] = self.opt_args.lang
+            self.install_lang(self.opt_args.lang, ctx)
+            model_translation = 'ir.translation'
+            # model_field = 'ir.model.fields'
+            # last_term = ""
+            # for field in clodoo.browseL8(
+            #     ctx, model_field, clodoo.searchL8(
+            #         ctx, model_field, [], order="field_description")):
+            #     if field.field_description == last_term:
+            #         continue
+            #     last_term = field.field_description
+            #     if self.opt_args.verbose:
+            #         msg_burst('%s ...' % field.field_description)
+            #     domain = [
+            #         ('lang', 'in', ['en_US', self.opt_args.lang]),
+            #         ("src", "=ilike", field.field_description)
+            #     ]
+            #     for term in clodoo.browseL8(
+            #         ctx, model_translation, clodoo.searchL8(
+            #             ctx, model_translation, domain)):
+            #         ctr_read += 1
+            #         ctr_write += write_term(term)
+            for term in clodoo.browseL8(
+                ctx, model_translation, clodoo.searchL8(
+                    ctx, model_translation, [
+                        # ("type", "!=", "code"),
+                        ('lang', 'in', ['en_US', self.opt_args.lang])])):
+                if self.opt_args.verbose:
+                    msg_burst('%s ...' % term.src)
+                ctr_read += 1
+                ctr_write += write_term(term)
+        if self.opt_args.verbose:
+            print("%d records read, %d records written" % (ctr_read, ctr_write))
+        return 0
 
     def translate_module(self):
         module = self.opt_args.module_name
@@ -929,6 +1073,11 @@ def main(cli_args=None):
     )
     parser.add_argument("-c", "--config", help="Odoo configuration file")
     parser.add_argument(
+        "-d",
+        "--database",
+        help="Database to translate",
+    )
+    parser.add_argument(
         "-G",
         "--git-orgs",
         help="Git organizations, comma separated - " "May be: oca librerp or zero",
@@ -954,7 +1103,13 @@ def main(cli_args=None):
     else:
         print("Invalid parameters: please set xlsx file or Odoo path")
         return 1
-    if odoo_tnxl.opt_args.module_name:
+    if (
+        odoo_tnxl.opt_args.database
+        and odoo_tnxl.opt_args.file_xlsx
+        and not odoo_tnxl.opt_args.rewrite_xlsx
+    ):
+        odoo_tnxl.translate_db()
+    elif odoo_tnxl.opt_args.module_name:
         odoo_tnxl.translate_module()
     if odoo_tnxl.opt_args.rewrite_xlsx:
         odoo_tnxl.write_xlsx()

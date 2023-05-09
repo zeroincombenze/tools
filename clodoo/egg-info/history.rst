@@ -1,7 +1,14 @@
+2.0.5 (2023-05-08)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo.py: minor fixes
+* [IMP] odoord: odoo version 16.0
+
 2.0.4 (2023-03-29)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] odoorc: minor improvements
+* [IMP] odoorc: test for Odoo 16.0
 * [IMP] transodoo.py: minor improvements
 
 2.0.3 (2022-12-09)

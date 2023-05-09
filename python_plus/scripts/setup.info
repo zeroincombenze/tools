@@ -16,7 +16,7 @@ list_requirements.py: list environment requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This command is an internal command of python-plus but may be used as own command.
-list_requirements.py dispays the pypi and binaries packages needed to create a virtual environment.
+list_requirements.py displays the pypi and binaries packages needed to create a virtual environment.
 It is specially designed to show Odoo requirements.
 Passing Odoo path it reads requirements.txt files in path and setup directories of OCA repositories.
 
@@ -161,7 +161,7 @@ History
     author='Antonio Maria Vigliotti',
     author_email='antoniomaria.vigliotti@gmail.com',
     license='Affero GPL',
-    install_requires=['z0lib'],
+    install_requires=['configparser', 'future', 'z0lib'],
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={'': ['scripts/setup.info', 'scripts/vem.sh', './vem.man']},
     entry_points={

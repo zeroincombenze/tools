@@ -12,7 +12,7 @@ else:
 
 setup(
     name='wok_code',
-    version='2.0.6',
+    version='2.0.7',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.
@@ -60,6 +60,7 @@ The available tools are:
             'scripts/dist_pkg.sh',
             'scripts/please.sh',
             'scripts/config/*',
+            'scripts/run_odoo_debug.sh',
             './please.man',
             './cvt_script',
             './cvt_script.man',
@@ -78,6 +79,8 @@ The available tools are:
             'cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main',
             'deploy_odoo = wok_code.scripts.deploy_odoo:main',
             'dist_pkg = wok_code.scripts.dist_pkg:main',
+            'do_gitignore = wok_code.do_gitignore:main',
+            'do_git_checkout_new_branch = wok_code.do_git_checkout_new_branch:main',
             'do_migrate = wok_code.scripts.do_migrate:main',
             'do_odoo_site.py = wok_code.scripts.do_odoo_site:main',
             'gen_readme.py = wok_code.scripts.gen_readme:main',

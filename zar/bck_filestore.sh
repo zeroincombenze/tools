@@ -36,8 +36,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-# DIST_CONF=$(findpkg ".z0tools.config" "$PYPATH")
-# TCONF="$HOME/.z0tools.config"
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -56,7 +56,7 @@ OPTACTI=("+"      "="        "1"          0           "=>"    "*>"        "+" )
 OPTDEFL=(1        ""         0            0          ""      ""           -1)
 OPTMETA=("help"   "vid"      "do nothing" "verbose"   "host"  "version"   "silent")
 OPTHELP=("this help"\
- "branch: must be 7.0 or 8.0 or 9.0 or 10.0 11.0 or 12.0 (def all)"\
+ "branch: must be from 6.1 to 16.0 (def all)"\
  "do nothing (dry-run)"\
  "silent mode"\
  "target host"\
@@ -78,7 +78,7 @@ fi
 
 discover_multi
 sts=0
-[ -z "$opt_branch" ] && opt_branch="12.0 11.0 10.0 9.0 8.0 7.0 6.1"
+[ -z "$opt_branch" ] && opt_branch="16.0 15.0 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 for odoo_vid in ${opt_branch//,/ };do
   DDIR=$(build_odoo_param DDIR $odoo_vid)
   echo "rsync -avz $DDIR/filestore/ $opt_tgt:$DDIR/filestore/"

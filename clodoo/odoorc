@@ -58,12 +58,12 @@
 # ODOO_DB_USER"     -> db username (def odoo%(MAJVER)s)
 # ODOO_GIT_ORGID    -> default git organization
 # ODOO_GIT_HOSTNAME -> git hostname (def github.com)
-# ODOO_GIT_PROT     -> default protcocl (git|https) for default git organization
-# ODOO_GIT_SHORT    -> regex of git organizzations with short name (def /(oca)/)
+# ODOO_GIT_PROT     -> default protocol (git|https) for default git organization
+# ODOO_GIT_SHORT    -> regex of git organizations with short name (def /(oca)/)
 # ODOO_GIT_MULTI    -> multi version environment
 #
 
-__version__=2.0.4
+__version__=2.0.5
 
 
 ODOO_FVERS="16\.0|15\.0|14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
@@ -159,7 +159,7 @@ find_odoo_ver() {
             fi
         done
         [[ $PWD == $ODOO_ROOT ]] && break
-        [[ ! $PWD == "/" ]] && PWD=$($READLINK -f "$PWD/..") || break
+        [[ ! $PWD == "/" ]] && PWD=$(readlink -f "$PWD/..") || break
     done
     [[ -n "$1" ]] && popd &>/dev/null
     echo "$odoo_fver"
@@ -189,11 +189,12 @@ is_module() {
 }
 
 traverse() {
+    # traverse(path pkgname pkgpath parentdir prjpath)
     local d p=0 r
     local PKGNAME=$2 PKGPATH=$3 PARENTDIR=$4 REPOS=$5 PRJPATH=$6
     if [[ -n $1 ]]; then
-        for d in $(find $1 -maxdepth 2); do
-            [[ -d "$d" ]] && $(is_module "$d") && PKGPATH=$d && PKGNAME=$(basename $d) && PARENTDIR=$($READLINK -e $d/..) && p=1 && break
+        for d in $(find $1 -maxdepth 2 -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -not -name ".*"); do
+            [[ -d "$d" ]] && $(is_module "$d") && PKGPATH=$d && PKGNAME=$(basename $d) && PARENTDIR=$(readlink -e $d/..) && p=1 && break
         done
         if [ $p -ne 0 ]; then
             r="$(basename $1)"
@@ -214,7 +215,6 @@ build_odoo_param() {
     fi
     [[ $1 == "_VER" ]] && echo $__version__ && return
     [[ $1 == "_FILE" ]] && echo ${BASH_SOURCE-} && return
-    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local ODOO_ROOT
     local VENV=0 main exorg spec
     local ITEM=$1 ROOT PARENTDIR PRJPATH
@@ -255,7 +255,7 @@ build_odoo_param() {
           $SETX
           return
         fi
-        [[ -n "$2" ]] && cdir=$($READLINK -f $2) || cdir=$($READLINK -f $PWD)
+        [[ -n "$2" ]] && cdir=$(readlink -f $2) || cdir=$(readlink -f $PWD)
         [[ -f $cdir ]] && cdir=$(dirname $cdir)
         while [[ (-z "$odoo_vid" || -z "$ROOT") && -n "$cdir" ]]; do
             if $(is_module "$cdir"); then
@@ -271,33 +271,33 @@ build_odoo_param() {
                 [[ -z "$ROOT" ]] && ROOT=$cdir
                 [[ -z "$PKGPATH" ]] && PKGPATH=$cdir
                 [[ -z "$PRJPATH" ]] && PRJPATH=$cdir
-                [[ -z "$PARENTDIR" ]] && PARENTDIR=$($READLINK -e $cdir/..)
+                [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
                 odoo_vid=$(basename $cdir)
-                [[ $VENV -eq 0 && -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/venv_odoo)
-                [[ $VENV -eq 0 && -f $cdir/../venv_odoo/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/../venv_odoo)
-                [[ $VENV -eq 0 && -f $cdir/../VENV-${odoo_vid}/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/../VENV-${odoo_vid})
-                [[ $odoo  == "odoo" ]] && cdir=$($READLINK -e $cdir/..) && odoo_vid=$(basename $cdir)
+                [[ $VENV -eq 0 && -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$(readlink -e $cdir/venv_odoo)
+                [[ $VENV -eq 0 && -f $cdir/../venv_odoo/bin/activate ]] && VENV=1 && VDIR=$(readlink -e $cdir/../venv_odoo)
+                [[ $VENV -eq 0 && -f $cdir/../VENV-${odoo_vid}/bin/activate ]] && VENV=1 && VDIR=$(readlink -e $cdir/../VENV-${odoo_vid})
+                [[ $odoo  == "odoo" ]] && cdir=$(readlink -e $cdir/..) && odoo_vid=$(basename $cdir)
                 FULLVER=$(find_odoo_ver $cdir)
                 [[ $VENV -eq 0 && -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$cdir/venv_odoo
             elif $(is_repos "$cdir"); then
                 r=$(basename $cdir)
                 [[ ! $r =~ $rex ]] && REPOS=$r && PRJPATH=$cdir
-                [[ -z "$PARENTDIR" ]] && PARENTDIR=$($READLINK -e $cdir/..)
-                [[ -z "$PARENTDIR" ]] && PARENTDIR=$($READLINK -e $cdir/..)
+                [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
+                [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
                 if [[ -z "$PKGNAME" ]]; then
                     IFS="|" read PKGNAME PKGPATH PARENTIDR REPOS PRJPATH <<< $(traverse "$cdir" "$PKGNAME" "$PKGPATH" "$PARENTIDR" "$REPOS" "$PRJPATH")
                 fi
             elif [[ (-n "$PKGNAME" && -d $cdir/$PKGNAME) ]]; then
                 r=$(basename $cdir)
                 [[ ! $r =~ $rex ]] && REPOS=$r && PRJPATH=$cdir
-                [[ -z "$PARENTDIR" ]] && PARENTDIR=$($READLINK -e $cdir/..)
+                [[ -z "$PARENTDIR" ]] && PARENTDIR=$(readlink -e $cdir/..)
                 if [[ -z "$PKGNAME" ]]; then
                     IFS="|" read PKGNAME PKGPATH PARENTIDR REPOS PRJPATH <<< $(traverse "$cdir" "$PKGNAME" "$PKGPATH" "$PARENTIDR" "$REPOS" "$PRJPATH")
                 fi
             elif [[ -z "$PKGNAME" ]]; then
                 IFS="|" read PKGNAME PKGPATH PARENTIDR REPOS PRJPATH <<< $(traverse "$cdir" "$PKGNAME" "$PKGPATH" "$PARENTIDR" "$REPOS" "$PRJPATH")
             fi
-            [[ $VENV -eq 0 && -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$($READLINK -e $cdir/venv_odoo)
+            [[ $VENV -eq 0 && -f $cdir/venv_odoo/bin/activate ]] && VENV=1 && VDIR=$(readlink -e $cdir/venv_odoo)
             if [[ -z "$GIT_ORGNM" && -d $cdir/.git ]] && $(cd $cdir && git status -s &>/dev/null); then
                 x=$(cd $cdir && git rev-parse --show-toplevel 2>/dev/null)
                 if [[ -z $x || $x == $cdir ]]; then
@@ -314,7 +314,7 @@ build_odoo_param() {
             fi
             [[ $cdir == $ODOO_ROOT ]] && break
             [[ $ITEM == "VDIR" && -n $VDIR ]] && break
-            [[ ! $cdir == "/" ]] && cdir=$($READLINK -e $cdir/..) || cdir=
+            [[ ! $cdir == "/" ]] && cdir=$(readlink -e $cdir/..) || cdir=
         done
     else
         IFS=/ read odoo_vid x <<<$2

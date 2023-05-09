@@ -4,9 +4,9 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 # try:
-#     from odoo import models as odoo_models                                 # noqa: F401
+#     from odoo import models as odoo_models                               # noqa: F401
 # except ImportError:
-#     from openerp.osv.orm import model as odoo_models                       # noqa: F401
+#     from openerp.osv.orm import model as odoo_models                     # noqa: F401
 pass
 
 # class BaseModel(odoo_models.BaseModel):

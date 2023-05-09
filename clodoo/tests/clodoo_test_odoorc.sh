@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # Regression tests on clodoo
 #
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-export READLINK
+# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+# export READLINK
 # Based on template 2.0.0
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -44,11 +44,11 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.5
 # VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 # MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
-VERSIONS_TO_TEST="14.0 12.0 10.0 8.0 7.0 6.1"
-MAJVERS_TO_TEST="14 12 10 8 7 6"
+VERSIONS_TO_TEST="16.0 14.0 12.0 10.0 8.0 7.0 6.1"
+MAJVERS_TO_TEST="16 14 12 10 8 7 6"
 
 SUB_TO_TEST="v V VENV- odoo odoo_ ODOO OCB- oca librerp VENV_123- devel"
 
@@ -351,7 +351,7 @@ test_04() {
             [[ "$v" =~ (9.0|8.0|7.0|6.1) && -z "$o" ]] && TRES="/etc/odoo/odoo${m}-server.conf"
             [[ "$w" =~ (v|V)(7|6) ]] && TRES="/etc/odoo/openerp-server.conf"
             [[ "$w" =~ (v|V)(9|8) ]] && TRES="/etc/odoo/odoo-server.conf"
-            [[ "$w" =~ (v|V)(14|13|12|11|10) ]] && TRES="/etc/odoo/odoo.conf"
+            [[ "$w" =~ (v|V)(16|15|14|13|12|11|10) ]] && TRES="/etc/odoo/odoo.conf"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param CONFN $w)
             test_result "bash 4a.${opt_multi}> build_odoo_param CONFN '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -375,7 +375,7 @@ test_04() {
             [[ "$v" =~ (9.0|8.0|7.0|6.1) && -z "$o" ]] && TRES="/var/log/odoo/odoo${m}-server.log"
             [[ "$w" =~ (v|V)(7|6) ]] && TRES="/var/log/odoo/openerp-server.log"
             [[ "$w" =~ (v|V)(9|8) ]] && TRES="/var/log/odoo/odoo-server.log"
-            [[ "$w" =~ (v|V)(14|13|12|11|10) ]] && TRES="/var/log/odoo/odoo.log"
+            [[ "$w" =~ (v|V)(16|15|14|13|12|11|10) ]] && TRES="/var/log/odoo/odoo.log"
             [[ $x =~ (oca|librerp|powerp) ]] && TRES="/var/log/odoo/odoo${m}-$x.log"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FLOG $w)
             test_result "bash 4b.${opt_multi}> build_odoo_param FLOG '$w'" "$TRES" "$RES"
@@ -400,7 +400,7 @@ test_04() {
             [[ "$v" =~ (9.0|8.0|7.0|6.1) && -z "$o" ]] && TRES="/var/run/odoo/odoo${m}-server.pid"
             [[ "$w" =~ (v|V)(7|6) ]] && TRES="/var/run/odoo/openerp-server.pid"
             [[ "$w" =~ (v|V)(9|8) ]] && TRES="/var/run/odoo/odoo-server.pid"
-            [[ "$w" =~ (v|V)(14|13|12|11|10) ]] && TRES="/var/run/odoo/odoo.pid"
+            [[ "$w" =~ (v|V)(16|15|14|13|12|11|10) ]] && TRES="/var/run/odoo/odoo.pid"
             [[ $x =~ (oca|librerp|powerp) ]] && TRES="/var/run/odoo/odoo${m}-$x.pid"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FPID $w)
             test_result "bash 4c.${opt_multi}> build_odoo_param FPID '$w'" "$TRES" "$RES"
@@ -425,7 +425,7 @@ test_04() {
             [[ "$v" =~ (9.0|8.0|7.0|6.1) && -z "$o" ]] && TRES="/etc/init.d/odoo${m}-server"
             [[ "$w" =~ (v|V)(7|6) ]] && TRES="/etc/init.d/openerp-server"
             [[ "$w" =~ (v|V)(9|8) ]] && TRES="/etc/init.d/odoo-server"
-            [[ "$w" =~ (v|V)(14|13|12|11|10) ]] && TRES="/etc/init.d/odoo"
+            [[ "$w" =~ (v|V)(16|15|14|13|12|11|10) ]] && TRES="/etc/init.d/odoo"
             [[ $x =~ (oca|librerp|powerp) ]] && TRES="/etc/init.d/odoo${m}-$x"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULL_SVCNAME $w)
             test_result "bash 4d.${opt_multi}> build_odoo_param FULL_SVCNAME '$w'" "$TRES" "$RES"
@@ -686,7 +686,7 @@ test_05() {
 
         export opt_multi=0
         [[ $v =~ (9.0|8.0|7.0|6.1) ]] && TRES="__openerp__.py"
-        [[ $v =~ (14.0|13.0|12.0|11.0|10.0) ]] && TRES="__manifest__.py"
+        [[ $v =~ (16.0|15.0|14.0|13.0|12.0|11.0|10.0) ]] && TRES="__manifest__.py"
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param MANIFEST $v)
         test_result "5i> manifest $v [bash]" "$TRES" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s

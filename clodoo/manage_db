@@ -36,8 +36,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
-# DIST_CONF=$(findpkg ".z0tools.config" "$PYPATH")
-# TCONF="$HOME/.z0tools.config"
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.5
 
 
 up_oemod() {
@@ -153,7 +153,7 @@ declare_cfloop() {
 set_opt_conf() {
     local x
     cf=""
-    for x in $opt_conf $opt_conf.config code/$opt_conf code/$opt_conf.config; do
+    for x in $opt_conf $opt_conf.conf code/$opt_conf code/$opt_conf.conf; do
       if [[ -f "$x" ]]; then
         cf=$x
         break
@@ -255,7 +255,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
     [[ $action == "update" ]] && set_opt_conf
     declare_cfloop
     for cf in $CFLOOP; do
-      if [ ! -f code/z0_install_$cf.config ]; then
+      if [ ! -f code/z0_install_$cf.conf ]; then
         echo "Configuration file z0_install_$cf.conf not found!"
         exit 1
       fi
@@ -278,7 +278,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
     fi
     sts=0
     cf0=""
-    [[ -f ./clodoo.config ]] && cf0="$(readlink -f ./clodoo.config),"
+    [[ -f ./clodoo.conf ]] && cf0="$(readlink -f ./clodoo.conf),"
     for cf in $CFLOOP; do
       # TODO FIX
        opts=
@@ -300,7 +300,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           if [[ -n "$opt_db" ]]; then
             db=$opt_db
           else
-            db=$(cat clodoo_last.config|awk -F= '{print $2}')
+            db=$(cat clodoo_last.conf|awk -F= '{print $2}')
           fi
           if [ $opt_del -eq 0 ]; then
             [ $opt_verbose -gt 0 ] && echo "Warning: you must enable dropping DB using -D switch"
@@ -353,7 +353,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           if [ -n "$opt_db" ]; then
             db=$opt_db
           else
-            db=$(cat clodoo_last.config|awk -F= '{print $2}')
+            db=$(cat clodoo_last.conf|awk -F= '{print $2}')
           fi
           run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c ${cf0}code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
@@ -437,7 +437,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
       sts=1
     else
       IFS== read old new <<< "$cmdlist"
-      confn=$(ls code/*${old}.config 2>/dev/null|head -n1)
+      confn=$(ls code/*${old}.conf 2>/dev/null|head -n1)
       if [ -z "$confn" ]; then
         echo "phase $old not found!"
         sts=1

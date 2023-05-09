@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.5
+__version__=2.0.6
 
 
 
@@ -50,7 +50,7 @@ __version__=2.0.5
 test_01() {
     local path sts RES b v x
     sts=0
-    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 v7; do
+    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 15.0 16.0 v7; do
         if [[ $v == "v7" ]]; then
             OS_TREE="$v $v/addons $v/server/openerp"
         elif [[ $v =~ (6.1|7.0|8.0|9.0) ]]; then
@@ -85,7 +85,7 @@ test_01() {
 test_02() {
     local path sts RES
     sts=0
-    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 v7; do
+    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 15.0 16.0 v7; do
        if [[ $v == "v7" ]]; then
             OS_TREE="$v $v/addons $v/server/openerp"
         elif [[ $v =~ (6.1|7.0) ]]; then
@@ -111,7 +111,7 @@ test_02() {
 test_03() {
     local path sts RES b v x hy
     sts=0
-    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 v7; do
+    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 15.0 16.0 v7; do
         if [[ $v == "v7" ]]; then
             OS_TREE="$v $v/addons $v/server/openerp"
             hy=
@@ -152,7 +152,7 @@ test_03() {
 test_04() {
     local path sts RES
     sts=0
-    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 v7; do
+    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 15.0 16.0 v7; do
         if [[ $v == "v7" ]]; then
             OS_TREE="$v $v/addons $v/server/openerp"
         elif [[ $v =~ (6.1|7.0) ]]; then
@@ -178,7 +178,7 @@ test_04() {
 test_05() {
     local path sts RES hy
     sts=0
-    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0; do
+    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 15.0 16.0; do
         if [[ $v == "v7" ]]; then
             OS_TREE="$HOME/$v $HOME/$v/addons $HOME/$v/server/openerp"
             hy=
@@ -209,7 +209,7 @@ test_05() {
 test_06() {
     local path sts RES
     sts=0
-    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 v7; do
+    for v in 6.1 7.0 8.0 10.0 12.0 13.0 14.0 15.0 16.0 v7; do
         if [[ $v == "v7" ]]; then
             OS_TREE="$HOME/$v $HOME/$v/addons $HOME/$v/server/openerp"
         elif [[ $v =~ (6.1|7.0) ]]; then

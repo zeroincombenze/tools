@@ -1,9 +1,16 @@
+2.0.6 (2023-05-08)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Now all_tests is ignored
+* [IMP] Build Odoo environment for Odoo 16.0
+
 2.0.5 (2023-03-24)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] travis_install_env: ensure list_requirements is executable
 * [IMP] flake8 configuration
-* [IMP] coveralls and codecov are not more dependenciesple
+* [IMP] coveralls and codecov are not more dependencies
+* [IMP] Test for Odoo 16.0
 
 2.0.4 (2022-12-08)
 ~~~~~~~~~~~~~~~~~~

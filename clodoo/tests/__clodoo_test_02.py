@@ -26,7 +26,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "2.0.4"
+__version__ = "2.0.5"
 
 
 MODULE_ID = "clodoo"
@@ -306,7 +306,7 @@ class RegressionTest:
                     "oe_version": "*",
                     "no_login": True,
                     "xmlrpc_port": self.rpcport,
-                    "conf_fn": "./no_filename.config",
+                    "conf_fn": "./no_filename.conf",
                 },
             )
         else:
@@ -331,7 +331,7 @@ class RegressionTest:
                 ctx={
                     "oe_version": self.ctx["oe_version"],
                     "xmlrpc_port": self.rpcport,
-                    "conf_fn": "./no_filename.config",
+                    "conf_fn": "./no_filename.conf",
                 },
             )
             self.ctx["test_unit_mode"] = True

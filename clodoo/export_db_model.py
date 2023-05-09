@@ -23,7 +23,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "2.0.4"
+__version__ = "2.0.5"
 
 
 CACHE = {}
@@ -195,7 +195,7 @@ parser.add_argument(
     help="configuration command file",
     dest="conf_fn",
     metavar="file",
-    default="./clodoo.config",
+    default="./clodoo.conf",
 )
 parser.add_argument(
     "-d",

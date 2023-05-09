@@ -4304,6 +4304,61 @@ def move_database_by_postgres(ctx):
     print("%d databases moved")
 
 
+def display_stock(ctx):
+    _picking = "stock.picking"
+    # _operation = "stock.pack.operation"
+    # _product = "product.product"
+    picking_id = 0
+    while picking_id >= 0:
+        picking_id = input("\nPicking ID (-1 to end): ")
+        picking_id = eval(picking_id) if picking_id else 0
+        if picking_id == 0:
+            continue
+        elif picking_id < 0:
+            break
+        try:
+            picking = clodoo.browseL8(ctx, _picking, picking_id)
+        except BaseException:
+            print("Picking %d not found!" % picking_id)
+            continue
+        print("Picking name: %s" % picking.name)
+        print("Picking state: %s" % picking.state)
+        fmt = (
+            "prod.%(product_id)5s %(product_name)-30.30s %(ordered_qty)7s"
+            " %(product_qty)7s  %(qty_done)7s %(ln_move_ids)8s"
+        )
+        fmt_m = (
+            "move.%(move_id)5s %(name)-30.30s %(ordered_qty)7s"
+            " %(product_qty)7s"
+        )
+        print(fmt % {
+            "product_id": "id",
+            "product_name": "product_name",
+            "product_qty": "p.qty",
+            "ordered_qty": "o.qty",
+            "qty_done": "done",
+            "ln_move_ids": "ln",
+        })
+        for operation in picking.pack_operation_product_ids:
+            params = {
+                "product_id": operation.id,
+                "product_name": operation.product_id.name,
+                "product_qty": operation.product_qty,
+                "ordered_qty": operation.ordered_qty,
+                "qty_done": operation.qty_done,
+                "ln_move_ids": operation.linked_move_operation_ids.ids,
+            }
+            print(fmt % params)
+            for ln in operation.linked_move_operation_ids:
+                params_m = {
+                    "move_id": ln.move_id.id,
+                    "name": ln.move_id.name,
+                    "product_qty": ln.move_id.product_qty,
+                    "ordered_qty": ln.move_id.ordered_qty,
+                }
+                print(fmt_m % params_m)
+
+
 if ctx['function']:
     function = ctx['function']
     globals()[function](ctx)

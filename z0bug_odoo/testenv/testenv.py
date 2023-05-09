@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.7
+"""Test Environment v2.0.7.1
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -1333,14 +1333,23 @@ class MainTest(SingleTransactionCase):
             return record.read()[0]
 
     @api.model
-    def _exec_action(self, record, action, default={}, web_changes=[], ctx={}):
+    def _set_origin(self, record, ctx={}):
         resource_model = self._get_model_from_records(record)
         origin = self.env[resource_model]
-        if self._is_transient(origin) and action in ("save", "create", "discard"):
-            self.raise_error(
-                "Invalid action %s for %s!"
-                % (action, resource_model)  # pragma: no cover
+        if is_iterable(record) and len(record) == 1:
+            origin = self._create_object(
+                resource_model,
+                default=self._convert_to_write(record[0], new=True),
+                origin=origin,
+                ctx=ctx,
             )
+        return origin
+
+    @api.model
+    def _exec_action(self, record, action, default={}, web_changes=[], origin=None,
+                     ctx={}):
+        resource_model = self._get_model_from_records(record)
+        origin = origin or self.env[resource_model]
         if isinstance(record, basestring):
             record = self._create_object(
                 resource_model,
@@ -1354,13 +1363,13 @@ class MainTest(SingleTransactionCase):
                     _ctx = self.env["ir.actions.actions"]._get_eval_context()
                     _ctx.update(self._ctx_active_ids(record, ctx))
                     record = record.with_context(_ctx)
-                if len(record) == 1:
-                    origin = self._create_object(
-                        resource_model,
-                        default=self._convert_to_write(record[0], new=True),
-                        origin=origin,
-                        ctx=ctx,
-                    )
+                if not origin or origin._name != resource_model:
+                    origin = self._set_origin(record, ctx=ctx)
+        if self._is_transient(origin) and action in ("save", "create", "discard"):
+            self.raise_error(
+                "Invalid action %s for %s!"
+                % (action, resource_model)  # pragma: no cover
+            )
         self._load_field_struct(resource_model)
         for args in web_changes:
             self._wiz_edit(
@@ -2270,7 +2279,7 @@ class MainTest(SingleTransactionCase):
             None
         """
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.7 (debug_level=%s)" % (self.debug_level)
+            "🎺🎺🎺 Starting test v2.0.7.1 (debug_level=%s)" % (self.debug_level)
         )
         self._logger.info(
             "🎺🎺 Testing module: %s (%s)"
@@ -2365,14 +2374,18 @@ class MainTest(SingleTransactionCase):
                 self.dict_2_print(ctx),
             )
         )
+        origin = self._set_origin(resource, ctx=ctx)
         for action in actions:
             result = self._exec_action(
-                resource, action, default=default, web_changes=web_changes, ctx=ctx
+                resource, action,
+                default=default, web_changes=web_changes, origin=origin, ctx=ctx
             )
             # Web changes executed, clear them, same for default
             web_changes = []
             default = {}
-            resource = result
+            if hasattr(result, "_name"):
+                # action returned recordset
+                resource = result
         return result
 
     @api.model

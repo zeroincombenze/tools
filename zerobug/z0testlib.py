@@ -20,7 +20,7 @@ import magic
 from os0 import os0
 from python_plus import _c
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 
 # return code
 TEST_FAILED = 1
@@ -424,8 +424,8 @@ class Z0test(object):
             if this.startswith('test_'):
                 id = this[5:]
             elif (
-                this.startswith('all_tests')
-                or this.startswith('zerobug')
+                # this.startswith('all_tests')
+                this.startswith('zerobug')
                 or this == '__main__'
             ):
                 id = os.path.basename(self.rundir)

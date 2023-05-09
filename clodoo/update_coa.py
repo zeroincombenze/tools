@@ -17,7 +17,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "2.0.4"
+__version__ = "2.0.5"
 
 
 msg_time = time.time()
@@ -54,7 +54,7 @@ def init_n_connect(flavour=None):
         help="configuration command file",
         dest="conf_fn",
         metavar="file",
-        default="./import_partners.config",
+        default="./import_partners.conf",
     )
     parser.add_argument(
         "-d", "--dbname", help="DB name", dest="db_name", metavar="file", default=""

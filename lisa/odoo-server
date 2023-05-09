@@ -6,7 +6,7 @@
 # description: Odoo server
 #
 # pidfile: /var/run/odoo/odoo-server.pid
-# config: /etc/odoo-server.config
+# config: /etc/odoo-server.conf
 
 ### BEGIN INIT INFO
 # Provides:             odoo-server
@@ -61,10 +61,10 @@ NAME=odoo-server
 DESC="Odoo Server Daemon ($NAME)"
 # Specify the user name (Default: odoo).
 USER=odoo
-# Specify config file (Default: /etc/odoo/odoo-server.config).
-if [ -f /etc/odoo/odoo-server.config ]; then
+# Specify config file (Default: /etc/odoo/odoo-server.conf).
+if [ -f /etc/odoo/odoo-server.conf ]; then
   CONFIGFILE="/etc/odoo/odoo-server.conf"
-elif [ -f /etc/odoo-server.config ]; then
+elif [ -f /etc/odoo-server.conf ]; then
   CONFIGFILE="/etc/odoo-server.conf"
 else
   CONFIGFILE=""
@@ -75,7 +75,7 @@ LOCKFILE=/var/lock/subsys/${NAME}
 LOGFILE=/var/log/odoo/odoo-server.log
 # Additional options that are passed to the Daemon.
 DAEMON_OPTS="--pidfile=$PIDFILE --logfile=$LOGFILE"
-# check if the odoo-server config file is present, then use it
+# check if the odoo-server conf file is present, then use it
 if [ -f $CONFIGFILE ]; then
     DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
 fi

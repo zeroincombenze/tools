@@ -79,7 +79,7 @@ TEMPLATE_HTTPS = """#############################################
 </IfModule>
 """
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 
 class CreateConfig(object):
