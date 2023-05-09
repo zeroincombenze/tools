@@ -1,6 +1,6 @@
 
 ================
-z0bug_odoo 2.0.6
+z0bug_odoo 2.0.7
 ================
 
 
@@ -1843,6 +1843,19 @@ Current development version
 History
 -------
 
+2.0.7.1 (2023-04-26)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: multiple actione on the same records
+
+2.0.7 (2023-04-08)
+~~~~~~~~~~~~~~~~~~
+
+* [NEW] TestEnv: assertion counter
+* [IMP] TestEnv: is_xref recognizes dot name, i.e "zobug.external.10"
+* [IMP] TestEnv: the field <description> is not mode key (only acount.tax)
+* [IMP] TestEnv: 3th level xref may be a many2one field type
+
 2.0.6 (2023-02-20)
 ~~~~~~~~~~~~~~~~~~
 
@@ -1939,7 +1952,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-02-23
+Last Update / Ultimo aggiornamento: 2023-05-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

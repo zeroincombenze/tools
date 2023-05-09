@@ -1,3 +1,9 @@
+2.0.6 (2023-05-08)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Now all_tests is ignored
+* [IMP] Build Odoo environment for Odoo 16.0
+
 2.0.5 (2023-03-24)
 ~~~~~~~~~~~~~~~~~~
 

@@ -8,7 +8,7 @@ except ImportError:
     import configparser as ConfigParser
 
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 APACHE_TEMPLATE = """##################################################################
 # Odoo service %(odoo_branch)s

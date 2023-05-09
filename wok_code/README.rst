@@ -1,6 +1,6 @@
 
 ==============
-wok_code 2.0.6
+wok_code 2.0.7
 ==============
 
 
@@ -845,6 +845,16 @@ Current development version
 History
 -------
 
+2.0.7 (2023-05-08)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] deply_odoo: new action git-push
+* [REF] odoo_translation: new implementation
+* [FIX] run_odoo_debug: minor fixes
+* [NEW] do_git_checkout_new_branch: new command
+* [IMP] install_python3_from_source: improvements
+* [FIX] ssh.py: scp with port not 22
+
 2.0.6 (2023-02-23)
 ~~~~~~~~~~~~~~~~~~
 
@@ -922,11 +932,6 @@ History
 * [IMP] manage_pypi: improvements
 * [FIX] please lint|test
 
-2.0.0.1 (2022-09-07)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] please test: with debug
-
 
 
 |
@@ -954,7 +959,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-04-23
+Last Update / Ultimo aggiornamento: 2023-05-09
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
