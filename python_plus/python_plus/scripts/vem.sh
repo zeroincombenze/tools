@@ -50,7 +50,7 @@ CLR="\e[0m"
 __version__=2.0.6
 
 declare -A PY3_PKGS
-NEEDING_PKGS="future z0lib"
+NEEDING_PKGS="configparser future python_plus z0lib"
 # DEVEL_PKGS="click flake8 pycodestyle pylint"
 # SUP_PKGS="future python-plus"
 EI_PKGS="(distribute)"
@@ -776,7 +776,7 @@ package_debug() {
 custom_env() {
   # custom_env(VENV pyver)
   [[ $opt_verbose -gt 2 ]] && echo ">>> custom_env($*)"
-  local VIRTUAL_ENV=$1 pyver=$(echo $2|grep --color=never -Eo "[0-9]"|head -n1)
+  local VIRTUAL_ENV=$1 pyver=$(echo $2|grep --color=never -Eo "[23]"|head -n1)
   sed -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(dirname \$(dirname \$(readlink -f \$BASH_SOURCE[0])))":g' -i $VIRTUAL_ENV/bin/activate
   if $(grep -q "^export HOME=" $VIRTUAL_ENV/bin/activate); then
     sed -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' -i $VIRTUAL_ENV/bin/activate
@@ -821,12 +821,12 @@ find_cur_py() {
       [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
       PYTHON=$(which $PYTHON 2>/dev/null)
       [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]" | head -n1)
       PIP=$(which pip$opt_pyver 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     else
       PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]" | head -n1)
       PIP=$(which pip 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     fi
@@ -890,7 +890,7 @@ check_installed_pkgs() {
   [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
-    [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
+    # [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
     p2=""
     if [[ -z "${!x}" ]]; then
       [[ $opt_verbose -lt 2 ]] && run_traced "$PIP install $popts$p2 \"$p\"" -1 || run_traced "$PIP install $popts$p2 \"$p\""
@@ -980,10 +980,10 @@ do_venv_mgr() {
       sed -Ee "s|^ *\[ -x \\\$f -a ! -d \\\$f ] | [[ -x \$f \&\& ! -d \$f ]] \&\& grep -q \"^#\!.*[ /]python\" \$f \&>/dev/null |" -i $VENV/bin/activate
     fi
   fi
-  BINPKGS=$(get_req_list "" "bin")
-  [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #\$(get_req_list '' 'bin' 'debug')"
-  [[ $opt_force -ne 0 ]] && OEPKGS=$(get_req_list "" "python" "oe,cur") || OEPKGS=$(get_req_list "" "python" "oe")
-  [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #\$(get_req_list '' 'python' 'debug,oe,cur')"
+  # BINPKGS=$(get_req_list "" "bin")
+  # [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #\$(get_req_list '' 'bin' 'debug')"
+  # [[ $opt_force -ne 0 ]] && OEPKGS=$(get_req_list "" "python" "oe,cur") || OEPKGS=$(get_req_list "" "python" "oe")
+  # [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #\$(get_req_list '' 'python' 'debug,oe,cur')"
   if [[ $cmd =~ (amend|check|test|inspect) ]]; then
     V=$VENV
   elif [[ "$cmd" == "cp" ]]; then
@@ -1034,7 +1034,7 @@ do_venv_mgr() {
     fi
     [[ ! $cmd =~ (amend|check|cp) ]] && bin_install_1 $VENV
     [[ $cmd =~ (amend|check) ]] && bin_check_1 $VENV
-    x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]")
+    x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]"|head -n1)
     [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -U" || run_traced "$PIP install pip -U"
     PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "--upgrade"
@@ -1215,15 +1215,12 @@ do_venv_create() {
   run_traced "$PIP install \"setuptools<58.0\" -Uq"
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
   check_installed_pkgs
+  pypi_requrements
   pypath=$(find $VENV/lib -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON 2>/dev/null))/../lib) -type d -name site-packages)
   [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
   pip_install_1
   if [[ -n "$opt_oever" ]]; then
-    BINPKGS=$(get_req_list "" "bin")
-    [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' 'bin' 'debug')"
-    OEPKGS=$(get_req_list "" "python" "oe")
-    [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #$(get_req_list '' 'python' 'debug,oe')"
     bin_install_1 $VENV
     pip_install_2
   fi
@@ -1297,6 +1294,22 @@ validate_py_oe_vers() {
   fi
 }
 
+pypi_requrements() {
+    # pypi_requirements(cur)
+    BINPKGS=$(get_req_list "" "bin")
+    [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' '' 'debug,bin')"
+    SECURE_PKGS=$(get_req_list "" "" "sec")
+    [[ $opt_verbose -gt 2 ]] && echo "SECURE_PKGS=$SECURE_PKGS #$(get_req_list '' '' 'debug,sec')"
+    [[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
+    if [[ $opt_dev -eq 0 ]]; then
+      DEVEL_PKGS=""
+    else
+      DEVEL_PKGS=$(get_req_list "" "" "dev")
+      [[ $opt_verbose -gt 2 ]] && echo "DEVEL_PKGS=$DEVEL_PKGS #$(get_req_list '' '' 'debug,dev')"
+    fi
+    [[ -n $1 && $1 -ne 0 ]] && OEPKGS=$(get_req_list "" "python" "oe,cur") || OEPKGS=$(get_req_list "" "python" "oe")
+    [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #\$(get_req_list '' 'python' 'debug,oe,cur')"
+}
 
 OPTOPTS=(h        a        B         C      D       d        E          f         F      g       k        I           i         l        n           O         o          p         q           r           s                    t          V           v           y)
 OPTLONG=(help     ""       ""        ""     devel   dep-path distro     force     ""     global  keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose     yes)
@@ -1411,10 +1424,10 @@ PRINTED_PIPVER=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"
-[[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ=$(whereis list_requirements.py|head -n1|cut -d: -f2|tr -d " ")
+[[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ=""
 [[ -z $LIST_REQ ]] && echo "Command list_requirements.py not found!" && exit 1
 chmod -c +x $LIST_REQ
-LIST_REQ="$HOME/devel/venv/bin/python $LIST_REQ"    #debug
+# LIST_REQ="python $LIST_REQ"    #debug
 
 if [[ $action == "rm" ]]; then
   [[ $PWD == $(readlink -f $p2) ]] && cd
@@ -1431,14 +1444,7 @@ elif [[ $action != "help" ]]; then
   [[ -z $opt_oever ]] && venv_mgr_check_oever
   check_installed_pkgs
   validate_py_oe_vers
-fi
-SECURE_PKGS=$(get_req_list "" "" "sec")
-[[ "$opt_bins" == "*" ]] && opt_bins="${BIN_PKGS//|/,}" && opt_bins="${opt_bins:1:-1}"
-if [[ $opt_dev -eq 0 ]]; then
-  DEVEL_PKGS=""
-else
-  DEVEL_PKGS=$(get_req_list "" "" "dev")
-  [[ $opt_verbose -gt 2 ]] && echo "DEVEL_PKGS=$DEVEL_PKGS #$(get_req_list '' '' 'debug,dev')"
+  pypi_requrements "$opt_force"
 fi
 
 if [[ "$action" == "help" ]]; then

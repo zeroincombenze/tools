@@ -91,4 +91,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    exit(main(None))
+    exit(main(sys.argv))

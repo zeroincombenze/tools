@@ -255,6 +255,8 @@ class OdooDeploy(object):
         return git_url, git_org
 
     def get_repo_from_switch(self):
+        self.repo_list = []
+        self.repo_info = {}
         for repo in self.opt_args.repos.split(","):
             self.repo_info[repo] = {
                 "PATH": self.get_path_of_repo(repo),
@@ -751,13 +753,47 @@ class OdooDeploy(object):
         cmd = "git pull"
         return self.run_traced(cmd)[0], repo_branch
 
+    def git_push(self, repo, tgtdir):
+        if os.getcwd() != tgtdir:
+            self.run_traced("cd %s" % tgtdir)
+        sts, repo_branch, git_url, stash_list = self.get_remote_info()
+        if os.path.islink(tgtdir):
+            return sts, repo_branch
+        cmd = "git push"
+        sts, stdout, stderr = self.run_traced(cmd, verbose=False)
+        if sts:
+            sts, stdout, stderr = z0lib.run_traced("git branch -r",
+                                                   verbose=self.opt_args.verbose)
+            tag = "origin/%s" % repo_branch
+            for ln in stdout.split("\n"):
+                if tag in ln:
+                    if not self.opt_args.assume_yes:
+                        print("Remove remote branch %s of %s!" % (repo_branch, repo))
+                        dummy = input("Delete (y/n)? ")
+                    if self.opt_args.assume_yes or dummy.lower().startswith("y"):
+                        self.run_traced("git push origin -d %s" % repo_branch,
+                                        verbose=self.opt_args.verbose)
+                    self.run_traced(
+                        "git commit --no-verify -m \"[NEW] Initial setup %s\""
+                        % repo_branch,
+                        verbose=self.opt_args.verbose)
+                    break
+            cmd = "git push --set-upstream origin %s" % repo_branch
+            sts, stdout, stderr = self.run_traced(cmd, verbose=self.opt_args.verbose)
+        sleep(1)
+        if sts == 0:
+            sts, repo_branch, git_url, stash_list = self.get_remote_info()
+        if sts:
+            print("***ERROR\n%s\n%s" % (stdout, stderr))
+        return sts, repo_branch
+
     def download_single_repo(self, repo, git_org=None, branch=None):
         git_org = git_org or self.git_org
         branch = branch or self.opt_args.odoo_branch
         odoo_master_branch = build_odoo_param("FULLVER", odoo_vid=branch)
         git_url = stash_list = ""
         tgtdir = self.get_path_of_repo(repo)
-        if self.opt_args.action == "update":
+        if self.opt_args.action in ("update", "git-push"):
             if not os.path.isdir(tgtdir):
                 return 127
             if os.getcwd() != tgtdir:
@@ -780,7 +816,7 @@ class OdooDeploy(object):
         if not git_url:
             return 127
         bakdir = ""
-        if os.path.isdir(tgtdir) and self.opt_args.action != "update":
+        if os.path.isdir(tgtdir) and self.opt_args.action not in ("update", "git-push"):
             if self.opt_args.skip_if_exist:
                 return self.git_pull(tgtdir, branch, master_branch=odoo_master_branch)
             elif not self.opt_args.assume_yes:
@@ -802,6 +838,8 @@ class OdooDeploy(object):
             sts, remote_branch = self.git_pull(
                 tgtdir, branch, master_branch=odoo_master_branch
             )
+        elif os.path.isdir(tgtdir) and self.opt_args.action == "git-push":
+            sts, remote_branch = self.git_push(repo, tgtdir)
         else:
             sts, remote_branch = self.git_clone(
                 git_url,
@@ -1005,7 +1043,7 @@ def main(cli_args=None):
     parser.add_argument("-n", "--dry-run", action="store_true")
     parser.add_argument(
         "-o", "--origin",
-        help="Declare origin repo for 'merge' actioncd"
+        help="Declare origin repo for 'merge' action"
     )
     parser.add_argument(
         "-O", "--link-oca", action="store_true", help="Link to more OCA repositories"
@@ -1035,7 +1073,7 @@ def main(cli_args=None):
     )
     parser.add_argument("-y", "--assume-yes", action="store_true")
     parser.add_argument(
-        "action", nargs="?", help="May be clone,list,reclone,status,update"
+        "action", nargs="?", help="May be clone,git-push,list,reclone,status,update"
     )
     opt_args = parser.parse_args(cli_args)
 
@@ -1053,11 +1091,12 @@ def main(cli_args=None):
     opt_args.git_orgs = opt_args.git_orgs.split(",") if opt_args.git_orgs else []
 
     if (
-        opt_args.action != "update"
-        and opt_args.action != "clone"
-        and opt_args.action != "reclone"
-        and opt_args.action != "list"
-        and opt_args.action != "status"
+        opt_args.action not in ("clone",
+                                "git-push",
+                                "list",
+                                "reclone",
+                                "status",
+                                "update")
     ):
         print("No valid action issued!")
         exit(1)

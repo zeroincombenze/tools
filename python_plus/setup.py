@@ -161,7 +161,7 @@ History
     author='Antonio Maria Vigliotti',
     author_email='antoniomaria.vigliotti@gmail.com',
     license='Affero GPL',
-    install_requires=['future', 'z0lib'],
+    install_requires=['configparser', 'future', 'z0lib'],
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={'': ['scripts/setup.info', 'scripts/vem.sh', './vem.man']},
     entry_points={
