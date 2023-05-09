@@ -1,3 +1,10 @@
+2.0.7 (2023-05-08)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: upgrade version for Odoo 16.0
+* [REF] vem: partial refactoring
+* [IMP] Mots coverage test
+
 2.0.6 (2023-03-24)
 ~~~~~~~~~~~~~~~~~~
 
