@@ -26,13 +26,21 @@ from past.utils import old_div
 import sys
 import re
 
-import odoorpc
-
 try:
-    import oerplib
+    import odoorpc
 except ImportError:
-    if sys.version_info[0] == 2:
-        raise ImportError("Package oerplib not found")
+    raise ImportError("Package odoorpc not found!")
+if sys.version_info[0] == 2:
+    try:
+        import oerplib
+    except ImportError:
+        raise ImportError("Package oerplib not found!")
+else:
+    try:
+        import odoolib
+    except ImportError:
+        raise ImportError("Package odoo-client-lib not found!")
+
 from os0 import os0
 
 try:
@@ -46,7 +54,6 @@ except ImportError:
 try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-
     postgres_drive = True
 except BaseException:  # pragma: no cover
     postgres_drive = False
@@ -82,15 +89,27 @@ def cnx(ctx):
     try:
         if ctx["svc_protocol"] == "jsonrpc":
             odoo = odoorpc.ODOO(ctx["db_host"], ctx["svc_protocol"], ctx["xmlrpc_port"])
-        else:
+            ctx["odoo_cnx"] = odoo
+            ctx["pypi"] = "odoorpc"
+        elif sys.version_info[0] == 2:
             odoo = oerplib.OERP(
                 server=ctx["db_host"],
                 protocol=ctx["svc_protocol"],
                 port=ctx["xmlrpc_port"],
             )
-            # version=ctx['oe_version'])
+            ctx["odoo_cnx"] = odoo
+            ctx["pypi"] = "oerplib"
+        else:
+            odoo = odoolib.get_connector(
+                hostname=ctx["db_host"],
+                protocol=ctx["svc_protocol"],
+                port=int(ctx["xmlrpc_port"]))
+            ctx["odoo_cnx"] = odoo
+            ctx["pypi"] = "odoo-client-lib"
     except BaseException:  # pragma: no cover
         odoo = False
+        ctx["odoo_cnx"] = odoo
+        ctx["pypi"] = ""
     return odoo
 
 
@@ -131,13 +150,15 @@ def connectL8(ctx):
         odoo = cnx(ctx)
         if not odoo:
             return "!Odoo server %s is not running!" % ctx["oe_version"]
-    if ctx["svc_protocol"] == "jsonrpc":
+    if ctx["pypi"] == "odoorpc":
         ctx["server_version"] = odoo.version
-    else:
+    elif ctx["pypi"] == "oerplib":
         try:
             ctx["server_version"] = odoo.db.server_version()
         except BaseException:
-            ctx["server_version"] = odoo.version
+            ctx["server_version"] = ctx["oe_version"]
+    else:
+        ctx["server_version"] = odoo.get_service("db").server_version()
     x = re.match(r"[0-9]+\.[0-9]+", ctx["server_version"])
     if (
         ctx["oe_version"] != "*"
@@ -153,15 +174,39 @@ def connectL8(ctx):
     if ctx["majver"] < 10 and ctx["svc_protocol"] == "jsonrpc":
         ctx["svc_protocol"] = "xmlrpc"
         return connectL8(ctx)
-    ctx["odoo_session"] = odoo
+    ctx["cnx"] = ctx["odoo_session"] = odoo
     return True
 
 
 #############################################################################
 # Primitive version indipendent
 #
+def create_model_object(ctx, resource, id, deep=3):
+    model = ctx["odoo_session"].get_model(resource)
+    values = model.read(id, [])
+    fields = model.fields_get()
+    for (k, v) in values.items():
+        if k == "id":
+            setattr(model, k, v)
+        elif fields[k]["type"] == "many2one":
+            if v and deep:
+                rel_model = fields[k]["relation"]
+                setattr(model,
+                        k,
+                        create_model_object(
+                            ctx, rel_model, v[0], deep=deep - 1)
+                        )
+            else:
+                setattr(model, k, v)
+        elif fields[k]["type"] in ("one2many", "many2many"):
+            setattr(model, k, v)
+        else:
+            setattr(model, k, v)
+    return model
+
+
 def searchL8(ctx, model, where, order=None, context=None):
-    if ctx["svc_protocol"] == "jsonrpc":
+    if ctx["pypi"] == "odoorpc":
         return (
             ctx["odoo_session"].env[model].search(where, order=order, context=context)
         )
@@ -170,19 +215,21 @@ def searchL8(ctx, model, where, order=None, context=None):
 
 
 def browseL8(ctx, model, id, context=None):
-    if ctx["svc_protocol"] == "jsonrpc":
+    if ctx["pypi"] == "odoorpc":
         if context:
             return ctx["odoo_session"].env[model].browse(id).with_context(context)
         else:
             return ctx["odoo_session"].env[model].browse(id)
-    else:
+    elif ctx["pypi"] == "oerplib":
         return ctx["odoo_session"].browse(model, id, context=context)
+    elif ctx["pypi"] == "odoo-client-lib":
+        return create_model_object(ctx, model, id)
 
 
 def createL8(ctx, model, vals, context=None):
     vals = drop_invalid_fields(ctx, model, vals)
     vals = complete_fields(ctx, model, vals)
-    if ctx["svc_protocol"] == "jsonrpc":
+    if ctx["pypi"] == "odoorpc":
         if context:
             return ctx["odoo_session"].env[model].create(vals).with_context(context)
         else:
@@ -204,7 +251,7 @@ def createL8(ctx, model, vals, context=None):
 
 def writeL8(ctx, model, ids, vals, context=None):
     vals = drop_invalid_fields(ctx, model, vals)
-    if ctx["svc_protocol"] == "jsonrpc":
+    if ctx["pypi"] == "odoorpc":
         if context:
             return (
                 ctx["odoo_session"]
@@ -220,7 +267,7 @@ def writeL8(ctx, model, ids, vals, context=None):
 
 
 def unlinkL8(ctx, model, ids):
-    if ctx["svc_protocol"] == "jsonrpc":
+    if ctx["pypi"] == "odoorpc":
         return ctx["odoo_session"].env[model].unlink(ids)
     else:
         return ctx["odoo_session"].unlink(model, ids)
@@ -1341,7 +1388,7 @@ def is_db_alias(ctx, value):
             )
         else:
             return translate_from_sym(ctx, value[0], value[1], ctx["oe_version"]) != ""
-    if ctx["svc_protocol"] == "jsonrpc":
+    if ctx["pypi"] == "odoorpc":
         if (
             model
             and name

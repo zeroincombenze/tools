@@ -13,6 +13,7 @@ try:
         is_valid_field,
         is_required_field,
         model_has_company,
+        create_model_object,
     )
 except:
     from clodoo.clodoocore import (
@@ -23,6 +24,7 @@ except:
         is_valid_field,
         is_required_field,
         model_has_company,
+        create_model_object,
     )
 try:
     from clodoolib import build_odoo_param, crypt

@@ -172,6 +172,13 @@ from future import standard_library
 # from builtins import range
 from past.builtins import basestring
 
+if sys.version_info[0] == 3:
+    try:
+        import odoolib
+    except ImportError:
+        raise ImportError("Package odoo-client-lib not found!")
+
+
 # from passlib.context import CryptContext
 from os0 import os0
 from python_plus import _c
@@ -194,7 +201,7 @@ try:
                                    get_res_users, is_required_field,
                                    is_valid_field, psql_connect, searchL8,
                                    set_some_values, sql_reconnect, unlinkL8,
-                                   writeL8)
+                                   writeL8, create_model_object)
 except ImportError:
     from clodoocore import browseL8  # noqa: F401; noqa: F401
     from clodoocore import build_model_struct  # noqa: F401
@@ -213,7 +220,7 @@ except ImportError:
                             get_res_users, is_required_field,  # noqa: F401
                             is_valid_field, psql_connect, searchL8,  # noqa: F401
                             set_some_values, sql_reconnect, unlinkL8,  # noqa: F401
-                            writeL8)  # noqa: F401
+                            writeL8, create_model_object)  # noqa: F401
 try:
     from clodoo.clodoolib import init_logger  # noqa: F401; noqa: F401
     from clodoo.clodoolib import msg_burst  # noqa: F401
@@ -315,14 +322,51 @@ def open_connection(ctx):
     res = connectL8(ctx)
     if isinstance(res, basestring):
         raise RuntimeError(res)  # pragma: no cover
-    return ctx['odoo_session']
+    return ctx['odoo_cnx']
 
 
 def do_login(ctx):
     """Do a login into DB; try using more usernames and passwords"""
 
     def get_login_user(ctx):
-        return ctx['odoo_session'].env.user
+        return ctx['odoo_cnx'].env.user
+
+    def try_to_login(ctx, pwd):
+        if ctx["pypi"] == "odoorpc":
+            try:
+                ctx['odoo_cnx'].login(
+                    db=db_name, login=username, password=pwd
+                )
+            except BaseException:
+                return False
+            user = get_login_user(ctx)
+            ctx['user_id'] = user.id
+            return user
+        elif ctx["pypi"] == "oerplib":
+            try:
+                user = ctx['odoo_cnx'].login(
+                    database=db_name, user=username, passwd=pwd
+                )
+                ctx['user_id'] = user.id
+                return user
+            except BaseException:
+                return False
+        elif ctx["pypi"] == "odoo-client-lib":
+            connection = odoolib.Connection(ctx['odoo_cnx'],
+                                            db_name,
+                                            username,
+                                            pwd)
+            if not connection:
+                return False
+            try:
+                connection.check_login(True)
+            except BaseException:
+                return False
+            ctx["odoo_session"] = connection
+            ctx['user_id'] = connection.user_id
+            model = "res.users"
+            user = create_model_object(ctx, model, connection.user_id)
+            return user
 
     msg = "do_login()"
     debug_msg_log(ctx, ctx['level'] + 1, msg)
@@ -363,46 +407,22 @@ def do_login(ctx):
             crypted = True
             msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'], username, pwd)
             debug_msg_log(ctx, ctx['level'] + 2, msg)
-            if ctx['svc_protocol'] == 'jsonrpc':
-                try:
-                    ctx['odoo_session'].login(
-                        db=db_name, login=username, password=decrypt(pwd)
-                    )
-                except BaseException:
-                    continue
-                # Keep out of try / except to catch user error
-                user = get_login_user(ctx)
+            user = try_to_login(ctx, decrypt(pwd))
+            if user:
                 break
-            else:
-                try:
-                    user = ctx['odoo_session'].login(
-                        database=db_name, user=username, passwd=decrypt(pwd)
-                    )
-                    break
-                except BaseException:
-                    pass
+
         if not user:
             crypted = False
             for pwd in pwdlist:
-                try:
-                    msg = "do_login_%s(%s,$1$%s)" % (
-                        ctx['svc_protocol'],
-                        username,
-                        crypt(pwd),
-                    )
-                    debug_msg_log(ctx, ctx['level'] + 2, msg)
-                    if ctx['svc_protocol'] == 'jsonrpc':
-                        ctx['odoo_session'].login(
-                            db=db_name, login=username, password=pwd
-                        )
-                        user = get_login_user(ctx)
-                    else:
-                        user = ctx['odoo_session'].login(
-                            database=db_name, user=username, passwd=pwd
-                        )
+                msg = "do_login_%s(%s,$1$%s)" % (
+                    ctx['svc_protocol'],
+                    username,
+                    crypt(pwd),
+                )
+                debug_msg_log(ctx, ctx['level'] + 2, msg)
+                user = try_to_login(ctx, pwd)
+                if user:
                     break
-                except BaseException:
-                    pass
         if user:
             break
     if not user:
@@ -529,11 +549,6 @@ def oerp_set_env(
                     ctx[p] = int(xmlrpc_port)
                 else:
                     ctx[p] = xmlrpc_port
-            # elif p == 'db_port' and xmlrpc_port:
-            #     if isinstance(xmlrpc_port, basestring):
-            #         ctx[p] = int(xmlrpc_port)
-            #     else:
-            #         ctx[p] = xmlrpc_port
             elif p == 'oe_version' and oe_version and oe_version != '*':
                 ctx[p] = oe_version
                 if not ctx.get('odoo_vid'):
@@ -651,7 +666,7 @@ def init_company_ctx(ctx, c_id):
 
 
 def init_user_ctx(ctx, user):
-    ctx['user_id'] = user.id
+    # ctx['user_id'] = user.id
     if ctx['oe_version'] != "6.1":
         ctx['user_partner_id'] = user.partner_id.id
     ctx['user_name'] = get_res_users(ctx, user, 'name')
@@ -681,7 +696,7 @@ def get_dblist(ctx):
         return list
     elif ctx['oe_version'] == '7.0':  # FIX
         time.sleep(1)
-    return ctx['odoo_session'].db.list()
+    return ctx['odoo_cnx'].db.list()
 
 
 def get_companylist(ctx):
@@ -1167,8 +1182,8 @@ def act_drop_db(ctx, db_name=None):
                 if ctx['oe_version'] == '12.0':  # FIX: odoorpc wont work 12.0
                     os0.muteshell("dropdb -Upostgres --if-exists " + db_name)
                 else:
-                    ctx['odoo_session'].db.drop(ctx['admin_passwd'], db_name)
-                # ctx['odoo_session'].db.drop(ctx['admin_passwd'],
+                    ctx['odoo_cnx'].db.drop(ctx['admin_passwd'], db_name)
+                # ctx['odoo_cnx'].db.drop(ctx['admin_passwd'],
                 #                             db_name)
                 sts = STS_SUCCESS
                 if db_name[0:11] != 'clodoo_test':
@@ -1313,26 +1328,26 @@ def act_new_db(ctx):
         if ctx['db_name']:
             if ctx['crypt_password']:
                 pwd = decrypt(ctx['crypt_password'])
-                ctx['server_version'] = ctx['odoo_session'].version
+                ctx['server_version'] = ctx['odoo_cnx'].version
             else:
                 pwd = ctx['login_password']
                 try:
-                    ctx['server_version'] = ctx['odoo_session'].db.server_version()
+                    ctx['server_version'] = ctx['odoo_cnx'].db.server_version()
                 except BaseException:
-                    ctx['server_version'] = ctx['odoo_session'].version
+                    ctx['server_version'] = ctx['odoo_cnx'].version
             try:
                 if ctx['svc_protocol'] == 'jsonrpc':
-                    ctx['odoo_session'].db.create(
+                    ctx['odoo_cnx'].db.create(
                         ctx['admin_passwd'], ctx['db_name'], ctx['with_demo'], lang, pwd
                     )
                     time.sleep(3)
                     open_connection(ctx)  # Needed for 11.0
                 elif ctx['server_version'] == '7.0':
-                    ctx['odoo_session'].db.create_and_wait(
+                    ctx['odoo_cnx'].db.create_and_wait(
                         ctx['admin_passwd'], ctx['db_name'], ctx['with_demo'], lang, pwd
                     )
                 else:
-                    ctx['odoo_session'].db.create_database(
+                    ctx['odoo_cnx'].db.create_database(
                         ctx['admin_passwd'], ctx['db_name'], ctx['with_demo'], lang, pwd
                     )
                     time.sleep(3)
