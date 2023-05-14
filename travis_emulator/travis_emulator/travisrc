@@ -84,8 +84,8 @@ inherits_travis_opts() {
           [ -n "$opt_ids" ] && opts2="-o$opt_ids"
         elif [ "$o" == "P" -a "$opt_cpush" == "-$o" ]; then
           opts="${opts}$o"
-        elif [ "$o" == "p" -a "${opt_pyth:-0}" -gt 0 ]; then
-          opts="${opts}$o"
+        # elif [ "$o" == "p" -a "${opt_pyth:-0}" -gt 0 ]; then
+        #   opts="${opts}$o"
         elif [ "$o" == "q" -a ${opt_verbose:-1} -eq 0 ]; then
           opts="${opts}$o"
         elif [ "$o" == "R" -a "$opt_cpush" == "-$o" ]; then
@@ -280,19 +280,6 @@ uname() {
     local x UNAME
     UNAME=$(which uname)
     [[ -x $TRAVIS_HOME/bin/greadlink ]] && echo "Darwin" || $UNAME "$@"
-}
-
-set_osx() {
-    local x
-    x=$(which readlink)
-    run_traced "ln -s $x $TRAVIS_HOME/bin/greadlink"
-    echo "echo '*** INVALID READLINK: use GREADLINK! ***'" >$TRAVIS_HOME/bin/readlink
-    echo "echo -e \"\\e[31mDir stack\\e[0m\"" >>$TRAVIS_HOME/bin/readlink
-    echo "echo $DIRSTACK" >>$TRAVIS_HOME/bin/readlink
-    echo "echo -e \"\\e[31mCaller\\e[0m\"" >>$TRAVIS_HOME/bin/readlink
-    echo "caller" >>$TRAVIS_HOME/bin/readlink
-    echo "exit 126" >>$TRAVIS_HOME/bin/readlink
-    chmod +x $TRAVIS_HOME/bin/readlink
 }
 
 create_virtual_env() {

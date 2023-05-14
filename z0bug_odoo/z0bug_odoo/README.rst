@@ -1846,7 +1846,7 @@ History
 2.0.7.1 (2023-04-26)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] TestEnv: multiple actione on the same records
+* [FIX] TestEnv: multiple action on the same records
 
 2.0.7 (2023-04-08)
 ~~~~~~~~~~~~~~~~~~
@@ -1952,7 +1952,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-01
+Last Update / Ultimo aggiornamento: 2023-05-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

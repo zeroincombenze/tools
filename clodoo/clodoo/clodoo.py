@@ -341,6 +341,7 @@ def do_login(ctx):
                 return False
             user = get_login_user(ctx)
             ctx['user_id'] = user.id
+            ctx["_pwd"] = pwd
             return user
         elif ctx["pypi"] == "oerplib":
             try:
@@ -348,6 +349,7 @@ def do_login(ctx):
                     database=db_name, user=username, passwd=pwd
                 )
                 ctx['user_id'] = user.id
+                ctx["_pwd"] = pwd
                 return user
             except BaseException:
                 return False
@@ -364,6 +366,7 @@ def do_login(ctx):
                 return False
             ctx["odoo_session"] = connection
             ctx['user_id'] = connection.user_id
+            ctx["_pwd"] = pwd
             model = "res.users"
             user = create_model_object(ctx, model, connection.user_id)
             return user
@@ -495,6 +498,7 @@ def oerp_set_env(
     pwd=None,
     lang=None,
     ctx=None,
+    http_port=None,
 ):
     D_LIST = (
         'ena_inquire',
@@ -520,7 +524,8 @@ def oerp_set_env(
         'crypt2_password',
         'svc_protocol',
         'oe_version',
-        'xmlrpc_port',
+        'http_port',
+        "xmlrpc_port",
         'lang',
         'psycopg2',
     )
@@ -535,6 +540,7 @@ def oerp_set_env(
         lang=None,
         ctx=None,
         inquire=None,
+        http_port=None,
     ):
         ctx = ctx or {}
         for p in D_LIST + P_LIST:
@@ -544,7 +550,12 @@ def oerp_set_env(
                 ctx[p] = user
             elif p == 'login_password' and pwd:
                 ctx[p] = pwd
-            elif p == 'xmlrpc_port' and xmlrpc_port:
+            elif p == 'http_port' and http_port:
+                if isinstance(http_port, basestring):
+                    ctx[p] = int(http_port)
+                else:
+                    ctx[p] = http_port
+            elif p == 'xmlrpc_port' and xmlrpc_port and not http_port:
                 if isinstance(xmlrpc_port, basestring):
                     ctx[p] = int(xmlrpc_port)
                 else:
@@ -584,6 +595,7 @@ def oerp_set_env(
         oe_version=oe_version or ctx.get('oe_version'),
         lang=lang,
         ctx=ctx,
+        http_port=http_port,
     )
     open_connection(ctx)
     if ctx['no_login']:

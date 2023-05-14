@@ -243,10 +243,49 @@ Current development version
 History
 -------
 
+wok_code: 2.0.7.1 (2023-05-09)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Install run_odoo_debug
+
+
+zerobug: 2.0.6 (2023-05-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Now all_tests is ignored
+* [IMP] Build Odoo environment for Odoo 16.0
+
+
+wok_code: 2.0.7 (2023-05-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] deply_odoo: new action git-push
+* [REF] odoo_translation: new implementation
+* [FIX] run_odoo_debug: minor fixes
+* [NEW] do_git_checkout_new_branch: new command
+* [IMP] install_python3_from_source: improvements
+* [FIX] ssh.py: scp with port not 22
+
+
+python_plus: 2.0.7 (2023-05-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: upgrade version for Odoo 16.0
+* [REF] vem: partial refactoring
+* [IMP] Mots coverage test
+
+
+clodoo: 2.0.5 (2023-05-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] clodoo.py: minor fixes
+* [IMP] odoord: odoo version 16.0
+
+
 z0bug_odoo: 2.0.7.1 (2023-04-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] TestEnv: multiple actione on the same records
+* [FIX] TestEnv: multiple action on the same records
 
 
 odoo_score: 2.0.6 (2023-04-16)
@@ -328,7 +367,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-05-08
+Last Update / Ultimo aggiornamento: 2023-05-14
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

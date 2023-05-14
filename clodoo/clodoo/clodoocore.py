@@ -86,16 +86,19 @@ def psql_connect(ctx):
 # Connection and database
 #
 def cnx(ctx):
+    port = ctx.get("http_port") or ctx.get("xmlrpc_port")
+    if "." in ctx["oe_version"] and int(ctx["oe_version"].split(".")[0]) < 10:
+        port = ctx.get("xmlrpc_port") or ctx.get("http_port")
     try:
         if ctx["svc_protocol"] == "jsonrpc":
-            odoo = odoorpc.ODOO(ctx["db_host"], ctx["svc_protocol"], ctx["xmlrpc_port"])
+            odoo = odoorpc.ODOO(ctx["db_host"], ctx["svc_protocol"], port)
             ctx["odoo_cnx"] = odoo
             ctx["pypi"] = "odoorpc"
         elif sys.version_info[0] == 2:
             odoo = oerplib.OERP(
                 server=ctx["db_host"],
                 protocol=ctx["svc_protocol"],
-                port=ctx["xmlrpc_port"],
+                port=port,
             )
             ctx["odoo_cnx"] = odoo
             ctx["pypi"] = "oerplib"
@@ -103,7 +106,7 @@ def cnx(ctx):
             odoo = odoolib.get_connector(
                 hostname=ctx["db_host"],
                 protocol=ctx["svc_protocol"],
-                port=int(ctx["xmlrpc_port"]))
+                port=port)
             ctx["odoo_cnx"] = odoo
             ctx["pypi"] = "odoo-client-lib"
     except BaseException:  # pragma: no cover
@@ -205,13 +208,17 @@ def create_model_object(ctx, resource, id, deep=3):
     return model
 
 
-def searchL8(ctx, model, where, order=None, context=None):
+def searchL8(ctx, model, domain, order=None, context=None):
     if ctx["pypi"] == "odoorpc":
         return (
-            ctx["odoo_session"].env[model].search(where, order=order, context=context)
+            ctx["odoo_session"].env[model].search(domain, order=order, context=context)
         )
-    else:
-        return ctx["odoo_session"].search(model, where, order=order, context=context)
+    elif ctx["pypi"] == "oerplib":
+        return ctx["odoo_session"].search(model, domain, order=order, context=context)
+    elif ctx["pypi"] == "odoo-client-lib":
+        if order:
+            return ctx["odoo_session"].get_model(model).search(domain, order=order)
+        return ctx["odoo_session"].get_model(model).search(domain)
 
 
 def browseL8(ctx, model, id, context=None):
@@ -223,6 +230,11 @@ def browseL8(ctx, model, id, context=None):
     elif ctx["pypi"] == "oerplib":
         return ctx["odoo_session"].browse(model, id, context=context)
     elif ctx["pypi"] == "odoo-client-lib":
+        if isinstance(id, (list, tuple)):
+            res = []
+            for ii in id:
+                res.append(create_model_object(ctx, model, ii))
+            return res
         return create_model_object(ctx, model, id)
 
 
@@ -234,19 +246,10 @@ def createL8(ctx, model, vals, context=None):
             return ctx["odoo_session"].env[model].create(vals).with_context(context)
         else:
             return ctx["odoo_session"].env[model].create(vals)
-    else:
+    elif ctx["pypi"] == "oerplib":
         return ctx["odoo_session"].create(model, vals)
-
-
-#
-#
-# def write_recordL8(ctx, record):
-#     # vals = drop_invalid_fields(ctx, model, vals)
-#     if ctx['svc_protocol'] == 'jsonrpc':
-#         model = record.__class__.__name__
-#         ctx['odoo_session'].env[model].write(record)
-#     else:
-#         ctx['odoo_session'].write_record(record)
+    elif ctx["pypi"] == "odoo-client-lib":
+        return ctx["odoo_session"].get_model(model).create(vals)
 
 
 def writeL8(ctx, model, ids, vals, context=None):
@@ -262,15 +265,21 @@ def writeL8(ctx, model, ids, vals, context=None):
             )
         else:
             return ctx["odoo_session"].env[model].write(ids, vals)
-    else:
+    elif ctx["pypi"] == "oerplib":
         return ctx["odoo_session"].write(model, ids, vals, context=context)
+    elif ctx["pypi"] == "odoo-client-lib":
+        return ctx["odoo_session"].get_model(model).write(ids, vals)
 
 
 def unlinkL8(ctx, model, ids):
+    ids = ids if isinstance(ids, (list, tuple)) else [ids]
     if ctx["pypi"] == "odoorpc":
         return ctx["odoo_session"].env[model].unlink(ids)
-    else:
+    elif ctx["pypi"] == "oerplib":
         return ctx["odoo_session"].unlink(model, ids)
+    elif ctx["pypi"] == "odoo-client-lib":
+        return ctx["odoo_session"].get_model(model).unlink(
+            ids if isinstance(ids, (list, tuple)) else [ids])
 
 
 def executeL8(ctx, model, action, *args):
@@ -279,7 +288,16 @@ def executeL8(ctx, model, action, *args):
     )
     if ctx["majver"] < 10 and action == "invoice_open":
         return ctx["odoo_session"].exec_workflow(model, action, *args)
-    return ctx["odoo_session"].execute(model, action, *args)
+    if ctx["pypi"] in ("odoorpc", "oerplib"):
+        return ctx["odoo_session"].execute(model, action, *args)
+    elif ctx["pypi"] == "odoo-client-lib":
+        return ctx["odoo_session"].get_service('object').execute_kw(
+            ctx["db_name"],
+            ctx["user_id"],
+            ctx["_pwd"],
+            model,
+            action,
+            *args)
 
 
 def execute_action_L8(ctx, model, action, ids):

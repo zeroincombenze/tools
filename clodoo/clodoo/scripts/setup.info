@@ -8,7 +8,7 @@ if sys.version_info >= (3, 0):
         "jsonlib-python3",
         "openpyxl",
         "odoorpc",
-        "oerplib",
+        "odoo-client-lib",
         "os0",
         "psycopg2-binary",
         "python-plus",

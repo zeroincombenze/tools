@@ -402,19 +402,6 @@ class Z0test(object):
             self.rundir = self.this_dir
         # Testing package dir must be the 1.st one in sys.path
         this_pkg_dir = os.path.dirname(self.rundir)
-        # PYTHONPATH = os.environ.get('PYTHONPATH', '')
-        # if this_pkg_dir not in sys.path:
-        #     if PYTHONPATH:
-        #         p = ':%s:' % PYTHONPATH
-        #         if p.find(':%s:' % this_pkg_dir) < 0:
-        #             PYTHONPATH = '%s:%s' % (this_pkg_dir, PYTHONPATH)
-        #     else:
-        #         PYTHONPATH = this_pkg_dir
-        # if this == 'test_zerobug':
-        #     this_pkg_dir = '%s/%s' % (self.rundir, 'dummy')
-        #     PYTHONPATH = '%s:%s' % (this_pkg_dir, PYTHONPATH)
-        # os.putenv('PYTHONPATH', PYTHONPATH)
-        # self.PYTHONPATH = PYTHONPATH
         if this_pkg_dir in sys.path:
             ix = sys.path.index(this_pkg_dir)
             del sys.path[ix]
@@ -424,7 +411,6 @@ class Z0test(object):
             if this.startswith('test_'):
                 id = this[5:]
             elif (
-                # this.startswith('all_tests')
                 this.startswith('zerobug')
                 or this == '__main__'
             ):
@@ -487,7 +473,7 @@ class Z0test(object):
         parser.add_argument(
             "-B",
             "--debug",
-            help="trace msgs in zerobug.tracehis",
+            help="run tests in debug mode",
             action="store_true",
             dest="opt_debug",
             default=False,
@@ -552,7 +538,7 @@ class Z0test(object):
         parser.add_argument(
             "-p",
             "--search-pattern",
-            help="test file pattern",
+            help="pattern to apply for test files (comma separated)",
             dest="opt_pattern",
             metavar="file_list",
             default='',
@@ -583,7 +569,7 @@ class Z0test(object):
         parser.add_argument(
             "-r",
             "--restart",
-            help="set to counted tests, 1st one next to this",
+            help="restart count next to number",
             dest="min_test",
             metavar="number",
         )
@@ -641,7 +627,7 @@ class Z0test(object):
         parser.add_argument(
             "-2",
             "--python2",
-            help="use python2",
+            help="use python2 (deprecated)",
             action="store_true",
             dest="python2",
             default=False,
@@ -649,7 +635,7 @@ class Z0test(object):
         parser.add_argument(
             "-3",
             "--python3",
-            help="use python3",
+            help="use python3 (deprecated)",
             action="store_true",
             dest="python3",
             default=False,
@@ -963,10 +949,6 @@ class Z0test(object):
         return self.test_result(ctx, msg, TEST_SUCCESS, res)
 
     def _exec_tests_4_count(self, test_list, ctx, TestCls=None):
-        # if ctx.get('_run_autotest', False):
-        #     self.dbgmsg(ctx, '>>> exec_tests_4_count(autotest)')
-        # else:
-        #     self.dbgmsg(ctx, '>>> exec_tests_4_count(%s)' % test_list)
         opt4childs = ['-n', '-R']
         ctx = self._ready_opts(ctx)
         ctx = self._save_options(ctx)
@@ -974,20 +956,9 @@ class Z0test(object):
         if TestCls:
             T = TestCls(self)
             if hasattr(TestCls, 'setup'):
-                # getattr(T, 'setup')(ctx)
+                ctx['dry_run'] = True
                 T.setup(ctx)
         for testname in test_list:
-            # self.dbgmsg(
-            #     ctx,
-            #     '- min=%d, max=%d, ctr=%d, -0=%s, Cover=%s'
-            #     % (
-            #         ctx['min_test'],
-            #         ctx['max_test'],
-            #         ctx['ctr'],
-            #         ctx.get('opt_noctr', False),
-            #         ctx.get('run4cover', False),
-            #     ),
-            # )
             ctx['dry_run'] = True
             basetn = os.path.basename(testname)
             ctx['ctr'] = 0
@@ -1020,26 +991,18 @@ class Z0test(object):
                 except BaseException:  # pragma: no cover
                     ctx['ctr'] = 0
                 self.ctr_list.append(ctx['ctr'])
-            # self.dbgmsg(ctx, '- testctr=%d+%d' % (testctr, ctx['ctr']))
             testctr += ctx['ctr']
         if TestCls and hasattr(TestCls, 'teardown'):
+            ctx['dry_run'] = True
             T.teardown(ctx)
         ctx = self._restore_options(ctx)
         ctx['ctr'] = testctr
         if ctx.get('max_test', 0) == 0:
             ctx['max_test'] = ctx.get('min_test', 0) + testctr
-        # self.dbgmsg(
-        #     ctx,
-        #     '- c=%d, min=%d, max=%d' % (ctx['ctr'], ctx['min_test'], ctx['max_test']),
-        # )
         ctx['_prior_msg'] = ''
         return TEST_SUCCESS
 
     def _exec_all_tests(self, test_list, ctx, TestCls=None):
-        # if ctx.get('_run_autotest', False):
-        #     self.dbgmsg(ctx, '>>> exec_all_tests(autotest)')
-        # else:
-        #     self.dbgmsg(ctx, '>>> exec_all_tests()')
         ctx = self._ready_opts(ctx)
         if (
             not ctx.get('_run_autotest', False)
@@ -1051,23 +1014,12 @@ class Z0test(object):
         ix = 0
         sts = 0
         ctx['ctr'] = ctx['min_test']
-        # self.dbgmsg(ctx, '- c=%d, ctr_list=%s' % (ctx['ctr'], self.ctr_list))
+
         if TestCls:
             T = TestCls(self)
         if TestCls and hasattr(TestCls, 'setup'):
             T.setup(ctx)
         for testname in test_list:
-            # self.dbgmsg(
-            #     ctx,
-            #     '- min=%d, max=%d, ctr=%d, -0=%s, Cover=%s'
-            #     % (
-            #         ctx['min_test'],
-            #         ctx['max_test'],
-            #         ctx['ctr'],
-            #         ctx.get('opt_noctr', False),
-            #         ctx.get('run4cover', False),
-            #     ),
-            # )
             opt4childs = self._inherit_opts(ctx)
             basetn = os.path.basename(testname)
             if testname.startswith('__test'):
@@ -1077,15 +1029,12 @@ class Z0test(object):
             elif testname.startswith('__doctest'):
                 self.doctest(ctx, testname)
             elif TestCls and hasattr(TestCls, testname):
-                # if ctx.get('opt_debug', False):
-                #     self.dbgmsg(ctx, ">>> %s()" % testname)
                 sts = getattr(T, testname)(ctx)
             elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
                 if mime == 'text/x-python':
-                    # self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
                     if os.environ.get('TRAVIS_PDB') == 'true':
                         if ctx.get('python3', False):
                             test_w_args = [
@@ -1124,13 +1073,11 @@ class Z0test(object):
                             test_w_args = ['python2'] + [testname] + opt4childs
                         else:
                             test_w_args = [sys.executable] + [testname] + opt4childs
-                    # self.dbgmsg(ctx, ">>> subprocess.call(%s)" % test_w_args)
                     try:
                         sts = subprocess.call(test_w_args)
                     except OSError:
                         sts = 127
                 else:
-                    # self.dbgmsg(ctx, ">>> %s(%s)" % (testname, opt4childs))
                     test_w_args = [testname] + opt4childs
                     try:
                         sts = subprocess.call(test_w_args)
@@ -1154,13 +1101,6 @@ class Z0test(object):
             [meth for meth in dir(Test)
              if meth.startswith("test_") and callable(getattr(Test, meth))]
         )
-        # test_num = 0
-        # test_list = []
-        # for _i in range(MAX_TEST_NUM):
-        #     tname = "test_{:02}".format(test_num)
-        #     if hasattr(Test, tname):
-        #         test_list.append(tname)
-        #     test_num += 1
         if not ctx.get('opt_noctr', False):
             self._exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
@@ -1182,23 +1122,6 @@ class Z0test(object):
         UT: Unit Test list (if None, search for files)
         """
         ctx = self._ready_opts(ctx)
-        # if (
-        #     ctx.get('opt_debug', False)
-        #     and ctx.get('run_on_top', False)
-        #     and not ctx.get('_run_autotest', False)
-        # ):
-        #     self.dbgmsg(ctx, "# Test tree of %s!" % self.module_id)
-        # self.dbgmsg(ctx, '>>> main()')
-        # self.dbgmsg(
-        #     ctx,
-        #     '- min=%s, max=%s, -0=%s, Cover=%s'
-        #     % (
-        #         ctx.get('min_test', None),
-        #         ctx.get('max_test', None),
-        #         ctx.get('opt_noctr', False),
-        #         ctx.get('run4cover', False),
-        #     ),
-        # )
         # Execute sanity check on test library (no if zerobug testing itself)
         if (
             ctx['this'] != 'test_zerobug'
@@ -1225,25 +1148,21 @@ class Z0test(object):
             for pattern in (
                 ctx['opt_pattern'] and ctx['opt_pattern'].split(',') or self.pattern
             ):
-                # self.dbgmsg(ctx, '- Search for files %s' % pattern)
-                test_files = os.path.abspath(os.path.join(self.testdir, pattern))
-                for fn in sorted(glob.glob(test_files)):
+                t_list = glob.glob(os.path.abspath(os.path.join(self.testdir, pattern)))
+                if not pattern.endswith(".py") and not pattern.endswith(".sh"):
+                    t_list += glob.glob(os.path.abspath(os.path.join(self.testdir,
+                                                                     pattern + ".py")))
+                    t_list += glob.glob(os.path.abspath(os.path.join(self.testdir,
+                                                                     pattern + ".sh")))
+                for fn in sorted(t_list):
                     mime = magic.Magic(mime=True).from_file(os.path.realpath(fn))
                     if mime in ('text/x-python', 'text/x-shellscript'):
                         test_list.append(fn)
         if len(test_list) == 0 and Test is not None:
-            # self.dbgmsg(ctx, '- len(test_list) == 0 ')
             test_list = sorted(
                 [meth for meth in dir(Test)
                  if meth.startswith("test_") and callable(getattr(Test, meth))]
             )
-            # test_num = 0
-            # for _i in range(MAX_TEST_NUM):
-            #     tname = "test_{:02}".format(test_num)
-            #     if hasattr(Test, tname):
-            #         test_list.append(tname)
-            #     test_num += 1
-        # self.dbgmsg(ctx, '- test_list=%s' % test_list)
         if not ctx.get('opt_noctr', False):
             self._exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
@@ -1269,16 +1188,7 @@ class Z0test(object):
                         ctx['run4cover'] = False
         return sts
 
-    # def dbgmsg(self, ctx, msg, echo=None):
-    #     # if ctx.get('opt_debug', False):
-    #     #     fmode = 'w' if msg[0] == "!" else 'a'
-    #     #     with open(os.path.join(self.testdir, 'z0bug.tracehis'), fmode) as fd:
-    #     #         fd.write("%s> %s\n" % (os.path.basename(ctx['this_fqn']), msg))
-    #     if echo:
-    #         print('#DEBUG>>> %s' % msg)
-
     def msg_test(self, ctx, msg):
-        # ctx = self.ready_opts(ctx)
         if msg == ctx['_prior_msg']:
             # NEWLN = False
             prfx = "\x1b[A"
@@ -1304,10 +1214,6 @@ class Z0test(object):
                 else:
                     txt = "{}Test {}: {}".format(prfx, ctx['ctr'], msg)
                 os0.wlog(txt)
-
-    # def test_result(self, ctx, msg, test_value, result_value):
-    #     print("Function test_result() deprecated! Please use assertEqual()")
-    #     return assertEqual(test_value, result_value, message=msg)
 
     def test_result(self, ctx, msg, test_value, result_val):
         ctx = self._ready_opts(ctx)

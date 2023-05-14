@@ -660,7 +660,8 @@ class MigrateFile(object):
                        % prettier_config)
             else:
                 cmd = "npx prettier --plugin=@prettier/plugin-xml --print-width=88"
-            cmd = cmd + " --no-xml-self-closing-space --tab-width=4 --write "
+            cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
+            cmd += " --write "
             cmd += out_ffn
             z0lib.run_traced(cmd)
         else:

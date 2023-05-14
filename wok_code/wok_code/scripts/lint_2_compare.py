@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 from lxml import etree
+import re
 
 from python_plus import _b, _u
 from z0lib import z0lib
@@ -12,6 +13,9 @@ __version__ = "2.0.7"
 
 
 IGNORE_DIRS = (".idea", ".git", "egg-info", "setup")
+REGEX_CM = re.compile("(^ *#|^.* #)")
+REGEX_OE = re.compile(r"([\"'])https?://www.openerp.com([\"'])")
+REGEX_OO = re.compile(r"([\"'])https?://(www.)?odoo.com([\"'])")
 
 
 def get_names(left_path, right_path):
@@ -144,8 +148,13 @@ def remove_comment(root, files):
         source = ""
         with open(ffn, "r") as fd:
             for line in fd.read().split("\n"):
-                if not line.strip().startswith("#"):
-                    source += ("%s\n" % line)
+                line = REGEX_OE.sub(r"\1https://www.odoo.com\2", line)
+                line = REGEX_OO.sub(r"\1https://www.odoo.com\2", line)
+                x = REGEX_CM.match(line)
+                if x:
+                    source += ("%s\n" % (line[x.start():x.end()-1].rstrip() or "#"))
+                else:
+                    source += ("%s\n" % line.rstrip())
         with open(ffn, "w") as fd:
             fd.write(source)
 
@@ -171,7 +180,7 @@ def main(cli_args=None):
         epilog="© 2021-2023 by SHS-AV s.r.l."
     )
     parser.add_argument('-b', '--odoo-version')
-    parser.add_argument('-c', '--cache', help="Use cached values")
+    parser.add_argument('-c', '--cache', action="store_true", help="Use cached values")
     parser.add_argument("-d", "--ignore-doc", action="store_true")
     parser.add_argument("-i", "--ignore-po", action="store_true")
     parser.add_argument("-m", "--meld", action="store_true", help='use meld')
@@ -182,7 +191,7 @@ def main(cli_args=None):
     parser.add_argument('right_path', nargs='?')
     opt_args = parser.parse_args(cli_args)
     if not opt_args.right_path:
-        # When just 1 path is issued, current directory become teh left path
+        # When just 1 path is issued, current directory become the left path
         # that is the reference path
         opt_args.right_path = os.path.abspath(opt_args.left_path)
         opt_args.left_path = os.path.abspath(os.getcwd())
@@ -242,14 +251,17 @@ def main(cli_args=None):
                          verbose=opt_args.dry_run,
                          dry_run=opt_args.dry_run)
     if opt_args.meld:
-        z0lib.run_traced('meld.exe %s %s' % (left_diff_path, right_diff_path),
-                         verbose=True,
-                         dry_run=opt_args.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(
+            'meld.exe %s %s' % (left_diff_path, right_diff_path),
+            verbose=True,
+            dry_run=opt_args.dry_run)
     else:
-        z0lib.run_traced('diff -r %s %s' % (left_diff_path, right_diff_path),
-                         verbose=True,
-                         dry_run=opt_args.dry_run)
-    return 0
+        sts, stdout, stderr = z0lib.run_traced(
+            'diff -r %s %s' % (left_diff_path, right_diff_path),
+            verbose=True,
+            dry_run=opt_args.dry_run)
+    print(stdout, stderr)
+    return sts
 
 
 if __name__ == "__main__":

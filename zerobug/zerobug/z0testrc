@@ -89,34 +89,35 @@ parseoptest() {
       export LECHO=
       local Z0=1
     fi
-    OPTOPTS=(h        B         C         e        f        k       J         l      N       n           O         q        R   r        s        V           v           z        Z        0         1         2       3)
-    OPTDEST=(opt_help opt_debug run4cover opt_echo opt_fail opt_new opt_tjLib logfn  opt_new opt_dry_run opt_oeLib opt_echo nrt min_test min_test opt_version opt_verbose max_test opt_zLib opt_noctr run4cover opt_py2 opt_py3)
-    OPTACTI=(1        1         0         1        1        0       1         "="    1       1           1         0        1   "=>"     "=>"     "*>"        1           "=>"     1        1         1         1       1)
-    OPTDEFL=(0        0         -1        -1       0        -1      0         ""     -1      0           0         -1       0   ""       ""       ""          0           ""       0        $Z0       -1        0       0)
-    OPTMETA=("help"   "debug"   ""        "echo"   ""       "keep"  ""        "file" "new"   "count"     ""        "quiet"  ""  "number" "number" "version"   "verbose"   "number" ""       "no"      ""        ""      "")
-    OPTHELP=("show this help message and exit"\
-     "run tests in debug mode"\
-     "run tests w/o coverage"\
-     "enable echoing even if not interactive tty"\
-     "stop on first failure"\
-     "keep current logfile"\
-     "load travisrc library"\
-     "set logfile name"\
-     "create new logfile"\
-     "count and display # unit tests"\
-     "load odoorc library"\
-     "run tests without output (quiet mode)"\
-     "ignored"\
-     "restart count next to number"\
-     "see -r (deprecated)"\
-     "show version and exit"\
-      "verbose mode"\
-     "display total # tests when execute them"\
-     "load zar library"\
-     "no count # unit tests"\
-     "run tests for coverage (obsolete)"\
-     "python2"\
-     "python3")
+    OPTOPTS=(h        B         C         e        f        J         k       l      N       n           O         p         q        R   r        s        V           v           z        Z        0         1         2       3)
+    OPTDEST=(opt_help opt_debug run4cover opt_echo opt_fail opt_tjLib opt_new logfn  opt_new opt_dry_run opt_oeLib opt_patrn opt_echo nrt min_test min_test opt_version opt_verbose max_test opt_zLib opt_noctr run4cover opt_py2 opt_py3)
+    OPTACTI=(1        1         0         1        1        1         0       "="    1       1           1         "="       0        1   "=>"     "=>"     "*>"        1           "=>"     1        1         1         1       1)
+    OPTDEFL=(0        0         -1        -1       0        0         -1      ""     -1      0           0         ""        -1       0   ""       ""       ""          0           ""       0        $Z0       -1        0       0)
+    OPTMETA=("help"   "debug"   ""        "echo"   ""       ""        "keep"  "file" "new"   "count"     ""        "pattern" "quiet"  ""  "number" "number" "version"   "verbose"   "number" ""       "no"      ""        ""      "")
+    OPTHELP=("show this help message and exit"
+     "run tests in debug mode"
+     "run tests w/o coverage"
+     "enable echoing even if not interactive tty"
+     "stop on first failure"
+     "load travisrc library"
+      "keep current logfile"
+     "set logfile name"
+     "create new logfile"
+     "count and display # unit tests"
+     "load odoorc library"
+     "pattern to apply for test files (comma separated)"
+     "run tests without output (quiet mode)"
+     "ignored"
+     "restart count next to number"
+     "see -r (deprecated)"
+     "show version and exit"
+      "verbose mode"
+     "display total # tests when execute them"
+     "load zar library"
+     "no count # unit tests (deprecated)"
+     "run tests for coverage (obsolete)"
+     "python2 (deprecated)"
+     "python3 (deprecated)")
     OPTARGS=()
     parseoptargs "$@"
     if [ "$opt_version" ]; then

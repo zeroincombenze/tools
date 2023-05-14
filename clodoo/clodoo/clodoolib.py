@@ -19,7 +19,7 @@ from future import standard_library
 # from builtins import chr
 # from builtins import str
 # from builtins import *                                           # noqa: F403
-from past.builtins import unicode
+from past.builtins import unicode, basestring
 import argparse
 
 try:
@@ -69,6 +69,7 @@ LX_CFG_S = (
     "db_host",
     "db_port",
     "data_dir",
+    "http_port",
     "xmlrpc_port",
     "oe_version",
     "zeroadm_mail",
@@ -177,6 +178,7 @@ LX_OPT_S = (
     "lgi_pwd",
     "logfn",
     "quiet_mode",
+    "http_port",
     "xmlrpc_port",
     "odoo_vid",
     "exit_onerror",
@@ -339,7 +341,7 @@ def default_conf(ctx):
         "db_port": 5432,
         "oe_version": "*",
         "svc_protocol": "",
-        "xmlrpc_port": 8069,
+        "http_port": 8069,
         "odoo_vid": "12.0",
         "db_name": "demo",
         "logfile": False,
@@ -506,8 +508,6 @@ def create_params_dict(ctx):
                 ctx[opt_obj.do_sel_action] = opt_obj.modules_2_manage
         if hasattr(opt_obj, "data_path") and opt_obj.data_path != "":
             ctx["data_path"] = opt_obj.data_path
-    # if ctx['db_host'] == 'False':
-    #     ctx['db_host'] = 'localhost'
     if "oe_version" in ctx and not ctx.get("odoo_vid"):
         ctx["odoo_vid"] = ctx["oe_version"]
     else:
@@ -528,6 +528,9 @@ def create_params_dict(ctx):
     elif ctx.get("actions_uu", None):
         ctx["actions"] = "per_users," + ctx["actions_uu"]
         del ctx["actions_uu"]
+    for p in ("http_port", "xmlrpc_port", "db_port"):
+        if isinstance(ctx.get(p), basestring) and ctx[p].isdigit():
+            ctx[p] = int(ctx[p])
     return ctx
 
 
@@ -705,9 +708,9 @@ def create_parser(version, doc, ctx):
     )
     parser.add_argument(
         "-r",
-        "--xmlrpc-port",
-        help="xmlrpc port",
-        dest="xmlrpc_port",
+        "--http-port",
+        help="http / xmlrpc port",
+        dest="http_port",
         metavar="port",
         default="",
     )

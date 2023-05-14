@@ -53,7 +53,7 @@ def do_create_gitignore(path, submodules):
             print('Created file %s' % ffn)
 
 
-def main(argv):
+def main(argv=None):
     argv = argv or sys.argv[1:]
     path = None
     for param in argv:
@@ -91,4 +91,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    exit(main(sys.argv))
+    exit(main())
