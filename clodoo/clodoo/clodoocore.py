@@ -37,9 +37,12 @@ if sys.version_info[0] == 2:
         raise ImportError("Package oerplib not found!")
 else:
     try:
-        import odoolib
+        import oerplib3
     except ImportError:
-        raise ImportError("Package odoo-client-lib not found!")
+        try:
+            import odoolib
+        except ImportError:
+            raise ImportError("Package oerplib3 / odoo-client-lib not found!")
 
 from os0 import os0
 
@@ -54,6 +57,7 @@ except ImportError:
 try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
     postgres_drive = True
 except BaseException:  # pragma: no cover
     postgres_drive = False
@@ -102,11 +106,18 @@ def cnx(ctx):
             )
             ctx["odoo_cnx"] = odoo
             ctx["pypi"] = "oerplib"
+        elif "oerplib3" in globals():
+            odoo = oerplib3.OERP(
+                server=ctx["db_host"],
+                protocol=ctx["svc_protocol"],
+                port=port,
+            )
+            ctx["odoo_cnx"] = odoo
+            ctx["pypi"] = "oerplib3"
         else:
             odoo = odoolib.get_connector(
-                hostname=ctx["db_host"],
-                protocol=ctx["svc_protocol"],
-                port=port)
+                hostname=ctx["db_host"], protocol=ctx["svc_protocol"], port=port
+            )
             ctx["odoo_cnx"] = odoo
             ctx["pypi"] = "odoo-client-lib"
     except BaseException:  # pragma: no cover
@@ -155,7 +166,7 @@ def connectL8(ctx):
             return "!Odoo server %s is not running!" % ctx["oe_version"]
     if ctx["pypi"] == "odoorpc":
         ctx["server_version"] = odoo.version
-    elif ctx["pypi"] == "oerplib":
+    elif ctx["pypi"].startswith("oerplib"):
         try:
             ctx["server_version"] = odoo.db.server_version()
         except BaseException:
@@ -188,17 +199,15 @@ def create_model_object(ctx, resource, id, deep=3):
     model = ctx["odoo_session"].get_model(resource)
     values = model.read(id, [])
     fields = model.fields_get()
-    for (k, v) in values.items():
+    for k, v in values.items():
         if k == "id":
             setattr(model, k, v)
         elif fields[k]["type"] == "many2one":
             if v and deep:
                 rel_model = fields[k]["relation"]
-                setattr(model,
-                        k,
-                        create_model_object(
-                            ctx, rel_model, v[0], deep=deep - 1)
-                        )
+                setattr(
+                    model, k, create_model_object(ctx, rel_model, v[0], deep=deep - 1)
+                )
             else:
                 setattr(model, k, v)
         elif fields[k]["type"] in ("one2many", "many2many"):
@@ -213,7 +222,7 @@ def searchL8(ctx, model, domain, order=None, context=None):
         return (
             ctx["odoo_session"].env[model].search(domain, order=order, context=context)
         )
-    elif ctx["pypi"] == "oerplib":
+    elif ctx["pypi"].startswith("oerplib"):
         return ctx["odoo_session"].search(model, domain, order=order, context=context)
     elif ctx["pypi"] == "odoo-client-lib":
         if order:
@@ -227,7 +236,7 @@ def browseL8(ctx, model, id, context=None):
             return ctx["odoo_session"].env[model].browse(id).with_context(context)
         else:
             return ctx["odoo_session"].env[model].browse(id)
-    elif ctx["pypi"] == "oerplib":
+    elif ctx["pypi"].startswith("oerplib"):
         return ctx["odoo_session"].browse(model, id, context=context)
     elif ctx["pypi"] == "odoo-client-lib":
         if isinstance(id, (list, tuple)):
@@ -246,7 +255,7 @@ def createL8(ctx, model, vals, context=None):
             return ctx["odoo_session"].env[model].create(vals).with_context(context)
         else:
             return ctx["odoo_session"].env[model].create(vals)
-    elif ctx["pypi"] == "oerplib":
+    elif ctx["pypi"].startswith("oerplib"):
         return ctx["odoo_session"].create(model, vals)
     elif ctx["pypi"] == "odoo-client-lib":
         return ctx["odoo_session"].get_model(model).create(vals)
@@ -265,7 +274,7 @@ def writeL8(ctx, model, ids, vals, context=None):
             )
         else:
             return ctx["odoo_session"].env[model].write(ids, vals)
-    elif ctx["pypi"] == "oerplib":
+    elif ctx["pypi"].startswith("oerplib"):
         return ctx["odoo_session"].write(model, ids, vals, context=context)
     elif ctx["pypi"] == "odoo-client-lib":
         return ctx["odoo_session"].get_model(model).write(ids, vals)
@@ -275,11 +284,14 @@ def unlinkL8(ctx, model, ids):
     ids = ids if isinstance(ids, (list, tuple)) else [ids]
     if ctx["pypi"] == "odoorpc":
         return ctx["odoo_session"].env[model].unlink(ids)
-    elif ctx["pypi"] == "oerplib":
+    elif ctx["pypi"].startswith("oerplib"):
         return ctx["odoo_session"].unlink(model, ids)
     elif ctx["pypi"] == "odoo-client-lib":
-        return ctx["odoo_session"].get_model(model).unlink(
-            ids if isinstance(ids, (list, tuple)) else [ids])
+        return (
+            ctx["odoo_session"]
+            .get_model(model)
+            .unlink(ids if isinstance(ids, (list, tuple)) else [ids])
+        )
 
 
 def executeL8(ctx, model, action, *args):
@@ -288,16 +300,16 @@ def executeL8(ctx, model, action, *args):
     )
     if ctx["majver"] < 10 and action == "invoice_open":
         return ctx["odoo_session"].exec_workflow(model, action, *args)
-    if ctx["pypi"] in ("odoorpc", "oerplib"):
+    if ctx["pypi"] in ("odoorpc", "oerplib", "oerplib3"):
         return ctx["odoo_session"].execute(model, action, *args)
     elif ctx["pypi"] == "odoo-client-lib":
-        return ctx["odoo_session"].get_service('object').execute_kw(
-            ctx["db_name"],
-            ctx["user_id"],
-            ctx["_pwd"],
-            model,
-            action,
-            *args)
+        return (
+            ctx["odoo_session"]
+            .get_service('object')
+            .execute_kw(
+                ctx["db_name"], ctx["user_id"], ctx["_pwd"], model, action, *args
+            )
+        )
 
 
 def execute_action_L8(ctx, model, action, ids):
@@ -521,7 +533,6 @@ def tnl_2_ver_drop_record(
 
 
 def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
-
     APPLY = {
         "account.account.type": {"type": "acc_type()", "report_type": "acc_type()"},
         "account.account": {"child_id": "child_id()"},

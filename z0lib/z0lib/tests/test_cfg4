@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.5
 
 
 PASSED=0
@@ -76,7 +76,6 @@ test_01() {
         fi
         echo "param1=Wrong">>$FCONF
         link_cfg $FCONF "" $tid
-        # set -x  #debug
       fi
       TRES=$(get_cfg_value $tid "param1")
       test_result "get_cfg_value $tid param1 #[$DISTO]" "Right" "$TRES"

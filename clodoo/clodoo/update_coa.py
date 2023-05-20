@@ -132,13 +132,13 @@ def update_coa(ctx):
     if len(clodoo.searchL8(ctx, model, [("company_id", "=", company_id)])) < 100:
         return
     company = clodoo.browseL8(ctx, "res.company", company_id)
-    print( "- Processing company %s" % company.name)
+    print("- Processing company %s" % company.name)
     for code in ("__", "A", "P", "R", "S"):
         ids = clodoo.searchL8(
             ctx, model, [("code", "=", code), ("company_id", "=", company_id)]
         )
         if len(ids) > 2:
-            print( "Warning: invalid account '%s'" % code)
+            print("Warning: invalid account '%s'" % code)
             sys.exit(1)
         elif ids:
             vals = get_code_values(ctx, code)
@@ -194,7 +194,7 @@ def update_coa(ctx):
 if __name__ == "__main__":
     # pdb.set_trace()
     oerp, uid, ctx = init_n_connect()
-    print( "Update Chart of Account on DB %s" % (ctx["db_name"]))
+    print("Update Chart of Account on DB %s" % (ctx["db_name"]))
     ids = clodoo.searchL8(ctx, "res.company", [])
     for company_id in ids:
         ctx["company_id"] = company_id

@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=2.0.4
+#__version__=2.0.5
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -298,7 +298,6 @@ parseoptargs() {
           f=0
           while ((jy<${#OPTOPTS[*]})); do
             if [[ ${oo:jj:1} == ${OPTOPTS[jy]} ]]; then
-              # set -x
               f=1
               a=${OPTACTI[jy]}
               b=${a:1:1}
@@ -673,48 +672,6 @@ findpkg() {
 export -f findpkg
 
 
-## Deprecated: use CFG_init
-#a_new() {
-#    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
-#    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
-#      local tid=$1
-#    else
-#      local tid="0"
-#    fi
-#    cmd="unset DEFDICT$tid DEFRULE$tid"
-#    echo $cmd
-#    $SETX
-#}
-#export -f a_new
-
-
-
-## Deprecated: use CFG_init
-#a_active() {
-#    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
-#    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
-#      local tid=$1
-#    else
-#      local tid="0"
-#    fi
-#    if [ "$XU_FH" != "RHEL" -a "$XU_FH" != "Debian" ]; then
-#      XU_FH=$(xuname "-f")
-#      local x=$(xuname "-v")
-#      local v=$(echo $x|awk -F. '{print $1}')
-#      XU_DISTO=$(xuname "-d")$v
-#    elif [ -z "$XU_DISTO" ]; then
-#      local x=$(xuname "-v")
-#      XU_DISTO=$(xuname "-d")${x:0:1}
-#    fi
-#    # declare -g XU_FH=$XU_FH XU_DISTO=$XU_DISTO
-#    # declare -gA DEFDICT$tid DEFRULE$tid
-#    cmd="XU_FH=$XU_FH XU_DISTO=$XU_DISTO; declare -gA DEFDICT$tid DEFRULE$tid"
-#    echo $cmd
-#    $SETX
-#}
-#export -f a_active
-
-
 ##############################################################################
 # Add key and value to dictionary (associative array)
 # key may be regex to match multiple values
@@ -751,30 +708,30 @@ CFG_set() {
       elif [[ -n $4 ]]; then
         SFX="__$4"
       else
-        SFX=
+        SFX=""
       fi
       key=${1//-/_}
       [[ $5 =~ (-D|1) ]] && SFX="${SFX}__DEV"
-      if [[ "$tid" == "0" ]]; then
-        if [ "${key:0:1}" == "^" ]; then
+      if [[ $tid == "0" ]]; then
+        if [[ "${key:0:1}" == "^" ]]; then
           DEFRULE0[$key$SFX]="$2"
         else
           DEFDICT0[$key$SFX]="$2"
         fi
       elif [[ $tid == "1" ]]; then
-        if [ "${key:0:1}" == "^" ]; then
+        if [[ "${key:0:1}" == "^" ]]; then
           DEFRULE1[$key$SFX]="$2"
         else
           DEFDICT1[$key$SFX]="$2"
         fi
       elif [[ $tid == "2" ]]; then
-        if [ "${key:0:1}" == "^" ]; then
+        if [[ "${key:0:1}" == "^" ]]; then
           DEFRULE2[$key$SFX]="$2"
         else
           DEFDICT2[$key$SFX]="$2"
         fi
       elif [[ $tid == "3" ]]; then
-        if [ "${key:0:1}" == "^" ]; then
+        if [[ "${key:0:1}" == "^" ]]; then
           DEFRULE3[$key$SFX]="$2"
         else
           DEFDICT3[$key$SFX]="$2"
@@ -812,14 +769,14 @@ CFG_find() {
     local p=""
     local sts=1
     local x SFX key KK
-    if [ -n "$2" ]; then
+    if [[ -n "$2" ]]; then
       SFX=
       key=${2//-/_}
-      if [ "$1" == "0" ]; then
+      if [[ $1 == "0" ]]; then
         for SFX in __${XU_DISTO}__DEV __${XU_FH}__DEV __$XU_DISTO __$XU_FH ""; do
           KK=$key$SFX
           p=${DEFDICT0[$KK]}
-          if [ -n "$p" ]; then break; fi
+          [[ -n "$p" ]] && break
         done
         if [ -z "$p" ]; then
           local KK=(${!DEFRULE0[@]})
@@ -831,11 +788,11 @@ CFG_find() {
               if [[ "$K" =~ ^.*$SFX ]]; then
                 if [[ "${key}__$XU_DISTO" =~ $K ]]; then
                   p=${DEFRULE0[$K]}
-                  local sts=0
+                  sts=0
                   break
                 elif [[ "${key}__$XU_FH" =~ $K ]]; then
                   p=${DEFRULE0[$K]}
-                  local sts=0
+                  sts=0
                   break
                 fi
               fi
@@ -860,11 +817,11 @@ CFG_find() {
               if [[ "$K" =~ ^.*$SFX ]]; then
                 if [[ "${key}__$XU_DISTO" =~ $K ]]; then
                   p=${DEFRULE1[$K]}
-                  local sts=0
+                  sts=0
                   break
                 elif [[ "${key}__$XU_FH" =~ $K ]]; then
                   p=${DEFRULE1[$K]}
-                  local sts=0
+                  sts=0
                   break
                 fi
               fi
@@ -889,11 +846,11 @@ CFG_find() {
               if [[ "$K" =~ ^.*$SFX ]]; then
                 if [[ "${key}__$XU_DISTO" =~ $K ]]; then
                   p=${DEFRULE2[$K]}
-                  local sts=0
+                  sts=0
                   break
                 elif [[ "${key}__$XU_FH" =~ $K ]]; then
                   p=${DEFRULE2[$K]}
-                  local sts=0
+                  sts=0
                   break
                 fi
               fi
@@ -918,11 +875,11 @@ CFG_find() {
               if [[ "$K" =~ ^.*$SFX ]]; then
                 if [[ "${key}__$XU_DISTO" =~ $K ]]; then
                   p=${DEFRULE3[$K]}
-                  local sts=0
+                  sts=0
                   break
                 elif [[ "${key}__$XU_FH" =~ $K ]]; then
                   p=${DEFRULE3[$K]}
-                  local sts=0
+                  sts=0
                   break
                 fi
               fi
@@ -932,9 +889,7 @@ CFG_find() {
           done
         fi
       fi
-      if [ -n "$p" ]; then
-        local sts=0
-      fi
+      [[ -n "$p" ]] && sts=0
     fi
     echo "$p"
     $SETX
@@ -942,10 +897,6 @@ CFG_find() {
 }
 export -f CFG_find
 
-# Deprecated: use CFG_find
-#a_find() {
-#    CFG_find "$@"
-#}
 
 ##############################################################################
 # get value from config file
@@ -965,7 +916,7 @@ export -f CFG_find
 get_cfg_value() {
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     local p tid t
-    if [ -z "$2" ]; then
+    if [[ -z "$2" ]]; then
       p=
       echo $p
       return
@@ -977,6 +928,8 @@ get_cfg_value() {
       p=$(CFG_find "$t" "$2")
       [[ -n "$p" && $p != "False" ]] && break
     done
+    # Workaround
+    [[ $2 =~ (LOCAL_PKGS|PKGS_LIST) ]] && p="clodoo lisa odoo_score os0 oerplib3 python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
     [[ $p == "None" ]] && p=""
     echo "$p"
     $SETX
@@ -1022,31 +975,6 @@ CFG_init() {
 export -f CFG_init
 
 
-# Deprecated: use CFG_init
-#init_cfg() {
-## Parameter $1: Id of table (may be 0..3)
-#    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
-#      local tid=$1
-#    else
-#      local tid="0"
-#    fi
-#    echo $(a_new "$tid")
-#    eval $(a_active "$tid")
-#}
-#export -f init_cfg
-
-# Deprecated: use CFG_init
-#active_cfg() {
-## Parameter $1: Id of table (may be 0..3)
-#    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
-#      local tid=$1
-#    else
-#      local tid="0"
-#    fi
-#    echo $(a_active "$tid")
-#}
-#export -f active_cfg
-
 set_cfg_def() {
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     # set_cfg_set(key value [id])
@@ -1058,7 +986,7 @@ export -f set_cfg_def
 
 
 _read_cfg_file() {
-#read_cfg_file(file $tid [section] [-D|-d])    -D or -d means debug
+# read_cfg_file(file $tid [section] [-D|-d])    -D or -d means debug
     [[ ! -n "$1"  || ! -f "$1" ]] && return
     local key val lne x r t s d b dev
     if [[ "$(type -t store_cfg_param_value)" == "function" ]]; then
@@ -1146,27 +1074,27 @@ _read_cfg_file() {
 
 link_cfg_def() {
   [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
-  local file_bckdel file_backup file_meta file_vcs file_bins
-  local file_media file_bindata
+  local fn_bckdel fn_backup fn_meta fn_vcs fn_bins
+  local fn_media fn_bindata LOCAL_PKGS
   [[ -n "$HOSTNAME_DEV" ]] && set_cfg_def "DEV_HOST" "$HOSTNAME_DEV" || set_cfg_def "DEV_HOST" "(pc[0-9]+)?shsde([a-z][0-9]+)?"
   [[ -n "$HOSTNAME_PRD" ]] && set_cfg_def "PRD_HOST" "$HOSTNAME_PRD" || set_cfg_def "PRD_HOST" "(shsp([a-z][0-9]+)?"
   CFG_set "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
   CFG_set "ODOO_SETUPS" "__manifest__.py __openerp__.py"
-  file_bckdel=".bak *~ .tmp .log .out .tracehis .tracehistory ,cover .coverage test*.pdf tmp.* npm-debug.log.* .oca .z0i .oia .gitrepname"
-  file_backup=".orig .swp .tar .gz .zip __old_*"
-  file_meta=".DS_Store ._* .Spotlight-V100 .Trashes Thumbs.db Desktop.ini .cover/ .coverage/ .conf build/ dist/ conf/ filestore/ html/ .idea/ latex/ __pycache__/ .local/ .npm/ .gem/ Trash/ VME/ PycharmProjects pycharm*"
-  file_vcs="_MTN .bzr/ .svn/ .hg/ .fslckout _FOSSIL_ .fos CVS _darcs .git/ .osc"
-  file_bins=".pyc .a .obj .o .so .la .lib .dll .exe"
-  file_media=".jpg .gif .png .bmp .wav .mp3 .ogg .flac .avi .mpg .xcf .xpm"
-  file_bindata=".xls .xlsx .pickle"
-  CFG_set "filedel" "$file_bckdel"
-  CFG_set "file_backup" "$file_backup"
-  CFG_set "file_meta" "$file_meta"
-  CFG_set "file_vcs" "$file_vcs"
-  CFG_set "file_bins" "$file_bins"
-  CFG_set "file_media" "$file_media"
-  CFG_set "file_bindata" "$file_bindata"
-  CFG_set "fileignore" "$file_backup $file_meta $file_vcs $file_bins $file_media $file_bindata"
+  fn_bckdel=".bak '*~' .tmp .log .out .tracehis .tracehistory ,cover .coverage 'test*.pdf' 'tmp.*' 'npm-debug.log.*' .oca .z0i .oia .gitrepname"
+  fn_backup=".orig .swp .tar .gz .zip '__old_*'"
+  fn_meta=".DS_Store '._*' .Spotlight-V100 .Trashes Thumbs.db Desktop.ini .cover/ .coverage/ .conf build/ dist/ conf/ filestore/ html/ .idea/ latex/ __pycache__/ .local/ .npm/ .gem/ Trash/ VME/ PycharmProjects pycharm*"
+  fn_vcs="_MTN .bzr/ .svn/ .hg/ .fslckout _FOSSIL_ .fos CVS _darcs .git/ .osc"
+  fn_bins=".pyc .a .obj .o .so .la .lib .dll .exe"
+  fn_media=".jpg .gif .png .bmp .wav .mp3 .ogg .flac .avi .mpg .xcf .xpm"
+  fn_bindata=".xls .xlsx .pickle"
+  CFG_set "filedel" "$fn_bckdel"
+  CFG_set "file_backup" "$fn_backup"
+  CFG_set "file_meta" "$fn_meta"
+  CFG_set "file_vcs" "$fn_vcs"
+  CFG_set "file_bins" "$fn_bins"
+  CFG_set "file_media" "$fn_media"
+  CFG_set "fie_bindata" "$fn_bindata"
+  CFG_set "fileignore" "$fn_backup $fn_meta $fn_vcs $fn_bins $fn_media $fn_bindata"
   CFG_set "filediffignore" ".po .pot LICENSE README README.md* README.rst* /docs/"
   CFG_set "PS_TXT_COLOR" "0;97;40"
   CFG_set "PS_RUN_COLOR" "1;37;44"
@@ -1174,7 +1102,11 @@ link_cfg_def() {
   CFG_set "PS_HDR1_COLOR" "97;42"
   CFG_set "PS_HDR2_COLOR" "30;43"
   CFG_set "PS_HDR3_COLOR" "30;45"
-  CFG_set "PKGS_LIST" "clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
+  LOCAL_PKGS="clodoo lisa odoo_score os0 python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
+  [[ -d $HOME_DEVEL/../tools ]] && LOCAL_PKGS=$(find $HOME_DEVEL/../tools -maxdepth 1 -type d|grep -Ev "(/|.git|.idea|docs|egg-info|license_text|templates|tools|tests|z0tester)$"|sort|cut -d/ -f7|tr "\n" " ")
+  [[ -d $HOME_DEVEL/pypi ]] && LOCAL_PKGS=$(find $HOME_DEVEL/pypi -maxdepth 1 -type d|grep -Ev "(/|.git|.idea|docs|egg-info|license_text|templates|tools|tests|z0tester)$"|sort|cut -d/ -f6|tr "\n" " ")
+  LOCAL_PKGS=$(echo $LOCAL_PKGS)
+  CFG_set "LOCAL_PKGS" "$LOCAL_PKGS"
   CFG_set "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
   CFG_set "DEV_SVG" "$HOME_DEVEL/svg"
   CFG_set "HTML_DOCS_DIR" "/var/www/html/mw/html"
@@ -1463,7 +1395,10 @@ is_odoo_module() {
 is_pypi() {
     local x
     [[ -z $1 ]] && return 1
-    [[ -f $1/__main__.py && -f $1/__init__.py && -d $1/scripts && -d $1/egg-info ]] && return 0
+    [[ ( -f $1/setup.py || -f $1/../setup.py ) && -f $1/__init__.py && ( -d $1/egg-info || -f $1/oerp.py ) ]] && return 0
+    x=$(get_cfg_value "" "LOCAL_PKGS")
+    x="(${x// /|})"
+    [[ $(basename $1) =~ $x && $(basename $(dirname $1)) == "local" ]] && return 0
     return 1
 }
 

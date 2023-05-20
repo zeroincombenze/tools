@@ -10,7 +10,7 @@ import yaml
 from python_plus import _b
 from z0lib import z0lib
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 # RULES: every rule is list has the following format:
 # EREGEX, (ACTION, PARAMETERS), ...
@@ -370,7 +370,7 @@ class MigrateFile(object):
         offset = 0
         if (
             self.opt_args.python_ver
-            and self.opt_args.python_ver.startswith("2")
+            and self.py23 == 2 or self.python_future
             and self.utf8_decl_nro < 0
         ):
             self.utf8_decl_nro = nro
@@ -665,7 +665,10 @@ class MigrateFile(object):
             cmd += out_ffn
             z0lib.run_traced(cmd)
         else:
-            cmd = "black --skip-string-normalization -q %s" % out_ffn
+            opts = "--skip-source-first-line"
+            if self.py23 == 2 or self.python_future:
+                opts += " --skip-string-normalization"
+            cmd = "black %s -q %s" % (opts, out_ffn)
             z0lib.run_traced(cmd)
 
     def close(self):

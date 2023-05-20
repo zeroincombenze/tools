@@ -152,8 +152,7 @@ oe_versions: select record if matches Odoo version
     i.e  +11.0+10.0 => select record if Odoo 11.0 or 10.0
     i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import calendar
 import csv
@@ -163,78 +162,126 @@ import platform
 import re
 import sys
 import time
+
 # from builtins import *                                           # noqa: F403
 from builtins import input, object
 from datetime import date, datetime, timedelta
 
 from future import standard_library
+
 # from builtins import str
 # from builtins import range
 from past.builtins import basestring
 
 if sys.version_info[0] == 3:
     try:
-        import odoolib
+        import oerplib3         # noqa: F401
     except ImportError:
-        raise ImportError("Package odoo-client-lib not found!")
-
+        try:
+            import odoolib
+        except ImportError:
+            raise ImportError("Package oerplib3 / odoo-client-lib not found!")
 
 # from passlib.context import CryptContext
 from os0 import os0
 from python_plus import _c
 
 try:
-    from clodoo.clodoocore import browseL8  # noqa: F401; noqa: F401
-    from clodoo.clodoocore import build_model_struct  # noqa: F401
-    from clodoo.clodoocore import connectL8  # noqa: F401
-    from clodoo.clodoocore import execute_action_L8  # noqa: F401
-    from clodoo.clodoocore import extr_table_generic  # noqa: F401
+    from clodoo.clodoocore import browseL8              # noqa: F401
+    from clodoo.clodoocore import build_model_struct    # noqa: F401
+    from clodoo.clodoocore import connectL8             # noqa: F401
+    from clodoo.clodoocore import execute_action_L8     # noqa: F401
+    from clodoo.clodoocore import extr_table_generic    # noqa: F401
     from clodoo.clodoocore import extract_vals_from_rec  # noqa: F401
-    from clodoo.clodoocore import get_val_from_field  # noqa: F401
-    from clodoo.clodoocore import import_file_get_hdr  # noqa: F401
-    from clodoo.clodoocore import model_has_company  # noqa: F401
-    from clodoo.clodoocore import put_model_alias  # noqa: F401
-    from clodoo.clodoocore import (createL8, cvt_from_ver_2_ver, eval_value,
-                                   exec_sql, executeL8, get_company_id,
-                                   get_model_model, get_model_name,
-                                   get_model_structure, get_query_id,
-                                   get_res_users, is_required_field,
-                                   is_valid_field, psql_connect, searchL8,
-                                   set_some_values, sql_reconnect, unlinkL8,
-                                   writeL8, create_model_object)
+    from clodoo.clodoocore import get_val_from_field    # noqa: F401
+    from clodoo.clodoocore import import_file_get_hdr   # noqa: F401
+    from clodoo.clodoocore import model_has_company     # noqa: F401
+    from clodoo.clodoocore import put_model_alias       # noqa: F401
+    from clodoo.clodoocore import (                     # noqa: F401
+        createL8,
+        cvt_from_ver_2_ver,
+        eval_value,
+        exec_sql,
+        executeL8,
+        get_company_id,
+        get_model_model,
+        get_model_name,
+        get_model_structure,
+        get_query_id,
+        get_res_users,
+        is_required_field,
+        is_valid_field,
+        psql_connect,
+        searchL8,
+        set_some_values,
+        sql_reconnect,
+        unlinkL8,
+        writeL8,
+        create_model_object,
+    )
 except ImportError:
-    from clodoocore import browseL8  # noqa: F401; noqa: F401
-    from clodoocore import build_model_struct  # noqa: F401
-    from clodoocore import connectL8  # noqa: F401
-    from clodoocore import execute_action_L8  # noqa: F401
-    from clodoocore import extr_table_generic  # noqa: F401
+    from clodoocore import browseL8             # noqa: F401
+    from clodoocore import build_model_struct   # noqa: F401
+    from clodoocore import connectL8            # noqa: F401
+    from clodoocore import execute_action_L8    # noqa: F401
+    from clodoocore import extr_table_generic   # noqa: F401
     from clodoocore import extract_vals_from_rec  # noqa: F401
-    from clodoocore import get_val_from_field  # noqa: F401
+    from clodoocore import get_val_from_field   # noqa: F401
     from clodoocore import import_file_get_hdr  # noqa: F401
-    from clodoocore import model_has_company  # noqa: F401
-    from clodoocore import put_model_alias  # noqa: F401
-    from clodoocore import (createL8, cvt_from_ver_2_ver, eval_value,  # noqa: F401
-                            exec_sql, executeL8, get_company_id,  # noqa: F401
-                            get_model_model, get_model_name,  # noqa: F401
-                            get_model_structure, get_query_id,  # noqa: F401
-                            get_res_users, is_required_field,  # noqa: F401
-                            is_valid_field, psql_connect, searchL8,  # noqa: F401
-                            set_some_values, sql_reconnect, unlinkL8,  # noqa: F401
-                            writeL8, create_model_object)  # noqa: F401
+    from clodoocore import model_has_company    # noqa: F401
+    from clodoocore import put_model_alias      # noqa: F401
+    from clodoocore import (   # noqa: F401
+        createL8,
+        cvt_from_ver_2_ver,
+        eval_value,
+        exec_sql,
+        executeL8,
+        get_company_id,
+        get_model_model,
+        get_model_name,
+        get_model_structure,
+        get_query_id,
+        get_res_users,
+        is_required_field,
+        is_valid_field,
+        psql_connect,
+        searchL8,
+        set_some_values,
+        sql_reconnect,
+        unlinkL8,
+        writeL8,
+        create_model_object,
+    )
 try:
-    from clodoo.clodoolib import init_logger  # noqa: F401; noqa: F401
-    from clodoo.clodoolib import msg_burst  # noqa: F401
-    from clodoo.clodoolib import tounicode  # noqa: F401
-    from clodoo.clodoolib import (build_odoo_param, crypt, debug_msg_log,
-                                  decrypt, default_conf, msg_log, parse_args,
-                                  read_config, set_base_ctx)
+    from clodoo.clodoolib import init_logger    # noqa: F401
+    from clodoo.clodoolib import msg_burst      # noqa: F401
+    from clodoo.clodoolib import tounicode      # noqa: F401
+    from clodoo.clodoolib import (
+        build_odoo_param,       # noqa: F401
+        crypt,
+        debug_msg_log,
+        decrypt,
+        default_conf,
+        msg_log,
+        parse_args,
+        read_config,
+        set_base_ctx,
+    )
 except ImportError:
-    from clodoolib import init_logger  # noqa: F401; noqa: F401
-    from clodoolib import msg_burst  # noqa: F401
-    from clodoolib import tounicode  # noqa: F401
-    from clodoolib import (build_odoo_param, crypt, debug_msg_log,  # noqa: F401
-                           decrypt, default_conf, msg_log, parse_args,  # noqa: F401
-                           read_config, set_base_ctx)  # noqa: F401
+    from clodoolib import init_logger   # noqa: F401
+    from clodoolib import msg_burst     # noqa: F401
+    from clodoolib import tounicode     # noqa: F401
+    from clodoolib import (             # noqa: F401
+        build_odoo_param,
+        crypt,
+        debug_msg_log,
+        decrypt,
+        default_conf,
+        msg_log,
+        parse_args,
+        read_config,
+        set_base_ctx,
+    )
 try:
     from transodoo import read_stored_dict, translate_from_to
 except ImportError:
@@ -334,16 +381,14 @@ def do_login(ctx):
     def try_to_login(ctx, pwd):
         if ctx["pypi"] == "odoorpc":
             try:
-                ctx['odoo_cnx'].login(
-                    db=db_name, login=username, password=pwd
-                )
+                ctx['odoo_cnx'].login(db=db_name, login=username, password=pwd)
             except BaseException:
                 return False
             user = get_login_user(ctx)
             ctx['user_id'] = user.id
             ctx["_pwd"] = pwd
             return user
-        elif ctx["pypi"] == "oerplib":
+        elif ctx["pypi"].startswith("oerplib"):
             try:
                 user = ctx['odoo_cnx'].login(
                     database=db_name, user=username, passwd=pwd
@@ -354,10 +399,7 @@ def do_login(ctx):
             except BaseException:
                 return False
         elif ctx["pypi"] == "odoo-client-lib":
-            connection = odoolib.Connection(ctx['odoo_cnx'],
-                                            db_name,
-                                            username,
-                                            pwd)
+            connection = odoolib.Connection(ctx['odoo_cnx'], db_name, username, pwd)
             if not connection:
                 return False
             try:

@@ -37,7 +37,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.5
 
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.$$.tmp
@@ -246,7 +246,6 @@ if [[ $opt_help -gt 0 ]]; then
   "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-# set -x #debug
 if [ -z "$opt_action" ]; then
   if [ "$opt_sel" != "^\$" ]; then
     opt_action="--"

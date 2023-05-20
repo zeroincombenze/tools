@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.6
+__version__=2.0.7
 
 
 run_traced() {
@@ -544,7 +544,7 @@ else
       dependencies_dir="$TRAVIS_BUILD_DIR,${HOME}/dependencies"
       run_traced "$VEM amend -D -O $ODOO_BRANCH -o ${ODOO_PATH} -d $dependencies_dir"
     fi
-    run_traced "$VEM uninstall pyOpenSSL -y"  #debug
+    ## run_traced "$VEM uninstall pyOpenSSL -y"  #debug
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
         run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"

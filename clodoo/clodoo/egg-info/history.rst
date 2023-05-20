@@ -1,8 +1,13 @@
+2.0.6 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Incoropred new pypi oerlib3
+
 2.0.5 (2023-05-08)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] clodoo.py: minor fixes
-* [IMP] odoord: odoo version 16.0
+* [IMP] odoorc: odoo version 16.0
 
 2.0.4 (2023-03-29)
 ~~~~~~~~~~~~~~~~~~

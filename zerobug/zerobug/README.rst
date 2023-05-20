@@ -1,6 +1,6 @@
 
 =============
-zerobug 2.0.6
+zerobug 2.0.7
 =============
 
 
@@ -366,6 +366,11 @@ Current development version
 History
 -------
 
+2.0.7 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis_run_pypi_tests: new switch -p PATTERN
+
 2.0.6 (2023-05-08)
 ~~~~~~~~~~~~~~~~~~
 
@@ -458,7 +463,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-14
+Last Update / Ultimo aggiornamento: 2023-05-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

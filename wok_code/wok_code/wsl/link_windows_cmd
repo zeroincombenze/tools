@@ -1,0 +1,73 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          link_windows_cmd
+# Required-Start:    mountkernfs $local_fs $network
+# Required-Stop:
+# Should-Start:      udev module-init-tools
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: Make windows apps available for Linux
+# Description:       In WSL2 windows apps can be executed in Linux enviroment. This service create scripts to execute windows command.
+### END INIT INFO
+#
+
+name_n_bin() {
+    app=$(basename "$1")
+    app=$(echo "$app" | tr '[:upper:]' '[:lower:]' | sed -e "s|soffice|libreoffice|" | sed -E "s|.exe$||")
+    a=$(which $app 2>/dev/null)
+    [ -z "$a" ] && a="/usr/local/bin/$app"
+    [ -x $a ] && m="$(file -b --mime-type $a)" || m=""
+}
+
+start() {
+    STATUS=0
+    # Currently apps are: meld, poedit and libreoffice
+    for w in "/mnt/c/Program Files/Meld/Meld.exe" "/mnt/c/Program Files (x86)/Poedit/Poedit.exe" "/mnt/c/Program Files/LibreOffice/program/soffice.exe"
+    do
+        name_n_bin "$w"
+        if [ -z "$m" -o "$m" = "text/plain" ]; then
+            echo "'$w' -> $a"
+            echo "'$w' \"\$@\"">$a
+            chmod +x $a
+        fi
+    done
+    return $STATUS
+}
+
+status() {
+    for w in "/mnt/c/Program Files/Meld/Meld.exe" "/mnt/c/Program Files (x86)/Poedit/Poedit.exe" "/mnt/c/Program Files/LibreOffice/program/soffice.exe"
+    do
+        name_n_bin "$w"
+        [ -x "$a" ] && echo "$app ($m) active .." || echo "$app NOT FOUND!"
+    done
+    return 0
+}
+
+stop() {
+    for w in "/mnt/c/Program Files/Meld/Meld.exe" "/mnt/c/Program Files (x86)/Poedit/Poedit.exe" "/mnt/c/Program Files/LibreOffice/program/soffice.exe"
+    do
+        name_n_bin "$w"
+        [ -x "$a" ] && [ "$m" = "text/plain" ] && echo "rm -f $a" && rm -f "$a"
+    done
+    return 0
+}
+
+
+case "${1}" in
+    start)
+        start
+        ;;
+
+    status)
+        status
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    *)
+        echo "Usage: set_hosts {start|stop|status}" >&2
+        exit 1
+        ;;
+esac

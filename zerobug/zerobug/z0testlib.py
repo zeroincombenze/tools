@@ -20,7 +20,7 @@ import magic
 from os0 import os0
 from python_plus import _c
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 # return code
 TEST_FAILED = 1

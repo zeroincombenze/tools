@@ -49,7 +49,6 @@ __version__=2.0.2
 
 test_run () {
 # test_run(msg,package,disto,cmd)
-    # set -x #debug
     TPRODUCT="$RUNDIR/lisa -T"
     local msg="$1"
     local Package=$(echo "$2"|grep --color=never -Eo '[^!<=>]*'|head -n1)

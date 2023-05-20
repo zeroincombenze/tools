@@ -7,6 +7,15 @@
 # (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
+## split log
+## conditions: logrotate = False && workers != 0
+## options: logrotate-size = 2G (default)
+## command: ($sz > size, $log > Logfile, $last > last_chunk
+## split -a1 -d -b $sz $log ${log}.
+## rm -f ${log}.0
+## rm -f $log
+## mv ${log}.${last} $log
+##
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 # Based on template 2.0.0

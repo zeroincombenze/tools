@@ -327,11 +327,16 @@ Current development version
 History
 -------
 
+2.0.6 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Incoropred new pypi oerlib3
+
 2.0.5 (2023-05-08)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] clodoo.py: minor fixes
-* [IMP] odoord: odoo version 16.0
+* [IMP] odoorc: odoo version 16.0
 
 2.0.4 (2023-03-29)
 ~~~~~~~~~~~~~~~~~~
@@ -408,7 +413,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-14
+Last Update / Ultimo aggiornamento: 2023-05-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

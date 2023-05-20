@@ -406,8 +406,19 @@ def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
     is_bool = is_bool or False
     found = False
     if conf_obj:
-        for sfx in ("6.1", "7.0", "8.0", "9.0", "10.0",
-                    "11.0", "12.0", "13.0", "14.0", "15.0", "16.0"):
+        for sfx in (
+            "6.1",
+            "7.0",
+            "8.0",
+            "9.0",
+            "10.0",
+            "11.0",
+            "12.0",
+            "13.0",
+            "14.0",
+            "15.0",
+            "16.0",
+        ):
             vparam = "%s_%s" % (param, sfx)
             if conf_obj.has_option(sect, vparam):
                 found = True
@@ -830,11 +841,9 @@ def build_odoo_param(
 ):
     fct = "build_odoo_%s" % item
     if fct in globals():
-        return globals()[fct](odoo_vid=odoo_vid,
-                              debug=debug,
-                              suppl=suppl,
-                              git_org=git_org,
-                              multi=multi)
+        return globals()[fct](
+            odoo_vid=odoo_vid, debug=debug, suppl=suppl, git_org=git_org, multi=multi
+        )
     odoorc = os.path.join(os.path.dirname(__file__), "odoorc")
     if multi:
         cmd = 'opt_multi=1 %s %s "%s" "%s" "%s"' % (

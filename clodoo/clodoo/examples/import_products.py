@@ -44,9 +44,11 @@ When field XXX in file csc contains value 'original_value' is written into
 local Odoo DB as 'Odoo_value'.
 """
 import sys
+
 # import os
 import time
 import clodoo
+
 try:
     from z0lib import z0lib
 except ImportError:
@@ -63,7 +65,7 @@ msg_time = time.time()
 def msg_burst(text):
     global msg_time
     t = time.time() - msg_time
-    if (t > 3):
+    if t > 3:
         print(text)
         msg_time = time.time()
 
@@ -117,8 +119,7 @@ def add_elem(row, ctx, MYDICT):
     model = 'product.product'
     vals = {}
     add_val(row, ctx, MYDICT, 'name')
-    for field_id in clodoo.searchL8(ctx, 'ir.model.fields',
-                                    [('model', '=', model)]):
+    for field_id in clodoo.searchL8(ctx, 'ir.model.fields', [('model', '=', model)]):
         field_name = clodoo.browseL8(ctx, 'ir.model.fields', field_id).name
         add_val(row, ctx, MYDICT, field_name)
 
@@ -129,13 +130,9 @@ def add_elem(row, ctx, MYDICT):
 
     ids = []
     if vals.get('code'):
-        ids = clodoo.searchL8(ctx, model, [('default_code',
-                                            '=',
-                                            vals['code'])])
+        ids = clodoo.searchL8(ctx, model, [('default_code', '=', vals['code'])])
     if not ids and vals.get('default_code'):
-        ids = clodoo.searchL8(ctx, model, [('default_code',
-                                            '=',
-                                            vals['default_code'])])
+        ids = clodoo.searchL8(ctx, model, [('default_code', '=', vals['default_code'])])
     if not ids:
         ids = clodoo.searchL8(ctx, model, [('name', '=', vals['name'])])
     if ids:
@@ -161,25 +158,34 @@ def add_elem(row, ctx, MYDICT):
 
 def init_n_connect(flavour=None):
     title = 'Import products %s' % flavour or ''
-    parser = z0lib.parseoptargs(title,
-                                "© 2017-2018 by SHS-AV s.r.l.",
-                                version=__version__)
+    parser = z0lib.parseoptargs(
+        title, "© 2017-2018 by SHS-AV s.r.l.", version=__version__
+    )
     parser.add_argument('-h')
-    parser.add_argument("-c", "--config",
-                        help="configuration command file",
-                        dest="conf_fn",
-                        metavar="file",
-                        default='./import_products.config')
-    parser.add_argument("-d", "--dbname",
-                        help="DB name",
-                        dest="db_name",
-                        metavar="file",
-                        default='demo8')
-    parser.add_argument("-f", "--filename",
-                        help="Filename to import",
-                        dest="csv_fn",
-                        metavar="file",
-                        default=False)
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="configuration command file",
+        dest="conf_fn",
+        metavar="file",
+        default='./import_products.config',
+    )
+    parser.add_argument(
+        "-d",
+        "--dbname",
+        help="DB name",
+        dest="db_name",
+        metavar="file",
+        default='demo8',
+    )
+    parser.add_argument(
+        "-f",
+        "--filename",
+        help="Filename to import",
+        dest="csv_fn",
+        metavar="file",
+        default=False,
+    )
     parser.add_argument('-n')
     parser.add_argument('-q')
     parser.add_argument('-V')
@@ -193,7 +199,7 @@ def init_n_connect(flavour=None):
         else:
             sfx = ''
         ctx['csv_fn'] = 'products%s%s.csv' % (sfx, flavour or '')
-    oerp, uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
-                                         db=ctx['db_name'],
-                                         ctx=ctx)
+    oerp, uid, ctx = clodoo.oerp_set_env(
+        confn=ctx['conf_fn'], db=ctx['db_name'], ctx=ctx
+    )
     return oerp, uid, ctx

@@ -170,7 +170,7 @@ PYTHON3=""
 [[ -x $LOCAL_VENV/bin/python3 ]] && PYTHON3=$LOCAL_VENV/bin/python3
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
-PKGS_LIST="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
+LOCAL_PKGS="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep --color=never -Eo '[0-9]+' | head -n1)
 PYVER=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]" | head -n1)
@@ -187,7 +187,7 @@ popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PYVER -eq 2 ]] && run_traced "$VEM install future"
 
 if [[ ! $opts =~ ^-.*k ]]; then
-    for pkg in $PKGS_LIST tools; do
+    for pkg in $LOCAL_PKGS tools; do
         [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg/-/_} || pfn=$pkg
         l="RFLIST__$pfn"
         flist=${!l}
@@ -377,7 +377,7 @@ run_traced "deactivate"
 
 if [[ $opts =~ ^-.*D ]]; then
     run_traced "mkdir -p $DEVELPATH"
-    for pkg in $PKGS_LIST tools; do
+    for pkg in $LOCAL_PKGS tools; do
         [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg/-/_} || pfn=$pkg
         mkdir -p $HOME_DEV/pypi/$pfn
         [[ $pkg == "tools" ]] && run_traced "cp -R $SRCPATH/$pkg/* $DEVELPATH/" || run_traced "cp -R $SRCPATH/$pfn/ $DEVELPATH/$pkg/"

@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=2.0.4
+#__version__=2.0.5
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -385,7 +385,7 @@ create_virtual_env() {
   set_pybin $TRAVIS_PYTHON_VERSION
   if [[ $opt_dbgmnt -ne 0 ]]; then
     # Install unstable packages to run them when needed
-    for p in $(get_cfg_value "" "PKGS_LIST"); do
+    for p in $(get_cfg_value "" "LOCAL_PKGS"); do
         # Use unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
         [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/scripts/setup.info ]] && \
@@ -493,7 +493,7 @@ git_clone() {
     run_traced "cp -R $SAVED_ODOO_ROOT/tools $d"
     if [[ $opt_dbgmnt -ne 0 ]]; then
       x=${TRAVIS_REPO_SLUG#*/}
-      for p in $(get_cfg_value "" "PKGS_LIST"); do
+      for p in $(get_cfg_value "" "LOCAL_PKGS"); do
         # Load unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
         [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/scripts/setup.info ]] && \
@@ -592,10 +592,10 @@ prepare_env_travis() {
 }
 
 check_4_travis() {
-  if [ ! -d "$PRJPATH" ]; then
+  if [[ ! -d "$PRJPATH" ]]; then
     echo "Invalid project path $PRJPATH"
     exit $STS_FAILED
-  elif [ ! -d "$PKGPATH" ]; then
+  elif [[ ! -d "$PKGPATH" ]]; then
     echo "Invalid package path $PKGPATH"
     exit $STS_FAILED
   fi

@@ -267,12 +267,12 @@ def add_item(ctx, row):
     if rec_id:
         try:
             clodoo.writeL8(ctx, ctx["model"], rec_id, vals)
-        except (BaseException) as e:
+        except BaseException as e:
             write_log("Cannot write id %d (%s)" % (rec_id, e))
     else:
         try:
             clodoo.createL8(ctx, ctx["model"], vals)
-        except (BaseException) as e:
+        except BaseException as e:
             write_log("Cannot create %s (%s)" % (vals, e))
 
 

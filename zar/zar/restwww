@@ -31,7 +31,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.1
+__version__=2.0.2
 
 
 conf_default () {
@@ -48,7 +48,6 @@ PRODUCTION_HOST=$(get_cfg_value "" "production_host")
 DEVELOPMENT_HOST=$(get_cfg_value "" "development_host")
 MIRROR_HOST=$(get_cfg_value "" "mirror_host")
 
-# set -x
 publog="/var/log/restwww.log"
 set_tlog_file "$publog"
 opt_quiet=1

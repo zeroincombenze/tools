@@ -1,6 +1,6 @@
 
 =====================
-travis_emulator 2.0.4
+travis_emulator 2.0.5
 =====================
 
 
@@ -182,7 +182,7 @@ Values in configuration file are:
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
 | PS_HDR3_COLOR     | N/D                                                | 30;45                                                                                        |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
-| PKGS_LIST         | N/D                                                | clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug |
+| LOCAL_PKGS        | N/D                                                | clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
 | PYTHON_MATRIX     | Python version available to test (space separated) |                                                                                              |
 +-------------------+----------------------------------------------------+----------------------------------------------------------------------------------------------+
@@ -275,6 +275,14 @@ Troubleshooting
 History
 -------
 
+2.0.5 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] New -p parameter to select specific test to execute
+* [IMP] Switch -M removed
+* [IMP] Switch -d set default "test" action
+* [IMP] Removes osx support
+
 2.0.4 (2023-03-24)
 ~~~~~~~~~~~~~~~~~~
 
@@ -359,7 +367,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-14
+Last Update / Ultimo aggiornamento: 2023-05-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -1,6 +1,6 @@
 
 ==============
-wok_code 2.0.7
+wok_code 2.0.8
 ==============
 
 
@@ -845,10 +845,13 @@ Current development version
 History
 -------
 
-2.0.7.1 (2023-05-09)
-~~~~~~~~~~~~~~~~~~~~
+2.0.8 (2023-05-09)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] Install run_odoo_debug
+* [FIX] Install do_git_ignore
+* [IMP] lint_2_compare: ignore odoo/openerp test string and LICENSE files
+* [IMP] lint_2_compare: new switch ---purge do not load identical files (quick diff)
 
 2.0.7 (2023-05-08)
 ~~~~~~~~~~~~~~~~~~
@@ -956,7 +959,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-14
+Last Update / Ultimo aggiornamento: 2023-05-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

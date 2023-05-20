@@ -39,7 +39,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.1
+__version__=2.0.2
 
 
 conf_default () {
@@ -108,7 +108,6 @@ echo lcd $bd>>$ff
 flst="$HOME/tmp_www.lst"
 dir -1dF $seldir>$flst
 exec 3< $flst
-# set -x
 while read -u 3 -r db
 do
   xx=${db: -1}

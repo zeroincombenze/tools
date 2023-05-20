@@ -1,3 +1,11 @@
+2.0.5 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] New -p parameter to select specific test to execute
+* [IMP] Switch -M removed
+* [IMP] Switch -d set default "test" action
+* [IMP] Removes osx support
+
 2.0.4 (2023-03-24)
 ~~~~~~~~~~~~~~~~~~
 
