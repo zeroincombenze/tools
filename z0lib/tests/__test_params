@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.5
 
 test_common() {
     # test_common(simulate_cmd, [N])
@@ -187,7 +187,6 @@ Z0BUG_setup() {
     [[ -d $HOME/devel/pypi/travis_emulator && $HOME =~ /VENV ]] && rm -fR $HOME/devel/pypi/travis_emulator
     [[ -d $HOME/devel/pypi/z0lib ]] && echo "FAILED! Internal error $HOME/devel/pypi/z0lib!" && exit 11
     [[ -d $HOME/devel/pypi/travis_emulator ]] && echo "FAILED! Internal error $HOME/devel/pypi/travis_emulator!" && exit 11
-    # echo "set -x" >>$TESTDIR/simulate_cmd
     while IFS= read -r line || [[ -n "$line" ]]; do
       [[ $line =~ ^CFG_init..ALL ]] && break
       echo "$line" >>$TESTDIR/simulate_cmd

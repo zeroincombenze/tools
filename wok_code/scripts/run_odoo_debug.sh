@@ -37,7 +37,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.8
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -106,8 +106,6 @@ coverage_report() {
 set_log_filename() {
     # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
     # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
-    # set -x  #debug
-    # local odoo_ver=$(build_odoo_param MAJVER ${BRANCH})
     local m
     [[ -n $opt_modules ]] && m="${opt_modules//,/+}" || m="$PKGNAME"
     [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID '.')"
@@ -295,6 +293,7 @@ script=$(build_odoo_param BIN "$odoo_root" search)
 [[ -z "$script" ]] && echo "No odoo script found!!" && exit 1
 ODOO_RUNDIR=$(dirname $script)
 VDIR=$(build_odoo_param VDIR "$odoo_root")
+[[ ! -d $VDIR ]] && VDIR=""
 [[ $opt_verbose -gt 1 && -n "$VDIR" ]] && echo "# Found $VDIR virtual directory"
 set_log_filename
 
@@ -303,8 +302,8 @@ if [[ -n $opt_rport ]]; then
 elif [[ $opt_test -ne 0 ]]; then
     [[ opt_dbg -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
 elif [[ -f $opt_conf ]]; then
-    RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
-    [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")
+    RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")q
+    [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
 elif [[ $opt_web -ne 0 ]]; then
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 elif [[ -f $CONFN ]]; then

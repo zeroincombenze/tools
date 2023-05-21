@@ -1,0 +1,39 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          set_hosts
+# Required-Start:    mountkernfs $local_fs $network
+# Required-Stop:
+# Should-Start:      udev module-init-tools
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: Extend /etc/hosts
+# Description:       Append /etc/hosts.backup to /etc/hosts to extend know hosts
+### END INIT INFO
+#
+
+start() {
+    STATUS=0
+    grep -Eq "^# *\[antoniov:" /etc/hosts || cat /etc/hosts.backup >> /etc/hosts
+    return $STATUS
+}
+
+status() {
+    grep -Eq "^# *\[antoniov:" /etc/hosts && echo "/etc/hosts configurated" || echo "/etc/hosts incomplete!\nType:\nservice set_host start "
+    return 0
+}
+
+
+case "${1}" in
+    start)
+        start
+        ;;
+
+    status)
+        status
+        ;;
+
+    *)
+        echo "Usage: set_hosts {start|status}" >&2
+        exit 1
+        ;;
+esac

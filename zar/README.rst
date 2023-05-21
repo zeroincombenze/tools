@@ -1,6 +1,6 @@
 
 =========
-zar 2.0.1
+zar 2.0.2
 =========
 
 
@@ -124,6 +124,11 @@ Current development version
 History
 -------
 
+2.0.2 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] reassing_owner accept db_port
+
 2.0.1 (2023-02-25)
 ~~~~~~~~~~~~~~~~~~
 
@@ -161,7 +166,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-01
+Last Update / Ultimo aggiornamento: 2023-05-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

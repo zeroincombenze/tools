@@ -11,7 +11,7 @@ import sys
 from zerobug import z0test
 from z0lib import z0lib
 
-__version__ = "2.0.4"
+__version__ = "2.0.5"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
@@ -68,6 +68,8 @@ class RegressionTest:
 
     def test_02(self, z0ctx):
         fn = os.path.expanduser("~/16.0")
+        if os.path.isdir(fn):
+            os.system("rm -fR %s" % fn)
         self.run_test_cmd(z0ctx, "mkdir %s" % fn)
         self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "addons"))
         self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "odoo"))

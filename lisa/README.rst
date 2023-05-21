@@ -13,6 +13,34 @@ lisa 2.0.2
 Overview
 ========
 
+==========
+lisa 2.0.2
+==========
+
+
+
+|Maturity| |Build Status| |Coverage Status| |license gpl|
+
+
+
+
+Overview
+========
+
+==========
+lisa 2.0.2
+==========
+
+
+
+|Maturity| |Build Status| |Coverage Status| |license gpl|
+
+
+
+
+Overview
+========
+
 lisa
 ----
 
@@ -32,26 +60,31 @@ You can easily write portable script to install packages on every Linux distribu
 |
 |
 
-Getting started
-===============
+
+|
+|
 
 
 |
+|
 
-Installation
-------------
+Getting started
+===============
+
 
 Installation
 ------------
 
 Zeroincombenze tools require:
 
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
-* python 2.7, some tools require python 3.6+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+
 * bash 5.0+
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
 
     pip install lisa
 
@@ -66,11 +99,8 @@ Current version via Git
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
-    source /opt/odoo/devel/activate_tools
+    source $HOME/devel/activate_tools
 
-
-Upgrade
--------
 
 Upgrade
 -------
@@ -78,57 +108,20 @@ Upgrade
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+::
+
     pip install lisa -U
 
 |
 
-Current stable version
-~~~~~~~~~~~~~~~~~~~~~~
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
     ./install_tools.sh -U
-    source /opt/odoo/devel/activate_tools
-
-Current development version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd $HOME
-    ./install_tools.sh -Ud
-    source /opt/odoo/devel/activate_tools
-
-
-History
--------
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] liba_bld_ods: fixes & improvements
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] lisa_bld_ods: stable version
-
-2.0.0.2 (2022-09-29)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] lisa_bld_ods: improvements
-
-2.0.0.1 (2022-09-10)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] wsl2-systemd: experimental systemd for wsl2
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
-
+    source $HOME/devel/activate_tools
 
 
 |
@@ -156,7 +149,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-01
+Last Update / Ultimo aggiornamento: 2023-05-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

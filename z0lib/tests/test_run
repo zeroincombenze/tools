@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.5
 
 
 test_run() {
@@ -125,6 +125,28 @@ test_05() {
     test_run "ls"
     s=$?
     test_result "run_traced ls" "$s" "$STS_SUCCESS"
+}
+
+test_06() {
+    local d
+    d=$(readlink -f $TDIR/..)
+    is_pypi $d
+    s=$?
+    test_result "is_pypi $d" "$s" "$STS_SUCCESS"
+
+    if [[ -d $TRAVIS_SAVED_HOME_DEVEL/pypi ]]; then
+      d=$(readlink -f $TRAVIS_SAVED_HOME_DEVEL/pypi/oerplib3/oerplib3)
+      is_pypi $d
+      s=$?
+      test_result "is_pypi $d" "$s" "$STS_SUCCESS"
+    fi
+
+    if [[ -d $TRAVIS_SAVED_HOME_DEVEL/../tools ]]; then
+      d=$(readlink -f $TRAVIS_SAVED_HOME_DEVEL/../tools/z0lib)
+      is_pypi $d
+      s=$?
+      test_result "is_pypi $d" "$s" "$STS_SUCCESS"
+    fi
 }
 
 

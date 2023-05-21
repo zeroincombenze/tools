@@ -2681,6 +2681,8 @@ class MainTest(SingleTransactionCase):
             return match
 
         resource = self._get_model_from_records(record)
+        if not resource:
+            self.raise_error("No valid record supplied for comparation!")
         self._load_field_struct(resource)
         childs_name = self.childs_name.get(resource)
         resource_child = self.childs_resource.get(resource)

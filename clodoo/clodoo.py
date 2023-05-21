@@ -152,8 +152,7 @@ oe_versions: select record if matches Odoo version
     i.e  +11.0+10.0 => select record if Odoo 11.0 or 10.0
     i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import calendar
 import csv
@@ -163,71 +162,126 @@ import platform
 import re
 import sys
 import time
+
 # from builtins import *                                           # noqa: F403
 from builtins import input, object
 from datetime import date, datetime, timedelta
 
 from future import standard_library
+
 # from builtins import str
 # from builtins import range
 from past.builtins import basestring
+
+if sys.version_info[0] == 3:
+    try:
+        import oerplib3         # noqa: F401
+    except ImportError:
+        try:
+            import odoolib
+        except ImportError:
+            raise ImportError("Package oerplib3 / odoo-client-lib not found!")
 
 # from passlib.context import CryptContext
 from os0 import os0
 from python_plus import _c
 
 try:
-    from clodoo.clodoocore import browseL8  # noqa: F401; noqa: F401
-    from clodoo.clodoocore import build_model_struct  # noqa: F401
-    from clodoo.clodoocore import connectL8  # noqa: F401
-    from clodoo.clodoocore import execute_action_L8  # noqa: F401
-    from clodoo.clodoocore import extr_table_generic  # noqa: F401
+    from clodoo.clodoocore import browseL8              # noqa: F401
+    from clodoo.clodoocore import build_model_struct    # noqa: F401
+    from clodoo.clodoocore import connectL8             # noqa: F401
+    from clodoo.clodoocore import execute_action_L8     # noqa: F401
+    from clodoo.clodoocore import extr_table_generic    # noqa: F401
     from clodoo.clodoocore import extract_vals_from_rec  # noqa: F401
-    from clodoo.clodoocore import get_val_from_field  # noqa: F401
-    from clodoo.clodoocore import import_file_get_hdr  # noqa: F401
-    from clodoo.clodoocore import model_has_company  # noqa: F401
-    from clodoo.clodoocore import put_model_alias  # noqa: F401
-    from clodoo.clodoocore import (createL8, cvt_from_ver_2_ver, eval_value,
-                                   exec_sql, executeL8, get_company_id,
-                                   get_model_model, get_model_name,
-                                   get_model_structure, get_query_id,
-                                   get_res_users, is_required_field,
-                                   is_valid_field, psql_connect, searchL8,
-                                   set_some_values, sql_reconnect, unlinkL8,
-                                   writeL8)
+    from clodoo.clodoocore import get_val_from_field    # noqa: F401
+    from clodoo.clodoocore import import_file_get_hdr   # noqa: F401
+    from clodoo.clodoocore import model_has_company     # noqa: F401
+    from clodoo.clodoocore import put_model_alias       # noqa: F401
+    from clodoo.clodoocore import (                     # noqa: F401
+        createL8,
+        cvt_from_ver_2_ver,
+        eval_value,
+        exec_sql,
+        executeL8,
+        get_company_id,
+        get_model_model,
+        get_model_name,
+        get_model_structure,
+        get_query_id,
+        get_res_users,
+        is_required_field,
+        is_valid_field,
+        psql_connect,
+        searchL8,
+        set_some_values,
+        sql_reconnect,
+        unlinkL8,
+        writeL8,
+        create_model_object,
+    )
 except ImportError:
-    from clodoocore import browseL8  # noqa: F401; noqa: F401
-    from clodoocore import build_model_struct  # noqa: F401
-    from clodoocore import connectL8  # noqa: F401
-    from clodoocore import execute_action_L8  # noqa: F401
-    from clodoocore import extr_table_generic  # noqa: F401
+    from clodoocore import browseL8             # noqa: F401
+    from clodoocore import build_model_struct   # noqa: F401
+    from clodoocore import connectL8            # noqa: F401
+    from clodoocore import execute_action_L8    # noqa: F401
+    from clodoocore import extr_table_generic   # noqa: F401
     from clodoocore import extract_vals_from_rec  # noqa: F401
-    from clodoocore import get_val_from_field  # noqa: F401
+    from clodoocore import get_val_from_field   # noqa: F401
     from clodoocore import import_file_get_hdr  # noqa: F401
-    from clodoocore import model_has_company  # noqa: F401
-    from clodoocore import put_model_alias  # noqa: F401
-    from clodoocore import (createL8, cvt_from_ver_2_ver, eval_value,  # noqa: F401
-                            exec_sql, executeL8, get_company_id,  # noqa: F401
-                            get_model_model, get_model_name,  # noqa: F401
-                            get_model_structure, get_query_id,  # noqa: F401
-                            get_res_users, is_required_field,  # noqa: F401
-                            is_valid_field, psql_connect, searchL8,  # noqa: F401
-                            set_some_values, sql_reconnect, unlinkL8,  # noqa: F401
-                            writeL8)  # noqa: F401
+    from clodoocore import model_has_company    # noqa: F401
+    from clodoocore import put_model_alias      # noqa: F401
+    from clodoocore import (   # noqa: F401
+        createL8,
+        cvt_from_ver_2_ver,
+        eval_value,
+        exec_sql,
+        executeL8,
+        get_company_id,
+        get_model_model,
+        get_model_name,
+        get_model_structure,
+        get_query_id,
+        get_res_users,
+        is_required_field,
+        is_valid_field,
+        psql_connect,
+        searchL8,
+        set_some_values,
+        sql_reconnect,
+        unlinkL8,
+        writeL8,
+        create_model_object,
+    )
 try:
-    from clodoo.clodoolib import init_logger  # noqa: F401; noqa: F401
-    from clodoo.clodoolib import msg_burst  # noqa: F401
-    from clodoo.clodoolib import tounicode  # noqa: F401
-    from clodoo.clodoolib import (build_odoo_param, crypt, debug_msg_log,
-                                  decrypt, default_conf, msg_log, parse_args,
-                                  read_config, set_base_ctx)
+    from clodoo.clodoolib import init_logger    # noqa: F401
+    from clodoo.clodoolib import msg_burst      # noqa: F401
+    from clodoo.clodoolib import tounicode      # noqa: F401
+    from clodoo.clodoolib import (
+        build_odoo_param,       # noqa: F401
+        crypt,
+        debug_msg_log,
+        decrypt,
+        default_conf,
+        msg_log,
+        parse_args,
+        read_config,
+        set_base_ctx,
+    )
 except ImportError:
-    from clodoolib import init_logger  # noqa: F401; noqa: F401
-    from clodoolib import msg_burst  # noqa: F401
-    from clodoolib import tounicode  # noqa: F401
-    from clodoolib import (build_odoo_param, crypt, debug_msg_log,  # noqa: F401
-                           decrypt, default_conf, msg_log, parse_args,  # noqa: F401
-                           read_config, set_base_ctx)  # noqa: F401
+    from clodoolib import init_logger   # noqa: F401
+    from clodoolib import msg_burst     # noqa: F401
+    from clodoolib import tounicode     # noqa: F401
+    from clodoolib import (             # noqa: F401
+        build_odoo_param,
+        crypt,
+        debug_msg_log,
+        decrypt,
+        default_conf,
+        msg_log,
+        parse_args,
+        read_config,
+        set_base_ctx,
+    )
 try:
     from transodoo import read_stored_dict, translate_from_to
 except ImportError:
@@ -315,14 +369,49 @@ def open_connection(ctx):
     res = connectL8(ctx)
     if isinstance(res, basestring):
         raise RuntimeError(res)  # pragma: no cover
-    return ctx['odoo_session']
+    return ctx['odoo_cnx']
 
 
 def do_login(ctx):
     """Do a login into DB; try using more usernames and passwords"""
 
     def get_login_user(ctx):
-        return ctx['odoo_session'].env.user
+        return ctx['odoo_cnx'].env.user
+
+    def try_to_login(ctx, pwd):
+        if ctx["pypi"] == "odoorpc":
+            try:
+                ctx['odoo_cnx'].login(db=db_name, login=username, password=pwd)
+            except BaseException:
+                return False
+            user = get_login_user(ctx)
+            ctx['user_id'] = user.id
+            ctx["_pwd"] = pwd
+            return user
+        elif ctx["pypi"].startswith("oerplib"):
+            try:
+                user = ctx['odoo_cnx'].login(
+                    database=db_name, user=username, passwd=pwd
+                )
+                ctx['user_id'] = user.id
+                ctx["_pwd"] = pwd
+                return user
+            except BaseException:
+                return False
+        elif ctx["pypi"] == "odoo-client-lib":
+            connection = odoolib.Connection(ctx['odoo_cnx'], db_name, username, pwd)
+            if not connection:
+                return False
+            try:
+                connection.check_login(True)
+            except BaseException:
+                return False
+            ctx["odoo_session"] = connection
+            ctx['user_id'] = connection.user_id
+            ctx["_pwd"] = pwd
+            model = "res.users"
+            user = create_model_object(ctx, model, connection.user_id)
+            return user
 
     msg = "do_login()"
     debug_msg_log(ctx, ctx['level'] + 1, msg)
@@ -363,46 +452,22 @@ def do_login(ctx):
             crypted = True
             msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'], username, pwd)
             debug_msg_log(ctx, ctx['level'] + 2, msg)
-            if ctx['svc_protocol'] == 'jsonrpc':
-                try:
-                    ctx['odoo_session'].login(
-                        db=db_name, login=username, password=decrypt(pwd)
-                    )
-                except BaseException:
-                    continue
-                # Keep out of try / except to catch user error
-                user = get_login_user(ctx)
+            user = try_to_login(ctx, decrypt(pwd))
+            if user:
                 break
-            else:
-                try:
-                    user = ctx['odoo_session'].login(
-                        database=db_name, user=username, passwd=decrypt(pwd)
-                    )
-                    break
-                except BaseException:
-                    pass
+
         if not user:
             crypted = False
             for pwd in pwdlist:
-                try:
-                    msg = "do_login_%s(%s,$1$%s)" % (
-                        ctx['svc_protocol'],
-                        username,
-                        crypt(pwd),
-                    )
-                    debug_msg_log(ctx, ctx['level'] + 2, msg)
-                    if ctx['svc_protocol'] == 'jsonrpc':
-                        ctx['odoo_session'].login(
-                            db=db_name, login=username, password=pwd
-                        )
-                        user = get_login_user(ctx)
-                    else:
-                        user = ctx['odoo_session'].login(
-                            database=db_name, user=username, passwd=pwd
-                        )
+                msg = "do_login_%s(%s,$1$%s)" % (
+                    ctx['svc_protocol'],
+                    username,
+                    crypt(pwd),
+                )
+                debug_msg_log(ctx, ctx['level'] + 2, msg)
+                user = try_to_login(ctx, pwd)
+                if user:
                     break
-                except BaseException:
-                    pass
         if user:
             break
     if not user:
@@ -475,6 +540,7 @@ def oerp_set_env(
     pwd=None,
     lang=None,
     ctx=None,
+    http_port=None,
 ):
     D_LIST = (
         'ena_inquire',
@@ -500,7 +566,8 @@ def oerp_set_env(
         'crypt2_password',
         'svc_protocol',
         'oe_version',
-        'xmlrpc_port',
+        'http_port',
+        "xmlrpc_port",
         'lang',
         'psycopg2',
     )
@@ -515,6 +582,7 @@ def oerp_set_env(
         lang=None,
         ctx=None,
         inquire=None,
+        http_port=None,
     ):
         ctx = ctx or {}
         for p in D_LIST + P_LIST:
@@ -524,16 +592,16 @@ def oerp_set_env(
                 ctx[p] = user
             elif p == 'login_password' and pwd:
                 ctx[p] = pwd
-            elif p == 'xmlrpc_port' and xmlrpc_port:
+            elif p == 'http_port' and http_port:
+                if isinstance(http_port, basestring):
+                    ctx[p] = int(http_port)
+                else:
+                    ctx[p] = http_port
+            elif p == 'xmlrpc_port' and xmlrpc_port and not http_port:
                 if isinstance(xmlrpc_port, basestring):
                     ctx[p] = int(xmlrpc_port)
                 else:
                     ctx[p] = xmlrpc_port
-            # elif p == 'db_port' and xmlrpc_port:
-            #     if isinstance(xmlrpc_port, basestring):
-            #         ctx[p] = int(xmlrpc_port)
-            #     else:
-            #         ctx[p] = xmlrpc_port
             elif p == 'oe_version' and oe_version and oe_version != '*':
                 ctx[p] = oe_version
                 if not ctx.get('odoo_vid'):
@@ -569,6 +637,7 @@ def oerp_set_env(
         oe_version=oe_version or ctx.get('oe_version'),
         lang=lang,
         ctx=ctx,
+        http_port=http_port,
     )
     open_connection(ctx)
     if ctx['no_login']:
@@ -651,7 +720,7 @@ def init_company_ctx(ctx, c_id):
 
 
 def init_user_ctx(ctx, user):
-    ctx['user_id'] = user.id
+    # ctx['user_id'] = user.id
     if ctx['oe_version'] != "6.1":
         ctx['user_partner_id'] = user.partner_id.id
     ctx['user_name'] = get_res_users(ctx, user, 'name')
@@ -681,7 +750,7 @@ def get_dblist(ctx):
         return list
     elif ctx['oe_version'] == '7.0':  # FIX
         time.sleep(1)
-    return ctx['odoo_session'].db.list()
+    return ctx['odoo_cnx'].db.list()
 
 
 def get_companylist(ctx):
@@ -1167,8 +1236,8 @@ def act_drop_db(ctx, db_name=None):
                 if ctx['oe_version'] == '12.0':  # FIX: odoorpc wont work 12.0
                     os0.muteshell("dropdb -Upostgres --if-exists " + db_name)
                 else:
-                    ctx['odoo_session'].db.drop(ctx['admin_passwd'], db_name)
-                # ctx['odoo_session'].db.drop(ctx['admin_passwd'],
+                    ctx['odoo_cnx'].db.drop(ctx['admin_passwd'], db_name)
+                # ctx['odoo_cnx'].db.drop(ctx['admin_passwd'],
                 #                             db_name)
                 sts = STS_SUCCESS
                 if db_name[0:11] != 'clodoo_test':
@@ -1313,26 +1382,26 @@ def act_new_db(ctx):
         if ctx['db_name']:
             if ctx['crypt_password']:
                 pwd = decrypt(ctx['crypt_password'])
-                ctx['server_version'] = ctx['odoo_session'].version
+                ctx['server_version'] = ctx['odoo_cnx'].version
             else:
                 pwd = ctx['login_password']
                 try:
-                    ctx['server_version'] = ctx['odoo_session'].db.server_version()
+                    ctx['server_version'] = ctx['odoo_cnx'].db.server_version()
                 except BaseException:
-                    ctx['server_version'] = ctx['odoo_session'].version
+                    ctx['server_version'] = ctx['odoo_cnx'].version
             try:
                 if ctx['svc_protocol'] == 'jsonrpc':
-                    ctx['odoo_session'].db.create(
+                    ctx['odoo_cnx'].db.create(
                         ctx['admin_passwd'], ctx['db_name'], ctx['with_demo'], lang, pwd
                     )
                     time.sleep(3)
                     open_connection(ctx)  # Needed for 11.0
                 elif ctx['server_version'] == '7.0':
-                    ctx['odoo_session'].db.create_and_wait(
+                    ctx['odoo_cnx'].db.create_and_wait(
                         ctx['admin_passwd'], ctx['db_name'], ctx['with_demo'], lang, pwd
                     )
                 else:
-                    ctx['odoo_session'].db.create_database(
+                    ctx['odoo_cnx'].db.create_database(
                         ctx['admin_passwd'], ctx['db_name'], ctx['with_demo'], lang, pwd
                     )
                     time.sleep(3)

@@ -35,7 +35,7 @@ import pdb  # pylint: disable=deprecated-module
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '2.0.5'
+__version__ = '2.0.6'
 
 
 MAX_DEEP = 20
@@ -4224,6 +4224,58 @@ def rebuild_database(ctx):
     ctr += validate_moves(ctx)
 
     print("%d records update!" % ctr)
+
+
+RND_NAME_IT = [
+    "Giuseppe", "Giovanni", "Antonio", "Mario", "Luigi", "Francesco",
+    "Maria", "Anna", "Rosa", "Angela", "Teresa", "Lucia",
+    "Andrea", "Leonardo", "Alessandro", "Aurora", "Giulia"
+]
+RND_NAME_XX = [
+    "Noah", "John", "Francis", "Jackob", "William", "Geroge",
+    "Emma", "Olivia", "Sophia", "Abigail", "Emily", "Elizabeth",
+    "Jack", "Harry", "Gil", "Rosemary", "Lilith",
+]
+RND_LASTNAME_IT = [
+    "ROSSI", "FERRARI", "BIANCHI", "ROMANO", "VERDI",
+    "GENOVESE", "TOSCANO", "ANCONETANO", "NAPOLITANO", "PUGLISI",
+    "MARINO", "GRECO", "LOMBARDI", "COLOMBO", "GALLI", "GENTILE",
+]
+RND_LASTNAME_XX = [
+    "BROOKS", "CHAPMAN", "COOPER", "FISHER", "FOX",
+    "HAMILTON", "JACKSON", "LEE", "PALMER", "TAYLOR",
+    "SMITH", "WELLS", "MARTIN", "GARCIA", "ROUX",
+]
+
+
+def anonimize_database(ctx):
+    def build_random_data(ctx, id):
+        partner = clodoo.browseL8(ctx, _partner, id)
+        if partner.country_id.id != country_it_id:
+            pass
+        else:
+            pass
+        return {}
+
+    print('🎺🎺🎺 Anonimize database')
+    if ctx['param_1'] == 'help':
+        print('anonimize_database')
+        return
+
+    _partner = "res.partner"
+    _user = "res.users"
+    _company = "res.company"
+    _country = "res.country"
+    country_it_id = clodoo.searchL8(ctx, _country, ("code", "=", "it"))[0]
+    protected_partner_ids = []
+    for rec in clodoo.browseL8(ctx, _user, clodoo.searchL8(ctx, _user, [])):
+        protected_partner_ids.append(rec.partner_id.id)
+    for rec in clodoo.browseL8(ctx, _company, clodoo.searchL8(ctx, _company, [])):
+        clodoo.writeL8(
+            ctx, _company, rec.partner_id.id, {"name": "Test Company %d" % rec.id})
+    # for id in clodoo.searchL8(
+    # ctx, _partner, [("id", "not in", protected_partner_ids)]):
+    #     vals = build_random_data(ctx, id)
 
 
 def move_database_by_postgres(ctx):

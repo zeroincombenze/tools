@@ -1,7 +1,7 @@
-2.0.7.1 (2023-04-26)
-~~~~~~~~~~~~~~~~~~~~
+2.0.8 (2023-04-26)
+~~~~~~~~~~~~~~~~~~
 
-* [FIX] TestEnv: multiple actione on the same records
+* [FIX] TestEnv: multiple action on the same records
 
 2.0.7 (2023-04-08)
 ~~~~~~~~~~~~~~~~~~

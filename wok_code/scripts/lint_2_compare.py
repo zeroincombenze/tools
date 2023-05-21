@@ -4,14 +4,18 @@ import os
 import sys
 import argparse
 from lxml import etree
+import re
 
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 
 IGNORE_DIRS = (".idea", ".git", "egg-info", "setup")
+REGEX_CM = re.compile("(^ *#|^.* #)")
+REGEX_OE = re.compile(r"([\"'])https?://www.openerp.com([\"'])")
+REGEX_OO = re.compile(r"([\"'])https?://(www.)?odoo.com([\"'])")
 
 
 def get_names(left_path, right_path):
@@ -59,6 +63,7 @@ def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, ba
         base.endswith(".pyc")
         or ((base.endswith(".po") or base.endswith(".pot")) and opt_args.ignore_po)
         or (base.startswith("README") and opt_args.ignore_doc)
+        or (base.startswith("LICENSE") and opt_args.ignore_doc)
     ):
         return
     elif os.path.isfile(left_path):
@@ -136,18 +141,37 @@ def matchdir(opt_args, left_diff_path, right_diff_path, left_path, right_path):
         match(opt_args, left_diff_path, right_diff_path, left_path, right_path)
 
 
-def remove_comment(root, files):
+def remove_comment(opt_args, root, files, compare_path=None):
+    def remove_identical_files(left_dir, right_dir, fn):
+        left_path = os.path.join(left_dir, fn)
+        right_path = os.path.join(right_dir, fn)
+        sts, stdout, stderr = z0lib.run_traced(
+            'diff -r %s %s' % (left_path, right_path),
+            verbose=False,
+            dry_run=opt_args.dry_run)
+        if sts == 0:
+            os.unlink(left_path)
+            os.unlink(right_path)
     for fn in files:
         ffn = os.path.join(root, fn)
         if not ffn.endswith(".py"):
+            if opt_args.purge and compare_path:
+                remove_identical_files(root, compare_path, fn)
             continue
         source = ""
         with open(ffn, "r") as fd:
             for line in fd.read().split("\n"):
-                if not line.strip().startswith("#"):
-                    source += ("%s\n" % line)
+                line = REGEX_OE.sub(r"\1https://www.odoo.com\2", line)
+                line = REGEX_OO.sub(r"\1https://www.odoo.com\2", line)
+                x = REGEX_CM.match(line)
+                if x:
+                    source += ("%s\n" % (line[x.start():x.end()-1].rstrip() or "#"))
+                else:
+                    source += ("%s\n" % line.rstrip())
         with open(ffn, "w") as fd:
             fd.write(source)
+        if opt_args.purge and compare_path:
+            remove_identical_files(root, compare_path, fn)
 
 
 def lintdir(opt_args, left_path, right_path):
@@ -159,22 +183,32 @@ def lintdir(opt_args, left_path, right_path):
                      dry_run=opt_args.dry_run)
     if opt_args.ignore_doc:
         for root, _dirs, files in os.walk(left_path):
-            remove_comment(root, files)
+            remove_comment(opt_args, root, files)
         for root, _dirs, files in os.walk(right_path):
-            remove_comment(root, files)
+            compare_path = None
+            if root.startswith(right_path):
+                compare_path = left_path + root[len(right_path):]
+            remove_comment(opt_args, root, files, compare_path=compare_path)
 
 
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Compare 2 paths after formatted them",
+        description="Compare 2 paths after formatted them in the same way",
         epilog="© 2021-2023 by SHS-AV s.r.l."
     )
     parser.add_argument('-b', '--odoo-version')
-    parser.add_argument('-c', '--cache', help="Use cached values")
-    parser.add_argument("-d", "--ignore-doc", action="store_true")
+    parser.add_argument('-c', '--cache', action="store_true", help="Use cached values")
+    parser.add_argument(
+        "-d", "--ignore-doc",
+        action="store_true",
+        help="Ignore README, docs and comment in files")
     parser.add_argument("-i", "--ignore-po", action="store_true")
-    parser.add_argument("-m", "--meld", action="store_true", help='use meld')
+    parser.add_argument("-m", "--meld", action="store_true", help='Use meld')
+    parser.add_argument(
+        "-P", "--purge",
+        action="store_true",
+        help='Purge identical files on temporary dirs')
     parser.add_argument("-n", "--dry-run", dest="dry_run", action="store_true")
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
@@ -182,7 +216,7 @@ def main(cli_args=None):
     parser.add_argument('right_path', nargs='?')
     opt_args = parser.parse_args(cli_args)
     if not opt_args.right_path:
-        # When just 1 path is issued, current directory become teh left path
+        # When just 1 path is issued, current directory become the left path
         # that is the reference path
         opt_args.right_path = os.path.abspath(opt_args.left_path)
         opt_args.left_path = os.path.abspath(os.getcwd())
@@ -242,14 +276,17 @@ def main(cli_args=None):
                          verbose=opt_args.dry_run,
                          dry_run=opt_args.dry_run)
     if opt_args.meld:
-        z0lib.run_traced('meld.exe %s %s' % (left_diff_path, right_diff_path),
-                         verbose=True,
-                         dry_run=opt_args.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(
+            'meld.exe %s %s' % (left_diff_path, right_diff_path),
+            verbose=True,
+            dry_run=opt_args.dry_run)
     else:
-        z0lib.run_traced('diff -r %s %s' % (left_diff_path, right_diff_path),
-                         verbose=True,
-                         dry_run=opt_args.dry_run)
-    return 0
+        sts, stdout, stderr = z0lib.run_traced(
+            'diff -r %s %s' % (left_diff_path, right_diff_path),
+            verbose=True,
+            dry_run=opt_args.dry_run)
+    print(stdout, stderr)
+    return sts
 
 
 if __name__ == "__main__":

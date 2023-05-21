@@ -1,6 +1,6 @@
 
 ===========
-z0lib 2.0.4
+z0lib 2.0.5
 ===========
 
 
@@ -103,6 +103,13 @@ Current development version
 History
 -------
 
+2.0.5 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Sometime configuration init fails
+* [IMP] Configuration name LOCAL_PKGS read real packages
+* [IMP] is_pypi function more precise
+
 2.0.4 (2023-04-10)
 ~~~~~~~~~~~~~~~~~~
 
@@ -189,7 +196,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-01
+Last Update / Ultimo aggiornamento: 2023-05-20
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -1,5 +1,5 @@
 # set -x
-__version__=2.0.7
+__version__=2.0.8
 if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
@@ -58,15 +58,15 @@ done
 HLPCMDLIST="cvt_script|diff|dir|docs|git-add|info|install|libdir|list|meld|replace|show|travis|travis-summary|update|update+replace|version"
 ACT2VME="^(dir|info|show|install|libdir|update|update\+replace|update)$"
 ACT2TOOLS="^(docs|git-add|list|replace|travis|travis-summary|version)$"
-PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
-PKGS_LIST_RE="(${PKGS_LIST// /|})"
-PKGS_LIST_RE=${PKGS_LIST_RE//-/.}
+LOCAL_PKGS="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
+LOCAL_PKGS_RE="(${LOCAL_PKGS// /|})"
+LOCAL_PKGS_RE=${LOCAL_PKGS_RE//-/.}
 ODOO_ROOT=$(dirname $HOME_DEVEL)
 [[ -z "$act" || ! $act =~ ($HLPCMDLIST) ]] && act="help"
 [[ $act == "help" ]] && echo "$0 [-h|-B|-f|-I|-l|-n|-U|-y|-Z] [-d VENV] [-b BRANCH] $HLPCMDLIST|help [PYPI_PKG]" && exit 0
 b=$(basename $PWD)
-[[ -z "$pypi" && $(dirname $PWD) == $HOME_DEVEL/pypi/$b && $b =~ $PKGS_LIST_RE ]] && pypi=$b
-[[ -z "$pypi" ]] && pypi="$PKGS_LIST" || pypi="${pypi//,/ }"
+[[ -z "$pypi" && $(dirname $PWD) == $HOME_DEVEL/pypi/$b && $b =~ $LOCAL_PKGS_RE ]] && pypi=$b
+[[ -z "$pypi" ]] && pypi="$LOCAL_PKGS" || pypi="${pypi//,/ }"
 [[ -z "$tgtdir" ]] && tgtdir="$ODOO_ROOT/VME/* $HOME_DEVEL/venv" || tgtdir="$(readlink -f $tgtdir)/*"
 [[ $tgtdir =~ ^[~/.] ]] || tgtdir="$ODOO_ROOT/$tgtdir"
 [[ $act =~ $ACT2TOOLS ]] && tgtdir=$HOME_DEVEL/pypi/tools
@@ -74,7 +74,7 @@ b=$(basename $PWD)
 echo "$0 $act '$pypi' -d $tgtdir -b $branch $opts"
 act2=$act
 for d in $tgtdir; do
-    [[ $act =~ "list" ]] && echo "$PKGS_LIST" && run_traced "find $ODOO_ROOT/tools -maxdepth 1 -type d|grep -Ev \"(/|.git|docs|egg-info|license_text|templates|tests|z0tester)$\"|sort|cut -d/ -f5" && continue
+    [[ $act =~ "list" ]] && echo "$LOCAL_PKGS" && run_traced "find $ODOO_ROOT/tools -maxdepth 1 -type d|grep -Ev \"(/|.git|docs|egg-info|license_text|templates|tests|z0tester)$\"|sort|cut -d/ -f5" && continue
     if [[ $act =~ $ACT2VME || ( $act =~ (diff|meld) && -n $branch ) ]]; then
         [[ -d "$d" ]] || continue
         [[ -n "$branch" && ! $d =~ $branch ]] && continue

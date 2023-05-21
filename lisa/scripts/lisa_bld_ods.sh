@@ -7,6 +7,15 @@
 # (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
+## split log
+## conditions: logrotate = False && workers != 0
+## options: logrotate-size = 2G (default)
+## command: ($sz > size, $log > Logfile, $last > last_chunk
+## split -a1 -d -b $sz $log ${log}.
+## rm -f ${log}.0
+## rm -f $log
+## mv ${log}.${last} $log
+##
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 # Based on template 2.0.0
@@ -181,6 +190,8 @@ fi
 [[ $opt_main -ne 0 ]] && opt_multi=0 || opt_multi=1
 [[ -z $opt_confn ]] && echo "Missed configuration file!" && exit 1
 script_name=$(basename $opt_confn)
+[[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
+[[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
 [[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
 if [[ -z $odoo_vid ]]; then
   odoo_ver=$(echo $script_name|grep -Eo "(odoo|oca)[0-9]+"|grep -Eo "[0-9]+")

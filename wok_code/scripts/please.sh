@@ -8,7 +8,6 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-# set -x  #debug
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 # Based on template 2.0.0
@@ -1486,14 +1485,14 @@ do_show_license() {
 #
 #do_show_status() {
 #  local s v1 v2 v x y
-#  local PKGS_LIST=$(get_cfg_value 0 "PKGS_LIST")
+#  local LOCAL_PKGS=$(get_cfg_value 0 "LOCAL_PKGS")
 #  pushd $HOME/tools >/dev/null
 #  local PKGS=$(git status -s | grep -E "^ M" | awk '{print $2}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
 #  local PKGS_V=$(git diff -G__version__ --compact-summary | awk '{print $1}' | awk -F/ '{print $1}' | grep -v "^[0-9]" | sort -u | tr "\n" "|")
 #  [[ -n "$PKGS" ]] && PKGS="(${PKGS:0:-1})" || PKGS="()"
 #  [[ -n "$PKGS_V" ]] && PKGS_V="(${PKGS_V:0:-1})" || PKGS_V="()"
 #  popd >/dev/null
-#  for pkg in $PKGS_LIST tools; do
+#  for pkg in $LOCAL_PKGS tools; do
 #    x=""
 #    [[ $opt_force -ne 0 ]] && echo -e "\e[1m[ $pkg ]\e[0m"
 #    [[ $opt_force -eq 0 ]] && echo -e "[ $pkg ]"
@@ -1690,9 +1689,10 @@ fi
 ACT2VME="^(dir|info|show|install|libdir|update|update\+replace|update)$"
 ACT2PYPI="^(docs|git-add|list|replace|travis|travis-summary|version)$"
 ACT2TOOLS="^(docs|git-add|list|replace|travis|travis-summary|version)$"
-PKGS_LIST="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
-PKGS_LIST_RE="(${PKGS_LIST// /|})"
-PKGS_LIST_RE=${PKGS_LIST_RE//-/.}
+# LOCAL_PKGS="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
+LOCAL_PKGS=$(find $HOME_DEVEL/pypi -maxdepth 1 -type d|grep -Ev "(/|.git|.idea|docs|egg-info|license_text|templates|tools|tests|z0tester)$"|sort|cut -d/ -f6)
+LOCAL_PKGS_RE="(${LOCAL_PKGS// /|})"
+LOCAL_PKGS_RE=${LOCAL_PKGS_RE//-/.}
 
 # opts_travis
 conf_default
@@ -1723,7 +1723,7 @@ else
     if [[ "$(type -t $cmd)" == "function" ]]; then
       if [[ $PRJNAME == "pypi" && $PKGNAME == "pypi" ]]; then
         [[ ! $action =~ $ACT2PYPI ]] && echo "Action $action not applicable on this directory" && continue
-        [[ $action =~ $ACT2TOOLS ]] && pkgs_list="$PKGS_LIST tools" || pkgs_list="$PKGS_LIST"
+        [[ $action =~ $ACT2TOOLS ]] && pkgs_list="$LOCAL_PKGS tools" || pkgs_list="$LOCAL_PKGS"
         for fn in $pkgs_list; do
           echo -e "\n===[$fn]==="
           pfn="${fn/-/_}"

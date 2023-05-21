@@ -1,6 +1,34 @@
 .. toctree::
    :maxdepth: 2
 
+==========
+lisa 2.0.2
+==========
+
+
+
+|Maturity| |Build Status| |Coverage Status| |license gpl|
+
+
+
+
+Overview
+========
+
+==========
+lisa 2.0.2
+==========
+
+
+
+|Maturity| |Build Status| |Coverage Status| |license gpl|
+
+
+
+
+Overview
+========
+
 lisa
 ----
 
@@ -18,10 +46,18 @@ You can easily write portable script to install packages on every Linux distribu
 
 
 |
+|
+
+
+|
+|
+
+
+|
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-01
+Last Update / Ultimo aggiornamento: 2023-05-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

@@ -19,7 +19,8 @@ else:
         [
             'future',
             'coverage',
-            'pylint-odoo<=5.0.0',
+            # 'pylint-odoo<=5.0.0',
+            'pylint-odoo==3.5.0',
             'python-magic',
             'python-plus',
             'os0',
@@ -29,7 +30,7 @@ else:
 
 setup(
     name='zerobug',
-    version='2.0.6',
+    version='2.0.7',
     description='Zeroincombenze continuous testing framework'
     ' and tools for python and bash programs',
     long_description="""

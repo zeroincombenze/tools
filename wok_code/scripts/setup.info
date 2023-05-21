@@ -12,7 +12,7 @@ else:
 
 setup(
     name='wok_code',
-    version='2.0.7',
+    version='2.0.8',
     description='Python developers tools',
     long_description="""
 Various tools at your fingertips.
@@ -91,7 +91,7 @@ The available tools are:
             'please = wok_code.scripts.please:main',
             'to_pep8.py = wok_code.scripts.to_pep8:main',
             'wget_odoo_repositories.py = wok_code.scripts.wget_odoo_repositories:main',
-            'run_odoo_debug = odoo_score.scripts.run_odoo_debug:main',
+            'run_odoo_debug = wok_code.scripts.run_odoo_debug:main',
         ]
     },
     zip_safe=False,

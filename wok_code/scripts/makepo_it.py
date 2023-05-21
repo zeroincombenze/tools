@@ -10,7 +10,7 @@ import sys
 import argparse
 # import pdb
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 PO_DEFAULT = """
 # Translation of Odoo Server.

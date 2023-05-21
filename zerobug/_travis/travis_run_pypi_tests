@@ -44,7 +44,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.6
+__version__=2.0.7
 
 
 travis_test_bash() {
@@ -219,21 +219,8 @@ run_regression_test() {
         [[ $TRAVIS_PDB == "true" ]] && opts="${opts}B"
         [[ $TRAVIS_DEBUG_MODE =~ [89] ]] && opts="${opts}n"
         OPTS=$(inherits_travis_opts "$opts" "T")
+        [[ -n $TRAVIS_TEST_PATTERN ]] && OPTS="$OPTS -p $TRAVIS_TEST_PATTERN"
         coverage_set
-#        if [[ -f ./tests/all_tests.py ]]; then
-#            if [[ ${opt_dprj:-0} -gt 0 ]]; then
-#                run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/all_tests.py $OPTS"
-#            else
-#                run_traced "cd $PRJPATH/tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START all_tests.py $OPTS"
-#            fi
-#            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-#        elif [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 ]]; then
-#            if [ ${opt_dprj:-0} -gt 0 ]; then
-#                run_traced "$PRJPATH/tests/all_tests $OPTS"
-#            else
-#                run_traced "cd $PRJPATH/tests; ./all_tests $OPTS"
-#            fi
-#            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         if [[ -f ./tests/test_$PRJNAME.py ]]; then
             if [ ${opt_dprj:-0} -gt 0 ]; then
                 run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py $OPTS"
@@ -256,9 +243,6 @@ run_regression_test() {
         fi
         if [[ ! -f $COVERAGE_DATA_FILE ]]; then
             echo "Result coverage file not found!"
-#        elif [ ${opt_dprj:-0} -eq 0 ]; then
-#            run_traced "mv .coverage .."
-#            run_traced "cd .."
         fi
     fi
     return $sts
@@ -345,23 +329,23 @@ check_pythonpath() {
 }
 
 
-OPTOPTS=(h        c        j        K         n            p        q           r     T        t         V           v)
-OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_pyth opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
-OPTACTI=("+"      "="      1        1         1            1        0           1     1        1         "*>"        "+")
-OPTDEFL=(0        ""       0        0         0            0        0           0     0        0         ""          -1)
-OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" ""       "quiet"     "rxt" "test"   "test"    "version"   "verbose")
-OPTHELP=("this help"\
- "configuration file (def .travis.conf)"\
- "execute tests in project dir rather in test dir"\
- "do bash, flake8 and pylint checks"\
- "do nothing (dry-run)"\
- "prefer python test over bash test when avaiable"\
- "silent mode"\
- "run rescricted mode (w/o parsing travis.yml file)"\
- "do regression tests"\
- "test mode (implies dry-run)"\
- "show version"\
- "verbose mode")
+OPTOPTS=(h        c        j        K         n            p         q           r     T        t         V           v)
+OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_patrn opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
+OPTACTI=("+"      "="      1        1         1            "="       0           1     1        1         "*>"        "+")
+OPTDEFL=(0        ""       0        0         0            ""        0           0     0        0         ""          -1)
+OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" "pattern" "quiet"     "rxt" "test"   "test"    "version"   "verbose")
+OPTHELP=("this help"
+ "configuration file (def .travis.conf)"
+ "deprecated: execute tests in project dir rather in test dir"
+ "do bash, flake8 and pylint checks - BASH_CHECK='1' LINT_CHECK='1'"
+ "do nothing (dry-run) - MQT_DRY_RUN"
+ "pattern to apply for test files (comma separated) - TRAVIS_TEST_PATTERN"
+ "silent mode"
+ "DEPRECATED: run rescricted mode (w/o parsing travis.yml file)"
+ "do regression tests - TESTS='1'"
+ "test mode (implies dry-run)"
+ "show version"
+ "verbose mode - MQT_VERBOSE_MODE")
 OPTARGS=(pkg PRJNAME)
 
 parseoptargs "$@"
@@ -375,10 +359,10 @@ if [[ $opt_help -gt 0 ]]; then
     exit 0
 fi
 
-[ "${MQT_DRY_RUN:-0}" == "1" ] && opt_dry_run=1
-[ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
-[ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
-[ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ] && opt_verbose=1
+[[ ${MQT_DRY_RUN:-0} == "1" ]] && opt_dry_run=1
+[[ ${MQT_VERBOSE_MODE:-1} == "0" ]] && opt_verbose=0
+[[ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ]] && opt_verbose=1
+[[ -n $opt_patrn ]] && TRAVIS_TEST_PATTERN="$opt_patrn"
 
 opts_travis
 conf_default

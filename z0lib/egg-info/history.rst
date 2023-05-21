@@ -1,3 +1,10 @@
+2.0.5 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Sometime configuration init fails
+* [IMP] Configuration name LOCAL_PKGS read real packages
+* [IMP] is_pypi function more precise
+
 2.0.4 (2023-04-10)
 ~~~~~~~~~~~~~~~~~~
 

@@ -1,3 +1,11 @@
+2.0.8 (2023-05-09)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Install run_odoo_debug
+* [FIX] Install do_git_ignore
+* [IMP] lint_2_compare: ignore odoo/openerp test string and LICENSE files
+* [IMP] lint_2_compare: new switch ---purge do not load identical files (quick diff)
+
 2.0.7 (2023-05-08)
 ~~~~~~~~~~~~~~~~~~
 

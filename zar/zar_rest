@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.1
+__version__=2.0.2
 
 
 kill_process() {
@@ -68,19 +68,19 @@ check_4_table() {
     local tbl=$2
     local what=$3
     local x
-    if [ "$what" == "exists" ]; then
+    if [[ "$what" == "exists" ]]; then
        x=$(psql -tc "select * from pg_tables where tablename = '$tbl';" $DB)
-    elif [ "$what" == "with_data" ]; then
+    elif [[ $what == "with_data" ]]; then
        x=$(psql -tc "select * from $tbl limit 1;" $DB)
-    elif [ "$what" == "active_data" ]; then
+    elif [[ $what == "active_data" ]]; then
        x=$(psql -tc "select * from $tbl where active=true limit 1;" $DB)
-    elif [ "$what" == "reset_data" ]; then
+    elif [[ $what == "reset_data" ]]; then
        x=$(psql -tc "select * from $tbl where active=true limit 1;" $DB)
     else
        x=""
     fi
-    if [ -n "$x" ]; then
-      if [ "$what" == "reset_data" ]; then
+    if [[ -n "$x" ]]; then
+      if [[ $what == "reset_data" ]]; then
          psql -tc "update $tbl set active=false where active=true;" $DB
       fi
       return 0
@@ -90,31 +90,31 @@ check_4_table() {
 
 stop_services() {
 # stop_services(DB quickmode)
-    if [ -z "$1" ]; then
+    if [[ -z "$1" ]]; then
       return 1
     fi
     local c i x DB tbl res wtm act wfid SVCS SVCS2
     DB="$1"
     SVCS="$(get_cfg_value 0 services_2_stop)"
-    if [ -z "$SVCS" ]; then
+    if [[ -z "$SVCS" ]]; then
       SVCS="ir_mail_server fetchmail_server base_action_rule ir_cron"
     else
       SVCS=${SVCS//,/ }
     fi
     SVCS2="$(get_cfg_value 0 services_2_restart)"
-    if [ -z "$SVCS2" ]; then
+    if [[ -z "$SVCS2" ]]; then
       SVCS2="base_action_rule"
     else
       SVCS2=${SVCS2//,/ }
     fi
     unset tblok tblwf
     declare -A tblok tblwf
-    if [ -z "${svc2run[*]}" ]; then
+    if [[ -z "${svc2run[*]}" ]]; then
       unset svc2run
       declare -gA svc2run
     fi
     wrkflw=("exists" "with_data" "reset_data" "Ok")
-    if [ -n "$2" ]; then
+    if [[ -n "$2" ]]; then
       wlog ". Starting services quick checker on \"$DB\""
       local MAXC=5
     else
@@ -122,59 +122,56 @@ stop_services() {
       local MAXC=50
     fi
     res=1
-    while [ $res -ne 0 -a $MAXC -gt 0 ]; do
+    while [[ $res -ne 0 && $MAXC -gt 0 ]]; do
       res=0
       wtm=2
       tnx=0
       for tbl in $SVCS; do
-        if [ -z "${tblwf[$tbl]}" ]; then
+        if [[ -z "${tblwf[$tbl]}" ]]; then
           wfid=0
         else
           wfid=${tblwf[$tbl]}
         fi
         act=${wrkflw[$wfid]}
-        if [ "$act" != "Ok" ]; then
-          if [ "$act" == "exists" ]; then
+        if [[ "$act" != "Ok" ]]; then
+          if [[ "$act" == "exists" ]]; then
             tnx=1
           fi
           res=1
           check_4_table "$DB" $tbl $act
-          if [ $? -eq 0 ]; then
+          if [[ $? -eq 0 ]]; then
             ((wfid++))
             tblwf[$tbl]=$wfid
-            if [ "$act" == "with_data" -a -z "${svc2run[$tbl]}" ]; then
-              x=$(psql -AR\| -tc "select name from $tbl where active=true;" "$DB"|tr "\n" " ")
-              if [ -n "$x" ]; then
+            if [[ $act == "with_data" && -z "${svc2run[$tbl]}" ]]; then
+              x=$(psql -AR\| -tc "select cron_name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
+              [[ -z $x ]] && x=$(psql -AR\| -tc "select name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
+              if [[ -n "$x" ]]; then
                 svc2run[$tbl]="${svc2run[$tbl]} $x"
               fi
             fi
           else
-            if [ "${tblok[$tbl]}" != "$act" ]; then
-              if [ $act == "exists" ]; then
+            if [[ "${tblok[$tbl]}" != "$act" ]]; then
+              if [[ $act == "exists" ]]; then
                 wlog "Table $tbl does not exit !!"
               fi
               tblok[$tbl]="$act"
-              if [ "$act" == "exists" -a $MAXC -lt 75 ]; then
-                let MAXC="$MAXC+5"
-              elif [ -z "$2" -a "$act" == "reset_data" ]; then
-                if [ $MAXC -gt 5 ]; then
+              if [[ $act == "exists" && $MAXC -lt 75 ]]; then
+                ((MAXC=MAXC+5))
+              elif [[ -z "$2" && $act == "reset_data" ]]; then
+                if [[ $MAXC -gt 5 ]]; then
                   MAXC=5
                 fi
                 wtm=1
               fi
             fi
-            if [ -z "$2" -a "$act" != "reset_data" ]; then
+            if [[ -z "$2" && $act != "reset_data" ]]; then
               ((wtm++))
             fi
           fi
         fi
       done
-      if [ $res -ne 0 ]; then
-        sleep $wtm
-      fi
-      if [ $tnx -eq 0 -a $MAXC -gt 10 ]; then
-        MAXC=10
-      fi
+      [[ $res -ne 0 ]] && sleep $wtm
+      [[ $tnx -eq 0 && $MAXC -gt 10 ]] && MAXC=10
       ((MAXC--))
     done
     for tbl in $SVCS; do

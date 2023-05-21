@@ -170,7 +170,7 @@ PYTHON3=""
 [[ -x $LOCAL_VENV/bin/python3 ]] && PYTHON3=$LOCAL_VENV/bin/python3
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
-PKGS_LIST="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
+LOCAL_PKGS="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(pip --version | grep --color=never -Eo '[0-9]+' | head -n1)
 PYVER=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]" | head -n1)
@@ -179,7 +179,7 @@ popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PIPVER -eq 19 ]] && popts="$popts --use-feature=2020-resolver"
 [[ $PIPVER -eq 21 ]] && popts="$popts --use-feature=in-tree-build"
 [[ $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
-[[ $opts =~ ^-.*q ]] && popts="$popts -q"
+[[ ! $opts =~ ^-.*v ]] && popts="$popts -q"
 [[ $opts =~ ^-.*v ]] && echo "# $(which pip).$PIPVER $popts ..."
 [[ -d $DSTPATH/tmp ]] && rm -fR $DSTPATH/tmp
 [[ -d $LOCAL_VENV/tmp ]] && rm -fR $LOCAL_VENV/tmp
@@ -187,7 +187,7 @@ popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PYVER -eq 2 ]] && run_traced "$VEM install future"
 
 if [[ ! $opts =~ ^-.*k ]]; then
-    for pkg in $PKGS_LIST tools; do
+    for pkg in $LOCAL_PKGS tools; do
         [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg/-/_} || pfn=$pkg
         l="RFLIST__$pfn"
         flist=${!l}
@@ -345,6 +345,8 @@ if [[ $PYVER -eq 3 ]]; then
         for pkg in sphinx sphinx_rtd_theme; do
             run_traced "pip install $pkg $popts"
         done
+        [[ ! -f package-lock.json ]] && run_traced "npm init -y"
+        run_traced "npm audit fix"
         run_traced "npm install --save-dev --save-exact prettier@2.1.2"
         run_traced "npm install --save-dev --save-exact @prettier/plugin-xml@0.12.0"
     fi
@@ -377,7 +379,7 @@ run_traced "deactivate"
 
 if [[ $opts =~ ^-.*D ]]; then
     run_traced "mkdir -p $DEVELPATH"
-    for pkg in $PKGS_LIST tools; do
+    for pkg in $LOCAL_PKGS tools; do
         [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg/-/_} || pfn=$pkg
         mkdir -p $HOME_DEV/pypi/$pfn
         [[ $pkg == "tools" ]] && run_traced "cp -R $SRCPATH/$pkg/* $DEVELPATH/" || run_traced "cp -R $SRCPATH/$pfn/ $DEVELPATH/$pkg/"

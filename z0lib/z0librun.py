@@ -11,7 +11,7 @@ Area managed:
 - tracelog:     manage tracelog (only bash)
 - run_traced:   execute (or dry_run) shell command
 - findpkg:      find package in file system (only bash)
-- CFG:          manage a dictionay value from config file
+- CFG:          manage a dictionary value from config file
                 like python ConfigParser (only bash)
 
 @author: Antonio M. Vigliotti antoniomaria.vigliotti@gmail.com
@@ -50,7 +50,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.4"
+__version__ = "2.0.5"
 
 
 def nakedname(path):

@@ -6,11 +6,11 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2019-23 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.0
+# Based on template 2.0.7
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -30,7 +30,8 @@ done
 [[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
 
-# TCONF="$HOME/.z0tools.conf
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -40,55 +41,58 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.1
+__version__=2.0.2
 
 
 reassign_owner() {
-    if [ -z "$1" -o -z "$3" ]; then
+    if [[ -z "$1" || -z "$3" ]]; then
       echo $0 DB OLD_OWNER NEW_OWNER
       exit 1
     fi
     local DB=$1
     local OLD_OWNER=$2
     local NEW_OWNER=$3
-    local tbl
-    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON DATABASE $DB TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'ALTER DATABASE $DB OWNER TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $NEW_OWNER' $DB"
-    if [ $opt_dry_run -eq 0 ]; then
-      [ $opt_verbose -gt 0 ] && echo "Reassigning all tables ..."
-      for tbl in $(psql -Upostgres -qAtc "select tablename from pg_tables where schemaname = 'public'" $DB); do
-        psql -Upostgres -qc "ALTER TABLE \"$tbl\" OWNER TO $NEW_OWNER" $DB
-        psql -Upostgres -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
+    local tbl cmd
+    [[ -n $opt_qport ]] && cmd="psql -p $opt_qport -Upostgres" || cmd="psql -Upostgres"
+    run_traced "$cmd -qc 'GRANT ALL PRIVILEGES ON DATABASE $DB TO $NEW_OWNER' $DB"
+    run_traced "$cmd -qc 'ALTER DATABASE $DB OWNER TO $NEW_OWNER' $DB"
+    run_traced "$cmd -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "$cmd -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "$cmd -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "$cmd -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $NEW_OWNER' $DB"
+    run_traced "$cmd -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $NEW_OWNER' $DB"
+    if [[ $opt_dry_run -eq 0 ]]; then
+      [[ $opt_verbose -gt 0 ]] && echo "Reassigning all tables ..."
+      for tbl in $($cmd -qAtc "select tablename from pg_tables where schemaname = 'public'" $DB); do
+        $cmd -qc "ALTER TABLE \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        $cmd -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
       done
-      for tbl in $(psql -Upostgres -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $DB); do
-        psql -Upostgres -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $NEW_OWNER" $DB
-        psql -Upostgres -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $NEW_OWNER" $DB
+      for tbl in $($cmd -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $DB); do
+        $cmd -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        $cmd -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $NEW_OWNER" $DB
       done
-      for tbl in $(psql -qAtc "select table_name from information_schema.views where table_schema = 'public'" $DB); do
-        psql -Upostgres -qc "ALTER VIEW \"$tbl\" OWNER TO $NEW_OWNER" $DB
-        psql -Upostgres -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
+      for tbl in $($cmd -qAtc "select table_name from information_schema.views where table_schema = 'public'" $DB); do
+        $cmd -qc "ALTER VIEW \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        $cmd -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
       done
     fi
-    [ -n "$OLD_OWNER" ] && run_traced "psql -Upostgres -qc 'GRANT $OLD_OWNER TO $NEW_OWNER;' $DB"
+    [[ -n "$OLD_OWNER" ]] && run_traced "$cmd -qc 'GRANT $OLD_OWNER TO $NEW_OWNER;' $DB"
 }
 
 
-OPTOPTS=(h        d        n           o        U        V           v)
-OPTDEST=(opt_help opt_db   opt_dry_run opt_orig opt_user opt_version opt_verbose)
-OPTACTI=("+"      "="      1           "="      "="      "*"         1)
-OPTDEFL=(0        0        0           ""       ""       ""          0)
-OPTMETA=("help"   "dbname" ""         "user"   "user"    "version"   "verbose")
-OPTHELP=("this help"\
- "db name"\
- "do nothing (dry-run)"\
- "original username"\
- "username to reassign"\
- "show version end exit"\
+OPTOPTS=(h        d        n           o        p         U        V           v)
+OPTLONG=(help     database dry-run     original psql-port new-user version     verbose)
+OPTDEST=(opt_help opt_db   opt_dry_run opt_orig opt_qport opt_user opt_version opt_verbose)
+OPTACTI=("+"      "="      1           "="      "="       "="      "*>"        "+")
+OPTDEFL=(0        0        0           ""       ""        ""       ""          -1)
+OPTMETA=("help"   "dbname" ""         "user"    "port"    "user"   "version"   "verbose")
+OPTHELP=("this help"
+ "db name"
+ "do nothing (dry-run)"
+ "original username"
+ "psql port"
+ "username to reassign"
+ "show version end exit"
  "verbose mode")
 OPTARGS=()
 
@@ -100,7 +104,7 @@ fi
 [[ -z "$opt_db" || -z "$opt_user" ]] && opt_help=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Change owner of postgres DB"\
-  "(C) 2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2019-23 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 run_traced "reassign_owner \"$opt_db\" \"$opt_orig\" \"$opt_user\""

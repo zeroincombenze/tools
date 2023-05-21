@@ -24,7 +24,7 @@ from openpyxl import load_workbook
 
 from python_plus import unicodes
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 
 class Z0bugOdoo(object):

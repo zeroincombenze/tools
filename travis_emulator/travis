@@ -51,7 +51,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.5
 
 
 store_cfg_param_value() {
@@ -96,11 +96,8 @@ process_yaml_init() {
   export TRAVIS_PULL_REQUEST="false"
   export MQT_TEMPLATE_DB="$(get_cfg_value "" "MQT_TEMPLATE_DB")$YML_pid"
   export MQT_TEST_DB="$(get_cfg_value "" "MQT_TEST_DB")$YML_pid"
-  # export PGUSER="$(get_cfg_value "" "MQT_DBUSER")"
   [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
   python_ver_yaml=""
-  # python_ver_ena=""
-  # [[ -f $PRJPATH/travis.ini ]] && python_ver_ena=$(cat $PRJPATH/travis.ini|grep "^PYPI_RUN_PYVER"|awk -F= '{print $2}'|grep --color=never -Eo "[0-9.]+"|head -n1)
   if [ $opt_dbgmnt -ne 0 ]; then
     [[ -d $HOME_DEVEL/pypi ]] && export YML_lisa=$HOME_DEVEL/pypi/lisa/lisa/lisa
     (($opt_debug)) && export TRAVIS_PDB="true"
@@ -108,9 +105,8 @@ process_yaml_init() {
     export YML_lisa=lisa
     export YML_mgrodoo=manage_odoo
   fi
-  # export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
   [[ $TRAVIS_DEBUG_MODE -gt 1 ]] && export VERBOSE_MODE=$TRAVIS_DEBUG_MODE
-  [[ $osx_d -ne 0 ]] && export TRAVIS_EMULATE_OSX="true"
+  # [[ $osx_d -ne 0 ]] && export TRAVIS_EMULATE_OSX="true"
   ODOO_TNLBOT="${opt_tnl:-0}"
   if [ $opt_full -ne 0 ]; then
     export SYSTEM_SITE_PACKAGES="${opt_syspkg:-false}"
@@ -123,6 +119,7 @@ process_yaml_init() {
   done
   FH=$(xuname -f)
   TRAVIS_VERBOSE=$opt_verbose
+  [[ -n $opt_patrn ]] && export TRAVIS_TEST_PATTERN="$opt_patrn"
 }
 
 process_yaml_unquote() {
@@ -758,13 +755,6 @@ process_yaml_run_cmd() {
     [[ $c != $xcmd && ! $xcmd =~ ^# ]] && wlog "\e[${PS_NOP_COLOR}m> $c\e[${PS_TXT_COLOR}m" && ((Z0_STACK=Z0_STACK+2))
     run_traced "$line1$xcmd"
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-#    if [[ $xcmd =~ "travis_install_env" ]]; then
-#      ((Z0_STACK=Z0_STACK+2))
-#      opts=$(inherits_travis_opts "" "V")
-#      [[ $TRAVIS == "true" ]] || opts="$opts -f"
-#      [ $opt_keepE -eq 0 ] || run_traced "vem create $VENVOPTS $TRAVIS_HOME $opts -p$TRAVIS_PYTHON_VERSION"
-#      ((Z0_STACK=Z0_STACK-2))
-#    fi
     [[ $c != $xcmd && ! $xcmd =~ ^# ]] && ((Z0_STACK=Z0_STACK-2))
   fi
   [[ $TRAVIS_DEBUG_MODE -gt 2 ]] && echo "<<<PATH=$PATH>>>"
@@ -895,8 +885,8 @@ process_yaml() {
            PYTHON PYTHONPATH REPOSNAME TRAVIS TRAVIS_BRANCH TRAVIS_BUILD_DIR\
              TRAVIS_HOME TRAVIS_HOME_BRANCH TRAVIS_PDB TRAVIS_PYTHON_MATRIX\
               TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_SAVED_HOME\
-               TRAVIS_SAVED_HOME_DEVEL TRAVIS_YAML_FILE TRAVIS_YAML_ORIG\
-                SYSTEM_SITE_PACKAGES; do
+               TRAVIS_SAVED_HOME_DEVEL TRAVIS_TEST_PATTERN TRAVIS_YAML_FILE\
+                TRAVIS_YAML_ORIG SYSTEM_SITE_PACKAGES; do
           if [[ $p == "job-id" ]]; then
             X=$$
           elif [[ $p == "DIST" ]]; then
@@ -992,8 +982,6 @@ travis_status() {
 set_log_filename() {
     # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
     # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
-    # set -x  #debug
-    # local odoo_ver=$(build_odoo_param MAJVER ${BRANCH})
     local m="$PKGNAME" odoo_ver=$(build_odoo_param MAJVER ${BRANCH})
     [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID '.')"
     [[ -n $ODOO_GIT_ORGID && $GIT_ORGID =~ $ODOO_GIT_ORGID ]] && UDI="$m" || UDI="$m_${GIT_ORGID}"
@@ -1016,12 +1004,12 @@ set_log_filename() {
 }
 
 
-OPTOPTS=(h        A           B         C         D           E         e       F        f         k        j       L          l        M          m       n            O         P           p        Q        q           r     S            T         V           v           X           Y         Z)
-OPTLONG=(help     trace-after debug     no-cache  debug-level no-savenv locale  full     force     keep     pyver   lint-level logdir   ''         missing dry-run      org       python-brk  pytest   config   quiet       ''    syspkg       trace     version     verbose     translation yaml-file zero)
-OPTDEST=(opt_help opt_tafter  opt_debug opt_cache opt_dlvl    opt_keepE opt_loc opt_full opt_force opt_keep opt_pyv opt_llvl   opt_flog opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pybrk   opt_pyth opt_tcfg opt_verbose opt_r  opt_syspkg  opt_trace opt_version opt_verbose opt_tnl     opt_fyaml opt_dbgmnt)
-OPTACTI=('+'      "="         1         0         "="         0         "="     1        1         1        "="     "="        "="      1          1       "1>"         "="       "="         1        "="      0           1     "="          "="       "*>"        "+"         "="         "="       1)
-OPTDEFL=(0        ""          0         1         ""          1         ""      0        0         0        ""      ""         ""       0          0       0            "local"   ""          0        ""       0           0     ""           ""        ""          -1          ""          ""        0)
-OPTMETA=("help"   "regex"     "version" ""        "number"    ""        "iso"   ""       ""        ""       "pyver" "number"   "dir"    ""         ""      "do nothing" "git-org" "file:line" ""       "file"   "verbose"   "res" "false|true" "regex"   "version"   "verbose"   "0|1"       "file"    "")
+OPTOPTS=(h        A           B         C         D           E         e       F        f         k        j       L          l        m       n            O         P           p         Q        q           r     S            T         V           v           X           Y         Z)
+OPTLONG=(help     trace-after debug     no-cache  debug-level no-savenv locale  full     force     keep     python  lint-level logdir   missing dry-run      org       python-brk  pattern   config   quiet       ''    syspkg       trace     version     verbose     translation yaml-file zero)
+OPTDEST=(opt_help opt_tafter  opt_debug opt_cache opt_dlvl    opt_keepE opt_loc opt_full opt_force opt_keep opt_pyv opt_llvl   opt_flog opt_mis opt_dry_run  opt_org   opt_pybrk   opt_patrn opt_tcfg opt_verbose opt_r  opt_syspkg  opt_trace opt_version opt_verbose opt_tnl     opt_fyaml opt_dbgmnt)
+OPTACTI=('+'      "="         1         0         "="         0         "="     1        1         1        "="     "="        "="      1       "1>"         "="       "="         "="       "="      0           1     "="          "="       "*>"        "+"         "="         "="       1)
+OPTDEFL=(0        ""          0         1         ""          1         ""      0        0         0        ""      ""         ""       0       0            "local"   ""          ""        ""       0           0     ""           ""        ""          -1          ""          ""        0)
+OPTMETA=("help"   "regex"     "version" ""        "number"    ""        "iso"   ""       ""        ""       "pyver" "number"   "dir"    ""      "do nothing" "git-org" "file:line" "pattern" "file"   "verbose"   "res" "false|true" "regex"   "version"   "verbose"   "0|1"       "file"    "")
 OPTHELP=("this help"
   "travis stops after executed yaml statement"
   "debug mode: do not create log"
@@ -1035,12 +1023,11 @@ OPTHELP=("this help"
   "test with specific python versions (comma separated)"
   "lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml"
   "log directory (def=$ODOO_ROOT/travis_log)"
-  "deprecated: kept just for compatibility"
   "show missing line in report coverage"
   "do nothing (dry-run)"
-  "prefer python test over bash test when avaiable"
-  "git organization, i.e. oca or zeroincombenze"
+  "git organization to test, i.e. oca or zeroincombenze"
   "set python breakpoint at file:linenumber"
+  "pattern to apply for test files (comma separated)"
   "configuration file (def .z0tools.conf)"
   "silent mode"
   "run restricted mode (deprecated)"
@@ -1066,8 +1053,9 @@ if [[ $opt_help -gt 0 ]]; then
 fi
 
 export PYTHONWARNINGS="ignore"
-[[ -z "$action" ]] && action=emulate
 [[ -n "$opt_tafter" || -n "$opt_trace" || -n "$opt_pybrk" ]] && opt_debug=1
+[[ -z "$action" && $opt_debug -ne 0 ]] && action="test"
+[[ -z "$action" ]] && action="emulate"
 VIRTACTS="(force-lint|lint|force-test|test|force-test-multi|test-multi|emulate)"
 opt_virt=1
 if [[ $action =~ $ACTIONS ]]; then

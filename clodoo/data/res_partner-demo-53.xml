@@ -5,8 +5,12 @@
         <field name="street">Via I Maggio, 11</field>
         <field name="zip">20022</field>
         <field name="city">Castano Primo</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},MI}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},MI}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="customer">True</field>
         <field name="is_company">True</field>
         <field name="email">info@nebula-business.it</field>
@@ -20,26 +24,32 @@
     <record model="res.partner" id="z0bug.res_partner_2">
         <field name="name">Agro Latte Due  s.n.c.</field>
         <field name="street">Via II Giugno, 22</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">10060</field>
         <field name="city">S. Secondo Pinerolo</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},TO}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},TO}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">True</field>
         <field name="is_company">True</field>
         <field name="email">agrolait2@libero.it</field>
         <field name="phone">+39 0121555123</field>
-        <field name="fax"></field>
+        <field name="fax"/>
         <field name="supplier">False</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT02345670018</field>
-        <field name="fiscalcode"></field>
+        <field name="fiscalcode"/>
         <field name="website">http://www.agrolait2.it/</field>
         <field name="company_id">z0bug.mycompany</field>
         <field name="electronic_invoice_subject">True</field>
         <field name="codice_destinatario">ABCDEFG </field>
-        <field name="image_small">/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIy MjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCABAAEADASIA AhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQA AAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3 ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWm p6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEA AwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSEx BhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK U1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3 uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD37aPQ UbR6ClooAZlc4x+lL8v90/lXkXju91vUPG/9j6dPdYjjj8m3t5zEGZgSSTkD8SeAKLDwL4tulDXO s3Fj94FZLmWQgg4HCvggjJznjjv0Dz/rsnUcIU27dT13j+6fyoBBPT9K8G17SvE3h2CKW+v79kYu HeK5mZEw2FJYHA3DkZwexFdF8LdZ1G41q7sJ72a4tja+eomlMm1g6jgkkjIbp7CgmGYXrKjODTZ6 xgego2j0FAORS0HpBRRRQB4R8SgG8c3ucYEUB57fLXc+AtVu5dJlg1ySWOWVy8E1zMd8qMC3Q/d2 gce3biuH+JAB8dXwPQwwg/8AfJrpvAs1x4rs7qDWdWku4rR0AscKpI4ZWdgAzAkYxnB2nOafQ8DD yax00t236fMydZ8a+K9MkW33W9pHNDugx++by9zKH3uOScckjGMEAVW8K21yni59JsdTEN9cWZnm 1FVEqPb7wWNtwVZt4wZHwAQcI1UvFxudQ8a3tqL9bwrM6xM7YSBfvMpJ6KmCWPQYNdF4IjttKsNT 8bXMcosVtEs9MUptkmt0Od4U/wAU0pyqnnketUkrNmmFUquJlKV2ovS52/g/VJr3TprG+mWXUtLn ayu3BGZGX7shwf40KsfQlh2ro653wboJ0TQ4vtccI1a63XGoSxooMkzu0jAkfeCs7KM9hXRYqXue 0ttQorm/C/jKy8VSailpFLGbKfyz5g/1qEkLKuP4GKsB/umtgalZmSWMXdvviZUkXzVyhY4AIzwT 2B60mmnZgpJq55d8QvCmtXniaXULCxku7eeFFzFglGUEYIJzjoc0tvD4rj0/+y9F8PNolttxLdyM HuJM5yd4GSTk9Bx2IFepR3MExQRywuXDMu1wSwU4JHrgkA+mao3utW9vo15qVmFv0tUZnS2lQk7e WGc4BAyefShM4JYGmpyqKTV9/wCtziNC+GJOBqvy2JA8y1DAyXRBziVhwseRnylJycFnboO+m0i2 uJrSSaPeto2+GIn5FcDAbb6gdOw6jnmpLG/W+062vo1KwzwpMobGQGUMM9u9V7/xBYWGkT6o9wkl pAMvJCRJ6DAweTz0obOqnGnShaOiNQcDpS1lf2/Yf2xHpYuEa5kg+0Jj7rLu28NnBOe3Wrsd5DLM 8Mc0TTR/fjVgWX6jqKDRTi9mebQaFr/hTxBo0onhurW4sf7Fd7GxkX7NtBaCWQb33YfcC+FA3nPX jnINM0uGPwNYT+EZ7LVrfU4YdQubnTwqyuI5N/708S73G8EFgAM8cV7lsHGMisCx8FaJp+pQ6hFF dSXEG/7Obm9mnWDf97y1diFJ9QM1oqj6k+ztojz6LwesPg/xLLZ6JN9qk1edHhiQxyzaet0GeCE8 EI0YbCrw2T1zViWwtb7WZrjwhoc+nWUekXkWoEaa9mlwzKBDEEZVLurBjkDgHGecV6xsB6kmjaDU 87e4nTvGx5xNrZfwJb6NBoOpXtx/ZqRzRz6dMkS7UQMGyFL8ZwqnJ2471iNpU91beJLS0sJpxdad FJasukm0jmliZ8lFxgMAwA3YY9sgA17Ft9z+dBQEYyakxlhea3NLbTbysecy2do3ifT9R0/RntrS 60yS3s3/ALNZfs12JPkZ025jxk4YgDrzg1R8H6UsGraKJY7221C1DLcR/wBjeXg+WwfzLjpIrHkH Jydp+nqmz3NAQDuaVh/VVzKVz//Z </field>
+        <field
+            name="image_small"
+        >/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIy MjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCABAAEADASIA AhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQA AAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3 ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWm p6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEA AwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSEx BhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK U1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3 uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD37aPQ UbR6ClooAZlc4x+lL8v90/lXkXju91vUPG/9j6dPdYjjj8m3t5zEGZgSSTkD8SeAKLDwL4tulDXO s3Fj94FZLmWQgg4HCvggjJznjjv0Dz/rsnUcIU27dT13j+6fyoBBPT9K8G17SvE3h2CKW+v79kYu HeK5mZEw2FJYHA3DkZwexFdF8LdZ1G41q7sJ72a4tja+eomlMm1g6jgkkjIbp7CgmGYXrKjODTZ6 xgego2j0FAORS0HpBRRRQB4R8SgG8c3ucYEUB57fLXc+AtVu5dJlg1ySWOWVy8E1zMd8qMC3Q/d2 gce3biuH+JAB8dXwPQwwg/8AfJrpvAs1x4rs7qDWdWku4rR0AscKpI4ZWdgAzAkYxnB2nOafQ8DD yax00t236fMydZ8a+K9MkW33W9pHNDugx++by9zKH3uOScckjGMEAVW8K21yni59JsdTEN9cWZnm 1FVEqPb7wWNtwVZt4wZHwAQcI1UvFxudQ8a3tqL9bwrM6xM7YSBfvMpJ6KmCWPQYNdF4IjttKsNT 8bXMcosVtEs9MUptkmt0Od4U/wAU0pyqnnketUkrNmmFUquJlKV2ovS52/g/VJr3TprG+mWXUtLn ayu3BGZGX7shwf40KsfQlh2ro653wboJ0TQ4vtccI1a63XGoSxooMkzu0jAkfeCs7KM9hXRYqXue 0ttQorm/C/jKy8VSailpFLGbKfyz5g/1qEkLKuP4GKsB/umtgalZmSWMXdvviZUkXzVyhY4AIzwT 2B60mmnZgpJq55d8QvCmtXniaXULCxku7eeFFzFglGUEYIJzjoc0tvD4rj0/+y9F8PNolttxLdyM HuJM5yd4GSTk9Bx2IFepR3MExQRywuXDMu1wSwU4JHrgkA+mao3utW9vo15qVmFv0tUZnS2lQk7e WGc4BAyefShM4JYGmpyqKTV9/wCtziNC+GJOBqvy2JA8y1DAyXRBziVhwseRnylJycFnboO+m0i2 uJrSSaPeto2+GIn5FcDAbb6gdOw6jnmpLG/W+062vo1KwzwpMobGQGUMM9u9V7/xBYWGkT6o9wkl pAMvJCRJ6DAweTz0obOqnGnShaOiNQcDpS1lf2/Yf2xHpYuEa5kg+0Jj7rLu28NnBOe3Wrsd5DLM 8Mc0TTR/fjVgWX6jqKDRTi9mebQaFr/hTxBo0onhurW4sf7Fd7GxkX7NtBaCWQb33YfcC+FA3nPX jnINM0uGPwNYT+EZ7LVrfU4YdQubnTwqyuI5N/708S73G8EFgAM8cV7lsHGMisCx8FaJp+pQ6hFF dSXEG/7Obm9mnWDf97y1diFJ9QM1oqj6k+ztojz6LwesPg/xLLZ6JN9qk1edHhiQxyzaet0GeCE8 EI0YbCrw2T1zViWwtb7WZrjwhoc+nWUekXkWoEaa9mlwzKBDEEZVLurBjkDgHGecV6xsB6kmjaDU 87e4nTvGx5xNrZfwJb6NBoOpXtx/ZqRzRz6dMkS7UQMGyFL8ZwqnJ2471iNpU91beJLS0sJpxdad FJasukm0jmliZ8lFxgMAwA3YY9sgA17Ft9z+dBQEYyakxlhea3NLbTbysecy2do3ifT9R0/RntrS 60yS3s3/ALNZfs12JPkZ025jxk4YgDrzg1R8H6UsGraKJY7221C1DLcR/wBjeXg+WwfzLjpIrHkH Jydp+nqmz3NAQDuaVh/VVzKVz//Z </field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_3">
         <field name="name">China Export Trifoglio s.r.l.</field>
@@ -47,190 +57,222 @@
         <field name="street2">Prima Torre</field>
         <field name="zip">15010</field>
         <field name="city">Terzo</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},AL}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},AL}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">True</field>
         <field name="is_company">True</field>
         <field name="email">china3@export.it</field>
         <field name="phone">+39 0161555999</field>
-        <field name="fax"></field>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT01234560017</field>
-        <field name="fiscalcode"></field>
-        <field name="website"></field>
+        <field name="fiscalcode"/>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_4">
         <field name="name">Delta 4 s.r.l.</field>
         <field name="street">C.so IV Marzo, 444</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">65122</field>
         <field name="city">Pescara</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},PE}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},PE}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">False</field>
         <field name="is_company">True</field>
         <field name="email">info@delta4.it</field>
         <field name="phone">+39 025559876</field>
-        <field name="fax"></field>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT06631580013</field>
-        <field name="fiscalcode"></field>
-        <field name="website"></field>
+        <field name="fiscalcode"/>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_5">
         <field name="name">Chamber Works Hotel</field>
         <field name="street">P.za  del porto, 5</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">16115</field>
         <field name="city">Genova</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},GE}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},GE}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">True</field>
         <field name="is_company">True</field>
         <field name="email">genova@hotelchamber.com</field>
         <field name="phone">+39 0101234567</field>
-        <field name="fax"></field>
+        <field name="fax"/>
         <field name="supplier">False</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT00118439991</field>
-        <field name="fiscalcode"></field>
-        <field name="website"></field>
+        <field name="fiscalcode"/>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_6">
         <field name="name">OpenElec Esa S.p.A</field>
         <field name="street">Str. VI Gennaio, 66</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">20099</field>
         <field name="city">Sesto S. Giovanni</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},MI}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},MI}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">True</field>
         <field name="is_company">True</field>
         <field name="email">info@esaspa.it</field>
         <field name="phone">+39 029876543</field>
-        <field name="fax"></field>
+        <field name="fax"/>
         <field name="supplier">False</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT12345670017</field>
-        <field name="fiscalcode"></field>
+        <field name="fiscalcode"/>
         <field name="website">www.esaspa.it</field>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_7">
         <field name="name">Aruba S.p.A.</field>
         <field name="street">Loc. Palazzetto, 4 </field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">52011</field>
         <field name="city">Torino</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},TO}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},TO}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">False</field>
         <field name="is_company">True</field>
         <field name="email">info@aruba.it</field>
         <field name="phone">+39 0575 0505</field>
-        <field name="fax"></field>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT01573850516</field>
-        <field name="fiscalcode"></field>
+        <field name="fiscalcode"/>
         <field name="website">www.aruba.it</field>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_8">
         <field name="name">Global Solution s.r.l.</field>
         <field name="street">Largo Equinozio, 21</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">00195</field>
         <field name="city">Roma</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},RM}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},RM}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">True</field>
         <field name="is_company">True</field>
         <field name="email">info@gbs.it</field>
-        <field name="phone"></field>
-        <field name="fax"></field>
+        <field name="phone"/>
+        <field name="fax"/>
         <field name="supplier">False</field>
         <field name="country_id">base.it</field>
-        <field name="vat"></field>
-        <field name="fiscalcode"></field>
-        <field name="website"></field>
+        <field name="vat"/>
+        <field name="fiscalcode"/>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_9">
         <field name="name">Mario Rossi</field>
         <field name="street">Str. del Dazio, 10</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">10121</field>
         <field name="city">Torino</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},TO}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},TO}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">False</field>
         <field name="is_company">True</field>
         <field name="email">mario.rossi@gmail.com</field>
-        <field name="phone"></field>
-        <field name="fax"></field>
+        <field name="phone"/>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT10242670015</field>
         <field name="fiscalcode">RSSMRA69C02D612M </field>
-        <field name="website"></field>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_10">
         <field name="name">Notaio Libero Jackson</field>
         <field name="street">Str. del Dazio, 10</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">10121</field>
         <field name="city">Torino</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},TO}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},TO}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">False</field>
         <field name="is_company">True</field>
         <field name="email">jacksonlibero@pec.notariato.it</field>
-        <field name="phone"></field>
-        <field name="fax"></field>
+        <field name="phone"/>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT10242670015</field>
         <field name="fiscalcode">JCKLBR72M24L736R</field>
-        <field name="website"></field>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_11">
@@ -239,166 +281,190 @@
         <field name="street2">Palazzo NUVOLA</field>
         <field name="zip">10151</field>
         <field name="city">Torino</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},TO}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},TO}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">False</field>
         <field name="is_company">True</field>
         <field name="email">commercial@nebula-caffe.it</field>
-        <field name="phone"></field>
-        <field name="fax"></field>
+        <field name="phone"/>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT01250630504</field>
-        <field name="fiscalcode"></field>
+        <field name="fiscalcode"/>
         <field name="website">www.nebula-caffe.it</field>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_12">
         <field name="name">Freie Universität Berlin</field>
         <field name="street">Kaiserswerther Straße 16-18</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">14195</field>
         <field name="city">Berlin</field>
-        <field name="state_id"></field>
-        <field name="property_account_position">${account.fiscal.position:Regime UE}</field>
+        <field name="state_id"/>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Regime UE}</field>
         <field name="active">True</field>
         <field name="customer">False</field>
         <field name="is_company">True</field>
-        <field name="email"></field>
-        <field name="phone"></field>
-        <field name="fax"></field>
+        <field name="email"/>
+        <field name="phone"/>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.de</field>
         <field name="vat">DE123456788</field>
-        <field name="fiscalcode"></field>
-        <field name="website"></field>
+        <field name="fiscalcode"/>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_13">
         <field name="name">Axelor GmbH</field>
         <field name="street">Carl-Bertelsmann-Straße 23</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">33332</field>
         <field name="city">Gütersloh</field>
-        <field name="state_id"></field>
-        <field name="property_account_position">${account.fiscal.position:Regime UE}</field>
+        <field name="state_id"/>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Regime UE}</field>
         <field name="active">True</field>
         <field name="customer">True</field>
         <field name="is_company">True</field>
-        <field name="email"></field>
-        <field name="phone"></field>
-        <field name="fax"></field>
+        <field name="email"/>
+        <field name="phone"/>
+        <field name="fax"/>
         <field name="supplier">False</field>
         <field name="country_id">base.it</field>
-        <field name="vat"></field>
-        <field name="fiscalcode"></field>
-        <field name="website"></field>
+        <field name="vat"/>
+        <field name="fiscalcode"/>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_14">
         <field name="name">SS Carrefur</field>
         <field name="street">Str. del Dazio, 10</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">10121</field>
         <field name="city">Torino</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},TO}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},TO}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">False</field>
         <field name="is_company">True</field>
-        <field name="email"></field>
-        <field name="phone"></field>
-        <field name="fax"></field>
+        <field name="email"/>
+        <field name="phone"/>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT08652300156</field>
-        <field name="fiscalcode"></field>
-        <field name="website"></field>
+        <field name="fiscalcode"/>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_15">
         <field name="name">Epic Five Technologies</field>
         <field name="street">V.le Reggia, 55</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">31055</field>
         <field name="city">Quinto di Treviso</field>
-        <field name="state_id">${res.country.state('country_id',code):${'base.it'}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state('country_id',code):${'base.it'}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">False</field>
         <field name="is_company">True</field>
         <field name="email">epic5@tech.it</field>
         <field name="phone">+39 0422886644</field>
-        <field name="fax"></field>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.it</field>
-        <field name="vat"></field>
-        <field name="fiscalcode"></field>
-        <field name="website"></field>
+        <field name="vat"/>
+        <field name="fiscalcode"/>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_16">
         <field name="name">Viking Office Depot Italia s.r.l.</field>
-        <field name="street">Centro Direzionale Milanofiori - Palazzo E Scala 3/5</field>
-        <field name="street2"></field>
+        <field
+            name="street"
+        >Centro Direzionale Milanofiori - Palazzo E Scala 3/5</field>
+        <field name="street2"/>
         <field name="zip">20090</field>
         <field name="city">Assago</field>
-        <field name="state_id">${res.country.state(country_id,code):${base.it},MI}</field>
-        <field name="property_account_position">${account.fiscal.position:Italia}</field>
+        <field
+            name="state_id"
+        >${res.country.state(country_id,code):${base.it},MI}</field>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Italia}</field>
         <field name="active">True</field>
         <field name="customer">True</field>
         <field name="is_company">True</field>
         <field name="email">cc@viking-italia.it</field>
         <field name="phone">+39 0255582285</field>
-        <field name="fax"></field>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.it</field>
         <field name="vat">IT03675290286</field>
-        <field name="fiscalcode"></field>
+        <field name="fiscalcode"/>
         <field name="website">www.viking-italia.it</field>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
     <record model="res.partner" id="z0bug.res_partner_17">
         <field name="name">Vexor BV</field>
         <field name="street">Hoogoorddreef 66</field>
-        <field name="street2"></field>
+        <field name="street2"/>
         <field name="zip">1101BE</field>
         <field name="city">Amsterdam</field>
-        <field name="state_id"></field>
-        <field name="property_account_position">${account.fiscal.position:Regime UE}</field>
+        <field name="state_id"/>
+        <field
+            name="property_account_position"
+        >${account.fiscal.position:Regime UE}</field>
         <field name="active">True</field>
         <field name="customer">False</field>
         <field name="is_company">True</field>
         <field name="email">info@vexor.nl</field>
-        <field name="phone"></field>
-        <field name="fax"></field>
+        <field name="phone"/>
+        <field name="fax"/>
         <field name="supplier">True</field>
         <field name="country_id">base.nl</field>
         <field name="vat">NL123456782B90</field>
-        <field name="fiscalcode"></field>
-        <field name="website"></field>
+        <field name="fiscalcode"/>
+        <field name="website"/>
         <field name="company_id">z0bug.mycompany</field>
-        <field name="electronic_invoice_subject"></field>
-        <field name="codice_destinatario"></field>
+        <field name="electronic_invoice_subject"/>
+        <field name="codice_destinatario"/>
         <field name="image_small">None</field>
     </record>
 </odoo>

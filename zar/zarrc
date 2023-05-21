@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=2.0.1
+#__version__=2.0.2
 
 detached_login() {
 # detached_login([path] [path2] [path3])

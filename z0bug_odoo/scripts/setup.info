@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='z0bug_odoo',
-    version='2.0.7',
+    version='2.0.8',
     description='Odoo testing framework',
     long_description="""
 Zeroincombenze(R) continuous testing framework for Odoo modules.
@@ -32,8 +32,7 @@ Make avaiable test functions indipendent by Odoo version.
     author='Antonio Maria Vigliotti',
     author_email='antoniomaria.vigliotti@gmail.com',
     license='Affero GPL',
-    # install_requires=['future', 'python-magic', 'clodoo', 'zerobug', 'gitPython'],
-    install_requires=['future', 'python-magic', 'zerobug', 'gitPython'],
+    install_requires=['future', 'python-magic', 'zerobug', 'gitPython', 'Click'],
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={
         '': [
