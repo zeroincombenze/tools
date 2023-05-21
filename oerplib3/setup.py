@@ -1,14 +1,30 @@
 # -*- coding: UTF-8 -*-
 from setuptools import find_packages, setup
 
+def names(fn, email=None):
+    def nm(item):
+        return (item.split("*", 1)[1].split("<", 1)[0].strip()
+                if item.startswith("*") else item.split("<", 1)[0].strip())
+    def em(item):
+        return ("<" + item.split("*", 1)[1].split("<", 1)[1].strip()
+                if item.startswith("*") else "<" + item.split("<", 1)[1].strip())
+    def al(item):
+        return (item.split("*", 1)[0].strip() if item.startswith("*") else item.strip())
+    if email == "name":
+        with open(fn, "r") as fd:
+            return ", ".join([nm(x) for x in fd.read().split("\n") if x])
+    elif email == "email":
+        with open(fn, "r") as fd:
+            return ", ".join([em(x) for x in fd.read().split("\n") if x])
+    else:
+        with open(fn, "r") as fd:
+            return ", ".join([al(x) for x in fd.read().split("\n") if x])
+
 setup(
     name='oerplib3',
     version='0.8.4',
     description='Python3 oerlib porting',
-    long_description="""OERPLib3 is a Python module providing an easy way to pilot
-     your OpenERP and Odoo servers through RPC.
-     Pleas do not yet use this code: it is experimental code
-""",
+    long_description=open('README.rst').read(),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: GNU Affero General Public License v3',

@@ -373,7 +373,10 @@ if [[ $opt_fetch -eq 0 ]]; then
   [[ -f $PRJPATH/setup.py && -f $PRJPATH/scripts/setup.info ]] &&  run_traced "rm -f $PRJPATH/setup.py"
   [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh"
   [[ ! -x $PRJPATH/replace.sh ]] && robocopy "$PRJPATH" "$LGITPATH"
-  [[ $PKGNAME != "tools" && -f $PKGPATH/setup.py ]] &&  run_traced "cp $PKGPATH/setup.py $LGITPATH/setup.py"
-  [[ -f "$PRJPATH/scripts/setup.info" ]] &&  run_traced "cp $PRJPATH/scripts/setup.info $LGITPATH/scripts/setup.info"
+  if [[ $PKGNAME != "tools" ]]; then
+    [[ -f $PKGPATH/setup.py ]] &&  run_traced "cp $PKGPATH/setup.py $LGITPATH/setup.py"
+    [[ -f $PKGPATH/README.rst ]] &&  run_traced "cp $PKGPATH/README.rst $LGITPATH/README.rst"
+    [[ -f "$PRJPATH/scripts/setup.info" ]] &&  run_traced "cp $PRJPATH/scripts/setup.info $LGITPATH/scripts/setup.info"
+  fi
 fi
 exit $STS_SUCCESS

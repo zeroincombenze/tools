@@ -9,14 +9,14 @@
 .. $fi
 
 
-|Maturity| |Build Status| |Coverage Status| |license gpl|
+|Maturity| |license gpl|
 
 .. $elif odoo_layer == 'repository'
 ==========================================
 |Zeroincombenze| {{repos_name}} {{branch}}
 ==========================================
 
-|Build Status| |Coverage Status| |license gpl|
+|license gpl|
 
 .. $fi
 .. $if template.find('mainpage') < 0:

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -14,10 +13,10 @@ from zerobug import z0test, z0testodoo
 
 __version__ = "2.0.8"
 
-MODULE_ID = 'z0bug_odoo'
+MODULE_ID = "z0bug_odoo"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
-ODOO_VERSIONS = ('7.0', '10.0', '12.0')
+ODOO_VERSIONS = ("7.0", "10.0", "12.0")
 
 DESCR_FN = r"""Lorem ipsum
 -----------

@@ -13,6 +13,20 @@ zar 2.0.2
 Overview
 ========
 
+=========
+zar 2.0.2
+=========
+
+
+
+|Maturity| |Build Status| |Coverage Status| |license gpl|
+
+
+
+
+Overview
+========
+
 zar
 ===
 
@@ -42,28 +56,20 @@ Features
 
 |
 
-Usage
-=====
-
-zar should be execute by postgres user
-
-Execute zar_upd to install and configure.
-Configuration file is zar.conf
-Execute zar_bck to do backup or restore, based on host role
-Execute zar_rest to do restore
-
-To execute in cron, use zar_bck -k
 
 
-There are avaiable two postgresql facilities:
+|
 
-* pg_db_active
-* pg_db_reassign owner
+Features
+--------
 
-`pg_db_active` show and kill postgres session. It can kill oldest session out of pool.
-
-`pg_db_reassign_owner` can reassign owner to database. It reassign the ownership of all objects.
-
+* backup and restore odoo database
+* backup and restore based on rules by configuration file
+* restore database with automatic actions disabled
+* multiple copies of database by configuration file
+* automatic purging of oldest copies
+* configuration based on host name: it works on duplicate host image too
+* backup on same host or on remote host
 
 |
 |
@@ -72,25 +78,35 @@ Getting started
 ===============
 
 
-|
-
 Installation
 ------------
 
-For stable version:
+Zeroincombenze tools require:
 
-`pip install zar`
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+
+* bash 5.0+
 
-For current version:
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`cd $HOME`
-`git@github.com:zeroincombenze/tools.git`
-`cd $HOME/tools`
-`./install_tools.sh`
+::
 
+    pip install zar
 
-Upgrade
--------
+|
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -p
+    source $HOME/devel/activate_tools
+
 
 Upgrade
 -------
@@ -98,47 +114,20 @@ Upgrade
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+::
+
     pip install zar -U
 
 |
 
-Current stable version
-~~~~~~~~~~~~~~~~~~~~~~
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
     ./install_tools.sh -U
-    source /opt/odoo/devel/activate_tools
-
-Current development version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd $HOME
-    ./install_tools.sh -Ud
-    source /opt/odoo/devel/activate_tools
-
-
-History
--------
-
-2.0.2 (2023-05-14)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] reassing_owner accept db_port
-
-2.0.1 (2023-02-25)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Remote bckdir different from local
-
-2.0.0 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
+    source $HOME/devel/activate_tools
 
 
 |
@@ -160,13 +149,14 @@ Contributors
 Contributors
 ------------
 
+* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-20
+Last Update / Ultimo aggiornamento: 2023-05-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

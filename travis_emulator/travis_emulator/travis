@@ -803,7 +803,7 @@ process_yaml() {
 
   if [[ $sts -eq $STS_SUCCESS ]]; then
     [[ -n $opt_trace && ::matrix =~ $opt_trace ]] && debug_shell "::matrix"
-    [[ -z "$python_ver_yaml" ]] && python_ver_yaml="2.7 3.5 3.6 3.7 3.8 3.9 3.10 3.11"
+    [[ -z "$python_ver_yaml" ]] && python_ver_yaml="3.11 3.10 3.9 3.8 3.7 3.5 3.6 2.7"
     if [[ -n $opt_pyv ]]; then
       TRAVIS_PYTHON_MATRIX="${opt_pyv//,/ }"
       python_ver_yaml="$TRAVIS_PYTHON_MATRIX"
@@ -814,7 +814,7 @@ process_yaml() {
       [[ $v -ge 15 ]] && TRAVIS_PYTHON_MATRIX="3.8"
     else
       TRAVIS_PYTHON_MATRIX=""
-      for v in "2.7" "3.5" "3.6" "3.7" "3.8" "3.9" "3.10" "3.11"; do
+      for v in "3.11" "3.10" "3.9" "3.8" "3.7" "3.6" "3.5" "2.7"; do
           grep -q "^ *.Programming Language :: Python :: $v" $PKGPATH/setup.py && TRAVIS_PYTHON_MATRIX="$TRAVIS_PYTHON_MATRIX|$v"
       done
       TRAVIS_PYTHON_MATRIX="${TRAVIS_PYTHON_MATRIX:1}"

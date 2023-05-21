@@ -614,7 +614,7 @@ conf_default() {
   [[ -z $(get_cfg_value "" "Environment") ]] && CFG_set "Environment" "bash"
   [[ -z $(get_cfg_value "" "virtualenv_opts") ]] && CFG_set "virtualenv_opts" ""
   [[ -z $(get_cfg_value "" "NPM_CONFIG_PREFIX") ]] && CFG_set "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
-  [[ -z $(get_cfg_value "" "PYTHON_MATRIX") ]] && CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8|3.9)"
+  [[ -z $(get_cfg_value "" "PYTHON_MATRIX") ]] && CFG_set "PYTHON_MATRIX" "(3.9|3.8|3.7|3.6|2.7)"
   [[ -z $(get_cfg_value "" "LOGDIR") ]] && CFG_set "LOGDIR" "$HOME/travis_log"
   # Test disabled by default: they are added to EXCLUDE paramater
   [[ -z $(get_cfg_value "" "GBL_EXCLUDE") ]] && CFG_set "GBL_EXCLUDE" "test_impex,test_ir_actions,test_lint,test_main_flows,test_search,test_user_has_group,test_mimetypes"

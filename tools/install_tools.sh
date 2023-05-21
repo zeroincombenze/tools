@@ -179,7 +179,7 @@ popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PIPVER -eq 19 ]] && popts="$popts --use-feature=2020-resolver"
 [[ $PIPVER -eq 21 ]] && popts="$popts --use-feature=in-tree-build"
 [[ $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
-[[ $opts =~ ^-.*q ]] && popts="$popts -q"
+[[ ! $opts =~ ^-.*v ]] && popts="$popts -q"
 [[ $opts =~ ^-.*v ]] && echo "# $(which pip).$PIPVER $popts ..."
 [[ -d $DSTPATH/tmp ]] && rm -fR $DSTPATH/tmp
 [[ -d $LOCAL_VENV/tmp ]] && rm -fR $LOCAL_VENV/tmp
@@ -345,6 +345,8 @@ if [[ $PYVER -eq 3 ]]; then
         for pkg in sphinx sphinx_rtd_theme; do
             run_traced "pip install $pkg $popts"
         done
+        [[ ! -f package-lock.json ]] && run_traced "npm init -y"
+        run_traced "npm audit fix"
         run_traced "npm install --save-dev --save-exact prettier@2.1.2"
         run_traced "npm install --save-dev --save-exact @prettier/plugin-xml@0.12.0"
     fi

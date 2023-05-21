@@ -10,21 +10,12 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |Maturity| image:: {{badge-maturity}}
     :target: {{maturity-URL}}
     :alt: {{maturity}}
-.. |Build Status| image:: {{badge-status}}?branch=master
-    :target: {{ci-travis-URL}}
-    :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/{{badge-gpl}}
     :target: http://www.gnu.org/licenses/{{gpl}}-3.0-standalone.html
     :alt: License: {{GPL}}-3
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: {{badge-coverage}}?branch=master
-    :target: {{coverage-URL}}?branch={{branch}}
-    :alt: Coverage
-.. |Codecov Status| image:: {{badge-codecov}}
-    :target: {{codecov-URL}}
-    :alt: Codecov
 .. |Tech Doc| image:: {{badge-doc}}
     :target: {{doc-URL}}
     :alt: Technical Documentation
@@ -34,12 +25,6 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |Try Me| image:: {{badge-try_me}}
     :target: {{try_me-URL}}
     :alt: Try Me
-.. |OCA Codecov| image:: {{badge-oca-codecov}}
-    :target: {{codecov-oca-URL}}
-    :alt: Codecov
-.. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
-   :target: https://odoo-italia.org
-   :alt: Odoo Italia Associazione
 .. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4
    :target: https://www.zeroincombenze.it/
    :alt: Zeroincombenze

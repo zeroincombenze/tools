@@ -123,6 +123,7 @@ RED = "\033[1;31m"
 GREEN = "\033[1;32m"
 YELLOW = "\033[1;33m"
 CLEAR = "\033[0;m"
+RMODE = "rU" if sys.version_info[0] == 2 else "r"
 GIT_USER = {
     "zero": "zeroincombenze",
     "oca": "OCA",
@@ -254,7 +255,7 @@ RST2HTML_GRYMB = {
     "|check|": '<span class="fa fa-check-square-o" style="color:green"/>',
     "|no_check|": '<span class="fa fa-close" style="color:red"/>',
     "|menu|": '<span class="fa fa-navicon"/>',
-    "|right_do|": '<span class="fa fa-caret-right"/>',
+    '|right_do|': "<span class='fa fa-caret-right'/>",
     "|exclamation|": '<span class="fa fa-exclamation" style="color:orange"/>',
     "|late|": '<span class="fa fa-calendar-times-o" style="color:red"/>',
     "|same|": '<span class="fa fa-retweet"  style="color:blue"/>',
@@ -336,6 +337,13 @@ def get_template_fn(ctx, template, ignore_ntf=None):
             )
             if os.path.isfile(full_fn):
                 return True, full_fn
+        if template.startswith("history."):
+            full_fn = os.path.join(
+                os.path.dirname(full_fn),
+                "CHANGELOG.rst",
+            )
+            if os.path.isfile(full_fn):
+                return True, full_fn
         return False, full_fn
 
     def search_tmpl(ctx, template, body):
@@ -346,7 +354,7 @@ def get_template_fn(ctx, template, ignore_ntf=None):
         else:
             layered_template = product_template = False
         for src_path in iter_template_path(
-            ctx, debug_mode=ctx["dbg_template"], body=body
+            ctx, debug_mode=ctx["debug_template"], body=body
         ):
             if body:
                 full_fn = get_full_fn(ctx, src_path, product_template)
@@ -415,11 +423,10 @@ def get_default_prerequisites(ctx):
 .. $fi
 """
     if os.path.isfile(os.path.join(ctx["path_name"], "requirements.txt")):
-        fd = open(os.path.join(ctx["path_name"], "requirements.txt"), "rU")
-        for pkg in _u(fd.read()).split("\n"):
-            if pkg and pkg[0] != "#":
-                text += "* %s\n" % pkg.strip()
-        fd.close()
+        with open(os.path.join(ctx["path_name"], "requirements.txt"), RMODE) as fd:
+            for pkg in _u(fd.read()).split("\n"):
+                if pkg and pkg[0] != "#":
+                    text += "* %s\n" % pkg.strip()
     return text
 
 
@@ -1286,7 +1293,7 @@ def parse_local_file(
         os.system(
             "cvt_csv_2_rst.py -b %s -q %s %s" % (ctx["branch"], full_fn_csv, full_fn)
         )
-    with open(full_fn, "r") as fd:
+    with open(full_fn, RMODE) as fd:
         source = _u(fd.read())
     if full_fn_csv:
         os.unlink(full_fn)
@@ -1311,7 +1318,7 @@ def parse_local_file(
         full_hfn = get_template_fn(ctx, "header_" + filename)
         header = ""
         if full_hfn:
-            fd = open(full_hfn, "rU")
+            fd = open(full_hfn, RMODE)
             header = _u(fd.read())
             fd.close()
             if len(header) and ctx["trace_file"]:
@@ -1320,7 +1327,7 @@ def parse_local_file(
         full_ffn = get_template_fn(ctx, "footer_" + filename)
         footer = ""
         if full_ffn:
-            fd = open(full_ffn, "rU")
+            fd = open(full_ffn, RMODE)
             footer = _u(fd.read())
             fd.close()
             if len(footer) and ctx["trace_file"]:
@@ -1332,7 +1339,7 @@ def parse_local_file(
 
 def read_manifest_file(ctx, manifest_path, force_version=None):
     try:
-        manifest = ast.literal_eval(open(manifest_path).read())
+        manifest = ast.literal_eval(open(manifest_path, RMODE).read())
     except (ImportError, IOError, SyntaxError):
         raise Exception("Wrong manifest file %s" % manifest_path)
     if force_version:
@@ -1346,9 +1353,9 @@ def fake_setup(**kwargs):
 
 def read_history(ctx, full_fn, module=None):
     if module:
-        with open(full_fn, "r") as fd:
+        with open(full_fn, RMODE) as fd:
             ctx["histories"] += tail(_u(fd.read()), max_days=60, module=module)
-    with open(full_fn, "r") as fd:
+    with open(full_fn, RMODE) as fd:
         ctx["history-summary"] += tail(
             _u(fd.read()), max_ctr=1, max_days=15, module=module
         )
@@ -1365,13 +1372,21 @@ def read_setup(ctx):
             break
         manifest_filename = ""
     if manifest_filename:
-        with open(manifest_filename, "r") as fd:
-            content = _b(
-                fd.read()
-                .replace("setup(", "fake_setup(")
-                .replace("setup (", "fake_setup(")
-            )
-            exec(content)
+        if ctx["odoo_layer"] == "module" and ctx["rewrite_manifest"]:
+            complete_setup(ctx, manifest_filename)
+        with open(manifest_filename, RMODE) as fd:
+            content = fd.read()
+            content = re.sub(r"setup *\(", "fake_setup(", content)
+            if (
+                "README.rst" in content
+                and not os.path.isfile("../README.rst")
+                and not os.path.isfile("README.rst")
+            ):
+                with open("../README.rst", "w"):
+                    pass
+            if os.path.isfile("../README.rst"):
+                content = content.replace("README.rst", "../README.rst")
+            exec(_b(content))
             ctx["manifest"] = globals()["setup_args"]
         ctx["manifest_filename"] = manifest_filename
     else:
@@ -1393,7 +1408,7 @@ def read_setup(ctx):
     else:
         full_fn = os.path.join(".", "egg-info", "history.rst")
         if os.path.isfile(full_fn):
-            with open(full_fn, "r") as fd:
+            with open(full_fn, RMODE) as fd:
                 read_history(ctx, full_fn)
 
 
@@ -1484,11 +1499,11 @@ def read_all_manifests(ctx, path=None, module2search=None):
                     pass
                 full_fn = os.path.join(root, "egg-info", "history.rst")
                 if os.path.isfile(full_fn):
-                    with open(full_fn, "r") as fd:
+                    with open(full_fn, RMODE) as fd:
                         ctx["histories"] += tail(
                             _u(fd.read()), max_days=180, module=module_name
                         )
-                        with open(full_fn, "r") as fd:
+                        with open(full_fn, RMODE) as fd:
                             ctx["history-summary"] += tail(
                                 _u(fd.read()),
                                 max_ctr=1,
@@ -1630,7 +1645,7 @@ def manifest_contents(ctx):
     full_fn = ctx["manifest_filename"]
     source = ""
     if full_fn:
-        fd = open(full_fn, "r")
+        fd = open(full_fn, RMODE)
         source = _u(fd.read())
         fd.close()
     target = ""
@@ -1680,7 +1695,7 @@ def manifest_contents(ctx):
             print("Use -W switch to force required value!")
         elif item == "depends":
             modules = []
-            for module in ctx["manifest"][item]:
+            for module in ctx["manifest"].get(item, []):
                 new_module = transodoo.translate_from_to(
                     ctx,
                     "ir.module.module",
@@ -1780,10 +1795,16 @@ def set_default_values(ctx):
         else:
             ctx["dst_file"] = "./index.html"
         ctx["trace_file"] = False
-    elif ctx["odoo_layer"] == "module" and ctx["rewrite_manifest"]:
+    elif (
+        ctx["product_doc"] == "odoo"
+        and ctx["odoo_layer"] == "module"
+        and ctx["rewrite_manifest"]
+    ):
         ctx["dst_file"] = ctx["manifest_filename"]
     elif ctx["odoo_layer"] == "module" and ctx["write_man_page"]:
         ctx["dst_file"] = "page.man"
+    elif os.path.isfile("../setup.py"):
+        ctx["dst_file"] = "../README.rst"
     else:
         ctx["dst_file"] = "./README.rst"
     if ctx["odoo_layer"] != "module":
@@ -1822,6 +1843,54 @@ def set_default_values(ctx):
             ctx["branch"],
             ctx["repos_name"],
         )
+
+
+def setup_names(fn, email=None):
+    if email == "name":
+        with open(fn, RMODE) as fd:
+            return ", ".join([
+                x.split("*", 1)[1].split("<", 1)[0].strip()
+                if x.startswith("*") else x.split("<", 1)[0].strip()
+                for x in fd.read().split("\n") if x
+            ])
+    elif email == "email":
+        with open(fn, RMODE) as fd:
+            return ", ".join([
+                "<" + x.split("*", 1)[1].split("<", 1)[1].strip()
+                if x.startswith("*") else "<" + x.split("<", 1)[1].strip()
+                for x in fd.read().split("\n") if x
+            ])
+    else:
+        with open(fn, RMODE) as fd:
+            return ", ".join([
+                x.split("*", 1)[0].strip() if x.startswith("*") else x.strip()
+                for x in fd.read().split("\n") if x
+            ])
+
+
+def complete_setup(ctx, setup_fn):
+    with open(setup_fn, RMODE) as fd:
+        AUTH_RE = re.compile("^author *=")
+        EMAIL_RE = re.compile("^author_email *=")
+        URL_RE = re.compile("^source_url *=")
+        CHANGELOG_RE = re.compile("^changelog *=")
+        contents = ""
+        for line in fd.read().split("\n"):
+            if AUTH_RE.match(line):
+                line = "author = \"%s\"" % setup_names("egg-info/contributors.txt",
+                                                       email="name")
+            elif EMAIL_RE.match(line):
+                line = "author_email = \"%s\"" % setup_names(
+                    "egg-info/contributors.txt",  email="email")
+            elif URL_RE.match(line):
+                line = "source_url = \"%s\"" % "https://github.com/zeroincombenze/tools"
+            elif CHANGELOG_RE.match(line):
+                line = "changelog = \"%s\"" % (
+                    "%%s/blob/master/%s/egg-info/CHANGELOG.rst" % ctx["module_name"])
+            contents += line
+            contents += "\n"
+    with open(setup_fn, "w") as fd:
+        fd.write(contents)
 
 
 def read_purge_readme(ctx, source):
@@ -2050,10 +2119,10 @@ def generate_readme(ctx):
         ctx[section] = ""
     # Read predefined section / tags
     if ctx["odoo_layer"] == "module":
-        for fn in ("./README.md", "./README.rst"):
+        for fn in ("./README.md", "./README.rst", "../README.rst"):
             if not os.path.isfile(fn):
                 continue
-            with open(fn, "rU") as fd:
+            with open(fn, RMODE) as fd:
                 (
                     ctx["rdme_description"],
                     ctx["rdme_authors"],
@@ -2117,6 +2186,8 @@ def generate_readme(ctx):
             ctx["template_name"] = "readme_main_%s.rst" % ctx["odoo_layer"]
         target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")[1]
     if ctx["rewrite_manifest"] and ctx["odoo_layer"] == "module":
+        if ctx["product_doc"] != "odoo":
+            return
         target = manifest_contents(ctx)
     tmpfile = "%s.tmp" % ctx["dst_file"]
     bakfile = "%s.bak" % ctx["dst_file"]
@@ -2164,7 +2235,7 @@ def main(cli_args=None):
         "-b", "--odoo-branch", action="store", default=".", dest="odoo_vid"
     )
     parser.add_argument(
-        "-B", "--debug-template", action="store_true", dest="dbg_template"
+        "-B", "--debug-template", action="store_true", dest="debug_template"
     )
     parser.add_argument("-F", "--from-version", dest="from_version")
     parser.add_argument("-G", "--git-org", action="store", dest="git_orgid")

@@ -13,41 +13,6 @@ zerobug 2.0.7
 Overview
 ========
 
-Zeroincombenze® continuous testing framework for python and bash programs
--------------------------------------------------------------------------
-
-This library can run unit test of target package software.
-Supported languages are *python* (through z0testlib.py) and *bash* (through z0testrc)
-
-*zerobug* supports test automation, aggregation of tests into collections
-and independence of the tests from the reporting framework.
-The *zerobug* module provides all code that make it easy to support testing
-both for python programs both for bash scripts.
-*zerobug* shows execution test with a message like "n/tot message"
-where *n* is current unit test and *tot* is the total unit test to execute,
-that is a sort of advancing test progress.
-
-You can use z0bug_odoo that is the odoo integration to test Odoo modules.
-
-*zerobug* is built on follow concepts:
-
-* test main - it is a main program to executes all test runners
-* test runner - it is a program to executes one or more test suites
-* test suite - it is a collection of test cases
-* test case - it is a smallest unit test
-
-The main file is the command **zerobug** of this package; it searches for test runner files
-named `[id_]test_` where 'id' is the shor name of testing package.
-
-Test suite is a collection of test case named `test_[0-9]+` inside the runner file,
-executed in sorted order.
-
-Every suit can contains one or more test case, the smallest unit test;
-every unit test terminates with success or with failure.
-
-Because **zerobug** can show total number of unit test to execute, it runs tests
-in 2 passes. In the first pass it counts the number of test, in second pass executes really
-it. This behavior can be overridden by -0 switch.
 
 
 
@@ -72,42 +37,6 @@ Features
 Usage
 =====
 
-::
-
-    usage: zerobug [-h] [-B] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O]
-                   [-p file_list] [-q] [-r number] [-s number] [-V] [-v] [-x] [-X]
-                   [-z number] [-0] [-1] [-3]
-
-    Regression test on z0bug_odoo
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -B, --debug           trace msgs in zerobug.tracehis
-      -C, --no-coverage     run tests without coverage
-      -e, --echo            enable echoing even if not interactive tty
-      -J                    load travisrc
-      -k, --keep            keep current logfile
-      -l file, --logname file
-                            set logfile name
-      -N, --new             create new logfile
-      -n, --dry-run         count and display # unit tests
-      -O                    load odoorc
-      -p file_list, --search-pattern file_list
-                            test file pattern
-      -q, --quiet           run tests without output (quiet mode)
-      -r number, --restart number
-                            set to counted tests, 1st one next to this
-      -s number, --start number
-                            deprecated
-      -V, --version         show program's version number and exit
-      -v, --verbose         verbose mode
-      -x, --qsanity         like -X but run silently
-      -X, --esanity         execute test library sanity check and exit
-      -z number, --end number
-                            display total # tests when execute them
-      -0, --no-count        no count # unit tests
-      -1, --coverage        run tests for coverage (obsolete)
-      -3, --python3         use python3
 
 
 Code example
@@ -298,22 +227,19 @@ Getting started
 ===============
 
 
-|
-
-Installation
-------------
-
 Installation
 ------------
 
 Zeroincombenze tools require:
 
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20
-* python 2.7, some tools require python 3.6+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+
 * bash 5.0+
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
 
     pip install zerobug
 
@@ -328,11 +254,8 @@ Current version via Git
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
-    source /opt/odoo/devel/activate_tools
+    source $HOME/devel/activate_tools
 
-
-Upgrade
--------
 
 Upgrade
 -------
@@ -340,102 +263,20 @@ Upgrade
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+::
+
     pip install zerobug -U
 
 |
 
-Current stable version
-~~~~~~~~~~~~~~~~~~~~~~
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
     ./install_tools.sh -U
-    source /opt/odoo/devel/activate_tools
-
-Current development version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd $HOME
-    ./install_tools.sh -Ud
-    source /opt/odoo/devel/activate_tools
-
-
-History
--------
-
-2.0.7 (2023-05-14)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis_run_pypi_tests: new switch -p PATTERN
-
-2.0.6 (2023-05-08)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Now all_tests is ignored
-* [IMP] Build Odoo environment for Odoo 16.0
-
-2.0.5 (2023-03-24)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis_install_env: ensure list_requirements is executable
-* [IMP] flake8 configuration
-* [IMP] coveralls and codecov are not more dependencies
-* [IMP] Test for Odoo 16.0
-
-2.0.4 (2022-12-08)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_pypi_test: best recognition of python version
-* [FIX] build_cmd: best recognition of python version
-* [FIX] travis_install_env: ensure coverage version
-* [IMP] odoo environment to test more precise
-
-2.0.3 (2022-11-08)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] npm management
-
-2.0.2.1 (2022-10-31)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Odoo 11.0+
-* [FIX] Ensure coverage 5.0+
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-2.0.1.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] minor improvements
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-2.0.0.2 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis_install_env: python2 tests
-
-2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis_install_env: minor fixes
-* [IMP] z0testlib: show coverage result
-
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
-
+    source $HOME/devel/activate_tools
 
 
 |
@@ -463,7 +304,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-05-20
+Last Update / Ultimo aggiornamento: 2023-05-21
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

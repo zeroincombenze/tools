@@ -1,4 +1,3 @@
-README.rst
 setup.py
 os0/__init__.py
 os0/__main__.py
