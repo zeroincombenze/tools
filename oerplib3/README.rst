@@ -1,7 +1,7 @@
 
-==============
-oerplib3 0.8.4
-==============
+======
+ 0.8.4
+======
 
 
 
@@ -54,7 +54,7 @@ Stable version via Python Package
 
 ::
 
-    pip install oerplib3
+    pip install 
 
 |
 
@@ -78,7 +78,7 @@ Stable version via Python Package
 
 ::
 
-    pip install oerplib3 -U
+    pip install  -U
 
 |
 
@@ -118,16 +118,13 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-Contributors
-------------
-
 
 
 |
 
-This module is part of tools project.
+This module is part of  project.
 
-Last Update / Ultimo aggiornamento: 2023-05-21
+Last Update / Ultimo aggiornamento: 
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

@@ -1,7 +1,7 @@
 
-=====================
-travis_emulator 2.0.5
-=====================
+======
+ 2.0.5
+======
 
 
 
@@ -342,16 +342,13 @@ Contributors
 
 * Antonio M. Vigliotti <info@shs-av.com>
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-Contributors
-------------
-
 
 
 |
 
-This module is part of tools project.
+This module is part of  project.
 
-Last Update / Ultimo aggiornamento: 2023-05-21
+Last Update / Ultimo aggiornamento: 
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

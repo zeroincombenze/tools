@@ -1,7 +1,7 @@
 
-============
-clodoo 2.0.5
-============
+======
+ 2.0.5
+======
 
 
 
@@ -273,7 +273,7 @@ Stable version via Python Package
 
 ::
 
-    pip install clodoo
+    pip install 
 
 |
 
@@ -297,7 +297,7 @@ Stable version via Python Package
 
 ::
 
-    pip install clodoo -U
+    pip install  -U
 
 |
 
@@ -391,16 +391,13 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-Contributors
-------------
-
 
 
 |
 
-This module is part of tools project.
+This module is part of  project.
 
-Last Update / Ultimo aggiornamento: 2023-05-21
+Last Update / Ultimo aggiornamento: 
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

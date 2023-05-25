@@ -1,7 +1,7 @@
 
-=================
-python_plus 2.0.7
-=================
+======
+ 2.0.7
+======
 
 
 
@@ -235,7 +235,7 @@ Stable version via Python Package
 
 ::
 
-    pip install python_plus
+    pip install 
 
 
 |
@@ -260,7 +260,7 @@ Stable version via Python Package
 
 ::
 
-    pip install python_plus -U
+    pip install  -U
 
 |
 
@@ -370,16 +370,13 @@ Contributors
 
 * Antonio Maria Vigliotti <info@shs-av.com>
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-Contributors
-------------
-
 
 
 |
 
-This module is part of tools project.
+This module is part of  project.
 
-Last Update / Ultimo aggiornamento: 2023-05-21
+Last Update / Ultimo aggiornamento: 
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
