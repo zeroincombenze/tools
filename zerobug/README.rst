@@ -1,7 +1,7 @@
 
-=============
-zerobug 2.0.7
-=============
+======
+ 2.0.7
+======
 
 
 
@@ -13,6 +13,41 @@ zerobug 2.0.7
 Overview
 ========
 
+Zeroincombenze® continuous testing framework for python and bash programs
+-------------------------------------------------------------------------
+
+This library can run unit test of target package software.
+Supported languages are *python* (through z0testlib.py) and *bash* (through z0testrc)
+
+*zerobug* supports test automation, aggregation of tests into collections
+and independence of the tests from the reporting framework.
+The *zerobug* module provides all code that make it easy to support testing
+both for python programs both for bash scripts.
+*zerobug* shows execution test with a message like "n/tot message"
+where *n* is current unit test and *tot* is the total unit test to execute,
+that is a sort of advancing test progress.
+
+You can use z0bug_odoo that is the odoo integration to test Odoo modules.
+
+*zerobug* is built on follow concepts:
+
+* test main - it is a main program to executes all test runners
+* test runner - it is a program to executes one or more test suites
+* test suite - it is a collection of test cases
+* test case - it is a smallest unit test
+
+The main file is the command **zerobug** of this package; it searches for test runner files
+named `[id_]test_` where 'id' is the shor name of testing package.
+
+Test suite is a collection of test case named `test_[0-9]+` inside the runner file,
+executed in sorted order.
+
+Every suit can contains one or more test case, the smallest unit test;
+every unit test terminates with success or with failure.
+
+Because **zerobug** can show total number of unit test to execute, it runs tests
+in 2 passes. In the first pass it counts the number of test, in second pass executes really
+it. This behavior can be overridden by -0 switch.
 
 
 
@@ -37,6 +72,42 @@ Features
 Usage
 =====
 
+::
+
+    usage: zerobug [-h] [-B] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O]
+                   [-p file_list] [-q] [-r number] [-s number] [-V] [-v] [-x] [-X]
+                   [-z number] [-0] [-1] [-3]
+
+    Regression test on z0bug_odoo
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -B, --debug           trace msgs in zerobug.tracehis
+      -C, --no-coverage     run tests without coverage
+      -e, --echo            enable echoing even if not interactive tty
+      -J                    load travisrc
+      -k, --keep            keep current logfile
+      -l file, --logname file
+                            set logfile name
+      -N, --new             create new logfile
+      -n, --dry-run         count and display # unit tests
+      -O                    load odoorc
+      -p file_list, --search-pattern file_list
+                            test file pattern
+      -q, --quiet           run tests without output (quiet mode)
+      -r number, --restart number
+                            set to counted tests, 1st one next to this
+      -s number, --start number
+                            deprecated
+      -V, --version         show program's version number and exit
+      -v, --verbose         verbose mode
+      -x, --qsanity         like -X but run silently
+      -X, --esanity         execute test library sanity check and exit
+      -z number, --end number
+                            display total # tests when execute them
+      -0, --no-count        no count # unit tests
+      -1, --coverage        run tests for coverage (obsolete)
+      -3, --python3         use python3
 
 
 Code example
@@ -241,7 +312,7 @@ Stable version via Python Package
 
 ::
 
-    pip install zerobug
+    pip install 
 
 |
 
@@ -265,7 +336,7 @@ Stable version via Python Package
 
 ::
 
-    pip install zerobug -U
+    pip install  -U
 
 |
 
@@ -370,16 +441,13 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-Contributors
-------------
-
 
 
 |
 
-This module is part of tools project.
+This module is part of  project.
 
-Last Update / Ultimo aggiornamento: 2023-05-21
+Last Update / Ultimo aggiornamento: 
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

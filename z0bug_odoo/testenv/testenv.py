@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.7.1
+"""Test Environment v2.0.8
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -1620,7 +1620,12 @@ class MainTest(SingleTransactionCase):
         cur_vals = {}
         for name in wizard._fields.keys():
             if name not in SUPERMAGIC_COLUMNS:
-                cur_vals[name] = getattr(wizard, name)
+                try:
+                    cur_vals[name] = getattr(wizard, name)
+                except BaseException:
+                    self.raise_error(
+                        "Wrong compute for %s.%s! Forgot @multi?" % (wizard._name,
+                                                                     name))
         value = self._cast_field(resource, field, value, fmt="cmd")
         if value is not None:
             setattr(wizard, field, value)

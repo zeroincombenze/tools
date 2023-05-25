@@ -410,19 +410,20 @@ do_publish_pypi() {
   if [[ "$PRJNAME" != "Odoo" ]]; then
     if twine --version &>/dev/null; then
       run_traced "cd $PKGPATH"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      [[ -f $PRJPATH/README.rst ]] && run_traced "cp $PRJPATH/README.rst ./"
+      s=$?; [[ ${s-0} -ne 0 ]] && sts=$s
+      [[ -f $PRJPATH/README.rst ]] && run_traced "mv $PRJPATH/README.rst ./"
       v=$(python setup.py --version)
       n=$(python setup.py --name)
       p=$(find dist -name "${n}-${v}.tar.gz")
       if [[ -z "$p" || $opt_force -gt 0 ]]; then
         run_traced "python setup.py build sdist"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        s=$?; [[ ${s-0} -ne 0 ]] && sts=$s
       fi
       p=$(find dist -name "${n}-${v}.tar.gz")
       [[ -z $p ]] && echo "Internal error: file tar not found!" && return 127
       run_traced "twine upload $p -r $rpt"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      s=$?; [[ ${s-0} -ne 0 ]] && sts=$s
+      [[ $sts -ne 0 ]] && run_traced "twine check $p"
     else
       echo "Command twine not found!"
       echo "Do pip install twine"
@@ -618,111 +619,6 @@ add_file_2_pkg() {
   done
   return $s
 }
-
-#do_build() {
-#  #do_build pgkname tar
-#  local sts=$STS_SUCCESS
-#  local rpt=pypi
-#  local f i l n p s v x y PKGLIST invalid PASSED
-#  local SETUP=./setup.sh
-#  local xx="$(get_cfg_value 0 filedel)"
-#  local yy="$(get_cfg_value 0 fileignore)"
-#  if [ $opt_keep -ne 0 ]; then
-#    xx="$xx $yy"
-#  else
-#    xx="$xx $yy tests/"
-#  fi
-#  if [ "$PRJNAME" != "Odoo" ]; then
-#    run_traced "cd $PKGPATH"
-#    # run_traced "mkdir -p tmp"
-#    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-#    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep --color=never -Eo '[a-zA-Z0-9_-]+' | head -n1)
-#    v=$(cat setup.py | grep version | grep --color=never -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
-#    if [ ! -f "$n*$v*tar.gz" -o $opt_force -gt 0 ]; then
-#      PKGLIST=$(cat setup.py | grep "# PKGLIST=" | awk -F= '{print $2}')
-#      if [ -n "$PKGLIST" ]; then
-#        PKGLIST=${PKGLIST//,/ }
-#      else
-#        if [ "$PRJNAME" == "lisa" ]; then
-#          cp ../../clodoo/clodoo/odoorc ./
-#          cp ../../z0lib/z0lib/z0librc ./
-#        fi
-#        x="find . -type f"
-#        for f in $xx "setup.*"; do
-#          if [ "${f: -1}" == "/" ]; then
-#            x="$x -not -path '*/$f*'"
-#          else
-#            x="$x -not -name '*$f'"
-#          fi
-#        done
-#        eval $x >./tmp.log
-#        PKGLIST="$(cat ./tmp.log)"
-#        rm -f ./tmp.log
-#      fi
-#      invalid=
-#      for f in $PKGLIST; do
-#        if [ -f $f ]; then
-#          :
-#          #cp $f $PKGPATH/tmp
-#        else
-#          invalid=$f
-#        fi
-#      done
-#      if [ -n "$invalid" ]; then
-#        echo "File $f not found"
-#        return 1
-#      fi
-#      p="$n-$v.tar.gz"
-#      if [ -f $p ]; then
-#        run_traced "rm -f $p"
-#      fi
-#      echo "# $p" >$SETUP
-#      f=
-#      for i in {2..9}; do
-#        x=$(echo $PRJPATH | awk -F/ '{print $'$i'}')
-#        if [ -n "$x" ]; then
-#          f=$f/$x
-#          if [ $i -gt 3 ]; then
-#            echo "mkdir -p $f" >>$SETUP
-#          fi
-#        fi
-#      done
-#      l=${#PKGPATH}
-#      f=".${PRJPATH:l}" # subroot
-#      l=${#f}
-#      ((l++))
-#      PASSED=
-#      x="-cf"
-#      for f in $PKGLIST; do
-#        y=$(dirname ./${f:l})
-#        if [ "$y" != "." ]; then
-#          y=$(dirname ${f:l})
-#          if [[ " $PASSED " =~ [[:space:]]$y[[:space:]] ]]; then
-#            :
-#          else
-#            echo "mkdir -p $PRJPATH/$y" >>$SETUP
-#            PASSED="$PASSED $y"
-#          fi
-#          y=$y/
-#        else
-#          y=
-#        fi
-#        run_traced "tar $x $p $f"
-#        x=${x/c/r}
-#        # if [ -f "$f" ]; then rm -f $f; fi
-#        echo "cp -p $f $PKGPATH/$y" >>$SETUP
-#      done
-#      chmod +x $SETUP
-#      if [ -x $PRJPATH/setup.sh ]; then
-#        run_traced "cp $PRJPATH/setup.sh $SETUP"
-#      fi
-#      run_traced "tar $x $p $SETUP"
-#      run_traced "rm -f $SETUP"
-#    fi
-#  fi
-#  return $sts
-#}
-
 
 do_docs() {
   wlog "do_docs"
