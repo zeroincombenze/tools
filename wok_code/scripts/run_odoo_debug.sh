@@ -302,7 +302,7 @@ if [[ -n $opt_rport ]]; then
 elif [[ $opt_test -ne 0 ]]; then
     [[ opt_dbg -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
 elif [[ -f $opt_conf ]]; then
-    RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")q
+    RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")
     [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
 elif [[ $opt_web -ne 0 ]]; then
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)

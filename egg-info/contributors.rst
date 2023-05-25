@@ -1,1 +1,4 @@
+Contributors
+------------
+
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>

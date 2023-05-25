@@ -25,6 +25,17 @@ do_replace() {
     run_traced "please $OPTS replace"
 }
 
+do_wep() {
+    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && fn=${pkg//-/_} || fn=$pkg
+    srcdir="$HOME_DEVEL/pypi/$fn"
+    OPTS=""
+    [[ $opts =~ -.*n ]] && OPTS="$OPTS -n"
+    echo -e "\n===[$pkg]==="
+    [[ $PWD != $srcdir ]] && run_traced "cd $srcdir"
+    run_traced "please $OPTS wep"
+}
+
+
 act=""
 pypi=""
 opts=""
@@ -48,6 +59,7 @@ while [[ -n $1 ]]; do
         [[ $1 =~ -.*i ]] && opts=${opts}i
         [[ $1 =~ -.*I ]] && opts=${opts}I
         [[ $1 =~ -.*n ]] && opts=${opts}n
+        [[ $1 =~ -.*q ]] && opts=${opts}q
         [[ $1 =~ -.*U ]] && act="update"
         [[ $1 =~ -.*y ]] && opts=${opts}y
         [[ $1 =~ -.*Z ]] && opts=${opts}Z
@@ -55,10 +67,10 @@ while [[ -n $1 ]]; do
     shift
 done
 [[ -n "$opts" ]] && opts="-$opts"
-HLPCMDLIST="cvt_script|diff|dir|docs|git-add|info|install|libdir|list|meld|replace|show|travis|travis-summary|update|update+replace|version"
+HLPCMDLIST="cvt_script|diff|dir|docs|git-add|info|install|libdir|list|meld|replace|show|travis|travis-summary|update|update+replace|version|wep"
 ACT2VME="^(dir|info|show|install|libdir|update|update\+replace|update)$"
-ACT2TOOLS="^(docs|git-add|list|replace|travis|travis-summary|version)$"
-LOCAL_PKGS="clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
+ACT2TOOLS="^(docs|git-add|list|replace|travis|travis-summary|version|wep)$"
+LOCAL_PKGS="clodoo lisa odoo_score oerplib3 os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug"
 LOCAL_PKGS_RE="(${LOCAL_PKGS// /|})"
 LOCAL_PKGS_RE=${LOCAL_PKGS_RE//-/.}
 ODOO_ROOT=$(dirname $HOME_DEVEL)
@@ -74,7 +86,8 @@ b=$(basename $PWD)
 echo "$0 $act '$pypi' -d $tgtdir -b $branch $opts"
 act2=$act
 for d in $tgtdir; do
-    [[ $act =~ "list" ]] && echo "$LOCAL_PKGS" && run_traced "find $ODOO_ROOT/tools -maxdepth 1 -type d|grep -Ev \"(/|.git|docs|egg-info|license_text|templates|tests|z0tester)$\"|sort|cut -d/ -f5" && continue
+    [[ $act =~ "list" && ! $opts =~ -.*B ]] && echo -e "\n$LOCAL_PKGS" && run_traced "find $ODOO_ROOT/tools -maxdepth 1 -type d|grep -Ev \"(/|.git|.idea|docs|egg-info|license_text|templates|tests|z0tester)$\"|sort|cut -d/ -f5|tr '\n' ' '" && echo "" && continue
+    [[ $act =~ "list" && $opts =~ -.*B ]] && echo -e "\n$LOCAL_PKGS" && run_traced "find $HOME_DEVEL/pypi -maxdepth 1 -type d|grep -Ev \"(/|.git|.idea|docs|egg-info|license_text|templates|tests|z0tester)$\"|sort|cut -d/ -f6|tr '\n' ' '" && echo "" && continue
     if [[ $act =~ $ACT2VME || ( $act =~ (diff|meld) && -n $branch ) ]]; then
         [[ -d "$d" ]] || continue
         [[ -n "$branch" && ! $d =~ $branch ]] && continue
@@ -114,7 +127,7 @@ for d in $tgtdir; do
             run_traced "vem $d $act2 $pkg2 $OPTS"
         elif [[ $act == "dir" ]]; then
             srcdir=$(vem $d show $pkg 2>/dev/null|grep "[Ll]ocation:"|awk -F: '{print $2}')
-            [[ -n $srcdir ]] && run_traced "dir -lh $srcdir/$fn"|| echo "No ptah found for $pkg"
+            [[ -n $srcdir ]] && run_traced "dir -lh $srcdir/$fn"|| echo "No path found for $pkg"
         elif [[ $act == "libdir" ]]; then
             run_traced "ls -d $pypath/$fn"
 	      elif [[ $act =~ (travis|travis-summary) ]]; then
@@ -167,6 +180,8 @@ for d in $tgtdir; do
                 [[ $mime == "text/x-shellscript" || $f =~ .sh$ ]] || continue
                 run_traced "cvt_script $OPTS $f"
             done
+        elif [[ $act == "wep" ]]; then
+            do_wep
         else
             echo "Invalid command!"
             exit 1

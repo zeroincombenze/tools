@@ -58,17 +58,9 @@ Prerequisites
 .. $fi
 .. $if defined installation
 
-|
-
-Installation
-------------
-
 {{installation}}
 .. $fi
 .. $if defined upgrade
-
-Upgrade
--------
 
 {{upgrade}}
 .. $fi
