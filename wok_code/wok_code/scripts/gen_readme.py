@@ -379,7 +379,7 @@ def get_template_fn(ctx, template, ignore_ntf=None):
             if found:
                 break
             if template == "acknowledges.txt":
-                full_fn = get_full_fn(ctx, src_path, "contributors.txt")
+                full_fn = get_full_fn(ctx, src_path, "CONTRIBUTORS.txt")
                 if os.path.isfile(full_fn):
                     found = True
                     break
@@ -1872,21 +1872,30 @@ def complete_setup(ctx, setup_fn):
     with open(setup_fn, RMODE) as fd:
         AUTH_RE = re.compile("^author *=")
         EMAIL_RE = re.compile("^author_email *=")
-        URL_RE = re.compile("^source_url *=")
-        CHANGELOG_RE = re.compile("^changelog *=")
+        SOURCE_ROOT = "https://github.com/zeroincombenze/tools"
+        URL_RE = re.compile(r"^ +url=[\"']")
+        SOURCE_URL_RE = re.compile("^source_url *=")
+        SOURCE_URL = SOURCE_ROOT + "/tree/master/%s"
+        DOC_URL_RE = re.compile("^doc_url *=")
+        DOC_URL = "https://zeroincombenze-tools.readthedocs.io/en/latest/%s"
+        CHANGELOG_RE = re.compile("^changelog_url *=")
+        CHANGELOG_URL = SOURCE_ROOT + "/blob/master/%s/egg-info/CHANGELOG.rst"
         contents = ""
         for line in fd.read().split("\n"):
             if AUTH_RE.match(line):
-                line = "author = \"%s\"" % setup_names("egg-info/contributors.txt",
-                                                       email="name")
+                line = "author = \"%s\"" % setup_names(
+                    "egg-info/CONTRIBUTORS.txt", email="name")
             elif EMAIL_RE.match(line):
                 line = "author_email = \"%s\"" % setup_names(
-                    "egg-info/contributors.txt",  email="email")
+                    "egg-info/CONTRIBUTORS.txt",  email="email")
             elif URL_RE.match(line):
-                line = "source_url = \"%s\"" % "https://github.com/zeroincombenze/tools"
+                line = line.split("=")[0] + ("=\"%s\"," % SOURCE_ROOT)
+            elif SOURCE_URL_RE.match(line):
+                line = "source_url = \"%s\"" % (SOURCE_URL % ctx["module_name"])
+            elif DOC_URL_RE.match(line):
+                line = "doc_url = \"%s\"" % (DOC_URL % ctx["module_name"])
             elif CHANGELOG_RE.match(line):
-                line = "changelog = \"%s\"" % (
-                    "%%s/blob/master/%s/egg-info/CHANGELOG.rst" % ctx["module_name"])
+                line = "changelog_url = \"%s\"" % (CHANGELOG_URL % ctx["module_name"])
             contents += line
             contents += "\n"
     with open(setup_fn, "w") as fd:
@@ -2014,7 +2023,7 @@ def write_egg_info(ctx):
                     dash = "~" * len(header)
                     line = "* [IMP] Created documentation directory"
                     ctx[section] = "%s\n%s\n\n%s\n" % (header, dash, line)
-                if path == "./readme" and section == "CONTRIBUTORS":
+                if path == "./readme" and section == "contributors":
                     fd.write(_c(ctx["authors"]))
                 fd.write(_c(ctx[section.lower()]))
 
@@ -2028,7 +2037,7 @@ def write_egg_info(ctx):
         ):
             write_file("./egg-info", section)
     elif os.path.isdir("./readme"):
-        for section in ("CONTRIBUTORS", "DESCRIPTION"):
+        for section in ("contributors", "description"):
             write_file("./readme", section)
 
 
@@ -2134,12 +2143,7 @@ def generate_readme(ctx):
     set_default_values(ctx)
     ctx["license_mgnt"] = license_mgnt.License()
     ctx["license_mgnt"].add_copyright(ctx["git_orgid"], "", "", "", "")
-    for section in DEFINED_TAG:
-        out_fmt = None
-        ctx[section] = parse_local_file(
-            ctx, "%s.txt" % section, ignore_ntf=True, out_fmt=out_fmt, section=section
-        )[1]
-    for section in DEFINED_SECTIONS:
+    for section in DEFINED_TAG + DEFINED_SECTIONS:
         out_fmt = None
         ctx[section] = parse_local_file(
             ctx, "%s.rst" % section, ignore_ntf=True, out_fmt=out_fmt, section=section

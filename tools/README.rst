@@ -1,7 +1,7 @@
 
-==========================
-|Zeroincombenze| tools 2.0
-==========================
+=====================
+|Zeroincombenze|  2.0
+=====================
 
 |license gpl|
 
@@ -112,7 +112,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-05-21
+Last Update / Ultimo aggiornamento: 
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

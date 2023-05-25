@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+
+import random
+
 from past.builtins import long
 
 import csv
@@ -293,6 +296,47 @@ def param_product_agent(param):
         elif param.startswith('A'):
             agent_id = eval(param[1:])
     return product_id, agent_id
+
+
+def show_module_group(ctx):
+    print('Show group infos and external names')
+    model_grp = 'res.groups'
+    model_ctg = 'ir.module.category'
+    model_ir_md = 'ir.model.data'
+    gid = True
+    while gid:
+        gid = input('Res.groups id: ')
+        if gid:
+            gid = eval(gid)
+        if gid:
+            group = clodoo.browseL8(ctx, model_grp, gid, context={'lang': 'en_US'})
+            cid = group.category_id.id
+            categ = clodoo.browseL8(ctx, model_ctg, cid, context={'lang': 'en_US'})
+            print('%6d) Category %s' % (cid, categ.name))
+            uniq_field = []
+            grp_ids = clodoo.searchL8(ctx, model_grp,
+                                      [('category_id', '=', cid)])
+            for group in clodoo.browseL8(ctx, model_grp, grp_ids):
+                if group.implied_ids:
+                    uniq_field.append(group.id)
+                    uniq_field += [x.id for x in group.implied_ids]
+            for group in clodoo.browseL8(ctx, model_grp, grp_ids,
+                                         context={'lang': 'en_US'}):
+                ir_md = clodoo.browseL8(ctx, model_ir_md,
+                    clodoo.searchL8(ctx, model_ir_md,
+                                    [('model', '=', model_grp),
+                                     ('res_id', '=', group.id)]))
+                if group.id in uniq_field:
+                    tag = '*'
+                else:
+                    tag = ''
+                print('%6d) -- Value [%-16.16s] > [%-32.32s] as "%s.%s" {%s}' % (
+                    group.id,
+                    group.name,
+                    group.full_name,
+                    ir_md.module,
+                    ir_md.name,
+                    tag))
 
 
 def all_addr_same_customer(ctx):
@@ -4227,35 +4271,119 @@ def rebuild_database(ctx):
 
 
 RND_NAME_IT = [
-    "Giuseppe", "Giovanni", "Antonio", "Mario", "Luigi", "Francesco",
+    "Giuseppe", "Giovanni", "Antonio", "Mario", "Luigi",
     "Maria", "Anna", "Rosa", "Angela", "Teresa", "Lucia",
-    "Andrea", "Leonardo", "Alessandro", "Aurora", "Giulia"
+    "Andrea", "Leonardo", "Alessandro", "Aurora", "Giulia",
+    "Gaia", "Alice", "Marco", "Lorenzo", "Luca", "Nicholas",
+    "Azzurra", "Bianca", "Celeste", "Viola", "Michele",
+    "Raffaele", "Daniele", "Pietro", "Vincenzo", "Bruno",
+    "Natale", "Rita", "Margherita", "Aldo", "Paolo",
+    "Luciano", "Sergio", "Alessio", "Tommaso", "Riccardo",
+    "Edoardo", "Federico", "Beatrice", "Francesco", "Vittorio",
+    "Ludovica", "Enea", "Virgilio", "Cesare", "Augusto",
+    "Leone", "Felice", "Umberto", "Filippo", "Ciro",
+    "Cinzia", "Antonello",
 ]
 RND_NAME_XX = [
     "Noah", "John", "Francis", "Jackob", "William", "Geroge",
     "Emma", "Olivia", "Sophia", "Abigail", "Emily", "Elizabeth",
-    "Jack", "Harry", "Gil", "Rosemary", "Lilith",
+    "Jack", "Harry", "Gil", "Rosemary", "Lilith", "Amelia",
+    "Sienna", "Ethan", "Charlie", "Thomas", "Edward", "Dylan",
+    "Bert", "Billy", "Giles", "Harold", "Quincy",
+    "Simon", "Teddy", "Tony", "Walter",
 ]
 RND_LASTNAME_IT = [
     "ROSSI", "FERRARI", "BIANCHI", "ROMANO", "VERDI",
     "GENOVESE", "TOSCANO", "ANCONETANO", "NAPOLITANO", "PUGLISI",
     "MARINO", "GRECO", "LOMBARDI", "COLOMBO", "GALLI", "GENTILE",
+    "FONTANA", "PADOVANO", "PERUGINO", "SICILIANO", "FERRERO",
+    "MORETTI", "GIORDANO", "TESTA", "NERI", "MAZZA", "MARTINELLI",
+    "DI LORENZO", "FAGIANI", "SANTORO", "BARBIERI", "CASANOVA",
+    "COSTA", "LONGO", "DE LUCA", "ESPOSITO", "SAVASTA",
+    "RIZZO", "SERRA", "PELLEGRINI", "POLLI", "PORTOGHESE",
+    "SPAGNOLO", "FRANCO", "TURCO", "PACIFICO",
 ]
 RND_LASTNAME_XX = [
     "BROOKS", "CHAPMAN", "COOPER", "FISHER", "FOX",
     "HAMILTON", "JACKSON", "LEE", "PALMER", "TAYLOR",
     "SMITH", "WELLS", "MARTIN", "GARCIA", "ROUX",
+    "JONES", "BROWN", "WILSON", "WRIGHT", "WALKER", "WHITE",
+    "LEROY", "MERCIERS", "DUMONT", "FISCHER",
+]
+RND_CITY_IT = [
+    "Torino", "Milano", "Roma", "Napoli", "Pistoia", "Genova",
+    "Firenze", "Bologna", "Venezia", "Bari", "Palermo",
+    "Cagliari", "Pescara", "Domodossola", "Empoli", "Jesolo",
+    "Lucca", "Montecatini", "Sassari", "Catania", "Lecce",
+    "Salerno", "Perugia", "Sanremo", "Brescia", "Bergamo",
+    "Verona", "Trieste", "Ravenna", "Matera", "Crotone",
+    "Siracusa", "Agrigento", "Marsala", "La Spezia",
+]
+RND_CITY_PREFIX_IT = [
+    "Quarto", "Quinto", "Sesto", "Settimo", "Finale", "Marina"
+]
+RND_CITY_XX = [
+    "Wien", "Antwerpen", "Sofija", "Zagreb", "Copenaghen",
+    "Helsinki", "Paris", "Berlin", "Athina", "Dublin",
+    "Amsterdam", "Warszawa", "Lisboa", "London", "Praha",
+    "Madrid", "Budapest", "Tel Aviv", "Casablanca", "New York",
+    "Los Angeles", "Atalanta", "Motevideo",
+]
+RND_TLD = [
+    "gmail.com", "outlook.com", "libero.it", "example.com",
+    "hotmail.com",
 ]
 
-
 def anonimize_database(ctx):
+    def rnd_item(ctx, rndlist):
+        return rndlist[random.randint(0, len(rndlist) - 1)]
+
+    def read_partner(id):
+        try:
+            partner = clodoo.browseL8(ctx, _partner, id)
+            vals = {}
+        except BaseException:
+            vals = {
+                "name": "Unknown %d" % id,
+                "vat": False,
+                "codicefiscale": False,
+            }
+        if vals:
+            clodoo.writeL8(ctx, _partner, id, vals)
+            partner = clodoo.browseL8(ctx, _partner, id)
+        return partner
+
     def build_random_data(ctx, id):
-        partner = clodoo.browseL8(ctx, _partner, id)
-        if partner.country_id.id != country_it_id:
-            pass
+        partner = read_partner(id)
+        if partner.country_id and partner.country_id.id != country_it_id:
+            name = rnd_item(ctx, RND_NAME_XX) + " " + rnd_item(ctx, RND_LASTNAME_XX)
+            city = rnd_item(ctx, RND_CITY_XX)
+            zip = ""
+            if partner.vat:
+                name += " Ltd"
         else:
-            pass
-        return {}
+            name = rnd_item(ctx, RND_NAME_IT) + " " + rnd_item(ctx, RND_LASTNAME_IT)
+            if id % 3:
+                city = rnd_item(ctx, RND_CITY_IT)
+            else:
+                city = rnd_item(ctx, RND_CITY_PREFIX_IT) + " di " + rnd_item(
+                    ctx, RND_CITY_IT)
+            zip = "%03d00" % random.randint(1, 999)
+            if partner.vat:
+                name += " s.r.l."
+        email = name.lower().replace(" ", ".") + "@" + rnd_item(ctx, RND_TLD)
+        phone = "0%d" % random.randint(200000000, 999999999)
+        mobile = "3%d" % random.randint(200000000, 999999999)
+        return {
+            "name": name,
+            "city": city,
+            "email": email,
+            "zip": zip,
+            "phone": phone,
+            "mobile": mobile,
+            "comment": "",
+            "text_GECS": "",
+        }
 
     print('🎺🎺🎺 Anonimize database')
     if ctx['param_1'] == 'help':
@@ -4266,16 +4394,27 @@ def anonimize_database(ctx):
     _user = "res.users"
     _company = "res.company"
     _country = "res.country"
-    country_it_id = clodoo.searchL8(ctx, _country, ("code", "=", "it"))[0]
+    country_it_id = clodoo.searchL8(ctx, _country, [("code", "in", ["it", "IT"])])[0]
     protected_partner_ids = []
-    for rec in clodoo.browseL8(ctx, _user, clodoo.searchL8(ctx, _user, [])):
-        protected_partner_ids.append(rec.partner_id.id)
-    for rec in clodoo.browseL8(ctx, _company, clodoo.searchL8(ctx, _company, [])):
-        clodoo.writeL8(
-            ctx, _company, rec.partner_id.id, {"name": "Test Company %d" % rec.id})
-    # for id in clodoo.searchL8(
-    # ctx, _partner, [("id", "not in", protected_partner_ids)]):
-    #     vals = build_random_data(ctx, id)
+    for id in clodoo.searchL8(ctx, _user, []):
+        try:
+            user = clodoo.browseL8(ctx, _user, id)
+            msg_burst('%d) %s ...' % (id, user.login))
+            protected_partner_ids.append(user.partner_id.id)
+        except BaseException:
+            pass
+    for id in clodoo.searchL8(ctx, _company, []):
+        clodoo.writeL8(ctx, _company, id, {"name": "Test Company %d" % id})
+    for id in clodoo.searchL8(ctx,
+                              _partner,
+                              [("id", "not in", protected_partner_ids)],
+                              order="id"):
+        vals = build_random_data(ctx, id)
+        msg_burst('%d) %s ...' % (id, vals["name"]))
+        try:
+            clodoo.writeL8(ctx, _partner, id, vals)
+        except BaseException:
+            pass
 
 
 def move_database_by_postgres(ctx):

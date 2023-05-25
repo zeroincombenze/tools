@@ -3,7 +3,8 @@ from setuptools import find_packages, setup
 author = "Antonio Maria Vigliotti"
 author_email = "<info@shs-av.com>"
 source_url = "https://github.com/zeroincombenze/tools"
-changelog = "%s/blob/master/z0lib/egg-info/history.rst"
+doc_url = "https://github.com/zeroincombenze/tools"
+changelog_url = "%s/blob/master/z0lib/egg-info/CHANGELOG.rst" % source_url
 
 
 setup(
@@ -28,9 +29,9 @@ setup(
     keywords="bash, optargs",
     url="https://zeroincombenze-tools.readthedocs.io",
     project_urls={
-        "Documentation": "https://zeroincombenze-tools.readthedocs.io",
+        "Documentation": doc_url,
         "Source": source_url,
-        "Changelog": changelog,
+        "Changelog": changelog_url,
     },
     author=author,
     author_email=author_email,
@@ -41,6 +42,9 @@ setup(
     entry_points={"console_scripts": ["z0lib-info = z0lib.scripts.main:main"]},
     zip_safe=False,
 )
+
+
+
 
 
 
