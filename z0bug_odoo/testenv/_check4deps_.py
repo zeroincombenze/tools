@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright 2023 SHS-AV s.r.l. <https://www.zeroincombenze.it>
 #
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
@@ -14,20 +16,24 @@ from odoo.exceptions import UserError
 def check_4_depending(cr):
     """check_4_depending v0.1.0
     This function check for valid modules which current module depends on.
-    The depending on check is executed from "depends" field in the manifest,
+    Usually Odoo checks for depending on through "depends" field in the manifest,
     but Odoo does not check for the version range neither check for incompatibilities.
-    Adding two new fields "version_depends" (for odoo modules) and
+    With two new fields "version_depends" (for odoo modules) and
     "version_external_dependencies" (for python packages),
-    this function check for version range, like pip or apt/yum etc. Example:
+    this function checks for version range, like pip or apt/yum etc. Example:
         "version_depends": [
             "dep_module>=12.0.2.0",
             "incompatible!?"
         ],
-        "version_external_dependencies": ["Werkzeug>=0.16"]
-    Module installation fails if module named "dep_module" version is less than 12.0.2.0
-    and fails is module named "incompatible" is installed.
-    The symbol "?" at the end of module declaration disables the check for the module,
-    if the system parameter "disable_module_incompatibility" is True.
+        "version_external_dependencies": ["Werkzeug>=0.16"],
+        "pre_init_hook": "check_4_depending",
+    In above example, current module installation fails if version of the module named
+    "dep_module" is less than 12.0.2.0 or if module named "incompatible" is installed
+    or python package Werkzeug version is less than 0.16.
+    The symbol "?" at the end of module declaration disables the incompatibility check,
+    if system parameter "disable_module_incompatibility" is True.
+    Notice: __init__.py in current module root must contain the statement:
+        from ._check4deps_ import check_4_depending
     """
 
     def comp_versions(version):
@@ -99,8 +105,7 @@ def check_4_depending(cr):
                     break
                 elif not eval("%s%s%s" % (comp_versions(app["version"]),
                                           op,
-                                          comp_versions(ver_to_match))
-                ):
+                                          comp_versions(ver_to_match))):
                     uninstallable_reason = (
                         "%s '%s' is not installable because does not match %s%s"
                         % (

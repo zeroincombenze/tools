@@ -9,7 +9,7 @@ changelog_url = "%s/blob/master/z0lib/egg-info/CHANGELOG.rst" % source_url
 
 setup(
     name="z0lib",
-    version="2.0.5",
+    version="2.0.6",
     description="Bash zeroincombenze lib",
     long_description=open("README.rst").read(),
     classifiers=[

@@ -538,6 +538,7 @@ if [[ $opt_touch -eq 0 ]]; then
               run_traced "pg_db_active -L -wa '$TEMPLATE' && dropdb $opts --if-exists '$TEMPLATE'"
               if [[ $opt_dry_run -eq 0 ]]; then
                 psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database $TEMPLATE removal failed!" && exit 1
+                [[ $odoo_ver -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
                 run_traced "$cmd"
                 run_traced "pg_db_active -L '$TEMPLATE'"
               fi

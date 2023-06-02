@@ -499,6 +499,7 @@ git_clone() {
         [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/scripts/setup.info ]] && \
           run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/ $HOME/tools/$p/" && \
           run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/setup.py $HOME/tools/$p/"
+          [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/README.rst ]] && run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/README.rst $HOME/tools/$p/"
         s=$?; [ ${s-1} -eq 0 ] || echo "Internal error $s! Statement rsync $p failed!!"
       done
       for p in install_tools.sh odoo_default_tnl.xlsx; do

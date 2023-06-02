@@ -382,6 +382,7 @@ pip_install() {
         run_traced "mkdir -p $tmpdir/$pfn"
         run_traced "cp -r $srcdir $tmpdir/$pfn/"
         run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
+        [[ -f tmpdir/$pfn/$pfn/README.rst ]] && run_traced "mv tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
         x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep --color=never -Eo "\./README.rst")
         # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
         run_traced "$PIP install $tmpdir/$pfn $popts"

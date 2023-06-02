@@ -369,7 +369,7 @@ fi
 [[ ! -d $LGITPATH ]] && echo "Destination path $LGITPATH not found!" && exit $STS_FAILED
 robocopy_init "$PRJNAME" "$PKGNAME"
 if [[ $opt_fetch -eq 0 ]]; then
-  [[ $PKGNAME != "tools" ]] &&  run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
+  [[ $PKGNAME != "tools" ]] && run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
   [[ -f $PRJPATH/setup.py && -f $PRJPATH/scripts/setup.info ]] &&  run_traced "rm -f $PRJPATH/setup.py"
   [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh"
   [[ ! -x $PRJPATH/replace.sh ]] && robocopy "$PRJPATH" "$LGITPATH"

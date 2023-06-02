@@ -323,9 +323,9 @@ def show_module_group(ctx):
             for group in clodoo.browseL8(ctx, model_grp, grp_ids,
                                          context={'lang': 'en_US'}):
                 ir_md = clodoo.browseL8(ctx, model_ir_md,
-                    clodoo.searchL8(ctx, model_ir_md,
-                                    [('model', '=', model_grp),
-                                     ('res_id', '=', group.id)]))
+                                        clodoo.searchL8(ctx, model_ir_md,
+                                                        [('model', '=', model_grp),
+                                                         ('res_id', '=', group.id)]))
                 if group.id in uniq_field:
                     tag = '*'
                 else:
@@ -4333,6 +4333,7 @@ RND_TLD = [
     "gmail.com", "outlook.com", "libero.it", "example.com",
     "hotmail.com",
 ]
+
 
 def anonimize_database(ctx):
     def rnd_item(ctx, rndlist):

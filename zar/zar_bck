@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.3
 
 
 inherit_options() {
@@ -160,8 +160,6 @@ if [ -n "$dblist" ]; then
     else
       ZAR_PURGE=./zar_purge
     fi
-    # wlog "\$ $ZAR_PURGE $OPTS $DBSEL"
-    # eval $ZAR_PURGE $OPTS "'$dbsel'"
   fi
   pushd $DBCKDIR >/dev/null
   dtc=$(date +%Y%m%d)
