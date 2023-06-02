@@ -277,7 +277,7 @@ def main(cli_args=None):
                          dry_run=opt_args.dry_run)
     if opt_args.meld:
         sts, stdout, stderr = z0lib.run_traced(
-            'meld.exe %s %s' % (left_diff_path, right_diff_path),
+            'meld %s %s' % (left_diff_path, right_diff_path),
             verbose=True,
             dry_run=opt_args.dry_run)
     else:

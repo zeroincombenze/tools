@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=2.0.2
+#__version__=2.0.3
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -285,6 +285,13 @@ expand_tar() {
         fi
       done
       if [ -n "$src" ]; then
+        if [[ -f $src.bak ]]; then
+          for x in "" z j J ""; do
+            run_traced "tar $TAR_OPT -x${x}f $src.bak $2"
+            [[ $? -eq 0 ]] && break
+          done
+          rm -f $src.bak
+        fi
         if [ -f "$src" ]; then
           chown $PG_OWN $src
           if [[ "zjJ" =~ "$BCKFORMAT" ]]; then

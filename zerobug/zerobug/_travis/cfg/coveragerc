@@ -23,6 +23,7 @@ omit =
     */__init__.py
     */__openerp__.py
     */__manifest__.py
+    */_check4deps_.py
 # Regexes for lines to exclude from consideration
 exclude_lines =
     # Have to re-enable the standard pragma

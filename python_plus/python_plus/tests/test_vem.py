@@ -98,7 +98,14 @@ class RegressionTest:
             z0ctx, "- infodir %s" % pypi, os.path.dirname(tgtdir), res
         )
 
-        cmd = 'vem %s -q update %s==0.11.11' % (self.venv_dir, pypi)
+        werkz_version = ""
+        if sys.version_info[0] == 2:
+            werkz_version = "0.11.11"
+        elif sys.version_info[0:2] >= (3, 9):
+            werkz_version = "2.0.2"
+        else:
+            werkz_version = "0.16.1"
+        cmd = 'vem %s -q update %s==%s' % (self.venv_dir, pypi, werkz_version)
         sts1, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         sts += self.Z.test_result(z0ctx, "%s" % cmd, 0, sts1)
         cmd = 'vem %s -q info %s' % (self.venv_dir, pypi)
@@ -109,7 +116,7 @@ class RegressionTest:
                 res = ln.split(" ")[1].strip()
                 break
         sts += self.Z.test_result(
-            z0ctx, "- pkg version %s" % pypi, "0.11.11", res
+            z0ctx, "- pkg version %s" % pypi, werkz_version, res
         )
 
         cmd = 'vem %s -q uninstall %s -y' % (self.venv_dir, pypi)

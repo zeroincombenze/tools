@@ -253,6 +253,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
             run_traced "mkdir $LOCAL_VENV/tmp/$pfn"
             run_traced "cp -r $SRCPATH/$pfn/ $LOCAL_VENV/tmp/$pfn/"
             run_traced "mv $LOCAL_VENV/tmp/$pfn/$pfn/setup.py $LOCAL_VENV/tmp/$pfn/setup.py"
+            [[ -f $LOCAL_VENV/tmp/$pfn/$pfn/README.rst ]] && run_traced "mv $LOCAL_VENV/tmp/$pfn/$pfn/README.rst $LOCAL_VENV/tmp/$pfn/README.rst"
             srcpath="$LOCAL_VENV/tmp/$pfn"
         fi
         run_traced "pip install $srcpath $popts"

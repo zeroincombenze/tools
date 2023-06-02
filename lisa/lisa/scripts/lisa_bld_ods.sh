@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2022 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 ## split log
@@ -153,11 +153,11 @@ update_odoo_conf() {
 }
 
 
-OPTOPTS=(h        b         c         D        E       G       L        M        n            P       S        T        t        U        V           v)
-OPTDEST=(opt_help odoo_vid  opt_confn opt_ucfg opt_osf opt_org opt_flog opt_main opt_dry_run  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
-OPTACTI=("+"      "=>"      "=>"      1        "=>"    "="     "=>"     1        1            "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
-OPTDEFL=(1        ""        ""        0        ""      ""      ""       0        0            ""      0        ""       ""       "odoo"   ""          0)
-OPTMETA=("help"   "vid"     "file"    ""       "linux" "id"    "file"   ""       "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
+OPTOPTS=(h        b         c         D        E       G       L        M        n            P       S       T        t        U        V           v           X)
+OPTDEST=(opt_help odoo_vid  opt_confn opt_ucfg opt_osf opt_org opt_flog opt_main opt_dry_run  opt_pid opt_svc opt_test opt_tmpl opt_user opt_version opt_verbose opt_sudo)
+OPTACTI=("+"      "=>"      "=>"      1        "=>"    "="     "=>"     1        1            "=>"    "=>"    "*>"     "=>"     "=>"     "*>"        1           1)
+OPTDEFL=(1        ""        ""        0        ""      ""      ""       0        0            ""      ""      ""       ""       "odoo"   ""          0           0)
+OPTMETA=("help"   "vid"     "file"    ""       "linux" "id"    "file"   ""       "do nothing" "file"  "file"  "test"   "file"   "user"   "version"   "verbose"   "")
 OPTHELP=("this help"\
  "select odoo version id: may be 6, 7, 8, 9, 10, 11, 12 or 13"
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"
@@ -168,12 +168,13 @@ OPTHELP=("this help"\
  "mono-version Odoo instance"
  "do nothing (dry-run)"
  "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"
- "use sudo to execute command instead of start-stop-daemon (only Debian)"
+ "service name (def from configuration file)"
  "created test script does nothing (used for debug)"
  "use template (def /etc/lisa/odoo-server_{linux_dist})"
  "odoo service username"
  "show version"
- "verbose mode")
+"verbose mode"
+ "use sudo to execute command instead of start-stop-daemon (only Debian)")
 OPTARGS=()
 
 parseoptargs "$@"
@@ -183,7 +184,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Build Odoo daemon script (default name is odoo-server)"\
-  "(C) 2015-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 # discover_multi
@@ -212,7 +213,7 @@ if [[ -z $odoo_vid ]]; then
   [[ -n $xtl_org && ! $xtl_org =~ (odoo|oca|librerp|zero) ]] && odoo_vid="odoo${odoo_ver}-${xtl_org}"
 fi
 GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_vid)
-SVCNAME=$(build_odoo_param SVCNAME $odoo_vid)
+[[ -z $opt_svc ]] && SVCNAME=$(build_odoo_param SVCNAME $odoo_vid) || SVCNAME=$opt_svc
 CONFN=$(build_odoo_param CONFN $odoo_vid)
 if [[ $script_name != $SVCNAME || $CONFN != $opt_confn ]]; then
   echo "Data mismatch!"
@@ -222,9 +223,11 @@ if [[ $script_name != $SVCNAME || $CONFN != $opt_confn ]]; then
   echo "Config=$CONFN (by Odoo branch)"
   echo "Service name=$SVCNAME (by Odoo branch)"
   echo "Service name=$script_name (from config file)"
-  exit 1
+  read -p "Confirm build (y/n)? " dummy
+  [[ ! $dummy =~ y ]] && exit 1
+  CONFN=$opt_confn
+  SVCNAME=$script_name
 fi
-# [ $opt_ucfg -ne 0 ] && update_odoo_conf $odoo_vid $opt_confn
 if [[ $SVCNAME =~ ^openerp ]]; then
   opt_id="openerp"
 else

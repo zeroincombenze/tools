@@ -258,10 +258,21 @@ def is_module(path):
 
 
 def read_manifest(manifest_path):
-    try:
-        manifest = ast.literal_eval(open(manifest_path).read())
-    except (IOError, ImportError):
-        raise Exception('Wrong manifest file %s' % manifest_path)
+    with open(manifest_path, "r") as fd:
+        # sometimes manifest contains BOM so we use encode() to assure right contents
+        if sys.version_info[0] == 2:
+            manifest_content = fd.read()
+        else:
+            manifest_content = fd.read().encode("utf-8")
+        try:
+            manifest = ast.literal_eval(manifest_content)
+        except BaseException:
+            manifest = None
+        if not manifest:
+            try:
+                manifest = eval(manifest_content)
+            except BaseException:
+                raise Exception('Wrong manifest file %s' % manifest_path)
     return manifest
 
 

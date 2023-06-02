@@ -53,7 +53,7 @@ REQVERSION = {
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
     "cryptography": {"2.7": ">=2.2.2,<3.4", "3.7": ">=38.0,<39.0"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
-    "docutils": {"6.1": "==0.12", "0": "==0.14", "3.7": "==0.16"},       # By test pkgs
+    "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},       # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
     "email_validator": {"10.0": "<1.3.0", "12.0": ">=1.3"},
     "ERPpeek": {"0": "==1.6.1"},
@@ -191,7 +191,10 @@ REQVERSION = {
         "6.1": "==0.9.6",
         "10.0": "==0.11.11",
         "11.0": "==0.11.15",
-        "3.7": "==0.14.1",
+        "12.0": "==0.14.1",
+        "14.0": "==0.16.1",
+        "3.9": "==2.0.2",
+
     },
     "wkhtmltopdf": {"6.1": "==0.12.1", "10.0": "==0.12.4", "12.0": "==0.12.5"},
     "wok_code": {"6.1": "<2.0.6", "10.0": ">=2.0.0"},
@@ -266,7 +269,7 @@ ALIAS_RHEL = {
     "zlib1g-dev": "zlib-devel",
 }
 FORCE_ALIAS2 = {
-    "docutils==0.12": "docutils==0.14",
+    # "docutils==0.12": "docutils==0.14",
     "pytz==2014.4": "pytz>=2014.4",
     "pytz==2014.10": "pytz>=2014.10",
     "pytz==2016.7": "pytz>=2016.7",
@@ -539,26 +542,6 @@ DEPS3 = {
     "python-psycopg2": {"bin": ("PY3_DEV", "libpq-dev")},
     "python3-ldap": {"bin": ("libsasl2-dev", "libldap2-dev", "libssl-dev")},
 }
-# DEPS9 = [
-#     "astroid==1.6.5",
-#     "astroid==2.2.0",
-#     "astroid==2.4.2",
-#     "docutils==0.12",
-#     "docutils==0.14",
-#     "docutils==0.16",
-#     "Pillow==3.4.1",
-#     "Pygments==2.0.2",
-#     "six==1.15.0",
-# ]
-
-# PYCODESET = 'utf-8'
-# if PY3:
-#     text_type = unicode = str
-#     bytestr_type = bytes
-# elif PY2:
-#     # unicode exist only for python2
-#     text_type = unicode
-#     bytestr_type = str
 
 
 def fake_setup(**kwargs):
@@ -567,108 +550,6 @@ def fake_setup(**kwargs):
 
 def get_naked_pkgname(pkg):
     return re.split('[!<=>@#;]', python_plus.qsplit(pkg)[0])[0].strip()
-
-
-# def _b(s):
-#     if isinstance(s, text_type):
-#         return s.encode(PYCODESET)
-#     return s
-#
-#
-# def _u(s):
-#     if isinstance(s, bytestr_type):
-#         if PY3:
-#             return s.decode(PYCODESET)
-#         return unicode(s, PYCODESET)
-#     return s
-#
-#
-# def bstrings(src):
-#     if isinstance(src, dict):
-#         src2 = src.copy()
-#         for x in src2.keys():
-#             if isinstance(x, text_type):
-#                 del src[x]
-#             src[_b(x)] = _b(src2[x])
-#     elif isinstance(src, (list, tuple)):
-#         for i, x in enumerate(src):
-#             src[i] = _b(x)
-#     return src
-#
-#
-# def unicodes(src):
-#     if isinstance(src, dict):
-#         src2 = src.copy()
-#         for x in src2.keys():
-#             if isinstance(x, bytestr_type):
-#                 del src[x]
-#             src[_u(x)] = _u(src2[x])
-#     elif isinstance(src, (list, tuple)):
-#         for i, x in enumerate(src):
-#             src[i] = _u(x)
-#     return src
-#
-#
-# def qsplit(*args, **kwargs):
-#     src = args[0]
-#     if len(args) > 1 and args[1]:
-#         sep = args[1]
-#         if isinstance(sep, (tuple, list)):
-#             sep = unicodes(sep)
-#         elif isinstance(sep, basestring):
-#             sep = _u(sep)
-#     else:
-#         sep = [' ', '\t', '\n', '\r']
-#     if len(args) > 2 and args[2]:
-#         maxsplit = args[2]
-#     else:
-#         maxsplit = -1
-#     quotes = kwargs.get('quotes', ["'", '"'])
-#     escape = kwargs.get('escape', False)
-#     enquote = kwargs.get('enquote', False)
-#     strip = kwargs.get('strip', False)
-#     source = _u(src)
-#     sts = False
-#     result = []
-#     item = ''
-#     esc_sts = False
-#     ctr = 0
-#     for ch in source:
-#         if maxsplit >= 0 and ctr >= maxsplit:
-#             item += ch
-#         elif esc_sts:
-#             esc_sts = False
-#             item += ch
-#         elif ch == escape:
-#             esc_sts = True
-#         elif ch == sts:
-#             sts = False
-#             if enquote:
-#                 item += ch
-#         elif sts:
-#             item += ch
-#         elif ch in quotes:
-#             sts = ch
-#             if enquote:
-#                 item += ch
-#         elif (isinstance(sep, (tuple, list)) and ch in sep) or (
-#             isinstance(sep, basestring) and ch == sep
-#         ):
-#             if strip:
-#                 result.append(item.strip())
-#             else:
-#                 result.append(item)
-#             item = ''
-#             ctr += 1
-#         else:
-#             item += ch
-#     if strip:
-#         result.append(item.strip())
-#     else:
-#         result.append(item)
-#     if isinstance(src, bytestr_type):
-#         return bstrings(result)
-#     return result
 
 
 def eval_requirement_cond(line, pyver=None, odoo_ver=None):
@@ -751,6 +632,9 @@ def parse_requirements(ctx, reqfile, pyver=None):
 
 
 def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
+    def comp_ver(version):
+        return [int(x) for x in version.split(".")]
+
     item = os.path.basename(get_naked_pkgname(re.split("[!=<>]", full_item)[0]))
     if item.endswith(".git"):
         item = item[:-4]
@@ -767,20 +651,11 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
     # if odoo_ver and with_version and not item_ver:
-    if odoo_ver and with_version:
+    if (odoo_ver or pyver) and with_version:
         if item in REQVERSION:
             min_v = False
-            valid_ver = False
-            if pyver in REQVERSION[item]:
-                min_v = pyver
-            elif pyver and pyver.startswith("3"):
-                for v in ("3.9", "3.8", "3.7", "3.6", "3.5"):
-                    if v in REQVERSION[item]:
-                        min_v = v
-                        break
-            if not min_v:
+            if odoo_ver:
                 for v in (
-                    "0",
                     "6.1",
                     "7.0",
                     "8.0",
@@ -793,14 +668,21 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
                     "15.0",
                     "16.0",
                 ):
-                    if v in REQVERSION[item]:
+                    if v in REQVERSION[item] and comp_ver(v) <= comp_ver(odoo_ver):
                         min_v = v
-                        if v == odoo_ver or valid_ver or (not odoo_ver and v == "0"):
-                            break
-                    elif v == odoo_ver:
-                        valid_ver = True
-                        if min_v:
-                            break
+                    if comp_ver(v) >= comp_ver(odoo_ver):
+                        break
+            if pyver and (not min_v or comp_ver(min_v) <= comp_ver("10.0")
+                          and pyver.startswith("3")):
+                for v in ("2.7", "3.5", "3.6", "3.7", "3.8", "3.9"):
+                    if v == "2.7" and odoo_ver and min_v:
+                        continue
+                    if v in REQVERSION[item] and comp_ver(v) <= comp_ver(pyver):
+                        min_v = v
+                    if comp_ver(v) >= comp_ver(pyver):
+                        break
+            if not min_v and "0" in REQVERSION[item]:
+                min_v = "0"
             if min_v:
                 full_item = merge_item_version(
                     full_item,
@@ -1121,16 +1003,16 @@ def swap(deps, itm1, itm2):
     itm1_id = -1
     itm2_id = -1
     for item in deps:
-        if item.startswith(itm1):
+        x = re.search(r"[a-zA-Z0-9_-]+", item)
+        itm0 = item[x.start(): x.end()] if x else item
+        if itm0 == itm1:
             itm1_id = deps.index(item)
-        elif item.startswith(itm2):
+        elif itm0 == itm2:
             itm2_id = deps.index(item)
         if itm1_id >= 0 and itm2_id >= 0:
             break
     if itm1_id < itm2_id:
-        item = deps[itm2_id]
-        del deps[itm2_id]
-        deps.insert(itm1_id, item)
+        deps[itm2_id], deps[itm1_id] = deps[itm2_id], deps[itm1_id]
 
 
 def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
@@ -1391,7 +1273,7 @@ def main(cli_args=None):
     )
     parser.add_argument("-V")
     parser.add_argument("-v")
-    parser.add_argument("-y", "--python-version", action="store", dest="pyver")
+    parser.add_argument("-y", "--python", action="store", dest="pyver")
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
     if ctx["pyver"]:
         global PY3_DEV
@@ -1644,29 +1526,29 @@ def main(cli_args=None):
     for ii, dep_pkg in enumerate(deps_list["bin"]):
         if ">" in dep_pkg or "<" in dep_pkg or " " in dep_pkg:
             deps_list["bin"][ii] = "'%s'" % dep_pkg
-    for item in DEPS:
-        if "python" in DEPS[item]:
-            if isinstance(DEPS[item]["python"], (tuple, list)):
-                for itm in DEPS[item]["python"]:
-                    swap(deps_list["python"], item, itm)
-            else:
-                swap(deps_list["python"], item, DEPS[item]["python"])
-    if ctx["pyver"] and ctx["pyver"].split(".")[0] == "2":
-        for item in DEPS2:
-            if "python" in DEPS2[item]:
-                if isinstance(DEPS2[item]["python"], (tuple, list)):
-                    for itm in DEPS2[item]["python"]:
-                        swap(deps_list["python"], item, itm)
-                else:
-                    swap(deps_list["python"], item, DEPS2[item]["python"])
-    if ctx["pyver"] and ctx["pyver"].split(".")[0] == "3":
-        for item in DEPS3:
-            if "python" in DEPS3[item]:
-                if isinstance(DEPS3[item]["python"], (tuple, list)):
-                    for itm in DEPS3[item]["python"]:
-                        swap(deps_list["python"], item, itm)
-                else:
-                    swap(deps_list["python"], item, DEPS3[item]["python"])
+    # for item in DEPS:
+    #     if "python" in DEPS[item]:
+    #         if isinstance(DEPS[item]["python"], (tuple, list)):
+    #             for itm in DEPS[item]["python"]:
+    #                 swap(deps_list["python"], item, itm)
+    #         else:
+    #             swap(deps_list["python"], item, DEPS[item]["python"])
+    # if ctx["pyver"] and ctx["pyver"].split(".")[0] == "2":
+    #     for item in DEPS2:
+    #         if "python" in DEPS2[item]:
+    #             if isinstance(DEPS2[item]["python"], (tuple, list)):
+    #                 for itm in DEPS2[item]["python"]:
+    #                     swap(deps_list["python"], item, itm)
+    #             else:
+    #                 swap(deps_list["python"], item, DEPS2[item]["python"])
+    # if ctx["pyver"] and ctx["pyver"].split(".")[0] == "3":
+    #     for item in DEPS3:
+    #         if "python" in DEPS3[item]:
+    #             if isinstance(DEPS3[item]["python"], (tuple, list)):
+    #                 for itm in DEPS3[item]["python"]:
+    #                     swap(deps_list["python"], item, itm)
+    #             else:
+    #                 swap(deps_list["python"], item, DEPS3[item]["python"])
     if ctx["out_file"]:
         req_pkgs = []
         try:

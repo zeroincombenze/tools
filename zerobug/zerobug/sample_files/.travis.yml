@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=2.0.7
+# __version__=2.0.8
 
 language: python
 sudo: false

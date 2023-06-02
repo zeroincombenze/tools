@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.5
+__version__=2.0.6
 
 test_common() {
     # test_common(simulate_cmd, [N])
@@ -170,6 +170,7 @@ test_01() {
     mkdir -p $HOME/devel/pypi/travis_emulator/
     cp -R $HOME/tools/travis_emulator/ $HOME/devel/pypi/travis_emulator/
     mv $HOME/devel/pypi/travis_emulator/travis_emulator/setup.py $HOME/devel/pypi/travis_emulator/setup.py
+    [[ -f $HOME/devel/pypi/travis_emulator/travis_emulator/README.rst ]] &&  run_traced "mv $HOME/devel/pypi/travis_emulator/travis_emulator/README.rst $HOME/devel/pypi/travis_emulator/README.rst"
     cd $HOME/devel/pypi/z0lib/z0lib
     mv $HOME/tools/z0bug_odoo/travis/simulate_cmd $HOME/devel/pypi/z0lib/z0lib/simulate_cmd
     # [[ -f $HOME/devel/pypi/z0lib/z0lib/travisrc ]] && rm -f $HOME/devel/pypi/z0lib/z0lib/travisrc
