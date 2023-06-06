@@ -828,6 +828,13 @@ Current version via Git
 History
 -------
 
+2.0.8.1 (2023-05-09)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states
+* [IMP] run_odoo_debug: new brief for status
+* [IMP] deploy_odoo: new action unstaged e new status format
+
 2.0.8 (2023-05-09)
 ~~~~~~~~~~~~~~~~~~
 
@@ -906,14 +913,6 @@ History
 
 * [IMP] New lint_2_compare command
 * [IMP] odoo_dependecies.py: minor upgrade
-
-2.0.0.3 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] deploy_odoo: show actual branch and organization
-* [FIX] deploy_odoo: update read from directory
-* [IMP] deploy_odoo: new command list repo info
-* [IMP] deploy_odoo: new feature link to repositories
 
 
 

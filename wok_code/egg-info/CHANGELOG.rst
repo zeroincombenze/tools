@@ -1,3 +1,10 @@
+2.0.8.1 (2023-05-09)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states
+* [IMP] run_odoo_debug: new brief for status
+* [IMP] deploy_odoo: new action unstaged e new status format
+
 2.0.8 (2023-05-09)
 ~~~~~~~~~~~~~~~~~~
 

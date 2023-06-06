@@ -62,10 +62,10 @@ check_for_modules() {
             r=$(psql -U$DB_USER $opt_db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
             if [[ $r =~ uninstallable ]]; then
                 XXX="$XXX $m"
-            elif [[ $r =~ uninstalled ]]; then
+            elif [[ $r =~ (uninstalled|to install) ]]; then
                 OPTI="$OPTI$xi$m"
                 xi=,
-            elif [[ $r =~ installed ]]; then
+            elif [[ $r =~ (installed|to upgrade) ]]; then
                 OPTU="$OPTU$xu$m"
                 xu=,
             elif [[ $opt_force -ne 0 ]]; then
@@ -129,7 +129,6 @@ set_log_filename() {
     LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
     [[ -f $LOGFILE ]] && rm -f $LOGFILE
     # OLD_LOGFILE=${LOGFILE/.log/_old.log}
-    # set +x  #debug
 }
 
 check_path_n_branch() {

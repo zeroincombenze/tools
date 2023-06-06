@@ -118,6 +118,8 @@ FMT_PARAMS = {
     "path": "%(path)-56.56s",
     "stash": "%(stash)5.5s",
     "status": "%(status)s",
+    "brief": "%(brief)s",
+    "stage": "%(stage)-10.10s",
 }
 
 
@@ -199,7 +201,7 @@ class OdooDeploy(object):
                 self.master_branch = build_odoo_param(
                     "FULLVER", odoo_vid=self.repo_info[repo]["BRANCH"]
                 )
-            if opt_args.action in ("list", "status"):
+            if opt_args.action in ("list", "status", "unstaged"):
                 self.add_addons_path(path, repo)
 
         self.git_org = opt_args.git_orgs[0] if opt_args.git_orgs else "oca"
@@ -928,7 +930,8 @@ class OdooDeploy(object):
         fmt = fmt.strip()
         print(fmt % datas)
         for repo in self.repo_list:
-            git_org = git_stat = ""
+            git_org = git_stat = brief = ""
+            stage = "staged"
             tgtdir = self.get_path_of_repo(repo)
             self.run_traced("cd %s" % tgtdir, verbose=False)
             sts, repo_branch, git_url, stash_list = self.get_remote_info(verbose=False)
@@ -937,6 +940,15 @@ class OdooDeploy(object):
                 sts, stdout, stderr = self.run_traced("git status", verbose=False)
                 if sts == 0:
                     git_stat = stdout
+                    for ln in stdout.split("\n"):
+                        if (
+                            ln.strip()
+                            and "Your branch is up to date" not in ln
+                            and "working tree clean" not in ln
+                        ):
+                            brief += ln + "\n"
+                            if "On branch" not in ln:
+                                stage = "unstaged"
 
             datas = {
                 "repo": repo,
@@ -946,10 +958,13 @@ class OdooDeploy(object):
                 "git_org": git_org,
                 "git_url": git_url,
                 "path": tgtdir,
-                "stash": "stash" if self.repo_info[repo].get("STASH") else "",
+                "stash": "stash" if self.repo_info.get(repo, {}).get("STASH") else "",
                 "status": git_stat,
+                "brief": brief,
+                "stage": stage,
             }
-            print(fmt % datas)
+            if self.opt_args.action != "unstaged" or stage == "unstaged":
+                print(fmt % datas)
         if self.opt_args.show_addons:
             print()
             print(",".join(self.addons_path))
@@ -1003,8 +1018,9 @@ def main(cli_args=None):
     parser.add_argument(
         "-F",
         "--format",
-        help=("Use 1 or + of " "sts,repo,branch,git_org,git_url,path,stash,status"),
-        default="sts,repo,branch,git_org,git_url,path,stash",
+        help=("Use 1 or + of "
+              "sts,repo,branch,brief,git_org,git_url,path,stash,stage,status"),
+        default="repo,stage,branch,git_org,git_url,stash",
     )
     parser.add_argument(
         "-G",
@@ -1073,7 +1089,8 @@ def main(cli_args=None):
     )
     parser.add_argument("-y", "--assume-yes", action="store_true")
     parser.add_argument(
-        "action", nargs="?", help="May be clone,git-push,list,reclone,status,update"
+        "action", nargs="?",
+        help="May be clone,git-push,list,reclone,status,unstaged,update"
     )
     opt_args = parser.parse_args(cli_args)
 
@@ -1096,7 +1113,8 @@ def main(cli_args=None):
                                 "list",
                                 "reclone",
                                 "status",
-                                "update")
+                                "update",
+                                "unstaged")
     ):
         print("No valid action issued!")
         exit(1)
@@ -1108,7 +1126,7 @@ def main(cli_args=None):
     deploy = OdooDeploy(opt_args)
     if opt_args.action == "list":
         deploy.action_list()
-    elif opt_args.action == "status":
+    elif opt_args.action in ("status", "unstaged"):
         deploy.action_status()
     else:
         deploy.action_download_or_pull_repo()
