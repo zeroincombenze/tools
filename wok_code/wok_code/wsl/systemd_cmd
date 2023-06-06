@@ -1,13 +1,15 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          link_windows_cmd
+# Provides:          create fake systemctl form service
 # Required-Start:    mountkernfs $local_fs $network
 # Required-Stop:
 # Should-Start:      udev module-init-tools
 # Default-Start:     S
 # Default-Stop:
-# Short-Description: Make windows apps available for Linux
-# Description:       In WSL2 windows apps can be executed in Linux enviroment. This service create scripts to execute windows command.
+# Short-Description: Create a systemctl bash script to emulate systemctl
+# Description:       In WSL2 windows systemctl may be not activated; in this case
+#                    a bash script in /usr/local/bin active the required service with
+#                    systemctl syntax. If systemctl runs, this script do nothing
 ### END INIT INFO
 #
 

@@ -1418,14 +1418,17 @@ class MainTest(SingleTransactionCase):
     @api.model
     def _get_src_model_from_act_windows(self, act_windows):
         model_name = act_windows.get("src_model")
-        if not model_name and "binding_model_id" in act_windows:
+        if not model_name and act_windows.get("binding_model_id"):
             model_name = self.env.ref(act_windows["binding_model_id"])["model"]
         if not model_name or self._is_transient(model_name):
             model_name = None
             value = "%s,%d" % (act_windows["type"], act_windows["id"])
-            records = self.env["ir.values"].search([("value", "=", value)])
-            if len(records) == 1:
-                model_name = records[0].model
+            if "ir.values" in self.env:
+                records = self.env["ir.values"].search([("value", "=", value)])
+            # else:
+            #     records = self.env["ir.default"].search([("value", "=", value)])
+                if len(records) == 1:
+                    model_name = records[0].model
         return model_name
 
     @api.model

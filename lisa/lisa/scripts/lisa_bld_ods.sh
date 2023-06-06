@@ -192,8 +192,6 @@ fi
 [[ -z $opt_confn ]] && echo "Missed configuration file!" && exit 1
 script_name=$(basename $opt_confn)
 [[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
-[[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
-[[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
 if [[ -z $odoo_vid ]]; then
   odoo_ver=$(echo $script_name|grep -Eo "(odoo|oca)[0-9]+"|grep -Eo "[0-9]+")
   [[ ! $odoo_ver =~ (6|7|8|9|10|11|12|13|14|15|16) ]] && odoo_ver=12
