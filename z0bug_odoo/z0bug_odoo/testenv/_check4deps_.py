@@ -7,31 +7,45 @@
 import os
 import sys
 import re
-import ast
+import logging
 
 from odoo import api, SUPERUSER_ID
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 def check_4_depending(cr):
     """check_4_depending v0.1.0
     This function check for valid modules which current module depends on.
-    Usually Odoo checks for depending on through "depends" field in the manifest,
-    but Odoo does not check for the version range neither check for incompatibilities.
-    With two new fields "version_depends" (for odoo modules) and
-    "version_external_dependencies" (for python packages),
-    this function checks for version range, like pip or apt/yum etc. Example:
-        "version_depends": [
-            "dep_module>=12.0.2.0",
-            "incompatible!?"
-        ],
+    Usually Odoo checks for depending on through "depends" field in the manifest, but
+    Odoo does not check for the version range neither check for incompatibilities.
+    With three new fields "version_depends", "conflicts" (for odoo modules) and
+    "version_external_dependencies" (for python packages), this function checks for
+    version range, like pip or apt/yum etc. Example:
+        "version_depends": ["dep_module>=12.0.2.0"],
         "version_external_dependencies": ["Werkzeug>=0.16"],
+        "conflicts": [
+            "incompatible!", "quite_incompatible",
+            "inv_auth!=~Danger", "req_auth=~?MySelf"
+        ],
         "pre_init_hook": "check_4_depending",
-    In above example, current module installation fails if version of the module named
-    "dep_module" is less than 12.0.2.0 or if module named "incompatible" is installed
-    or python package Werkzeug version is less than 0.16.
-    The symbol "?" at the end of module declaration disables the incompatibility check,
-    if system parameter "disable_module_incompatibility" is True.
+    In above example, current module installation fails if:
+    * version of the module named "dep_module" is less than 12.0.2.0
+    * modules named "incompatible" is installed
+    * module "quite_incompatible" is installed (*)
+    * author name or maintainer name of module "inv_auth" is 'Danger' (**)
+    * author name or maintainer name of module "req_ath" is not 'MySelf' (**)
+    * python package Werkzeug is less than 0.16.
+    Installation can even continue if system parameter "disable_module_incompatibility"
+    is True when:
+    (*) module name to match does not end with symbol "!"
+    (**) regex operators are '=~?' or '!=~?'
+    Summary:
+    - Operators == != >= <= > < match always with module version
+    - Conflicts key 'name' (can disable) or 'name!' (always) match installed module
+    - Operators =~ (always) !=~ (negate+always) =~? (disable) !=~? (negate+disable)
+      match module author o maintainer
     Notice: __init__.py in current module root must contain the statement:
         from ._check4deps_ import check_4_depending
     """
@@ -45,76 +59,158 @@ def check_4_depending(cr):
     def display_name(mtype):
         return "Package" if mtype == "pypi" else "Module"
 
+    def eval_condition_conflicts(mtype, app, op, disable_check):
+        if app["version"]:
+            uninstallable_reason = (
+                "Module '%s' conflicts with installed %s '%s'"
+                % (
+                    cur_module,
+                    display_name(mtype),
+                    app["name"],
+                )
+            )
+            if "!" not in op:
+                uninstallable_reason += (
+                    " - Use config param <disable_module_incompatibility> to install!")
+            _logger.error(uninstallable_reason)
+            if not disable_check or "!" in op:
+                return uninstallable_reason
+        return False
+
+    def eval_regex(mtype, app, op, ver_to_match, disable_check):
+        a = re.search("(?i)" + ver_to_match, app["author"])
+        m = re.search("(?i)" + ver_to_match, app["maintainer"])
+        if op.startswith("=~") and ((not a and not m) or not app["version"]):
+            uninstallable_reason = (
+                "%s '%s' is not installable because author or maintainer of module '%s'"
+                " must match with '%s'"
+                % (
+                    display_name(mtype),
+                    cur_module,
+                    app["name"],
+                    ver_to_match,
+                )
+            )
+            if "?" in op:
+                uninstallable_reason += (
+                    " - Use config param <disable_module_incompatibility> to install!")
+            _logger.error(uninstallable_reason)
+            if not disable_check or "?" not in op:
+                return uninstallable_reason
+        elif op.startswith("!=~") and (a or m) and app["version"]:
+            uninstallable_reason = (
+                "%s '%s' is not installable because found author or maintainer '%s'"
+                " in module '%s'"
+                % (
+                    display_name(mtype),
+                    cur_module,
+                    ver_to_match,
+                    app["name"],
+                )
+            )
+            if "?" in op:
+                uninstallable_reason += (
+                    " - Use config param <disable_module_incompatibility> to install!")
+            _logger.error(uninstallable_reason)
+            if not disable_check or "?" not in op:
+                return uninstallable_reason
+        return False
+
+    def eval_version_match(mtype, app, op, ver_to_match, condition):
+        if not eval("%s%s%s" % (comp_versions(app["version"]),
+                                op,
+                                comp_versions(ver_to_match))):
+            uninstallable_reason = (
+                "%s '%s' is not installable because it does not match with '%s%s'"
+                " (is %s)"
+                % (
+                    display_name(mtype),
+                    cur_module,
+                    app["name"],
+                    condition,
+                    app["version"],
+                )
+            )
+            _logger.error(uninstallable_reason)
+            return uninstallable_reason
+
+    def eval_condition(mtype, app, condition, disable_check):
+        """evaluate condition and return reason for match"""
+        x = op_re.match(condition)
+        if x:
+            op = condition[x.start(): x.end()]
+            ver_to_match = condition[x.end():]
+        else:
+            op = ver_to_match = ""
+        if op in ("", "!"):
+            return eval_condition_conflicts(mtype, app, op, disable_check)
+        elif op in ("=~", "!=~", "=~?", "!=~?"):
+            return eval_regex(mtype, app, op, ver_to_match, disable_check)
+        elif not app["version"]:
+            uninstallable_reason = "%s '%s' not installed" % (
+                display_name(mtype),
+                app["name"],
+            )
+            _logger.error(uninstallable_reason)
+            return uninstallable_reason
+        return eval_version_match(mtype, app, op, ver_to_match, condition)
+
+    def get_odoo_module_info(app_name):
+        odoo_module = env["ir.module.module"].search([("name", "=", app_name)])
+        if not odoo_module or odoo_module[0].state != "installed":
+            app = {"name": app_name, "version": False, "author": "", "maintainer": ""}
+        else:
+            app = {"name": app_name,
+                   "version": odoo_module[0].installed_version,
+                   "author": odoo_module[0].author or "",
+                   "maintainer": odoo_module[0].maintainer or ""}
+        return app
+
+    def get_pypi_info(app_name):
+        if sys.version_info[0] == 2:
+            import pkg_resources
+            try:
+                version = pkg_resources.get_distribution(app_name).version
+            except BaseException:
+                version = False
+        elif sys.version_info < (3, 8):
+            import importlib_metadata as metadata
+            try:
+                version = metadata.version(app_name)
+            except BaseException:
+                version = False
+        else:
+            from importlib import metadata
+            try:
+                version = metadata.version(app_name)
+            except BaseException:
+                version = False
+        return {"name": app_name, "version": version}
+
     def check_for_all_dependecies(dependecies_list, mtype="odoo", disable_check=False):
+        if not isinstance(dependecies_list, (list, tuple)):
+            dependecies_list = [dependecies_list]
         uninstallable_reason = ""
         for pkg_with_ver in dependecies_list:
             x = item_re.match(pkg_with_ver)
-            ix = x.end()
-            app_name = pkg_with_ver[x.start(): ix]
-            conditions = pkg_with_ver[ix:].split(",")
-            if mtype == "odoo":
-                odoo_module = env["ir.module.module"].search([("name", "=", app_name)])
-                if not odoo_module or odoo_module[0].state != "installed":
-                    app = {"name": app_name, "version": False}
-                else:
-                    app = {"name": app_name,
-                           "version": odoo_module[0].installed_version}
-            elif mtype == "pypi":
-                if sys.version_info[0] == 2:
-                    import pkg_resources
-                    try:
-                        version = pkg_resources.get_distribution(app_name).version
-                    except BaseException:
-                        version = False
-                elif sys.version_info < (3, 8):
-                    import importlib_metadata as metadata
-                    try:
-                        version = metadata.version(app_name)
-                    except BaseException:
-                        version = False
-                else:
-                    from importlib import metadata
-                    try:
-                        version = metadata.version(app_name)
-                    except BaseException:
-                        version = False
-                app = {"name": app_name, "version": version}
+            if not x and mtype == "conflicts":
+                app_name = pkg_with_ver
+                conditions = []
             else:
-                raise UserError("Invalid type %s declaration" % mtype)
+                ix = x.end()
+                app_name = pkg_with_ver[x.start(): ix]
+                conditions = pkg_with_ver[ix:].split(",")
+            if mtype in ("odoo", "conflicts"):
+                app = get_odoo_module_info(app_name)
+            elif mtype == "pypi":
+                app = get_pypi_info(app_name)
+            else:
+                raise UserError("Unknown depend on type %s" % mtype)
 
             for condition in conditions:
-                x = op_re.match(condition)
-                op = condition[x.start(): x.end()]
-                ver_to_match = condition[x.end():]
-                if op != "!" and not app["version"]:
-                    if not disable_check:
-                        uninstallable_reason = "%s '%s' not installed" % (
-                            display_name(mtype),
-                            app["name"],
-                        )
-                        break
-                elif op == "!" and app["version"]:
-                    uninstallable_reason = (
-                        "Installed %s '%s' is incompatible with '%s'"
-                        % (
-                            display_name(mtype),
-                            app["name"],
-                            cur_module,
-                        )
-                    )
-                    break
-                elif not eval("%s%s%s" % (comp_versions(app["version"]),
-                                          op,
-                                          comp_versions(ver_to_match))):
-                    uninstallable_reason = (
-                        "%s '%s' is not installable because does not match %s%s"
-                        % (
-                            display_name(mtype),
-                            cur_module,
-                            app_name,
-                            condition,
-                        )
-                    )
+                uninstallable_reason = eval_condition(
+                    mtype, app, condition, disable_check)
+                if uninstallable_reason:
                     break
             if uninstallable_reason:
                 break
@@ -132,20 +228,23 @@ def check_4_depending(cr):
         if os.path.isfile(manifest_path):
             break
     try:
-        manifest = ast.literal_eval(open(manifest_path, "r").read())
+        manifest = eval(open(manifest_path, "r").read())
     except (ImportError, IOError, SyntaxError):
         manifest = {}
     cur_module = os.path.basename(os.path.dirname(manifest_path))
     disable_check = env["ir.config_parameter"].search(
         [("key", "=", "disable_module_incompatibility")]
     )
-    disable_check = disable_check and disable_check[0].value or False
-    item_re = re.compile("[^>=<!?]+")
-    op_re = re.compile("[>=<!?]+")
+    disable_check = disable_check and eval(disable_check[0].value) or False
+    item_re = re.compile("[^>=<~!?]+")
+    op_re = re.compile("[>=<~!?]+")
+    check_for_all_dependecies(
+        manifest.get("version_external_dependencies", []),
+        mtype="pypi", disable_check=disable_check
+    )
     check_for_all_dependecies(
         manifest.get("version_depends", []), mtype="odoo", disable_check=disable_check
     )
     check_for_all_dependecies(
-        manifest.get("version_external_dependencies", []),
-        mtype="pypi", disable_check=disable_check
+        manifest.get("conflicts", []), mtype="conflicts", disable_check=disable_check
     )
