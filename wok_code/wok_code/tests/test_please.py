@@ -63,6 +63,17 @@ class RegressionTest:
             stdout.split("\n")[0])
         return sts
 
+    def test_04(self, z0ctx):
+        os.chdir(os.path.expanduser("~/tools/wok_code"))
+        sts, stdout, stderr = z0lib.run_traced("please wep -vn")
+        if sts:
+            self.Z.test_result(
+                z0ctx, "please wep -vn", 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx, "please wep -vn", "do_wep", stdout[:6])
+        return sts
+
     def setup(self, z0ctx):
         z0lib.run_traced(
             "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "please.py"))

@@ -178,8 +178,8 @@ LX_OPT_S = (
     "lgi_pwd",
     "logfn",
     "quiet_mode",
-    "http_port",
-    "xmlrpc_port",
+    # "http_port",
+    # "xmlrpc_port",
     "odoo_vid",
     "exit_onerror",
     "data_selection",
@@ -341,8 +341,8 @@ def default_conf(ctx):
         "db_port": 5432,
         "oe_version": "*",
         "svc_protocol": "",
-        "http_port": 8069,
-        "odoo_vid": "12.0",
+        # "http_port": 8069,
+        # "odoo_vid": "12.0",
         "db_name": "demo",
         "logfile": False,
         "dbfilter": ".*",
@@ -519,9 +519,9 @@ def create_params_dict(ctx):
                 ctx[opt_obj.do_sel_action] = opt_obj.modules_2_manage
         if hasattr(opt_obj, "data_path") and opt_obj.data_path != "":
             ctx["data_path"] = opt_obj.data_path
-    if "oe_version" in ctx and not ctx.get("odoo_vid"):
+    if ctx.get("oe_version") and ctx["oe_version"] != "*" and not ctx.get("odoo_vid"):
         ctx["odoo_vid"] = ctx["oe_version"]
-    else:
+    elif ctx.get("odoo_vid") and ctx["odoo_vid"] != "*":
         ctx["oe_version"] = build_odoo_param("FULLVER", ctx["odoo_vid"])
     if not ctx["svc_protocol"]:
         if ctx["oe_version"] in ("9.0", "8.0", "7.0", "6.1"):
@@ -576,7 +576,7 @@ def read_config(ctx):
     def set_confs(ctx):
         version_is_set = False
         for ver in ("odoo_vid", "oe_version"):
-            if ctx.get(ver):
+            if ctx.get(ver) and ctx[ver] != "*":
                 fnver = build_odoo_param("CONFN", ctx[ver], multi=True)
                 if os.path.isfile(fnver) and fnver not in ctx["conf_fns"]:
                     ctx["conf_fns"].insert(0, fnver)
@@ -600,8 +600,14 @@ def read_config(ctx):
     ctx = create_params_dict(ctx)
     if not version_is_set:
         ctx, version_is_set = set_confs(ctx)
-        ctx["conf_fns"] = ctx["_conf_obj"].read(ctx["conf_fns"])
-        ctx = create_params_dict(ctx)
+        if version_is_set:
+            ctx["conf_fns"] = ctx["_conf_obj"].read(ctx["conf_fns"])
+            ctx = create_params_dict(ctx)
+    if (not ctx.get("http_port") and not ctx.get("xmlrpc_port")):
+        if int(ctx.get("oe_version", "12.0").split(".")[0]) < 10:
+            ctx["xmlrpc_port"] = 8069
+        else:
+            ctx["http_port"] = 8069
     return ctx
 
 

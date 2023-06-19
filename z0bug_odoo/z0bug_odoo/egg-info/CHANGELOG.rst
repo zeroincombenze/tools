@@ -1,3 +1,8 @@
+2.0.8.1 (2023-06-09)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: sometimes, validate_records does not match many2one fields
+
 2.0.8 (2023-04-26)
 ~~~~~~~~~~~~~~~~~~
 

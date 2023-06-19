@@ -393,7 +393,7 @@ fi
 if [[ ! $opts =~ ^-.*t && $opts =~ ^-.*[gG] ]]; then
     . $DSTPATH/venv/bin/clodoo/odoorc
     [[ ! $opts =~ ^-.*q ]] && echo "# Searching for git projects ..."
-    for d in $(find $HOME -not -path "*/.cache/*" -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
+    for d in $(find $HOME -not -path "*/.cache/*" -not -path "*/_*" -not -path "*/VME/*" -not -path "*/VENV*" -not -path "*/venv_odoo/*" -not -path "*/oca*" -not -path "*/tmp*" -name ".git" 2>/dev/null|sort); do
         d=$(readlink -f $d/..)
         run_traced "cd $d"
         v=$(build_odoo_param MAJVER $d)
@@ -404,12 +404,13 @@ if [[ ! $opts =~ ^-.*t && $opts =~ ^-.*[gG] ]]; then
         r=$(build_odoo_param REPOS $d)
         [[ $opts =~ ^-.*G && -f $d/.git/hooks/pre-commit ]] && act="autoupdate" && run_traced "rm -f $d/.git/hooks/pre-commit" && run_traced "pre-commit uninstall"
         [[ $opts =~ ^-.*G && $d/.pre-commit-config.yaml ]] && run_traced "rm -f $d/.pre-commit-config.yaml"
-        [[ $r == "OCB" ]] && continue
+        # [[ $r == "OCB" ]] && continue
         [[ $PYVER -ne 3 || ( $opts =~ ^-.*G && ! $opts =~ ^-.*f.*G && ! $opts =~ ^-.*G.*f ) || -f $d/.pre-commit-config.yaml ]] && continue
         for fn in copier-answers.yml editorconfig eslintrc.yml flake8 isort.cfg pre-commit-config.yaml prettierrc.yml pylintrc pylintrc-mandatory; do
             [[ $fn == "pre-commit-config.yaml" && $v -le 10 ]] && run_traced "cp $SRCPATH/templates/pre-commit-config2.yaml $d/.$fn" || run_traced "cp $SRCPATH/templates/$fn $d/.$fn"
         done
         v=$(build_odoo_param FULLVER $d)
+        run_traced "sed -E \"s|^ *entry: do_migrate -b.*)|        entry: do_migrate -b$v|\" -i $d/.pre-commit-config.yaml"
         run_traced "sed -E \"s|^odoo_version:.*|odoo_version: $v|\" -i $d/.copier-answers.yml"
         run_traced "sed -E \"s|^valid_odoo_versions=.*|valid_odoo_versions=$v|\" -i $d/.pylintrc"
         run_traced "sed -E \"s|^valid_odoo_versions=.*|valid_odoo_versions=$v|\" -i $d/.pylintrc-mandatory"

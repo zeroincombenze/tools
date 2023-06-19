@@ -2707,7 +2707,7 @@ class MainTest(SingleTransactionCase):
             if field in (childs_name, "id") or field.startswith("_"):
                 continue
             if self._cast_field(
-                resource, field, template[field]
+                resource, field, template[field], fmt="py"
             ) == self._convert_field_to_write(record, field):
                 template["_MATCH"][key] += 1
         if childs_name:

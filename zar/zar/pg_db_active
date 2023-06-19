@@ -80,7 +80,7 @@ db_act_list() {
             [[ -n "$w" && ( $w =~ Lock || ! $w =~ Read ) ]] && w="t" || w="f"
           fi
           if [[ $act == "-l" ]]; then
-            printf "(%6.6s) %-16.16s %2.2s %-8.8s %20.20s %8.8s\n" "$pid" "$db" "$w" "$st" "$dt" "$usr"
+            printf "(%6.6s) %-32.32s %2.2s %-8.8s %19.19s %9.9s\n" "$pid" "$db" "$w" "$st" "$dt" "$usr"
           fi
           if [[ $older -eq 0 && $w == "f" && $st == "idle" && $db != "postgres" ]]; then
             ((valid_sess++))
@@ -119,25 +119,26 @@ db_act_list() {
     return 0
 }
 
-OPTOPTS=(h        a           C        c       G         k        L        n           p        s        U        V           v           w       z)
-OPTDEST=(opt_help act_kill4db act_ctra act_ctr opt_grant act_kill opt_lock opt_dry_run pool     opt_show opt_user opt_version opt_verbose wait_db opt_last)
-OPTACTI=("+"      "1>"        "1>"     "1>"    1         "1>"     1        1           "="      1        "="      "*"         1           1       1)
-OPTDEFL=(0        0           0        0       0         0        0        0           -1       0        ""       ""          0           0       0)
-OPTMETA=("help"   "kill_all" "count"   "count" ""        "kill"   ""       ""          "number" ""       "dbuser" "version"   "verbose"   "wait"  "")
-OPTHELP=("this help"\
- "kill all sessions of DB!"\
- "count all active connections"\
- "count active connections on DB"\
- "grant connection to DB"\
- "kill all sessions out of pool"\
- "lock DB to avoid new connections (may be used with -a)"\
- "do nothing (dry-run)"\
- "declare # of session pool"\
- "show pool size"\
- "show version end exit"\
- "db user"\
- "verbose mode"\
- "wait for DB idle after kill"\
+OPTOPTS=(h        a           C        c        G         k        L        n           p        s        U        V           v           w       z)
+OPTLONG=(help     kill-all-db count    count-db grant     kill-out lock     dry-run     pool     show     user     version     verbose     wait    last)
+OPTDEST=(opt_help act_kill4db act_ctra act_ctr  opt_grant act_kill opt_lock opt_dry_run pool     opt_show opt_user opt_version opt_verbose wait_db opt_last)
+OPTACTI=("+"      "1>"        "1>"     "1>"     1         "1>"     1        1           "="      1        "="      "*"         1           1       1)
+OPTDEFL=(0        0           0        0        0         0        0        0           -1       0        ""       ""          0           0       0)
+OPTMETA=("help"   "kill_all" "count"   "count"  ""        "kill"   ""       ""          "number" ""       "dbuser" "version"   "verbose"   "wait"  "")
+OPTHELP=("this help"
+ "kill all sessions of DB!"
+ "count all active connections"
+ "count active connections on DB"
+ "grant connection to DB"
+ "kill all sessions out of pool"
+ "lock DB to avoid new connections (may be used with -a)"
+ "do nothing (dry-run)"
+ "declare # of session pool"
+ "show pool size"
+ "db user"
+ "show version end exit"
+ "verbose mode"
+ "wait for DB idle after kill"
  "search just for last session")
 OPTARGS=(DB)
 

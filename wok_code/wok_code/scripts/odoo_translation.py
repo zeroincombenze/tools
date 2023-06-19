@@ -881,15 +881,17 @@ class OdooTranslation(object):
             'lang': lang,
         }
         ids = clodoo.searchL8(ctx, model, [('code', '=', lang)])
+        force = False
         if not ids:
             if self.opt_args.verbose:
                 print('Language %s not installed: installing it now' % lang)
             id = clodoo.createL8(ctx, 'base.language.install', vals)
             clodoo.executeL8(ctx, 'base.language.install', 'lang_install', [id])
             clodoo.writeL8(ctx, "res.users", ctx["user_id"], {"lang": lang})
+            force = True
         elif self.opt_args.verbose:
             print('Found language %s' % lang)
-        if not clodoo.searchL8(ctx, "ir.translation", [("lang", "=", lang)]):
+        if force or not clodoo.searchL8(ctx, "ir.translation", [("lang", "=", lang)]):
             if self.opt_args.verbose:
                 print('No term found for language %s: loading translation' % lang)
             id = clodoo.createL8(ctx, 'base.update.translations', vals)
@@ -957,7 +959,8 @@ class OdooTranslation(object):
                     clodoo.writeL8(ctx, model_translation, term.id,
                                    {"value": value, "state": "translated"})
                 except BaseException as e:
-                    print("Error %s for term %s" % (e, term.src))
+                    if term.module == self.opt_args.module_name:
+                        print("Error <%s> for term '%s'" % (e, term.src))
                 ctr_write += 1
             return ctr_write
 
@@ -997,7 +1000,7 @@ class OdooTranslation(object):
                         # ("type", "!=", "code"),
                         ('lang', 'in', ['en_US', self.opt_args.lang])])):
                 if self.opt_args.verbose:
-                    msg_burst('%s ...' % term.src)
+                    msg_burst('%s ...' % term.src[:60])
                 ctr_read += 1
                 ctr_write += write_term(term)
         if self.opt_args.verbose:

@@ -240,10 +240,11 @@ drop_test_db() {
     [[ -n $PGUSER ]] || PGUSER=$USER
     [[ -n $MQT_TEMPLATE_DB ]] || MQT_TEMPLATE_DB="template_odoo"
     [[ -n $MQT_TEST_DB ]] || MQT_TEST_DB="test_odoo"
-    pg_db_active -wa $MQT_TEMPLATE_DB
-    dropdb -U$PGUSER $MQT_TEMPLATE_DB --if-exists &>/dev/null
-    pg_db_active -wa $MQT_TEST_DB
-    dropdb -U$PGUSER $MQT_TEST_DB --if-exists &>/dev/null
+    pg_db_active -wa "$MQT_TEMPLATE_DB" && dropdb -U$PGUSER \"$MQT_TEMPLATE_DB\" --if-exists &>/dev/null
+    c=$(pg_db_active -c "$MQT_TEMPLATE_DB")
+    [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$MQT_TEMPLATE_DB\""
+    pg_db_active -wa "$MQT_TEST_DB" && dropdb -U$PGUSER "$MQT_TEST_DB" --if-exists &>/dev/null
+    [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$MQT_TEST_DB\""
   fi
 }
 
