@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+
 # import os
 import argparse
 from random import random, randint
@@ -26,13 +27,12 @@ def gen_vatnumber(opt_args):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Generate random VAT number",
-        epilog="© 2021-2023 by SHS-AV s.r.l."
+        description="Generate random VAT number", epilog="© 2021-2023 by SHS-AV s.r.l."
     )
-    parser.add_argument('-i', '--iso', default="IT")
-    parser.add_argument('-v', '--verbose', action='count', default=0)
-    parser.add_argument('-V', '--version', action="version", version=__version__)
-    parser.add_argument('-w', "--what", help="Kind of code: mey be vat")
+    parser.add_argument("-i", "--iso", default="IT")
+    parser.add_argument("-v", "--verbose", action="count", default=0)
+    parser.add_argument("-V", "--version", action="version", version=__version__)
+    parser.add_argument("-w", "--what", help="Kind of code: mey be vat")
     opt_args = parser.parse_args(cli_args)
     sts = 0
     if opt_args.what == "vat":

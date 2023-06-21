@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-NAME
+import os.path
+
+from z0lib import z0lib
+
+__version__ = "2.0.8"
+
+
+class PleasePython(object):
+    """NAME
     please install python - install a specific python version
 
 SYNOPSIS
@@ -37,37 +44,30 @@ EXAMPLES
 
 BUGS
     No known bugs."""
-import os.path
 
-from z0lib import z0lib
-
-__version__ = "2.0.8"
-
-
-class PleasePython(object):
     def __init__(self, please):
         self.please = please
 
-    def action_opts(self, parser):
+    def action_opts(self, parser, for_help=False):
         parser.add_argument(
             "--cmd-before",
             help=(
                 "Command to execute before install python; example:"
                 "apt install libssl-dev libffi-dev libncurses5-dev libsqlite3-dev"
-            )
+            ),
         )
         parser.add_argument(
             "--config-opts",
-            help="Options for ./configure; example:  --with-openssl=DIR"
+            help="Options for ./configure; example:  --with-openssl=DIR",
         )
-        self.please.add_argument(parser, "-n")
-        self.please.add_argument(parser, "-q")
-        self.please.add_argument(parser, "-v")
+        if not for_help:
+            self.please.add_argument(parser, "-n")
+            self.please.add_argument(parser, "-q")
+            self.please.add_argument(parser, "-v")
         parser.add_argument(
-            "--wget-opts",
-            help="Options fro wget; example: --no-check-certificate"
+            "--wget-opts", help="Options fro wget; example: --no-check-certificate"
         )
-        parser.add_argument('args', nargs="*")
+        parser.add_argument("args", nargs="*")
         return parser
 
     def do_install(self):
@@ -83,12 +83,21 @@ class PleasePython(object):
             print("You must specify the python version: 3.6 or 3.7 or 3.8 or 3.9")
             return 1
         cmd += " " + please.sub1
-        cmd += " '" + (please.opt_args.cmd_before
-                       if please.opt_args.cmd_before else "") + "'"
-        cmd += " '" + (please.opt_args.wget_opts
-                       if please.opt_args.wget_opts else "") + "'"
-        cmd += " '" + (please.opt_args.config_opts
-                       if please.opt_args.config_opts else "") + "'"
+        cmd += (
+            " '"
+            + (please.opt_args.cmd_before if please.opt_args.cmd_before else "")
+            + "'"
+        )
+        cmd += (
+            " '"
+            + (please.opt_args.wget_opts if please.opt_args.wget_opts else "")
+            + "'"
+        )
+        cmd += (
+            " '"
+            + (please.opt_args.config_opts if please.opt_args.config_opts else "")
+            + "'"
+        )
         if please.opt_args.dry_run:
             z0lib.run_traced(
                 cmd, verbose=self.opt_args.verbose, dry_run=please.opt_args.dry_run

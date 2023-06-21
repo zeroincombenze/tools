@@ -1244,13 +1244,14 @@ class MainTest(SingleTransactionCase):
         for field in list(values.keys()):
             if field in SUPERMAGIC_COLUMNS:  # pragma: no cover
                 continue
-            method = "_upgrade_field_%s" % record._fields[field].type
-            method = method if hasattr(self, method) else "_upgrade_field_base"
-            value = getattr(self, method)(record, field, values[field])
-            if not value and default.get(field):
-                value = getattr(self, method)(record, field, default[field])
-            if value is not None:
-                setattr(record, field, value)
+            if field not in default:
+                method = "_upgrade_field_%s" % record._fields[field].type
+                method = method if hasattr(self, method) else "_upgrade_field_base"
+                value = getattr(self, method)(record, field, values[field])
+                # if not value and default.get(field):
+                #     value = getattr(self, method)(record, field, default[field])
+                if value is not None:
+                    setattr(record, field, value)
         return record
 
     @api.model
@@ -1425,8 +1426,6 @@ class MainTest(SingleTransactionCase):
             value = "%s,%d" % (act_windows["type"], act_windows["id"])
             if "ir.values" in self.env:
                 records = self.env["ir.values"].search([("value", "=", value)])
-            # else:
-            #     records = self.env["ir.default"].search([("value", "=", value)])
                 if len(records) == 1:
                     model_name = records[0].model
         return model_name
@@ -1495,21 +1494,23 @@ class MainTest(SingleTransactionCase):
             rec_model = self._get_model_from_records(records)
             act_model = self._get_model_from_act_windows(act_windows)
             src_model = self._get_src_model_from_act_windows(act_windows)
-            if rec_model != src_model:  # pragma: no cover
-                self.raise_error(
-                    "Records model %s differs from declared model %s in %s"
-                    % (rec_model, src_model, act_model)
-                )
-            if (
-                act_model != src_model
-                and self._is_transient(act_model)
-                and not act_windows.get("src_model")
-            ):  # pragma: no cover
-                self.log_lvl_1(
-                    "💡 You should specify the src_model %s for the action %s"
-                    % (src_model, act_windows.get("name"))
-                )
-                act_windows["src_model"] = src_model
+            if src_model:
+                # Check only for Odoo 10.0-
+                if rec_model != src_model:  # pragma: no cover
+                    self.raise_error(
+                        "Records model %s differs from declared model %s in %s"
+                        % (rec_model, src_model, act_model)
+                    )
+                if (
+                    act_model != src_model
+                    and self._is_transient(act_model)
+                    and not act_windows.get("src_model")
+                ):  # pragma: no cover
+                    self.log_lvl_1(
+                        "💡 You should specify the src_model %s for the action %s"
+                        % (src_model, act_windows.get("name"))
+                    )
+                    act_windows["src_model"] = src_model
             if "active_ids" not in act_windows["context"]:
                 act_windows["context"].update(
                     self._ctx_active_ids(records, ctx=act_windows["context"])
@@ -1664,31 +1665,6 @@ class MainTest(SingleTransactionCase):
             " 🐜 wizard running(%s, %s)"
             % (act_windows.get("name"), self.dict_2_print(act_windows))
         )
-        # if act_windows["type"] == "ir.actions.server":
-        #     if not records and "_wizard_" in act_windows:
-        #         records = act_windows.pop("_wizard_")
-        #     if not records:
-        #         raise (ValueError, "No records supplied")
-        #     if records._name != act_windows["model_name"]:
-        #         raise (ValueError, "Records model different from declared model")
-        #     ctx = {
-        #         "active_model": act_windows["model_name"],
-        #         "active_ids": [x.id for x in records],
-        #     }
-        #     eval_context = {
-        #         "env": self.env,
-        #         "model": records.with_context(ctx),
-        #         "Warning": Warning,
-        #         "record": records[0] if len(records) == 1 else None,
-        #         "records": records,
-        #         "log": self._logger,
-        #     }
-        #     eval_context.update(ctx)
-        #     act_windows = safe_eval(
-        #         act_windows["code"].strip(), eval_context, mode="exec", nocopy=True
-        #     )
-        #     return act_windows
-
         wizard = act_windows.pop("_wizard_")
         if button_name:
             return self._exec_action(wizard, button_name, web_changes=web_changes)

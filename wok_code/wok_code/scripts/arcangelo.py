@@ -3,6 +3,7 @@
 from past.builtins import basestring
 import sys
 import os
+from datetime import datetime
 import argparse
 import re
 import lxml.etree as ET
@@ -238,6 +239,26 @@ class MigrateFile(object):
             self.from_major_version = int(opt_args.from_version.split('.')[0])
         else:
             self.from_major_version = 0
+        if not opt_args.to_version or opt_args.to_version == "0.0":
+            branch = ""
+            sts, stdout, stderr = z0lib.run_traced(
+                "git branch", verbose=False, dry_run=False)
+            if sts == 0 and stdout:
+                sts = 1
+                for ln in stdout.split("\n"):
+                    if ln.startswith("*"):
+                        branch = ln[2:]
+                        sts = 0
+                        break
+            if sts == 0:
+                x = re.match(r"[0-9]+\.[0-9]+", branch)
+                if not x:
+                    sts = 1
+            if sts == 0:
+                branch = branch[x.start(): x.end()]
+                opt_args.to_version = branch
+            else:
+                opt_args.to_version = "12.0"
         self.to_major_version = int(opt_args.to_version.split('.')[0])
         if not opt_args.pypi_package:
             if self.to_major_version <= 10:
@@ -599,6 +620,8 @@ class MigrateFile(object):
     def do_migrate_source(self):
         if self.ignore_file:
             return
+        if os.path.basename(self.ffn) == "history.rst":
+            return self.do_upgrade_history()
         TGT_RULES = self.init_env()
         nro = 0
         while nro < len(self.lines):
@@ -628,6 +651,39 @@ class MigrateFile(object):
                 nro = next_nro
                 continue
             nro += 1
+
+    def do_upgrade_history(self):
+        if not self.opt_args.test_res_msg:
+            return
+        last_date = ""
+        list_found = False
+        qua_nro = -1
+        for nro, ln in enumerate(self.lines):
+            if not ln:
+                if list_found:
+                    break
+                continue
+            if not last_date and re.match(r"[0-9]+\.[0-9]+\.[0-9]+.*\([0-9]+", ln):
+                x = re.search(r"\([0-9]{4}-[0-9]{2}-[0-9]{2}\)", ln)
+                last_date = ln[x.start() + 1: x.end() - 1]
+                continue
+            if qua_nro < 0 and ln.startswith("* [QUA]"):
+                qua_nro = nro
+            if last_date and ln.startswith("*"):
+                list_found = True
+        if (
+            last_date
+            and list_found
+            and (datetime.now() - datetime.strptime(last_date, "%Y-%m-%d")).days < 20
+        ):
+            if qua_nro:
+                self.lines[qua_nro] = self.opt_args.test_res_msg
+            else:
+                nro -= nro - 1
+                self.lines.insert(nro, self.opt_args.test_res_msg)
+                if not self.opt_args.dry_run:
+                    with open(self.ffn, 'w') as fd:
+                        fd.write("\n".join(self.lines))
 
     def write_xml(self, out_ffn):
         with open(out_ffn, 'w') as fd:
@@ -663,13 +719,13 @@ class MigrateFile(object):
             cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
             cmd += " --write "
             cmd += out_ffn
-            z0lib.run_traced(cmd)
+            z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
         else:
             opts = "--skip-source-first-line"
             if self.py23 == 2 or self.python_future:
                 opts += " --skip-string-normalization"
             cmd = "black %s -q %s" % (opts, out_ffn)
-            z0lib.run_traced(cmd)
+            z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
 
     def close(self):
         if self.opt_args.output:
@@ -683,16 +739,18 @@ class MigrateFile(object):
         else:
             out_ffn = self.ffn
         if not self.ignore_file and self.source != "\n".join(self.lines):
-            bakfile = '%s.bak' % out_ffn
-            if os.path.isfile(bakfile):
-                os.remove(bakfile)
-            if os.path.isfile(out_ffn):
-                os.rename(out_ffn, bakfile)
-            if self.is_xml:
-                self.write_xml(out_ffn)
-            else:
-                with open(out_ffn, 'w') as fd:
-                    fd.write("\n".join(self.lines))
+            if not self.opt_args.in_place:
+                bakfile = '%s.bak' % out_ffn
+                if os.path.isfile(bakfile):
+                    os.remove(bakfile)
+                if os.path.isfile(out_ffn):
+                    os.rename(out_ffn, bakfile)
+            if not self.opt_args.dry_run:
+                if self.is_xml:
+                    self.write_xml(out_ffn)
+                else:
+                    with open(out_ffn, 'w') as fd:
+                        fd.write("\n".join(self.lines))
             if self.opt_args.verbose > 0:
                 print('👽 %s' % out_ffn)
             if not self.opt_args.no_parse_with_formatter:
@@ -704,16 +762,22 @@ class MigrateFile(object):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Migrate source file",
+        description="Beautiful source file",
         epilog="© 2021-2023 by SHS-AV s.r.l."
     )
     parser.add_argument('-a', '--lint-anyway', action='store_true')
-    parser.add_argument('-b', '--to-version', default="12.0")
+    parser.add_argument('-b', '--to-version')
     parser.add_argument('-F', '--from-version')
     parser.add_argument(
         '-f', '--force',
         action='store_true',
         help="Parse file containing '# flake8: noqa' or '# pylint: skip-file'"
+    )
+    parser.add_argument('-i', '--in-place', action='store_true')
+    parser.add_argument(
+        "-n", "--dry-run",
+        help="do nothing (dry-run)",
+        action="store_true",
     )
     parser.add_argument('-o', '--output')
     parser.add_argument('-P', '--pypi-package', action='store_true')
@@ -725,7 +789,8 @@ def main(cli_args=None):
         help="do nor execute black or prettier on modified files"
     )
     parser.add_argument('-y', '--python-ver')
-    parser.add_argument('path')
+    parser.add_argument('--test-res-msg')
+    parser.add_argument('path', nargs="*")
     opt_args = parser.parse_args(cli_args)
     sts = 0
     if (
@@ -735,27 +800,30 @@ def main(cli_args=None):
     ):
         sys.stderr.write('Path %s does not exist!' % os.path.dirname(opt_args.output))
         sts = 2
-    elif os.path.isdir(opt_args.path):
-        for root, dirs, files in os.walk(opt_args.path):
-            if 'setup' in dirs:
-                del dirs[dirs.index('setup')]
-            for fn in files:
-                if not fn.endswith('.py') and not fn.endswith('.xml'):
-                    continue
-                source = MigrateFile(os.path.join(root, fn), opt_args)
+    else:
+        for path in opt_args.path or ("./",):
+            if os.path.isdir(os.path.expanduser(path)):
+                for root, dirs, files in os.walk(os.path.expanduser(path)):
+                    if 'setup' in dirs:
+                        del dirs[dirs.index('setup')]
+                    for fn in files:
+                        if not fn.endswith('.py') and not fn.endswith('.xml'):
+                            continue
+                        source = MigrateFile(
+                            os.path.abspath(os.path.join(root, fn)), opt_args)
+                        source.do_migrate_source()
+                        source.close()
+                        sts = source.sts
+                        if sts:
+                            break
+            elif os.path.isfile(path):
+                source = MigrateFile(os.path.abspath(path), opt_args)
                 source.do_migrate_source()
                 source.close()
                 sts = source.sts
-                if sts:
-                    break
-    elif os.path.isfile(opt_args.path):
-        source = MigrateFile(opt_args.path, opt_args)
-        source.do_migrate_source()
-        source.close()
-        sts = source.sts
-    else:
-        sys.stderr.write('Path %s does not exist!' % opt_args.path)
-        sts = 2
+            else:
+                sys.stderr.write('Path %s does not exist!' % path)
+                sts = 2
     return sts
 
 

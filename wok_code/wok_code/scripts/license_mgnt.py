@@ -9,42 +9,42 @@ except ImportError:
     from python_plus import _u
 
 COPY = {
-    'zero': {
-        'author': 'SHS-AV s.r.l.',
-        'website': 'https://www.zeroincombenze.it',
-        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
-        'github-user': 'zeroincombenze',
+    "zero": {
+        "author": "SHS-AV s.r.l.",
+        "website": "https://www.zeroincombenze.it",
+        "devman": "Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>",
+        "github-user": "zeroincombenze",
     },
-    'shs': {
-        'author': 'SHS-AV s.r.l.',
-        'website': 'https://www.shs-av.com',
-        'devman': 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>',
-        'github-user': 'zeroincombenze',
+    "shs": {
+        "author": "SHS-AV s.r.l.",
+        "website": "https://www.shs-av.com",
+        "devman": "Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>",
+        "github-user": "zeroincombenze",
     },
-    'oca': {
-        'author': 'Odoo Community Association (OCA)',
-        'website': 'https://odoo-community.org',
-        'github-user': 'OCA',
+    "oca": {
+        "author": "Odoo Community Association (OCA)",
+        "website": "https://odoo-community.org",
+        "github-user": "OCA",
     },
-    'powerp': {
-        'author': 'powERP enterprise network',
-        'website': 'https://www.powerp.it',
-        'devman': 'powERP enterprise network',
-        'github-user': 'PowERP-cloud',
+    "powerp": {
+        "author": "powERP enterprise network",
+        "website": "https://www.powerp.it",
+        "devman": "powERP enterprise network",
+        "github-user": "PowERP-cloud",
     },
-    'librerp': {
-        'author': 'LibrERP enterprise network',
-        'website': 'https://www.librerp.it',
-        'devman': 'LibrERP enterprise network',
-        'github-user': 'LibrERP-network',
+    "librerp": {
+        "author": "LibrERP enterprise network",
+        "website": "https://www.librerp.it",
+        "devman": "LibrERP enterprise network",
+        "github-user": "LibrERP-network",
     },
-    'didotech': {
-        'author': 'Didotech s.r.l.',
-        'website': 'https://www.didotech.com',
-        'github-user': 'iw3hxn',
+    "didotech": {
+        "author": "Didotech s.r.l.",
+        "website": "https://www.didotech.com",
+        "github-user": "iw3hxn",
     },
 }
-ALIAS = {'shs-av': 'shs', 'zeroincombenze': 'zero'}
+ALIAS = {"shs-av": "shs", "zeroincombenze": "zero"}
 
 
 class License:
@@ -53,18 +53,18 @@ class License:
         self.authors = {}
         self.contributors = {}
         self.cur_year = datetime.today().year
-        path = path or '.'
-        author_file = os.path.join(path, 'egg-info', 'authors.txt')
+        path = path or "."
+        author_file = os.path.join(path, "egg-info", "authors.txt")
         if not os.path.isfile(author_file):
-            author_file = os.path.join(path, 'readme', 'AUTHORS.rst')
+            author_file = os.path.join(path, "readme", "AUTHORS.rst")
         if os.path.isfile(author_file):
             self.parse_file(author_file)
-        author_file = os.path.join(path, 'egg-info', 'contributors.txt')
+        author_file = os.path.join(path, "egg-info", "contributors.txt")
         if not os.path.isfile(author_file):
-            author_file = os.path.join(path, 'readme', 'CONTRIBUTORS.rst')
+            author_file = os.path.join(path, "readme", "CONTRIBUTORS.rst")
         if os.path.isfile(author_file):
             self.parse_file(author_file)
-        author_file = os.path.join(path, 'egg-info', 'acknowledges.txt')
+        author_file = os.path.join(path, "egg-info", "acknowledges.txt")
         if os.path.isfile(author_file):
             self.parse_file(author_file)
 
@@ -72,9 +72,9 @@ class License:
         if org_id and org_id not in self.org_ids:
             if org_id in COPY:
                 if not name:
-                    name = COPY[org_id]['author']
+                    name = COPY[org_id]["author"]
                 if not website:
-                    website = COPY[org_id]['website']
+                    website = COPY[org_id]["website"]
             self.org_ids[org_id] = [name, website, email, years]
         elif email and email not in self.contributors:
             self.contributors[email] = [name, email, years]
@@ -83,8 +83,8 @@ class License:
         self.purge_duplicate()
 
     def parse_file(self, author_file):
-        with open(author_file, 'r') as fd:
-            for line in _u(fd.read().split('\n')):
+        with open(author_file, "r") as fd:
+            for line in _u(fd.read().split("\n")):
                 self.add_copyright(*self.extract_info_from_line(line))
 
     def purge_duplicate(self):
@@ -111,62 +111,62 @@ class License:
             org_id = False
             website = False
             email = False
-            ii = line.find('<')
-            jj = line.find('>')
+            ii = line.find("<")
+            jj = line.find(">")
             if ii == -1 and jj == -1:
-                ii = line.find('(')
-                jj = line.find(')')
+                ii = line.find("(")
+                jj = line.find(")")
             if 0 <= ii < jj and jj >= 0:
                 name = line[0:ii].strip()
                 url = line[ii + 1 : jj]
-                url = url.replace('http:', 'https:')
-                if url.endswith('/'):
+                url = url.replace("http:", "https:")
+                if url.endswith("/"):
                     url = url[0:-1]
-                if '@' in url or url.startswith('https://github.com/'):
+                if "@" in url or url.startswith("https://github.com/"):
                     email = url
                     if not name:
-                        name = ' '.join(
-                            [x.capitalize() for x in email.split('@')[0].split('.')]
+                        name = " ".join(
+                            [x.capitalize() for x in email.split("@")[0].split(".")]
                         )
                 else:
-                    website = '.'.join(os.path.basename(url).split('.')[-2:])
+                    website = ".".join(os.path.basename(url).split(".")[-2:])
                     for kk, item in COPY.items():
-                        if item['website'].endswith(website):
+                        if item["website"].endswith(website):
                             org_id = kk
-                            website = item['website']
-                            name = item['author']
+                            website = item["website"]
+                            name = item["author"]
                             break
                     if not org_id:
                         org_id = website
                         org_id = ALIAS.get(org_id, org_id)
                         COPY[org_id] = {
-                            'website': 'http://%s' % website,
-                            'author': name,
+                            "website": "http://%s" % website,
+                            "author": name,
                         }
             else:
                 name = line
-            return org_id, name, website, email, ''
+            return org_id, name, website, email, ""
 
         def from_comment_line(line):
-            head = r'^ *([Cc]opyright|\([Cc]\)|©)'
-            rex = '%s%s' % (head[0:-1], r'|http:|https:|\w+\@[a-zA-z0-9-.]+)')
+            head = r"^ *([Cc]opyright|\([Cc]\)|©)"
+            rex = "%s%s" % (head[0:-1], r"|http:|https:|\w+\@[a-zA-z0-9-.]+)")
             org_id = False
             name = False
             website = False
             email = False
-            years = ''
+            years = ""
             if re.match(rex, line):
                 ipos = 1
-                loom = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)', line)
+                loom = re.match(r"^ *([Cc]opyright|\([Cc]\)|©)", line)
                 if loom:
                     ipos += loom.end() + 1
-                    loom = re.match('^ *[0-9]+', line[ipos:])
+                    loom = re.match("^ *[0-9]+", line[ipos:])
                     if loom:
                         ii = ipos + loom.end()
                         years = line[ipos:ii]
-                        if line[ii] == '-':
+                        if line[ii] == "-":
                             ipos = ii + 1
-                            loom = re.match('[0-9]+', line[ipos:])
+                            loom = re.match("[0-9]+", line[ipos:])
                             if loom:
                                 ii = loom.end()
                                 if ii == 4:
@@ -175,50 +175,50 @@ class License:
                                 else:
                                     ii += ipos
                                 if line[ipos:ii] == str(self.cur_year)[2:]:
-                                    years = '%s-%s' % (years, line[ipos:ii])
+                                    years = "%s-%s" % (years, line[ipos:ii])
                                 else:
-                                    years = '%s-%s' % (years, str(self.cur_year)[-2:])
+                                    years = "%s-%s" % (years, str(self.cur_year)[-2:])
                             elif years != str(self.cur_year):
-                                years = '%s-%s' % (years, str(self.cur_year)[-2:])
+                                years = "%s-%s" % (years, str(self.cur_year)[-2:])
                         elif years != str(self.cur_year):
-                            years = '%s-%s' % (years, str(self.cur_year)[-2:])
+                            years = "%s-%s" % (years, str(self.cur_year)[-2:])
                 org_id, name, website, email, dummy = from_rst_line(line[ipos:].strip())
             return org_id, name, website, email, years
 
-        line = line.replace('`__', '').replace('`', '')
-        if line.startswith('*'):
+        line = line.replace("`__", "").replace("`", "")
+        if line.startswith("*"):
             return from_rst_line(line[1:].strip())
-        elif line.startswith('#'):
+        elif line.startswith("#"):
             return from_comment_line(line[1:].strip())
         return False, False, False, False, False
 
     def summary_authors(self):
-        author = ''
+        author = ""
         if self.org_ids:
-            for org_id in ('oca', 'powerp', 'zero', 'shs', 'didotech'):
+            for org_id in ("oca", "powerp", "zero", "shs", "didotech"):
                 if org_id in self.org_ids:
                     author = self.org_ids[org_id][0]
                     break
             if author and len(self.org_ids) < 3:
                 for org_id in self.org_ids.keys():
                     if self.org_ids[org_id][0] not in author:
-                        author = '%s, %s' % (author, self.org_ids[org_id][0])
+                        author = "%s, %s" % (author, self.org_ids[org_id][0])
             elif author and len(self.org_ids) >= 3:
-                author += ' and other partners'
+                author += " and other partners"
             else:
                 for org_id in self.org_ids.keys():
-                    author = '%s, %s' % (author, self.org_ids[org_id][0])
+                    author = "%s, %s" % (author, self.org_ids[org_id][0])
                 author = author[2:]
         elif self.authors:
             for item in self.authors.keys():
-                author = '%s, %s' % (author, self.authors[item][0])
+                author = "%s, %s" % (author, self.authors[item][0])
             author = author[2:]
         return author
 
     def get_website(self):
-        website = ''
+        website = ""
         if self.org_ids:
-            for org_id in ('oca', 'powerp', 'zero', 'shs', 'didotech'):
+            for org_id in ("oca", "powerp", "zero", "shs", "didotech"):
                 if org_id in self.org_ids:
                     website = self.org_ids[org_id][1]
                     break
@@ -235,11 +235,11 @@ class License:
         return website
 
     def get_maintainer(self):
-        maintainer = ''
+        maintainer = ""
         if self.org_ids:
-            for org_id in ('oca', 'powerp', 'zero', 'shs', 'didotech'):
+            for org_id in ("oca", "powerp", "zero", "shs", "didotech"):
                 if org_id in self.org_ids:
-                    maintainer = COPY[org_id].get('devman', '')
+                    maintainer = COPY[org_id].get("devman", "")
                     if maintainer:
                         break
         return maintainer
@@ -247,12 +247,12 @@ class License:
     def get_license(self, odoo_majver=None):
         odoo_majver = odoo_majver or 12.0
         if odoo_majver <= 8:
-            license = 'agpl'
+            license = "agpl"
         else:
-            if 'oca' in self.org_ids:
-                license = 'lgpl'
-            elif 'powerp' in self.org_ids:
-                license = 'opl'
+            if "oca" in self.org_ids:
+                license = "lgpl"
+            elif "powerp" in self.org_ids:
+                license = "opl"
             else:
-                license = 'lgpl'
+                license = "lgpl"
         return license

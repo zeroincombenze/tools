@@ -28,25 +28,28 @@ SEE ALSO
 import os
 import sys
 import argparse
-import re
+
+# import re
 import itertools
 
+from z0lib import z0lib
+
 try:
-    from please_z0bug import PleaseZ0bug                                   # noqa: F401
+    from please_z0bug import PleaseZ0bug  # noqa: F401
 except ImportError:
-    from .please_z0bug import PleaseZ0bug                                  # noqa: F401
+    from .please_z0bug import PleaseZ0bug  # noqa: F401
 try:
-    from please_apache import PleaseApache                                 # noqa: F401
+    from please_apache import PleaseApache  # noqa: F401
 except ImportError:
-    from .please_apache import PleaseApache                                # noqa: F401
+    from .please_apache import PleaseApache  # noqa: F401
 try:
-    from please_cwd import PleaseCwd                                       # noqa: F401
+    from please_cwd import PleaseCwd  # noqa: F401
 except ImportError:
-    from .please_cwd import PleaseCwd                                      # noqa: F401
+    from .please_cwd import PleaseCwd  # noqa: F401
 try:
-    from please_python import PleasePython                                 # noqa: F401
+    from please_python import PleasePython  # noqa: F401
 except ImportError:
-    from .please_python import PleasePython                                # noqa: F401
+    from .please_python import PleasePython  # noqa: F401
 
 __version__ = "2.0.8"
 
@@ -62,7 +65,6 @@ KNOWN_ACTIONS = [
     "publish",
     "push",
     "pythonhosted",
-    "replace",
     "replica",
     "version",
 ]
@@ -98,8 +100,10 @@ class Please(object):
                 if action != "help" and not self.objname:
                     print("Missed object for action %s" % "+".join(self.actions))
                     if self.main_action:
-                        print("Please specify one of %s"
-                              % self.default_obj[self.main_action])
+                        print(
+                            "Please specify one of %s"
+                            % self.default_obj[self.main_action]
+                        )
                     sys.exit(126)
                 if not self.main_action:
                     self.main_action = action
@@ -109,8 +113,13 @@ class Please(object):
                     print("Invalid action %s for %s" % (action, self.objname))
                     sys.exit(126)
             self.opt_args = self.get_parser().parse_args(self.cli_args)
+            # TODO: workaround due to sub-commands?
+            if self.opt_args.verbose > 1:
+                self.opt_args.verbose -= 1
         else:
-            self.opt_args = self.get_parser().parse_args([])
+            self.opt_args = self.get_parser().parse_args(
+                [x for x in self.cli_args if x != self.magic]
+            )
         self.home_devel = self.opt_args.home_devel or os.environ.get(
             "HOME_DEVEL", os.path.expanduser("~/devel")
         )
@@ -126,12 +135,16 @@ class Please(object):
             excl.append("do_help")
         if sys.version_info[0] == 2:
             functon_list = [
-                x for x in dir(cls)
-                if x.startswith("do_") and x not in excl and callable(getattr(cls, x))]
+                x
+                for x in dir(cls)
+                if x.startswith("do_") and x not in excl and callable(getattr(cls, x))
+            ]
         else:
             functon_list = [
-                x for x in cls.__dir__()
-                if x.startswith("do_") and x not in excl and callable(getattr(cls, x))]
+                x
+                for x in cls.__dir__()
+                if x.startswith("do_") and x not in excl and callable(getattr(cls, x))
+            ]
         if ret_action:
             return [x[3:] for x in functon_list]
         return functon_list
@@ -142,7 +155,8 @@ class Please(object):
                 self.known_actions.append(action)
             if action not in self.default_obj:
                 self.default_obj[action] = []
-            self.default_obj[action].append(clsname)
+            if clsname not in self.default_obj[action]:
+                self.default_obj[action].append(clsname)
 
         self.known_actions = KNOWN_ACTIONS
         self.known_objs = []
@@ -231,32 +245,21 @@ class Please(object):
             self.cls.action_opts(sub_parser.add_parser(param))
         return parser
 
-    def run_traced(self, cmd):
-        if not self.opt_args.dry_run and self.opt_args.verbose:
-            print(">", cmd)
-        return os.system(cmd)
-
-    def set_parent_nqv(self):
-        self.parent_nqv = argparse.ArgumentParser(add_help=False)
-        self.parser_nqv.add_argument(
-            "-n",
-            "--dry-run",
-            help="do nothing (dry-run)",
-            action="store_true",
+    def run_traced(self, cmd, disable_output=False, rtime=False):
+        if rtime:
+            if self.opt_args.dry_run:
+                if self.opt_args.verbose:
+                    print("> " + cmd)
+                return 0
+            if self.opt_args.verbose:
+                print("$ " + cmd)
+            return os.system(cmd)
+        sts, stdout, stderr = z0lib.run_traced(
+            cmd, verbose=self.opt_args.verbose, dry_run=self.opt_args.dry_run
         )
-        self.parser_nqv.add_argument(
-            "-q", "--quiet",
-            action="store_false",
-            dest="verbose",
-            help="silent mode"
-        )
-        self.parser_nqv.add_argument(
-            "-v",
-            "--verbose",
-            help="verbose mode",
-            action="count",
-            default=0
-        )
+        if not disable_output:
+            print(stdout + stderr)
+        return sts
 
     def add_argument(self, parser, arg):
         if arg in ("-B", "--debug"):
@@ -265,24 +268,23 @@ class Please(object):
             )
         elif arg in ("-b", "--odoo-branch", "--branch"):
             parser.add_argument(
-                "-b", arg if arg != "-b" else "--odoo-branch",
+                "-b",
+                arg if arg != "-b" else "--odoo-branch",
                 metavar="BRANCH",
-                help="default Odoo version"
+                help="default Odoo version",
             )
         elif arg in ("-c", "--odoo-config"):
             parser.add_argument(
-                "-c", "--odoo-config",
-                metavar="FILE",
-                help="Odoo configuration file"
+                "-c", "--odoo-config", metavar="FILE", help="Odoo configuration file"
             )
         elif arg in ("-d", "--database"):
             parser.add_argument(
-                "-d", "--database",
-                metavar="NAME",
-                help="Database to manage")
-        elif arg in ("-f",  "--force"):
+                "-d", "--database", metavar="NAME", help="Database to manage"
+            )
+        elif arg in ("-f", "--force"):
             parser.add_argument(
-                "-f",  "--force",
+                "-f",
+                "--force",
                 action="store_true",
                 help=(
                     "force copy (push) | build (publish/test) | set_exec (wep) |"
@@ -293,23 +295,22 @@ class Please(object):
             parser.add_argument("-l", "--log", metavar="FILE", help="log file name")
         elif arg in ("-n", "--dry-run"):
             parser.add_argument(
-                "-n",  "--dry-run",
+                "-n",
+                "--dry-run",
                 help="do nothing (dry-run)",
                 action="store_true",
             )
         elif arg in ("-q", "--quite"):
             parser.add_argument(
-                "-q", "--quiet",
+                "-q",
+                "--quiet",
                 action="store_false",
                 dest="verbose",
-                help="silent mode"
+                help="silent mode",
             )
         elif arg in ("-v", "--verbose"):
             parser.add_argument(
-                "-v",  "--verbose",
-                help="verbose mode",
-                action="count",
-                default=0
+                "-v", "--verbose", help="verbose mode", action="count", default=0
             )
         elif arg in ("-y", "--assume-yes"):
             parser.add_argument("-y", "--assume-yes", action="store_true")
@@ -322,7 +323,9 @@ class Please(object):
             description=(
                 "Zeroincombenze® developer shell.\n"
                 # "action is one of: " + ", ".join(self.actions) + "\n"
-                "obj after action may be on of " + ", ".join(self.known_objs) + "\n"
+                "obj after action may be on of "
+                + ", ".join(self.known_objs)
+                + "\n"
             ),
             epilog=(
                 "Help available issuing: please help ACTION\n"
@@ -331,23 +334,27 @@ class Please(object):
                 "Full documentation at: https://zeroincombenze-tools.readthedocs.io/\n"
             ),
         )
-        parser.add_argument("-H", "--home-devel",  metavar="PATH",
-                            help="Home devel directory")
+        parser.add_argument(
+            "-H", "--home-devel", metavar="PATH", help="Home devel directory"
+        )
         self.add_argument(parser, "-n")
-        parser.add_argument("-Q", "--tools-config", metavar="FILE",
-                            help="Configuration file")
+        parser.add_argument(
+            "-Q", "--tools-config", metavar="FILE", help="Configuration file"
+        )
         self.add_argument(parser, "-q")
         self.add_argument(parser, "-v")
         parser.add_argument("-V", "--version", action="version", version=__version__)
         parser.add_argument("action", nargs="?")
         return parser
 
-    def pickle_params(self, cmd_subst=None):
+    def pickle_params(self, cmd_subst=None, rm_obj=None):
         params = ""
         for arg in self.cli_args:
             if cmd_subst and not arg.startswith("-"):
                 arg = cmd_subst
                 cmd_subst = None
+            if arg == self.objname and rm_obj:
+                continue
             if "<" in arg or ">" in arg:
                 arg = "'%s'" % arg.replace("'", r"\'")
             elif " " in arg:
@@ -384,9 +391,8 @@ class Please(object):
                     self.sub1 = arg
                 else:
                     break
-            if (
-                (self.actions and self.objname and self.sub1)
-                or (self.actions and self.magic.startswith("-"))
+            if (self.actions and self.objname and self.sub1) or (
+                self.actions and self.magic.startswith("-")
             ):
                 break
         if (
@@ -411,8 +417,9 @@ class Please(object):
                     args.append(arg)
                 elif head:
                     # action is discarded!
-                    args.append(self.actions)
-                    args.append(self.objname)
+                    args.append(self.actions or self.magic)
+                    if self.objname:
+                        args.append(self.objname)
                     head = False
                 elif arg != self.objname:
                     args.append(arg)
@@ -434,19 +441,23 @@ class Please(object):
 
     def get_home_tools_pkg(self, pkgname):
         root = self.get_home_tools()
+        if pkgname == "tools":
+            return root
         return os.path.join(root, pkgname)
 
     def is_pypi_pkg(self, path=None):
         path = path or os.getcwd()
         pkgname = os.path.basename(path)
-        while pkgname in ("tests",
-                          "travis",
-                          "_travis",
-                          "docs",
-                          "examples",
-                          "egg-info",
-                          "junk",
-                          "scripts"):
+        while pkgname in (
+            "tests",
+            "travis",
+            "_travis",
+            "docs",
+            "examples",
+            "egg-info",
+            "junk",
+            "scripts",
+        ):
             path = os.path.dirname(path)
             pkgname = os.path.basename(path)
         pkgpath = self.get_home_pypi_pkg(pkgname)
@@ -456,12 +467,18 @@ class Please(object):
             os.path.isdir(pkgpath)
             and path.startswith(root)
             and os.path.isfile(os.path.join(root, "setup.py"))
-            and os.path.isfile(os.path.join(pkgpath, "__init__.py"))
+            and (
+                os.path.isfile(os.path.join(pkgpath, "__init__.py"))
+                or pkgname == "tools"
+            )
         ) or (
             os.path.isdir(pkgpath2)
             and path.startswith(pkgpath2)
-            and os.path.isfile(os.path.join(pkgpath2, "setup.py"))
-            and os.path.isfile(os.path.join(pkgpath2, "__init__.py"))
+            and pkgname == "tools"
+            or (
+                os.path.isfile(os.path.join(pkgpath2, "setup.py"))
+                and os.path.isfile(os.path.join(pkgpath2, "__init__.py"))
+            )
         )
 
     def is_all_pypi(self, path=None):
@@ -471,8 +488,11 @@ class Please(object):
     def is_odoo_pkg(self, path=None):
         path = path or os.getcwd()
         files = os.listdir(path)
-        filtered = [x for x in files
-                    if x in ("__manifest__.py",  "__openerp__.py", "__init__.py")]
+        filtered = [
+            x
+            for x in files
+            if x in ("__manifest__.py", "__openerp__.py", "__init__.py")
+        ]
         return len(filtered) == 2 and "__init__.py" in filtered
 
     def is_repo_ocb(self, path=None):
@@ -547,8 +567,10 @@ class Please(object):
 
     def do_action_pypipkg(self, action, pkg, path=None):
         path = path or os.path.join(self.home_devel, "pypi", pkg, pkg)
+        if self.opt_args.verbose:
+            print("$ cd " + path)
         os.chdir(path)
-        return getattr(self, action)
+        return getattr(self.cls, action)()
 
     def do_iter_action(self, action, path=None, act_all_pypi=None, act_tools=None):
         """Iter multiple command on sub projects.
@@ -587,26 +609,37 @@ class Please(object):
     def do_help(self):
         actions = set()
         if not self.objname:
-            for cls in [self.get_cls_of_param(x)
-                        for x in self.known_objs]:
+            for cls in [self.get_cls_of_param(x) for x in self.known_objs]:
                 actions |= set(
-                    [x.split("_")[0]
-                     for x in self.get_actfunctions_of_cls(
-                        cls, ignore_def=True, ret_action=True)])
+                    [
+                        x.split("_")[0]
+                        for x in self.get_actfunctions_of_cls(
+                            cls, ignore_def=True, ret_action=True
+                        )
+                    ]
+                )
             cls_doc = ""
+            parser = self.get_parser()
         else:
             actions |= set(
-                [x.split("_")[0]
-                 for x in self.get_actfunctions_of_cls(
-                    self.cls, ignore_def=True, ret_action=True)])
-            cls_doc = __import__(
-                re.sub(r"(?<!^)(?=[A-Z])", "_", self.clsname).lower()).__doc__
+                [
+                    x.split("_")[0]
+                    for x in self.get_actfunctions_of_cls(
+                        self.cls, ignore_def=True, ret_action=True
+                    )
+                ]
+            )
+            cls_doc = self.cls.__doc__
+            parser = self.base_opts()
+            if hasattr(self.cls, "action_opts"):
+                parser = self.cls.action_opts(parser, for_help=True)
+
         actions = list(actions)
         action = actions[0] if len(actions) == 1 else None
         actions = ", ".join(sorted(actions))
         options = []
         valid = False
-        for ln in self.get_parser().format_help().split("\n"):
+        for ln in parser.format_help().split("\n"):
             if ln.startswith("optional"):
                 valid = True
             elif not ln.startswith(" "):
@@ -619,11 +652,16 @@ class Please(object):
             "objs": ", ".join(self.known_objs),
             "options": options,
         }
-        print((action
-               and hasattr(self.cls, action)
-               and getattr(self.cls, action).__doc__
-               or cls_doc
-               or __doc__) % params)
+        print(
+            (
+                action
+                and hasattr(self.cls, action)
+                and getattr(self.cls, action).__doc__
+                or cls_doc
+                or __doc__
+            )
+            % params
+        )
         return 0
 
 

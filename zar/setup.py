@@ -35,5 +35,18 @@ ZAR manages easily backup for Odoo database, keeps last nth copies and purges ol
     author_email='antoniomaria.vigliotti@gmail.com',
     license='Affero GPL',
     packages=['zar'],
+    package_data={
+        '': [
+            'scripts/setup.info',
+            './bck_filestore.sh',
+            './pg_db_active',
+            './pg_db_reassign_owner',
+            './zar_bck',
+            './zar_cptbl',
+            './zar_purge',
+            './zar_rest',
+            './zarrc',
+        ]
+    },
     zip_safe=False,
 )

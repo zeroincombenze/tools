@@ -1,28 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""NAME
-    create apache configuration file
-
-SYNOPSIS
-    please create apache URL
-
-DESCRIPTION
-    This command creates the apache configuration file for URL Odoo website.
-    The configuration file may be deployed on /etc/apache2/site-available path
-    or in equivalent path, i.e. /etc/httpd/conf
-
-OPTIONS
-  %(options)s
-
-EXAMPLES
-    please create apache odoo.example.com
-
-BUGS
-    No known bugs.
-
-SEE ALSO
-    Full documentation at: <https://zeroincombenze-tools.readthedocs.io/>
-"""
 import os.path
 
 try:
@@ -79,17 +56,43 @@ APACHE_HTTPS_BLOCK = """
 
 
 class PleaseApache(object):
+    """NAME
+        create apache configuration file
+
+    SYNOPSIS
+        please create apache URL
+
+    DESCRIPTION
+        This command creates the apache configuration file for URL Odoo website.
+        The configuration file may be deployed on /etc/apache2/site-available path
+        or in equivalent path, i.e. /etc/httpd/conf
+
+    OPTIONS
+      %(options)s
+
+    EXAMPLES
+        please create apache odoo.example.com
+
+    BUGS
+        No known bugs.
+
+    SEE ALSO
+        Full documentation at: <https://zeroincombenze-tools.readthedocs.io/>
+    """
+
     def __init__(self, please):
         self.please = please
 
-    def action_opts(self, parser):
+    def action_opts(self, parser, for_help=False):
         self.please.add_argument(parser, "-b")
         self.please.add_argument(parser, "-c")
         self.please.add_argument(parser, "-l")
-        self.please.add_argument(parser, "-n")
+        if not for_help:
+            self.please.add_argument(parser, "-n")
         parser.add_argument("-o", "--out-file")
         parser.add_argument(
-            "-P", "--protocol",
+            "-P",
+            "--protocol",
             help="http or https",
             default="http",
         )
@@ -99,22 +102,26 @@ class PleaseApache(object):
             help="http port (default from config file or 8069)",
         )
         parser.add_argument(
-            "-L", "--long-port",
-            help="long polling port(default from config file or 8070)"
+            "-L",
+            "--long-port",
+            help="long polling port(default from config file or 8070)",
         )
-        self.please.add_argument(parser, "-q")
+        if not for_help:
+            self.please.add_argument(parser, "-q")
         parser.add_argument(
             "-S",
             "--https-proxy",
             action="store_true",
             help="add https proxy statements",
         )
-        self.please.add_argument(parser, "-v")
+        if not for_help:
+            self.please.add_argument(parser, "-v")
         parser.add_argument(
-            "-x", "--xmlrpc-port",
+            "-x",
+            "--xmlrpc-port",
             help="xmlrpc port (default from config file or 8069)",
         )
-        parser.add_argument('args', nargs="*")
+        parser.add_argument("args", nargs="*")
         return parser
 
     def do_create(self):
@@ -158,8 +165,7 @@ class PleaseApache(object):
             params["https_block"] = ""
         content = APACHE_TEMPLATE % params
         out_file = (
-            please.opt_args.out_file
-            or ("~/%s-le-ssl.conf" % params["domain"])
+            please.opt_args.out_file or ("~/%s-le-ssl.conf" % params["domain"])
             if params["protocol"] == "https"
             else "~/%s.conf" % params["domain"]
         )
