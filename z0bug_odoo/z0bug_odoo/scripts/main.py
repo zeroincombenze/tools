@@ -62,8 +62,9 @@ def get_pypi_paths():
     while not bin_path and path != "/" and path != os.environ["HOME"]:
         path = os.path.dirname(path)
         if os.path.isdir(path) and os.path.basename(path) in ("bin", "lib"):
-            if (os.path.isdir(os.path.join(os.path.dirname(path), "bin")) and
-                    os.path.isdir(os.path.join(os.path.dirname(path), "lib"))):
+            if os.path.isdir(
+                os.path.join(os.path.dirname(path), "bin")
+            ) and os.path.isdir(os.path.join(os.path.dirname(path), "lib")):
                 bin_path = os.path.join(os.path.dirname(path), "bin")
                 lib_path = os.path.join(os.path.dirname(path), "lib")
     if not bin_path and local_venv:

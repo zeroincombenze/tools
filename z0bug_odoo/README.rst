@@ -1828,6 +1828,13 @@ Current version via Git
 History
 -------
 
+2.0.8.1 (2023-06-09)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: sometimes, validate_records does not match many2one fields
+* [FIX[ TestEnv: sometime crash in wizard on Odoo 11.0+ due inexistent ir.default
+* [FIX] TestEnv: default value in wizard creation, overlap default function
+
 2.0.8 (2023-04-26)
 ~~~~~~~~~~~~~~~~~~
 

@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import ast
 import os
+
 # import re
 import sys
 import inspect
@@ -231,8 +232,9 @@ def pylint_run(is_pr, version, dir):
     # }
     res = {
         key: value
-        for key, value in (hasattr(real_errors, 'by_msg')
-                           and getattr(real_errors, 'by_msg') or {}).items()
+        for key, value in (
+            hasattr(real_errors, 'by_msg') and getattr(real_errors, 'by_msg') or {}
+        ).items()
     }
     count_errors = get_count_fails(real_errors, list(beta_msgs))
     count_info = "count_errors %s" % count_errors
@@ -261,8 +263,11 @@ def pylint_run(is_pr, version, dir):
         # }
         pr_stats = {
             key: value
-            for key, value in (hasattr(pr_real_errors, 'by_msg')
-                               and getattr(pr_real_errors, 'by_msg') or {}).items()
+            for key, value in (
+                hasattr(pr_real_errors, 'by_msg')
+                and getattr(pr_real_errors, 'by_msg')
+                or {}
+            ).items()
         }
         if pr_stats:
             pr_errors = get_count_fails(pr_real_errors, list(beta_msgs))
@@ -297,8 +302,11 @@ def get_count_fails(linter_stats, msgs_no_count=None):
         # ]
         [
             linter_stats['by_msg'][msg]
-            for msg in (hasattr(linter_stats, 'by_msg')
-                        and getattr(linter_stats, 'by_msg') or {})
+            for msg in (
+                hasattr(linter_stats, 'by_msg')
+                and getattr(linter_stats, 'by_msg')
+                or {}
+            )
         ]
     )
 
@@ -367,13 +375,15 @@ def run_pylint(paths, cfg, beta_msgs=None, sys_paths=None, extra_params=None):
         return {'error': 0}
     cmd.extend(subpaths)
     if (
-        sys.version_info[0] == 2 and
-        'do_exit' in inspect.getargspec(pylint.lint.Run.__init__)[0]
+        sys.version_info[0] == 2
+        and 'do_exit' in inspect.getargspec(pylint.lint.Run.__init__)[0]
     ):
         # pylint has renamed this keyword argument
         pylint_res = pylint.lint.Run(cmd, do_exit=False)
-    elif (sys.version_info[0] > 2 and
-          'do_exit' in inspect.getfullargspec(pylint.lint.Run.__init__)[0]):
+    elif (
+        sys.version_info[0] > 2
+        and 'do_exit' in inspect.getfullargspec(pylint.lint.Run.__init__)[0]
+    ):
         # pylint has renamed this keyword argument
         pylint_res = pylint.lint.Run(cmd, do_exit=False)
     else:
