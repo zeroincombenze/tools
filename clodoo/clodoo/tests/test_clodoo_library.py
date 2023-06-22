@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Copyright SHS-AV s.r.l. <http://www.zeroincombenze.it>)
 #

@@ -323,6 +323,9 @@ class MigrateFile(object):
             return self.lines[nro][x.start() : x.end()]
         return ""
 
+    def matches_ignore(self, nro):
+        return True, 0
+
     def matches_class(self, nro):
         x = self.re_match(r"^ *class [^(]+", self.lines[nro])
         self.classname = self.lines[nro][x.start() + 6 : x.end()].strip()
@@ -426,6 +429,10 @@ class MigrateFile(object):
         offset = 0
         if not self.utf8_decl_nro >= 0 and (self.py23 == 2 or self.python_future):
             if not self.opt_args.ignore_pragma:
+                # if self.lines[nro].startswith("#!"):
+                #     self.lines.insert(nro + 1, "# -*- coding: utf-8 -*-")
+                #     self.utf8_decl_nro = nro + 1
+                # else:
                 self.lines.insert(nro, "# -*- coding: utf-8 -*-")
                 self.utf8_decl_nro = nro
         return False, offset
@@ -623,11 +630,15 @@ class MigrateFile(object):
             )
         return TARGET
 
-    def do_migrate_source(self):
+    def do_process_source(self):
         if self.ignore_file:
             return
-        if os.path.basename(self.ffn) == "history.rst":
+        if os.path.basename(self.ffn) in (
+                "history.rst", "HISTORY.rst", "CHANGELOG.rst"):
             return self.do_upgrade_history()
+        return self.do_migrate_source()
+
+    def do_migrate_source(self):
         TGT_RULES = self.init_env()
         nro = 0
         while nro < len(self.lines):
@@ -662,24 +673,27 @@ class MigrateFile(object):
         if not self.opt_args.test_res_msg:
             return
         last_date = ""
-        list_found = False
-        qua_nro = -1
+        found_list = False
+        title_nro = qua_nro = i_start = i_end = -1
         for nro, ln in enumerate(self.lines):
             if not ln:
-                if list_found:
+                if found_list:
                     break
                 continue
             if not last_date and re.match(r"[0-9]+\.[0-9]+\.[0-9]+.*\([0-9]+", ln):
                 x = re.search(r"\([0-9]{4}-[0-9]{2}-[0-9]{2}\)", ln)
-                last_date = ln[x.start() + 1 : x.end() - 1]
+                i_start = x.start() + 1
+                i_end = x.end() - 1
+                last_date = ln[i_start: i_end]
+                title_nro = nro
                 continue
             if qua_nro < 0 and ln.startswith("* [QUA]"):
                 qua_nro = nro
             if last_date and ln.startswith("*"):
-                list_found = True
+                found_list = True
         if (
             last_date
-            and list_found
+            and found_list
             and (datetime.now() - datetime.strptime(last_date, "%Y-%m-%d")).days < 20
         ):
             if qua_nro:
@@ -690,6 +704,10 @@ class MigrateFile(object):
                 if not self.opt_args.dry_run:
                     with open(self.ffn, 'w') as fd:
                         fd.write("\n".join(self.lines))
+            self.lines[title_nro] = (
+                self.lines[title_nro][:i_start]
+                + datetime.strftime(datetime.now(), "%Y-%m-%d")
+                + self.lines[title_nro][i_end:])
 
     def write_xml(self, out_ffn):
         with open(out_ffn, 'w') as fd:
@@ -819,14 +837,14 @@ def main(cli_args=None):
                         source = MigrateFile(
                             os.path.abspath(os.path.join(root, fn)), opt_args
                         )
-                        source.do_migrate_source()
+                        source.do_process_source()
                         source.close()
                         sts = source.sts
                         if sts:
                             break
             elif os.path.isfile(path):
                 source = MigrateFile(os.path.abspath(path), opt_args)
-                source.do_migrate_source()
+                source.do_process_source()
                 source.close()
                 sts = source.sts
             else:

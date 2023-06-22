@@ -29,6 +29,7 @@ exclude: |
   docs/|
   # PYPI
   odoo_shell.py|z0lib/z0lib/tests/tmp1.py|z0lib/z0lib/tests/tmp.py|wok_code/wok_code/scripts/to_pep8.py|wok_code/build/lib/wok_code/scripts/to_pep8.py|wok_code/build/lib.linux-x86_64-2.7/wok_code/scripts/to_pep8.py|wok_code/build/lib.linux-x86_64-2.7/wok_code/to_pep8.py|clodoo/clodoo/export_db_model.py|clodoo/clodoo/migrate_odoo_db.py|clodoo/clodoo/update_coa.py|clodoo/clodoo/examples/example_partner_shipping_addr.py|clodoo/clodoo/examples/example_product.py|clodoo/clodoo/examples/import_partners_fitness.py|clodoo/clodoo/examples/import_records.py|clodoo/clodoo/examples/import_products_gb.py|clodoo/clodoo/examples/import_rigoli.py|clodoo/clodoo/examples/import_partners_servizigrafici.py|clodoo/clodoo/examples/import_partners_merkatrade.py|clodoo/clodoo/examples/import_products.py|clodoo/clodoo/examples/example_sale_order.py|clodoo/clodoo/examples/import_partners_sicignano.py|clodoo/clodoo/examples/import_partners_gb.py|clodoo/build/lib/clodoo/export_db_model.py|clodoo/build/lib/clodoo/migrate_odoo_db.py|clodoo/build/lib/clodoo/update_coa.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/export_db_model.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/migrate_odoo_db.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/update_coa.py|
+  _check4deps_.py|testenv.*|
   # You don't usually want a bot to modify your legal texts
   (LICENSE.*|COPYING.*)|
   # official goverment specs
@@ -43,6 +44,9 @@ exclude: |
   ^l10n_it_fatturapa_out_di/tests/data
 default_language_version:
   python: python3
+
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
@@ -70,5 +74,7 @@ repos:
       - id: requirements-txt-fixer
   - repo: local
     hooks:
-      - id: do_migrate
-        entry: arcangelo -b0.0
+      - id: arcangelo
+        name: arcangelo
+        language: python
+        entry: arcangelo -i -b0.0

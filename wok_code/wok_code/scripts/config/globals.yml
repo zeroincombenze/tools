@@ -4,17 +4,17 @@
     - '$'
     - matches_utf8
 -
+  - '^#!'
+  -
+    - '$'
+    - matches_ignore
+-
   - '^# (flake8|pylint):'
   -
     - '$'
     - matches_lint
 -
   - '!(coding|flake8|pylint|python|/bin/env)^#'
-  -
-    - '$'
-    - matches_no_lint
--
-  - '!^#'
   -
     - '$'
     - matches_no_lint

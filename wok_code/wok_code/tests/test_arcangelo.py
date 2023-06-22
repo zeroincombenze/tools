@@ -8,6 +8,7 @@
 from __future__ import print_function, unicode_literals
 import os
 import sys
+from datetime import datetime, timedelta
 
 from z0lib import z0lib
 from zerobug import z0test
@@ -257,6 +258,73 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")),
+            True,
+        )
+
+    def test_06(self, z0ctx):
+        src_ffn = self.get_fullname("pkg_py2_06.py")
+        tgt_ffn = self.get_test_fullname("pkg_py3_06.py")
+        cmd = "arcangelo -fw --pypi-package --python-ver=3 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            print("Error %d file %s" % (sts, src_ffn))
+            print(stderr)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            cmd.replace(self.Z.testdir, "."),
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py3_06.py")),
+            True,
+        )
+
+        src_ffn = self.get_fullname("pkg_py3_06.py")
+        tgt_ffn = self.get_test_fullname("pkg_py2_06.py")
+        cmd = "arcangelo -fw --pypi-package --python-ver=2 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            print("Error %d file %s" % (sts, src_ffn))
+            print(stderr)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            cmd.replace(self.Z.testdir, "."),
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_06.py")),
+            True,
+        )
+
+    def test_90(self, z0ctx):
+        src_ffn = self.get_fullname("CHANGELOG.rst")
+        tgt_ffn = self.get_fullname("history.rst")
+        last_date = datetime.strftime((datetime.now() - timedelta(days=10)), "%Y-%m-%d")
+        today = datetime.strftime(datetime.now(), "%Y-%m-%d")
+        with open(src_ffn, "r") as fd:
+            content = fd.read().replace("####-##-##", last_date)
+        with open(src_ffn, "w") as fd:
+            fd.write(content)
+        with open(tgt_ffn, "r") as fd:
+            content = fd.read().replace("####-##-##", today)
+        with open(tgt_ffn, "w") as fd:
+            fd.write(content)
+
+        cmd = "arcangelo --test-res-msg='%s' %s" % (
+            "* [QUA] Valid result",
+            src_ffn,
+        )
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            print("Error %d file %s" % (sts, src_ffn))
+            print(stderr)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            cmd.replace(self.Z.testdir, "."),
+            self.compare_fn(tgt_ffn, src_ffn),
             True,
         )
 
