@@ -71,7 +71,6 @@ KNOWN_ACTIONS = [
 
 
 class Please(object):
-
     def __init__(self, cli_args=[]):
         self.clsname = self.__class__.__name__
         self.cls = self
@@ -173,7 +172,7 @@ class Please(object):
             # except ImportError:
             #     print("Internal error: file %s is not valid!" % fn)
             #     continue
-            param = fn[7: -3]
+            param = fn[7:-3]
             cls = self.get_cls_of_param(param)
             clsname = cls.__class__.__name__
             if clsname.startswith("Please"):
@@ -228,7 +227,7 @@ class Please(object):
                 if not hasattr(cls, fctname):
                     fctname = "do_" + "_".join(rev_parms)
                 if not hasattr(cls, fctname):
-                    return build_valid_name(cls, params[: -1])
+                    return build_valid_name(cls, params[:-1])
             return fctname
 
         if action == "help":

@@ -57,88 +57,88 @@ __version__ = "2.0.8"
 #        All functions must have the format:    def my_fun(self, nro)
 #                                                   [...]
 #                                                   return do_break, offset
-#        Function may ask for break: this means no other rules will be processed.
+#        Function may requires break: this means no other rules will be processed.
 #        Function returns the offset for next line: the value 0 means read next line,
 #        the value -1 re-read the current line, +1 skip next line, and so on
 # - "=": execute python code
 #
-_RULES_GLOBALS = [
-    (
-        r"^# -\*- coding: utf-8 -\*-",
-        ("$", "matches_utf8"),
-    ),
-    (
-        "^# (flake8|pylint):",
-        ("$", "matches_lint"),
-    ),
-    (
-        "!(coding|flake8|pylint|python)^#",
-        ("$", "matches_no_lint"),
-    ),
-    (
-        "!^#",
-        ("$", "matches_no_lint"),
-    ),
-    (
-        r"^ *class [^(]+\(",
-        ("$", "matches_class"),
-    ),
-    (
-        r"^# -\*- encoding: utf-8 -\*-",
-        ("d",),
-    ),
-]
-_RULES_GLOBALS_XML = [
-]
-_RULES_TO_NEW_API = [
-    (
-        "^from openerp.osv import",
-        ("s", "from openerp.osv import", "from odoo import"),
-        ("s", "orm", "models"),
-    ),
-    (
-        r"^ *class [^(]+\([^)]*\)",
-        ("s", "orm.Model", "models.Model"),
-        ("s", "osv.osv_memory", "models.TransientModel"),
-    ),
-    (
-        r"^ *def [^(]+\(self, *cr, *uid, [^)]*\)",
-        ("s", r"\(self, *cr, *uid,", "(self,"),
-        ("s", r", *context=[^)]+", ""),
-    ),
-    ("^from openerp", ("s", "openerp", "odoo")),
-    ("!(import).*osv.except_osv", ("s", "osv.except_osv", "UserError")),
-]
-_RULES_TO_OLD_API = [
-    (
-        "^from odoo import",
-        ("s", "models", "orm"),
-        ("s", "odoo", "openerp.osv"),
-        ("s", "models.TransientModel", "osv.osv_memory"),
-    ),
-    (
-        r"^ *class [^(]+\([^)]*\)",
-        ("s", "models.Model", "orm.Model"),
-    ),
-    (
-        r"^ *def [^(]+\(self, [^)]*\)",
-        ("s", r"\(self,", "(self, cr, uid,"),
-        ("s", r"\)", ", context=None)"),
-    ),
-    (
-        "^from odoo.exceptions import UserError",
-        ("s", "import UserError", "import Warning as UserError"),
-    ),
-    ("^from odoo", ("s", "odoo", "openerp")),
-    (
-        "from odoo.exceptions import UserError",
-        (
-            "s",
-            "from odoo.exceptions import UserError",
-            "from openerp.osv.osv import except_osv"
-        ),
-    ),
-]
+
+# _RULES_GLOBALS = [
+#     (
+#         r"^# -\*- coding: utf-8 -\*-",
+#         ("$", "matches_utf8"),
+#     ),
+#     (
+#         "^# (flake8|pylint):",
+#         ("$", "matches_lint"),
+#     ),
+#     (
+#         "!(coding|flake8|pylint|python)^#",
+#         ("$", "matches_no_lint"),
+#     ),
+#     (
+#         "!^#",
+#         ("$", "matches_no_lint"),
+#     ),
+#     (
+#         r"^ *class [^(]+\(",
+#         ("$", "matches_class"),
+#     ),
+#     (
+#         r"^# -\*- encoding: utf-8 -\*-",
+#         ("d",),
+#     ),
+# ]
+_RULES_GLOBALS_XML = []
+# _RULES_TO_NEW_API = [
+#     (
+#         "^from openerp.osv import",
+#         ("s", "from openerp.osv import", "from odoo import"),
+#         ("s", "orm", "models"),
+#     ),
+#     (
+#         r"^ *class [^(]+\([^)]*\)",
+#         ("s", "orm.Model", "models.Model"),
+#         ("s", "osv.osv_memory", "models.TransientModel"),
+#     ),
+#     (
+#         r"^ *def [^(]+\(self, *cr, *uid, [^)]*\)",
+#         ("s", r"\(self, *cr, *uid,", "(self,"),
+#         ("s", r", *context=[^)]+", ""),
+#     ),
+#     ("^from openerp", ("s", "openerp", "odoo")),
+#     ("!(import).*osv.except_osv", ("s", "osv.except_osv", "UserError")),
+# ]
+# _RULES_TO_OLD_API = [
+#     (
+#         "^from odoo import",
+#         ("s", "models", "orm"),
+#         ("s", "odoo", "openerp.osv"),
+#         ("s", "models.TransientModel", "osv.osv_memory"),
+#     ),
+#     (
+#         r"^ *class [^(]+\([^)]*\)",
+#         ("s", "models.Model", "orm.Model"),
+#     ),
+#     (
+#         r"^ *def [^(]+\(self, [^)]*\)",
+#         ("s", r"\(self,", "(self, cr, uid,"),
+#         ("s", r"\)", ", context=None)"),
+#     ),
+#     (
+#         "^from odoo.exceptions import UserError",
+#         ("s", "import UserError", "import Warning as UserError"),
+#     ),
+#     ("^from odoo", ("s", "odoo", "openerp")),
+#     (
+#         "from odoo.exceptions import UserError",
+#         (
+#             "s",
+#             "from odoo.exceptions import UserError",
+#             "from openerp.osv.osv import except_osv"
+#         ),
+#     ),
+# ]
 _RULES_TO_ODOO_PY3 = [
     (
         r"^ *super\([^)]*\)",
@@ -228,7 +228,6 @@ RULES_TO_PYPI_FUTURE = [
 
 
 class MigrateFile(object):
-
     def __init__(self, ffn, opt_args):
         self.sts = 0
         if opt_args.verbose > 0:
@@ -239,10 +238,12 @@ class MigrateFile(object):
             self.from_major_version = int(opt_args.from_version.split('.')[0])
         else:
             self.from_major_version = 0
+        self.def_python_future = False
         if not opt_args.to_version or opt_args.to_version == "0.0":
             branch = ""
             sts, stdout, stderr = z0lib.run_traced(
-                "git branch", verbose=False, dry_run=False)
+                "git branch", verbose=False, dry_run=False
+            )
             if sts == 0 and stdout:
                 sts = 1
                 for ln in stdout.split("\n"):
@@ -255,7 +256,7 @@ class MigrateFile(object):
                 if not x:
                     sts = 1
             if sts == 0:
-                branch = branch[x.start(): x.end()]
+                branch = branch[x.start() : x.end()]
                 opt_args.to_version = branch
             else:
                 opt_args.to_version = "12.0"
@@ -263,6 +264,7 @@ class MigrateFile(object):
         if not opt_args.pypi_package:
             if self.to_major_version <= 10:
                 opt_args.python_ver = "2.7"
+                self.def_python_future = True
             elif self.to_major_version <= 14:
                 opt_args.python_ver = "3.7"
             else:
@@ -273,6 +275,8 @@ class MigrateFile(object):
         else:
             self.python_version = "3.7"
             self.py23 = 3
+            if opt_args.pypi_package:
+                self.def_python_future = True
         self.opt_args = opt_args
         self.lines = []
         with open(ffn, 'r') as fd:
@@ -294,31 +298,40 @@ class MigrateFile(object):
         return x
 
     def analyze_source(self):
-        self.python_future = False
-        if "from __future__ import" in self.source:
-            self.python_future = True
+        self.python_future = self.def_python_future
         self.ignore_file = False
-        if (
-            not self.opt_args.force
-            and ("# flake8: noqa" in self.source
-                 or "# pylint: skip-file" in self.source)
+        for ln in self.lines:
+            if not ln:
+                continue
+            if not ln.startswith("#"):
+                break
+            if "from __future__ import" in ln or "from past.builtins import " in ln:
+                self.python_future = True
+            if not self.opt_args.force and (
+                "# flake8: noqa" in ln or "# pylint: skip-file" in ln
+            ):
+                self.ignore_file = True
+        if not self.opt_args.force and (
+            os.path.basename(self.ffn) == "testenv.py"
+            or "/tests/data/" in os.path.dirname(self.ffn)
         ):
-            self.ignore_file = True
-        elif not self.opt_args.force and os.path.basename(self.ffn) == "testenv.py":
             self.ignore_file = True
 
     def get_noupdate_property(self, nro):
         if "noupdate" in self.lines[nro]:
             x = re.search("noupdate *=\"[01]\"", self.lines[nro])
-            return self.lines[nro][x.start():x.end()]
+            return self.lines[nro][x.start() : x.end()]
         return ""
 
     def matches_class(self, nro):
         x = self.re_match(r"^ *class [^(]+", self.lines[nro])
-        self.classname = self.lines[nro][x.start() + 6: x.end()].strip()
+        self.classname = self.lines[nro][x.start() + 6 : x.end()].strip()
         return False, 0
 
-    def matches_odoo_tag(self, nro,):
+    def matches_odoo_tag(
+        self,
+        nro,
+    ):
         if self.to_major_version < 8 and self.ctr_tag_openerp == 0:
             property_noupdate = self.get_noupdate_property(nro)
             if property_noupdate:
@@ -391,7 +404,7 @@ class MigrateFile(object):
         offset = 0
         if (
             self.opt_args.python_ver
-            and self.py23 == 2 or self.python_future
+            and (self.py23 == 2 or self.python_future)
             and self.utf8_decl_nro < 0
         ):
             self.utf8_decl_nro = nro
@@ -410,21 +423,13 @@ class MigrateFile(object):
 
     def matches_no_lint(self, nro):
         offset = 0
-        if (
-            not self.utf8_decl_nro >= 0
-            and self.py23 == 2
-        ):
+        if not self.utf8_decl_nro >= 0 and self.py23 == 2:
             self.lines.insert(nro, "# -*- coding: utf-8 -*-")
             self.utf8_decl_nro = nro
         return False, offset
 
     def comparable_version(self, version):
-        return ".".join(
-            [
-                "%03d" % int(x)
-                for x in version.split(".")
-            ]
-        )
+        return ".".join(["%03d" % int(x) for x in version.split(".")])
 
     def update_line(self, nro, items, regex):
         action = items[0]
@@ -435,53 +440,48 @@ class MigrateFile(object):
         else:
             not_expr = False
             action = action
-        if (
-            (not_expr and regex)
-            or (not not_expr and not regex)
-        ):
+        if (not_expr and regex) or (not not_expr and not regex):
             return False, 0
         if action.startswith("+"):
             x = self.re_match(r"\+[0-9]+\.[0-9]", action)
             if x:
-                ver = action[x.start():x.end()]
-                if (
-                    self.comparable_version(self.opt_args.python_ver)
-                    < self.comparable_version(ver)
-                ):
+                ver = action[x.start() : x.end()]
+                if self.comparable_version(
+                    self.opt_args.python_ver
+                ) < self.comparable_version(ver):
                     return False, 0
             else:
                 x = self.re_match(r"\+[0-9]+", action)
-                ver = int(action[x.start() + 1:x.end()])
+                ver = int(action[x.start() + 1 : x.end()])
                 if ver and ver < 6 and self.py23 < ver:
                     return False, 0
                 if ver and ver >= 6 and self.to_major_version < ver:
                     return False, 0
-            action = action[x.end():]
+            action = action[x.end() :]
         if action.startswith("-"):
             x = self.re_match(r"\-[0-9]+\.[0-9]", action)
             if x:
-                ver = action[x.start():x.end()]
-                if (
-                    self.comparable_version(self.opt_args.python_ver)
-                    > self.comparable_version(ver)
-                ):
+                ver = action[x.start() : x.end()]
+                if self.comparable_version(
+                    self.opt_args.python_ver
+                ) > self.comparable_version(ver):
                     return False, 0
             else:
                 x = self.re_match(r"-[0-9]+", action)
-                ver = int(action[x.start() + 1:x.end()])
+                ver = int(action[x.start() + 1 : x.end()])
                 if ver and ver < 6 and self.py23 > ver:
                     return False, 0
                 if ver and ver >= 6 and self.to_major_version > ver:
                     return False, 0
-            action = action[x.end():]
+            action = action[x.end() :]
         if action == "s":
             rule, expr, res, regex, not_expr, sre = self.split_py_re_rules(params[0])
             if sre and re.search(sre, self.lines[nro]):
                 return False, 0
             if regex:
-                self.lines[nro] = re.sub(regex,
-                                         params[1] % self.__dict__,
-                                         self.lines[nro])
+                self.lines[nro] = re.sub(
+                    regex, params[1] % self.__dict__, self.lines[nro]
+                )
             return False, 0
         elif action == "d":
             del self.lines[nro]
@@ -506,7 +506,7 @@ class MigrateFile(object):
     def split_py_re_rules(self, rule):
         x = self.re_match(r"\{\{.*\}\}", rule)
         if x:
-            expr = rule[x.start() + 2: x.end() - 2].strip()
+            expr = rule[x.start() + 2 : x.end() - 2].strip()
             rule = rule[x.end()]
             try:
                 res = eval(expr)
@@ -523,8 +523,8 @@ class MigrateFile(object):
         if rule.startswith("!"):
             self.re_match(r"!\([^)]+\)+", rule)
             if x:
-                sre = rule[x.start() + 2: x.end() - 1].strip()
-                regex = rule[x.end():]
+                sre = rule[x.start() + 2 : x.end() - 1].strip()
+                regex = rule[x.end() :]
             else:
                 regex = rule[1:]
                 not_expr = True
@@ -545,9 +545,8 @@ class MigrateFile(object):
         if sre and re.search(sre, self.lines[nro]):
             return False
 
-        if (
-            (not not_expr and not self.re_match(regex, self.lines[nro]))
-            or (not_expr and self.re_match(regex, self.lines[nro]))
+        if (not not_expr and not self.re_match(regex, self.lines[nro])) or (
+            not_expr and self.re_match(regex, self.lines[nro])
         ):
             return False
         return regex
@@ -556,7 +555,8 @@ class MigrateFile(object):
         configpath = os.path.join(
             os.path.dirname(os.path.abspath(os.path.expanduser(__file__))),
             "config",
-            confname + ".yml")
+            confname + ".yml",
+        )
         if os.path.isfile(configpath):
             with open(configpath, "r") as fd:
                 return yaml.safe_load(fd)
@@ -600,21 +600,25 @@ class MigrateFile(object):
         if self.opt_args.pypi_package:
             if self.python_future:
                 TARGET += self.load_config("to_pypi_future")
-            TARGET += self.load_config("to_pypi_py2" if self.py23 == 2
-                                       else "to_pypi_py3")
+            TARGET += self.load_config(
+                "to_pypi_py2" if self.py23 == 2 else "to_pypi_py3"
+            )
         elif self.is_xml:
-            TARGET += self.load_config("to_xml_old" if self.to_major_version < 8
-                                       else "to_xml_new")
+            TARGET += self.load_config(
+                "to_xml_old" if self.to_major_version < 8 else "to_xml_new"
+            )
         elif self.from_major_version:
             if self.from_major_version < 8 and self.to_major_version >= 8:
                 TARGET += self.load_config("to_new_api")
             elif self.from_major_version >= 8 and self.to_major_version < 8:
                 TARGET += self.load_config("to_old_api")
-            TARGET += self.load_config("to_odoo_py2" if self.to_major_version <= 10
-                                       else "to_odoo_py3")
+            TARGET += self.load_config(
+                "to_odoo_py2" if self.to_major_version <= 10 else "to_odoo_py3"
+            )
         else:
-            TARGET += self.load_config("to_odoo_py2" if self.to_major_version <= 10
-                                       else "to_odoo_py3")
+            TARGET += self.load_config(
+                "to_odoo_py2" if self.to_major_version <= 10 else "to_odoo_py3"
+            )
         return TARGET
 
     def do_migrate_source(self):
@@ -665,7 +669,7 @@ class MigrateFile(object):
                 continue
             if not last_date and re.match(r"[0-9]+\.[0-9]+\.[0-9]+.*\([0-9]+", ln):
                 x = re.search(r"\([0-9]{4}-[0-9]{2}-[0-9]{2}\)", ln)
-                last_date = ln[x.start() + 1: x.end() - 1]
+                last_date = ln[x.start() + 1 : x.end() - 1]
                 continue
             if qua_nro < 0 and ln.startswith("* [QUA]"):
                 qua_nro = nro
@@ -687,15 +691,12 @@ class MigrateFile(object):
 
     def write_xml(self, out_ffn):
         with open(out_ffn, 'w') as fd:
-            xml = ET.fromstring(
-                _b("\n".join(self.lines).replace('\t', '    '))
-            )
+            xml = ET.fromstring(_b("\n".join(self.lines).replace('\t', '    ')))
             fd.write("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n")
-            fd.write(ET.tostring(
-                xml,
-                encoding="unicode",
-                with_comments=True,
-                pretty_print=True)
+            fd.write(
+                ET.tostring(
+                    xml, encoding="unicode", with_comments=True, pretty_print=True
+                )
             )
 
     def format_file(self, out_ffn):
@@ -712,8 +713,10 @@ class MigrateFile(object):
             path = os.path.dirname(path)
         if self.is_xml:
             if prettier_config:
-                cmd = ("npx prettier --plugin=@prettier/plugin-xml --config=%s"
-                       % prettier_config)
+                cmd = (
+                    "npx prettier --plugin=@prettier/plugin-xml --config=%s"
+                    % prettier_config
+                )
             else:
                 cmd = "npx prettier --plugin=@prettier/plugin-xml --print-width=88"
             cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
@@ -730,8 +733,7 @@ class MigrateFile(object):
     def close(self):
         if self.opt_args.output:
             if os.path.isdir(self.opt_args.output):
-                out_ffn = os.path.join(self.opt_args.output,
-                                       os.path.basename(self.ffn))
+                out_ffn = os.path.join(self.opt_args.output, os.path.basename(self.ffn))
             else:
                 out_ffn = self.opt_args.output
             if not os.path.isdir(os.path.dirname(out_ffn)):
@@ -762,20 +764,21 @@ class MigrateFile(object):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Beautiful source file",
-        epilog="© 2021-2023 by SHS-AV s.r.l."
+        description="Beautiful source file", epilog="© 2021-2023 by SHS-AV s.r.l."
     )
     parser.add_argument('-a', '--lint-anyway', action='store_true')
     parser.add_argument('-b', '--to-version')
     parser.add_argument('-F', '--from-version')
     parser.add_argument(
-        '-f', '--force',
+        '-f',
+        '--force',
         action='store_true',
-        help="Parse file containing '# flake8: noqa' or '# pylint: skip-file'"
+        help="Parse file containing '# flake8: noqa' or '# pylint: skip-file'",
     )
     parser.add_argument('-i', '--in-place', action='store_true')
     parser.add_argument(
-        "-n", "--dry-run",
+        "-n",
+        "--dry-run",
         help="do nothing (dry-run)",
         action="store_true",
     )
@@ -784,9 +787,10 @@ def main(cli_args=None):
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
     parser.add_argument(
-        '-w', '--no-parse-with-formatter',
+        '-w',
+        '--no-parse-with-formatter',
         action='store_true',
-        help="do nor execute black or prettier on modified files"
+        help="do nor execute black or prettier on modified files",
     )
     parser.add_argument('-y', '--python-ver')
     parser.add_argument('--test-res-msg')
@@ -810,7 +814,8 @@ def main(cli_args=None):
                         if not fn.endswith('.py') and not fn.endswith('.xml'):
                             continue
                         source = MigrateFile(
-                            os.path.abspath(os.path.join(root, fn)), opt_args)
+                            os.path.abspath(os.path.join(root, fn)), opt_args
+                        )
                         source.do_migrate_source()
                         source.close()
                         sts = source.sts

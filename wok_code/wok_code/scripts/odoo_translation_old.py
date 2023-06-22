@@ -15,6 +15,7 @@ import re
 import sys
 import time
 from builtins import input
+
 # from subprocess import PIPE, Popen
 
 from babel.messages import pofile
@@ -41,8 +42,19 @@ PUNCT = [' ', '.', ',', '!', ':']
 TNL_DICT = {}
 TNL_ACTION = {}
 SYNTAX = {'string': re.compile('"([^"\\\n]|\\.|\\\n)*"')}
-VERSIONS = ('16.0', '15.0', '14.0', '13.0', '12.0', '11.0',
-            '10.0', '9.0', '8.0', '7.0', '6.1')
+VERSIONS = (
+    '16.0',
+    '15.0',
+    '14.0',
+    '13.0',
+    '12.0',
+    '11.0',
+    '10.0',
+    '9.0',
+    '8.0',
+    '7.0',
+    '6.1',
+)
 PROTECT_TOKENS = [
     'Adviser',
     'Apply',
@@ -153,13 +165,13 @@ def term_wo_tag(msgid):
     rtag = ''
     x = re.match('<[^>]+>', msgid)
     while x:
-        ltag += msgid[:x.end()]
-        rtag = msgid[:x.end()].replace("<", "</") + rtag
-        msgid = msgid[x.end():]
+        ltag += msgid[: x.end()]
+        rtag = msgid[: x.end()].replace("<", "</") + rtag
+        msgid = msgid[x.end() :]
         x = re.match('<[^>]+>', msgid)
     x = re.search(rtag, msgid)
     if x:
-        msgid = msgid[:x.start()]
+        msgid = msgid[: x.start()]
     return ltag, rtag
 
 
@@ -248,8 +260,9 @@ def load_default_dictionary(ctx, source):
                 continue
             row = {}
             for ncol, cell in enumerate(nrow):
-                row[colnames[ncol]] = cell.value.replace(
-                    '\\n', '\n') if cell.value else cell.value
+                row[colnames[ncol]] = (
+                    cell.value.replace('\\n', '\n') if cell.value else cell.value
+                )
             ctr += process_row(ctx, module_rows, row)
         for row in module_rows:
             ctr += process_row(ctx, None, row)
@@ -321,8 +334,10 @@ def load_terms_from_pofile(ctx, pofn, def_action=None):
                 ctr += 1
             elif msgstr2 != TNL_DICT[msgid2]:
                 print('  Duplicate key "%s"' % msgid)
-                print('    Dictionary="%s"' % term_with_punct(
-                    None, TNL_DICT[msgid2], lpunct, rpunct))
+                print(
+                    '    Dictionary="%s"'
+                    % term_with_punct(None, TNL_DICT[msgid2], lpunct, rpunct)
+                )
                 print('    %-60.60s' % trline)
                 print('    Po="%s"' % msgstr)
                 print('    %-60.60s' % trline)
@@ -386,11 +401,11 @@ def parse_pofile(ctx, source, untnl):
                 for k, value in message.__dict__.items():
                     if k == 'string':
                         if ltag and rtag:
-                            message.string = term_with_tag(
-                                TNL_DICT[msgid2], ltag, rtag)
+                            message.string = term_with_tag(TNL_DICT[msgid2], ltag, rtag)
                         else:
                             message.string = term_with_punct(
-                                None, TNL_DICT[msgid2], lpunct, rpunct)
+                                None, TNL_DICT[msgid2], lpunct, rpunct
+                            )
                     elif value:
                         setattr(message, k, value)
                 ctr += 1

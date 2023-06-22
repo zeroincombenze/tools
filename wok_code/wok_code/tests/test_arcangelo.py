@@ -78,11 +78,11 @@ class RegressionTest:
     def test_01(self, z0ctx):
         sts, stdout, stderr = z0lib.run_traced("arcangelo --version")
         if sts:
-            self.Z.test_result(
-                z0ctx, "arcangelo --version", 0, sts)
+            self.Z.test_result(z0ctx, "arcangelo --version", 0, sts)
             return sts
-        self.Z.test_result(z0ctx, "arcangelo --version", __version__,
-                           (stdout + stderr).split("\n")[0])
+        self.Z.test_result(
+            z0ctx, "arcangelo --version", __version__, (stdout + stderr).split("\n")[0]
+        )
         return sts
 
     def test_02(self, z0ctx):
@@ -98,7 +98,8 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")),
-            True)
+            True,
+        )
 
         src_ffn = self.get_fullname("new_api_py3_02.py")
         tgt_ffn = self.get_test_fullname("old_api_02.py")
@@ -108,10 +109,12 @@ class RegressionTest:
             print("Error %d file %s" % (sts, src_ffn))
             print(stderr)
             return sts
-        self.Z.test_result(z0ctx,
-                           cmd.replace(self.Z.testdir, "."),
-                           self.compare_fn(tgt_ffn, self.get_fullname("old_api_02.py")),
-                           True)
+        self.Z.test_result(
+            z0ctx,
+            cmd.replace(self.Z.testdir, "."),
+            self.compare_fn(tgt_ffn, self.get_fullname("old_api_02.py")),
+            True,
+        )
 
         src_ffn = self.get_fullname("new_api_py2_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
@@ -125,7 +128,8 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")),
-            True)
+            True,
+        )
 
         src_ffn = self.get_fullname("new_api_py3_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py2_02.py")
@@ -139,7 +143,8 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_fn(tgt_ffn, self.get_fullname("new_api_py2_02.py")),
-            True)
+            True,
+        )
 
         src_ffn = self.get_fullname("old_api_b_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
@@ -153,7 +158,8 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")),
-            True)
+            True,
+        )
 
     def test_03(self, z0ctx):
         src_ffn = self.get_fullname("old_api_03.xml")
@@ -168,7 +174,8 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_xmlfn(tgt_ffn, self.get_fullname("new_api_03.xml")),
-            True)
+            True,
+        )
 
         src_ffn = self.get_fullname("new_api_03.xml")
         tgt_ffn = self.get_test_fullname("old_api_03.xml")
@@ -182,7 +189,8 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_xmlfn(tgt_ffn, self.get_fullname("old_api_03.xml")),
-            True)
+            True,
+        )
 
     def test_04(self, z0ctx):
         src_ffn = self.get_fullname("old_api_04.xml")
@@ -197,7 +205,8 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_xmlfn(tgt_ffn, self.get_fullname("new_api_04.xml")),
-            True)
+            True,
+        )
 
         src_ffn = self.get_fullname("new_api_04.xml")
         tgt_ffn = self.get_test_fullname("old_api_04.xml")
@@ -211,13 +220,16 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_xmlfn(tgt_ffn, self.get_fullname("old_api_04.xml")),
-            True)
+            True,
+        )
 
     def test_05(self, z0ctx):
         src_ffn = self.get_fullname("pkg_py2_05.py")
         tgt_ffn = self.get_test_fullname("pkg_py3_05.py")
-        cmd = "arcangelo -fw --pypi-package --python-ver=3 %s -o %s" % (src_ffn,
-                                                                        tgt_ffn)
+        cmd = "arcangelo -fw --pypi-package --python-ver=3 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -227,12 +239,15 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_fn(tgt_ffn, self.get_fullname("pkg_py3_05.py")),
-            True)
+            True,
+        )
 
         src_ffn = self.get_fullname("pkg_py3_05.py")
         tgt_ffn = self.get_test_fullname("pkg_py2_05.py")
-        cmd = "arcangelo -fw --pypi-package --python-ver=2 %s -o %s" % (src_ffn,
-                                                                        tgt_ffn)
+        cmd = "arcangelo -fw --pypi-package --python-ver=2 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             print("Error %d file %s" % (sts, src_ffn))
@@ -242,11 +257,13 @@ class RegressionTest:
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
             self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")),
-            True)
+            True,
+        )
 
     def setup(self, z0ctx):
         z0lib.run_traced(
-            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "arcangelo.py"))
+            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "arcangelo.py")
+        )
 
     def tearoff(self, z0ctx):
         pass

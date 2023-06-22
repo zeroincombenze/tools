@@ -84,7 +84,6 @@ __version__ = "2.0.8"
 
 
 class CreateConfig(object):
-
     def __init__(self, domain, opt_args):
         self.opt_args = opt_args
         if "." in domain:

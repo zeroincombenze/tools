@@ -8,6 +8,7 @@ from __future__ import print_function
 import os.path
 import sys
 import argparse
+
 # import pdb
 
 __version__ = "2.0.8"
@@ -84,16 +85,17 @@ def main(cli_args=None):
                 potext = add_po_line(potext, r'#. module: %s' % opt_args.module)
             elif line.startswith('"Project-Id-Version:'):
                 potext = add_po_line(
-                    potext, r'"Project-Id-Version: Odoo (%s)\n"' % opt_args.branch)
+                    potext, r'"Project-Id-Version: Odoo (%s)\n"' % opt_args.branch
+                )
             elif line.startswith('"Last-Translator:'):
                 potext = add_po_line(
                     potext,
-                    r'"Last-Translator: %s <%s>\n"' % (LAST_TNL_NAME, LAST_TNL_MAIL)
+                    r'"Last-Translator: %s <%s>\n"' % (LAST_TNL_NAME, LAST_TNL_MAIL),
                 )
             elif line.startswith('"Language-Team:'):
                 potext = add_po_line(
                     potext,
-                    r'"Language-Team: %s (%s)\n"' % (LAST_TEAM_NAME, LAST_TEAM_URL)
+                    r'"Language-Team: %s (%s)\n"' % (LAST_TEAM_NAME, LAST_TEAM_URL),
                 )
                 potext = add_po_line(potext, r'"Language: it_IT\n"')
             elif line.startswith('"Language:'):
@@ -102,7 +104,8 @@ def main(cli_args=None):
                 pass
             elif line.startswith('"Plural-Forms:'):
                 potext = add_po_line(
-                    potext,  r'"Plural-Forms: nplurals=2; plural=(n != 1);\n"')
+                    potext, r'"Plural-Forms: nplurals=2; plural=(n != 1);\n"'
+                )
             elif opt_args.clear_base_tnl:
                 if line.startswith('#: model:ir.module.module,description'):
                     saved_lines.append(line)
