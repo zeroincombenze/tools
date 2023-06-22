@@ -836,6 +836,7 @@ History
 * [IMP] deploy_odoo: new brief for status
 * [IMP] deploy_odoo: new action unstaged e new status format
 * [IMP] do_migrate renamed to arcangelo
+* [IMP] argangelo: refactoring to run inside pre-commit
 
 2.0.8 (2023-05-09)
 ~~~~~~~~~~~~~~~~~~
