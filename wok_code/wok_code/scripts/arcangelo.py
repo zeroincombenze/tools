@@ -403,8 +403,9 @@ class MigrateFile(object):
     def matches_utf8(self, nro):
         offset = 0
         if (
-            self.opt_args.python_ver
-            and (self.py23 == 2 or self.python_future)
+            (self.python_future
+             or self.opt_args.ignore_pragma
+             or (self.opt_args.python_ver and self.py23 == 2))
             and self.utf8_decl_nro < 0
         ):
             self.utf8_decl_nro = nro
@@ -423,9 +424,10 @@ class MigrateFile(object):
 
     def matches_no_lint(self, nro):
         offset = 0
-        if not self.utf8_decl_nro >= 0 and self.py23 == 2:
-            self.lines.insert(nro, "# -*- coding: utf-8 -*-")
-            self.utf8_decl_nro = nro
+        if not self.utf8_decl_nro >= 0 and (self.py23 == 2 or self.python_future):
+            if not self.opt_args.ignore_pragma:
+                self.lines.insert(nro, "# -*- coding: utf-8 -*-")
+                self.utf8_decl_nro = nro
         return False, offset
 
     def comparable_version(self, version):
@@ -775,6 +777,7 @@ def main(cli_args=None):
         action='store_true',
         help="Parse file containing '# flake8: noqa' or '# pylint: skip-file'",
     )
+    parser.add_argument('--ignore-pragma')
     parser.add_argument('-i', '--in-place', action='store_true')
     parser.add_argument(
         "-n",
@@ -784,6 +787,7 @@ def main(cli_args=None):
     )
     parser.add_argument('-o', '--output')
     parser.add_argument('-P', '--pypi-package', action='store_true')
+    parser.add_argument('--test-res-msg')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
     parser.add_argument(
@@ -793,7 +797,6 @@ def main(cli_args=None):
         help="do nor execute black or prettier on modified files",
     )
     parser.add_argument('-y', '--python-ver')
-    parser.add_argument('--test-res-msg')
     parser.add_argument('path', nargs="*")
     opt_args = parser.parse_args(cli_args)
     sts = 0
