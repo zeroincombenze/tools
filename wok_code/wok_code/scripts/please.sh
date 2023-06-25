@@ -1159,7 +1159,7 @@ do_test() {
     sts=$?
     if [[ -x tests/logs/show-log.sh ]]; then
       x=$(tests/logs/show-log.sh|grep -E "^TOTAL"|grep -Eo "[0-9]+%?"|tr "\n" " "|awk '{print "* [QUA] Test coverage " $3 " (" $1 ": " $2 "+" ($1 - $2) ")"}')
-      y=$(tests/logs/show-log.sh|grep -E "SUCCESSFULLY completed"|grep -Eo "[0-9]+ tests"|grep -Eo "[0-9]+"|awk '{print "+" $1 " TestPoint"}')
+      y=$(tests/logs/show-log.sh|grep -E "SUCCESSFULLY completed"|grep -Eo "[0-9]+ tests"|grep -Eo "[0-9]+"|awk '{print "[" $1 " TestPoint]"}')
       echo ""
       echo "$x $y"
       echo ""

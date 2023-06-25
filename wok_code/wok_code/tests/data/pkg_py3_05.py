@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # flake8: noqa - pylint: skip-file
-import os
+# -*- coding: utf-8 -*-
 
 
 class ResExample(object):

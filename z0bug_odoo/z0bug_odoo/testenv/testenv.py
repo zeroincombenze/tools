@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.8.1
+"""Test Environment v2.0.9
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -61,21 +61,27 @@ The external reference may be:
 Ordinary Odoo external reference (a) is a record of 'ir.model.data';
 you can see them from Odoo GUI interface.
 
-Test reference (b) are visible just in the test environment.
-They are identified by "z0bug." prefix module name.
+Test reference (b) are like external reference (a) but they are visible just in the
+test environment. They are identified by "z0bug." prefix module name.
 
 External key reference (c) is identified by "external." prefix followed by
-the key value used to retrieve the record.
-The field "code" or "name" are used to search record;
-for account.tax the "description" field is used.
+the key value used to retrieve the record. The field "code" or "name" are usually used
+to search record; for account.tax the "description" field is used.
 Please set self.debug_level = 2 (or more) to log these field keys.
 
 The 2 keys reference (d) needs to address child record inside header record
 at 2 level model (header/detail) relationship.
-The key MUST BE the same key of the parent record,
-plus "_", plus line identifier (usually 'sequence' field).
-i.e. "z0bug.move_1_3" means: line with sequence 3 of 'account.move.line'
-which is child of record "z0bug.move_1" of 'account.move'.
+The key MUST BE the couple of header key plus "_" and plus line key (usually 'sequence'
+field); the header key is the same key of the parent record. The line key may be:
+
+* the sequence value (if present n model)
+* the most meaningful field value
+* an index value
+
+i.e. "z0bug.invoice_1_3" means: line with sequence 3 of 'account.invoice.line'
+which is child of record "z0bug.invoice_1" of 'account.invoice'.
+i.e.: "EUR.2023-06-26" should be the key for res.currency.rate where "EUR" is the header
+key (res.currency) and "2023-06-26" is the date of rate.
 Please set self.debug_level = 2 (or more) to log these relationships.
 
 For 'product.template' (product) you must use '_template' text in reference (e).
@@ -163,18 +169,25 @@ KEY_CANDIDATE = (
     "default_code",
     "sequence",
     "login",
-    # "description",
     "depreciation_type_id",
     "number",
     "move_name",
     "partner_id",
     "product_id",
     "product_tmpl_id",
+    "ref",
+    "reference",
+    "account_id",
     "tax_src_id",
     "tax_dest_id",
     "code",
     "name",
 )
+KEY_INCANDIDATE = {
+    "code": ["product.product"],
+    "partner_id": ["account.move.line"],
+    "ref": ["res.partner"],
+}
 KEY_OF_RESOURCE = {
     "res.users": "login",
     "account.tax": "description",
@@ -202,14 +215,23 @@ class MainTest(SingleTransactionCase):
         self.debug_level = 0
         self.PYCODESET = "utf-8"
         self._logger = _logger
+        # List of stored data by groups: grp1: [a,b,c], grp2: [d,e,f]
         self.setup_data_list = {}
+        # Data keys by group, name, resource, xref
         self.setup_data = {}
+        # List of (group, resource) for every xref
         self.setup_xrefs = {}
+        # Database structure (fields) by resource
         self.struct = {}
+        # Resource search keys: the first key is the child xref search key
         self.skeys = {}
+        # Parent resource field name for every resource
         self.parent_name = {}
+        # Parent resource name for every resource
         self.parent_resource = {}
+        # Childs one2many field name for every resource
         self.childs_name = {}
+        # Child resource name for every resource
         self.childs_resource = {}
         self.uninstallable_modules = []
         self.convey_record = {}
@@ -495,7 +517,7 @@ class MainTest(SingleTransactionCase):
         if resource == "product.product":
             parent_resource = "product.template"
         else:
-            parent_resource = parent_resource or ".".join(resource.split(".")[:-1])
+            parent_resource = parent_resource or resource.rsplit(".", 1)[0]
         if parent_resource not in self.env:
             parent_resource = None
         if parent_resource and resource not in self.parent_resource:
@@ -580,11 +602,7 @@ class MainTest(SingleTransactionCase):
     @api.model
     def _unpack_xref(self, xref):
         # This is a 3 level external reference for header/detail relationship
-        ln = xref.split("_")
-        # Actual external reference for parent record
-        xref = "_".join(ln[:-1])
-        # Key to search for child record
-        ln = ln[-1]
+        xref, ln = xref.rsplit("_", 1)
         if ln.isdigit():
             ln = int(ln) or False
         elif isinstance(ln, basestring) and self._is_xref(ln):
@@ -716,20 +734,26 @@ class MainTest(SingleTransactionCase):
             else:
                 multi_key = True if self.parent_name.get(resource) else False
                 hdr_key = True if self.childs_name.get(resource) else False
+                self.skeys[resource] = []
                 for field in KEY_CANDIDATE:
                     if (
                         field == self.parent_name.get(resource)
                         or field in ("product_id", "partner_id") and hdr_key
                         or (field == "sequence" and not multi_key)
-                        or (field == "code" and resource == "product.product")
+                        or resource in KEY_INCANDIDATE.get(field, [])
                     ):
                         continue  # pragma: no cover
                     if field in self.struct[resource]:
-                        self.skeys[resource] = [field]
+                        self.skeys[resource].append(field)
                         self.log_lvl_2(
                             " 🌍 skeys[%s] = %s" % (resource, self.skeys[resource])
                         )
-                        break
+                        if (
+                            not multi_key
+                            or field == "sequence"
+                            or len(self.skeys[resource]) >= 3
+                        ):
+                            break
 
     # ---------------------------------------------
     # --  Type <char> / <text> / base functions  --
@@ -1754,14 +1778,6 @@ class MainTest(SingleTransactionCase):
         return python_plus.compute_date(self.u(date), refdate=self.u(refdate))
 
     @api.model
-    def resource_bind(self, xref, raise_if_not_found=True, resource=None, group=None):
-        self.log_lvl_1("resource_bind() is deprecated: please use resource_browse()")
-        return self.resource_browse(xref=xref,
-                                    raise_if_not_found=raise_if_not_found,
-                                    resource=resource,
-                                    group=group)
-
-    @api.model
     def resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None):
         """Bind record by xref or searching it or browsing it.
         This function returns a record using issued parameters. It works in follow ways:
@@ -1785,6 +1801,25 @@ class MainTest(SingleTransactionCase):
         Raises:
             ValueError: if invalid parameters issued
         """
+        def build_domain(domain, k1, values):
+            kk = True
+            for field in self.skeys[resource]:
+                if k1 and kk:
+                    domain.append((field, "=", k1))
+                    kk = False
+                elif field in values:
+                    # domain = [(field, "=", values[field])]
+                    domain.append((field, "=", self._cast_field(
+                        resource, field, values[field], fmt="cmd")))
+            if domain and (
+                    resource not in RESOURCE_WO_COMPANY
+                    and "company_id" in self.struct[resource]
+            ):
+                domain.append("|")
+                domain.append(("company_id", "=", self.default_company().id))
+                domain.append(("company_id", "=", False))
+            return domain
+
         self.log_stack()
         self.log_lvl_3("🐞%s.resource_browse(%s)" % (resource, xref))
         # Search for Odoo standard external reference
@@ -1820,34 +1855,38 @@ class MainTest(SingleTransactionCase):
 
         values = self.get_resource_data(resource, xref, group=group)
         module, name = xref.split(".", 1)
-        key_field = self.skeys[resource][0]
         parent_name = self.parent_name.get(resource)
         if parent_name and self.parent_resource[resource] in self.childs_resource:
-            name, x = self._unpack_xref(name)
-            if not x:                                                # pragma: no cover
-                return False
-            domain = [(key_field, "=", x)]
-            x = self.resource_browse(
+            name, ln = self._unpack_xref(name)
+            parent_rec = self.resource_browse(
                 "%s.%s" % (module, name),
                 resource=self.parent_resource[resource],
                 raise_if_not_found=False,
                 group=group,
             )
-            if not x:                                                # pragma: no cover
+            if not parent_rec:                                       # pragma: no cover
+                if raise_if_not_found:
+                    self.raise_error(
+                        "Parent xref %s.%s not found for %s" % (module, name, resource))
+                self._logger.info(
+                    "⚠ Parent xref %s.%s not found for %s" % (module, name, resource))
                 return False
-            domain.append((parent_name, "=", x.id))
+            domain = [(parent_name, "=", parent_rec.id)]
         else:
-            if key_field in values:
-                name = values[key_field]
-            domain = [(key_field, "=", name)]
-        if (
-            resource not in RESOURCE_WO_COMPANY
-            and "company_id" in self.struct[resource]
-        ):
-            domain.append("|")
-            domain.append(("company_id", "=", self.default_company().id))
-            domain.append(("company_id", "=", False))
-        record = self.env[resource].search(domain)
+            domain = []
+            ln = parent_rec = False
+        domain = build_domain(domain, ln, values)
+        if not domain:                                               # pragma: no cover
+            if raise_if_not_found:
+                self.raise_error("Invalid search keys for model %s" % resource)
+            self._logger.info("⚠ Invalid search keys for model %s" % resource)
+            return False
+        record = self.env[resource].search(domain, limit=3)
+        if len(record) != 1 and parent_rec and isinstance(ln, (int, long)):
+            domain = [(parent_name, "=", parent_rec.id)]
+            domain = build_domain(domain, False, values)
+            if domain:
+                record = self.env[resource].search(domain)
         if len(record) == 1:
             return self.env[resource].browse(record[0].id)
         if raise_if_not_found:
@@ -1885,7 +1924,7 @@ class MainTest(SingleTransactionCase):
             % (resource, self.dict_2_print(values), xref)
         )
         values = self.cast_types(resource, values, fmt="cmd", group=group)
-        if resource.startswith("account.move"):
+        if resource.startswith("account.move") and "line_ids" not in values:
             res = (
                 self.env[resource]
                 .with_context(check_move_validity=False)
@@ -2058,7 +2097,7 @@ class MainTest(SingleTransactionCase):
             )
 
     @api.model
-    def get_resource_data(self, resource, xref, group=None):
+    def get_resource_data(self, resource, xref, group=None, try_again=True):
         """Get declared resource data; may be used to test compare.
 
         Args:
@@ -2069,16 +2108,18 @@ class MainTest(SingleTransactionCase):
         Returns:
             dictionary with data or empty dictionary
         """
-        xref = self._get_conveyed_value(resource, None, xref)
-        if (not resource or not group) and xref in self.setup_xrefs:
-            group, resource = self.setup_xrefs[xref]
+        if try_again:
+            xref = self._get_conveyed_value(resource, None, xref)
         group = group or "base"
         if (
             group in self.setup_data
-            and resource in self.setup_data[group]
+            and resource and resource in self.setup_data[group]
             and xref in self.setup_data[group][resource]
         ):
             return self.setup_data[group][resource][xref]
+        if try_again and xref in self.setup_xrefs:
+            group, resource = self.setup_xrefs[xref]
+            return self.get_resource_data(resource, xref, group=group, try_again=False)
         return {}  # pragma: no cover
 
     @api.model
@@ -2641,7 +2682,7 @@ class MainTest(SingleTransactionCase):
                 ):
                     tmpl = tmpl[2]
                     template[ix] = tmpl
-                if not isinstance(tmpl, dict):
+                if not isinstance(tmpl, dict):                      # pragma: no cover
                     self.raise_error(
                         ("Function validate_records(): "
                          "invalid structure: %s must be a dictionary!" % tmpl)
@@ -2669,7 +2710,7 @@ class MainTest(SingleTransactionCase):
             return match
 
         resource = self._get_model_from_records(record)
-        if not resource:
+        if not resource:                                            # pragma: no cover
             self.raise_error("No valid record supplied for comparation!")
         self._load_field_struct(resource)
         childs_name = self.childs_name.get(resource)
@@ -2709,7 +2750,7 @@ class MainTest(SingleTransactionCase):
         def get_best_score(template, record, rec_parent=None, matched=[], childs=False):
             resource = self._get_model_from_records(record)
             childs_name = self.childs_name.get(resource)
-            if childs and not childs_name:
+            if childs and not childs_name:                          # pragma: no cover
                 return None, None
             ctr = -1
             match_key = match_tmpl = None

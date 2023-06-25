@@ -1828,7 +1828,7 @@ Current version via Git
 History
 -------
 
-2.0.8.1 (2023-06-09)
+2.0.9 (2023-06-09)
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] TestEnv: sometimes, validate_records does not match many2one fields

@@ -59,7 +59,7 @@ repos:
         exclude: /README\.rst$|\.pot?$
       # - id: debug-statements
       - id: fix-encoding-pragma
-        exclude: /testenv\.py$|/_check4deps_\.py$
+        exclude: /testenv\.py$|/_check4deps_\.py$|conf\.py$|/tests/data/
       - id: check-case-conflict
       # - id: check-docstring-first
       - id: check-executables-have-shebangs

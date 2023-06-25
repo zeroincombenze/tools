@@ -227,7 +227,7 @@ class RegressionTest:
     def test_05(self, z0ctx):
         src_ffn = self.get_fullname("pkg_py2_05.py")
         tgt_ffn = self.get_test_fullname("pkg_py3_05.py")
-        cmd = "arcangelo -fw --pypi-package --python-ver=3 %s -o %s" % (
+        cmd = "arcangelo -fw --pypi-package %s -o %s" % (
             src_ffn,
             tgt_ffn,
         )
@@ -236,16 +236,17 @@ class RegressionTest:
             print("Error %d file %s" % (sts, src_ffn))
             print(stderr)
             return sts
+        # With future result is like python2
         self.Z.test_result(
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py3_05.py")),
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")),
             True,
         )
 
         src_ffn = self.get_fullname("pkg_py3_05.py")
         tgt_ffn = self.get_test_fullname("pkg_py2_05.py")
-        cmd = "arcangelo -fw --pypi-package --python-ver=2 %s -o %s" % (
+        cmd = "arcangelo -fw --pypi-package %s -o %s" % (
             src_ffn,
             tgt_ffn,
         )
@@ -264,7 +265,7 @@ class RegressionTest:
     def test_06(self, z0ctx):
         src_ffn = self.get_fullname("pkg_py2_06.py")
         tgt_ffn = self.get_test_fullname("pkg_py3_06.py")
-        cmd = "arcangelo -fw --pypi-package --python-ver=3 %s -o %s" % (
+        cmd = "arcangelo -fw --pypi-package %s -o %s" % (
             src_ffn,
             tgt_ffn,
         )
@@ -273,10 +274,11 @@ class RegressionTest:
             print("Error %d file %s" % (sts, src_ffn))
             print(stderr)
             return sts
+        # With future result is like python2
         self.Z.test_result(
             z0ctx,
             cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py3_06.py")),
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_06.py")),
             True,
         )
 

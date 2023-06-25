@@ -27,8 +27,8 @@ __version__ = "2.0.8"
 # - !REGEX is a python re: current line is processes if it does not match REGEX
 #   If you will match "!" (exclamation point) user escape char "\": i.e. "\!match"
 #   Escape before "!" is needed just at the beginning of the REGEX
-# - !(RE)REGEX are two python re; if current line matches (BY search) the RE, rule is
-#   skipped otherwise current line is processed if IT matches REGEX; i.e:  !pkg^import
+# - !(RE)REGEX are two python re; if current line matches (by search) the RE, rule is
+#   skipped otherwise current line is processed if it matches REGEX; i.e:  !pkg^import
 #   Rule is applied on every line beginning with "import" but not on "import pkg"
 # - {{EXPR}}EREGEX is double expression; EREGEX is validated if pythonic EXPR is true
 #   Some test are useful, like:
@@ -63,98 +63,22 @@ __version__ = "2.0.8"
 # - "=": execute python code
 #
 
-# _RULES_GLOBALS = [
+# _RULES_TO_ODOO_PY3 = [
 #     (
-#         r"^# -\*- coding: utf-8 -\*-",
-#         ("$", "matches_utf8"),
-#     ),
-#     (
-#         "^# (flake8|pylint):",
-#         ("$", "matches_lint"),
-#     ),
-#     (
-#         "!(coding|flake8|pylint|python)^#",
-#         ("$", "matches_no_lint"),
-#     ),
-#     (
-#         "!^#",
-#         ("$", "matches_no_lint"),
-#     ),
-#     (
-#         r"^ *class [^(]+\(",
-#         ("$", "matches_class"),
-#     ),
-#     (
-#         r"^# -\*- encoding: utf-8 -\*-",
-#         ("d",),
-#     ),
-# ]
-_RULES_GLOBALS_XML = []
-# _RULES_TO_NEW_API = [
-#     (
-#         "^from openerp.osv import",
-#         ("s", "from openerp.osv import", "from odoo import"),
-#         ("s", "orm", "models"),
-#     ),
-#     (
-#         r"^ *class [^(]+\([^)]*\)",
-#         ("s", "orm.Model", "models.Model"),
-#         ("s", "osv.osv_memory", "models.TransientModel"),
-#     ),
-#     (
-#         r"^ *def [^(]+\(self, *cr, *uid, [^)]*\)",
-#         ("s", r"\(self, *cr, *uid,", "(self,"),
+#         r"^ *super\([^)]*\)",
+#         ("s", r"super\([^)]*\)", "super()"),
+#         ("s", r"\(cr, *uid, *", "("),
 #         ("s", r", *context=[^)]+", ""),
 #     ),
-#     ("^from openerp", ("s", "openerp", "odoo")),
-#     ("!(import).*osv.except_osv", ("s", "osv.except_osv", "UserError")),
 # ]
-# _RULES_TO_OLD_API = [
+# _RULES_TO_ODOO_PY2 = [
 #     (
-#         "^from odoo import",
-#         ("s", "models", "orm"),
-#         ("s", "odoo", "openerp.osv"),
-#         ("s", "models.TransientModel", "osv.osv_memory"),
-#     ),
-#     (
-#         r"^ *class [^(]+\([^)]*\)",
-#         ("s", "models.Model", "orm.Model"),
-#     ),
-#     (
-#         r"^ *def [^(]+\(self, [^)]*\)",
-#         ("s", r"\(self,", "(self, cr, uid,"),
-#         ("s", r"\)", ", context=None)"),
-#     ),
-#     (
-#         "^from odoo.exceptions import UserError",
-#         ("s", "import UserError", "import Warning as UserError"),
-#     ),
-#     ("^from odoo", ("s", "odoo", "openerp")),
-#     (
-#         "from odoo.exceptions import UserError",
-#         (
-#             "s",
-#             "from odoo.exceptions import UserError",
-#             "from openerp.osv.osv import except_osv"
-#         ),
+#         r"^ *super\([^)]*\)",
+#         ("s", r"super\(\)", "super(%(classname)s, self)"),
+#         ("-8s", r"(\)\.[^(]+)\(", r"\1(cr, uid, "),
+#         ("-8s", r"(super[^)]+\)[^)]+)", r"\1, context=context"),
 #     ),
 # ]
-_RULES_TO_ODOO_PY3 = [
-    (
-        r"^ *super\([^)]*\)",
-        ("s", r"super\([^)]*\)", "super()"),
-        ("s", r"\(cr, *uid, *", "("),
-        ("s", r", *context=[^)]+", ""),
-    ),
-]
-_RULES_TO_ODOO_PY2 = [
-    (
-        r"^ *super\([^)]*\)",
-        ("s", r"super\(\)", "super(%(classname)s, self)"),
-        ("-8s", r"(\)\.[^(]+)\(", r"\1(cr, uid, "),
-        ("-8s", r"(super[^)]+\)[^)]+)", r"\1, context=context"),
-    ),
-]
 RULES_TO_XML_NEW = [
     (
         "^ *<openerp",
@@ -207,24 +131,24 @@ RULES_TO_XML_OLD = [
         ("$", "matches_data_endtag"),
     ),
 ]
-RULES_TO_PYPI_PY3 = [
-    (
-        r"^ *super\([^)]*\)",
-        ("s", r"super\([^)]*\)", "super()"),
-    ),
-]
-RULES_TO_PYPI_PY2 = [
-    (
-        r"^ *super\(\)",
-        ("s", r"super\(\)", "super(%(classname)s, self)"),
-    ),
-]
-RULES_TO_PYPI_FUTURE = [
-    (
-        r"^ *super\(\)",
-        ("s", r"super\(\)", "super(%(classname)s, self)"),
-    ),
-]
+# RULES_TO_PYPI_PY3 = [
+#     (
+#         r"^ *super\([^)]*\)",
+#         ("s", r"super\([^)]*\)", "super()"),
+#     ),
+# ]
+# RULES_TO_PYPI_PY2 = [
+#     (
+#         r"^ *super\(\)",
+#         ("s", r"super\(\)", "super(%(classname)s, self)"),
+#     ),
+# ]
+# RULES_TO_PYPI_FUTURE = [
+#     (
+#         r"^ *super\(\)",
+#         ("s", r"super\(\)", "super(%(classname)s, self)"),
+#     ),
+# ]
 
 
 class MigrateFile(object):
@@ -256,7 +180,7 @@ class MigrateFile(object):
                 if not x:
                     sts = 1
             if sts == 0:
-                branch = branch[x.start() : x.end()]
+                branch = branch[x.start(): x.end()]
                 opt_args.to_version = branch
             else:
                 opt_args.to_version = "12.0"
@@ -312,15 +236,15 @@ class MigrateFile(object):
             ):
                 self.ignore_file = True
         if not self.opt_args.force and (
-            os.path.basename(self.ffn) == "testenv.py"
-            or "/tests/data/" in os.path.dirname(self.ffn)
+            os.path.basename(self.ffn) in ("testenv.py", "conf.py", "_check4deps_.py")
+            or "/tests/data/" in os.path.abspath(self.ffn)
         ):
             self.ignore_file = True
 
     def get_noupdate_property(self, nro):
         if "noupdate" in self.lines[nro]:
             x = re.search("noupdate *=\"[01]\"", self.lines[nro])
-            return self.lines[nro][x.start() : x.end()]
+            return self.lines[nro][x.start(): x.end()]
         return ""
 
     def matches_ignore(self, nro):
@@ -328,7 +252,7 @@ class MigrateFile(object):
 
     def matches_class(self, nro):
         x = self.re_match(r"^ *class [^(]+", self.lines[nro])
-        self.classname = self.lines[nro][x.start() + 6 : x.end()].strip()
+        self.classname = self.lines[nro][x.start() + 6: x.end()].strip()
         return False, 0
 
     def matches_odoo_tag(
@@ -417,24 +341,20 @@ class MigrateFile(object):
             offset = -1
         return False, offset
 
+    def matches_end_utf8(self, nro):
+        offset = 0
+        if self.utf8_decl_nro < 0 and (self.py23 == 2 or self.python_future):
+            if not self.opt_args.ignore_pragma:
+                self.lines.insert(nro, "# -*- coding: utf-8 -*-")
+                self.utf8_decl_nro = nro
+        return False, offset
+
     def matches_lint(self, nro):
         offset = 0
         if self.utf8_decl_nro >= 0:
             del self.lines[self.utf8_decl_nro]
             self.utf8_decl_nro = -1
             offset = -1
-        return False, offset
-
-    def matches_no_lint(self, nro):
-        offset = 0
-        if not self.utf8_decl_nro >= 0 and (self.py23 == 2 or self.python_future):
-            if not self.opt_args.ignore_pragma:
-                # if self.lines[nro].startswith("#!"):
-                #     self.lines.insert(nro + 1, "# -*- coding: utf-8 -*-")
-                #     self.utf8_decl_nro = nro + 1
-                # else:
-                self.lines.insert(nro, "# -*- coding: utf-8 -*-")
-                self.utf8_decl_nro = nro
         return False, offset
 
     def comparable_version(self, version):
@@ -454,35 +374,35 @@ class MigrateFile(object):
         if action.startswith("+"):
             x = self.re_match(r"\+[0-9]+\.[0-9]", action)
             if x:
-                ver = action[x.start() : x.end()]
+                ver = action[x.start(): x.end()]
                 if self.comparable_version(
                     self.opt_args.python_ver
                 ) < self.comparable_version(ver):
                     return False, 0
             else:
                 x = self.re_match(r"\+[0-9]+", action)
-                ver = int(action[x.start() + 1 : x.end()])
+                ver = int(action[x.start() + 1: x.end()])
                 if ver and ver < 6 and self.py23 < ver:
                     return False, 0
                 if ver and ver >= 6 and self.to_major_version < ver:
                     return False, 0
-            action = action[x.end() :]
+            action = action[x.end():]
         if action.startswith("-"):
             x = self.re_match(r"\-[0-9]+\.[0-9]", action)
             if x:
-                ver = action[x.start() : x.end()]
+                ver = action[x.start(): x.end()]
                 if self.comparable_version(
                     self.opt_args.python_ver
                 ) > self.comparable_version(ver):
                     return False, 0
             else:
                 x = self.re_match(r"-[0-9]+", action)
-                ver = int(action[x.start() + 1 : x.end()])
+                ver = int(action[x.start() + 1: x.end()])
                 if ver and ver < 6 and self.py23 > ver:
                     return False, 0
                 if ver and ver >= 6 and self.to_major_version > ver:
                     return False, 0
-            action = action[x.end() :]
+            action = action[x.end():]
         if action == "s":
             rule, expr, res, regex, not_expr, sre = self.split_py_re_rules(params[0])
             if sre and re.search(sre, self.lines[nro]):
@@ -515,7 +435,7 @@ class MigrateFile(object):
     def split_py_re_rules(self, rule):
         x = self.re_match(r"\{\{.*\}\}", rule)
         if x:
-            expr = rule[x.start() + 2 : x.end() - 2].strip()
+            expr = rule[x.start() + 2: x.end() - 2].strip()
             rule = rule[x.end()]
             try:
                 res = eval(expr)
@@ -532,8 +452,8 @@ class MigrateFile(object):
         if rule.startswith("!"):
             self.re_match(r"!\([^)]+\)+", rule)
             if x:
-                sre = rule[x.start() + 2 : x.end() - 1].strip()
-                regex = rule[x.end() :]
+                sre = rule[x.start() + 2: x.end() - 1].strip()
+                regex = rule[x.end():]
             else:
                 regex = rule[1:]
                 not_expr = True
@@ -609,9 +529,10 @@ class MigrateFile(object):
         if self.opt_args.pypi_package:
             if self.python_future:
                 TARGET += self.load_config("to_pypi_future")
-            TARGET += self.load_config(
-                "to_pypi_py2" if self.py23 == 2 else "to_pypi_py3"
-            )
+            else:
+                TARGET += self.load_config(
+                    "to_pypi_py2" if self.py23 == 2 else "to_pypi_py3"
+                )
         elif self.is_xml:
             TARGET += self.load_config(
                 "to_xml_old" if self.to_major_version < 8 else "to_xml_new"
@@ -636,34 +557,60 @@ class MigrateFile(object):
         if os.path.basename(self.ffn) in (
                 "history.rst", "HISTORY.rst", "CHANGELOG.rst"):
             return self.do_upgrade_history()
-        return self.do_migrate_source()
+        if self.ffn.endswith('.py') or self.ffn.endswith('.xml'):
+            return self.do_migrate_source()
+        return False
 
     def do_migrate_source(self):
+
+        def run_sub_rules(rule, nro, regex, next_nro):
+            do_continue = do_break = False
+            for subrule in rule[1:]:
+                # subrule may be: ("s", src, tgt) or ("d") or ...
+                do_break, offset = self.update_line(nro, subrule, regex)
+                if offset:
+                    next_nro = nro + 1 + offset
+                    if offset < 0:
+                        do_continue = True
+                        break
+                elif do_break:
+                    break
+            return do_continue, do_break, next_nro
+
         TGT_RULES = self.init_env()
         nro = 0
         while nro < len(self.lines):
             next_nro = nro + 1
             do_continue = False
-            if not self.lines[nro]:
-                do_continue = True
-            else:
-                for rule in TGT_RULES:
-                    # rule format: (action, )
-                    #              (action, (params), ...)
-                    # Match python expression and extract REGEX from EREGEX
-                    regex = self.rule_matches(rule[0], nro)
-                    for subrule in rule[1:]:
-                        # subrule may be: ("s", src, tgt) or ("d") or ...
-                        do_break, offset = self.update_line(nro, subrule, regex)
-                        if offset:
-                            next_nro = nro + 1 + offset
-                            if offset < 0:
-                                do_continue = True
-                                break
-                        elif do_break:
-                            break
-                    if do_continue or do_break:
-                        break
+            # if not self.lines[nro]:
+            #     for rule in TGT_RULES:
+            #         if rule[0] != "$":
+            #             continue
+            #         do_continue, do_break, next_nro = run_sub_rules(
+            #             rule, nro, rule[0], next_nro)
+            #         if do_continue or do_break:
+            #             break
+            #     do_continue = True
+            # else:
+            for rule in TGT_RULES:
+                # rule format: (action, )
+                #              (action, (params), ...)
+                # Match python expression and extract REGEX from EREGEX
+                regex = self.rule_matches(rule[0], nro)
+                do_continue, do_break, next_nro = run_sub_rules(
+                    rule, nro, regex, next_nro)
+                # for subrule in rule[1:]:
+                #     # subrule may be: ("s", src, tgt) or ("d") or ...
+                #     do_break, offset = self.update_line(nro, subrule, regex)
+                #     if offset:
+                #         next_nro = nro + 1 + offset
+                #         if offset < 0:
+                #             do_continue = True
+                #             break
+                #     elif do_break:
+                #         break
+                if do_continue or do_break:
+                    break
             if do_continue:
                 nro = next_nro
                 continue
@@ -760,7 +707,8 @@ class MigrateFile(object):
                 os.mkdir(os.path.isdir(os.path.dirname(out_ffn)))
         else:
             out_ffn = self.ffn
-        if not self.ignore_file and self.source != "\n".join(self.lines):
+        if not self.ignore_file and (out_ffn != self.ffn
+                                     or self.source != "\n".join(self.lines)):
             if not self.opt_args.in_place:
                 bakfile = '%s.bak' % out_ffn
                 if os.path.isfile(bakfile):

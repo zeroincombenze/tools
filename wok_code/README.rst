@@ -828,7 +828,7 @@ Current version via Git
 History
 -------
 
-2.0.8.1 (2023-05-09)
+2.0.9 (2023-05-09)
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states

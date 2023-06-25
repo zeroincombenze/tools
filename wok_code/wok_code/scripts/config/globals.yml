@@ -1,4 +1,9 @@
 -
+  - '$'
+  -
+    - '$'
+    - matches_end_utf8
+-
   - '^# -\*- coding: utf-8 -\*-'
   -
     - '$'
@@ -17,7 +22,12 @@
   - '!(coding|flake8|pylint|python|/bin/env)^#'
   -
     - '$'
-    - matches_no_lint
+    - matches_end_utf8
+-
+  - '!^#'
+  -
+    - '$'
+    - matches_end_utf8
 -
   - '^ *class [^(]+\('
   -
