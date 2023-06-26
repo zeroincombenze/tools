@@ -1,8 +1,12 @@
 #!/bin/bash
 [[ -n $1 && $1 == "-h" ]] && echo $0 [start][reload][restart][start-stopped][status][stop] && exit 0
-$(grep -q "^systemd *= *true" /etc/wsl.conf) && SYSTEMCTL=1 | SYSTEMCTL=0
+$(grep -q "^systemd *= *true" /etc/wsl.conf) && export SYSTEMCTL=1 | export SYSTEMCTL=0
 [[ -n $1 && $1 =~ (start|reload|restart|start-stopped|status|stop) ]] && action=$1 || action="start-stopped"
-if [[ $action =~ ^(start|start_stopped)$ ]]
+NOW=$(date "+%s")
+FLOG="$HOME/service_manager.log"
+DIFF=86400
+[[ -f $FLOG ]] && LAST=$(stat -c "%Y" $FLOG) && ((DIFF=NOW-LAST))
+if [[ $DIFF -gt 180 && $action =~ ^(start|start_stopped)$ ]]
 then
     echo " - hwclock"
     hwclock|tr " " "T"|xargs -I '{}' date "+%Y-%m-%dT%H:%M:%S.%N" -s "{}"
@@ -15,6 +19,8 @@ then
     systemctl start set_hosts
     chown odoo:odoo /var/run/odoo/*
     chown odoo:odoo /var/log/odoo/*
+    echo "last_update = $NOW">$FLOG
+    echo "systemctl = $SYSTEMCTL">>$FLOG
 fi
 for svc in postgresql apache2 httpd odoo link_windows_cmd
 do

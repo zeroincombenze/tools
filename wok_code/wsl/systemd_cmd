@@ -67,7 +67,7 @@ case "${1}" in
         ;;
 
     *)
-        echo "Usage: set_hosts {start|stop|status}" >&2
+        echo "Usage: %0 {start|stop|status}" >&2
         exit 1
         ;;
 esac

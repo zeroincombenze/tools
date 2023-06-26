@@ -311,23 +311,29 @@ class CvtCsvFile(object):
                     for name in self.hdr.keys():
                         ttype = ""
                         if name.endswith(":id"):
-                            name = transodoo.translate_from_to(
-                                self.ctx,
-                                self.opt_args.model,
-                                name.replace(":id", ""),
-                                self.opt_args.to_version,
-                                self.opt_args.from_version,
-                                ttype="field",
-                            ) + ":id"
+                            name = (
+                                transodoo.translate_from_to(
+                                    self.ctx,
+                                    self.opt_args.model,
+                                    name.replace(":id", ""),
+                                    self.opt_args.to_version,
+                                    self.opt_args.from_version,
+                                    ttype="field",
+                                )
+                                + ":id"
+                            )
                         elif name.endswith("/id"):
-                            name = transodoo.translate_from_to(
-                                self.ctx,
-                                self.opt_args.model,
-                                name.replace(":id", ""),
-                                self.opt_args.to_version,
-                                self.opt_args.from_version,
-                                ttype="field",
-                            ) + ":id"
+                            name = (
+                                transodoo.translate_from_to(
+                                    self.ctx,
+                                    self.opt_args.model,
+                                    name.replace(":id", ""),
+                                    self.opt_args.to_version,
+                                    self.opt_args.from_version,
+                                    ttype="field",
+                                )
+                                + ":id"
+                            )
                         else:
                             name = transodoo.translate_from_to(
                                 self.ctx,

@@ -314,10 +314,15 @@ Current version via Git
 History
 -------
 
+2.0.6.1 (2023-06-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
+
 2.0.6 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~
 
-* [IMP] Incoropred new pypi oerlib3
+* [IMP] Incorpored new pypi oerlib3
 
 2.0.5 (2023-05-08)
 ~~~~~~~~~~~~~~~~~~

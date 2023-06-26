@@ -3,11 +3,11 @@
 import os
 import sys
 
-__version__ = '2.0.8'
+__version__ = "2.0.8"
 
 
 def get_remote_user():
-    local_user = os.environ['USER']
+    local_user = os.environ["USER"]
     user = None
     default_user = None
     for key, item in DATA[host].items():
@@ -15,10 +15,7 @@ def get_remote_user():
             continue
         if not default_user or key == local_user:
             default_user = key
-        if (
-            (not root_user and key == local_user) or
-            (root_user and key != local_user)
-        ):
+        if (not root_user and key == local_user) or (root_user and key != local_user):
             user = key
             break
     if not user:
@@ -27,23 +24,25 @@ def get_remote_user():
 
 
 def get_cmd(host, user):
-    param = DATA[host][user].get('param')
-    passwd = DATA[host][user].get('passwd')
+    param = DATA[host][user].get("param")
+    passwd = DATA[host][user].get("passwd")
     if passwd:
-        os.environ['SSHPASS'] = passwd
-        return 'sshpass -e ssh %s %s@%s' % (
-            param, user, host) if param else 'sshpass -e ssh %s@%s' % (user, host)
-    return 'ssh %s %s@%s' % (
-        param, user, host) if param else 'ssh %s@%s' % (user, host)
+        os.environ["SSHPASS"] = passwd
+        return (
+            "sshpass -e ssh %s %s@%s" % (param, user, host)
+            if param
+            else "sshpass -e ssh %s@%s" % (user, host)
+        )
+    return "ssh %s %s@%s" % (param, user, host) if param else "ssh %s@%s" % (user, host)
 
 
 def get_cmd_rsync(host, user, source, dest, recurse):
-    param = DATA[host][user].get('param', "")
+    param = DATA[host][user].get("param", "")
     port = ""
     if param.startswith("-p"):
         port = param.split(" ")[1]
         param = ""
-    passwd = DATA[host][user].get('passwd')
+    passwd = DATA[host][user].get("passwd")
     if recurse and not source.endswith("/"):
         source = "%s/" % source
     if recurse and not dest.endswith("/"):
@@ -53,59 +52,63 @@ def get_cmd_rsync(host, user, source, dest, recurse):
     elif dest.startswith("@"):
         dest = "%s@%s:%s" % (user, host, dest[1:])
     if passwd:
-        os.environ['SSHPASS'] = passwd
-        return 'sshpass -e rsync -avz %s %s %s' % (param, source, dest)
+        os.environ["SSHPASS"] = passwd
+        return "sshpass -e rsync -avz %s %s %s" % (param, source, dest)
     if port:
-        return 'rsync -avz -e \'ssh -p %s\' %s %s %s' % (port, param, source, dest)
-    return 'rsync -avz %s %s %s' % (param, source, dest)
+        return "rsync -avz -e 'ssh -p %s' %s %s %s" % (port, param, source, dest)
+    return "rsync -avz %s %s %s" % (param, source, dest)
 
 
 def get_cmd_scp(host, user, source, dest, recurse):
-    param = DATA[host][user].get('param', "").replace("-p", "-P")
+    param = DATA[host][user].get("param", "").replace("-p", "-P")
     if recurse:
         if param.startswith("-"):
             param += " -r"
         else:
             param = "-r"
-    passwd = DATA[host][user].get('passwd')
+    passwd = DATA[host][user].get("passwd")
     if source.startswith("@"):
         source = "%s@%s:%s" % (user, host, source[1:])
     elif dest.startswith("@"):
         dest = "%s@%s:%s" % (user, host, dest[1:])
     if passwd:
-        os.environ['SSHPASS'] = passwd
-        return 'sshpass -e scp %s %s %s' % (param, source, dest)
-    return 'scp %s %s %s' % (param, source, dest)
+        os.environ["SSHPASS"] = passwd
+        return "sshpass -e scp %s %s %s" % (param, source, dest)
+    return "scp %s %s %s" % (param, source, dest)
 
 
 def show_host(sel_host=None):
     valid_hosts = []
-    prior_host = ''
+    prior_host = ""
     for host in DATA.keys():
         if sel_host and host != sel_host:
             continue
         if host != prior_host:
-            print('')
+            print("")
             prior_host = host
         for user in DATA[host].keys():
-            if os.environ['USER'] not in DATA[host][user].get('users'):
-                print('      %-48.48s# %s' % (
-                    get_cmd(host, user), DATA[host][user]['users']))
+            if os.environ["USER"] not in DATA[host][user].get("users"):
+                print(
+                    "      %-48.48s# %s"
+                    % (get_cmd(host, user), DATA[host][user]["users"])
+                )
             else:
-                print('    $ %-48.48s# %s' % (
-                    get_cmd(host, user), DATA[host][user]['users']))
+                print(
+                    "    $ %-48.48s# %s"
+                    % (get_cmd(host, user), DATA[host][user]["users"])
+                )
                 if host not in valid_hosts:
                     valid_hosts.append(host)
     if not valid_hosts:
-        print('')
-        print('No host for this user!')
+        print("")
+        print("No host for this user!")
     else:
-        print('You should type:')
+        print("You should type:")
         for host in valid_hosts:
             if host in REV_ALIAS:
-                print('$ ssh %-30.30s # %s' % (host, REV_ALIAS[host]))
+                print("$ ssh %-30.30s # %s" % (host, REV_ALIAS[host]))
             else:
-                print('$ ssh %s' % host)
+                print("$ ssh %s" % host)
 
 
 def show_alias():
@@ -118,7 +121,7 @@ def show_pwd():
     user = get_remote_user()
     if host in DATA.keys():
         if user in DATA[host]:
-            passwd = DATA[host][user].get('passwd')
+            passwd = DATA[host][user].get("passwd")
             if passwd:
                 print("%s (%s)" % (passwd, user))
             else:
@@ -156,11 +159,11 @@ do_dir = False
 root_user = False
 ctr = 0
 for param in sys.argv[1:]:
-    if param.startswith('-'):
+    if param.startswith("-"):
         if "h" in param:
-            print('ssh.py [-adlnvwz] host [user]  # ssh')
-            print('ssh.py -[n][r]s[vz] host [user] source destination  # scp')
-            print('ssh.py -[n][r]m[vz] host [user] source destination  # rsync')
+            print("ssh.py [-adlnvwz] host [user]  # ssh")
+            print("ssh.py -[n][r]s[vz] host [user] source destination  # scp")
+            print("ssh.py -[n][r]m[vz] host [user] source destination  # rsync")
             # show_host()
             exit(0)
         if "a" in param:
@@ -237,37 +240,37 @@ if list_pwd:
     exit(0)
 if host not in DATA:
     if host:
-        print('Host %s not found!' % host)
+        print("Host %s not found!" % host)
     show_host()
     exit(1)
 
 if not user:
     user = get_remote_user()
 if not user:
-    print('No user supplied!')
+    print("No user supplied!")
     show_host(sel_host=host)
     exit(1)
 if user not in DATA[host]:
-    print('User %s not found for host %s!' % (user, host))
+    print("User %s not found for host %s!" % (user, host))
     show_host(sel_host=host)
     exit(1)
-if os.environ['USER'] not in DATA[host][user].get('users'):
-    print('No valid connection parameter for current user!')
+if os.environ["USER"] not in DATA[host][user].get("users"):
+    print("No valid connection parameter for current user!")
     show_host(sel_host=host)
     exit(1)
 
 if do_dir:
     if not source:
-        print('No source path supplied!')
+        print("No source path supplied!")
         exit(1)
     cmd = get_cmd(host, user)
     cmd = "%s dir '%s'" % (cmd, source)
 elif scp or rsync:
     if not source:
-        print('No source path supplied!')
+        print("No source path supplied!")
         exit(1)
     if not dest:
-        print('No destination path supplied!')
+        print("No destination path supplied!")
         exit(1)
     if rsync:
         cmd = get_cmd_rsync(host, user, source, dest, recurse)

@@ -2,8 +2,11 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states
-* [IMP] run_odoo_debug: new brief for status
+* [FIX] run_odoo_debug: check for dropped DB and abort if still exist
+* [IMP] deploy_odoo: new brief for status
 * [IMP] deploy_odoo: new action unstaged e new status format
+* [IMP] do_migrate renamed to arcangelo
+* [IMP] argangelo: refactoring to run inside pre-commit
 
 2.0.8 (2023-05-09)
 ~~~~~~~~~~~~~~~~~~

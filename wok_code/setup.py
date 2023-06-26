@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 from setuptools import find_packages, setup
 
@@ -81,7 +82,7 @@ The available tools are:
             'dist_pkg = wok_code.scripts.dist_pkg:main',
             'do_gitignore = wok_code.do_gitignore:main',
             'do_git_checkout_new_branch = wok_code.do_git_checkout_new_branch:main',
-            'do_migrate = wok_code.scripts.do_migrate:main',
+            'arcangelo = wok_code.scripts.arcangelo:main',
             'do_odoo_site.py = wok_code.scripts.do_odoo_site:main',
             'gen_readme.py = wok_code.scripts.gen_readme:main',
             'lint_2_compare = wok_code.scripts.lint_2_compare:main',

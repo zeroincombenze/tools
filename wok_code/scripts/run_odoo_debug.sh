@@ -534,24 +534,28 @@ if [[ $opt_touch -eq 0 ]]; then
             fnparam="$LOGDIR/${UDI}.sh"
             if [[ $opt_force -ne 0 || ! -f $fnparam ]] || ! echo $c|diff -qw $fnparam - || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
               # Create DB for test
-              run_traced "pg_db_active -L -wa '$TEMPLATE' && dropdb $opts --if-exists '$TEMPLATE'"
-              if [[ $opt_dry_run -eq 0 ]]; then
-                psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database $TEMPLATE removal failed!" && exit 1
+              run_traced "pg_db_active -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
+              c=$(pg_db_active -c "$TEMPLATE")
+              [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
+              # if [[ $opt_dry_run -eq 0 ]]; then
+                psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
                 [[ $odoo_ver -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
                 run_traced "$cmd"
-                run_traced "pg_db_active -L '$TEMPLATE'"
-              fi
+                run_traced "pg_db_active -L \"$TEMPLATE\""
+              # fi
             fi
             if psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
               [[ $opt_dry_run -eq 0 ]] && echo $c > $fnparam
-              run_traced "pg_db_active -L -wa '$opt_db' && dropdb $opts --if-exists '$opt_db'"
-              if [[ $opt_dry_run -eq 0 ]]; then
-                psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database $opt_db removal failed!" && exit 1
-                run_traced "pg_db_active -L -wa '$TEMPLATE'"
+              run_traced "pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
+              c=$(pg_db_active -c \"$opt_db\")
+              [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
+              # if [[ $opt_dry_run -eq 0 ]]; then
+                psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
+                run_traced "pg_db_active -L -wa \"$TEMPLATE\""
                 run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
-              fi
+              # fi
             else
-              echo "Template $TEMPLATE not found!"
+              echo "Template \"$TEMPLATE\" not found!"
               cmd="${cmd/$TEMPLATE$opt_db/}"
               run_traced "$cmd"
             fi
@@ -624,8 +628,10 @@ if [[ $opt_touch -eq 0 ]]; then
     if [[ $drop_db -gt 0 ]]; then
         if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
             [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-            run_traced "pg_db_active -L -wa '$opt_db'; dropdb $opts --if-exists '$opt_db'"
-            [[ opt_dbg -ne 1 ]] && run_traced "pg_db_active -L -wa '$TEMPLATE'; dropdb $opts --if-exists '$TEMPLATE'"
+            run_traced "pg_db_active -L -wa \"$opt_db\"; dropdb $opts --if-exists '$opt_db'"
+            c=$(pg_db_active -c "$opt_db")
+            [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
+            # [[ opt_dbg -ne 1 ]] && run_traced "pg_db_active -L -wa '$TEMPLATE'; dropdb $opts --if-exists '$TEMPLATE'"
         fi
     fi
 fi

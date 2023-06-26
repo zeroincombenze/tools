@@ -13,7 +13,7 @@ from zerobug import z0test, z0testodoo
 
 __version__ = "2.0.8"
 
-MODULE_ID = 'devel_tool'
+MODULE_ID = "devel_tool"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
@@ -44,59 +44,59 @@ class RegressionTest:
         self.Z = z0bug
 
     def create_file_author_1(self, path):
-        fn = os.path.join(path, 'authors.txt')
-        with open(fn, 'w') as fd:
+        fn = os.path.join(path, "authors.txt")
+        with open(fn, "w") as fd:
             fd.write("""* Powerp <http://www.powerp.it/>""")
 
     def create_file_contributor_1(self, path):
-        fn = os.path.join(path, 'contributors.txt')
-        with open(fn, 'w') as fd:
+        fn = os.path.join(path, "contributors.txt")
+        with open(fn, "w") as fd:
             fd.write("""* <antonio.vigliotti@libero.it>""")
 
     def create_file_manifest_1(self, path):
-        fn = os.path.join(path, '__manifest__.py')
-        with open(fn, 'w') as fd:
+        fn = os.path.join(path, "__manifest__.py")
+        with open(fn, "w") as fd:
             fd.write(MANIFEST_1)
 
     def create_file_author_2(self, path):
-        fn = os.path.join(path, 'authors.txt')
-        with open(fn, 'w') as fd:
+        fn = os.path.join(path, "authors.txt")
+        with open(fn, "w") as fd:
             fd.write(AUTHOR_2)
 
     def create_file_contributor_2(self, path):
-        fn = os.path.join(path, 'contributors.txt')
-        with open(fn, 'w') as fd:
+        fn = os.path.join(path, "contributors.txt")
+        with open(fn, "w") as fd:
             fd.write(CONTRIBUTORS_2)
 
     def create_file_manifest_2(self, path):
-        fn = os.path.join(path, '__manifest__.py')
-        with open(fn, 'w') as fd:
+        fn = os.path.join(path, "__manifest__.py")
+        with open(fn, "w") as fd:
             fd.write(MANIFEST_2)
 
     def prepare_env(self, z0ctx, odoo_ver=None, step=None):
         step = step or 1
         if not odoo_ver:
-            raise (ValueError, 'No odoo version supplied')
+            raise (ValueError, "No odoo version supplied")
         odoo_root = z0testodoo.build_odoo_env(z0ctx, odoo_ver)
         odoo_root = os.path.join(odoo_root, odoo_ver)
         for ldir in (
-            ['egg-info'],
-            ['test_repository'],
-            ['test_repository', 'egg-info'],
-            ['test_repository', 'test_module'],
-            ['test_repository', 'test_module', 'egg-info'],
+            ["egg-info"],
+            ["test_repository"],
+            ["test_repository", "egg-info"],
+            ["test_repository", "test_module"],
+            ["test_repository", "test_module", "egg-info"],
         ):
             path = os.path.join(odoo_root, *ldir)
             if not os.path.isdir(path):
                 os.mkdir(path)
-        path = os.path.join(odoo_root, 'test_repository', 'test_module', 'egg-info')
+        path = os.path.join(odoo_root, "test_repository", "test_module", "egg-info")
         if step == 1:
             self.create_file_author_1(path)
             self.create_file_contributor_1(path)
         elif step == 2:
             self.create_file_author_2(path)
             self.create_file_contributor_2(path)
-        path = os.path.join(odoo_root, 'test_repository', 'test_module')
+        path = os.path.join(odoo_root, "test_repository", "test_module")
         if step == 1:
             self.create_file_manifest_1(path)
         elif step == 1:
@@ -108,20 +108,20 @@ class RegressionTest:
         author = False
         website = False
         devman = False
-        if not z0ctx['dry_run']:
-            module_path = self.prepare_env(z0ctx, odoo_ver='12.0')
+        if not z0ctx["dry_run"]:
+            module_path = self.prepare_env(z0ctx, odoo_ver="12.0")
             license = license_mgnt.License(module_path)
             author = license.summary_authors()
             website = license.get_website()
             devman = license.get_maintainer()
         sts += self.Z.test_result(
-            z0ctx, 'License author', 'powERP enterprise network', author
+            z0ctx, "License author", "powERP enterprise network", author
         )
         sts += self.Z.test_result(
-            z0ctx, 'License website', 'https://www.powerp.it', website
+            z0ctx, "License website", "https://www.powerp.it", website
         )
         sts += self.Z.test_result(
-            z0ctx, 'License maintainer', 'powERP enterprise network', devman
+            z0ctx, "License maintainer", "powERP enterprise network", devman
         )
         return sts
 
@@ -130,20 +130,20 @@ class RegressionTest:
         author = False
         website = False
         devman = False
-        if not z0ctx['dry_run']:
-            module_path = self.prepare_env(z0ctx, odoo_ver='12.0', step=2)
+        if not z0ctx["dry_run"]:
+            module_path = self.prepare_env(z0ctx, odoo_ver="12.0", step=2)
             license = license_mgnt.License(module_path)
             author = license.summary_authors()
             website = license.get_website()
             devman = license.get_maintainer()
         sts += self.Z.test_result(
-            z0ctx, 'License author', 'powERP enterprise network, SHS-AV s.r.l.', author
+            z0ctx, "License author", "powERP enterprise network, SHS-AV s.r.l.", author
         )
         sts += self.Z.test_result(
-            z0ctx, 'License website', 'https://www.powerp.it', website
+            z0ctx, "License website", "https://www.powerp.it", website
         )
         sts += self.Z.test_result(
-            z0ctx, 'License maintainer', 'powERP enterprise network', devman
+            z0ctx, "License maintainer", "powERP enterprise network", devman
         )
         return sts
 

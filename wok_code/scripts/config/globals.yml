@@ -1,8 +1,18 @@
 -
+  - '$'
+  -
+    - '$'
+    - matches_end_utf8
+-
   - '^# -\*- coding: utf-8 -\*-'
   -
     - '$'
     - matches_utf8
+-
+  - '^#!'
+  -
+    - '$'
+    - matches_ignore
 -
   - '^# (flake8|pylint):'
   -
@@ -12,12 +22,12 @@
   - '!(coding|flake8|pylint|python|/bin/env)^#'
   -
     - '$'
-    - matches_no_lint
+    - matches_end_utf8
 -
   - '!^#'
   -
     - '$'
-    - matches_no_lint
+    - matches_end_utf8
 -
   - '^ *class [^(]+\('
   -

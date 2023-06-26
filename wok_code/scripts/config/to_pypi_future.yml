@@ -1,0 +1,6 @@
+-
+  - '^ *super\([^)]*\)'
+  -
+    - 's'
+    - 'super\(\)'
+    - 'super(%(classname)s, self)'

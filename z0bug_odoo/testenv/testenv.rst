@@ -1,4 +1,4 @@
-Test Environment v2.0.8.1
+Test Environment v2.0.9
 =========================
 
 Overview
@@ -181,9 +181,9 @@ magic text.
     ...
 
     # Get 'product.template' record
-    self.resource_bind("z0bug.product_template_1")
+    self.resource_browse("z0bug.product_template_1")
     # Get 'product.product' record
-    self.resource_bind("z0bug.product_product_1")
+    self.resource_browse("z0bug.product_product_1")
 
 
 External reference
@@ -201,26 +201,32 @@ The external reference may be:
 Ordinary Odoo external reference (a) is a record of 'ir.model.data';
 you can see them from Odoo GUI interface.
 
-Test reference (b) are visible just in the test environment.
-They are identified by "z0bug." prefix module name.
+Test reference (b) are like external reference (a) but they are visible just in the
+test environment. They are identified by "z0bug." prefix module name.
 
 External key reference (c) is identified by "external." prefix followed by
-the key value used to retrieve the record.
-If key value is an integer it is the record "id".
-The field "code" or "name" are used to search record;
-for account.tax the "description" field is used.
+the key value used to retrieve the record. The field "code" or "name" are usually used
+to search record; for account.tax the "description" field is used.
 Please set self.debug_level = 2 (or more) to log these field keys.
 
 The 2 keys reference (d) needs to address child record inside header record
 at 2 level model (header/detail) relationship.
-The key MUST BE the same key of the parent record,
-plus "_", plus line identifier (usually 'sequence' field).
-i.e. "z0bug.move_1_3" means: line with sequence 3 of 'account.move.line'
-which is child of record "z0bug.move_1" of 'account.move'.
+The key MUST BE the couple of header key plus "_" and plus line key (usually 'sequence'
+field); the header key is the same key of the parent record. The line key may be:
+
+* the sequence value (if present n model)
+* the most meaningful field value
+* an index value
+
+i.e. "z0bug.invoice_1_3" means: line with sequence 3 of 'account.invoice.line'
+which is child of record "z0bug.invoice_1" of 'account.invoice'.
+i.e.: "EUR.2023-06-26" should be the key for res.currency.rate where "EUR" is the header
+key (res.currency) and "2023-06-26" is the date of rate.
 Please set self.debug_level = 2 (or more) to log these relationships.
 
 For 'product.template' (product) you must use '_template' text in reference (e).
-TestEnv inherit 'product.product' (variant) external reference (read above 'Magic relationship).
+TestEnv inherit 'product.product' (variant) external reference (read above
+'Magic relationship).
 
 Examples:
 
@@ -413,12 +419,12 @@ company_id
 ~~~~~~~~~~
 
 If value is empty, user company is used.
-When data is searched by resource_bind() function the "company_id" field
+When data is searched by resource_browse() function the "company_id" field
 is automatically filled and added to search domain.
 This behavior is not applied on
 "res.users", "res.partner","product.template" and "product.product" models.
 For these models you must fill the "company_id" field.
-For these models resource_bind() function searches for record with company_id
+For these models resource_browse() function searches for record with company_id
 null or equal to current user company.
 
 boolean
@@ -654,8 +660,8 @@ def compute_date(self, date, refdate=None):
     date (date or string or integer): formula; read aboove
     refdate (date or string): reference date
 
-resource_bind
-~~~~~~~~~~~~~
+resource_browse
+~~~~~~~~~~~~~~~
 
 Bind record by xref or searching it or browsing it.
 This function returns a record using issued parameters. It works in follow ways:
@@ -666,7 +672,7 @@ This function returns a record using issued parameters. It works in follow ways:
     * xref is searched in stored data
     * xref ("MODULE.NAME"): if MODULE == "external", NAME is the record key
 
-def resource_bind(self, xref, raise_if_not_found=True, resource=None):
+def resource_browse(self, xref, raise_if_not_found=True, resource=None):
 
     Args:
         xref (str): external reference

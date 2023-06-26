@@ -1,3 +1,8 @@
+2.0.5.1 (2023-06-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis: check for dropped DB and abort if still exist
+
 2.0.5 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~
 

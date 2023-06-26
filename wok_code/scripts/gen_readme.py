@@ -1702,7 +1702,7 @@ def manifest_contents(ctx):
                     module,
                     ctx["from_version"],
                     ctx["odoo_vid"],
-                    ttype="module"
+                    ttype="module",
                 )
                 if isinstance(new_module, (list, tuple)):
                     if module in new_module:
@@ -1848,24 +1848,35 @@ def set_default_values(ctx):
 def setup_names(fn, email=None):
     if email == "name":
         with open(fn, RMODE) as fd:
-            return ", ".join([
-                x.split("*", 1)[1].split("<", 1)[0].strip()
-                if x.startswith("*") else x.split("<", 1)[0].strip()
-                for x in fd.read().split("\n") if x
-            ])
+            return ", ".join(
+                [
+                    x.split("*", 1)[1].split("<", 1)[0].strip()
+                    if x.startswith("*")
+                    else x.split("<", 1)[0].strip()
+                    for x in fd.read().split("\n")
+                    if x
+                ]
+            )
     elif email == "email":
         with open(fn, RMODE) as fd:
-            return ", ".join([
-                "<" + x.split("*", 1)[1].split("<", 1)[1].strip()
-                if x.startswith("*") else "<" + x.split("<", 1)[1].strip()
-                for x in fd.read().split("\n") if x
-            ])
+            return ", ".join(
+                [
+                    "<" + x.split("*", 1)[1].split("<", 1)[1].strip()
+                    if x.startswith("*")
+                    else "<" + x.split("<", 1)[1].strip()
+                    for x in fd.read().split("\n")
+                    if x
+                ]
+            )
     else:
         with open(fn, RMODE) as fd:
-            return ", ".join([
-                x.split("*", 1)[0].strip() if x.startswith("*") else x.strip()
-                for x in fd.read().split("\n") if x
-            ])
+            return ", ".join(
+                [
+                    x.split("*", 1)[0].strip() if x.startswith("*") else x.strip()
+                    for x in fd.read().split("\n")
+                    if x
+                ]
+            )
 
 
 def complete_setup(ctx, setup_fn):
@@ -1884,10 +1895,12 @@ def complete_setup(ctx, setup_fn):
         for line in fd.read().split("\n"):
             if AUTH_RE.match(line):
                 line = "author = \"%s\"" % setup_names(
-                    "egg-info/CONTRIBUTORS.txt", email="name")
+                    "egg-info/CONTRIBUTORS.txt", email="name"
+                )
             elif EMAIL_RE.match(line):
                 line = "author_email = \"%s\"" % setup_names(
-                    "egg-info/CONTRIBUTORS.txt",  email="email")
+                    "egg-info/CONTRIBUTORS.txt", email="email"
+                )
             elif URL_RE.match(line):
                 line = line.split("=")[0] + ("=\"%s\"," % SOURCE_ROOT)
             elif SOURCE_URL_RE.match(line):

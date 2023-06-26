@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation on 2019-11-01 19:02:15
 #
@@ -13,6 +14,7 @@
 #
 import os
 import sys
+
 # Follow sys.path load odoo core, needed to import testenv
 sys.path.insert(0, os.path.join(os.path.expanduser("~"), "12.0"))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.getcwd())))

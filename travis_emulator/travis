@@ -1159,10 +1159,11 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
         sfx=$(echo "$d" | grep --color=never -Eo "[0-9]+$")
         if [[ -n $PGUSER ]]; then
           for db in template_odoo_$sfx test_odoo_$sfx; do
-            [[ $opt_verbose -gt 0 ]] && echo "\$ dropdb -U$PGUSER $db"
-            pg_db_active -wa $db
-            run_traced "dropdb -U$PGUSER $db --if-exists &>/dev/null"
-            ((done_db++))
+            [[ $opt_verbose -gt 0 ]] && echo "\$ dropdb -U$PGUSER \"$db\""
+            pg_db_active -wa "$db"
+            run_traced "dropdb -U$PGUSER \"$db\" --if-exists &>/dev/null"
+            c=$(pg_db_active -c "$db")
+            [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$db\"" || ((done_db++))
           done
         fi
       else
@@ -1174,10 +1175,11 @@ elif [[ $action =~ (wep_db|wep-db) ]]; then
   done
   if [[ -n $PGUSER && $all_dbs -ne 0 ]]; then
     for db in $(psql -U$PGUSER -Atl | grep -E "(openerp_test|openerp_template|test_openerp|template_openerp|test_odoo|template_odoo)[0-9]+" | awk -F"|" '{print $1}'); do
-      [[ $opt_verbose -gt 0 ]] && echo "\$ dropdb -U$PGUSER $db"
-      pg_db_active -wa $db
-      run_traced "dropdb -U$PGUSER $db --if-exists &>/dev/null"
-      ((done_db++))
+      [[ $opt_verbose -gt 0 ]] && echo "\$ dropdb -U$PGUSER \"$db\""
+      pg_db_active -wa "$db"
+      run_traced "dropdb -U$PGUSER \"$db\" --if-exists &>/dev/null"
+      c=$(pg_db_active -c "$db")
+      [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$db\"" || ((done_db++))
     done
   fi
   ((md = 60 * 60 * 24 * 90))

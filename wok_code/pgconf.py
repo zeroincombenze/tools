@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import sys
 import os
 import re
@@ -19,8 +20,8 @@ def do_conf_pg(ffn):
     done = False
     target = []
     # import pdb; pdb.set_trace()
-    with open(ffn, 'r') as fd:
-        lines = fd.read().split('\n')
+    with open(ffn, "r") as fd:
+        lines = fd.read().split("\n")
         for nro, line in enumerate(lines):
             if re.match(r"^[\s]*local[\s]*all[\s]*postgres", line):
                 found_tag = True
@@ -58,12 +59,12 @@ def do_conf_pg(ffn):
             target.append(line)
 
     if found_tag:
-        bakfile = '%s.bak' % ffn
+        bakfile = "%s.bak" % ffn
         if os.path.isfile(bakfile):
             os.remove(bakfile)
         if os.path.isfile(ffn):
             os.rename(ffn, bakfile)
-        with open(ffn, 'w') as fd:
+        with open(ffn, "w") as fd:
             fd.write("\n".join(target))
             print(ffn)
 
@@ -72,20 +73,20 @@ def main(argv):
     argv = argv or sys.argv[1:]
     path = None
     for param in argv:
-        if param.startswith('-'):
+        if param.startswith("-"):
             pass
         else:
             path = os.path.expanduser(param)
     if not path:
-        print('No path supplied! Use %s PATH' % sys.argv[0])
+        print("No path supplied! Use %s PATH" % sys.argv[0])
         return 1
     if os.path.isdir(path):
-        print('Supplied path is not a file')
+        print("Supplied path is not a file")
         return 1
     elif os.path.isfile(path):
         do_conf_pg(path)
     else:
-        print('Path %s does not exist!' % sys.argv[0])
+        print("Path %s does not exist!" % sys.argv[0])
         return 2
     return 0
 

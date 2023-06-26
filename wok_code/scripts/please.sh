@@ -1,5 +1,4 @@
 #! /bin/bash
-# -*- coding: utf-8 -*-
 #
 # please
 # Developer shell
@@ -1121,14 +1120,21 @@ do_translate() {
 
 do_lint() {
     wlog "do_lint '$1' '$2' '$3'"
-    local sts=$STS_FAILED s x
+    local sts=$STS_FAILED s x VDIR
+    [[ $PRJNAME == "Odoo" ]] && VDIR=$(build_odoo_param VDIR ./)
     [[ -z $FLAKE8_CONFIG && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg)"
     if [[ -z $FLAKE8_CONFIG ]]; then
       x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
       [[ -n $x ]] && run_traced "export FLAKE8_CONFIG=$($READLINK -f $x/zerobug/_travis/cfg/travis_run_flake8.cfg)"
     fi
     [[ -z $FLAKE8_CONFIG ]] && echo "Non flake8 configuration file found!" && return 1
-    run_traced "flake8 --config=$FLAKE8_CONFIG --extend-ignore=B006 --max-line-length=88 ./"
+    if [[ -n $VDIR ]]; then
+      x=$(vem $VDIR info flake8 2>/dev/null|grep -Eo "[0-9]+\.[0-9]+"|head -n1|tr -d ".")
+      [[ $x -lt 39 ]] && vem $VDIR exec "pip install -U \"flake8>3.9.0,<=6.0.0\""
+      run_traced "vem $VDIR exec \"flake8 --config=$FLAKE8_CONFIG --extend-ignore=B006 --max-line-length=88 ./\""
+    else
+      run_traced "flake8 --config=$FLAKE8_CONFIG --extend-ignore=B006 --max-line-length=88 ./"
+    fi
     sts=$?
     [[ -z $PYLINT_CONFIG_DIR && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg)"
     if [[ -z $PYLINT_CONFIG_DIR ]]; then
@@ -1136,16 +1142,29 @@ do_lint() {
       [[ -n $x ]] && run_traced "export PYLINT_CONFIG_DIR=$($READLINK -f $x/zerobug/_travis/cfg)"
     fi
     [[ -z $PYLINT_CONFIG_DIR ]] && echo "Non pylint configuration file found!" && return 1
-    run_traced "pylint --rcfile=$PYLINT_CONFIG_DIR/travis_run_pylint_beta.cfg ./"
+    if [[ -n $VDIR ]]; then
+      run_traced "vem $VDIR exec \"pylint --rcfile=$PYLINT_CONFIG_DIR/travis_run_pylint_beta.cfg ./\""
+    else
+      run_traced "pylint --rcfile=$PYLINT_CONFIG_DIR/travis_run_pylint_beta.cfg ./"
+    fi
     s=$?; [[ $s -ne 0 ]] && sts=$s
     return $sts
 }
 
 do_test() {
+    local x y
     wlog "do_test '$1' '$2' '$3'"
     set_opts_4_action
     run_traced "run_odoo_debug $opts -Tm $module"
     sts=$?
+    if [[ -x tests/logs/show-log.sh ]]; then
+      x=$(tests/logs/show-log.sh|grep -E "^TOTAL"|grep -Eo "[0-9]+%?"|tr "\n" " "|awk '{print "* [QUA] Test coverage " $3 " (" $1 ": " $2 "+" ($1 - $2) ")"}')
+      y=$(tests/logs/show-log.sh|grep -E "SUCCESSFULLY completed"|grep -Eo "[0-9]+ tests"|grep -Eo "[0-9]+"|awk '{print "[" $1 " TestPoint]"}')
+      echo ""
+      echo "$x $y"
+      echo ""
+      arcangelo egg-info/history.rst --test-res-msg="$x $y"
+    fi
     return $sts
 }
 

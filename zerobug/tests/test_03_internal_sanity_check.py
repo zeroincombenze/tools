@@ -33,10 +33,12 @@ class RegressionTest:
             z0ctx['ctr'] = 46
         else:
             sts = self.Z.sanity_check('-e', full=z0ctx)
-        sts += self.Z.test_result(z0ctx,
-                                  'python version',
-                                  os.getenv("TRAVIS_PYTHON_VERSION"),
-                                  "%d.%d" % (sys.version_info[0], sys.version_info[1]))
+        sts += self.Z.test_result(
+            z0ctx,
+            'python version',
+            os.getenv("TRAVIS_PYTHON_VERSION"),
+            "%d.%d" % (sys.version_info[0], sys.version_info[1]),
+        )
         return sts
 
 

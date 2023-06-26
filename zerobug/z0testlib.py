@@ -10,6 +10,7 @@ import os
 import shutil
 import stat
 import subprocess
+
 # import os.path
 import sys
 from string import Template
@@ -410,10 +411,7 @@ class Z0test(object):
         if not id:
             if this.startswith('test_'):
                 id = this[5:]
-            elif (
-                this.startswith('zerobug')
-                or this == '__main__'
-            ):
+            elif this.startswith('zerobug') or this == '__main__':
                 id = os.path.basename(self.rundir)
             else:
                 id = this
@@ -1098,8 +1096,11 @@ class Z0test(object):
         """Default main program for local tests"""
         # self.dbgmsg(ctx, '>>> main_local(%s)' % Test)
         test_list = sorted(
-            [meth for meth in dir(Test)
-             if meth.startswith("test_") and callable(getattr(Test, meth))]
+            [
+                meth
+                for meth in dir(Test)
+                if meth.startswith("test_") and callable(getattr(Test, meth))
+            ]
         )
         if not ctx.get('opt_noctr', False):
             self._exec_tests_4_count(test_list, ctx, Test)
@@ -1150,18 +1151,23 @@ class Z0test(object):
             ):
                 t_list = glob.glob(os.path.abspath(os.path.join(self.testdir, pattern)))
                 if not pattern.endswith(".py") and not pattern.endswith(".sh"):
-                    t_list += glob.glob(os.path.abspath(os.path.join(self.testdir,
-                                                                     pattern + ".py")))
-                    t_list += glob.glob(os.path.abspath(os.path.join(self.testdir,
-                                                                     pattern + ".sh")))
+                    t_list += glob.glob(
+                        os.path.abspath(os.path.join(self.testdir, pattern + ".py"))
+                    )
+                    t_list += glob.glob(
+                        os.path.abspath(os.path.join(self.testdir, pattern + ".sh"))
+                    )
                 for fn in sorted(t_list):
                     mime = magic.Magic(mime=True).from_file(os.path.realpath(fn))
                     if mime in ('text/x-python', 'text/x-shellscript'):
                         test_list.append(fn)
         if len(test_list) == 0 and Test is not None:
             test_list = sorted(
-                [meth for meth in dir(Test)
-                 if meth.startswith("test_") and callable(getattr(Test, meth))]
+                [
+                    meth
+                    for meth in dir(Test)
+                    if meth.startswith("test_") and callable(getattr(Test, meth))
+                ]
             )
         if not ctx.get('opt_noctr', False):
             self._exec_tests_4_count(test_list, ctx, Test)
@@ -1318,7 +1324,6 @@ class Z0testOdoo(object):
     def simulate_install_pypi(self, cmd):
         """Simulate pip post installation for"""
         PYCODE = r"""#!%(exec)s
-# -*- coding: utf-8 -*-
 import re
 import sys
 if sys.version_info[0] == 2:

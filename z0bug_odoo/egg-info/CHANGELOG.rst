@@ -1,3 +1,12 @@
+2.0.9 (2023-06-24)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: sometimes, validate_records does not match many2one fields
+* [FIX[ TestEnv: sometime crash in wizard on Odoo 11.0+ due inexistent ir.default
+* [FIX] TestEnv: default value in wizard creation, overlap default function
+* [FIX] TestEnv: record not found for xref of other group
+* [IMP] TestEnv: resource_bind is not more available: it is replaced by resource_browse
+
 2.0.8 (2023-04-26)
 ~~~~~~~~~~~~~~~~~~
 

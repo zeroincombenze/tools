@@ -56,17 +56,40 @@ APACHE_HTTPS_BLOCK = """
 
 
 class PleaseApache(object):
+    """NAME
+        create apache configuration file
+
+    SYNOPSIS
+        please create apache URL
+
+    DESCRIPTION
+        This command creates the apache configuration file for URL Odoo website.
+        The configuration file may be deployed on /etc/apache2/site-available path
+        or in equivalent path, i.e. /etc/httpd/conf
+
+    OPTIONS
+      %(options)s
+
+    EXAMPLES
+        please create apache odoo.example.com
+
+    BUGS
+        No known bugs.
+
+    SEE ALSO
+        Full documentation at: <https://zeroincombenze-tools.readthedocs.io/>
+    """
+
     def __init__(self, please):
         self.please = please
 
-    def get_actions(self):
-        return ["create"]
-
-    def action_opts(self, parser):
-        parser.add_argument(
-            "-o",
-            "--out-file",
-        )
+    def action_opts(self, parser, for_help=False):
+        self.please.add_argument(parser, "-b")
+        self.please.add_argument(parser, "-c")
+        self.please.add_argument(parser, "-l")
+        if not for_help:
+            self.please.add_argument(parser, "-n")
+        parser.add_argument("-o", "--out-file")
         parser.add_argument(
             "-P",
             "--protocol",
@@ -76,49 +99,32 @@ class PleaseApache(object):
         parser.add_argument(
             "-p",
             "--http-port",
-            help="http port (default 8069)",
+            help="http port (default from config file or 8069)",
         )
-        parser.add_argument("-L", "--long-port", help="logn port (default 8070)")
+        parser.add_argument(
+            "-L",
+            "--long-port",
+            help="long polling port(default from config file or 8070)",
+        )
+        if not for_help:
+            self.please.add_argument(parser, "-q")
         parser.add_argument(
             "-S",
             "--https-proxy",
             action="store_true",
             help="add https proxy statements",
         )
+        if not for_help:
+            self.please.add_argument(parser, "-v")
         parser.add_argument(
             "-x",
             "--xmlrpc-port",
-            help="xmlrpc port (default 8069)",
+            help="xmlrpc port (default from config file or 8069)",
         )
+        parser.add_argument("args", nargs="*")
         return parser
 
-    def do_action(self):
-        """
-        NAME
-            create apache configuration
-
-        SYNOPSIS
-            please create apache URL
-
-        DESCRIPTION
-            This command creates the apache configuration file for URL Odoo website.
-            The configuration file may be deployed on /etc/apache2/site-available path
-            or in equivalent path, i.e. /etc/httpd/conf
-
-        OPTIONS
-            -c      Odoo configuration file to URL
-            -l      Apache logs path: may be "logs" or ${APACHE_LOG_DIR}
-            -n      Do nothing (dry-run)
-            -P      Website protocol: may be "http" or "https"
-            -p      Odoo http port (default 8069)
-            -S      Add https proxy redirect statements
-            -x      Odoo xmlrpc port (default 8069, Odoo 10.0-)
-
-        EXAMPLES
-            please create apache odoo.example.com
-
-        BUGS
-            No known bugs."""
+    def do_create(self):
         please = self.please
         odoo_confn = please.opt_args.odoo_config
         if odoo_confn:
@@ -128,8 +134,8 @@ class PleaseApache(object):
         else:
             params = self.default_config(please.opt_args.odoo_branch)
         params["odoo_branch"] = please.opt_args.odoo_branch
-        if please.opt_args.sub1:
-            params["domain"] = please.opt_args.sub1
+        if please.opt_args.args[0]:
+            params["domain"] = please.opt_args.args[0]
         else:
             params["domain"] = "zeroincombenze.it"
         params["domain_2L"] = ".".join(params["domain"].split(".")[-2:])
@@ -159,8 +165,7 @@ class PleaseApache(object):
             params["https_block"] = ""
         content = APACHE_TEMPLATE % params
         out_file = (
-            please.opt_args.out_file
-            or ("~/%s-le-ssl.conf" % params["domain"])
+            please.opt_args.out_file or ("~/%s-le-ssl.conf" % params["domain"])
             if params["protocol"] == "https"
             else "~/%s.conf" % params["domain"]
         )

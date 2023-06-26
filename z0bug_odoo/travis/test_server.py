@@ -15,21 +15,31 @@ from six import string_types
 from zerobug import z0testodoo
 
 try:
-    from getaddons import (get_addons, get_applications_with_dependencies,
-                           get_dependencies, get_localizations_with_dependents,
-                           get_modules, get_modules_info)
+    from getaddons import (
+        get_addons,
+        get_applications_with_dependencies,
+        get_dependencies,
+        get_localizations_with_dependents,
+        get_modules,
+        get_modules_info,
+    )
     from travis_helpers import fail_msg, print_flush, success_msg
 except ImportError:
-    from .getaddons import (get_addons, get_applications_with_dependencies,
-                            get_dependencies, get_localizations_with_dependents,
-                            get_modules, get_modules_info)
+    from .getaddons import (
+        get_addons,
+        get_applications_with_dependencies,
+        get_dependencies,
+        get_localizations_with_dependents,
+        get_modules,
+        get_modules_info,
+    )
     from .travis_helpers import fail_msg, print_flush, success_msg
 try:
     import ConfigParser
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '2.0.8'
+__version__ = '2.0.9'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -765,8 +775,9 @@ def main(argv=None):
                         if sys.version_info[0] == 2:
                             print(line.strip())
                         else:
-                            print(line.strip().decode(
-                                'utf-8', errors='backslashreplace'))
+                            print(
+                                line.strip().decode('utf-8', errors='backslashreplace')
+                            )
                 returncode = pipe.wait()
                 # Find errors, except from failed mails
                 errors = has_test_errors(

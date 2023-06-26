@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Usage: clone_oca_dependencies [<checkout_dir> <build_dir>]
 
 Arguments:
@@ -33,7 +34,7 @@ from travis_helpers import print_flush
 from z0lib import z0lib
 
 _logger = logging.getLogger()
-__version__ = '2.0.8'
+__version__ = '2.0.9'
 
 
 def create_deps():
