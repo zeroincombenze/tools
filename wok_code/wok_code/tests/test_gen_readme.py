@@ -11,7 +11,7 @@ from python_plus import _c
 from z0lib import z0lib
 from zerobug import z0test, z0testodoo
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 MODULE_ID = "z0bug_odoo"
 TEST_FAILED = 1

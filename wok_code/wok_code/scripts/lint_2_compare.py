@@ -9,7 +9,7 @@ import re
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 
 IGNORE_DIRS = (".idea", ".git", "egg-info", "setup")

@@ -1,6 +1,6 @@
 
 ======
- 2.0.8
+ 2.0.9
 ======
 
 
@@ -828,14 +828,17 @@ Current version via Git
 History
 -------
 
-2.0.9 (2023-05-09)
-~~~~~~~~~~~~~~~~~~~~
+2.0.9 (2023-06-26)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states
 * [FIX] run_odoo_debug: check for dropped DB and abort if still exist
+* [REF] odoo_translation: refactoring
+* [REF] please: refactoring
 * [IMP] deploy_odoo: new brief for status
 * [IMP] deploy_odoo: new action unstaged e new status format
 * [IMP] do_migrate renamed to arcangelo
+* [IMP] gen_readme: manage CHANGELOG.rst too
 * [IMP] argangelo: refactoring to run inside pre-commit
 
 2.0.8 (2023-05-09)

@@ -1,6 +1,6 @@
 
 ======
- 2.0.7
+ 2.0.9
 ======
 
 
@@ -277,6 +277,13 @@ Current version via Git
 History
 -------
 
+2.0.8 (2023-06-26)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: werkzeug for Odoo 16.0
+* [IMP] list_requirements.py: best recognize mixed version odoo/python
+* [FIX] vem: commands return application status
+
 2.0.7 (2023-05-08)
 ~~~~~~~~~~~~~~~~~~
 
@@ -345,11 +352,6 @@ History
 * [FIX] vem: create with best package list
 * [FIX] vem: install odoo/openerp
 
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
 
 
 

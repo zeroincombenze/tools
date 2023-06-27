@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.9
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -228,7 +228,7 @@ get_req_list() {
 bin_install() {
   # bin_install(pkg)
   [[ $opt_verbose -gt 2 ]] && echo ">>> bin_install($*)"
-  local NPM reqver size x FH DISTO
+  local NPM reqver size x FH DISTO sts=126
   [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
   local MACHARCH=$(xuname -m)
   [[ -n $opt_distro ]] && DISTO=${opt_distro,,} || DISTO=$(xuname -d)
@@ -240,6 +240,7 @@ bin_install() {
       if [[ -z $x ]]; then
         x=$(which npm 2>/dev/null)
         if [[ -z "$x" ]]; then
+          sts=125
           echo "Package $pkg require npm software but this software is not installed on your system"
           echo "You should install npm ..."
           [[ $DISTO =~ ^fedora ]] && echo "dnf install npm"
@@ -253,6 +254,7 @@ bin_install() {
           pkg=${pkg/==/@}
           pkg=$(echo $pkg | tr -d "'")
           run_traced "$NPM install \"$pkg\""
+          sts=$?
           run_traced "$NPM install less-plugin-clean-css"
           x=$(find $($NPM bin) -name lessc 2>/dev/null | head -n1)
         fi
@@ -271,13 +273,16 @@ bin_install() {
         echo "File wkhtmltox${pkgext} not found!"
       elif [ "$pkgext" == ".rpm" ]; then
         run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
+        sts=$?
         run_traced "cp ./usr/local/bin/wkhtmltopdf ${VENV}/bin/wkhtmltopdf"
       elif [ "$pkgext" == ".deb" ]; then
         run_traced "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
+        sts=$?
         run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${VENV}/bin/wkhtmltopdf"
         run_traced "rm -r wkhtmltox.deb*"
       else
         run_traced "tar -xf wkhtmltox${pkgext}"
+        sts=$?
         run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${VENV}/bin/wkhtmltopdf"
         run_traced "rm -fr ./wkhtmltox"
       fi
@@ -287,27 +292,30 @@ bin_install() {
     x="${pkgs//+/.}"
     [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
   fi
+  return $sts
 }
 
 bin_install_1() {
   # bin_install_1()
   echo -en "\e[?25l"
   [[ $opt_verbose -gt 2 ]] && echo ">>> bin_install_1($*)"
-  local pkg
+  local pkg sts=126
   local binreq bin_re
   [[ -n "$opt_bins" ]] && binreq="${opt_bins//,/ }"
   if [[ -n "$opt_bins" ]]; then
     [[ $opt_verbose -gt 0 ]] && echo -e "(1) Analyzing \e[36m$opt_bins\e[0m"
     for pkg in $binreq; do
       bin_install $pkg
+      ((sts=sts+$?))
     done
   fi
   echo -en "\e[?25h"
+  return $sts
 }
 
 pip_install_wget() {
 # pip_install_wget(fn)
-    local d="" pfn="$1" x
+    local d="" pfn="$1" x sts=126
     pfn="$1"
     [[ $pfn == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
     [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
@@ -317,23 +325,27 @@ pip_install_wget() {
     [[ -f $x ]] && run_traced "rm -f $x"
     run_traced "wget $d"
     run_traced "$PIP install $popts $x"
-    [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+    sts=$?
+    [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+    return $sts
 }
 
 pip_install_git() {
 # pip_install_git(fn)
-    local d="" pfn="$1" x
+    local d="" pfn="$1" x sts=126
     [[ $pfn =~ "future" ]] && d="git+https://github.com/PythonCharmers/python-future.git"
     [[ $pfn =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
     [[ $pfn =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
     [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
     run_traced "$PIP install $d"
-    [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+    sts=$?
+    [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+    return $sts
 }
 
 pip_install() {
   #pip_install(pkg opts)
-  local d pfn pkg popts pypath srcdir tmpdir v vpkg x DISTO FH
+  local d pfn pkg popts pypath srcdir tmpdir v vpkg x DISTO FH sts=126
   [[ $1 =~ ^[\'\"] ]] && pkg="${1:1: -1}" || pkg="$1"
   [[ $opt_verbose -gt 1 ]] && echo -e "  \e[32mpip install \"$1\" $2\e[0m"
   [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
@@ -374,6 +386,7 @@ pip_install() {
     fi
     if [[ $pfn =~ $BIN_PKGS ]]; then
       bin_install "$pkg"
+      sts=$?
     elif [[ -n "$srcdir" ]]; then
       [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
       [[ -L $pypath/$pfn ]] && run_traced "rm -f $pypath/$pfn"
@@ -386,11 +399,13 @@ pip_install() {
         x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep --color=never -Eo "\./README.rst")
         # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
         run_traced "$PIP install $tmpdir/$pfn $popts"
-        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+        sts=$?
+        [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
         run_traced "rm -fR $tmpdir/$pfn"
       elif [[ $opt_debug -eq 3 ]]; then
         run_traced "$PIP install \"$srcdir\" $popts"
-        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+        sts=$?
+        [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
       else
         pushd $srcdir/.. >/dev/null
         [[ $pfn =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
@@ -405,7 +420,8 @@ pip_install() {
           done
         fi
         run_traced "ln -s $srcdir $pypath/$pfn"
-        [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+        sts=$?
+        [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
       fi
       # TODO> ?
       # set_hashbang "$pypath/${pfn}"
@@ -414,7 +430,8 @@ pip_install() {
     elif [[ $pfn =~ $EI_PKGS ]]; then
       run_traced "easy_install install \"$pkg\""
       run_traced "$PIP install $popts --upgrade \"$pkg\""
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+      sts=$?
+      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     elif [[ $pfn =~ $WGET_PKGS ]]; then
       d=""
       [[ $pfn == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
@@ -425,14 +442,16 @@ pip_install() {
       [[ -f $x ]] && run_traced "rm -f $x"
       run_traced "wget $d"
       run_traced "$PIP install $popts $x"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+      sts=$?
+      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     elif [[ $pfn =~ $GIT_PKGS ]]; then
       d=""
       [[ $pfn =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
       [[ $pfn =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
       [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
       run_traced "$PIP install $d"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+      sts=$?
+      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     elif [[ $pfn =~ $BZR_PKGS ]]; then
       x=$(which bzr 2>/dev/null)
       if [[ -z "$x" ]]; then
@@ -453,7 +472,8 @@ pip_install() {
         if [[ -n "$d" && -d "$d" ]]; then
           run_traced "cd $d"
           run_traced "python ./setup.py install"
-          [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+          sts=$?
+          [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
         else
           echo "Invalid bazar package: file setup.py not found!"
           ERROR_PKGS="$ERROR_PKGS   '$pfn'"
@@ -463,31 +483,36 @@ pip_install() {
       [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
       [[ $opt_verbose -lt 2 ]] && x=-1 || x=""
       run_traced "$PIP install $popts --extra-index-url https://testpypi.python.org/pypi \"$vpkg\" $2" "$x"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+      sts=$?
+      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     else
       [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
       [[ $opt_verbose -lt 2 ]] && x=-1 || x=""
       run_traced "$PIP install $popts \"$vpkg\" $2" "$x"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+      sts=$?
+      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     fi
     x="${pkgs//+/.}"
     [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
   fi
+  return $sts
 }
 
 pip_install_1() {
   # pip_install_1(popts)
   echo -en "\e[?25l"
-  local pkg popts ll
+  local pkg popts ll sts=0
   [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
   [[ $opt_verbose -gt 0 ]] && echo -e "(2) Analyzing \e[36m$SECURE_PKGS\e[0m"
   for pkg in $SECURE_PKGS; do
     pip_install "$pkg" "$popts"
+    ((sts=sts+$?))
   done
   if [[ -n $DEVEL_PKGS ]]; then
     [[ $opt_verbose -gt 0 ]] && echo -e "(3) Analyzing \e[36m$DEVEL_PKGS\e[0m"
     for pkg in $DEVEL_PKGS; do
       pip_install "$pkg" "$popts"
+      ((sts=sts+$?))
     done
   elif [[ $opt_verbose -gt 0 ]]; then
     echo -e "\e[1m(3) No DEVEL packages\e[0m"
@@ -497,29 +522,33 @@ pip_install_1() {
     [[ $opt_verbose -gt 0 ]] && echo -e "(4) Analyzing \e[36m$ll\e[0m"
     for pkg in $ll; do
       pip_install "$pkg" "$popts"
+      ((sts=sts+$?))
     done
   elif [[ $opt_verbose -gt 0 ]]; then
     echo -e "\e[1m(4) No BASE packages\e[0m"
   fi
   echo -en "\e[?25h"
+  return $sts
 }
 
 pip_install_2() {
-  # pip_install_2(popts)
+  # pip_install_2()
   echo -en "\e[?25l"
-  local pkg popts
+  local pkg popts sts=0
   [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
   [[ $opt_verbose -gt 0 ]] && echo -e "(5) Analyzing \e[36m$OEPKGS\e[0m"
   for pkg in $OEPKGS; do
     pip_install "$pkg" "$popts"
+    ((sts=sts+$?))
   done
   echo -en "\e[?25h"
+  return $sts
 }
 
 pip_install_req() {
-  # pip_install_req(popts)
+  # pip_install_req()
   echo -en "\e[?25l"
-  local f pfn pkg flist cmd popts
+  local f pfn pkg flist cmd popts sts=0
   [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
   for f in ${opt_rfile//,/ }; do
     pfn=$(readlink -f $f)
@@ -529,14 +558,16 @@ pip_install_req() {
     [[ $opt_verbose -gt 2 ]] && echo "<<<$flist>>>$(get_req_list '$pfn' '' 'debug')"
     for pkg in $flist; do
       pip_install "$pkg" "$popts"
+      ((sts=sts+$?))
     done
   done
   echo -en "\e[?25h"
+  return $sts
 }
 
 pip_uninstall() {
   #pip_uninstall(pkg opts)
-  local pkg d x srcdir pfn popts v
+  local pkg d x srcdir pfn popts v sts=0
   local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
   pkg=$(get_pkg_wo_version $(get_actual_pkg $1))
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
@@ -558,15 +589,18 @@ pip_uninstall() {
       x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
       [[ -n $x && $x != $pypath/${pfn}-${v}.dist-info ]] && run_traced "rm $x"
       run_traced "rm -fR $pypath/${pfn}-${v}.dist-info"
+      sts=$?
       run_traced "rm -f $srcdir"
     else
       [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
       run_traced "$PIP uninstall $popts $pkg $2"
-      [[ $? -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      sts=$?
+      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     fi
     x="${pkgs//+/.}"
     [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
   fi
+  return $sts
 }
 
 check_bin_package() {
@@ -964,7 +998,7 @@ do_venv_mgr_test() {
 do_venv_mgr() {
   # do_venv_mgr {amend|check|cp|mv|merge|test} VENV NEW_VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_mgr($*)"
-  local d f mime VENV V sitecustom x
+  local d f mime VENV V sitecustom x sts=126
   local cmd=$1
   VENV="$2"
   [[ -n "$3" ]] && VENV_TGT=$(readlink -m $3)
@@ -1006,6 +1040,7 @@ do_venv_mgr() {
     fi
     [[ -d $(dirname $VENV_TGT) ]] || run_traced "mkdir -p $(dirname $VENV_TGT)"
     run_traced "cp -r $VENV $VENV_TGT"
+    sts=$?
     [[ $opt_dry_run -eq 0 ]] && custom_env $VENV_TGT $opt_pyver
     V=$VENV_TGT
     do_activate "$V" "-q"
@@ -1020,6 +1055,7 @@ do_venv_mgr() {
       if [ -d "$VENV/$d" ]; then
         [[ $opt_verbose -gt 1 ]] && run_traced "rsync -a $VENV/$d/ $VENV_TGT/$d/"
         [[ $opt_verbose -eq 0 ]] && run_traced "rsync -aq $VENV/$d/ $VENV_TGT/$d/"
+        sts=$?
       fi
     done
     V=$VENV_TGT
@@ -1090,6 +1126,7 @@ do_venv_mgr() {
     if [[ "$cmd" == "mv" ]]; then
       do_deactivate
       run_traced "mv $VENV $VENV_TGT"
+      sts=$?
       do_activate "$VENV_TGT" "-q"
     fi
   elif [[ $cmd == "inspect" ]]; then
@@ -1127,18 +1164,20 @@ do_venv_mgr() {
     do_deactivate
   fi
   do_venv_mgr_test $V
+  return $sts
 }
 
 do_venv_create() {
   # do_venv_create VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_create($*)"
-  local f p pkg v VENV xpkgs SAVED_PATH x
+  local f p pkg v VENV xpkgs SAVED_PATH x sts=126
   local venvexe pyexe pypath
   VENV="$1"
   [[ $VENV =~ /$ ]] && VENV="${VENV:0: -1}"
   if [[ -d $VENV ]]; then
     if [[ $opt_force -eq 0 ]]; then
       echo "Warning: virtual environment $VENV already exists!!"
+      sts=125
     else
       for f in bin include lib node_modules share; do
          [[ -d $VENV/$f ]] && run_traced "rm -fR $VENV/$f"
@@ -1199,7 +1238,7 @@ do_venv_create() {
   fi
   run_traced "$venvexe $p $VENV"
   sts=$?
-  [[ $sts -ne 0 ]] && return
+  [[ $sts -ne 0 ]] && return $sts
   if [[ -d ${VENV}~ ]]; then
       empty=1
       if [[ -z $(find ${VENV}~ -maxdepth 0 -empty) ]]; then
@@ -1233,18 +1272,21 @@ do_venv_create() {
   [[ -n "$opt_oepath" && -d $opt_oepath/openerp ]] && pip_install openerp
   [[ -n "$opt_oepath" && -d $opt_oepath/odoo ]] && pip_install odoo
   do_venv_mgr_test $VENV
+  return $sts
 }
 
 do_venv_exec() {
   # do_venv_exec VENV cmd
-  local d f mime VENV V sitecustom
+  local d f mime VENV V sitecustom sts
   VENV="$1"
   run_traced "$2 $3 $4 $5 $6 $7 $8 $9"
+  sts=$?
+  return $sts
 }
 
 do_venv_pip() {
   # do_venv_pip VENV action pkg
-  local d f VENV V popts x
+  local d f VENV V popts x sts=126
   local SAVED_PATH=$PATH
   local cmd="$2"
   VENV="$1"
@@ -1260,6 +1302,7 @@ do_venv_pip() {
   fi
   if [[ $cmd == "uninstall" ]]; then
     pip_uninstall "$pkg"
+    sts=$?
   else
     [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
     [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
@@ -1271,18 +1314,26 @@ do_venv_pip() {
       pkg=$(get_pkg_wo_version $pkg)
       if [[ $pkg =~ $BIN_PKGS ]]; then
         check_bin_package "$pkg" "show"
+        sts=$?
       else
         run_traced "$PIP show $pkg"
+        sts=$?
         x=$($PIP show $pkg  2>/dev/null| grep -E ^Location | awk -F: '{print $2}' | sed -e "s| ||")
         [[ -n $x ]] && x=$x/$pkg
         [[ -L $x ]] && echo "Actual location is $(readlink -e $x)"
       fi
     fi
-    [[ $cmd == "install" ]] && pip_install "$pkg"
-    [[ $cmd == "update" ]] && pip_install "$pkg" "--upgrade"
+    if [[ $cmd == "install" ]]; then
+      pip_install "$pkg"
+      sts=$?
+    elif [[ $cmd == "update" ]]; then
+      pip_install "$pkg" "--upgrade"
+      sts=$?
+    fi
   fi
   do_deactivate
   export PATH=$SAVED_PATH
+  return $sts
 }
 
 validate_py_oe_vers() {
@@ -1434,6 +1485,7 @@ FLAG=">"
 chmod -c +x $LIST_REQ
 # LIST_REQ="python $LIST_REQ"    #debug
 
+sts=126
 if [[ $action == "rm" ]]; then
   [[ $PWD == $(readlink -f $p2) ]] && cd
   rm -fR $p2
@@ -1442,6 +1494,7 @@ if [[ $action == "rm" ]]; then
   exit 0
 elif [[ $action == "create" ]]; then
   [[ -n $opt_oepath ]] && opt_oepath=$(readlink -f $opt_oepath) && venv_mgr_check_oever
+  sts=$?
 elif [[ $action != "help" ]]; then
   do_activate "$p2" "-q"
   venv_mgr_check_src_path "$p2"
@@ -1452,27 +1505,35 @@ elif [[ $action != "help" ]]; then
   pypi_requrements "$opt_force"
 fi
 
+sts=126
 if [[ "$action" == "help" ]]; then
   man $(dirname $0)/man/man8/$(basename $0).8.gz
+  sts=0
 elif [[ "$action" == "exec" ]]; then
   do_venv_exec "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
+  sts=$?
   do_deactivate "-q"
 elif [[ "$action" == "python" ]]; then
   do_venv_exec "$p2" "python" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
+  sts=$?
   do_deactivate "-q"
 elif [[ "$action" == "shell" ]]; then
   do_venv_exec "$p2" "$SHELL -i" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
+  sts=$?
   do_deactivate "-q"
 elif [[ $action =~ (info|install|show|uninstall|update) ]]; then
   [[ $opt_cc -ne 0 && -d $HOME/.cache/pip ]] && run_traced "rm -fR $HOME/.cache/pip"
   do_venv_pip "$p2" "$action" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
+  sts=$?
   do_deactivate "-q"
 elif [[ "$action" == "create" ]]; then
   [[ $opt_cc -ne 0 && -d $HOME/.cache/pip ]] && run_traced "rm -fR $HOME/.cache/pip"
   do_venv_create "$p2" "$p3" "$p4" "$p5" "$p6"
+  sts=$?
   do_deactivate "-q"
 else
   do_venv_mgr "$action" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8" "$p9"
+  sts=$?
 fi
 PYTHONPATH=$SAVED_PYTHONPATH
 [[ $opt_verbose -gt 3 ]] && set +x
@@ -1528,4 +1589,4 @@ if [[ -n "$ERROR_PKGS" ]]; then
   fi
 fi
 unset PYTHON PIP
-exit 0
+exit $sts

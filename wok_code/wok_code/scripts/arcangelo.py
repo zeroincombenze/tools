@@ -11,7 +11,7 @@ import yaml
 from python_plus import _b
 from z0lib import z0lib
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 # RULES: every rule is list has the following format:
 # EREGEX, (ACTION, PARAMETERS), ...
@@ -34,7 +34,7 @@ __version__ = "2.0.8"
 #   Some test are useful, like:
 #   * self.to_major_version -> to process rule against specific Odoo major version
 #   * self.from_major_version -> to process rule against source Odoo major version
-#   * self.python_version -> to proces rule against python version
+#   * self.pythonsion -> to proces rule against python version
 #   * self.py23 -> to proces rule against python major version
 # ACTION is the action will be executed: it can be prefixed by some simple expression
 # if action begins with "/" (slash) it will be executed if EREGEX fails
@@ -187,15 +187,15 @@ class MigrateFile(object):
         self.to_major_version = int(opt_args.to_version.split('.')[0])
         if not opt_args.pypi_package:
             if self.to_major_version <= 10:
-                opt_args.python_ver = "2.7"
+                opt_args.python = "2.7"
                 self.def_python_future = True
             elif self.to_major_version <= 14:
-                opt_args.python_ver = "3.7"
+                opt_args.python = "3.7"
             else:
-                opt_args.python_ver = "3.8"
-        if opt_args.python_ver:
-            self.python_version = opt_args.python_ver
-            self.py23 = int(opt_args.python_ver.split(".")[0])
+                opt_args.python = "3.8"
+        if opt_args.python:
+            self.python_version = opt_args.python
+            self.py23 = int(opt_args.python.split(".")[0])
         else:
             self.python_version = "3.7"
             self.py23 = 3
@@ -332,7 +332,7 @@ class MigrateFile(object):
         if (
             (self.python_future
              or self.opt_args.ignore_pragma
-             or (self.opt_args.python_ver and self.py23 == 2))
+             or (self.opt_args.python and self.py23 == 2))
             and self.utf8_decl_nro < 0
         ):
             self.utf8_decl_nro = nro
@@ -376,7 +376,7 @@ class MigrateFile(object):
             if x:
                 ver = action[x.start(): x.end()]
                 if self.comparable_version(
-                    self.opt_args.python_ver
+                    self.opt_args.python
                 ) < self.comparable_version(ver):
                     return False, 0
             else:
@@ -392,7 +392,7 @@ class MigrateFile(object):
             if x:
                 ver = action[x.start(): x.end()]
                 if self.comparable_version(
-                    self.opt_args.python_ver
+                    self.opt_args.python
                 ) > self.comparable_version(ver):
                     return False, 0
             else:
@@ -743,8 +743,9 @@ def main(cli_args=None):
         action='store_true',
         help="Parse file containing '# flake8: noqa' or '# pylint: skip-file'",
     )
-    parser.add_argument('--ignore-pragma')
+    parser.add_argument('--ignore-pragma', action='store_true')
     parser.add_argument('-i', '--in-place', action='store_true')
+    parser.add_argument('-j', '--python')
     parser.add_argument(
         "-n",
         "--dry-run",
@@ -762,7 +763,6 @@ def main(cli_args=None):
         action='store_true',
         help="do nor execute black or prettier on modified files",
     )
-    parser.add_argument('-y', '--python-ver')
     parser.add_argument('path', nargs="*")
     opt_args = parser.parse_args(cli_args)
     sts = 0
