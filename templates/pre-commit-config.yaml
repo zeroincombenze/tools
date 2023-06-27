@@ -27,8 +27,10 @@ exclude: |
   /static/(src/)?lib/|
   # Repos using Sphinx to generate docs don't need prettying
   docs/|
+  # Examples and test data
+  /examples/|/tests/data/|
   # PYPI
-  odoo_shell.py|z0lib/z0lib/tests/tmp1.py|z0lib/z0lib/tests/tmp.py|wok_code/wok_code/scripts/to_pep8.py|wok_code/build/lib/wok_code/scripts/to_pep8.py|wok_code/build/lib.linux-x86_64-2.7/wok_code/scripts/to_pep8.py|wok_code/build/lib.linux-x86_64-2.7/wok_code/to_pep8.py|clodoo/clodoo/export_db_model.py|clodoo/clodoo/migrate_odoo_db.py|clodoo/clodoo/update_coa.py|clodoo/clodoo/examples/example_partner_shipping_addr.py|clodoo/clodoo/examples/example_product.py|clodoo/clodoo/examples/import_partners_fitness.py|clodoo/clodoo/examples/import_records.py|clodoo/clodoo/examples/import_products_gb.py|clodoo/clodoo/examples/import_rigoli.py|clodoo/clodoo/examples/import_partners_servizigrafici.py|clodoo/clodoo/examples/import_partners_merkatrade.py|clodoo/clodoo/examples/import_products.py|clodoo/clodoo/examples/example_sale_order.py|clodoo/clodoo/examples/import_partners_sicignano.py|clodoo/clodoo/examples/import_partners_gb.py|clodoo/build/lib/clodoo/export_db_model.py|clodoo/build/lib/clodoo/migrate_odoo_db.py|clodoo/build/lib/clodoo/update_coa.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/export_db_model.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/migrate_odoo_db.py|clodoo/build/lib.linux-x86_64-2.7/clodoo/update_coa.py|
+  odoo_shell.py|z0lib/z0lib/tests/tmp[0-9]?.py|wok_code/wok_code/scripts/to_pep8.py|clodoo/clodoo/export_db_model.py|clodoo/clodoo/migrate_odoo_db.py|clodoo/clodoo/update_coa.py|
   _check4deps_.py|testenv.*|
   # You don't usually want a bot to modify your legal texts
   (LICENSE.*|COPYING.*)|
@@ -37,11 +39,6 @@ exclude: |
   # external stylesheets
   (l10n_it_fatturapa/data/fatturaordinaria_v1.2.1.xsl|l10n_it_einvoice_base/static/src/fatturaordinaria_v1.2.1.xsl)|
   (l10n_it_fatturapa/data/FoglioStileAssoSoftware_v1.1.xsl|l10n_it_einvoice_base/static/src/FoglioStileAssoSoftware_v1.1.xsl)|
-  # XML tests should not be reformatted
-  ^l10n_it_fatturapa_out/tests/data|^l10n_it_einvoice_out/tests/data|
-  ^l10n_it_fatturapa_in/tests/data|^l10n_it_einvoice_in/tests/data|
-  ^l10n_it_fatturapa_out_sp/tests/data|
-  ^l10n_it_fatturapa_out_di/tests/data
 default_language_version:
   python: python3
 
@@ -59,7 +56,7 @@ repos:
         exclude: /README\.rst$|\.pot?$
       # - id: debug-statements
       - id: fix-encoding-pragma
-        exclude: /testenv\.py$|/_check4deps_\.py$
+        exclude: /testenv\.py$|/_check4deps_\.py$|conf\.py$|/tests/data/
       - id: check-case-conflict
       # - id: check-docstring-first
       - id: check-executables-have-shebangs

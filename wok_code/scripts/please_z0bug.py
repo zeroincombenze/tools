@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 
 class PleaseZ0bug(object):
@@ -45,12 +45,12 @@ class PleaseZ0bug(object):
             "-A",
             "--trace-after",
             metavar="REGEX",
-            help="travis stops after executed yaml statement",
+            help="Test stops after executed yaml statement",
         )
         self.please.add_argument(parser, "-B")
         self.please.add_argument(parser, "-b")
         parser.add_argument(
-            "-C", "--no-cache", action="store_true", help="do not use stored PYPI"
+            "-C", "--no-cache", action="store_true", help="Do not use stored PYPI"
         )
         self.please.add_argument(parser, "-c")
         parser.add_argument(
@@ -63,25 +63,20 @@ class PleaseZ0bug(object):
             "-E",
             "--no-savenv",
             action="store_true",
-            help="do not save virtual environment into ~/VME/... if does not exist",
+            help="Do not save virtual environment into ~/VME/... if does not exist",
         )
         parser.add_argument("-e", "--locale", metavar="ISO", help="use locale")
         parser.add_argument(
             "--full",
             action="store_true",
-            help="run final travis with full features",
+            help="Run final test with full features",
         )
-        parser.add_argument(
-            "-j",
-            "--python",
-            metavar="PYVER",
-            help=("test with specific python versions (comma separated)"),
-        )
+        self.please.add_argument(parser, "--python")
         parser.add_argument(
             "-k",
             "--keep",
             action="store_true",
-            help=("keep database test"),
+            help="Keep database test",
         )
         parser.add_argument(
             "-L",
@@ -95,22 +90,29 @@ class PleaseZ0bug(object):
             "-m",
             "--missing",
             action="store_true",
-            help="show missing line in report coverage after test",
+            help="Show missing line in report coverage after test",
         )
         if not for_help:
             self.please.add_argument(parser, "-n")
+        parser.add_argument(
+            "-p",
+            "--pattern",
+            metavar="PATTERN",
+            help="Pattern to match test files ('test*.py' default)",
+        )
+        if not for_help:
             self.please.add_argument(parser, "-q")
         parser.add_argument(
             "-S",
             "--syspkg",
             metavar="true|false",
-            help="use python system packages (def yaml dependents)",
+            help="Use python system packages (def yaml dependents)",
         )
         parser.add_argument(
             "-T",
             "--trace",
             metavar="REGEX",
-            help="trace stops before executing yaml statement",
+            help="Test stops before executing yaml statement",
         )
         if not for_help:
             self.please.add_argument(parser, "-v")
@@ -118,17 +120,18 @@ class PleaseZ0bug(object):
             "-X",
             "--translation",
             metavar="true|false",
-            help="enable translation test (def yaml dependents)",
+            help="Enable translation test (def yaml dependents)",
         )
         parser.add_argument(
             "-Y",
             "--yaml-file",
             metavar="PATH",
-            help="file yaml to process (def .travis.yml)",
+            help="File yaml to process (def .travis.yml)",
         )
         parser.add_argument(
-            "-Z", "--zero", action="store_true", help="use local zeroincombenze tools"
+            "-Z", "--zero", action="store_true", help="Use local zeroincombenze tools"
         )
+        parser.add_argument('--ignore-status', action='store_true')
         parser.add_argument("args", nargs="*")
         return parser
 
@@ -159,11 +162,13 @@ class PleaseZ0bug(object):
         please = self.please
         if please.is_odoo_pkg():
             cmd = os.path.join(os.getcwd(), "tests", "logs", "show-log.sh")
-            return please.run_traced(cmd)
+            sts = please.run_traced(cmd)
+            return 0 if please.opt_args.ignore_status else sts
         elif please.is_repo_odoo() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd(cmd="travis")
-            return please.run_traced(cmd)
+            sts = please.run_traced(cmd)
+            return 0 if please.opt_args.ignore_status else sts
         return please.do_iter_action("do_summary", act_all_pypi=True, act_tools=False)
 
     def do_test(self):

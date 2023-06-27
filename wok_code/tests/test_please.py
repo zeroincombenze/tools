@@ -13,7 +13,7 @@ from z0lib import z0lib
 from zerobug import z0test, z0testodoo
 
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1
@@ -157,6 +157,58 @@ class RegressionTest:
             cmd,
             "File ~/erp.example.com.conf will be created",
             stdout.split("\n")[0],
+        )
+
+        os.chdir(self.pypi_dir)
+        cmd = "please defcon gitignore -vn"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            ".gitignore should be updated/created" in stdout.split("\n")[0],
+        )
+
+        os.chdir(self.odoo_repodir)
+        cmd = "please defcon gitignore -vn"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            ".gitignore should be updated/created" in stdout.split("\n")[0],
+        )
+
+        os.chdir(self.pypi_dir)
+        cmd = "please defcon precommit -vn"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            ".pre-commit-config.yaml should be updated/created" in stdout.split("\n")[0]
+        )
+
+        os.chdir(self.odoo_repodir)
+        cmd = "please defcon precommit -vn"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            ".pre-commit-config.yaml should be updated/created" in stdout.split("\n")[0]
         )
         return sts
 

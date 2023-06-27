@@ -2831,19 +2831,19 @@ class MainTest(SingleTransactionCase):
             for field in template.keys():
                 if field in (childs_name, "id") or field.startswith("_"):
                     continue
-                self.log_lvl_2(
-                    "🐞 ... assertEqual(%s.%s:'%s', %s:'%s')"
-                    % (
-                        self.tmpl_repr([template]),
-                        field,
-                        template[field],
-                        "rec(%d)" % record.id,
-                        record[field],
-                    )
-                )
+                msg_id = ("🐞 ... assertEqual(%s.%s:'%s', %s:'%s')"
+                          % (
+                              self.tmpl_repr([template]),
+                              field,
+                              template[field],
+                              "rec(%d)" % record.id,
+                              record[field],
+                          ))
+                self.log_lvl_2(msg_id)
                 self.assertEqual(
                     self._cast_field(resource, field, template[field], fmt="py"),
-                    self._cast_field(resource, field, record[field], fmt="py")
+                    self._cast_field(resource, field, record[field], fmt="py"),
+                    msg_id
                 )
                 ctr_assertion += 1
             if childs_name:

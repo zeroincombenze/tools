@@ -28,6 +28,7 @@ SEE ALSO
 import os
 import sys
 import argparse
+import re
 
 # import re
 import itertools
@@ -51,7 +52,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 KNOWN_ACTIONS = [
     "help",
@@ -62,7 +63,6 @@ KNOWN_ACTIONS = [
     "import",
     "list",
     "lsearch",
-    "publish",
     "push",
     "pythonhosted",
     "replica",
@@ -290,6 +290,13 @@ class Please(object):
                     " full (status)"
                 ),
             )
+        elif arg in ("-j", "--python"):
+            parser.add_argument(
+                "-j",
+                "--python",
+                metavar="PYVER",
+                help="Run test with specific python version",
+            )
         elif arg in ("-l", "--log"):
             parser.add_argument("-l", "--log", metavar="FILE", help="log file name")
         elif arg in ("-n", "--dry-run"):
@@ -502,12 +509,12 @@ class Please(object):
                 os.path.isfile(os.path.join(path, "odoo-bin"))
                 or os.path.isfile(os.path.join(path, "openerp-server"))
             )
-            and os.path.isfile(os.path.join(path, "__init__.py"))
             and os.path.isdir(os.path.join(path, "addons"))
             and (
                 os.path.isdir(os.path.join(path, "odoo"))
-                or os.path.isdir(os.path.join(path, "openerp"))
-            )
+                and os.path.isfile(os.path.join(path, "odoo", "__init__.py")))
+                or (os.path.isdir(os.path.join(path, "openerp"))
+                    and os.path.isfile(os.path.join(path, "odoo", "__init__.py")))
         ):
             return True
         if os.path.basename(path) in ("addons", "odoo", "openerp"):
@@ -523,6 +530,28 @@ class Please(object):
             if os.path.isdir(subpath) and self.is_odoo_pkg(path=subpath):
                 return True
         return self.is_repo_ocb(os.path.dirname(path))
+
+    def get_odoo_branch_from_git(self, raise_if_not_found=True):
+        branch = ""
+        sts, stdout, stderr = z0lib.run_traced(
+            "git branch", verbose=False, dry_run=False
+        )
+        if sts == 0 and stdout:
+            sts = 1
+            for ln in stdout.split("\n"):
+                if ln.startswith("*"):
+                    branch = ln[2:]
+                    sts = 0
+                    break
+        if sts == 0:
+            x = re.match(r"[0-9]+\.[0-9]+", branch)
+            if not x:
+                if raise_if_not_found:
+                    print("Unrecognized git branch")
+                sts = 1
+        if sts == 0:
+            branch = branch[x.start(): x.end()]
+        return sts, branch
 
     def get_pypi_list(self, path=None, act_tools=True):
         path = path or (

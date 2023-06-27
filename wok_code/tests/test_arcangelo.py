@@ -14,7 +14,7 @@ from z0lib import z0lib
 from zerobug import z0test
 
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1
@@ -284,7 +284,7 @@ class RegressionTest:
 
         src_ffn = self.get_fullname("pkg_py3_06.py")
         tgt_ffn = self.get_test_fullname("pkg_py2_06.py")
-        cmd = "arcangelo -fw --pypi-package --python-ver=2 %s -o %s" % (
+        cmd = "arcangelo -fw --pypi-package --python=2 %s -o %s" % (
             src_ffn,
             tgt_ffn,
         )
@@ -314,7 +314,7 @@ class RegressionTest:
         with open(tgt_ffn, "w") as fd:
             fd.write(content)
 
-        cmd = "arcangelo --test-res-msg='%s' %s" % (
+        cmd = "arcangelo -f --test-res-msg='%s' %s" % (
             "* [QUA] Valid result",
             src_ffn,
         )

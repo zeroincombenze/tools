@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation on 2019-12-05 08:37:34
 #
