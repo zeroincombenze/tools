@@ -1,5 +1,5 @@
-Test Environment v2.0.9
-=========================
+Test Environment v2.0.10
+========================
 
 Overview
 --------
@@ -192,11 +192,12 @@ External reference
 Every record is tagged by an external reference.
 The external reference may be:
 
-* Ordinary Odoo external reference (a), format "module.name"
+* Ordinary Odoo external reference (a), called xref, format "module.name"
 * Test reference, format "z0bug.name" (b)
 * Key value, format "external.key" (c)
 * 2 keys reference, for header/detail relationship (d)
 * Magic reference for 'product.template' / 'product.product' (e)
+* Magic 3 level Odoo xref, format "module.name.field" (f)
 
 Ordinary Odoo external reference (a) is a record of 'ir.model.data';
 you can see them from Odoo GUI interface.
@@ -227,6 +228,15 @@ Please set self.debug_level = 2 (or more) to log these relationships.
 For 'product.template' (product) you must use '_template' text in reference (e).
 TestEnv inherit 'product.product' (variant) external reference (read above
 'Magic relationship).
+
+The magic 3 level Odoo xref is a special reference applicable on all kind of data.
+The format is like standard odoo xref with a 3th level which is the field name.
+i.e. "base.partner_1.name" means the field name of the standard Odoo external reference
+"base.partner_1". Notice:
+
+* every field of xref may be used
+* TestEnv does not match the type of current field and xref field
+* External reference may one of above (a) (b) (c) (d) or (e)
 
 Examples:
 
@@ -414,6 +424,9 @@ or some macro.
 You can declare data value on your own but you can discover the full test environment
 in https://github.com/zeroincombenze/zerobug-test/mk_test_env/ and get data
 from this environment.
+
+special value
+~~~~~~~~~~~~~~~~~~~~
 
 company_id
 ~~~~~~~~~~

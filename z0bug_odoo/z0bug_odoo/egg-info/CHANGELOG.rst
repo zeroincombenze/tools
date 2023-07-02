@@ -1,3 +1,9 @@
+2.0.10 (2023-07-02)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: new feature, external reference with specific field value
+* [REF] TestEnv: tomany casting refactoring
+
 2.0.9 (2023-06-24)
 ~~~~~~~~~~~~~~~~~~
 
