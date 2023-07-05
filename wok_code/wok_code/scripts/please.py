@@ -353,13 +353,34 @@ class Please(object):
         parser.add_argument("action", nargs="?")
         return parser
 
-    def pickle_params(self, cmd_subst=None, rm_obj=None):
+    def pickle_params(self, cmd_subst=None, rm_obj=None, slist=[]):
         params = ""
+        ignore_arg = False
         for arg in self.cli_args:
+            if ignore_arg:
+                ignore_arg = False
+                continue
             if cmd_subst and not arg.startswith("-"):
                 arg = cmd_subst
                 cmd_subst = None
-            if arg == self.objname and rm_obj:
+            else:
+                for (k, v) in slist:
+                    if arg == k:
+                        arg = v
+                    elif arg.startswith("--") and k.startswith("--"):
+                        if arg.split("=", 1)[0] == k:
+                            arg = v + "=" + arg.split("=", 1)[1] if v else None
+                    elif (
+                            arg.startswith("-") and not arg.startswith("--")
+                            and k.startswith("-") and not k.startswith("--")
+                    ):
+                        if k[1] in arg and "*" in k:
+                            if arg.endswith(k[1]):
+                                ignore_arg = True
+                            arg = arg[:arg.index(k[1])]
+                        elif k[1] in arg:
+                            arg = arg.replace(k[1], v)
+            if arg is None or arg == self.objname and rm_obj:
                 continue
             if "<" in arg or ">" in arg:
                 arg = "'%s'" % arg.replace("'", r"\'")
@@ -372,8 +393,8 @@ class Please(object):
                 arg = '"%s"' % arg.replace('"', r"\"")
             elif "'" in arg:
                 arg = '"%s"' % arg
-            else:
-                arg = "%s" % arg
+            # else:
+            #     arg = "%s" % arg
             params += arg + " "
         return params.strip()
 
@@ -401,17 +422,21 @@ class Please(object):
                 self.actions and self.magic.startswith("-")
             ):
                 break
+        self.actions = self.get_actions_list(self.actions)
         if (
             self.actions
             and not self.objname
-            and len(self.default_obj.get(self.actions, [])) == 1
+            # and len(self.default_obj.get(self.actions, [])) == 1
         ):
-            self.objname = self.default_obj[self.actions][0]
+            objs = list(itertools.chain.from_iterable(
+                [self.default_obj[x] for x in self.default_obj if x in self.actions]))
+            if len(objs) == 1:
+                self.objname = objs[0]
         if not self.objname and self.sub1 and self.sub1 in self.known_objs:
             self.objname = self.sub1
             self.sub1 = ""
         if not self.magic and not self.actions and not self.objname:
-            self.actions = "help"
+            self.actions = ["help"]
         if self.magic.startswith("-"):
             self.cli_args = cli_args
         else:
@@ -423,14 +448,14 @@ class Please(object):
                     args.append(arg)
                 elif head:
                     # action is discarded!
-                    args.append(self.actions or self.magic)
+                    args.append("+".join(self.actions) or self.magic)
                     if self.objname:
                         args.append(self.objname)
                     head = False
                 elif arg != self.objname:
                     args.append(arg)
             self.cli_args = args
-        self.actions = self.get_actions_list(self.actions)
+        # self.actions = self.get_actions_list(self.actions)
 
     def get_home_pypi(self):
         return os.path.join(self.home_devel, "pypi")

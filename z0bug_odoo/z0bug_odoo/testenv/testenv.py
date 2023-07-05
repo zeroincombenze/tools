@@ -187,6 +187,8 @@ KEY_CANDIDATE = (
     "partner_id",
     "product_id",
     "product_tmpl_id",
+    "agent",
+    "commission",
     "ref",
     "reference",
     "account_id",
@@ -229,7 +231,7 @@ class MainTest(SingleTransactionCase):
         self._logger = _logger
         # List of stored data by groups: grp1: [a,b,c], grp2: [d,e,f]
         self.setup_data_list = {}
-        # Data keys by group, name, resource, xref
+        # Data keys by group, resource, xref
         self.setup_data = {}
         # List of (group, resource) for every xref
         self.setup_xrefs = {}
@@ -766,9 +768,9 @@ class MainTest(SingleTransactionCase):
         if ((isinstance(value, str) or (sys.version_info[0] == 2
                                         and isinstance(value, unicode)))
                 and value.startswith("<?odoo")
-                and value.enswith("?>")
+                and value.endswith("?>")
                 and len(value.split(".")) == 3):
-            xref, field = value[6: -2].rsplit(".", 1)
+            xref, field = [x.strip() for x in value[6: -2].rsplit(".", 1)]
             value = self.resource_browse(xref=xref)[field]
         if value is None or (
             isinstance(value, basestring)
@@ -1114,8 +1116,9 @@ class MainTest(SingleTransactionCase):
                 items = []
         elif levl == 0 and isinstance(items, dict):
             # dict  -> [(0,0,dict)]  / [dict]
-            res1 = self.cast_types(resource, items, fmt="cmd")
-            res.append((0, 0, res1) if fmt == "cmd" else res1)
+            res1 = self.cast_types(resource, items, fmt="cmd" if fmt else None)
+            if res1:
+                res.append((0, 0, res1) if fmt == "cmd" else res1)
             is_cmd = True
             items = []
         for item in items:
@@ -1127,9 +1130,10 @@ class MainTest(SingleTransactionCase):
                     res1 = self._value2dict(
                         child_resource,
                         item,
-                        fmt="cmd",
+                        fmt="cmd" if fmt else None,
                         field2rm=self.parent_name.get(child_resource))
-                    res.append((0, 0, res1) if fmt == "cmd" else res1)
+                    if res1:
+                        res.append((0, 0, res1) if fmt == "cmd" else res1)
                 elif xid == item and fmt:                            # pragma: no cover
                     self.raise_error("Unknown value %s of %s" % (item, items))
                 elif xid:
@@ -1138,8 +1142,9 @@ class MainTest(SingleTransactionCase):
                 levl = 0
             elif isinstance(item, dict):
                 # dict  -> (0,0,dict)  / dict
-                res1 = self.cast_types(child_resource, item, fmt="cmd")
-                res.append((0, 0, res1) if fmt == "cmd" else res1)
+                res1 = self.cast_types(child_resource, item, fmt="cmd" if fmt else None)
+                if res1:
+                    res.append((0, 0, res1) if fmt == "cmd" else res1)
                 is_cmd = True
                 levl = 0
             elif isinstance(item, (list, tuple)) and levl == 0:
@@ -1678,9 +1683,9 @@ class MainTest(SingleTransactionCase):
         try:
             act_windows = self.for_xml_id(module, action_name)
         except BaseException:
-            if not records or len(records) != 1:
-                self.raise_error(
-                    "Invalid action_name %s" % action_name)
+            # if not records or len(records) != 1:
+            self.raise_error(
+                "Invalid action_name %s" % action_name)
         return self._wiz_launch(
             act_windows,
             default=default,
@@ -1818,6 +1823,8 @@ class MainTest(SingleTransactionCase):
                     parent[field_child] = []
                 if xref not in parent[field_child]:
                     parent[field_child].append(xref)
+            if isinstance(ln, (int, long)) and "sequence" in self.struct[resource]:
+                self.setup_data[group][name][xref]["sequence"] = ln
         if name not in self.setup_data_list[group]:
             self.setup_data_list[group].append(name)
         self.setup_xrefs[xref] = (group, resource)
@@ -1869,7 +1876,6 @@ class MainTest(SingleTransactionCase):
                     domain.append((field, "=", k1))
                     kk = False
                 elif field in values:
-                    # domain = [(field, "=", values[field])]
                     domain.append((field, "=", self._cast_field(
                         resource, field, values[field], fmt="cmd")))
             if domain and (
@@ -2392,7 +2398,14 @@ class MainTest(SingleTransactionCase):
             self.install_language(lang)
         self._convert_test_data(group=group)
         for resource in self.get_resource_list(group=group):
-            for xref in self.get_resource_data_list(resource, group=group):
+            resource_parent = self.parent_resource.get(resource)
+            for xref in sorted(self.get_resource_data_list(resource, group=group)):
+                if resource_parent:
+                    parent_xref, ln = self._unpack_xref(xref)
+                    if self.get_resource_data(resource_parent, parent_xref,
+                                              group=group):
+                        # Childs record alread loaded with header record
+                        continue
                 self.resource_make(resource, xref, group=group)
         if self.odoo_major_version < 13:
             self.env["account.journal"].search([("update_posted", "!=", True)]).write(

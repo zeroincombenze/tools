@@ -144,6 +144,19 @@ class RegressionTest:
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True, "please.sh test -vn" in stdout
         )
+
+        os.chdir(self.odoo_moduledir)
+        cmd = "please zerobug -vn --no-verify --no-translate"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True, "please.sh lint -vn" in stdout
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True, "please.sh test -vn" in stdout
+        )
         return sts
 
     def test_03(self, z0ctx):
@@ -282,6 +295,25 @@ class RegressionTest:
             True,
             "/please.sh test -vn" in stdout.split("\n")[0],
         )
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            "/please.sh translate -vn" in stdout.split("\n")[1],
+        )
+
+        os.chdir(self.odoo_moduledir)
+        cmd = "please test -vn --no-translate"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            "/please.sh test -vn" in stdout.split("\n")[0],
+        )
         return sts
 
     def test_06(self, z0ctx):
@@ -313,6 +345,25 @@ class RegressionTest:
 
         os.chdir(self.odoo_moduledir)
         cmd = "please lint -vn"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            "> pre-commit run" in stdout.split("\n")[0],
+        )
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            "/please.sh lint -vn" in stdout.split("\n")[1],
+        )
+
+        os.chdir(self.odoo_moduledir)
+        cmd = "please lint -vn --no-verify"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             self.Z.test_result(z0ctx, cmd, 0, sts)

@@ -267,6 +267,9 @@ Examples:
 Module test execution session
 -----------------------------
 
+Introduction
+~~~~~~~~~~~~
+
 Module test execution session should be:
 
     #. Data declaration, in setUp() function
@@ -346,6 +349,13 @@ Notice: you can also create / update record with the primitive create() and writ
 Odoo functions but they do not properly reflect the behaviour of user editing form
 with GUI interface.
 
+Simulate form editing
+~~~~~~~~~~~~~~~~~~~~~
+
+Ordinary Odoo test use the primitive create() and write() function to manage
+test data. These methods create an update records, but they do not properly
+reflect the behaviour of user editing form with GUI interface.
+
 The resource_edit() function simulates the client-side form editing
 in the server-side. It works in the follow way:
 
@@ -381,11 +391,39 @@ You can also simulate the update session, issuing the record:
             ],
         )
 
+The web_change parameter simulate the user behavior; it contains a list of couple
+(field, value) to apply to field of editing record. If field is associate to an onchange
+function the relative onchange functions are execute after value assignment.
+If onchange set another field with another onchange the relative another onchange are
+executed until all onchange are exhausted. This is the behavior of the form editing.
+
+Warning: because function are always executed at the server side the behavior
+may be slightly different from actual form editing. Please take note of following
+limitations:
+
+* update form cannot simulate discard button
+* some required data in create must be supplied by default parameter
+* form inconsistency cannot be detected by this function
+* nested function must be managed by test code (i.e. wizard from form)
+
+See test_testenv module for test examples
+https://github.com/zeroincombenze/zerobug-test/tree/12.0/test_testenv
+
 Look at resource_edit() documentation for furthermore details.
 
-In you test session you should need to test a wizard. This test is very easy
-to execute as in the follow example that engage the standard language install
-wizard:
+Test a wizard
+~~~~~~~~~~~~~
+
+In you test session you should need to test a wizard. TestEnv engages the specific
+wizard, simulate user actions and return the wizard result, usually a windows action.
+
+It is useful to test:
+    * view names
+    * wizard structure
+    * wizard code
+
+This test is very easy to execute as in the follow example that engage the standard
+language install wizard:
 
 ::
 
@@ -414,7 +452,89 @@ wizard:
             "No language %s loaded!" % "it_IT"
         )
 
+You can find the action name "action_view_base_language_install" from xml view file;
+this is a piece of "base_language_install_view.xml":
+
+::
+
+        <record id="action_view_base_language_install" model="ir.actions.act_window">
+            <field name="name">Load a Translation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">base.language.install</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+After you find the specific "ir.actions.act_window" record, look at the res_model key.
+In language install the res_model is "base.language.install"; now search for record
+which address this model: in language install the piece of code is follow:
+
+::
+        <record id="view_base_language_install" model="ir.ui.view">
+            <field name="name">Load a Translation</field>
+            <field name="model">base.language.install</field>
+            <field name="arch" type="xml">
+                <form string="Load a Translation">
+                    <field name="state" invisible="1"/>
+                    <group states="init">
+                        <field name="lang"/>
+                        <field name="overwrite" groups="base.group_no_one"/>
+                    </group>
+                    <group states="done" colspan="4">
+                        <label string="The selected language has been successfully installed. [...]]"/>
+                    </group>
+                    <footer states="init">
+                        <button name="lang_install" string="Load" type="object" class="btn-primary"/>
+                        <button special="cancel" string="Cancel" class="btn-default"/>
+                    </footer>
+                    <footer states="done">
+                        <button special="cancel" string="Close" class="btn-primary"/>
+                    </footer>
+                </form>
+           </field>
+        </record>
+
+Now you can easily find the install button and the button action, which name is
+"lang_install" in our example. This is exactly the above declaration:
+
+::
+
+        act_windows = self.wizard(
+            module="base",
+            action_name="action_view_base_language_install",
+            default={
+                "lang": "it_IT"
+                "overwrite": False,
+            },
+            button_name="lang_install",
+        )
+
+in wizard declaration.
+The parameter default set the wizard values but may be more useful emulate the user
+behavior with follow declaration:
+
+::
+
+        act_windows = self.wizard(
+            module="base",
+            action_name="action_view_base_language_install",
+            web_changes={
+                ("lang", "it_IT"),
+                ("overwrite", False)
+            },
+            button_name="lang_install",
+        )
+
 Look at wizard() documentation for furthermore details.
+
+validate record and field values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some time you need to validate multiple values on test result, i.e. from created record.
+You can use usually self.assert() functions but this way may be too complex or
+incomplete. You can validate one or more record against a dictionary template with all
+values to test and engage validate_record() function.
 
 Data values
 -----------
@@ -425,8 +545,8 @@ You can declare data value on your own but you can discover the full test enviro
 in https://github.com/zeroincombenze/zerobug-test/mk_test_env/ and get data
 from this environment.
 
-special value
-~~~~~~~~~~~~~~~~~~~~
+special values
+~~~~~~~~~~~~~~
 
 company_id
 ~~~~~~~~~~
@@ -451,7 +571,6 @@ You can declare boolean value:
 
 ::
 
-
     self.resource_create(
         "res.partner",
         xref="z0bug.partner1",
@@ -468,12 +587,10 @@ You can declare boolean value:
 char / text
 ~~~~~~~~~~~
 
-
 Char and Text values are python string; please use unicode whenever is possible
 even when you test Odoo 10.0 or less.
 
 ::
-
 
     self.resource_create(
         "res.partner",
@@ -885,44 +1002,7 @@ resource_edit
 
 Server-side web form editing.
 
-Ordinary Odoo test use the primitive create() and write() function to manage
-test data. These methods create an update records, but they do not properly
-reflect the behaviour of user editing form with GUI interface.
-
-This function simulates the client-side form editing in the server-side.
-It works in the follow way:
-
-* It can simulate the form create record
-* It can simulate the form update record
-* It can simulate the user data input
-* It calls the onchange functions automatically
-* It may be used to call button in the form
-
-User action simulation:
-
-The parameter <web_changes> is a list of user actions to execute sequentially.
-Every element of the list is another list with 2 or 3 values:
-
-* Field name to assign value
-* Value to assign
-* Optional function to execute (i.e. specific onchange)
-
-If field is associate to an onchange function the relative onchange functions
-are execute after value assignment. If onchange set another field with another
-onchange the relative another onchange are executed until all onchange are
-exhausted. This behavior is the same of the form editing.
-
-Warning: because function are always executed at the server side the behavior
-may be slightly different from actual form editing. Please take note of
-following limitations:
-
-* update form cannot simulate discard button
-* some required data in create must be supplied by default parameter
-* form inconsistency cannot be detected by this function
-* nested function must be managed by test code (i.e. wizard from form)
-
-See test_testenv module for test examples
-https://github.com/zeroincombenze/zerobug-test/tree/12.0/test_testenv
+Please, read above <Simulate form editing> chapter.
 
 def resource_edit(self, resource, default={}, web_changes=[], actions=[], ctx={}):
 
@@ -942,51 +1022,7 @@ wizard
 
 Execute a full wizard.
 
-Engage the specific wizard, simulate user actions and return the wizard result,
-usually a windows action.
-
-It is useful to test:
-
-    * view names
-    * wizard structure
-    * wizard code
-
-Both parameters <module> and <action_name> must be issued in order to
-call <wiz_by_action_name>; they are alternative to act_windows.
-
-*** Example of use ***
-
-::
-
-  XML view file:
-      <record id="action_example" model="ir.actions.act_window">
-          <field name="name">Example</field>
-          <field name="res_model">wizard.example</field>
-          [...]
-      </record>
-
-Python code:
-
-::
-
-    act_windows = self.wizard(module="module_example",
-        action_name="action_example", ...)
-    if self.is_action(act_windows):
-        act_windows = self.wizard(act_windows=act_windows, ...)
-
-User action simulation:
-
-The parameter <web_changes> is a list of user actions to execute sequentially.
-Every element of the list is another list with 2 or 3 values:
-
-* Field name to assign value
-* Value to assign
-* Optional function to execute (i.e. specific onchange)
-
-If field is associate to an onchange function the relative onchange functions
-are execute after value assignment. If onchange set another field with another
-onchange the relative another onchange are executed until all onchange are
-exhausted. This behavior is the same of the form editing.
+Read above <Test a wizard> chapter.
 
 def wizard(self, module=None, action_name=None, act_windows=None, records=None, default=None, ctx={}, button_name=None, web_changes=[], button_ctx={},):
 
