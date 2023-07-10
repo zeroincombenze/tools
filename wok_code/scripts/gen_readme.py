@@ -2206,18 +2206,20 @@ def generate_readme(ctx):
         if ctx["product_doc"] != "odoo":
             return
         target = manifest_contents(ctx)
-    tmpfile = "%s.tmp" % ctx["dst_file"]
-    bakfile = "%s.bak" % ctx["dst_file"]
+    # tmpfile = "%s.tmp" % ctx["dst_file"]
+    # bakfile = "%s.bak" % ctx["dst_file"]
     dst_file = ctx["dst_file"]
     if ctx["opt_verbose"]:
         print("Writing %s" % dst_file)
-    with open(tmpfile, "w") as fd:
+    # with open(tmpfile, "w") as fd:
+    #     fd.write(_c(target))
+    # if os.path.isfile(bakfile):
+    #     os.remove(bakfile)
+    # if os.path.isfile(dst_file):
+    #     os.rename(dst_file, bakfile)
+    # os.rename(tmpfile, dst_file)
+    with open(dst_file, "w") as fd:
         fd.write(_c(target))
-    if os.path.isfile(bakfile):
-        os.remove(bakfile)
-    if os.path.isfile(dst_file):
-        os.rename(dst_file, bakfile)
-    os.rename(tmpfile, dst_file)
     if (
         ctx["rewrite_manifest"]
         and ctx["odoo_layer"] == "module"

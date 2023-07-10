@@ -145,7 +145,7 @@ replace_web_module() {
     local l m param z w woca
     woca="$ODOO_RUNDIR/addons/_web_oca"
     w="$ODOO_RUNDIR/addons/web"
-    if [[ $odoo_ver -le 7 ]]; then
+    if [[ $odoo_ver -le 7 && -f $FULL_LCONFN ]]; then
         z=""
         l=""
         param=$(grep -E "^server_wide_modules *=.*" $FULL_LCONFN|cut -d"=" -f2|tr -d " ")
@@ -223,7 +223,7 @@ if [[ $opt_help -gt 0 ]]; then
     exit 0
 fi
 
-discover_multi
+[[ $opt_multi -lt 0 ]] && discover_multi
 CONFN=""
 opaths=""
 odoo_root=""
@@ -261,7 +261,7 @@ elif [[ -n $opt_odir ]]; then
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)
     opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
-elif [[ -n $opt_modules || $opt_branch ]]; then
+elif [[ -n $opt_modules || -n $opt_branch ]]; then
     odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
     odoo_root=$(build_odoo_param ROOT "$opt_branch")
     [[ -n $opt_modules ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -name $opt_modules)
@@ -271,7 +271,7 @@ elif [[ -n $opt_modules || $opt_branch ]]; then
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)
-    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')" || opaths="odoo_root"
+    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')" || opaths="$odoo_root"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 else
     odoo_fver=$(build_odoo_param FULLVER "$PWD")
@@ -282,7 +282,7 @@ else
     REPOSNAME=$(build_odoo_param REPOS "$PWD")
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$PWD")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)
-    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')" || opaths="odoo_root"
+    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')" || opaths="$odoo_root"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 fi
 [[ -z $odoo_root || ! -d $odoo_root ]] && echo "Odoo path $odoo_root not found!" && exit 1
@@ -306,8 +306,8 @@ elif [[ -f $opt_conf ]]; then
 elif [[ $opt_web -ne 0 ]]; then
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 elif [[ -f $CONFN ]]; then
-    RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
-    [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")
+    RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")
+    [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
 else
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 fi

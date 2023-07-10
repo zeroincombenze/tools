@@ -131,18 +131,32 @@ class PleaseZ0bug(object):
         parser.add_argument(
             "-Z", "--zero", action="store_true", help="Use local zeroincombenze tools"
         )
+        parser.add_argument(
+            "--no-translate", action="store_true", help="Disable translation after test"
+        )
+        parser.add_argument(
+            "--no-verify", action="store_true", help="Disable pre-commit on lint"
+        )
         parser.add_argument('--ignore-status', action='store_true')
         parser.add_argument("args", nargs="*")
         return parser
 
     def do_lint(self):
         please = self.please
+        # sts = 126
         if please.is_odoo_pkg():
-            please.sh_subcmd = please.pickle_params(rm_obj=True)
-            cmd = please.build_sh_me_cmd()
-            return please.run_traced(cmd, rtime=True)
-        elif please.is_repo_odoo() or please.is_pypi_pkg():
-            please.sh_subcmd = please.pickle_params(rm_obj=True)
+            sts = 0
+            if not please.opt_args.no_verify:
+                sts = please.run_traced("pre-commit run", rtime=True)
+            if sts == 0:
+                please.sh_subcmd = please.pickle_params(
+                    rm_obj=True, slist=[("--no-verify", "")])
+                cmd = please.build_sh_me_cmd()
+                return please.run_traced(cmd, rtime=True)
+            return sts
+        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
+            please.sh_subcmd = please.pickle_params(
+                rm_obj=True, slist=[("--no-verify", "")])
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_lint", act_all_pypi=True, act_tools=False)
@@ -152,7 +166,7 @@ class PleaseZ0bug(object):
         if please.is_odoo_pkg():
             cmd = os.path.join(os.getcwd(), "tests", "logs", "show-log.sh")
             return please.run_traced(cmd)
-        elif please.is_repo_odoo() or please.is_pypi_pkg():
+        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd)
@@ -164,7 +178,7 @@ class PleaseZ0bug(object):
             cmd = os.path.join(os.getcwd(), "tests", "logs", "show-log.sh")
             sts = please.run_traced(cmd)
             return 0 if please.opt_args.ignore_status else sts
-        elif please.is_repo_odoo() or please.is_pypi_pkg():
+        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd(cmd="travis")
             sts = please.run_traced(cmd)
@@ -174,11 +188,22 @@ class PleaseZ0bug(object):
     def do_test(self):
         please = self.please
         if please.is_odoo_pkg():
-            please.sh_subcmd = please.pickle_params(rm_obj=True)
+            please.sh_subcmd = please.pickle_params(
+                rm_obj=True, slist=[("--no-verify", ""), ("--no-translate", "")])
             cmd = please.build_sh_me_cmd()
-            return please.run_traced(cmd, rtime=True)
-        elif please.is_repo_odoo() or please.is_pypi_pkg():
-            please.sh_subcmd = please.pickle_params(rm_obj=True)
+            sts = please.run_traced(cmd, rtime=True)
+            if sts == 0 and not please.opt_args.no_translate:
+                please.sh_subcmd = please.pickle_params(
+                    rm_obj=True,
+                    slist=[("test", "translate"),
+                           ("--no-verify", ""),
+                           ("--no-translate", "")])
+                cmd = please.build_sh_me_cmd()
+                sts = please.run_traced(cmd, rtime=True)
+            return sts
+        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
+            please.sh_subcmd = please.pickle_params(
+                rm_obj=True, slist=[("--no-verify", ""), ("--no-translate", "")])
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_test", act_all_pypi=True, act_tools=False)
@@ -186,15 +211,38 @@ class PleaseZ0bug(object):
     def do_zerobug(self):
         please = self.please
         if please.is_odoo_pkg():
-            please.sh_subcmd = please.pickle_params(cmd_subst="lint", rm_obj=True)
-            cmd = please.build_sh_me_cmd()
-            sts = please.run_traced(cmd, rtime=True)
+            sts = 0
+            if not please.opt_args.no_verify:
+                sts = please.run_traced("pre-commit run", rtime=True)
             if sts == 0:
-                please.sh_subcmd = please.pickle_params(cmd_subst="test", rm_obj=True)
+                please.sh_subcmd = please.pickle_params(
+                    cmd_subst="lint",
+                    rm_obj=True,
+                    slist=[("--no-verify", ""), ("--no-translate", "")])
                 cmd = please.build_sh_me_cmd()
-                return please.run_traced(cmd, rtime=True)
-        elif please.is_repo_odoo() or please.is_pypi_pkg():
-            please.sh_subcmd = please.pickle_params(cmd_subst="emulate", rm_obj=True)
+                sts = please.run_traced(cmd, rtime=True)
+            if sts == 0:
+                please.sh_subcmd = please.pickle_params(
+                    cmd_subst="test",
+                    rm_obj=True,
+                    slist=[("--no-verify", ""), ("--no-translate", "")])
+                cmd = please.build_sh_me_cmd()
+                sts = please.run_traced(cmd, rtime=True)
+            if sts == 0 and not please.opt_args.no_translate:
+                please.sh_subcmd = please.pickle_params(
+                    rm_obj=True,
+                    slist=[("z0bug", "translate"),
+                           ("zerobug", "translate"),
+                           ("--no-verify", ""),
+                           ("--no-translate", "")])
+                cmd = please.build_sh_me_cmd()
+                sts = please.run_traced(cmd, rtime=True)
+            return sts
+        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
+            please.sh_subcmd = please.pickle_params(
+                cmd_subst="emulate",
+                rm_obj=True,
+                slist=[("--no-verify", ""), ("--no-translate", "")])
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)

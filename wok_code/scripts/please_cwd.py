@@ -61,7 +61,12 @@ class PleaseCwd(object):
     def do_clean(self):
         please = self.please
         is_odoo = please.is_odoo_pkg()
-        if please.is_odoo_pkg() or please.is_repo_odoo() or please.is_pypi_pkg():
+        if (
+                please.is_odoo_pkg()
+                or please.is_repo_odoo()
+                or please.is_repo_ocb()
+                or please.is_pypi_pkg()
+        ):
             sts = 0
             for root, dirs, files in os.walk(os.getcwd()):
                 for fn in files:
@@ -177,24 +182,29 @@ class PleaseCwd(object):
                         continue
                     found = line.startswith("!")
                     if trig == "odoo":
-                        for x in submodules:
-                            if x == line:
-                                found = True
-                                break
-                    elif trig == "pypi":
-                        if (
-                            # "/docs/_build/" not in line
-                            ".egg-info/" not in line
-                            and os.path.isdir(os.path.join(
-                                *[os.getcwd()] + [x for x in line.split("/") if x]
-                            ))
-                        ):
+                        if branch and line.startswith(" "):
                             found = True
+                        else:
+                            for x in submodules:
+                                if x == line:
+                                    found = True
+                                    break
+                    elif trig == "pypi":
+                        if not branch and line.startswith(" "):
+                            found = True
+                        else:
+                            if (
+                                ".egg-info/" not in line
+                                and os.path.isdir(os.path.join(
+                                    *[os.getcwd()] + [x for x in line.split("/") if x]
+                                ))
+                            ):
+                                found = True
                     if not trig or found:
                         target += "%s\n" % line
-                    if line.startswith("# odoo repositories"):
+                    if re.match("^ *# odoo repositories", line):
                         trig = "odoo"
-                    if line.startswith("# tools building path"):
+                    elif re.match("^ *# tools building path", line):
                         trig = "pypi"
 
             if not please.opt_args.dry_run:
@@ -214,12 +224,22 @@ class PleaseCwd(object):
 
     def do_docs(self):
         please = self.please
-        if please.is_odoo_pkg() or please.is_repo_odoo() or please.is_pypi_pkg():
+        if (
+                please.is_odoo_pkg()
+                or please.is_repo_odoo()
+                or please.is_repo_ocb()
+                or please.is_pypi_pkg()
+        ):
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd(
                 cmd=os.path.join(os.path.dirname(__file__), "please.sh")
             )
-            return please.run_traced(cmd, rtime=True)
+            sts = please.run_traced(cmd, rtime=True)
+            if sts == 0:
+                please.sh_subcmd = please.pickle_params(cmd_subst="wep", rm_obj=True)
+                cmd = please.build_sh_me_cmd()
+                please.run_traced(cmd, rtime=True)
+            return sts
         return please.do_iter_action("do_docs", act_all_pypi=True, act_tools=True)
 
     def do_edit(self):
@@ -248,7 +268,19 @@ class PleaseCwd(object):
 
     def do_replace(self):
         please = self.please
+        sts = 126
         if please.is_pypi_pkg():
+            sts = self.do_docs()
+        if sts == 0:
+            for root, dirs, files in os.walk(os.getcwd()):
+                for fn in files:
+                    if not fn.endswith(".bak") and not fn.endswith("~"):
+                        continue
+                    cmd = "rm -f " + os.path.join(root, fn)
+                    sts = please.run_traced(cmd)
+                    if sts:
+                        break
+        if sts == 0:
             if os.environ.get("HOME_DEVEL"):
                 tgtdir = os.path.join(
                     os.path.dirname(os.environ["HOME_DEVEL"]), "tools"
@@ -364,7 +396,12 @@ class PleaseCwd(object):
 
     def do_wep_db(self):
         please = self.please
-        if please.is_odoo_pkg() or please.is_repo_odoo() or please.is_pypi_pkg():
+        if (
+                please.is_odoo_pkg()
+                or please.is_repo_odoo()
+                or please.is_repo_ocb()
+                or please.is_pypi_pkg()
+        ):
             cmd = please.build_sh_me_cmd(
                 cmd=os.path.join(os.path.dirname(__file__), "travis.sh")
             )

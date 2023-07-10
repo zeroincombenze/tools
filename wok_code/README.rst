@@ -828,6 +828,15 @@ Current version via Git
 History
 -------
 
+2.0.9.1 (2023-06-28)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] gen_readme.py: do not create .bak file; now can be used in pre-commit process
+* [IMP] please replace now do "please docs" before
+* [IMP] please docs now do "please clean" after
+* [IMP] please lint and zerobug now do "pre-commit run" before
+* [IMP] please test and zerobug now do "please translate" after
+
 2.0.9 (2023-06-26)
 ~~~~~~~~~~~~~~~~~~
 
@@ -838,7 +847,7 @@ History
 * [IMP] deploy_odoo: new brief for status
 * [IMP] deploy_odoo: new action unstaged e new status format
 * [IMP] do_migrate renamed to arcangelo
-* [IMP] gen_readme: manage CHANGELOG.rst too
+* [IMP] gen_readme.py: manage CHANGELOG.rst too
 * [IMP] argangelo: refactoring to run inside pre-commit
 
 2.0.8 (2023-05-09)
@@ -913,12 +922,6 @@ History
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] stable version
-
-2.0.0.4 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New lint_2_compare command
-* [IMP] odoo_dependecies.py: minor upgrade
 
 
 
