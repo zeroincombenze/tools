@@ -231,7 +231,8 @@ class PleaseZ0bug(object):
             if sts == 0 and not please.opt_args.no_translate:
                 please.sh_subcmd = please.pickle_params(
                     rm_obj=True,
-                    slist=[("test", "translate"),
+                    slist=[("z0bug", "translate"),
+                           ("zerobug", "translate"),
                            ("--no-verify", ""),
                            ("--no-translate", "")])
                 cmd = please.build_sh_me_cmd()

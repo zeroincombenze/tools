@@ -114,12 +114,9 @@ stdout.log
 *.z0i
 #
 # tools building path
-#
 /clodoo/build/
 /clodoo/dist/
 /clodoo/clodoo/docs/_build/
-/lisa/lisa/build/
-/lisa/dist/
 /lisa/lisa/docs/_build/
 /odoo_score/build/
 /odoo_score/dist/
@@ -145,6 +142,4 @@ stdout.log
 /zerobug/build/
 /zerobug/dist/
 /zerobug/zerobug/docs/_build
-#
-# odoo repositories
 !static/lib/

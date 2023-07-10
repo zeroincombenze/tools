@@ -1398,20 +1398,18 @@ if __name__ == '__main__':
         hierarchy: flat,tree,server (def=flat)
         """
         name = name or version
-        if version in ('10.0', '11.0', '12.0', '13.0', '14.0', '15.0', '16.0'):
-            if hierarchy == 'tree':
-                odoo_home = os.path.join(name, 'odoo', 'odoo')
-            else:
-                odoo_home = os.path.join(name, 'odoo')
-            script = 'odoo-bin'
-        elif version in ('6.1', '7.0', '8.0', '9.0'):
+        if int(version.split(".")[0]) < 10:
             if hierarchy == 'server':
                 odoo_home = os.path.join(name, 'server', 'openerp')
             else:
                 odoo_home = os.path.join(name, 'openerp')
             script = 'openerp-server'
         else:
-            raise KeyError('Invalid Odoo version')
+            if hierarchy == 'tree':
+                odoo_home = os.path.join(name, 'odoo', 'odoo')
+            else:
+                odoo_home = os.path.join(name, 'odoo')
+            script = 'odoo-bin'
         os_tree = [
             name,
             os.path.join(name, 'addons'),
@@ -1450,15 +1448,21 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                 fd.write('print("Fake Odoo")\n')
         init_py = ""
         for fn in (script, "models.py", "fields.py", "api.py"):
-            if fn == "apy.py" and (version.startswith("6") or version.startswith("7")):
+            if fn == "api.py" and (version.startswith("6") or version.startswith("7")):
                 continue
             if fn == script:
+                ffn = os.path.join(os.path.dirname(odoo_home), fn)
                 for fn2 in ("release", "osv", "service", "tools"):
                     init_py += "import %s\n" % fn2
             else:
+                ffn = os.path.join(odoo_home, fn)
                 init_py += "import %s\n" % fn[:-3]
-            with open(os.path.join(odoo_root, fn), 'w') as fd:
+            with open(ffn, 'w') as fd:
                 fd.write('print("Fake Odoo")\n')
+                if fn == script:
+                    mode = os.fstat(fd.fileno()).st_mode
+                    mode |= stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+                    os.fchmod(fd.fileno(), stat.S_IMODE(mode))
         with open(os.path.join(odoo_home, "__init__.py"), 'w') as fd:
             fd.write(init_py)
         with open(os.path.join(odoo_root, '.travis.yml'), 'w') as fd:

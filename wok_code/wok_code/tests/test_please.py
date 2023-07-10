@@ -139,10 +139,20 @@ class RegressionTest:
             self.Z.test_result(z0ctx, cmd, 0, sts)
             return sts
         self.Z.test_result(
-            z0ctx, "%s> %s" % (os.getcwd(), cmd), True, "please.sh lint -vn" in stdout
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "pre-commit run" in stdout.split("\n")[0],
         )
         self.Z.test_result(
-            z0ctx, "%s> %s" % (os.getcwd(), cmd), True, "please.sh test -vn" in stdout
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh lint -vn" in stdout.split("\n")[1],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh test -vn" in stdout.split("\n")[2],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh translate -vn" in stdout.split("\n")[3],
         )
 
         os.chdir(self.odoo_moduledir)
@@ -152,10 +162,12 @@ class RegressionTest:
             self.Z.test_result(z0ctx, cmd, 0, sts)
             return sts
         self.Z.test_result(
-            z0ctx, "%s> %s" % (os.getcwd(), cmd), True, "please.sh lint -vn" in stdout
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh lint -vn" in stdout.split("\n")[0],
         )
         self.Z.test_result(
-            z0ctx, "%s> %s" % (os.getcwd(), cmd), True, "please.sh test -vn" in stdout
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh test -vn" in stdout.split("\n")[1],
         )
         return sts
 

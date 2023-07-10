@@ -455,7 +455,6 @@ class Please(object):
                 elif arg != self.objname:
                     args.append(arg)
             self.cli_args = args
-        # self.actions = self.get_actions_list(self.actions)
 
     def get_home_pypi(self):
         return os.path.join(self.home_devel, "pypi")

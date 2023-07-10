@@ -8,7 +8,11 @@
 from __future__ import print_function, unicode_literals
 import os
 import sys
-from zerobug import z0test, z0testodoo
+sys.path.insert(0,
+                os.path.dirname(os.path.dirname(os.getcwd()))
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.path.dirname(os.getcwd()))
+from zerobug import z0test, z0testodoo                                     # noqa: E402
 
 
 __version__ = "2.0.9"
@@ -29,10 +33,10 @@ class RegressionTest:
         self.root = ''
 
     def get_ocb_tree(self, ver, name=None, hy=None):
-        ocb_name = name if name else ver
-        if ver in ('7.0', '8.0'):
+        ocb_name = name or ver
+        if int(ver.split(".")[0]) < 10:
             OS_TREE = (
-                ocb_name,
+                '%s/server' % ocb_name if hy else '%s' % ocb_name,
                 '%s/addons' % ocb_name,
                 '%s/server/openerp' % ocb_name if hy else '%s/openerp' % ocb_name,
                 '%s/.git' % ocb_name,
@@ -40,7 +44,7 @@ class RegressionTest:
             hy = 'server' if hy else None
         else:
             OS_TREE = (
-                ocb_name,
+                '%s/odoo' % ocb_name if hy else '%s' % ocb_name,
                 '%s/addons' % ocb_name,
                 '%s/odoo/odoo' % ocb_name if hy else '%s/odoo' % ocb_name,
                 '%s/.git' % ocb_name,
@@ -63,7 +67,7 @@ class RegressionTest:
             path = os.path.join(self.root, OS_TREE[2], 'release.py')
         sts += self.Z.test_result(z0ctx, 'odoo %s' % path, True, os.path.isfile(path))
         if not z0ctx['dry_run']:
-            base = "openerp-server" if ver in ('7.0', '8.0') else 'odoo-bin'
+            base = "openerp-server" if int(ver.split(".")[0]) < 10 else 'odoo-bin'
             path = os.path.join(self.root, OS_TREE[0], base)
         sts += self.Z.test_result(z0ctx, 'odoo %s' % path, True, os.path.isfile(path))
         return sts
@@ -199,7 +203,7 @@ class RegressionTest:
         return sts
 
     def setup(self, z0ctx):
-        root = os.path.join(os.path.expanduser('~/'), 'OCB-14.0')
+        root = os.path.expanduser('~/OCB-14.0')
         self.os_tree = [
             root,
             os.path.join(root, 'addons'),
